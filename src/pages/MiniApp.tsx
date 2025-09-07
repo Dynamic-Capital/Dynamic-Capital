@@ -10,9 +10,10 @@ import { VipLaunchPromoPopup } from "@/components/miniapp/VipLaunchPromoPopup";
 import { QuickActions } from "@/components/miniapp/QuickActions";
 import { SubscriptionStatusCard } from "@/components/shared/SubscriptionStatusCard";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
-import { useThemeSync } from "@/hooks/useThemeSync";
+import { useTheme } from "@/hooks/useTheme";
 import { CurrencyProvider } from "@/hooks/useCurrency";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { 
   Home, 
   Star, 
@@ -25,7 +26,7 @@ import {
 } from "lucide-react";
 
 export default function MiniApp() {
-  useThemeSync();
+  const { currentTheme } = useTheme();
   const { telegramUser, isAdmin } = useTelegramAuth();
   
   const [telegramData, setTelegramData] = useState<any>(null);
@@ -98,8 +99,16 @@ export default function MiniApp() {
     <CurrencyProvider>
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 safe-area-top">
         <div className="w-full max-w-md mx-auto">
+          {/* Header with theme toggle */}
+          <div className="sticky top-0 z-20 liquid-glass backdrop-blur-xl border-b border-white/20 dark:border-white/10 ui-p-sm">
+            <div className="flex items-center justify-between">
+              <h1 className="text-body-lg font-semibold text-foreground">Dynamic Capital VIP</h1>
+              <ThemeToggle variant="glass" size="sm" />
+            </div>
+          </div>
+          
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="sticky top-0 z-10 glass-card backdrop-blur-md border-b">
+            <div className="sticky top-14 z-10 glass-card backdrop-blur-md border-b">
               <TabsList className={`glass-card grid w-full ${isAdmin ? 'grid-cols-8' : 'grid-cols-7'} h-16 p-1`}>
                 <TabsTrigger value="home" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <Home className="h-5 w-5" />

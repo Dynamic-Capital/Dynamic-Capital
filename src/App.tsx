@@ -6,7 +6,7 @@ import { BrowserRouter, Route, Routes, useNavigate, useLocation } from "react-ro
 import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/useAuth";
 import { TelegramAuthProvider } from "@/hooks/useTelegramAuth";
-import { useThemeSync } from "@/hooks/useThemeSync";
+import { useTheme } from "@/hooks/useTheme";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import MobileBottomNav from "./components/navigation/MobileBottomNav";
@@ -56,7 +56,7 @@ const TelegramRedirect = () => {
 
 // Component to apply theme sync to the entire app
 const AppContent = () => {
-  useThemeSync();
+  useTheme();
   
   const location = useLocation();
   const isInMiniApp = location.pathname === '/miniapp';
