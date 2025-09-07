@@ -34,11 +34,11 @@ const navItems: NavItem[] = [
     ariaLabel: "View subscription plans"
   },
   {
-    id: "education",
-    label: "Learn",
-    icon: GraduationCap,
-    path: "/education",
-    ariaLabel: "Access educational content"
+    id: "checkout",
+    label: "Checkout",
+    icon: CheckCircle,
+    path: "/checkout",
+    ariaLabel: "Complete your purchase"
   },
   {
     id: "dashboard",

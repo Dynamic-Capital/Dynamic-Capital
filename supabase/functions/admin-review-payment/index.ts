@@ -139,11 +139,29 @@ serve(async (req) => {
   }).eq("id", prof.id);
 
   if (prof.telegram_id) {
+    const vipChannelLink = "https://t.me/+_k_CP8gR20E2YTll";
+    const vipGroupLink = "https://t.me/+-eTumm8BD88wMzY1";
+    
     const msg = body.message ||
-      `✅ <b>VIP Activated</b>\nYour access is valid until <b>${
+      `✅ <b>VIP Activated</b>\n\nYour access is valid until <b>${
         new Date(expiresAt!).toLocaleDateString()
-      }</b>.`;
+      }</b>.\n\n🔥 <b>Join Your VIP Access:</b>\n📢 VIP Channel: ${vipChannelLink}\n💬 VIP Group: ${vipGroupLink}\n\nWelcome to the VIP community! 🚀`;
+    
     await tgSend(botToken, String(prof.telegram_id), msg);
+    
+    // Trigger VIP sync for membership verification
+    try {
+      await fetch(`https://qeejuomcapbdlhnjqjcc.functions.supabase.co/vip-sync/one`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Secret": getEnv("ADMIN_API_SECRET")
+        },
+        body: JSON.stringify({ telegram_user_id: prof.telegram_id })
+      });
+    } catch (e) {
+      console.log("VIP sync failed (non-critical):", e);
+    }
   }
 
   await supa.from("admin_logs").insert({

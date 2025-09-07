@@ -42,6 +42,13 @@ const navItems: NavItem[] = [
     ariaLabel: "Access educational content"
   },
   {
+    id: "checkout",
+    label: "Checkout",
+    icon: CreditCard,
+    path: "/checkout",
+    ariaLabel: "Complete your purchase"
+  },
+  {
     id: "dashboard",
     label: "Dashboard",
     icon: Settings,

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   CreditCard, 
   Shield, 
@@ -13,10 +14,16 @@ import {
   Sparkles, 
   Check,
   AlertCircle,
-  Loader2
+  Loader2,
+  Upload,
+  Building,
+  Coins,
+  ExternalLink,
+  FileText
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Plan {
   id: string;
@@ -33,6 +40,16 @@ interface WebCheckoutProps {
   promoCode?: string;
 }
 
+type PaymentMethod = "bank_transfer" | "crypto" | "telegram";
+type CheckoutStep = "method" | "instructions" | "upload" | "pending";
+
+interface BankAccount {
+  bank_name: string;
+  account_name: string;
+  account_number: string;
+  currency: string;
+}
+
 export const WebCheckout: React.FC<WebCheckoutProps> = ({ 
   selectedPlanId, 
   promoCode: initialPromoCode 
@@ -44,6 +61,14 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
   const [loading, setLoading] = useState(true);
   const [processingCheckout, setProcessingCheckout] = useState(false);
   const [validatingPromo, setValidatingPromo] = useState(false);
+  
+  // Web checkout state
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("telegram");
+  const [currentStep, setCurrentStep] = useState<CheckoutStep>("method");
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchPlans();
@@ -103,23 +128,96 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
   const handleCheckout = async () => {
     if (!selectedPlan) return;
 
+    if (paymentMethod === "telegram") {
+      setProcessingCheckout(true);
+      try {
+        const botUsername = "Dynamic_VIP_BOT";
+        const telegramUrl = `https://t.me/${botUsername}?start=plan_${selectedPlan.id}${promoValidation?.valid ? `_promo_${promoCode}` : ''}`;
+        window.open(telegramUrl, '_blank');
+        toast.success('Redirecting to Telegram to complete purchase');
+      } catch (error) {
+        toast.error('Failed to initiate checkout');
+      } finally {
+        setProcessingCheckout(false);
+      }
+      return;
+    }
+
+    // Web checkout flow
     setProcessingCheckout(true);
     try {
-      // For demo purposes, redirect to Telegram bot
-      const botUsername = "Dynamic_VIP_BOT";
-      const telegramUrl = `https://t.me/${botUsername}?start=plan_${selectedPlan.id}${promoValidation?.valid ? `_promo_${promoCode}` : ''}`;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to continue');
+        return;
+      }
+
+      // Create payment intent
+      const { data, error } = await supabase.functions.invoke('checkout-init', {
+        body: {
+          telegram_id: user.user_metadata?.telegram_id || user.id,
+          plan_id: selectedPlan.id,
+          method: paymentMethod
+        }
+      });
+
+      if (error) throw error;
       
-      // In a real implementation, this would call a Stripe checkout edge function
-      // const response = await supabase.functions.invoke('create-checkout', {
-      //   body: { planId: selectedPlan.id, promoCode: promoValidation?.valid ? promoCode : undefined }
-      // });
+      setPaymentId(data.payment_id);
       
-      window.open(telegramUrl, '_blank');
-      toast.success('Redirecting to Telegram to complete purchase');
-    } catch (error) {
-      toast.error('Failed to initiate checkout');
+      if (data.instructions?.type === "bank_transfer") {
+        setBankAccounts(data.instructions.banks || []);
+      }
+      
+      setCurrentStep("instructions");
+      toast.success('Payment initiated successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to initiate checkout');
     } finally {
       setProcessingCheckout(false);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!uploadedFile || !paymentId) return;
+
+    setUploading(true);
+    try {
+      // Get upload URL
+      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('receipt-upload-url', {
+        body: { payment_id: paymentId }
+      });
+
+      if (uploadError) throw uploadError;
+
+      // Upload file
+      const formData = new FormData();
+      formData.append('file', uploadedFile);
+      
+      const uploadResponse = await fetch(uploadData.upload_url, {
+        method: 'PUT',
+        body: uploadedFile,
+        headers: { 'Content-Type': uploadedFile.type }
+      });
+
+      if (!uploadResponse.ok) throw new Error('Upload failed');
+
+      // Submit receipt
+      const { error: submitError } = await supabase.functions.invoke('receipt-submit', {
+        body: { 
+          payment_id: paymentId,
+          file_path: uploadData.file_path
+        }
+      });
+
+      if (submitError) throw submitError;
+
+      setCurrentStep("pending");
+      toast.success('Receipt uploaded successfully! Your payment is being reviewed.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload receipt');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -310,26 +408,196 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
 
           <Separator />
           
-          {/* Checkout Button */}
-          <div className="space-y-4">
-            <Button 
-              onClick={handleCheckout}
-              disabled={processingCheckout}
-              className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              {processingCheckout ? (
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-              ) : (
-                <CreditCard className="h-5 w-5 mr-2" />
+          {/* Payment Method Selection */}
+          {currentStep === "method" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Choose Payment Method</CardTitle>
+                  <CardDescription>Select how you'd like to complete your payment</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Select value={paymentMethod} onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="telegram">
+                        <div className="flex items-center gap-2">
+                          <ExternalLink className="h-4 w-4" />
+                          Continue in Telegram (Recommended)
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="bank_transfer">
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4" />
+                          Bank Transfer
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="crypto">
+                        <div className="flex items-center gap-2">
+                          <Coins className="h-4 w-4" />
+                          Cryptocurrency
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
+              <Button 
+                onClick={handleCheckout}
+                disabled={processingCheckout}
+                className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                {processingCheckout ? (
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                ) : paymentMethod === "telegram" ? (
+                  <ExternalLink className="h-5 w-5 mr-2" />
+                ) : (
+                  <CreditCard className="h-5 w-5 mr-2" />
+                )}
+                {paymentMethod === "telegram" ? "Continue in Telegram" : `Pay with ${paymentMethod === "bank_transfer" ? "Bank Transfer" : "Crypto"}`} - ${finalPrice.toFixed(2)}
+              </Button>
+            </div>
+          )}
+
+          {/* Payment Instructions */}
+          {currentStep === "instructions" && (
+            <div className="space-y-4">
+              <Alert>
+                <FileText className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Step 1:</strong> Complete your payment using the details below, then upload your receipt.
+                </AlertDescription>
+              </Alert>
+
+              {paymentMethod === "bank_transfer" && bankAccounts.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building className="h-5 w-5" />
+                      Bank Transfer Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {bankAccounts.map((bank, idx) => (
+                      <div key={idx} className="p-4 border rounded-lg space-y-2">
+                        <div className="font-medium">{bank.bank_name}</div>
+                        <div className="text-sm space-y-1">
+                          <div><strong>Account Name:</strong> {bank.account_name}</div>
+                          <div><strong>Account Number:</strong> {bank.account_number}</div>
+                          <div><strong>Currency:</strong> {bank.currency}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
               )}
-              Complete Purchase - ${finalPrice.toFixed(2)}
-            </Button>
-            
+
+              {paymentMethod === "crypto" && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Coins className="h-5 w-5" />
+                      Cryptocurrency Payment
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Send payment to the crypto address provided via Telegram. Upload your transaction receipt below.
+                      </AlertDescription>
+                    </Alert>
+                  </CardContent>
+                </Card>
+              )}
+
+              <Button 
+                onClick={() => setCurrentStep("upload")}
+                className="w-full"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Receipt
+              </Button>
+            </div>
+          )}
+
+          {/* File Upload */}
+          {currentStep === "upload" && (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="h-5 w-5" />
+                    Upload Payment Receipt
+                  </CardTitle>
+                  <CardDescription>
+                    Upload a clear photo or screenshot of your payment confirmation
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                  />
+                  
+                  {uploadedFile && (
+                    <div className="text-sm text-muted-foreground">
+                      Selected: {uploadedFile.name} ({(uploadedFile.size / 1024 / 1024).toFixed(2)}MB)
+                    </div>
+                  )}
+
+                  <Button 
+                    onClick={handleFileUpload}
+                    disabled={!uploadedFile || uploading}
+                    className="w-full"
+                  >
+                    {uploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    {uploading ? "Uploading..." : "Submit Receipt"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Pending Review */}
+          {currentStep === "pending" && (
+            <div className="space-y-4">
+              <Alert>
+                <Clock className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Payment Submitted!</strong><br />
+                  Your receipt is being reviewed. You'll receive a Telegram notification once approved.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="text-center space-y-2">
+                <div className="text-sm text-muted-foreground">
+                  Payment ID: {paymentId}
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <a href="/payment-status" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Check Status
+                  </a>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === "method" && (
             <p className="text-xs text-center text-muted-foreground">
               By proceeding, you agree to our Terms of Service and Privacy Policy.
-              For the full experience, complete purchase in Telegram.
             </p>
-          </div>
+          )}
         </div>
       </div>
     </div>
