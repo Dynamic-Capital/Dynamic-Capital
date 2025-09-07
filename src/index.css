@@ -1,5 +1,6 @@
 
 
+@import './styles/mobile.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
