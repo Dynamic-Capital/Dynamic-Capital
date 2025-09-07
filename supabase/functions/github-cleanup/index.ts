@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { json, ok, oops } from "../_shared/http.ts";
-import { EdgeRuntime } from "https://deno.land/x/edge_runtime@1.0.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,9 +20,9 @@ serve(async (req) => {
 
       switch (action) {
         case 'cleanup_duplicate_files':
-          // Start background cleanup task
-          EdgeRuntime.waitUntil(performGitHubCleanup(supabase));
-          return ok({ message: 'GitHub cleanup started in background' });
+          // Run cleanup task
+          const cleanupResult = await performGitHubCleanup(supabase);
+          return ok({ message: 'GitHub cleanup completed', result: cleanupResult });
         
         case 'get_cleanup_status':
           return await getCleanupStatus(supabase);
