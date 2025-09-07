@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { 
   Home, 
   CreditCard, 
@@ -63,17 +63,18 @@ const navItems: NavItem[] = [
 
 export const DesktopNav: React.FC = () => {
   const location = useLocation();
+  const shouldReduceMotion = useReducedMotion();
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <motion.nav 
-      className="hidden md:flex items-center gap-1" 
-      role="navigation" 
+    <motion.nav
+      className="hidden md:flex items-center gap-1"
+      role="navigation"
       aria-label="Main navigation"
-      initial={{ opacity: 0, y: -20 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
     >
       {navItems.map((item, index) => {
         const Icon = item.icon;
@@ -81,11 +82,14 @@ export const DesktopNav: React.FC = () => {
         return (
           <motion.div
             key={item.id}
-            initial={{ opacity: 0, x: -20 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            transition={{
+              duration: shouldReduceMotion ? 0 : 0.3,
+              delay: shouldReduceMotion ? 0 : index * 0.1,
+            }}
+            whileHover={shouldReduceMotion ? undefined : { scale: 1.05 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
           >
             <Button
               asChild
@@ -105,26 +109,33 @@ export const DesktopNav: React.FC = () => {
                 aria-current={active ? "page" : undefined}
               >
                 <motion.div
-                  animate={active ? { scale: 1.1, rotate: 360 } : { scale: 1, rotate: 0 }}
-                  transition={{ duration: 0.3 }}
+                  animate={
+                    active
+                      ? shouldReduceMotion
+                        ? { scale: 1.05 }
+                        : { scale: 1.1, rotate: 360 }
+                      : { scale: 1, rotate: 0 }
+                  }
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
                 >
                   <Icon className="h-4 w-4" />
                 </motion.div>
                 <span className="font-medium">{item.label}</span>
                 <AnimatePresence>
-                  {active && (
-                    <motion.div 
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                      initial={{ x: "-100%" }}
-                      animate={{ x: "100%" }}
-                      exit={{ x: "100%" }}
-                      transition={{ 
-                        duration: 1.5, 
-                        repeat: Infinity, 
-                        ease: "linear" 
-                      }}
-                    />
-                  )}
+                  {!shouldReduceMotion &&
+                    active && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                        initial={{ x: "-100%" }}
+                        animate={{ x: "100%" }}
+                        exit={{ x: "100%" }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                      />
+                    )}
                 </AnimatePresence>
               </Link>
             </Button>
@@ -133,13 +144,13 @@ export const DesktopNav: React.FC = () => {
       })}
       
       {/* Auth Button */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3, delay: 0.5 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
+        <motion.div
+          initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.3, delay: shouldReduceMotion ? 0 : 0.5 }}
+          whileHover={shouldReduceMotion ? undefined : { scale: 1.05 }}
+          whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
+        >
         <Button
           asChild
           variant="outline"
@@ -156,8 +167,8 @@ export const DesktopNav: React.FC = () => {
             aria-label="Sign in to your account"
           >
             <motion.div
-              whileHover={{ rotate: -10 }}
-              transition={{ duration: 0.2 }}
+              whileHover={shouldReduceMotion ? undefined : { rotate: -10 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
             >
               <LogIn className="h-4 w-4" />
             </motion.div>
