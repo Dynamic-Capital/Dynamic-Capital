@@ -1,69 +1,89 @@
-import { Sun, Moon, Monitor } from "lucide-react";
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/useTheme";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface ThemeToggleProps {
-  className?: string;
-  size?: "sm" | "default" | "lg";
-  variant?: "default" | "outline" | "ghost" | "glass";
-  floating?: boolean;
-  large?: boolean; // For larger icons when floating
-}
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
-export function ThemeToggle({ 
-  className, 
-  size = "default", 
-  variant = "ghost", 
-  floating = false,
-  large = false
-}: ThemeToggleProps) {
-  const { theme, currentTheme, toggleTheme, isInTelegram } = useTheme();
-
-  const getIcon = () => {
-    const iconSize = large || floating ? "h-8 w-8" : size === "lg" ? "h-5 w-5" : "h-4 w-4";
+  useEffect(() => {
+    // Check for saved theme or default to light
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const initialTheme = savedTheme || systemTheme;
     
-    if (theme === 'system') {
-      return <Monitor className={iconSize} />;
+    setTheme(initialTheme);
+    updateTheme(initialTheme);
+  }, []);
+
+  const updateTheme = (newTheme: 'light' | 'dark') => {
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
-    return currentTheme === 'dark' ? <Moon className={iconSize} /> : <Sun className={iconSize} />;
+    localStorage.setItem('theme', newTheme);
   };
 
-  const getLabel = () => {
-    if (theme === 'system') {
-      return `System (${currentTheme})`;
-    }
-    return currentTheme === 'dark' ? 'Dark mode' : 'Light mode';
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    updateTheme(newTheme);
   };
-
-  const buttonClass = variant === 'glass' ? 'liquid-glass-button' : '';
-  
-  const floatingClasses = floating 
-    ? "fixed bottom-6 right-6 z-50 shadow-2xl border-2 border-primary/20 bg-background/90 backdrop-blur-xl hover:bg-background hover:shadow-primary/30 hover:border-primary/40" 
-    : "";
 
   return (
-    <Button
-      variant={variant === 'glass' ? 'ghost' : variant}
-      size={size}
-      onClick={toggleTheme}
-      className={cn(
-        "transition-all duration-300 hover:scale-110",
-        buttonClass,
-        floatingClasses,
-        className
-      )}
-      aria-label={`Switch theme (currently ${getLabel()})`}
-      title={`Switch theme (currently ${getLabel()})`}
+    <motion.div
+      className="fixed bottom-6 right-6 z-50"
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
     >
-      <div className="flex items-center gap-2">
-        {getIcon()}
-        {size !== "sm" && !floating && (
-          <span className="text-sm hidden sm:inline font-medium">
-            {isInTelegram ? (theme === 'system' ? 'Auto' : theme === 'dark' ? 'Dark' : 'Light') : getLabel()}
-          </span>
+      <Button
+        onClick={toggleTheme}
+        variant="outline"
+        size="lg"
+        className={cn(
+          "relative h-14 w-14 rounded-full p-0 overflow-hidden",
+          "bg-background/80 backdrop-blur-md border-2",
+          "hover:scale-110 active:scale-95 transition-all duration-200",
+          "shadow-lg hover:shadow-xl",
+          "border-primary/30 hover:border-primary/50",
+          "hover:bg-gradient-primary hover:text-primary-foreground"
         )}
-      </div>
-    </Button>
+      >
+        <AnimatePresence mode="wait">
+          {theme === 'light' ? (
+            <motion.div
+              key="sun"
+              initial={{ opacity: 0, rotate: -180, scale: 0.5 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: 180, scale: 0.5 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <Sun className="h-6 w-6 text-primary" />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="moon"
+              initial={{ opacity: 0, rotate: 180, scale: 0.5 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: -180, scale: 0.5 }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <Moon className="h-6 w-6 text-primary" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {/* Background gradient effect */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-primary opacity-0 transition-opacity duration-300 rounded-full"
+          whileHover={{ opacity: 0.1 }}
+        />
+      </Button>
+    </motion.div>
   );
 }

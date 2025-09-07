@@ -97,7 +97,7 @@ Here are some helpful resources:
 
   if (!isOpen) {
     return (
-      <div className={cn("fixed bottom-4 right-4 z-50", className)}>
+      <div className={cn("fixed bottom-20 left-4 z-40", className)}>
         <Button
           onClick={() => setIsOpen(true)}
           size="lg"
@@ -110,7 +110,7 @@ Here are some helpful resources:
   }
 
   return (
-    <div className={cn("fixed bottom-4 right-4 z-50 w-80 max-w-[calc(100vw-2rem)]", className)}>
+    <div className={cn("fixed bottom-20 left-4 z-40 w-80 max-w-[calc(100vw-2rem)]", className)}>
       <Card className="bg-card/95 backdrop-blur-md border shadow-xl">
         {!isMinimized && (
           <>

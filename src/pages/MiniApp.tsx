@@ -25,6 +25,7 @@ import { MobileFloatingActionButton } from '@/components/ui/mobile-floating-acti
 import { FullscreenAdaptive } from '@/components/ui/responsive-motion';
 import { ErrorBoundary } from '@/components/ui/error-handling';
 import { CurrencyProvider } from '@/hooks/useCurrency';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ViewportAware } from '@/components/ui/responsive-motion';
 
 // Component imports
@@ -36,105 +37,67 @@ import CheckoutSection from '@/components/miniapp/CheckoutSection';
 import StatusSection from '@/components/miniapp/StatusSection';
 import { FAQSection } from '@/components/miniapp/FAQSection';
 import { AskSection } from '@/components/miniapp/AskSection';
-import { QuickActions } from '@/components/miniapp/QuickActions';
-import { AdminDashboard } from '@/components/admin/AdminDashboard';
-import { SubscriptionStatusCard } from '@/components/shared/SubscriptionStatusCard';
+
+// Types
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  duration_months: number;
+  is_lifetime: boolean;
+  features: string[];
+}
 
 export default function MiniApp() {
   const [activeTab, setActiveTab] = useState('home');
-  const [telegramData, setTelegramData] = useState<any>(null);
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const [promoCode, setPromoCode] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [paymentStep, setPaymentStep] = useState<'plan' | 'payment' | 'confirmation'>('plan');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Check if user is admin (simplified check without external dependency)
-  const isAdmin = telegramData?.user?.username && 
-    ['dynamiccapital_support', 'admin'].includes(telegramData.user.username.toLowerCase());
+  const tabs = [
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'plan', label: 'Plans', icon: CreditCard },
+    { id: 'status', label: 'Status', icon: User },
+    { id: 'faq', label: 'FAQ', icon: HelpCircle },
+    { id: 'ask', label: 'Support', icon: MessageCircle },
+  ];
 
-  useEffect(() => {
-    // Parse URL parameters on mount
-    const urlParams = new URLSearchParams(window.location.search);
-    setActiveTab(urlParams.get('tab') || 'home');
-    setSelectedPlanId(urlParams.get('plan'));
-    setPromoCode(urlParams.get('promo'));
-
-    // Initialize Telegram Web App
-    if (isInTelegram) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
-      
-      setTelegramData({
-        user: tg.initDataUnsafe?.user,
-        query_id: tg.initDataUnsafe?.query_id,
-        auth_date: tg.initDataUnsafe?.auth_date,
-        hash: tg.initDataUnsafe?.hash
-      });
-
-      // Enable closing confirmation
-      tg.enableClosingConfirmation();
-      
-      // Set theme based on Telegram theme
-      if (tg.colorScheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      }
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <div className="space-y-6">
+            <HomeLanding telegramData={null} />
+          </div>
+        );
+      case 'plan':
+        if (selectedPlan && paymentStep === 'payment') {
+          return (
+            <EnhancedPaymentSection
+              selectedPlan={selectedPlan}
+              onBack={() => {
+                setSelectedPlan(null);
+                setPaymentStep('plan');
+              }}
+            />
+          );
+        }
+        return (
+          <PlanSection />
+        );
+      case 'status':
+        return <StatusSection telegramData={null} />;
+      case 'faq':
+        return <FAQSection />;
+      case 'ask':
+        return <AskSection />;
+      default:
+        return <HomeLanding telegramData={null} />;
     }
-
-    // Fullscreen detection
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    setIsLoading(false);
-    
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
-
-  const handleApplyPromo = (promoCode: string) => {
-    // Navigate to plan tab with promo code
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', 'plan');
-    url.searchParams.set('promo', promoCode);
-    window.history.pushState({}, '', url.toString());
-    setActiveTab('plan');
-    setPromoCode(promoCode);
   };
-
-  // Handle URL parameter changes
-  useEffect(() => {
-    const handlePopState = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      setActiveTab(urlParams.get('tab') || 'home');
-      setSelectedPlanId(urlParams.get('plan'));
-      setPromoCode(urlParams.get('promo'));
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  const handleRefresh = async () => {
-    // Simulate refresh action
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    // Add actual refresh logic here
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full"
-        />
-      </div>
-    );
-  }
 
   return (
     <ErrorBoundary>
@@ -147,344 +110,57 @@ export default function MiniApp() {
           )}
           fullscreenScale={1}
         >
-          {/* Mobile Scroll Progress Indicator */}
-          {isMobile && <MobileScrollIndicator scrollableRef={scrollRef} />}
-          
-          {/* Enhanced Mobile Tabs with Pull-to-Refresh */}
-          <MobilePullToRefresh onRefresh={handleRefresh}>
-            <Tabs 
-              value={activeTab} 
-              onValueChange={setActiveTab}
-              className="w-full h-full flex flex-col"
-            >
-              {/* Mobile Header with Swipe Gesture */}
-              <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b mobile-tabs safe-area-top">
-                <MobileSwipeContainer
-                  onSwipeLeft={() => {
-                    const tabs = ['home', 'plan', 'status', 'help', 'ask'];
-                    const currentIndex = tabs.indexOf(activeTab);
-                    if (currentIndex < tabs.length - 1) {
-                      setActiveTab(tabs[currentIndex + 1]);
-                    }
-                  }}
-                  onSwipeRight={() => {
-                    const tabs = ['home', 'plan', 'status', 'help', 'ask'];
-                    const currentIndex = tabs.indexOf(activeTab);
-                    if (currentIndex > 0) {
-                      setActiveTab(tabs[currentIndex - 1]);
-                    }
-                  }}
-                >
-                  <div className="px-4 py-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <motion.div 
-                        className="flex items-center gap-2"
-                        whileHover={{ scale: 1.02 }}
+          <MobilePullToRefresh
+            onRefresh={async () => {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }}
+          >
+            <div ref={containerRef} className="relative min-h-screen">
+              {/* Main Content */}
+              <div className="pb-20 relative z-10">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  {/* Mobile Tab Content */}
+                  <div className="px-4 pt-safe">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="min-h-[calc(100vh-8rem)]"
                       >
-                        <ThreeDEmoticon emoji="💎" size={24} intensity={0.3} />
-                        <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-red-600 bg-clip-text text-transparent mobile-heading">
-                          Dynamic Capital VIP
-                        </h1>
+                        {renderTabContent()}
                       </motion.div>
-                      
-                      {telegramData?.user && (
-                        <TouchFeedback>
-                          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 touch-target">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            <span className="text-xs font-medium">Online</span>
-                          </div>
-                        </TouchFeedback>
-                      )}
-                    </div>
+                    </AnimatePresence>
+                  </div>
 
-                    {/* Enhanced Mobile Tab Navigation with improved layout */}
-                    <TabsList className="grid w-full h-auto bg-muted/30 backdrop-blur-sm rounded-xl p-1 grid-cols-5">
-                      <TabsTrigger 
-                        value="home" 
-                        className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 mobile-focus-ring"
-                      >
-                        <TouchFeedback>
-                          <div className="flex flex-col items-center gap-1">
-                            <Home className="h-4 w-4" />
-                            <span className="text-xs font-medium">Home</span>
-                          </div>
-                        </TouchFeedback>
-                      </TabsTrigger>
-                      
-                      <TabsTrigger 
-                        value="plan" 
-                        className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 mobile-focus-ring"
-                      >
-                        <TouchFeedback>
-                          <div className="flex flex-col items-center gap-1">
-                            <CreditCard className="h-4 w-4" />
-                            <span className="text-xs font-medium">Plans</span>
-                          </div>
-                        </TouchFeedback>
-                      </TabsTrigger>
-                      
-                      <TabsTrigger 
-                        value="status" 
-                        className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 mobile-focus-ring"
-                      >
-                        <TouchFeedback>
-                          <div className="flex flex-col items-center gap-1">
-                            <User className="h-4 w-4" />
-                            <span className="text-xs font-medium">Status</span>
-                          </div>
-                        </TouchFeedback>
-                      </TabsTrigger>
-                      
-                      <TabsTrigger 
-                        value="help" 
-                        className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 mobile-focus-ring"
-                      >
-                        <TouchFeedback>
-                          <div className="flex flex-col items-center gap-1">
-                            <HelpCircle className="h-4 w-4" />
-                            <span className="text-xs font-medium">Help</span>
-                          </div>
-                        </TouchFeedback>
-                      </TabsTrigger>
-                      
-                      <TabsTrigger 
-                        value="ask" 
-                        className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 mobile-focus-ring"
-                      >
-                        <TouchFeedback>
-                          <div className="flex flex-col items-center gap-1">
-                            <MessageCircle className="h-4 w-4" />
-                            <span className="text-xs font-medium">Ask</span>
-                          </div>
-                        </TouchFeedback>
-                      </TabsTrigger>
+                  {/* Mobile Navigation */}
+                  <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border/50 safe-area-pb">
+                    <TabsList className="w-full h-16 bg-transparent p-0 rounded-none">
+                      {tabs.map((tab) => (
+                        <TabsTrigger
+                          key={tab.id}
+                          value={tab.id}
+                          className={cn(
+                            "flex-1 h-16 flex-col gap-1 text-xs font-medium rounded-none",
+                            "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
+                            "hover:bg-muted/50 transition-all duration-200"
+                          )}
+                        >
+                          <tab.icon className="h-5 w-5" />
+                          <span>{tab.label}</span>
+                        </TabsTrigger>
+                      ))}
                     </TabsList>
                   </div>
-                </MobileSwipeContainer>
+                </Tabs>
               </div>
+            </div>
 
-              {/* Enhanced Mobile Content with Swipe Navigation */}
-              <div 
-                ref={scrollRef}
-                className={cn(
-                  "flex-1 overflow-y-auto overscroll-y-contain mobile-scroll",
-                  isMobile && "safe-area-bottom"
-                )}
-                style={{ 
-                  WebkitOverflowScrolling: 'touch',
-                  scrollBehavior: 'smooth'
-                }}
-              >
-                <motion.div 
-                  className="min-h-full"
-                  initial="hidden" 
-                  animate="visible"
-                >
-                  <AnimatePresence mode="wait">
-                    <TabsContent value="home" className="mt-0 space-y-4 px-4 pb-20">
-                      <MobileSwipeContainer
-                        onSwipeLeft={() => setActiveTab('plan')}
-                        className="min-h-[calc(100vh-200px)] mobile-swipe-hint"
-                      >
-                        <ViewportAware>
-                          <motion.div
-                            key="home-content"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ delay: 0.1, duration: 0.4 }}
-                            className="mobile-slide-up"
-                          >
-                            <HomeLanding telegramData={telegramData} />
-                          </motion.div>
-                        </ViewportAware>
-                      </MobileSwipeContainer>
-                    </TabsContent>
-
-                    <TabsContent value="plan" className="mt-0 space-y-4 px-4 pb-20">
-                      <MobileSwipeContainer
-                        onSwipeLeft={() => setActiveTab('status')}
-                        onSwipeRight={() => setActiveTab('home')}
-                        className="min-h-[calc(100vh-200px)] mobile-swipe-hint"
-                      >
-                        <ViewportAware>
-                          <motion.div
-                            key="plan-content"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ delay: 0.1, duration: 0.4 }}
-                            className="mobile-slide-up"
-                          >
-                            <PlanSection />
-                          </motion.div>
-                        </ViewportAware>
-                      </MobileSwipeContainer>
-                    </TabsContent>
-
-                    <TabsContent value="checkout" className="mt-0 space-y-4 px-4 pb-20">
-                      <ViewportAware>
-                        <motion.div
-                          key="checkout-content"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          transition={{ delay: 0.1, duration: 0.4 }}
-                          className="mobile-slide-up"
-                        >
-                          {isMobile ? (
-                            <MobilePaymentFlow 
-                              selectedPlan={selectedPlanId ? { 
-                                id: selectedPlanId, 
-                                name: 'VIP Plan', 
-                                price: 49.99, 
-                                currency: 'USD',
-                                duration_months: 1,
-                                is_lifetime: false,
-                                features: []
-                              } : undefined}
-                              onBack={() => setActiveTab('plan')}
-                              onComplete={() => setActiveTab('status')}
-                            />
-                          ) : (
-                            <EnhancedPaymentSection 
-                              selectedPlan={selectedPlanId ? { 
-                                id: selectedPlanId, 
-                                name: 'VIP Plan', 
-                                price: 49.99, 
-                                currency: 'USD',
-                                duration_months: 1,
-                                is_lifetime: false,
-                                features: []
-                              } : undefined}
-                              onBack={() => setActiveTab('plan')}
-                            />
-                          )}
-                        </motion.div>
-                      </ViewportAware>
-                    </TabsContent>
-
-                    <TabsContent value="status" className="mt-0 space-y-4 px-4 pb-20">
-                      <MobileSwipeContainer
-                        onSwipeLeft={() => setActiveTab('help')}
-                        onSwipeRight={() => setActiveTab('plan')}
-                        className="min-h-[calc(100vh-200px)] mobile-swipe-hint"
-                      >
-                        <ViewportAware>
-                          <motion.div
-                            key="status-content"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ delay: 0.1, duration: 0.4 }}
-                            className="mobile-slide-up"
-                          >
-                            <SubscriptionStatusCard telegramData={telegramData} />
-                          </motion.div>
-                        </ViewportAware>
-                      </MobileSwipeContainer>
-                    </TabsContent>
-
-                    <TabsContent value="help" className="mt-0 space-y-4 px-4 pb-20">
-                      <MobileSwipeContainer
-                        onSwipeLeft={() => setActiveTab('ask')}
-                        onSwipeRight={() => setActiveTab('status')}
-                        className="min-h-[calc(100vh-200px)] mobile-swipe-hint"
-                      >
-                        <ViewportAware>
-                          <motion.div
-                            key="help-content"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ delay: 0.1, duration: 0.4 }}
-                            className="mobile-slide-up"
-                          >
-                            <FAQSection />
-                          </motion.div>
-                        </ViewportAware>
-                      </MobileSwipeContainer>
-                    </TabsContent>
-
-                    <TabsContent value="ask" className="mt-0 space-y-4 px-4 pb-20">
-                      <MobileSwipeContainer
-                        onSwipeRight={() => setActiveTab('help')}
-                        className="min-h-[calc(100vh-200px)]"
-                      >
-                        <ViewportAware>
-                          <motion.div
-                            key="ask-content"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            transition={{ delay: 0.1, duration: 0.4 }}
-                            className="mobile-slide-up"
-                          >
-                            <AskSection />
-                          </motion.div>
-                        </ViewportAware>
-                      </MobileSwipeContainer>
-                    </TabsContent>
-
-                    {isAdmin && (
-                      <TabsContent value="admin" className="mt-0 space-y-4 px-4 pb-20">
-                        <ViewportAware>
-                          <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1, duration: 0.4 }}
-                            className="mobile-slide-up"
-                          >
-                            <AdminDashboard telegramData={telegramData} />
-                          </motion.div>
-                        </ViewportAware>
-                      </TabsContent>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              </div>
-            </Tabs>
+            {/* Theme Toggle Button */}
+            <ThemeToggle />
           </MobilePullToRefresh>
-
-          {/* Enhanced Mobile FAB with Touch Feedback */}
-          {isMobile && (
-            <TouchFeedback haptic={true}>
-              <MobileFloatingActionButton
-                variant="contact"
-                position="bottom-right"
-                onClick={() => {
-                  if (isInTelegram) {
-                    window.open('https://t.me/DynamicCapital_Support', '_blank');
-                  } else {
-                    window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
-                  }
-                }}
-                className="shadow-2xl mobile-gpu-accelerated"
-              />
-            </TouchFeedback>
-          )}
-
-          {/* Mobile Quick Actions FAB */}
-          {isMobile && activeTab === 'home' && (
-            <TouchFeedback haptic={true}>
-              <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 1, type: "spring", stiffness: 260, damping: 20 }}
-                className="fixed bottom-20 right-4 z-40 safe-area-bottom"
-              >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full shadow-lg bg-background/80 backdrop-blur-sm border-primary/30 mobile-button touch-target"
-                  onClick={() => setActiveTab('plan')}
-                >
-                  <ThreeDEmoticon emoji="⚡" size={16} />
-                  <span className="ml-1 text-xs">Quick Plan</span>
-                </Button>
-              </motion.div>
-            </TouchFeedback>
-          )}
         </FullscreenAdaptive>
       </CurrencyProvider>
     </ErrorBoundary>
