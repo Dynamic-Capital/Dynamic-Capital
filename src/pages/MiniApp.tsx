@@ -104,7 +104,7 @@ export default function MiniApp() {
       <CurrencyProvider>
         <FullscreenAdaptive
           className={cn(
-            "min-h-screen bg-gradient-to-br from-background via-background to-muted/30 dark:to-muted/20 mobile-optimized safe-area-top transition-all duration-700 relative",
+            "min-h-screen bg-gradient-to-br from-background via-background to-muted/30 dark:to-muted/20 mobile-optimized safe-area-top transition-all duration-700 relative font-inter",
             isFullscreen ? 'p-0' : '',
             isMobile ? 'mobile-scroll' : ''
           )}
@@ -127,13 +127,19 @@ export default function MiniApp() {
                           key={tab.id}
                           value={tab.id}
                           className={cn(
-                            "flex-1 h-12 flex-col gap-1 text-xs font-medium rounded-lg mx-1",
+                            "relative flex-1 h-12 flex-col gap-1 text-xs font-medium rounded-lg mx-1",
                             "data-[state=active]:bg-dc-brand data-[state=active]:text-white data-[state=active]:shadow-lg",
                             "hover:bg-dc-brand/10 hover:text-dc-brand transition-all duration-200"
                           )}
                         >
                           <tab.icon className="h-4 w-4" />
                           <span className="text-[10px]">{tab.label}</span>
+                          {activeTab === tab.id && (
+                            <motion.div
+                              layoutId="tabUnderline"
+                              className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
+                            />
+                          )}
                         </TabsTrigger>
                       ))}
                     </TabsList>
