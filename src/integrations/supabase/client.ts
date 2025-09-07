@@ -16,8 +16,14 @@ const SUPABASE_KEY =
     : import.meta.env?.VITE_SUPABASE_KEY) || "";
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error("Supabase config debug:", {
+    SUPABASE_URL,
+    SUPABASE_KEY: SUPABASE_KEY ? "present" : "missing",
+    env_url: import.meta.env?.VITE_SUPABASE_URL,
+    env_key: import.meta.env?.VITE_SUPABASE_KEY ? "present" : "missing"
+  });
   throw new Error(
-    "Missing Supabase configuration",
+    `Missing Supabase configuration - URL: ${SUPABASE_URL ? "OK" : "MISSING"}, KEY: ${SUPABASE_KEY ? "OK" : "MISSING"}`,
   );
 }
 
