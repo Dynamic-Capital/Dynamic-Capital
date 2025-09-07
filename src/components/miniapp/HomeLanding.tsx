@@ -63,7 +63,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           const announcementsContent = contents.find((c: BotContent) => c.content_key === 'announcements');
           
           setAboutUs(aboutContent?.content_value || "Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.");
-          setServices(servicesContent?.content_value || "• Real-time Trading Signals\n• Daily Market Analysis\n• Risk Management Guidance\n• Personal Trading Mentor\n• Exclusive VIP Community\n• 24/7 Customer Support");
+          setServices(servicesContent?.content_value || "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support");
           setAnnouncements(announcementsContent?.content_value || "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.");
         }
 
@@ -76,6 +76,10 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       } catch (error) {
         console.error('Failed to fetch content:', error);
+        // Fallback to default content if fetch fails
+        setAboutUs("Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.");
+        setServices("📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support");
+        setAnnouncements("🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.");
       } finally {
         setLoading(false);
       }
