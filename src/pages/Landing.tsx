@@ -13,13 +13,8 @@ const Landing = () => {
   };
 
   const handleJoinNow = () => {
-    // Scroll to preview or open Telegram
-    const previewSection = document.getElementById('preview-section');
-    if (previewSection) {
-      previewSection.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      handleOpenTelegram();
-    }
+    // Navigate to mini app with plan tab active
+    window.location.href = '/miniapp?tab=plan';
   };
 
   return (
@@ -237,7 +232,7 @@ const Landing = () => {
             <Button 
               size="lg" 
               className="bg-white text-telegram hover:bg-white/90 shadow-lg"
-              onClick={handleOpenTelegram}
+              onClick={handleJoinNow}
             >
               <Sparkles className="w-5 h-5 mr-2" />
               Get VIP Access Now

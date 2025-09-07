@@ -66,7 +66,11 @@ declare global {
 
 export default function MiniApp() {
   const [telegramData, setTelegramData] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState(() => {
+    // Get tab from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('tab') || 'home';
+  });
   const [version, setVersion] = useState<string>("");
 
   useEffect(() => {
