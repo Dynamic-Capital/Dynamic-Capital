@@ -8,7 +8,8 @@ import {
   Settings, 
   GraduationCap,
   User,
-  LogIn
+  LogIn,
+  MessageCircle
 } from "lucide-react";
 
 interface NavItem {
@@ -47,6 +48,13 @@ const navItems: NavItem[] = [
     icon: CreditCard,
     path: "/checkout",
     ariaLabel: "Complete your purchase"
+  },
+  {
+    id: "contact",
+    label: "Contact",
+    icon: MessageCircle,
+    path: "/contact",
+    ariaLabel: "Contact support"
   },
   {
     id: "dashboard",

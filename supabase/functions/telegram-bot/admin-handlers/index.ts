@@ -31,6 +31,15 @@ export {
   handleBackupBotSettings,
 } from "./bot-settings.ts";
 export { handleAutoReplyTemplatesManagement } from "./auto-reply.ts";
+export {
+  handleContactLinksManagement,
+  handleAddContactLink,
+  handleEditContactLink,
+  handleToggleContactLink,
+  handleDeleteContactLink,
+  handleReorderContactLinks,
+  processContactLinkOperation,
+} from "./contact-management.ts";
 
 // Import utility functions
 import {
@@ -373,8 +382,7 @@ View, Create, Edit, Delete, Export data for any table.`;
         {
           text: "🚫 Abuse Bans", 
           callback_data: "manage_table_abuse_bans",
-        },
-        { text: "📊 Quick Stats", callback_data: "table_stats_overview" },
+        }
       ],
       [
         { text: "💾 Export All", callback_data: "export_all_tables" },

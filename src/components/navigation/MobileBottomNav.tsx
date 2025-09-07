@@ -7,7 +7,8 @@ import {
   CheckCircle, 
   User, 
   Settings,
-  GraduationCap
+  GraduationCap,
+  MessageCircle
 } from "lucide-react";
 
 interface NavItem {
@@ -41,11 +42,11 @@ const navItems: NavItem[] = [
     ariaLabel: "Complete your purchase"
   },
   {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: Settings,
-    path: "/dashboard",
-    ariaLabel: "View dashboard"
+    id: "contact",
+    label: "Contact",
+    icon: MessageCircle,
+    path: "/contact",
+    ariaLabel: "Contact support"
   }
 ];
 

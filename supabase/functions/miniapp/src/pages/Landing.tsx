@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { ArrowRight, Shield, TrendingUp, Users, Star, CreditCard, Sparkles } from "lucide-react";
+import { ArrowRight, Shield, TrendingUp, Users, Star, CreditCard, Sparkles, MessageCircle } from "lucide-react";
 import TopBar from "../components/TopBar";
 
 export default function Landing() {
@@ -123,14 +123,14 @@ export default function Landing() {
 
         {/* Account & Bot Link */}
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             <Link to="/me" className="flex-1">
               <Card className="bg-card/50 backdrop-blur border-border hover:bg-card/70 transition-colors">
-                <CardHeader className="text-center py-4">
-                  <Users className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <CardTitle className="text-sm text-foreground">My Account</CardTitle>
+                <CardHeader className="text-center py-3">
+                  <Users className="h-4 w-4 text-primary mx-auto mb-1" />
+                  <CardTitle className="text-xs text-foreground">Account</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
-                    Status & receipts
+                    Status
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -138,11 +138,23 @@ export default function Landing() {
             
             <Link to="/status" className="flex-1">
               <Card className="bg-card/50 backdrop-blur border-border hover:bg-card/70 transition-colors">
-                <CardHeader className="text-center py-4">
-                  <Shield className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <CardTitle className="text-sm text-foreground">Status</CardTitle>
+                <CardHeader className="text-center py-3">
+                  <Shield className="h-4 w-4 text-primary mx-auto mb-1" />
+                  <CardTitle className="text-xs text-foreground">Status</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
-                    Payment status
+                    Payment
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+
+            <Link to="/contact" className="flex-1">
+              <Card className="bg-card/50 backdrop-blur border-border hover:bg-card/70 transition-colors">
+                <CardHeader className="text-center py-3">
+                  <MessageCircle className="h-4 w-4 text-primary mx-auto mb-1" />
+                  <CardTitle className="text-xs text-foreground">Contact</CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Support
                   </CardDescription>
                 </CardHeader>
               </Card>

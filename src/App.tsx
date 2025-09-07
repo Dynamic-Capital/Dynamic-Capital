@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useThemeSync } from "@/hooks/useThemeSync";
 import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
 import MobileBottomNav from "./components/navigation/MobileBottomNav";
 import SkipToContent from "./components/navigation/SkipToContent";
 import Landing from "./pages/Landing";
@@ -24,6 +25,7 @@ import MiniAppDemo from "./pages/MiniAppDemo";
 import TelegramSetup from "./pages/TelegramSetup";
 import MiniApp from "./pages/MiniApp";
 import Plans from "./pages/Plans";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +79,7 @@ const AppContent = () => {
             <Route path="/dashboard" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/plans" element={<Plans />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/payment-success" element={<PaymentStatus />} />
             <Route path="/payment-canceled" element={<PaymentStatus />} />
@@ -93,6 +96,7 @@ const AppContent = () => {
           </Routes>
         </main>
         
+        {!isInMiniApp && <Footer />}
         {!isInMiniApp && <MobileBottomNav />}
       </div>
     </>
