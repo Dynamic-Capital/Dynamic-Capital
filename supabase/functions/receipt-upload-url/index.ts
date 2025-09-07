@@ -1,19 +1,48 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
-import { bad, mna, ok, oops } from "../_shared/http.ts";
+import { getEnv } from "../_shared/env.ts";
+import { bad, mna, ok, oops, json } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
+import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 type Body = {
-  telegram_id: string;
   payment_id: string;
-  filename: string;
+  telegram_id?: string;
+  filename?: string;
   content_type?: string;
 };
 
 export async function handler(req: Request): Promise<Response> {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   const v = version(req, "receipt-upload-url");
   if (v) return v;
   if (req.method !== "POST") return mna();
+
+  // Check for web auth first
+  const authHeader = req.headers.get("Authorization");
+  let telegramId: string | null = null;
+  
+  if (authHeader) {
+    // Web user authentication
+    const supaAuth = createSupabaseClient(
+      getEnv("SUPABASE_URL"),
+      getEnv("SUPABASE_ANON_KEY"),
+      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
+    );
+
+    const { data: { user } } = await supaAuth.auth.getUser();
+    if (user) {
+      telegramId = user.user_metadata?.telegram_id || user.id;
+    }
+  }
 
   let body: Body;
   try {
@@ -22,9 +51,20 @@ export async function handler(req: Request): Promise<Response> {
     return bad("Bad JSON");
   }
 
+  // Use telegram_id from auth or from body (for bot usage)
+  const finalTelegramId = telegramId || body.telegram_id;
+  if (!finalTelegramId) {
+    return json({ error: "unauthorized" }, 401, corsHeaders);
+  }
+
   const supa = createClient();
 
-  const key = `receipts/${body.telegram_id}/${crypto.randomUUID()}-${body.filename}`;
+  // Generate unique file path
+  const timestamp = Date.now();
+  const randomId = crypto.randomUUID().split('-')[0];
+  const fileName = body.filename || `receipt_${body.payment_id}_${timestamp}_${randomId}`;
+  const key = `receipts/${finalTelegramId}/${crypto.randomUUID()}-${fileName}`;
+
   const { data: signed, error } = await supa.storage
     .from("payment-receipts")
     .createSignedUploadUrl(key);
@@ -32,7 +72,7 @@ export async function handler(req: Request): Promise<Response> {
     return oops(error.message);
   }
 
-  return ok({ bucket: "payment-receipts", path: key, signed });
+  return ok({ bucket: "payment-receipts", path: key, signed }, corsHeaders);
 }
 
 if (import.meta.main) serve(handler);
