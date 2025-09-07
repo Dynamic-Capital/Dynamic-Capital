@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { SystemResetButton } from "@/components/admin/SystemResetButton";
+import { LivePlansSection } from "@/components/shared/LivePlansSection";
+import { SubscriptionStatusCard } from "@/components/shared/SubscriptionStatusCard";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -71,6 +73,19 @@ const Index = () => {
       </Card>
 
       <SystemResetButton />
+
+      {/* Live Subscription Status */}
+      <SubscriptionStatusCard 
+        onUpgrade={() => {
+          const plansSection = document.getElementById('live-plans-section');
+          plansSection?.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
+
+      {/* Live Plans Section */}
+      <div id="live-plans-section">
+        <LivePlansSection showPromo={true} />
+      </div>
       
       <BotDashboard />
     </div>

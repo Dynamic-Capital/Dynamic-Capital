@@ -36,10 +36,13 @@ const PromoCodeInput = ({ planId }: PromoCodeInputProps) => {
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       const apiPlanId = uuidRegex.test(planId) ? planId : "6e07f718-606e-489d-9626-2a5fa3e84eec";
       
+      // Try using Telegram data first, fall back to demo user
+      const telegramId = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || "123456789";
+      
       const { data, error } = await supabase.functions.invoke("promo-validate", {
         body: {
           code: promoCode.trim().toUpperCase(),
-          telegram_id: "123456789", // This would come from auth context in real app
+          telegram_id: telegramId,
           plan_id: apiPlanId,
         },
       });

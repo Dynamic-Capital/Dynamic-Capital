@@ -66,3 +66,9 @@ verify_jwt = false
 
 [functions.promo-redeem]
 verify_jwt = false
+
+[functions.plans]
+verify_jwt = false
+
+[functions.subscription-status]
+verify_jwt = false
