@@ -77,11 +77,21 @@ export default function PlanSection() {
 
   const handleSelectPlan = (planId: string) => {
     if (isInTelegram) {
-      // Open Telegram mini app with plan selected
-      window.open(`https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/?tab=plan&plan=${planId}`, '_blank');
+      // Switch to checkout flow within mini app
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', 'checkout');
+      url.searchParams.set('plan', planId);
+      if (promoValidation?.valid) {
+        url.searchParams.set('promo', promoCode);
+      }
+      window.history.pushState({}, '', url.toString());
+      window.dispatchEvent(new PopStateEvent('popstate'));
     } else {
-      // Show hint to use Telegram
-      toast.info('Please use this feature within Telegram to complete your purchase');
+      // For web users, redirect to Telegram bot
+      const botUsername = "Dynamic_VIP_BOT";
+      const telegramUrl = `https://t.me/${botUsername}?start=plan_${planId}`;
+      window.open(telegramUrl, '_blank');
+      toast.info('Redirecting to Telegram to complete your purchase');
     }
   };
 
@@ -142,7 +152,7 @@ export default function PlanSection() {
           {!isInTelegram && (
             <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
               <div className="text-sm text-blue-600 text-center">
-                🤖 Open this in Telegram to see promo codes and complete purchases
+                💡 For the full experience with promo codes and instant payments, open in Telegram
               </div>
             </div>
           )}

@@ -18,8 +18,19 @@ const Landing = () => {
   };
 
   const handleJoinNow = () => {
-    // Navigate to mini app with plan tab active
-    window.location.href = '/miniapp?tab=plan';
+    // Check if in Telegram, otherwise go to plans page
+    const isInTelegram = Boolean(
+      window.Telegram?.WebApp?.initData || 
+      window.Telegram?.WebApp?.initDataUnsafe ||
+      window.location.search.includes('tgWebAppPlatform') ||
+      navigator.userAgent.includes('TelegramWebApp')
+    );
+    
+    if (isInTelegram) {
+      window.location.href = '/miniapp?tab=plan';
+    } else {
+      window.location.href = '/plans';
+    }
   };
 
   return (

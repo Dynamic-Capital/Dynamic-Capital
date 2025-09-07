@@ -20,6 +20,7 @@ import PaymentStatus from "./pages/PaymentStatus";
 import MiniAppDemo from "./pages/MiniAppDemo";
 import TelegramSetup from "./pages/TelegramSetup";
 import MiniApp from "./pages/MiniApp";
+import Plans from "./pages/Plans";
 
 const queryClient = new QueryClient();
 
@@ -29,10 +30,14 @@ const TelegramRedirect = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Check if opened in Telegram WebApp
-    const isInTelegram = window.Telegram?.WebApp?.initData || 
-                        window.location.search.includes('tgWebAppPlatform') ||
-                        navigator.userAgent.includes('TelegramWebApp');
+    // Enhanced Telegram detection
+    const isInTelegram = Boolean(
+      window.Telegram?.WebApp?.initData || 
+      window.Telegram?.WebApp?.initDataUnsafe ||
+      window.location.search.includes('tgWebAppPlatform') ||
+      navigator.userAgent.includes('TelegramWebApp') ||
+      window.parent !== window
+    );
     
     // Only redirect from root path and if in Telegram
     if (location.pathname === '/' && isInTelegram) {
@@ -66,6 +71,7 @@ const App = () => (
               <Route path="/miniapp-demo" element={<MiniAppDemo />} />
               <Route path="/telegram-setup" element={<TelegramSetup />} />
               <Route path="/miniapp" element={<MiniApp />} />
+              <Route path="/plans" element={<Plans />} />
               <Route path="/welcome" element={<WelcomeMessage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
