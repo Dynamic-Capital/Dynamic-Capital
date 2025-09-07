@@ -129,17 +129,17 @@ export const SubscriptionStatusCard = ({
   }
 
   return (
-    <Card className="ui-card">
-      <CardHeader>
-        <CardTitle className="ui-flex-between">
+    <Card className="glass-card border-primary/20 shadow-lg">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Crown className="icon-base text-primary" />
-            <span className="text-heading">Subscription Status</span>
+            <Crown className="w-5 h-5 text-primary animate-pulse-glow" />
+            <span className="text-lg font-bold">Subscription Status</span>
           </div>
           {getStatusBadge()}
         </CardTitle>
       </CardHeader>
-      <CardContent className="ui-section">
+      <CardContent className="space-y-4">
         {status?.is_vip ? (
           <div className="space-tight">
             <div className="ui-flex-between">
@@ -188,14 +188,19 @@ export const SubscriptionStatusCard = ({
             )}
           </div>
         ) : (
-          <div className="text-center py-4">
-            <Crown className="icon-xl text-muted-foreground mx-auto mb-3" />
-            <h3 className="text-subheading mb-2">No Active Subscription</h3>
-            <p className="text-body-sm text-muted-foreground mb-4">
-              Upgrade to VIP to access premium trading signals and exclusive content.
+          <div className="text-center py-6 bg-gradient-to-br from-muted/20 to-muted/10 rounded-lg">
+            <Crown className="w-16 h-16 text-primary mx-auto mb-4 animate-float" />
+            <h3 className="text-lg font-bold mb-2">No Active Subscription</h3>
+            <p className="text-sm text-muted-foreground mb-6 leading-relaxed px-4">
+              Join our VIP community and unlock premium trading signals, market analysis, and exclusive content.
             </p>
-            <Button onClick={onUpgrade} size="default" className="w-full">
-              Choose VIP Plan
+            <Button 
+              onClick={onUpgrade} 
+              size="lg" 
+              className="w-full max-w-xs mx-auto bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 text-white font-semibold animate-pulse-glow"
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade to VIP
             </Button>
           </div>
         )}

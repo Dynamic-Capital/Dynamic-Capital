@@ -6,6 +6,7 @@ import PlanSection from "@/components/miniapp/PlanSection";
 import CheckoutSection from "@/components/miniapp/CheckoutSection";
 import { FAQSection } from "@/components/miniapp/FAQSection";
 import { AskSection } from "@/components/miniapp/AskSection";
+import { VipLaunchPromoPopup } from "@/components/miniapp/VipLaunchPromoPopup";
 import { QuickActions } from "@/components/miniapp/QuickActions";
 import { SubscriptionStatusCard } from "@/components/shared/SubscriptionStatusCard";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
@@ -28,6 +29,7 @@ export default function MiniApp() {
   const { telegramUser, isAdmin } = useTelegramAuth();
   
   const [telegramData, setTelegramData] = useState<any>(null);
+  const [showPromoPopup, setShowPromoPopup] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('tab') || 'home';
@@ -57,8 +59,27 @@ export default function MiniApp() {
         viewportHeight: tg.viewportHeight,
         isExpanded: tg.isExpanded
       });
+
+      // Show promo popup after a short delay when mini app opens
+      const hasShownPromo = localStorage.getItem('vip-launch-promo-shown');
+      if (!hasShownPromo) {
+        setTimeout(() => {
+          setShowPromoPopup(true);
+          localStorage.setItem('vip-launch-promo-shown', 'true');
+        }, 2000);
+      }
     }
   }, []);
+
+  const handleApplyPromo = (promoCode: string) => {
+    // Navigate to plan tab with promo code
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', 'plan');
+    url.searchParams.set('promo', promoCode);
+    window.history.pushState({}, '', url.toString());
+    setActiveTab('plan');
+    setPromoCode(promoCode);
+  };
 
   // Handle URL parameter changes
   useEffect(() => {
@@ -166,6 +187,13 @@ export default function MiniApp() {
               </TabsContent>
             </div>
           </Tabs>
+
+          {/* VIP Launch Promo Popup */}
+          <VipLaunchPromoPopup
+            isOpen={showPromoPopup}
+            onClose={() => setShowPromoPopup(false)}
+            onApplyPromo={handleApplyPromo}
+          />
         </div>
       </div>
     </CurrencyProvider>

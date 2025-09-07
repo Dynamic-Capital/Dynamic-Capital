@@ -127,57 +127,70 @@ export const LivePlansSection = ({
               {plans.map((plan, index) => (
                 <Card 
                   key={plan.id} 
-                  className={`relative transition-all duration-300 hover:shadow-lg hover:scale-105 ${
+                  className={`relative transition-all duration-300 hover:shadow-xl hover:scale-[1.02] glass-card ${
                     isVipPlan(plan.name) 
-                      ? 'border-primary/50 shadow-primary/10 animate-pulse-glow' 
-                      : 'border-muted hover:border-primary/30'
+                      ? 'border-primary/40 shadow-primary/20 bg-gradient-to-br from-primary/5 to-purple-500/5' 
+                      : 'border-border/50 hover:border-primary/30'
                   }`}
                   style={{ animationDelay: `${index * 200}ms` }}
                 >
                   {isVipPlan(plan.name) && (
-                    <div className="absolute top-0 right-0 bg-gradient-to-l from-primary to-primary/80 text-primary-foreground px-3 py-1 text-xs font-medium rounded-bl-lg animate-bounce-in">
+                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-primary to-purple-500 text-white px-3 py-1 text-xs font-bold rounded-full shadow-lg animate-bounce-in z-10">
                       <Star className="w-3 h-3 inline mr-1" />
-                      Popular
+                      POPULAR
                     </div>
                   )}
 
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-2">
-                      {plan.name}
-                      {isVipPlan(plan.name) && <Crown className="w-4 h-4 text-primary" />}
+                  <CardHeader className="pb-3 relative">
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="text-lg font-bold">{plan.name}</span>
+                      {isVipPlan(plan.name) && <Crown className="w-5 h-5 text-primary animate-pulse-glow" />}
                     </CardTitle>
                     
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                    <div className="flex items-baseline gap-2 mt-2">
+                      <span className="text-3xl font-black bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent">
                         {formatPrice(plan)}
                       </span>
                       {plan.is_lifetime && (
-                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
-                          Lifetime
+                        <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-2 py-1 animate-pulse-glow">
+                          ⚡ LIFETIME
                         </Badge>
+                      )}
+                      {!plan.is_lifetime && (
+                        <span className="text-sm text-muted-foreground">
+                          /{plan.duration_months} month{plan.duration_months !== 1 ? 's' : ''}
+                        </span>
                       )}
                     </div>
                   </CardHeader>
 
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-0">
                     {plan.features && plan.features.length > 0 && (
-                      <div className="space-y-2">
+                      <div className="space-y-3 bg-gradient-to-br from-muted/20 to-muted/10 rounded-lg p-3">
                         {plan.features.map((feature, index) => (
-                          <div key={index} className="flex items-start gap-2">
-                            <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                            <span className="text-sm">{feature}</span>
+                          <div key={index} className="flex items-start gap-3 group">
+                            <div className="bg-primary/10 rounded-full p-1 group-hover:bg-primary/20 transition-colors">
+                              <Check className="w-3 h-3 text-primary shrink-0" />
+                            </div>
+                            <span className="text-sm font-medium leading-relaxed group-hover:text-primary transition-colors">
+                              {feature}
+                            </span>
                           </div>
                         ))}
                       </div>
                     )}
 
-                    <div className="pt-4">
+                    <div className="pt-2">
                       <Button 
                         onClick={() => handleSelectPlan(plan.id)}
-                        className="w-full transition-all duration-300 hover:scale-105"
+                        className={`w-full font-semibold py-3 transition-all duration-300 hover:scale-105 ${
+                          isVipPlan(plan.name) 
+                            ? "bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 text-white shadow-lg animate-pulse-glow" 
+                            : "glass-button border-primary/30 hover:bg-primary/10"
+                        }`}
                         variant={isVipPlan(plan.name) ? "default" : "outline"}
                       >
-                        Select Plan
+                        {isVipPlan(plan.name) ? "🚀 Get VIP Access" : "Select Plan"}
                       </Button>
                     </div>
                   </CardContent>
