@@ -243,17 +243,33 @@ All colors MUST be HSL. This ensures consistency across all UI elements. */
 }
 
 @layer components {
-  /* Universal Card Component */
+  /* Universal Card System */
   .ui-card {
-    @apply bg-card text-card-foreground border border-border rounded-lg shadow-sm;
+    @apply bg-card text-card-foreground ui-border-thin ui-rounded-base shadow-subtle ui-p-base;
+  }
+  
+  .ui-card-sm {
+    @apply ui-card ui-p-sm ui-rounded-sm;
+  }
+  
+  .ui-card-lg {
+    @apply ui-card ui-p-lg ui-rounded-lg shadow-lg;
   }
   
   .ui-card-interactive {
-    @apply ui-card hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer;
+    @apply ui-card hover:shadow-lg ui-rise cursor-pointer ui-interactive;
   }
   
   .ui-card-glass {
-    @apply glass-card border-white/10;
+    @apply glass-card ui-border-accent ui-rounded-base;
+  }
+
+  .ui-card-elevated {
+    @apply ui-card shadow-lg hover:shadow-xl ui-interactive;
+  }
+
+  .ui-card-flat {
+    @apply bg-card text-card-foreground ui-border-thin ui-rounded-base ui-p-base shadow-none;
   }
 
   /* Universal Button System */
@@ -452,25 +468,73 @@ All colors MUST be HSL. This ensures consistency across all UI elements. */
     @apply bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-100 dark:border-blue-800;
   }
 
+  /* Universal Spacing System */
+  .ui-space-xs { @apply gap-1 space-y-1; }
+  .ui-space-sm { @apply gap-2 space-y-2; }
+  .ui-space-base { @apply gap-4 space-y-4; }
+  .ui-space-lg { @apply gap-6 space-y-6; }
+  .ui-space-xl { @apply gap-8 space-y-8; }
+
+  /* Universal Padding System */
+  .ui-p-xs { @apply p-2; }
+  .ui-p-sm { @apply p-3; }
+  .ui-p-base { @apply p-4; }
+  .ui-p-lg { @apply p-6; }
+  .ui-p-xl { @apply p-8; }
+
+  /* Universal Margin System */
+  .ui-m-xs { @apply m-1; }
+  .ui-m-sm { @apply m-2; }
+  .ui-m-base { @apply m-4; }
+  .ui-m-lg { @apply m-6; }
+  .ui-m-xl { @apply m-8; }
+
+  /* Universal Border Radius System */
+  .ui-rounded-xs { @apply rounded-sm; }
+  .ui-rounded-sm { @apply rounded-md; }
+  .ui-rounded-base { @apply rounded-lg; }
+  .ui-rounded-lg { @apply rounded-xl; }
+  .ui-rounded-xl { @apply rounded-2xl; }
+  .ui-rounded-full { @apply rounded-full; }
+
+  /* Universal Border System */
+  .ui-border-thin { @apply border border-border; }
+  .ui-border-medium { @apply border-2 border-border; }
+  .ui-border-thick { @apply border-4 border-border; }
+  .ui-border-accent { @apply border border-accent/20; }
+  .ui-border-primary { @apply border border-primary/20; }
+
   /* Layout Components */
   .ui-container {
-    @apply w-full max-w-md mx-auto px-4;
+    @apply w-full max-w-md mx-auto ui-p-base;
   }
   
   .ui-section {
-    @apply space-y-4;
+    @apply ui-space-base;
   }
   
   .ui-grid-2 {
-    @apply grid grid-cols-2 gap-4;
+    @apply grid grid-cols-2 ui-space-base;
+  }
+  
+  .ui-grid-3 {
+    @apply grid grid-cols-3 ui-space-base;
   }
   
   .ui-flex-between {
-    @apply flex items-center justify-between;
+    @apply flex items-center justify-between ui-space-sm;
   }
   
   .ui-flex-center {
-    @apply flex items-center justify-center;
+    @apply flex items-center justify-center ui-space-sm;
+  }
+
+  .ui-stack {
+    @apply flex flex-col ui-space-base;
+  }
+
+  .ui-row {
+    @apply flex items-center ui-space-sm;
   }
 
   /* Enhanced Animation Classes */

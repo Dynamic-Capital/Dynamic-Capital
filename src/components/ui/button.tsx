@@ -6,29 +6,29 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "ui-button ui-press focus-ring-pop font-medium text-sm [&_svg]:shrink-0",
+  "ui-button ui-press focus-ring-pop font-medium text-sm [&_svg]:shrink-0 ui-rounded-base transition-all duration-200",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm hover:shadow-md",
+        outline: "ui-border-thin bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm hover:shadow-md",
+        ghost: "hover:bg-accent hover:text-accent-foreground ui-rounded-base",
+        link: "text-primary underline-offset-4 hover:underline ui-rounded-sm",
         telegram: "bg-gradient-telegram text-white hover:shadow-telegram ui-interactive",
-        "telegram-outline": "border-2 border-telegram bg-transparent text-telegram hover:bg-telegram hover:text-white",
-        glass: "glass-button text-white",
-        subtle: "bg-secondary/50 text-secondary-foreground hover:bg-secondary/80",
-        success: "bg-success text-success-foreground hover:bg-success/90",
-        warning: "bg-warning text-warning-foreground hover:bg-warning/90",
-        info: "bg-info text-info-foreground hover:bg-info/90",
+        "telegram-outline": "ui-border-medium border-telegram bg-transparent text-telegram hover:bg-telegram hover:text-white",
+        glass: "glass-button text-white ui-border-accent",
+        subtle: "bg-secondary/50 text-secondary-foreground hover:bg-secondary/80 ui-border-thin",
+        success: "bg-success text-success-foreground hover:bg-success/90 shadow-sm hover:shadow-md",
+        warning: "bg-warning text-warning-foreground hover:bg-warning/90 shadow-sm hover:shadow-md",
+        info: "bg-info text-info-foreground hover:bg-info/90 shadow-sm hover:shadow-md",
       },
       size: {
-        sm: "ui-button-sm [&_svg]:icon-xs",
-        default: "ui-button-base [&_svg]:icon-sm", 
-        lg: "ui-button-lg [&_svg]:icon-base",
-        icon: "h-10 w-10 [&_svg]:icon-sm",
+        sm: "ui-button-sm [&_svg]:icon-xs ui-p-xs",
+        default: "ui-button-base [&_svg]:icon-sm ui-p-sm", 
+        lg: "ui-button-lg [&_svg]:icon-base ui-p-base",
+        icon: "h-10 w-10 [&_svg]:icon-sm ui-p-sm ui-rounded-base",
       },
     },
     defaultVariants: {
