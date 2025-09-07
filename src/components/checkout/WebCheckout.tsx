@@ -184,11 +184,12 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
       } else {
         // Fallback to Supabase auth
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast.error('Please sign in to continue');
-          return;
+        if (user) {
+          telegramId = user.user_metadata?.telegram_id || user.id;
+        } else {
+          // Create a guest user for checkout
+          telegramId = crypto.randomUUID();
         }
-        telegramId = user.user_metadata?.telegram_id || user.id;
       }
 
       // Create payment intent
@@ -207,7 +208,10 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
         body: requestBody
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Checkout init error:', error);
+        throw new Error(error.message || 'Failed to initialize payment');
+      }
       
       setPaymentId(data.payment_id);
       
@@ -230,7 +234,11 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     setUploading(true);
     try {
       // Get upload URL
-      const uploadRequestBody: any = { payment_id: paymentId };
+      const uploadRequestBody: any = { 
+        payment_id: paymentId,
+        filename: uploadedFile.name,
+        content_type: uploadedFile.type
+      };
       
       if (isTelegram && telegramInitData) {
         uploadRequestBody.initData = telegramInitData;
@@ -242,22 +250,30 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
 
       if (uploadError) throw uploadError;
 
-      // Upload file
-      const formData = new FormData();
-      formData.append('file', uploadedFile);
-      
+      if (!uploadData?.upload_url) {
+        throw new Error('No upload URL received');
+      }
+
+      // Upload file directly to the signed URL
       const uploadResponse = await fetch(uploadData.upload_url, {
         method: 'PUT',
         body: uploadedFile,
-        headers: { 'Content-Type': uploadedFile.type }
+        headers: { 
+          'Content-Type': uploadedFile.type,
+          'x-amz-acl': 'private'
+        }
       });
 
-      if (!uploadResponse.ok) throw new Error('Upload failed');
+      if (!uploadResponse.ok) {
+        console.error('Upload failed:', uploadResponse.status, uploadResponse.statusText);
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      }
 
       // Submit receipt
       const submitRequestBody: any = { 
         payment_id: paymentId,
-        file_path: uploadData.file_path
+        file_path: uploadData.file_path,
+        storage_bucket: uploadData.bucket
       };
 
       if (isTelegram && telegramInitData) {
@@ -642,7 +658,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
                   Payment ID: {paymentId}
                 </div>
                 <Button variant="outline" size="sm" asChild>
-                  <a href="/payment-status" className="flex items-center gap-2">
+                  <a href={`/payment-status?payment_id=${paymentId}`} className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     Check Status
                   </a>

@@ -93,7 +93,11 @@ export async function handler(req: Request): Promise<Response> {
     return oops(error.message);
   }
 
-  return ok({ bucket: "payment-receipts", path: key, signed }, corsHeaders);
+  return ok({ 
+    bucket: "payment-receipts", 
+    file_path: key, 
+    upload_url: signed.signedUrl 
+  }, corsHeaders);
 }
 
 if (import.meta.main) serve(handler);

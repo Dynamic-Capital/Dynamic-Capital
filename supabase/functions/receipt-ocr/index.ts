@@ -49,9 +49,18 @@ async function openAiExtract(
   }
 }
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   if (req.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405 });
+    return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
   }
   let body: Body;
   try {
@@ -101,6 +110,6 @@ serve(async (req) => {
   await supa.from("payments").update({ webhook_data: merged }).eq("id", p.id);
 
   return new Response(JSON.stringify({ ok: true, ocr: result }), {
-    headers: { "content-type": "application/json" },
+    headers: { ...corsHeaders, "content-type": "application/json" },
   });
 });
