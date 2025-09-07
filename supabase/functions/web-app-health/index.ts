@@ -27,7 +27,13 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   const supa = createClient("anon");
-  const healthChecks: Record<string, any> = {};
+  interface HealthCheck {
+    status: "ok" | "error";
+    error?: string;
+    response_time: number;
+    active_count?: number;
+  }
+  const healthChecks: Record<string, HealthCheck> = {};
 
   try {
     // Check database connectivity
@@ -97,9 +103,11 @@ export async function handler(req: Request): Promise<Response> {
     }
 
     // Overall health assessment
-    const allChecks = Object.values(healthChecks);
-    const hasErrors = allChecks.some((check: any) => check.status === "error");
-    const avgResponseTime = allChecks.reduce((sum: number, check: any) => sum + (check.response_time || 0), 0) / allChecks.length;
+    const allChecks: HealthCheck[] = Object.values(healthChecks);
+    const hasErrors = allChecks.some((check) => check.status === "error");
+    const avgResponseTime =
+      allChecks.reduce((sum, check) => sum + (check.response_time ?? 0), 0) /
+      allChecks.length;
 
     const healthStatus = {
       overall_status: hasErrors ? "degraded" : "healthy",
@@ -108,7 +116,7 @@ export async function handler(req: Request): Promise<Response> {
       performance: {
         average_response_time: Math.round(avgResponseTime),
         total_checks: allChecks.length,
-        failed_checks: allChecks.filter((check: any) => check.status === "error").length
+        failed_checks: allChecks.filter((check) => check.status === "error").length
       },
       recommendations: []
     };
@@ -129,17 +137,17 @@ export async function handler(req: Request): Promise<Response> {
       }
     );
 
-  } catch (error) {
+  } catch (error: unknown) {
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         overall_status: "error",
         timestamp: new Date().toISOString(),
         error: "Health check failed",
-        details: error.message
-      }), 
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        details: error instanceof Error ? error.message : String(error)
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }

@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  createClient,
+  SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,12 +10,19 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
 
+type InteractionData = {
+  plan_id?: string;
+  promo_code?: string;
+  value?: number;
+  [key: string]: unknown;
+};
+
 interface AnalyticsEvent {
   event_type: string;
   telegram_user_id?: string;
   session_id?: string;
   page_context?: string;
-  interaction_data?: any;
+  interaction_data?: InteractionData;
   user_agent?: string;
   referrer?: string;
   utm_source?: string;
@@ -51,7 +61,10 @@ serve(async (req) => {
   }
 });
 
-async function trackEvent(supabase: any, req: Request) {
+async function trackEvent(
+  supabase: SupabaseClient,
+  req: Request,
+): Promise<Response> {
   try {
     const eventData: AnalyticsEvent = await req.json();
     
@@ -145,7 +158,10 @@ async function trackEvent(supabase: any, req: Request) {
   }
 }
 
-async function getAnalytics(supabase: any, req: Request) {
+async function getAnalytics(
+  supabase: SupabaseClient,
+  req: Request,
+): Promise<Response> {
   try {
     const url = new URL(req.url);
     const period = url.searchParams.get('period') || '7d';
@@ -211,14 +227,24 @@ async function getAnalytics(supabase: any, req: Request) {
         daily_stats: dailyStats || [],
         total_interactions: interactions?.length || 0,
         total_conversions: conversions?.length || 0,
-        interaction_breakdown: interactions?.reduce((acc: any, curr: any) => {
-          acc[curr.interaction_type] = (acc[curr.interaction_type] || 0) + 1;
-          return acc;
-        }, {}) || {},
-        conversion_breakdown: conversions?.reduce((acc: any, curr: any) => {
-          acc[curr.conversion_type] = (acc[curr.conversion_type] || 0) + 1;
-          return acc;
-        }, {}) || {},
+        interaction_breakdown:
+          interactions?.reduce<Record<string, number>>(
+            (acc, curr: { interaction_type: string }) => {
+              acc[curr.interaction_type] =
+                (acc[curr.interaction_type] || 0) + 1;
+              return acc;
+            },
+            {},
+          ) || {},
+        conversion_breakdown:
+          conversions?.reduce<Record<string, number>>(
+            (acc, curr: { conversion_type: string }) => {
+              acc[curr.conversion_type] =
+                (acc[curr.conversion_type] || 0) + 1;
+              return acc;
+            },
+            {},
+          ) || {},
       };
 
       return new Response(

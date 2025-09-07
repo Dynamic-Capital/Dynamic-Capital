@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SocialLinks } from "@/components/ui/social-icons";
+import { EdgeFunctionStatus } from "@/components/shared/EdgeFunctionStatus";
 
 interface ContactLink {
   id: string;
@@ -114,10 +115,10 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
         <div className="container mx-auto px-4 py-3">
           <div className="flex flex-col items-center gap-2">
             {/* Social Media Icons Row */}
-            {contacts.length > 0 && (
-              <div className="flex gap-2">
-                {contacts.slice(0, 4).map((contact) => (
-                  <Button
+          {contacts.length > 0 && (
+            <div className="flex gap-2">
+              {contacts.slice(0, 4).map((contact) => (
+                <Button
                     key={contact.id}
                     variant="ghost"
                     size="sm"
@@ -135,10 +136,11 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
                 ))}
               </div>
             )}
-            
+
             <p className="text-xs text-muted-foreground text-center">
               © {new Date().getFullYear()} Dynamic Capital. All rights reserved.
             </p>
+            <EdgeFunctionStatus />
           </div>
         </div>
       </footer>
@@ -246,8 +248,11 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
           <p className="text-xs text-muted-foreground text-center sm:text-left">
             © {new Date().getFullYear()} Dynamic Capital. All rights reserved.
           </p>
-          <div className="hidden sm:block">
-            <ThemeToggle />
+          <div className="flex items-center gap-4">
+            <EdgeFunctionStatus />
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>
