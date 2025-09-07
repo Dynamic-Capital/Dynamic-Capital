@@ -1,12 +1,16 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Star, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
-import { FadeInOnView } from "@/components/ui/fade-in-on-view";
-import PromoCodeInput from "@/components/billing/PromoCodeInput";
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, Star, TrendingUp, Users, Crown, Zap, Check, Loader2 } from 'lucide-react';
+import { ThreeDEmoticon, TradingEmoticonSet } from '@/components/ui/three-d-emoticons';
+import { AnimatedHeading, GradientText, CountUp } from '@/components/ui/enhanced-typography';
+import { Interactive3DCard, StaggeredGrid } from '@/components/ui/interactive-cards';
+import { FadeInOnView } from '@/components/ui/fade-in-on-view';
+import { HorizontalSnapScroll } from '@/components/ui/horizontal-snap-scroll';
+import { useToast } from '@/hooks/use-toast';
+import PromoCodeInput from '@/components/billing/PromoCodeInput';
 
 interface Plan {
   id: string;

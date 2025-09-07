@@ -23,6 +23,7 @@ import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 import PromoCodeInput from "@/components/billing/PromoCodeInput";
 import AnimatedWelcomeMini from "./AnimatedWelcomeMini";
 import { AnimatedStatusDisplay } from "./AnimatedStatusDisplay";
+import { ThreeDEmoticon, TradingEmoticonSet } from "@/components/ui/three-d-emoticons";
 import { motion, AnimatePresence } from "framer-motion";
 import { parentVariants, childVariants, slowParentVariants } from "@/lib/motion-variants";
 
@@ -201,18 +202,19 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         </MotionCard>
       </FadeInOnView>
 
-           {/* Announcements */}
-           <FadeInOnView delay={150} animation="slide-in-right">
-             <MotionCard variant="glass" hover={true} animate={true} delay={0.2} className="ui-rounded-lg ui-shadow">
-               <div className="p-4 border-l-4 border-gradient-to-b from-primary to-purple-500">
-                 <div className="flex items-center gap-2 mb-2">
-                   <span className="text-lg">📢</span>
-                   <h3 className="text-subheading font-semibold">Latest Announcements</h3>
-                 </div>
-                 <FadeInOnView delay={200} animation="fade-in">
-                   <p className="text-body-sm whitespace-pre-line leading-relaxed text-foreground">{announcements}</p>
-                 </FadeInOnView>
-               </div>
+      {/* Announcements with 3D Emoticons */}
+      <FadeInOnView delay={150} animation="slide-in-right">
+        <MotionCard variant="glass" hover={true} animate={true} delay={0.2} className="ui-rounded-lg ui-shadow">
+          <div className="p-4 border-l-4 border-gradient-to-b from-primary to-purple-500">
+            <div className="flex items-center gap-2 mb-2">
+              <ThreeDEmoticon emoji="📢" size={20} intensity={0.3} />
+              <h3 className="text-subheading font-semibold">Latest Announcements</h3>
+              <TradingEmoticonSet variant="celebration" className="ml-auto" />
+            </div>
+            <FadeInOnView delay={200} animation="fade-in">
+              <p className="text-body-sm whitespace-pre-line leading-relaxed text-foreground">{announcements}</p>
+            </FadeInOnView>
+          </div>
              </MotionCard>
            </FadeInOnView>
 
@@ -226,10 +228,11 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         >
           <div className="p-6">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="icon-sm text-success animate-wiggle" />
+              <ThreeDEmoticon emoji="✨" size={24} intensity={0.4} animate={true} />
               <h3 className="text-subheading font-semibold">
                 {activePromos.length > 0 ? "Active Promo Codes" : "Limited Time Offers"}
               </h3>
+              <TradingEmoticonSet variant="success" className="ml-auto" />
             </div>
             <p className="text-body-sm text-muted-foreground mb-4">
               {activePromos.length > 0 
@@ -283,9 +286,13 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               </HorizontalSnapScroll>
             ) : (
               <div className="text-center py-8 space-y-3">
-                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center">
-                  <Gift className="h-8 w-8 text-primary" />
-                </div>
+                <motion.div 
+                  className="w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center"
+                  whileHover={{ scale: 1.1, rotate: 10 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                >
+                  <ThreeDEmoticon emoji="🎁" size={32} intensity={0.5} />
+                </motion.div>
                 <p className="text-muted-foreground text-sm">
                   No active promotions right now, but check back soon for amazing deals!
                 </p>
@@ -309,17 +316,18 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
        {/* About Dynamic Capital */}
        <FadeInOnView delay={300} animation="bounce-in">
-         <LiquidCard className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01] ui-rounded-lg ui-shadow ui-border-glass" color="hsl(var(--primary))">
-           <div className="p-6">
-             <div className="flex items-center gap-2 mb-4">
-               <span className="text-lg">🏆</span>
-               <h3 className="text-heading font-semibold">About Dynamic Capital</h3>
-             </div>
-             <p className="text-subheading text-foreground/90 whitespace-pre-line leading-relaxed">
-               {aboutUs}
-             </p>
-           </div>
-         </LiquidCard>
+        <LiquidCard className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01] ui-rounded-lg ui-shadow ui-border-glass" color="hsl(var(--primary))">
+          <div className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <ThreeDEmoticon emoji="🏆" size={24} intensity={0.4} animate={true} />
+              <h3 className="text-heading font-semibold">About Dynamic Capital</h3>
+              <TradingEmoticonSet variant="vip" className="ml-auto" />
+            </div>
+            <p className="text-subheading text-foreground/90 whitespace-pre-line leading-relaxed">
+              {aboutUs}
+            </p>
+          </div>
+        </LiquidCard>
        </FadeInOnView>
 
       {/* Our Services - Stack Carousel */}
@@ -343,7 +351,11 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
        {/* Call to Action */}
        <MotionCard variant="glow" hover={true} animate={true} delay={0.6} className="bg-gradient-to-r from-primary/10 to-purple-500/10 border-primary/20 ui-rounded-lg ui-shadow">
          <CardContent className="p-6 text-center">
-           <Sparkles className="h-6 w-6 text-primary mx-auto mb-3" />
+           <div className="flex justify-center items-center gap-2 mb-3">
+             <ThreeDEmoticon emoji="🚀" size={24} intensity={0.4} animate={true} />
+             <Sparkles className="h-6 w-6 text-primary" />
+             <TradingEmoticonSet variant="success" />
+           </div>
            <h3 className="text-heading font-semibold mb-2">Ready to Start Trading Like a Pro?</h3>
            <p className="text-body-sm text-muted-foreground mb-4">
              Join thousands of successful traders who trust Dynamic Capital for their trading journey.
