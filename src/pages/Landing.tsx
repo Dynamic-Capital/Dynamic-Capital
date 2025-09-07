@@ -2,14 +2,14 @@ import { Sparkles, Shield, Zap, Users, TrendingUp, CheckCircle, Star, ArrowRight
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import MiniAppPreview from "@/components/telegram/MiniAppPreview";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
-import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
-import { FadeInOnView } from "@/components/ui/fade-in-on-view";
+import { ServiceStack } from "@/components/shared/ServiceStack";
 import { AnimatedWelcome } from "@/components/welcome/AnimatedWelcome";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { TypewriterText, GradientText, MorphingText } from "@/components/ui/animated-text";
+import { MotionFadeIn, MotionStagger, MotionCounter, MotionHoverCard, MotionScrollReveal } from "@/components/ui/motion-components";
 
 const Landing = () => {
   const handleOpenTelegram = () => {
@@ -56,11 +56,8 @@ const Landing = () => {
         <div className="relative container mx-auto px-6 py-20 text-center">
           <div className="mx-auto max-w-5xl">
             {/* Dynamic Floating Badge */}
-            <FadeInOnView animation="fade-in">
+            <MotionFadeIn delay={0.2}>
               <motion.div
-                initial={{ opacity: 0, y: -30, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.8, type: "spring", stiffness: 200 }}
                 whileHover={{ scale: 1.05, y: -5 }}
                 className="mb-8"
               >
@@ -83,65 +80,119 @@ const Landing = () => {
                   />
                 </Badge>
               </motion.div>
-            </FadeInOnView>
+            </MotionFadeIn>
             
             {/* Animated Welcome Message */}
             <AnimatedWelcome />
 
             {/* Enhanced CTA Buttons */}
-            <FadeInOnView delay={2000} animation="bounce-in">
+            <MotionFadeIn delay={1.5} direction="up" distance={50}>
               <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-                <Button 
-                  size="lg" 
-                  className="bg-white text-telegram hover:bg-yellow-50 shadow-2xl hover:shadow-yellow-500/25 transform hover:scale-105 transition-all duration-300 text-lg px-8 py-4 font-bold"
-                  onClick={handleJoinNow}
+                <motion.div
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <Crown className="w-6 h-6 mr-2" />
-                  Start VIP Journey
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-2 border-white/40 text-white hover:bg-white/20 backdrop-blur-sm text-lg px-8 py-4 font-semibold transform hover:scale-105 transition-all duration-300"
-                  onClick={handleOpenTelegram}
+                  <Button 
+                    size="lg" 
+                    className="bg-white text-telegram hover:bg-yellow-50 shadow-2xl hover:shadow-yellow-500/25 text-lg px-8 py-4 font-bold"
+                    onClick={handleJoinNow}
+                  >
+                    <Crown className="w-6 h-6 mr-2" />
+                    Start VIP Journey
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </motion.div>
+                
+                <motion.div
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <Zap className="w-5 h-5 mr-2" />
-                  Open Telegram Bot
-                </Button>
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="border-2 border-white/40 text-white hover:bg-white/20 backdrop-blur-sm text-lg px-8 py-4 font-semibold"
+                    onClick={handleOpenTelegram}
+                  >
+                    <Zap className="w-5 h-5 mr-2" />
+                    Open Telegram Bot
+                  </Button>
+                </motion.div>
               </div>
-            </FadeInOnView>
+            </MotionFadeIn>
 
             {/* Enhanced Trust Indicators */}
-            <FadeInOnView delay={800} animation="slide-in-right">
+            <MotionStagger staggerDelay={0.2} initialDelay={1.8}>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-white/90">
-                <div className="text-center group cursor-pointer">
-                  <div className="text-3xl md:text-5xl font-black mb-2 text-yellow-300 group-hover:scale-110 transition-transform">5,000+</div>
+                <motion.div 
+                  className="text-center group cursor-pointer"
+                  whileHover={{ scale: 1.1, y: -5 }}
+                >
+                  <MotionCounter 
+                    from={0} 
+                    to={5000} 
+                    suffix="+" 
+                    className="text-3xl md:text-5xl font-black mb-2 text-yellow-300 block"
+                    delay={2}
+                  />
                   <div className="text-sm md:text-base font-medium">Active VIP Members</div>
-                </div>
-                <div className="text-center group cursor-pointer">
-                  <div className="text-3xl md:text-5xl font-black mb-2 text-green-300 group-hover:scale-110 transition-transform">92%</div>
+                </motion.div>
+                
+                <motion.div 
+                  className="text-center group cursor-pointer"
+                  whileHover={{ scale: 1.1, y: -5 }}
+                >
+                  <MotionCounter 
+                    from={0} 
+                    to={92} 
+                    suffix="%" 
+                    className="text-3xl md:text-5xl font-black mb-2 text-green-300 block"
+                    delay={2.2}
+                  />
                   <div className="text-sm md:text-base font-medium">Success Rate</div>
-                </div>
-                <div className="text-center group cursor-pointer">
-                  <div className="text-3xl md:text-5xl font-black mb-2 text-pink-300 group-hover:scale-110 transition-transform">24/7</div>
+                </motion.div>
+                
+                <motion.div 
+                  className="text-center group cursor-pointer"
+                  whileHover={{ scale: 1.1, y: -5 }}
+                >
+                  <div className="text-3xl md:text-5xl font-black mb-2 text-pink-300">24/7</div>
                   <div className="text-sm md:text-base font-medium">Expert Support</div>
-                </div>
-                <div className="text-center group cursor-pointer">
-                  <div className="text-3xl md:text-5xl font-black mb-2 text-blue-300 group-hover:scale-110 transition-transform">5★</div>
+                </motion.div>
+                
+                <motion.div 
+                  className="text-center group cursor-pointer"
+                  whileHover={{ scale: 1.1, y: -5 }}
+                >
+                  <div className="text-3xl md:text-5xl font-black mb-2 text-blue-300 flex items-center justify-center gap-1">
+                    5
+                    <motion.div
+                      animate={{ rotate: [0, 360] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    >
+                      ★
+                    </motion.div>
+                  </div>
                   <div className="text-sm md:text-base font-medium">Customer Rating</div>
-                </div>
+                </motion.div>
               </div>
-            </FadeInOnView>
+            </MotionStagger>
 
             {/* Scroll Indicator */}
-            <FadeInOnView delay={1000} animation="fade-in">
-              <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2">
+            <MotionFadeIn delay={2.5}>
+              <motion.div 
+                className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
                 <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-                  <div className="w-1 h-3 bg-white/70 rounded-full mt-2 animate-bounce"></div>
+                  <motion.div 
+                    className="w-1 h-3 bg-white/70 rounded-full mt-2"
+                    animate={{ y: [0, 15, 0], opacity: [1, 0.3, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  />
                 </div>
-              </div>
-            </FadeInOnView>
+              </motion.div>
+            </MotionFadeIn>
           </div>
         </div>
       </section>
@@ -149,7 +200,7 @@ const Landing = () => {
       {/* Social Proof Section */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-6">
-          <FadeInOnView animation="fade-in">
+          <MotionScrollReveal>
             <div className="text-center mb-16">
               <GradientText 
                 text="Trusted by Elite Traders Worldwide"
@@ -165,9 +216,9 @@ const Landing = () => {
                 speed={30}
               />
             </div>
-          </FadeInOnView>
+          </MotionScrollReveal>
 
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <MotionStagger staggerDelay={0.2} className="grid md:grid-cols-3 gap-8 mb-16">
             {[
               {
                 name: "Sarah M.",
@@ -191,8 +242,12 @@ const Landing = () => {
                 profit: "+$32,000"
               }
             ].map((testimonial, index) => (
-              <FadeInOnView key={index} delay={index * 200} animation="bounce-in">
-                <Card className="p-6 bg-gradient-to-br from-primary/5 to-purple-500/5 border-primary/20 hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <MotionHoverCard 
+                key={index} 
+                hoverScale={1.05} 
+                hoverY={-10}
+              >
+                <Card className="p-6 bg-gradient-to-br from-primary/5 to-purple-500/5 border-primary/20 hover:shadow-xl duration-300">
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-primary to-purple-500 rounded-full flex items-center justify-center text-xl">
@@ -214,16 +269,16 @@ const Landing = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </FadeInOnView>
+              </MotionHoverCard>
             ))}
-          </div>
+          </MotionStagger>
         </div>
       </section>
 
       {/* Services Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
-          <FadeInOnView animation="fade-in">
+          <MotionScrollReveal>
             <div className="text-center mb-16">
               <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
                 <Award className="w-4 h-4 mr-2" />
@@ -234,9 +289,9 @@ const Landing = () => {
                 Comprehensive trading solutions designed for maximum profitability
               </p>
             </div>
-          </FadeInOnView>
+          </MotionScrollReveal>
 
-          <ServiceStackCarousel 
+          <ServiceStack 
             services="📈 Real-time Trading Signals
 📊 Daily Market Analysis  
 🛡️ Risk Management Guidance
@@ -250,16 +305,16 @@ const Landing = () => {
       {/* Features Section */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-6">
-          <FadeInOnView animation="fade-in">
+          <MotionScrollReveal>
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-5xl font-bold mb-6 font-poppins text-foreground">Why Choose Dynamic Capital VIP?</h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed">
                 Get exclusive access to premium features designed for elite traders
               </p>
             </div>
-          </FadeInOnView>
+          </MotionScrollReveal>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <MotionStagger staggerDelay={0.2} className="grid md:grid-cols-3 gap-8">
             {[
               {
                 icon: TrendingUp,
@@ -280,7 +335,7 @@ const Landing = () => {
                 color: "from-purple-500 to-pink-600"
               }
             ].map((feature, index) => (
-              <FadeInOnView key={index} delay={index * 200} animation="bounce-in">
+              <MotionHoverCard key={index} hoverScale={1.05} hoverY={-10}>
                 <Card className="bot-card group hover:shadow-2xl transition-all duration-500 hover:scale-105">
                   <CardContent className="p-8 text-center">
                     <div className={`bot-icon-wrapper w-16 h-16 mx-auto mb-6 bg-gradient-to-br ${feature.color} transform group-hover:scale-110 transition-transform duration-300`}>
@@ -292,16 +347,16 @@ const Landing = () => {
                     </p>
                   </CardContent>
                 </Card>
-              </FadeInOnView>
+              </MotionHoverCard>
             ))}
-          </div>
+          </MotionStagger>
         </div>
       </section>
 
       {/* Live Plans Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
-          <FadeInOnView animation="fade-in">
+          <MotionScrollReveal>
             <div className="text-center mb-16">
               <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
                 <Crown className="w-4 h-4 mr-2" />
@@ -312,7 +367,7 @@ const Landing = () => {
                 Flexible plans designed to match your trading goals and experience level
               </p>
             </div>
-          </FadeInOnView>
+          </MotionScrollReveal>
           
           <LivePlansSection showPromo={true} />
         </div>
@@ -321,7 +376,7 @@ const Landing = () => {
       {/* How It Works */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-6">
-          <FadeInOnView animation="fade-in">
+          <MotionScrollReveal>
             <div className="text-center mb-16">
               <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
                 <Target className="w-4 h-4 mr-2" />
@@ -332,9 +387,9 @@ const Landing = () => {
                 Join thousands of successful traders in minutes
               </p>
             </div>
-          </FadeInOnView>
+          </MotionScrollReveal>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <MotionStagger staggerDelay={0.2} className="grid md:grid-cols-3 gap-8">
             {[
               {
                 step: "1",
@@ -358,7 +413,7 @@ const Landing = () => {
                 color: "from-purple-500 to-pink-600"
               }
             ].map((item, index) => (
-              <FadeInOnView key={index} delay={index * 200} animation="bounce-in">
+              <MotionHoverCard key={index} hoverScale={1.05} hoverY={-10}>
                 <div className="text-center group hover:scale-105 transition-all duration-300">
                   <div className={`w-20 h-20 mx-auto mb-6 bg-gradient-to-br ${item.color} rounded-full flex items-center justify-center relative group-hover:scale-110 transition-transform duration-300`}>
                     <span className="text-3xl font-bold text-white">{item.step}</span>
@@ -370,9 +425,9 @@ const Landing = () => {
                   <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
                   <p className="text-muted-foreground leading-relaxed">{item.description}</p>
                 </div>
-              </FadeInOnView>
+              </MotionHoverCard>
             ))}
-          </div>
+          </MotionStagger>
         </div>
       </section>
 
@@ -381,7 +436,7 @@ const Landing = () => {
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <FadeInOnView animation="slide-in-right">
+              <MotionFadeIn direction="right" distance={50}>
                 <Badge className="mb-4 bg-telegram/10 text-telegram border-telegram/20">
                   <Zap className="w-4 h-4 mr-2" />
                   Live Demo
@@ -403,12 +458,12 @@ const Landing = () => {
                     "📱 Seamless Telegram integration",
                     "🎯 Mobile-optimized interface"
                   ].map((feature, index) => (
-                    <FadeInOnView key={index} delay={index * 100} animation="fade-in">
+                    <MotionFadeIn key={index} delay={index * 0.1}>
                       <div className="flex items-center group hover:scale-105 transition-transform duration-200">
                         <CheckCircle className="w-6 h-6 text-green-500 mr-4 group-hover:scale-110 transition-transform" />
                         <span className="text-lg">{feature}</span>
                       </div>
-                    </FadeInOnView>
+                    </MotionFadeIn>
                   ))}
                 </div>
 
@@ -420,14 +475,14 @@ const Landing = () => {
                   <Sparkles className="w-5 h-5 mr-2" />
                   Try It Now in Telegram
                 </Button>
-              </FadeInOnView>
+              </MotionFadeIn>
             </div>
 
-            <FadeInOnView delay={300} animation="bounce-in">
+            <MotionFadeIn delay={0.3} scale>
               <div className="lg:order-first">
                 <MiniAppPreview className="mx-auto transform hover:scale-105 transition-transform duration-300" />
               </div>
-            </FadeInOnView>
+            </MotionFadeIn>
           </div>
         </div>
       </section>
@@ -442,7 +497,7 @@ const Landing = () => {
         
         <div className="relative container mx-auto px-6 text-center">
           <div className="mx-auto max-w-4xl">
-            <FadeInOnView animation="bounce-in">
+            <MotionFadeIn scale>
               <Badge className="mb-6 bg-white/20 text-white border-white/30 text-lg px-6 py-2">
                 <Crown className="w-5 h-5 mr-2" />
                 Limited Time Offer
@@ -476,7 +531,7 @@ const Landing = () => {
                   Start Free Trial
                 </Button>
               </div>
-            </FadeInOnView>
+            </MotionFadeIn>
           </div>
         </div>
       </section>
