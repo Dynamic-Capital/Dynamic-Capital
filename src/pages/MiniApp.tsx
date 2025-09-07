@@ -18,6 +18,8 @@ import {
 import PlanSection from "@/components/miniapp/PlanSection";
 import StatusSection from "@/components/miniapp/StatusSection";
 import HomeLanding from "@/components/miniapp/HomeLanding";
+import BrandLogo from "@/components/BrandLogo";
+import { useThemeSync } from "@/hooks/useThemeSync";
 
 interface TelegramUser {
   id: number;
@@ -68,6 +70,8 @@ declare global {
 }
 
 export default function MiniApp() {
+  useThemeSync();
+  
   const [telegramData, setTelegramData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState(() => {
     // Get tab from URL parameter
@@ -140,43 +144,47 @@ export default function MiniApp() {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4">
-      <div className="max-w-md mx-auto space-y-4">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="w-full max-w-md mx-auto">
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Smartphone className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">Dynamic Capital VIP</h1>
+        <div className="bg-card border-b border-border px-4 py-6">
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-4">
+              <BrandLogo size="lg" showText={false} />
+            </div>
+            <h1 className="text-xl font-bold text-foreground">Dynamic Capital VIP</h1>
+            <p className="text-sm text-muted-foreground">Telegram Mini App</p>
           </div>
-          <p className="text-sm text-muted-foreground">Telegram Mini App</p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <TabsTrigger key={tab.id} value={tab.id} className="flex flex-col gap-1 p-2">
-                  <Icon className="h-4 w-4" />
-                  <span className="text-xs">{tab.label}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+        {/* Content */}
+        <div className="p-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <TabsTrigger key={tab.id} value={tab.id} className="flex flex-col gap-1 p-3">
+                    <Icon className="h-4 w-4" />
+                    <span className="text-xs font-medium">{tab.label}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
 
-          <TabsContent value="home" className="space-y-4">
-            <HomeLanding telegramData={telegramData} />
-          </TabsContent>
+            <TabsContent value="home" className="space-y-4">
+              <HomeLanding telegramData={telegramData} />
+            </TabsContent>
 
-          <TabsContent value="plan" className="space-y-4">
-            <PlanSection />
-          </TabsContent>
+            <TabsContent value="plan" className="space-y-4">
+              <PlanSection />
+            </TabsContent>
 
-          <TabsContent value="status" className="space-y-4">
-            <StatusSection telegramData={telegramData} />
-          </TabsContent>
+            <TabsContent value="status" className="space-y-4">
+              <StatusSection telegramData={telegramData} />
+            </TabsContent>
 
-          <TabsContent value="me" className="space-y-4">
+            <TabsContent value="me" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -209,9 +217,10 @@ export default function MiniApp() {
                   <p className="text-sm text-muted-foreground">No user data available</p>
                 )}
               </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

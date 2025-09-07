@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 210 40% 98%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -17,16 +17,16 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 197 100% 47%;
+    --primary: 0 84% 60%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
-    --secondary-foreground: 197 100% 47%;
+    --secondary-foreground: 0 84% 60%;
 
-    --muted: 197 15% 95%;
+    --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 197 90% 55%;
+    --accent: 0 84% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -34,17 +34,17 @@ All colors MUST be HSL.
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 197 100% 47%;
+    --ring: 0 84% 60%;
 
-    --telegram-blue: 197 100% 47%;
-    --telegram-light: 197 90% 55%;
-    --telegram-dark: 197 100% 35%;
+    --telegram-blue: 0 84% 60%;
+    --telegram-light: 0 84% 70%;
+    --telegram-dark: 0 84% 50%;
     --gradient-telegram: linear-gradient(
       135deg,
-      hsl(var(--telegram-blue)),
+      hsl(var(--primary)),
       hsl(var(--telegram-light))
     );
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(197 15% 98%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(210 40% 98%));
     --shadow-telegram: 0 10px 30px -10px hsl(var(--telegram-blue) / 0.3);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     
@@ -77,46 +77,46 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 217.2 32.6% 17.5%;
+    --background: 0 0% 6%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 0 0% 9%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 0 0% 9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 197 100% 55%;
+    --primary: 0 84% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 0 0% 14%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 0 0% 14%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 197 90% 55%;
+    --accent: 0 84% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 197 100% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 84% 60%;
 
-    --telegram-blue: 197 100% 55%;
-    --telegram-light: 197 90% 65%;
-    --telegram-dark: 197 100% 40%;
+    --telegram-blue: 0 84% 60%;
+    --telegram-light: 0 84% 70%;
+    --telegram-dark: 0 84% 50%;
     --gradient-telegram: linear-gradient(
       135deg,
-      hsl(var(--telegram-blue)),
+      hsl(var(--primary)),
       hsl(var(--telegram-light))
     );
     --gradient-card: linear-gradient(
       135deg,
-      hsl(217.2 32.6% 17.5%),
-      hsl(222.2 84% 4.9%)
+      hsl(0 0% 9%),
+      hsl(0 0% 6%)
     );
     --shadow-telegram: 0 10px 30px -10px hsl(var(--telegram-blue) / 0.4);
     --sidebar-background: 240 5.9% 10%;

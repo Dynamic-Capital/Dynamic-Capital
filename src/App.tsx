@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/useAuth";
+import { useThemeSync } from "@/hooks/useThemeSync";
 import Header from "./components/layout/Header";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
@@ -48,17 +49,16 @@ const TelegramRedirect = () => {
   return null;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <TelegramRedirect />
-          <div className="min-h-screen bg-background">
-            <Header />
-            <Routes>
+// Component to apply theme sync to the entire app
+const AppContent = () => {
+  useThemeSync();
+  
+  return (
+    <>
+      <TelegramRedirect />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/dashboard" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -72,10 +72,22 @@ const App = () => (
               <Route path="/telegram-setup" element={<TelegramSetup />} />
               <Route path="/miniapp" element={<MiniApp />} />
               <Route path="/plans" element={<Plans />} />
-              <Route path="/welcome" element={<WelcomeMessage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
+          <Route path="/welcome" element={<WelcomeMessage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+    </>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppContent />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
