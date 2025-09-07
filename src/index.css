@@ -721,3 +721,54 @@ All colors MUST be HSL. This ensures consistency across all UI elements. */
 .glass-tab[data-state="active"] {
   animation: tab-glow 2s ease-in-out infinite;
 }
+
+/* Enhanced gradient fades for better visibility */
+.gradient-fade-left {
+  background: linear-gradient(to right, 
+    hsl(var(--background)) 0%, 
+    hsl(var(--background) / 0.8) 30%, 
+    transparent 100%);
+}
+
+.gradient-fade-right {
+  background: linear-gradient(to left, 
+    hsl(var(--background)) 0%, 
+    hsl(var(--background) / 0.8) 30%, 
+    transparent 100%);
+}
+
+/* Snap scroll alignment improvements */
+.snap-x {
+  scroll-snap-type: x mandatory;
+}
+
+.snap-center {
+  scroll-snap-align: center;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+}
+
+.snap-mandatory {
+  scroll-snap-type: x mandatory;
+}
+
+/* Better scroll padding for mobile */
+@media (max-width: 768px) {
+  .scroll-padding-mobile {
+    scroll-padding-left: 0.5rem;
+    scroll-padding-right: 0.5rem;
+  }
+}
+
+/* Scrollbar improvements */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

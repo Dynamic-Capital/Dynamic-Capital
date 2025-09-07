@@ -49,16 +49,21 @@ export function HorizontalSnapScroll({
         if (!scrollRef.current || (pauseOnHover && isHovered)) return;
         
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-        const isAtEnd = scrollLeft >= scrollWidth - clientWidth - 1;
+        const isAtEnd = scrollLeft >= scrollWidth - clientWidth - 10; // Small buffer
         
         if (isAtEnd) {
-          // Reset to beginning
+          // Reset to beginning smoothly
           scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
-          // Scroll to next item
-          const itemWidthPx = 300; // Approximate item width
-          const newScrollLeft = scrollLeft + itemWidthPx + 16; // 16px gap
-          scrollRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+          // Calculate proper item width and scroll to next
+          const firstItem = scrollRef.current.firstElementChild as HTMLElement;
+          if (firstItem) {
+            const itemWidth = firstItem.offsetWidth;
+            const gap = parseFloat(getComputedStyle(scrollRef.current).gap) || 16;
+            const scrollAmount = itemWidth + gap;
+            const newScrollLeft = scrollLeft + scrollAmount;
+            scrollRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+          }
         }
       }, autoScrollInterval);
     };
@@ -89,7 +94,13 @@ export function HorizontalSnapScroll({
     if (!scrollRef.current) return;
     
     const containerWidth = scrollRef.current.clientWidth;
-    const scrollAmount = Math.min(containerWidth * 0.8, 320);
+    // Calculate item width from CSS
+    const computedStyle = getComputedStyle(scrollRef.current.firstElementChild as Element);
+    const itemWidth = parseFloat(computedStyle.width) || 300;
+    const gap = parseFloat(getComputedStyle(scrollRef.current).gap) || 16;
+    
+    // Scroll by one item plus gap
+    const scrollAmount = itemWidth + gap;
     const newScrollLeft = scrollRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
     
     scrollRef.current.scrollTo({
@@ -158,25 +169,35 @@ export function HorizontalSnapScroll({
       <div
         ref={scrollRef}
         className={cn(
-          "flex overflow-x-auto scrollbar-hide snap-x py-2 px-1 md:px-2",
+          "flex overflow-x-auto scrollbar-hide snap-x snap-mandatory py-3 px-2",
           "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg",
+          "scroll-smooth", // Enable smooth scrolling
           className
         )}
-        style={{ gap }}
+        style={{ 
+          gap,
+          scrollPaddingLeft: '1rem',
+          scrollPaddingRight: '1rem'
+        }}
         tabIndex={-1}
       >
         {React.Children.map(children, (child, index) => (
           <div 
             key={index}
-            className="snap-start flex-none animate-fade-in-up hover:scale-[1.02] transition-transform duration-200"
+            className="snap-center flex-none animate-fade-in-up hover:scale-[1.02] transition-all duration-300 flex items-stretch"
             style={{ 
               width: itemWidth,
-              animationDelay: `${index * 100}ms`
+              animationDelay: `${index * 100}ms`,
+              minHeight: 'fit-content'
             }}
           >
-            {child}
+            <div className="w-full h-full flex">
+              {child}
+            </div>
           </div>
         ))}
+        {/* Add spacer at the end for better scrolling */}
+        <div className="flex-none w-4" />
       </div>
     </div>
   );

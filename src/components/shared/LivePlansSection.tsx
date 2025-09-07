@@ -120,9 +120,10 @@ export const LivePlansSection = ({
             )}
 
             <HorizontalSnapScroll 
-              itemWidth="clamp(300px, 90vw, 350px)" 
-              gap="clamp(1rem, 3vw, 1.5rem)"
-              className="pb-4"
+              itemWidth="clamp(280px, 85vw, 340px)" 
+              gap="clamp(0.75rem, 2.5vw, 1.25rem)"
+              className="pb-4 scroll-padding-mobile"
+              showArrows={plans.length > 1}
             >
               {plans.map((plan, index) => (
                 <Card 

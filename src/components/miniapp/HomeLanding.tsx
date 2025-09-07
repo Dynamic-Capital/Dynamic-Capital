@@ -185,10 +185,10 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
                 autoScroll={true}
                 autoScrollInterval={4000}
                 pauseOnHover={true}
-                itemWidth="clamp(260px, 75vw, 300px)"
-                gap="0.75rem"
+                itemWidth="clamp(240px, 80vw, 280px)"
+                gap="clamp(0.5rem, 2vw, 0.75rem)"
                 showArrows={activePromos.length > 1}
-                className="py-2"
+                className="py-3 scroll-padding-mobile"
               >
                 {activePromos.map((promo, index) => (
                   <div 
