@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, MessageCircle, Mail, Phone, Users, Instagram, Youtube, Facebook } from "lucide-react";
+import { ExternalLink, MessageCircle, Mail, Phone, Users, Instagram, Youtube, Facebook, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { SocialLinks } from "@/components/ui/social-icons";
 
 interface ContactLink {
   id: string;
@@ -75,8 +76,29 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
     if (platformLower.includes('instagram')) return <Instagram className="h-4 w-4" />;
     if (platformLower.includes('youtube')) return <Youtube className="h-4 w-4" />;
     if (platformLower.includes('facebook')) return <Facebook className="h-4 w-4" />;
+    if (platformLower.includes('tiktok')) return <TrendingUp className="h-4 w-4" />;
+    if (platformLower.includes('tradingview')) return <TrendingUp className="h-4 w-4" />;
     return <Users className="h-4 w-4" />;
   };
+
+  const socialLinks = [
+    {
+      platform: "instagram" as const,
+      href: "https://instagram.com/dynamiccapital",
+    },
+    {
+      platform: "facebook" as const,
+      href: "https://facebook.com/dynamiccapital",
+    },
+    {
+      platform: "tiktok" as const,
+      href: "https://tiktok.com/@dynamiccapital",
+    },
+    {
+      platform: "tradingview" as const,
+      href: "https://tradingview.com/u/DynamicCapital",
+    },
+  ];
 
   const handleContactClick = (url: string) => {
     try {
@@ -128,9 +150,14 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Dynamic Capital VIP</h3>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Dynamic Capital VIP</h3>
+            </div>
             <p className="text-sm text-muted-foreground">
-              Premium trading signals and investment opportunities for VIP members.
+              Premium trading signals and investment opportunities for VIP members. Join our community of successful traders.
             </p>
           </div>
 
@@ -169,27 +196,37 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
           <div className="space-y-4">
             <h4 className="text-md font-medium text-foreground">Connect With Us</h4>
             
-            {/* Social Media Icons Row */}
-            {contacts.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {contacts.map((contact) => (
-                  <Button
-                    key={contact.id}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleContactClick(contact.url)}
-                    className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
-                    title={`Follow us on ${contact.platform}`}
-                  >
-                    {contact.icon_emoji ? (
-                      <span className="text-sm">{contact.icon_emoji}</span>
-                    ) : (
-                      getPlatformIcon(contact.platform)
-                    )}
-                  </Button>
-                ))}
-              </div>
-            )}
+            {/* Enhanced Social Media Links */}
+            <div className="space-y-3">
+              <SocialLinks 
+                links={socialLinks} 
+                variant="glass" 
+                size="md" 
+                className="justify-start" 
+              />
+              
+              {/* Database Contact Links */}
+              {contacts.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {contacts.map((contact) => (
+                    <Button
+                      key={contact.id}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleContactClick(contact.url)}
+                      className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
+                      title={`Follow us on ${contact.platform}`}
+                    >
+                      {contact.icon_emoji ? (
+                        <span className="text-sm">{contact.icon_emoji}</span>
+                      ) : (
+                        getPlatformIcon(contact.platform)
+                      )}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
             
             {/* Contact Button */}
             <Link to="/contact">
