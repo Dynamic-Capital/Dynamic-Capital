@@ -21,31 +21,45 @@ export async function handler(req: Request): Promise<Response> {
     return mna();
   }
 
-  const supa = createClient("anon");
+  try {
+    const supa = createClient("anon");
 
-  const { data, error } = await supa
-    .from("promotions")
-    .select("code, description, discount_type, discount_value, valid_until")
-    .eq("is_active", true)
-    .gte("valid_until", new Date().toISOString())
-    .order("created_at", { ascending: false });
+    const { data, error } = await supa
+      .from("promotions")
+      .select("code, description, discount_type, discount_value, valid_until")
+      .eq("is_active", true)
+      .gte("valid_until", new Date().toISOString())
+      .order("created_at", { ascending: false });
 
-  if (error) {
+    if (error) {
+      console.error('Database error in active-promos:', error);
+      return new Response(
+        JSON.stringify({ ok: false, error: error.message }), 
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log(`Found ${data?.length || 0} active promotions`);
+    
     return new Response(
-      JSON.stringify({ ok: false, error: error.message }), 
+      JSON.stringify({ ok: true, promotions: data || [] }), 
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+  } catch (err) {
+    console.error('Unexpected error in active-promos:', err);
+    return new Response(
+      JSON.stringify({ ok: false, error: 'Internal server error' }), 
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }
-
-  return new Response(
-    JSON.stringify({ ok: true, promotions: data || [] }), 
-    { 
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-    }
-  );
 }
 
-if (import.meta.main) serve(handler);
+serve(handler);

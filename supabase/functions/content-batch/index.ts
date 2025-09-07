@@ -27,9 +27,9 @@ export async function handler(req: Request): Promise<Response> {
     );
   }
 
-  const supa = createClient("anon");
-  
   try {
+    const supa = createClient("anon");
+    
     const { keys } = await req.json();
     
     if (!keys || !Array.isArray(keys)) {
@@ -42,6 +42,8 @@ export async function handler(req: Request): Promise<Response> {
       );
     }
 
+    console.log('Fetching content for keys:', keys);
+
     const { data, error } = await supa
       .from("bot_content")
       .select("content_key, content_value")
@@ -49,6 +51,7 @@ export async function handler(req: Request): Promise<Response> {
       .eq("is_active", true);
 
     if (error) {
+      console.error('Database error in content-batch:', error);
       return new Response(
         JSON.stringify({ ok: false, error: error.message }), 
         { 
@@ -58,6 +61,8 @@ export async function handler(req: Request): Promise<Response> {
       );
     }
 
+    console.log(`Found ${data?.length || 0} content items`);
+
     return new Response(
       JSON.stringify({ ok: true, contents: data || [] }), 
       { 
@@ -65,6 +70,7 @@ export async function handler(req: Request): Promise<Response> {
       }
     );
   } catch (err) {
+    console.error('Error parsing request in content-batch:', err);
     return new Response(
       JSON.stringify({ ok: false, error: "Invalid request body" }), 
       { 
@@ -75,4 +81,4 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) serve(handler);
+serve(handler);
