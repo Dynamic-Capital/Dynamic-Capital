@@ -4,11 +4,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 import { AuthProvider } from "@/hooks/useAuth";
 import { TelegramAuthProvider } from "@/hooks/useTelegramAuth";
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { MotionThemeProvider, MotionPage } from "@/components/ui/motion-theme";
+import { RouteTransition, PageWrapper } from "@/components/ui/route-transitions";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import MobileBottomNav from "./components/navigation/MobileBottomNav";
@@ -78,29 +80,105 @@ const AppContent = () => {
           role="main"
           tabIndex={-1}
         >
-          <MotionPage pageKey={location.pathname}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/plans" element={<Plans />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/payment-success" element={<PaymentStatus />} />
-              <Route path="/payment-canceled" element={<PaymentStatus />} />
-              <Route path="/payment-status" element={<PaymentStatus />} />
-              <Route path="/education" element={<Education />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/system-health" element={<AdminDashboard />} />
-              <Route path="/bot-status" element={<BotStatus />} />
-              <Route path="/build-miniapp" element={<BuildMiniApp />} />
-              <Route path="/miniapp-demo" element={<MiniAppDemo />} />
-              <Route path="/telegram-setup" element={<TelegramSetup />} />
-              <Route path="/miniapp" element={<MiniApp />} />
-              <Route path="/welcome" element={<WelcomeMessage />} />
-              <Route path="*" element={<NotFound />} />
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={
+                <RouteTransition variant="blur">
+                  <PageWrapper><Landing /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/dashboard" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><Index /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/auth" element={
+                <RouteTransition variant="slide">
+                  <PageWrapper><Auth /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/plans" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><Plans /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/contact" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><Contact /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/checkout" element={
+                <RouteTransition variant="slide">
+                  <PageWrapper><Checkout /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/payment-success" element={
+                <RouteTransition variant="scale">
+                  <PageWrapper><PaymentStatus /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/payment-canceled" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><PaymentStatus /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/payment-status" element={
+                <RouteTransition variant="slide">
+                  <PageWrapper><PaymentStatus /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/education" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><Education /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/admin" element={
+                <RouteTransition variant="blur">
+                  <PageWrapper><AdminDashboard /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/admin/system-health" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><AdminDashboard /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/bot-status" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><BotStatus /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/build-miniapp" element={
+                <RouteTransition variant="slide">
+                  <PageWrapper><BuildMiniApp /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/miniapp-demo" element={
+                <RouteTransition variant="blur">
+                  <PageWrapper background={false}><MiniAppDemo /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/telegram-setup" element={
+                <RouteTransition variant="slide">
+                  <PageWrapper><TelegramSetup /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/miniapp" element={
+                <RouteTransition variant="blur">
+                  <PageWrapper background={false}><MiniApp /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/welcome" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><WelcomeMessage /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="*" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><NotFound /></PageWrapper>
+                </RouteTransition>
+              } />
             </Routes>
-          </MotionPage>
+          </AnimatePresence>
         </main>
         
         <Footer compact={isInMiniApp} />

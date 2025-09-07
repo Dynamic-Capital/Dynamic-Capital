@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { cardVariants } from '@/lib/motion-variants';
 
 interface HorizontalSnapScrollProps {
   children: React.ReactNode;
@@ -182,19 +184,24 @@ export function HorizontalSnapScroll({
         tabIndex={-1}
       >
         {React.Children.map(children, (child, index) => (
-          <div 
+          <motion.div 
             key={index}
-            className="snap-center flex-none animate-fade-in-up hover:scale-[1.02] transition-all duration-300 flex items-stretch"
+            className="snap-center flex-none flex items-stretch"
             style={{ 
               width: itemWidth,
-              animationDelay: `${index * 100}ms`,
               minHeight: 'fit-content'
             }}
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            whileHover="hover"
+            whileTap="tap"
+            transition={{ delay: index * 0.1 }}
           >
             <div className="w-full h-full flex">
               {child}
             </div>
-          </div>
+          </motion.div>
         ))}
         {/* Add spacer at the end for better scrolling */}
         <div className="flex-none w-4" />

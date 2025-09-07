@@ -17,6 +17,8 @@ import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ResponsiveMotion, FullscreenAdaptive, ViewportAware } from "@/components/ui/responsive-motion";
+import { TabTransition } from "@/components/ui/route-transitions";
+import { MicroButton } from "@/components/ui/micro-interactions";
 import { 
   Home, 
   Star, 
@@ -214,19 +216,12 @@ export default function MiniApp() {
               className={`${isMobile ? 'p-4' : 'p-6'} pb-24 safe-area-bottom`}
               layout
             >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <TabsContent value="home" className="space-y-4">
-                    <ViewportAware>
-                      <HomeLanding telegramData={telegramData} />
-                    </ViewportAware>
-                  </TabsContent>
+              <TabTransition tabKey={activeTab}>
+                <TabsContent value="home" className="space-y-4">
+                  <ViewportAware>
+                    <HomeLanding telegramData={telegramData} />
+                  </ViewportAware>
+                </TabsContent>
 
                   <TabsContent value="plan" className="space-y-4">
                     <ViewportAware>
@@ -279,13 +274,12 @@ export default function MiniApp() {
                     </ViewportAware>
                   </TabsContent>
 
-                  <TabsContent value="help" className="space-y-4">
-                    <ViewportAware>
-                      <FAQSection />
-                    </ViewportAware>
-                  </TabsContent>
-                </motion.div>
-              </AnimatePresence>
+                <TabsContent value="help" className="space-y-4">
+                  <ViewportAware>
+                    <FAQSection />
+                  </ViewportAware>
+                </TabsContent>
+              </TabTransition>
             </motion.div>
           </Tabs>
 

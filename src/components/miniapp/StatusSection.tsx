@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, AlertCircle, Clock, Star } from "lucide-react";
+import { MotionCard } from "@/components/ui/motion-card";
+import { FadeInOnView } from "@/components/ui/fade-in-on-view";
+import { cardVariants } from "@/lib/motion-variants";
 
 interface SubscriptionStatus {
   is_vip: boolean;
@@ -70,8 +74,8 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <Card>
+    <FadeInOnView>
+      <MotionCard variant="glass" className="border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5" />
@@ -197,7 +201,7 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
               </div>
             )}
         </CardContent>
-      </Card>
-    </div>
+      </MotionCard>
+    </FadeInOnView>
   );
 }
