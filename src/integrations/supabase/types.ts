@@ -779,6 +779,56 @@ export type Database = {
           },
         ]
       }
+      enrollment_audit_log: {
+        Row: {
+          access_reason: string | null
+          accessed_by: string | null
+          action_type: string
+          created_at: string | null
+          enrollment_id: string | null
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          student_telegram_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_reason?: string | null
+          accessed_by?: string | null
+          action_type: string
+          created_at?: string | null
+          enrollment_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          student_telegram_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_reason?: string | null
+          accessed_by?: string | null
+          action_type?: string
+          created_at?: string | null
+          enrollment_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          student_telegram_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollment_audit_log_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "education_enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kv_config: {
         Row: {
           created_at: string
@@ -1555,6 +1605,10 @@ export type Database = {
         Args: { full_name: string; username: string }
         Returns: undefined
       }
+      anonymize_enrollment_data: {
+        Args: { admin_user_id: string; enrollment_id: string }
+        Returns: Json
+      }
       batch_insert_user_interactions: {
         Args: { interactions: Json }
         Returns: undefined
@@ -1606,6 +1660,10 @@ export type Database = {
       }
       get_dashboard_stats_fast: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_masked_enrollment_info: {
+        Args: { enrollment_id: string }
         Returns: Json
       }
       get_masked_payment_info: {
