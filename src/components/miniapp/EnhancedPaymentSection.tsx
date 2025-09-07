@@ -330,40 +330,30 @@ export const EnhancedPaymentSection: React.FC<EnhancedPaymentSectionProps> = ({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {paymentInstructions.type === "bank_transfer" && paymentInstructions.banks && (
-                  <div className="space-y-4">
-                    {paymentInstructions.banks.map((bank: any, index: number) => (
-                      <Card key={index} className="border-l-4 border-l-primary">
-                        <CardContent className="p-4">
-                          <h4 className="font-semibold mb-3">{bank.bank_name}</h4>
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">Account Name:</span>
-                              <div className="flex items-center space-x-2">
-                                <span className="font-mono text-sm">{bank.account_name}</span>
-                                <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bank.account_name)}>
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">Account Number:</span>
-                              <div className="flex items-center space-x-2">
-                                <span className="font-mono text-sm">{bank.account_number}</span>
-                                <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bank.account_number)}>
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">Amount:</span>
-                              <span className="font-bold text-primary">${selectedPlan.price}</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                {selectedMethod === 'crypto' && paymentInstructions.address && (
+                  <Card className="border-l-4 border-l-orange-500">
+                    <CardContent className="p-4">
+                      <h4 className="font-semibold mb-3">USDT (TRC20)</h4>
+                      <div className="space-y-3">
+                        <div className="p-3 bg-muted rounded font-mono text-sm break-all">
+                          {paymentInstructions.address}
+                        </div>
+                        <Button 
+                          variant="outline"
+                          onClick={() => copyToClipboard(paymentInstructions.address)}
+                          className="w-full"
+                          size="sm"
+                        >
+                          <Copy className="h-3 w-3 mr-2" />
+                          Copy Address
+                        </Button>
+                        <div className="flex justify-between items-center pt-2 border-t">
+                          <span className="text-sm text-muted-foreground">Amount:</span>
+                          <span className="font-bold text-primary">${selectedPlan.price} USDT</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
 
                 <Card className="bg-blue-500/10 border-blue-500/20">
