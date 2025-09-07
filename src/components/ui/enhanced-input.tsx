@@ -49,14 +49,14 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
     const stateStyles = {
       default: "",
       error: "border-destructive focus:border-destructive",
-      success: "border-green-500 focus:border-green-500",
+      success: "border-success focus:border-success",
       loading: "animate-pulse"
     };
 
     const getStateIcon = () => {
       switch (state) {
         case "error": return <AlertCircle className="h-4 w-4 text-destructive" />;
-        case "success": return <Check className="h-4 w-4 text-green-500" />;
+        case "success": return <Check className="h-4 w-4 text-success" />;
         case "loading": return <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />;
         default: return endIcon;
       }
@@ -73,8 +73,8 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
           <motion.div
             animate={{ 
               scale: isFocused ? 1.02 : 1,
-              color: state === "error" ? "hsl(var(--destructive))" : 
-                    state === "success" ? "hsl(142 76% 36%)" :
+              color: state === "error" ? "hsl(var(--destructive))" :
+                    state === "success" ? "hsl(var(--success))" :
                     isFocused ? "hsl(var(--primary))" : "hsl(var(--foreground))"
             }}
             transition={{ duration: 0.2 }}
@@ -92,8 +92,8 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
                 className="absolute left-3 z-10"
                 animate={{ 
                   scale: isFocused ? 1.1 : 1,
-                  color: state === "error" ? "hsl(var(--destructive))" : 
-                        state === "success" ? "hsl(142 76% 36%)" :
+                  color: state === "error" ? "hsl(var(--destructive))" :
+                        state === "success" ? "hsl(var(--success))" :
                         isFocused ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"
                 }}
                 transition={{ duration: 0.2 }}
@@ -168,8 +168,8 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
               </motion.p>
             )}
             {success && (
-              <motion.p 
-                className="text-xs text-green-600 flex items-center gap-1"
+              <motion.p
+                className="text-xs text-success flex items-center gap-1"
                 initial={{ x: -5 }}
                 animate={{ x: 0 }}
               >

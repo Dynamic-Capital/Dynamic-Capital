@@ -752,12 +752,13 @@
 
   /* Telegram brand colors */
   --telegram: 200 100% 48%;
-  --telegram-secondary: 207 100% 67%;
+  --telegram-light: 207 100% 67%;
+  --telegram-dark: 200 100% 40%;
 
   /* Enhanced gradients */
   --gradient-primary: linear-gradient(135deg, hsl(var(--dc-brand)) 0%, hsl(var(--dc-secondary)) 100%);
   --gradient-brand: linear-gradient(135deg, hsl(var(--dc-brand)) 0%, hsl(var(--dc-brand-light)) 50%, hsl(var(--dc-brand-dark)) 100%);
-  --gradient-telegram: linear-gradient(135deg, hsl(var(--telegram)) 0%, hsl(var(--telegram-secondary)) 100%);
+  --gradient-telegram: linear-gradient(135deg, hsl(var(--telegram)) 0%, hsl(var(--telegram-light)) 100%);
   --gradient-card: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)/0.1) 100%);
   --gradient-hero: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--dc-brand)/0.05) 50%, hsl(var(--background)) 100%);
   --gradient-navigation: linear-gradient(135deg, hsl(var(--background)/0.95) 0%, hsl(var(--card)/0.95) 100%);
