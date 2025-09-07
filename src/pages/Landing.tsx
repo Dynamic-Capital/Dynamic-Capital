@@ -1,13 +1,18 @@
-import { Sparkles, Shield, Zap, Users, TrendingUp, CheckCircle, Star, ArrowRight, Crown, Award, Target, DollarSign } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Sparkles, Shield, Zap, Users, TrendingUp, CheckCircle, Star, ArrowRight, Crown, Award, Target, DollarSign, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { motion, AnimatePresence } from "framer-motion";
 import MiniAppPreview from "@/components/telegram/MiniAppPreview";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { ServiceStack } from "@/components/shared/ServiceStack";
-import { AnimatedWelcome } from "@/components/welcome/AnimatedWelcome";
+import { RotatingWords } from "@/components/ui/rotating-words";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { StatefulButton } from "@/components/ui/stateful-button";
+import { TextLoader } from "@/components/ui/text-loader";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { TypewriterText, GradientText, MorphingText } from "@/components/ui/animated-text";
 import { MotionFadeIn, MotionStagger, MotionCounter, MotionHoverCard, MotionScrollReveal } from "@/components/ui/motion-components";
@@ -17,6 +22,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const Landing = () => {
   const isMobile = useIsMobile();
+  const [showLoader, setShowLoader] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowLoader(false), 900);
+    return () => clearTimeout(timer);
+  }, []);
   
   const handleOpenTelegram = () => {
     // Use the actual Dynamic Capital VIP Bot
@@ -141,41 +152,95 @@ const Landing = () => {
               </motion.div>
             </ResponsiveMotion>
             
-            {/* Animated Welcome Message */}
-            <AnimatedWelcome />
+            {/* New Hero Content */}
+            <div className="space-y-6">
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-white drop-shadow-lg`}
+              >
+                Dynamic Capital VIP
+              </motion.h1>
+
+              <div className="flex justify-center">
+                <Separator className="w-24 h-[2px] bg-white/50 rounded-full" />
+              </div>
+
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className={`${isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'} text-white/90 max-w-3xl mx-auto`}
+              >
+                <span className="text-white/80">Professional Trading • Premium </span>
+                {showLoader ? (
+                  <span className="inline-flex items-center">
+                    <span className="mr-2">Signals</span>
+                    <TextLoader size="sm" dotColorClass="text-yellow-300" />
+                  </span>
+                ) : (
+                  <RotatingWords
+                    words={["Signals", "Analysis", "Support", "Strategies"]}
+                    interval={2500}
+                    colorClass="text-yellow-300 font-semibold"
+                  />
+                )}
+                <span className="text-white/80"> • VIP Support</span>
+              </motion.p>
+
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className={`${isMobile ? 'text-base' : 'text-lg'} text-white/70 max-w-2xl mx-auto`}
+              >
+                Trade with expert-guided confidence
+              </motion.p>
+            </div>
 
             {/* Enhanced CTA Buttons */}
-            <ResponsiveMotion mobileVariant="slide" desktopVariant="bounce" delay={1.5}>
-              <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-col sm:flex-row gap-6'} justify-center ${isMobile ? 'mb-12' : 'mb-16'}`}>
-                <motion.div
-                  whileHover={{ scale: isMobile ? 1.02 : 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
+            <ResponsiveMotion mobileVariant="slide" desktopVariant="bounce" delay={0.3}>
+              <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-col sm:flex-row gap-6'} justify-center pt-2 ${isMobile ? 'mb-12' : 'mb-16'}`}>
+                <StatefulButton
+                  variant="shimmer"
+                  size={isMobile ? "default" : "xl"}
+                  className={`${isMobile ? 'px-6 py-3 w-full' : 'px-8 py-4'}`}
+                  successText="Opening Plans..."
+                  loadingText="Loading..."
+                  icon={<Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />}
+                  onClick={() => {
+                    return new Promise((resolve) => {
+                      const isInTelegram = Boolean(
+                        (window as any).Telegram?.WebApp?.initData ||
+                        (window as any).Telegram?.WebApp?.initDataUnsafe ||
+                        window.location.search.includes("tgWebAppPlatform") ||
+                        navigator.userAgent.includes("TelegramWebApp")
+                      );
+                      setTimeout(() => {
+                        if (isInTelegram) {
+                          window.location.href = "/miniapp?tab=plan";
+                        } else {
+                          window.location.href = "/plans";
+                        }
+                        resolve(undefined);
+                      }, 600);
+                    });
+                  }}
                 >
-                  <Button 
-                    size={isMobile ? "default" : "lg"}
-                    className={`bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-white/25 ${isMobile ? 'text-base px-6 py-3 w-full' : 'text-lg px-8 py-4'} font-bold border-2 border-white/20`}
-                    onClick={handleJoinNow}
-                  >
-                    <Crown className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} mr-2`} />
-                    Start VIP Journey
-                    <ArrowRight className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} ml-2`} />
-                  </Button>
-                </motion.div>
-                
-                <motion.div
-                  whileHover={{ scale: isMobile ? 1.02 : 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
+                  Start VIP Journey
+                  <ArrowRight className={`ml-2 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                </StatefulButton>
+
+                <EnhancedButton
+                  variant="glass"
+                  size={isMobile ? "default" : "xl"}
+                  className={`${isMobile ? 'px-6 py-3 w-full' : 'px-8 py-4'} text-white border-white/40`}
+                  onClick={handleOpenTelegram}
+                  icon={<MessageCircle className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />}
                 >
-                  <Button 
-                    size={isMobile ? "default" : "lg"}
-                    variant="outline" 
-                    className={`border-2 border-white/60 text-white hover:bg-white/30 backdrop-blur-md ${isMobile ? 'text-base px-6 py-3 w-full' : 'text-lg px-8 py-4'} font-semibold shadow-xl`}
-                    onClick={handleOpenTelegram}
-                  >
-                    <Zap className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} />
-                    Open Telegram Bot
-                  </Button>
-                </motion.div>
+                  Open Telegram Bot
+                </EnhancedButton>
               </div>
             </ResponsiveMotion>
 
@@ -255,6 +320,8 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      <Separator className="my-16 bg-white/20" />
 
       {/* Social Proof Section */}
       <section className="py-20 bg-gradient-to-b from-background via-muted/20 to-background relative">
@@ -354,6 +421,8 @@ const Landing = () => {
         </div>
       </section>
 
+      <Separator className="my-16" />
+
       {/* Services Section */}
       <MotionSection className="py-20 bg-background">
         <div className="container mx-auto px-6">
@@ -380,6 +449,8 @@ const Landing = () => {
           />
         </div>
       </MotionSection>
+
+      <Separator className="my-16" />
 
       {/* Features Section */}
       <section className="py-20 bg-gradient-to-b from-background via-muted/10 to-background relative">
