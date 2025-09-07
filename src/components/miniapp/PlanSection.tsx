@@ -242,16 +242,16 @@ export default function PlanSection() {
               className="pb-4"
             >
               {plans.map((plan, index) => (
-                <div 
-                  key={plan.id} 
-                  className="relative p-6 border rounded-xl hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer bg-gradient-to-br from-card to-card/80"
-                  style={{ animationDelay: `${index * 150}ms` }}
-                  onClick={() => handleSelectPlan(plan.id)}
-                >
+                 <div 
+                   key={plan.id} 
+                   className="glass-card relative p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
+                   style={{ animationDelay: `${index * 150}ms` }}
+                   onClick={() => handleSelectPlan(plan.id)}
+                 >
                   <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-lg">{plan.name}</h4>
+                     <div>
+                       <div className="flex items-center gap-2 mb-1">
+                         <h4 className="font-semibold text-lg font-sf-pro">{plan.name}</h4>
                         {(plan.id === userPreferredPlanId || (plan.id === popularPlanId && !userPreferredPlanId)) && (
                           <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs animate-pulse">
                             <Star className="h-3 w-3 mr-1" />
@@ -265,9 +265,9 @@ export default function PlanSection() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
-                      </p>
+                       <p className="text-sm text-muted-foreground font-sf-pro">
+                         {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
+                       </p>
                     </div>
                     <div className="text-right">
                       <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
@@ -302,12 +302,11 @@ export default function PlanSection() {
                     </div>
                   )}
 
-                  <Button 
-                    className="w-full transition-all duration-300 hover:scale-105 btn-press"
-                    size="lg"
-                  >
-                    {isInTelegram ? 'Select Plan' : 'Open in Telegram'}
-                  </Button>
+                   <Button 
+                     className="w-full glass-button text-white hover:scale-105 transition-all duration-300 rounded-full h-9 text-sm font-medium font-sf-pro"
+                   >
+                     {isInTelegram ? 'Select Plan' : 'Open in Telegram'}
+                   </Button>
                 </div>
               ))}
             </HorizontalSnapScroll>

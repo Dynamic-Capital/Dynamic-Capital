@@ -72,31 +72,31 @@ export default function MiniApp() {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 safe-area-top">
         <div className="w-full max-w-md mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b">
-              <TabsList className="grid w-full grid-cols-6 bg-muted/50 h-14 p-1">
-                <TabsTrigger value="home" className="flex flex-col items-center gap-1 text-xs p-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <div className="sticky top-0 z-10 glass-card backdrop-blur-md border-b">
+              <TabsList className="glass-card grid w-full grid-cols-6 h-16 p-1">
+                <TabsTrigger value="home" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <Home className="h-5 w-5" />
-                  <span className="text-xs">Home</span>
+                  <span>Home</span>
                 </TabsTrigger>
-                <TabsTrigger value="plan" className="flex flex-col items-center gap-1 text-xs p-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <TabsTrigger value="plan" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <Star className="h-5 w-5" />
-                  <span className="text-xs">Plans</span>
+                  <span>Plans</span>
                 </TabsTrigger>
-                <TabsTrigger value="checkout" className="flex flex-col items-center gap-1 text-xs p-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <TabsTrigger value="checkout" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <ShoppingCart className="h-5 w-5" />
-                  <span className="text-xs">Buy</span>
+                  <span>Buy</span>
                 </TabsTrigger>
-                <TabsTrigger value="status" className="flex flex-col items-center gap-1 text-xs p-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <TabsTrigger value="status" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <User className="h-5 w-5" />
-                  <span className="text-xs">Status</span>
+                  <span>Status</span>
                 </TabsTrigger>
-                <TabsTrigger value="actions" className="flex flex-col items-center gap-1 text-xs p-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <TabsTrigger value="actions" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <Zap className="h-5 w-5" />
-                  <span className="text-xs">Actions</span>
+                  <span>Actions</span>
                 </TabsTrigger>
-                <TabsTrigger value="help" className="flex flex-col items-center gap-1 text-xs p-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <TabsTrigger value="help" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <HelpCircle className="h-5 w-5" />
-                  <span className="text-xs">FAQ</span>
+                  <span>FAQ</span>
                 </TabsTrigger>
               </TabsList>
             </div>

@@ -57,10 +57,10 @@ export function PaymentOptions({ selectedMethod, onSelect, currency }: PaymentOp
       {paymentOptions.map((option) => (
         <Card 
           key={option.id}
-          className={`cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
+          className={`glass-card cursor-pointer transition-all duration-300 hover:scale-105 ${
             selectedMethod === option.id 
-              ? 'border-primary shadow-lg ring-2 ring-primary/20 bg-primary/5' 
-              : 'hover:border-primary/50 hover:shadow-md'
+              ? 'border-primary shadow-lg ring-2 ring-primary/20 glass-active' 
+              : 'border-white/10 hover:border-primary/50'
           }`}
           onClick={() => onSelect(option.id)}
         >

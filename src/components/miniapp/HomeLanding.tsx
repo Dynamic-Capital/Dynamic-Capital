@@ -41,8 +41,15 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
   const [announcements, setAnnouncements] = useState<string>("Stay tuned for updates!");
   const [activePromos, setActivePromos] = useState<ActivePromo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [scrollY, setScrollY] = useState(0);
 
   const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -105,15 +112,26 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
+  const bgOpacity = Math.min(scrollY / 300, 0.8);
+
   return (
-    <div className="space-y-6">
+    <div 
+      className="space-y-6 scroll-bg-transition"
+      style={{
+        background: `linear-gradient(135deg, 
+          hsl(var(--telegram) / ${0.9 - bgOpacity * 0.3}), 
+          hsl(var(--primary) / ${0.8 - bgOpacity * 0.2}), 
+          hsl(var(--accent) / ${0.7 - bgOpacity * 0.2})), 
+          hsl(var(--background) / ${bgOpacity})`
+      }}
+    >
       {/* Hero Section */}
-      <Card className="bg-gradient-to-br from-primary/10 via-purple-500/10 to-blue-500/10 border-primary/20">
+      <Card className="glass-card border-primary/20">
         <CardContent className="p-6 text-center">
           <div className="mb-4">
             <Star className="h-12 w-12 text-primary mx-auto mb-3" />
-            <h1 className="text-2xl font-bold mb-2">Dynamic Capital VIP</h1>
-            <p className="text-muted-foreground">Professional Trading • Premium Signals • VIP Support</p>
+            <h1 className="text-2xl font-bold mb-2 font-sf-pro">Dynamic Capital VIP</h1>
+            <p className="text-muted-foreground font-sf-pro">Professional Trading • Premium Signals • VIP Support</p>
           </div>
           <div className="flex items-center justify-center gap-4 text-sm">
             <div className="flex items-center gap-1">

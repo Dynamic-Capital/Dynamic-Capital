@@ -10,6 +10,15 @@ All colors MUST be HSL.
   :root {
     --background: 210 40% 98%;
     --foreground: 222.2 84% 4.9%;
+    
+    /* Liquid glass system */
+    --glass-bg: 210 40% 98% / 0.05;
+    --glass-border: 210 40% 98% / 0.1;
+    --glass-hover: 210 40% 98% / 0.08;
+    --glass-active: 210 40% 98% / 0.12;
+    --glass-blur: blur(16px);
+    --glass-shadow: 0 8px 32px 0 hsl(222.2 84% 4.9% / 0.3);
+    --glass-shadow-hover: 0 12px 40px 0 hsl(222.2 84% 4.9% / 0.4);
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -127,6 +136,14 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Dark mode liquid glass */
+    --glass-bg: 210 40% 98% / 0.05;
+    --glass-border: 210 40% 98% / 0.1;
+    --glass-hover: 210 40% 98% / 0.08;
+    --glass-active: 210 40% 98% / 0.12;
+    --glass-shadow: 0 8px 32px 0 hsl(222.2 84% 4.9% / 0.3);
+    --glass-shadow-hover: 0 12px 40px 0 hsl(222.2 84% 4.9% / 0.4);
   }
 }
 
@@ -137,6 +154,24 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'SF Pro Text', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Liquid glass utilities */
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-[var(--glass-shadow)] hover:shadow-[var(--glass-shadow-hover)] transition-all duration-300;
+  }
+
+  .glass-button {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/8 active:bg-white/12 transition-all duration-300;
+  }
+
+  .glass-tab {
+    @apply bg-white/3 backdrop-blur-sm border-white/5 hover:bg-white/6 data-[state=active]:bg-white/10 data-[state=active]:border-white/20;
+  }
+
+  .scroll-bg-transition {
+    transition: background-color 0.5s ease-in-out;
   }
 }
 
