@@ -9,6 +9,7 @@ import Contact from "./pages/Contact";
 import Plan from "./pages/Plan";
 import Status from "./pages/Status";
 import Subscription from "./pages/Subscription";
+import VipDashboard from "./pages/VipDashboard";
 
 export default function AppRouter() {
   return (
@@ -23,6 +24,7 @@ export default function AppRouter() {
       <Route path="/contact" element={<Contact />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/subscription" element={<Subscription />} />
+      <Route path="/vip-dashboard" element={<VipDashboard />} />
     </Routes>
   );
 }

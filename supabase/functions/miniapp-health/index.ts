@@ -47,25 +47,54 @@ export async function handler(req: Request): Promise<Response> {
   const v = version(req, "miniapp-health");
   if (v) return v;
   if (req.method !== "POST") return mna();
-  let body: { telegram_id?: string };
+  let body: { telegram_id?: string; initData?: string };
   try {
     body = await req.json();
   } catch {
     return bad("Bad JSON");
   }
-  const tg = String(body.telegram_id || "").trim();
-  if (!tg) return bad("Missing telegram_id");
+
+  // Extract telegram_id from initData if provided
+  let tg = String(body.telegram_id || "").trim();
+  if (!tg && body.initData) {
+    try {
+      const params = new URLSearchParams(body.initData);
+      const userStr = params.get('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        tg = user.id?.toString() || '';
+      }
+    } catch (error) {
+      console.warn('Failed to parse initData:', error);
+    }
+  }
+
+  if (!tg) return bad("Missing telegram_id or initData");
 
   const supa = createClient();
 
   let isVip: boolean | null = null;
+  let isAdmin: boolean = false;
   try {
     isVip = await getVipForTelegram(supa, tg);
+    
+    // Check admin status
+    const { data: adminData } = await supa
+      .from("bot_users")
+      .select("is_admin")
+      .eq("telegram_id", tg)
+      .single();
+    
+    isAdmin = adminData?.is_admin || false;
   } catch (error) {
     return oops((error as Error).message);
   }
 
-  return ok({ vip: { is_vip: isVip } });
+  return ok({ 
+    vip: { is_vip: isVip }, 
+    admin: { is_admin: isAdmin },
+    telegram_user_id: tg
+  });
 }
 
 if (import.meta.main) {

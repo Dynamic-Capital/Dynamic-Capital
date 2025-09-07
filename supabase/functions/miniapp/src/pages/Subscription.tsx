@@ -74,6 +74,9 @@ export default function Subscription() {
               {subscription.plan_name || 'VIP Plan'}
             </div>
             <StatusPill status={getStatusColor(subscription.payment_status)} />
+            <Link to="/vip-dashboard" className="mt-3 block">
+              <PrimaryButton label="Open VIP Dashboard" />
+            </Link>
           </div>
           
           <div className="space-y-3">

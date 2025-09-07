@@ -77,14 +77,34 @@ export function useTelegram() {
             .then((res) => res.json().catch(() => null))
             .then((json) => {
               const vip = json?.vip?.is_vip;
+              const admin = json?.admin?.is_admin;
               if (vip !== undefined) {
                 (root as HTMLElement).dataset.tgVip = String(!!vip);
+              }
+              if (admin !== undefined) {
+                (root as HTMLElement).dataset.tgAdmin = String(!!admin);
               }
             })
             .catch((err) =>
               console.error("[MiniApp] miniapp-health error", err)
             );
         }
+
+        // Sync user data with backend
+        fetch("/api/sync-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ initData }),
+        })
+          .then((res) => res.json().catch(() => null))
+          .then((json) => {
+            if (json?.ok) {
+              console.log("[MiniApp] User synced successfully");
+            }
+          })
+          .catch((err) =>
+            console.error("[MiniApp] User sync error", err)
+          );
       }
     } catch (e) {
       console.warn("[MiniApp] Unable to verify Telegram initData", e);

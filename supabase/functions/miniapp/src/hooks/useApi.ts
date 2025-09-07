@@ -114,6 +114,25 @@ export function useApi() {
     return res.json();
   };
 
+  const getVipDashboard = async () => {
+    const initData = getInitData();
+    const telegram_user_id = extractTelegramUserId(initData);
+    
+    const res = await fetch(`/api/vip-dashboard?telegram_user_id=${telegram_user_id}`);
+    if (!res.ok) return handleError(res);
+    return res.json();
+  };
+
+  const syncUser = async () => {
+    const res = await fetch("/api/sync-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ initData: getInitData() }),
+    });
+    if (!res.ok) return handleError(res);
+    return res.json();
+  };
+
   // Helper function to extract telegram user ID from initData
   const extractTelegramUserId = (initData: string): string => {
     try {
@@ -140,5 +159,7 @@ export function useApi() {
     reject,
     checkAdminStatus,
     getSubscriptionStatus,
+    getVipDashboard,
+    syncUser,
   };
 }
