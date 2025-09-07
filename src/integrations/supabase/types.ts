@@ -1134,6 +1134,47 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_audit_log: {
+        Row: {
+          action_type: string
+          change_reason: string | null
+          changed_by: string | null
+          created_at: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          subscription_id: string | null
+        }
+        Insert: {
+          action_type: string
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          subscription_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_audit_log_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           created_at: string
@@ -1524,6 +1565,10 @@ export type Database = {
       }
       get_masked_payment_info: {
         Args: { payment_id: string }
+        Returns: Json
+      }
+      get_masked_subscription_info: {
+        Args: { subscription_id: string }
         Returns: Json
       }
       get_remaining_security_notes: {
