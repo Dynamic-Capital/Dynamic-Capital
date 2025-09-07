@@ -124,6 +124,7 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
                     onClick={() => handleContactClick(contact.url)}
                     className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
                     title={`Follow us on ${contact.platform}`}
+                    aria-label={`Follow us on ${contact.platform}`}
                   >
                     {contact.icon_emoji ? (
                       <span className="text-xs">{contact.icon_emoji}</span>
@@ -216,6 +217,7 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
                       onClick={() => handleContactClick(contact.url)}
                       className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
                       title={`Follow us on ${contact.platform}`}
+                      aria-label={`Follow us on ${contact.platform}`}
                     >
                       {contact.icon_emoji ? (
                         <span className="text-sm">{contact.icon_emoji}</span>
