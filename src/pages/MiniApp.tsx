@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import PlanSection from "@/components/miniapp/PlanSection";
 import StatusSection from "@/components/miniapp/StatusSection";
+import HomeLanding from "@/components/miniapp/HomeLanding";
 
 interface TelegramUser {
   id: number;
@@ -164,28 +165,7 @@ export default function MiniApp() {
           </TabsList>
 
           <TabsContent value="home" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5" />
-                  Welcome
-                </CardTitle>
-                <CardDescription>
-                  Interactive testing interface for Dynamic Capital VIP Bot
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button onClick={handleCheckVersion} className="w-full">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Check Version
-                  {version && <Badge variant="outline" className="ml-2">{version}</Badge>}
-                </Button>
-                <Button onClick={handleVerifyInitData} variant="outline" className="w-full">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Verify InitData
-                </Button>
-              </CardContent>
-            </Card>
+            <HomeLanding telegramData={telegramData} />
           </TabsContent>
 
           <TabsContent value="plan" className="space-y-4">

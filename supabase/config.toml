@@ -72,3 +72,9 @@ verify_jwt = false
 
 [functions.subscription-status]
 verify_jwt = false
+
+[functions.content-batch]
+verify_jwt = false
+
+[functions.active-promos]
+verify_jwt = false
