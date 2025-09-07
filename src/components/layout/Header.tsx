@@ -22,7 +22,7 @@ const Header: React.FC = () => {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
               <Bot className="h-5 w-5" />
             </div>
-            AI Trading Assistant
+            Dynamic Capital
           </Link>
 
           <nav className="hidden md:flex items-center gap-2">
@@ -34,6 +34,17 @@ const Header: React.FC = () => {
               <Link to="/" className="flex items-center gap-2">
                 <Home className="h-4 w-4" />
                 Home
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant={isActive("/dashboard") ? "default" : "ghost"}
+              size="sm"
+            >
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Dashboard
               </Link>
             </Button>
 
@@ -73,6 +84,12 @@ const Header: React.FC = () => {
                   <Link to="/" className="flex items-center gap-2">
                     <Home className="h-4 w-4" />
                     Home
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Dashboard
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>

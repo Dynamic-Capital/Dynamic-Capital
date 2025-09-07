@@ -5,12 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Header from "./components/layout/Header";
+import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Education from "./pages/Education";
 import BuildMiniApp from "./pages/BuildMiniApp";
 import NotFound from "./pages/NotFound";
-import { AdminDashboard } from "./components/admin/AdminDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import { WelcomeMessage } from "./components/welcome/WelcomeMessage";
 import BotStatus from "./pages/BotStatus";
 import Checkout from "./pages/Checkout";
@@ -31,7 +32,8 @@ const App = () => (
           <div className="min-h-screen bg-background">
             <Header />
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/dashboard" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/education" element={<Education />} />
               <Route path="/admin" element={<AdminDashboard />} />
