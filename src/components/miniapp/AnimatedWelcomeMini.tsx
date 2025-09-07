@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Star, 
   Users, 
@@ -13,6 +14,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
+import { TypewriterText, StaggeredText, GradientText, LetterReveal } from "@/components/ui/animated-text";
 
 interface WelcomeLineMiniProps {
   text: string;
@@ -23,16 +25,43 @@ interface WelcomeLineMiniProps {
 
 function WelcomeLineMini({ text, delay, icon: Icon, iconColor = "text-primary" }: WelcomeLineMiniProps) {
   return (
-    <FadeInOnView delay={delay} animation="slide-in-right">
-      <div className="flex items-center justify-center gap-2 mb-2">
-        {Icon && (
-          <Icon className={`h-5 w-5 ${iconColor} animate-pulse drop-shadow-sm`} />
-        )}
-        <p className="text-base sm:text-lg text-elevated font-semibold text-center drop-shadow-sm">
-          {text}
-        </p>
-      </div>
-    </FadeInOnView>
+    <motion.div 
+      className="flex items-center justify-center gap-2 mb-2"
+      initial={{ opacity: 0, x: -50, scale: 0.8 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      transition={{ 
+        duration: 0.6, 
+        delay: delay / 1000,
+        ease: [0.6, -0.05, 0.01, 0.99],
+        type: "spring",
+        stiffness: 100,
+        damping: 15
+      }}
+    >
+      {Icon && (
+        <motion.div
+          animate={{ 
+            scale: [1, 1.2, 1],
+            rotate: [0, 5, -5, 0]
+          }}
+          transition={{ 
+            duration: 2, 
+            repeat: Infinity, 
+            ease: "easeInOut",
+            delay: delay / 1000
+          }}
+        >
+          <Icon className={`h-5 w-5 ${iconColor} drop-shadow-sm`} />
+        </motion.div>
+      )}
+      <StaggeredText 
+        text={text}
+        className="text-base sm:text-lg text-elevated font-semibold text-center drop-shadow-sm"
+        delay={delay / 1000}
+        staggerDelay={0.05}
+        animationType="fadeUp"
+      />
+    </motion.div>
   );
 }
 
@@ -138,26 +167,55 @@ export default function AnimatedWelcomeMini({ className }: AnimatedWelcomeMiniPr
       <div className="relative z-10 py-8 px-4 text-center space-y-6">
         {/* Animated welcome message */}
         <div className="space-y-3">
-          <FadeInOnView delay={0} animation="fade-in">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, type: "spring", stiffness: 200, damping: 15 }}
+          >
             <div className="flex justify-center mb-4">
               <div className="flex items-center gap-3">
-                <Star className="h-8 w-8 text-primary animate-spin" style={{ animationDuration: '3s' }} />
-                <Zap className="h-6 w-6 text-yellow-500 animate-bounce" />
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                >
+                  <Star className="h-8 w-8 text-primary" />
+                </motion.div>
+                <motion.div
+                  animate={{ y: [-5, 5] }}
+                  transition={{ duration: 1, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                >
+                  <Zap className="h-6 w-6 text-yellow-500" />
+                </motion.div>
               </div>
             </div>
-          </FadeInOnView>
+          </motion.div>
           
-          <FadeInOnView delay={200} animation="fade-in">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 drop-shadow-lg">
-              Dynamic Capital VIP
-            </h1>
-          </FadeInOnView>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <LetterReveal 
+              text="Dynamic Capital VIP"
+              className="text-2xl sm:text-3xl font-bold text-foreground mb-2 drop-shadow-lg text-center"
+              delay={0.5}
+              duration={1.2}
+            />
+          </motion.div>
 
-          <FadeInOnView delay={300} animation="fade-in">
-            <p className="text-base sm:text-lg text-primary font-semibold mb-4 drop-shadow-sm">
-              Professional Trading • Premium Signals • VIP Support
-            </p>
-          </FadeInOnView>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+          >
+            <GradientText 
+              text="Professional Trading • Premium Signals • VIP Support"
+              gradient="from-primary via-purple-500 to-pink-500"
+              className="text-base sm:text-lg font-semibold mb-4 drop-shadow-sm text-center block"
+              animate={true}
+              animationDuration={4}
+            />
+          </motion.div>
 
           {/* Animated message lines with icons */}
           <div className="space-y-2">

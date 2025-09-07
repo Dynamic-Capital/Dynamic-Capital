@@ -2,12 +2,14 @@ import { Sparkles, Shield, Zap, Users, TrendingUp, CheckCircle, Star, ArrowRight
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
 import MiniAppPreview from "@/components/telegram/MiniAppPreview";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { AnimatedWelcome } from "@/components/welcome/AnimatedWelcome";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { TypewriterText, GradientText, MorphingText } from "@/components/ui/animated-text";
 
 const Landing = () => {
   const handleOpenTelegram = () => {
@@ -53,12 +55,34 @@ const Landing = () => {
         
         <div className="relative container mx-auto px-6 py-20 text-center">
           <div className="mx-auto max-w-5xl">
-            {/* Floating Badge */}
+            {/* Dynamic Floating Badge */}
             <FadeInOnView animation="fade-in">
-              <Badge className="mb-8 bg-white/20 text-white border-white/30 hover:bg-white/30 text-base px-6 py-2 animate-bounce">
-                <Crown className="w-5 h-5 mr-2" />
-                #1 Premium Trading Platform
-              </Badge>
+              <motion.div
+                initial={{ opacity: 0, y: -30, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.8, type: "spring", stiffness: 200 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="mb-8"
+              >
+                <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 text-base px-6 py-2">
+                  <motion.div
+                    animate={{ rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <Crown className="w-5 h-5 mr-2" />
+                  </motion.div>
+                  <MorphingText 
+                    texts={[
+                      "#1 Premium Trading Platform",
+                      "5000+ Active VIP Members", 
+                      "92% Success Rate Proven",
+                      "24/7 Expert Support"
+                    ]}
+                    interval={4000}
+                    morphDuration={0.6}
+                  />
+                </Badge>
+              </motion.div>
             </FadeInOnView>
             
             {/* Animated Welcome Message */}
@@ -127,10 +151,19 @@ const Landing = () => {
         <div className="container mx-auto px-6">
           <FadeInOnView animation="fade-in">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 font-poppins text-foreground">Trusted by Elite Traders Worldwide</h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed">
-                See what our VIP members are saying about their trading success
-              </p>
+              <GradientText 
+                text="Trusted by Elite Traders Worldwide"
+                gradient="from-foreground via-primary to-purple-600"
+                className="text-3xl md:text-5xl font-bold mb-6 font-poppins block"
+                animate={true}
+                animationDuration={6}
+              />
+              <TypewriterText 
+                text="See what our VIP members are saying about their trading success"
+                className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed"
+                delay={1000}
+                speed={30}
+              />
             </div>
           </FadeInOnView>
 

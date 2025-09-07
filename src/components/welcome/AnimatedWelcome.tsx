@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { Button } from "@/components/ui/button";
 import { 
@@ -14,6 +15,7 @@ import {
   Crown,
   Zap
 } from "lucide-react";
+import { TypewriterText, StaggeredText, GradientText, MorphingText, LetterReveal } from "@/components/ui/animated-text";
 
 interface WelcomeLineProps {
   text: string;
@@ -24,16 +26,43 @@ interface WelcomeLineProps {
 
 function WelcomeLine({ text, delay, icon: Icon, iconColor = "text-primary" }: WelcomeLineProps) {
   return (
-    <FadeInOnView delay={delay} animation="slide-in-right">
-      <div className="flex items-center justify-center gap-3 mb-2">
-        {Icon && (
-          <Icon className={`h-6 w-6 ${iconColor} animate-pulse`} />
-        )}
-        <p className="text-lg sm:text-xl text-muted-foreground font-medium text-center font-inter">
-          {text}
-        </p>
-      </div>
-    </FadeInOnView>
+    <motion.div 
+      className="flex items-center justify-center gap-3 mb-2"
+      initial={{ opacity: 0, x: -50, rotateY: -30 }}
+      animate={{ opacity: 1, x: 0, rotateY: 0 }}
+      transition={{ 
+        duration: 0.8, 
+        delay: delay / 1000,
+        ease: [0.6, -0.05, 0.01, 0.99],
+        type: "spring",
+        stiffness: 120,
+        damping: 20
+      }}
+    >
+      {Icon && (
+        <motion.div
+          animate={{ 
+            rotate: [0, 10, -10, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity, 
+            ease: "easeInOut",
+            delay: delay / 1000
+          }}
+        >
+          <Icon className={`h-6 w-6 ${iconColor}`} />
+        </motion.div>
+      )}
+      <StaggeredText 
+        text={text}
+        className="text-lg sm:text-xl text-muted-foreground font-medium text-center font-inter"
+        delay={delay / 1000}
+        staggerDelay={0.03}
+        animationType="elastic"
+      />
+    </motion.div>
   );
 }
 
@@ -123,21 +152,48 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
     <div className={`py-20 text-center max-w-6xl mx-auto ${className}`}>
       <div className="space-y-8">
         {/* Main title with animated icon */}
-        <FadeInOnView delay={0} animation="bounce-in">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5, y: -50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 1, type: "spring", stiffness: 200, damping: 15 }}
+        >
           <div className="flex items-center justify-center gap-4 mb-6">
-            <Star className="h-12 w-12 text-primary animate-spin" style={{ animationDuration: '3s' }} />
-            <h1 className="text-4xl sm:text-5xl font-bold text-foreground font-poppins">
-              Dynamic Capital
-            </h1>
-            <Zap className="h-12 w-12 text-yellow-500 animate-bounce" />
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            >
+              <Star className="h-12 w-12 text-primary" />
+            </motion.div>
+            
+            <LetterReveal 
+              text="Dynamic Capital"
+              className="text-4xl sm:text-5xl font-bold text-foreground font-poppins"
+              delay={0.5}
+              duration={2}
+            />
+            
+            <motion.div
+              animate={{ y: [-10, 10] }}
+              transition={{ duration: 2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+            >
+              <Zap className="h-12 w-12 text-yellow-500" />
+            </motion.div>
           </div>
-        </FadeInOnView>
+        </motion.div>
 
-        <FadeInOnView delay={200} animation="fade-in">
-          <h2 className="text-xl sm:text-2xl font-semibold text-primary mb-8 text-center font-inter">
-            Professional Trading • Premium Signals • VIP Support
-          </h2>
-        </FadeInOnView>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.5 }}
+        >
+          <GradientText 
+            text="Professional Trading • Premium Signals • VIP Support"
+            gradient="from-primary via-purple-500 to-pink-500"
+            className="text-xl sm:text-2xl font-semibold mb-8 text-center font-inter block"
+            animate={true}
+            animationDuration={5}
+          />
+        </motion.div>
 
         {/* Welcome message lines with icons */}
         <div className="space-y-4 mb-8">
