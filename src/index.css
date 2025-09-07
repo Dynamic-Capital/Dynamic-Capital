@@ -337,15 +337,18 @@ All colors MUST be HSL. This ensures consistency across all UI elements. */
 
   /* Animation Classes */
   .animate-in {
-    @apply opacity-0 animate-fade-in;
+    @apply opacity-0;
+    animation: fadeIn 0.6s ease-out forwards;
   }
   
   .animate-slide-up {
-    @apply opacity-0 translate-y-4 animate-fade-in-up;
+    @apply opacity-0 translate-y-4;
+    animation: fade-in-up 0.6s ease-out forwards;
   }
   
   .animate-bounce-in {
-    @apply opacity-0 scale-95 animate-bounce-in;
+    @apply opacity-0 scale-95;
+    animation: bounce-in 0.8s ease-out forwards;
   }
 }
 
