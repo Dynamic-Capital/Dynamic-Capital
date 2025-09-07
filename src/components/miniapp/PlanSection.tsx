@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { parentVariants, childVariants, fastParentVariants } from "@/lib/motion-variants";
 import { cn } from "@/lib/utils";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface Plan {
   id: string;
@@ -31,6 +32,11 @@ interface PromoValidation {
   discount_type?: string;
   discount_value?: number;
   final_amount?: number;
+}
+
+interface ContentItem {
+  content_key: string;
+  content_value: string;
 }
 
 export default function PlanSection() {
@@ -71,21 +77,24 @@ export default function PlanSection() {
           contentResponse.json()
         ]);
       setPlans(plansData.plans || []);
-      
-      const contents = contentData.contents || [];
-      const popularContent = contents.find((c: any) => c.content_key === 'popular_plan_id');
-      
+
+      const contents: ContentItem[] = contentData.contents || [];
+      const popularContent = contents.find((c) => c.content_key === 'popular_plan_id');
+
       if (popularContent) {
         setPopularPlanId(popularContent.content_value);
       }
 
         // Check user's selection history for most preferred plan
-        const selectionCounts = JSON.parse(localStorage.getItem('plan_selection_counts') || '{}');
+        const selectionCounts: Record<string, number> = JSON.parse(
+          localStorage.getItem('plan_selection_counts') || '{}'
+        );
         if (Object.keys(selectionCounts).length > 0) {
-          const mostSelected = Object.entries(selectionCounts).reduce((a, b) => 
-            (selectionCounts[a[0]] as number) > (selectionCounts[b[0]] as number) ? a : b, ['', 0]
+          const mostSelected = Object.entries(selectionCounts).reduce(
+            (a, b) => (selectionCounts[a[0]] > selectionCounts[b[0]] ? a : b),
+            ['', 0]
           );
-          if ((mostSelected[1] as number) > 0) {
+          if (mostSelected[1] > 0) {
             setUserPreferredPlanId(mostSelected[0]);
           }
         }
@@ -121,16 +130,15 @@ export default function PlanSection() {
         return;
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/promo-validate', {
+      const response = await callEdgeFunction('PROMO_VALIDATE', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           code: promoCode,
           telegram_id: telegramUserId || 'web-user',
           plan_id: selectedPlanId
-        })
+        }
       });
-      
+
       if (!response.ok) {
         throw new Error('Network error');
       }
