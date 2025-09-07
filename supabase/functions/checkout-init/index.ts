@@ -5,6 +5,7 @@ import { bad, mna, ok, oops, json } from "../_shared/http.ts";
 import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { version } from "../_shared/version.ts";
 import { verifyTelegramInitData } from "../_shared/telegram_verification.ts";
+import { getContent } from "../_shared/config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,7 +30,7 @@ type BankAccount = {
 };
 
 type BankInstructions = { type: "bank_transfer"; banks: BankAccount[] };
-type CryptoInstructions = { type: "crypto"; note: string };
+type CryptoInstructions = { type: "crypto"; address: string; note: string };
 type Instructions = BankInstructions | CryptoInstructions;
 
 export async function handler(req: Request): Promise<Response> {
@@ -139,11 +140,16 @@ export async function handler(req: Request): Promise<Response> {
       .eq("is_active", true)
       .order("display_order");
     instructions = { type: "bank_transfer", banks: (banks as BankAccount[]) || [] };
-  } else {
+  } else if (body.method === "crypto") {
+    // Get crypto address from config
+    const cryptoAddress = await getContent<string>("crypto_usdt_trc20") || "TYour-Crypto-Address-Here";
     instructions = {
       type: "crypto",
-      note: "Send to the provided address (shown in UI). Then upload receipt.",
+      address: cryptoAddress,
+      note: "Send USDT (TRC20) to the provided address. Then upload receipt via Telegram bot.",
     };
+  } else {
+    return bad("Unsupported payment method");
   }
 
   return ok({ ok: true, payment_id: pay!.id, instructions }, corsHeaders);

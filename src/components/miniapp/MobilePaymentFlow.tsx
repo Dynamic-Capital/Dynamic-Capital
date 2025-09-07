@@ -119,16 +119,16 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
 
     setLoading(true);
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/checkout-init', {
+      const { callEdgeFunction } = await import('@/config/supabase');
+      const response = await callEdgeFunction('CHECKOUT_INIT', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           plan_id: selectedPlan.id,
           method: selectedMethod,
           currency: selectedPlan.currency,
           amount: selectedPlan.price,
           initData: isInTelegram ? window.Telegram?.WebApp?.initData : undefined
-        })
+        }
       });
 
       const data = await response.json();
@@ -152,8 +152,9 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
     toast.success("Copied to clipboard!");
   };
 
-  const openTelegramBot = () => {
-    const url = 'https://t.me/Dynamic_VIP_BOT';
+  const openTelegramBot = async () => {
+    const { TELEGRAM_CONFIG } = await import('@/config/supabase');
+    const url = TELEGRAM_CONFIG.BOT_URL;
     if (isInTelegram) {
       window.Telegram?.WebApp?.openTelegramLink(url);
     } else {
@@ -386,17 +387,17 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
               </div>
             )}
 
-            {selectedMethod === 'crypto' && (
+            {selectedMethod === 'crypto' && paymentInstructions.address && (
               <Card className="border-l-4 border-l-orange-500">
                 <CardContent className="p-4">
                   <h4 className="font-semibold mb-2 text-sm">USDT (TRC20)</h4>
                   <div className="space-y-2">
                     <div className="p-3 bg-muted rounded font-mono text-xs break-all">
-                      TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7
+                      {paymentInstructions.address}
                     </div>
                     <Button 
                       variant="outline"
-                      onClick={() => copyToClipboard("TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7")}
+                      onClick={() => copyToClipboard(paymentInstructions.address)}
                       className="w-full"
                       size="sm"
                     >

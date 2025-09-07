@@ -108,16 +108,16 @@ export const EnhancedPaymentSection: React.FC<EnhancedPaymentSectionProps> = ({
 
     setLoading(true);
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/checkout-init', {
+      const { callEdgeFunction } = await import('@/config/supabase');
+      const response = await callEdgeFunction('CHECKOUT_INIT', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           plan_id: selectedPlan.id,
           method: selectedMethod,
           currency: selectedPlan.currency,
           amount: selectedPlan.price,
           initData: isInTelegram ? window.Telegram?.WebApp?.initData : undefined
-        })
+        }
       });
 
       const data = await response.json();
@@ -141,8 +141,9 @@ export const EnhancedPaymentSection: React.FC<EnhancedPaymentSectionProps> = ({
     toast.success("Copied to clipboard!");
   };
 
-  const openTelegramBot = () => {
-    window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
+  const openTelegramBot = async () => {
+    const { TELEGRAM_CONFIG } = await import('@/config/supabase');
+    window.open(TELEGRAM_CONFIG.BOT_URL, '_blank');
   };
 
   if (!selectedPlan) {
