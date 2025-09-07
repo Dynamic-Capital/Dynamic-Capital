@@ -170,6 +170,52 @@ All colors MUST be HSL.
   .animate-scale-in {
     animation: scaleIn 0.3s ease-out forwards;
   }
+
+  /* Scrollbar styling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground));
+    border-radius: 20px;
+  }
+
+  /* Snap scroll */
+  .snap-x {
+    scroll-snap-type: x mandatory;
+  }
+  
+  .snap-start {
+    scroll-snap-align: start;
+  }
+
+  /* Gradient fade effects */
+  .gradient-fade-right {
+    background: linear-gradient(to right, transparent 0%, hsl(var(--background)) 100%);
+  }
+  
+  .gradient-fade-left {
+    background: linear-gradient(to left, transparent 0%, hsl(var(--background)) 100%);
+  }
 }
 
 @keyframes fadeIn {

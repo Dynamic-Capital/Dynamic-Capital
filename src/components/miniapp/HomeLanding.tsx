@@ -15,6 +15,7 @@ import {
   Gift
 } from "lucide-react";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
+import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 
 interface BotContent {
   content_key: string;
@@ -171,39 +172,49 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       )}
 
       {/* About Dynamic Capital */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-primary" />
-            About Dynamic Capital
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
-            {aboutUs}
-          </p>
-        </CardContent>
-      </Card>
+      <FadeInOnView delay={300} animation="bounce-in">
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-102">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary animate-pulse-glow" />
+              About Dynamic Capital
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+              {aboutUs}
+            </p>
+          </CardContent>
+        </Card>
+      </FadeInOnView>
 
       {/* Our Services */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-blue-500" />
-            Our Services
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {services.split('\n').filter(service => service.trim()).map((service, index) => (
-              <div key={index} className="flex items-center gap-2 text-sm">
-                <div className="h-2 w-2 bg-primary rounded-full" />
-                <span>{service.replace('•', '').trim()}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <FadeInOnView delay={500} animation="slide-in-right">
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-102">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-500" />
+              Our Services
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {services.split('\n').filter(service => service.trim()).map((service, index) => (
+                <FadeInOnView
+                  key={index}
+                  delay={600 + (index * 100)}
+                  animation="fade-in"
+                >
+                  <div className="flex items-center gap-2 text-sm hover:scale-105 transition-transform duration-200">
+                    <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
+                    <span>{service.replace('•', '').trim()}</span>
+                  </div>
+                </FadeInOnView>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </FadeInOnView>
 
       {/* VIP Packages */}
       <div>

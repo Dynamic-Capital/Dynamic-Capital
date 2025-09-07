@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Sparkles, Check } from "lucide-react";
+import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
+import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { toast } from "sonner";
 
 interface Plan {
@@ -106,118 +108,133 @@ export default function PlanSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            VIP Plans
-          </CardTitle>
-          <CardDescription>Choose your subscription plan and start trading like a pro</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Promo Code Section */}
-          {isInTelegram && (
-            <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">Have a promo code?</span>
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter promo code"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  className="flex-1"
-                />
-                <Button 
-                  onClick={validatePromoCode} 
-                  disabled={!promoCode.trim() || validatingPromo}
-                  size="sm"
-                >
-                  {validatingPromo ? "..." : "Apply"}
-                </Button>
-              </div>
-              {promoValidation && (
-                <div className={`text-xs p-2 rounded ${promoValidation.valid ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
-                  {promoValidation.valid 
-                    ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!`
-                    : promoValidation.reason
-                  }
-                </div>
-              )}
-            </div>
-          )}
-
-          {!isInTelegram && (
-            <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <div className="text-sm text-blue-600 text-center">
-                💡 For the full experience with promo codes and instant payments, open in Telegram
-              </div>
-            </div>
-          )}
-
-          {/* Plans */}
-          <div className="space-y-3">
-            {plans.map((plan) => (
-              <div key={plan.id} className="p-4 border rounded-lg hover:border-primary/50 transition-colors">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h4 className="font-semibold text-lg">{plan.name}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
-                    </p>
+    <FadeInOnView>
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 animate-pulse-glow" />
+              VIP Plans
+            </CardTitle>
+            <CardDescription>Choose your subscription plan and start trading like a pro</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Promo Code Section */}
+            {isInTelegram && (
+              <FadeInOnView delay={200} animation="slide-in-right">
+                <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Have a promo code?</span>
                   </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-primary">
-                      ${promoValidation?.valid && promoValidation.final_amount ? promoValidation.final_amount : plan.price}
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter promo code"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={validatePromoCode} 
+                      disabled={!promoCode.trim() || validatingPromo}
+                      size="sm"
+                      className="hover:scale-105 transition-transform"
+                    >
+                      {validatingPromo ? "..." : "Apply"}
+                    </Button>
+                  </div>
+                  {promoValidation && (
+                    <div className={`text-xs p-2 rounded transition-all duration-300 ${promoValidation.valid ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
+                      {promoValidation.valid 
+                        ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!`
+                        : promoValidation.reason
+                      }
                     </div>
-                    {promoValidation?.valid && promoValidation.final_amount !== plan.price && (
-                      <div className="text-sm text-muted-foreground line-through">
-                        ${plan.price}
+                  )}
+                </div>
+              </FadeInOnView>
+            )}
+
+            {!isInTelegram && (
+              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div className="text-sm text-blue-600 text-center">
+                  💡 For the full experience with promo codes and instant payments, open in Telegram
+                </div>
+              </div>
+            )}
+
+            {/* Plans */}
+            <HorizontalSnapScroll 
+              itemWidth="280px" 
+              gap="1rem"
+              className="pb-4"
+            >
+              {plans.map((plan, index) => (
+                <div 
+                  key={plan.id} 
+                  className="p-4 border rounded-lg hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:scale-105"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h4 className="font-semibold text-lg">{plan.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-primary">
+                        ${promoValidation?.valid && promoValidation.final_amount ? promoValidation.final_amount : plan.price}
                       </div>
-                    )}
-                    <div className="text-xs text-muted-foreground">{plan.currency}</div>
-                  </div>
-                </div>
-
-                {plan.features && plan.features.length > 0 && (
-                  <div className="mb-4">
-                    <div className="grid grid-cols-1 gap-1 text-sm">
-                      {plan.features.slice(0, 3).map((feature, idx) => (
-                        <div key={idx} className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-green-500" />
-                          <span className="text-muted-foreground">{feature}</span>
+                      {promoValidation?.valid && promoValidation.final_amount !== plan.price && (
+                        <div className="text-sm text-muted-foreground line-through">
+                          ${plan.price}
                         </div>
-                      ))}
+                      )}
+                      <div className="text-xs text-muted-foreground">{plan.currency}</div>
                     </div>
                   </div>
-                )}
 
-                <Button 
-                  className="w-full"
-                  onClick={() => handleSelectPlan(plan.id)}
-                >
-                  {isInTelegram ? 'Select Plan' : 'Open in Telegram'}
-                </Button>
-              </div>
-            ))}
-          </div>
+                  {plan.features && plan.features.length > 0 && (
+                    <div className="mb-4">
+                      <div className="grid grid-cols-1 gap-1 text-sm">
+                        {plan.features.slice(0, 3).map((feature, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <Check className="h-3 w-3 text-green-500" />
+                            <span className="text-muted-foreground">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-          <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-lg">
-            <div className="text-center">
-              <Sparkles className="h-8 w-8 text-primary mx-auto mb-2" />
-              <h3 className="font-semibold mb-2">Why Choose VIP?</h3>
-              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                <div>• Premium signals</div>
-                <div>• 24/7 support</div>
-                <div>• Exclusive analysis</div>
-                <div>• Mobile app access</div>
+                  <Button 
+                    className="w-full transition-all duration-300 hover:scale-105"
+                    onClick={() => handleSelectPlan(plan.id)}
+                  >
+                    {isInTelegram ? 'Select Plan' : 'Open in Telegram'}
+                  </Button>
+                </div>
+              ))}
+            </HorizontalSnapScroll>
+
+            <FadeInOnView delay={800} animation="bounce-in">
+              <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-lg">
+                <div className="text-center">
+                  <Sparkles className="h-8 w-8 text-primary mx-auto mb-2 animate-pulse-glow" />
+                  <h3 className="font-semibold mb-2">Why Choose VIP?</h3>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <div className="hover:text-primary transition-colors">• Premium signals</div>
+                    <div className="hover:text-primary transition-colors">• 24/7 support</div>
+                    <div className="hover:text-primary transition-colors">• Exclusive analysis</div>
+                    <div className="hover:text-primary transition-colors">• Mobile app access</div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            </FadeInOnView>
+          </CardContent>
+        </Card>
+      </div>
+    </FadeInOnView>
   );
 }

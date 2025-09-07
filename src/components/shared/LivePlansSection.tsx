@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Crown, Star, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
+import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import PromoCodeInput from "@/components/billing/PromoCodeInput";
 
 interface Plan {
@@ -95,95 +97,104 @@ export const LivePlansSection = ({
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Crown className="w-5 h-5 text-primary" />
-            VIP Subscription Plans
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground mb-6">
-            Choose the perfect plan for your trading journey. All plans include premium signals, 
-            market analysis, and exclusive access to our VIP community.
-          </p>
+    <FadeInOnView>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-primary animate-pulse-glow" />
+              VIP Subscription Plans
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-6">
+              Choose the perfect plan for your trading journey. All plans include premium signals, 
+              market analysis, and exclusive access to our VIP community.
+            </p>
 
-          {showPromo && (
-            <div className="mb-6">
-              <h4 className="font-medium mb-3">Have a promo code?</h4>
-              <PromoCodeInput planId={plans[0]?.id || ""} />
-            </div>
-          )}
+            {showPromo && (
+              <div className="mb-6">
+                <h4 className="font-medium mb-3">Have a promo code?</h4>
+                <PromoCodeInput planId={plans[0]?.id || ""} />
+              </div>
+            )}
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {plans.map((plan) => (
-              <Card 
-                key={plan.id} 
-                className={`relative transition-all duration-300 hover:shadow-lg ${
-                  isVipPlan(plan.name) 
-                    ? 'border-primary/50 shadow-primary/10' 
-                    : 'border-muted hover:border-primary/30'
-                }`}
-              >
-                {isVipPlan(plan.name) && (
-                  <div className="absolute top-0 right-0 bg-gradient-to-l from-primary to-primary/80 text-primary-foreground px-3 py-1 text-xs font-medium rounded-bl-lg">
-                    <Star className="w-3 h-3 inline mr-1" />
-                    Popular
-                  </div>
-                )}
-
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2">
-                    {plan.name}
-                    {isVipPlan(plan.name) && <Crown className="w-4 h-4 text-primary" />}
-                  </CardTitle>
-                  
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                      {formatPrice(plan)}
-                    </span>
-                    {plan.is_lifetime && (
-                      <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
-                        Lifetime
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  {plan.features && plan.features.length > 0 && (
-                    <div className="space-y-2">
-                      {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                          <span className="text-sm">{feature}</span>
-                        </div>
-                      ))}
+            <HorizontalSnapScroll 
+              itemWidth="320px" 
+              gap="1.5rem"
+              className="pb-4"
+            >
+              {plans.map((plan, index) => (
+                <Card 
+                  key={plan.id} 
+                  className={`relative transition-all duration-300 hover:shadow-lg hover:scale-105 ${
+                    isVipPlan(plan.name) 
+                      ? 'border-primary/50 shadow-primary/10 animate-pulse-glow' 
+                      : 'border-muted hover:border-primary/30'
+                  }`}
+                  style={{ animationDelay: `${index * 200}ms` }}
+                >
+                  {isVipPlan(plan.name) && (
+                    <div className="absolute top-0 right-0 bg-gradient-to-l from-primary to-primary/80 text-primary-foreground px-3 py-1 text-xs font-medium rounded-bl-lg animate-bounce-in">
+                      <Star className="w-3 h-3 inline mr-1" />
+                      Popular
                     </div>
                   )}
 
-                  <div className="pt-4">
-                    <Button 
-                      onClick={() => handleSelectPlan(plan.id)}
-                      className="w-full"
-                      variant={isVipPlan(plan.name) ? "default" : "outline"}
-                    >
-                      Select Plan
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="flex items-center gap-2">
+                      {plan.name}
+                      {isVipPlan(plan.name) && <Crown className="w-4 h-4 text-primary" />}
+                    </CardTitle>
+                    
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                        {formatPrice(plan)}
+                      </span>
+                      {plan.is_lifetime && (
+                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+                          Lifetime
+                        </Badge>
+                      )}
+                    </div>
+                  </CardHeader>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              ✨ Instant activation • 🔒 Secure payment • 📱 Full Telegram integration
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                  <CardContent className="space-y-4">
+                    {plan.features && plan.features.length > 0 && (
+                      <div className="space-y-2">
+                        {plan.features.map((feature, index) => (
+                          <div key={index} className="flex items-start gap-2">
+                            <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                            <span className="text-sm">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="pt-4">
+                      <Button 
+                        onClick={() => handleSelectPlan(plan.id)}
+                        className="w-full transition-all duration-300 hover:scale-105"
+                        variant={isVipPlan(plan.name) ? "default" : "outline"}
+                      >
+                        Select Plan
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </HorizontalSnapScroll>
+
+            <FadeInOnView delay={600}>
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  ✨ Instant activation • 🔒 Secure payment • 📱 Full Telegram integration
+                </p>
+              </div>
+            </FadeInOnView>
+          </CardContent>
+        </Card>
+      </div>
+    </FadeInOnView>
   );
 };
