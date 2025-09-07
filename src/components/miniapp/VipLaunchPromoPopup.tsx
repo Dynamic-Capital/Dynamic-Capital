@@ -46,17 +46,19 @@ export const VipLaunchPromoPopup = ({ isOpen, onClose, onApplyPromo }: PromoPopu
           <DialogClose className="absolute right-0 top-0 p-1 opacity-70 hover:opacity-100 transition-opacity">
             <X className="h-4 w-4" />
           </DialogClose>
-          <DialogTitle className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-2">
-              <Gift className="h-6 w-6 text-primary animate-bounce" />
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                VIP Bot Launch!
-              </span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-4 w-4 text-yellow-500 fill-current animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
-              ))}
+          <DialogTitle className="text-center pt-2">
+            <div className="space-y-2">
+              <div className="flex items-center justify-center gap-2">
+                <Gift className="h-6 w-6 text-primary animate-bounce" />
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+                  VIP Bot Launch!
+                </span>
+              </div>
+              <div className="flex items-center justify-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-4 w-4 text-yellow-500 fill-current animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
+                ))}
+              </div>
             </div>
           </DialogTitle>
         </DialogHeader>
