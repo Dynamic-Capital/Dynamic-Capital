@@ -87,6 +87,49 @@ export function useApi() {
     if (!res.ok) return handleError(res);
   };
 
+  const checkAdminStatus = async () => {
+    const initData = getInitData();
+    // Extract telegram user ID from initData (basic parsing)
+    const telegram_user_id = extractTelegramUserId(initData);
+    
+    const res = await fetch("/api/admin-check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegram_user_id }),
+    });
+    if (!res.ok) return handleError(res);
+    return res.json();
+  };
+
+  const getSubscriptionStatus = async () => {
+    const initData = getInitData();
+    const telegram_user_id = extractTelegramUserId(initData);
+    
+    const res = await fetch("/api/subscription-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegram_user_id }),
+    });
+    if (!res.ok) return handleError(res);
+    return res.json();
+  };
+
+  // Helper function to extract telegram user ID from initData
+  const extractTelegramUserId = (initData: string): string => {
+    try {
+      // Parse initData to extract user info
+      const params = new URLSearchParams(initData);
+      const userStr = params.get('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return user.id?.toString() || '';
+      }
+    } catch (error) {
+      console.warn('Failed to parse telegram user ID:', error);
+    }
+    return '';
+  };
+
   return {
     createIntent,
     uploadReceipt,
@@ -95,5 +138,7 @@ export function useApi() {
     getPending,
     approve,
     reject,
+    checkAdminStatus,
+    getSubscriptionStatus,
   };
 }

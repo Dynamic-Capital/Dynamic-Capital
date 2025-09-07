@@ -121,31 +121,53 @@ export default function Landing() {
           </CardContent>
         </Card>
 
-        {/* Trust & Account */}
-        <div className="flex gap-3">
-          <Link to="/me" className="flex-1">
-            <Card className="bg-card/50 backdrop-blur border-border hover:bg-card/70 transition-colors">
-              <CardHeader className="text-center py-4">
-                <Users className="h-5 w-5 text-primary mx-auto mb-2" />
-                <CardTitle className="text-sm text-foreground">My Account</CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  Status & receipts
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-          
-          <Link to="/status" className="flex-1">
-            <Card className="bg-card/50 backdrop-blur border-border hover:bg-card/70 transition-colors">
-              <CardHeader className="text-center py-4">
-                <Shield className="h-5 w-5 text-primary mx-auto mb-2" />
-                <CardTitle className="text-sm text-foreground">Status</CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  Payment status
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+        {/* Account & Bot Link */}
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Link to="/me" className="flex-1">
+              <Card className="bg-card/50 backdrop-blur border-border hover:bg-card/70 transition-colors">
+                <CardHeader className="text-center py-4">
+                  <Users className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <CardTitle className="text-sm text-foreground">My Account</CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Status & receipts
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+            
+            <Link to="/status" className="flex-1">
+              <Card className="bg-card/50 backdrop-blur border-border hover:bg-card/70 transition-colors">
+                <CardHeader className="text-center py-4">
+                  <Shield className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <CardTitle className="text-sm text-foreground">Status</CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Payment status
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
+          </div>
+
+          {/* Open Bot Link */}
+          <Card className="bg-gradient-to-r from-accent/20 to-primary/20 border-accent/30">
+            <CardHeader className="text-center py-4">
+              <CardTitle className="text-foreground text-sm mb-2">
+                Open @Dynamic_VIP_BOT
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mb-3">
+                Access full bot features and commands
+              </CardDescription>
+              <a 
+                href="https://t.me/Dynamic_VIP_BOT" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-primary text-sm font-medium hover:text-primary/80 transition-colors"
+              >
+                Open Bot <ArrowRight className="h-4 w-4" />
+              </a>
+            </CardHeader>
+          </Card>
         </div>
       </div>
     </div>

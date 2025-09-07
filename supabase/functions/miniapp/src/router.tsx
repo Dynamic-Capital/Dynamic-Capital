@@ -7,6 +7,7 @@ import Me from "./pages/Me";
 import Admin from "./pages/Admin";
 import Plan from "./pages/Plan";
 import Status from "./pages/Status";
+import Subscription from "./pages/Subscription";
 
 export default function AppRouter() {
   return (
@@ -19,6 +20,7 @@ export default function AppRouter() {
       <Route path="/status" element={<Status />} />
       <Route path="/me" element={<Me />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="/subscription" element={<Subscription />} />
     </Routes>
   );
 }

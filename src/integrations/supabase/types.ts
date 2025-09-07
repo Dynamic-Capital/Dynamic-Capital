@@ -1449,8 +1449,23 @@ export type Database = {
         Args: { user_telegram_id: string }
         Returns: string
       }
+      get_user_subscription_status: {
+        Args: { telegram_user_id: string }
+        Returns: {
+          days_remaining: number
+          is_expired: boolean
+          is_vip: boolean
+          payment_status: string
+          plan_name: string
+          subscription_end_date: string
+        }[]
+      }
       is_service_role: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_telegram_admin: {
+        Args: { telegram_user_id: string }
         Returns: boolean
       }
       is_user_admin: {
