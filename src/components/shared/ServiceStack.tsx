@@ -14,6 +14,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MagneticButton } from "@/components/ui/advanced-motion";
 
 interface ServiceStackProps {
   services: string;

@@ -17,9 +17,9 @@ export const MotionFadeIn: React.FC<MotionFadeInProps> = ({
   children,
   className,
   delay = 0,
-  duration = 0.6,
+  duration = 0.8,
   direction = 'up',
-  distance = 30,
+  distance = 50,
   scale = false,
   once = true
 }) => {
@@ -32,7 +32,7 @@ export const MotionFadeIn: React.FC<MotionFadeInProps> = ({
 
   const initialState = {
     opacity: 0,
-    ...(scale && { scale: 0.8 }),
+    ...(scale && { scale: 0.9 }),
     ...directionMap[direction]
   };
 
@@ -48,11 +48,14 @@ export const MotionFadeIn: React.FC<MotionFadeInProps> = ({
       className={className}
       initial={initialState}
       whileInView={animateState}
-      viewport={{ once }}
+      viewport={{ once, amount: 0.3 }}
       transition={{
         duration,
         delay,
-        ease: [0.6, -0.05, 0.01, 0.99]
+        ease: [0.16, 1, 0.3, 1], // Enhanced easing
+        type: "spring",
+        stiffness: 260,
+        damping: 20
       }}
     >
       {children}
@@ -181,25 +184,38 @@ interface MotionHoverCardProps {
 export const MotionHoverCard: React.FC<MotionHoverCardProps> = ({
   children,
   className,
-  hoverScale = 1.02,
+  hoverScale = 1.05,
   hoverRotate = 0,
-  hoverY = -5,
-  tapScale = 0.98
+  hoverY = -10,
+  tapScale = 0.95
 }) => {
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, amount: 0.3 }}
       whileHover={{
         scale: hoverScale,
         rotate: hoverRotate,
         y: hoverY,
-        transition: { duration: 0.2 }
+        transition: { 
+          type: "spring",
+          stiffness: 400,
+          damping: 25
+        }
       }}
-      whileTap={{ scale: tapScale }}
-      transition={{ duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }}
+      whileTap={{ 
+        scale: tapScale,
+        transition: { duration: 0.1 }
+      }}
+      transition={{ 
+        duration: 0.8, 
+        ease: [0.16, 1, 0.3, 1],
+        type: "spring",
+        stiffness: 260,
+        damping: 20
+      }}
     >
       {children}
     </motion.div>
