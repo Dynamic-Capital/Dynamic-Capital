@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { InputField } from "@/components/ui/input-field";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, Sparkles, Check } from "lucide-react";
+import { CreditCard, Sparkles, Check, Star, TrendingUp } from "lucide-react";
 import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
+import { CurrencySelector } from "./CurrencySelector";
 import { toast } from "sonner";
 
 interface Plan {
@@ -29,6 +30,9 @@ interface PromoValidation {
 export default function PlanSection() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currency, setCurrency] = useState("USD");
+  const [exchangeRate, setExchangeRate] = useState(17.5);
+  const [popularPlanId, setPopularPlanId] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState(() => {
     // Pre-fill promo code from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -40,15 +44,32 @@ export default function PlanSection() {
   const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
 
   useEffect(() => {
-    fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans')
-      .then(res => res.json())
-      .then(data => {
-        setPlans(data.plans || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
+    // Fetch plans, exchange rate, and analytics
+    Promise.all([
+      fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans').then(res => res.json()),
+      fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keys: ['usd_mvr_rate', 'popular_plan_id'] })
+      }).then(res => res.json())
+    ]).then(([plansData, contentData]) => {
+      setPlans(plansData.plans || []);
+      
+      const contents = contentData.contents || [];
+      const rateContent = contents.find((c: any) => c.content_key === 'usd_mvr_rate');
+      const popularContent = contents.find((c: any) => c.content_key === 'popular_plan_id');
+      
+      if (rateContent) {
+        setExchangeRate(parseFloat(rateContent.content_value) || 17.5);
+      }
+      if (popularContent) {
+        setPopularPlanId(popularContent.content_value);
+      }
+      
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
+    });
   }, []);
 
   // Auto-validate promo code if pre-filled from URL
@@ -86,6 +107,14 @@ export default function PlanSection() {
     } finally {
       setValidatingPromo(false);
     }
+  };
+
+  const getDisplayPrice = (plan: Plan) => {
+    const basePrice = plan.price;
+    if (currency === "MVR") {
+      return Math.round(basePrice * exchangeRate);
+    }
+    return basePrice;
   };
 
   const handleSelectPlan = (planId: string) => {
@@ -130,6 +159,19 @@ export default function PlanSection() {
             <CardDescription>Choose your subscription plan and start trading like a pro</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Currency Selector */}
+            <FadeInOnView delay={100}>
+              <div className="flex justify-between items-center p-4 bg-muted/50 rounded-lg">
+                <div>
+                  <h4 className="font-medium">Select Currency</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Exchange rate: 1 USD = {exchangeRate} MVR
+                  </p>
+                </div>
+                <CurrencySelector value={currency} onChange={setCurrency} />
+              </div>
+            </FadeInOnView>
+
             {/* Promo Code Section */}
             {isInTelegram && (
               <FadeInOnView delay={200} animation="slide-in-right">
@@ -194,21 +236,37 @@ export default function PlanSection() {
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h4 className="font-semibold text-lg">{plan.name}</h4>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-lg">{plan.name}</h4>
+                        {plan.id === popularPlanId && (
+                          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs">
+                            <Star className="h-3 w-3 mr-1" />
+                            Most Popular
+                          </Badge>
+                        )}
+                        {plan.id !== popularPlanId && index === 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            <TrendingUp className="h-3 w-3 mr-1" />
+                            Best Value
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
                       </p>
                     </div>
                     <div className="text-right">
                       <div className="text-2xl font-bold text-primary">
-                        ${promoValidation?.valid && promoValidation.final_amount ? promoValidation.final_amount : plan.price}
+                        {currency === "MVR" ? "Rf" : "$"}{promoValidation?.valid && promoValidation.final_amount ? 
+                          (currency === "MVR" ? Math.round(promoValidation.final_amount * exchangeRate) : promoValidation.final_amount) : 
+                          getDisplayPrice(plan)}
                       </div>
                       {promoValidation?.valid && promoValidation.final_amount !== plan.price && (
                         <div className="text-sm text-muted-foreground line-through">
-                          ${plan.price}
+                          {currency === "MVR" ? "Rf" : "$"}{getDisplayPrice(plan)}
                         </div>
                       )}
-                      <div className="text-xs text-muted-foreground">{plan.currency}</div>
+                      <div className="text-xs text-muted-foreground">{currency}</div>
                     </div>
                   </div>
 

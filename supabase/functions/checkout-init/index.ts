@@ -15,6 +15,8 @@ type Body = {
   telegram_id?: string;
   plan_id: string;
   method: "bank_transfer" | "crypto";
+  currency?: string;
+  amount?: number;
   initData?: string;
 };
 
@@ -112,8 +114,8 @@ export async function handler(req: Request): Promise<Response> {
     .insert({
       user_id: userId,
       plan_id: body.plan_id,
-      amount: null,
-      currency: "USD",
+      amount: body.amount || null,
+      currency: body.currency || "USD",
       payment_method: body.method,
       status: "pending",
     })
