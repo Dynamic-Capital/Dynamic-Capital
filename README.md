@@ -16,32 +16,141 @@ OCR + crypto TXID). Built with **Lovable Codex** for enhanced development experi
 - Admin commands for maintenance
 - **Lovable Codex Integration** for AI-powered development
 
-## Lovable Codex Development
+## 🎨 UI Development with Lovable Codex
 
-This project leverages **Lovable Codex** for enhanced UI development and debugging:
-
-### Quick UI Edits
-- **Visual Edits**: Click the Edit button in Lovable's chat interface for instant visual changes
+### Quick UI Guidelines
+- **Design System Only**: NEVER use direct colors like `text-white`, `bg-black`. Always use semantic tokens from `index.css` and `tailwind.config.ts`
+- **Component Structure**: Create focused, reusable components instead of modifying large files
+- **Visual Edits**: Use Lovable's Visual Edit button for quick text/color changes (saves credits)
 - **Real-time Preview**: See changes immediately in the live preview window
-- **Component-based**: Modular, reusable UI components throughout the app
 
-### AI-Powered Development
+### Development Workflow
+1. **Chat-driven**: Describe UI changes in natural language
+2. **Visual Edits**: Use for simple text/color/font changes
+3. **Incremental**: Test each change before requesting more
+4. **Design System**: Always use semantic tokens, never hardcoded colors
+
+### AI-Powered Features
 - **Natural Language Coding**: Describe features in plain English
 - **Automatic Optimization**: Code is refactored for best practices
 - **TypeScript Integration**: Full type safety and IntelliSense support
-- **Design System**: Semantic tokens for consistent theming
+- **Responsive Design**: Mobile-first approach with proper breakpoints
 
-### Debugging & Monitoring
+### Debugging Tools
 - **Console Access**: Real-time console log monitoring
 - **Network Inspection**: API call and edge function monitoring
 - **Error Detection**: Automatic error identification and fixes
 - **Performance Tracking**: Component optimization suggestions
 
-### Development Workflow
-1. **Chat-driven**: Describe changes in natural language
-2. **Visual Edits**: Use for quick text/color changes (saves credits)
-3. **Incremental**: Test changes before requesting more
-4. **AI Debugging**: Use built-in tools before manual editing
+## 🔒 Architecture & Integration Guardrails
+
+### Telegram Bot ⇄ Mini App Connection
+
+<lov-mermaid>
+graph TD
+    A[Telegram Bot] -->|Webhook| B[Supabase Edge Functions]
+    A -->|/start command| C[Mini App Button]
+    C -->|Click| D[Web App Launch]
+    D -->|initData auth| B
+    B -->|Database| E[Supabase Tables]
+    B -->|Storage| F[Receipt Files]
+    
+    subgraph "Core Tables"
+        E1[bot_users]
+        E2[user_subscriptions]
+        E3[payment_intents]
+        E4[receipts]
+        E1 --> E2
+        E2 --> E3
+        E3 --> E4
+    end
+    
+    E --> E1
+    
+    subgraph "Payment Flow"
+        G[Receipt Upload] --> H[OCR Processing]
+        H --> I[Bank Parser]
+        I --> J{Auto-approve?}
+        J -->|Yes| K[Approved]
+        J -->|No| L[Manual Review]
+    end
+    
+    B --> G
+</lov-mermaid>
+
+### 🚨 CRITICAL: DO NOT MODIFY INTEGRATION
+
+**⚠️ NEVER CHANGE THESE CORE SYSTEMS:**
+
+1. **Supabase Database Schema**
+   - Tables: `bot_users`, `user_subscriptions`, `payment_intents`, `receipts`
+   - Relationships and foreign keys
+   - RLS policies and security
+
+2. **Edge Functions Integration**
+   - `telegram-bot/index.ts` - Core webhook handler
+   - Authentication flow between bot and Mini App
+   - Payment processing and OCR pipeline
+
+3. **initData Validation**
+   - Telegram Web App authentication mechanism
+   - User session handling
+   - Security token validation
+
+### ✅ SAFE TO MODIFY: UI & UX Only
+
+**These areas are safe for UI improvements:**
+
+- **React Components**: All files in `src/components/`
+- **Pages**: All files in `src/pages/`
+- **Styling**: `src/index.css`, `tailwind.config.ts`
+- **UI Library**: `src/components/ui/`
+- **Hooks**: `src/hooks/` (UI-related only)
+
+### Connectivity Sanity Checks
+
+Before making changes, verify these connections work:
+
+```bash
+# 1. Bot webhook responds
+curl -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/telegram-bot \
+  -H "content-type: application/json" \
+  -H "X-Telegram-Bot-Api-Secret-Token: SECRET" \
+  -d '{"test":"ping"}'
+
+# 2. Mini App loads
+curl -s https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/
+
+# 3. Auth endpoint works
+curl -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/verify-initdata \
+  -H "content-type: application/json" \
+  -d '{"initData":"VALID_INIT_DATA"}'
+```
+
+### Payment Flow Overview
+
+1. **User starts bot** → `/start` command → Creates `bot_users` record
+2. **Subscription needed** → Shows plans → Creates `user_subscriptions`
+3. **Payment intent** → Bank details shown → Creates `payment_intents`
+4. **Receipt upload** → OCR processing → Creates `receipts` record
+5. **Auto-verification** → Bank parser → Approves or flags for review
+6. **VIP access** → Telegram channel invitation → Updates subscription status
+
+### Common UI Pitfalls to Avoid
+
+❌ **DON'T:**
+- Use `text-white`, `bg-black` or any direct colors
+- Modify API endpoints or database queries
+- Change authentication flows
+- Edit Supabase schema or policies
+- Hardcode URLs or tokens
+
+✅ **DO:**
+- Use semantic tokens: `text-foreground`, `bg-background`
+- Create new UI components for features
+- Use the existing design system
+- Test in both light and dark modes
+- Follow mobile-first responsive design
 
 ## Privacy & security
 

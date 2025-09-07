@@ -210,3 +210,202 @@ The Dynamic Capital project is now integrated with **Lovable Codex** for enhance
 - **CI/CD Integration**: GitHub Actions work seamlessly with Codex development
 
 This integration enhances the development experience by combining the power of AI-assisted development with the robust architecture of the Dynamic Capital platform.
+
+---
+
+## 13) Integration Guardrails & Architecture
+
+### 🚨 CRITICAL: Core System Protection
+
+**NEVER MODIFY THESE SYSTEMS:**
+
+1. **Database Schema & Relationships**
+   - Tables: `bot_users`, `user_subscriptions`, `payment_intents`, `receipts`, `bot_settings`
+   - Foreign key relationships and constraints
+   - RLS policies and security rules
+   - Views: `current_vip`, analytics tables
+
+2. **Edge Functions Core Logic**
+   - `telegram-bot/index.ts` - Webhook handler & OCR pipeline
+   - `verify-initdata/index.ts` - Telegram Web App authentication
+   - Payment processing functions (`admin-review-payment`, `receipt-submit`)
+   - VIP sync and membership management
+
+3. **Authentication & Security**
+   - Telegram `initData` validation mechanism
+   - Bot token and webhook secret handling
+   - User session management
+   - Service role key usage patterns
+
+### ✅ SAFE TO MODIFY: UI & UX Layer
+
+**These areas are designed for UI improvements:**
+
+- **React Components**: All files in `src/components/`
+- **Pages & Routing**: `src/pages/` directory
+- **Styling & Theming**: `src/index.css`, `tailwind.config.ts`
+- **UI Component Library**: `src/components/ui/`
+- **Frontend Hooks**: `src/hooks/` (UI state only)
+- **Static Assets**: Icons, images, fonts
+
+### Connectivity Map
+
+<lov-mermaid>
+graph TB
+    subgraph "Telegram Platform"
+        TG[Telegram Bot]
+        TU[Telegram User]
+        TMA[Mini App Button]
+    end
+    
+    subgraph "Supabase Edge Functions"
+        TBF[telegram-bot]
+        VIF[verify-initdata]
+        MAF[miniapp]
+        RPF[receipt-processing]
+        ADF[admin-functions]
+    end
+    
+    subgraph "Database Layer"
+        BU[bot_users]
+        US[user_subscriptions]
+        PI[payment_intents]
+        RC[receipts]
+        BS[bot_settings]
+        CV[current_vip view]
+    end
+    
+    subgraph "Web App (React)"
+        PG[Pages]
+        CP[Components]
+        HK[Hooks]
+        UI[UI Library]
+    end
+    
+    TU -->|/start| TG
+    TG -->|webhook| TBF
+    TG -->|Mini App| TMA
+    TMA -->|launches| MAF
+    MAF -->|serves| PG
+    
+    TBF -->|creates/updates| BU
+    TBF -->|processes| PI
+    TBF -->|stores| RC
+    
+    VIF -->|validates| TU
+    RPF -->|auto-approve| PI
+    ADF -->|admin actions| US
+    
+    BU --> US
+    US --> PI
+    PI --> RC
+    US --> CV
+    
+    PG --> CP
+    CP --> UI
+    CP --> HK
+    
+    style BU fill:#ff9999
+    style US fill:#ff9999
+    style PI fill:#ff9999
+    style RC fill:#ff9999
+    style TBF fill:#ff9999
+    style VIF fill:#ff9999
+</lov-mermaid>
+
+**Red nodes = PROTECTED (never modify)**
+**Blue nodes = SAFE TO MODIFY**
+
+### UI Work Playbook
+
+#### For Visual/Text Changes
+1. **Use Visual Edits** in Lovable Codex chat interface
+2. Click Edit button → modify directly on screen
+3. Save credits for complex functionality changes
+
+#### For Component Changes
+1. **Read existing component** first to understand structure
+2. **Use semantic tokens** from design system
+3. **Test in both themes** (light/dark mode)
+4. **Verify responsive** design on mobile
+
+#### For New Features
+1. **Create new components** instead of modifying large files
+2. **Follow existing patterns** in the codebase
+3. **Use TypeScript** with proper interfaces
+4. **Implement error boundaries** for robustness
+
+### Design System Enforcement
+
+```css
+/* ✅ CORRECT: Use semantic tokens */
+.button {
+  @apply bg-primary text-primary-foreground;
+  @apply hover:bg-primary/90;
+}
+
+/* ❌ WRONG: Direct colors */
+.button {
+  @apply bg-blue-500 text-white;
+  @apply hover:bg-blue-600;
+}
+```
+
+**Available Semantic Tokens:**
+- Colors: `primary`, `secondary`, `accent`, `destructive`
+- Text: `foreground`, `muted-foreground`
+- Backgrounds: `background`, `muted`, `card`
+- Borders: `border`, `input`
+
+### Payment Flow Invariants
+
+**These rules MUST be preserved:**
+
+1. **Receipt Processing:**
+   - OCR → Bank Parser → Auto-approve/Manual Review
+   - Duplicate detection via `image_sha256`
+   - Time window validation (UTC+05:00 Maldives time)
+
+2. **User Lifecycle:**
+   - `/start` → `bot_users` record created
+   - Plan selection → `user_subscriptions` created
+   - Payment → `payment_intents` with bank details
+   - Receipt → `receipts` table with OCR results
+
+3. **VIP Access:**
+   - Approved payment → VIP channel invitation
+   - `current_vip` view determines access
+   - Telegram membership sync via bot admin rights
+
+4. **Admin Controls:**
+   - Payment approval/rejection
+   - User bans and unbans
+   - System resets and diagnostics
+   - Broadcast messaging
+
+### Testing UI Changes
+
+```bash
+# Before UI changes - verify core functions work
+curl -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/telegram-bot \
+  -H "content-type: application/json" \
+  -d '{"test":"ping"}'
+
+# After UI changes - verify Mini App loads
+curl -s https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/ | grep -q "Dynamic Capital"
+
+# Verify auth still works
+deno run -A scripts/make-initdata.ts --id=YOUR_TELEGRAM_ID
+```
+
+### Emergency Rollback
+
+If UI changes break core functionality:
+
+1. **Use Lovable's built-in version history**
+2. **Rollback to last known good state**
+3. **Check console logs** for error details
+4. **Verify integration endpoints** still respond
+5. **Contact system admin** if database issues suspected
+
+**Remember: UI changes should NEVER affect backend functionality. If they do, you've crossed into protected territory.**
