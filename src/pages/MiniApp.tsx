@@ -110,30 +110,30 @@ export default function MiniApp() {
                   <span>Plans</span>
                 </TabsTrigger>
                 <TabsTrigger value="checkout" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
-                  <ShoppingCart className="h-5 w-5" />
-                  <span>Buy</span>
+                  <ShoppingCart className="h-4 w-4" />
+                  <span className="text-xs">Buy</span>
                 </TabsTrigger>
-                <TabsTrigger value="status" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
-                  <User className="h-5 w-5" />
-                  <span>Status</span>
+                <TabsTrigger value="status" className="glass-tab flex flex-col items-center gap-0.5 text-xs font-sf-pro rounded-lg py-2 px-1">
+                  <User className="h-4 w-4" />
+                  <span className="text-xs">Status</span>
                 </TabsTrigger>
                 {isAdmin && (
-                  <TabsTrigger value="admin" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
-                    <Shield className="h-5 w-5" />
-                    <span>Admin</span>
+                  <TabsTrigger value="admin" className="glass-tab flex flex-col items-center gap-0.5 text-xs font-sf-pro rounded-lg py-2 px-1">
+                    <Shield className="h-4 w-4" />
+                    <span className="text-xs">Admin</span>
                   </TabsTrigger>
                 )}
-                <TabsTrigger value="ask" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
-                  <MessageSquare className="h-5 w-5" />
-                  <span>Ask</span>
+                <TabsTrigger value="ask" className="glass-tab flex flex-col items-center gap-0.5 text-xs font-sf-pro rounded-lg py-2 px-1">
+                  <MessageSquare className="h-4 w-4" />
+                  <span className="text-xs">Ask</span>
                 </TabsTrigger>
-                <TabsTrigger value="actions" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
-                  <Zap className="h-5 w-5" />
-                  <span>Actions</span>
+                <TabsTrigger value="actions" className="glass-tab flex flex-col items-center gap-0.5 text-xs font-sf-pro rounded-lg py-2 px-1">
+                  <Zap className="h-4 w-4" />
+                  <span className="text-xs">Actions</span>
                 </TabsTrigger>
-                <TabsTrigger value="help" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
-                  <HelpCircle className="h-5 w-5" />
-                  <span>FAQ</span>
+                <TabsTrigger value="help" className="glass-tab flex flex-col items-center gap-0.5 text-xs font-sf-pro rounded-lg py-2 px-1">
+                  <HelpCircle className="h-4 w-4" />
+                  <span className="text-xs">FAQ</span>
                 </TabsTrigger>
               </TabsList>
             </div>

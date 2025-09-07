@@ -342,24 +342,84 @@ All colors MUST be HSL. This ensures consistency across all UI elements. */
 
   .glass-tab {
     background: linear-gradient(135deg, 
-      hsl(0 0% 100% / 0.03) 0%, 
-      hsl(0 0% 100% / 0.01) 100%);
-    @apply backdrop-blur-sm border border-white/5 rounded-lg relative overflow-hidden;
-    transition: var(--transition-fast);
+      hsl(var(--background) / 0.4) 0%, 
+      hsl(var(--background) / 0.2) 100%);
+    @apply backdrop-blur-sm border border-white/10 rounded-lg relative overflow-hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: hsl(var(--muted-foreground));
+    position: relative;
+  }
+  
+  .glass-tab::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, 
+      hsl(var(--primary) / 0.1) 0%, 
+      hsl(var(--primary) / 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
   }
   
   .glass-tab:hover {
     background: linear-gradient(135deg, 
-      hsl(0 0% 100% / 0.06) 0%, 
-      hsl(0 0% 100% / 0.03) 100%);
+      hsl(var(--background) / 0.6) 0%, 
+      hsl(var(--background) / 0.3) 100%);
+    @apply border-primary/20 scale-[1.02];
+    color: hsl(var(--foreground));
+    transform: translateY(-1px) scale(1.02);
+  }
+  
+  .glass-tab:hover::before {
+    opacity: 1;
   }
   
   .glass-tab[data-state="active"] {
     background: linear-gradient(135deg, 
-      hsl(0 0% 100% / 0.1) 0%, 
-      hsl(0 0% 100% / 0.05) 100%);
-    @apply border-white/20;
-    box-shadow: 0 0 15px hsl(var(--primary) / 0.15);
+      hsl(var(--primary) / 0.15) 0%, 
+      hsl(var(--primary) / 0.08) 100%);
+    @apply border-primary/40 scale-[1.05];
+    color: hsl(var(--primary));
+    box-shadow: 
+      0 0 20px hsl(var(--primary) / 0.2),
+      0 4px 12px hsl(var(--primary) / 0.15),
+      inset 0 1px 0 hsl(var(--primary) / 0.2);
+    transform: translateY(-2px) scale(1.05);
+  }
+  
+  .glass-tab[data-state="active"]::before {
+    opacity: 0.5;
+  }
+  
+  /* Icon and text animations within tabs */
+  .glass-tab .lucide {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .glass-tab:hover .lucide {
+    color: hsl(var(--primary));
+    transform: scale(1.1);
+  }
+  
+  .glass-tab[data-state="active"] .lucide {
+    color: hsl(var(--primary));
+    transform: scale(1.15);
+  }
+  
+  .glass-tab span {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 500;
+  }
+  
+  .glass-tab:hover span {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+  
+  .glass-tab[data-state="active"] span {
+    color: hsl(var(--primary));
+    font-weight: 700;
   }
 
   /* Interactive States */
@@ -620,4 +680,44 @@ All colors MUST be HSL. This ensures consistency across all UI elements. */
     hsl(0 0% 100% / 0.08) 0%, 
     hsl(0 0% 100% / 0.04) 100%);
   @apply border-primary/30 ring-2 ring-primary/20;
+}
+
+/* Enhanced tab animations for accessibility */
+.glass-tab:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+.glass-tab:active {
+  transform: translateY(0) scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Smooth text transitions for better readability */
+.glass-tab span {
+  text-shadow: 0 1px 2px hsl(var(--background) / 0.5);
+}
+
+.glass-tab[data-state="active"] span {
+  text-shadow: 0 1px 3px hsl(var(--primary) / 0.3);
+}
+
+/* Add subtle glow effect for active state */
+@keyframes tab-glow {
+  0%, 100% { 
+    box-shadow: 
+      0 0 20px hsl(var(--primary) / 0.2),
+      0 4px 12px hsl(var(--primary) / 0.15),
+      inset 0 1px 0 hsl(var(--primary) / 0.2);
+  }
+  50% { 
+    box-shadow: 
+      0 0 25px hsl(var(--primary) / 0.25),
+      0 6px 16px hsl(var(--primary) / 0.2),
+      inset 0 1px 0 hsl(var(--primary) / 0.25);
+  }
+}
+
+.glass-tab[data-state="active"] {
+  animation: tab-glow 2s ease-in-out infinite;
 }
