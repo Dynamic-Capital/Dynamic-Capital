@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { parentVariants, childVariants, fastParentVariants } from "@/lib/motion-variants";
 import { cn } from "@/lib/utils";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface Plan {
   id: string;
@@ -121,16 +122,15 @@ export default function PlanSection() {
         return;
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/promo-validate', {
+      const response = await callEdgeFunction('PROMO_VALIDATE', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           code: promoCode,
           telegram_id: telegramUserId || 'web-user',
           plan_id: selectedPlanId
-        })
+        }
       });
-      
+
       if (!response.ok) {
         throw new Error('Network error');
       }

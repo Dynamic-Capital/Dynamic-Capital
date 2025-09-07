@@ -26,6 +26,7 @@ import { AnimatedStatusDisplay } from "./AnimatedStatusDisplay";
 import { ThreeDEmoticon, TradingEmoticonSet } from "@/components/ui/three-d-emoticons";
 import { motion, AnimatePresence } from "framer-motion";
 import { parentVariants, childVariants, slowParentVariants } from "@/lib/motion-variants";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface BotContent {
   content_key: string;
@@ -65,12 +66,11 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     const fetchContent = async () => {
       try {
         // Fetch about us and services from bot_content
-        const contentResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
+        const contentResponse = await callEdgeFunction('CONTENT_BATCH', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+          body: {
             keys: ['about_us', 'our_services', 'announcements']
-          })
+          }
         });
         
         if (contentResponse.ok) {
@@ -104,12 +104,11 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
         // Fetch subscription status if in Telegram
         if (isInTelegram && telegramData?.user?.id) {
-          const subResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/subscription-status', {
+          const subResponse = await callEdgeFunction('SUBSCRIPTION_STATUS', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+            body: {
               telegram_id: telegramData.user.id
-            })
+            }
           });
           if (subResponse.ok) {
             const subData = await subResponse.json();
@@ -150,9 +149,18 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
   const bgOpacity = Math.min(scrollY / 300, 0.8);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <ThreeDEmoticon emoji="⌛" size={32} />
+        <span className="ml-2 text-muted-foreground">Loading content...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 relative z-10">
-      <motion.div 
+      <motion.div
         className="space-y-4 scroll-bg-transition"
         variants={slowParentVariants}
         initial="hidden"
