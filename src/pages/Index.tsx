@@ -1,18 +1,24 @@
 import BotDashboard from "@/components/telegram/BotDashboard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { SystemResetButton } from "@/components/admin/SystemResetButton";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { SubscriptionStatusCard } from "@/components/shared/SubscriptionStatusCard";
+import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
+import { AnimatedHeading } from "@/components/ui/enhanced-typography";
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl space-y-6">
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card className="bot-card">
+    <div className="container mx-auto p-6 md:p-8 max-w-4xl space-y-8 font-inter">
+      <AnimatedHeading level={2} className="text-center">
+        Manage Your Telegram Mini App
+      </AnimatedHeading>
+
+      <MotionCardContainer className="grid md:grid-cols-2 gap-6">
+        <MotionCard className="bot-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               🚀 Telegram Mini App Setup
@@ -22,17 +28,17 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => navigate('/telegram-setup')} 
+            <Button
+              onClick={() => navigate('/telegram-setup')}
               className="w-full bg-telegram hover:bg-telegram/90"
               size="lg"
             >
               Setup Mini App Integration
             </Button>
           </CardContent>
-        </Card>
+        </MotionCard>
 
-        <Card className="bot-card">
+        <MotionCard className="bot-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               📱 Preview Demo
@@ -42,8 +48,8 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => navigate('/miniapp-demo')} 
+            <Button
+              onClick={() => navigate('/miniapp-demo')}
               className="w-full"
               variant="outline"
               size="lg"
@@ -51,10 +57,10 @@ const Index = () => {
               View Mini App Preview
             </Button>
           </CardContent>
-        </Card>
-      </div>
+        </MotionCard>
+      </MotionCardContainer>
 
-      <Card>
+      <MotionCard>
         <CardHeader>
           <CardTitle>🔧 Build Mini App Content</CardTitle>
           <CardDescription>
@@ -62,15 +68,15 @@ const Index = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
-            onClick={() => navigate('/build-miniapp')} 
+          <Button
+            onClick={() => navigate('/build-miniapp')}
             className="w-full"
             size="lg"
           >
             Build Mini App (Update Content)
           </Button>
         </CardContent>
-      </Card>
+      </MotionCard>
 
       <SystemResetButton />
 

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion, HTMLMotionProps } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export interface MotionCardProps {
@@ -27,8 +27,13 @@ const MotionCard = React.forwardRef<HTMLDivElement, MotionCardProps>(
       <motion.div
         ref={ref}
         className={cn("rounded-xl p-6 transition-all duration-300", variantStyles[variant], className)}
-        initial={animate ? { opacity: 0, y: 20, scale: 0.95 } : undefined}
-        animate={animate ? { opacity: 1, y: 0, scale: 1 } : undefined}
+        variants={{
+          hidden: { opacity: 0, y: 20, scale: 0.95 },
+          visible: { opacity: 1, y: 0, scale: 1 }
+        }}
+        initial={animate ? "hidden" : undefined}
+        whileInView={animate ? "visible" : undefined}
+        viewport={{ once: true, amount: 0.2 }}
         whileHover={hover ? { scale: 1.02, y: -5 } : undefined}
         whileTap={hover ? { scale: 0.98 } : undefined}
         transition={{ delay, type: "spring", stiffness: 260, damping: 20 }}
@@ -47,10 +52,15 @@ const MotionCardContainer = React.forwardRef<HTMLDivElement, { children: React.R
       ref={ref}
       className={className}
       initial="hidden"
-      animate="visible"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
       variants={{
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: staggerDelay, delayChildren: 0.1 } }
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { staggerChildren: staggerDelay, delayChildren: 0.1 }
+        }
       }}
     >
       {children}

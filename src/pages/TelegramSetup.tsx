@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,15 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Smartphone, 
-  Bot, 
-  CheckCircle, 
-  AlertCircle, 
+import {
+  Smartphone,
+  Bot,
+  CheckCircle,
+  AlertCircle,
   ExternalLink,
   Copy,
   Zap
 } from "lucide-react";
+import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 
 export default function TelegramSetup() {
   const [loading, setLoading] = useState(false);
@@ -94,7 +95,7 @@ export default function TelegramSetup() {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Setup Form */}
-          <Card className="bot-card">
+          <MotionCard className="bot-card">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Zap className="h-5 w-5 text-telegram" />
@@ -165,11 +166,11 @@ export default function TelegramSetup() {
                 </Alert>
               )}
             </CardContent>
-          </Card>
+          </MotionCard>
 
           {/* Instructions */}
           <div className="space-y-6">
-            <Card className="bot-card">
+            <MotionCard className="bot-card">
               <CardHeader>
                 <CardTitle className="text-telegram">Setup Instructions</CardTitle>
                 <CardDescription>Follow these steps to complete integration</CardDescription>
@@ -213,10 +214,10 @@ export default function TelegramSetup() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </MotionCard>
 
             {setupResult?.success && (
-              <Card className="bot-card bg-telegram/5 border-telegram/30">
+              <MotionCard className="bot-card bg-telegram/5 border-telegram/30">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-telegram">🎉 Ready to Test!</CardTitle>
@@ -234,9 +235,9 @@ export default function TelegramSetup() {
                       <p className="font-semibold">{setupResult.menuButtonSet ? "✅ Set" : "❌ Failed"}</p>
                     </div>
                   </div>
-                  
-                  <Button 
-                    variant="outline" 
+
+                  <Button
+                    variant="outline"
                     className="w-full border-telegram text-telegram hover:bg-telegram/10"
                     onClick={() => window.open(`https://t.me/${setupResult.botInfo?.username}`, '_blank')}
                   >
@@ -244,7 +245,7 @@ export default function TelegramSetup() {
                     Test in Telegram
                   </Button>
                 </CardContent>
-              </Card>
+              </MotionCard>
             )}
           </div>
         </div>

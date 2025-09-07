@@ -1,12 +1,13 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import MiniAppPreview from "@/components/telegram/MiniAppPreview";
 import { ExternalLink, Smartphone, Code, Zap } from "lucide-react";
+import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 
 export default function MiniAppDemo() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background font-inter">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -32,8 +33,8 @@ export default function MiniAppDemo() {
           </div>
 
           {/* Features & Info */}
-          <div className="space-y-6 animate-slide-up">
-            <Card className="bot-card">
+          <MotionCardContainer className="space-y-6 animate-slide-up">
+            <MotionCard className="bot-card">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Zap className="h-5 w-5 text-telegram" />
@@ -75,9 +76,9 @@ export default function MiniAppDemo() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </MotionCard>
 
-            <Card className="bot-card">
+            <MotionCard className="bot-card">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Code className="h-5 w-5 text-telegram" />
@@ -107,9 +108,9 @@ export default function MiniAppDemo() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </MotionCard>
 
-            <Card className="bot-card bg-gradient-telegram/5 border-telegram/30">
+            <MotionCard className="bot-card bg-gradient-telegram/5 border-telegram/30">
               <CardHeader className="text-center">
                 <CardTitle className="text-telegram">Ready to Experience?</CardTitle>
                 <CardDescription>
@@ -128,13 +129,13 @@ export default function MiniAppDemo() {
                   Try: TEST10, SAVE20, WELCOME10, LIFETIME50
                 </p>
               </CardContent>
-            </Card>
-          </div>
+            </MotionCard>
+          </MotionCardContainer>
         </div>
 
         {/* Additional Info */}
         <div className="mt-16 text-center">
-          <Card className="bot-card max-w-2xl mx-auto">
+          <MotionCard className="bot-card max-w-2xl mx-auto">
             <CardHeader>
               <CardTitle>How It Works</CardTitle>
               <CardDescription>
@@ -165,8 +166,8 @@ export default function MiniAppDemo() {
                   <p className="text-sm text-muted-foreground">Instant access to premium features</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </MotionCard>
         </div>
       </div>
     </div>
