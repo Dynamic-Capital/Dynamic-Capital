@@ -63,6 +63,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
   useEffect(() => {
     const fetchContent = async () => {
+      const { callEdgeFunction } = await import('@/config/supabase');
       try {
         // Fetch about us and services from bot_content
         const contentResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
@@ -91,7 +92,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         }
 
         // Fetch active promotions
-        const promoResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/active-promos');
+        const promoResponse = await callEdgeFunction('ACTIVE_PROMOS');
         if (promoResponse.ok) {
           const promoData = await promoResponse.json();
           if (promoData.ok && promoData.promotions) {

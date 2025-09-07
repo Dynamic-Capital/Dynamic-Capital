@@ -51,14 +51,25 @@ export default function PlanSection() {
 
   useEffect(() => {
     // Fetch plans and popular plan
-    Promise.all([
-      fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans').then(res => res.json()),
-      fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: ['popular_plan_id'] })
-      }).then(res => res.json())
-    ]).then(([plansData, contentData]) => {
+    const fetchData = async () => {
+      try {
+        const { callEdgeFunction } = await import('@/config/supabase');
+        const [plansResponse, contentResponse] = await Promise.all([
+          callEdgeFunction('PLANS'),
+          callEdgeFunction('CONTENT_BATCH', {
+            method: 'POST',
+            body: { keys: ["popular_plan_id"] }
+          })
+        ]);
+        
+        if (!plansResponse.ok || !contentResponse.ok) {
+          throw new Error('Failed to load data');
+        }
+
+        const [plansData, contentData] = await Promise.all([
+          plansResponse.json(),
+          contentResponse.json()
+        ]);
       setPlans(plansData.plans || []);
       
       const contents = contentData.contents || [];
@@ -68,21 +79,25 @@ export default function PlanSection() {
         setPopularPlanId(popularContent.content_value);
       }
 
-      // Check user's selection history for most preferred plan
-      const selectionCounts = JSON.parse(localStorage.getItem('plan_selection_counts') || '{}');
-      if (Object.keys(selectionCounts).length > 0) {
-        const mostSelected = Object.entries(selectionCounts).reduce((a, b) => 
-          (selectionCounts[a[0]] as number) > (selectionCounts[b[0]] as number) ? a : b, ['', 0]
-        );
-        if ((mostSelected[1] as number) > 0) {
-          setUserPreferredPlanId(mostSelected[0]);
+        // Check user's selection history for most preferred plan
+        const selectionCounts = JSON.parse(localStorage.getItem('plan_selection_counts') || '{}');
+        if (Object.keys(selectionCounts).length > 0) {
+          const mostSelected = Object.entries(selectionCounts).reduce((a, b) => 
+            (selectionCounts[a[0]] as number) > (selectionCounts[b[0]] as number) ? a : b, ['', 0]
+          );
+          if ((mostSelected[1] as number) > 0) {
+            setUserPreferredPlanId(mostSelected[0]);
+          }
         }
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        toast.error('Failed to load subscription plans');
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
+    };
+
+    fetchData();
   }, []);
 
   // Auto-validate promo code if pre-filled from URL
