@@ -86,6 +86,7 @@ const AppContent = () => {
             <Route path="/payment-status" element={<PaymentStatus />} />
             <Route path="/education" element={<Education />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/system-health" element={<AdminDashboard />} />
             <Route path="/bot-status" element={<BotStatus />} />
             <Route path="/build-miniapp" element={<BuildMiniApp />} />
             <Route path="/miniapp-demo" element={<MiniAppDemo />} />
