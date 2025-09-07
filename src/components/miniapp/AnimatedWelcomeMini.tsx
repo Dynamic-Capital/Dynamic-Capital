@@ -17,6 +17,8 @@ import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { TypewriterText, StaggeredText, GradientText, LetterReveal } from "@/components/ui/animated-text";
 import { RotatingWords } from "@/components/ui/rotating-words";
 import { EnhancedButton } from "@/components/ui/enhanced-button";
+import { StatefulButton } from "@/components/ui/stateful-button";
+import { MagneticButton } from "@/components/ui/magnetic-button";
 
 interface WelcomeLineMiniProps {
   text: string;
@@ -246,20 +248,33 @@ export default function AnimatedWelcomeMini({ className }: AnimatedWelcomeMiniPr
           className="space-y-4"
         >
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <EnhancedButton 
-              variant="shimmer" 
-              size="lg"
-              className="w-full sm:w-auto"
-            >
-              View VIP Plans
-            </EnhancedButton>
-            <EnhancedButton 
-              variant="ghost" 
-              size="lg"
-              className="w-full sm:w-auto hover:text-primary"
-            >
-              How it Works
-            </EnhancedButton>
+            <MagneticButton strength={0.4} range={120}>
+              <StatefulButton 
+                variant="shimmer" 
+                size="lg"
+                className="w-full sm:w-auto"
+                successText="Opening Plans..."
+                loadingText="Loading..."
+                onClick={() => {
+                  return new Promise((resolve) => {
+                    setTimeout(() => {
+                      resolve(void 0);
+                    }, 600);
+                  });
+                }}
+              >
+                View VIP Plans
+              </StatefulButton>
+            </MagneticButton>
+            <MagneticButton strength={0.3} range={100}>
+              <EnhancedButton 
+                variant="attention" 
+                size="lg"
+                className="w-full sm:w-auto"
+              >
+                How it Works
+              </EnhancedButton>
+            </MagneticButton>
           </div>
         </motion.div>
 

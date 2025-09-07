@@ -5,6 +5,8 @@ import { ChevronLeft, ChevronRight, TrendingUp, Star, Shield, Users, Sparkles, M
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import useEmblaCarousel from 'embla-carousel-react';
 import { cn } from "@/lib/utils";
+import { StackCard } from "@/components/ui/stack-card";
+import { PatternCard } from "@/components/ui/pattern-card";
 
 interface ServiceStackCarouselProps {
   services: string;
@@ -130,49 +132,54 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
                      key={index}
                      className="flex-none w-full snap-start"
                    >
-                    <div 
-                      className={cn(
-                        "relative p-4 rounded-lg border transition-all duration-500 hover:scale-[1.02] group cursor-pointer",
-                        isActive 
-                          ? "bg-primary/10 border-primary/30 shadow-lg scale-[1.02]" 
-                          : "bg-muted/30 border-border hover:bg-muted/50"
-                      )}
-                      style={{
-                        transform: isActive ? 'translateY(-8px) scale(1.02)' : 'translateY(0) scale(1)',
-                        zIndex: isActive ? 10 : 1
-                      }}
-                    >
-                      {/* Stack effect for non-active cards */}
-                      {!isActive && (
-                        <>
-                          <div className="absolute inset-0 bg-muted/20 rounded-lg transform translate-x-1 translate-y-1 -z-10" />
-                          <div className="absolute inset-0 bg-muted/10 rounded-lg transform translate-x-2 translate-y-2 -z-20" />
-                        </>
-                      )}
-                      
-                      <div className="flex items-start gap-3">
-                        <div className={cn(
-                          "p-2 rounded-full transition-all duration-300",
-                          isActive ? "bg-primary/20 scale-110" : "bg-background group-hover:bg-primary/10"
-                        )}>
-                          <Icon className={cn(
-                            "h-5 w-5 transition-all duration-300",
-                            isActive ? "text-primary animate-pulse-glow" : service.color + " group-hover:scale-110"
-                          )} />
-                        </div>
-                         <div className="flex-1 space-y-1">
-                           <h4 className={cn(
-                             "font-semibold text-subheading transition-colors duration-300 leading-tight",
-                             isActive ? "text-primary" : "text-foreground"
-                           )}>
-                             {service.title}
-                           </h4>
-                           <p className="text-body-sm text-muted-foreground leading-relaxed break-words">
-                             {service.description}
-                           </p>
-                         </div>
-                      </div>
-                    </div>
+                      <StackCard
+                        className="h-full"
+                        stackSize={isActive ? 1 : 3}
+                        spreadOnHover={true}
+                        rotateOnHover={true}
+                        scaleOnHover={true}
+                        stackOffset={4}
+                        stackRotation={2}
+                        depth={20}
+                      >
+                        <PatternCard
+                          pattern={index % 3 === 0 ? "dots" : index % 3 === 1 ? "circuit" : "grid"}
+                          patternOpacity={0.05}
+                          animated={true}
+                          hover3d={true}
+                          className={cn(
+                            "transition-all duration-500 group cursor-pointer",
+                            isActive 
+                              ? "bg-primary/10 border-primary/30 shadow-lg" 
+                              : "bg-muted/30 border-border hover:bg-muted/50"
+                          )}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              <div className={cn(
+                                "p-2 rounded-full transition-all duration-300",
+                                isActive ? "bg-primary/20 scale-110" : "bg-background group-hover:bg-primary/10"
+                              )}>
+                                <Icon className={cn(
+                                  "h-5 w-5 transition-all duration-300",
+                                  isActive ? "text-primary animate-pulse-glow" : service.color + " group-hover:scale-110"
+                                )} />
+                              </div>
+                              <div className="flex-1 space-y-1">
+                                <h4 className={cn(
+                                  "font-semibold text-subheading transition-colors duration-300 leading-tight",
+                                  isActive ? "text-primary" : "text-foreground"
+                                )}>
+                                  {service.title}
+                                </h4>
+                                <p className="text-body-sm text-muted-foreground leading-relaxed break-words">
+                                  {service.description}
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </PatternCard>
+                      </StackCard>
                   </div>
                 );
               })}

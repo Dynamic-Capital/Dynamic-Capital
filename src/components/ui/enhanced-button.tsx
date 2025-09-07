@@ -36,6 +36,15 @@ const enhancedButtonVariants = cva(
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent",
           "before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000",
           "before:animate-shimmer"
+        ],
+        attention: [
+          "bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 text-white font-bold",
+          "shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/50",
+          "animate-attention hover:animate-none hover:scale-110",
+          "border-2 border-orange-400/50 hover:border-orange-300",
+          "relative overflow-hidden",
+          "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent",
+          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500"
         ]
       },
       size: {

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { StatefulButton } from "./stateful-button";
 
 interface EnhancedPromoInputProps {
   onApply: (code: string) => Promise<boolean>;
@@ -127,17 +128,19 @@ export function EnhancedPromoInput({
               )}
             </AnimatePresence>
           </div>
-          <Button
+          <StatefulButton
             onClick={handleSubmit}
-            disabled={!code.trim() || isLoading}
+            disabled={!code.trim()}
             className="min-h-[44px] px-6"
+            variant="brand"
+            size="sm"
+            loadingText="Checking..."
+            successText="Applied!"
+            errorText="Invalid"
+            state={isLoading ? "loading" : "idle"}
           >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "Apply"
-            )}
-          </Button>
+            Apply
+          </StatefulButton>
         </div>
       </motion.div>
       
