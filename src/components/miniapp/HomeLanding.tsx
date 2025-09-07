@@ -126,24 +126,24 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       }}
     >
       {/* Hero Section */}
-      <Card className="glass-card border-primary/20">
+      <Card className="ui-card-glass border-primary/20">
         <CardContent className="p-4 text-center">
           <div className="mb-3">
-            <Star className="h-10 w-10 text-primary mx-auto mb-2" />
-            <h1 className="text-xl font-bold mb-1 font-sf-pro">Dynamic Capital VIP</h1>
-            <p className="text-sm text-muted-foreground font-sf-pro">Professional Trading • Premium Signals • VIP Support</p>
+            <Star className="icon-lg text-primary mx-auto mb-2" />
+            <h1 className="text-title mb-1 font-sf-pro">Dynamic Capital VIP</h1>
+            <p className="text-body-sm text-muted-foreground font-sf-pro">Professional Trading • Premium Signals • VIP Support</p>
           </div>
-          <div className="flex items-center justify-center gap-3 text-xs">
+          <div className="flex items-center justify-center gap-3 text-caption">
             <div className="flex items-center gap-1">
-              <Users className="h-3 w-3 text-green-500" />
+              <Users className="icon-xs text-success" />
               <span>5000+ Members</span>
             </div>
             <div className="flex items-center gap-1">
-              <TrendingUp className="h-3 w-3 text-blue-500" />
+              <TrendingUp className="icon-xs text-info" />
               <span>85% Success</span>
             </div>
             <div className="flex items-center gap-1">
-              <Shield className="h-3 w-3 text-purple-500" />
+              <Shield className="icon-xs text-primary" />
               <span>Verified</span>
             </div>
           </div>
@@ -152,17 +152,17 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* Announcements */}
       <FadeInOnView delay={100} animation="slide-in-right">
-        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+        <Card className="ui-card-interactive">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <MessageSquare className="h-4 w-4 text-blue-500 animate-pulse-glow hover:animate-float transition-all duration-300" />
+            <CardTitle className="flex items-center gap-2 text-subheading">
+              <MessageSquare className="icon-sm text-info animate-pulse-glow" />
               Latest Announcements
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <FadeInOnView delay={200} animation="fade-in">
-              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/15 transition-colors duration-300">
-                <p className="text-sm whitespace-pre-line leading-relaxed">{announcements}</p>
+              <div className="p-3 status-info rounded-lg">
+                <p className="text-body-sm whitespace-pre-line leading-relaxed">{announcements}</p>
               </div>
             </FadeInOnView>
           </CardContent>
@@ -172,13 +172,13 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       {/* Active Promo Codes */}
       {activePromos.length > 0 && (
         <FadeInOnView delay={200} animation="bounce-in">
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+          <Card className="ui-card-interactive">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Gift className="h-4 w-4 text-green-500 animate-wiggle hover:animate-float" />
+              <CardTitle className="flex items-center gap-2 text-subheading">
+                <Gift className="icon-sm text-success animate-wiggle" />
                 Active Promo Codes
               </CardTitle>
-              <CardDescription className="text-sm">Limited time offers - use these codes when subscribing!</CardDescription>
+              <CardDescription className="text-body-sm">Limited time offers - use these codes when subscribing!</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
               <HorizontalSnapScroll 

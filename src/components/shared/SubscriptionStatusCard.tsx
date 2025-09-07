@@ -129,36 +129,35 @@ export const SubscriptionStatusCard = ({
   }
 
   return (
-    <Card className="relative">
+    <Card className="ui-card">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="ui-flex-between">
           <div className="flex items-center gap-2">
-            <Crown className="w-5 h-5 text-primary" />
-            Subscription Status
+            <Crown className="icon-base text-primary" />
+            <span className="text-heading">Subscription Status</span>
           </div>
           {getStatusBadge()}
         </CardTitle>
       </CardHeader>
-      
-      <CardContent className="space-y-4">
+      <CardContent className="ui-section">
         {status?.is_vip ? (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Plan:</span>
-              <span className="text-sm">{status.plan_name || 'VIP'}</span>
+          <div className="space-tight">
+            <div className="ui-flex-between">
+              <span className="text-body-sm font-medium">Plan:</span>
+              <span className="text-body-sm">{status.plan_name || 'VIP'}</span>
             </div>
 
             {status.subscription_end_date && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Expires:</span>
-                <span className="text-sm">{formatDate(status.subscription_end_date)}</span>
+              <div className="ui-flex-between">
+                <span className="text-body-sm font-medium">Expires:</span>
+                <span className="text-body-sm">{formatDate(status.subscription_end_date)}</span>
               </div>
             )}
 
             {status.days_remaining !== null && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Days remaining:</span>
-                <span className={`text-sm font-medium ${
+              <div className="ui-flex-between">
+                <span className="text-body-sm font-medium">Days remaining:</span>
+                <span className={`text-body-sm font-medium ${
                   status.days_remaining <= 7 ? 'text-destructive' : 'text-primary'
                 }`}>
                   {status.days_remaining}
@@ -167,22 +166,22 @@ export const SubscriptionStatusCard = ({
             )}
 
             {status.payment_status && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Payment:</span>
+              <div className="ui-flex-between">
+                <span className="text-body-sm font-medium">Payment:</span>
                 <div className="flex items-center gap-1">
                   {status.payment_status === 'completed' ? (
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="icon-sm text-success" />
                   ) : (
-                    <XCircle className="w-4 h-4 text-yellow-500" />
+                    <XCircle className="icon-sm text-warning" />
                   )}
-                  <span className="text-sm capitalize">{status.payment_status}</span>
+                  <span className="text-body-sm capitalize">{status.payment_status}</span>
                 </div>
               </div>
             )}
 
             {status.is_expired && (
-              <div className="mt-4 p-3 bg-destructive/10 rounded-lg">
-                <p className="text-sm text-destructive">
+              <div className="mt-4 p-3 status-error rounded-lg">
+                <p className="text-body-sm">
                   Your subscription has expired. Renew now to continue enjoying VIP benefits.
                 </p>
               </div>
@@ -190,20 +189,20 @@ export const SubscriptionStatusCard = ({
           </div>
         ) : (
           <div className="text-center py-4">
-            <Crown className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <h3 className="font-medium mb-2">No Active Subscription</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <Crown className="icon-xl text-muted-foreground mx-auto mb-3" />
+            <h3 className="text-subheading mb-2">No Active Subscription</h3>
+            <p className="text-body-sm text-muted-foreground mb-4">
               Upgrade to VIP to access premium trading signals and exclusive content.
             </p>
-            <Button onClick={onUpgrade} className="w-full">
+            <Button onClick={onUpgrade} size="default" className="w-full">
               Choose VIP Plan
             </Button>
           </div>
         )}
 
         {status?.is_vip && (status.days_remaining === null || status.days_remaining > 0) && !status.is_expired && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CheckCircle className="w-3 h-3 text-green-500" />
+          <div className="flex items-center gap-2 text-caption">
+            <CheckCircle className="icon-xs text-success" />
             <span>VIP benefits active</span>
           </div>
         )}

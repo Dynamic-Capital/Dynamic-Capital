@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tool
 import { cn } from "@/lib/utils";
 
 const iconButtonVariants = cva(
-  "inline-flex items-center justify-center rounded-full transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover-rise btn-press",
+  "ui-button ui-interactive rounded-full disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -34,11 +34,21 @@ export interface IconButtonProps
   icon: IconName;
   iconAnimation?: "none" | "pulse" | "float" | "wiggle" | "glow";
   tooltip?: string;
-  iconSize?: number;
+  iconSize?: "xs" | "sm" | "base" | "lg" | "xl";
 }
 
 const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
   ({ className, variant, size, icon, iconAnimation = "none", tooltip, iconSize, ...props }, ref) => {
+    // Map button size to icon size if not explicitly provided
+    const getIconSize = () => {
+      if (iconSize) return iconSize;
+      switch (size) {
+        case "sm": return "xs";
+        case "lg": return "base";
+        default: return "sm";
+      }
+    };
+
     const button = (
       <button
         className={cn(iconButtonVariants({ variant, size, className }))}
@@ -48,7 +58,7 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
         <Icon 
           name={icon} 
           animation={iconAnimation}
-          size={iconSize || (size === "sm" ? 16 : size === "lg" ? 20 : 18)}
+          size={getIconSize()}
         />
       </button>
     );

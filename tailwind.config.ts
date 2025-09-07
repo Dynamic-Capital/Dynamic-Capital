@@ -21,6 +21,24 @@ export default {
     extend: {
       fontFamily: {
         'sf-pro': ['SF Pro Text', 'system-ui', '-apple-system', 'sans-serif'],
+        'sans': ['SF Pro Text', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      fontSize: {
+        'xs': ['0.75rem', { lineHeight: '1.4' }],      // 12px
+        'sm': ['0.875rem', { lineHeight: '1.4' }],     // 14px  
+        'base': ['1rem', { lineHeight: '1.5' }],       // 16px
+        'lg': ['1.125rem', { lineHeight: '1.4' }],     // 18px
+        'xl': ['1.25rem', { lineHeight: '1.4' }],      // 20px
+        '2xl': ['1.5rem', { lineHeight: '1.3' }],      // 24px
+        '3xl': ['1.875rem', { lineHeight: '1.2' }],    // 30px
+      },
+      spacing: {
+        'xs': '0.25rem',    // 4px
+        'sm': '0.5rem',     // 8px
+        'base': '1rem',     // 16px
+        'lg': '1.5rem',     // 24px
+        'xl': '2rem',       // 32px
+        '2xl': '3rem',      // 48px
       },
       colors: {
         border: "hsl(var(--border))",
@@ -33,7 +51,7 @@ export default {
           foreground: "hsl(var(--primary-foreground))",
         },
         telegram: {
-          DEFAULT: "hsl(var(--telegram-blue))",
+          DEFAULT: "hsl(var(--telegram))",
           light: "hsl(var(--telegram-light))",
           dark: "hsl(var(--telegram-dark))",
         },
@@ -44,6 +62,18 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -78,14 +108,19 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
         "gradient-telegram": "var(--gradient-telegram)",
         "gradient-card": "var(--gradient-card)",
       },
       boxShadow: {
         "telegram": "var(--shadow-telegram)",
+        "primary": "var(--shadow-primary)",
+        "elegant": "var(--shadow-lg)",
       },
       transitionTimingFunction: {
-        "smooth": "var(--transition-smooth)",
+        "smooth": "var(--transition-base)",
+        "fast": "var(--transition-fast)",
+        "slow": "var(--transition-slow)",
       },
       keyframes: {
         "accordion-down": {
