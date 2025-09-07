@@ -12,7 +12,9 @@
     "miniapp:build": "deno run -A scripts/build-miniapp.ts",
     "miniapp:dev": "cd supabase/functions/miniapp && npm run dev",
     "miniapp:check": "deno run -A scripts/miniapp-health-check.ts",
-    "miniapp:deploy": "bash scripts/build-deploy-miniapp.sh"
+    "miniapp:deploy": "bash scripts/build-deploy-miniapp.sh",
+    "miniapp:update-telegram": "deno run -A scripts/update-telegram-miniapp.ts",
+    "miniapp:deploy-and-update": "deno task miniapp:deploy && deno task miniapp:update-telegram"
   },
   "nodeModulesDir": true,
   "compilerOptions": {

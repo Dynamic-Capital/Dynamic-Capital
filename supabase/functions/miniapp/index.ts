@@ -520,6 +520,18 @@ export async function handler(req: Request): Promise<Response> {
   const path = url.pathname;
 
   console.log(`[miniapp] ${req.method} ${path}`);
+  
+  // Handle version endpoint for health checks and deployment verification
+  if (path === "/version" || path === "/miniapp/version") {
+    return withSecurity(new Response(JSON.stringify({
+      version: "1.0.0",
+      timestamp: new Date().toISOString(),
+      healthy: true,
+      deployment_id: Deno.env.get("DENO_DEPLOYMENT_ID") || "unknown"
+    }), {
+      headers: { "content-type": "application/json" }
+    }));
+  }
 
   // Try to use the static server helper for common routes
   if (path === "/" || path === "/miniapp" || path === "/miniapp/" || path.startsWith("/assets/")) {
