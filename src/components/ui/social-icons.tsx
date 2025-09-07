@@ -79,7 +79,7 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
   };
 
   const baseClasses = cn(
-    "inline-flex items-center justify-center rounded-lg transition-all duration-300",
+    "inline-flex items-center justify-center rounded-lg transition-all duration-300 group",
     containerSizeClasses[size],
     className
   );
@@ -89,11 +89,26 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
       "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground",
       platformHoverColors[platform]
     ),
-    glass: "bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white",
+    glass: "bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white hover:border-white/40",
     glow: cn(
       "bg-gradient-to-r text-white shadow-lg hover:shadow-xl hover:scale-110",
       platformColors[platform]
     ),
+  };
+
+  const handleClick = () => {
+    // Track social media clicks with console log for debugging
+    console.log(`Social media click: ${platform} -> ${href}`);
+    
+    // Track with any available analytics
+    if (typeof window !== 'undefined') {
+      // You can integrate with Google Analytics or other analytics here
+      try {
+        // Example: window.gtag?.('event', 'social_click', { platform, destination: href });
+      } catch (error) {
+        console.log('Analytics tracking not available');
+      }
+    }
   };
 
   return (
@@ -102,11 +117,13 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(baseClasses, variantClasses[variant])}
+      onClick={handleClick}
       whileHover={{ scale: 1.05, y: -2 }}
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      aria-label={`Visit our ${platform} page`}
     >
-      <Icon className={sizeClasses[size]} />
+      <Icon className={cn(sizeClasses[size], "group-hover:scale-110 transition-transform duration-200")} />
     </motion.a>
   );
 };

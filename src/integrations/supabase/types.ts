@@ -1170,6 +1170,60 @@ export type Database = {
         }
         Relationships: []
       }
+      user_analytics: {
+        Row: {
+          browser: string | null
+          created_at: string | null
+          device_type: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          page_url: string | null
+          referrer: string | null
+          session_id: string | null
+          telegram_user_id: string
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          page_url?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          telegram_user_id: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          page_url?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          telegram_user_id?: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       user_interactions: {
         Row: {
           created_at: string
@@ -1480,6 +1534,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_analytics_summary: {
+        Args: { p_days?: number; p_telegram_user_id: string }
+        Returns: Json
+      }
       get_user_complete_data: {
         Args: { telegram_user_id_param: string }
         Returns: Json
@@ -1522,6 +1580,18 @@ export type Database = {
       record_promo_usage: {
         Args: { p_promotion_id: string; p_telegram_user_id: string }
         Returns: undefined
+      }
+      track_user_event: {
+        Args: {
+          p_event_data?: Json
+          p_event_type: string
+          p_page_url?: string
+          p_referrer?: string
+          p_session_id?: string
+          p_telegram_user_id: string
+          p_user_agent?: string
+        }
+        Returns: string
       }
       update_daily_analytics: {
         Args: Record<PropertyKey, never>
