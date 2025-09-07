@@ -74,6 +74,7 @@ export const SystemStatus = () => {
     "setup-webhook",
     "cleanup-old-sessions",
     "cleanup-old-receipts",
+    "web-app-health",
   ];
 
   const coreTables = [
