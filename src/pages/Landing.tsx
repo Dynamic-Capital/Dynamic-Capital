@@ -5,7 +5,7 @@ import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import MiniAppPreview from "@/components/telegram/MiniAppPreview";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { ServiceStack } from "@/components/shared/ServiceStack";
@@ -23,6 +23,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const Landing = () => {
   const isMobile = useIsMobile();
   const [showLoader, setShowLoader] = useState(true);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowLoader(false), 900);
@@ -66,58 +67,58 @@ const Landing = () => {
         {/* Dynamic Animated Background */}
         <div className="absolute inset-0">
           {/* Floating Orbs with Enhanced Animation */}
-          <motion.div 
-            className={`absolute ${isMobile ? 'top-10 left-5 w-40 h-40' : 'top-20 left-10 w-72 h-72'} bg-white/20 rounded-full blur-3xl`}
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3],
-              x: [0, isMobile ? 25 : 50, 0],
-              y: [0, isMobile ? -15 : -30, 0]
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className={`absolute ${isMobile ? 'bottom-10 right-5 w-48 h-48' : 'bottom-20 right-10 w-96 h-96'} bg-yellow-300/30 rounded-full blur-3xl`}
-            animate={{ 
-              scale: [1, 1.3, 1],
-              opacity: [0.2, 0.5, 0.2],
-              x: [0, isMobile ? -30 : -60, 0],
-              y: [0, isMobile ? 20 : 40, 0]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          />
-          <motion.div 
-            className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isMobile ? 'w-40 h-40' : 'w-80 h-80'} bg-pink-400/25 rounded-full blur-3xl`}
-            animate={{ 
-              scale: [1, 1.1, 1],
-              opacity: [0.2, 0.4, 0.2],
-              rotate: [0, 180, 360]
-            }}
-            transition={{ duration: 12, repeat: Infinity, ease: "linear", delay: 2 }}
-          />
+            <motion.div
+              className={`absolute ${isMobile ? 'top-10 left-5 w-40 h-40' : 'top-20 left-10 w-72 h-72'} bg-white/20 rounded-full blur-3xl`}
+              animate={shouldReduceMotion ? { opacity: 0.5 } : {
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.6, 0.3],
+                x: [0, isMobile ? 25 : 50, 0],
+                y: [0, isMobile ? -15 : -30, 0]
+              }}
+              transition={shouldReduceMotion ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className={`absolute ${isMobile ? 'bottom-10 right-5 w-48 h-48' : 'bottom-20 right-10 w-96 h-96'} bg-yellow-300/30 rounded-full blur-3xl`}
+              animate={shouldReduceMotion ? { opacity: 0.3 } : {
+                scale: [1, 1.3, 1],
+                opacity: [0.2, 0.5, 0.2],
+                x: [0, isMobile ? -30 : -60, 0],
+                y: [0, isMobile ? 20 : 40, 0]
+              }}
+              transition={shouldReduceMotion ? { duration: 0 } : { duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            />
+            <motion.div
+              className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isMobile ? 'w-40 h-40' : 'w-80 h-80'} bg-pink-400/25 rounded-full blur-3xl`}
+              animate={shouldReduceMotion ? { opacity: 0.3 } : {
+                scale: [1, 1.1, 1],
+                opacity: [0.2, 0.4, 0.2],
+                rotate: [0, 180, 360]
+              }}
+              transition={shouldReduceMotion ? { duration: 0 } : { duration: 12, repeat: Infinity, ease: "linear", delay: 2 }}
+            />
           
           {/* Particle Effects */}
-          {[...Array(isMobile ? 10 : 20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className={`absolute ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-white/40 rounded-full`}
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, isMobile ? -50 : -100, 0],
-                opacity: [0, 1, 0],
-                scale: [0, 1, 0]
-              }}
-              transition={{
-                duration: 4 + Math.random() * 2,
-                repeat: Infinity,
-                delay: Math.random() * 3,
-                ease: "easeInOut"
-              }}
-            />
-          ))}
+            {[...Array(shouldReduceMotion ? 0 : (isMobile ? 10 : 20))].map((_, i) => (
+              <motion.div
+                key={i}
+                className={`absolute ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-white/40 rounded-full`}
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                }}
+                animate={shouldReduceMotion ? undefined : {
+                  y: [0, isMobile ? -50 : -100, 0],
+                  opacity: [0, 1, 0],
+                  scale: [0, 1, 0]
+                }}
+                transition={shouldReduceMotion ? undefined : {
+                  duration: 4 + Math.random() * 2,
+                  repeat: Infinity,
+                  delay: Math.random() * 3,
+                  ease: "easeInOut"
+                }}
+              />
+            ))}
           
           {/* Gradient Overlay for Better Text Contrast */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40" />
@@ -126,77 +127,77 @@ const Landing = () => {
         <div className={`relative container mx-auto ${isMobile ? 'px-4 py-12' : 'px-6 py-20'} text-center`}>
           <div className={`mx-auto ${isMobile ? 'max-w-lg' : 'max-w-5xl'}`}>
             {/* Dynamic Floating Badge */}
-            <ResponsiveMotion mobileVariant="fade" desktopVariant="bounce" delay={0.2}>
-              <motion.div
-                whileHover={{ scale: isMobile ? 1.02 : 1.05, y: -5 }}
-                className={isMobile ? 'mb-6' : 'mb-8'}
-              >
-                <Badge className={`bg-white/30 text-white border-white/50 hover:bg-white/40 ${isMobile ? 'text-sm px-4 py-1.5' : 'text-base px-6 py-2'} backdrop-blur-md shadow-xl`}>
-                  <motion.div
-                    animate={{ rotate: [0, 5, -5, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} />
-                  </motion.div>
-                  <MorphingText 
-                    texts={[
-                      "#1 Premium Trading Platform",
-                      "5000+ Active VIP Members", 
-                      "92% Success Rate Proven",
-                      "24/7 Expert Support"
-                    ]}
-                    interval={4000}
-                    morphDuration={0.6}
-                  />
-                </Badge>
-              </motion.div>
-            </ResponsiveMotion>
+              <ResponsiveMotion mobileVariant="fade" desktopVariant="bounce" delay={0.2}>
+                <motion.div
+                  whileHover={shouldReduceMotion ? undefined : { scale: isMobile ? 1.02 : 1.05, y: -5 }}
+                  className={isMobile ? 'mb-6' : 'mb-8'}
+                >
+                  <Badge className={`bg-white/30 text-white border-white/50 hover:bg-white/40 ${isMobile ? 'text-sm px-4 py-1.5' : 'text-base px-6 py-2'} backdrop-blur-md shadow-xl`}>
+                    <motion.div
+                      animate={shouldReduceMotion ? undefined : { rotate: [0, 5, -5, 0] }}
+                      transition={shouldReduceMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} />
+                    </motion.div>
+                    <MorphingText
+                      texts={[
+                        "#1 Premium Trading Platform",
+                        "5000+ Active VIP Members",
+                        "92% Success Rate Proven",
+                        "24/7 Expert Support"
+                      ]}
+                      interval={4000}
+                      morphDuration={0.6}
+                    />
+                  </Badge>
+                </motion.div>
+              </ResponsiveMotion>
             
             {/* New Hero Content */}
             <div className="space-y-6">
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-white drop-shadow-lg`}
-              >
-                Dynamic Capital VIP
-              </motion.h1>
+                <motion.h1
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.6 }}
+                  className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-white drop-shadow-lg`}
+                >
+                  Dynamic Capital VIP
+                </motion.h1>
 
               <div className="flex justify-center">
                 <Separator className="w-24 h-[2px] bg-white/50 rounded-full" />
               </div>
 
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className={`${isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'} text-white/90 max-w-3xl mx-auto`}
-              >
-                <span className="text-white/80">Professional Trading • Premium </span>
-                {showLoader ? (
-                  <span className="inline-flex items-center">
-                    <span className="mr-2">Signals</span>
-                    <TextLoader size="sm" dotColorClass="text-yellow-300" />
-                  </span>
-                ) : (
-                  <RotatingWords
-                    words={["Signals", "Analysis", "Support", "Strategies"]}
-                    interval={2500}
-                    colorClass="text-yellow-300 font-semibold"
-                  />
-                )}
-                <span className="text-white/80"> • VIP Support</span>
-              </motion.p>
+                <motion.p
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.1 }}
+                  className={`${isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'} text-white/90 max-w-3xl mx-auto`}
+                >
+                  <span className="text-white/80">Professional Trading • Premium </span>
+                  {showLoader ? (
+                    <span className="inline-flex items-center">
+                      <span className="mr-2">Signals</span>
+                      <TextLoader size="sm" dotColorClass="text-yellow-300" />
+                    </span>
+                  ) : (
+                    <RotatingWords
+                      words={["Signals", "Analysis", "Support", "Strategies"]}
+                      interval={2500}
+                      colorClass="text-yellow-300 font-semibold"
+                    />
+                  )}
+                  <span className="text-white/80"> • VIP Support</span>
+                </motion.p>
 
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className={`${isMobile ? 'text-base' : 'text-lg'} text-white/70 max-w-2xl mx-auto`}
-              >
-                Trade with expert-guided confidence
-              </motion.p>
+                <motion.p
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.2 }}
+                  className={`${isMobile ? 'text-base' : 'text-lg'} text-white/70 max-w-2xl mx-auto`}
+                >
+                  Trade with expert-guided confidence
+                </motion.p>
             </div>
 
             {/* Enhanced CTA Buttons */}
@@ -290,8 +291,8 @@ const Landing = () => {
                   <div className="text-3xl md:text-5xl font-black mb-2 text-blue-300 flex items-center justify-center gap-1">
                     5
                     <motion.div
-                      animate={{ rotate: [0, 360] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                      animate={shouldReduceMotion ? undefined : { rotate: [0, 360] }}
+                      transition={shouldReduceMotion ? { duration: 0 } : { duration: 3, repeat: Infinity, ease: "linear" }}
                     >
                       ★
                     </motion.div>
@@ -302,21 +303,23 @@ const Landing = () => {
             </MotionStagger>
 
             {/* Scroll Indicator */}
-            <MotionFadeIn delay={2.5}>
-              <motion.div 
-                className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-                  <motion.div 
-                    className="w-1 h-3 bg-white/70 rounded-full mt-2"
-                    animate={{ y: [0, 15, 0], opacity: [1, 0.3, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                </div>
-              </motion.div>
-            </MotionFadeIn>
+              {!shouldReduceMotion && (
+                <MotionFadeIn delay={2.5}>
+                  <motion.div
+                    className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+                    animate={{ y: [0, 10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
+                      <motion.div
+                        className="w-1 h-3 bg-white/70 rounded-full mt-2"
+                        animate={{ y: [0, 15, 0], opacity: [1, 0.3, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                    </div>
+                  </motion.div>
+                </MotionFadeIn>
+              )}
           </div>
         </div>
       </section>
@@ -329,19 +332,19 @@ const Landing = () => {
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
             className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"
-            animate={{ 
+            animate={shouldReduceMotion ? undefined : {
               scale: [1, 1.2, 1],
               rotate: [0, 90, 0]
             }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 20, repeat: Infinity, ease: "linear" }}
           />
           <motion.div
             className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl"
-            animate={{ 
+            animate={shouldReduceMotion ? undefined : {
               scale: [1, 1.1, 1],
               rotate: [0, -90, 0]
             }}
-            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 25, repeat: Infinity, ease: "linear" }}
           />
         </div>
         <div className="container mx-auto px-6">
