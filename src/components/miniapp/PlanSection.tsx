@@ -162,16 +162,16 @@ export default function PlanSection() {
 
   return (
     <FadeInOnView>
-      <div className="space-y-4">
-        <Card>
+      <div className="ui-stack-base">
+        <Card className="liquid-glass">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 animate-pulse-glow" />
+            <CardTitle className="flex items-center gap-2 text-subheading">
+              <CreditCard className="icon-sm animate-pulse-glow" />
               VIP Plans
             </CardTitle>
-            <CardDescription>Choose your subscription plan and start trading like a pro</CardDescription>
+            <CardDescription className="text-body-sm">Choose your subscription plan and start trading like a pro</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="ui-stack-base prose">
             {/* Currency Selector */}
             <FadeInOnView delay={100}>
               <div className="flex justify-between items-center p-4 bg-muted/50 rounded-lg">
@@ -245,45 +245,45 @@ export default function PlanSection() {
               {plans.map((plan, index) => (
                  <div 
                    key={plan.id} 
-                   className="glass-card relative p-6 rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
+                   className="liquid-glass relative ui-p-lg ui-rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
                    style={{ animationDelay: `${index * 150}ms` }}
                    onClick={() => handleSelectPlan(plan.id)}
                  >
-                  <div className="flex justify-between items-start mb-3">
-                     <div>
-                       <div className="flex items-center gap-2 mb-1">
-                         <h4 className="font-semibold text-lg font-sf-pro">{plan.name}</h4>
+                  <div className="flex justify-between items-start ui-mb-base">
+                     <div className="ui-stack-xs">
+                       <div className="flex items-center gap-2">
+                         <h4 className="font-semibold text-heading font-sf-pro text-foreground">{plan.name}</h4>
                         {(plan.id === userPreferredPlanId || (plan.id === popularPlanId && !userPreferredPlanId)) && (
-                          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs animate-pulse">
-                            <Star className="h-3 w-3 mr-1" />
+                          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs animate-pulse ui-p-xs">
+                            <Star className="icon-xs ui-mr-xs" />
                             Most Popular
                           </Badge>
                         )}
                         {plan.id !== popularPlanId && index === 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            <TrendingUp className="h-3 w-3 mr-1" />
+                          <Badge variant="outline" className="text-xs ui-p-xs">
+                            <TrendingUp className="icon-xs ui-mr-xs" />
                             Best Value
                           </Badge>
                         )}
                       </div>
-                       <p className="text-sm text-muted-foreground font-sf-pro">
+                       <p className="text-body-sm text-muted-foreground font-sf-pro">
                          {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
                        </p>
                     </div>
-                    <div className="text-right">
-                      <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                    <div className="text-right ui-stack-xs">
+                      <div className="text-title font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                         {currency === "MVR" ? "Rf" : "$"}{promoValidation?.valid && promoValidation.final_amount ? 
                           (currency === "MVR" ? Math.round(promoValidation.final_amount * exchangeRate) : promoValidation.final_amount) : 
                           getDisplayPrice(plan)}
                       </div>
                       {promoValidation?.valid && promoValidation.final_amount !== plan.price && (
-                        <div className="text-sm text-muted-foreground line-through">
+                        <div className="text-body-sm text-muted-foreground line-through">
                           {currency === "MVR" ? "Rf" : "$"}{getDisplayPrice(plan)}
                         </div>
                       )}
-                      <div className="text-xs text-muted-foreground font-medium">{currency}</div>
+                      <div className="text-caption text-muted-foreground font-medium">{currency}</div>
                       {currency === "MVR" && (
-                        <div className="text-xs text-muted-foreground mt-1">
+                        <div className="text-caption text-muted-foreground">
                           ≈ ${Math.round(plan.price)} USD
                         </div>
                       )}
@@ -291,12 +291,12 @@ export default function PlanSection() {
                   </div>
 
                   {plan.features && plan.features.length > 0 && (
-                    <div className="mb-4">
-                      <div className="grid grid-cols-1 gap-1 text-sm">
+                    <div className="ui-mb-base">
+                      <div className="ui-stack-sm">
                         {plan.features.slice(0, 3).map((feature, idx) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <Check className="h-3 w-3 text-green-500" />
-                            <span className="text-muted-foreground">{feature}</span>
+                          <div key={idx} className="flex items-center gap-3">
+                            <Check className="icon-xs text-green-500" />
+                            <span className="text-body-sm text-foreground">{feature}</span>
                           </div>
                         ))}
                       </div>
@@ -304,7 +304,7 @@ export default function PlanSection() {
                   )}
 
                    <Button 
-                     className="w-full glass-button text-white hover:scale-105 transition-all duration-300 rounded-full h-9 text-sm font-medium font-sf-pro"
+                     className="w-full liquid-glass-button text-foreground hover:scale-105 transition-all duration-300 ui-rounded-full text-body-sm font-medium font-sf-pro"
                    >
                      {isInTelegram ? 'Select Plan' : 'Open in Telegram'}
                    </Button>

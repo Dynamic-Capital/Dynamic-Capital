@@ -41,7 +41,7 @@ export const VipLaunchPromoPopup = ({ isOpen, onClose, onApplyPromo }: PromoPopu
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="glass-card border-primary/30 max-w-md mx-auto animate-scale-in">
+      <DialogContent className="liquid-glass border-primary/40 max-w-md mx-auto animate-scale-in">
         <DialogHeader className="relative">
           <DialogClose className="absolute right-0 top-0 p-1 opacity-70 hover:opacity-100 transition-opacity">
             <X className="h-4 w-4" />
@@ -63,63 +63,63 @@ export const VipLaunchPromoPopup = ({ isOpen, onClose, onApplyPromo }: PromoPopu
           </DialogTitle>
         </DialogHeader>
 
-        <CardContent className="space-y-6 p-0">
-          <div className="text-center space-y-3">
+        <CardContent className="ui-stack-lg prose">
+          <div className="text-center ui-stack-base">
             <div className="relative">
-              <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 text-lg font-bold animate-pulse-glow">
+              <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white ui-p-base text-heading font-bold animate-pulse-glow">
                 {discountPercent}% OFF
               </Badge>
               <div className="absolute -top-1 -right-1">
-                <Sparkles className="h-4 w-4 text-yellow-500 animate-spin" />
+                <Sparkles className="icon-xs text-yellow-500 animate-spin" />
               </div>
             </div>
             
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              🎉 Celebrate our VIP bot launch with an exclusive <strong>{discountPercent}% discount</strong> on all subscription plans!
+            <p className="text-muted-foreground text-body-sm leading-relaxed">
+              🎉 Celebrate our VIP bot launch with an exclusive <strong className="text-foreground">{discountPercent}% discount</strong> on all subscription plans!
             </p>
           </div>
 
-          <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 rounded-lg p-4 space-y-3">
-            <div className="text-center">
-              <p className="text-sm font-medium mb-2">Your exclusive promo code:</p>
+          <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 ui-rounded-lg ui-p-base ui-stack-base">
+            <div className="text-center ui-stack-sm">
+              <p className="text-body-sm font-medium text-foreground">Your exclusive promo code:</p>
               <div 
                 onClick={handleCopyCode}
-                className="bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 rounded-lg p-3 cursor-pointer hover:from-primary/30 hover:to-purple-500/30 transition-all duration-300 group"
+                className="bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 ui-rounded-lg ui-p-base cursor-pointer hover:from-primary/30 hover:to-purple-500/30 transition-all duration-300 group"
               >
-                <code className="text-lg font-mono font-bold text-primary group-hover:scale-105 transition-transform inline-block">
+                <code className="text-heading font-mono font-bold text-primary group-hover:scale-105 transition-transform inline-block">
                   {promoCode}
                 </code>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-caption text-muted-foreground ui-mt-xs">
                   {copied ? "✓ Copied!" : "Tap to copy"}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
+            <div className="flex items-center justify-center gap-2 text-body-sm text-muted-foreground">
+              <Clock className="icon-xs" />
               <span>Valid until {new Date(validUntil).toLocaleDateString()}</span>
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="ui-stack-base">
             <Button 
               onClick={handleApplyNow}
-              className="w-full bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 text-white font-semibold py-3 animate-pulse-glow"
+              className="w-full liquid-glass-button bg-gradient-to-r from-primary/20 to-purple-500/20 hover:from-primary/30 hover:to-purple-500/30 text-foreground font-semibold ui-p-base animate-pulse-glow"
             >
-              <Gift className="h-4 w-4 mr-2" />
+              <Gift className="icon-xs ui-mr-xs" />
               Apply & Choose Plan
             </Button>
             
             <Button 
               onClick={onClose}
               variant="outline"
-              className="w-full"
+              className="w-full liquid-glass-button"
             >
               Maybe Later
             </Button>
           </div>
 
-          <div className="text-center text-xs text-muted-foreground">
+          <div className="text-center text-caption text-muted-foreground">
             ⚡ Limited time offer • 🔒 Secure checkout • 📱 Instant activation
           </div>
         </CardContent>

@@ -126,25 +126,25 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       }}
     >
       {/* Hero Section */}
-      <Card className="ui-card-glass border-primary/20">
-        <CardContent className="p-4 text-center">
-          <div className="mb-3">
-            <Star className="icon-lg text-primary mx-auto mb-2" />
-            <h1 className="text-title mb-1 font-sf-pro">Dynamic Capital VIP</h1>
-            <p className="text-body-sm text-muted-foreground font-sf-pro">Professional Trading • Premium Signals • VIP Support</p>
+      <Card className="liquid-glass border-primary/30">
+        <CardContent className="ui-p-lg text-center">
+          <div className="ui-mb-base">
+            <Star className="icon-lg text-primary mx-auto ui-mb-sm animate-pulse-glow" />
+            <h1 className="text-title ui-mb-xs font-sf-pro text-foreground">Dynamic Capital VIP</h1>
+            <p className="text-body-sm text-muted-foreground font-sf-pro ui-mb-sm">Professional Trading • Premium Signals • VIP Support</p>
           </div>
-          <div className="flex items-center justify-center gap-3 text-caption">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center justify-center gap-4 text-caption">
+            <div className="flex items-center gap-1 ui-p-xs ui-rounded-full bg-success/10">
               <Users className="icon-xs text-success" />
-              <span>5000+ Members</span>
+              <span className="text-foreground font-medium">5000+ Members</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 ui-p-xs ui-rounded-full bg-info/10">
               <TrendingUp className="icon-xs text-info" />
-              <span>85% Success</span>
+              <span className="text-foreground font-medium">85% Success</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 ui-p-xs ui-rounded-full bg-primary/10">
               <Shield className="icon-xs text-primary" />
-              <span>Verified</span>
+              <span className="text-foreground font-medium">Verified</span>
             </div>
           </div>
         </CardContent>
@@ -152,17 +152,17 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* Announcements */}
       <FadeInOnView delay={100} animation="slide-in-right">
-        <Card className="ui-card-interactive">
-          <CardHeader className="pb-3">
+        <Card className="liquid-glass">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2 text-subheading">
               <MessageSquare className="icon-sm text-info animate-pulse-glow" />
               Latest Announcements
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="prose">
             <FadeInOnView delay={200} animation="fade-in">
-              <div className="p-3 status-info rounded-lg">
-                <p className="text-body-sm whitespace-pre-line leading-relaxed">{announcements}</p>
+              <div className="ui-p-base status-info ui-rounded-lg">
+                <p className="text-body-sm whitespace-pre-line leading-relaxed text-foreground">{announcements}</p>
               </div>
             </FadeInOnView>
           </CardContent>
@@ -227,15 +227,15 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* About Dynamic Capital */}
       <FadeInOnView delay={300} animation="bounce-in">
-        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Award className="h-4 w-4 text-primary animate-pulse-glow" />
+        <Card className="liquid-glass hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-subheading">
+              <Award className="icon-sm text-primary animate-pulse-glow" />
               About Dynamic Capital
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+          <CardContent className="prose">
+            <p className="text-body-sm text-foreground whitespace-pre-line leading-relaxed">
               {aboutUs}
             </p>
           </CardContent>
@@ -244,15 +244,15 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* Our Services */}
       <FadeInOnView delay={500} animation="slide-in-right">
-        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Target className="h-4 w-4 text-blue-500 animate-float" />
+        <Card className="liquid-glass hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-subheading">
+              <Target className="icon-sm text-blue-500 animate-float" />
               Our Services
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-1 gap-2">
+          <CardContent className="prose">
+            <div className="ui-stack-sm">
               {services.split('\n').filter(service => service.trim()).map((service, index) => {
                 // Map service emojis to lucide icons
                 const getServiceIcon = (text: string) => {
@@ -273,9 +273,9 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
                     delay={600 + (index * 100)}
                     animation="fade-in"
                   >
-                    <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] group">
-                      <ServiceIcon className="h-3 w-3 text-primary group-hover:animate-float transition-all duration-300 flex-shrink-0" />
-                      <span className="text-xs flex-1">{service.replace(/[📈📊🛡️👨‍🏫💎📞]/g, '').replace('•', '').trim()}</span>
+                    <div className="flex items-center gap-3 ui-p-sm ui-rounded-lg hover:bg-muted/30 transition-all duration-300 hover:scale-[1.02] group">
+                      <ServiceIcon className="icon-xs text-primary group-hover:animate-float transition-all duration-300 flex-shrink-0" />
+                      <span className="text-body-sm text-foreground flex-1">{service.replace(/[📈📊🛡️👨‍🏫💎📞]/g, '').replace('•', '').trim()}</span>
                     </div>
                   </FadeInOnView>
                 );
