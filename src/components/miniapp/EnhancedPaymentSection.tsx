@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -16,11 +18,16 @@ import {
   Loader2,
   AlertCircle,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Upload,
+  FileImage,
+  X
 } from "lucide-react";
 import { TouchFeedback } from "@/components/ui/mobile-gestures";
 import { ThreeDEmoticon } from "@/components/ui/three-d-emoticons";
 import { cn } from "@/lib/utils";
+import { callEdgeFunction } from "@/config/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentMethod {
   id: string;
@@ -42,6 +49,20 @@ interface Plan {
   features: string[];
 }
 
+interface BankAccount {
+  bank_name: string;
+  account_name: string;
+  account_number: string;
+  currency: string;
+}
+
+interface PaymentInstructions {
+  type: "bank_transfer" | "crypto";
+  banks?: BankAccount[];
+  address?: string;
+  note?: string;
+}
+
 interface EnhancedPaymentSectionProps {
   selectedPlan?: Plan;
   onBack?: () => void;
@@ -49,90 +70,126 @@ interface EnhancedPaymentSectionProps {
 
 const paymentMethods: PaymentMethod[] = [
   {
-    id: 'bank_transfer',
-    name: 'Bank Transfer',
+    id: "bank_transfer",
+    name: "Bank Transfer",
     icon: Building2,
-    description: 'Direct bank transfer (MVR)',
-    processing_time: '2-24 hours',
+    description: "Secure bank-to-bank transfer",
+    processing_time: "1-3 business days",
     available: true,
     recommended: true
   },
   {
-    id: 'mobile_banking',
-    name: 'Mobile Banking',
-    icon: Smartphone,
-    description: 'BML Mobile, Ooredoo Money',
-    processing_time: 'Instant',
-    available: true
-  },
-  {
-    id: 'crypto',
-    name: 'Cryptocurrency',
+    id: "crypto",
+    name: "Cryptocurrency",
     icon: Coins,
-    description: 'USDT (TRC20)',
-    processing_time: '10-30 minutes',
+    description: "USDT (TRC20) payment",
+    processing_time: "5-30 minutes",
     available: true
-  },
-  {
-    id: 'card',
-    name: 'Credit/Debit Card',
-    icon: CreditCard,
-    description: 'Visa, Mastercard (Coming Soon)',
-    processing_time: 'Instant',
-    available: false
   }
 ];
 
-export const EnhancedPaymentSection: React.FC<EnhancedPaymentSectionProps> = ({ 
-  selectedPlan, 
-  onBack 
-}) => {
-  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [paymentInstructions, setPaymentInstructions] = useState<any>(null);
-  const [step, setStep] = useState<'method' | 'instructions' | 'confirmation'>('method');
-
-  const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+export function EnhancedPaymentSection({ selectedPlan, onBack }: EnhancedPaymentSectionProps) {
+  const [selectedMethod, setSelectedMethod] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentInstructions, setPaymentInstructions] = useState<PaymentInstructions | null>(null);
+  const [paymentId, setPaymentId] = useState<string>("");
+  const [receipt, setReceipt] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleMethodSelect = (methodId: string) => {
-    const method = paymentMethods.find(m => m.id === methodId);
-    if (!method?.available) {
-      toast.error('This payment method is not available yet');
-      return;
-    }
     setSelectedMethod(methodId);
+    setPaymentInstructions(null);
+    setPaymentId("");
   };
 
-  const handleProceedToPayment = async () => {
-    if (!selectedMethod || !selectedPlan) return;
+  const initiatePayment = async () => {
+    if (!selectedPlan || !selectedMethod) {
+      toast.error("Please select a payment method");
+      return;
+    }
 
-    setLoading(true);
+    setIsProcessing(true);
     try {
-      const { callEdgeFunction } = await import('@/config/supabase');
       const response = await callEdgeFunction('CHECKOUT_INIT', {
         method: 'POST',
         body: {
           plan_id: selectedPlan.id,
           method: selectedMethod,
           currency: selectedPlan.currency,
-          amount: selectedPlan.price,
-          initData: isInTelegram ? window.Telegram?.WebApp?.initData : undefined
+          amount: selectedPlan.price
         }
       });
 
-      const data = await response.json();
-      if (data.ok) {
-        setPaymentInstructions(data.instructions);
-        setStep('instructions');
-        toast.success("Payment instructions generated!");
-      } else {
-        toast.error(data.error || "Failed to generate payment instructions");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Payment initiation failed');
       }
+
+      const data = await response.json();
+      setPaymentInstructions(data.instructions);
+      setPaymentId(data.payment_id);
+      
+      toast.success("Payment instructions generated successfully!");
     } catch (error) {
-      console.error('Payment error:', error);
-      toast.error("Failed to process payment request");
+      console.error('Payment initiation error:', error);
+      toast.error(error instanceof Error ? error.message : "Failed to initiate payment");
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!paymentId) {
+      toast.error("Please initiate payment first");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      // Upload to Supabase storage
+      const fileName = `receipts/${paymentId}_${Date.now()}_${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('payment-receipts')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      // Update payment record with receipt
+      const { error: updateError } = await supabase
+        .from('payments')
+        .update({ 
+          payment_provider_id: fileName,
+          status: 'pending_review' 
+        })
+        .eq('id', paymentId);
+
+      if (updateError) throw updateError;
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
+      toast.success("Receipt uploaded successfully! Payment is under review.");
+      setReceipt(file);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error("Failed to upload receipt");
+    } finally {
+      setIsUploading(false);
+      setTimeout(() => setUploadProgress(0), 2000);
     }
   };
 
@@ -141,260 +198,366 @@ export const EnhancedPaymentSection: React.FC<EnhancedPaymentSectionProps> = ({
     toast.success("Copied to clipboard!");
   };
 
-  const openTelegramBot = async () => {
-    const { TELEGRAM_CONFIG } = await import('@/config/supabase');
-    window.open(TELEGRAM_CONFIG.BOT_URL, '_blank');
-  };
-
   if (!selectedPlan) {
     return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No plan selected</p>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="flex items-center gap-2 justify-center">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            No Plan Selected
+          </CardTitle>
+          <CardDescription>
+            Please select a subscription plan to continue with payment.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={onBack} variant="outline" className="w-full">
+            <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
+            Back to Plans
+          </Button>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Progress Indicator */}
-      <div className="flex items-center justify-center space-x-4 mb-8">
-        {[
-          { key: 'method', label: 'Payment Method', icon: CreditCard },
-          { key: 'instructions', label: 'Instructions', icon: Shield },
-          { key: 'confirmation', label: 'Complete', icon: CheckCircle2 }
-        ].map(({ key, label, icon: Icon }, index) => (
-          <div key={key} className="flex items-center space-x-2">
-            <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all",
-              step === key ? "bg-primary text-primary-foreground" :
-              (key === 'method' && step !== 'method') ? "bg-green-500 text-white" :
-              "bg-muted text-muted-foreground"
-            )}>
-              {(key === 'method' && step !== 'method') ? 
-                <CheckCircle2 className="h-4 w-4" /> : 
-                <Icon className="h-4 w-4" />
-              }
-            </div>
-            <span className="text-sm font-medium hidden sm:block">{label}</span>
-            {index < 2 && <ArrowRight className="h-4 w-4 text-muted-foreground" />}
-          </div>
-        ))}
-      </div>
-
-      {/* Selected Plan Summary */}
+    <div className="w-full max-w-2xl mx-auto space-y-6">
+      {/* Plan Summary */}
       <Card>
-        <CardContent className="p-4">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            Payment for {selectedPlan.name}
+          </CardTitle>
+          <CardDescription>
+            Complete your payment to activate your subscription
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <ThreeDEmoticon emoji="💎" size={24} />
-              <div>
-                <h3 className="font-semibold">{selectedPlan.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {selectedPlan.is_lifetime ? 'Lifetime access' : `${selectedPlan.duration_months} months`}
-                </p>
-              </div>
+            <div>
+              <p className="font-medium">{selectedPlan.name}</p>
+              <p className="text-sm text-muted-foreground">
+                {selectedPlan.is_lifetime ? 'Lifetime Access' : `${selectedPlan.duration_months} months`}
+              </p>
             </div>
             <div className="text-right">
-              <div className="text-xl font-bold text-primary">
-                ${selectedPlan.price}
-              </div>
-              <div className="text-sm text-muted-foreground">{selectedPlan.currency}</div>
+              <p className="text-2xl font-bold">
+                {selectedPlan.price} {selectedPlan.currency}
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <AnimatePresence mode="wait">
-        {step === 'method' && (
-          <motion.div
-            key="method"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-4"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <CreditCard className="h-5 w-5" />
-                  <span>Choose Payment Method</span>
-                </CardTitle>
-                <CardDescription>
-                  Select your preferred payment method to complete your VIP subscription
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {paymentMethods.map((method) => {
-                  const Icon = method.icon;
-                  return (
-                    <TouchFeedback key={method.id}>
-                      <motion.div
-                        className={cn(
-                          "relative p-4 rounded-lg border cursor-pointer transition-all duration-200",
-                          selectedMethod === method.id ? 
-                            "border-primary bg-primary/5 ring-2 ring-primary/20" : 
-                            "border-border hover:border-primary/50 hover:bg-muted/50",
-                          !method.available && "opacity-50 cursor-not-allowed"
-                        )}
-                        onClick={() => handleMethodSelect(method.id)}
-                        whileHover={{ scale: method.available ? 1.02 : 1 }}
-                        whileTap={{ scale: method.available ? 0.98 : 1 }}
-                      >
-                        {method.recommended && (
-                          <Badge className="absolute -top-2 right-4 bg-gradient-to-r from-orange-500 to-red-500 text-white">
-                            Recommended
-                          </Badge>
-                        )}
-                        
-                        <div className="flex items-center space-x-4">
-                          <div className={cn(
-                            "w-12 h-12 rounded-full flex items-center justify-center",
-                            selectedMethod === method.id ? "bg-primary text-primary-foreground" : "bg-muted"
-                          )}>
-                            <Icon className="h-6 w-6" />
+      {/* Payment Methods */}
+      {!paymentInstructions && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Select Payment Method</CardTitle>
+            <CardDescription>
+              Choose your preferred payment method
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              {paymentMethods.map((method) => (
+                <motion.div
+                  key={method.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <TouchFeedback>
+                    <Card 
+                      className={cn(
+                        "cursor-pointer transition-all border-2",
+                        selectedMethod === method.id 
+                          ? "border-primary bg-primary/5" 
+                          : "border-border hover:border-primary/50",
+                        !method.available && "opacity-50 cursor-not-allowed"
+                      )}
+                      onClick={() => method.available && handleMethodSelect(method.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          <div className="p-2 rounded-lg bg-primary/10">
+                            <method.icon className="h-6 w-6 text-primary" />
                           </div>
-                          
                           <div className="flex-1">
-                            <div className="flex items-center space-x-2">
-                              <h3 className="font-semibold">{method.name}</h3>
-                              {!method.available && (
-                                <Badge variant="outline">Coming Soon</Badge>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-medium">{method.name}</h3>
+                              {method.recommended && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Recommended
+                                </Badge>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground">{method.description}</p>
-                            <div className="flex items-center space-x-1 mt-1">
+                            <p className="text-sm text-muted-foreground">
+                              {method.description}
+                            </p>
+                            <div className="flex items-center gap-1 mt-1">
                               <Clock className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-xs text-muted-foreground">{method.processing_time}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {method.processing_time}
+                              </span>
                             </div>
                           </div>
-                          
                           {selectedMethod === method.id && (
                             <CheckCircle2 className="h-5 w-5 text-primary" />
                           )}
                         </div>
-                      </motion.div>
-                    </TouchFeedback>
-                  );
-                })}
-              </CardContent>
-            </Card>
+                      </CardContent>
+                    </Card>
+                  </TouchFeedback>
+                </motion.div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-            {selectedMethod && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-4"
-              >
-                <Button
-                  onClick={handleProceedToPayment}
-                  disabled={loading}
-                  className="w-full h-12 text-base font-semibold"
-                  size="lg"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      Proceed to Payment
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-              </motion.div>
-            )}
-          </motion.div>
-        )}
-
-        {step === 'instructions' && paymentInstructions && (
-          <motion.div
-            key="instructions"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-4"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Shield className="h-5 w-5" />
-                  <span>Payment Instructions</span>
-                </CardTitle>
-                <CardDescription>
-                  Follow these steps to complete your payment
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {selectedMethod === 'crypto' && paymentInstructions.address && (
-                  <Card className="border-l-4 border-l-orange-500">
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold mb-3">USDT (TRC20)</h4>
-                      <div className="space-y-3">
-                        <div className="p-3 bg-muted rounded font-mono text-sm break-all">
-                          {paymentInstructions.address}
+      {/* Payment Instructions */}
+      {paymentInstructions && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Payment Instructions
+            </CardTitle>
+            <CardDescription>
+              Follow these steps to complete your payment
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Bank Transfer Instructions */}
+            {paymentInstructions.type === "bank_transfer" && paymentInstructions.banks && (
+              <div className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-3">Bank Details</h4>
+                  {paymentInstructions.banks.map((bank, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <span className="text-muted-foreground">Bank:</span>
+                        <span className="font-medium">{bank.bank_name}</span>
+                        
+                        <span className="text-muted-foreground">Account Name:</span>
+                        <span className="font-medium">{bank.account_name}</span>
+                        
+                        <span className="text-muted-foreground">Account Number:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono">{bank.account_number}</span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => copyToClipboard(bank.account_number)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
                         </div>
-                        <Button 
-                          variant="outline"
-                          onClick={() => copyToClipboard(paymentInstructions.address)}
-                          className="w-full"
-                          size="sm"
-                        >
-                          <Copy className="h-3 w-3 mr-2" />
-                          Copy Address
-                        </Button>
-                        <div className="flex justify-between items-center pt-2 border-t">
-                          <span className="text-sm text-muted-foreground">Amount:</span>
-                          <span className="font-bold text-primary">${selectedPlan.price} USDT</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                <Card className="bg-blue-500/10 border-blue-500/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-start space-x-3">
-                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div className="space-y-2 text-sm">
-                        <p className="font-medium text-blue-900">Next Steps:</p>
-                        <ol className="list-decimal list-inside space-y-1 text-blue-700">
-                          <li>Transfer the exact amount using the details above</li>
-                          <li>Take a screenshot of your payment confirmation</li>
-                          <li>Upload the receipt through our Telegram bot</li>
-                          <li>Wait for admin approval (usually within 24 hours)</li>
-                        </ol>
+                        
+                        <span className="text-muted-foreground">Amount:</span>
+                        <span className="font-bold text-primary">
+                          {selectedPlan.price} {bank.currency}
+                        </span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Button
-                    onClick={openTelegramBot}
-                    variant="default"
-                    className="h-12"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Upload Receipt
-                  </Button>
-                  <Button
-                    onClick={() => setStep('method')}
-                    variant="outline"
-                    className="h-12"
-                  >
-                    Change Method
-                  </Button>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+              </div>
+            )}
+
+            {/* Crypto Instructions */}
+            {paymentInstructions.type === "crypto" && paymentInstructions.address && (
+              <div className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-3">Crypto Details</h4>
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <span className="text-muted-foreground">Network:</span>
+                      <span className="font-medium">TRON (TRC20)</span>
+                      
+                      <span className="text-muted-foreground">Currency:</span>
+                      <span className="font-medium">USDT</span>
+                      
+                      <span className="text-muted-foreground">Address:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs break-all">{paymentInstructions.address}</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => copyToClipboard(paymentInstructions.address!)}
+                          className="h-6 w-6 p-0 flex-shrink-0"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      
+                      <span className="text-muted-foreground">Amount:</span>
+                      <span className="font-bold text-primary">
+                        {selectedPlan.price} USDT
+                      </span>
+                    </div>
+                  </div>
+                  {paymentInstructions.note && (
+                    <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded text-sm text-yellow-800 dark:text-yellow-200">
+                      <strong>Important:</strong> {paymentInstructions.note}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Receipt Upload */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="receipt" className="text-base font-medium">
+                  Upload Payment Receipt
+                </Label>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Upload a screenshot or photo of your payment confirmation
+                </p>
+                
+                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                  {receipt ? (
+                    <div className="space-y-2">
+                      <FileImage className="h-8 w-8 mx-auto text-primary" />
+                      <p className="text-sm font-medium">{receipt.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {(receipt.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setReceipt(null)}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Remove
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                      <div>
+                        <Button
+                          variant="outline"
+                          onClick={() => document.getElementById('receipt-input')?.click()}
+                          disabled={isUploading}
+                        >
+                          {isUploading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4 mr-2" />
+                              Choose File
+                            </>
+                          )}
+                        </Button>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          PNG, JPG, PDF up to 10MB
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <input
+                    id="receipt-input"
+                    type="file"
+                    accept="image/*,application/pdf"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 10 * 1024 * 1024) {
+                          toast.error("File size must be less than 10MB");
+                          return;
+                        }
+                        handleFileUpload(file);
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Upload Progress */}
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div className="mt-3">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Uploading...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-secondary rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex gap-3">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="flex-1"
+        >
+          <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
+          Back
+        </Button>
+        
+        {!paymentInstructions ? (
+          <Button
+            onClick={initiatePayment}
+            disabled={!selectedMethod || isProcessing}
+            className="flex-1"
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                Continue
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </>
+            )}
+          </Button>
+        ) : (
+          <Button
+            onClick={() => toast.success("Payment submitted for review!")}
+            disabled={!receipt}
+            className="flex-1"
+          >
+            Submit Payment
+            <CheckCircle2 className="h-4 w-4 ml-2" />
+          </Button>
         )}
-      </AnimatePresence>
+      </div>
+
+      {/* Security Notice */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Secure Payment</p>
+              <p className="text-xs text-muted-foreground">
+                Your payment information is protected. We never store sensitive financial data.
+                All transactions are verified manually for security.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
+}

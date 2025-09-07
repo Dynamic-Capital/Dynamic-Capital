@@ -1,119 +1,76 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
-import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
-import { ok, bad, nf, mna, unauth, oops } from "../_shared/http.ts";
-import { requireEnv } from "../_shared/env.ts";
-import { activateSubscription } from "../_shared/subscriptions.ts";
+import { getEnv } from "../_shared/env.ts";
+import { bad, mna, ok, oops, json } from "../_shared/http.ts";
+import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-type Body = {
-  initData?: string;
-  payment_id: string;
-  decision: "approve" | "reject";
-  message?: string;
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function tgSend(token: string, chatId: string, text: string) {
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
-  }).catch(() => {});
-}
-
 export async function handler(req: Request): Promise<Response> {
-  try {
-    const url = new URL(req.url);
-    if (req.method === "GET" && url.pathname.endsWith("/version")) {
-      return ok({ name: "admin-act-on-payment", ts: new Date().toISOString() });
-    }
-    if (req.method === "HEAD") return ok();
-    if (req.method !== "POST") return mna();
-
-    let body: Body;
-    try {
-      body = await req.json();
-    } catch {
-      return bad("Bad JSON");
-    }
-
-    const hdr = req.headers.get("X-Admin-Secret") || "";
-    const expect = Deno.env.get("ADMIN_API_SECRET") || "";
-    let adminId = "unknown";
-
-    if (hdr) {
-      if (hdr !== expect) return unauth();
-    } else {
-      const u = await verifyInitDataAndGetUser(body.initData || "");
-      if (!u || !isAdmin(u.id)) return unauth();
-      adminId = String(u.id);
-    }
-
-    const { TELEGRAM_BOT_TOKEN: bot } =
-      requireEnv(["TELEGRAM_BOT_TOKEN"] as const);
-    const supa = createClient();
-
-    const { data: p } = await supa
-      .from("payments")
-      .select("id,status,user_id,plan_id,amount,currency,created_at")
-      .eq("id", body.payment_id)
-      .maybeSingle();
-    if (!p) return nf("Payment not found");
-    const { data: user } = await supa
-      .from("bot_users")
-      .select("id,telegram_id,subscription_expires_at,is_vip")
-      .eq("id", p.user_id)
-      .maybeSingle();
-    if (!user) return nf("User not found");
-
-    if (body.decision === "reject") {
-      await supa.from("payments").update({ status: "failed" }).eq("id", p.id)
-        .single();
-      if (user.telegram_id) {
-        await tgSend(
-          bot,
-          String(user.telegram_id),
-          `❌ <b>Payment Failed</b>\\n${body.message || "Please contact support."}`,
-        );
-      }
-      await supa.from("admin_logs").insert({
-        admin_telegram_id: adminId,
-        action_type: "payment_failed",
-        action_description: `Payment ${p.id} marked as failed`,
-        affected_table: "payments",
-        affected_record_id: p.id,
-        new_values: { status: "failed" },
-      });
-      return ok({ status: "failed" });
-    }
-
-    const expiresAt = await activateSubscription({
-      telegramId: user.telegram_id,
-      planId: p.plan_id,
-      paymentId: p.id,
-    });
-
-    if (user.telegram_id) {
-      await tgSend(
-        bot,
-        String(user.telegram_id),
-        `✅ <b>VIP Activated</b>\\nValid until <b>${
-          new Date(expiresAt).toLocaleDateString()
-        }</b>.`,
-      );
-    }
-    await supa.from("admin_logs").insert({
-      admin_telegram_id: adminId,
-      action_type: "payment_completed",
-      action_description: `Payment ${p.id} completed; VIP until ${expiresAt}`,
-      affected_table: "bot_users",
-      affected_record_id: user.id,
-      new_values: { is_vip: true, subscription_expires_at: expiresAt },
-    });
-
-    return ok({ status: "completed", subscription_expires_at: expiresAt });
-  } catch (e) {
-    return oops("Internal Error", String(e));
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
   }
+
+  if (req.method !== "POST") {
+    return mna();
+  }
+
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return json({ error: "unauthorized" }, 401, corsHeaders);
+  }
+
+  const supaAuth = createSupabaseClient(
+    getEnv("SUPABASE_URL"),
+    getEnv("SUPABASE_ANON_KEY"),
+    { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
+  );
+
+  const { data: { user } } = await supaAuth.auth.getUser();
+  if (!user) {
+    return json({ error: "unauthorized" }, 401, corsHeaders);
+  }
+
+  // Check if user is admin
+  const { data: profile } = await supaAuth
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "admin") {
+    return json({ error: "admin_required" }, 403, corsHeaders);
+  }
+
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return bad("Bad JSON");
+  }
+
+  const supa = createClient();
+
+  if (body.action === "approve") {
+    const { error } = await supa
+      .from("payments")
+      .update({ status: "completed" })
+      .eq("id", body.payment_id);
+
+    if (error) return oops("Failed to approve payment");
+  } else if (body.action === "reject") {
+    const { error } = await supa
+      .from("payments")
+      .update({ status: "rejected" })
+      .eq("id", body.payment_id);
+
+    if (error) return oops("Failed to reject payment");
+  }
+
+  return ok({ success: true }, corsHeaders);
 }
 
-if (import.meta.main) serve(handler);
+serve(handler);

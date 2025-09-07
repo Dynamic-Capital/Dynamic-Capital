@@ -141,12 +141,19 @@ export async function handler(req: Request): Promise<Response> {
       .order("display_order");
     instructions = { type: "bank_transfer", banks: (banks as BankAccount[]) || [] };
   } else if (body.method === "crypto") {
-    // Get crypto address from config
-    const cryptoAddress = await getContent<string>("crypto_usdt_trc20") || "TYour-Crypto-Address-Here";
+    // Get crypto address from bot_settings
+    const { data: cryptoSetting } = await supa
+      .from("bot_settings")
+      .select("setting_value")
+      .eq("setting_key", "crypto_usdt_trc20")
+      .eq("is_active", true)
+      .single();
+    
+    const cryptoAddress = cryptoSetting?.setting_value || "TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7";
     instructions = {
       type: "crypto",
       address: cryptoAddress,
-      note: "Send USDT (TRC20) to the provided address. Then upload receipt via Telegram bot.",
+      note: "Send USDT (TRC20) to the provided address. Upload your transaction receipt after payment.",
     };
   } else {
     return bad("Unsupported payment method");
