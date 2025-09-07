@@ -7,6 +7,7 @@ import { CreditCard, Sparkles, Check, Star, TrendingUp } from "lucide-react";
 import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { CurrencySelector } from "./CurrencySelector";
+import { useCurrency } from "@/hooks/useCurrency";
 import { toast } from "sonner";
 
 interface Plan {
@@ -30,9 +31,9 @@ interface PromoValidation {
 export default function PlanSection() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currency, setCurrency] = useState("USD");
-  const [exchangeRate, setExchangeRate] = useState(17.5);
+  const { currency, setCurrency, exchangeRate } = useCurrency();
   const [popularPlanId, setPopularPlanId] = useState<string | null>(null);
+  const [userPreferredPlanId, setUserPreferredPlanId] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState(() => {
     // Pre-fill promo code from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -44,26 +45,33 @@ export default function PlanSection() {
   const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
 
   useEffect(() => {
-    // Fetch plans, exchange rate, and analytics
+    // Fetch plans and popular plan
     Promise.all([
       fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans').then(res => res.json()),
       fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: ['usd_mvr_rate', 'popular_plan_id'] })
+        body: JSON.stringify({ keys: ['popular_plan_id'] })
       }).then(res => res.json())
     ]).then(([plansData, contentData]) => {
       setPlans(plansData.plans || []);
       
       const contents = contentData.contents || [];
-      const rateContent = contents.find((c: any) => c.content_key === 'usd_mvr_rate');
       const popularContent = contents.find((c: any) => c.content_key === 'popular_plan_id');
       
-      if (rateContent) {
-        setExchangeRate(parseFloat(rateContent.content_value) || 17.5);
-      }
       if (popularContent) {
         setPopularPlanId(popularContent.content_value);
+      }
+
+      // Check user's selection history for most preferred plan
+      const selectionCounts = JSON.parse(localStorage.getItem('plan_selection_counts') || '{}');
+      if (Object.keys(selectionCounts).length > 0) {
+        const mostSelected = Object.entries(selectionCounts).reduce((a, b) => 
+          (selectionCounts[a[0]] as number) > (selectionCounts[b[0]] as number) ? a : b, ['', 0]
+        );
+        if ((mostSelected[1] as number) > 0) {
+          setUserPreferredPlanId(mostSelected[0]);
+        }
       }
       
       setLoading(false);
@@ -118,6 +126,11 @@ export default function PlanSection() {
   };
 
   const handleSelectPlan = (planId: string) => {
+    // Track user's selection for "Most Popular" logic
+    const selectionCounts = JSON.parse(localStorage.getItem('plan_selection_counts') || '{}');
+    selectionCounts[planId] = (selectionCounts[planId] || 0) + 1;
+    localStorage.setItem('plan_selection_counts', JSON.stringify(selectionCounts));
+
     if (isInTelegram) {
       // Switch to checkout flow within mini app
       const url = new URL(window.location.href);
@@ -231,15 +244,16 @@ export default function PlanSection() {
               {plans.map((plan, index) => (
                 <div 
                   key={plan.id} 
-                  className="p-4 border rounded-lg hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:scale-105"
+                  className="relative p-6 border rounded-xl hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] cursor-pointer bg-gradient-to-br from-card to-card/80"
                   style={{ animationDelay: `${index * 150}ms` }}
+                  onClick={() => handleSelectPlan(plan.id)}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-semibold text-lg">{plan.name}</h4>
-                        {plan.id === popularPlanId && (
-                          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs">
+                        {(plan.id === userPreferredPlanId || (plan.id === popularPlanId && !userPreferredPlanId)) && (
+                          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs animate-pulse">
                             <Star className="h-3 w-3 mr-1" />
                             Most Popular
                           </Badge>
@@ -256,7 +270,7 @@ export default function PlanSection() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-primary">
+                      <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                         {currency === "MVR" ? "Rf" : "$"}{promoValidation?.valid && promoValidation.final_amount ? 
                           (currency === "MVR" ? Math.round(promoValidation.final_amount * exchangeRate) : promoValidation.final_amount) : 
                           getDisplayPrice(plan)}
@@ -266,7 +280,12 @@ export default function PlanSection() {
                           {currency === "MVR" ? "Rf" : "$"}{getDisplayPrice(plan)}
                         </div>
                       )}
-                      <div className="text-xs text-muted-foreground">{currency}</div>
+                      <div className="text-xs text-muted-foreground font-medium">{currency}</div>
+                      {currency === "MVR" && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          ≈ ${Math.round(plan.price)} USD
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -284,8 +303,8 @@ export default function PlanSection() {
                   )}
 
                   <Button 
-                    className="w-full transition-all duration-300 hover:scale-105"
-                    onClick={() => handleSelectPlan(plan.id)}
+                    className="w-full transition-all duration-300 hover:scale-105 btn-press"
+                    size="lg"
                   >
                     {isInTelegram ? 'Select Plan' : 'Open in Telegram'}
                   </Button>

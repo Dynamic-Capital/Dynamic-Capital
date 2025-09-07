@@ -17,6 +17,7 @@ import {
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { PaymentOptions } from "./PaymentOptions";
 import { CurrencySelector } from "./CurrencySelector";
+import { useCurrency } from "@/hooks/useCurrency";
 import { toast } from "sonner";
 
 interface Plan {
@@ -38,8 +39,7 @@ interface CheckoutSectionProps {
 export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: CheckoutSectionProps) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [currency, setCurrency] = useState("USD");
-  const [exchangeRate, setExchangeRate] = useState(17.5);
+  const { currency, setCurrency, exchangeRate } = useCurrency();
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [paymentInstructions, setPaymentInstructions] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -49,30 +49,21 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
   const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
 
   useEffect(() => {
-    // Fetch plans and exchange rate
-    Promise.all([
-      fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans').then(res => res.json()),
-      fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: ['usd_mvr_rate'] })
-      }).then(res => res.json())
-    ]).then(([plansData, rateData]) => {
-      setPlans(plansData.plans || []);
-      
-      if (selectedPlanId) {
-        const plan = (plansData.plans || []).find((p: Plan) => p.id === selectedPlanId);
-        setSelectedPlan(plan || null);
-        setStep("payment");
-      }
-
-      const rateContent = rateData.contents?.find((c: any) => c.content_key === 'usd_mvr_rate');
-      if (rateContent) {
-        setExchangeRate(parseFloat(rateContent.content_value) || 17.5);
-      }
-      
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    // Fetch plans
+    fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans')
+      .then(res => res.json())
+      .then(plansData => {
+        setPlans(plansData.plans || []);
+        
+        if (selectedPlanId) {
+          const plan = (plansData.plans || []).find((p: Plan) => p.id === selectedPlanId);
+          setSelectedPlan(plan || null);
+          setStep("payment");
+        }
+        
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, [selectedPlanId]);
 
   const getDisplayPrice = (plan: Plan) => {

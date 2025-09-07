@@ -272,9 +272,18 @@ All colors MUST be HSL.
   @apply hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200;
 }
 
-.focus-ring-pop {
-  @apply focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:ring-offset-4 transition-all duration-200;
-}
+  .focus-ring-pop {
+    @apply focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:ring-offset-4 transition-all duration-200;
+  }
+
+  /* Safe area utilities for mobile devices */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
 
 /* Horizontal scroll utilities */
 .scrollbar-hide {
