@@ -28,6 +28,14 @@ const enhancedButtonVariants = cva(
         glass: [
           "bg-white/10 backdrop-blur-md border border-white/20 text-foreground",
           "hover:bg-white/20 hover:border-white/30 shadow-lg hover:shadow-xl"
+        ],
+        shimmer: [
+          "bg-gradient-to-r from-primary via-purple-500 to-primary text-white font-semibold",
+          "shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/50",
+          "hover:scale-105 relative overflow-hidden",
+          "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent",
+          "before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000",
+          "before:animate-shimmer"
         ]
       },
       size: {

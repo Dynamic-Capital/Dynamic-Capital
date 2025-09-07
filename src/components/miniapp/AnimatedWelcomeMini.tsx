@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { TypewriterText, StaggeredText, GradientText, LetterReveal } from "@/components/ui/animated-text";
+import { RotatingWords } from "@/components/ui/rotating-words";
+import { EnhancedButton } from "@/components/ui/enhanced-button";
 
 interface WelcomeLineMiniProps {
   text: string;
@@ -207,14 +209,19 @@ export default function AnimatedWelcomeMini({ className }: AnimatedWelcomeMiniPr
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.2 }}
+            className="space-y-4"
           >
-            <GradientText 
-              text="Professional Trading • Premium Signals • VIP Support"
-              gradient="from-primary via-purple-500 to-pink-500"
-              className="text-base sm:text-lg font-semibold mb-4 drop-shadow-sm text-center block"
-              animate={true}
-              animationDuration={4}
-            />
+            <div className="text-heading text-center">
+              <span className="text-muted-foreground">
+                Professional Trading • Premium{" "}
+              </span>
+              <RotatingWords 
+                words={["Signals", "Analysis", "Support", "Guidance", "Strategies"]}
+                interval={2500}
+                colorClass="text-primary font-bold"
+              />
+              <span className="text-muted-foreground"> • VIP Support</span>
+            </div>
           </motion.div>
 
           {/* Animated message lines with icons */}
@@ -231,22 +238,47 @@ export default function AnimatedWelcomeMini({ className }: AnimatedWelcomeMiniPr
           </div>
         </div>
 
+        {/* CTA Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 2.5 }}
+          className="space-y-4"
+        >
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <EnhancedButton 
+              variant="shimmer" 
+              size="lg"
+              className="w-full sm:w-auto"
+            >
+              View VIP Plans
+            </EnhancedButton>
+            <EnhancedButton 
+              variant="ghost" 
+              size="lg"
+              className="w-full sm:w-auto hover:text-primary"
+            >
+              How it Works
+            </EnhancedButton>
+          </div>
+        </motion.div>
+
         {/* Stats pills - appear after message animation */}
         <div className={`transition-all duration-1000 ${showStats ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 liquid-glass border border-success/30 rounded-full animate-bounce-in hover:scale-105 transition-transform backdrop-blur-md">
+            <div className="flex items-center gap-2 px-4 py-2 glass-motion border border-success/30 ui-rounded-lg animate-bounce-in hover:scale-105 transition-transform">
               <Users className="h-4 w-4 text-success animate-pulse drop-shadow-sm" />
-              <span className="text-sm font-semibold text-elevated drop-shadow-sm">5000+ Members</span>
+              <span className="text-body-sm font-semibold text-elevated drop-shadow-sm">5000+ Members</span>
             </div>
             
-            <div className="flex items-center gap-2 px-4 py-2 liquid-glass border border-info/30 rounded-full animate-bounce-in hover:scale-105 transition-transform backdrop-blur-md" style={{ animationDelay: '200ms' }}>
+            <div className="flex items-center gap-2 px-4 py-2 glass-motion border border-info/30 ui-rounded-lg animate-bounce-in hover:scale-105 transition-transform" style={{ animationDelay: '200ms' }}>
               <TrendingUp className="h-4 w-4 text-info animate-pulse drop-shadow-sm" />
-              <span className="text-sm font-semibold text-elevated drop-shadow-sm">85% Success</span>
+              <span className="text-body-sm font-semibold text-elevated drop-shadow-sm">85% Success</span>
             </div>
             
-            <div className="flex items-center gap-2 px-4 py-2 liquid-glass border border-primary/30 rounded-full animate-bounce-in hover:scale-105 transition-transform backdrop-blur-md" style={{ animationDelay: '400ms' }}>
+            <div className="flex items-center gap-2 px-4 py-2 glass-motion border border-primary/30 ui-rounded-lg animate-bounce-in hover:scale-105 transition-transform" style={{ animationDelay: '400ms' }}>
               <Shield className="h-4 w-4 text-primary animate-pulse drop-shadow-sm" />
-              <span className="text-sm font-semibold text-elevated drop-shadow-sm">Verified</span>
+              <span className="text-body-sm font-semibold text-elevated drop-shadow-sm">Verified</span>
             </div>
           </div>
         </div>
