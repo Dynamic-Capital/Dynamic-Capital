@@ -18,7 +18,8 @@
   --secondary: 220 14.3% 95.9%;
   --secondary-foreground: 220.9 39.3% 11%;
   --muted: 220 14.3% 95.9%;
-  --muted-foreground: 220 8.9% 46.1%;
+  --muted-foreground: 220 8.9% 36.1%;
+  --elevated: 222.2 84% 4.9%;
   --accent: 220 14.3% 95.9%;
   --accent-foreground: 220.9 39.3% 11%;
   --destructive: 0 84.2% 60.2%;
@@ -117,7 +118,8 @@
   --secondary: 215 27.9% 16.9%;
   --secondary-foreground: 210 20% 98%;
   --muted: 215 27.9% 16.9%;
-  --muted-foreground: 217.9 10.6% 64.9%;
+  --muted-foreground: 217.9 10.6% 75.1%;
+  --elevated: 210 40% 95%;
   --accent: 215 27.9% 16.9%;
   --accent-foreground: 210 20% 98%;
   --destructive: 0 62.8% 30.6%;
@@ -156,6 +158,7 @@
   .text-body-lg { font-size: var(--text-body-lg); line-height: 1.5; }
   .text-body-sm { font-size: var(--text-body-sm); line-height: 1.5; }
   .text-caption { font-size: var(--text-caption); line-height: 1.4; }
+  .text-elevated { color: hsl(var(--elevated)); }
 
   /* Icon utilities */
   .icon-xs { width: var(--icon-xs); height: var(--icon-xs); }
@@ -226,8 +229,8 @@
 
   /* === LIQUID GLASS EFFECTS === */
   .liquid-glass {
-    @apply bg-white/90 dark:bg-black/80;
-    @apply backdrop-blur-2xl border border-white/40 dark:border-white/20;
+    @apply bg-white/95 dark:bg-black/85;
+    @apply backdrop-blur-2xl border border-white/50 dark:border-white/30;
     @apply shadow-2xl;
     backdrop-filter: blur(24px) saturate(2) brightness(1.1);
     -webkit-backdrop-filter: blur(24px) saturate(2) brightness(1.1);
@@ -238,8 +241,8 @@
   }
 
   .liquid-glass-button {
-    @apply bg-white/30 hover:bg-white/40 dark:bg-black/60 dark:hover:bg-black/70;
-    @apply backdrop-blur-lg border border-white/50 dark:border-white/30;
+    @apply bg-white/35 hover:bg-white/45 dark:bg-black/65 dark:hover:bg-black/75;
+    @apply backdrop-blur-lg border border-white/60 dark:border-white/40;
     @apply shadow-xl text-foreground;
     backdrop-filter: blur(16px) saturate(1.8) brightness(1.2);
     -webkit-backdrop-filter: blur(16px) saturate(1.8) brightness(1.2);

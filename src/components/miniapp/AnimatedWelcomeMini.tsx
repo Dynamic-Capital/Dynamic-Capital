@@ -26,9 +26,9 @@ function WelcomeLineMini({ text, delay, icon: Icon, iconColor = "text-primary" }
     <FadeInOnView delay={delay} animation="slide-in-right">
       <div className="flex items-center justify-center gap-2 mb-2">
         {Icon && (
-          <Icon className={`h-5 w-5 ${iconColor} animate-pulse`} />
+          <Icon className={`h-5 w-5 ${iconColor} animate-pulse drop-shadow-sm`} />
         )}
-        <p className="text-base sm:text-lg text-muted-foreground font-medium text-center">
+        <p className="text-base sm:text-lg text-elevated font-semibold text-center drop-shadow-sm">
           {text}
         </p>
       </div>
@@ -120,16 +120,19 @@ export default function AnimatedWelcomeMini({ className }: AnimatedWelcomeMiniPr
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
-      {/* Background gradient */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-primary/20 via-purple-500/10 to-accent/20"
-        style={{
-          background: `linear-gradient(135deg, 
-            hsl(var(--primary) / 0.15), 
-            hsl(var(--accent) / 0.1), 
-            hsl(var(--secondary) / 0.05))`
-        }}
-      />
+      {/* Enhanced background with scrim */}
+      <div className="absolute inset-0">
+        <div 
+          className="absolute inset-0 bg-gradient-to-br opacity-80"
+          style={{
+            background: `linear-gradient(135deg, 
+              hsl(var(--primary) / 0.15), 
+              hsl(var(--accent) / 0.12), 
+              hsl(var(--secondary) / 0.08))`
+          }}
+        />
+        <div className="absolute inset-0 bg-background/20 dark:bg-background/40" />
+      </div>
       
       {/* Content */}
       <div className="relative z-10 py-8 px-4 text-center space-y-6">
@@ -145,13 +148,13 @@ export default function AnimatedWelcomeMini({ className }: AnimatedWelcomeMiniPr
           </FadeInOnView>
           
           <FadeInOnView delay={200} animation="fade-in">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 drop-shadow-lg">
               Dynamic Capital VIP
             </h1>
           </FadeInOnView>
 
           <FadeInOnView delay={300} animation="fade-in">
-            <p className="text-base sm:text-lg text-primary font-semibold mb-4">
+            <p className="text-base sm:text-lg text-primary font-semibold mb-4 drop-shadow-sm">
               Professional Trading • Premium Signals • VIP Support
             </p>
           </FadeInOnView>
@@ -173,19 +176,19 @@ export default function AnimatedWelcomeMini({ className }: AnimatedWelcomeMiniPr
         {/* Stats pills - appear after message animation */}
         <div className={`transition-all duration-1000 ${showStats ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 px-4 py-2 bg-success/10 border border-success/20 rounded-full animate-bounce-in hover:scale-105 transition-transform">
-              <Users className="h-4 w-4 text-success animate-pulse" />
-              <span className="text-sm font-semibold text-foreground">5000+ Members</span>
+            <div className="flex items-center gap-2 px-4 py-2 liquid-glass border border-success/30 rounded-full animate-bounce-in hover:scale-105 transition-transform backdrop-blur-md">
+              <Users className="h-4 w-4 text-success animate-pulse drop-shadow-sm" />
+              <span className="text-sm font-semibold text-elevated drop-shadow-sm">5000+ Members</span>
             </div>
             
-            <div className="flex items-center gap-2 px-4 py-2 bg-info/10 border border-info/20 rounded-full animate-bounce-in hover:scale-105 transition-transform" style={{ animationDelay: '200ms' }}>
-              <TrendingUp className="h-4 w-4 text-info animate-pulse" />
-              <span className="text-sm font-semibold text-foreground">85% Success</span>
+            <div className="flex items-center gap-2 px-4 py-2 liquid-glass border border-info/30 rounded-full animate-bounce-in hover:scale-105 transition-transform backdrop-blur-md" style={{ animationDelay: '200ms' }}>
+              <TrendingUp className="h-4 w-4 text-info animate-pulse drop-shadow-sm" />
+              <span className="text-sm font-semibold text-elevated drop-shadow-sm">85% Success</span>
             </div>
             
-            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full animate-bounce-in hover:scale-105 transition-transform" style={{ animationDelay: '400ms' }}>
-              <Shield className="h-4 w-4 text-primary animate-pulse" />
-              <span className="text-sm font-semibold text-foreground">Verified</span>
+            <div className="flex items-center gap-2 px-4 py-2 liquid-glass border border-primary/30 rounded-full animate-bounce-in hover:scale-105 transition-transform backdrop-blur-md" style={{ animationDelay: '400ms' }}>
+              <Shield className="h-4 w-4 text-primary animate-pulse drop-shadow-sm" />
+              <span className="text-sm font-semibold text-elevated drop-shadow-sm">Verified</span>
             </div>
           </div>
         </div>

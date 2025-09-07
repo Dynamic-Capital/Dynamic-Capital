@@ -97,12 +97,12 @@ export default function MiniApp() {
 
   return (
     <CurrencyProvider>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 safe-area-top">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 dark:to-muted/20 safe-area-top">
         <div className="w-full max-w-md mx-auto">
           {/* Header with theme toggle */}
-          <div className="sticky top-0 z-20 liquid-glass backdrop-blur-xl border-b border-white/20 dark:border-white/10 ui-p-sm">
+          <div className="sticky top-0 z-20 liquid-glass backdrop-blur-xl border-b border-border/40 ui-p-sm">
             <div className="flex items-center justify-between">
-              <h1 className="text-body-lg font-semibold text-foreground">Dynamic Capital VIP</h1>
+              <h1 className="text-body-lg font-semibold text-elevated drop-shadow-sm">Dynamic Capital VIP</h1>
               <ThemeToggle variant="glass" size="sm" />
             </div>
           </div>

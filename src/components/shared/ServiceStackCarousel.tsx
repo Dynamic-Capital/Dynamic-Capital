@@ -188,8 +188,8 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
                 className={cn(
                   "rounded-full transition-all duration-300 border",
                   index === selectedIndex 
-                    ? "w-8 h-3 bg-primary border-primary scale-110 shadow-lg" 
-                    : "w-3 h-3 bg-muted-foreground/40 border-muted-foreground/60 hover:bg-muted-foreground/60"
+                    ? "w-8 h-3 bg-primary border-primary scale-110 shadow-lg shadow-primary/30" 
+                    : "w-3 h-3 bg-muted-foreground/50 dark:bg-muted-foreground/70 border-muted-foreground/70 dark:border-muted-foreground/90 hover:bg-muted-foreground/70 dark:hover:bg-muted-foreground/90"
                 )}
               />
             ))}
