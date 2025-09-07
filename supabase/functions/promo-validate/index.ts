@@ -22,10 +22,38 @@ export async function handler(req: Request): Promise<Response> {
   const { code, telegram_id, plan_id } = await req.json().catch(() => ({}));
   console.log("Promo validation request:", { code, telegram_id, plan_id });
   
-  if (!code || !telegram_id || !plan_id) {
-    console.log("Missing required fields:", { code: !!code, telegram_id: !!telegram_id, plan_id: !!plan_id });
-    return bad("bad_request");
+  // Check required fields
+  if (!code) {
+    console.log("Missing promo code");
+    return new Response(JSON.stringify({ 
+      valid: false, 
+      reason: "Promo code is required" 
+    }), { 
+      status: 200, 
+      headers: { 
+        'Content-Type': 'application/json',
+        ...corsHeaders 
+      } 
+    });
   }
+
+  if (!plan_id) {
+    console.log("Missing plan ID");
+    return new Response(JSON.stringify({ 
+      valid: false, 
+      reason: "Plan selection is required" 
+    }), { 
+      status: 200, 
+      headers: { 
+        'Content-Type': 'application/json',
+        ...corsHeaders 
+      } 
+    });
+  }
+
+  // For web users without telegram_id, we can still validate the promo code
+  const user_id = telegram_id || 'web-user';
+  console.log("Using user_id for validation:", user_id);
 
   const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = requireEnv(
     ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] as const,
@@ -36,12 +64,12 @@ export async function handler(req: Request): Promise<Response> {
     "content-type": "application/json",
   };
 
-  console.log("Calling validate_promo_code function with:", { p_code: code, p_telegram_user_id: String(telegram_id) });
+  console.log("Calling validate_promo_code function with:", { p_code: code, p_telegram_user_id: user_id });
   
   const vr = await fetch(`${SUPABASE_URL}/rest/v1/rpc/validate_promo_code`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ p_code: code, p_telegram_user_id: String(telegram_id) }),
+    body: JSON.stringify({ p_code: code, p_telegram_user_id: user_id }),
   });
   const res = await vr.json();
   console.log("Validation response:", res);
@@ -49,8 +77,8 @@ export async function handler(req: Request): Promise<Response> {
   if (!Array.isArray(res) || res.length === 0) {
     console.log("No validation result returned");
     return new Response(JSON.stringify({ 
-      ok: false, 
-      reason: "invalid" 
+      valid: false, 
+      reason: "Invalid promo code" 
     }), { 
       status: 200, 
       headers: { 
@@ -64,8 +92,8 @@ export async function handler(req: Request): Promise<Response> {
   if (!validationResult?.valid) {
     console.log("Promo code invalid:", validationResult?.reason);
     return new Response(JSON.stringify({ 
-      ok: false, 
-      reason: validationResult?.reason || "invalid" 
+      valid: false, 
+      reason: validationResult?.reason || "Invalid promo code" 
     }), { 
       status: 200, 
       headers: { 
@@ -90,9 +118,9 @@ export async function handler(req: Request): Promise<Response> {
   console.log("Final amount calculated:", final_amount);
 
   return new Response(JSON.stringify({
-    ok: true,
-    type: validationResult.discount_type,
-    value: validationResult.discount_value,
+    valid: true,
+    discount_type: validationResult.discount_type,
+    discount_value: validationResult.discount_value,
     final_amount,
   }), { 
     headers: { 

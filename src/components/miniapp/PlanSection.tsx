@@ -86,26 +86,39 @@ export default function PlanSection() {
 
   // Auto-validate promo code if pre-filled from URL
   useEffect(() => {
-    if (promoCode.trim() && isInTelegram && !promoValidation) {
+    if (promoCode.trim() && plans.length > 0 && !promoValidation) {
       validatePromoCode();
     }
-  }, [promoCode, isInTelegram]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [promoCode, plans.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const validatePromoCode = async () => {
-    if (!promoCode.trim() || !isInTelegram) return;
+    if (!promoCode.trim()) return;
     
     setValidatingPromo(true);
     try {
+      // For web users without Telegram, we still allow promo validation but with fallback user ID
+      const telegramUserId = isInTelegram ? window.Telegram?.WebApp?.initDataUnsafe?.user?.id : null;
+      const selectedPlanId = plans[0]?.id;
+      
+      if (!selectedPlanId) {
+        toast.error('No plans available');
+        return;
+      }
+
       const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/promo-validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code: promoCode,
-          telegram_id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || '',
-          plan_id: plans[0]?.id // Use first plan for validation
+          telegram_id: telegramUserId || 'web-user',
+          plan_id: selectedPlanId
         })
       });
       
+      if (!response.ok) {
+        throw new Error('Network error');
+      }
+
       const data = await response.json();
       setPromoValidation(data);
       
@@ -115,7 +128,8 @@ export default function PlanSection() {
         toast.error(data.reason || 'Invalid promo code');
       }
     } catch (error) {
-      toast.error('Failed to validate promo code');
+      console.error('Promo validation error:', error);
+      toast.error('Failed to validate promo code. Please try again.');
     } finally {
       setValidatingPromo(false);
     }
@@ -190,51 +204,62 @@ export default function PlanSection() {
             </FadeInOnView>
 
             {/* Promo Code Section */}
-            {isInTelegram && (
-              <FadeInOnView delay={200} animation="slide-in-right">
-                <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Have a promo code?</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <InputField
-                      placeholder="Enter promo code"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
-                      startIcon="Sparkles"
-                      state={promoValidation?.valid ? "success" : promoValidation?.valid === false ? "error" : "default"}
-                      error={promoValidation?.valid === false ? promoValidation.reason : undefined}
-                      success={promoValidation?.valid ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!` : undefined}
-                      description="Enter a promo code to get discount"
-                      className="flex-1"
-                    />
-                    <Button 
-                      onClick={validatePromoCode} 
-                      disabled={!promoCode.trim() || validatingPromo}
-                      isLoading={validatingPromo}
-                      size="sm"
-                      className="hover:scale-105 transition-transform"
-                    >
-                      {validatingPromo ? "..." : "Apply"}
-                    </Button>
-                  </div>
-                  {promoValidation && (
-                    <div className={`text-xs p-2 rounded transition-all duration-300 ${promoValidation.valid ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
-                      {promoValidation.valid 
-                        ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!`
-                        : promoValidation.reason
-                      }
-                    </div>
+            <FadeInOnView delay={200} animation="slide-in-right">
+              <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Have a promo code?</span>
+                  {!isInTelegram && (
+                    <Badge variant="outline" className="text-xs">
+                      Web Preview
+                    </Badge>
                   )}
                 </div>
-              </FadeInOnView>
-            )}
+                <div className="flex gap-2">
+                  <InputField
+                    placeholder="Enter promo code"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    startIcon="Sparkles"
+                    state={promoValidation?.valid ? "success" : promoValidation?.valid === false ? "error" : "default"}
+                    error={promoValidation?.valid === false ? promoValidation.reason : undefined}
+                    success={promoValidation?.valid ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!` : undefined}
+                    description={isInTelegram ? "Enter a promo code to get discount" : "Enter a promo code to see discount preview"}
+                    className="flex-1"
+                  />
+                  <Button 
+                    onClick={validatePromoCode} 
+                    disabled={!promoCode.trim() || validatingPromo}
+                    isLoading={validatingPromo}
+                    size="sm"
+                    className="hover:scale-105 transition-transform"
+                  >
+                    {validatingPromo ? "..." : "Apply"}
+                  </Button>
+                </div>
+                {promoValidation && (
+                  <div className={`text-xs p-2 rounded transition-all duration-300 ${promoValidation.valid ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
+                    {promoValidation.valid 
+                      ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!`
+                      : promoValidation.reason
+                    }
+                  </div>
+                )}
+              </div>
+            </FadeInOnView>
 
             {!isInTelegram && (
               <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <div className="text-sm text-blue-600 text-center">
-                  💡 For the full experience with promo codes and instant payments, open in Telegram
+                  💡 For the full experience with instant payments and account management, 
+                  <a 
+                    href="https://t.me/Dynamic_VIP_BOT" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="underline ml-1 hover:text-blue-800"
+                  >
+                    open in Telegram
+                  </a>
                 </div>
               </div>
             )}

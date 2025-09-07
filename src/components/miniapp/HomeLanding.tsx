@@ -74,22 +74,30 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         
         if (contentResponse.ok) {
           const contentData = await contentResponse.json();
-          const contents = contentData.contents || [];
-          
-          const aboutContent = contents.find((c: BotContent) => c.content_key === 'about_us');
-          const servicesContent = contents.find((c: BotContent) => c.content_key === 'our_services');
-          const announcementsContent = contents.find((c: BotContent) => c.content_key === 'announcements');
-          
-          setAboutUs(aboutContent?.content_value || "Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.");
-          setServices(servicesContent?.content_value || "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support");
-          setAnnouncements(announcementsContent?.content_value || "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.");
+          if (contentData.ok && contentData.contents) {
+            const contents = contentData.contents;
+            
+            const aboutContent = contents.find((c: BotContent) => c.content_key === 'about_us');
+            const servicesContent = contents.find((c: BotContent) => c.content_key === 'our_services');
+            const announcementsContent = contents.find((c: BotContent) => c.content_key === 'announcements');
+            
+            setAboutUs(aboutContent?.content_value || "Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.");
+            setServices(servicesContent?.content_value || "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support");
+            setAnnouncements(announcementsContent?.content_value || "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.");
+          }
+        } else {
+          console.warn('Content fetch failed:', contentResponse.status);
         }
 
         // Fetch active promotions
         const promoResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/active-promos');
         if (promoResponse.ok) {
           const promoData = await promoResponse.json();
-          setActivePromos(promoData.promotions || []);
+          if (promoData.ok && promoData.promotions) {
+            setActivePromos(promoData.promotions);
+          }
+        } else {
+          console.warn('Promo fetch failed:', promoResponse.status);
         }
 
         // Fetch subscription status if in Telegram
@@ -104,6 +112,8 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           if (subResponse.ok) {
             const subData = await subResponse.json();
             setSubscription(subData);
+          } else {
+            console.warn('Subscription fetch failed:', subResponse.status);
           }
         }
 

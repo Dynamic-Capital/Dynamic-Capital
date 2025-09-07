@@ -20,6 +20,7 @@ import { ResponsiveMotion, FullscreenAdaptive, ViewportAware } from "@/component
 import { TabTransition } from "@/components/ui/route-transitions";
 import { MicroButton } from "@/components/ui/micro-interactions";
 import { MobileFloatingActionButton } from "@/components/ui/mobile-floating-action-button";
+import { NetworkStatus, ErrorBoundary } from "@/components/ui/error-handling";
 import { 
   Home, 
   Star, 
@@ -112,14 +113,17 @@ export default function MiniApp() {
   }, []);
 
   return (
-    <CurrencyProvider>
-      <FullscreenAdaptive
-        className={`min-h-screen bg-gradient-to-br from-background via-background to-muted/30 dark:to-muted/20 safe-area-top transition-all duration-700 ${isFullscreen ? 'p-0' : ''}`}
-        fullscreenScale={1}
-        mobileScale={1}
-        tabletScale={1}
-        desktopScale={1}
-      >
+    <ErrorBoundary>
+      <CurrencyProvider>
+        <FullscreenAdaptive
+          className={`min-h-screen bg-gradient-to-br from-background via-background to-muted/30 dark:to-muted/20 safe-area-top transition-all duration-700 ${isFullscreen ? 'p-0' : ''}`}
+          fullscreenScale={1}
+          mobileScale={1}
+          tabletScale={1}
+          desktopScale={1}
+        >
+          {/* Network Status Alert */}
+          <NetworkStatus className="sticky top-0 z-50 mx-2 mt-2" />
           <motion.div 
             className={`w-full ${
               isFullscreen ? 'max-w-full h-screen' : 
@@ -311,5 +315,6 @@ export default function MiniApp() {
         </motion.div>
       </FullscreenAdaptive>
     </CurrencyProvider>
+  </ErrorBoundary>
   );
 }

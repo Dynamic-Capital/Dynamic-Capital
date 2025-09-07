@@ -1,12 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, AlertCircle, Clock, Star } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  CheckCircle, 
+  AlertCircle, 
+  Clock, 
+  Star,
+  RefreshCw,
+  ExternalLink,
+  Users,
+  TrendingUp
+} from "lucide-react";
 import { MotionCard } from "@/components/ui/motion-card";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { cardVariants } from "@/lib/motion-variants";
+import { toast } from "sonner";
 
 interface SubscriptionStatus {
   is_vip: boolean;
@@ -24,48 +35,76 @@ interface StatusSectionProps {
 export default function StatusSection({ telegramData }: StatusSectionProps) {
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
 
-  useEffect(() => {
-    if (isInTelegram && telegramData?.user?.id) {
-      // Fetch subscription status from Telegram mini app
-      fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/subscription-status', {
+  const fetchSubscriptionStatus = async () => {
+    if (!isInTelegram || !telegramData?.user?.id) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/subscription-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           telegram_id: telegramData.user.id
         })
-      })
-      .then(res => res.json())
-      .then(data => {
-        setSubscription(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
       });
-    } else {
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch subscription status');
+      }
+
+      const data = await response.json();
+      setSubscription(data);
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
+      toast.error('Failed to load subscription status');
+    } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchSubscriptionStatus();
   }, [isInTelegram, telegramData?.user?.id]);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchSubscriptionStatus();
+    setRefreshing(false);
+    toast.success('Status refreshed');
+  };
+
   const getStatusBadge = () => {
-    if (!subscription) return <Badge variant="outline">Not Connected</Badge>;
+    if (!subscription) {
+      return <Badge variant="outline" className="bg-gray-500/10 text-gray-600 border-gray-500/30">Not Connected</Badge>;
+    }
     
     if (subscription.is_expired) {
-      return <Badge variant="destructive">Expired</Badge>;
+      return <Badge variant="destructive" className="bg-red-500/10 text-red-600 border-red-500/30">Expired</Badge>;
     }
     
     if (subscription.is_vip) {
-      return <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white">VIP Active</Badge>;
+      return <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-yellow-500/30">VIP Active</Badge>;
     }
     
     if (subscription.payment_status === 'pending') {
-      return <Badge variant="secondary">Payment Pending</Badge>;
+      return <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30">Payment Pending</Badge>;
     }
     
-    return <Badge variant="outline">Free</Badge>;
+    return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">Free</Badge>;
+  };
+
+  const getStatusIcon = () => {
+    if (!subscription) return <AlertCircle className="h-5 w-5 text-gray-500" />;
+    if (subscription.is_expired) return <AlertCircle className="h-5 w-5 text-destructive" />;
+    if (subscription.is_vip) return <CheckCircle className="h-5 w-5 text-green-500" />;
+    if (subscription.payment_status === 'pending') return <Clock className="h-5 w-5 text-yellow-500" />;
+    return <Users className="h-5 w-5 text-blue-500" />;
   };
 
   const formatDate = (dateString: string | null) => {
@@ -73,141 +112,210 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const getDaysRemainingColor = (days: number | null) => {
+    if (!days) return "text-muted-foreground";
+    if (days <= 7) return "text-destructive";
+    if (days <= 30) return "text-yellow-600";
+    return "text-green-600";
+  };
+
+  if (loading) {
+    return (
+      <FadeInOnView>
+        <MotionCard variant="glass" className="border-primary/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center space-x-2">
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              <span className="text-muted-foreground">Loading status...</span>
+            </div>
+          </CardContent>
+        </MotionCard>
+      </FadeInOnView>
+    );
+  }
+
   return (
     <FadeInOnView>
-      <MotionCard variant="glass" className="border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5" />
-            Status
-          </CardTitle>
-          <CardDescription>Your current status and subscription</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 sm:space-y-3 text-sm">
-            <div className="flex justify-between items-center gap-2">
-              <span className="text-muted-foreground flex-shrink-0">Connection:</span>
+      <div className="space-y-4">
+        {/* Main Status Card */}
+        <MotionCard variant="glass" className="border-primary/20">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {getStatusIcon()}
+                <div>
+                  <CardTitle className="text-lg">Account Status</CardTitle>
+                  <CardDescription>Your current subscription status</CardDescription>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="hover:bg-accent"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Connection Status */}
+            <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+              <span className="text-sm font-medium text-muted-foreground">Connection:</span>
               {isInTelegram ? (
                 <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+                  <CheckCircle className="w-3 h-3 mr-1" />
                   Connected
                 </Badge>
               ) : (
                 <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30">
+                  <ExternalLink className="w-3 h-3 mr-1" />
                   Web Browser
                 </Badge>
               )}
             </div>
-            
-            <div className="flex justify-between items-center gap-2">
-              <span className="text-muted-foreground flex-shrink-0">Subscription:</span>
+
+            {/* Subscription Status */}
+            <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+              <span className="text-sm font-medium text-muted-foreground">Status:</span>
               {getStatusBadge()}
             </div>
 
-            {loading && (
-              <div className="text-center text-muted-foreground py-2">
-                Loading subscription details...
-              </div>
-            )}
-
-            {!loading && subscription && subscription.is_vip && (
+            {subscription && (
               <>
-                <div className="flex justify-between items-center gap-2">
-                  <span className="text-muted-foreground flex-shrink-0">Plan:</span>
-                  <span className="font-medium text-right">{subscription.plan_name || 'VIP'}</span>
+                {/* Plan Details */}
+                <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                  <span className="text-sm font-medium text-muted-foreground">Plan:</span>
+                  <span className="text-sm font-medium">
+                    {subscription.plan_name || "No active plan"}
+                  </span>
                 </div>
-                
-                <div className="flex justify-between items-center gap-2">
-                  <span className="text-muted-foreground flex-shrink-0">Expires:</span>
-                  <span className="text-right">{formatDate(subscription.subscription_end_date)}</span>
-                </div>
-                
-                {subscription.days_remaining !== null && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Days Remaining:</span>
-                    <span className={`font-medium ${
-                      subscription.days_remaining < 7 ? 'text-orange-500' : 'text-green-600'
-                    }`}>
-                      {subscription.days_remaining}
+
+                {/* Expiry Date */}
+                {subscription.subscription_end_date && (
+                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                    <span className="text-sm font-medium text-muted-foreground">Expires:</span>
+                    <span className="text-sm font-medium">
+                      {formatDate(subscription.subscription_end_date)}
                     </span>
                   </div>
                 )}
 
-                {subscription.payment_status && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Payment:</span>
-                    <span className="capitalize">
-                      {subscription.payment_status === 'completed' ? '✅ Verified' : 
-                       subscription.payment_status === 'pending' ? '⏳ Pending' : '❌ ' + subscription.payment_status}
+                {/* Days Remaining */}
+                {subscription.days_remaining !== null && (
+                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                    <span className="text-sm font-medium text-muted-foreground">Days remaining:</span>
+                    <span className={`text-sm font-medium ${getDaysRemainingColor(subscription.days_remaining)}`}>
+                      {subscription.days_remaining} days
                     </span>
+                  </div>
+                )}
+
+                {/* Payment Status */}
+                {subscription.payment_status && (
+                  <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                    <span className="text-sm font-medium text-muted-foreground">Payment:</span>
+                    <Badge 
+                      variant={subscription.payment_status === 'completed' ? 'default' : 'secondary'}
+                      className={
+                        subscription.payment_status === 'completed' 
+                          ? 'bg-green-500/10 text-green-600 border-green-500/30'
+                          : subscription.payment_status === 'pending'
+                          ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30'
+                          : 'bg-red-500/10 text-red-600 border-red-500/30'
+                      }
+                    >
+                      {subscription.payment_status}
+                    </Badge>
                   </div>
                 )}
               </>
             )}
 
-            <div className="border-t pt-3 mt-4">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Platform:</span>
-                <span>{telegramData?.platform || 'Web'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Theme:</span>
-                <span className="capitalize">{telegramData?.colorScheme || 'System'}</span>
-              </div>
-              {telegramData?.user && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">User ID:</span>
-                  <span className="font-mono text-xs">{telegramData.user.id}</span>
-                </div>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              {(!subscription?.is_vip || subscription?.is_expired) && (
+                <Button 
+                  size="sm" 
+                  responsive
+                  onClick={() => {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('tab', 'plan');
+                    window.history.pushState({}, '', url.toString());
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }}
+                  className="touch-target flex-1"
+                >
+                  <Star className="h-4 w-4 mr-2" />
+                  {subscription?.is_expired ? 'Renew Plan' : 'Upgrade Now'}
+                </Button>
+              )}
+              
+              {isInTelegram && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  responsive
+                  onClick={() => {
+                    window.open('https://t.me/DynamicCapital_Support', '_blank');
+                  }}
+                  className="touch-target flex-1"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Support
+                </Button>
               )}
             </div>
-          </div>
+          </CardContent>
+        </MotionCard>
 
-            {!loading && (!subscription || !subscription.is_vip) && (
-              <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-lg">
-                <div className="text-center space-y-2">
-                  <Star className="h-6 w-6 text-primary mx-auto" />
-                  <div className="text-sm font-medium">
-                    {isInTelegram ? 'Upgrade to VIP' : 'VIP Access Available'}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {isInTelegram 
-                      ? 'Get access to premium trading signals and exclusive features'
-                      : 'Open in Telegram to access VIP features and complete subscription'
-                    }
-                  </div>
-                  <Button 
-                    responsive
-                    size="sm" 
-                    variant="brand"
-                    fullWidth
-                    className="mt-2 min-h-[44px] touch-manipulation" 
-                    onClick={() => {
-                    if (isInTelegram) {
-                      const url = new URL(window.location.href);
-                      url.searchParams.set('tab', 'plan');
-                      window.history.pushState({}, '', url.toString());
-                      window.dispatchEvent(new PopStateEvent('popstate'));
-                    } else {
-                      const botUsername = "Dynamic_VIP_BOT";
-                      const telegramUrl = `https://t.me/${botUsername}`;
-                      window.open(telegramUrl, '_blank');
-                    }
-                  }}>
-                    {isInTelegram ? 'View Plans' : 'Open in Telegram'}
-                  </Button>
+        {/* Web User Notice */}
+        {!isInTelegram && (
+          <Alert className="border-blue-500/20 bg-blue-500/10">
+            <ExternalLink className="h-4 w-4" />
+            <AlertDescription className="text-blue-600">
+              💡 For real-time subscription status and payments,{' '}
+              <a 
+                href="https://t.me/Dynamic_VIP_BOT" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:text-blue-800"
+              >
+                open in Telegram
+              </a>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Usage Tips */}
+        {subscription?.is_vip && (
+          <MotionCard variant="glow" className="border-green-500/20">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-500" />
+                VIP Benefits Active
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Priority trading signals</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>VIP chat access</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Daily market analysis</span>
                 </div>
               </div>
-            )}
-
-            {!isInTelegram && (
-              <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                <div className="text-sm text-blue-600 text-center">
-                  💡 For real-time subscription status and payments, open in Telegram
-                </div>
-              </div>
-            )}
-        </CardContent>
-      </MotionCard>
+            </CardContent>
+          </MotionCard>
+        )}
+      </div>
     </FadeInOnView>
   );
 }
