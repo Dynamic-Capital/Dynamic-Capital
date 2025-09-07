@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface NavigationIndicatorProps {
@@ -27,41 +28,69 @@ export const NavigationIndicator: React.FC<NavigationIndicatorProps> = ({
 
   if (variant === 'dot') {
     return (
-      <div
-        className={cn(
-          baseClasses,
-          'w-1.5 h-1.5 rounded-full bg-primary',
-          'opacity-0 scale-0',
-          isActive && 'opacity-100 scale-100'
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            className={cn(
+              baseClasses,
+              'w-1.5 h-1.5 rounded-full bg-primary'
+            )}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0 }}
+            transition={{ duration: 0.2, type: "spring", stiffness: 400, damping: 30 }}
+          />
         )}
-      />
+      </AnimatePresence>
     );
   }
 
   if (variant === 'glow') {
     return (
-      <div
-        className={cn(
-          baseClasses,
-          'w-8 h-0.5 bg-gradient-brand rounded-full',
-          'opacity-0 scale-x-0 origin-center',
-          'shadow-lg shadow-primary/50',
-          isActive && 'opacity-100 scale-x-100 animate-pulse-glow'
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            className={cn(
+              baseClasses,
+              'w-8 h-0.5 bg-gradient-brand rounded-full shadow-lg shadow-primary/50'
+            )}
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ 
+              opacity: 1, 
+              scaleX: 1,
+              boxShadow: [
+                '0 0 10px hsl(var(--primary) / 0.5)',
+                '0 0 20px hsl(var(--primary) / 0.8)',
+                '0 0 10px hsl(var(--primary) / 0.5)'
+              ]
+            }}
+            exit={{ opacity: 0, scaleX: 0 }}
+            transition={{ 
+              duration: 0.3,
+              boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+            }}
+          />
         )}
-      />
+      </AnimatePresence>
     );
   }
 
   // Default line variant
   return (
-    <div
-      className={cn(
-        baseClasses,
-        'h-0.5 w-full bg-gradient-brand rounded-full',
-        'opacity-0 scale-x-0 origin-center',
-        isActive && 'opacity-100 scale-x-100'
+    <AnimatePresence>
+      {isActive && (
+        <motion.div
+          className={cn(
+            baseClasses,
+            'h-0.5 w-full bg-gradient-brand rounded-full'
+          )}
+          initial={{ opacity: 0, scaleX: 0 }}
+          animate={{ opacity: 1, scaleX: 1 }}
+          exit={{ opacity: 0, scaleX: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        />
       )}
-    />
+    </AnimatePresence>
   );
 };
 

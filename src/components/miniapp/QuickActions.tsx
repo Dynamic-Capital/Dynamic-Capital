@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, Users, Bell, Star, Headphones, BookOpen, ExternalLink, Zap, TrendingUp } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { toast } from "sonner";
@@ -137,61 +138,171 @@ export function QuickActions() {
   };
 
   return (
-    <FadeInOnView>
-      <Card className="bg-gradient-to-br from-card/50 to-background border-border/50">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Zap className="h-5 w-5 text-primary" />
-            Quick Actions
-          </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Access key features and get support instantly
-          </CardDescription>
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }}
+    >
+      <Card className="bg-gradient-to-br from-card/50 to-background border-border/50 relative overflow-hidden">
+        {/* Animated background gradient */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5"
+          animate={{
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          style={{
+            backgroundSize: '200% 200%'
+          }}
+        />
+        
+        <CardHeader className="pb-4 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <motion.div
+                whileHover={{ rotate: 360, scale: 1.1 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Zap className="h-5 w-5 text-primary" />
+              </motion.div>
+              Quick Actions
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Access key features and get support instantly
+            </CardDescription>
+          </motion.div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        
+        <CardContent className="relative z-10">
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-3 gap-3"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1,
+                  delayChildren: 0.3
+                }
+              }
+            }}
+            initial="hidden"
+            animate="visible"
+          >
             {quickActions.map((action, index) => (
-              <FadeInOnView key={action.id} delay={index * 100}>
+              <motion.div
+                key={action.id}
+                variants={{
+                  hidden: { opacity: 0, y: 20, scale: 0.9 },
+                  visible: { 
+                    opacity: 1, 
+                    y: 0, 
+                    scale: 1,
+                    transition: { duration: 0.4, ease: [0.6, -0.05, 0.01, 0.99] }
+                  }
+                }}
+                whileHover={{ 
+                  scale: 1.05,
+                  y: -2,
+                  transition: { duration: 0.2 }
+                }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Card 
                   className={`
-                    cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg
+                    cursor-pointer transition-all duration-300 hover:shadow-lg
                     ${getPriorityStyles(action.priority)}
                     group relative overflow-hidden
                   `}
                   onClick={action.action}
                 >
                   <CardContent className="p-4 text-center relative">
-                    {action.isExternal && (
-                      <ExternalLink className="absolute top-2 right-2 h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                    )}
-                    <div className={`mb-3 flex justify-center ${getIconStyles(action.priority)}`}>
+                    <AnimatePresence>
+                      {action.isExternal && (
+                        <motion.div
+                          className="absolute top-2 right-2"
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0 }}
+                          transition={{ delay: 0.5 + index * 0.1 }}
+                        >
+                          <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    
+                    <motion.div 
+                      className={`mb-3 flex justify-center ${getIconStyles(action.priority)}`}
+                      whileHover={{ 
+                        scale: 1.1,
+                        rotate: action.title === "Signal Alerts" ? 15 : action.title === "Track Performance" ? -15 : 0
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
                       <div className="p-2 rounded-full bg-background/50 group-hover:bg-background/80 transition-colors">
                         {action.icon}
                       </div>
-                    </div>
-                    <h4 className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors">
+                    </motion.div>
+                    
+                    <motion.h4 
+                      className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors"
+                      initial={{ opacity: 0.8 }}
+                      whileHover={{ opacity: 1 }}
+                    >
                       {action.title}
-                    </h4>
+                    </motion.h4>
+                    
                     <p className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
                       {action.description}
                     </p>
+                    
+                    {/* Hover effect overlay */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100"
+                      initial={false}
+                      animate={{ x: "-100%" }}
+                      whileHover={{ x: "100%" }}
+                      transition={{ duration: 0.8, ease: "easeInOut" }}
+                    />
                   </CardContent>
                 </Card>
-              </FadeInOnView>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
           
-          <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="h-4 w-4 text-primary" />
+          <motion.div 
+            className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.8 }}
+            whileHover={{ scale: 1.02 }}
+          >
+            <motion.div 
+              className="flex items-center gap-2 mb-2"
+              whileHover={{ scale: 1.02 }}
+            >
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Star className="h-4 w-4 text-primary" />
+              </motion.div>
               <span className="text-sm font-medium text-foreground">Pro Tip</span>
-            </div>
+            </motion.div>
             <p className="text-xs text-muted-foreground">
               Join our VIP community for exclusive trading signals, market analysis, and 24/7 priority support.
             </p>
-          </div>
+          </motion.div>
         </CardContent>
       </Card>
-    </FadeInOnView>
+    </motion.div>
   );
 }

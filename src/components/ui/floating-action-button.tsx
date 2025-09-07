@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Plus, MessageSquare, Phone, Mail, ChevronUp } from 'lucide-react';
@@ -53,30 +54,70 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   };
 
   return (
-    <Button
-      onClick={onClick}
+    <motion.div
       className={cn(
-        'fixed z-50 rounded-full shadow-2xl transition-all duration-300',
-        'hover:scale-110 active:scale-95 group',
-        'border-2 border-white/20 backdrop-blur-sm',
-        sizeClasses[size],
-        positionClasses[position],
-        variantClasses[variant],
-        className
+        'fixed z-50',
+        positionClasses[position]
       )}
-      title={tooltip}
-      aria-label={tooltip}
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0, opacity: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 260,
+        damping: 20,
+        delay: 0.2
+      }}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
     >
-      <div className="relative">
-        {children || icon || getDefaultIcon(variant)}
+      <Button
+        onClick={onClick}
+        className={cn(
+          'rounded-full shadow-2xl transition-all duration-300',
+          'border-2 border-white/20 backdrop-blur-sm group relative overflow-hidden',
+          sizeClasses[size],
+          variantClasses[variant],
+          className
+        )}
+        title={tooltip}
+        aria-label={tooltip}
+      >
+        <motion.div 
+          className="relative z-10"
+          whileHover={{ rotate: variant === 'primary' ? 90 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {children || icon || getDefaultIcon(variant)}
+        </motion.div>
         
-        {/* Ripple effect */}
-        <div className="absolute inset-0 rounded-full bg-white/20 scale-0 group-active:scale-100 transition-transform duration-200" />
+        {/* Animated ripple effect */}
+        <motion.div 
+          className="absolute inset-0 rounded-full bg-white/20"
+          initial={{ scale: 0 }}
+          animate={{ scale: [0, 1.5, 0] }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeOut"
+          }}
+        />
         
         {/* Glow effect */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      </div>
-    </Button>
+        <motion.div 
+          className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
+          animate={{ 
+            opacity: [0, 1, 0],
+            scale: [0.8, 1.2, 0.8]
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      </Button>
+    </motion.div>
   );
 };
 
