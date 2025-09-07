@@ -60,12 +60,9 @@ serve(async (req) => {
       is_expired: true
     };
 
+    // Return the subscription data directly (not wrapped in another object)
     return new Response(
-      JSON.stringify({ 
-        subscription,
-        available_plans: plansData || [],
-        telegram_user_id 
-      }), 
+      JSON.stringify(subscription), 
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }

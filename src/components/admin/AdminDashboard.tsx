@@ -1,814 +1,374 @@
-import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
-import { BotSettings } from "@/components/admin/BotSettings";
-import { BotDebugger } from "@/components/admin/BotDebugger";
-import { ContactInfo } from "@/components/admin/ContactInfo";
-import { WelcomeMessageEditor } from "@/components/admin/WelcomeMessageEditor";
-import { SystemStatus } from "@/components/admin/SystemStatus";
-import { VipPlansManager } from "@/components/admin/VipPlansManager";
-import { BotDiagnostics } from "@/components/admin/BotDiagnostics";
-import { AdminDataManager } from "@/components/admin/AdminDataManager";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { configClient } from "@/utils/config";
-import {
-  CreditCard,
-  DollarSign,
-  Download,
-  GraduationCap,
+import { 
+  Shield, 
+  Users, 
+  CreditCard, 
+  Settings, 
+  BarChart3, 
+  UserCheck, 
   MessageSquare,
-  Send,
+  Database,
+  Activity,
+  DollarSign,
   TrendingUp,
-  User,
-  Users,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Loader2
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-interface DashboardStats {
-  totalUsers: number;
-  totalPayments: number;
-  activeSubscriptions: number;
-  totalEnrollments: number;
-  totalRevenue: number;
-  todayUsers: number;
+interface AdminStats {
+  total_users: number;
+  vip_users: number;
+  admin_users: number;
+  pending_payments: number;
+  completed_payments: number;
+  total_revenue: number;
+  daily_interactions: number;
+  daily_sessions: number;
+  last_updated: string;
 }
 
-interface User {
-  id: string;
-  telegram_id: string;
-  first_name: string;
-  last_name: string;
-  username: string;
-  is_vip: boolean;
-  created_at: string;
-  subscription_expires_at: string;
-}
-
-interface Payment {
+interface PendingPayment {
   id: string;
   amount: number;
   currency: string;
-  status: string;
-  payment_method: string;
+  telegram_user_id: string;
   created_at: string;
-  subscription_plans: {
-    name: string;
-  };
+  status: string;
 }
 
-const FLAG_LABELS: Record<string, string> = {
-  payments_enabled: "Payments",
-  vip_sync_enabled: "VIP Sync",
-  broadcasts_enabled: "Broadcasts",
-  mini_app_enabled: "Mini App",
-};
+interface AdminDashboardProps {
+  telegramData?: any;
+}
 
-export const AdminDashboard = () => {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalUsers: 0,
-    totalPayments: 0,
-    activeSubscriptions: 0,
-    totalEnrollments: 0,
-    totalRevenue: 0,
-    todayUsers: 0,
-  });
-
-  const [users, setUsers] = useState<User[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
+export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [pendingPayments, setPendingPayments] = useState<PendingPayment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [broadcastMessage, setBroadcastMessage] = useState("");
-  const [broadcasting, setBroadcasting] = useState(false);
-  const [flags, setFlags] = useState<Record<string, boolean>>({
-    payments_enabled: true,
-    vip_sync_enabled: true,
-    broadcasts_enabled: true,
-    mini_app_enabled: true,
-  });
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { toast } = useToast();
+
+  const getUserId = () => {
+    return telegramData?.user?.id?.toString() || null;
+  };
 
   useEffect(() => {
-    fetchDashboardData();
-    loadFlags();
-  }, []);
+    const userId = getUserId();
+    if (userId) {
+      checkAdminStatus(userId);
+    } else {
+      setLoading(false);
+    }
+  }, [telegramData]);
 
-  const loadFlags = async () => {
-    const snap = await configClient.preview();
-    setFlags({
-      payments_enabled: !!snap.data.payments_enabled,
-      vip_sync_enabled: !!snap.data.vip_sync_enabled,
-      broadcasts_enabled: !!snap.data.broadcasts_enabled,
-      mini_app_enabled: !!snap.data.mini_app_enabled,
-    });
-  };
-
-  const handleToggleFlag = async (name: string, value: boolean) => {
-    setFlags((prev) => ({ ...prev, [name]: value }));
-    await configClient.setFlag(name, value);
-  };
-
-  const handlePublish = async () => {
-    await configClient.publish();
-    await loadFlags();
-  };
-
-  const handleRollback = async () => {
-    await configClient.rollback();
-    await loadFlags();
-  };
-
-  const fetchDashboardData = async () => {
+  const checkAdminStatus = async (userId: string) => {
     try {
-      setLoading(true);
-
-      // Fetch stats
-      const [
-        usersResponse,
-        paymentsResponse,
-        subscriptionsResponse,
-        enrollmentsResponse,
-      ] = await Promise.all([
-        supabase.from("bot_users").select("*", { count: "exact" }),
-        supabase.from("payments").select("*", { count: "exact" }),
-        supabase.from("user_subscriptions").select("*").eq("is_active", true),
-        supabase.from("education_enrollments").select("*", { count: "exact" }),
-      ]);
-
-      // Calculate revenue
-      const { data: paymentsData } = await supabase
-        .from("payments")
-        .select("amount")
-        .eq("status", "completed");
-
-      const totalRevenue = paymentsData?.reduce((sum, payment) =>
-        sum + Number(payment.amount), 0) || 0;
-
-      // Get today's users
-      const today = new Date().toISOString().split("T")[0];
-      const { data: todayUsersData } = await supabase
-        .from("bot_users")
-        .select("*", { count: "exact" })
-        .gte("created_at", today);
-
-      setStats({
-        totalUsers: usersResponse.count || 0,
-        totalPayments: paymentsResponse.count || 0,
-        activeSubscriptions: subscriptionsResponse.data?.length || 0,
-        totalEnrollments: enrollmentsResponse.count || 0,
-        totalRevenue,
-        todayUsers: todayUsersData?.length || 0,
+      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          telegram_user_id: userId
+        })
       });
 
-      // Fetch detailed data
-      const { data: usersData } = await supabase
-        .from("bot_users")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      const { data: paymentsData2 } = await supabase
-        .from("payments")
-        .select(`
-          *,
-          subscription_plans (name)
-        `)
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      setUsers(usersData || []);
-      setPayments(paymentsData2 || []);
+      const data = await response.json();
+      
+      if (data.is_admin) {
+        setIsAdmin(true);
+        await loadAdminData();
+      } else {
+        setIsAdmin(false);
+      }
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      console.error('Failed to check admin status:', error);
+      setIsAdmin(false);
     } finally {
       setLoading(false);
     }
   };
 
-  const exportData = async (tableName: string) => {
+  const loadAdminData = async () => {
     try {
-      let data: unknown[] = [];
+      // Load admin stats
+      const statsResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/analytics-data', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
 
-      // Type-safe table queries
-      switch (tableName) {
-        case "bot_users": {
-          const { data: users } = await supabase.from("bot_users").select("*");
-          data = users || [];
-          break;
-        }
-        case "payments": {
-          const { data: payments } = await supabase.from("payments").select(
-            "*",
-          );
-          data = payments || [];
-          break;
-        }
-        case "user_subscriptions": {
-          const { data: subscriptions } = await supabase.from(
-            "user_subscriptions",
-          ).select("*");
-          data = subscriptions || [];
-          break;
-        }
-        case "education_enrollments": {
-          const { data: enrollments } = await supabase.from(
-            "education_enrollments",
-          ).select("*");
-          data = enrollments || [];
-          break;
-        }
-        case "promotions": {
-          const { data: promotions } = await supabase.from("promotions").select(
-            "*",
-          );
-          data = promotions || [];
-          break;
-        }
-        case "daily_analytics": {
-          const { data: analytics } = await supabase.from("daily_analytics")
-            .select("*");
-          data = analytics || [];
-          break;
-        }
-        case "contact_links": {
-          const { data: contacts } = await supabase.from("contact_links")
-            .select("*");
-          data = contacts || [];
-          break;
-        }
-        case "plan_channels": {
-          const { data: planChannels } = await supabase.from("plan_channels")
-            .select("*");
-          data = planChannels || [];
-          break;
-        }
-        case "subscription_plans": {
-          const { data: plans } = await supabase.from("subscription_plans")
-            .select("*");
-          data = plans || [];
-          break;
-        }
-        case "education_packages": {
-          const { data: packages } = await supabase.from("education_packages")
-            .select("*");
-          data = packages || [];
-          break;
-        }
-        case "bot_content": {
-          const { data: content } = await supabase.from("bot_content")
-            .select("*");
-          data = content || [];
-          break;
-        }
-        case "bot_settings": {
-          const { data: settings } = await supabase.from("bot_settings")
-            .select("*");
-          data = settings || [];
-          break;
-        }
-        case "user_sessions": {
-          const { data: sessions } = await supabase.from("user_sessions")
-            .select("*");
-          data = sessions || [];
-          break;
-        }
-        case "user_interactions": {
-          const { data: interactions } = await supabase.from("user_interactions")
-            .select("*");
-          data = interactions || [];
-          break;
-        }
-        case "broadcast_messages": {
-          const { data: broadcasts } = await supabase.from("broadcast_messages")
-            .select("*");
-          data = broadcasts || [];
-          break;
-        }
-        case "bank_accounts": {
-          const { data: accounts } = await supabase.from("bank_accounts")
-            .select("*");
-          data = accounts || [];
-          break;
-        }
-        case "auto_reply_templates": {
-          const { data: templates } = await supabase.from("auto_reply_templates")
-            .select("*");
-          data = templates || [];
-          break;
-        }
-        case "admin_logs": {
-          const { data: logs } = await supabase.from("admin_logs")
-            .select("*");
-          data = logs || [];
-          break;
-        }
-        case "channel_memberships": {
-          const { data: memberships } = await supabase.from("channel_memberships")
-            .select("*");
-          data = memberships || [];
-          break;
-        }
-        case "media_files": {
-          const { data: files } = await supabase.from("media_files")
-            .select("*");
-          data = files || [];
-          break;
-        }
-        case "kv_config": {
-          const { data: config } = await supabase.from("kv_config")
-            .select("*");
-          data = config || [];
-          break;
-        }
-        case "abuse_bans": {
-          const { data: bans } = await supabase.from("abuse_bans")
-            .select("*");
-          data = bans || [];
-          break;
-        }
-        default:
-          throw new Error("Invalid table name");
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        setStats(statsData);
       }
 
-      // Convert to CSV
-      if (data && data.length > 0) {
-        const headers = Object.keys(data[0]).join(",");
-        const rows = data.map((row) =>
-          Object.values(row).map((val) =>
-            typeof val === "string" ? `"${val.replace(/"/g, '""')}"` : val
-          ).join(",")
-        );
-        const csv = [headers, ...rows].join("\n");
+      // Load pending payments
+      const paymentsResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-list-pending', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
 
-        // Download CSV
-        const blob = new Blob([csv], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${tableName}_export_${
-          new Date().toISOString().split("T")[0]
-        }.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
+      if (paymentsResponse.ok) {
+        const paymentsData = await paymentsResponse.json();
+        setPendingPayments(paymentsData.payments || []);
       }
+
     } catch (error) {
-      console.error("Export error:", error);
+      console.error('Failed to load admin data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load admin dashboard data",
+        variant: "destructive",
+      });
     }
   };
 
-  const sendBroadcast = async () => {
-    if (!broadcastMessage.trim()) return;
-
-    setBroadcasting(true);
+  const handlePaymentAction = async (paymentId: string, action: 'approve' | 'reject') => {
     try {
-      // Call the actual Telegram bot broadcast function
-      const { data, error } = await supabase.functions.invoke("telegram-bot", {
-        body: {
-          action: "broadcast",
-          message: broadcastMessage,
-          target_audience: "all",
+      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-act-on-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          payment_id: paymentId,
+          action: action,
+          admin_telegram_id: getUserId()
+        })
       });
 
-      if (error) {
-        throw error;
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: `Payment ${action}d successfully`,
+        });
+        
+        // Refresh pending payments
+        await loadAdminData();
+      } else {
+        throw new Error(data.error || `Failed to ${action} payment`);
       }
-
-      setBroadcastMessage("");
-      alert(`Broadcast sent successfully to ${data?.recipients || 0} users!`);
     } catch (error) {
-      console.error("Broadcast error:", error);
-      alert("Failed to send broadcast: " + (error.message || "Unknown error"));
-    } finally {
-      setBroadcasting(false);
+      console.error(`Failed to ${action} payment:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to ${action} payment`,
+        variant: "destructive",
+      });
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary">
-        </div>
-      </div>
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span className="ml-2">Loading admin dashboard...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-destructive" />
+            Access Denied
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground text-center py-4">
+            You don't have admin privileges to access this dashboard.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <Button onClick={fetchDashboardData} variant="outline">
-          <TrendingUp className="w-4 h-4 mr-2" />
-          Refresh Data
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            Admin Dashboard
+          </CardTitle>
+        </CardHeader>
+      </Card>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              +{stats.todayUsers} today
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalPayments} payments
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Active Subscriptions
-            </CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.activeSubscriptions}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              VIP members
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Education Enrollments
-            </CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEnrollments}</div>
-            <p className="text-xs text-muted-foreground">
-              Total enrollments
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="bot-diagnostics" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="bot-diagnostics">🔍 Diagnostics</TabsTrigger>
-          <TabsTrigger value="bot-debug">🔧 Bot Debug</TabsTrigger>
-          <TabsTrigger value="system-status">📊 System Status</TabsTrigger>
-          <TabsTrigger value="welcome-editor">💬 Welcome Message</TabsTrigger>
-          <TabsTrigger value="vip-plans" disabled={!flags.vip_sync_enabled}>
-            💎 VIP Plans
-          </TabsTrigger>
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="payments" disabled={!flags.payments_enabled}>
-            Payments
-          </TabsTrigger>
-          <TabsTrigger value="settings">Bot Settings</TabsTrigger>
-          <TabsTrigger value="broadcast" disabled={!flags.broadcasts_enabled}>
-            Broadcast
-          </TabsTrigger>
-          <TabsTrigger value="feature-flags">Feature Flags</TabsTrigger>
-          <TabsTrigger value="contact">Contact Info</TabsTrigger>
-          <TabsTrigger value="export">Export Data</TabsTrigger>
-          <TabsTrigger value="data-manager">Data Manager</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="bot-diagnostics" className="space-y-4">
-          <BotDiagnostics />
+        <TabsContent value="overview" className="space-y-4">
+          {stats && (
+            <div className="grid grid-cols-2 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Total Users
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.total_users}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.vip_users} VIP users
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <DollarSign className="w-4 h-4" />
+                    Revenue
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${stats.total_revenue}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.completed_payments} payments
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Pending
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.pending_payments}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Awaiting review
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Activity className="w-4 h-4" />
+                    Daily Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.daily_interactions}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.daily_sessions} sessions
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="bot-debug" className="space-y-4">
-          <BotDebugger />
-        </TabsContent>
-
-        <TabsContent value="system-status" className="space-y-4">
-          <SystemStatus />
-        </TabsContent>
-
-        <TabsContent value="welcome-editor" className="space-y-4">
-          <WelcomeMessageEditor />
-        </TabsContent>
-
-        {flags.vip_sync_enabled && (
-          <TabsContent value="vip-plans" className="space-y-4">
-            <VipPlansManager />
-          </TabsContent>
-        )}
-
-        <TabsContent value="users" className="space-y-4">
+        <TabsContent value="payments" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Users</CardTitle>
-              <CardDescription>Latest registered bot users</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Pending Payments ({pendingPayments.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-96">
-                <div className="space-y-2">
-                  {users.map((user) => (
+              {pendingPayments.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">
+                  No pending payments
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {pendingPayments.map((payment) => (
                     <div
-                      key={user.id}
+                      key={payment.id}
                       className="flex items-center justify-between p-3 border rounded-lg"
                     >
-                      <div className="flex items-center space-x-3">
-                        <User className="h-8 w-8 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">
-                            {user.first_name} {user.last_name}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            @{user.username || "no_username"} • ID:{" "}
-                            {user.telegram_id}
-                          </p>
+                      <div className="space-y-1">
+                        <div className="font-medium">
+                          ${payment.amount} {payment.currency}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          User: {payment.telegram_user_id}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(payment.created_at).toLocaleDateString()}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        {user.is_vip && <Badge variant="secondary">VIP</Badge>}
-                        <Badge variant="outline">
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </Badge>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handlePaymentAction(payment.id, 'approve')}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handlePaymentAction(payment.id, 'reject')}
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {flags.payments_enabled && (
-          <TabsContent value="payments" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Payments</CardTitle>
-                <CardDescription>Latest payment transactions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-96">
-                  <div className="space-y-2">
-                    {payments.map((payment) => (
-                      <div
-                        key={payment.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">
-                            ${payment.amount} {payment.currency}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {payment.subscription_plans?.name} •{" "}
-                            {payment.payment_method}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge
-                            variant={payment.status === "completed"
-                              ? "default"
-                              : "secondary"}
-                          >
-                            {payment.status}
-                          </Badge>
-                          <Badge variant="outline">
-                            {new Date(payment.created_at).toLocaleDateString()}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-
-        {flags.broadcasts_enabled && (
-          <TabsContent value="broadcast" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Broadcast Message</CardTitle>
-                <CardDescription>Send messages to all bot users</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <textarea
-                  className="w-full h-32 p-3 border rounded-lg resize-none"
-                  placeholder="Enter your broadcast message..."
-                  value={broadcastMessage}
-                  onChange={(e) => setBroadcastMessage(e.target.value)}
-                />
-                <div className="flex space-x-2">
-                  <Button
-                    onClick={sendBroadcast}
-                    disabled={!broadcastMessage.trim() || broadcasting}
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    {broadcasting ? "Sending..." : "Send Broadcast"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setBroadcastMessage("")}
-                  >
-                    Clear
-                  </Button>
-                </div>
-                <Alert>
-                  <MessageSquare className="h-4 w-4" />
-                  <AlertDescription>
-                    This will send the message to all {stats.totalUsers}{" "}
-                    registered users.
-                  </AlertDescription>
-                </Alert>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-
-        <TabsContent value="feature-flags" className="space-y-4">
+        <TabsContent value="users" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Feature Flags</CardTitle>
-              <CardDescription>Enable or disable features</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <UserCheck className="w-5 h-5" />
+                User Management
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {Object.entries(FLAG_LABELS).map(([key, label]) => (
-                <div
-                  key={key}
-                  className="flex items-center justify-between space-x-2"
-                >
-                  <Label htmlFor={key}>{label}</Label>
-                  <Switch
-                    id={key}
-                    checked={flags[key]}
-                    onCheckedChange={(checked) =>
-                      handleToggleFlag(key, checked)}
-                  />
-                </div>
-              ))}
-              <div className="flex space-x-2">
-                <Button onClick={handlePublish}>Publish</Button>
-                <Button variant="outline" onClick={handleRollback}>
-                  Rollback
-                </Button>
-              </div>
+            <CardContent>
+              <p className="text-center text-muted-foreground py-4">
+                User management features coming soon...
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-4">
-          <BotSettings />
-        </TabsContent>
-
-        <TabsContent value="contact" className="space-y-4">
-          <ContactInfo />
-        </TabsContent>
-
-        <TabsContent value="export" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              {
-                name: "bot_users",
-                title: "👥 Bot Users",
-                description: "User management & admin status",
-              },
-              {
-                name: "subscription_plans",
-                title: "💎 Subscription Plans",
-                description: "VIP packages & pricing",
-              },
-              {
-                name: "plan_channels",
-                title: "📢 Plan Channels",
-                description: "Channel & group links per plan",
-              },
-              {
-                name: "education_packages",
-                title: "🎓 Education Packages",
-                description: "Courses & learning content",
-              },
-              {
-                name: "promotions",
-                title: "💰 Promotions",
-                description: "Discount codes & campaigns",
-              },
-              {
-                name: "bot_content",
-                title: "📱 Bot Content",
-                description: "Messages & UI text",
-              },
-              {
-                name: "bot_settings",
-                title: "⚙️ Bot Settings",
-                description: "Configuration & behavior",
-              },
-              {
-                name: "daily_analytics",
-                title: "📈 Analytics",
-                description: "User data & conversion tracking",
-              },
-              {
-                name: "user_sessions",
-                title: "💬 User Sessions",
-                description: "Active sessions & state",
-              },
-              {
-                name: "user_interactions",
-                title: "🎯 User Interactions",
-                description: "Activity tracking",
-              },
-              {
-                name: "payments",
-                title: "💳 Payments",
-                description: "Transaction records",
-              },
-              {
-                name: "broadcast_messages",
-                title: "📢 Broadcast Messages",
-                description: "Mass communication",
-              },
-              {
-                name: "bank_accounts",
-                title: "🏦 Bank Accounts",
-                description: "Payment methods",
-              },
-              {
-                name: "auto_reply_templates",
-                title: "📝 Auto Reply Templates",
-                description: "Automated responses",
-              },
-              {
-                name: "user_subscriptions",
-                title: "📋 User Subscriptions",
-                description: "User subscription records",
-              },
-              {
-                name: "education_enrollments",
-                title: "🎓 Education Enrollments",
-                description: "Course enrollments",
-              },
-              {
-                name: "contact_links",
-                title: "📞 Contact Links",
-                description: "Bot contact information",
-              },
-              {
-                name: "admin_logs",
-                title: "📋 Admin Logs",
-                description: "Administrative actions",
-              },
-              {
-                name: "channel_memberships",
-                title: "👥 Channel Memberships",
-                description: "User channel access",
-              },
-              {
-                name: "media_files",
-                title: "📎 Media Files",
-                description: "Uploaded files & media",
-              },
-            ].map((table) => (
-              <Card key={table.name}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{table.title}</CardTitle>
-                  <CardDescription>{table.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    onClick={() => exportData(table.name)}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export CSV
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="data-manager" className="space-y-4">
-          <AdminDataManager />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                Bot Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground py-4">
+                Settings management coming soon...
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

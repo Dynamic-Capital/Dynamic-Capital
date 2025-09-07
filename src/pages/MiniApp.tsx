@@ -7,6 +7,7 @@ import CheckoutSection from "@/components/miniapp/CheckoutSection";
 import { FAQSection } from "@/components/miniapp/FAQSection";
 import { QuickActions } from "@/components/miniapp/QuickActions";
 import { SubscriptionStatusCard } from "@/components/shared/SubscriptionStatusCard";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { useThemeSync } from "@/hooks/useThemeSync";
 import { CurrencyProvider } from "@/hooks/useCurrency";
 import { 
@@ -15,7 +16,8 @@ import {
   User, 
   ShoppingCart,
   HelpCircle,
-  Zap
+  Zap,
+  Shield
 } from "lucide-react";
 
 export default function MiniApp() {
@@ -73,7 +75,7 @@ export default function MiniApp() {
         <div className="w-full max-w-md mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="sticky top-0 z-10 glass-card backdrop-blur-md border-b">
-              <TabsList className="glass-card grid w-full grid-cols-6 h-16 p-1">
+              <TabsList className="glass-card grid w-full grid-cols-7 h-16 p-1">
                 <TabsTrigger value="home" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <Home className="h-5 w-5" />
                   <span>Home</span>
@@ -89,6 +91,10 @@ export default function MiniApp() {
                 <TabsTrigger value="status" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <User className="h-5 w-5" />
                   <span>Status</span>
+                </TabsTrigger>
+                <TabsTrigger value="admin" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
+                  <Shield className="h-5 w-5" />
+                  <span>Admin</span>
                 </TabsTrigger>
                 <TabsTrigger value="actions" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <Zap className="h-5 w-5" />
@@ -129,6 +135,10 @@ export default function MiniApp() {
 
               <TabsContent value="status" className="space-y-4">
                 <SubscriptionStatusCard telegramData={telegramData} />
+              </TabsContent>
+
+              <TabsContent value="admin" className="space-y-4">
+                <AdminDashboard telegramData={telegramData} />
               </TabsContent>
 
               <TabsContent value="actions" className="space-y-4">

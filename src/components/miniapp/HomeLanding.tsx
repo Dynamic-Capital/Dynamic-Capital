@@ -116,7 +116,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
   return (
     <div 
-      className="space-y-6 scroll-bg-transition"
+      className="space-y-4 scroll-bg-transition"
       style={{
         background: `linear-gradient(135deg, 
           hsl(var(--telegram) / ${0.9 - bgOpacity * 0.3}), 
@@ -127,24 +127,24 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     >
       {/* Hero Section */}
       <Card className="glass-card border-primary/20">
-        <CardContent className="p-6 text-center">
-          <div className="mb-4">
-            <Star className="h-12 w-12 text-primary mx-auto mb-3" />
-            <h1 className="text-2xl font-bold mb-2 font-sf-pro">Dynamic Capital VIP</h1>
-            <p className="text-muted-foreground font-sf-pro">Professional Trading • Premium Signals • VIP Support</p>
+        <CardContent className="p-4 text-center">
+          <div className="mb-3">
+            <Star className="h-10 w-10 text-primary mx-auto mb-2" />
+            <h1 className="text-xl font-bold mb-1 font-sf-pro">Dynamic Capital VIP</h1>
+            <p className="text-sm text-muted-foreground font-sf-pro">Professional Trading • Premium Signals • VIP Support</p>
           </div>
-          <div className="flex items-center justify-center gap-4 text-sm">
+          <div className="flex items-center justify-center gap-3 text-xs">
             <div className="flex items-center gap-1">
-              <Users className="h-4 w-4 text-green-500" />
+              <Users className="h-3 w-3 text-green-500" />
               <span>5000+ Members</span>
             </div>
             <div className="flex items-center gap-1">
-              <TrendingUp className="h-4 w-4 text-blue-500" />
-              <span>85% Success Rate</span>
+              <TrendingUp className="h-3 w-3 text-blue-500" />
+              <span>85% Success</span>
             </div>
             <div className="flex items-center gap-1">
-              <Shield className="h-4 w-4 text-purple-500" />
-              <span>Verified Signals</span>
+              <Shield className="h-3 w-3 text-purple-500" />
+              <span>Verified</span>
             </div>
           </div>
         </CardContent>
@@ -152,16 +152,16 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* Announcements */}
       <FadeInOnView delay={100} animation="slide-in-right">
-        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-blue-500 animate-pulse-glow hover:animate-float transition-all duration-300" />
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MessageSquare className="h-4 w-4 text-blue-500 animate-pulse-glow hover:animate-float transition-all duration-300" />
               Latest Announcements
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <FadeInOnView delay={200} animation="fade-in">
-              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/15 transition-colors duration-300">
+              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/15 transition-colors duration-300">
                 <p className="text-sm whitespace-pre-line leading-relaxed">{announcements}</p>
               </div>
             </FadeInOnView>
@@ -172,15 +172,15 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       {/* Active Promo Codes */}
       {activePromos.length > 0 && (
         <FadeInOnView delay={200} animation="bounce-in">
-          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Gift className="h-5 w-5 text-green-500 animate-wiggle hover:animate-float" />
+          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Gift className="h-4 w-4 text-green-500 animate-wiggle hover:animate-float" />
                 Active Promo Codes
               </CardTitle>
-              <CardDescription>Limited time offers - use these codes when subscribing!</CardDescription>
+              <CardDescription className="text-sm">Limited time offers - use these codes when subscribing!</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <HorizontalSnapScroll 
                 autoScroll={true}
                 autoScrollInterval={4000}
@@ -227,14 +227,14 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* About Dynamic Capital */}
       <FadeInOnView delay={300} animation="bounce-in">
-        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-102">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-primary animate-pulse-glow" />
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Award className="h-4 w-4 text-primary animate-pulse-glow" />
               About Dynamic Capital
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
               {aboutUs}
             </p>
@@ -244,15 +244,15 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* Our Services */}
       <FadeInOnView delay={500} animation="slide-in-right">
-        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-blue-500 animate-float" />
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.01]">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Target className="h-4 w-4 text-blue-500 animate-float" />
               Our Services
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 gap-2">
               {services.split('\n').filter(service => service.trim()).map((service, index) => {
                 // Map service emojis to lucide icons
                 const getServiceIcon = (text: string) => {
@@ -273,9 +273,9 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
                     delay={600 + (index * 100)}
                     animation="fade-in"
                   >
-                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-all duration-300 hover:scale-105 group">
-                      <ServiceIcon className="h-4 w-4 text-primary group-hover:animate-float transition-all duration-300" />
-                      <span className="text-sm flex-1">{service.replace(/[📈📊🛡️👨‍🏫💎📞]/g, '').replace('•', '').trim()}</span>
+                    <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] group">
+                      <ServiceIcon className="h-3 w-3 text-primary group-hover:animate-float transition-all duration-300 flex-shrink-0" />
+                      <span className="text-xs flex-1">{service.replace(/[📈📊🛡️👨‍🏫💎📞]/g, '').replace('•', '').trim()}</span>
                     </div>
                   </FadeInOnView>
                 );
@@ -302,25 +302,32 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* Call to Action */}
       <Card className="bg-gradient-to-r from-primary/10 to-purple-500/10 border-primary/20">
-        <CardContent className="p-6 text-center">
-          <Sparkles className="h-8 w-8 text-primary mx-auto mb-3" />
-          <h3 className="text-lg font-semibold mb-2">Ready to Start Trading Like a Pro?</h3>
-          <p className="text-sm text-muted-foreground mb-4">
+        <CardContent className="p-4 text-center">
+          <Sparkles className="h-6 w-6 text-primary mx-auto mb-2" />
+          <h3 className="text-base font-semibold mb-1">Ready to Start Trading Like a Pro?</h3>
+          <p className="text-xs text-muted-foreground mb-3">
             Join thousands of successful traders who trust Dynamic Capital for their trading journey.
           </p>
           <div className="flex gap-2 justify-center">
-            <Button onClick={() => {
-              const url = new URL(window.location.href);
-              url.searchParams.set('tab', 'plan');
-              window.history.pushState({}, '', url.toString());
-              window.dispatchEvent(new PopStateEvent('popstate'));
-            }}>
+            <Button 
+              size="sm"
+              onClick={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', 'plan');
+                window.history.pushState({}, '', url.toString());
+                window.dispatchEvent(new PopStateEvent('popstate'));
+              }}
+            >
               View VIP Plans
             </Button>
             {isInTelegram && (
-              <Button variant="outline" onClick={() => {
-                window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
-              }}>
+              <Button 
+                size="sm"
+                variant="outline" 
+                onClick={() => {
+                  window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
+                }}
+              >
                 Contact Support
               </Button>
             )}

@@ -29,15 +29,23 @@ export const SubscriptionStatusCard = ({
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  // Extract telegram user ID from multiple sources
+  const getUserId = () => {
+    if (telegramUserId) return telegramUserId;
+    if (telegramData?.user?.id) return telegramData.user.id.toString();
+    return null;
+  };
+
   useEffect(() => {
-    if (telegramUserId) {
-      fetchSubscriptionStatus();
+    const userId = getUserId();
+    if (userId) {
+      fetchSubscriptionStatus(userId);
     } else {
       setLoading(false);
     }
-  }, [telegramUserId]);
+  }, [telegramUserId, telegramData]);
 
-  const fetchSubscriptionStatus = async () => {
+  const fetchSubscriptionStatus = async (userId: string) => {
     try {
       const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/subscription-status', {
         method: 'POST',
@@ -45,7 +53,7 @@ export const SubscriptionStatusCard = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          telegram_user_id: telegramUserId
+          telegram_user_id: userId
         })
       });
 
@@ -100,7 +108,9 @@ export const SubscriptionStatusCard = ({
     );
   }
 
-  if (!telegramUserId) {
+  const currentUserId = getUserId();
+  
+  if (!currentUserId) {
     return (
       <Card>
         <CardHeader>
