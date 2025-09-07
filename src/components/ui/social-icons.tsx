@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Instagram, Facebook, TrendingUp } from "lucide-react";
+import { Instagram, Facebook } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SocialIconProps {
@@ -43,18 +43,46 @@ const iconMap = {
   tradingview: TradingViewIcon,
 };
 
-const platformColors = {
-  instagram: "from-purple-600 via-pink-600 to-orange-600",
-  facebook: "from-blue-600 to-blue-700",
-  tiktok: "from-black to-gray-800",
-  tradingview: "from-blue-500 to-cyan-500",
-};
-
-const platformHoverColors = {
-  instagram: "hover:bg-gradient-to-r hover:from-purple-600 hover:via-pink-600 hover:to-orange-600",
-  facebook: "hover:bg-blue-600",
-  tiktok: "hover:bg-gray-900",
-  tradingview: "hover:bg-blue-500",
+const brandColors: Record<
+  SocialIconProps["platform"],
+  {
+    default: string;
+    hover: string;
+    gradient: string;
+  }
+> = {
+  instagram: {
+    default:
+      "bg-[hsl(var(--brand-instagram))] dark:bg-[hsl(var(--brand-instagram-dark))]",
+    hover:
+      "hover:bg-[hsl(var(--brand-instagram-hover))] dark:hover:bg-[hsl(var(--brand-instagram-dark-hover))]",
+    gradient:
+      "from-[hsl(var(--brand-instagram-from))] via-[hsl(var(--brand-instagram-via))] to-[hsl(var(--brand-instagram-to))] dark:from-[hsl(var(--brand-instagram-dark-from))] dark:via-[hsl(var(--brand-instagram-dark-via))] dark:to-[hsl(var(--brand-instagram-dark-to))]",
+  },
+  facebook: {
+    default:
+      "bg-[hsl(var(--brand-facebook))] dark:bg-[hsl(var(--brand-facebook-dark))]",
+    hover:
+      "hover:bg-[hsl(var(--brand-facebook-hover))] dark:hover:bg-[hsl(var(--brand-facebook-dark-hover))]",
+    gradient:
+      "from-[hsl(var(--brand-facebook-from))] to-[hsl(var(--brand-facebook-to))] dark:from-[hsl(var(--brand-facebook-dark-from))] dark:to-[hsl(var(--brand-facebook-dark-to))]",
+  },
+  tiktok: {
+    default:
+      "bg-[hsl(var(--brand-tiktok))] dark:bg-[hsl(var(--brand-tiktok-dark))]",
+    hover:
+      "hover:bg-[hsl(var(--brand-tiktok-hover))] dark:hover:bg-[hsl(var(--brand-tiktok-dark-hover))]",
+    gradient:
+      "from-[hsl(var(--brand-tiktok-from))] to-[hsl(var(--brand-tiktok-to))] dark:from-[hsl(var(--brand-tiktok-dark-from))] dark:to-[hsl(var(--brand-tiktok-dark-to))]",
+  },
+  tradingview: {
+    default:
+      "bg-[hsl(var(--brand-tradingview))] dark:bg-[hsl(var(--brand-tradingview-dark))]",
+    hover:
+      "hover:bg-[hsl(var(--brand-tradingview-hover))] dark:hover:bg-[hsl(var(--brand-tradingview-dark-hover))]",
+    gradient:
+      "from-[hsl(var(--brand-tradingview-from))] to-[hsl(var(--brand-tradingview-to))] dark:from-[hsl(var(--brand-tradingview-dark-from))] dark:to-[hsl(var(--brand-tradingview-dark-to))]",
+  },
 };
 
 export const SocialIcon: React.FC<SocialIconProps> = ({
@@ -84,15 +112,19 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
     className
   );
 
+  const colors = brandColors[platform];
+
   const variantClasses = {
     default: cn(
-      "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground",
-      platformHoverColors[platform]
+      colors.default,
+      colors.hover,
+      "text-muted-foreground hover:text-foreground"
     ),
-    glass: "bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white hover:border-white/40",
+    glass:
+      "bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white hover:border-white/40",
     glow: cn(
       "bg-gradient-to-r text-white shadow-lg hover:shadow-xl hover:scale-110",
-      platformColors[platform]
+      colors.gradient
     ),
   };
 
