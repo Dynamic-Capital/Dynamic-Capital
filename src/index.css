@@ -544,7 +544,7 @@
 
   .scroll-padding-mobile {
     scroll-padding: 1rem;
-    @apply md:scroll-padding-none;
+    @apply md:scroll-p-0;
   }
 
   /* Text selection */
