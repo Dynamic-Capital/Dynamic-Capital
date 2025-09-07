@@ -76,16 +76,20 @@ export default {
           foreground: "hsl(var(--destructive-foreground))",
         },
         success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
+          DEFAULT: "hsl(var(--status-success))",
+          foreground: "hsl(var(--status-success-foreground))",
         },
         warning: {
-          DEFAULT: "hsl(var(--warning))",
-          foreground: "hsl(var(--warning-foreground))",
+          DEFAULT: "hsl(var(--status-warning))",
+          foreground: "hsl(var(--status-warning-foreground))",
         },
         info: {
-          DEFAULT: "hsl(var(--info))",
-          foreground: "hsl(var(--info-foreground))",
+          DEFAULT: "hsl(var(--status-info))",
+          foreground: "hsl(var(--status-info-foreground))",
+        },
+        error: {
+          DEFAULT: "hsl(var(--status-error))",
+          foreground: "hsl(var(--status-error-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
