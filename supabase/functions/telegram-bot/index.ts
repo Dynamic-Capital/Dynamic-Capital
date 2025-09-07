@@ -598,6 +598,8 @@ export function buildCallbackHandlers(
       handlers.handleAdminLogsManagement(chatId, userId),
     manage_table_kv_config: (chatId, userId) =>
       handlers.handleKvConfigManagement(chatId, userId),
+    manage_table_contact_links: (chatId, userId) =>
+      handlers.handleContactLinksManagement(chatId, userId),
     manage_table_abuse_bans: (chatId, userId) =>
       handlers.handleAbuseBansManagement(chatId, userId),
     edit_content_welcome_message: (chatId, userId) =>
@@ -618,6 +620,16 @@ export function buildCallbackHandlers(
       handlers.handleEditContent(chatId, userId, "payment_instructions"),
     add_new_content: (chatId, userId) =>
       handlers.handleAddNewContent(chatId, userId),
+    add_contact_link: (chatId, userId) =>
+      handlers.handleAddContactLink(chatId, userId),
+    edit_contact_link: (chatId, userId) =>
+      handlers.handleEditContactLink(chatId, userId),
+    toggle_contact_link: (chatId, userId) =>
+      handlers.handleToggleContactLink(chatId, userId),
+    delete_contact_link: (chatId, userId) =>
+      handlers.handleDeleteContactLink(chatId, userId),
+    reorder_contact_links: (chatId, userId) =>
+      handlers.handleReorderContactLinks(chatId, userId),
     preview_all_content: (chatId, userId) =>
       handlers.handlePreviewAllContent(chatId, userId),
     export_all_tables: (chatId, userId) =>
@@ -683,6 +695,18 @@ function getDynamicCallbackHandler(
     const id = data.slice("edit_plan_".length);
     return (chatId, userId) =>
       handlers.handleEditSpecificPlan(chatId, userId, id);
+  }
+  if (data.startsWith("edit_contact_")) {
+    const id = data.slice("edit_contact_".length);
+    return (chatId, userId) => handlers.processContactLinkOperation(chatId, userId, "edit", id);
+  }
+  if (data.startsWith("toggle_contact_")) {
+    const id = data.slice("toggle_contact_".length);
+    return (chatId, userId) => handlers.processContactLinkOperation(chatId, userId, "toggle", id);
+  }
+  if (data.startsWith("delete_contact_")) {
+    const id = data.slice("delete_contact_".length);
+    return (chatId, userId) => handlers.processContactLinkOperation(chatId, userId, "delete", id);
   }
   return null;
 }

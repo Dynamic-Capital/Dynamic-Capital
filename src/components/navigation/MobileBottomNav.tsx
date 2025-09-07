@@ -5,9 +5,6 @@ import {
   Home, 
   CreditCard, 
   CheckCircle, 
-  User, 
-  Settings,
-  GraduationCap,
   MessageCircle
 } from "lucide-react";
 
