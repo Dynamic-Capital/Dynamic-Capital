@@ -1,0 +1,60 @@
+import * as React from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+export interface MotionCardProps {
+  children: React.ReactNode;
+  className?: string;
+  variant?: 'default' | 'glass' | 'elevated' | 'interactive' | 'glow' | 'minimal';
+  hover?: boolean;
+  animate?: boolean;
+  delay?: number;
+}
+
+const variantStyles = {
+  default: "motion-card",
+  glass: "glass-motion-card", 
+  elevated: "motion-card shadow-xl",
+  interactive: "motion-card-interactive",
+  glow: "motion-card-glow",
+  minimal: "bg-transparent border-0 shadow-none",
+};
+
+const MotionCard = React.forwardRef<HTMLDivElement, MotionCardProps>(
+  ({ className, variant = 'default', hover = true, animate = true, delay = 0, children }, ref) => {
+    return (
+      <motion.div
+        ref={ref}
+        className={cn("rounded-xl p-6 transition-all duration-300", variantStyles[variant], className)}
+        initial={animate ? { opacity: 0, y: 20, scale: 0.95 } : undefined}
+        animate={animate ? { opacity: 1, y: 0, scale: 1 } : undefined}
+        whileHover={hover ? { scale: 1.02, y: -5 } : undefined}
+        whileTap={hover ? { scale: 0.98 } : undefined}
+        transition={{ delay, type: "spring", stiffness: 260, damping: 20 }}
+      >
+        {children}
+      </motion.div>
+    );
+  }
+);
+MotionCard.displayName = "MotionCard";
+
+const MotionCardContainer = React.forwardRef<HTMLDivElement, { children: React.ReactNode; className?: string; staggerDelay?: number }>(
+  ({ className, staggerDelay = 0.1, children }, ref) => (
+    <motion.div
+      ref={ref}
+      className={className}
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: staggerDelay, delayChildren: 0.1 } }
+      }}
+    >
+      {children}
+    </motion.div>
+  )
+);
+MotionCardContainer.displayName = "MotionCardContainer";
+
+export { MotionCard, MotionCardContainer };

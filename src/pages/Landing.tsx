@@ -1,5 +1,6 @@
 import { Sparkles, Shield, Zap, Users, TrendingUp, CheckCircle, Star, ArrowRight, Crown, Award, Target, DollarSign } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +12,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { TypewriterText, GradientText, MorphingText } from "@/components/ui/animated-text";
 import { MotionFadeIn, MotionStagger, MotionCounter, MotionHoverCard, MotionScrollReveal } from "@/components/ui/motion-components";
 import { ResponsiveMotion, FullscreenAdaptive, ViewportAware } from "@/components/ui/responsive-motion";
+import { MotionSection, MotionGrid, MotionButtonWrapper } from "@/components/ui/motion-theme";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Landing = () => {
@@ -294,7 +296,7 @@ const Landing = () => {
             </div>
           </MotionScrollReveal>
 
-          <MotionStagger staggerDelay={0.2} className="grid md:grid-cols-3 gap-8 mb-16">
+          <MotionCardContainer staggerDelay={0.2} className="grid md:grid-cols-3 gap-8 mb-16">
             {[
               {
                 name: "Sarah M.",
@@ -318,41 +320,42 @@ const Landing = () => {
                 profit: "+$32,000"
               }
             ].map((testimonial, index) => (
-              <MotionHoverCard 
+              <MotionCard 
                 key={index} 
-                hoverScale={1.05} 
-                hoverY={-10}
+                variant="glass"
+                hover={true}
+                animate={true}
+                delay={index * 0.2}
+                className="p-6 motion-card-glow"
               >
-                <Card className="p-6 bg-gradient-to-br from-card via-primary/5 to-purple-500/5 border-primary/20 hover:shadow-2xl duration-500 backdrop-blur-sm hover:border-primary/40">
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-purple-500 rounded-full flex items-center justify-center text-xl">
-                        {testimonial.avatar}
-                      </div>
-                      <div>
-                        <h4 className="font-semibold font-poppins text-foreground">{testimonial.name}</h4>
-                        <p className="text-sm text-muted-foreground font-inter">{testimonial.role}</p>
-                      </div>
-                      <Badge className="ml-auto bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-inter font-semibold">
-                        {testimonial.profit}
-                      </Badge>
+                <CardContent className="space-y-4 p-0">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-purple-500 rounded-full flex items-center justify-center text-xl">
+                      {testimonial.avatar}
                     </div>
-                    <p className="text-muted-foreground italic font-inter leading-relaxed">"{testimonial.text}"</p>
-                    <div className="flex text-yellow-400">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-current" />
-                      ))}
+                    <div>
+                      <h4 className="font-semibold font-poppins text-foreground">{testimonial.name}</h4>
+                      <p className="text-sm text-muted-foreground font-inter">{testimonial.role}</p>
                     </div>
-                  </CardContent>
-                </Card>
-              </MotionHoverCard>
+                    <Badge className="ml-auto bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-inter font-semibold">
+                      {testimonial.profit}
+                    </Badge>
+                  </div>
+                  <p className="text-muted-foreground italic font-inter leading-relaxed">"{testimonial.text}"</p>
+                  <div className="flex text-yellow-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-current" />
+                    ))}
+                  </div>
+                </CardContent>
+              </MotionCard>
             ))}
-          </MotionStagger>
+          </MotionCardContainer>
         </div>
       </section>
 
       {/* Services Section */}
-      <section className="py-20 bg-background">
+      <MotionSection className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <MotionScrollReveal>
             <div className="text-center mb-16">
@@ -376,7 +379,7 @@ const Landing = () => {
 📞 24/7 Customer Support" 
           />
         </div>
-      </section>
+      </MotionSection>
 
       {/* Features Section */}
       <section className="py-20 bg-gradient-to-b from-background via-muted/10 to-background relative">

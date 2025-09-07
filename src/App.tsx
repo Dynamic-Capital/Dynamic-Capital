@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { TelegramAuthProvider } from "@/hooks/useTelegramAuth";
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { MotionThemeProvider, MotionPage } from "@/components/ui/motion-theme";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import MobileBottomNav from "./components/navigation/MobileBottomNav";
@@ -64,7 +65,7 @@ const AppContent = () => {
   const isInMiniApp = location.pathname === '/miniapp';
   
   return (
-    <>
+    <MotionThemeProvider>
       <SkipToContent />
       <TelegramRedirect />
       
@@ -77,34 +78,36 @@ const AppContent = () => {
           role="main"
           tabIndex={-1}
         >
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/dashboard" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/plans" element={<Plans />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/payment-success" element={<PaymentStatus />} />
-            <Route path="/payment-canceled" element={<PaymentStatus />} />
-            <Route path="/payment-status" element={<PaymentStatus />} />
-            <Route path="/education" element={<Education />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/system-health" element={<AdminDashboard />} />
-            <Route path="/bot-status" element={<BotStatus />} />
-            <Route path="/build-miniapp" element={<BuildMiniApp />} />
-            <Route path="/miniapp-demo" element={<MiniAppDemo />} />
-            <Route path="/telegram-setup" element={<TelegramSetup />} />
-            <Route path="/miniapp" element={<MiniApp />} />
-            <Route path="/welcome" element={<WelcomeMessage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <MotionPage pageKey={location.pathname}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/dashboard" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/plans" element={<Plans />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment-success" element={<PaymentStatus />} />
+              <Route path="/payment-canceled" element={<PaymentStatus />} />
+              <Route path="/payment-status" element={<PaymentStatus />} />
+              <Route path="/education" element={<Education />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/system-health" element={<AdminDashboard />} />
+              <Route path="/bot-status" element={<BotStatus />} />
+              <Route path="/build-miniapp" element={<BuildMiniApp />} />
+              <Route path="/miniapp-demo" element={<MiniAppDemo />} />
+              <Route path="/telegram-setup" element={<TelegramSetup />} />
+              <Route path="/miniapp" element={<MiniApp />} />
+              <Route path="/welcome" element={<WelcomeMessage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MotionPage>
         </main>
         
         <Footer compact={isInMiniApp} />
         {!isInMiniApp && <MobileBottomNav />}
         <ChatAssistantWidget />
       </div>
-    </>
+    </MotionThemeProvider>
   );
 };
 
