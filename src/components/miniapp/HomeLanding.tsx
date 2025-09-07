@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
+import { Interactive3DCard, FloatingActionCard, LiquidCard } from "@/components/ui/interactive-cards";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -21,6 +22,7 @@ import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 import PromoCodeInput from "@/components/billing/PromoCodeInput";
 import AnimatedWelcomeMini from "./AnimatedWelcomeMini";
+import { AnimatedStatusDisplay } from "./AnimatedStatusDisplay";
 
 interface BotContent {
   content_key: string;
@@ -46,6 +48,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
   const [activePromos, setActivePromos] = useState<ActivePromo[]>([]);
   const [loading, setLoading] = useState(true);
   const [scrollY, setScrollY] = useState(0);
+  const [subscription, setSubscription] = useState<any>(null);
 
   const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
 
@@ -87,6 +90,21 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           setActivePromos(promoData.promotions || []);
         }
 
+        // Fetch subscription status if in Telegram
+        if (isInTelegram && telegramData?.user?.id) {
+          const subResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/subscription-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              telegram_id: telegramData.user.id
+            })
+          });
+          if (subResponse.ok) {
+            const subData = await subResponse.json();
+            setSubscription(subData);
+          }
+        }
+
       } catch (error) {
         console.error('Failed to fetch content:', error);
         // Fallback to default content if fetch fails
@@ -99,7 +117,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     };
 
     fetchContent();
-  }, []);
+  }, [telegramData?.user?.id]);
 
   const formatDiscountText = (promo: ActivePromo) => {
     return promo.discount_type === 'percentage' 
@@ -131,6 +149,19 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     >
       {/* Animated Hero Section */}
       <AnimatedWelcomeMini className="rounded-lg" />
+
+      {/* Animated Status Display */}
+      {isInTelegram && (
+        <FadeInOnView delay={50}>
+          <AnimatedStatusDisplay
+            isVip={subscription?.is_vip}
+            planName={subscription?.plan_name || "Free"}
+            daysRemaining={subscription?.days_remaining}
+            paymentStatus={subscription?.payment_status}
+            showBackground={false}
+          />
+        </FadeInOnView>
+      )}
 
       {/* Have a Promo Code Section */}
       <FadeInOnView delay={100} animation="slide-in-right">
@@ -174,20 +205,25 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* Active Promo Codes */}
       <FadeInOnView delay={250} animation="bounce-in">
-        <MotionCard variant="interactive" hover={true} animate={true} delay={0.3}>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-subheading">
+        <Interactive3DCard 
+          intensity={0.1} 
+          scale={1.02} 
+          glowEffect={activePromos.length > 0}
+          className="border-primary/20"
+        >
+          <div className="p-6">
+            <div className="flex items-center gap-2 mb-2">
               <Sparkles className="icon-sm text-success animate-wiggle" />
-              {activePromos.length > 0 ? "Active Promo Codes" : "Limited Time Offers"}
-            </CardTitle>
-            <CardDescription className="text-body-sm">
+              <h3 className="text-subheading font-semibold">
+                {activePromos.length > 0 ? "Active Promo Codes" : "Limited Time Offers"}
+              </h3>
+            </div>
+            <p className="text-body-sm text-muted-foreground mb-4">
               {activePromos.length > 0 
                 ? "Limited time offers - use these codes when subscribing!" 
                 : "Stay tuned for exclusive promo codes and special discounts!"
               }
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
+            </p>
             {activePromos.length > 0 ? (
               <HorizontalSnapScroll 
                 autoScroll={true}
@@ -199,33 +235,37 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
                 className="py-3 scroll-padding-mobile"
               >
                 {activePromos.map((promo, index) => (
-                  <div 
+                  <Interactive3DCard
                     key={index}
+                    intensity={0.05}
+                    scale={1.02}
                     onClick={() => handlePromoClick(promo.code)}
-                    className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg hover:from-green-500/15 hover:to-emerald-500/15 transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
+                    className="cursor-pointer group min-w-0"
                   >
-                    <div className="flex justify-between items-center mb-2">
-                      <Badge className="bg-green-500 text-white font-mono text-sm group-hover:scale-105 transition-transform">
-                        {promo.code}
-                      </Badge>
-                      <Badge 
-                        variant="outline" 
-                        className="text-green-600 group-hover:scale-105 transition-transform"
-                      >
-                        {formatDiscountText(promo)}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">{promo.description}</p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>Valid until: {new Date(promo.valid_until).toLocaleDateString()}</span>
+                    <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <Badge className="bg-green-500 text-white font-mono text-sm group-hover:scale-105 transition-transform">
+                          {promo.code}
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className="text-green-600 group-hover:scale-105 transition-transform"
+                        >
+                          {formatDiscountText(promo)}
+                        </Badge>
                       </div>
-                      <div className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                        Tap to apply →
+                      <p className="text-sm text-muted-foreground mb-2">{promo.description}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          <span>Valid until: {new Date(promo.valid_until).toLocaleDateString()}</span>
+                        </div>
+                        <div className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                          Tap to apply →
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Interactive3DCard>
                 ))}
               </HorizontalSnapScroll>
             ) : (
@@ -250,25 +290,23 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
                 </Button>
               </div>
             )}
-          </CardContent>
-        </MotionCard>
+          </div>
+        </Interactive3DCard>
       </FadeInOnView>
 
       {/* About Dynamic Capital */}
       <FadeInOnView delay={300} animation="bounce-in">
-        <MotionCard variant="glass" hover={true} animate={true} delay={0.4} className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-subheading">
+        <LiquidCard className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]" color="hsl(var(--primary))">
+          <div className="p-6">
+            <div className="flex items-center gap-2 mb-4">
               <Award className="icon-sm text-primary animate-pulse-glow" />
-              About Dynamic Capital
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="prose">
+              <h3 className="text-subheading font-semibold">About Dynamic Capital</h3>
+            </div>
             <p className="text-body-sm text-foreground whitespace-pre-line leading-relaxed">
               {aboutUs}
             </p>
-          </CardContent>
-        </MotionCard>
+          </div>
+        </LiquidCard>
       </FadeInOnView>
 
       {/* Our Services - Stack Carousel */}

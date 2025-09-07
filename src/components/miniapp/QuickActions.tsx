@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { RippleCard, Interactive3DCard, StaggeredGrid, MagneticCard } from "@/components/ui/interactive-cards";
 import { MessageSquare, Users, Bell, Star, Headphones, BookOpen, ExternalLink, Zap, TrendingUp } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { toast } from "sonner";
@@ -182,101 +183,87 @@ export function QuickActions() {
         </CardHeader>
         
         <CardContent className="relative z-10">
-          <motion.div 
-            className="grid grid-cols-2 md:grid-cols-3 gap-3"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.1,
-                  delayChildren: 0.3
-                }
-              }
-            }}
-            initial="hidden"
-            animate="visible"
-          >
+          <StaggeredGrid columns={3} staggerDelay={0.1} className="grid-cols-2 md:grid-cols-3">
             {quickActions.map((action, index) => (
-              <motion.div
+              <Interactive3DCard
                 key={action.id}
-                variants={{
-                  hidden: { opacity: 0, y: 20, scale: 0.9 },
-                  visible: { 
-                    opacity: 1, 
-                    y: 0, 
-                    scale: 1,
-                    transition: { duration: 0.4, ease: [0.6, -0.05, 0.01, 0.99] }
-                  }
-                }}
-                whileHover={{ 
-                  scale: 1.05,
-                  y: -2,
-                  transition: { duration: 0.2 }
-                }}
-                whileTap={{ scale: 0.95 }}
+                intensity={0.08}
+                scale={1.03}
+                glowEffect={action.priority === 'high'}
+                magneticEffect={action.priority === 'high'}
+                onClick={action.action}
+                className="h-full"
               >
-                <Card 
-                  className={`
-                    cursor-pointer transition-all duration-300 hover:shadow-lg
-                    ${getPriorityStyles(action.priority)}
-                    group relative overflow-hidden
-                  `}
-                  onClick={action.action}
-                >
-                  <CardContent className="p-4 text-center relative">
-                    <AnimatePresence>
-                      {action.isExternal && (
-                        <motion.div
-                          className="absolute top-2 right-2"
-                          initial={{ opacity: 0, scale: 0 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0 }}
-                          transition={{ delay: 0.5 + index * 0.1 }}
-                        >
-                          <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    
+                <div className={`
+                  p-4 text-center relative transition-all duration-300
+                  ${getPriorityStyles(action.priority)}
+                  rounded-xl border group overflow-hidden h-full flex flex-col justify-center
+                `}>
+                  <AnimatePresence>
+                    {action.isExternal && (
+                      <motion.div
+                        className="absolute top-2 right-2"
+                        initial={{ opacity: 0, scale: 0, rotate: -180 }}
+                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                        exit={{ opacity: 0, scale: 0, rotate: 180 }}
+                        transition={{ delay: 0.5 + index * 0.1, type: "spring" }}
+                      >
+                        <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  
+                  <motion.div 
+                    className={`mb-3 flex justify-center ${getIconStyles(action.priority)}`}
+                    whileHover={{ 
+                      scale: 1.2,
+                      rotate: action.title === "Signal Alerts" ? 15 : action.title === "Track Performance" ? -15 : 5
+                    }}
+                    transition={{ duration: 0.3, type: "spring", stiffness: 400 }}
+                  >
                     <motion.div 
-                      className={`mb-3 flex justify-center ${getIconStyles(action.priority)}`}
+                      className="p-2 rounded-full bg-background/50 group-hover:bg-background/80 transition-colors"
                       whileHover={{ 
-                        scale: 1.1,
-                        rotate: action.title === "Signal Alerts" ? 15 : action.title === "Track Performance" ? -15 : 0
+                        boxShadow: action.priority === 'high' ? "0 0 20px hsl(var(--primary) / 0.3)" : "0 4px 20px rgba(0,0,0,0.1)"
                       }}
-                      transition={{ duration: 0.2 }}
                     >
-                      <div className="p-2 rounded-full bg-background/50 group-hover:bg-background/80 transition-colors">
-                        {action.icon}
-                      </div>
+                      {action.icon}
                     </motion.div>
+                  </motion.div>
                     
-                    <motion.h4 
-                      className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors"
-                      initial={{ opacity: 0.8 }}
-                      whileHover={{ opacity: 1 }}
-                    >
-                      {action.title}
-                    </motion.h4>
-                    
-                    <p className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                      {action.description}
-                    </p>
-                    
-                    {/* Hover effect overlay */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100"
-                      initial={false}
-                      animate={{ x: "-100%" }}
-                      whileHover={{ x: "100%" }}
-                      transition={{ duration: 0.8, ease: "easeInOut" }}
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
+                  <motion.h4 
+                    className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors"
+                    initial={{ opacity: 0.8 }}
+                    whileHover={{ opacity: 1, scale: 1.05 }}
+                  >
+                    {action.title}
+                  </motion.h4>
+                  
+                  <motion.p 
+                    className="text-xs text-muted-foreground group-hover:text-foreground transition-colors"
+                    initial={{ opacity: 0.6 }}
+                    whileHover={{ opacity: 1 }}
+                  >
+                    {action.description}
+                  </motion.p>
+                  
+                  {/* Prismatic overlay effect */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-0 group-hover:opacity-100"
+                    initial={false}
+                    animate={{ x: "-100%" }}
+                    whileHover={{ 
+                      x: "100%",
+                      background: action.priority === 'high' 
+                        ? "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent)"
+                        : "linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent)"
+                    }}
+                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                  />
+                </div>
+              </Interactive3DCard>
             ))}
-          </motion.div>
+          </StaggeredGrid>
           
           <motion.div 
             className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20"

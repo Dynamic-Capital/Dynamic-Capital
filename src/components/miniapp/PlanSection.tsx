@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
+import { Interactive3DCard, StaggeredGrid, RippleCard, LiquidCard } from "@/components/ui/interactive-cards";
 import { Button } from "@/components/ui/button";
 import { InputField } from "@/components/ui/input-field";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { CurrencySelector } from "./CurrencySelector";
 import { useCurrency } from "@/hooks/useCurrency";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Plan {
   id: string;
@@ -164,7 +166,7 @@ export default function PlanSection() {
   return (
     <FadeInOnView>
       <div className="ui-stack-base">
-        <MotionCard variant="glass" hover={true} animate={true} className="liquid-glass">
+        <LiquidCard className="liquid-glass" color="hsl(var(--primary))">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-subheading">
               <CreditCard className="icon-sm animate-pulse-glow" />
@@ -237,81 +239,166 @@ export default function PlanSection() {
             )}
 
             {/* Plans */}
-            <HorizontalSnapScroll 
-              itemWidth="clamp(260px, 82vw, 300px)" 
-              gap="clamp(0.75rem, 2vw, 1rem)"
-              className="pb-4 scroll-padding-mobile"
-              showArrows={plans.length > 1}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
             >
-              {plans.map((plan, index) => (
-                 <div 
-                   key={plan.id} 
-                   className="liquid-glass relative ui-p-lg ui-rounded-xl hover:scale-105 transition-all duration-300 cursor-pointer group"
-                   style={{ animationDelay: `${index * 150}ms` }}
-                   onClick={() => handleSelectPlan(plan.id)}
-                 >
-                  <div className="flex justify-between items-start ui-mb-base">
-                     <div className="ui-stack-xs">
-                       <div className="flex items-center gap-2">
-                         <h4 className="font-semibold text-heading font-sf-pro text-foreground">{plan.name}</h4>
-                        {(plan.id === userPreferredPlanId || (plan.id === popularPlanId && !userPreferredPlanId)) && (
-                          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs animate-pulse ui-p-xs">
-                            <Star className="icon-xs ui-mr-xs" />
-                            Most Popular
-                          </Badge>
-                        )}
-                        {plan.id !== popularPlanId && index === 0 && (
-                          <Badge variant="outline" className="text-xs ui-p-xs">
-                            <TrendingUp className="icon-xs ui-mr-xs" />
-                            Best Value
-                          </Badge>
-                        )}
-                      </div>
-                       <p className="text-body-sm text-muted-foreground font-sf-pro">
-                         {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
-                       </p>
-                    </div>
-                    <div className="text-right ui-stack-xs">
-                      <div className="text-title font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                        {currency === "MVR" ? "Rf" : "$"}{promoValidation?.valid && promoValidation.final_amount ? 
-                          (currency === "MVR" ? Math.round(promoValidation.final_amount * exchangeRate) : promoValidation.final_amount) : 
-                          getDisplayPrice(plan)}
-                      </div>
-                      {promoValidation?.valid && promoValidation.final_amount !== plan.price && (
-                        <div className="text-body-sm text-muted-foreground line-through">
-                          {currency === "MVR" ? "Rf" : "$"}{getDisplayPrice(plan)}
+              <StaggeredGrid columns={1} staggerDelay={0.2} className="!grid-cols-1">
+                {plans.map((plan, index) => (
+                  <Interactive3DCard
+                    key={plan.id}
+                    intensity={0.1}
+                    scale={1.03}
+                    glowEffect={true}
+                    onClick={() => handleSelectPlan(plan.id)}
+                    className="group cursor-pointer"
+                  >
+                    <motion.div 
+                      className="flex justify-between items-start ui-mb-base"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 + 0.2 }}
+                    >
+                      <div className="ui-stack-xs">
+                        <div className="flex items-center gap-2">
+                          <motion.h4 
+                            className="font-semibold text-heading font-sf-pro text-foreground"
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            {plan.name}
+                          </motion.h4>
+                          <AnimatePresence>
+                            {(plan.id === userPreferredPlanId || (plan.id === popularPlanId && !userPreferredPlanId)) && (
+                              <motion.div
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                exit={{ scale: 0, rotate: 180 }}
+                                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                              >
+                                <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs animate-pulse ui-p-xs">
+                                  <motion.div
+                                    animate={{ rotate: [0, 15, -15, 0] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                  >
+                                    <Star className="icon-xs ui-mr-xs" />
+                                  </motion.div>
+                                  Most Popular
+                                </Badge>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                          {plan.id !== popularPlanId && index === 0 && (
+                            <motion.div
+                              initial={{ scale: 0, y: -10 }}
+                              animate={{ scale: 1, y: 0 }}
+                              transition={{ delay: 0.5 }}
+                            >
+                              <Badge variant="outline" className="text-xs ui-p-xs">
+                                <TrendingUp className="icon-xs ui-mr-xs" />
+                                Best Value
+                              </Badge>
+                            </motion.div>
+                          )}
                         </div>
-                      )}
-                      <div className="text-caption text-muted-foreground font-medium">{currency}</div>
-                      {currency === "MVR" && (
-                        <div className="text-caption text-muted-foreground">
-                          ≈ ${Math.round(plan.price)} USD
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {plan.features && plan.features.length > 0 && (
-                    <div className="ui-mb-base">
-                      <div className="ui-stack-sm">
-                        {plan.features.slice(0, 3).map((feature, idx) => (
-                          <div key={idx} className="flex items-center gap-3">
-                            <Check className="icon-xs text-green-500" />
-                            <span className="text-body-sm text-foreground">{feature}</span>
+                        <motion.p 
+                          className="text-body-sm text-muted-foreground font-sf-pro"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: index * 0.1 + 0.3 }}
+                        >
+                          {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
+                        </motion.p>
+                      </div>
+                      <motion.div 
+                        className="text-right ui-stack-xs"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 + 0.2 }}
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        <motion.div 
+                          className="text-title font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent"
+                          animate={{ 
+                            backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
+                          }}
+                          transition={{ 
+                            duration: 3, 
+                            repeat: Infinity,
+                            ease: "linear"
+                          }}
+                          style={{ backgroundSize: "200% 200%" }}
+                        >
+                          {currency === "MVR" ? "Rf" : "$"}{promoValidation?.valid && promoValidation.final_amount ? 
+                            (currency === "MVR" ? Math.round(promoValidation.final_amount * exchangeRate) : promoValidation.final_amount) : 
+                            getDisplayPrice(plan)}
+                        </motion.div>
+                        <AnimatePresence>
+                          {promoValidation?.valid && promoValidation.final_amount !== plan.price && (
+                            <motion.div 
+                              className="text-body-sm text-muted-foreground line-through"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                            >
+                              {currency === "MVR" ? "Rf" : "$"}{getDisplayPrice(plan)}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        <div className="text-caption text-muted-foreground font-medium">{currency}</div>
+                        {currency === "MVR" && (
+                          <div className="text-caption text-muted-foreground">
+                            ≈ ${Math.round(plan.price)} USD
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                        )}
+                      </motion.div>
+                    </motion.div>
 
-                   <Button 
-                     className="w-full liquid-glass-button text-foreground hover:scale-105 transition-all duration-300 ui-rounded-full text-body-sm font-medium font-sf-pro"
-                   >
-                     {isInTelegram ? 'Select Plan' : 'Open in Telegram'}
-                   </Button>
-                </div>
-              ))}
-            </HorizontalSnapScroll>
+                    {plan.features && plan.features.length > 0 && (
+                      <motion.div 
+                        className="ui-mb-base"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 + 0.4 }}
+                      >
+                        <div className="ui-stack-sm">
+                          {plan.features.slice(0, 3).map((feature, idx) => (
+                            <motion.div 
+                              key={idx} 
+                              className="flex items-center gap-3"
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.1 + 0.5 + idx * 0.1 }}
+                              whileHover={{ x: 5 }}
+                            >
+                              <motion.div
+                                whileHover={{ scale: 1.2, rotate: 360 }}
+                                transition={{ duration: 0.3 }}
+                              >
+                                <Check className="icon-xs text-green-500" />
+                              </motion.div>
+                              <span className="text-body-sm text-foreground">{feature}</span>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    >
+                      <Button 
+                        className="w-full liquid-glass-button text-foreground hover:scale-105 transition-all duration-300 ui-rounded-full text-body-sm font-medium font-sf-pro"
+                      >
+                        {isInTelegram ? 'Select Plan' : 'Open in Telegram'}
+                      </Button>
+                    </motion.div>
+                  </Interactive3DCard>
+                ))}
+              </StaggeredGrid>
+            </motion.div>
 
             <FadeInOnView delay={800} animation="bounce-in">
               <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-lg">
@@ -328,7 +415,7 @@ export default function PlanSection() {
               </div>
             </FadeInOnView>
           </CardContent>
-        </MotionCard>
+        </LiquidCard>
       </div>
     </FadeInOnView>
   );
