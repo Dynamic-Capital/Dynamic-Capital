@@ -359,7 +359,7 @@ All colors MUST be HSL. This ensures consistency across all UI elements. */
       hsl(0 0% 100% / 0.1) 0%, 
       hsl(0 0% 100% / 0.05) 100%);
     @apply border-white/20;
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 15px hsl(var(--primary) / 0.15);
   }
 
   /* Interactive States */
@@ -591,4 +591,33 @@ All colors MUST be HSL. This ensures consistency across all UI elements. */
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Shadow utilities with reduced opacity */
+.shadow-subtle {
+  box-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.05), 0 1px 2px 0 hsl(0 0% 0% / 0.03);
+}
+
+.glass-elegant {
+  box-shadow: 0 8px 32px 0 hsl(var(--primary) / 0.08);
+}
+
+.glass-glow {
+  box-shadow: 0 0 40px hsl(var(--primary) / 0.08);
+}
+
+/* Glass Input */
+.glass-input {
+  background: linear-gradient(135deg, 
+    hsl(0 0% 100% / 0.05) 0%, 
+    hsl(0 0% 100% / 0.02) 100%);
+  @apply backdrop-blur-sm border border-white/10;
+  transition: all 0.2s ease;
+}
+
+.glass-input:focus {
+  background: linear-gradient(135deg, 
+    hsl(0 0% 100% / 0.08) 0%, 
+    hsl(0 0% 100% / 0.04) 100%);
+  @apply border-primary/30 ring-2 ring-primary/20;
 }

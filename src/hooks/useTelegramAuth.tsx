@@ -102,6 +102,13 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       const userIdToCheck = userId || telegramUser?.id?.toString();
       if (!userIdToCheck) return false;
 
+      // Check if user is the hardcoded admin first
+      const isHardcodedAdmin = userIdToCheck === '225513686';
+      if (isHardcodedAdmin) {
+        setIsAdmin(true);
+        return true;
+      }
+
       const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-check', {
         method: 'POST',
         headers: {
