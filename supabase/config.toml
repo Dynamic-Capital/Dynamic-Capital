@@ -1,5 +1,8 @@
 project_id = "qeejuomcapbdlhnjqjcc"
 
+[functions.admin-session]
+verify_jwt = false
+
 [functions.telegram-bot]
 verify_jwt = false
 

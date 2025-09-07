@@ -22,6 +22,11 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import { AdminGate } from "./AdminGate";
+import { AdminLogs } from "./AdminLogs";
+import { AdminBans } from "./AdminBans";
+import { BroadcastManager } from "./BroadcastManager";
+import { BotDiagnostics } from "./BotDiagnostics";
 
 interface AdminStats {
   total_users: number;
@@ -52,7 +57,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [pendingPayments, setPendingPayments] = useState<PendingPayment[]>([]);
   const { toast } = useToast();
-  const { telegramUser, isAdmin, loading, checkAdminStatus } = useTelegramAuth();
+  const { telegramUser, isAdmin, loading, getAdminAuth } = useTelegramAuth();
 
   const getUserId = () => {
     return telegramUser?.id?.toString() || telegramData?.user?.id?.toString() || null;
@@ -67,12 +72,22 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
 
   const loadAdminData = async () => {
     try {
+      const auth = getAdminAuth();
+      if (!auth) {
+        throw new Error("No admin authentication available");
+      }
+
       // Load admin stats
       const statsResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/analytics-data', {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+        },
+        body: JSON.stringify({
+          ...(auth.initData ? { initData: auth.initData } : {}),
+          timeframe: "today"
+        })
       });
 
       if (statsResponse.ok) {
@@ -82,15 +97,21 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
 
       // Load pending payments
       const paymentsResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-list-pending', {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+        },
+        body: JSON.stringify({
+          ...(auth.initData ? { initData: auth.initData } : {}),
+          limit: 20,
+          offset: 0
+        })
       });
 
       if (paymentsResponse.ok) {
         const paymentsData = await paymentsResponse.json();
-        setPendingPayments(paymentsData.payments || []);
+        setPendingPayments(paymentsData.items || []);
       }
 
     } catch (error) {
@@ -103,38 +124,45 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
     }
   };
 
-  const handlePaymentAction = async (paymentId: string, action: 'approve' | 'reject') => {
+  const handlePaymentAction = async (paymentId: string, decision: 'approve' | 'reject') => {
     try {
+      const auth = getAdminAuth();
+      if (!auth) {
+        throw new Error("No admin authentication available");
+      }
+
       const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-act-on-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
         body: JSON.stringify({
+          ...(auth.initData ? { initData: auth.initData } : {}),
           payment_id: paymentId,
-          action: action,
-          admin_telegram_id: getUserId()
+          decision: decision,
+          message: `Payment ${decision}d by admin`
         })
       });
 
       const data = await response.json();
       
-      if (data.success) {
+      if (response.ok && data.ok) {
         toast({
           title: "Success",
-          description: `Payment ${action}d successfully`,
+          description: `Payment ${decision}d successfully`,
         });
         
         // Refresh pending payments
         await loadAdminData();
       } else {
-        throw new Error(data.error || `Failed to ${action} payment`);
+        throw new Error(data.error || `Failed to ${decision} payment`);
       }
     } catch (error) {
-      console.error(`Failed to ${action} payment:`, error);
+      console.error(`Failed to ${decision} payment:`, error);
       toast({
         title: "Error",
-        description: `Failed to ${action} payment`,
+        description: `Failed to ${decision} payment`,
         variant: "destructive",
       });
     }
@@ -170,7 +198,8 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   }
 
   return (
-    <div className="space-y-6 animate-in">
+    <AdminGate>
+      <div className="space-y-6 animate-in">
       <Card className="glass-card border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-heading animate-glow">
@@ -184,11 +213,13 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       </Card>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 glass-card">
+        <TabsList className="grid w-full grid-cols-6 glass-card">
           <TabsTrigger value="overview" className="glass-tab">Overview</TabsTrigger>
           <TabsTrigger value="payments" className="glass-tab">Payments</TabsTrigger>
-          <TabsTrigger value="users" className="glass-tab">Users</TabsTrigger>
-          <TabsTrigger value="settings" className="glass-tab">Settings</TabsTrigger>
+          <TabsTrigger value="logs" className="glass-tab">Logs</TabsTrigger>
+          <TabsTrigger value="bans" className="glass-tab">Bans</TabsTrigger>
+          <TabsTrigger value="broadcast" className="glass-tab">Broadcast</TabsTrigger>
+          <TabsTrigger value="bot" className="glass-tab">Bot</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 animate-slide-up">
@@ -312,38 +343,23 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCheck className="w-5 h-5" />
-                User Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-4">
-                User management features coming soon...
-              </p>
-            </CardContent>
-          </Card>
+        <TabsContent value="logs" className="space-y-4">
+          <AdminLogs />
         </TabsContent>
 
-        <TabsContent value="settings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                Bot Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-4">
-                Settings management coming soon...
-              </p>
-            </CardContent>
-          </Card>
+        <TabsContent value="bans" className="space-y-4">
+          <AdminBans />
         </TabsContent>
-      </Tabs>
-    </div>
+
+        <TabsContent value="broadcast" className="space-y-4">
+          <BroadcastManager />
+        </TabsContent>
+
+        <TabsContent value="bot" className="space-y-4">
+          <BotDiagnostics />
+        </TabsContent>
+        </Tabs>
+      </div>
+    </AdminGate>
   );
 };

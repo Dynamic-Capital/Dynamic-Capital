@@ -1,251 +1,295 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
+import { Bot, Shield, RefreshCw, AlertTriangle, CheckCircle, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Loader2,
-  RefreshCw,
-  Webhook,
-  Bot
-} from "lucide-react";
-
-interface BotInfoData {
-  id: number;
-  username: string;
-  first_name: string;
-  can_read_all_group_messages: boolean;
-  supports_inline_queries: boolean;
-}
-
-interface WebhookInfoData {
-  url: string;
-  has_custom_certificate: boolean;
-  pending_update_count: number;
-  last_error_date?: number;
-  last_error_message?: string;
-  max_connections: number;
-  allowed_updates?: string[];
-}
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 interface BotStatus {
-  bot_info: {
-    success: boolean;
-    data?: BotInfoData | null;
-    error?: string | null;
-  };
-  webhook_info: {
-    success: boolean;
-    data?: WebhookInfoData | null;
-    error?: string | null;
-  };
-  secrets: {
-    db_secret_exists: boolean;
-    env_secret_exists: boolean;
-    secrets_match: boolean;
-    db_secret_preview?: string | null;
-  };
-  database: {
-    total_users: number;
-    connection_successful: boolean;
-  };
-  recommendations: string[];
+  bot_status: string;
+  webhook_status: string;
+  last_update: string;
+  webhook_url?: string;
+  pending_updates?: number;
 }
 
-export const BotDiagnostics = () => {
-  const [status, setStatus] = useState<BotStatus | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [setupLoading, setSetupLoading] = useState(false);
+export function BotDiagnostics() {
+  const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isRotating, setIsRotating] = useState(false);
+  const { getAdminAuth } = useTelegramAuth();
   const { toast } = useToast();
 
-  const checkBotStatus = async () => {
+  const loadBotStatus = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke<BotStatus>('bot-status-check');
+      const auth = getAdminAuth();
+      if (!auth) {
+        throw new Error("No admin authentication available");
+      }
 
-      if (error) throw error;
-
-      setStatus(data);
-      toast({
-        title: "Status Check Complete",
-        description: "Bot diagnostics updated successfully",
+      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/bot-status-check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+        },
+        body: JSON.stringify({
+          ...(auth.initData ? { initData: auth.initData } : {})
+        })
       });
+
+      const data = await response.json();
+      
+      if (response.ok && data.ok) {
+        setBotStatus(data);
+      } else {
+        console.warn('Failed to load bot status:', data.error);
+        setBotStatus(null);
+      }
     } catch (error) {
-      console.error("Error checking bot status:", error);
+      console.error('Failed to load bot status:', error);
+      setBotStatus(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const rotateWebhookSecret = async () => {
+    setIsRotating(true);
+    try {
+      const auth = getAdminAuth();
+      if (!auth) {
+        throw new Error("No admin authentication available");
+      }
+
+      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/rotate-webhook-secret', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+        },
+        body: JSON.stringify({
+          ...(auth.initData ? { initData: auth.initData } : {})
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.ok) {
+        toast({
+          title: "Success",
+          description: "Webhook secret rotated successfully",
+        });
+        await loadBotStatus();
+      } else {
+        throw new Error(data.error || 'Failed to rotate webhook secret');
+      }
+    } catch (error) {
+      console.error('Failed to rotate webhook secret:', error);
       toast({
         title: "Error",
-        description: "Failed to check bot status. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to rotate webhook secret",
         variant: "destructive",
       });
+    } finally {
+      setIsRotating(false);
     }
-    setLoading(false);
   };
 
-  const setupWebhook = async () => {
-    setSetupLoading(true);
+  const resetBot = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke<{ webhook_secret: string }>('setup-webhook-helper');
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Webhook Setup Complete",
-        description: `Webhook configured successfully! Secret: ${data.webhook_secret}`,
+      const auth = getAdminAuth();
+      if (!auth) {
+        throw new Error("No admin authentication available");
+      }
+
+      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/reset-bot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+        },
+        body: JSON.stringify({
+          ...(auth.initData ? { initData: auth.initData } : {})
+        })
       });
+
+      const data = await response.json();
       
-      // Refresh status after setup
-      setTimeout(() => {
-        checkBotStatus();
-      }, 2000);
-      
+      if (response.ok && data.ok) {
+        toast({
+          title: "Success",
+          description: "Bot reset successfully",
+        });
+        await loadBotStatus();
+      } else {
+        throw new Error(data.error || 'Failed to reset bot');
+      }
     } catch (error) {
-      console.error("Error setting up webhook:", error);
+      console.error('Failed to reset bot:', error);
       toast({
-        title: "Setup Failed",
-        description: "Failed to setup webhook. Please try again.",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to reset bot",
         variant: "destructive",
       });
     }
-    setSetupLoading(false);
   };
 
-  const getStatusIcon = (success: boolean, warning = false) => {
-    if (success && !warning) return <CheckCircle className="h-4 w-4 text-success" />;
-    if (warning) return <AlertTriangle className="h-4 w-4 text-warning" />;
-    return <XCircle className="h-4 w-4 text-destructive" />;
+  useEffect(() => {
+    loadBotStatus();
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+      case 'online':
+      case 'healthy':
+        return 'bg-green-500/10 text-green-500 border-green-500/20';
+      case 'error':
+      case 'failed':
+      case 'offline':
+        return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'warning':
+      case 'pending':
+        return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+      default:
+        return 'bg-muted text-muted-foreground';
+    }
   };
 
-  const getStatusBadge = (success: boolean, warning = false) => {
-    if (success && !warning) return <Badge variant="default" className="bg-success text-success-foreground">OK</Badge>;
-    if (warning) return <Badge variant="secondary" className="bg-warning text-warning-foreground">Warning</Badge>;
-    return <Badge variant="destructive">Error</Badge>;
+  const getStatusIcon = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+      case 'online':
+      case 'healthy':
+        return <CheckCircle className="w-4 h-4" />;
+      case 'error':
+      case 'failed':
+      case 'offline':
+        return <AlertTriangle className="w-4 h-4" />;
+      default:
+        return <Bot className="w-4 h-4" />;
+    }
   };
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="glass-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
-            Bot Diagnostics
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bot className="w-5 h-5" />
+              Bot Diagnostics
+            </div>
+            <Button onClick={loadBotStatus} disabled={loading} variant="outline" size="sm">
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
           </CardTitle>
-          <CardDescription>
-            Check the status of your Telegram bot configuration and fix any issues
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Button onClick={checkBotStatus} disabled={loading}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-              Check Status
-            </Button>
-            <Button onClick={setupWebhook} disabled={setupLoading} variant="outline">
-              {setupLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Webhook className="h-4 w-4 mr-2" />}
-              Setup Webhook
-            </Button>
-          </div>
-
-          {status && (
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <span className="ml-2">Checking bot status...</span>
+            </div>
+          ) : botStatus ? (
             <div className="space-y-4">
-              {/* Bot Info */}
-              <div className="flex items-center justify-between p-3 bg-card rounded-lg border">
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(status.bot_info.success)}
-                  <span className="font-medium">Bot Connection</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(status.bot_info.success)}
-                  {status.bot_info.data && (
-                    <span className="text-sm text-muted-foreground">
-                      @{status.bot_info.data.username}
-                    </span>
-                  )}
-                </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      {getStatusIcon(botStatus.bot_status)}
+                      Bot Status
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge className={getStatusColor(botStatus.bot_status)}>
+                      {botStatus.bot_status}
+                    </Badge>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <Shield className="w-4 h-4" />
+                      Webhook Status
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge className={getStatusColor(botStatus.webhook_status)}>
+                      {botStatus.webhook_status}
+                    </Badge>
+                  </CardContent>
+                </Card>
               </div>
 
-              {/* Webhook Info */}
-              <div className="flex items-center justify-between p-3 bg-card rounded-lg border">
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(
-                    status.webhook_info.success && !!status.webhook_info.data?.url,
-                    status.webhook_info.data?.pending_update_count > 0
-                  )}
-                  <span className="font-medium">Webhook Configuration</span>
+              {botStatus.webhook_url && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Webhook URL</h4>
+                  <p className="text-xs font-mono bg-muted p-2 rounded break-all">
+                    {botStatus.webhook_url}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(
-                    status.webhook_info.success && !!status.webhook_info.data?.url,
-                    status.webhook_info.data?.pending_update_count > 0
-                  )}
-                  {status.webhook_info.data?.pending_update_count > 0 && (
-                    <span className="text-sm text-muted-foreground">
-                      {status.webhook_info.data.pending_update_count} pending
-                    </span>
-                  )}
-                </div>
-              </div>
+              )}
 
-              {/* Secrets */}
-              <div className="flex items-center justify-between p-3 bg-card rounded-lg border">
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(
-                    status.secrets.env_secret_exists && status.secrets.secrets_match,
-                    status.secrets.db_secret_exists && !status.secrets.env_secret_exists
-                  )}
-                  <span className="font-medium">Webhook Secret</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(
-                    status.secrets.env_secret_exists && status.secrets.secrets_match,
-                    status.secrets.db_secret_exists && !status.secrets.env_secret_exists
-                  )}
-                  {status.secrets.db_secret_preview && (
-                    <span className="text-sm text-muted-foreground font-mono">
-                      {status.secrets.db_secret_preview}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Database */}
-              <div className="flex items-center justify-between p-3 bg-card rounded-lg border">
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(status.database.connection_successful)}
-                  <span className="font-medium">Database Connection</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(status.database.connection_successful)}
-                  <span className="text-sm text-muted-foreground">
-                    {status.database.total_users} users
-                  </span>
-                </div>
-              </div>
-
-              {/* Recommendations */}
-              {status.recommendations.length > 0 && (
+              {botStatus.pending_updates !== undefined && botStatus.pending_updates > 0 && (
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    <div className="space-y-1">
-                      <p className="font-medium">Recommendations:</p>
-                      <ul className="space-y-1">
-                        {status.recommendations.map((rec, index) => (
-                          <li key={index} className="text-sm">{rec}</li>
-                        ))}
-                      </ul>
-                    </div>
+                    {botStatus.pending_updates} pending updates detected
                   </AlertDescription>
                 </Alert>
               )}
+
+              <div className="text-xs text-muted-foreground">
+                Last checked: {new Date(botStatus.last_update).toLocaleString()}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              Failed to load bot status
             </div>
           )}
         </CardContent>
       </Card>
+
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            Bot Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button 
+            onClick={rotateWebhookSecret} 
+            disabled={isRotating}
+            variant="outline"
+            className="w-full"
+          >
+            <Shield className="w-4 h-4 mr-2" />
+            {isRotating ? "Rotating..." : "Rotate Webhook Secret"}
+          </Button>
+          
+          <Button 
+            onClick={resetBot}
+            variant="destructive"
+            className="w-full"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Reset Bot
+          </Button>
+          
+          <p className="text-xs text-muted-foreground">
+            Use these tools carefully. Rotating webhook secret will update security credentials. 
+            Resetting the bot will clear temporary state and restart services.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
-};
+}

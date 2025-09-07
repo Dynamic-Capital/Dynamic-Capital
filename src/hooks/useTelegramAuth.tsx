@@ -18,6 +18,7 @@ interface TelegramAuthContextType {
   initData: string | null;
   verifyTelegramAuth: () => Promise<boolean>;
   checkAdminStatus: () => Promise<boolean>;
+  getAdminAuth: () => { initData?: string; token?: string } | null;
 }
 
 const TelegramAuthContext = createContext<TelegramAuthContextType | undefined>(undefined);
@@ -105,21 +106,39 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       const userIdToCheck = userId || telegramUser?.id?.toString();
       if (!userIdToCheck) return false;
 
+      // Prefer using initData for admin check
+      if (initData) {
+        const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-check', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            initData: initData
+          })
+        });
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/api/admin-check', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          telegram_user_id: userIdToCheck
-        })
-      });
+        const result = await response.json();
+        const adminStatus = result.ok === true;
+        setIsAdmin(adminStatus);
+        return adminStatus;
+      } else {
+        // Fallback to telegram_user_id check
+        const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-check', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            telegram_user_id: userIdToCheck
+          })
+        });
 
-      const result = await response.json();
-      const adminStatus = result.is_admin === true;
-      setIsAdmin(adminStatus);
-      return adminStatus;
+        const result = await response.json();
+        const adminStatus = result.is_admin === true;
+        setIsAdmin(adminStatus);
+        return adminStatus;
+      }
     } catch (error) {
       console.error('Failed to check admin status:', error);
       return false;
@@ -162,6 +181,30 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
     }
   };
 
+  const getAdminAuth = () => {
+    // Check for stored admin token
+    const token = localStorage.getItem('dc_admin_token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp > Date.now() / 1000 && payload.admin) {
+          return { token };
+        }
+        // Token expired, remove it
+        localStorage.removeItem('dc_admin_token');
+      } catch {
+        localStorage.removeItem('dc_admin_token');
+      }
+    }
+    
+    // Use initData if available
+    if (initData) {
+      return { initData };
+    }
+    
+    return null;
+  };
+
   const value: TelegramAuthContextType = {
     telegramUser,
     isAdmin,
@@ -169,7 +212,8 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
     loading,
     initData,
     verifyTelegramAuth,
-    checkAdminStatus
+    checkAdminStatus,
+    getAdminAuth
   };
 
   return (
