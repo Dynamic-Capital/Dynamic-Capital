@@ -20,17 +20,22 @@ export default {
     },
     extend: {
       fontFamily: {
+        'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        'poppins': ['Poppins', 'system-ui', '-apple-system', 'sans-serif'],
         'sf-pro': ['SF Pro Text', 'system-ui', '-apple-system', 'sans-serif'],
-        'sans': ['SF Pro Text', 'system-ui', '-apple-system', 'sans-serif'],
+        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       fontSize: {
-        'xs': ['0.75rem', { lineHeight: '1.4' }],      // 12px
-        'sm': ['0.875rem', { lineHeight: '1.4' }],     // 14px  
-        'base': ['1rem', { lineHeight: '1.5' }],       // 16px
-        'lg': ['1.125rem', { lineHeight: '1.4' }],     // 18px
-        'xl': ['1.25rem', { lineHeight: '1.4' }],      // 20px
-        '2xl': ['1.5rem', { lineHeight: '1.3' }],      // 24px
-        '3xl': ['1.875rem', { lineHeight: '1.2' }],    // 30px
+        'xs': ['0.75rem', { lineHeight: '1.5', fontWeight: '400' }],      // 12px
+        'sm': ['0.875rem', { lineHeight: '1.6', fontWeight: '400' }],     // 14px  
+        'base': ['1rem', { lineHeight: '1.7', fontWeight: '400' }],       // 16px
+        'lg': ['1.125rem', { lineHeight: '1.6', fontWeight: '500' }],     // 18px
+        'xl': ['1.25rem', { lineHeight: '1.5', fontWeight: '500' }],      // 20px
+        '2xl': ['1.5rem', { lineHeight: '1.4', fontWeight: '600' }],      // 24px
+        '3xl': ['1.875rem', { lineHeight: '1.3', fontWeight: '700' }],    // 30px
+        '4xl': ['2.25rem', { lineHeight: '1.2', fontWeight: '700' }],     // 36px
+        '5xl': ['3rem', { lineHeight: '1.1', fontWeight: '800' }],        // 48px
+        '6xl': ['3.75rem', { lineHeight: '1', fontWeight: '900' }],       // 60px
       },
       spacing: {
         'xs': '0.25rem',    // 4px

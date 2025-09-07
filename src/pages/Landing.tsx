@@ -7,6 +7,7 @@ import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { AnimatedWelcome } from "@/components/welcome/AnimatedWelcome";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Landing = () => {
   const handleOpenTelegram = () => {
@@ -38,7 +39,9 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-inter text-foreground">
+      {/* Floating Theme Toggle */}
+      <ThemeToggle floating large size="lg" />
       {/* Enhanced Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary via-telegram to-purple-600 min-h-screen flex items-center">
         {/* Animated Background Elements */}
@@ -124,8 +127,8 @@ const Landing = () => {
         <div className="container mx-auto px-6">
           <FadeInOnView animation="fade-in">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">Trusted by Elite Traders Worldwide</h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6 font-poppins text-foreground">Trusted by Elite Traders Worldwide</h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed">
                 See what our VIP members are saying about their trading success
               </p>
             </div>
@@ -163,14 +166,14 @@ const Landing = () => {
                         {testimonial.avatar}
                       </div>
                       <div>
-                        <h4 className="font-semibold">{testimonial.name}</h4>
-                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                        <h4 className="font-semibold font-poppins text-foreground">{testimonial.name}</h4>
+                        <p className="text-sm text-muted-foreground font-inter">{testimonial.role}</p>
                       </div>
-                      <Badge className="ml-auto bg-green-100 text-green-700">
+                      <Badge className="ml-auto bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-inter font-semibold">
                         {testimonial.profit}
                       </Badge>
                     </div>
-                    <p className="text-muted-foreground italic">"{testimonial.text}"</p>
+                    <p className="text-muted-foreground italic font-inter leading-relaxed">"{testimonial.text}"</p>
                     <div className="flex text-yellow-400">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className="w-4 h-4 fill-current" />
@@ -193,8 +196,8 @@ const Landing = () => {
                 <Award className="w-4 h-4 mr-2" />
                 Premium Services
               </Badge>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">Everything You Need to Succeed</h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6 font-poppins text-foreground">Everything You Need to Succeed</h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed">
                 Comprehensive trading solutions designed for maximum profitability
               </p>
             </div>
@@ -216,8 +219,8 @@ const Landing = () => {
         <div className="container mx-auto px-6">
           <FadeInOnView animation="fade-in">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">Why Choose Dynamic Capital VIP?</h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6 font-poppins text-foreground">Why Choose Dynamic Capital VIP?</h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed">
                 Get exclusive access to premium features designed for elite traders
               </p>
             </div>
@@ -250,8 +253,8 @@ const Landing = () => {
                     <div className={`bot-icon-wrapper w-16 h-16 mx-auto mb-6 bg-gradient-to-br ${feature.color} transform group-hover:scale-110 transition-transform duration-300`}>
                       <feature.icon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">{feature.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">
+                    <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors font-poppins">{feature.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed font-inter">
                       {feature.description}
                     </p>
                   </CardContent>

@@ -29,7 +29,7 @@ function WelcomeLine({ text, delay, icon: Icon, iconColor = "text-primary" }: We
         {Icon && (
           <Icon className={`h-6 w-6 ${iconColor} animate-pulse`} />
         )}
-        <p className="text-lg sm:text-xl text-muted-foreground font-medium text-center">
+        <p className="text-lg sm:text-xl text-muted-foreground font-medium text-center font-inter">
           {text}
         </p>
       </div>
@@ -126,7 +126,7 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
         <FadeInOnView delay={0} animation="bounce-in">
           <div className="flex items-center justify-center gap-4 mb-6">
             <Star className="h-12 w-12 text-primary animate-spin" style={{ animationDuration: '3s' }} />
-            <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground font-poppins">
               Dynamic Capital
             </h1>
             <Zap className="h-12 w-12 text-yellow-500 animate-bounce" />
@@ -134,7 +134,7 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
         </FadeInOnView>
 
         <FadeInOnView delay={200} animation="fade-in">
-          <h2 className="text-xl sm:text-2xl font-semibold text-primary mb-8 text-center">
+          <h2 className="text-xl sm:text-2xl font-semibold text-primary mb-8 text-center font-inter">
             Professional Trading • Premium Signals • VIP Support
           </h2>
         </FadeInOnView>
@@ -157,17 +157,17 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
           <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
             <div className="flex items-center gap-2 px-6 py-3 bg-success/10 border border-success/20 rounded-full animate-bounce-in hover:scale-105 transition-transform">
               <Users className="h-5 w-5 text-success animate-pulse" />
-              <span className="font-bold text-foreground">5000+ Members</span>
+              <span className="font-bold text-foreground font-poppins">5000+ Members</span>
             </div>
             
             <div className="flex items-center gap-2 px-6 py-3 bg-info/10 border border-info/20 rounded-full animate-bounce-in hover:scale-105 transition-transform" style={{ animationDelay: '200ms' }}>
               <TrendingUp className="h-5 w-5 text-info animate-pulse" />
-              <span className="font-bold text-foreground">85% Success</span>
+              <span className="font-bold text-foreground font-poppins">85% Success</span>
             </div>
             
             <div className="flex items-center gap-2 px-6 py-3 bg-primary/10 border border-primary/20 rounded-full animate-bounce-in hover:scale-105 transition-transform" style={{ animationDelay: '400ms' }}>
               <Shield className="h-5 w-5 text-primary animate-pulse" />
-              <span className="font-bold text-foreground">Verified</span>
+              <span className="font-bold text-foreground font-poppins">Verified</span>
             </div>
           </div>
 
@@ -175,7 +175,7 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
               size="lg" 
-              className="text-lg px-8 py-4 animate-pulse-glow hover:scale-105 transition-transform"
+              className="text-lg px-8 py-4 animate-pulse-glow hover:scale-105 transition-transform font-semibold font-poppins"
               onClick={() => {
                 document.getElementById('plans-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
@@ -187,7 +187,7 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
             <Button 
               variant="outline" 
               size="lg"
-              className="text-lg px-8 py-4 hover:scale-105 transition-transform"
+              className="text-lg px-8 py-4 hover:scale-105 transition-transform font-semibold font-poppins"
               onClick={() => {
                 document.getElementById('contact-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
