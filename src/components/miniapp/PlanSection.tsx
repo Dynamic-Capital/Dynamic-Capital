@@ -165,8 +165,8 @@ export default function PlanSection() {
 
             {/* Plans */}
             <HorizontalSnapScroll 
-              itemWidth="280px" 
-              gap="1rem"
+              itemWidth="clamp(280px, 85vw, 320px)" 
+              gap="clamp(0.75rem, 2.5vw, 1rem)"
               className="pb-4"
             >
               {plans.map((plan, index) => (

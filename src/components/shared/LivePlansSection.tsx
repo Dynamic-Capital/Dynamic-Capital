@@ -120,8 +120,8 @@ export const LivePlansSection = ({
             )}
 
             <HorizontalSnapScroll 
-              itemWidth="320px" 
-              gap="1.5rem"
+              itemWidth="clamp(300px, 90vw, 350px)" 
+              gap="clamp(1rem, 3vw, 1.5rem)"
               className="pb-4"
             >
               {plans.map((plan, index) => (

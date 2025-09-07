@@ -123,52 +123,67 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       </Card>
 
       {/* Announcements */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-blue-500" />
-            Latest Announcements
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <p className="text-sm whitespace-pre-line">{announcements}</p>
-          </div>
-        </CardContent>
-      </Card>
+      <FadeInOnView delay={100} animation="slide-in-right">
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-blue-500 animate-pulse-glow hover:animate-float transition-all duration-300" />
+              Latest Announcements
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FadeInOnView delay={200} animation="fade-in">
+              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/15 transition-colors duration-300">
+                <p className="text-sm whitespace-pre-line leading-relaxed">{announcements}</p>
+              </div>
+            </FadeInOnView>
+          </CardContent>
+        </Card>
+      </FadeInOnView>
 
       {/* Active Promo Codes */}
       {activePromos.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Gift className="h-5 w-5 text-green-500" />
-              Active Promo Codes
-            </CardTitle>
-            <CardDescription>Limited time offers - use these codes when subscribing!</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {activePromos.map((promo, index) => (
-                <div key={index} className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
-                  <div className="flex justify-between items-center mb-2">
-                    <Badge className="bg-green-500 text-white font-mono text-sm">
-                      {promo.code}
-                    </Badge>
-                    <Badge variant="outline" className="text-green-600">
-                      {formatDiscountText(promo)}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">{promo.description}</p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span>Valid until: {new Date(promo.valid_until).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <FadeInOnView delay={200} animation="bounce-in">
+          <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gift className="h-5 w-5 text-green-500 animate-wiggle hover:animate-float" />
+                Active Promo Codes
+              </CardTitle>
+              <CardDescription>Limited time offers - use these codes when subscribing!</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {activePromos.map((promo, index) => (
+                  <FadeInOnView 
+                    key={index} 
+                    delay={300 + (index * 100)}
+                    animation="slide-in-right"
+                  >
+                    <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg hover:from-green-500/15 hover:to-emerald-500/15 transition-all duration-300 hover:scale-[1.02]">
+                      <div className="flex justify-between items-center mb-2">
+                        <Badge className="bg-green-500 text-white font-mono text-sm animate-bounce-in hover:scale-105 transition-transform">
+                          {promo.code}
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className="text-green-600 animate-pulse-glow hover:scale-105 transition-transform"
+                        >
+                          {formatDiscountText(promo)}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">{promo.description}</p>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3 animate-wiggle" />
+                        <span>Valid until: {new Date(promo.valid_until).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </FadeInOnView>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </FadeInOnView>
       )}
 
       {/* About Dynamic Capital */}
@@ -190,27 +205,42 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* Our Services */}
       <FadeInOnView delay={500} animation="slide-in-right">
-        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-102">
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-blue-500" />
+              <Target className="h-5 w-5 text-blue-500 animate-float" />
               Our Services
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {services.split('\n').filter(service => service.trim()).map((service, index) => (
-                <FadeInOnView
-                  key={index}
-                  delay={600 + (index * 100)}
-                  animation="fade-in"
-                >
-                  <div className="flex items-center gap-2 text-sm hover:scale-105 transition-transform duration-200">
-                    <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
-                    <span>{service.replace('•', '').trim()}</span>
-                  </div>
-                </FadeInOnView>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {services.split('\n').filter(service => service.trim()).map((service, index) => {
+                // Map service emojis to lucide icons
+                const getServiceIcon = (text: string) => {
+                  if (text.includes('📈') || text.includes('Signal')) return TrendingUp;
+                  if (text.includes('📊') || text.includes('Analysis')) return Star;
+                  if (text.includes('🛡️') || text.includes('Risk')) return Shield;
+                  if (text.includes('👨‍🏫') || text.includes('Mentor')) return Users;
+                  if (text.includes('💎') || text.includes('VIP')) return Sparkles;
+                  if (text.includes('📞') || text.includes('Support')) return MessageSquare;
+                  return Award;
+                };
+                
+                const ServiceIcon = getServiceIcon(service);
+                
+                return (
+                  <FadeInOnView
+                    key={index}
+                    delay={600 + (index * 100)}
+                    animation="fade-in"
+                  >
+                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-all duration-300 hover:scale-105 group">
+                      <ServiceIcon className="h-4 w-4 text-primary group-hover:animate-float transition-all duration-300" />
+                      <span className="text-sm flex-1">{service.replace(/[📈📊🛡️👨‍🏫💎📞]/g, '').replace('•', '').trim()}</span>
+                    </div>
+                  </FadeInOnView>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
