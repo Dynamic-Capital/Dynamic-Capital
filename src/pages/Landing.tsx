@@ -6,6 +6,7 @@ import MiniAppPreview from "@/components/telegram/MiniAppPreview";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
+import { AnimatedWelcome } from "@/components/welcome/AnimatedWelcome";
 
 const Landing = () => {
   const handleOpenTelegram = () => {
@@ -57,30 +58,11 @@ const Landing = () => {
               </Badge>
             </FadeInOnView>
             
-            {/* Hero Headline */}
-            <FadeInOnView delay={200} animation="slide-in-right">
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight">
-                Unlock 
-                <span className="block bg-gradient-to-r from-yellow-300 via-orange-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
-                  Elite Trading
-                </span>
-                <span className="block">
-                  Signals
-                </span>
-              </h1>
-            </FadeInOnView>
-            
-            {/* Hero Description */}
-            <FadeInOnView delay={400} animation="fade-in">
-              <p className="text-xl md:text-3xl text-white/95 mb-12 max-w-4xl mx-auto leading-relaxed font-medium">
-                Join <span className="text-yellow-300 font-bold">5,000+</span> successful traders in Dynamic Capital's exclusive VIP community. 
-                Get <span className="text-green-300 font-bold">real-time signals</span>, expert analysis, and 
-                <span className="text-pink-300 font-bold"> proven strategies</span> that deliver consistent results.
-              </p>
-            </FadeInOnView>
+            {/* Animated Welcome Message */}
+            <AnimatedWelcome />
 
             {/* Enhanced CTA Buttons */}
-            <FadeInOnView delay={600} animation="bounce-in">
+            <FadeInOnView delay={2000} animation="bounce-in">
               <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
                 <Button 
                   size="lg" 

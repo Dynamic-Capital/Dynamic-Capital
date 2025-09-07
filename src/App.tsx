@@ -6,6 +6,7 @@ import { BrowserRouter, Route, Routes, useNavigate, useLocation } from "react-ro
 import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/useAuth";
 import { TelegramAuthProvider } from "@/hooks/useTelegramAuth";
+import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 import { useTheme } from "@/hooks/useTheme";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
@@ -110,15 +111,17 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TelegramAuthProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+      <AdminAuthProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </AdminAuthProvider>
     </TelegramAuthProvider>
   </QueryClientProvider>
 );
