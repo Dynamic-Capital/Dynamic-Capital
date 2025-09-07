@@ -3,9 +3,19 @@ import { createClient } from "../_shared/client.ts";
 import { mna, oops, ok } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 export async function handler(req: Request): Promise<Response> {
   const v = version(req, "active-promos");
   if (v) return v;
+  
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
   
   if (req.method !== "GET") {
     return mna();
@@ -21,10 +31,21 @@ export async function handler(req: Request): Promise<Response> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    return oops(error.message);
+    return new Response(
+      JSON.stringify({ ok: false, error: error.message }), 
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
   }
 
-  return ok({ promotions: data || [] });
+  return new Response(
+    JSON.stringify({ ok: true, promotions: data || [] }), 
+    { 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    }
+  );
 }
 
 if (import.meta.main) serve(handler);

@@ -6,10 +6,15 @@ import MiniAppPreview from "@/components/telegram/MiniAppPreview";
 
 const Landing = () => {
   const handleOpenTelegram = () => {
-    // Use placeholder bot username - can be updated when provided
-    const botUsername = "your_bot"; // TODO: Replace with actual bot username
+    // Use the actual Dynamic Capital VIP Bot
+    const botUsername = "Dynamic_VIP_BOT";
     const telegramUrl = `https://t.me/${botUsername}`;
     window.open(telegramUrl, '_blank');
+  };
+
+  const handleOpenMiniApp = () => {
+    // Open mini app directly
+    window.location.href = '/miniapp';
   };
 
   const handleJoinNow = () => {
@@ -53,7 +58,16 @@ const Landing = () => {
                 className="border-white/30 text-white hover:bg-white/10"
                 onClick={handleOpenTelegram}
               >
-                Open in Telegram
+                Open @Dynamic_VIP_BOT
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white/30 text-white hover:bg-white/10"
+                onClick={handleOpenMiniApp}
+              >
+                <Zap className="w-5 h-5 mr-2" />
+                Open Mini App
               </Button>
             </div>
 

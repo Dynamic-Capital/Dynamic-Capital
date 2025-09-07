@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/useAuth";
 import Header from "./components/layout/Header";
 import Landing from "./pages/Landing";
@@ -22,6 +23,26 @@ import MiniApp from "./pages/MiniApp";
 
 const queryClient = new QueryClient();
 
+// Component to handle Telegram redirect
+const TelegramRedirect = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if opened in Telegram WebApp
+    const isInTelegram = window.Telegram?.WebApp?.initData || 
+                        window.location.search.includes('tgWebAppPlatform') ||
+                        navigator.userAgent.includes('TelegramWebApp');
+    
+    // Only redirect from root path and if in Telegram
+    if (location.pathname === '/' && isInTelegram) {
+      navigate('/miniapp', { replace: true });
+    }
+  }, [navigate, location]);
+
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -29,6 +50,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <TelegramRedirect />
           <div className="min-h-screen bg-background">
             <Header />
             <Routes>

@@ -3,11 +3,28 @@ import { createClient } from "../_shared/client.ts";
 import { mna, oops, ok } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 export async function handler(req: Request): Promise<Response> {
   const v = version(req, "plans");
   if (v) return v;
+  
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+  
   if (req.method !== "GET") {
-    return mna();
+    return new Response(
+      JSON.stringify({ ok: false, error: "Method not allowed" }), 
+      { 
+        status: 405, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
   }
 
   const supa = createClient("anon");
@@ -18,10 +35,21 @@ export async function handler(req: Request): Promise<Response> {
     .order("price", { ascending: true });
 
   if (error) {
-    return oops(error.message);
+    return new Response(
+      JSON.stringify({ ok: false, error: error.message }), 
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
   }
 
-  return ok({ plans: data });
+  return new Response(
+    JSON.stringify({ ok: true, plans: data }), 
+    { 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    }
+  );
 }
 
 if (import.meta.main) serve(handler);
