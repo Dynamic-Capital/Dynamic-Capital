@@ -131,24 +131,24 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
     <FadeInOnView>
       <div className="space-y-6">
         {/* Progress Steps */}
-        <div className="flex items-center justify-center gap-4 mb-6">
+        <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6 overflow-x-auto pb-2">
           {[
             { key: "select", label: "Select Plan", icon: ShoppingCart },
             { key: "payment", label: "Payment Method", icon: CreditCard },
             { key: "instructions", label: "Payment Details", icon: FileText }
           ].map(({ key, label, icon: Icon }, index) => (
-            <div key={key} className="flex items-center gap-2">
-              <div className={`p-2 rounded-full ${
+            <div key={key} className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <div className={`p-1.5 sm:p-2 rounded-full ${
                 step === key ? 'bg-primary text-primary-foreground' : 
                 (key === "select" && step !== "select") || 
                 (key === "payment" && step === "instructions") ? 'bg-green-500 text-white' : 
                 'bg-muted text-muted-foreground'
               }`}>
                 {((key === "select" && step !== "select") || (key === "payment" && step === "instructions")) ? 
-                  <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                  <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Icon className="h-3 w-3 sm:h-4 sm:w-4" />}
               </div>
-              <span className="text-sm font-medium">{label}</span>
-              {index < 2 && <div className="w-8 h-0.5 bg-muted" />}
+              <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{label}</span>
+              {index < 2 && <div className="w-4 sm:w-8 h-0.5 bg-muted flex-shrink-0" />}
             </div>
           ))}
         </div>
@@ -187,19 +187,19 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
                           <p className="text-sm text-muted-foreground">
                             {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} months`}
                           </p>
-                          {plan.features && (
-                            <div className="mt-2 grid grid-cols-2 gap-1 text-xs">
+                           {plan.features && (
+                            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs">
                               {plan.features.slice(0, 4).map((feature, idx) => (
                                 <div key={idx} className="flex items-center gap-1">
-                                  <Check className="h-3 w-3 text-green-500" />
-                                  {feature}
+                                  <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
+                                  <span className="truncate">{feature}</span>
                                 </div>
                               ))}
                             </div>
                           )}
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-primary">
+                        <div className="text-right flex-shrink-0">
+                          <div className="text-xl sm:text-2xl font-bold text-primary">
                             {currency === "MVR" ? "Rf" : "$"}{getDisplayPrice(plan)}
                           </div>
                           <div className="text-xs text-muted-foreground">{currency}</div>

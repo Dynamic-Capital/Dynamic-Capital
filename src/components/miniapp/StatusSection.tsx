@@ -84,9 +84,9 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
           <CardDescription>Your current status and subscription</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Connection:</span>
+          <div className="space-y-2 sm:space-y-3 text-sm">
+            <div className="flex justify-between items-center gap-2">
+              <span className="text-muted-foreground flex-shrink-0">Connection:</span>
               {isInTelegram ? (
                 <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
                   Connected
@@ -98,8 +98,8 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
               )}
             </div>
             
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Subscription:</span>
+            <div className="flex justify-between items-center gap-2">
+              <span className="text-muted-foreground flex-shrink-0">Subscription:</span>
               {getStatusBadge()}
             </div>
 
@@ -111,14 +111,14 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
 
             {!loading && subscription && subscription.is_vip && (
               <>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Plan:</span>
-                  <span className="font-medium">{subscription.plan_name || 'VIP'}</span>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-muted-foreground flex-shrink-0">Plan:</span>
+                  <span className="font-medium text-right">{subscription.plan_name || 'VIP'}</span>
                 </div>
                 
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Expires:</span>
-                  <span>{formatDate(subscription.subscription_end_date)}</span>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-muted-foreground flex-shrink-0">Expires:</span>
+                  <span className="text-right">{formatDate(subscription.subscription_end_date)}</span>
                 </div>
                 
                 {subscription.days_remaining !== null && (

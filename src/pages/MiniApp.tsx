@@ -119,10 +119,15 @@ export default function MiniApp() {
         tabletScale={1}
         desktopScale={1}
       >
-        <motion.div 
-          className={`w-full ${isFullscreen ? 'max-w-full' : isMobile ? 'max-w-md' : 'max-w-2xl'} mx-auto transition-all duration-500`}
-          layout
-        >
+          <motion.div 
+            className={`w-full ${
+              isFullscreen ? 'max-w-full h-screen' : 
+              isMobile ? 'max-w-sm sm:max-w-md' : 
+              'max-w-xl lg:max-w-2xl xl:max-w-3xl'
+            } mx-auto transition-all duration-500 min-h-0 flex flex-col`}
+            layout
+            style={{ maxHeight: isFullscreen ? '100vh' : telegramData?.viewportHeight ? `${telegramData.viewportHeight}px` : 'auto' }}
+          >
           {/* Header with theme toggle */}
           <ResponsiveMotion 
             mobileVariant="slide" 
@@ -155,7 +160,11 @@ export default function MiniApp() {
               delay={0.1}
               className="sticky top-14 z-10 glass-card backdrop-blur-md border-b"
             >
-              <TabsList className={`glass-card grid w-full ${isAdmin ? 'grid-cols-8' : 'grid-cols-7'} ${isMobile ? 'h-16' : 'h-18'} p-1 transition-all duration-300`}>
+              <TabsList className={`glass-card grid w-full ${
+                isAdmin ? 'grid-cols-8' : 'grid-cols-7'
+              } ${
+                isMobile ? 'h-14 text-xs' : 'h-16 lg:h-18'
+              } p-1 transition-all duration-300 overflow-x-auto scrollbar-hide`}>
                 <TabsTrigger value="home" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg transition-all duration-200 hover:scale-105">
                   <motion.div
                     whileHover={{ scale: 1.1 }}
@@ -213,8 +222,13 @@ export default function MiniApp() {
             </ResponsiveMotion>
 
             <motion.div 
-              className={`${isMobile ? 'p-4' : 'p-6'} pb-24 safe-area-bottom`}
+              className={`${isMobile ? 'p-3 sm:p-4' : 'p-4 lg:p-6'} pb-24 safe-area-bottom flex-1 overflow-auto`}
               layout
+              style={{ 
+                maxHeight: isFullscreen ? 'calc(100vh - 120px)' : 
+                          telegramData?.viewportHeight ? `${telegramData.viewportHeight - 120}px` : 
+                          'auto' 
+              }}
             >
               <TabTransition tabKey={activeTab}>
                 <TabsContent value="home" className="space-y-4">
