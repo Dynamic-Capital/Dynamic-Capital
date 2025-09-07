@@ -839,6 +839,45 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_intents: {
+        Row: {
+          created_at: string
+          currency: string
+          expected_amount: number
+          id: string
+          method: string
+          notes: string | null
+          pay_code: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          expected_amount: number
+          id?: string
+          method: string
+          notes?: string | null
+          pay_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          expected_amount?: number
+          id?: string
+          method?: string
+          notes?: string | null
+          pay_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number

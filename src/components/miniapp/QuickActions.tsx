@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Users, Bell, Star, Headphones, BookOpen } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
+import { toast } from "sonner";
 
 interface QuickAction {
   id: string;
@@ -38,8 +39,9 @@ export function QuickActions() {
       description: "Get instant notifications",
       icon: <Bell className="h-5 w-5" />,
       action: () => {
-        if (isInTelegram && window.Telegram?.WebApp?.requestWriteAccess) {
-          window.Telegram.WebApp.requestWriteAccess();
+        if (isInTelegram) {
+          // Just navigate to notifications settings or show a toast
+          toast.info('Notification preferences can be managed in Telegram settings');
         }
       },
       color: "bg-orange-500/10 text-orange-600 border-orange-500/20"
