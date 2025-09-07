@@ -63,12 +63,12 @@ const Landing = () => {
       {/* Floating Theme Toggle */}
       <ThemeToggle />
       {/* Enhanced Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-primary/90 to-purple-900 min-h-screen flex items-center">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[hsl(var(--accent-dark))] via-[hsl(var(--primary)/0.9)] to-[hsl(var(--dc-accent))] min-h-screen flex items-center">
         {/* Dynamic Animated Background */}
         <div className="absolute inset-0">
           {/* Floating Orbs with Enhanced Animation */}
             <motion.div
-              className={`absolute ${isMobile ? 'top-10 left-5 w-40 h-40' : 'top-20 left-10 w-72 h-72'} bg-white/20 rounded-full blur-3xl`}
+              className={`absolute ${isMobile ? 'top-10 left-5 w-40 h-40' : 'top-20 left-10 w-72 h-72'} bg-[hsl(var(--accent-light)/0.2)] rounded-full blur-3xl`}
               animate={shouldReduceMotion ? { opacity: 0.5 } : {
                 scale: [1, 1.2, 1],
                 opacity: [0.3, 0.6, 0.3],
@@ -78,7 +78,7 @@ const Landing = () => {
               transition={shouldReduceMotion ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div
-              className={`absolute ${isMobile ? 'bottom-10 right-5 w-48 h-48' : 'bottom-20 right-10 w-96 h-96'} bg-yellow-300/30 rounded-full blur-3xl`}
+              className={`absolute ${isMobile ? 'bottom-10 right-5 w-48 h-48' : 'bottom-20 right-10 w-96 h-96'} bg-[hsl(var(--accent-gold)/0.3)] rounded-full blur-3xl`}
               animate={shouldReduceMotion ? { opacity: 0.3 } : {
                 scale: [1, 1.3, 1],
                 opacity: [0.2, 0.5, 0.2],
@@ -88,7 +88,7 @@ const Landing = () => {
               transition={shouldReduceMotion ? { duration: 0 } : { duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
             />
             <motion.div
-              className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isMobile ? 'w-40 h-40' : 'w-80 h-80'} bg-pink-400/25 rounded-full blur-3xl`}
+              className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isMobile ? 'w-40 h-40' : 'w-80 h-80'} bg-[hsl(var(--accent-pink)/0.25)] rounded-full blur-3xl`}
               animate={shouldReduceMotion ? { opacity: 0.3 } : {
                 scale: [1, 1.1, 1],
                 opacity: [0.2, 0.4, 0.2],
@@ -101,7 +101,7 @@ const Landing = () => {
             {[...Array(shouldReduceMotion ? 0 : (isMobile ? 10 : 20))].map((_, i) => (
               <motion.div
                 key={i}
-                className={`absolute ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-white/40 rounded-full`}
+                className={`absolute ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-[hsl(var(--accent-light)/0.4)] rounded-full`}
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
@@ -121,7 +121,7 @@ const Landing = () => {
             ))}
           
           {/* Gradient Overlay for Better Text Contrast */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[hsl(var(--accent-dark)/0.2)] to-[hsl(var(--accent-dark)/0.4)]" />
         </div>
         
         <div className={`relative container mx-auto ${isMobile ? 'px-4 py-12' : 'px-6 py-20'} text-center`}>
@@ -132,7 +132,7 @@ const Landing = () => {
                   whileHover={shouldReduceMotion ? undefined : { scale: isMobile ? 1.02 : 1.05, y: -5 }}
                   className={isMobile ? 'mb-6' : 'mb-8'}
                 >
-                  <Badge className={`bg-white/30 text-white border-white/50 hover:bg-white/40 ${isMobile ? 'text-sm px-4 py-1.5' : 'text-base px-6 py-2'} backdrop-blur-md shadow-xl`}>
+                  <Badge className={`bg-[hsl(var(--accent-light)/0.3)] text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.5)] hover:bg-[hsl(var(--accent-light)/0.4)] ${isMobile ? 'text-sm px-4 py-1.5' : 'text-base px-6 py-2'} backdrop-blur-md shadow-xl`}>
                     <motion.div
                       animate={shouldReduceMotion ? undefined : { rotate: [0, 5, -5, 0] }}
                       transition={shouldReduceMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -159,42 +159,42 @@ const Landing = () => {
                   initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: shouldReduceMotion ? 0 : 0.6 }}
-                  className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-white drop-shadow-lg`}
+                  className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-[hsl(var(--accent-light))] drop-shadow-lg`}
                 >
                   Dynamic Capital VIP
                 </motion.h1>
 
               <div className="flex justify-center">
-                <Separator className="w-24 h-[2px] bg-white/50 rounded-full" />
+                <Separator className="w-24 h-[2px] bg-[hsl(var(--accent-light)/0.5)] rounded-full" />
               </div>
 
                 <motion.p
                   initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.1 }}
-                  className={`${isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'} text-white/90 max-w-3xl mx-auto`}
+                  className={`${isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'} text-[hsl(var(--accent-light)/0.9)] max-w-3xl mx-auto`}
                 >
-                  <span className="text-white/80">Professional Trading • Premium </span>
+                  <span className="text-[hsl(var(--accent-light)/0.8)]">Professional Trading • Premium </span>
                   {showLoader ? (
                     <span className="inline-flex items-center">
                       <span className="mr-2">Signals</span>
-                      <TextLoader size="sm" dotColorClass="text-yellow-300" />
+                      <TextLoader size="sm" dotColorClass="text-[hsl(var(--accent-gold))]" />
                     </span>
                   ) : (
                     <RotatingWords
                       words={["Signals", "Analysis", "Support", "Strategies"]}
                       interval={2500}
-                      colorClass="text-yellow-300 font-semibold"
+                      colorClass="text-[hsl(var(--accent-gold))] font-semibold"
                     />
                   )}
-                  <span className="text-white/80"> • VIP Support</span>
+                  <span className="text-[hsl(var(--accent-light)/0.8)]"> • VIP Support</span>
                 </motion.p>
 
                 <motion.p
                   initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.2 }}
-                  className={`${isMobile ? 'text-base' : 'text-lg'} text-white/70 max-w-2xl mx-auto`}
+                  className={`${isMobile ? 'text-base' : 'text-lg'} text-[hsl(var(--accent-light)/0.7)] max-w-2xl mx-auto`}
                 >
                   Trade with expert-guided confidence
                 </motion.p>
@@ -236,7 +236,7 @@ const Landing = () => {
                 <EnhancedButton
                   variant="glass"
                   size={isMobile ? "default" : "xl"}
-                  className={`${isMobile ? 'px-6 py-3 w-full' : 'px-8 py-4'} text-white border-white/40`}
+                  className={`${isMobile ? 'px-6 py-3 w-full' : 'px-8 py-4'} text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.4)]`}
                   onClick={handleOpenTelegram}
                   icon={<MessageCircle className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />}
                 >
@@ -247,7 +247,7 @@ const Landing = () => {
 
             {/* Enhanced Trust Indicators */}
             <MotionStagger staggerDelay={0.2} initialDelay={1.8}>
-              <div className={`grid ${isMobile ? 'grid-cols-2 gap-6' : 'grid-cols-2 md:grid-cols-4 gap-8'} text-white/90`}>
+              <div className={`grid ${isMobile ? 'grid-cols-2 gap-6' : 'grid-cols-2 md:grid-cols-4 gap-8'} text-[hsl(var(--accent-light)/0.9)]`}>
                 <motion.div 
                   className="text-center group cursor-pointer"
                   whileHover={{ scale: isMobile ? 1.05 : 1.1, y: -5 }}
@@ -256,7 +256,7 @@ const Landing = () => {
                     from={0} 
                     to={5000} 
                     suffix="+" 
-                    className={`${isMobile ? 'text-2xl md:text-3xl' : 'text-3xl md:text-5xl'} font-black mb-2 text-yellow-300 block`}
+                    className={`${isMobile ? 'text-2xl md:text-3xl' : 'text-3xl md:text-5xl'} font-black mb-2 text-[hsl(var(--accent-gold))] block`}
                     delay={2}
                   />
                   <div className={`${isMobile ? 'text-xs md:text-sm' : 'text-sm md:text-base'} font-medium`}>Active VIP Members</div>
@@ -270,7 +270,7 @@ const Landing = () => {
                     from={0} 
                     to={92} 
                     suffix="%" 
-                    className="text-3xl md:text-5xl font-black mb-2 text-green-300 block"
+                    className="text-3xl md:text-5xl font-black mb-2 text-[hsl(var(--accent-green))] block"
                     delay={2.2}
                   />
                   <div className="text-sm md:text-base font-medium">Success Rate</div>
@@ -280,7 +280,7 @@ const Landing = () => {
                   className="text-center group cursor-pointer"
                   whileHover={{ scale: 1.1, y: -5 }}
                 >
-                  <div className="text-3xl md:text-5xl font-black mb-2 text-pink-300">24/7</div>
+                  <div className="text-3xl md:text-5xl font-black mb-2 text-[hsl(var(--accent-pink))]">24/7</div>
                   <div className="text-sm md:text-base font-medium">Expert Support</div>
                 </motion.div>
                 
@@ -288,7 +288,7 @@ const Landing = () => {
                   className="text-center group cursor-pointer"
                   whileHover={{ scale: 1.1, y: -5 }}
                 >
-                  <div className="text-3xl md:text-5xl font-black mb-2 text-blue-300 flex items-center justify-center gap-1">
+                  <div className="text-3xl md:text-5xl font-black mb-2 text-[hsl(var(--dc-secondary))] flex items-center justify-center gap-1">
                     5
                     <motion.div
                       animate={shouldReduceMotion ? undefined : { rotate: [0, 360] }}
@@ -310,9 +310,9 @@ const Landing = () => {
                     animate={{ y: [0, 10, 0] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
+                    <div className="w-6 h-10 border-2 border-[hsl(var(--accent-light)/0.5)] rounded-full flex justify-center">
                       <motion.div
-                        className="w-1 h-3 bg-white/70 rounded-full mt-2"
+                        className="w-1 h-3 bg-[hsl(var(--accent-light)/0.7)] rounded-full mt-2"
                         animate={{ y: [0, 15, 0], opacity: [1, 0.3, 1] }}
                         transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                       />
@@ -324,14 +324,14 @@ const Landing = () => {
         </div>
       </section>
 
-      <Separator className="my-16 bg-white/20" />
+      <Separator className="my-16 bg-[hsl(var(--accent-light)/0.2)]" />
 
       {/* Social Proof Section */}
       <section className="py-20 bg-gradient-to-b from-background via-muted/20 to-background relative">
         {/* Subtle Background Animation */}
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
-            className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl"
+            className="absolute -top-40 -right-40 w-80 h-80 bg-[hsl(var(--primary)/0.05)] rounded-full blur-3xl"
             animate={shouldReduceMotion ? undefined : {
               scale: [1, 1.2, 1],
               rotate: [0, 90, 0]
@@ -339,7 +339,7 @@ const Landing = () => {
             transition={shouldReduceMotion ? { duration: 0 } : { duration: 20, repeat: Infinity, ease: "linear" }}
           />
           <motion.div
-            className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl"
+            className="absolute -bottom-40 -left-40 w-80 h-80 bg-[hsl(var(--dc-accent)/0.05)] rounded-full blur-3xl"
             animate={shouldReduceMotion ? undefined : {
               scale: [1, 1.1, 1],
               rotate: [0, -90, 0]
@@ -352,7 +352,7 @@ const Landing = () => {
             <div className="text-center mb-16">
               <GradientText 
                 text="Trusted by Elite Traders Worldwide"
-                gradient="from-foreground via-primary to-purple-600"
+                gradient="from-foreground via-primary to-[hsl(var(--dc-accent))]"
                 className="text-3xl md:text-5xl font-bold mb-6 font-poppins block"
                 animate={true}
                 animationDuration={6}
@@ -400,19 +400,19 @@ const Landing = () => {
               >
                 <CardContent className="space-y-4 p-0">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-purple-500 rounded-full flex items-center justify-center text-xl">
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-[hsl(var(--dc-accent))] rounded-full flex items-center justify-center text-xl">
                       {testimonial.avatar}
                     </div>
                     <div>
                       <h4 className="font-semibold font-poppins text-foreground">{testimonial.name}</h4>
                       <p className="text-sm text-muted-foreground font-inter">{testimonial.role}</p>
                     </div>
-                    <Badge className="ml-auto bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-inter font-semibold">
+                    <Badge className="ml-auto bg-[hsl(var(--accent-green)/0.1)] text-[hsl(var(--accent-green))] dark:bg-[hsl(var(--accent-green)/0.3)] dark:text-[hsl(var(--accent-green))] font-inter font-semibold">
                       {testimonial.profit}
                     </Badge>
                   </div>
                   <p className="text-muted-foreground italic font-inter leading-relaxed">"{testimonial.text}"</p>
-                  <div className="flex text-yellow-400">
+                  <div className="flex text-[hsl(var(--accent-gold))]">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="w-4 h-4 fill-current" />
                     ))}
@@ -459,8 +459,8 @@ const Landing = () => {
       <section className="py-20 bg-gradient-to-b from-background via-muted/10 to-background relative">
         {/* Interactive Background */}
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-[hsl(var(--dc-secondary)/0.1)] to-[hsl(var(--accent-teal)/0.1)] rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-[hsl(var(--dc-accent)/0.1)] to-[hsl(var(--accent-pink)/0.1)] rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
         </div>
         <div className="container mx-auto px-6">
           <MotionScrollReveal>
@@ -478,26 +478,26 @@ const Landing = () => {
                 icon: TrendingUp,
                 title: "Premium Signals",
                 description: "Receive high-accuracy trading signals with detailed entry, exit, and stop-loss levels. Our signals have a proven 92% success rate.",
-                color: "from-green-500 to-emerald-600"
+                color: "from-[hsl(var(--accent-green-light))] to-[hsl(var(--accent-green))]"
               },
               {
                 icon: Shield,
                 title: "Risk Management",
                 description: "Professional risk management strategies to protect your capital and maximize profits with expert guidance every step of the way.",
-                color: "from-blue-500 to-cyan-600"
+                color: "from-[hsl(var(--dc-secondary))] to-[hsl(var(--accent-teal))]"
               },
               {
                 icon: Users,
                 title: "VIP Community",
                 description: "Join an exclusive community of successful traders and learn from the best. Network, share strategies, and grow together.",
-                color: "from-purple-500 to-pink-600"
+                color: "from-[hsl(var(--dc-accent))] to-[hsl(var(--accent-pink))]"
               }
             ].map((feature, index) => (
               <MotionHoverCard key={index} hoverScale={1.05} hoverY={-10}>
                 <Card className="bot-card group hover:shadow-2xl transition-all duration-500 hover:scale-105">
                   <CardContent className="p-8 text-center">
                     <div className={`bot-icon-wrapper w-16 h-16 mx-auto mb-6 bg-gradient-to-br ${feature.color} transform group-hover:scale-110 transition-transform duration-300`}>
-                      <feature.icon className="w-8 h-8 text-white" />
+                      <feature.icon className="w-8 h-8 text-[hsl(var(--accent-light))]" />
                     </div>
                     <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors font-poppins">{feature.title}</h3>
                     <p className="text-muted-foreground leading-relaxed font-inter">
@@ -561,31 +561,31 @@ const Landing = () => {
                 icon: Crown,
                 title: "Choose Your VIP Plan",
                 description: "Select a subscription plan that fits your trading style and budget. All plans include premium signals and community access.",
-                color: "from-blue-500 to-cyan-600"
+                color: "from-[hsl(var(--dc-secondary))] to-[hsl(var(--accent-teal))]"
               },
               {
                 step: "2", 
                 icon: DollarSign,
                 title: "Secure Payment",
                 description: "Pay securely via bank transfer, cryptocurrency, or other supported methods. Get instant access upon confirmation.",
-                color: "from-green-500 to-emerald-600"
+                color: "from-[hsl(var(--accent-green-light))] to-[hsl(var(--accent-green))]"
               },
               {
                 step: "3",
                 icon: TrendingUp,
                 title: "Start Profiting",
                 description: "Receive premium trading signals, join our VIP community, and start your journey to consistent trading profits.",
-                color: "from-purple-500 to-pink-600"
+                color: "from-[hsl(var(--dc-accent))] to-[hsl(var(--accent-pink))]"
               }
             ].map((item, index) => (
               <MotionHoverCard key={index} hoverScale={1.05} hoverY={-10}>
                 <div className="text-center group hover:scale-105 transition-all duration-300">
                   <div className={`w-20 h-20 mx-auto mb-6 bg-gradient-to-br ${item.color} rounded-full flex items-center justify-center relative group-hover:scale-110 transition-transform duration-300`}>
-                    <span className="text-3xl font-bold text-white">{item.step}</span>
-                    <div className="absolute -inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <span className="text-3xl font-bold text-[hsl(var(--accent-light))]">{item.step}</span>
+                    <div className="absolute -inset-1 bg-gradient-to-br from-[hsl(var(--accent-light)/0.2)] to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
                   <div className={`w-12 h-12 mx-auto mb-4 bg-gradient-to-br ${item.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                    <item.icon className="w-6 h-6 text-white" />
+                    <item.icon className="w-6 h-6 text-[hsl(var(--accent-light))]" />
                   </div>
                   <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
                   <p className="text-muted-foreground leading-relaxed">{item.description}</p>
@@ -625,7 +625,7 @@ const Landing = () => {
                   ].map((feature, index) => (
                     <MotionFadeIn key={index} delay={index * 0.1}>
                       <div className="flex items-center group hover:scale-105 transition-transform duration-200">
-                        <CheckCircle className="w-6 h-6 text-green-500 mr-4 group-hover:scale-110 transition-transform" />
+                        <CheckCircle className="w-6 h-6 text-[hsl(var(--accent-green))] mr-4 group-hover:scale-110 transition-transform" />
                         <span className="text-lg">{feature}</span>
                       </div>
                     </MotionFadeIn>
@@ -653,34 +653,34 @@ const Landing = () => {
       </section>
 
       {/* Enhanced CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-primary via-telegram to-purple-600 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-br from-primary via-telegram to-[hsl(var(--dc-accent))] relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
-          <div className="absolute bottom-10 right-10 w-40 h-40 bg-yellow-300/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-10 left-10 w-32 h-32 bg-[hsl(var(--accent-light)/0.1)] rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-[hsl(var(--accent-gold)/0.2)] rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
         
         <div className="relative container mx-auto px-6 text-center">
           <div className="mx-auto max-w-4xl">
             <MotionFadeIn scale>
-              <Badge className="mb-6 bg-white/20 text-white border-white/30 text-lg px-6 py-2">
+              <Badge className="mb-6 bg-[hsl(var(--accent-light)/0.2)] text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.3)] text-lg px-6 py-2">
                 <Crown className="w-5 h-5 mr-2" />
                 Limited Time Offer
               </Badge>
               
-              <h2 className="text-4xl md:text-6xl font-black text-white mb-8">
+              <h2 className="text-4xl md:text-6xl font-black text-[hsl(var(--accent-light))] mb-8">
                 Ready to Transform Your Trading?
               </h2>
               
-              <p className="text-xl md:text-2xl text-white/95 mb-12 leading-relaxed">
+              <p className="text-xl md:text-2xl text-[hsl(var(--accent-light)/0.95)] mb-12 leading-relaxed">
                 Join thousands of successful traders who trust Dynamic Capital for premium signals and proven strategies. 
-                <span className="block mt-2 text-yellow-300 font-bold">Start your VIP journey today!</span>
+                <span className="block mt-2 text-[hsl(var(--accent-gold))] font-bold">Start your VIP journey today!</span>
               </p>
               
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
                 <Button 
                   size="lg" 
-                  className="bg-white text-telegram hover:bg-yellow-50 shadow-2xl hover:shadow-yellow-500/25 transform hover:scale-105 transition-all duration-300 text-xl px-10 py-5 font-bold"
+                  className="bg-[hsl(var(--accent-light))] text-[hsl(var(--telegram))] hover:bg-[hsl(var(--accent-gold)/0.05)] shadow-2xl hover:shadow-[0_0_15px_hsl(var(--accent-gold)/0.25)] transform hover:scale-105 transition-all duration-300 text-xl px-10 py-5 font-bold"
                   onClick={handleJoinNow}
                 >
                   <Sparkles className="w-6 h-6 mr-2" />
@@ -690,7 +690,7 @@ const Landing = () => {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="border-2 border-white/40 text-white hover:bg-white/20 backdrop-blur-sm text-xl px-10 py-5 font-semibold transform hover:scale-105 transition-all duration-300"
+                  className="border-2 border-[hsl(var(--accent-light)/0.4)] text-[hsl(var(--accent-light))] hover:bg-[hsl(var(--accent-light)/0.2)] backdrop-blur-sm text-xl px-10 py-5 font-semibold transform hover:scale-105 transition-all duration-300"
                   onClick={handleOpenTelegram}
                 >
                   Start Free Trial

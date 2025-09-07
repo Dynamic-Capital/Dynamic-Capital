@@ -760,6 +760,15 @@
   --dc-secondary: 220 85% 55%;        /* Professional blue */
   --dc-accent: 280 75% 65%;           /* Purple accent */
 
+  /* Accent tokens */
+  --accent-light: 0 0% 100%;          /* Pure white */
+  --accent-dark: 0 0% 0%;             /* Pure black */
+  --accent-gold: var(--dc-brand);
+  --accent-teal: 174 72% 45%;
+  --accent-pink: 330 91% 70%;
+  --accent-green: var(--success);
+  --accent-green-light: 142 76% 46%;
+
   /* Telegram brand colors */
   --telegram: 200 100% 48%;
   --telegram-light: 207 100% 67%;
