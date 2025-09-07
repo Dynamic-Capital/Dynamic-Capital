@@ -63,7 +63,6 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
   useEffect(() => {
     const fetchContent = async () => {
-      const { callEdgeFunction } = await import('@/config/supabase');
       try {
         // Fetch about us and services from bot_content
         const contentResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
@@ -87,19 +86,20 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
             setServices(servicesContent?.content_value || "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support");
             setAnnouncements(announcementsContent?.content_value || "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.");
           }
-        } else {
-          console.warn('Content fetch failed:', contentResponse.status);
         }
 
-        // Fetch active promotions
-        const promoResponse = await callEdgeFunction('ACTIVE_PROMOS');
-        if (promoResponse.ok) {
-          const promoData = await promoResponse.json();
-          if (promoData.ok && promoData.promotions) {
-            setActivePromos(promoData.promotions);
+        // Fetch active promotions - Only if backend is available
+        try {
+          const { callEdgeFunction } = await import('@/config/supabase');
+          const promoResponse = await callEdgeFunction('ACTIVE_PROMOS');
+          if (promoResponse.ok) {
+            const promoData = await promoResponse.json();
+            if (promoData.ok && promoData.promotions) {
+              setActivePromos(promoData.promotions);
+            }
           }
-        } else {
-          console.warn('Promo fetch failed:', promoResponse.status);
+        } catch (promoError) {
+          console.warn('Promo fetch failed - using defaults');
         }
 
         // Fetch subscription status if in Telegram
@@ -151,19 +151,20 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
   const bgOpacity = Math.min(scrollY / 300, 0.8);
 
   return (
-    <motion.div 
-      className="space-y-4 scroll-bg-transition"
-      variants={slowParentVariants}
-      initial="hidden"
-      animate="visible"
-      style={{
-        background: `linear-gradient(135deg, 
-          hsl(var(--telegram) / ${0.9 - bgOpacity * 0.3}), 
-          hsl(var(--primary) / ${0.8 - bgOpacity * 0.2}), 
-          hsl(var(--accent) / ${0.7 - bgOpacity * 0.2})), 
-          hsl(var(--background) / ${bgOpacity})`
-      }}
-    >
+    <div className="space-y-6 relative z-10">
+      <motion.div 
+        className="space-y-4 scroll-bg-transition"
+        variants={slowParentVariants}
+        initial="hidden"
+        animate="visible"
+        style={{
+          background: `linear-gradient(135deg, 
+            hsl(var(--telegram) / ${0.9 - bgOpacity * 0.3}), 
+            hsl(var(--primary) / ${0.8 - bgOpacity * 0.2}), 
+            hsl(var(--accent) / ${0.7 - bgOpacity * 0.2})), 
+            hsl(var(--background) / ${bgOpacity})`
+        }}
+      >
       {/* Animated Hero Section */}
       <motion.div variants={childVariants}>
         <AnimatedWelcomeMini className="ui-rounded-lg ui-shadow" />
@@ -400,6 +401,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
            </div>
          </CardContent>
        </MotionCard>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

@@ -47,10 +47,10 @@ export function AnimatedStatusDisplay({
     if (isVip) {
       controls.start({
         scale: [1, 1.02, 1],
-        filter: [
-          "drop-shadow(0 0 0px hsl(45, 93%, 58%))",
-          "drop-shadow(0 0 20px hsl(45, 93%, 58% / 0.3))",
-          "drop-shadow(0 0 0px hsl(45, 93%, 58%))"
+        boxShadow: [
+          "0 0 0px hsl(45, 93%, 58% / 0)",
+          "0 0 20px hsl(45, 93%, 58% / 0.3)",
+          "0 0 0px hsl(45, 93%, 58% / 0)"
         ],
         transition: {
           duration: 2,

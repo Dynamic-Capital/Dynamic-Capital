@@ -62,12 +62,16 @@ export const ThreeDEmoticon: React.FC<ThreeDEmoticonProps> = ({
       }}
     >
       <motion.div
+        initial={{
+          filter: "drop-shadow(0 5px 10px rgba(0,0,0,0.1))"
+        }}
         style={{
           filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.2))"
         }}
         whileHover={{
           filter: "drop-shadow(0 15px 30px rgba(0,0,0,0.3))"
         }}
+        transition={{ duration: 0.3 }}
       >
         {emoji}
       </motion.div>

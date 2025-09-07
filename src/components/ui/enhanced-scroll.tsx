@@ -144,7 +144,7 @@ export function EnhancedScrollContainer({
       onMouseLeave={() => setIsHovered(false)}
       style={parallax ? { opacity, scale } : undefined}
       whileHover={glowEffect ? { 
-        filter: "drop-shadow(0 0 20px hsl(var(--primary) / 0.3))" 
+        boxShadow: "0 0 20px hsl(var(--primary) / 0.3)" 
       } : undefined}
       transition={{ duration: 0.3 }}
     >

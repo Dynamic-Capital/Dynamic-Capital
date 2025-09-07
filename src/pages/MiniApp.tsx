@@ -104,7 +104,7 @@ export default function MiniApp() {
       <CurrencyProvider>
         <FullscreenAdaptive
           className={cn(
-            "min-h-screen bg-gradient-to-br from-background via-background to-muted/30 dark:to-muted/20 mobile-optimized safe-area-top transition-all duration-700",
+            "min-h-screen bg-gradient-to-br from-background via-background to-muted/30 dark:to-muted/20 mobile-optimized safe-area-top transition-all duration-700 relative",
             isFullscreen ? 'p-0' : '',
             isMobile ? 'mobile-scroll' : ''
           )}
@@ -115,12 +115,12 @@ export default function MiniApp() {
               await new Promise(resolve => setTimeout(resolve, 1000));
             }}
           >
-            <div ref={containerRef} className="relative min-h-screen">
+            <div ref={containerRef} className="relative min-h-screen z-0">
               {/* Main Content */}
               <div className="relative z-10">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-screen flex flex-col">
                   {/* Mobile Navigation - Now at top */}
-                  <div className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/50 safe-area-pt">
+                  <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
                     <TabsList className="w-full h-14 bg-transparent p-1 rounded-none">
                       {tabs.map((tab) => (
                         <TabsTrigger
@@ -139,8 +139,8 @@ export default function MiniApp() {
                     </TabsList>
                   </div>
 
-                  {/* Mobile Tab Content */}
-                  <div className="px-4 py-6">
+                  {/* Mobile Tab Content - Scrollable */}
+                  <div className="flex-1 overflow-y-auto px-4 py-6">
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={activeTab}
@@ -148,7 +148,7 @@ export default function MiniApp() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.3 }}
-                        className="min-h-[calc(100vh-10rem)]"
+                        className="pb-6"
                       >
                         {renderTabContent()}
                       </motion.div>
@@ -159,7 +159,7 @@ export default function MiniApp() {
             </div>
 
             {/* Theme Toggle Button - Fixed bottom right */}
-            <div className="fixed bottom-6 right-6 z-50">
+            <div className="fixed bottom-6 right-6 z-50 bg-background/80 backdrop-blur-sm rounded-full p-2 border border-border/50 shadow-lg">
               <ThemeToggle />
             </div>
           </MobilePullToRefresh>
