@@ -113,32 +113,10 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
     <FadeInOnView delay={500} animation="slide-in-right">
       <Card className={cn("liquid-glass hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]", className)}>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-subheading">
-              <Award className="icon-sm text-primary animate-pulse-glow" />
-              Our Services
-            </CardTitle>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={scrollPrev}
-                disabled={!canScrollPrev}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={scrollNext}
-                disabled={!canScrollNext}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          <CardTitle className="flex items-center gap-2 text-subheading text-center justify-center">
+            <Award className="icon-sm text-primary animate-pulse-glow" />
+            Our Services
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-hidden" ref={emblaRef}>
@@ -150,7 +128,7 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
                 return (
                   <div
                     key={index}
-                    className="flex-[0_0_85%] min-w-0 mr-4 sm:flex-[0_0_45%] lg:flex-[0_0_30%]"
+                    className="flex-[0_0_90%] min-w-0 mr-3 xs:flex-[0_0_80%] sm:flex-[0_0_60%] md:flex-[0_0_45%] lg:flex-[0_0_35%] xl:flex-[0_0_30%]"
                   >
                     <div 
                       className={cn(
@@ -184,12 +162,12 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
                         </div>
                         <div className="flex-1 space-y-1">
                           <h4 className={cn(
-                            "font-medium text-sm transition-colors duration-300",
+                            "font-medium text-xs sm:text-sm transition-colors duration-300 leading-tight",
                             isActive ? "text-primary" : "text-foreground"
                           )}>
                             {service.title}
                           </h4>
-                          <p className="text-xs text-muted-foreground leading-relaxed">
+                          <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed break-words">
                             {service.description}
                           </p>
                         </div>
@@ -201,17 +179,17 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
             </div>
           </div>
           
-          {/* Dots indicator */}
-          <div className="flex justify-center gap-2 mt-4">
+          {/* Enhanced Dots indicator */}
+          <div className="flex justify-center gap-3 mt-6">
             {serviceItems.map((_, index) => (
               <button
                 key={index}
                 onClick={() => emblaApi?.scrollTo(index)}
                 className={cn(
-                  "w-2 h-2 rounded-full transition-all duration-300",
+                  "rounded-full transition-all duration-300 border",
                   index === selectedIndex 
-                    ? "bg-primary scale-125" 
-                    : "bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                    ? "w-8 h-3 bg-primary border-primary scale-110 shadow-lg" 
+                    : "w-3 h-3 bg-muted-foreground/20 border-muted-foreground/30 hover:bg-muted-foreground/40"
                 )}
               />
             ))}

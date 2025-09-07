@@ -20,6 +20,13 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  const quickSuggestions = [
+    "How do I start?",
+    "VIP benefits?",
+    "Trading tips?",
+    "Risk management?"
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim()) {
@@ -110,6 +117,22 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
+              {/* Quick suggestion buttons */}
+              <div className="flex flex-wrap gap-1">
+                {quickSuggestions.map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setQuestion(suggestion)}
+                    className="text-xs h-6 px-2"
+                    disabled={isLoading}
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-3">
                 <Input
                   value={question}

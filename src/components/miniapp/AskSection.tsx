@@ -13,6 +13,13 @@ export function AskSection() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  const quickSuggestions = [
+    "How do I start trading?",
+    "What are the best trading strategies?",
+    "How to manage risk in trading?",
+    "What are VIP benefits?"
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim()) {
@@ -64,6 +71,22 @@ export function AskSection() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Quick suggestion buttons */}
+          <div className="flex flex-wrap gap-2">
+            {quickSuggestions.map((suggestion, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                onClick={() => setQuestion(suggestion)}
+                className="text-xs glass-button h-8 px-3"
+                disabled={isLoading}
+              >
+                {suggestion}
+              </Button>
+            ))}
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Input
