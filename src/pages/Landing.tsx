@@ -18,10 +18,8 @@ import { TypewriterText, GradientText, MorphingText } from "@/components/ui/anim
 import { MotionFadeIn, MotionStagger, MotionCounter, MotionHoverCard, MotionScrollReveal } from "@/components/ui/motion-components";
 import { ResponsiveMotion, FullscreenAdaptive, ViewportAware } from "@/components/ui/responsive-motion";
 import { MotionSection, MotionGrid, MotionButtonWrapper } from "@/components/ui/motion-theme";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const Landing = () => {
-  const isMobile = useIsMobile();
   const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
@@ -60,34 +58,34 @@ const Landing = () => {
   return (
     <FullscreenAdaptive className="min-h-screen bg-background font-inter text-foreground">
       {/* Floating Theme Toggle */}
-      <ThemeToggle floating large size={isMobile ? "default" : "lg"} />
+        <ThemeToggle floating large size="default" className="md:h-11 md:px-8" />
       {/* Enhanced Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-primary/90 to-purple-900 min-h-screen flex items-center">
         {/* Dynamic Animated Background */}
         <div className="absolute inset-0">
           {/* Floating Orbs with Enhanced Animation */}
           <motion.div 
-            className={`absolute ${isMobile ? 'top-10 left-5 w-40 h-40' : 'top-20 left-10 w-72 h-72'} bg-white/20 rounded-full blur-3xl`}
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.6, 0.3],
-              x: [0, isMobile ? 25 : 50, 0],
-              y: [0, isMobile ? -15 : -30, 0]
-            }}
+            className="absolute top-10 left-5 w-40 h-40 md:top-20 md:left-10 md:w-72 md:h-72 bg-white/20 rounded-full blur-3xl"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.6, 0.3],
+                x: [0, 50, 0],
+                y: [0, -30, 0]
+              }}
             transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div 
-            className={`absolute ${isMobile ? 'bottom-10 right-5 w-48 h-48' : 'bottom-20 right-10 w-96 h-96'} bg-yellow-300/30 rounded-full blur-3xl`}
-            animate={{ 
-              scale: [1, 1.3, 1],
-              opacity: [0.2, 0.5, 0.2],
-              x: [0, isMobile ? -30 : -60, 0],
-              y: [0, isMobile ? 20 : 40, 0]
-            }}
+            className="absolute bottom-10 right-5 w-48 h-48 md:bottom-20 md:right-10 md:w-96 md:h-96 bg-yellow-300/30 rounded-full blur-3xl"
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.2, 0.5, 0.2],
+                x: [0, -60, 0],
+                y: [0, 40, 0]
+              }}
             transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           />
           <motion.div 
-            className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isMobile ? 'w-40 h-40' : 'w-80 h-80'} bg-pink-400/25 rounded-full blur-3xl`}
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 md:w-80 md:h-80 bg-pink-400/25 rounded-full blur-3xl"
             animate={{ 
               scale: [1, 1.1, 1],
               opacity: [0.2, 0.4, 0.2],
@@ -97,19 +95,19 @@ const Landing = () => {
           />
           
           {/* Particle Effects */}
-          {[...Array(isMobile ? 10 : 20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className={`absolute ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-white/40 rounded-full`}
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, isMobile ? -50 : -100, 0],
-                opacity: [0, 1, 0],
-                scale: [0, 1, 0]
-              }}
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1.5 h-1.5 md:w-2 md:h-2 bg-white/40 rounded-full"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                }}
+                animate={{
+                  y: [0, -100, 0],
+                  opacity: [0, 1, 0],
+                  scale: [0, 1, 0]
+                }}
               transition={{
                 duration: 4 + Math.random() * 2,
                 repeat: Infinity,
@@ -123,22 +121,22 @@ const Landing = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40" />
         </div>
         
-        <div className={`relative container mx-auto ${isMobile ? 'px-4 py-12' : 'px-6 py-20'} text-center`}>
-          <div className={`mx-auto ${isMobile ? 'max-w-lg' : 'max-w-5xl'}`}>
+        <div className="relative container mx-auto px-4 py-12 md:px-6 md:py-20 text-center">
+          <div className="mx-auto max-w-lg md:max-w-5xl">
             {/* Dynamic Floating Badge */}
             <ResponsiveMotion mobileVariant="fade" desktopVariant="bounce" delay={0.2}>
               <motion.div
-                whileHover={{ scale: isMobile ? 1.02 : 1.05, y: -5 }}
-                className={isMobile ? 'mb-6' : 'mb-8'}
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="mb-6 md:mb-8"
               >
-                <Badge className={`bg-white/30 text-white border-white/50 hover:bg-white/40 ${isMobile ? 'text-sm px-4 py-1.5' : 'text-base px-6 py-2'} backdrop-blur-md shadow-xl`}>
+                <Badge className="bg-white/30 text-white border-white/50 hover:bg-white/40 text-sm px-4 py-1.5 md:text-base md:px-6 md:py-2 backdrop-blur-md shadow-xl">
                   <motion.div
                     animate={{ rotate: [0, 5, -5, 0] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} />
+                    <Crown className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                   </motion.div>
-                  <MorphingText 
+                  <MorphingText
                     texts={[
                       "#1 Premium Trading Platform",
                       "5000+ Active VIP Members", 
@@ -158,7 +156,7 @@ const Landing = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-white drop-shadow-lg`}
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-poppins text-white drop-shadow-lg"
               >
                 Dynamic Capital VIP
               </motion.h1>
@@ -171,7 +169,7 @@ const Landing = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className={`${isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'} text-white/90 max-w-3xl mx-auto`}
+                className="text-lg sm:text-xl md:text-2xl text-white/90 max-w-3xl mx-auto"
               >
                 <span className="text-white/80">Professional Trading • Premium </span>
                 {showLoader ? (
@@ -193,7 +191,7 @@ const Landing = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className={`${isMobile ? 'text-base' : 'text-lg'} text-white/70 max-w-2xl mx-auto`}
+                className="text-base md:text-lg text-white/70 max-w-2xl mx-auto"
               >
                 Trade with expert-guided confidence
               </motion.p>
@@ -201,14 +199,14 @@ const Landing = () => {
 
             {/* Enhanced CTA Buttons */}
             <ResponsiveMotion mobileVariant="slide" desktopVariant="bounce" delay={0.3}>
-              <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-col sm:flex-row gap-6'} justify-center pt-2 ${isMobile ? 'mb-12' : 'mb-16'}`}>
+              <div className="flex flex-col gap-4 sm:flex-row sm:gap-6 justify-center pt-2 mb-12 md:mb-16">
                 <StatefulButton
                   variant="shimmer"
-                  size={isMobile ? "default" : "xl"}
-                  className={`${isMobile ? 'px-6 py-3 w-full' : 'px-8 py-4'}`}
+                  size="default"
+                  className="px-6 py-3 w-full sm:w-auto sm:px-8 sm:py-4 sm:h-12 sm:text-base"
                   successText="Opening Plans..."
                   loadingText="Loading..."
-                  icon={<Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />}
+                  icon={<Crown className="w-4 h-4 sm:w-5 sm:h-5" />}
                   onClick={() => {
                     return new Promise((resolve) => {
                       const isInTelegram = Boolean(
@@ -229,15 +227,15 @@ const Landing = () => {
                   }}
                 >
                   Start VIP Journey
-                  <ArrowRight className={`ml-2 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                 </StatefulButton>
 
                 <EnhancedButton
                   variant="glass"
-                  size={isMobile ? "default" : "xl"}
-                  className={`${isMobile ? 'px-6 py-3 w-full' : 'px-8 py-4'} text-white border-white/40`}
+                  size="default"
+                  className="px-6 py-3 w-full sm:w-auto sm:px-8 sm:py-4 sm:h-12 sm:text-base text-white border-white/40"
                   onClick={handleOpenTelegram}
-                  icon={<MessageCircle className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />}
+                  icon={<MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />}
                 >
                   Open Telegram Bot
                 </EnhancedButton>
@@ -246,19 +244,19 @@ const Landing = () => {
 
             {/* Enhanced Trust Indicators */}
             <MotionStagger staggerDelay={0.2} initialDelay={1.8}>
-              <div className={`grid ${isMobile ? 'grid-cols-2 gap-6' : 'grid-cols-2 md:grid-cols-4 gap-8'} text-white/90`}>
-                <motion.div 
+              <div className="grid grid-cols-2 gap-6 md:grid-cols-4 md:gap-8 text-white/90">
+                <motion.div
                   className="text-center group cursor-pointer"
-                  whileHover={{ scale: isMobile ? 1.05 : 1.1, y: -5 }}
+                  whileHover={{ scale: 1.1, y: -5 }}
                 >
-                  <MotionCounter 
-                    from={0} 
-                    to={5000} 
-                    suffix="+" 
-                    className={`${isMobile ? 'text-2xl md:text-3xl' : 'text-3xl md:text-5xl'} font-black mb-2 text-yellow-300 block`}
+                  <MotionCounter
+                    from={0}
+                    to={5000}
+                    suffix="+"
+                    className="text-2xl sm:text-3xl md:text-5xl font-black mb-2 text-yellow-300 block"
                     delay={2}
                   />
-                  <div className={`${isMobile ? 'text-xs md:text-sm' : 'text-sm md:text-base'} font-medium`}>Active VIP Members</div>
+                  <div className="text-xs sm:text-sm md:text-base font-medium">Active VIP Members</div>
                 </motion.div>
                 
                 <motion.div 
