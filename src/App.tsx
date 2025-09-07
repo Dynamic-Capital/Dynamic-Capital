@@ -99,7 +99,7 @@ const AppContent = () => {
           </Routes>
         </main>
         
-        {!isInMiniApp && <Footer />}
+        <Footer compact={isInMiniApp} />
         {!isInMiniApp && <MobileBottomNav />}
         {!isInMiniApp && <ChatAssistantWidget />}
       </div>

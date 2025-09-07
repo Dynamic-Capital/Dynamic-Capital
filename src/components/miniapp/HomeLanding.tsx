@@ -18,6 +18,7 @@ import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
+import PromoCodeInput from "@/components/billing/PromoCodeInput";
 
 interface BotContent {
   content_key: string;
@@ -151,8 +152,29 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         </CardContent>
       </Card>
 
-      {/* Announcements */}
+      {/* Have a Promo Code Section */}
       <FadeInOnView delay={100} animation="slide-in-right">
+        <Card className="liquid-glass border-primary/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-subheading">
+              <Gift className="icon-sm text-primary animate-pulse-glow" />
+              Have a Promo Code?
+            </CardTitle>
+            <CardDescription className="text-body-sm">
+              Enter your promo code below to unlock exclusive discounts!
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PromoCodeInput 
+              planId="6e07f718-606e-489d-9626-2a5fa3e84eec"
+              onApplied={(code) => handlePromoClick(code)}
+            />
+          </CardContent>
+        </Card>
+      </FadeInOnView>
+
+      {/* Announcements */}
+      <FadeInOnView delay={150} animation="slide-in-right">
         <Card className="liquid-glass">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-subheading">
@@ -171,17 +193,22 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       </FadeInOnView>
 
       {/* Active Promo Codes */}
-      {activePromos.length > 0 && (
-        <FadeInOnView delay={200} animation="bounce-in">
-          <Card className="ui-card-interactive">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-subheading">
-                <Gift className="icon-sm text-success animate-wiggle" />
-                Active Promo Codes
-              </CardTitle>
-              <CardDescription className="text-body-sm">Limited time offers - use these codes when subscribing!</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
+      <FadeInOnView delay={250} animation="bounce-in">
+        <Card className="ui-card-interactive">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-subheading">
+              <Sparkles className="icon-sm text-success animate-wiggle" />
+              {activePromos.length > 0 ? "Active Promo Codes" : "Limited Time Offers"}
+            </CardTitle>
+            <CardDescription className="text-body-sm">
+              {activePromos.length > 0 
+                ? "Limited time offers - use these codes when subscribing!" 
+                : "Stay tuned for exclusive promo codes and special discounts!"
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {activePromos.length > 0 ? (
               <HorizontalSnapScroll 
                 autoScroll={true}
                 autoScrollInterval={4000}
@@ -221,10 +248,31 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
                   </div>
                 ))}
               </HorizontalSnapScroll>
-            </CardContent>
-          </Card>
-        </FadeInOnView>
-      )}
+            ) : (
+              <div className="text-center py-8 space-y-3">
+                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center">
+                  <Gift className="h-8 w-8 text-primary" />
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  No active promotions right now, but check back soon for amazing deals!
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('tab', 'plan');
+                    window.history.pushState({}, '', url.toString());
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }}
+                >
+                  View Plans
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </FadeInOnView>
 
       {/* About Dynamic Capital */}
       <FadeInOnView delay={300} animation="bounce-in">

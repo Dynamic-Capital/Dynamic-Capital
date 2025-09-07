@@ -10,6 +10,7 @@ import { Sparkles, Tag, Percent, DollarSign, Loader2, Check, X } from "lucide-re
 
 interface PromoCodeInputProps {
   planId: string;
+  onApplied?: (promoCode: string, validationData: PromoValidation) => void;
 }
 
 interface PromoValidation {
@@ -20,7 +21,7 @@ interface PromoValidation {
   reason?: string;
 }
 
-const PromoCodeInput = ({ planId }: PromoCodeInputProps) => {
+const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
   const [promoCode, setPromoCode] = useState("");
   const [isValidating, setIsValidating] = useState(false);
   const [validation, setValidation] = useState<PromoValidation | null>(null);
@@ -58,6 +59,7 @@ const PromoCodeInput = ({ planId }: PromoCodeInputProps) => {
       
       if (data.ok) {
         setAppliedPromo(promoCode.trim().toUpperCase());
+        onApplied?.(promoCode.trim().toUpperCase(), data);
         toast({
           title: "Promo code applied! 🎉",
           description: `You saved ${data.type === "percentage" ? `${data.value}%` : `$${data.value}`}`,

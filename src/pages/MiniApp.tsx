@@ -147,7 +147,7 @@ export default function MiniApp() {
               </TabsList>
             </div>
 
-            <div className="p-4 pb-6 safe-area-bottom">
+            <div className="p-4 pb-24 safe-area-bottom">
               <TabsContent value="home" className="space-y-4">
                 <HomeLanding telegramData={telegramData} />
               </TabsContent>

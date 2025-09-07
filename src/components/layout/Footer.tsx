@@ -15,7 +15,11 @@ interface ContactLink {
   display_order: number;
 }
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  compact?: boolean;
+}
+
+const Footer: React.FC<FooterProps> = ({ compact = false }) => {
   const [contacts, setContacts] = useState<ContactLink[]>([]);
 
   useEffect(() => {
@@ -81,6 +85,42 @@ const Footer: React.FC = () => {
       console.error('Error opening contact link:', error);
     }
   };
+
+  if (compact) {
+    return (
+      <footer className="bg-card/80 backdrop-blur-md border-t border-border/50 mt-4">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex flex-col items-center gap-2">
+            {/* Social Media Icons Row */}
+            {contacts.length > 0 && (
+              <div className="flex gap-2">
+                {contacts.slice(0, 4).map((contact) => (
+                  <Button
+                    key={contact.id}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleContactClick(contact.url)}
+                    className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
+                    title={`Follow us on ${contact.platform}`}
+                  >
+                    {contact.icon_emoji ? (
+                      <span className="text-xs">{contact.icon_emoji}</span>
+                    ) : (
+                      getPlatformIcon(contact.platform)
+                    )}
+                  </Button>
+                ))}
+              </div>
+            )}
+            
+            <p className="text-xs text-muted-foreground text-center">
+              © {new Date().getFullYear()} Dynamic Capital. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <footer className="bg-card border-t border-border mt-auto">
