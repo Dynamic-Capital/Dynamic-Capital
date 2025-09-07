@@ -191,15 +191,16 @@ export function MobileOptimizedButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "touch-manipulation",
-        "min-h-[44px] sm:min-h-[40px]", // iOS accessibility guidelines
-        "active:scale-95 transition-transform",
+        "touch-target",
+        "active:scale-95 transition-all duration-150",
+        "hover:shadow-md hover:scale-[1.02]",
+        "focus:ring-2 focus:ring-primary/50",
         className
       )}
       {...props}
     >
-      {icon && <span className="mr-2">{icon}</span>}
-      {children}
+      {icon && <span className="mr-2 flex-shrink-0">{icon}</span>}
+      <span className="truncate">{children}</span>
     </Button>
   );
 }

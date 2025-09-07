@@ -19,6 +19,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ResponsiveMotion, FullscreenAdaptive, ViewportAware } from "@/components/ui/responsive-motion";
 import { TabTransition } from "@/components/ui/route-transitions";
 import { MicroButton } from "@/components/ui/micro-interactions";
+import { MobileFloatingActionButton } from "@/components/ui/mobile-floating-action-button";
 import { 
   Home, 
   Star, 
@@ -128,32 +129,34 @@ export default function MiniApp() {
             layout
             style={{ maxHeight: isFullscreen ? '100vh' : telegramData?.viewportHeight ? `${telegramData.viewportHeight}px` : 'auto' }}
           >
-          {/* Enhanced Header with auto-sizing */}
-          <ResponsiveMotion 
-            mobileVariant="slide" 
-            desktopVariant="fade"
-            className="sticky top-0 z-20 liquid-glass backdrop-blur-xl border-b border-border/40"
+          {/* Enhanced Header with dynamic sizing */}
+          <motion.header
+            className="dynamic-header sticky top-0 z-20 liquid-glass backdrop-blur-xl border-b border-border/40 safe-area-top"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4">
+            <div className="flex items-center justify-between h-full px-3 sm:px-4">
               <motion.div 
-                className="flex items-center gap-2 sm:gap-3"
+                className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 bg-gradient-brand rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-xs sm:text-sm lg:text-base">DC</span>
+                <div className="touch-target flex items-center justify-center bg-gradient-brand rounded-full flex-shrink-0">
+                  <span className="text-white font-bold text-xs sm:text-sm">DC</span>
                 </div>
-                <div>
-                  <h1 className="text-sm sm:text-base lg:text-lg font-semibold text-elevated leading-tight">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-sm sm:text-base font-semibold text-elevated leading-tight truncate">
                     Dynamic Capital
                   </h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-none">
+                  <p className="text-xs text-muted-foreground leading-none truncate">
                     VIP Trading Bot
                   </p>
                 </div>
               </motion.div>
               <motion.div
+                className="flex-shrink-0"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 }}
@@ -161,79 +164,53 @@ export default function MiniApp() {
                 <ThemeToggle variant="glass" size="sm" />
               </motion.div>
             </div>
-          </ResponsiveMotion>
+          </motion.header>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <ResponsiveMotion 
-              mobileVariant="fade" 
-              desktopVariant="slide"
-              delay={0.1}
-              className="sticky top-20 sm:top-24 lg:top-28 z-10 glass-card backdrop-blur-md border-b"
+            <motion.nav
+              className="dynamic-tabs sticky top-[var(--header-height)] z-10 glass-card backdrop-blur-md border-b safe-area-left safe-area-right"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <TabsList className={`glass-card grid w-full ${
-                isAdmin ? 'grid-cols-8' : 'grid-cols-7'
-              } h-12 sm:h-14 lg:h-16 p-1 transition-all duration-300 overflow-x-auto scrollbar-hide gap-0.5`}>
-                <TabsTrigger value="home" className="glass-tab flex flex-col items-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-sf-pro rounded-lg transition-all duration-200 hover:scale-105 px-1 sm:px-2 py-1 sm:py-2">
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
+              <TabsList className={`glass-card flex w-full h-full p-1 transition-all duration-300 ${
+                isAdmin ? 'justify-between' : 'justify-evenly'
+              } overflow-x-auto scrollbar-hide gap-0.5`}>
+                {[
+                  { value: "home", icon: Home, label: "Home" },
+                  { value: "plan", icon: Star, label: "Plans" },
+                  { value: "checkout", icon: ShoppingCart, label: "Buy" },
+                  { value: "status", icon: User, label: "Status" },
+                  ...(isAdmin ? [{ value: "admin", icon: Shield, label: "Admin" }] : []),
+                  { value: "ask", icon: MessageSquare, label: "Ask" },
+                  { value: "actions", icon: Zap, label: "Actions" },
+                  { value: "help", icon: HelpCircle, label: "FAQ" }
+                ].map((tab, index) => (
+                  <TabsTrigger 
+                    key={tab.value}
+                    value={tab.value} 
+                    className="touch-target glass-tab flex flex-col items-center justify-center gap-1 text-xs font-sf-pro rounded-lg transition-all duration-200 hover:scale-105 px-2 py-1 flex-1 min-w-0 max-w-20"
                   >
-                    <Home className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
-                  </motion.div>
-                  <span className="text-xs lg:text-sm leading-none">Home</span>
-                </TabsTrigger>
-                <TabsTrigger value="plan" className="glass-tab flex flex-col items-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-sf-pro rounded-lg transition-all duration-200 hover:scale-105 px-1 sm:px-2 py-1 sm:py-2">
-                  <motion.div whileHover={{ scale: 1.1, rotate: 5 }} whileTap={{ scale: 0.95 }}>
-                    <Star className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
-                  </motion.div>
-                  <span className="text-xs lg:text-sm leading-none">Plans</span>
-                </TabsTrigger>
-                <TabsTrigger value="checkout" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg transition-all duration-200 hover:scale-105">
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                    <ShoppingCart className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                  </motion.div>
-                  <span className={isMobile ? 'text-xs' : 'text-sm'}>Buy</span>
-                </TabsTrigger>
-                <TabsTrigger value="status" className="glass-tab flex flex-col items-center gap-0.5 text-xs font-sf-pro rounded-lg py-2 px-1 transition-all duration-200 hover:scale-105">
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                    <User className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                  </motion.div>
-                  <span className={isMobile ? 'text-xs' : 'text-sm'}>Status</span>
-                </TabsTrigger>
-                {isAdmin && (
-                  <TabsTrigger value="admin" className="glass-tab flex flex-col items-center gap-0.5 text-xs font-sf-pro rounded-lg py-2 px-1 transition-all duration-200 hover:scale-105">
-                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                      <Shield className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <tab.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                     </motion.div>
-                    <span className={isMobile ? 'text-xs' : 'text-sm'}>Admin</span>
+                    <span className="text-xs leading-none truncate">{tab.label}</span>
                   </TabsTrigger>
-                )}
-                <TabsTrigger value="ask" className="glass-tab flex flex-col items-center gap-0.5 text-xs font-sf-pro rounded-lg py-2 px-1 transition-all duration-200 hover:scale-105">
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                    <MessageSquare className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                  </motion.div>
-                  <span className={isMobile ? 'text-xs' : 'text-sm'}>Ask</span>
-                </TabsTrigger>
-                <TabsTrigger value="actions" className="glass-tab flex flex-col items-center gap-0.5 text-xs font-sf-pro rounded-lg py-2 px-1 transition-all duration-200 hover:scale-105">
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                    <Zap className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                  </motion.div>
-                  <span className={isMobile ? 'text-xs' : 'text-sm'}>Actions</span>
-                </TabsTrigger>
-                <TabsTrigger value="help" className="glass-tab flex flex-col items-center gap-0.5 text-xs font-sf-pro rounded-lg py-2 px-1 transition-all duration-200 hover:scale-105">
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                    <HelpCircle className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                  </motion.div>
-                  <span className={isMobile ? 'text-xs' : 'text-sm'}>FAQ</span>
-                </TabsTrigger>
+                ))}
               </TabsList>
-            </ResponsiveMotion>
+            </motion.nav>
 
             <motion.div 
-              className="p-2 sm:p-3 lg:p-4 pb-20 sm:pb-24 safe-area-bottom flex-1 overflow-auto"
+              className="content-area flex-1 overflow-auto px-3 sm:px-4 pb-20 safe-area-bottom"
               layout
               style={{ 
-                maxHeight: isFullscreen ? 'calc(100vh - 140px)' : 
+                maxHeight: isFullscreen ? 'calc(100vh - var(--header-height) - var(--tabs-height))' : 
                           telegramData?.viewportHeight ? `${telegramData.viewportHeight - 140}px` : 
                           'auto' 
               }}
@@ -304,6 +281,22 @@ export default function MiniApp() {
               </TabTransition>
             </motion.div>
           </Tabs>
+
+          {/* Mobile FAB for contact */}
+          {isMobile && (
+            <MobileFloatingActionButton
+              variant="contact"
+              position="bottom-right"
+              onClick={() => {
+                if (isInTelegram) {
+                  window.open('https://t.me/DynamicCapital_Support', '_blank');
+                } else {
+                  window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
+                }
+              }}
+              pulse={true}
+            />
+          )}
 
           {/* VIP Launch Promo Popup */}
           <AnimatePresence>
