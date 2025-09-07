@@ -181,7 +181,54 @@ export default function MiniApp() {
              >
               <TabsList className={`glass-card flex w-full h-full p-1 transition-all duration-300 ${
                 isAdmin ? 'justify-between' : 'justify-evenly'
-              } overflow-x-auto scrollbar-hide gap-0.5`}>
+              } overflow-x-auto scrollbar-hide gap-0.5 relative`}>
+                {/* Active tab indicator */}
+                <motion.div
+                  className="absolute inset-y-1 bg-primary/20 dark:bg-primary/30 rounded-lg border border-primary/40"
+                  layoutId="activeTab"
+                  initial={false}
+                  animate={{
+                    x: `calc(${[
+                      { value: "home", icon: Home, label: "Home" },
+                      { value: "plan", icon: Star, label: "Plans" },
+                      { value: "checkout", icon: ShoppingCart, label: "Buy" },
+                      { value: "status", icon: User, label: "Status" },
+                      ...(isAdmin ? [{ value: "admin", icon: Shield, label: "Admin" }] : []),
+                      { value: "ask", icon: MessageSquare, label: "Ask" },
+                      { value: "actions", icon: Zap, label: "Actions" },
+                      { value: "help", icon: HelpCircle, label: "FAQ" }
+                    ].findIndex(tab => tab.value === activeTab) * 100}% + ${
+                      [
+                        { value: "home", icon: Home, label: "Home" },
+                        { value: "plan", icon: Star, label: "Plans" },
+                        { value: "checkout", icon: ShoppingCart, label: "Buy" },
+                        { value: "status", icon: User, label: "Status" },
+                        ...(isAdmin ? [{ value: "admin", icon: Shield, label: "Admin" }] : []),
+                        { value: "ask", icon: MessageSquare, label: "Ask" },
+                        { value: "actions", icon: Zap, label: "Actions" },
+                        { value: "help", icon: HelpCircle, label: "FAQ" }
+                      ].findIndex(tab => tab.value === activeTab) * 0.125
+                    }rem)`
+                  }}
+                  style={{
+                    width: `calc(${100 / ([
+                      { value: "home", icon: Home, label: "Home" },
+                      { value: "plan", icon: Star, label: "Plans" },
+                      { value: "checkout", icon: ShoppingCart, label: "Buy" },
+                      { value: "status", icon: User, label: "Status" },
+                      ...(isAdmin ? [{ value: "admin", icon: Shield, label: "Admin" }] : []),
+                      { value: "ask", icon: MessageSquare, label: "Ask" },
+                      { value: "actions", icon: Zap, label: "Actions" },
+                      { value: "help", icon: HelpCircle, label: "FAQ" }
+                    ].length)}% - 0.125rem)`
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 30
+                  }}
+                />
+                
                 {[
                   { value: "home", icon: Home, label: "Home" },
                   { value: "plan", icon: Star, label: "Plans" },
@@ -191,24 +238,88 @@ export default function MiniApp() {
                   { value: "ask", icon: MessageSquare, label: "Ask" },
                   { value: "actions", icon: Zap, label: "Actions" },
                   { value: "help", icon: HelpCircle, label: "FAQ" }
-                ].map((tab, index) => (
-                  <TabsTrigger 
-                    key={tab.value}
-                    value={tab.value} 
-                    className="touch-target glass-tab flex flex-col items-center justify-center gap-1 text-xs font-sf-pro rounded-lg transition-all duration-200 hover:scale-105 px-2 py-1 flex-1 min-w-0 max-w-20"
-                  >
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
+                ].map((tab, index) => {
+                  const isActive = activeTab === tab.value;
+                  return (
+                    <TabsTrigger 
+                      key={tab.value}
+                      value={tab.value} 
+                      className="touch-target relative flex flex-col items-center justify-center gap-1 text-xs font-sf-pro rounded-lg transition-all duration-200 px-2 py-1 flex-1 min-w-0 max-w-20 hover:bg-transparent data-[state=active]:bg-transparent z-10"
                     >
-                      <tab.icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </motion.div>
-                    <span className="text-xs leading-none truncate">{tab.label}</span>
-                  </TabsTrigger>
-                ))}
+                      <motion.div
+                        className="flex flex-col items-center gap-1"
+                        initial={{ opacity: 0, y: 5, scale: 0.9 }}
+                        animate={{ 
+                          opacity: 1, 
+                          y: 0, 
+                          scale: isActive ? 1.1 : 1,
+                          color: isActive ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"
+                        }}
+                        whileHover={{ 
+                          scale: isActive ? 1.15 : 1.05,
+                          y: -2,
+                          transition: { type: "spring", stiffness: 400, damping: 17 }
+                        }}
+                        whileTap={{ 
+                          scale: isActive ? 1.05 : 0.95,
+                          transition: { type: "spring", stiffness: 400, damping: 17 }
+                        }}
+                        transition={{ 
+                          delay: index * 0.05,
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 25
+                        }}
+                      >
+                        <motion.div
+                          animate={{
+                            rotate: isActive ? [0, -5, 5, 0] : 0,
+                            transition: isActive ? {
+                              duration: 0.6,
+                              ease: "easeInOut",
+                              times: [0, 0.3, 0.7, 1]
+                            } : { duration: 0.2 }
+                          }}
+                        >
+                          <tab.icon className={`h-4 w-4 sm:h-5 sm:w-5 transition-colors duration-200 ${
+                            isActive ? 'text-primary' : 'text-muted-foreground'
+                          }`} />
+                        </motion.div>
+                        <motion.span 
+                          className={`text-xs leading-none truncate transition-colors duration-200 ${
+                            isActive ? 'text-primary font-medium' : 'text-muted-foreground'
+                          }`}
+                          animate={{
+                            scale: isActive ? 1.05 : 1,
+                            fontWeight: isActive ? 600 : 400
+                          }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {tab.label}
+                        </motion.span>
+                      </motion.div>
+                      
+                      {/* Active state glow effect */}
+                      {isActive && (
+                        <motion.div
+                          className="absolute inset-0 rounded-lg bg-primary/10 dark:bg-primary/20"
+                          layoutId="tabGlow"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                        />
+                      )}
+                      
+                      {/* Hover ripple effect */}
+                      <motion.div
+                        className="absolute inset-0 rounded-lg bg-primary/5 dark:bg-primary/10 opacity-0"
+                        whileHover={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                      />
+                    </TabsTrigger>
+                  );
+                })}
               </TabsList>
             </motion.nav>
 
@@ -223,70 +334,131 @@ export default function MiniApp() {
                }}
                layout
              >
-              <TabTransition tabKey={activeTab}>
-                <TabsContent value="home" className="space-y-4">
-                  <ViewportAware>
-                    <HomeLanding telegramData={telegramData} />
-                  </ViewportAware>
-                </TabsContent>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, x: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -20, scale: 0.95 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                    mass: 0.8
+                  }}
+                >
+                  <TabsContent value="home" className="space-y-4">
+                    <ViewportAware>
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1, duration: 0.4 }}
+                      >
+                        <HomeLanding telegramData={telegramData} />
+                      </motion.div>
+                    </ViewportAware>
+                  </TabsContent>
 
                   <TabsContent value="plan" className="space-y-4">
                     <ViewportAware>
-                      <PlanSection />
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1, duration: 0.4 }}
+                      >
+                        <PlanSection />
+                      </motion.div>
                     </ViewportAware>
                   </TabsContent>
 
                   <TabsContent value="checkout" className="space-y-4">
                     <ViewportAware>
-                      <CheckoutSection 
-                        selectedPlanId={selectedPlanId || undefined}
-                        promoCode={promoCode || undefined}
-                        onBack={() => {
-                          const url = new URL(window.location.href);
-                          url.searchParams.set('tab', 'plan');
-                          url.searchParams.delete('plan');
-                          url.searchParams.delete('promo');
-                          window.history.pushState({}, '', url.toString());
-                          setActiveTab('plan');
-                          setSelectedPlanId(null);
-                          setPromoCode(null);
-                        }}
-                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1, duration: 0.4 }}
+                      >
+                        <CheckoutSection 
+                          selectedPlanId={selectedPlanId || undefined}
+                          promoCode={promoCode || undefined}
+                          onBack={() => {
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('tab', 'plan');
+                            url.searchParams.delete('plan');
+                            url.searchParams.delete('promo');
+                            window.history.pushState({}, '', url.toString());
+                            setActiveTab('plan');
+                            setSelectedPlanId(null);
+                            setPromoCode(null);
+                          }}
+                        />
+                      </motion.div>
                     </ViewportAware>
                   </TabsContent>
 
                   <TabsContent value="status" className="space-y-4">
                     <ViewportAware>
-                      <SubscriptionStatusCard telegramData={telegramData} />
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1, duration: 0.4 }}
+                      >
+                        <SubscriptionStatusCard telegramData={telegramData} />
+                      </motion.div>
                     </ViewportAware>
                   </TabsContent>
 
                   {isAdmin && (
                     <TabsContent value="admin" className="space-y-4">
                       <ViewportAware>
-                        <AdminDashboard telegramData={telegramData} />
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.1, duration: 0.4 }}
+                        >
+                          <AdminDashboard telegramData={telegramData} />
+                        </motion.div>
                       </ViewportAware>
                     </TabsContent>
                   )}
 
                   <TabsContent value="ask" className="space-y-4">
                     <ViewportAware>
-                      <AskSection />
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1, duration: 0.4 }}
+                      >
+                        <AskSection />
+                      </motion.div>
                     </ViewportAware>
                   </TabsContent>
 
                   <TabsContent value="actions" className="space-y-4">
                     <ViewportAware>
-                      <QuickActions />
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1, duration: 0.4 }}
+                      >
+                        <QuickActions />
+                      </motion.div>
                     </ViewportAware>
                   </TabsContent>
 
-                <TabsContent value="help" className="space-y-4">
-                  <ViewportAware>
-                    <FAQSection />
-                  </ViewportAware>
-                </TabsContent>
-              </TabTransition>
+                  <TabsContent value="help" className="space-y-4">
+                    <ViewportAware>
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1, duration: 0.4 }}
+                      >
+                        <FAQSection />
+                      </motion.div>
+                    </ViewportAware>
+                  </TabsContent>
+                </motion.div>
+              </AnimatePresence>
             </motion.div>
           </Tabs>
 
