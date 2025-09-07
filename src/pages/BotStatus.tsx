@@ -187,7 +187,7 @@ export default function BotStatusPage() {
                       </p>
                     )
                     : (
-                      <div className="text-red-600 space-y-1">
+                      <div className="text-destructive space-y-1">
                         <p>❌ Bot has configuration issues:</p>
                         {!botStatus.bot_status?.includes("✅") && (
                           <p>• Bot API connection failed</p>

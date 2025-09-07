@@ -89,10 +89,10 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
   };
 
   const getPlanColor = (index: number, popular: boolean) => {
-    if (popular) return 'from-red-500 to-red-600';
+    if (popular) return 'from-dc-brand to-dc-brand-dark';
     switch (index) {
       case 0: return 'from-blue-500 to-blue-600';
-      case 1: return 'from-red-500 to-red-600';
+      case 1: return 'from-dc-brand to-dc-brand-dark';
       case 2: return 'from-purple-500 to-purple-600';
       default: return 'from-gray-500 to-gray-600';
     }
@@ -132,7 +132,7 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
           >
             <Card className="h-full border-0">
               {plan.popular && (
-                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-red-500 to-red-600 text-white text-center py-1 text-xs font-medium">
+                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-dc-brand to-dc-brand-dark text-white text-center py-1 text-xs font-medium">
                   MOST POPULAR
                 </div>
               )}
@@ -142,7 +142,7 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                 </div>
                 <CardTitle className="text-lg">{plan.name}</CardTitle>
                 <div className="space-y-1">
-                  <div className="text-2xl font-bold text-red-500">${plan.price}</div>
+                  <div className="text-2xl font-bold text-dc-brand">${plan.price}</div>
                   <div className="text-sm text-muted-foreground">
                     {plan.is_lifetime ? 'One-time payment' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
                   </div>
@@ -153,7 +153,7 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                   onClick={() => handleSelectPlan(plan.id)}
                   className={cn(
                     "w-full",
-                    plan.popular && "bg-red-500 hover:bg-red-600"
+                    plan.popular && "bg-dc-brand hover:bg-dc-brand-dark"
                   )}
                 >
                   Choose Plan
@@ -173,7 +173,7 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2 mb-4">
             <ThreeDEmoticon emoji="👑" size={32} intensity={0.4} animate={true} />
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-dc-brand to-dc-brand-dark bg-clip-text text-transparent">
               VIP Subscription Plans
             </h2>
             <ThreeDEmoticon emoji="✨" size={28} intensity={0.3} animate={true} />
@@ -201,11 +201,11 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                 >
                   <Card className={cn(
                     "h-full border-2 transition-all duration-300",
-                    plan.popular ? "border-red-500 shadow-lg shadow-red-500/20" : "border-border hover:border-red-300"
+                    plan.popular ? "border-dc-brand shadow-lg shadow-dc-brand/20" : "border-border hover:border-dc-brand-light"
                   )}>
                     {/* Popular Badge */}
                     {plan.popular && (
-                      <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-red-500 to-red-600 text-white text-center py-2 font-medium">
+                      <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-dc-brand to-dc-brand-dark text-white text-center py-2 font-medium">
                         <div className="flex items-center justify-center gap-1">
                           <Crown className="h-4 w-4" />
                           MOST POPULAR
@@ -241,7 +241,7 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                       
                       {/* Pricing */}
                       <div className="space-y-1">
-                        <div className="text-3xl font-bold text-red-500">
+                        <div className="text-3xl font-bold text-dc-brand">
                           ${plan.price}
                           <span className="text-base text-muted-foreground ml-1">
                             {plan.currency}
@@ -279,8 +279,8 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                         className={cn(
                           "w-full font-semibold transition-all duration-300 group-hover:shadow-lg",
                           plan.popular 
-                            ? "bg-red-500 hover:bg-red-600 shadow-red-500/20" 
-                            : "hover:bg-red-500 hover:text-white"
+                            ? "bg-dc-brand hover:bg-dc-brand-dark shadow-dc-brand/20"
+                            : "hover:bg-dc-brand hover:text-white"
                         )}
                         size="lg"
                       >
@@ -306,12 +306,12 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
         </div>
 
         {/* Features Summary */}
-        <div className="mt-8 p-6 bg-gradient-to-r from-red-500/10 to-red-600/10 rounded-lg border border-red-500/20">
+        <div className="mt-8 p-6 bg-gradient-to-r from-dc-brand/10 to-dc-brand-dark/10 rounded-lg border border-dc-brand/20">
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2">
-              <Shield className="h-6 w-6 text-red-500" />
+              <Shield className="h-6 w-6 text-dc-brand" />
               <h3 className="text-lg font-semibold">All Plans Include</h3>
-              <Shield className="h-6 w-6 text-red-500" />
+              <Shield className="h-6 w-6 text-dc-brand" />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div className="flex items-center gap-2">

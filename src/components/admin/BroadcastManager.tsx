@@ -141,7 +141,7 @@ export function BroadcastManager() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'failed': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'failed': return 'bg-dc-brand/10 text-dc-brand border-dc-brand/20';
       case 'sending': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
       case 'scheduled': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
       default: return 'bg-muted text-muted-foreground';
@@ -279,7 +279,7 @@ export function BroadcastManager() {
                           </span>
                         )}
                         {message.failed_deliveries !== undefined && message.failed_deliveries > 0 && (
-                          <span className="text-red-600">
+                          <span className="text-dc-brand-dark">
                             ✗ {message.failed_deliveries}
                           </span>
                         )}

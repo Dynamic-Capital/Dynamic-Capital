@@ -226,7 +226,7 @@ export const AdminDataManager = () => {
       return (
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <Label htmlFor="key">Key <span className="text-red-500">*</span></Label>
+            <Label htmlFor="key">Key <span className="text-dc-brand">*</span></Label>
             <Input
               id="key"
               value={kvConfigForm.key}
@@ -254,7 +254,7 @@ export const AdminDataManager = () => {
       return (
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <Label htmlFor="telegram_id">Telegram ID <span className="text-red-500">*</span></Label>
+            <Label htmlFor="telegram_id">Telegram ID <span className="text-dc-brand">*</span></Label>
             <Input
               id="telegram_id"
               value={abuseBanForm.telegram_id}

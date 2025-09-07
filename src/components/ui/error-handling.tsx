@@ -75,10 +75,10 @@ export function NetworkStatus({ className }: NetworkStatusProps) {
   }
 
   return (
-    <Alert className={`border-red-500/20 bg-red-500/10 ${className}`}>
+    <Alert className={`border-dc-brand/20 bg-dc-brand/10 ${className}`}>
       <WifiOff className="h-4 w-4" />
       <AlertDescription className="flex items-center justify-between">
-        <span className="text-red-600">
+        <span className="text-dc-brand-dark">
           Connection lost. Some features may not work properly.
         </span>
         <Button
@@ -121,9 +121,9 @@ export class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <Alert className="border-red-500/20 bg-red-500/10">
+        <Alert className="border-dc-brand/20 bg-dc-brand/10">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="text-red-600">
+          <AlertDescription className="text-dc-brand-dark">
             Something went wrong. Please refresh the page.
           </AlertDescription>
         </Alert>
@@ -168,10 +168,10 @@ export function RetryableComponent({ children, onRetry, error, loading }: Retrya
 
   if (error) {
     return (
-      <Alert className="border-red-500/20 bg-red-500/10">
+      <Alert className="border-dc-brand/20 bg-dc-brand/10">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription className="flex items-center justify-between">
-          <span className="text-red-600">{error}</span>
+          <span className="text-dc-brand-dark">{error}</span>
           <Button
             variant="outline"
             size="sm"

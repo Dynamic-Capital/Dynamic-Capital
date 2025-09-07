@@ -208,7 +208,7 @@ export const SystemStatus = () => {
       case "healthy":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case "error":
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return <XCircle className="h-4 w-4 text-dc-brand" />;
       case "warning":
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
       default:
@@ -324,7 +324,7 @@ export const SystemStatus = () => {
                   tables.every((t) => t.status === "healthy")
                 ? <span className="text-green-500">Excellent</span>
                 : errorFunctions > 0
-                ? <span className="text-red-500">Issues</span>
+                ? <span className="text-dc-brand">Issues</span>
                 : <span className="text-yellow-500">Warning</span>}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -380,7 +380,7 @@ export const SystemStatus = () => {
                               : "No response time"}
                           </p>
                           {func.error && (
-                            <p className="text-xs text-red-500">{func.error}</p>
+                            <p className="text-xs text-dc-brand">{func.error}</p>
                           )}
                         </div>
                       </div>
@@ -564,7 +564,7 @@ export const SystemStatus = () => {
                     </div>
                   )
                   : (
-                    <div className="flex items-center gap-2 text-red-600">
+                    <div className="flex items-center gap-2 text-dc-brand-dark">
                       <XCircle className="h-4 w-4" />
                       <span>Some edge functions need attention</span>
                     </div>
@@ -578,7 +578,7 @@ export const SystemStatus = () => {
                     </div>
                   )
                   : (
-                    <div className="flex items-center gap-2 text-red-600">
+                    <div className="flex items-center gap-2 text-dc-brand-dark">
                       <XCircle className="h-4 w-4" />
                       <span>Some database tables have issues</span>
                     </div>

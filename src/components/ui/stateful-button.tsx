@@ -91,7 +91,7 @@ export function StatefulButton({
             initial={{ opacity: 0, scale: 0.8, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: -10 }}
-            className="flex items-center gap-2 text-red-600 dark:text-red-400"
+            className="flex items-center gap-2 text-dc-brand-dark dark:text-dc-brand-light"
           >
             <X className="h-4 w-4" />
             {errorText}
@@ -129,7 +129,7 @@ export function StatefulButton({
         "min-w-[120px] transition-all duration-300",
         currentState === "loading" && "cursor-wait",
         currentState === "success" && "bg-green-600 hover:bg-green-700 border-green-600",
-        currentState === "error" && "bg-red-600 hover:bg-red-700 border-red-600",
+        currentState === "error" && "bg-dc-brand-dark hover:bg-dc-brand-dark border-dc-brand-dark",
         className
       )}
       disabled={disabled || currentState !== "idle"}

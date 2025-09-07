@@ -151,7 +151,7 @@ export function BotDiagnostics() {
       case 'error':
       case 'failed':
       case 'offline':
-        return 'bg-red-500/10 text-red-500 border-red-500/20';
+        return 'bg-dc-brand/10 text-dc-brand border-dc-brand/20';
       case 'warning':
       case 'pending':
         return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';

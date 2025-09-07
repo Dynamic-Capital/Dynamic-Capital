@@ -451,7 +451,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
                   "text-xs p-2 rounded",
                   promoValidation.valid 
                     ? "bg-green-500/10 text-green-600 border border-green-500/20" 
-                    : "bg-red-500/10 text-red-600 border border-red-500/20"
+                    : "bg-dc-brand/10 text-dc-brand-dark border border-dc-brand/20"
                 )}>
                   {promoValidation.valid 
                     ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!`

@@ -246,7 +246,7 @@ export default function PlanSection() {
                        "flex-1 min-h-[44px] px-4 py-2 ui-rounded-lg border transition-all duration-200",
                        "placeholder:text-muted-foreground font-medium",
                        promoValidation?.valid === true && "border-green-500 ring-2 ring-green-500/20",
-                       promoValidation?.valid === false && "border-red-500 ring-2 ring-red-500/20",
+                      promoValidation?.valid === false && "border-dc-brand ring-2 ring-dc-brand/20",
                        !promoValidation && "border-border hover:border-border/80 focus:border-primary focus:ring-2 focus:ring-primary/20"
                      )}
                    />
@@ -260,7 +260,7 @@ export default function PlanSection() {
                    </Button>
                  </div>
                 {promoValidation && (
-                  <div className={`text-xs p-2 rounded transition-all duration-300 ${promoValidation.valid ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
+                  <div className={`text-xs p-2 rounded transition-all duration-300 ${promoValidation.valid ? 'bg-green-500/10 text-green-600' : 'bg-dc-brand/10 text-dc-brand-dark'}`}>
                     {promoValidation.valid 
                       ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!`
                       : promoValidation.reason
@@ -322,7 +322,7 @@ export default function PlanSection() {
                                 exit={{ scale: 0, rotate: 180 }}
                                 transition={{ type: "spring", stiffness: 260, damping: 20 }}
                               >
-                                <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs animate-pulse ui-p-xs">
+                                <Badge className="bg-gradient-to-r from-orange-500 to-dc-brand text-white text-xs animate-pulse ui-p-xs">
                                   <motion.div
                                     animate={{ rotate: [0, 15, -15, 0] }}
                                     transition={{ duration: 2, repeat: Infinity }}

@@ -153,7 +153,7 @@ const Education: React.FC = () => {
       case "Intermediate":
         return "bg-yellow-100 text-yellow-800";
       case "Advanced":
-        return "bg-red-100 text-red-800";
+        return "bg-dc-brand/10 text-dc-brand-dark";
       default:
         return "bg-gray-100 text-gray-800";
     }

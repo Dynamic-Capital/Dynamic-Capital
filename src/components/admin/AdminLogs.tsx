@@ -81,9 +81,9 @@ export function AdminLogs() {
   const getActionColor = (actionType: string) => {
     switch (actionType.toLowerCase()) {
       case 'approve': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'reject': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'reject': return 'bg-dc-brand/10 text-dc-brand border-dc-brand/20';
       case 'update': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'delete': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'delete': return 'bg-dc-brand/10 text-dc-brand border-dc-brand/20';
       case 'create': return 'bg-green-500/10 text-green-500 border-green-500/20';
       default: return 'bg-muted text-muted-foreground';
     }

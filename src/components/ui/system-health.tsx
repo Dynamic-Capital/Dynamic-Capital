@@ -89,7 +89,7 @@ export function SystemHealth({ className, showDetails = false }: SystemHealthPro
     switch (status) {
       case 'healthy': return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'degraded': return <AlertCircle className="h-4 w-4 text-yellow-500" />;
-      case 'error': return <AlertCircle className="h-4 w-4 text-red-500" />;
+      case 'error': return <AlertCircle className="h-4 w-4 text-dc-brand" />;
       default: return <Clock className="h-4 w-4 text-gray-500" />;
     }
   };
@@ -101,7 +101,7 @@ export function SystemHealth({ className, showDetails = false }: SystemHealthPro
       case 'degraded': 
         return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30">Degraded</Badge>;
       case 'error': 
-        return <Badge className="bg-red-500/10 text-red-600 border-red-500/30">Error</Badge>;
+        return <Badge className="bg-dc-brand/10 text-dc-brand-dark border-dc-brand/30">Error</Badge>;
       default: 
         return <Badge variant="outline">Unknown</Badge>;
     }
@@ -166,7 +166,7 @@ export function SystemHealth({ className, showDetails = false }: SystemHealthPro
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Failed</p>
-              <p className="text-sm font-medium text-red-500">
+              <p className="text-sm font-medium text-dc-brand">
                 {healthStatus.performance.failed_checks}
               </p>
             </div>
@@ -190,7 +190,7 @@ export function SystemHealth({ className, showDetails = false }: SystemHealthPro
                   {check.status === 'ok' ? (
                     <CheckCircle className="h-4 w-4 text-green-500" />
                   ) : (
-                    <AlertCircle className="h-4 w-4 text-red-500" />
+                    <AlertCircle className="h-4 w-4 text-dc-brand" />
                   )}
                 </div>
               </div>

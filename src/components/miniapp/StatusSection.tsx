@@ -85,7 +85,7 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
     }
     
     if (subscription.is_expired) {
-      return <Badge variant="destructive" className="bg-red-500/10 text-red-600 border-red-500/30">Expired</Badge>;
+      return <Badge variant="destructive" className="bg-dc-brand/10 text-dc-brand-dark border-dc-brand/30">Expired</Badge>;
     }
     
     if (subscription.is_vip) {
@@ -223,7 +223,7 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
                           ? 'bg-green-500/10 text-green-600 border-green-500/30'
                           : subscription.payment_status === 'pending'
                           ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/30'
-                          : 'bg-red-500/10 text-red-600 border-red-500/30'
+                          : 'bg-dc-brand/10 text-dc-brand-dark border-dc-brand/30'
                       }
                     >
                       {subscription.payment_status}

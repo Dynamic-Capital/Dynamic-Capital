@@ -28,7 +28,7 @@ export const FeatureCard = ({
       case "orange":
         return "text-orange-500";
       case "red":
-        return "text-red-500";
+        return "text-dc-brand";
       case "teal":
         return "text-teal-500";
       default:
@@ -45,7 +45,7 @@ export const FeatureCard = ({
       case "orange":
         return "bg-orange-500/10 group-hover:bg-orange-500/20";
       case "red":
-        return "bg-red-500/10 group-hover:bg-red-500/20";
+        return "bg-dc-brand/10 group-hover:bg-dc-brand/20";
       case "teal":
         return "bg-teal-500/10 group-hover:bg-teal-500/20";
       default:
