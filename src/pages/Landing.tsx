@@ -10,8 +10,12 @@ import { AnimatedWelcome } from "@/components/welcome/AnimatedWelcome";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { TypewriterText, GradientText, MorphingText } from "@/components/ui/animated-text";
 import { MotionFadeIn, MotionStagger, MotionCounter, MotionHoverCard, MotionScrollReveal } from "@/components/ui/motion-components";
+import { ResponsiveMotion, FullscreenAdaptive, ViewportAware } from "@/components/ui/responsive-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Landing = () => {
+  const isMobile = useIsMobile();
+  
   const handleOpenTelegram = () => {
     // Use the actual Dynamic Capital VIP Bot
     const botUsername = "Dynamic_VIP_BOT";
@@ -41,36 +45,36 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background font-inter text-foreground">
+    <FullscreenAdaptive className="min-h-screen bg-background font-inter text-foreground">
       {/* Floating Theme Toggle */}
-      <ThemeToggle floating large size="lg" />
+      <ThemeToggle floating large size={isMobile ? "default" : "lg"} />
       {/* Enhanced Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-primary/90 to-purple-900 min-h-screen flex items-center">
         {/* Dynamic Animated Background */}
         <div className="absolute inset-0">
           {/* Floating Orbs with Enhanced Animation */}
           <motion.div 
-            className="absolute top-20 left-10 w-72 h-72 bg-white/20 rounded-full blur-3xl"
+            className={`absolute ${isMobile ? 'top-10 left-5 w-40 h-40' : 'top-20 left-10 w-72 h-72'} bg-white/20 rounded-full blur-3xl`}
             animate={{ 
               scale: [1, 1.2, 1],
               opacity: [0.3, 0.6, 0.3],
-              x: [0, 50, 0],
-              y: [0, -30, 0]
+              x: [0, isMobile ? 25 : 50, 0],
+              y: [0, isMobile ? -15 : -30, 0]
             }}
             transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div 
-            className="absolute bottom-20 right-10 w-96 h-96 bg-yellow-300/30 rounded-full blur-3xl"
+            className={`absolute ${isMobile ? 'bottom-10 right-5 w-48 h-48' : 'bottom-20 right-10 w-96 h-96'} bg-yellow-300/30 rounded-full blur-3xl`}
             animate={{ 
               scale: [1, 1.3, 1],
               opacity: [0.2, 0.5, 0.2],
-              x: [0, -60, 0],
-              y: [0, 40, 0]
+              x: [0, isMobile ? -30 : -60, 0],
+              y: [0, isMobile ? 20 : 40, 0]
             }}
             transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           />
           <motion.div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-400/25 rounded-full blur-3xl"
+            className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isMobile ? 'w-40 h-40' : 'w-80 h-80'} bg-pink-400/25 rounded-full blur-3xl`}
             animate={{ 
               scale: [1, 1.1, 1],
               opacity: [0.2, 0.4, 0.2],
@@ -80,16 +84,16 @@ const Landing = () => {
           />
           
           {/* Particle Effects */}
-          {[...Array(20)].map((_, i) => (
+          {[...Array(isMobile ? 10 : 20)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-2 h-2 bg-white/40 rounded-full"
+              className={`absolute ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-white/40 rounded-full`}
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
               }}
               animate={{
-                y: [0, -100, 0],
+                y: [0, isMobile ? -50 : -100, 0],
                 opacity: [0, 1, 0],
                 scale: [0, 1, 0]
               }}
@@ -106,20 +110,20 @@ const Landing = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40" />
         </div>
         
-        <div className="relative container mx-auto px-6 py-20 text-center">
-          <div className="mx-auto max-w-5xl">
+        <div className={`relative container mx-auto ${isMobile ? 'px-4 py-12' : 'px-6 py-20'} text-center`}>
+          <div className={`mx-auto ${isMobile ? 'max-w-lg' : 'max-w-5xl'}`}>
             {/* Dynamic Floating Badge */}
-            <MotionFadeIn delay={0.2}>
+            <ResponsiveMotion mobileVariant="fade" desktopVariant="bounce" delay={0.2}>
               <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="mb-8"
+                whileHover={{ scale: isMobile ? 1.02 : 1.05, y: -5 }}
+                className={isMobile ? 'mb-6' : 'mb-8'}
               >
-                <Badge className="bg-white/30 text-white border-white/50 hover:bg-white/40 text-base px-6 py-2 backdrop-blur-md shadow-xl">
+                <Badge className={`bg-white/30 text-white border-white/50 hover:bg-white/40 ${isMobile ? 'text-sm px-4 py-1.5' : 'text-base px-6 py-2'} backdrop-blur-md shadow-xl`}>
                   <motion.div
                     animate={{ rotate: [0, 5, -5, 0] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <Crown className="w-5 h-5 mr-2" />
+                    <Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} />
                   </motion.div>
                   <MorphingText 
                     texts={[
@@ -133,61 +137,61 @@ const Landing = () => {
                   />
                 </Badge>
               </motion.div>
-            </MotionFadeIn>
+            </ResponsiveMotion>
             
             {/* Animated Welcome Message */}
             <AnimatedWelcome />
 
             {/* Enhanced CTA Buttons */}
-            <MotionFadeIn delay={1.5} direction="up" distance={50}>
-              <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+            <ResponsiveMotion mobileVariant="slide" desktopVariant="bounce" delay={1.5}>
+              <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-col sm:flex-row gap-6'} justify-center ${isMobile ? 'mb-12' : 'mb-16'}`}>
                 <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileHover={{ scale: isMobile ? 1.02 : 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button 
-                    size="lg" 
-                    className="bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-white/25 text-lg px-8 py-4 font-bold border-2 border-white/20"
+                    size={isMobile ? "default" : "lg"}
+                    className={`bg-white text-gray-900 hover:bg-gray-100 shadow-2xl hover:shadow-white/25 ${isMobile ? 'text-base px-6 py-3 w-full' : 'text-lg px-8 py-4'} font-bold border-2 border-white/20`}
                     onClick={handleJoinNow}
                   >
-                    <Crown className="w-6 h-6 mr-2" />
+                    <Crown className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} mr-2`} />
                     Start VIP Journey
-                    <ArrowRight className="w-5 h-5 ml-2" />
+                    <ArrowRight className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} ml-2`} />
                   </Button>
                 </motion.div>
                 
                 <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileHover={{ scale: isMobile ? 1.02 : 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Button 
-                    size="lg" 
+                    size={isMobile ? "default" : "lg"}
                     variant="outline" 
-                    className="border-2 border-white/60 text-white hover:bg-white/30 backdrop-blur-md text-lg px-8 py-4 font-semibold shadow-xl"
+                    className={`border-2 border-white/60 text-white hover:bg-white/30 backdrop-blur-md ${isMobile ? 'text-base px-6 py-3 w-full' : 'text-lg px-8 py-4'} font-semibold shadow-xl`}
                     onClick={handleOpenTelegram}
                   >
-                    <Zap className="w-5 h-5 mr-2" />
+                    <Zap className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} />
                     Open Telegram Bot
                   </Button>
                 </motion.div>
               </div>
-            </MotionFadeIn>
+            </ResponsiveMotion>
 
             {/* Enhanced Trust Indicators */}
             <MotionStagger staggerDelay={0.2} initialDelay={1.8}>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-white/90">
+              <div className={`grid ${isMobile ? 'grid-cols-2 gap-6' : 'grid-cols-2 md:grid-cols-4 gap-8'} text-white/90`}>
                 <motion.div 
                   className="text-center group cursor-pointer"
-                  whileHover={{ scale: 1.1, y: -5 }}
+                  whileHover={{ scale: isMobile ? 1.05 : 1.1, y: -5 }}
                 >
                   <MotionCounter 
                     from={0} 
                     to={5000} 
                     suffix="+" 
-                    className="text-3xl md:text-5xl font-black mb-2 text-yellow-300 block"
+                    className={`${isMobile ? 'text-2xl md:text-3xl' : 'text-3xl md:text-5xl'} font-black mb-2 text-yellow-300 block`}
                     delay={2}
                   />
-                  <div className="text-sm md:text-base font-medium">Active VIP Members</div>
+                  <div className={`${isMobile ? 'text-xs md:text-sm' : 'text-sm md:text-base'} font-medium`}>Active VIP Members</div>
                 </motion.div>
                 
                 <motion.div 
@@ -619,7 +623,7 @@ const Landing = () => {
           </div>
         </div>
       </section>
-    </div>
+    </FullscreenAdaptive>
   );
 };
 
