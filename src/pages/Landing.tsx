@@ -1,8 +1,11 @@
-import { Sparkles, Shield, Zap, Users, TrendingUp, CheckCircle } from "lucide-react";
+import { Sparkles, Shield, Zap, Users, TrendingUp, CheckCircle, Star, ArrowRight, Crown, Award, Target, DollarSign } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import MiniAppPreview from "@/components/telegram/MiniAppPreview";
+import { LivePlansSection } from "@/components/shared/LivePlansSection";
+import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
+import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 
 const Landing = () => {
   const handleOpenTelegram = () => {
@@ -35,233 +38,427 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-telegram">
-        <div className="absolute inset-0 bg-black/10" />
+      {/* Enhanced Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-telegram to-purple-600 min-h-screen flex items-center">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-yellow-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        </div>
+        
         <div className="relative container mx-auto px-6 py-20 text-center">
-          <div className="mx-auto max-w-4xl">
-            <Badge className="mb-6 bg-white/20 text-white border-white/30 hover:bg-white/30">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Premium Trading Platform
-            </Badge>
+          <div className="mx-auto max-w-5xl">
+            {/* Floating Badge */}
+            <FadeInOnView animation="fade-in">
+              <Badge className="mb-8 bg-white/20 text-white border-white/30 hover:bg-white/30 text-base px-6 py-2 animate-bounce">
+                <Crown className="w-5 h-5 mr-2" />
+                #1 Premium Trading Platform
+              </Badge>
+            </FadeInOnView>
             
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 animate-fade-in">
-              Unlock <span className="bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">VIP Trading</span> Signals
-            </h1>
+            {/* Hero Headline */}
+            <FadeInOnView delay={200} animation="slide-in-right">
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight">
+                Unlock 
+                <span className="block bg-gradient-to-r from-yellow-300 via-orange-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
+                  Elite Trading
+                </span>
+                <span className="block">
+                  Signals
+                </span>
+              </h1>
+            </FadeInOnView>
             
-            <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto animate-slide-up">
-              Join Dynamic Capital's exclusive community and get access to premium trading signals, 
-              expert analysis, and profitable strategies that deliver results.
-            </p>
+            {/* Hero Description */}
+            <FadeInOnView delay={400} animation="fade-in">
+              <p className="text-xl md:text-3xl text-white/95 mb-12 max-w-4xl mx-auto leading-relaxed font-medium">
+                Join <span className="text-yellow-300 font-bold">5,000+</span> successful traders in Dynamic Capital's exclusive VIP community. 
+                Get <span className="text-green-300 font-bold">real-time signals</span>, expert analysis, and 
+                <span className="text-pink-300 font-bold"> proven strategies</span> that deliver consistent results.
+              </p>
+            </FadeInOnView>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-scale-in">
-              <Button 
-                size="lg" 
-                className="bg-white text-telegram hover:bg-white/90 shadow-lg"
-                onClick={handleJoinNow}
-              >
-                <Users className="w-5 h-5 mr-2" />
-                Join VIP Community
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white/30 text-white hover:bg-white/10"
-                onClick={handleOpenTelegram}
-              >
-                Open @Dynamic_VIP_BOT
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white/30 text-white hover:bg-white/10"
-                onClick={handleOpenMiniApp}
-              >
-                <Zap className="w-5 h-5 mr-2" />
-                Open Mini App
-              </Button>
-            </div>
+            {/* Enhanced CTA Buttons */}
+            <FadeInOnView delay={600} animation="bounce-in">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+                <Button 
+                  size="lg" 
+                  className="bg-white text-telegram hover:bg-yellow-50 shadow-2xl hover:shadow-yellow-500/25 transform hover:scale-105 transition-all duration-300 text-lg px-8 py-4 font-bold"
+                  onClick={handleJoinNow}
+                >
+                  <Crown className="w-6 h-6 mr-2" />
+                  Start VIP Journey
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-2 border-white/40 text-white hover:bg-white/20 backdrop-blur-sm text-lg px-8 py-4 font-semibold transform hover:scale-105 transition-all duration-300"
+                  onClick={handleOpenTelegram}
+                >
+                  <Zap className="w-5 h-5 mr-2" />
+                  Open Telegram Bot
+                </Button>
+              </div>
+            </FadeInOnView>
 
-            {/* Trust Indicators */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-white/80">
-              <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold">1000+</div>
-                <div className="text-sm">Active Members</div>
+            {/* Enhanced Trust Indicators */}
+            <FadeInOnView delay={800} animation="slide-in-right">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-white/90">
+                <div className="text-center group cursor-pointer">
+                  <div className="text-3xl md:text-5xl font-black mb-2 text-yellow-300 group-hover:scale-110 transition-transform">5,000+</div>
+                  <div className="text-sm md:text-base font-medium">Active VIP Members</div>
+                </div>
+                <div className="text-center group cursor-pointer">
+                  <div className="text-3xl md:text-5xl font-black mb-2 text-green-300 group-hover:scale-110 transition-transform">92%</div>
+                  <div className="text-sm md:text-base font-medium">Success Rate</div>
+                </div>
+                <div className="text-center group cursor-pointer">
+                  <div className="text-3xl md:text-5xl font-black mb-2 text-pink-300 group-hover:scale-110 transition-transform">24/7</div>
+                  <div className="text-sm md:text-base font-medium">Expert Support</div>
+                </div>
+                <div className="text-center group cursor-pointer">
+                  <div className="text-3xl md:text-5xl font-black mb-2 text-blue-300 group-hover:scale-110 transition-transform">5★</div>
+                  <div className="text-sm md:text-base font-medium">Customer Rating</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold">85%</div>
-                <div className="text-sm">Success Rate</div>
+            </FadeInOnView>
+
+            {/* Scroll Indicator */}
+            <FadeInOnView delay={1000} animation="fade-in">
+              <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2">
+                <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
+                  <div className="w-1 h-3 bg-white/70 rounded-full mt-2 animate-bounce"></div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold">24/7</div>
-                <div className="text-sm">Support</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl md:text-3xl font-bold">5★</div>
-                <div className="text-sm">Rating</div>
-              </div>
-            </div>
+            </FadeInOnView>
           </div>
+        </div>
+      </section>
+
+      {/* Social Proof Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-6">
+          <FadeInOnView animation="fade-in">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">Trusted by Elite Traders Worldwide</h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                See what our VIP members are saying about their trading success
+              </p>
+            </div>
+          </FadeInOnView>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {[
+              {
+                name: "Sarah M.",
+                role: "Professional Trader",
+                avatar: "💼",
+                text: "Dynamic Capital's signals increased my portfolio by 340% in 6 months. The accuracy is incredible!",
+                profit: "+$45,000"
+              },
+              {
+                name: "James L.",
+                role: "Investment Manager", 
+                avatar: "📈",
+                text: "Best trading signals I've ever used. The community support and analysis are unmatched.",
+                profit: "+$78,000"
+              },
+              {
+                name: "Maria K.",
+                role: "Day Trader",
+                avatar: "🎯",
+                text: "From losing money to consistent profits. Dynamic Capital changed my trading game completely!",
+                profit: "+$32,000"
+              }
+            ].map((testimonial, index) => (
+              <FadeInOnView key={index} delay={index * 200} animation="bounce-in">
+                <Card className="p-6 bg-gradient-to-br from-primary/5 to-purple-500/5 border-primary/20 hover:shadow-xl transition-all duration-300 hover:scale-105">
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-purple-500 rounded-full flex items-center justify-center text-xl">
+                        {testimonial.avatar}
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">{testimonial.name}</h4>
+                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                      </div>
+                      <Badge className="ml-auto bg-green-100 text-green-700">
+                        {testimonial.profit}
+                      </Badge>
+                    </div>
+                    <p className="text-muted-foreground italic">"{testimonial.text}"</p>
+                    <div className="flex text-yellow-400">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-current" />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </FadeInOnView>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-6">
+          <FadeInOnView animation="fade-in">
+            <div className="text-center mb-16">
+              <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
+                <Award className="w-4 h-4 mr-2" />
+                Premium Services
+              </Badge>
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">Everything You Need to Succeed</h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                Comprehensive trading solutions designed for maximum profitability
+              </p>
+            </div>
+          </FadeInOnView>
+
+          <ServiceStackCarousel 
+            services="📈 Real-time Trading Signals
+📊 Daily Market Analysis  
+🛡️ Risk Management Guidance
+👨‍🏫 Personal Trading Mentor
+💎 Exclusive VIP Community
+📞 24/7 Customer Support" 
+          />
         </div>
       </section>
 
       {/* Features Section */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Dynamic Capital VIP?</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Get exclusive access to premium features designed for serious traders
-            </p>
-          </div>
+          <FadeInOnView animation="fade-in">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">Why Choose Dynamic Capital VIP?</h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                Get exclusive access to premium features designed for elite traders
+              </p>
+            </div>
+          </FadeInOnView>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="bot-card group">
-              <CardContent className="p-8 text-center">
-                <div className="bot-icon-wrapper w-16 h-16 mx-auto mb-6 bg-gradient-telegram">
-                  <TrendingUp className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-4">Premium Signals</h3>
-                <p className="text-muted-foreground">
-                  Receive high-accuracy trading signals with detailed entry, exit, and stop-loss levels
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bot-card group">
-              <CardContent className="p-8 text-center">
-                <div className="bot-icon-wrapper w-16 h-16 mx-auto mb-6 bg-gradient-telegram">
-                  <Shield className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-4">Risk Management</h3>
-                <p className="text-muted-foreground">
-                  Professional risk management strategies to protect your capital and maximize profits
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bot-card group">
-              <CardContent className="p-8 text-center">
-                <div className="bot-icon-wrapper w-16 h-16 mx-auto mb-6 bg-gradient-telegram">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-4">VIP Community</h3>
-                <p className="text-muted-foreground">
-                  Join an exclusive community of successful traders and learn from the best
-                </p>
-              </CardContent>
-            </Card>
+            {[
+              {
+                icon: TrendingUp,
+                title: "Premium Signals",
+                description: "Receive high-accuracy trading signals with detailed entry, exit, and stop-loss levels. Our signals have a proven 92% success rate.",
+                color: "from-green-500 to-emerald-600"
+              },
+              {
+                icon: Shield,
+                title: "Risk Management",
+                description: "Professional risk management strategies to protect your capital and maximize profits with expert guidance every step of the way.",
+                color: "from-blue-500 to-cyan-600"
+              },
+              {
+                icon: Users,
+                title: "VIP Community",
+                description: "Join an exclusive community of successful traders and learn from the best. Network, share strategies, and grow together.",
+                color: "from-purple-500 to-pink-600"
+              }
+            ].map((feature, index) => (
+              <FadeInOnView key={index} delay={index * 200} animation="bounce-in">
+                <Card className="bot-card group hover:shadow-2xl transition-all duration-500 hover:scale-105">
+                  <CardContent className="p-8 text-center">
+                    <div className={`bot-icon-wrapper w-16 h-16 mx-auto mb-6 bg-gradient-to-br ${feature.color} transform group-hover:scale-110 transition-transform duration-300`}>
+                      <feature.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">{feature.title}</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </FadeInOnView>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-20">
+      {/* Live Plans Section */}
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
-            <p className="text-xl text-muted-foreground">
-              Get started in just 3 simple steps
-            </p>
-          </div>
+          <FadeInOnView animation="fade-in">
+            <div className="text-center mb-16">
+              <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
+                <Crown className="w-4 h-4 mr-2" />
+                VIP Membership
+              </Badge>
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">Choose Your Trading Plan</h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                Flexible plans designed to match your trading goals and experience level
+              </p>
+            </div>
+          </FadeInOnView>
+          
+          <LivePlansSection showPromo={true} />
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-6">
+          <FadeInOnView animation="fade-in">
+            <div className="text-center mb-16">
+              <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
+                <Target className="w-4 h-4 mr-2" />
+                Simple Process
+              </Badge>
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">Get Started in 3 Easy Steps</h2>
+              <p className="text-xl text-muted-foreground">
+                Join thousands of successful traders in minutes
+              </p>
+            </div>
+          </FadeInOnView>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
                 step: "1",
-                title: "Choose Your Plan",
-                description: "Select a VIP subscription plan that fits your trading style and budget"
+                icon: Crown,
+                title: "Choose Your VIP Plan",
+                description: "Select a subscription plan that fits your trading style and budget. All plans include premium signals and community access.",
+                color: "from-blue-500 to-cyan-600"
               },
               {
                 step: "2", 
-                title: "Complete Payment",
-                description: "Pay securely via bank transfer or cryptocurrency and get instant access"
+                icon: DollarSign,
+                title: "Secure Payment",
+                description: "Pay securely via bank transfer, cryptocurrency, or other supported methods. Get instant access upon confirmation.",
+                color: "from-green-500 to-emerald-600"
               },
               {
                 step: "3",
-                title: "Start Trading",
-                description: "Receive premium signals and join our exclusive VIP community"
+                icon: TrendingUp,
+                title: "Start Profiting",
+                description: "Receive premium trading signals, join our VIP community, and start your journey to consistent trading profits.",
+                color: "from-purple-500 to-pink-600"
               }
             ].map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="w-16 h-16 mx-auto mb-6 bg-gradient-telegram rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-bold text-white">{item.step}</span>
+              <FadeInOnView key={index} delay={index * 200} animation="bounce-in">
+                <div className="text-center group hover:scale-105 transition-all duration-300">
+                  <div className={`w-20 h-20 mx-auto mb-6 bg-gradient-to-br ${item.color} rounded-full flex items-center justify-center relative group-hover:scale-110 transition-transform duration-300`}>
+                    <span className="text-3xl font-bold text-white">{item.step}</span>
+                    <div className="absolute -inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                  <div className={`w-12 h-12 mx-auto mb-4 bg-gradient-to-br ${item.color} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <item.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">{item.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{item.description}</p>
                 </div>
-                <h3 className="text-xl font-semibold mb-4">{item.title}</h3>
-                <p className="text-muted-foreground">{item.description}</p>
-              </div>
+              </FadeInOnView>
             ))}
           </div>
         </div>
       </section>
 
       {/* Mini App Preview */}
-      <section id="preview-section" className="py-20 bg-muted/30">
+      <section id="preview-section" className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <Badge className="mb-4 bg-telegram/10 text-telegram border-telegram/20">
-                <Zap className="w-4 h-4 mr-2" />
-                Live Demo
-              </Badge>
-              
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Experience Our Telegram Mini App
-              </h2>
-              
-              <p className="text-xl text-muted-foreground mb-8">
-                See how easy it is to access premium trading signals and manage your VIP subscription 
-                directly within Telegram.
-              </p>
+              <FadeInOnView animation="slide-in-right">
+                <Badge className="mb-4 bg-telegram/10 text-telegram border-telegram/20">
+                  <Zap className="w-4 h-4 mr-2" />
+                  Live Demo
+                </Badge>
+                
+                <h2 className="text-3xl md:text-5xl font-bold mb-6">
+                  Experience Our Telegram Mini App
+                </h2>
+                
+                <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                  See how easy it is to access premium trading signals and manage your VIP subscription 
+                  directly within Telegram. No downloads required!
+                </p>
 
-              <div className="space-y-4 mb-8">
-                {[
-                  "Instant access to trading signals",
-                  "Real-time payment processing", 
-                  "Seamless Telegram integration",
-                  "Mobile-optimized interface"
-                ].map((feature, index) => (
-                  <div key={index} className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-telegram mr-3" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
+                <div className="space-y-4 mb-8">
+                  {[
+                    "⚡ Instant access to trading signals",
+                    "💳 Real-time payment processing", 
+                    "📱 Seamless Telegram integration",
+                    "🎯 Mobile-optimized interface"
+                  ].map((feature, index) => (
+                    <FadeInOnView key={index} delay={index * 100} animation="fade-in">
+                      <div className="flex items-center group hover:scale-105 transition-transform duration-200">
+                        <CheckCircle className="w-6 h-6 text-green-500 mr-4 group-hover:scale-110 transition-transform" />
+                        <span className="text-lg">{feature}</span>
+                      </div>
+                    </FadeInOnView>
+                  ))}
+                </div>
+
+                <Button 
+                  size="lg" 
+                  className="bg-telegram hover:bg-telegram-dark shadow-lg hover:shadow-telegram/25 transform hover:scale-105 transition-all duration-300"
+                  onClick={handleOpenTelegram}
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Try It Now in Telegram
+                </Button>
+              </FadeInOnView>
+            </div>
+
+            <FadeInOnView delay={300} animation="bounce-in">
+              <div className="lg:order-first">
+                <MiniAppPreview className="mx-auto transform hover:scale-105 transition-transform duration-300" />
               </div>
-
-              <Button 
-                size="lg" 
-                className="bg-telegram hover:bg-telegram-dark"
-                onClick={handleOpenTelegram}
-              >
-                Try It Now in Telegram
-              </Button>
-            </div>
-
-            <div className="lg:order-first">
-              <MiniAppPreview className="mx-auto" />
-            </div>
+            </FadeInOnView>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-telegram">
-        <div className="container mx-auto px-6 text-center">
-          <div className="mx-auto max-w-3xl">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              Ready to Start Your VIP Trading Journey?
-            </h2>
-            <p className="text-xl text-white/90 mb-8">
-              Join thousands of successful traders who trust Dynamic Capital for premium signals and strategies.
-            </p>
-            <Button 
-              size="lg" 
-              className="bg-white text-telegram hover:bg-white/90 shadow-lg"
-              onClick={handleJoinNow}
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Get VIP Access Now
-            </Button>
+      {/* Enhanced CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-primary via-telegram to-purple-600 relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-yellow-300/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
+        
+        <div className="relative container mx-auto px-6 text-center">
+          <div className="mx-auto max-w-4xl">
+            <FadeInOnView animation="bounce-in">
+              <Badge className="mb-6 bg-white/20 text-white border-white/30 text-lg px-6 py-2">
+                <Crown className="w-5 h-5 mr-2" />
+                Limited Time Offer
+              </Badge>
+              
+              <h2 className="text-4xl md:text-6xl font-black text-white mb-8">
+                Ready to Transform Your Trading?
+              </h2>
+              
+              <p className="text-xl md:text-2xl text-white/95 mb-12 leading-relaxed">
+                Join thousands of successful traders who trust Dynamic Capital for premium signals and proven strategies. 
+                <span className="block mt-2 text-yellow-300 font-bold">Start your VIP journey today!</span>
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                <Button 
+                  size="lg" 
+                  className="bg-white text-telegram hover:bg-yellow-50 shadow-2xl hover:shadow-yellow-500/25 transform hover:scale-105 transition-all duration-300 text-xl px-10 py-5 font-bold"
+                  onClick={handleJoinNow}
+                >
+                  <Sparkles className="w-6 h-6 mr-2" />
+                  Get VIP Access Now
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-2 border-white/40 text-white hover:bg-white/20 backdrop-blur-sm text-xl px-10 py-5 font-semibold transform hover:scale-105 transition-all duration-300"
+                  onClick={handleOpenTelegram}
+                >
+                  Start Free Trial
+                </Button>
+              </div>
+            </FadeInOnView>
           </div>
         </div>
       </section>
