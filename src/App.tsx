@@ -11,6 +11,7 @@ import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import MobileBottomNav from "./components/navigation/MobileBottomNav";
 import SkipToContent from "./components/navigation/SkipToContent";
+import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -100,6 +101,7 @@ const AppContent = () => {
         
         {!isInMiniApp && <Footer />}
         {!isInMiniApp && <MobileBottomNav />}
+        {!isInMiniApp && <ChatAssistantWidget />}
       </div>
     </>
   );

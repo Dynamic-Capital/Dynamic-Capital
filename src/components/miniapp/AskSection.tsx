@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { MessageSquare, Send, Loader2, Bot } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export function AskSection() {
   const [question, setQuestion] = useState("");
@@ -27,22 +28,16 @@ export function AskSection() {
     setAnswer("");
 
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/ai-faq-assistant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          question: question.trim()
-        })
+      const { data, error } = await supabase.functions.invoke('ai-faq-assistant', {
+        body: { question: question.trim() }
       });
 
-      const data = await response.json();
+      if (error) throw error;
       
-      if (data.success && data.answer) {
+      if (data.answer) {
         setAnswer(data.answer);
       } else {
-        throw new Error(data.error || 'Failed to get answer');
+        throw new Error('No answer received');
       }
     } catch (error) {
       console.error('Failed to get AI answer:', error);

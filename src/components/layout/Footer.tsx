@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, MessageCircle, Mail, Phone, Users } from "lucide-react";
+import { ExternalLink, MessageCircle, Mail, Phone, Users, Instagram, Youtube, Facebook } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface ContactLink {
   id: string;
@@ -67,6 +68,9 @@ const Footer: React.FC = () => {
     if (platformLower.includes('email')) return <Mail className="h-4 w-4" />;
     if (platformLower.includes('phone')) return <Phone className="h-4 w-4" />;
     if (platformLower.includes('whatsapp')) return <MessageCircle className="h-4 w-4" />;
+    if (platformLower.includes('instagram')) return <Instagram className="h-4 w-4" />;
+    if (platformLower.includes('youtube')) return <Youtube className="h-4 w-4" />;
+    if (platformLower.includes('facebook')) return <Facebook className="h-4 w-4" />;
     return <Users className="h-4 w-4" />;
   };
 
@@ -124,44 +128,48 @@ const Footer: React.FC = () => {
           {/* Contact Section */}
           <div className="space-y-4">
             <h4 className="text-md font-medium text-foreground">Connect With Us</h4>
-            {contacts.length > 0 ? (
+            
+            {/* Social Media Icons Row */}
+            {contacts.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {contacts.map((contact) => (
                   <Button
                     key={contact.id}
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleContactClick(contact.url)}
-                    className="h-8 px-3 text-xs"
-                    title={`Contact via ${contact.platform}`}
+                    className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary transition-colors"
+                    title={`Follow us on ${contact.platform}`}
                   >
                     {contact.icon_emoji ? (
-                      <span className="mr-1 text-sm">{contact.icon_emoji}</span>
+                      <span className="text-sm">{contact.icon_emoji}</span>
                     ) : (
-                      <span className="mr-1">{getPlatformIcon(contact.platform)}</span>
+                      getPlatformIcon(contact.platform)
                     )}
-                    {contact.display_name}
-                    <ExternalLink className="h-3 w-3 ml-1" />
                   </Button>
                 ))}
               </div>
-            ) : (
-              <Link to="/contact">
-                <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
-                  <Mail className="h-3 w-3 mr-1" />
-                  Contact Us
-                  <ExternalLink className="h-3 w-3 ml-1" />
-                </Button>
-              </Link>
             )}
+            
+            {/* Contact Button */}
+            <Link to="/contact">
+              <Button variant="outline" size="sm" className="h-8 px-3 text-xs w-full">
+                <Mail className="h-3 w-3 mr-1" />
+                Contact Support
+                <ExternalLink className="h-3 w-3 ml-1" />
+              </Button>
+            </Link>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-border mt-8 pt-6 text-center">
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Dynamic Capital VIP. All rights reserved.
+        <div className="border-t border-border mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-muted-foreground text-center sm:text-left">
+            © {new Date().getFullYear()} Dynamic Capital. All rights reserved.
           </p>
+          <div className="hidden sm:block">
+            <ThemeToggle size="sm" variant="ghost" />
+          </div>
         </div>
       </div>
     </footer>

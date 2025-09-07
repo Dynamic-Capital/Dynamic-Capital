@@ -15,6 +15,7 @@ import {
   Gift
 } from "lucide-react";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
+import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 
@@ -242,48 +243,8 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         </Card>
       </FadeInOnView>
 
-      {/* Our Services */}
-      <FadeInOnView delay={500} animation="slide-in-right">
-        <Card className="liquid-glass hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-subheading">
-              <Target className="icon-sm text-blue-500 animate-float" />
-              Our Services
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="prose">
-            <div className="ui-stack-sm">
-              {services.split('\n').filter(service => service.trim()).map((service, index) => {
-                // Map service emojis to lucide icons
-                const getServiceIcon = (text: string) => {
-                  if (text.includes('📈') || text.includes('Signal')) return TrendingUp;
-                  if (text.includes('📊') || text.includes('Analysis')) return Star;
-                  if (text.includes('🛡️') || text.includes('Risk')) return Shield;
-                  if (text.includes('👨‍🏫') || text.includes('Mentor')) return Users;
-                  if (text.includes('💎') || text.includes('VIP')) return Sparkles;
-                  if (text.includes('📞') || text.includes('Support')) return MessageSquare;
-                  return Award;
-                };
-                
-                const ServiceIcon = getServiceIcon(service);
-                
-                return (
-                  <FadeInOnView
-                    key={index}
-                    delay={600 + (index * 100)}
-                    animation="fade-in"
-                  >
-                    <div className="flex items-center gap-3 ui-p-sm ui-rounded-lg hover:bg-muted/30 transition-all duration-300 hover:scale-[1.02] group">
-                      <ServiceIcon className="icon-xs text-primary group-hover:animate-float transition-all duration-300 flex-shrink-0" />
-                      <span className="text-body-sm text-foreground flex-1">{service.replace(/[📈📊🛡️👨‍🏫💎📞]/g, '').replace('•', '').trim()}</span>
-                    </div>
-                  </FadeInOnView>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </FadeInOnView>
+      {/* Our Services - Stack Carousel */}
+      <ServiceStackCarousel services={services} />
 
       {/* VIP Packages */}
       <div>

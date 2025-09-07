@@ -7,6 +7,7 @@ import {
   CheckCircle, 
   MessageCircle
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface NavItem {
   id: string;
@@ -57,7 +58,7 @@ export const MobileBottomNav: React.FC = () => {
       aria-label="Mobile navigation"
     >
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-4 gap-1">
+        <div className="grid grid-cols-5 gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -90,6 +91,14 @@ export const MobileBottomNav: React.FC = () => {
               </Link>
             );
           })}
+          
+          {/* Theme Toggle */}
+          <div className="flex flex-col items-center justify-center p-3 min-h-[60px]">
+            <ThemeToggle size="sm" variant="ghost" className="h-5 w-5 p-0" />
+            <span className="text-xs font-medium mt-1 text-muted-foreground">
+              Theme
+            </span>
+          </div>
         </div>
       </div>
     </nav>
