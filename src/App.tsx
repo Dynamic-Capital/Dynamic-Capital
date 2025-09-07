@@ -102,7 +102,7 @@ const AppContent = () => {
         
         <Footer compact={isInMiniApp} />
         {!isInMiniApp && <MobileBottomNav />}
-        {!isInMiniApp && <ChatAssistantWidget />}
+        <ChatAssistantWidget />
       </div>
     </>
   );

@@ -42,6 +42,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
     setAnswer("");
 
     try {
+      // First try to call the ai-faq-assistant function
       const { data, error } = await supabase.functions.invoke('ai-faq-assistant', {
         body: { 
           question: question.trim(),
@@ -49,7 +50,22 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // If the AI service fails, provide a helpful fallback response
+        console.warn('AI service unavailable:', error);
+        setAnswer(`I'm sorry, the AI service is temporarily unavailable. 
+
+Here are some quick answers to common questions:
+
+🔹 **Getting Started**: Choose a VIP plan → Make payment → Get access to our premium signals and community
+🔹 **VIP Benefits**: Real-time signals, market analysis, 24/7 support, and exclusive community access  
+🔹 **Trading Tips**: Always use proper risk management, never risk more than 2% per trade
+🔹 **Risk Management**: Set stop losses, use proper position sizing, and never trade with emotion
+
+💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!`);
+        return;
+      }
+      
       
       if (data.answer) {
         setAnswer(data.answer);
@@ -58,11 +74,22 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
       }
     } catch (error) {
       console.error('Failed to get AI answer:', error);
-      toast({
-        title: "Unable to get answer",
-        description: "Please try again or contact support",
-        variant: "destructive",
-      });
+      // Provide a helpful fallback response when AI service fails
+      setAnswer(`I apologize, but the AI service is currently experiencing issues. 
+
+Here are some helpful resources:
+
+🔹 **Trading Questions**: Our VIP community provides real-time support and guidance
+🔹 **Platform Help**: Contact @DynamicCapital_Support for technical assistance  
+🔹 **Account Issues**: Email support@dynamiccapital.com for account-related questions
+🔹 **VIP Plans**: Choose from 1, 3, 6, 12 month or Lifetime VIP access
+
+📈 **Quick Trading Tips**:
+• Use proper risk management (max 2% per trade)
+• Follow our premium signals for best results
+• Join our VIP community for live market analysis
+
+💡 Need immediate help? Contact @DynamicCapital_Support!`);
     } finally {
       setIsLoading(false);
     }
