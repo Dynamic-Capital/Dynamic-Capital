@@ -55,6 +55,13 @@ export default {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
+        "dc-brand": {
+          DEFAULT: "hsl(var(--dc-brand))",
+          light: "hsl(var(--dc-brand-light))",
+          dark: "hsl(var(--dc-brand-dark))",
+        },
+        "dc-secondary": "hsl(var(--dc-secondary))",
+        "dc-accent": "hsl(var(--dc-accent))",
         telegram: {
           DEFAULT: "hsl(var(--telegram))",
           light: "hsl(var(--telegram-light))",
@@ -114,8 +121,11 @@ export default {
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",
+        "gradient-brand": "var(--gradient-brand)",
         "gradient-telegram": "var(--gradient-telegram)",
         "gradient-card": "var(--gradient-card)",
+        "gradient-hero": "var(--gradient-hero)",
+        "gradient-navigation": "var(--gradient-navigation)",
       },
       boxShadow: {
         "telegram": "var(--shadow-telegram)",

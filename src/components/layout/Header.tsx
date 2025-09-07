@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import BrandLogo from "@/components/BrandLogo";
 import DesktopNav from "@/components/navigation/DesktopNav";
 import MobileMenu from "@/components/navigation/MobileMenu";
@@ -7,17 +8,23 @@ import MobileMenu from "@/components/navigation/MobileMenu";
 const Header: React.FC = () => {
   return (
     <header 
-      className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border sticky top-0 z-50"
+      className={cn(
+        "bg-gradient-navigation backdrop-blur-xl border-b border-border/50 sticky top-0 z-50",
+        "shadow-lg shadow-primary/5 transition-all duration-300"
+      )}
       role="banner"
     >
       <div className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           <Link 
             to="/" 
-            className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg"
+            className={cn(
+              "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg",
+              "transition-all duration-300 hover:scale-105"
+            )}
             aria-label="Go to homepage"
           >
-            <BrandLogo />
+            <BrandLogo variant="brand" animated />
           </Link>
 
           <DesktopNav />

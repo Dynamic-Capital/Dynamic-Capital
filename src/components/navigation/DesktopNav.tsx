@@ -9,7 +9,9 @@ import {
   GraduationCap,
   User,
   LogIn,
-  MessageCircle
+  MessageCircle,
+  TrendingUp,
+  Zap
 } from "lucide-react";
 
 interface NavItem {
@@ -30,38 +32,31 @@ const navItems: NavItem[] = [
   },
   {
     id: "plans",
-    label: "Plans",
-    icon: CreditCard,
+    label: "VIP Plans",
+    icon: TrendingUp,
     path: "/plans",
-    ariaLabel: "View subscription plans"
+    ariaLabel: "View VIP subscription plans"
   },
   {
     id: "education",
-    label: "Education",
+    label: "Academy",
     icon: GraduationCap,
     path: "/education",
-    ariaLabel: "Access educational content"
-  },
-  {
-    id: "checkout",
-    label: "Checkout",
-    icon: CreditCard,
-    path: "/checkout",
-    ariaLabel: "Complete your purchase"
+    ariaLabel: "Access trading academy"
   },
   {
     id: "contact",
-    label: "Contact",
+    label: "Support",
     icon: MessageCircle,
     path: "/contact",
-    ariaLabel: "Contact support"
+    ariaLabel: "Contact support team"
   },
   {
     id: "dashboard",
     label: "Dashboard",
     icon: Settings,
     path: "/dashboard",
-    ariaLabel: "View dashboard"
+    ariaLabel: "View member dashboard"
   }
 ];
 
@@ -71,28 +66,38 @@ export const DesktopNav: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="hidden md:flex items-center gap-2" role="navigation" aria-label="Main navigation">
+    <nav className="hidden md:flex items-center gap-1" role="navigation" aria-label="Main navigation">
       {navItems.map((item) => {
         const Icon = item.icon;
+        const active = isActive(item.path);
         return (
           <Button
             key={item.id}
             asChild
-            variant={isActive(item.path) ? "default" : "ghost"}
+            variant={active ? "default" : "ghost"}
             size="sm"
             className={cn(
-              "transition-all duration-200 hover:scale-105",
-              "focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              "relative transition-all duration-300 hover:scale-105 group",
+              "focus:ring-2 focus:ring-primary focus:ring-offset-2",
+              active && "bg-gradient-brand text-white shadow-lg",
+              !active && "hover:bg-primary/10 hover:text-primary"
             )}
           >
             <Link 
               to={item.path} 
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 relative overflow-hidden"
               aria-label={item.ariaLabel}
-              aria-current={isActive(item.path) ? "page" : undefined}
+              aria-current={active ? "page" : undefined}
             >
-              <Icon className="h-4 w-4" />
-              {item.label}
+              <Icon className={cn(
+                "h-4 w-4 transition-transform duration-300",
+                active && "scale-110",
+                "group-hover:scale-110"
+              )} />
+              <span className="font-medium">{item.label}</span>
+              {active && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+              )}
             </Link>
           </Button>
         );
@@ -103,15 +108,19 @@ export const DesktopNav: React.FC = () => {
         asChild
         variant="outline"
         size="sm"
-        className="ml-4 hover:scale-105 transition-transform duration-200"
+        className={cn(
+          "ml-4 transition-all duration-300 hover:scale-105 group",
+          "border-primary/20 hover:border-primary hover:bg-primary/5",
+          "hover:text-primary hover:shadow-md"
+        )}
       >
         <Link 
           to="/auth" 
           className="flex items-center gap-2"
           aria-label="Sign in to your account"
         >
-          <LogIn className="h-4 w-4" />
-          Sign In
+          <LogIn className="h-4 w-4 group-hover:scale-110 transition-transform" />
+          <span className="font-medium">Sign In</span>
         </Link>
       </Button>
     </nav>

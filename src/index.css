@@ -90,12 +90,24 @@
   --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.25);
 
+  /* Dynamic Capital Brand Colors */
+  --dc-brand: 25 100% 50%;            /* Main brand gold */
+  --dc-brand-light: 28 100% 60%;      /* Light brand variant */
+  --dc-brand-dark: 22 100% 40%;       /* Dark brand variant */
+  --dc-secondary: 220 85% 55%;        /* Professional blue */
+  --dc-accent: 280 75% 65%;           /* Purple accent */
+
   /* Telegram brand colors */
   --telegram: 200 100% 48%;
   --telegram-secondary: 207 100% 67%;
 
-  /* Gradient presets */
-  --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--telegram)));
+  /* Enhanced gradients */
+  --gradient-primary: linear-gradient(135deg, hsl(var(--dc-brand)) 0%, hsl(var(--dc-secondary)) 100%);
+  --gradient-brand: linear-gradient(135deg, hsl(var(--dc-brand)) 0%, hsl(var(--dc-brand-light)) 50%, hsl(var(--dc-brand-dark)) 100%);
+  --gradient-telegram: linear-gradient(135deg, hsl(var(--telegram)) 0%, hsl(var(--telegram-secondary)) 100%);
+  --gradient-card: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)/0.1) 100%);
+  --gradient-hero: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--dc-brand)/0.05) 50%, hsl(var(--background)) 100%);
+  --gradient-navigation: linear-gradient(135deg, hsl(var(--background)/0.95) 0%, hsl(var(--card)/0.95) 100%);
   --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(142 76% 46%));
   --gradient-warning: linear-gradient(135deg, hsl(var(--warning)), hsl(48 96% 63%));
   --gradient-info: linear-gradient(135deg, hsl(var(--info)), hsl(199 89% 58%));
