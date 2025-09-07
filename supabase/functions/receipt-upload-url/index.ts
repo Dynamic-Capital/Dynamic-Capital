@@ -4,7 +4,7 @@ import { getEnv } from "../_shared/env.ts";
 import { bad, mna, ok, oops, json } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { verifyFromRaw } from "../verify-initdata/index.ts";
+import { verifyTelegramInitData } from "../_shared/telegram_verification.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,7 +56,7 @@ export async function handler(req: Request): Promise<Response> {
   // If no auth header, try Telegram initData verification
   if (!telegramId && body.initData) {
     try {
-      const valid = await verifyFromRaw(body.initData);
+      const valid = await verifyTelegramInitData(body.initData);
       if (valid) {
         const params = new URLSearchParams(body.initData);
         const user = JSON.parse(params.get("user") || "{}");
