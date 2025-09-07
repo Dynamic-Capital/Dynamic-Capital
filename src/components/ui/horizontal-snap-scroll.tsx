@@ -9,6 +9,9 @@ interface HorizontalSnapScrollProps {
   showArrows?: boolean;
   itemWidth?: string;
   gap?: string;
+  autoScroll?: boolean;
+  autoScrollInterval?: number;
+  pauseOnHover?: boolean;
 }
 
 export function HorizontalSnapScroll({ 
@@ -16,11 +19,16 @@ export function HorizontalSnapScroll({
   className,
   showArrows = true,
   itemWidth = "clamp(280px, 30vw, 350px)",
-  gap = "1rem"
+  gap = "1rem",
+  autoScroll = false,
+  autoScrollInterval = 3000,
+  pauseOnHover = true
 }: HorizontalSnapScrollProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
 
   const checkScrollability = () => {
     if (!scrollRef.current) return;
@@ -29,6 +37,40 @@ export function HorizontalSnapScroll({
     setCanScrollLeft(scrollLeft > 0);
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
   };
+
+  // Auto-scroll functionality
+  useEffect(() => {
+    if (!autoScroll || !scrollRef.current) return;
+
+    const startAutoScroll = () => {
+      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+      
+      autoScrollRef.current = setInterval(() => {
+        if (!scrollRef.current || (pauseOnHover && isHovered)) return;
+        
+        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+        const isAtEnd = scrollLeft >= scrollWidth - clientWidth - 1;
+        
+        if (isAtEnd) {
+          // Reset to beginning
+          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          // Scroll to next item
+          const itemWidthPx = 300; // Approximate item width
+          const newScrollLeft = scrollLeft + itemWidthPx + 16; // 16px gap
+          scrollRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+        }
+      }, autoScrollInterval);
+    };
+
+    startAutoScroll();
+
+    return () => {
+      if (autoScrollRef.current) {
+        clearInterval(autoScrollRef.current);
+      }
+    };
+  }, [autoScroll, autoScrollInterval, isHovered, pauseOnHover]);
 
   useEffect(() => {
     checkScrollability();
@@ -70,6 +112,8 @@ export function HorizontalSnapScroll({
     <div 
       className="relative group"
       onKeyDown={handleKeyDown}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       tabIndex={0}
       role="region"
       aria-label="Horizontal scroll container"

@@ -275,3 +275,21 @@ All colors MUST be HSL.
 .focus-ring-pop {
   @apply focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:ring-offset-4 transition-all duration-200;
 }
+
+/* Horizontal scroll utilities */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.gradient-fade-left {
+  background: linear-gradient(to right, hsl(var(--background)), transparent);
+}
+
+.gradient-fade-right {
+  background: linear-gradient(to left, hsl(var(--background)), transparent);
+}

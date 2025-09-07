@@ -29,7 +29,11 @@ interface PromoValidation {
 export default function PlanSection() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [promoCode, setPromoCode] = useState("");
+  const [promoCode, setPromoCode] = useState(() => {
+    // Pre-fill promo code from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('promo') || "";
+  });
   const [promoValidation, setPromoValidation] = useState<PromoValidation | null>(null);
   const [validatingPromo, setValidatingPromo] = useState(false);
 
@@ -46,6 +50,13 @@ export default function PlanSection() {
         setLoading(false);
       });
   }, []);
+
+  // Auto-validate promo code if pre-filled from URL
+  useEffect(() => {
+    if (promoCode.trim() && isInTelegram && !promoValidation) {
+      validatePromoCode();
+    }
+  }, [promoCode, isInTelegram]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const validatePromoCode = async () => {
     if (!promoCode.trim() || !isInTelegram) return;

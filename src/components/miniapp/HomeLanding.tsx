@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
+import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 
 interface BotContent {
   content_key: string;
@@ -95,6 +96,15 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       : `$${promo.discount_value} OFF`;
   };
 
+  const handlePromoClick = (promoCode: string) => {
+    // Navigate to plan tab with promo code
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', 'plan');
+    url.searchParams.set('promo', promoCode);
+    window.history.pushState({}, '', url.toString());
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   return (
     <div className="space-y-6">
       {/* Hero Section */}
@@ -153,34 +163,45 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               <CardDescription>Limited time offers - use these codes when subscribing!</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <HorizontalSnapScroll 
+                autoScroll={true}
+                autoScrollInterval={4000}
+                pauseOnHover={true}
+                itemWidth="clamp(260px, 75vw, 300px)"
+                gap="0.75rem"
+                showArrows={activePromos.length > 1}
+                className="py-2"
+              >
                 {activePromos.map((promo, index) => (
-                  <FadeInOnView 
-                    key={index} 
-                    delay={300 + (index * 100)}
-                    animation="slide-in-right"
+                  <div 
+                    key={index}
+                    onClick={() => handlePromoClick(promo.code)}
+                    className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg hover:from-green-500/15 hover:to-emerald-500/15 transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
                   >
-                    <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg hover:from-green-500/15 hover:to-emerald-500/15 transition-all duration-300 hover:scale-[1.02]">
-                      <div className="flex justify-between items-center mb-2">
-                        <Badge className="bg-green-500 text-white font-mono text-sm animate-bounce-in hover:scale-105 transition-transform">
-                          {promo.code}
-                        </Badge>
-                        <Badge 
-                          variant="outline" 
-                          className="text-green-600 animate-pulse-glow hover:scale-105 transition-transform"
-                        >
-                          {formatDiscountText(promo)}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{promo.description}</p>
+                    <div className="flex justify-between items-center mb-2">
+                      <Badge className="bg-green-500 text-white font-mono text-sm group-hover:scale-105 transition-transform">
+                        {promo.code}
+                      </Badge>
+                      <Badge 
+                        variant="outline" 
+                        className="text-green-600 group-hover:scale-105 transition-transform"
+                      >
+                        {formatDiscountText(promo)}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">{promo.description}</p>
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3 animate-wiggle" />
+                        <Clock className="h-3 w-3" />
                         <span>Valid until: {new Date(promo.valid_until).toLocaleDateString()}</span>
                       </div>
+                      <div className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                        Tap to apply →
+                      </div>
                     </div>
-                  </FadeInOnView>
+                  </div>
                 ))}
-              </div>
+              </HorizontalSnapScroll>
             </CardContent>
           </Card>
         </FadeInOnView>

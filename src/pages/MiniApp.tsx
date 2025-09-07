@@ -171,21 +171,33 @@ export default function MiniApp() {
   const promoCode = urlParams.get('promo') || undefined;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="w-full max-w-md md:max-w-2xl lg:max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 text-foreground">
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl mx-auto shadow-xl">
         {/* Header */}
-        <div className="bg-card border-b border-border px-4 py-6">
+        <div className="bg-gradient-to-br from-primary/5 via-purple-500/5 to-blue-500/5 border-b border-border/50 px-4 py-8">
           <div className="text-center">
             <div className="flex items-center justify-center mb-4">
-              <BrandLogo size="lg" showText={false} />
+              <div className="p-3 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors duration-300">
+                <BrandLogo size="lg" showText={false} />
+              </div>
             </div>
-            <h1 className="text-xl font-bold text-foreground">Dynamic Capital VIP</h1>
-            <p className="text-sm text-muted-foreground">Telegram Mini App</p>
+            <h1 className="text-2xl font-bold text-foreground mb-1">Dynamic Capital VIP</h1>
+            <p className="text-sm text-muted-foreground">Professional Trading Platform</p>
+            <div className="flex items-center justify-center gap-4 mt-3 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-muted-foreground">Live Signals</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <TrendingUp className="h-3 w-3 text-blue-500" />
+                <span className="text-muted-foreground">85% Success</span>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-4">
+        <div className="p-4 pb-6 bg-background">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             {/* Only show tab navigation for main tabs, not checkout */}
             {activeTab !== 'checkout' && (
