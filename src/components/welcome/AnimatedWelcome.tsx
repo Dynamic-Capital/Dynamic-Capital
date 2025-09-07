@@ -1,140 +1,203 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Crown, Users, TrendingUp, CheckCircle2 } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
+import { Button } from "@/components/ui/button";
+import { 
+  Hand, 
+  Rocket, 
+  DollarSign, 
+  Target, 
+  Star, 
+  Users, 
+  TrendingUp, 
+  Shield,
+  Sparkles,
+  Crown,
+  Zap
+} from "lucide-react";
 
-interface WelcomeData {
-  content_value: string;
-  is_active: boolean;
+interface WelcomeLineProps {
+  text: string;
+  delay: number;
+  icon?: any;
+  iconColor?: string;
 }
 
-export const AnimatedWelcome = () => {
-  const [welcomeMessage, setWelcomeMessage] = useState<string>("");
+function WelcomeLine({ text, delay, icon: Icon, iconColor = "text-primary" }: WelcomeLineProps) {
+  return (
+    <FadeInOnView delay={delay} animation="slide-in-right">
+      <div className="flex items-center justify-center gap-3 mb-2">
+        {Icon && (
+          <Icon className={`h-6 w-6 ${iconColor} animate-pulse`} />
+        )}
+        <p className="text-lg sm:text-xl text-muted-foreground font-medium text-center">
+          {text}
+        </p>
+      </div>
+    </FadeInOnView>
+  );
+}
+
+interface AnimatedWelcomeProps {
+  className?: string;
+}
+
+export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
+  const [welcomeMessage, setWelcomeMessage] = useState<string>("Professional Trading • Premium Signals • VIP Support");
   const [showStats, setShowStats] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchWelcomeMessage = async () => {
       try {
-        const { data, error } = await supabase
-          .from("bot_content")
-          .select("content_value, is_active")
-          .eq("content_key", "welcome_message")
-          .eq("is_active", true)
-          .single();
-
-        if (error) {
-          console.warn("Welcome message not found, using default");
-          setWelcomeMessage("🎯 Welcome to Dynamic Capital VIP!\n\nJoin our exclusive trading community and unlock professional signals, expert analysis, and proven strategies that deliver consistent results.");
-        } else {
-          setWelcomeMessage((data as WelcomeData).content_value);
+        const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            keys: ['welcome_message']
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const contents = data.contents || [];
+          const welcomeContent = contents.find((c: any) => c.content_key === 'welcome_message');
+          
+          if (welcomeContent?.content_value) {
+            setWelcomeMessage(welcomeContent.content_value);
+          }
         }
       } catch (error) {
-        console.error("Error fetching welcome message:", error);
-        setWelcomeMessage("🎯 Welcome to Dynamic Capital VIP!\n\nJoin our exclusive trading community and unlock professional signals, expert analysis, and proven strategies that deliver consistent results.");
+        console.error('Failed to fetch welcome message:', error);
+        // Keep default fallback message
       } finally {
-        setIsLoading(false);
+        setLoading(false);
+        // Show stats after message loads and animation completes
+        setTimeout(() => setShowStats(true), 2500);
       }
     };
 
     fetchWelcomeMessage();
   }, []);
 
-  useEffect(() => {
-    if (!isLoading) {
-      // Show stats after welcome message animation completes
-      const timer = setTimeout(() => {
-        setShowStats(true);
-      }, 1500); // 1.5s delay for welcome message animation
-
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading]);
-
-  const formatWelcomeMessage = (message: string) => {
-    // Convert line breaks to JSX and handle emojis
-    return message.split('\n').map((line, index) => {
-      if (line.trim() === '') return <br key={index} />;
+  // Parse welcome message and assign icons
+  const getWelcomeLines = () => {
+    const lines = welcomeMessage.split('\n').filter(line => line.trim());
+    
+    return lines.map((line, index) => {
+      // Remove emoji and clean text
+      const cleanLine = line.replace(/[👋🚀💰🎯📈💎⭐]/g, '').trim();
       
-      // Extract emoji and text
-      const emojiMatch = line.match(/^(\p{Emoji}+)\s*(.*)$/u);
-      if (emojiMatch) {
-        const [, emoji, text] = emojiMatch;
-        return (
-          <div key={index} className="flex items-start gap-3 mb-4">
-            <span className="text-4xl animate-bounce" style={{ animationDelay: `${index * 0.2}s` }}>
-              {emoji}
-            </span>
-            <span className="text-xl md:text-2xl lg:text-3xl font-bold text-white leading-relaxed">
-              {text}
-            </span>
-          </div>
-        );
+      // Assign icons based on content
+      let icon = Sparkles;
+      let iconColor = "text-primary";
+      
+      if (cleanLine.includes('Welcome') || cleanLine.includes('Hey')) {
+        icon = Hand;
+        iconColor = "text-yellow-500";
+      } else if (cleanLine.includes('Ready') || cleanLine.includes('level up')) {
+        icon = Rocket;
+        iconColor = "text-blue-500";
+      } else if (cleanLine.includes('premium') || cleanLine.includes('signals')) {
+        icon = DollarSign;
+        iconColor = "text-green-500";
+      } else if (cleanLine.includes('Join') || cleanLine.includes('traders')) {
+        icon = Target;
+        iconColor = "text-purple-500";
+      } else if (cleanLine.includes('VIP') || cleanLine.includes('Capital')) {
+        icon = Crown;
+        iconColor = "text-amber-500";
       }
       
-      return (
-        <p key={index} className="text-lg md:text-xl text-white/90 leading-relaxed">
-          {line}
-        </p>
-      );
+      return {
+        text: cleanLine,
+        icon,
+        iconColor,
+        delay: 500 + (index * 400)
+      };
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="text-center py-20">
-        <div className="animate-pulse">
-          <div className="h-8 bg-white/20 rounded-lg mb-4 mx-auto max-w-md"></div>
-          <div className="h-6 bg-white/10 rounded-lg mb-2 mx-auto max-w-lg"></div>
-          <div className="h-6 bg-white/10 rounded-lg mx-auto max-w-xl"></div>
-        </div>
-      </div>
-    );
-  }
+  const welcomeLines = getWelcomeLines();
 
   return (
-    <div className="py-20 text-center max-w-5xl mx-auto">
-      {/* Animated Welcome Message */}
-      <FadeInOnView animation="fade-in" delay={0} className="mb-16">
-        <div className="space-y-6">
-          {formatWelcomeMessage(welcomeMessage)}
+    <div className={`py-20 text-center max-w-6xl mx-auto ${className}`}>
+      <div className="space-y-8">
+        {/* Main title with animated icon */}
+        <FadeInOnView delay={0} animation="bounce-in">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <Star className="h-12 w-12 text-primary animate-spin" style={{ animationDuration: '3s' }} />
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
+              Dynamic Capital
+            </h1>
+            <Zap className="h-12 w-12 text-yellow-500 animate-bounce" />
+          </div>
+        </FadeInOnView>
+
+        <FadeInOnView delay={200} animation="fade-in">
+          <h2 className="text-xl sm:text-2xl font-semibold text-primary mb-8 text-center">
+            Professional Trading • Premium Signals • VIP Support
+          </h2>
+        </FadeInOnView>
+
+        {/* Welcome message lines with icons */}
+        <div className="space-y-4 mb-8">
+          {welcomeLines.map((line, index) => (
+            <WelcomeLine
+              key={index}
+              text={line.text}
+              delay={line.delay}
+              icon={line.icon}
+              iconColor={line.iconColor}
+            />
+          ))}
         </div>
-      </FadeInOnView>
 
-      {/* Animated Stats Buttons */}
-      {showStats && (
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-          <FadeInOnView animation="bounce-in" delay={0}>
-            <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-8 py-6 hover:bg-white/20 transition-all duration-300 cursor-pointer transform hover:scale-105">
-              <div className="flex items-center gap-3 mb-2">
-                <Users className="w-6 h-6 text-yellow-300" />
-                <span className="text-2xl font-bold text-white">5000+</span>
-              </div>
-              <p className="text-white/80 text-sm font-medium">Members</p>
+        {/* Stats - appear after message animation */}
+        <div className={`transition-all duration-1000 ${showStats ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
+            <div className="flex items-center gap-2 px-6 py-3 bg-success/10 border border-success/20 rounded-full animate-bounce-in hover:scale-105 transition-transform">
+              <Users className="h-5 w-5 text-success animate-pulse" />
+              <span className="font-bold text-foreground">5000+ Members</span>
             </div>
-          </FadeInOnView>
+            
+            <div className="flex items-center gap-2 px-6 py-3 bg-info/10 border border-info/20 rounded-full animate-bounce-in hover:scale-105 transition-transform" style={{ animationDelay: '200ms' }}>
+              <TrendingUp className="h-5 w-5 text-info animate-pulse" />
+              <span className="font-bold text-foreground">85% Success</span>
+            </div>
+            
+            <div className="flex items-center gap-2 px-6 py-3 bg-primary/10 border border-primary/20 rounded-full animate-bounce-in hover:scale-105 transition-transform" style={{ animationDelay: '400ms' }}>
+              <Shield className="h-5 w-5 text-primary animate-pulse" />
+              <span className="font-bold text-foreground">Verified</span>
+            </div>
+          </div>
 
-          <FadeInOnView animation="bounce-in" delay={200}>
-            <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-8 py-6 hover:bg-white/20 transition-all duration-300 cursor-pointer transform hover:scale-105">
-              <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="w-6 h-6 text-green-300" />
-                <span className="text-2xl font-bold text-white">85%</span>
-              </div>
-              <p className="text-white/80 text-sm font-medium">Success Rate</p>
-            </div>
-          </FadeInOnView>
-
-          <FadeInOnView animation="bounce-in" delay={400}>
-            <div className="group bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-8 py-6 hover:bg-white/20 transition-all duration-300 cursor-pointer transform hover:scale-105">
-              <div className="flex items-center gap-3 mb-2">
-                <CheckCircle2 className="w-6 h-6 text-blue-300" />
-                <Crown className="w-5 h-5 text-yellow-400" />
-              </div>
-              <p className="text-white/80 text-sm font-medium">Verified Platform</p>
-            </div>
-          </FadeInOnView>
+          {/* Call to action buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              size="lg" 
+              className="text-lg px-8 py-4 animate-pulse-glow hover:scale-105 transition-transform"
+              onClick={() => {
+                document.getElementById('plans-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <Rocket className="h-5 w-5 mr-2" />
+              Explore VIP Plans
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="text-lg px-8 py-4 hover:scale-105 transition-transform"
+              onClick={() => {
+                document.getElementById('contact-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <Target className="h-5 w-5 mr-2" />
+              Contact Support
+            </Button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
-};
+}
