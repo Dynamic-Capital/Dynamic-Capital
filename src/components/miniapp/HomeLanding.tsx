@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -133,7 +134,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       {/* Have a Promo Code Section */}
       <FadeInOnView delay={100} animation="slide-in-right">
-        <Card className="liquid-glass border-primary/20">
+        <MotionCard variant="glass" hover={true} animate={true} delay={0.1} className="border-primary/20">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-subheading">
               <Gift className="icon-sm text-primary animate-pulse-glow" />
@@ -149,12 +150,12 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               onApplied={(code) => handlePromoClick(code)}
             />
           </CardContent>
-        </Card>
+        </MotionCard>
       </FadeInOnView>
 
       {/* Announcements */}
       <FadeInOnView delay={150} animation="slide-in-right">
-        <Card className="liquid-glass">
+        <MotionCard variant="glass" hover={true} animate={true} delay={0.2}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-subheading">
               <MessageSquare className="icon-sm text-info animate-pulse-glow" />
@@ -168,12 +169,12 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               </div>
             </FadeInOnView>
           </CardContent>
-        </Card>
+        </MotionCard>
       </FadeInOnView>
 
       {/* Active Promo Codes */}
       <FadeInOnView delay={250} animation="bounce-in">
-        <Card className="ui-card-interactive">
+        <MotionCard variant="interactive" hover={true} animate={true} delay={0.3}>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-subheading">
               <Sparkles className="icon-sm text-success animate-wiggle" />
@@ -250,12 +251,12 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               </div>
             )}
           </CardContent>
-        </Card>
+        </MotionCard>
       </FadeInOnView>
 
       {/* About Dynamic Capital */}
       <FadeInOnView delay={300} animation="bounce-in">
-        <Card className="liquid-glass hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]">
+        <MotionCard variant="glass" hover={true} animate={true} delay={0.4} className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-subheading">
               <Award className="icon-sm text-primary animate-pulse-glow" />
@@ -267,7 +268,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               {aboutUs}
             </p>
           </CardContent>
-        </Card>
+        </MotionCard>
       </FadeInOnView>
 
       {/* Our Services - Stack Carousel */}
@@ -289,7 +290,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       </div>
 
       {/* Call to Action */}
-      <Card className="bg-gradient-to-r from-primary/10 to-purple-500/10 border-primary/20">
+      <MotionCard variant="glow" hover={true} animate={true} delay={0.6} className="bg-gradient-to-r from-primary/10 to-purple-500/10 border-primary/20">
         <CardContent className="p-4 text-center">
           <Sparkles className="h-6 w-6 text-primary mx-auto mb-2" />
           <h3 className="text-base font-semibold mb-1">Ready to Start Trading Like a Pro?</h3>
@@ -321,7 +322,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
             )}
           </div>
         </CardContent>
-      </Card>
+      </MotionCard>
     </div>
   );
 }

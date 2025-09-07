@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export interface MotionCardProps {
@@ -9,6 +9,7 @@ export interface MotionCardProps {
   hover?: boolean;
   animate?: boolean;
   delay?: number;
+  onClick?: () => void;
 }
 
 const variantStyles = {
@@ -21,7 +22,7 @@ const variantStyles = {
 };
 
 const MotionCard = React.forwardRef<HTMLDivElement, MotionCardProps>(
-  ({ className, variant = 'default', hover = true, animate = true, delay = 0, children }, ref) => {
+  ({ className, variant = 'default', hover = true, animate = true, delay = 0, children, onClick }, ref) => {
     return (
       <motion.div
         ref={ref}
@@ -31,6 +32,7 @@ const MotionCard = React.forwardRef<HTMLDivElement, MotionCardProps>(
         whileHover={hover ? { scale: 1.02, y: -5 } : undefined}
         whileTap={hover ? { scale: 0.98 } : undefined}
         transition={{ delay, type: "spring", stiffness: 260, damping: 20 }}
+        onClick={onClick}
       >
         {children}
       </motion.div>

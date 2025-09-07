@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { InputField } from "@/components/ui/input-field";
@@ -118,11 +119,11 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
 
   if (loading) {
     return (
-      <Card>
+      <MotionCard variant="glass" animate={true}>
         <CardContent className="p-6 text-center">
           <div className="text-muted-foreground">Loading checkout...</div>
         </CardContent>
-      </Card>
+      </MotionCard>
     );
   }
 
@@ -153,7 +154,7 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
         </div>
 
         {step === "select" && (
-          <Card>
+          <MotionCard variant="glass" hover={true} animate={true}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5" />
@@ -167,10 +168,13 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
                 <CurrencySelector value={currency} onChange={setCurrency} />
               </div>
 
-              <div className="grid gap-4">
+              <MotionCardContainer staggerDelay={0.1}>
                 {plans.map((plan) => (
-                  <Card 
+                  <MotionCard 
                     key={plan.id}
+                    variant="interactive"
+                    hover={true}
+                    animate={true}
                     className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
                       selectedPlan?.id === plan.id ? 'border-primary ring-2 ring-primary/20' : 'hover:border-primary/50'
                     }`}
@@ -202,11 +206,11 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
+                  </MotionCard>
                 ))}
-              </div>
+              </MotionCardContainer>
             </CardContent>
-          </Card>
+          </MotionCard>
         )}
 
         {step === "payment" && selectedPlan && (
@@ -220,7 +224,7 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
               Back to Plans
             </Button>
 
-            <Card>
+            <MotionCard variant="glass" hover={true} animate={true} delay={0.2}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5" />
@@ -251,7 +255,7 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
                   </FadeInOnView>
                 )}
               </CardContent>
-            </Card>
+            </MotionCard>
           </div>
         )}
 

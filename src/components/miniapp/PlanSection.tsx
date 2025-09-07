@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 import { Button } from "@/components/ui/button";
 import { InputField } from "@/components/ui/input-field";
 import { Badge } from "@/components/ui/badge";
@@ -152,18 +153,18 @@ export default function PlanSection() {
 
   if (loading) {
     return (
-      <Card>
+      <MotionCard variant="glass" animate={true}>
         <CardContent className="p-6">
           <div className="text-center text-muted-foreground">Loading plans...</div>
         </CardContent>
-      </Card>
+      </MotionCard>
     );
   }
 
   return (
     <FadeInOnView>
       <div className="ui-stack-base">
-        <Card className="liquid-glass">
+        <MotionCard variant="glass" hover={true} animate={true} className="liquid-glass">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-subheading">
               <CreditCard className="icon-sm animate-pulse-glow" />
@@ -327,7 +328,7 @@ export default function PlanSection() {
               </div>
             </FadeInOnView>
           </CardContent>
-        </Card>
+        </MotionCard>
       </div>
     </FadeInOnView>
   );

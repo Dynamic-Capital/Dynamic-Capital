@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MotionCard } from "@/components/ui/motion-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Crown, Calendar, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
@@ -99,12 +100,12 @@ export const SubscriptionStatusCard = ({
 
   if (loading) {
     return (
-      <Card>
+      <MotionCard variant="glass" animate={true}>
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span className="ml-2">Loading subscription status...</span>
         </CardContent>
-      </Card>
+      </MotionCard>
     );
   }
 
@@ -112,7 +113,7 @@ export const SubscriptionStatusCard = ({
   
   if (!currentUserId) {
     return (
-      <Card>
+      <MotionCard variant="glass" animate={true}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Crown className="w-5 h-5 text-primary" />
@@ -124,12 +125,12 @@ export const SubscriptionStatusCard = ({
             Connect your Telegram account to view subscription status
           </p>
         </CardContent>
-      </Card>
+      </MotionCard>
     );
   }
 
   return (
-    <Card className="glass-card border-primary/20 shadow-lg">
+    <MotionCard variant="glass" hover={true} animate={true} className="border-primary/20 shadow-lg">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -212,6 +213,6 @@ export const SubscriptionStatusCard = ({
           </div>
         )}
       </CardContent>
-    </Card>
+    </MotionCard>
   );
 };
