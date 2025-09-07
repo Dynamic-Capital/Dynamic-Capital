@@ -59,6 +59,9 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       const verified = await verifyTelegramAuth(initDataString);
       
       if (verified) {
+        // Sync user data
+        await syncUser(initDataString);
+        
         // Check admin status
         const adminStatus = await checkAdminStatus(userId);
         setIsAdmin(adminStatus);
@@ -102,14 +105,8 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       const userIdToCheck = userId || telegramUser?.id?.toString();
       if (!userIdToCheck) return false;
 
-      // Check if user is the hardcoded admin first
-      const isHardcodedAdmin = userIdToCheck === '225513686';
-      if (isHardcodedAdmin) {
-        setIsAdmin(true);
-        return true;
-      }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-check', {
+      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/api/admin-check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -146,6 +143,22 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
     } catch (error) {
       console.error('Failed to check VIP status:', error);
       return false;
+    }
+  };
+
+  const syncUser = async (initDataString: string): Promise<void> => {
+    try {
+      await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/api/sync-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          initData: initDataString
+        })
+      });
+    } catch (error) {
+      console.error('Failed to sync user:', error);
     }
   };
 

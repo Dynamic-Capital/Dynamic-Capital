@@ -120,7 +120,7 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
         </CardHeader>
         <CardContent>
           <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex">
+            <div className="flex pl-4">
               {serviceItems.map((service, index) => {
                 const Icon = service.icon;
                 const isActive = index === selectedIndex;
@@ -189,7 +189,7 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
                   "rounded-full transition-all duration-300 border",
                   index === selectedIndex 
                     ? "w-8 h-3 bg-primary border-primary scale-110 shadow-lg" 
-                    : "w-3 h-3 bg-muted-foreground/20 border-muted-foreground/30 hover:bg-muted-foreground/40"
+                    : "w-3 h-3 bg-muted-foreground/40 border-muted-foreground/60 hover:bg-muted-foreground/60"
                 )}
               />
             ))}

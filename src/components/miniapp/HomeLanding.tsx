@@ -19,6 +19,7 @@ import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 import PromoCodeInput from "@/components/billing/PromoCodeInput";
+import AnimatedWelcomeMini from "./AnimatedWelcomeMini";
 
 interface BotContent {
   content_key: string;
@@ -127,30 +128,8 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           hsl(var(--background) / ${bgOpacity})`
       }}
     >
-      {/* Hero Section */}
-      <Card className="liquid-glass border-primary/30">
-        <CardContent className="ui-p-lg text-center">
-          <div className="ui-mb-base">
-            <Star className="icon-lg text-primary mx-auto ui-mb-sm animate-pulse-glow" />
-            <h1 className="text-title ui-mb-xs font-sf-pro text-foreground">Dynamic Capital VIP</h1>
-            <p className="text-body-sm text-muted-foreground font-sf-pro ui-mb-sm">Professional Trading • Premium Signals • VIP Support</p>
-          </div>
-          <div className="flex items-center justify-center gap-4 text-caption">
-            <div className="flex items-center gap-1 ui-p-xs ui-rounded-full bg-success/10">
-              <Users className="icon-xs text-success" />
-              <span className="text-foreground font-medium">5000+ Members</span>
-            </div>
-            <div className="flex items-center gap-1 ui-p-xs ui-rounded-full bg-info/10">
-              <TrendingUp className="icon-xs text-info" />
-              <span className="text-foreground font-medium">85% Success</span>
-            </div>
-            <div className="flex items-center gap-1 ui-p-xs ui-rounded-full bg-primary/10">
-              <Shield className="icon-xs text-primary" />
-              <span className="text-foreground font-medium">Verified</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Animated Hero Section */}
+      <AnimatedWelcomeMini className="rounded-lg" />
 
       {/* Have a Promo Code Section */}
       <FadeInOnView delay={100} animation="slide-in-right">

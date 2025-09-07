@@ -29,7 +29,25 @@ serve(async (req) => {
   // Handle both initData verification and direct telegram_user_id check
   if (body.telegram_user_id) {
     // Direct telegram user ID check for mini app
-    const adminCheck = await isAdmin(body.telegram_user_id);
+    // Check both environment allowlist and database
+    const envAdmin = await isAdmin(body.telegram_user_id);
+    
+    // Also check database
+    let dbAdmin = false;
+    try {
+      const { createClient } = await import("../_shared/client.ts");
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('bot_users')
+        .select('is_admin')
+        .eq('telegram_id', body.telegram_user_id)
+        .single();
+      dbAdmin = data?.is_admin || false;
+    } catch (error) {
+      console.warn('Failed to check DB admin status:', error);
+    }
+    
+    const adminCheck = envAdmin || dbAdmin;
     return new Response(JSON.stringify({ 
       is_admin: adminCheck,
       telegram_user_id: body.telegram_user_id 

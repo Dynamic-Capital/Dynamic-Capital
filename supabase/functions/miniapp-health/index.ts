@@ -17,6 +17,16 @@ interface SupabaseLike {
   };
 }
 
+async function checkEnvAdmin(telegramId: string): Promise<boolean> {
+  try {
+    const { isAdmin } = await import("../_shared/telegram.ts");
+    return await isAdmin(telegramId);
+  } catch (error) {
+    console.warn('Failed to check env admin:', error);
+    return false;
+  }
+}
+
 export async function getVipForTelegram(
   supa: SupabaseLike,
   tg: string,
@@ -78,14 +88,19 @@ export async function handler(req: Request): Promise<Response> {
   try {
     isVip = await getVipForTelegram(supa, tg);
     
-    // Check admin status
+    // Check admin status from both DB and environment allowlist
     const { data: adminData } = await supa
       .from("bot_users")
       .select("is_admin")
       .eq("telegram_id", tg)
       .single();
     
-    isAdmin = adminData?.is_admin || false;
+    const dbAdmin = adminData?.is_admin || false;
+    
+    // Also check environment allowlist
+    const envAdmin = await checkEnvAdmin(tg);
+    
+    isAdmin = dbAdmin || envAdmin;
   } catch (error) {
     return oops((error as Error).message);
   }
