@@ -1134,6 +1134,47 @@ export type Database = {
         }
         Relationships: []
       }
+      session_audit_log: {
+        Row: {
+          access_details: Json | null
+          action_type: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          session_id: string | null
+          telegram_user_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          access_details?: Json | null
+          action_type: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          session_id?: string | null
+          telegram_user_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          access_details?: Json | null
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          session_id?: string | null
+          telegram_user_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_audit_log_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "user_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_audit_log: {
         Row: {
           action_type: string
@@ -1529,6 +1570,10 @@ export type Database = {
         Args: { cleanup_days?: number }
         Returns: Json
       }
+      cleanup_old_sessions: {
+        Args: { cleanup_hours?: number }
+        Returns: Json
+      }
       generate_uuid: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1565,6 +1610,10 @@ export type Database = {
       }
       get_masked_payment_info: {
         Args: { payment_id: string }
+        Returns: Json
+      }
+      get_masked_session_info: {
+        Args: { session_id: string }
         Returns: Json
       }
       get_masked_subscription_info: {
