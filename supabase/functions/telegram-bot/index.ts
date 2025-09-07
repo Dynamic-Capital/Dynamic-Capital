@@ -630,6 +630,32 @@ export function buildCallbackHandlers(
       handlers.handleDeleteContactLink(chatId, userId),
     reorder_contact_links: (chatId, userId) =>
       handlers.handleReorderContactLinks(chatId, userId),
+    vip_sync_management: (chatId, userId) =>
+      handlers.handleVipSyncManagement(chatId, userId),
+    vip_full_sync: (chatId, userId) =>
+      handlers.handleVipFullSync(chatId, userId),
+    vip_assign_lifetime: (chatId, userId) =>
+      handlers.handleVipAssignLifetime(chatId, userId),
+    vip_assign_lifetime_confirm: (chatId, userId) =>
+      handlers.handleVipAssignLifetimeConfirm(chatId, userId),
+    vip_sync_single: (chatId, userId) =>
+      handlers.handleVipSyncSingle(chatId, userId),
+    vip_view_status: (chatId, userId) =>
+      handlers.handleVipViewStatus(chatId, userId),
+    vip_configure_channels: (chatId, userId) =>
+      handlers.handleVipConfigureChannels(chatId, userId),
+    github_cleanup: (chatId, userId) =>
+      handlers.handleGitHubCleanup(chatId, userId),
+    github_analyze: (chatId, userId) =>
+      handlers.handleGitHubAnalyze(chatId, userId),
+    github_status: (chatId, userId) =>
+      handlers.handleGitHubStatus(chatId, userId),
+    github_structure: (chatId, userId) =>
+      handlers.handleGitHubStructure(chatId, userId),
+    github_cleanup_confirm: (chatId, userId) =>
+      handlers.handleGitHubCleanupConfirm(chatId, userId),
+    github_cleanup_execute: (chatId, userId) =>
+      handlers.handleGitHubCleanupExecute(chatId, userId),
     preview_all_content: (chatId, userId) =>
       handlers.handlePreviewAllContent(chatId, userId),
     export_all_tables: (chatId, userId) =>
