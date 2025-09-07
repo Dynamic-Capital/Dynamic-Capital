@@ -157,3 +157,56 @@ crash).
 - Update this doc when toggles change (`REQUIRE_PAY_CODE`, `AMOUNT_TOLERANCE`,
   etc.) or when new banks/networks are added.
 - Treat `/docs/agent.md` like code—changes via PR with reviewers.
+
+---
+
+## 12) Lovable Codex Integration
+
+The Dynamic Capital project is now integrated with **Lovable Codex** for enhanced UI development, debugging, and improvements.
+
+### UI Development & Editing
+- **Visual Edits**: Use Lovable's Visual Edits feature for quick UI changes without code editing
+  - Access via the Edit button in the chat interface
+  - Directly edit text, colors, and fonts on static elements
+  - Use prompts for complex layout and functionality changes
+- **Real-time Preview**: All changes are visible immediately in the live preview window
+- **Component-based Architecture**: UI components are modular and reusable across the app
+
+### Development Workflow
+- **Chat-driven Development**: Describe desired changes in natural language
+- **Code Generation**: AI-powered code generation for new features and components
+- **Automatic Refactoring**: Code is automatically optimized for maintainability
+- **TypeScript Integration**: Full TypeScript support with proper type checking
+
+### Debugging & Troubleshooting
+- **Console Log Access**: Use `lov-read-console-logs` for real-time debugging
+- **Network Request Monitoring**: Monitor API calls and edge function responses
+- **Error Detection**: Automatic error detection and suggested fixes
+- **Performance Monitoring**: Track component render times and optimization opportunities
+
+### Design System Integration
+- **Semantic Tokens**: All colors, fonts, and spacing use design system tokens
+- **Dark/Light Mode**: Automatic theme switching support
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Animation Library**: Built-in animations and transitions for enhanced UX
+
+### Best Practices for Codex Development
+1. **Break Down Changes**: Request small, incremental changes rather than large overhauls
+2. **Use Visual Edits**: For simple text/color changes, use Visual Edits to save credits
+3. **Test Incrementally**: Test each change before requesting additional modifications
+4. **Leverage AI Debugging**: Use debugging tools before manually editing code
+5. **Follow Design Patterns**: Maintain consistency with existing component patterns
+
+### Codex-Specific Commands
+- Use natural language to describe UI improvements
+- Request specific debugging information via chat
+- Ask for code explanations and optimization suggestions
+- Request new feature implementations with detailed specifications
+
+### Integration with GitHub
+- **Bidirectional Sync**: Changes in Codex automatically sync to GitHub
+- **Version Control**: Built-in version history for easy rollbacks
+- **Branch Support**: Limited branch switching support (enable in Labs)
+- **CI/CD Integration**: GitHub Actions work seamlessly with Codex development
+
+This integration enhances the development experience by combining the power of AI-assisted development with the robust architecture of the Dynamic Capital platform.

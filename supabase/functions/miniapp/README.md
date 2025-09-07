@@ -1,6 +1,28 @@
 # Dynamic Capital Mini App
 
-Telegram Mini App implementing a glassmorphism UI for simple deposit flows.
+Telegram Mini App implementing a glassmorphism UI for simple deposit flows. Built with **Lovable Codex** integration for enhanced development experience.
+
+## Lovable Codex Integration
+
+This Mini App is developed using **Lovable Codex** for AI-powered development:
+
+### Development Features
+- **Visual Edits**: Click the Edit button in Lovable's interface for instant UI changes
+- **Chat-driven Development**: Describe features in natural language
+- **Real-time Preview**: See changes immediately in the live preview
+- **Component Architecture**: Modular, reusable components throughout
+
+### UI Development Workflow
+1. **Use Visual Edits** for quick text, color, and font changes
+2. **Chat Interface** for complex functionality and layout modifications
+3. **Real-time Testing** with live preview window
+4. **AI Debugging** with console log access and error detection
+
+### Best Practices with Codex
+- Request small, incremental changes for better results
+- Use Visual Edits for simple changes to save credits
+- Test each modification before requesting additional features
+- Leverage AI debugging tools before manual code editing
 
 ## Development
 
@@ -18,6 +40,23 @@ The app lives under `supabase/functions/miniapp`. It relies on existing Edge Fun
 
 SVG placeholders live in `supabase/functions/miniapp/static/img` for the logo, bank tiles and
 QR frame; replace them with production assets as needed.
+
+## Design System & Components
+
+### Glassmorphism Theme
+- **Dynamic Glass** theme with glassmorphism effects
+- **1:1 aspect ratio** for all assets
+- **Semantic design tokens** for consistent theming
+- **Dark/Light mode** support with automatic switching
+
+### Component Library
+Components are built with Lovable Codex's component architecture:
+- `PrimaryButton` - Main action buttons
+- `SecondaryButton` - Secondary actions
+- `ApproveButton` - Approval workflows
+- `RejectButton` - Rejection workflows
+- `GlassPanel` - Glassmorphism containers
+- `StatusPill` - Status indicators
 
 ## Icons
 
@@ -77,4 +116,22 @@ The edge function needs the following secrets:
 - `MINIAPP_ASSETS_PREFIX`
 - `SERVE_FROM_STORAGE=true`
 - `MINIAPP_CACHE_LIMIT` (optional, defaults to 100)
+
+## GitHub Integration
+
+This Mini App features **bidirectional GitHub sync** through Lovable Codex:
+- Changes in Codex automatically sync to GitHub
+- Real-time collaboration with version control
+- Built-in rollback capabilities
+- CI/CD integration for deployment
+
+## Debugging & Monitoring
+
+With Lovable Codex integration:
+- **Console Access**: Real-time console log monitoring
+- **Network Inspection**: API call monitoring and debugging
+- **Error Detection**: Automatic error identification and suggested fixes
+- **Performance Tracking**: Component optimization recommendations
+
+For development assistance, use the chat interface to request debugging help or code explanations.
 

@@ -5,7 +5,7 @@
 ## What this is
 
 Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
-OCR + crypto TXID). Personal project; not accepting contributions.
+OCR + crypto TXID). Built with **Lovable Codex** for enhanced development experience.
 
 ## Features
 
@@ -14,6 +14,34 @@ OCR + crypto TXID). Personal project; not accepting contributions.
 - Crypto TXID submissions (no image approvals)
 - Optional Mini App (glass theme, 1:1 assets)
 - Admin commands for maintenance
+- **Lovable Codex Integration** for AI-powered development
+
+## Lovable Codex Development
+
+This project leverages **Lovable Codex** for enhanced UI development and debugging:
+
+### Quick UI Edits
+- **Visual Edits**: Click the Edit button in Lovable's chat interface for instant visual changes
+- **Real-time Preview**: See changes immediately in the live preview window
+- **Component-based**: Modular, reusable UI components throughout the app
+
+### AI-Powered Development
+- **Natural Language Coding**: Describe features in plain English
+- **Automatic Optimization**: Code is refactored for best practices
+- **TypeScript Integration**: Full type safety and IntelliSense support
+- **Design System**: Semantic tokens for consistent theming
+
+### Debugging & Monitoring
+- **Console Access**: Real-time console log monitoring
+- **Network Inspection**: API call and edge function monitoring
+- **Error Detection**: Automatic error identification and fixes
+- **Performance Tracking**: Component optimization suggestions
+
+### Development Workflow
+1. **Chat-driven**: Describe changes in natural language
+2. **Visual Edits**: Use for quick text/color changes (saves credits)
+3. **Incremental**: Test changes before requesting more
+4. **AI Debugging**: Use built-in tools before manual editing
 
 ## Privacy & security
 
@@ -39,7 +67,7 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 - OPENAI_ENABLED _(optional)_
 - BENEFICIARY_TABLE _(optional)_
 
-Values are set in Supabase function secrets, GitHub Environments, or Codex
+Values are set in Supabase function secrets, GitHub Environments, or Lovable Codex
 project settings. Do not commit them.
 
 To troubleshoot `401 Unauthorized` from admin endpoints, generate a known-good
@@ -52,8 +80,15 @@ curl -X POST -H "Content-Type: application/json" \
   "$SUPABASE_URL/functions/v1/verify-initdata"
 ```
 
-## Quick start
+## Quick start with Lovable Codex
 
+### Using Lovable Codex (Recommended)
+1. Open the project in Lovable Codex
+2. Use the chat interface to describe desired changes
+3. Use Visual Edits for quick UI modifications
+4. Monitor the live preview for real-time feedback
+
+### Local Development
 ```bash
 # Start local stack
 supabase start
@@ -122,6 +157,14 @@ supabase functions deploy telegram-bot --project-ref <PROJECT_REF>
 Set Telegram webhook (with secret): use BotFather or API; do not paste secrets
 in README.
 
+## GitHub Integration
+
+This project features **bidirectional GitHub sync** through Lovable Codex:
+- Changes in Codex automatically push to GitHub
+- GitHub changes sync back to Codex in real-time
+- Built-in version control and rollback capabilities
+- CI/CD integration with GitHub Actions
+
 ## License / contributions
 
 Proprietary / All rights reserved. Personal project; external PRs/issues are
@@ -131,5 +174,5 @@ closed by default.
 
 Repo keeps source only. No caches (.cas), dist/, or node_modules/ are committed.
 
-Future changes may encrypt code and increase env usage; see /docs/agent.md for
-behavior spec (if present).
+Future changes may encrypt code and increase env usage; see [docs/agent.md](docs/agent.md) for
+behavior spec and Lovable Codex integration details.
