@@ -13,6 +13,7 @@ import { useCurrency } from "@/hooks/useCurrency";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { parentVariants, childVariants, fastParentVariants } from "@/lib/motion-variants";
+import { cn } from "@/lib/utils";
 
 interface Plan {
   id: string;
@@ -215,28 +216,29 @@ export default function PlanSection() {
                     </Badge>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  <InputField
-                    placeholder="Enter promo code"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    startIcon="Sparkles"
-                    state={promoValidation?.valid ? "success" : promoValidation?.valid === false ? "error" : "default"}
-                    error={promoValidation?.valid === false ? promoValidation.reason : undefined}
-                    success={promoValidation?.valid ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!` : undefined}
-                    description={isInTelegram ? "Enter a promo code to get discount" : "Enter a promo code to see discount preview"}
-                    className="flex-1"
-                  />
-                  <Button 
-                    onClick={validatePromoCode} 
-                    disabled={!promoCode.trim() || validatingPromo}
-                    isLoading={validatingPromo}
-                    size="sm"
-                    className="hover:scale-105 transition-transform"
-                  >
-                    {validatingPromo ? "..." : "Apply"}
-                  </Button>
-                </div>
+                 <div className="flex gap-2">
+                   <input
+                     type="text"
+                     placeholder="Enter promo code"
+                     value={promoCode}
+                     onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                     className={cn(
+                       "flex-1 min-h-[44px] px-4 py-2 ui-rounded-lg border transition-all duration-200",
+                       "placeholder:text-muted-foreground font-medium",
+                       promoValidation?.valid === true && "border-green-500 ring-2 ring-green-500/20",
+                       promoValidation?.valid === false && "border-red-500 ring-2 ring-red-500/20",
+                       !promoValidation && "border-border hover:border-border/80 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                     )}
+                   />
+                   <Button 
+                     onClick={validatePromoCode} 
+                     disabled={!promoCode.trim() || validatingPromo}
+                     isLoading={validatingPromo}
+                     className="min-h-[44px] px-6 font-semibold"
+                   >
+                     {validatingPromo ? "..." : "Apply"}
+                   </Button>
+                 </div>
                 {promoValidation && (
                   <div className={`text-xs p-2 rounded transition-all duration-300 ${promoValidation.valid ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
                     {promoValidation.valid 

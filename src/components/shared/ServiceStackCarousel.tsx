@@ -111,25 +111,25 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
 
   return (
     <FadeInOnView delay={500} animation="slide-in-right">
-      <Card className={cn("liquid-glass hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]", className)}>
+      <Card className={cn("liquid-glass hover:shadow-2xl transition-all duration-300 hover:scale-[1.01] ui-rounded-lg ui-shadow ui-border-glass", className)}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-subheading text-center justify-center">
-            <Award className="icon-sm text-primary animate-pulse-glow" />
+          <CardTitle className="flex items-center gap-2 text-heading text-center justify-center">
+            <span className="text-lg">⚡</span>
             Our Services
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex pl-4">
-              {serviceItems.map((service, index) => {
-                const Icon = service.icon;
-                const isActive = index === selectedIndex;
-                
-                return (
-                  <div
-                    key={index}
-                    className="flex-[0_0_90%] min-w-0 mr-3 xs:flex-[0_0_80%] sm:flex-[0_0_60%] md:flex-[0_0_45%] lg:flex-[0_0_35%] xl:flex-[0_0_30%]"
-                  >
+         <CardContent>
+           <div className="overflow-hidden snap-x snap-mandatory" ref={emblaRef}>
+             <div className="flex">
+               {serviceItems.map((service, index) => {
+                 const Icon = service.icon;
+                 const isActive = index === selectedIndex;
+                 
+                 return (
+                   <div
+                     key={index}
+                     className="flex-none w-full snap-start"
+                   >
                     <div 
                       className={cn(
                         "relative p-4 rounded-lg border transition-all duration-500 hover:scale-[1.02] group cursor-pointer",
@@ -160,17 +160,17 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
                             isActive ? "text-primary animate-pulse-glow" : service.color + " group-hover:scale-110"
                           )} />
                         </div>
-                        <div className="flex-1 space-y-1">
-                          <h4 className={cn(
-                            "font-medium text-xs sm:text-sm transition-colors duration-300 leading-tight",
-                            isActive ? "text-primary" : "text-foreground"
-                          )}>
-                            {service.title}
-                          </h4>
-                          <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed break-words">
-                            {service.description}
-                          </p>
-                        </div>
+                         <div className="flex-1 space-y-1">
+                           <h4 className={cn(
+                             "font-semibold text-subheading transition-colors duration-300 leading-tight",
+                             isActive ? "text-primary" : "text-foreground"
+                           )}>
+                             {service.title}
+                           </h4>
+                           <p className="text-body-sm text-muted-foreground leading-relaxed break-words">
+                             {service.description}
+                           </p>
+                         </div>
                       </div>
                     </div>
                   </div>
@@ -179,21 +179,23 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
             </div>
           </div>
           
-          {/* Enhanced Dots indicator */}
-          <div className="flex justify-center gap-3 mt-6">
-            {serviceItems.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => emblaApi?.scrollTo(index)}
-                className={cn(
-                  "rounded-full transition-all duration-300 border",
-                  index === selectedIndex 
-                    ? "w-8 h-3 bg-primary border-primary scale-110 shadow-lg shadow-primary/30" 
-                    : "w-3 h-3 bg-muted-foreground/50 dark:bg-muted-foreground/70 border-muted-foreground/70 dark:border-muted-foreground/90 hover:bg-muted-foreground/70 dark:hover:bg-muted-foreground/90"
-                )}
-              />
-            ))}
-          </div>
+           {/* Simplified Dots indicator - max 4-6 dots */}
+           <div className="flex justify-center gap-2 mt-4">
+             {serviceItems.slice(0, Math.min(6, serviceItems.length)).map((_, index) => (
+               <button
+                 key={index}
+                 onClick={() => emblaApi?.scrollTo(index)}
+                 aria-current={index === selectedIndex ? "true" : "false"}
+                 aria-label={`View service ${index + 1}`}
+                 className={cn(
+                   "w-2 h-2 rounded-full transition-all duration-300",
+                   index === selectedIndex 
+                     ? "bg-primary scale-125" 
+                     : "bg-muted-foreground/40 hover:bg-muted-foreground/60"
+                 )}
+               />
+             ))}
+           </div>
         </CardContent>
       </Card>
     </FadeInOnView>

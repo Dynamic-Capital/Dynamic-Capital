@@ -133,13 +133,14 @@ export default function MiniApp() {
             layout
             style={{ maxHeight: isFullscreen ? '100vh' : telegramData?.viewportHeight ? `${telegramData.viewportHeight}px` : 'auto' }}
           >
-          {/* Enhanced Header with dynamic sizing */}
-          <motion.header
-            className="dynamic-header sticky top-0 z-20 liquid-glass backdrop-blur-xl border-b border-border/40 safe-area-top"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+           {/* Enhanced Header with dynamic sizing */}
+           <motion.header
+             className="sticky top-0 z-50 backdrop-blur-xl border-b border-border/40 safe-area-top"
+             style={{ height: 'var(--header-height)' }}
+             initial={{ opacity: 0, y: -20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.3 }}
+           >
             <div className="flex items-center justify-between h-full px-3 sm:px-4">
               <motion.div 
                 className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0"
@@ -171,12 +172,13 @@ export default function MiniApp() {
           </motion.header>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <motion.nav
-              className="dynamic-tabs sticky top-[var(--header-height)] z-10 glass-card backdrop-blur-md border-b safe-area-left safe-area-right"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
+             <motion.nav
+               className="sticky top-[var(--header-height)] z-40 backdrop-blur-md border-b safe-area-left safe-area-right ui-border-glass"
+               style={{ height: 'var(--tabs-height)' }}
+               initial={{ opacity: 0, y: -10 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.3, delay: 0.1 }}
+             >
               <TabsList className={`glass-card flex w-full h-full p-1 transition-all duration-300 ${
                 isAdmin ? 'justify-between' : 'justify-evenly'
               } overflow-x-auto scrollbar-hide gap-0.5`}>
@@ -210,15 +212,17 @@ export default function MiniApp() {
               </TabsList>
             </motion.nav>
 
-            <motion.div 
-              className="content-area flex-1 overflow-auto px-3 sm:px-4 pb-20 safe-area-bottom"
-              layout
-              style={{ 
-                maxHeight: isFullscreen ? 'calc(100vh - var(--header-height) - var(--tabs-height))' : 
-                          telegramData?.viewportHeight ? `${telegramData.viewportHeight - 140}px` : 
-                          'auto' 
-              }}
-            >
+             <motion.div 
+               className="flex-1 overflow-auto px-3 sm:px-4 safe-area-bottom"
+               style={{ 
+                 paddingTop: 'calc(var(--header-height) + var(--tabs-height))',
+                 marginTop: 'calc(-1 * (var(--header-height) + var(--tabs-height)))',
+                 maxHeight: isFullscreen ? '100vh' : 
+                           telegramData?.viewportHeight ? `${telegramData.viewportHeight}px` : 
+                           '100vh' 
+               }}
+               layout
+             >
               <TabTransition tabKey={activeTab}>
                 <TabsContent value="home" className="space-y-4">
                   <ViewportAware>
@@ -286,21 +290,22 @@ export default function MiniApp() {
             </motion.div>
           </Tabs>
 
-          {/* Mobile FAB for contact */}
-          {isMobile && (
-            <MobileFloatingActionButton
-              variant="contact"
-              position="bottom-right"
-              onClick={() => {
-                if (isInTelegram) {
-                  window.open('https://t.me/DynamicCapital_Support', '_blank');
-                } else {
-                  window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
-                }
-              }}
-              pulse={true}
-            />
-          )}
+           {/* Mobile FAB for contact */}
+           {isMobile && (
+             <MobileFloatingActionButton
+               variant="contact"
+               position="bottom-right"
+               onClick={() => {
+                 if (isInTelegram) {
+                   window.open('https://t.me/DynamicCapital_Support', '_blank');
+                 } else {
+                   window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
+                 }
+               }}
+               pulse={true}
+               className="bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))]"
+             />
+           )}
 
           {/* VIP Launch Promo Popup */}
           <AnimatePresence>

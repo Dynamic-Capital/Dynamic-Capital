@@ -164,7 +164,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     >
       {/* Animated Hero Section */}
       <motion.div variants={childVariants}>
-        <AnimatedWelcomeMini className="rounded-lg" />
+        <AnimatedWelcomeMini className="ui-rounded-lg ui-shadow" />
       </motion.div>
 
       {/* Animated Status Display */}
@@ -201,24 +201,20 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         </MotionCard>
       </FadeInOnView>
 
-      {/* Announcements */}
-      <FadeInOnView delay={150} animation="slide-in-right">
-        <MotionCard variant="glass" hover={true} animate={true} delay={0.2}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-subheading">
-              <MessageSquare className="icon-sm text-info animate-pulse-glow" />
-              Latest Announcements
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="prose">
-            <FadeInOnView delay={200} animation="fade-in">
-              <div className="ui-p-base status-info ui-rounded-lg">
-                <p className="text-body-sm whitespace-pre-line leading-relaxed text-foreground">{announcements}</p>
-              </div>
-            </FadeInOnView>
-          </CardContent>
-        </MotionCard>
-      </FadeInOnView>
+           {/* Announcements */}
+           <FadeInOnView delay={150} animation="slide-in-right">
+             <MotionCard variant="glass" hover={true} animate={true} delay={0.2} className="ui-rounded-lg ui-shadow">
+               <div className="p-4 border-l-4 border-gradient-to-b from-primary to-purple-500">
+                 <div className="flex items-center gap-2 mb-2">
+                   <span className="text-lg">📢</span>
+                   <h3 className="text-subheading font-semibold">Latest Announcements</h3>
+                 </div>
+                 <FadeInOnView delay={200} animation="fade-in">
+                   <p className="text-body-sm whitespace-pre-line leading-relaxed text-foreground">{announcements}</p>
+                 </FadeInOnView>
+               </div>
+             </MotionCard>
+           </FadeInOnView>
 
       {/* Active Promo Codes */}
       <FadeInOnView delay={250} animation="bounce-in">
@@ -311,20 +307,20 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         </Interactive3DCard>
       </FadeInOnView>
 
-      {/* About Dynamic Capital */}
-      <FadeInOnView delay={300} animation="bounce-in">
-        <LiquidCard className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01]" color="hsl(var(--primary))">
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Award className="icon-sm text-primary animate-pulse-glow" />
-              <h3 className="text-subheading font-semibold">About Dynamic Capital</h3>
-            </div>
-            <p className="text-body-sm text-foreground whitespace-pre-line leading-relaxed">
-              {aboutUs}
-            </p>
-          </div>
-        </LiquidCard>
-      </FadeInOnView>
+       {/* About Dynamic Capital */}
+       <FadeInOnView delay={300} animation="bounce-in">
+         <LiquidCard className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01] ui-rounded-lg ui-shadow ui-border-glass" color="hsl(var(--primary))">
+           <div className="p-6">
+             <div className="flex items-center gap-2 mb-4">
+               <span className="text-lg">🏆</span>
+               <h3 className="text-heading font-semibold">About Dynamic Capital</h3>
+             </div>
+             <p className="text-subheading text-foreground/90 whitespace-pre-line leading-relaxed">
+               {aboutUs}
+             </p>
+           </div>
+         </LiquidCard>
+       </FadeInOnView>
 
       {/* Our Services - Stack Carousel */}
       <ServiceStackCarousel services={services} />
@@ -344,40 +340,40 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         />
       </div>
 
-      {/* Call to Action */}
-      <MotionCard variant="glow" hover={true} animate={true} delay={0.6} className="bg-gradient-to-r from-primary/10 to-purple-500/10 border-primary/20">
-        <CardContent className="p-4 text-center">
-          <Sparkles className="h-6 w-6 text-primary mx-auto mb-2" />
-          <h3 className="text-base font-semibold mb-1">Ready to Start Trading Like a Pro?</h3>
-          <p className="text-xs text-muted-foreground mb-3">
-            Join thousands of successful traders who trust Dynamic Capital for their trading journey.
-          </p>
-          <div className="flex gap-2 justify-center">
-            <Button 
-              size="sm"
-              onClick={() => {
-                const url = new URL(window.location.href);
-                url.searchParams.set('tab', 'plan');
-                window.history.pushState({}, '', url.toString());
-                window.dispatchEvent(new PopStateEvent('popstate'));
-              }}
-            >
-              View VIP Plans
-            </Button>
-            {isInTelegram && (
-              <Button 
-                size="sm"
-                variant="outline" 
-                onClick={() => {
-                  window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
-                }}
-              >
-                Contact Support
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </MotionCard>
+       {/* Call to Action */}
+       <MotionCard variant="glow" hover={true} animate={true} delay={0.6} className="bg-gradient-to-r from-primary/10 to-purple-500/10 border-primary/20 ui-rounded-lg ui-shadow">
+         <CardContent className="p-6 text-center">
+           <Sparkles className="h-6 w-6 text-primary mx-auto mb-3" />
+           <h3 className="text-heading font-semibold mb-2">Ready to Start Trading Like a Pro?</h3>
+           <p className="text-body-sm text-muted-foreground mb-4">
+             Join thousands of successful traders who trust Dynamic Capital for their trading journey.
+           </p>
+           <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+             <Button 
+               className="min-h-[44px] font-semibold"
+               onClick={() => {
+                 const url = new URL(window.location.href);
+                 url.searchParams.set('tab', 'plan');
+                 window.history.pushState({}, '', url.toString());
+                 window.dispatchEvent(new PopStateEvent('popstate'));
+               }}
+             >
+               View Plans
+             </Button>
+             <button 
+               className="text-subheading underline text-muted-foreground hover:text-foreground transition-colors"
+               onClick={() => {
+                 const url = new URL(window.location.href);
+                 url.searchParams.set('tab', 'help');
+                 window.history.pushState({}, '', url.toString());
+                 window.dispatchEvent(new PopStateEvent('popstate'));
+               }}
+             >
+               How it works
+             </button>
+           </div>
+         </CardContent>
+       </MotionCard>
     </motion.div>
   );
 }

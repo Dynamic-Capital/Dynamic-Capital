@@ -454,13 +454,30 @@
     }
   }
 
+  /* Dynamic height variables */
+  :root {
+    --header-height: 60px;
+    --tabs-height: 56px;
+  }
+
+  /* Type hierarchy - 4 sizes max */
+  .text-hero { font-size: 1.375rem; line-height: 1.4; font-weight: 700; } /* 22px */
+  .text-heading { font-size: 1.125rem; line-height: 1.4; font-weight: 600; } /* 18px */
+  .text-subheading { font-size: 0.875rem; line-height: 1.4; font-weight: 500; } /* 14px */
+  .text-body-sm { font-size: 0.75rem; line-height: 1.5; } /* 12px */
+
+  /* Consistent radius and shadows */
+  .ui-rounded-lg { border-radius: 1rem; } /* rounded-2xl */
+  .ui-shadow { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+  .ui-border-glass { border: 1px solid rgba(255, 255, 255, 0.1); }
+
   /* Enhanced Safe area utilities for mobile */
   .safe-area-top { 
     padding-top: max(env(safe-area-inset-top), 0.5rem); 
   }
   
   .safe-area-bottom { 
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem); 
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom)); 
   }
   
   .safe-area-left { 
@@ -477,7 +494,7 @@
       padding-top: max(env(safe-area-inset-top), 0.75rem); 
     }
     .safe-area-bottom { 
-      padding-bottom: max(env(safe-area-inset-bottom), 5rem); 
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom)); 
     }
   }
 
