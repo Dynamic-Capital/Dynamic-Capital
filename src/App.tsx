@@ -7,6 +7,8 @@ import { useEffect } from "react";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useThemeSync } from "@/hooks/useThemeSync";
 import Header from "./components/layout/Header";
+import MobileBottomNav from "./components/navigation/MobileBottomNav";
+import SkipToContent from "./components/navigation/SkipToContent";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -53,28 +55,45 @@ const TelegramRedirect = () => {
 const AppContent = () => {
   useThemeSync();
   
+  const location = useLocation();
+  const isInMiniApp = location.pathname === '/miniapp';
+  
   return (
     <>
+      <SkipToContent />
       <TelegramRedirect />
+      
       <div className="min-h-screen bg-background">
-        <Header />
-        <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/education" element={<Education />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/bot-status" element={<BotStatus />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/payment-status" element={<PaymentStatus />} />
-              <Route path="/build-miniapp" element={<BuildMiniApp />} />
-              <Route path="/miniapp-demo" element={<MiniAppDemo />} />
-              <Route path="/telegram-setup" element={<TelegramSetup />} />
-              <Route path="/miniapp" element={<MiniApp />} />
-              <Route path="/plans" element={<Plans />} />
-          <Route path="/welcome" element={<WelcomeMessage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        {!isInMiniApp && <Header />}
+        
+        <main 
+          id="main-content"
+          className={isInMiniApp ? '' : 'pb-20 md:pb-0'}
+          role="main"
+          tabIndex={-1}
+        >
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/dashboard" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/plans" element={<Plans />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/payment-success" element={<PaymentStatus />} />
+            <Route path="/payment-canceled" element={<PaymentStatus />} />
+            <Route path="/payment-status" element={<PaymentStatus />} />
+            <Route path="/education" element={<Education />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/bot-status" element={<BotStatus />} />
+            <Route path="/build-miniapp" element={<BuildMiniApp />} />
+            <Route path="/miniapp-demo" element={<MiniAppDemo />} />
+            <Route path="/telegram-setup" element={<TelegramSetup />} />
+            <Route path="/miniapp" element={<MiniApp />} />
+            <Route path="/welcome" element={<WelcomeMessage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+        
+        {!isInMiniApp && <MobileBottomNav />}
       </div>
     </>
   );

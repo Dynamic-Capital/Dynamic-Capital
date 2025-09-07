@@ -1,110 +1,27 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { GraduationCap, Home, Menu, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
 import BrandLogo from "@/components/BrandLogo";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import DesktopNav from "@/components/navigation/DesktopNav";
+import MobileMenu from "@/components/navigation/MobileMenu";
 
 const Header: React.FC = () => {
-  const location = useLocation();
-
-  const isActive = (path: string) => location.pathname === path;
-
   return (
-    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border sticky top-0 z-50">
-      <div className="container mx-auto px-6 py-4">
+    <header 
+      className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border sticky top-0 z-50"
+      role="banner"
+    >
+      <div className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/">
+          <Link 
+            to="/" 
+            className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg"
+            aria-label="Go to homepage"
+          >
             <BrandLogo />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-2">
-            <Button
-              asChild
-              variant={isActive("/") ? "default" : "ghost"}
-              size="sm"
-            >
-              <Link to="/" className="flex items-center gap-2">
-                <Home className="h-4 w-4" />
-                Home
-              </Link>
-            </Button>
-
-            <Button
-              asChild
-              variant={isActive("/dashboard") ? "default" : "ghost"}
-              size="sm"
-            >
-              <Link to="/dashboard" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Dashboard
-              </Link>
-            </Button>
-
-            <Button
-              asChild
-              variant={isActive("/education") ? "default" : "ghost"}
-              size="sm"
-            >
-              <Link to="/education" className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                Education
-              </Link>
-            </Button>
-
-            <Button
-              asChild
-              variant={isActive("/admin") ? "default" : "ghost"}
-              size="sm"
-            >
-              <Link to="/admin" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Admin
-              </Link>
-            </Button>
-          </nav>
-
-          {/* Mobile Menu */}
-          <div className="md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <Menu className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link to="/" className="flex items-center gap-2">
-                    <Home className="h-4 w-4" />
-                    Home
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/dashboard" className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/education" className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4" />
-                    Education
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/admin" className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Admin
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DesktopNav />
+          <MobileMenu />
         </div>
       </div>
     </header>
