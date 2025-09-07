@@ -54,6 +54,7 @@ PII; rate limits enabled.
 Full list and usage notes: [docs/env.md](docs/env.md).
 
 - SUPABASE_URL
+- SUPABASE_ANON_KEY
 - SUPABASE_SERVICE_ROLE_KEY
 - VITE_SUPABASE_URL
 - VITE_SUPABASE_KEY
