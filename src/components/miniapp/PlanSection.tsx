@@ -1,0 +1,213 @@
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { CreditCard, Sparkles, Check } from "lucide-react";
+import { toast } from "sonner";
+
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  duration_months: number;
+  is_lifetime: boolean;
+  features: string[];
+}
+
+interface PromoValidation {
+  valid: boolean;
+  reason: string;
+  discount_type?: string;
+  discount_value?: number;
+  final_amount?: number;
+}
+
+export default function PlanSection() {
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoValidation, setPromoValidation] = useState<PromoValidation | null>(null);
+  const [validatingPromo, setValidatingPromo] = useState(false);
+
+  const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+
+  useEffect(() => {
+    fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans')
+      .then(res => res.json())
+      .then(data => {
+        setPlans(data.plans || []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  const validatePromoCode = async () => {
+    if (!promoCode.trim() || !isInTelegram) return;
+    
+    setValidatingPromo(true);
+    try {
+      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/promo-validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: promoCode,
+          telegram_id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || '',
+          plan_id: plans[0]?.id // Use first plan for validation
+        })
+      });
+      
+      const data = await response.json();
+      setPromoValidation(data);
+      
+      if (data.valid) {
+        toast.success(`Promo code applied! ${data.discount_type === 'percentage' ? data.discount_value + '%' : '$' + data.discount_value} discount`);
+      } else {
+        toast.error(data.reason || 'Invalid promo code');
+      }
+    } catch (error) {
+      toast.error('Failed to validate promo code');
+    } finally {
+      setValidatingPromo(false);
+    }
+  };
+
+  const handleSelectPlan = (planId: string) => {
+    if (isInTelegram) {
+      // Open Telegram mini app with plan selected
+      window.open(`https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/?tab=plan&plan=${planId}`, '_blank');
+    } else {
+      // Show hint to use Telegram
+      toast.info('Please use this feature within Telegram to complete your purchase');
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">Loading plans...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            VIP Plans
+          </CardTitle>
+          <CardDescription>Choose your subscription plan and start trading like a pro</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Promo Code Section */}
+          {isInTelegram && (
+            <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">Have a promo code?</span>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter promo code"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={validatePromoCode} 
+                  disabled={!promoCode.trim() || validatingPromo}
+                  size="sm"
+                >
+                  {validatingPromo ? "..." : "Apply"}
+                </Button>
+              </div>
+              {promoValidation && (
+                <div className={`text-xs p-2 rounded ${promoValidation.valid ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
+                  {promoValidation.valid 
+                    ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!`
+                    : promoValidation.reason
+                  }
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isInTelegram && (
+            <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <div className="text-sm text-blue-600 text-center">
+                🤖 Open this in Telegram to see promo codes and complete purchases
+              </div>
+            </div>
+          )}
+
+          {/* Plans */}
+          <div className="space-y-3">
+            {plans.map((plan) => (
+              <div key={plan.id} className="p-4 border rounded-lg hover:border-primary/50 transition-colors">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 className="font-semibold text-lg">{plan.name}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-primary">
+                      ${promoValidation?.valid && promoValidation.final_amount ? promoValidation.final_amount : plan.price}
+                    </div>
+                    {promoValidation?.valid && promoValidation.final_amount !== plan.price && (
+                      <div className="text-sm text-muted-foreground line-through">
+                        ${plan.price}
+                      </div>
+                    )}
+                    <div className="text-xs text-muted-foreground">{plan.currency}</div>
+                  </div>
+                </div>
+
+                {plan.features && plan.features.length > 0 && (
+                  <div className="mb-4">
+                    <div className="grid grid-cols-1 gap-1 text-sm">
+                      {plan.features.slice(0, 3).map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <Check className="h-3 w-3 text-green-500" />
+                          <span className="text-muted-foreground">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Button 
+                  className="w-full"
+                  onClick={() => handleSelectPlan(plan.id)}
+                >
+                  {isInTelegram ? 'Select Plan' : 'Open in Telegram'}
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-lg">
+            <div className="text-center">
+              <Sparkles className="h-8 w-8 text-primary mx-auto mb-2" />
+              <h3 className="font-semibold mb-2">Why Choose VIP?</h3>
+              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <div>• Premium signals</div>
+                <div>• 24/7 support</div>
+                <div>• Exclusive analysis</div>
+                <div>• Mobile app access</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

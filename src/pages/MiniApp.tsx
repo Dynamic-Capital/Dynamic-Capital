@@ -15,6 +15,8 @@ import {
   User,
   Settings
 } from "lucide-react";
+import PlanSection from "@/components/miniapp/PlanSection";
+import StatusSection from "@/components/miniapp/StatusSection";
 
 interface TelegramUser {
   id: number;
@@ -187,61 +189,11 @@ export default function MiniApp() {
           </TabsContent>
 
           <TabsContent value="plan" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  VIP Plans
-                </CardTitle>
-                <CardDescription>Choose your subscription plan</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="p-3 border rounded-lg">
-                    <h4 className="font-semibold">VIP Monthly</h4>
-                    <p className="text-sm text-muted-foreground">$29/month</p>
-                    <Button size="sm" className="mt-2 w-full">Select Plan</Button>
-                  </div>
-                  <div className="p-3 border rounded-lg">
-                    <h4 className="font-semibold">VIP Yearly</h4>
-                    <p className="text-sm text-muted-foreground">$299/year</p>
-                    <Button size="sm" className="mt-2 w-full">Select Plan</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <PlanSection />
           </TabsContent>
 
           <TabsContent value="status" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5" />
-                  Status
-                </CardTitle>
-                <CardDescription>Your current status and subscription</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Status:</span>
-                    <Badge variant="outline">Connected</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subscription:</span>
-                    <span>Free</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Platform:</span>
-                    <span>{telegramData?.platform || 'Unknown'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Theme:</span>
-                    <span>{telegramData?.colorScheme || 'Unknown'}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <StatusSection telegramData={telegramData} />
           </TabsContent>
 
           <TabsContent value="me" className="space-y-4">

@@ -33,6 +33,8 @@ export default function Plan() {
   );
   const [instructions, setInstructions] = useState<Instructions | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoValidation, setPromoValidation] = useState<any>(null);
   const [toast, setToast] = useState<
     { message: string; type: "success" | "warn" | "error" } | null
   >(null);
@@ -44,6 +46,13 @@ export default function Plan() {
       .then((res) => res.json())
       .then((d) => setPlans(d.plans || []))
       .catch(() => setPlans([]));
+
+    // Check for preselected plan in URL
+    const urlParams = new URLSearchParams(globalThis.location.search);
+    const planParam = urlParams.get('plan');
+    if (planParam) {
+      setSelected(planParam);
+    }
   }, []);
 
   const getTelegramId = () => {
@@ -56,6 +65,32 @@ export default function Plan() {
       return String(tgId || "");
     } catch {
       return "";
+    }
+  };
+
+  const validatePromoCode = async () => {
+    if (!promoCode.trim() || !selected) return;
+    
+    try {
+      const res = await fetch(functionUrl("promo-validate")!, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: promoCode,
+          telegram_id: getTelegramId(),
+          plan_id: selected,
+        }),
+      });
+      const data = await res.json();
+      setPromoValidation(data);
+      
+      if (data.valid) {
+        setToast({ message: `Promo applied! $${data.final_amount} final amount`, type: "success" });
+      } else {
+        setToast({ message: data.reason || "Invalid promo code", type: "error" });
+      }
+    } catch {
+      setToast({ message: "Failed to validate promo code", type: "error" });
     }
   };
 
@@ -80,6 +115,24 @@ export default function Plan() {
       if (json?.ok) {
         setPaymentId(json.payment_id);
         setInstructions(json.instructions as Instructions);
+        
+        // If promo code was validated, redeem it
+        if (promoValidation?.valid && promoCode) {
+          try {
+            await fetch(functionUrl("promo-redeem")!, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                code: promoCode,
+                telegram_id: getTelegramId(),
+                plan_id: selected,
+                payment_id: json.payment_id,
+              }),
+            });
+          } catch {
+            // Silent fail for promo redemption
+          }
+        }
       } else {
         setToast({
           message: json?.error || "Failed to initialize checkout",
@@ -98,6 +151,37 @@ export default function Plan() {
       <TopBar title="Choose Plan" />
       {!instructions && (
         <div className="space-y-4">
+          {/* Promo Code Section */}
+          {selected && (
+            <GlassPanel>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">Promo Code</div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter promo code"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    className="flex-1 px-3 py-2 bg-transparent border border-white/20 rounded text-sm"
+                  />
+                  <SecondaryButton
+                    label="Apply"
+                    onClick={validatePromoCode}
+                    disabled={!promoCode.trim()}
+                  />
+                </div>
+                {promoValidation && (
+                  <div className={`text-xs p-2 rounded ${promoValidation.valid ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                    {promoValidation.valid 
+                      ? `Discount applied! Final amount: $${promoValidation.final_amount}`
+                      : promoValidation.reason
+                    }
+                  </div>
+                )}
+              </div>
+            </GlassPanel>
+          )}
+
           {plans.map((p) => (
             <GlassPanel
               key={p.id}
@@ -109,7 +193,13 @@ export default function Plan() {
               <div className="flex items-center justify-between">
                 <span>{p.name}</span>
                 <span className="text-sm">
-                  ${p.price} {p.currency}
+                  {promoValidation?.valid && selected === p.id 
+                    ? `$${promoValidation.final_amount}` 
+                    : `$${p.price}`
+                  } {p.currency}
+                  {promoValidation?.valid && selected === p.id && (
+                    <span className="ml-2 text-xs line-through opacity-60">${p.price}</span>
+                  )}
                 </span>
               </div>
             </GlassPanel>
