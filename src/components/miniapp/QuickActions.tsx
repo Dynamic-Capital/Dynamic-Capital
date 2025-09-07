@@ -147,7 +147,7 @@ export function QuickActions() {
       <Card className="bg-gradient-to-br from-card/50 to-background border-border/50 relative overflow-hidden">
         {/* Animated background gradient */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-primary/5 via-purple-500/5 to-primary/5"
+          className="absolute inset-0 bg-gradient-to-r from-primary/5 via-dc-brand-light/5 to-primary/5"
           animate={{
             backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
           }}

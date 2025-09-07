@@ -349,7 +349,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       </div>
 
        {/* Call to Action */}
-       <MotionCard variant="glow" hover={true} animate={true} delay={0.6} className="bg-gradient-to-r from-primary/10 to-purple-500/10 border-primary/20 ui-rounded-lg ui-shadow">
+       <MotionCard variant="glow" hover={true} animate={true} delay={0.6} className="bg-gradient-to-r from-primary/10 to-dc-brand-light/10 border-primary/20 ui-rounded-lg ui-shadow">
          <CardContent className="p-6 text-center">
            <div className="flex justify-center items-center gap-2 mb-3">
              <ThreeDEmoticon emoji="🚀" size={24} intensity={0.4} animate={true} />

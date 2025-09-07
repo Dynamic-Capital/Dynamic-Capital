@@ -432,7 +432,7 @@ export default function PlanSection() {
             </motion.div>
 
             <FadeInOnView delay={800} animation="bounce-in">
-              <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-lg">
+              <div className="mt-6 p-4 bg-gradient-to-r from-primary/10 to-dc-brand-light/10 rounded-lg">
                 <div className="text-center">
                   <Sparkles className="h-8 w-8 text-primary mx-auto mb-2 animate-pulse-glow" />
                   <h3 className="font-semibold mb-2">Why Choose VIP?</h3>

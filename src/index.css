@@ -809,9 +809,10 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-image: linear-gradient(135deg, 
       hsl(var(--background)) 0%, 
-      hsl(var(--background)) 25%, 
-      hsl(var(--primary) / 0.02) 50%, 
-      hsl(var(--background)) 75%, 
+      hsl(var(--background)) 20%, 
+      hsl(var(--primary) / 0.05) 40%, 
+      hsl(var(--dc-brand-light) / 0.03) 60%, 
+      hsl(var(--background)) 80%, 
       hsl(var(--background)) 100%);
   }
 
@@ -852,19 +853,19 @@
   }
 
   .ui-button-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply bg-gradient-to-r from-primary to-primary/90 text-primary-foreground hover:from-primary/90 hover:to-primary/80 shadow-lg hover:shadow-xl transition-all duration-300;
   }
 
   .ui-button-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    @apply bg-gradient-to-r from-secondary to-secondary/90 text-secondary-foreground hover:from-secondary/90 hover:to-secondary/80 shadow-md hover:shadow-lg transition-all duration-300;
   }
 
   .ui-button-outline {
-    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+    @apply border border-primary/30 bg-gradient-to-r from-background to-background/95 hover:from-primary/10 hover:to-primary/5 hover:text-primary hover:border-primary/50 transition-all duration-300;
   }
 
   .ui-button-ghost {
-    @apply hover:bg-accent hover:text-accent-foreground;
+    @apply hover:bg-gradient-to-r hover:from-primary/10 hover:to-primary/5 hover:text-primary transition-all duration-300;
   }
 
   /* === GLASS EFFECTS === */
@@ -877,9 +878,10 @@
   }
 
   .glass-button {
-    @apply bg-white/25 hover:bg-white/35 dark:bg-black/50 dark:hover:bg-black/60;
-    @apply backdrop-blur-lg border border-white/40 dark:border-white/25;
-    @apply shadow-lg;
+    @apply bg-gradient-to-r from-primary/20 to-primary/15 hover:from-primary/30 hover:to-primary/25;
+    @apply dark:from-primary/25 dark:to-primary/20 dark:hover:from-primary/35 dark:hover:to-primary/30;
+    @apply backdrop-blur-lg border border-primary/30 dark:border-primary/25 text-primary;
+    @apply shadow-lg hover:shadow-xl transition-all duration-300;
     backdrop-filter: blur(12px) saturate(1.5);
     -webkit-backdrop-filter: blur(12px) saturate(1.5);
   }
@@ -1294,6 +1296,23 @@
 
   .prose strong {
     @apply font-semibold text-foreground;
+  }
+
+  /* === RED GRADIENT UTILITIES === */
+  .bg-gradient-red {
+    @apply bg-gradient-to-r from-primary to-dc-brand-light;
+  }
+  
+  .bg-gradient-red-subtle {
+    @apply bg-gradient-to-r from-primary/10 to-dc-brand-light/10;
+  }
+  
+  .bg-gradient-red-bold {
+    @apply bg-gradient-to-r from-primary to-dc-brand-dark;
+  }
+  
+  .text-gradient-red {
+    @apply bg-gradient-to-r from-primary to-dc-brand-light bg-clip-text text-transparent;
   }
 
   .prose em {
