@@ -376,10 +376,16 @@ export const SystemHealth = () => {
           <Button 
             onClick={fixDrift} 
             disabled={!adminSecret || isFixing}
-            isLoading={isFixing}
             className="w-full"
           >
-            {isDryRun ? 'Check Drift' : 'Fix Drift'}
+            {isFixing ? (
+              <>
+                <Icon name="RotateCw" className="h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              isDryRun ? 'Check Drift' : 'Fix Drift'
+            )}
           </Button>
         </CardContent>
       </Card>
