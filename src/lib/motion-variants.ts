@@ -1,7 +1,131 @@
 // Universal Motion Variants for consistent animations across the app
 import { Variants } from 'framer-motion';
 
-// Card variants
+// === PARENT ORCHESTRATION VARIANTS ===
+// These variants control children through stagger and orchestration
+export const parentVariants: Variants = {
+  hidden: {
+    opacity: 0,
+  },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+      when: "beforeChildren",
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1,
+      when: "afterChildren",
+    },
+  },
+};
+
+// Fast stagger for UI elements
+export const fastParentVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.1,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.02,
+      staggerDirection: -1,
+    },
+  },
+};
+
+// Slow stagger for hero sections
+export const slowParentVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.1,
+      staggerDirection: -1,
+    },
+  },
+};
+
+// === CHILD VARIANTS ===
+// These inherit from parent orchestration
+export const childVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+    scale: 0.95,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 320,
+      damping: 28,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -20,
+    scale: 0.95,
+    transition: {
+      duration: 0.2,
+    },
+  },
+};
+
+// Child variant with custom direction
+export const createChildVariant = (direction: 'up' | 'down' | 'left' | 'right' = 'up', distance = 20): Variants => ({
+  hidden: {
+    opacity: 0,
+    ...(direction === 'up' && { y: distance }),
+    ...(direction === 'down' && { y: -distance }),
+    ...(direction === 'left' && { x: distance }),
+    ...(direction === 'right' && { x: -distance }),
+    scale: 0.95,
+  },
+  visible: {
+    opacity: 1,
+    x: 0,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 320,
+      damping: 28,
+    },
+  },
+  exit: {
+    opacity: 0,
+    ...(direction === 'up' && { y: -distance }),
+    ...(direction === 'down' && { y: distance }),
+    ...(direction === 'left' && { x: -distance }),
+    ...(direction === 'right' && { x: distance }),
+    scale: 0.95,
+    transition: {
+      duration: 0.2,
+    },
+  },
+});
+
+// Enhanced Card variants with better inheritance
 export const cardVariants: Variants = {
   hidden: {
     opacity: 0,
@@ -14,24 +138,21 @@ export const cardVariants: Variants = {
     y: 0,
     transition: {
       type: "spring",
-      stiffness: 260,
-      damping: 20,
-      duration: 0.6,
+      stiffness: 320,
+      damping: 28,
     },
   },
   hover: {
     scale: 1.02,
     y: -5,
-    rotateX: 2,
     transition: {
       type: "spring",
       stiffness: 400,
       damping: 25,
-      duration: 0.3,
     },
   },
   tap: {
-    scale: 0.98,
+    scale: 0.96,
     transition: {
       duration: 0.1,
     },
@@ -41,7 +162,28 @@ export const cardVariants: Variants = {
     scale: 0.95,
     y: -20,
     transition: {
-      duration: 0.3,
+      duration: 0.2,
+    },
+  },
+};
+
+// Interactive card variants
+export const interactiveCardVariants: Variants = {
+  ...cardVariants,
+  hover: {
+    scale: 1.03,
+    y: -8,
+    rotateX: 1,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 25,
+    },
+  },
+  tap: {
+    scale: 0.98,
+    transition: {
+      duration: 0.1,
     },
   },
 };
@@ -74,13 +216,13 @@ export const pageVariants: Variants = {
   },
 };
 
-// Button variants
+// Enhanced Button variants with better micro-interactions
 export const buttonVariants: Variants = {
   initial: {
     scale: 1,
   },
   hover: {
-    scale: 1.05,
+    scale: 1.02,
     y: -2,
     transition: {
       type: "spring",
@@ -89,7 +231,7 @@ export const buttonVariants: Variants = {
     },
   },
   tap: {
-    scale: 0.95,
+    scale: 0.96,
     transition: {
       duration: 0.1,
     },
@@ -97,6 +239,33 @@ export const buttonVariants: Variants = {
   disabled: {
     opacity: 0.6,
     scale: 1,
+  },
+};
+
+// Primary button with enhanced effects
+export const primaryButtonVariants: Variants = {
+  ...buttonVariants,
+  hover: {
+    scale: 1.05,
+    y: -3,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 25,
+    },
+  },
+};
+
+// Ghost button with subtle effects
+export const ghostButtonVariants: Variants = {
+  ...buttonVariants,
+  hover: {
+    scale: 1.02,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 25,
+    },
   },
 };
 

@@ -12,6 +12,7 @@ import { CurrencySelector } from "./CurrencySelector";
 import { useCurrency } from "@/hooks/useCurrency";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { parentVariants, childVariants, fastParentVariants } from "@/lib/motion-variants";
 
 interface Plan {
   id: string;
@@ -240,9 +241,9 @@ export default function PlanSection() {
 
             {/* Plans */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              variants={parentVariants}
+              initial="hidden"
+              animate="visible"
             >
               <StaggeredGrid columns={1} staggerDelay={0.2} className="!grid-cols-1">
                 {plans.map((plan, index) => (
@@ -256,9 +257,7 @@ export default function PlanSection() {
                   >
                     <motion.div 
                       className="flex justify-between items-start ui-mb-base"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 + 0.2 }}
+                      variants={childVariants}
                     >
                       <div className="ui-stack-xs">
                         <div className="flex items-center gap-2">

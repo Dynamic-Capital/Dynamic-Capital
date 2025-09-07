@@ -11,6 +11,7 @@ import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { MotionThemeProvider, MotionPage } from "@/components/ui/motion-theme";
 import { RouteTransition, PageWrapper } from "@/components/ui/route-transitions";
+import { ScrollProgressBar } from "@/components/ui/scroll-progress";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
 import MobileBottomNav from "./components/navigation/MobileBottomNav";
@@ -68,6 +69,7 @@ const AppContent = () => {
   
   return (
     <MotionThemeProvider>
+      <ScrollProgressBar />
       <SkipToContent />
       <TelegramRedirect />
       

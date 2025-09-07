@@ -23,6 +23,8 @@ import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 import PromoCodeInput from "@/components/billing/PromoCodeInput";
 import AnimatedWelcomeMini from "./AnimatedWelcomeMini";
 import { AnimatedStatusDisplay } from "./AnimatedStatusDisplay";
+import { motion, AnimatePresence } from "framer-motion";
+import { parentVariants, childVariants, slowParentVariants } from "@/lib/motion-variants";
 
 interface BotContent {
   content_key: string;
@@ -137,8 +139,11 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
   const bgOpacity = Math.min(scrollY / 300, 0.8);
 
   return (
-    <div 
+    <motion.div 
       className="space-y-4 scroll-bg-transition"
+      variants={slowParentVariants}
+      initial="hidden"
+      animate="visible"
       style={{
         background: `linear-gradient(135deg, 
           hsl(var(--telegram) / ${0.9 - bgOpacity * 0.3}), 
@@ -148,11 +153,13 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       }}
     >
       {/* Animated Hero Section */}
-      <AnimatedWelcomeMini className="rounded-lg" />
+      <motion.div variants={childVariants}>
+        <AnimatedWelcomeMini className="rounded-lg" />
+      </motion.div>
 
       {/* Animated Status Display */}
       {isInTelegram && (
-        <FadeInOnView delay={50}>
+        <motion.div variants={childVariants}>
           <AnimatedStatusDisplay
             isVip={subscription?.is_vip}
             planName={subscription?.plan_name || "Free"}
@@ -160,7 +167,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
             paymentStatus={subscription?.payment_status}
             showBackground={false}
           />
-        </FadeInOnView>
+        </motion.div>
       )}
 
       {/* Have a Promo Code Section */}
@@ -361,6 +368,6 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           </div>
         </CardContent>
       </MotionCard>
-    </div>
+    </motion.div>
   );
 }

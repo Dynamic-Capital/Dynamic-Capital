@@ -1,6 +1,8 @@
 import React from 'react';
-import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { MotionConfigProvider } from './motion-config';
+import { parentVariants, childVariants } from '@/lib/motion-variants';
 
 interface MotionThemeProviderProps {
   children: React.ReactNode;
@@ -26,11 +28,11 @@ export const MotionThemeProvider: React.FC<MotionThemeProviderProps> = ({
   className,
   reducedMotion = false
 }) => {
+  const shouldReduceMotion = useReducedMotion();
+  const isReduced = reducedMotion || shouldReduceMotion;
+
   return (
-    <MotionConfig 
-      transition={reducedMotion ? { duration: 0 } : motionConfig.transition}
-      reducedMotion={reducedMotion ? "always" : "never"}
-    >
+    <MotionConfigProvider>
       <motion.div
         className={cn(
           "motion-theme-provider",
@@ -38,9 +40,10 @@ export const MotionThemeProvider: React.FC<MotionThemeProviderProps> = ({
           "transition-all duration-500 ease-out",
           className
         )}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        variants={parentVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         style={{
           backgroundImage: `
             radial-gradient(circle at 25% 25%, hsl(var(--primary) / 0.05) 0%, transparent 50%),
@@ -53,7 +56,7 @@ export const MotionThemeProvider: React.FC<MotionThemeProviderProps> = ({
           {children}
         </AnimatePresence>
       </motion.div>
-    </MotionConfig>
+    </MotionConfigProvider>
   );
 };
 
@@ -73,15 +76,10 @@ export const MotionPage: React.FC<MotionPageProps> = ({
     <motion.div
       key={pageKey}
       className={cn("motion-page", className)}
-      initial={{ opacity: 0, y: 20, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -20, scale: 0.98 }}
-      transition={{
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-        duration: 0.6,
-      }}
+      variants={childVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
     >
       {children}
     </motion.div>
