@@ -87,22 +87,22 @@ export function SystemHealth({ className, showDetails = false }: SystemHealthPro
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'degraded': return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+      case 'healthy': return <CheckCircle className="h-4 w-4 text-success" />;
+      case 'degraded': return <AlertCircle className="h-4 w-4 text-warning" />;
       case 'error': return <AlertCircle className="h-4 w-4 text-dc-brand" />;
-      default: return <Clock className="h-4 w-4 text-gray-500" />;
+      default: return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'healthy': 
-        return <Badge className="bg-green-500/10 text-green-600 border-green-500/30">Healthy</Badge>;
-      case 'degraded': 
-        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30">Degraded</Badge>;
-      case 'error': 
+      case 'healthy':
+        return <Badge className="bg-success/10 text-success border-success/30">Healthy</Badge>;
+      case 'degraded':
+        return <Badge className="bg-warning/10 text-warning border-warning/30">Degraded</Badge>;
+      case 'error':
         return <Badge className="bg-dc-brand/10 text-dc-brand-dark border-dc-brand/30">Error</Badge>;
-      default: 
+      default:
         return <Badge variant="outline">Unknown</Badge>;
     }
   };
@@ -188,7 +188,7 @@ export function SystemHealth({ className, showDetails = false }: SystemHealthPro
                     {check.response_time}ms
                   </span>
                   {check.status === 'ok' ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckCircle className="h-4 w-4 text-success" />
                   ) : (
                     <AlertCircle className="h-4 w-4 text-dc-brand" />
                   )}
@@ -202,9 +202,9 @@ export function SystemHealth({ className, showDetails = false }: SystemHealthPro
             <div className="space-y-2">
               <p className="text-sm font-medium">Recommendations</p>
               {healthStatus.recommendations.map((rec, index) => (
-                <Alert key={index} className="border-yellow-500/20 bg-yellow-500/10">
+                <Alert key={index} className="border-warning/20 bg-warning/10">
                   <TrendingUp className="h-4 w-4" />
-                  <AlertDescription className="text-yellow-600 text-sm">
+                  <AlertDescription className="text-warning text-sm">
                     {rec}
                   </AlertDescription>
                 </Alert>

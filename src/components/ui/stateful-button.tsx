@@ -79,7 +79,7 @@ export function StatefulButton({
             initial={{ opacity: 0, scale: 0.8, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: -10 }}
-            className="flex items-center gap-2 text-green-600 dark:text-green-400"
+            className="flex items-center gap-2 text-success"
           >
             <Check className="h-4 w-4" />
             {successText}
@@ -128,7 +128,7 @@ export function StatefulButton({
       className={cn(
         "min-w-[120px] transition-all duration-300",
         currentState === "loading" && "cursor-wait",
-        currentState === "success" && "bg-green-600 hover:bg-green-700 border-green-600",
+        currentState === "success" && "bg-success hover:bg-success/90 border-success",
         currentState === "error" && "bg-dc-brand-dark hover:bg-dc-brand-dark border-dc-brand-dark",
         className
       )}
