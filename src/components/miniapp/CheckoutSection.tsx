@@ -247,8 +247,11 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
                       onClick={handleCheckout}
                       disabled={initiatingCheckout}
                       isLoading={initiatingCheckout}
-                      className="w-full"
+                      responsive
+                      fullWidth
+                      variant="premium"
                       size="lg"
+                      className="min-h-[48px] touch-manipulation"
                     >
                       {initiatingCheckout ? "Processing..." : "Continue to Payment"}
                     </Button>
@@ -391,16 +394,23 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
                   </CardContent>
                 </Card>
 
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button 
-                    className="flex-1"
+                    responsive
+                    fullWidth
+                    variant="brand"
+                    size="lg"
+                    className="min-h-[48px] touch-manipulation flex-1"
                     onClick={() => window.open('https://t.me/Dynamic_VIP_BOT', '_blank')}
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Receipt
                   </Button>
                   <Button 
+                    responsive
                     variant="outline"
+                    size="lg"
+                    className="min-h-[48px] touch-manipulation sm:flex-none sm:w-auto"
                     onClick={() => window.open('https://t.me/DynamicCapital_Support', '_blank')}
                   >
                     <Clock className="h-4 w-4 mr-2" />

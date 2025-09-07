@@ -175,7 +175,13 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
                       : 'Open in Telegram to access VIP features and complete subscription'
                     }
                   </div>
-                  <Button size="sm" className="mt-2" onClick={() => {
+                  <Button 
+                    responsive
+                    size="sm" 
+                    variant="brand"
+                    fullWidth
+                    className="mt-2 min-h-[44px] touch-manipulation" 
+                    onClick={() => {
                     if (isInTelegram) {
                       const url = new URL(window.location.href);
                       url.searchParams.set('tab', 'plan');

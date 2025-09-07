@@ -128,21 +128,31 @@ export default function MiniApp() {
             layout
             style={{ maxHeight: isFullscreen ? '100vh' : telegramData?.viewportHeight ? `${telegramData.viewportHeight}px` : 'auto' }}
           >
-          {/* Header with theme toggle */}
+          {/* Enhanced Header with auto-sizing */}
           <ResponsiveMotion 
             mobileVariant="slide" 
             desktopVariant="fade"
-            className="sticky top-0 z-20 liquid-glass backdrop-blur-xl border-b border-border/40 ui-p-sm"
+            className="sticky top-0 z-20 liquid-glass backdrop-blur-xl border-b border-border/40"
           >
-            <div className="flex items-center justify-between">
-              <motion.h1 
-                className="text-body-lg font-semibold text-elevated drop-shadow-sm"
+            <div className="flex items-center justify-between p-2 sm:p-3 lg:p-4">
+              <motion.div 
+                className="flex items-center gap-2 sm:gap-3"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.1 }}
               >
-                Dynamic Capital VIP
-              </motion.h1>
+                <div className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 bg-gradient-brand rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-xs sm:text-sm lg:text-base">DC</span>
+                </div>
+                <div>
+                  <h1 className="text-sm sm:text-base lg:text-lg font-semibold text-elevated leading-tight">
+                    Dynamic Capital
+                  </h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-none">
+                    VIP Trading Bot
+                  </p>
+                </div>
+              </motion.div>
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -158,27 +168,25 @@ export default function MiniApp() {
               mobileVariant="fade" 
               desktopVariant="slide"
               delay={0.1}
-              className="sticky top-14 z-10 glass-card backdrop-blur-md border-b"
+              className="sticky top-20 sm:top-24 lg:top-28 z-10 glass-card backdrop-blur-md border-b"
             >
               <TabsList className={`glass-card grid w-full ${
                 isAdmin ? 'grid-cols-8' : 'grid-cols-7'
-              } ${
-                isMobile ? 'h-14 text-xs' : 'h-16 lg:h-18'
-              } p-1 transition-all duration-300 overflow-x-auto scrollbar-hide`}>
-                <TabsTrigger value="home" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg transition-all duration-200 hover:scale-105">
+              } h-12 sm:h-14 lg:h-16 p-1 transition-all duration-300 overflow-x-auto scrollbar-hide gap-0.5`}>
+                <TabsTrigger value="home" className="glass-tab flex flex-col items-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-sf-pro rounded-lg transition-all duration-200 hover:scale-105 px-1 sm:px-2 py-1 sm:py-2">
                   <motion.div
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Home className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                    <Home className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
                   </motion.div>
-                  <span className={isMobile ? 'text-xs' : 'text-sm'}>Home</span>
+                  <span className="text-xs lg:text-sm leading-none">Home</span>
                 </TabsTrigger>
-                <TabsTrigger value="plan" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg transition-all duration-200 hover:scale-105">
+                <TabsTrigger value="plan" className="glass-tab flex flex-col items-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-sf-pro rounded-lg transition-all duration-200 hover:scale-105 px-1 sm:px-2 py-1 sm:py-2">
                   <motion.div whileHover={{ scale: 1.1, rotate: 5 }} whileTap={{ scale: 0.95 }}>
-                    <Star className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                    <Star className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
                   </motion.div>
-                  <span className={isMobile ? 'text-xs' : 'text-sm'}>Plans</span>
+                  <span className="text-xs lg:text-sm leading-none">Plans</span>
                 </TabsTrigger>
                 <TabsTrigger value="checkout" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg transition-all duration-200 hover:scale-105">
                   <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
@@ -222,11 +230,11 @@ export default function MiniApp() {
             </ResponsiveMotion>
 
             <motion.div 
-              className={`${isMobile ? 'p-3 sm:p-4' : 'p-4 lg:p-6'} pb-24 safe-area-bottom flex-1 overflow-auto`}
+              className="p-2 sm:p-3 lg:p-4 pb-20 sm:pb-24 safe-area-bottom flex-1 overflow-auto"
               layout
               style={{ 
-                maxHeight: isFullscreen ? 'calc(100vh - 120px)' : 
-                          telegramData?.viewportHeight ? `${telegramData.viewportHeight - 120}px` : 
+                maxHeight: isFullscreen ? 'calc(100vh - 140px)' : 
+                          telegramData?.viewportHeight ? `${telegramData.viewportHeight - 140}px` : 
                           'auto' 
               }}
             >
