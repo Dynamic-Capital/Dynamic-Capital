@@ -117,10 +117,30 @@ export default function MiniApp() {
           >
             <div ref={containerRef} className="relative min-h-screen">
               {/* Main Content */}
-              <div className="pb-20 relative z-10">
+              <div className="relative z-10">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  {/* Mobile Navigation - Now at top */}
+                  <div className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border/50 safe-area-pt">
+                    <TabsList className="w-full h-14 bg-transparent p-1 rounded-none">
+                      {tabs.map((tab) => (
+                        <TabsTrigger
+                          key={tab.id}
+                          value={tab.id}
+                          className={cn(
+                            "flex-1 h-12 flex-col gap-1 text-xs font-medium rounded-lg mx-1",
+                            "data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg",
+                            "hover:bg-red-500/10 hover:text-red-500 transition-all duration-200"
+                          )}
+                        >
+                          <tab.icon className="h-4 w-4" />
+                          <span className="text-[10px]">{tab.label}</span>
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                  </div>
+
                   {/* Mobile Tab Content */}
-                  <div className="px-4 pt-safe">
+                  <div className="px-4 py-6">
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={activeTab}
@@ -128,38 +148,20 @@ export default function MiniApp() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.3 }}
-                        className="min-h-[calc(100vh-8rem)]"
+                        className="min-h-[calc(100vh-10rem)]"
                       >
                         {renderTabContent()}
                       </motion.div>
                     </AnimatePresence>
                   </div>
-
-                  {/* Mobile Navigation */}
-                  <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border/50 safe-area-pb">
-                    <TabsList className="w-full h-16 bg-transparent p-0 rounded-none">
-                      {tabs.map((tab) => (
-                        <TabsTrigger
-                          key={tab.id}
-                          value={tab.id}
-                          className={cn(
-                            "flex-1 h-16 flex-col gap-1 text-xs font-medium rounded-none",
-                            "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
-                            "hover:bg-muted/50 transition-all duration-200"
-                          )}
-                        >
-                          <tab.icon className="h-5 w-5" />
-                          <span>{tab.label}</span>
-                        </TabsTrigger>
-                      ))}
-                    </TabsList>
-                  </div>
                 </Tabs>
               </div>
             </div>
 
-            {/* Theme Toggle Button */}
-            <ThemeToggle />
+            {/* Theme Toggle Button - Fixed bottom right */}
+            <div className="fixed bottom-6 right-6 z-50">
+              <ThemeToggle />
+            </div>
           </MobilePullToRefresh>
         </FullscreenAdaptive>
       </CurrencyProvider>

@@ -247,7 +247,7 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
             © {new Date().getFullYear()} Dynamic Capital. All rights reserved.
           </p>
           <div className="hidden sm:block">
-            <ThemeToggle size="sm" variant="ghost" />
+            <ThemeToggle />
           </div>
         </div>
       </div>

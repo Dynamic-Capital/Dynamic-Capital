@@ -61,7 +61,7 @@ const Landing = () => {
   return (
     <FullscreenAdaptive className="min-h-screen bg-background font-inter text-foreground">
       {/* Floating Theme Toggle */}
-      <ThemeToggle floating large size={isMobile ? "default" : "lg"} />
+      <ThemeToggle />
       {/* Enhanced Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-primary/90 to-purple-900 min-h-screen flex items-center">
         {/* Dynamic Animated Background */}

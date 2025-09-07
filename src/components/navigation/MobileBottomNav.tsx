@@ -163,14 +163,7 @@ export const MobileBottomNav: React.FC = () => {
               whileHover={{ rotate: 180 }}
               transition={{ duration: 0.3 }}
             >
-              <ThemeToggle 
-                size="sm" 
-                variant="ghost" 
-                className={cn(
-                  "h-5 w-5 p-0 transition-all duration-300",
-                  "hover:scale-110 hover:text-primary"
-                )} 
-              />
+              <ThemeToggle />
             </motion.div>
             <span className="text-xs font-medium mt-1 text-muted-foreground">
               Theme

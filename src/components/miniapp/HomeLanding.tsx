@@ -334,20 +334,33 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       {/* Our Services - Stack Carousel */}
       <ServiceStackCarousel services={services} />
 
-      {/* VIP Packages */}
-      <div>
-        <LivePlansSection 
-          showPromo={!!isInTelegram} 
-          telegramData={telegramData}
-          onPlanSelect={(planId) => {
-            // Switch to plan tab
-            const url = new URL(window.location.href);
-            url.searchParams.set('tab', 'plan');
-            window.history.pushState({}, '', url.toString());
-            window.dispatchEvent(new PopStateEvent('popstate'));
-          }}
-        />
-      </div>
+      {/* VIP Packages - Enhanced */}
+      <FadeInOnView delay={350} animation="fade-in-up">
+        <div className="space-y-4">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <ThreeDEmoticon emoji="💎" size={24} intensity={0.4} animate={true} />
+              <h3 className="text-heading font-semibold">VIP Subscription Plans</h3>
+              <TradingEmoticonSet variant="vip" className="ml-auto" />
+            </div>
+            <p className="text-body-sm text-muted-foreground">
+              Unlock premium trading insights and exclusive benefits
+            </p>
+          </div>
+          
+          <LivePlansSection 
+            showPromo={!!isInTelegram} 
+            telegramData={telegramData}
+            onPlanSelect={(planId) => {
+              // Switch to plan tab
+              const url = new URL(window.location.href);
+              url.searchParams.set('tab', 'plan');
+              window.history.pushState({}, '', url.toString());
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }}
+          />
+        </div>
+      </FadeInOnView>
 
        {/* Call to Action */}
        <MotionCard variant="glow" hover={true} animate={true} delay={0.6} className="bg-gradient-to-r from-primary/10 to-dc-brand-light/10 border-primary/20 ui-rounded-lg ui-shadow">
