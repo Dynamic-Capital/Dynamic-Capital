@@ -24,13 +24,13 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
   const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
 
   useEffect(() => {
-    if (isInTelegram) {
+    if (isInTelegram && telegramData?.user?.id) {
       // Fetch subscription status from Telegram mini app
       fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/subscription-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          telegram_id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || ''
+          telegram_id: telegramData.user.id
         })
       })
       .then(res => res.json())
@@ -44,7 +44,7 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
     } else {
       setLoading(false);
     }
-  }, [isInTelegram]);
+  }, [isInTelegram, telegramData?.user?.id]);
 
   const getStatusBadge = () => {
     if (!subscription) return <Badge variant="outline">Not Connected</Badge>;
@@ -83,9 +83,15 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
           <div className="space-y-3 text-sm">
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Connection:</span>
-              <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
-                Connected
-              </Badge>
+              {isInTelegram ? (
+                <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+                  Connected
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30">
+                  Web Browser
+                </Badge>
+              )}
             </div>
             
             <div className="flex justify-between items-center">
@@ -152,25 +158,44 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
             </div>
           </div>
 
-          {!loading && (!subscription || !subscription.is_vip) && (
-            <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-lg">
-              <div className="text-center space-y-2">
-                <Star className="h-6 w-6 text-primary mx-auto" />
-                <div className="text-sm font-medium">Upgrade to VIP</div>
-                <div className="text-xs text-muted-foreground">
-                  Get access to premium trading signals and exclusive features
+            {!loading && (!subscription || !subscription.is_vip) && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-lg">
+                <div className="text-center space-y-2">
+                  <Star className="h-6 w-6 text-primary mx-auto" />
+                  <div className="text-sm font-medium">
+                    {isInTelegram ? 'Upgrade to VIP' : 'VIP Access Available'}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {isInTelegram 
+                      ? 'Get access to premium trading signals and exclusive features'
+                      : 'Open in Telegram to access VIP features and complete subscription'
+                    }
+                  </div>
+                  <Button size="sm" className="mt-2" onClick={() => {
+                    if (isInTelegram) {
+                      const url = new URL(window.location.href);
+                      url.searchParams.set('tab', 'plan');
+                      window.history.pushState({}, '', url.toString());
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                    } else {
+                      const botUsername = "Dynamic_VIP_BOT";
+                      const telegramUrl = `https://t.me/${botUsername}`;
+                      window.open(telegramUrl, '_blank');
+                    }
+                  }}>
+                    {isInTelegram ? 'View Plans' : 'Open in Telegram'}
+                  </Button>
                 </div>
-                <Button size="sm" className="mt-2" onClick={() => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('tab', 'plan');
-                  window.history.pushState({}, '', url.toString());
-                  window.dispatchEvent(new PopStateEvent('popstate'));
-                }}>
-                  View Plans
-                </Button>
               </div>
-            </div>
-          )}
+            )}
+
+            {!isInTelegram && (
+              <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div className="text-sm text-blue-600 text-center">
+                  💡 For real-time subscription status and payments, open in Telegram
+                </div>
+              </div>
+            )}
         </CardContent>
       </Card>
     </div>

@@ -18,6 +18,7 @@ import {
 import PlanSection from "@/components/miniapp/PlanSection";
 import StatusSection from "@/components/miniapp/StatusSection";
 import HomeLanding from "@/components/miniapp/HomeLanding";
+import WebCheckout from "@/components/checkout/WebCheckout";
 import BrandLogo from "@/components/BrandLogo";
 import { useThemeSync } from "@/hooks/useThemeSync";
 
@@ -76,9 +77,14 @@ export default function MiniApp() {
   const [activeTab, setActiveTab] = useState(() => {
     // Get tab from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('tab') || 'home';
+    const tab = urlParams.get('tab') || 'home';
+    // Validate tab exists
+    const validTabs = ['home', 'plan', 'status', 'me', 'checkout'];
+    return validTabs.includes(tab) ? tab : 'home';
   });
   const [version, setVersion] = useState<string>("");
+
+  const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -100,6 +106,29 @@ export default function MiniApp() {
       });
     }
   }, []);
+
+  // Handle URL parameter changes and sync with tab state
+  useEffect(() => {
+    const handlePopState = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab') || 'home';
+      const validTabs = ['home', 'plan', 'status', 'me', 'checkout'];
+      if (validTabs.includes(tab) && tab !== activeTab) {
+        setActiveTab(tab);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeTab]);
+
+  // Update URL when tab changes
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', newTab);
+    window.history.pushState({}, '', url.toString());
+  };
 
   const handleCheckVersion = async () => {
     try {
@@ -143,6 +172,11 @@ export default function MiniApp() {
     { id: "me", label: "Profile", icon: User },
   ];
 
+  // Get URL parameters for checkout
+  const urlParams = new URLSearchParams(window.location.search);
+  const selectedPlanId = urlParams.get('plan') || undefined;
+  const promoCode = urlParams.get('promo') || undefined;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="w-full max-w-md mx-auto">
@@ -159,18 +193,21 @@ export default function MiniApp() {
 
         {/* Content */}
         <div className="p-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <TabsTrigger key={tab.id} value={tab.id} className="flex flex-col gap-1 p-3">
-                    <Icon className="h-4 w-4" />
-                    <span className="text-xs font-medium">{tab.label}</span>
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            {/* Only show tab navigation for main tabs, not checkout */}
+            {activeTab !== 'checkout' && (
+              <TabsList className="grid w-full grid-cols-4 mb-6">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <TabsTrigger key={tab.id} value={tab.id} className="flex flex-col gap-1 p-3">
+                      <Icon className="h-4 w-4" />
+                      <span className="text-xs font-medium">{tab.label}</span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            )}
 
             <TabsContent value="home" className="space-y-4">
               <HomeLanding telegramData={telegramData} />
@@ -218,6 +255,45 @@ export default function MiniApp() {
                 )}
               </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="checkout" className="space-y-4">
+              {isInTelegram ? (
+                <div className="space-y-4">
+                  {/* Back navigation for checkout */}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleTabChange('plan')}
+                    className="mb-4"
+                  >
+                    ← Back to Plans
+                  </Button>
+                  <WebCheckout selectedPlanId={selectedPlanId} promoCode={promoCode} />
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="space-y-4">
+                      <div className="text-muted-foreground">
+                        🤖 Checkout is only available in Telegram
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Please use the Telegram app to complete your purchase
+                      </div>
+                      <Button 
+                        onClick={() => {
+                          const botUsername = "Dynamic_VIP_BOT";
+                          const telegramUrl = `https://t.me/${botUsername}${selectedPlanId ? `?start=plan_${selectedPlanId}` : ''}`;
+                          window.open(telegramUrl, '_blank');
+                        }}
+                      >
+                        Open in Telegram
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
         </div>
