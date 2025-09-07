@@ -161,11 +161,16 @@ export default function PlanSection() {
       window.history.pushState({}, '', url.toString());
       window.dispatchEvent(new PopStateEvent('popstate'));
     } else {
-      // For web users, redirect to Telegram bot
-      const botUsername = "Dynamic_VIP_BOT";
-      const telegramUrl = `https://t.me/${botUsername}?start=plan_${planId}`;
-      window.open(telegramUrl, '_blank');
-      toast.info('Redirecting to Telegram to complete your purchase');
+      // For web users, show enhanced payment section
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', 'checkout');
+      url.searchParams.set('plan', planId);
+      if (promoValidation?.valid) {
+        url.searchParams.set('promo', promoCode);
+      }
+      window.history.pushState({}, '', url.toString());
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      toast.info('Proceeding to payment options');
     }
   };
 

@@ -30,6 +30,8 @@ import { ViewportAware } from '@/components/ui/responsive-motion';
 // Component imports
 import HomeLanding from '@/components/miniapp/HomeLanding';
 import PlanSection from '@/components/miniapp/PlanSection';
+import { EnhancedPaymentSection } from '@/components/miniapp/EnhancedPaymentSection';
+import { MobilePaymentFlow } from '@/components/miniapp/MobilePaymentFlow';
 import CheckoutSection from '@/components/miniapp/CheckoutSection';
 import StatusSection from '@/components/miniapp/StatusSection';
 import { FAQSection } from '@/components/miniapp/FAQSection';
@@ -195,64 +197,64 @@ export default function MiniApp() {
                       )}
                     </div>
 
-                    {/* Enhanced Mobile Tab Navigation */}
-                    <TabsList className="grid w-full h-12 bg-muted/30 backdrop-blur-sm rounded-xl p-1">
+                    {/* Enhanced Mobile Tab Navigation with improved layout */}
+                    <TabsList className="grid w-full h-auto bg-muted/30 backdrop-blur-sm rounded-xl p-1 grid-cols-5">
                       <TabsTrigger 
                         value="home" 
-                        className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 touch-target mobile-focus-ring"
+                        className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 mobile-focus-ring"
                       >
                         <TouchFeedback>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-col items-center gap-1">
                             <Home className="h-4 w-4" />
-                            {!isMobile && <span className="text-xs font-medium">Home</span>}
+                            <span className="text-xs font-medium">Home</span>
                           </div>
                         </TouchFeedback>
                       </TabsTrigger>
                       
                       <TabsTrigger 
                         value="plan" 
-                        className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 touch-target mobile-focus-ring"
+                        className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 mobile-focus-ring"
                       >
                         <TouchFeedback>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-col items-center gap-1">
                             <CreditCard className="h-4 w-4" />
-                            {!isMobile && <span className="text-xs font-medium">Plans</span>}
+                            <span className="text-xs font-medium">Plans</span>
                           </div>
                         </TouchFeedback>
                       </TabsTrigger>
                       
                       <TabsTrigger 
                         value="status" 
-                        className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 touch-target mobile-focus-ring"
+                        className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 mobile-focus-ring"
                       >
                         <TouchFeedback>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-col items-center gap-1">
                             <User className="h-4 w-4" />
-                            {!isMobile && <span className="text-xs font-medium">Status</span>}
+                            <span className="text-xs font-medium">Status</span>
                           </div>
                         </TouchFeedback>
                       </TabsTrigger>
                       
                       <TabsTrigger 
                         value="help" 
-                        className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 touch-target mobile-focus-ring"
+                        className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 mobile-focus-ring"
                       >
                         <TouchFeedback>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-col items-center gap-1">
                             <HelpCircle className="h-4 w-4" />
-                            {!isMobile && <span className="text-xs font-medium">Help</span>}
+                            <span className="text-xs font-medium">Help</span>
                           </div>
                         </TouchFeedback>
                       </TabsTrigger>
                       
                       <TabsTrigger 
                         value="ask" 
-                        className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 touch-target mobile-focus-ring"
+                        className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 mobile-focus-ring"
                       >
                         <TouchFeedback>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-col items-center gap-1">
                             <MessageCircle className="h-4 w-4" />
-                            {!isMobile && <span className="text-xs font-medium">Ask</span>}
+                            <span className="text-xs font-medium">Ask</span>
                           </div>
                         </TouchFeedback>
                       </TabsTrigger>
@@ -318,6 +320,48 @@ export default function MiniApp() {
                           </motion.div>
                         </ViewportAware>
                       </MobileSwipeContainer>
+                    </TabsContent>
+
+                    <TabsContent value="checkout" className="mt-0 space-y-4 px-4 pb-20">
+                      <ViewportAware>
+                        <motion.div
+                          key="checkout-content"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ delay: 0.1, duration: 0.4 }}
+                          className="mobile-slide-up"
+                        >
+                          {isMobile ? (
+                            <MobilePaymentFlow 
+                              selectedPlan={selectedPlanId ? { 
+                                id: selectedPlanId, 
+                                name: 'VIP Plan', 
+                                price: 49.99, 
+                                currency: 'USD',
+                                duration_months: 1,
+                                is_lifetime: false,
+                                features: []
+                              } : undefined}
+                              onBack={() => setActiveTab('plan')}
+                              onComplete={() => setActiveTab('status')}
+                            />
+                          ) : (
+                            <EnhancedPaymentSection 
+                              selectedPlan={selectedPlanId ? { 
+                                id: selectedPlanId, 
+                                name: 'VIP Plan', 
+                                price: 49.99, 
+                                currency: 'USD',
+                                duration_months: 1,
+                                is_lifetime: false,
+                                features: []
+                              } : undefined}
+                              onBack={() => setActiveTab('plan')}
+                            />
+                          )}
+                        </motion.div>
+                      </ViewportAware>
                     </TabsContent>
 
                     <TabsContent value="status" className="mt-0 space-y-4 px-4 pb-20">
