@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputField } from "@/components/ui/input-field";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Sparkles, Check } from "lucide-react";
 import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
@@ -128,15 +128,21 @@ export default function PlanSection() {
                     <span className="text-sm font-medium">Have a promo code?</span>
                   </div>
                   <div className="flex gap-2">
-                    <Input
+                    <InputField
                       placeholder="Enter promo code"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
+                      startIcon="Sparkles"
+                      state={promoValidation?.valid ? "success" : promoValidation?.valid === false ? "error" : "default"}
+                      error={promoValidation?.valid === false ? promoValidation.reason : undefined}
+                      success={promoValidation?.valid ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!` : undefined}
+                      description="Enter a promo code to get discount"
                       className="flex-1"
                     />
                     <Button 
                       onClick={validatePromoCode} 
                       disabled={!promoCode.trim() || validatingPromo}
+                      isLoading={validatingPromo}
                       size="sm"
                       className="hover:scale-105 transition-transform"
                     >

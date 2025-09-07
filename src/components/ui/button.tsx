@@ -1,11 +1,12 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 btn-press",
   {
     variants: {
       variant: {
@@ -22,6 +23,9 @@ const buttonVariants = cva(
           "bg-gradient-telegram text-white hover:shadow-telegram transition-all duration-300 ease-smooth hover:scale-105",
         "telegram-outline":
           "border-2 border-telegram bg-transparent text-telegram hover:bg-telegram hover:text-white transition-all duration-300",
+        glass: "bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20",
+        subtle: "bg-secondary/50 text-secondary-foreground hover:bg-secondary/80",
+        "primary-gradient": "bg-gradient-primary text-white hover:shadow-elegant",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -42,17 +46,28 @@ export interface ButtonProps
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  isLoading?: boolean;
+  fullWidth?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, isLoading = false, fullWidth = false, children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          buttonVariants({ variant, size }),
+          fullWidth && "w-full",
+          className
+        )}
+        disabled={disabled || isLoading}
+        aria-busy={isLoading}
         ref={ref}
         {...props}
-      />
+      >
+        {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {children}
+      </Comp>
     );
   },
 );

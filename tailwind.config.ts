@@ -147,6 +147,11 @@ export default {
             opacity: "0.8",
             transform: "scale(1.02)"
           }
+        },
+        "ring-pop": {
+          "0%": { transform: "scale(1)", opacity: "1" },
+          "50%": { transform: "scale(1.05)", opacity: "0.8" },
+          "100%": { transform: "scale(1)", opacity: "1" }
         }
       },
       animation: {
@@ -156,6 +161,7 @@ export default {
         "slide-in-right": "slide-in-right 0.5s ease-out",
         "bounce-in": "bounce-in 0.8s ease-out",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "ring-pop": "ring-pop 0.3s ease-out",
       },
     },
   },

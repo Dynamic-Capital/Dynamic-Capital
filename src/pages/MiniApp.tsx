@@ -172,7 +172,7 @@ export default function MiniApp() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="w-full max-w-md mx-auto">
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-3xl mx-auto">
         {/* Header */}
         <div className="bg-card border-b border-border px-4 py-6">
           <div className="text-center">

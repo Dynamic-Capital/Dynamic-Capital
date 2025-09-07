@@ -262,3 +262,16 @@ All colors MUST be HSL.
 .animate-wiggle {
   animation: wiggle 2s ease-in-out infinite;
 }
+
+/* Interactive utilities */
+.btn-press {
+  @apply active:scale-[0.98] active:duration-75;
+}
+
+.hover-rise {
+  @apply hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200;
+}
+
+.focus-ring-pop {
+  @apply focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:ring-offset-4 transition-all duration-200;
+}
