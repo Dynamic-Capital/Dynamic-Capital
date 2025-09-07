@@ -95,7 +95,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
       case 'pending':
         return <Clock className="h-5 w-5 text-yellow-500" />;
       case 'failed':
-        return <XCircle className="h-5 w-5 text-red-500" />;
+        return <XCircle className="h-5 w-5 text-dc-brand" />;
       default:
         return <Clock className="h-5 w-5 text-gray-500" />;
     }
@@ -108,7 +108,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
       case 'pending':
         return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Pending Review</Badge>;
       case 'failed':
-        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">Failed</Badge>;
+        return <Badge className="bg-dc-brand/10 text-dc-brand-dark border-dc-brand/20">Failed</Badge>;
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
@@ -206,9 +206,9 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
           )}
 
           {payment.status === 'failed' && (
-            <Alert className="border-red-500/20 bg-red-500/10">
-              <XCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-600">
+            <Alert className="border-dc-brand/20 bg-dc-brand/10">
+              <XCircle className="h-4 w-4 text-dc-brand-dark" />
+              <AlertDescription className="text-dc-brand-dark">
                 <strong>Payment Failed</strong> Please try again or contact support for assistance.
               </AlertDescription>
             </Alert>

@@ -278,7 +278,7 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
                       whileTap={{ scale: method.available ? 0.98 : 1 }}
                     >
                       {method.recommended && (
-                        <Badge className="absolute -top-2 right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs">
+                        <Badge className="absolute -top-2 right-2 bg-gradient-to-r from-orange-500 to-dc-brand text-white text-xs">
                           Popular
                         </Badge>
                       )}

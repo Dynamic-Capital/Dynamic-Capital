@@ -38,7 +38,7 @@ const enhancedButtonVariants = cva(
           "before:animate-shimmer"
         ],
         attention: [
-          "bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 text-white font-bold",
+          "bg-gradient-to-r from-orange-500 via-dc-brand to-orange-500 text-white font-bold",
           "shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/50",
           "animate-attention hover:animate-none hover:scale-110",
           "border-2 border-orange-400/50 hover:border-orange-300",

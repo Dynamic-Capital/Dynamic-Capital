@@ -67,7 +67,7 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
           title: 'Personal Mentor', 
           description: 'One-on-one guidance from experienced professional traders',
           color: 'text-orange-500',
-          gradient: 'from-orange-500 to-red-600'
+          gradient: 'from-orange-500 to-dc-brand-dark'
         };
         if (text.includes('VIP')) return { 
           icon: Sparkles, 

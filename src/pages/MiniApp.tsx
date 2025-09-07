@@ -128,8 +128,8 @@ export default function MiniApp() {
                           value={tab.id}
                           className={cn(
                             "flex-1 h-12 flex-col gap-1 text-xs font-medium rounded-lg mx-1",
-                            "data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg",
-                            "hover:bg-red-500/10 hover:text-red-500 transition-all duration-200"
+                            "data-[state=active]:bg-dc-brand data-[state=active]:text-white data-[state=active]:shadow-lg",
+                            "hover:bg-dc-brand/10 hover:text-dc-brand transition-all duration-200"
                           )}
                         >
                           <tab.icon className="h-4 w-4" />

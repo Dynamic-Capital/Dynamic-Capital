@@ -318,8 +318,8 @@ const BotDashboard = () => {
 
         <Card className="p-8 bg-gradient-to-br from-background to-muted border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer group">
           <div className="text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/10 rounded-2xl group-hover:bg-red-500/20 transition-colors">
-              <Bell className="w-8 h-8 text-red-500" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-dc-brand/10 rounded-2xl group-hover:bg-dc-brand/20 transition-colors">
+              <Bell className="w-8 h-8 text-dc-brand" />
             </div>
             <div>
               <h3 className="text-xl font-semibold mb-2">Notifications</h3>
@@ -650,8 +650,8 @@ const BotDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
           <div className="text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-red-500/10 rounded-lg">
-              <MessageSquare className="w-6 h-6 text-red-500" />
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-dc-brand/10 rounded-lg">
+              <MessageSquare className="w-6 h-6 text-dc-brand" />
             </div>
             <div>
               <p className="text-2xl font-bold">12</p>
@@ -727,7 +727,7 @@ const BotDashboard = () => {
                 <Badge
                   variant="outline"
                   className={ticket.status === "Open"
-                    ? "border-red-500 text-red-600"
+                    ? "border-dc-brand text-dc-brand-dark"
                     : ticket.status === "Pending"
                     ? "border-yellow-500 text-yellow-600"
                     : "border-green-500 text-green-600"}
@@ -863,7 +863,7 @@ const BotDashboard = () => {
                           ? "border-green-500 text-green-600"
                           : promo.status === "Disabled"
                           ? "border-orange-500 text-orange-600"
-                          : "border-red-500 text-red-600"
+                          : "border-dc-brand text-dc-brand-dark"
                       }
                     >
                       {promo.status}
@@ -889,7 +889,7 @@ const BotDashboard = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-red-600 hover:text-red-700"
+                  className="text-dc-brand-dark hover:text-dc-brand-dark"
                 >
                   Delete
                 </Button>

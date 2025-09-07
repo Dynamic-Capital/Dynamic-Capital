@@ -119,9 +119,9 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
         )}
 
         {uploadStatus === 'error' && (
-          <Alert className="border-red-500/20 bg-red-500/10">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-600">
+          <Alert className="border-dc-brand/20 bg-dc-brand/10">
+            <AlertCircle className="h-4 w-4 text-dc-brand-dark" />
+            <AlertDescription className="text-dc-brand-dark">
               Upload failed. Please try again or contact support.
             </AlertDescription>
           </Alert>

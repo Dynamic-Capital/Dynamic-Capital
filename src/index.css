@@ -14,16 +14,16 @@
   --card-foreground: 224 71.4% 4.1%;
   --popover: 0 0% 100%;
   --popover-foreground: 224 71.4% 4.1%;
-  --primary: 0 84% 60%;
+  --primary: 0 72% 51%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 68% 95%;
   --secondary-foreground: 0 45% 20%;
   --muted: 0 5% 96%;
   --muted-foreground: 0 5% 45%;
-  --elevated: 0 84% 5%;
-  --accent: 0 72% 51%;
+  --elevated: 0 72% 10%;
+  --accent: 0 85% 65%;
   --accent-foreground: 0 0% 98%;
-  --destructive: 0 84% 60%;
+  --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 98%;
   --border: 0 10% 89%;
   --input: 0 10% 89%;
@@ -48,7 +48,7 @@
   --dc-brand-light: 0 85% 65%;
   --dc-brand-dark: 0 65% 40%;
   --dc-secondary: 0 85% 65%;
-  --dc-accent: 14 90% 60%;
+  --dc-accent: 0 90% 60%;
 
   /* Motion-Enhanced Red Gradients */
   --gradient-motion-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--dc-brand-light)) 50%, hsl(var(--dc-accent)) 100%);
@@ -58,9 +58,9 @@
                         linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
 
   /* Glass Motion Effects */
-  --glass-motion-bg: rgba(220, 38, 38, 0.12);
-  --glass-motion-border: rgba(239, 68, 68, 0.25);
-  --glass-motion-shadow: 0 12px 40px rgba(185, 28, 28, 0.4);
+  --glass-motion-bg: hsl(var(--dc-brand) / 0.12);
+  --glass-motion-border: hsl(var(--dc-brand-light) / 0.25);
+  --glass-motion-shadow: 0 12px 40px hsl(var(--dc-brand-dark) / 0.4);
   --glass-motion-blur: blur(24px) saturate(1.8) brightness(1.1);
 
   /* Interactive Motion Shadows */
@@ -84,7 +84,7 @@
   --card-foreground: 0 5% 98%;
   --popover: 0 8% 8%;
   --popover-foreground: 0 5% 98%;
-  --primary: 0 84% 60%;
+  --primary: 0 72% 51%;
   --primary-foreground: 0 5% 10%;
   --secondary: 0 10% 15%;
   --secondary-foreground: 0 5% 98%;
@@ -100,9 +100,9 @@
   --ring: 0 85% 65%;
 
   /* Dark mode motion effects */
-  --glass-motion-bg: rgba(220, 38, 38, 0.15);
-  --glass-motion-border: rgba(239, 68, 68, 0.2);
-  --glass-motion-shadow: 0 12px 40px rgba(185, 28, 28, 0.6);
+  --glass-motion-bg: hsl(var(--dc-brand) / 0.15);
+  --glass-motion-border: hsl(var(--dc-brand-light) / 0.2);
+  --glass-motion-shadow: 0 12px 40px hsl(var(--dc-brand-dark) / 0.6);
   --gradient-motion-bg: radial-gradient(ellipse at top, hsl(var(--primary)/0.2) 0%, transparent 60%), 
                         radial-gradient(ellipse at bottom, hsl(var(--dc-brand-light)/0.15) 0%, transparent 60%),
                         linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));

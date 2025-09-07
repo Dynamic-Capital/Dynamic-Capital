@@ -29,7 +29,7 @@ export const StatusCard = ({
       case "warning":
         return "text-orange-500";
       case "error":
-        return "text-red-500";
+        return "text-dc-brand";
       case "loading":
         return "text-muted-foreground";
       default:

@@ -78,7 +78,7 @@ export function EnhancedPromoInput({
               variant="ghost"
               size="sm"
               onClick={onRemove}
-              className="h-6 w-6 p-0 hover:bg-red-100 dark:hover:bg-red-950/20"
+              className="h-6 w-6 p-0 hover:bg-dc-brand-light dark:hover:bg-dc-brand-dark/20"
             >
               <X className="h-3 w-3" />
             </Button>
@@ -111,7 +111,7 @@ export function EnhancedPromoInput({
                 "placeholder:text-muted-foreground font-medium",
                 state === "focus" && "border-primary ring-2 ring-primary/20",
                 state === "success" && "border-green-500 ring-2 ring-green-500/20",
-                state === "error" && "border-red-500 ring-2 ring-red-500/20",
+                state === "error" && "border-dc-brand ring-2 ring-dc-brand/20",
                 state === "default" && "border-border hover:border-border/80"
               )}
             />
@@ -150,7 +150,7 @@ export function EnhancedPromoInput({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="text-body-sm text-red-600 dark:text-red-400"
+            className="text-body-sm text-dc-brand-dark dark:text-dc-brand-light"
           >
             {errorMessage}
           </motion.p>
