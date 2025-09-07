@@ -4,11 +4,18 @@ import { getEnv } from "../_shared/env.ts";
 import { bad, mna, ok, oops, json } from "../_shared/http.ts";
 import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { version } from "../_shared/version.ts";
+import { verifyFromRaw } from "../verify-initdata/index.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 type Body = {
-  telegram_id: string;
+  telegram_id?: string;
   plan_id: string;
   method: "bank_transfer" | "crypto";
+  initData?: string;
 };
 
 type BankAccount = {
@@ -24,23 +31,30 @@ type CryptoInstructions = { type: "crypto"; note: string };
 type Instructions = BankInstructions | CryptoInstructions;
 
 export async function handler(req: Request): Promise<Response> {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   const v = version(req, "checkout-init");
   if (v) return v;
   if (req.method !== "POST") {
     return mna();
   }
+
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    return json({ error: "unauthorized" }, 401);
-  }
-  const supaAuth = createSupabaseClient(
-    getEnv("SUPABASE_URL"),
-    getEnv("SUPABASE_ANON_KEY"),
-    { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
-  );
-  const { data: { user } } = await supaAuth.auth.getUser();
-  if (!user) {
-    return json({ error: "unauthorized" }, 401);
+  let telegramId: string | null = null;
+
+  if (authHeader) {
+    // Web user authentication
+    const supaAuth = createSupabaseClient(
+      getEnv("SUPABASE_URL"),
+      getEnv("SUPABASE_ANON_KEY"),
+      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
+    );
+    const { data: { user } } = await supaAuth.auth.getUser();
+    if (user) {
+      telegramId = user.user_metadata?.telegram_id || user.id;
+    }
   }
   let body: Body;
   try {
@@ -49,17 +63,42 @@ export async function handler(req: Request): Promise<Response> {
     return bad("Bad JSON");
   }
 
+  // If no auth header, try Telegram initData verification
+  if (!telegramId && body.initData) {
+    try {
+      const valid = await verifyFromRaw(body.initData);
+      if (valid) {
+        const params = new URLSearchParams(body.initData);
+        const user = JSON.parse(params.get("user") || "{}");
+        telegramId = String(user.id || "");
+        console.log("Telegram initData verified for user:", telegramId);
+      } else {
+        console.warn("Invalid Telegram initData provided");
+        return json({ error: "invalid_telegram_data" }, 401, corsHeaders);
+      }
+    } catch (err) {
+      console.error("Error verifying Telegram initData:", err);
+      return json({ error: "telegram_verification_failed" }, 401, corsHeaders);
+    }
+  }
+
+  // Use telegram_id from auth, initData, or body
+  const finalTelegramId = telegramId || body.telegram_id;
+  if (!finalTelegramId) {
+    return json({ error: "unauthorized" }, 401, corsHeaders);
+  }
+
   const supa = createClient();
   const { data: bu } = await supa
     .from("bot_users")
     .select("id")
-    .eq("telegram_id", body.telegram_id)
+    .eq("telegram_id", finalTelegramId)
     .limit(1);
   let userId = bu?.[0]?.id as string | undefined;
   if (!userId) {
     const { data: ins } = await supa
       .from("bot_users")
-      .insert({ telegram_id: body.telegram_id })
+      .insert({ telegram_id: finalTelegramId })
       .select("id")
       .single();
     userId = ins?.id;
@@ -105,7 +144,7 @@ export async function handler(req: Request): Promise<Response> {
     };
   }
 
-  return ok({ ok: true, payment_id: pay!.id, instructions });
+  return ok({ ok: true, payment_id: pay!.id, instructions }, corsHeaders);
 }
 
 if (import.meta.main) serve(handler);

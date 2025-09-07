@@ -31,22 +31,22 @@ interface TelegramUser {
 }
 
 interface TelegramWebApp {
-  initData: string;
-  initDataUnsafe: {
+  initData?: string;
+  initDataUnsafe?: {
     user?: TelegramUser;
     start_param?: string;
   };
-  version: string;
-  platform: string;
-  colorScheme: 'light' | 'dark';
-  themeParams: Record<string, string>;
-  isExpanded: boolean;
-  viewportHeight: number;
-  viewportStableHeight: number;
-  ready: () => void;
-  expand: () => void;
-  close: () => void;
-  MainButton: {
+  version?: string;
+  platform?: string;
+  colorScheme?: 'light' | 'dark';
+  themeParams?: Record<string, string>;
+  isExpanded?: boolean;
+  viewportHeight?: number;
+  viewportStableHeight?: number;
+  ready?: () => void;
+  expand?: () => void;
+  close?: () => void;
+  MainButton?: {
     text: string;
     color: string;
     textColor: string;
@@ -62,13 +62,6 @@ interface TelegramWebApp {
   };
 }
 
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp: TelegramWebApp;
-    };
-  }
-}
 
 export default function MiniApp() {
   useThemeSync();
@@ -93,11 +86,11 @@ export default function MiniApp() {
       tg.expand();
       
       // Set theme
-      document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
-      document.body.style.color = tg.themeParams.text_color || '#000000';
+      document.body.style.backgroundColor = tg.themeParams?.bg_color || '#ffffff';
+      document.body.style.color = tg.themeParams?.text_color || '#000000';
       
       setTelegramData({
-        user: tg.initDataUnsafe.user,
+        user: tg.initDataUnsafe?.user,
         platform: tg.platform,
         version: tg.version,
         colorScheme: tg.colorScheme,

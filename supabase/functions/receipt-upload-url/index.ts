@@ -4,6 +4,7 @@ import { getEnv } from "../_shared/env.ts";
 import { bad, mna, ok, oops, json } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyFromRaw } from "../verify-initdata/index.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,6 +16,7 @@ type Body = {
   telegram_id?: string;
   filename?: string;
   content_type?: string;
+  initData?: string;
 };
 
 export async function handler(req: Request): Promise<Response> {
@@ -51,7 +53,26 @@ export async function handler(req: Request): Promise<Response> {
     return bad("Bad JSON");
   }
 
-  // Use telegram_id from auth or from body (for bot usage)
+  // If no auth header, try Telegram initData verification
+  if (!telegramId && body.initData) {
+    try {
+      const valid = await verifyFromRaw(body.initData);
+      if (valid) {
+        const params = new URLSearchParams(body.initData);
+        const user = JSON.parse(params.get("user") || "{}");
+        telegramId = String(user.id || "");
+        console.log("Telegram initData verified for user:", telegramId);
+      } else {
+        console.warn("Invalid Telegram initData provided");
+        return json({ error: "invalid_telegram_data" }, 401, corsHeaders);
+      }
+    } catch (err) {
+      console.error("Error verifying Telegram initData:", err);
+      return json({ error: "telegram_verification_failed" }, 401, corsHeaders);
+    }
+  }
+
+  // Use telegram_id from auth, initData, or body (for bot usage)
   const finalTelegramId = telegramId || body.telegram_id;
   if (!finalTelegramId) {
     return json({ error: "unauthorized" }, 401, corsHeaders);

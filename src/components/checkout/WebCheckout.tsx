@@ -25,6 +25,26 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
+// Define Telegram WebApp interface
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp?: {
+        initData?: string;
+        initDataUnsafe?: any;
+        ready?: () => void;
+        expand?: () => void;
+        themeParams?: any;
+        platform?: string;
+        version?: string;
+        colorScheme?: string;
+        viewportHeight?: number;
+        isExpanded?: boolean;
+      };
+    };
+  }
+}
+
 interface Plan {
   id: string;
   name: string;
@@ -69,8 +89,18 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [isTelegram, setIsTelegram] = useState(false);
+  const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check if running inside Telegram
+    const isInTelegram = window.Telegram?.WebApp?.initData;
+    setIsTelegram(!!isInTelegram);
+    if (isInTelegram) {
+      setTelegramInitData(window.Telegram.WebApp.initData);
+      console.log("Running inside Telegram WebApp");
+    }
+    
     fetchPlans();
   }, []);
 
@@ -146,19 +176,35 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     // Web checkout flow
     setProcessingCheckout(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('Please sign in to continue');
-        return;
+      let telegramId: string | null = null;
+      
+      if (isTelegram && telegramInitData) {
+        // Use Telegram initData for authentication
+        console.log("Using Telegram initData for checkout");
+      } else {
+        // Fallback to Supabase auth
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error('Please sign in to continue');
+          return;
+        }
+        telegramId = user.user_metadata?.telegram_id || user.id;
       }
 
       // Create payment intent
+      const requestBody: any = {
+        plan_id: selectedPlan.id,
+        method: paymentMethod
+      };
+
+      if (isTelegram && telegramInitData) {
+        requestBody.initData = telegramInitData;
+      } else if (telegramId) {
+        requestBody.telegram_id = telegramId;
+      }
+
       const { data, error } = await supabase.functions.invoke('checkout-init', {
-        body: {
-          telegram_id: user.user_metadata?.telegram_id || user.id,
-          plan_id: selectedPlan.id,
-          method: paymentMethod
-        }
+        body: requestBody
       });
 
       if (error) throw error;
@@ -184,8 +230,14 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     setUploading(true);
     try {
       // Get upload URL
+      const uploadRequestBody: any = { payment_id: paymentId };
+      
+      if (isTelegram && telegramInitData) {
+        uploadRequestBody.initData = telegramInitData;
+      }
+
       const { data: uploadData, error: uploadError } = await supabase.functions.invoke('receipt-upload-url', {
-        body: { payment_id: paymentId }
+        body: uploadRequestBody
       });
 
       if (uploadError) throw uploadError;
@@ -203,11 +255,17 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
       if (!uploadResponse.ok) throw new Error('Upload failed');
 
       // Submit receipt
+      const submitRequestBody: any = { 
+        payment_id: paymentId,
+        file_path: uploadData.file_path
+      };
+
+      if (isTelegram && telegramInitData) {
+        submitRequestBody.initData = telegramInitData;
+      }
+
       const { error: submitError } = await supabase.functions.invoke('receipt-submit', {
-        body: { 
-          payment_id: paymentId,
-          file_path: uploadData.file_path
-        }
+        body: submitRequestBody
       });
 
       if (submitError) throw submitError;
