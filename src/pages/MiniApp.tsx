@@ -79,7 +79,7 @@ export default function MiniApp() {
         <div className="w-full max-w-md mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="sticky top-0 z-10 glass-card backdrop-blur-md border-b">
-              <TabsList className={`glass-card grid w-full ${isAdmin ? 'grid-cols-8' : 'grid-cols-7'} h-16 p-1`}>
+              <TabsList className="glass-card grid w-full grid-cols-8 h-16 p-1">
                 <TabsTrigger value="home" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <Home className="h-5 w-5" />
                   <span>Home</span>
@@ -96,12 +96,15 @@ export default function MiniApp() {
                   <User className="h-5 w-5" />
                   <span>Status</span>
                 </TabsTrigger>
-                {isAdmin && (
-                  <TabsTrigger value="admin" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
-                    <Shield className="h-5 w-5" />
-                    <span>Admin</span>
-                  </TabsTrigger>
-                )}
+                <TabsTrigger 
+                  value="admin" 
+                  className={`glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg ${
+                    !isAdmin ? 'hidden' : ''
+                  }`}
+                >
+                  <Shield className="h-5 w-5" />
+                  <span>Admin</span>
+                </TabsTrigger>
                 <TabsTrigger value="ask" className="glass-tab flex flex-col items-center gap-1 text-xs font-sf-pro rounded-lg">
                   <MessageSquare className="h-5 w-5" />
                   <span>Ask</span>
@@ -147,11 +150,9 @@ export default function MiniApp() {
                 <SubscriptionStatusCard telegramData={telegramData} />
               </TabsContent>
 
-              {isAdmin && (
-                <TabsContent value="admin" className="space-y-4">
-                  <AdminDashboard telegramData={telegramData} />
-                </TabsContent>
-              )}
+              <TabsContent value="admin" className={`space-y-4 ${!isAdmin ? 'hidden' : ''}`}>
+                <AdminDashboard telegramData={telegramData} />
+              </TabsContent>
 
               <TabsContent value="ask" className="space-y-4">
                 <AskSection />
