@@ -21,6 +21,7 @@ import {
   Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 interface AdminStats {
   total_users: number;
@@ -50,50 +51,19 @@ interface AdminDashboardProps {
 export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [pendingPayments, setPendingPayments] = useState<PendingPayment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
+  const { telegramUser, isAdmin, loading, checkAdminStatus } = useTelegramAuth();
 
   const getUserId = () => {
-    return telegramData?.user?.id?.toString() || null;
+    return telegramUser?.id?.toString() || telegramData?.user?.id?.toString() || null;
   };
 
   useEffect(() => {
-    const userId = getUserId();
-    if (userId) {
-      checkAdminStatus(userId);
-    } else {
-      setLoading(false);
+    if (isAdmin) {
+      loadAdminData();
     }
-  }, [telegramData]);
+  }, [isAdmin]);
 
-  const checkAdminStatus = async (userId: string) => {
-    try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-check', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          telegram_user_id: userId
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.is_admin) {
-        setIsAdmin(true);
-        await loadAdminData();
-      } else {
-        setIsAdmin(false);
-      }
-    } catch (error) {
-      console.error('Failed to check admin status:', error);
-      setIsAdmin(false);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadAdminData = async () => {
     try {
@@ -200,81 +170,84 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="space-y-6 animate-in">
+      <Card className="glass-card border-primary/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-heading animate-glow">
+            <Shield className="icon-base text-primary animate-float" />
             Admin Dashboard
           </CardTitle>
+          <p className="text-body-sm text-muted-foreground">
+            Welcome back, {telegramUser?.first_name || 'Admin'}
+          </p>
         </CardHeader>
       </Card>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 glass-card">
+          <TabsTrigger value="overview" className="glass-tab">Overview</TabsTrigger>
+          <TabsTrigger value="payments" className="glass-tab">Payments</TabsTrigger>
+          <TabsTrigger value="users" className="glass-tab">Users</TabsTrigger>
+          <TabsTrigger value="settings" className="glass-tab">Settings</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="space-y-4 animate-slide-up">
           {stats && (
             <div className="grid grid-cols-2 gap-4">
-              <Card>
+              <Card className="glass-card ui-card-interactive animate-bounce-in">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Users className="w-4 h-4" />
+                    <Users className="icon-sm text-primary animate-pulse-glow" />
                     Total Users
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.total_users}</div>
+                  <div className="text-2xl font-bold text-primary">{stats.total_users}</div>
                   <p className="text-xs text-muted-foreground">
                     {stats.vip_users} VIP users
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="glass-card ui-card-interactive animate-bounce-in" style={{animationDelay: '0.1s'}}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />
+                    <DollarSign className="icon-sm text-green-500 animate-pulse-glow" />
                     Revenue
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${stats.total_revenue}</div>
+                  <div className="text-2xl font-bold text-green-500">${stats.total_revenue}</div>
                   <p className="text-xs text-muted-foreground">
                     {stats.completed_payments} payments
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="glass-card ui-card-interactive animate-bounce-in" style={{animationDelay: '0.2s'}}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
+                    <Clock className="icon-sm text-yellow-500 animate-pulse-glow" />
                     Pending
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.pending_payments}</div>
+                  <div className="text-2xl font-bold text-yellow-500">{stats.pending_payments}</div>
                   <p className="text-xs text-muted-foreground">
                     Awaiting review
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="glass-card ui-card-interactive animate-bounce-in" style={{animationDelay: '0.3s'}}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Activity className="w-4 h-4" />
+                    <Activity className="icon-sm text-blue-500 animate-pulse-glow" />
                     Daily Activity
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.daily_interactions}</div>
+                  <div className="text-2xl font-bold text-blue-500">{stats.daily_interactions}</div>
                   <p className="text-xs text-muted-foreground">
                     {stats.daily_sessions} sessions
                   </p>

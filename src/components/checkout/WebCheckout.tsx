@@ -25,25 +25,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
-// Define Telegram WebApp interface
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        initData?: string;
-        initDataUnsafe?: any;
-        ready?: () => void;
-        expand?: () => void;
-        themeParams?: any;
-        platform?: string;
-        version?: string;
-        colorScheme?: string;
-        viewportHeight?: number;
-        isExpanded?: boolean;
-      };
-    };
-  }
-}
+// Remove duplicate interface - already defined in useTelegramAuth.tsx
 
 interface Plan {
   id: string;
