@@ -6,6 +6,8 @@
  * object with a `message` field) is thrown. Callers should handle these errors
  * with a `try/catch` block.
  */
+import { extractTelegramUserId } from "../../../shared/telegram.ts";
+
 export function useApi() {
   const getInitData = () =>
     (globalThis as unknown as { Telegram?: { WebApp?: { initData?: string } } })
@@ -142,20 +144,7 @@ export function useApi() {
   };
 
   // Helper function to extract telegram user ID from initData
-  const extractTelegramUserId = (initData: string): string => {
-    try {
-      // Parse initData to extract user info
-      const params = new URLSearchParams(initData);
-      const userStr = params.get('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        return user.id?.toString() || '';
-      }
-    } catch (error) {
-      console.warn('Failed to parse telegram user ID:', error);
-    }
-    return '';
-  };
+  // extractTelegramUserId imported from shared utility
 
   return {
     createIntent,

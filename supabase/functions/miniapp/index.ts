@@ -2,6 +2,7 @@ import { mna, nf, json } from "../_shared/http.ts";
 import { optionalEnv, requireEnv } from "../_shared/env.ts";
 import { serveStatic, StaticOpts } from "../_shared/static.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { extractTelegramUserId } from "../shared/telegram.ts";
 
 // Env setup
 const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = requireEnv([
@@ -370,21 +371,6 @@ async function handleApiRoutes(req: Request, path: string): Promise<Response> {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
-  }
-
-  // Helper function to get Telegram user ID from initData
-  function extractTelegramUserId(initData: string): string {
-    try {
-      const params = new URLSearchParams(initData);
-      const userStr = params.get('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        return user.id?.toString() || '';
-      }
-    } catch (error) {
-      console.warn('Failed to parse telegram user ID:', error);
-    }
-    return '';
   }
 
   // POST /api/admin-check - Check admin status
