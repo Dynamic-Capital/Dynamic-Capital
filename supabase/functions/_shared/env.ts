@@ -58,6 +58,18 @@ export function optionalEnv<K extends EnvKey>(key: K): string | null {
   return Deno.env.get(key) ?? testEnv?.[key] ?? null;
 }
 
+/**
+ * Check a set of env keys and return which ones are missing.
+ * Unlike `requireEnv`, this does not throw and is handy for preflight checks.
+ */
+export function checkEnv(keys: readonly EnvKey[]): {
+  ok: boolean;
+  missing: string[];
+} {
+  const missing = keys.filter((k) => !optionalEnv(k));
+  return { ok: missing.length === 0, missing };
+}
+
 export function need(k: string): string {
   const v = Deno.env.get(k);
   if (!v) throw new Error(`Missing env: ${k}`);

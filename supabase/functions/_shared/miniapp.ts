@@ -1,5 +1,6 @@
 import { envOrSetting } from "./config.ts";
 import { functionUrl } from "./edge.ts";
+import { optionalEnv } from "./env.ts";
 
 interface MiniAppEnv {
   url: string | null;
@@ -22,4 +23,13 @@ export async function readMiniAppEnv(): Promise<MiniAppEnv> {
   }
 
   return { url, short: short ?? null, ready: Boolean(url || short) };
+}
+
+/** Ensure that either MINI_APP_URL or MINI_APP_SHORT_NAME is configured. */
+export function requireMiniAppEnv(): void {
+  const hasUrl = Boolean(optionalEnv("MINI_APP_URL"));
+  const hasShort = Boolean(optionalEnv("MINI_APP_SHORT_NAME"));
+  if (!hasUrl && !hasShort) {
+    throw new Error("MINI_APP_URL or MINI_APP_SHORT_NAME must be set");
+  }
 }
