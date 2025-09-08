@@ -7,13 +7,13 @@ const SUPABASE_URL =
     ? Deno.env.get("SUPABASE_URL")
     : typeof process !== "undefined"
     ? process.env.SUPABASE_URL
-    : import.meta.env?.VITE_SUPABASE_URL) || "";
+    : import.meta.env?.SUPABASE_URL) || "";
 const SUPABASE_KEY =
   (typeof Deno !== "undefined"
     ? Deno.env.get("SUPABASE_ANON_KEY")
     : typeof process !== "undefined"
     ? process.env.SUPABASE_ANON_KEY
-    : import.meta.env?.VITE_SUPABASE_ANON_KEY) || "";
+    : import.meta.env?.SUPABASE_ANON_KEY) || "";
 
 async function call<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
   if (!SUPABASE_URL || !SUPABASE_KEY) {

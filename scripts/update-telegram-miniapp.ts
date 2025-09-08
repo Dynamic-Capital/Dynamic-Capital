@@ -5,7 +5,7 @@
 import { functionUrl } from "../supabase/functions/_shared/edge.ts";
 
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
-const PROJECT_REF = Deno.env.get("SUPABASE_PROJECT_REF") || Deno.env.get("VITE_SUPABASE_PROJECT_ID");
+const PROJECT_REF = Deno.env.get("SUPABASE_PROJECT_REF") || Deno.env.get("SUPABASE_PROJECT_ID");
 
 if (!TELEGRAM_BOT_TOKEN) {
   console.error("❌ TELEGRAM_BOT_TOKEN is required");
@@ -13,7 +13,7 @@ if (!TELEGRAM_BOT_TOKEN) {
 }
 
 if (!PROJECT_REF) {
-  console.error("❌ SUPABASE_PROJECT_REF or VITE_SUPABASE_PROJECT_ID is required");
+  console.error("❌ SUPABASE_PROJECT_REF or SUPABASE_PROJECT_ID is required");
   Deno.exit(1);
 }
 
