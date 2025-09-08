@@ -70,15 +70,22 @@ export function useTheme() {
     const tg = window.Telegram?.WebApp;
     
     if (tg) {
-      // For Telegram users, poll for theme changes
+      // For Telegram users, prefer the WebApp event API
       const handleTelegramTheme = () => {
         setSystemTheme(tg.colorScheme);
       };
-      
+
       // Initial check
       handleTelegramTheme();
-      
-      // Poll every second for theme changes
+
+      if (typeof tg.onEvent === 'function') {
+        tg.onEvent('themeChanged', handleTelegramTheme);
+        return () => {
+          tg.offEvent?.('themeChanged', handleTelegramTheme);
+        };
+      }
+
+      // Fallback to polling if onEvent is unavailable
       const interval = setInterval(handleTelegramTheme, 1000);
       return () => clearInterval(interval);
     } else {
