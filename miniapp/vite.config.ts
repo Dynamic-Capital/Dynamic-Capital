@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react-swc';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/assets/',
+  // Serve built assets from /miniapp/assets when deployed under /miniapp
+  base: '/miniapp/assets/',
   build: {
     outDir: 'dist',
     assetsDir: '',
