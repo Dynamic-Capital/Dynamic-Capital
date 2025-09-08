@@ -176,9 +176,9 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 - OPENAI_ENABLED _(optional)_
 - BENEFICIARY_TABLE _(optional)_
 
-### Telegram MiniApp Environment
+### Build environment
 
-The Telegram MiniApp requires the following variables at build time:
+Both the dashboard and the Telegram MiniApp require these variables at build time:
 
 ```bash
 SUPABASE_URL=https://<project>.supabase.co
@@ -186,7 +186,7 @@ SUPABASE_ANON_KEY=eyJ...
 ```
 
 Set these in your hosting provider (e.g., Lovable.dev project settings). If either
-value is missing, the MiniApp will display a configuration error screen instead of
+value is missing, the app will render a configuration error screen instead of
 loading.
 
 Values are set in Supabase function secrets, GitHub Environments, or Lovable Codex
@@ -200,6 +200,21 @@ deno run --no-npm -A scripts/make-initdata.ts --id=<your_telegram_id>
 curl -X POST -H "Content-Type: application/json" \
   -d "{\"initData\":\"$INITDATA\"}" \
   "$SUPABASE_URL/functions/v1/verify-initdata"
+```
+
+## Building
+
+The main build compiles the dashboard only. Run the Mini App build separately when needed:
+
+```bash
+# build the dashboard
+npm run build
+
+# build the Telegram Mini App
+npm run build:miniapp
+
+# build both targets
+npm run build:all
 ```
 
 ## Quick start with Lovable Codex
@@ -233,6 +248,13 @@ on images.
 - Set `MINI_APP_URL` in env (example domain only, do not hardcode).
 - Launch via Web App button inside Telegram.
 - All UI images should be 1:1 (square).
+- After frontend changes, rebuild and redeploy the edge function:
+
+  ```bash
+  npm run build:miniapp
+  npm run deploy:miniapp
+  npx supabase functions invoke update-telegram-miniapp
+  ```
 
 ## VIP Sync
 
