@@ -47,6 +47,20 @@ serve(async (req) => {
 
     const supa = createClient();
 
+    const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
+    async function notify(userId: string, text: string) {
+      if (!token) return;
+      const { data: u } = await supa.from("bot_users").select("telegram_id")
+        .eq("id", userId).maybeSingle();
+      const chatId = u?.telegram_id;
+      if (!chatId) return;
+      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text }),
+      }).catch(() => {});
+    }
+
     // Pull tolerance & window from env or bot_settings
     const tol = num(await envOrSetting("AMOUNT_TOLERANCE")) ?? 0.05; // 5%
     const win = num(await envOrSetting("WINDOW_SECONDS")) ?? 7200;
@@ -74,6 +88,7 @@ serve(async (req) => {
           body: JSON.stringify({ payment_id: p.id }),
         }).catch(() => {});
         results.push({ id: p.id, action: "queued_ocr" });
+        await notify(p.user_id, "📷 Receipt received. Processing...");
         continue;
       }
 
@@ -126,11 +141,17 @@ serve(async (req) => {
         });
         const okr = await completePayment(supa, p.id);
         results.push({ id: p.id, action: "completed", ok: okr.ok });
+        await notify(p.user_id, "✅ Payment confirmed. Thank you!");
       } else {
         results.push({
           id: p.id,
           action: ocr ? `held_${reason}` : "waiting_ocr",
         });
+        if (!ocr) {
+          await notify(p.user_id, "📄 Payment received, awaiting receipt OCR.");
+        } else {
+          await notify(p.user_id, "⏳ Payment pending manual review.");
+        }
       }
     }
 
