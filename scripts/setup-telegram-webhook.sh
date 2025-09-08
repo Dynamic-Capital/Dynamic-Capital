@@ -11,7 +11,7 @@
 #   TELEGRAM_WEBHOOK_SECRET=... \
 #   MINI_APP_URL=... \
 #   VITE_SUPABASE_URL=... \
-#   VITE_SUPABASE_KEY=... \
+#   VITE_SUPABASE_ANON_KEY=... \
 #   scripts/setup-telegram-webhook.sh
 #
 # The Supabase CLI must be installed and authenticated. The project is derived
@@ -24,7 +24,7 @@ set -euo pipefail
 : "${TELEGRAM_WEBHOOK_SECRET:?Missing TELEGRAM_WEBHOOK_SECRET}"
 : "${MINI_APP_URL:?Missing MINI_APP_URL}"
 : "${VITE_SUPABASE_URL:?Missing VITE_SUPABASE_URL}"
-: "${VITE_SUPABASE_KEY:?Missing VITE_SUPABASE_KEY}"
+: "${VITE_SUPABASE_ANON_KEY:?Missing VITE_SUPABASE_ANON_KEY}"
 
 supabase secrets set \
   SUPABASE_URL="$SUPABASE_URL" \
@@ -33,4 +33,4 @@ supabase secrets set \
   TELEGRAM_WEBHOOK_SECRET="$TELEGRAM_WEBHOOK_SECRET" \
   MINI_APP_URL="$MINI_APP_URL" \
   VITE_SUPABASE_URL="$VITE_SUPABASE_URL" \
-  VITE_SUPABASE_KEY="$VITE_SUPABASE_KEY"
+  VITE_SUPABASE_ANON_KEY="$VITE_SUPABASE_ANON_KEY"

@@ -15,7 +15,7 @@ example value, and where it's referenced in the repository.
 | `SUPABASE_ACCESS_TOKEN`     | Token for Supabase CLI operations.                        | No       | `sbp_at...`                 | Supabase CLI only                                                                                         |
 | `SUPABASE_DB_PASSWORD`      | Postgres password for local or CI usage.                  | No       | `super-secret`              | Supabase CLI only                                                                                         |
 | `VITE_SUPABASE_URL`         | Base URL for the frontend Supabase client.                | Yes      | `https://xyz.supabase.co`   | `src/integrations/supabase/client.ts`                                                                     |
-| `VITE_SUPABASE_KEY`         | Public anon key for the frontend client.                  | Yes      | `eyJ...`                    | `src/integrations/supabase/client.ts`                                                                     |
+| `VITE_SUPABASE_ANON_KEY`         | Public anon key for the frontend client.                  | Yes      | `eyJ...`                    | `src/integrations/supabase/client.ts`                                                                     |
 
 ## Telegram
 

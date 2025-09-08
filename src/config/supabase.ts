@@ -1,8 +1,17 @@
-import { optionalEnvVar, requireEnvVar } from "@/utils/env";
+import { optionalEnvVar, requireEnvVar } from "../utils/env.ts";
 
 // Centralized Supabase configuration
-const SUPABASE_URL = requireEnvVar("SUPABASE_URL");
-const SUPABASE_ANON_KEY = requireEnvVar("SUPABASE_ANON_KEY");
+let SUPABASE_URL = "";
+let SUPABASE_ANON_KEY = "";
+let SUPABASE_ENV_ERROR = "";
+
+try {
+  SUPABASE_URL = requireEnvVar("SUPABASE_URL");
+  SUPABASE_ANON_KEY = requireEnvVar("SUPABASE_ANON_KEY");
+} catch (e) {
+  SUPABASE_ENV_ERROR = (e as Error).message;
+  console.error("Configuration error:", SUPABASE_ENV_ERROR);
+}
 const PROJECT_ID = SUPABASE_URL.match(/^https:\/\/([a-z0-9]+)\.supabase\.co/)
   ? RegExp.$1
   : "";
@@ -58,6 +67,8 @@ export const SUPABASE_CONFIG = {
     VERIFY_INITDATA: 'verify-initdata',
   }
 } as const;
+
+export { SUPABASE_ENV_ERROR };
 
 // Shared secret used by both the Telegram bot and web dashboard when calling
 // protected edge functions. In browser builds it must be exposed via the

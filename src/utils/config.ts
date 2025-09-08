@@ -13,7 +13,7 @@ const SUPABASE_KEY =
     ? Deno.env.get("SUPABASE_ANON_KEY")
     : typeof process !== "undefined"
     ? process.env.SUPABASE_ANON_KEY
-    : import.meta.env?.VITE_SUPABASE_KEY) || "";
+    : import.meta.env?.VITE_SUPABASE_ANON_KEY) || "";
 
 async function call<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
