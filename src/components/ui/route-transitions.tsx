@@ -167,6 +167,7 @@ interface PageWrapperProps {
 export function PageWrapper({ children, className = "", background = true }: PageWrapperProps) {
   return (
     <motion.div
+      layout
       className={`min-h-screen ${background ? 'bg-gradient-to-br from-background via-background to-muted/30 dark:to-muted/20' : ''} ${className}`}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -177,12 +178,13 @@ export function PageWrapper({ children, className = "", background = true }: Pag
       }}
     >
       <motion.div
+        layout
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ 
-          delay: 0.1, 
+        transition={{
+          delay: 0.1,
           duration: 0.4,
-          ease: "easeOut" 
+          ease: "easeOut"
         }}
       >
         {children}

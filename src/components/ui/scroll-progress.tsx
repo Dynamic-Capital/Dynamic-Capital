@@ -1,5 +1,5 @@
 import * as React from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface ScrollProgressBarProps {
@@ -13,18 +13,33 @@ export const ScrollProgressBar: React.FC<ScrollProgressBarProps> = ({
 }) => {
   const { scrollYProgress } = useScroll();
   const scaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const [showTop, setShowTop] = React.useState(false);
+
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    setShowTop(latest >= 1);
+  });
 
   return (
-    <motion.div
-      className={cn(
-        "fixed top-0 left-0 right-0 h-1 z-50 origin-left",
-        className
+    <>
+      <motion.div
+        className={cn(
+          "fixed top-0 left-0 right-0 h-1 z-50 origin-left",
+          className
+        )}
+        style={{
+          scaleX,
+          backgroundColor: color,
+        }}
+      />
+      {showTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-4 right-4 z-50 px-3 py-2 rounded-full bg-primary text-primary-foreground shadow-lg"
+        >
+          Back to Top
+        </button>
       )}
-      style={{
-        scaleX,
-        backgroundColor: color,
-      }}
-    />
+    </>
   );
 };
 
