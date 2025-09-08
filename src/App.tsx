@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, Suspense } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, LayoutGroup } from "framer-motion";
 import { AuthProvider } from "@/hooks/useAuth";
 import { TelegramAuthProvider } from "@/hooks/useTelegramAuth";
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
@@ -66,11 +66,13 @@ const AppContent = () => {
           role="main"
           tabIndex={-1}
         >
-          <AnimatePresence mode="wait">
-            <Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
-              <Routes location={location} key={location.pathname}>{appRoutes}</Routes>
-            </Suspense>
-          </AnimatePresence>
+          <LayoutGroup>
+            <AnimatePresence mode="wait">
+              <Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
+                <Routes location={location} key={location.pathname}>{appRoutes}</Routes>
+              </Suspense>
+            </AnimatePresence>
+          </LayoutGroup>
         </main>
         
         <Footer compact={isInMiniApp} />

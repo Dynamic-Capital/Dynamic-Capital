@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, LayoutGroup } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import NAV_ITEMS from "./nav-items";
 
@@ -25,6 +25,7 @@ export const MobileBottomNav: React.FC = () => {
       transition={reduceMotion ? { duration: 0 } : { duration: 0.5, ease: "easeOut" }}
     >
       <div className="container mx-auto px-2">
+        <LayoutGroup>
         <div className="grid grid-cols-5 gap-0">
           {navItems.map((item, index) => {
             const Icon = item.icon;
@@ -55,14 +56,21 @@ export const MobileBottomNav: React.FC = () => {
                     !reduceMotion && "transition-all duration-300",
                     "group rounded-2xl mx-1",
                     "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-                    "overflow-hidden",
+                    "overflow-hidden transform-gpu motion-safe:transform-gpu will-change-transform",
                     isActive
-                      ? "text-white bg-gradient-brand shadow-lg shadow-primary/30"
+                      ? "text-white"
                       : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                   )}
                   aria-label={item.ariaLabel}
                   aria-current={isActive ? "page" : undefined}
                 >
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-indicator"
+                      className="absolute inset-0 rounded-2xl bg-gradient-brand shadow-lg shadow-primary/30"
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
                   <AnimatePresence>
                     {isActive && !reduceMotion && (
                       <motion.div
@@ -137,6 +145,7 @@ export const MobileBottomNav: React.FC = () => {
             </span>
           </motion.div>
         </div>
+        </LayoutGroup>
       </div>
     </motion.nav>
   );

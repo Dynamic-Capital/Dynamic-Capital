@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, animate, useMotionValueEvent } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface MotionFadeInProps {
@@ -136,28 +136,17 @@ export const MotionCounter: React.FC<MotionCounterProps> = ({
   suffix = '',
   prefix = ''
 }) => {
+  const value = useMotionValue(from);
   const [count, setCount] = React.useState(from);
 
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      const increment = (to - from) / (duration * 60); // 60fps
-      let current = from;
-      
-      const interval = setInterval(() => {
-        current += increment;
-        if (current >= to) {
-          setCount(to);
-          clearInterval(interval);
-        } else {
-          setCount(Math.floor(current));
-        }
-      }, 1000 / 60);
+    const controls = animate(value, to, { duration, delay });
+    return controls.stop;
+  }, [value, to, duration, delay]);
 
-      return () => clearInterval(interval);
-    }, delay * 1000);
-
-    return () => clearTimeout(timer);
-  }, [from, to, duration, delay]);
+  useMotionValueEvent(value, "change", (latest) => {
+    setCount(Math.round(latest));
+  });
 
   return (
     <motion.span

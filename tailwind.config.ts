@@ -246,5 +246,14 @@ export default {
       },
     },
   },
-  plugins: [animate],
+  plugins: [
+    animate,
+    function ({ addUtilities }) {
+      addUtilities({
+        '.will-change-transform': {
+          willChange: 'transform',
+        },
+      });
+    },
+  ],
 } satisfies Config;
