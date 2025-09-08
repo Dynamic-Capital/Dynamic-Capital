@@ -78,6 +78,12 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
 
+  useEffect(() => {
+    if (currentStep === "pending") {
+      setShowReceipt(true);
+    }
+  }, [currentStep]);
+
   const fetchPlans = useCallback(async () => {
     try {
       const { data, error } = await callEdgeFunction('PLANS');
@@ -319,12 +325,6 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
   }
 
   const finalPrice = calculateFinalPrice();
-
-  useEffect(() => {
-    if (currentStep === "pending") {
-      setShowReceipt(true);
-    }
-  }, [currentStep]);
 
   const DigitalReceipt = ({ onClose }: { onClose: () => void }) => (
     <motion.div
