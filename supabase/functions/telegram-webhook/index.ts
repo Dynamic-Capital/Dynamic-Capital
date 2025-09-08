@@ -3,6 +3,7 @@ import { validateTelegramHeader } from "../_shared/telegram_secret.ts";
 import { createLogger } from "../_shared/logger.ts";
 import { envOrSetting, getContent } from "../_shared/config.ts";
 import { readMiniAppEnv } from "../_shared/miniapp.ts";
+import { createClient } from "../_shared/client.ts";
 
 interface TelegramMessage {
   text?: string;
@@ -10,6 +11,7 @@ interface TelegramMessage {
 }
 
 interface TelegramUpdate {
+  update_id?: number;
   message?: TelegramMessage;
 }
 
@@ -68,7 +70,8 @@ export async function handler(req: Request): Promise<Response> {
       return mna();
     }
 
-    // Validate Telegram secret header (DB-first with env fallback)
+    // Telegram signs webhook requests with X-Telegram-Bot-Api-Secret-Token
+    // https://core.telegram.org/bots/api#setwebhook
     const authResp = await validateTelegramHeader(req);
     if (authResp) return authResp;
 
@@ -81,8 +84,28 @@ export async function handler(req: Request): Promise<Response> {
       return bad("Invalid JSON");
     }
 
+    const updateId = (update as TelegramUpdate)?.update_id;
     const text = update?.message?.text?.trim();
     const chatId = update?.message?.chat?.id;
+
+    // Idempotency: upsert update_id so duplicates short-circuit
+    if (typeof updateId === "number") {
+      try {
+        const supa = createClient("service");
+        const { data, error } = await supa.from("webhook_updates").insert(
+          { update_id: updateId },
+          { onConflict: "update_id", ignoreDuplicates: true },
+        ).select("update_id");
+        if (error) {
+          logger.error("webhook_updates insert error", error);
+        } else if (!data || data.length === 0) {
+          logger.info("duplicate update", { update_id: updateId, decision: "ignored" });
+          return ok({ ok: true });
+        }
+      } catch (err) {
+        logger.warn("idempotency disabled", err);
+      }
+    }
 
     // Basic command dispatcher for simple health/admin commands
     type CommandHandler = (chatId: number) => Promise<void>;
@@ -132,6 +155,12 @@ export async function handler(req: Request): Promise<Response> {
         logger.error(`error handling ${command}`, err);
       }
     }
+
+    logger.info("update processed", {
+      update_id: updateId,
+      type: text ? "message" : "unknown",
+      decision: "processed",
+    });
 
     return ok({ ok: true });
   } catch (err) {

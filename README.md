@@ -298,6 +298,17 @@ curl -s -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/telegram-bot 
   -H 'content-type: application/json' -d '{"test":"ping"}'
 ```
 
+## Local webhook testing
+
+Run Edge Functions locally without JWT verification to exercise webhooks:
+
+```bash
+npm run serve:functions
+```
+
+Then POST to `http://localhost:54321/functions/v1/telegram-webhook` with
+`X-Telegram-Bot-Api-Secret-Token`.
+
 ## Deployment
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment vars, tests,

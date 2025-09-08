@@ -27,3 +27,13 @@ jobs:
           cat webhook.json
           grep -q '\?secret=' webhook.json
           grep -q '"pending_update_count":0' webhook.json
+      - name: Smoke POST telegram-webhook
+        env:
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          code=$(curl -s -o resp.txt -w "%{http_code}" \
+            -X POST https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/telegram-webhook \
+            -H "X-Telegram-Bot-Api-Secret-Token: ${TELEGRAM_WEBHOOK_SECRET}" -d '{}')
+          cat resp.txt
+          test "$code" != "401"
