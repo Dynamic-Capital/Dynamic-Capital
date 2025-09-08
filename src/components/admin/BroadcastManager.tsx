@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,7 @@ export function BroadcastManager() {
   const { getAdminAuth } = useTelegramAuth();
   const { toast } = useToast();
 
-  const loadBroadcasts = async () => {
+  const loadBroadcasts = useCallback(async () => {
     setLoading(true);
     try {
       const auth = getAdminAuth();
@@ -69,7 +69,7 @@ export function BroadcastManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAdminAuth]);
 
   const sendBroadcast = async () => {
     if (!newTitle.trim() || !newContent.trim()) {
@@ -131,7 +131,7 @@ export function BroadcastManager() {
 
   useEffect(() => {
     loadBroadcasts();
-  }, []);
+  }, [loadBroadcasts]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();

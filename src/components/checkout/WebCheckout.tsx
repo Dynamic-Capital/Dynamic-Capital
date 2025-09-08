@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,26 +75,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
   const [isTelegram, setIsTelegram] = useState(false);
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Check if running inside Telegram
-    const isInTelegram = window.Telegram?.WebApp?.initData;
-    setIsTelegram(!!isInTelegram);
-    if (isInTelegram) {
-      setTelegramInitData(window.Telegram.WebApp.initData);
-      console.log("Running inside Telegram WebApp");
-    }
-    
-    fetchPlans();
-  }, []);
-
-  useEffect(() => {
-    if (selectedPlanId && plans.length > 0) {
-      const plan = plans.find(p => p.id === selectedPlanId);
-      setSelectedPlan(plan || plans[0]);
-    }
-  }, [selectedPlanId, plans]);
-
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     try {
       const response = await callEdgeFunction('PLANS');
       const data = await response.json();
@@ -107,7 +88,27 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedPlan]);
+
+  useEffect(() => {
+    // Check if running inside Telegram
+    const isInTelegram = window.Telegram?.WebApp?.initData;
+    setIsTelegram(!!isInTelegram);
+    if (isInTelegram) {
+      setTelegramInitData(window.Telegram.WebApp.initData);
+      console.log("Running inside Telegram WebApp");
+    }
+
+    fetchPlans();
+  }, [fetchPlans]);
+
+  useEffect(() => {
+    if (selectedPlanId && plans.length > 0) {
+      const plan = plans.find(p => p.id === selectedPlanId);
+      setSelectedPlan(plan || plans[0]);
+    }
+  }, [selectedPlanId, plans]);
+
 
   const validatePromoCode = async () => {
     if (!promoCode.trim() || !selectedPlan) return;

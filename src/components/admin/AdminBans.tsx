@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ export function AdminBans() {
   const { getAdminAuth } = useTelegramAuth();
   const { toast } = useToast();
 
-  const loadBans = async () => {
+  const loadBans = useCallback(async () => {
     setLoading(true);
     try {
       const auth = getAdminAuth();
@@ -62,7 +62,7 @@ export function AdminBans() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAdminAuth]);
 
   const addBan = async () => {
     if (!newTelegramId.trim()) {
@@ -163,7 +163,7 @@ export function AdminBans() {
 
   useEffect(() => {
     loadBans();
-  }, []);
+  }, [loadBans]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();

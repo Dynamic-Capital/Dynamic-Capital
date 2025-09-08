@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ export function AdminLogs() {
   const { getAdminAuth } = useTelegramAuth();
   const { toast } = useToast();
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
       const auth = getAdminAuth();
@@ -66,11 +66,11 @@ export function AdminLogs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAdminAuth, limit, toast]);
 
   useEffect(() => {
     loadLogs();
-  }, [limit]);
+  }, [loadLogs]);
 
   const filteredLogs = logs.filter(log =>
     log.action_type.toLowerCase().includes(searchTerm.toLowerCase()) ||

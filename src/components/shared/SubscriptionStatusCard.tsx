@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MotionCard } from "@/components/ui/motion-card";
 import { Badge } from "@/components/ui/badge";
@@ -32,22 +32,13 @@ export const SubscriptionStatusCard = ({
   const { toast } = useToast();
 
   // Extract telegram user ID from multiple sources
-  const getUserId = () => {
+  const getUserId = useCallback(() => {
     if (telegramUserId) return telegramUserId;
     if (telegramData?.user?.id) return telegramData.user.id.toString();
     return null;
-  };
-
-  useEffect(() => {
-    const userId = getUserId();
-    if (userId) {
-      fetchSubscriptionStatus(userId);
-    } else {
-      setLoading(false);
-    }
   }, [telegramUserId, telegramData]);
 
-  const fetchSubscriptionStatus = async (userId: string) => {
+  const fetchSubscriptionStatus = useCallback(async (userId: string) => {
     try {
       const response = await callEdgeFunction('SUBSCRIPTION_STATUS', {
         method: 'POST',
@@ -66,7 +57,16 @@ export const SubscriptionStatusCard = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    const userId = getUserId();
+    if (userId) {
+      fetchSubscriptionStatus(userId);
+    } else {
+      setLoading(false);
+    }
+  }, [getUserId, fetchSubscriptionStatus]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

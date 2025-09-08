@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { callEdgeFunction, buildFunctionUrl } from '@/config/supabase';
 
 interface TelegramUser {
@@ -31,55 +31,7 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
   const [loading, setLoading] = useState(true);
   const [initData, setInitData] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Check if running in Telegram Web App
-    if (window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
-      
-      // Get Telegram init data
-      const telegramInitData = tg.initData;
-      setInitData(telegramInitData);
-      
-      if (telegramInitData && tg.initDataUnsafe?.user) {
-        const user = tg.initDataUnsafe.user as TelegramUser;
-        setTelegramUser(user);
-        
-        // Auto-verify and check admin status
-        verifyAndCheckStatus(user.id.toString(), telegramInitData);
-      } else {
-        setLoading(false);
-      }
-    } else {
-      // Not running in Telegram Web App
-      setLoading(false);
-    }
-  }, []);
-
-  const verifyAndCheckStatus = async (userId: string, initDataString: string) => {
-    try {
-      // Verify telegram auth
-      const verified = await verifyTelegramAuth(initDataString);
-      
-      if (verified) {
-        // Sync user data
-        await syncUser(initDataString);
-        
-        // Check admin status
-        const adminStatus = await checkAdminStatus(userId);
-        setIsAdmin(adminStatus);
-        
-        // Check VIP status
-        const vipStatus = await checkVipStatus(userId);
-        setIsVip(vipStatus);
-      }
-    } catch (error) {
-      console.error('Failed to verify telegram auth:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyTelegramAuth = async (initDataString?: string): Promise<boolean> => {
+  const verifyTelegramAuth = useCallback(async (initDataString?: string): Promise<boolean> => {
     try {
       const dataToVerify = initDataString || initData;
       if (!dataToVerify) return false;
@@ -95,14 +47,13 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       console.error('Failed to verify telegram auth:', error);
       return false;
     }
-  };
+  }, [initData]);
 
-  const checkAdminStatus = async (userId?: string): Promise<boolean> => {
+  const checkAdminStatus = useCallback(async (userId?: string): Promise<boolean> => {
     try {
       const userIdToCheck = userId || telegramUser?.id?.toString();
       if (!userIdToCheck) return false;
 
-      // Prefer using initData for admin check
       if (initData) {
         const response = await callEdgeFunction('ADMIN_CHECK', {
           method: 'POST',
@@ -114,7 +65,6 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
         setIsAdmin(adminStatus);
         return adminStatus;
       } else {
-        // Fallback to telegram_user_id check
         const response = await callEdgeFunction('ADMIN_CHECK', {
           method: 'POST',
           body: { telegram_user_id: userIdToCheck },
@@ -129,9 +79,9 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       console.error('Failed to check admin status:', error);
       return false;
     }
-  };
+  }, [initData, telegramUser]);
 
-  const checkVipStatus = async (userId: string): Promise<boolean> => {
+  const checkVipStatus = useCallback(async (userId: string): Promise<boolean> => {
     try {
       const response = await callEdgeFunction('MINIAPP_HEALTH', {
         method: 'POST',
@@ -144,9 +94,9 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       console.error('Failed to check VIP status:', error);
       return false;
     }
-  };
+  }, []);
 
-  const syncUser = async (initDataString: string): Promise<void> => {
+  const syncUser = useCallback(async (initDataString: string): Promise<void> => {
     try {
       await fetch(`${buildFunctionUrl('MINIAPP')}/api/sync-user`, {
         method: 'POST',
@@ -160,7 +110,43 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
     } catch (error) {
       console.error('Failed to sync user:', error);
     }
-  };
+  }, []);
+
+  const verifyAndCheckStatus = useCallback(async (userId: string, initDataString: string) => {
+    try {
+      const verified = await verifyTelegramAuth(initDataString);
+
+      if (verified) {
+        await syncUser(initDataString);
+        const adminStatus = await checkAdminStatus(userId);
+        setIsAdmin(adminStatus);
+        const vipStatus = await checkVipStatus(userId);
+        setIsVip(vipStatus);
+      }
+    } catch (error) {
+      console.error('Failed to verify telegram auth:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [verifyTelegramAuth, syncUser, checkAdminStatus, checkVipStatus]);
+
+  useEffect(() => {
+    if (window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp;
+      const telegramInitData = tg.initData;
+      setInitData(telegramInitData);
+
+      if (telegramInitData && tg.initDataUnsafe?.user) {
+        const user = tg.initDataUnsafe.user as TelegramUser;
+        setTelegramUser(user);
+        verifyAndCheckStatus(user.id.toString(), telegramInitData);
+      } else {
+        setLoading(false);
+      }
+    } else {
+      setLoading(false);
+    }
+  }, [verifyAndCheckStatus]);
 
   const getAdminAuth = () => {
     // Check for stored admin token

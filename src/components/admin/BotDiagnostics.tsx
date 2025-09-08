@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +23,7 @@ export function BotDiagnostics() {
   const { getAdminAuth } = useTelegramAuth();
   const { toast } = useToast();
 
-  const loadBotStatus = async () => {
+  const loadBotStatus = useCallback(async () => {
     setLoading(true);
     try {
       const auth = getAdminAuth();
@@ -55,7 +55,7 @@ export function BotDiagnostics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAdminAuth]);
 
   const rotateWebhookSecret = async () => {
     setIsRotating(true);
@@ -138,7 +138,7 @@ export function BotDiagnostics() {
 
   useEffect(() => {
     loadBotStatus();
-  }, []);
+  }, [loadBotStatus]);
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {

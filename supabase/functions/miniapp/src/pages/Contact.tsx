@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { PrimaryButton } from "../components/PrimaryButton";
@@ -21,11 +21,7 @@ export default function Contact() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const { get } = useApi();
 
-  useEffect(() => {
-    fetchContacts();
-  }, []);
-
-  const fetchContacts = async () => {
+  const fetchContacts = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await get('/contact-links');
@@ -44,7 +40,11 @@ export default function Contact() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [get]);
+
+  useEffect(() => {
+    fetchContacts();
+  }, [fetchContacts]);
 
   const handleContactClick = (url: string, platform: string) => {
     try {

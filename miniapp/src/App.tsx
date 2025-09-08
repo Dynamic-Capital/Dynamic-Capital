@@ -18,8 +18,9 @@ export default function App() {
   const tg = window.Telegram?.WebApp;
   const userName = tg?.initDataUnsafe?.user?.first_name || 'User';
   const theme = tg?.colorScheme || 'light';
+  const initData = tg?.initData;
 
-  const checkVersion = async () => {
+  const checkVersion = React.useCallback(async () => {
     try {
       const response = await fetch('/miniapp/version');
       const data = await response.json();
@@ -27,11 +28,10 @@ export default function App() {
     } catch (error) {
       document.getElementById('status')!.innerHTML = `<span class="error">✗ Version check failed</span>`;
     }
-  };
+  }, []);
 
-  const verifyInitData = async () => {
+  const verifyInitData = React.useCallback(async () => {
     try {
-      const initData = tg?.initData;
       if (!initData) {
         document.getElementById('status')!.innerHTML = `<span class="error">✗ No initData available</span>`;
         return;
@@ -52,7 +52,7 @@ export default function App() {
     } catch (error) {
       document.getElementById('status')!.innerHTML = `<span class="error">✗ Verification error</span>`;
     }
-  };
+  }, [initData]);
 
   React.useEffect(() => {
     // Update UI with Telegram data
@@ -79,7 +79,7 @@ export default function App() {
       if (versionBtn) versionBtn.removeEventListener('click', checkVersion);
       if (verifyBtn) verifyBtn.removeEventListener('click', verifyInitData);
     };
-  }, [userName, theme]);
+  }, [userName, theme, checkVersion, verifyInitData]);
 
   return (
     <div className="wrap">

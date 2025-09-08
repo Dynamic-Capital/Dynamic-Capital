@@ -3,26 +3,13 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 import { SUPABASE_CONFIG } from "@/config/supabase";
 
-const SUPABASE_URL =
-  (typeof Deno !== "undefined"
-    ? Deno.env.get("SUPABASE_URL")
-    : typeof process !== "undefined"
-    ? process.env.SUPABASE_URL
-    : import.meta.env?.VITE_SUPABASE_URL) || SUPABASE_CONFIG.URL;
-
-const SUPABASE_KEY =
-  (typeof Deno !== "undefined"
-    ? Deno.env.get("SUPABASE_ANON_KEY")
-    : typeof process !== "undefined"
-    ? process.env.SUPABASE_ANON_KEY
-    : import.meta.env?.VITE_SUPABASE_KEY) || SUPABASE_CONFIG.ANON_KEY;
+const SUPABASE_URL = SUPABASE_CONFIG.URL;
+const SUPABASE_KEY = SUPABASE_CONFIG.ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error("Supabase config debug:", {
-    SUPABASE_URL,
+    SUPABASE_URL: SUPABASE_URL ? "present" : "missing",
     SUPABASE_KEY: SUPABASE_KEY ? "present" : "missing",
-    env_url: import.meta.env?.VITE_SUPABASE_URL,
-    env_key: import.meta.env?.VITE_SUPABASE_KEY ? "present" : "missing"
   });
   throw new Error(
     `Missing Supabase configuration - URL: ${SUPABASE_URL ? "OK" : "MISSING"}, KEY: ${SUPABASE_KEY ? "OK" : "MISSING"}`,

@@ -40,7 +40,7 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
     }, 4000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [steps.length]);
 
   useEffect(() => {
     if (currentStep === 1) {

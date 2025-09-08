@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +40,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
   const [loading, setLoading] = useState(false);
   const [showUploader, setShowUploader] = useState(false);
 
-  const fetchPaymentStatus = async () => {
+  const fetchPaymentStatus = useCallback(async () => {
     if (!paymentId) return;
 
     setLoading(true);
@@ -82,11 +82,11 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [paymentId]);
 
   useEffect(() => {
     fetchPaymentStatus();
-  }, [paymentId]);
+  }, [fetchPaymentStatus]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
