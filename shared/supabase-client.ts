@@ -11,6 +11,12 @@ function getEnvVar(name: string): string | undefined {
     const nextKey = `NEXT_PUBLIC_${name}`;
     if (process.env[nextKey]) return process.env[nextKey];
   }
+  const metaEnv = (import.meta as any)?.env as Record<string, string> | undefined;
+  if (metaEnv) {
+    if (metaEnv[name]) return metaEnv[name];
+    const viteKey = `VITE_${name}`;
+    if (metaEnv[viteKey]) return metaEnv[viteKey];
+  }
   return undefined;
 }
 
