@@ -1,10 +1,15 @@
 import { supabase } from "../supabase/client.ts";
 
+// Casting the supabase client to `any` avoids deep type instantiations during
+// Next.js builds while still allowing runtime interactions with the foreign
+// tables exposed via supabase wrappers.
+const client = supabase as any;
+
 /**
  * Fetch a user record from Auth0 via the auth0_wrapper foreign table.
  */
 export async function getAuth0User(userId: string) {
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("auth0_users")
     .select("*")
     .eq("user_id", userId)
@@ -18,7 +23,7 @@ export async function getAuth0User(userId: string) {
  * Retrieve a cached session payload from Redis using redis_wrapper.
  */
 export async function getRedisSession(sessionId: string) {
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("redis_sessions")
     .select("payload")
     .eq("session_id", sessionId)
@@ -32,7 +37,7 @@ export async function getRedisSession(sessionId: string) {
  * List files stored in S3 through the s3_wrapper foreign table.
  */
 export async function listS3Files(prefix = "") {
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("s3_files")
     .select("*")
     .like("filename", `${prefix}%`);
