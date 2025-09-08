@@ -355,13 +355,21 @@ export default function PlanSection() {
                             </motion.div>
                           )}
                         </div>
-                        <motion.p 
+                        <motion.p
                           className="text-body-sm text-muted-foreground font-sf-pro"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: index * 0.1 + 0.3 }}
                         >
                           {plan.is_lifetime ? 'Lifetime access' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
+                        </motion.p>
+                        <motion.p
+                          className="text-body-xs text-muted-foreground mt-1"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: index * 0.1 + 0.35 }}
+                        >
+                          Priority signals, VIP chat access & daily analysis
                         </motion.p>
                       </div>
                       <motion.div 
