@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useEdgeFunction } from "@/hooks/useEdgeFunction";
+import { formatSupabaseError } from "@/utils/supabaseError";
 
 export default function BuildMiniApp() {
+  const edgeFunction = useEdgeFunction();
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildLog, setBuildLog] = useState<string>("");
   const { toast } = useToast();
@@ -12,39 +14,36 @@ export default function BuildMiniApp() {
   const buildMiniApp = async () => {
     setIsBuilding(true);
     setBuildLog("Starting build process...\n");
-    
     try {
-      const { data, error } = await supabase.functions.invoke('build-miniapp', {
-        body: {}
-      });
-      
+      const { data, error } = await edgeFunction<{ success: boolean; buildOutput: string; syncOutput: string; error?: string; }>(
+        "BUILD_MINIAPP",
+        { method: "POST", body: {} },
+      );
       if (error) {
-        throw error;
+        throw new Error(error.message);
       }
-      
-      if (data.success) {
-        setBuildLog(prev => prev + "\n✅ Build completed successfully!\n");
-        setBuildLog(prev => prev + "Build output:\n" + data.buildOutput + "\n");
-        setBuildLog(prev => prev + "Sync output:\n" + data.syncOutput + "\n");
-        
+      if (data?.success) {
+        setBuildLog((prev) => prev + "\n✅ Build completed successfully!\n");
+        setBuildLog((prev) => prev + "Build output:\n" + data.buildOutput + "\n");
+        setBuildLog((prev) => prev + "Sync output:\n" + data.syncOutput + "\n");
         toast({
           title: "Build Successful",
           description: "Mini app has been built and deployed to the static directory.",
         });
       } else {
-        setBuildLog(prev => prev + "\n❌ Build failed: " + data.error + "\n");
+        setBuildLog((prev) => prev + "\n❌ Build failed: " + (data?.error ?? "") + "\n");
         toast({
           title: "Build Failed",
-          description: data.error,
+          description: data?.error ?? "Build failed",
           variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error("Build error:", error);
-      setBuildLog(prev => prev + "\n❌ Error: " + error.message + "\n");
+    } catch (err) {
+      console.error("Build error:", err);
+      setBuildLog((prev) => prev + "\n❌ Error: " + formatSupabaseError(err) + "\n");
       toast({
         title: "Build Error",
-        description: error.message,
+        description: formatSupabaseError(err),
         variant: "destructive",
       });
     } finally {
@@ -63,14 +62,10 @@ export default function BuildMiniApp() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button 
-            onClick={buildMiniApp} 
-            disabled={isBuilding}
-            className="w-full"
-          >
+          <Button onClick={buildMiniApp} disabled={isBuilding} className="w-full">
             {isBuilding ? "Building..." : "Build Mini App"}
           </Button>
-          
+
           {buildLog && (
             <Card>
               <CardHeader>
@@ -83,7 +78,7 @@ export default function BuildMiniApp() {
               </CardContent>
             </Card>
           )}
-          
+
           <div className="text-sm text-muted-foreground">
             <p><strong>What this does:</strong></p>
             <ul className="list-disc list-inside space-y-1 mt-2">

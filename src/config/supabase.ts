@@ -42,6 +42,8 @@ export const SUPABASE_CONFIG = {
     ROTATE_WEBHOOK_SECRET: 'rotate-webhook-secret',
     RESET_BOT: 'reset-bot',
     BROADCAST_DISPATCH: 'broadcast-dispatch',
+    BUILD_MINIAPP: 'build-miniapp',
+    UPLOAD_MINIAPP_HTML: 'upload-miniapp-html',
     WEB_APP_HEALTH: 'web-app-health',
     MINIAPP_HEALTH: 'miniapp-health',
     THEME_GET: 'theme-get',

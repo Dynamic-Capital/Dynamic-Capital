@@ -1,3 +1,4 @@
+import { SupabaseProvider } from "@/context/SupabaseProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -85,8 +86,9 @@ const AppContent = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TelegramAuthProvider>
-      <AdminAuthProvider>
+    <SupabaseProvider>
+      <TelegramAuthProvider>
+        <AdminAuthProvider>
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
@@ -98,6 +100,7 @@ const App = () => (
         </AuthProvider>
       </AdminAuthProvider>
     </TelegramAuthProvider>
+    </SupabaseProvider>
   </QueryClientProvider>
 );
 

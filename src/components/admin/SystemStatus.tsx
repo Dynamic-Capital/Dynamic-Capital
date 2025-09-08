@@ -11,8 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getQueryCounts, supabase } from "@/integrations/supabase/client";
-import logger from "@/utils/logger";
+import { getQueryCounts } from '@/integrations/supabase/client';
+import { useSupabase } from '@/context/SupabaseProvider';
+import logger from '@/utils/logger';
+import { formatSupabaseError } from '@/utils/supabaseError';
 import { useToast } from "@/hooks/use-toast";
 import { getCached } from "@/utils/cache";
 import { getTimezones } from "@/utils/timezones";
@@ -47,11 +49,12 @@ interface TableInfo {
 }
 
 export const SystemStatus = () => {
+  const { supabase } = useSupabase();
+  const supabasePublic = supabase.schema('public');
   const [functions, setFunctions] = useState<FunctionStatus[]>([]);
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [checking, setChecking] = useState(false);
   const { toast } = useToast();
-  const supabasePublic = supabase.schema("public");
   const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
   const supabaseUrl = import.meta.env.SUPABASE_URL ?? "";
@@ -113,10 +116,9 @@ export const SystemStatus = () => {
       setTables(tableInfos);
       logger.log("Supabase query counts", getQueryCounts());
     } catch (error) {
-      console.error("Error checking system status:", error);
       toast({
         title: "Error",
-        description: "Failed to check system status",
+        description: formatSupabaseError(error, "Failed to check system status"),
         variant: "destructive",
       });
     } finally {
