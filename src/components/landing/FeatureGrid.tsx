@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { MotionHoverCard } from "@/components/ui/motion-card";
-import { MotionStagger, MotionScrollReveal } from "@/components/ui/motion-components";
+import { MotionHoverCard, MotionStagger, MotionScrollReveal } from "@/components/ui/motion-components";
 import { TrendingUp, Shield, Users } from "lucide-react";
 
 const FeatureGrid = () => {

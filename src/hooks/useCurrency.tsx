@@ -72,7 +72,7 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
       .catch(() => {
         // Keep default rate on error
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => setIsLoading(false)));
     }
   }, []);
 
