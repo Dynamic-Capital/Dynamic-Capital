@@ -2,7 +2,7 @@
 
 /**
  * Build script for the mini app
- * This builds the React app in supabase/functions/miniapp and copies it to supabase/functions/miniapp/static
+ * Builds the React app in supabase/functions/miniapp producing files in supabase/functions/miniapp/static
  */
 
 import { join } from "https://deno.land/std@0.224.0/path/mod.ts";

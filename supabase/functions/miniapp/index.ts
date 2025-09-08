@@ -2,6 +2,10 @@ import { mna, nf, json } from "../_shared/http.ts";
 import { optionalEnv, requireEnv } from "../_shared/env.ts";
 import { serveStatic, StaticOpts } from "../_shared/static.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withSecurity, ENHANCED_SECURITY_HEADERS } from "./lib/security.ts";
+import { smartCompress } from "./lib/compress.ts";
+import { fetchFromStorage } from "./lib/storage.ts";
+import { versionResponse } from "./routes/version.ts";
 
 // Env setup
 const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = requireEnv([
@@ -16,105 +20,6 @@ const DISABLE_HTML_COMPRESSION = optionalEnv("DISABLE_HTML_COMPRESSION") === "tr
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
-
-// Enhanced security headers with better CSP for Telegram and Lovable preview
-const ENHANCED_SECURITY_HEADERS = {
-  "referrer-policy": "strict-origin-when-cross-origin",
-  "x-content-type-options": "nosniff", 
-  "permissions-policy": "geolocation=(), microphone=(), camera=()",
-  "content-security-policy":
-    "default-src 'self' https://*.telegram.org https://telegram.org; " +
-    "script-src 'self' 'unsafe-inline' https://*.telegram.org; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "img-src 'self' data: https:; " +
-    "connect-src 'self' https://*.functions.supabase.co https://*.supabase.co wss://*.supabase.co; " +
-    "font-src 'self' data:; " +
-    "frame-ancestors 'self' https://*.telegram.org https://telegram.org https://*.supabase.co https://*.lovable.dev;",
-  "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
-  "x-frame-options": "ALLOWALL",
-} as const;
-
-function withSecurity(resp: Response, extra: Record<string, string> = {}) {
-  const h = new Headers(resp.headers);
-
-  // Preserve original content-type if it exists
-  const originalContentType = resp.headers.get("content-type");
-
-  for (const [k, v] of Object.entries(ENHANCED_SECURITY_HEADERS)) h.set(k, v);
-  for (const [k, v] of Object.entries(extra)) h.set(k, v);
-
-  // Ensure content-type is preserved and add diagnostic header
-  if (originalContentType) {
-    h.set("content-type", originalContentType);
-  }
-
-  return new Response(resp.body, { status: resp.status, headers: h });
-}
-
-// Enhanced compression helper with better encoding detection
-function smartCompress(
-  body: Uint8Array,
-  req: Request,
-  contentType: string,
-): { stream: ReadableStream | Uint8Array; encoding?: string } {
-  const accept = req.headers.get("accept-encoding")?.toLowerCase() ?? "";
-  
-  // Skip compression for HTML if disabled
-  if (DISABLE_HTML_COMPRESSION && contentType.startsWith("text/html")) {
-    console.log("[miniapp] HTML compression disabled");
-    return { stream: body };
-  }
-
-  // Only compress html and json responses
-  const compressible = contentType.startsWith("text/html") ||
-    contentType.startsWith("application/json");
-  if (!compressible || !accept) return { stream: body };
-
-  // Parse encodings and respect quality values
-  const encodings = accept.split(",")
-    .map((e) => {
-      const [name, q = "q=1"] = e.trim().split(";");
-      const quality = parseFloat(q.split("=")[1] || "1");
-      return { name: name.trim(), quality };
-    })
-    .filter(e => e.quality > 0)
-    .sort((a, b) => b.quality - a.quality);
-
-  console.log(`[miniapp] Accept-Encoding: ${accept}, parsed:`, encodings.map(e => `${e.name}(${e.quality})`).join(", "));
-
-  for (const { name } of encodings) {
-    if (name === "br" || name === "gzip") {
-      try {
-        const stream = new Blob([body]).stream().pipeThrough(
-          new CompressionStream(name),
-        );
-        console.log(`[miniapp] Using compression: ${name}`);
-        return { stream, encoding: name };
-      } catch (e) {
-        console.warn(`[miniapp] Compression ${name} failed:`, e);
-      }
-    }
-  }
-
-  console.log("[miniapp] No compression used");
-  return { stream: body };
-}
-
-// Storage fetching helper
-async function fetchFromStorage(key: string): Promise<Uint8Array | null> {
-  try {
-    const { data, error } = await supabase.storage.from(BUCKET).download(key);
-    if (error || !data) {
-      console.warn(`[miniapp] Storage fetch failed for ${key}:`, error);
-      return null;
-    }
-    console.log(`[miniapp] Successfully fetched ${key} from storage`);
-    return new Uint8Array(await data.arrayBuffer());
-  } catch (e) {
-    console.error(`[miniapp] Storage fetch error for ${key}:`, e);
-    return null;
-  }
-}
 
 // Serve static files from the built React app with fallback
 async function serveStaticIndex(): Promise<Response | null> {
@@ -762,18 +667,6 @@ export async function handler(req: Request): Promise<Response> {
 
   console.log(`[miniapp] ${req.method} ${path}`);
   
-  // Handle version endpoint for health checks and deployment verification
-  if (path === "/version" || path === "/miniapp/version") {
-    return withSecurity(new Response(JSON.stringify({
-      version: "1.0.0",
-      timestamp: new Date().toISOString(),
-      healthy: true,
-      deployment_id: Deno.env.get("DENO_DEPLOYMENT_ID") || "unknown"
-    }), {
-      headers: { "content-type": "application/json" }
-    }));
-  }
-
   // Try to use the static server helper for common routes
   if (
     path === "/" ||
@@ -843,7 +736,7 @@ export async function handler(req: Request): Promise<Response> {
 
     // Strategy 1: Serve from storage if enabled
     if (SERVE_FROM_STORAGE) {
-      const arr = await fetchFromStorage(INDEX_KEY);
+      const arr = await fetchFromStorage(supabase, BUCKET, INDEX_KEY);
       if (arr) {
         htmlContent = new TextDecoder().decode(arr);
         servedFrom = "storage";
@@ -884,7 +777,9 @@ export async function handler(req: Request): Promise<Response> {
 
     const arr = new TextEncoder().encode(htmlContent);
     const contentType = "text/html; charset=utf-8";
-    const { stream, encoding } = smartCompress(arr, req, contentType);
+    const { stream, encoding } = (DISABLE_HTML_COMPRESSION && contentType.startsWith("text/html"))
+      ? { stream: arr }
+      : smartCompress(arr, req, contentType);
     
     const headers: Record<string, string> = {
       "content-type": contentType,
@@ -902,26 +797,9 @@ export async function handler(req: Request): Promise<Response> {
     return withSecurity(resp);
   }
 
-  // GET /miniapp/version
-  if (path === "/miniapp/version") {
-    const versionData = { 
-      name: "miniapp", 
-      ts: new Date().toISOString(),
-      serveFromStorage: SERVE_FROM_STORAGE,
-      htmlCompressionDisabled: DISABLE_HTML_COMPRESSION
-    };
-    
-    const body = new TextEncoder().encode(JSON.stringify(versionData));
-    const contentType = "application/json; charset=utf-8";
-    const { stream, encoding } = smartCompress(body, req, contentType);
-    
-    const headers: Record<string, string> = { 
-      "content-type": contentType,
-      "x-served-from": "version-endpoint"
-    };
-    if (encoding) headers["content-encoding"] = encoding;
-    
-    const resp = new Response(stream, { status: 200, headers });
+  // GET /miniapp/version or /version
+  if (path === "/miniapp/version" || path === "/version") {
+    const resp = versionResponse(req);
     console.log(`[miniapp] Served version endpoint`);
     return withSecurity(resp);
   }
@@ -942,7 +820,7 @@ export async function handler(req: Request): Promise<Response> {
       console.log(`[miniapp] Served asset ${assetPath} from static build`);
     } catch {
       // Fallback to storage
-      arr = await fetchFromStorage(`assets/${assetPath}`);
+      arr = await fetchFromStorage(supabase, BUCKET, `assets/${assetPath}`);
       if (arr) {
         servedFrom = "storage";
         console.log(`[miniapp] Served asset ${assetPath} from storage`);

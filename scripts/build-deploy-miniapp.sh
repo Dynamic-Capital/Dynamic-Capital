@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Build the mini app and sync static files
+# Build the mini app
 bash "$(dirname "$0")/build-miniapp.sh"
 
 # Deploy miniapp and deposit function to Supabase

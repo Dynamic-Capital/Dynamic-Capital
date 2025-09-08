@@ -8,14 +8,14 @@ PROTECTED_GLOBS=(
   "supabase/migrations/**"
   "scripts/**"
   ".github/**"
-  "miniapp/src/**"
+  "supabase/functions/miniapp/src/**"
 )
 
 # Preferred canonical locations when duplicates exist (keep these)
 PREFERRED_CANON=(
-  "miniapp/static/**"
+  "supabase/functions/miniapp/static/**"
   "public/**"
-  "miniapp/assets/**"
+  "supabase/functions/miniapp/static/assets/**"
 )
 
 # Safe remove denylist (never propose)

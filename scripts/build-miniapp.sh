@@ -4,11 +4,7 @@
 set -e
 
 echo "Building miniapp..."
-cd miniapp && (npm run build || pnpm build || true)
-cd ..
-
-echo "Syncing to static folder..."
-node scripts/sync-miniapp-static.mjs
+bash supabase/functions/miniapp/build.sh
 
 echo "Asserting bundle quality..."
 node scripts/assert-miniapp-bundle.mjs
