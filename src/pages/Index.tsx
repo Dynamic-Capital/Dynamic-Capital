@@ -17,6 +17,15 @@ const Index = () => {
         Manage Your Telegram Mini App
       </AnimatedHeading>
 
+      {/* Subscription overview */}
+      <SubscriptionStatusCard
+        onUpgrade={() => {
+          const plansSection = document.getElementById('live-plans-section');
+          plansSection?.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
+
+      {/* Quick actions */}
       <MotionCardContainer className="grid md:grid-cols-2 gap-6">
         <MotionCard className="bot-card">
           <CardHeader>
@@ -78,22 +87,14 @@ const Index = () => {
         </CardContent>
       </MotionCard>
 
-      <SystemResetButton />
-
-      {/* Live Subscription Status */}
-      <SubscriptionStatusCard 
-        onUpgrade={() => {
-          const plansSection = document.getElementById('live-plans-section');
-          plansSection?.scrollIntoView({ behavior: 'smooth' });
-        }}
-      />
-
-      {/* Live Plans Section */}
+      {/* Available plans */}
       <div id="live-plans-section">
-        <LivePlansSection showPromo={true} />
+        <LivePlansSection />
       </div>
-      
+
       <BotDashboard />
+
+      <SystemResetButton />
     </div>
   );
 };
