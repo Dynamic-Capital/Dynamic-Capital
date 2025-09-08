@@ -87,8 +87,8 @@ export default function BuildMiniApp() {
           <div className="text-sm text-muted-foreground">
             <p><strong>What this does:</strong></p>
             <ul className="list-disc list-inside space-y-1 mt-2">
-              <li>Builds the React app in the <code>miniapp/</code> directory using Vite</li>
-              <li>Syncs the built files to <code>supabase/functions/miniapp/static/</code></li>
+              <li>Builds the React app in the <code>supabase/functions/miniapp/</code> directory using Vite</li>
+              <li>Outputs the built files to <code>supabase/functions/miniapp/static/</code></li>
               <li>Makes the mini app available at the <code>/miniapp/</code> endpoint</li>
               <li>Allows serving from React build instead of storage bucket</li>
             </ul>

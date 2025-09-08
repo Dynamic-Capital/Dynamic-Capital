@@ -297,7 +297,7 @@ git push origin backup-before-cleanup
 • Remove demo/example components
 
 4️⃣ **Consolidate MiniApp:**
-• If main app has same functionality, remove miniapp/ directory
+• If main app has same functionality, remove supabase/functions/miniapp/ directory
 • Keep only active, functional components
 
 5️⃣ **Test Application:**
