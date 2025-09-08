@@ -1,8 +1,5 @@
-import { optionalEnv } from "../_shared/env.ts";
-import {
-  requireEnv as requireEnvCheck,
-  requireMiniAppEnv,
-} from "./helpers/require-env.ts";
+import { optionalEnv, checkEnv } from "../_shared/env.ts";
+import { requireMiniAppEnv, readMiniAppEnv } from "../_shared/miniapp.ts";
 import { alertAdmins } from "../_shared/alerts.ts";
 import { json, mna, ok, oops } from "../_shared/http.ts";
 import { validateTelegramHeader } from "../_shared/telegram_secret.ts";
@@ -17,7 +14,6 @@ import { createClient } from "../_shared/client.ts";
 type SupabaseClient = ReturnType<typeof createClient>;
 import { envOrSetting, getContent, getContentBatch, getFlag } from "../_shared/config.ts";
 import { buildMainMenu, type MenuSection } from "./menu.ts";
-import { readMiniAppEnv } from "../_shared/miniapp.ts";
 import {
   buildAdminCommandHandlers,
   type CommandContext,
@@ -1862,7 +1858,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
   }
 
   try {
-    const { ok: envOk, missing } = requireEnvCheck(REQUIRED_ENV_KEYS);
+    const { ok: envOk, missing } = checkEnv(REQUIRED_ENV_KEYS);
     if (!envOk) {
       console.error("Missing env vars", missing);
       return oops("Missing env vars", missing);

@@ -1,6 +1,6 @@
 import { assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { FakeSupa } from "./helpers.ts";
-import { requireMiniAppEnv } from "../telegram-bot/helpers/require-env.ts";
+import { requireMiniAppEnv } from "../_shared/miniapp.ts";
 
 Deno.test("miniapp-health: null when user not found", async () => {
   Deno.env.set("SUPABASE_URL", "https://example.com");

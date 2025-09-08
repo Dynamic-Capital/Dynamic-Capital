@@ -23,7 +23,6 @@ supabase/functions/telegram-bot/index.ts,8415,ts,290
 supabase/functions/telegram-bot/admin-handlers.ts,47196,ts,1618
 supabase/functions/telegram-bot/ocr.ts,1897,ts,52
 supabase/functions/telegram-bot/helpers/beneficiary.ts,813,ts,30
-supabase/functions/telegram-bot/helpers/require-env.ts,187,ts,4
 supabase/functions/telegram-bot/vendor/esm.sh/is-electron@2.2.2.proxied.js,165,js,3
 supabase/functions/telegram-bot/vendor/esm.sh/tesseract.js@5.1.1.proxied.js,314,js,6
 supabase/functions/telegram-bot/vendor/esm.sh/is-electron@2.2.2/index.d.ts,61,ts,2
