@@ -40,6 +40,7 @@ supabase/functions/**/.edge/
 # Mini app build & deps
 apps/mini/dist/
 apps/miniapp-react/package-lock.json
+miniapp/
 
 # Include mini app static assets for deployment
 # (previously ignored to keep directory empty)
