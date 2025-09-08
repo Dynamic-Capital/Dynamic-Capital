@@ -14,7 +14,7 @@ export const MobileBottomNav: React.FC = () => {
   return (
     <motion.nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 md:hidden",
+        "fixed bottom-0 left-0 right-0 z-50 md:hidden safe-area-bottom",
         "bg-gradient-navigation backdrop-blur-xl border-t border-border/50",
         "shadow-2xl shadow-primary/10"
       )}
