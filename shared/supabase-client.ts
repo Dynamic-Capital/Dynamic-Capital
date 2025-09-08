@@ -31,7 +31,7 @@ try {
   SUPABASE_SERVICE_ROLE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 } catch (e) {
   SUPABASE_ENV_ERROR = (e as Error).message;
-  console.error("Configuration error:", SUPABASE_ENV_ERROR);
+  console.warn("Configuration error:", SUPABASE_ENV_ERROR);
 }
 
 const queryCounts: Record<string, number> = {};

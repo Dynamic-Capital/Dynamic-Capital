@@ -19,6 +19,9 @@ import { Award, Crown, Target, DollarSign, TrendingUp, Zap, CheckCircle, Sparkle
 export const dynamic = "force-dynamic";
 
 const Landing = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
   const handleOpenTelegram = () => {
     const botUsername = "Dynamic_VIP_BOT";
     const telegramUrl = `https://t.me/${botUsername}`;
