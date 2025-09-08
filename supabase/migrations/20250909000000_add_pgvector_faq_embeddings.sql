@@ -1,5 +1,5 @@
--- Enable pgvector extension and add FAQ embeddings table
-create extension if not exists vector;
+create schema if not exists extensions;
+create extension if not exists vector with schema extensions;
 
 create table if not exists faq_embeddings (
   id bigserial primary key,
