@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { encode as hex } from "https://deno.land/std@0.224.0/encoding/hex.ts";
 import { getEnv } from "../_shared/env.ts";
-import { expectedSecret } from "../_shared/telegram_secret.ts";
+import { signHS256 } from "../_shared/jwt.ts";
 
 const BOT = getEnv("TELEGRAM_BOT_TOKEN");
 
@@ -51,15 +51,13 @@ async function verifyInitData(initData: string) {
 }
 
 async function signSession(user_id: number, ttlSeconds = 1800) {
-  // Simple HMAC session with webhook secret; replace with JWT if desired
-  const payload = JSON.stringify({
+  const secret = getEnv("SESSION_JWT_SECRET");
+  const now = Math.floor(Date.now() / 1000);
+  return await signHS256({
     sub: user_id,
-    exp: Math.floor(Date.now() / 1000) + ttlSeconds,
-  });
-  const secret = (await expectedSecret()) || "s";
-  return btoa(
-    payload + "." + secret.slice(0, 16),
-  );
+    iat: now,
+    exp: now + ttlSeconds,
+  }, secret);
 }
 
 serve(async (req) => {
@@ -108,3 +106,4 @@ serve(async (req) => {
   }
 });
 // <<< DC BLOCK: tg-verify-core (end)
+

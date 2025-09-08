@@ -84,3 +84,6 @@ verify_jwt = false
 
 [functions.linkage-audit]
 verify_jwt = false
+
+[functions.rotate-admin-secret]
+verify_jwt = false

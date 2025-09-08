@@ -40,6 +40,7 @@ export const SUPABASE_CONFIG = {
     // Bot & system
     BOT_STATUS_CHECK: 'bot-status-check',
     ROTATE_WEBHOOK_SECRET: 'rotate-webhook-secret',
+    ROTATE_ADMIN_SECRET: 'rotate-admin-secret',
     RESET_BOT: 'reset-bot',
     BROADCAST_DISPATCH: 'broadcast-dispatch',
     BUILD_MINIAPP: 'build-miniapp',
