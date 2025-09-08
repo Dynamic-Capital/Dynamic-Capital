@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { MessageSquare, Send, Loader2, Bot, X, Minimize2 } from "lucide-react";
+import { Send, Loader2, Bot, X, Minimize2, User, RotateCcw, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -16,15 +16,27 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("chat-assistant-history");
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("chat-assistant-history", JSON.stringify(messages));
+    }
+  }, [messages]);
 
   const quickSuggestions = [
     "How do I start?",
     "VIP benefits?",
     "Trading tips?",
-    "Risk management?"
+    "Risk management?",
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,49 +50,62 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
       return;
     }
 
+    const userQuestion = question.trim();
     setIsLoading(true);
-    setAnswer("");
+    setMessages((prev) => [...prev, { role: "user", content: userQuestion }]);
+    setQuestion("");
 
     try {
-      // First try to call the ai-faq-assistant function
-      const { data, error } = await supabase.functions.invoke('ai-faq-assistant', {
-        body: { 
-          question: question.trim(),
-          context: telegramData ? { telegram: telegramData } : undefined
-        }
+      const { data, error } = await supabase.functions.invoke("ai-faq-assistant", {
+        body: {
+          question: userQuestion,
+          context: telegramData ? { telegram: telegramData } : undefined,
+        },
       });
 
       if (error) {
-        // If the AI service fails, provide a helpful fallback response
-        console.warn('AI service unavailable:', error);
-        setAnswer(`I'm sorry, the AI service is temporarily unavailable. 
+        console.warn("AI service unavailable:", error);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `I'm sorry, the AI service is temporarily unavailable.
 
 Here are some quick answers to common questions:
 
 🔹 **Getting Started**: Choose a VIP plan → Make payment → Get access to our premium signals and community
-🔹 **VIP Benefits**: Real-time signals, market analysis, 24/7 support, and exclusive community access  
+🔹 **VIP Benefits**: Real-time signals, market analysis, 24/7 support, and exclusive community access
 🔹 **Trading Tips**: Always use proper risk management, never risk more than 2% per trade
 🔹 **Risk Management**: Set stop losses, use proper position sizing, and never trade with emotion
 
-💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!`);
+💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!`,
+          },
+        ]);
+        toast({
+          title: "AI service unavailable",
+          description: "Showing fallback answers. Please try again later.",
+          variant: "destructive",
+        });
         return;
       }
-      
-      
+
       if (data.answer) {
-        setAnswer(data.answer);
+        setMessages((prev) => [...prev, { role: "assistant", content: data.answer }]);
       } else {
-        throw new Error('No answer received');
+        throw new Error("No answer received");
       }
-    } catch (error) {
-      console.error('Failed to get AI answer:', error);
-      // Provide a helpful fallback response when AI service fails
-      setAnswer(`I apologize, but the AI service is currently experiencing issues. 
+    } catch (error: any) {
+      console.error("Failed to get AI answer:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `I apologize, but the AI service is currently experiencing issues.
 
 Here are some helpful resources:
 
 🔹 **Trading Questions**: Our VIP community provides real-time support and guidance
-🔹 **Platform Help**: Contact @DynamicCapital_Support for technical assistance  
+🔹 **Platform Help**: Contact @DynamicCapital_Support for technical assistance
 🔹 **Account Issues**: Email support@dynamiccapital.com for account-related questions
 🔹 **VIP Plans**: Choose from 1, 3, 6, 12 month or Lifetime VIP access
 
@@ -89,9 +114,24 @@ Here are some helpful resources:
 • Follow our premium signals for best results
 • Join our VIP community for live market analysis
 
-💡 Need immediate help? Contact @DynamicCapital_Support!`);
+💡 Need immediate help? Contact @DynamicCapital_Support!`,
+        },
+      ]);
+      toast({
+        title: "Failed to get AI answer",
+        description: error?.message || "Please try again later.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setMessages([]);
+    setQuestion("");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("chat-assistant-history");
     }
   };
 
@@ -121,6 +161,15 @@ Here are some helpful resources:
                   <CardTitle className="text-base">AI Assistant</CardTitle>
                 </div>
                 <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleReset}
+                    className="h-7 px-2 text-xs"
+                    disabled={isLoading}
+                  >
+                    <RotateCcw className="h-3 w-3 mr-1" /> Reset
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -160,6 +209,31 @@ Here are some helpful resources:
                 ))}
               </div>
 
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {messages.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={cn(
+                      "p-2 rounded-lg",
+                      msg.role === "assistant"
+                        ? "bg-primary/5 border border-primary/20"
+                        : "bg-muted"
+                    )}
+                  >
+                    <div className="flex items-start gap-2">
+                      {msg.role === "assistant" ? (
+                        <Bot className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                      ) : (
+                        <User className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      )}
+                      <div className="text-xs leading-relaxed text-foreground whitespace-pre-wrap">
+                        {msg.content}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-3">
                 <Input
                   value={question}
@@ -168,9 +242,9 @@ Here are some helpful resources:
                   className="text-sm"
                   disabled={isLoading}
                 />
-                
-                <Button 
-                  type="submit" 
+
+                <Button
+                  type="submit"
                   className="w-full"
                   size="sm"
                   disabled={isLoading || !question.trim()}
@@ -188,21 +262,10 @@ Here are some helpful resources:
                   )}
                 </Button>
               </form>
-
-              {answer && (
-                <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg max-h-40 overflow-y-auto">
-                  <div className="flex items-start gap-2">
-                    <MessageSquare className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
-                    <div className="text-xs leading-relaxed text-foreground whitespace-pre-wrap">
-                      {answer}
-                    </div>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </>
         )}
-        
+
         {isMinimized && (
           <div className="p-3">
             <div className="flex items-center justify-between">
