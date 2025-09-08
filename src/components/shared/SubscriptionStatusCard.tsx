@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Crown, Calendar, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface SubscriptionStatus {
   is_vip: boolean;
@@ -48,14 +49,9 @@ export const SubscriptionStatusCard = ({
 
   const fetchSubscriptionStatus = async (userId: string) => {
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/subscription-status', {
+      const response = await callEdgeFunction('SUBSCRIPTION_STATUS', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          telegram_user_id: userId
-        })
+        body: { telegram_user_id: userId },
       });
 
       const data = await response.json();

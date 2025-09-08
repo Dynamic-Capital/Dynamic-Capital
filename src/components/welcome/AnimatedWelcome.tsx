@@ -16,6 +16,7 @@ import {
   Zap
 } from "lucide-react";
 import { TypewriterText, StaggeredText, GradientText, MorphingText, LetterReveal } from "@/components/ui/animated-text";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface WelcomeLineProps {
   text: string;
@@ -78,14 +79,11 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
   useEffect(() => {
     const fetchWelcomeMessage = async () => {
       try {
-        const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
+        const response = await callEdgeFunction('CONTENT_BATCH', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            keys: ['welcome_message']
-          })
+          body: { keys: ['welcome_message'] },
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           const contents = data.contents || [];

@@ -55,25 +55,26 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
     
     if (!cached || !cacheTime || (Date.now() - parseInt(cacheTime)) >= 3600000) {
       setIsLoading(true);
-      fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: ['usd_mvr_rate'] })
-      })
-      .then(res => res.json())
-      .then(data => {
-        const rateContent = data.contents?.find((c: any) => c.content_key === 'usd_mvr_rate');
-        if (rateContent) {
-          const rate = parseFloat(rateContent.content_value) || 17.5;
-          setExchangeRate(rate);
-          localStorage.setItem('usd_mvr_rate', rate.toString());
-          localStorage.setItem('usd_mvr_rate_time', Date.now().toString());
-        }
-      })
-      .catch(() => {
-        // Keep default rate on error
-      })
-      .finally(() => setIsLoading(false));
+      import('@/config/supabase')
+        .then(({ callEdgeFunction }) =>
+          callEdgeFunction('CONTENT_BATCH', {
+            method: 'POST',
+            body: { keys: ['usd_mvr_rate'] },
+          }).then(res => res.json())
+        )
+        .then((data: { contents?: { content_key: string; content_value: string }[] }) => {
+          const rateContent = data.contents?.find(c => c.content_key === 'usd_mvr_rate');
+          if (rateContent) {
+            const rate = parseFloat(rateContent.content_value) || 17.5;
+            setExchangeRate(rate);
+            localStorage.setItem('usd_mvr_rate', rate.toString());
+            localStorage.setItem('usd_mvr_rate_time', Date.now().toString());
+          }
+        })
+        .catch(() => {
+          // Keep default rate on error
+        })
+        .finally(() => setIsLoading(false));
     }
   }, []);
 

@@ -18,6 +18,7 @@ import { MotionCard } from "@/components/ui/motion-card";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { cardVariants } from "@/lib/motion-variants";
 import { toast } from "sonner";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface SubscriptionStatus {
   is_vip: boolean;
@@ -46,14 +47,11 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
     }
 
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/subscription-status', {
+      const response = await callEdgeFunction('SUBSCRIPTION_STATUS', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          telegram_id: telegramData.user.id
-        })
+        body: { telegram_id: telegramData.user.id },
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch subscription status');
       }

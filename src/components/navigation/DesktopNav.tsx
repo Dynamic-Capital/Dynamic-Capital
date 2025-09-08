@@ -3,63 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { 
-  Home, 
-  CreditCard, 
-  Settings, 
-  GraduationCap,
-  User,
-  LogIn,
-  MessageCircle,
-  TrendingUp,
-  Zap
-} from "lucide-react";
+import { CreditCard, User, LogIn, Zap } from "lucide-react";
+import NAV_ITEMS from "./nav-items";
 
-interface NavItem {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-  path: string;
-  ariaLabel: string;
-}
-
-const navItems: NavItem[] = [
-  {
-    id: "home",
-    label: "Home",
-    icon: Home,
-    path: "/",
-    ariaLabel: "Navigate to home page"
-  },
-  {
-    id: "plans",
-    label: "VIP Plans",
-    icon: TrendingUp,
-    path: "/plans",
-    ariaLabel: "View VIP subscription plans"
-  },
-  {
-    id: "education",
-    label: "Academy",
-    icon: GraduationCap,
-    path: "/education",
-    ariaLabel: "Access trading academy"
-  },
-  {
-    id: "contact",
-    label: "Support",
-    icon: MessageCircle,
-    path: "/contact",
-    ariaLabel: "Contact support team"
-  },
-  {
-    id: "dashboard",
-    label: "Dashboard",
-    icon: Settings,
-    path: "/dashboard",
-    ariaLabel: "View member dashboard"
-  }
-];
+const navItems = NAV_ITEMS;
 
 export const DesktopNav: React.FC = () => {
   const location = useLocation();

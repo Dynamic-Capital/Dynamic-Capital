@@ -20,6 +20,7 @@ import { PaymentOptions } from "./PaymentOptions";
 import { CurrencySelector } from "./CurrencySelector";
 import { useCurrency } from "@/hooks/useCurrency";
 import { toast } from "sonner";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface Plan {
   id: string;
@@ -51,7 +52,7 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
 
   useEffect(() => {
     // Fetch plans
-    fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans')
+    callEdgeFunction('PLANS')
       .then(res => res.json())
       .then(plansData => {
         setPlans(plansData.plans || []);
@@ -85,16 +86,15 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
 
     setInitiatingCheckout(true);
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/checkout-init', {
+      const response = await callEdgeFunction('CHECKOUT_INIT', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           plan_id: selectedPlan.id,
           method: paymentMethod,
           currency,
           amount: getDisplayPrice(selectedPlan),
-          initData: isInTelegram ? window.Telegram?.WebApp?.initData : undefined
-        })
+          initData: isInTelegram ? window.Telegram?.WebApp?.initData : undefined,
+        },
       });
 
       const data = await response.json();

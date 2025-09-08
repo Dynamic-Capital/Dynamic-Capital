@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Shield, ExternalLink, Copy, KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface AdminGateProps {
   children: React.ReactNode;
@@ -50,14 +51,9 @@ export function AdminGate({ children }: AdminGateProps) {
   const authenticateWithInitData = async (initDataToUse: string) => {
     setIsAuthenticating(true);
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-session', {
+      const response = await callEdgeFunction('ADMIN_SESSION', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          initData: initDataToUse
-        })
+        body: { initData: initDataToUse },
       });
 
       const data = await response.json();

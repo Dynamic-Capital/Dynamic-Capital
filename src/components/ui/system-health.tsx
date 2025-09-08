@@ -16,6 +16,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { toast } from "sonner";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface HealthCheck {
   status: "ok" | "error" | "warning";
@@ -54,7 +55,7 @@ export function SystemHealth({ className, showDetails = false }: SystemHealthPro
   const checkHealth = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/web-app-health');
+      const response = await callEdgeFunction('WEB_APP_HEALTH');
       
       if (!response.ok) {
         throw new Error('Health check failed');

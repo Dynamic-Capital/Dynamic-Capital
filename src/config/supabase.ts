@@ -25,6 +25,7 @@ export const SUPABASE_CONFIG = {
     ADMIN_LOGS: 'admin-logs',
     ADMIN_ACT_ON_PAYMENT: 'admin-act-on-payment',
     ADMIN_LIST_PENDING: 'admin-list-pending',
+    ADMIN_CHECK: 'admin-check',
     
     // Bot & system
     BOT_STATUS_CHECK: 'bot-status-check',
@@ -32,6 +33,7 @@ export const SUPABASE_CONFIG = {
     RESET_BOT: 'reset-bot',
     BROADCAST_DISPATCH: 'broadcast-dispatch',
     WEB_APP_HEALTH: 'web-app-health',
+    MINIAPP_HEALTH: 'miniapp-health',
     THEME_GET: 'theme-get',
     THEME_SAVE: 'theme-save',
     

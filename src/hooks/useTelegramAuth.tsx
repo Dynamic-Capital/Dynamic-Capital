@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
+import { callEdgeFunction, buildFunctionUrl } from '@/config/supabase';
 
 interface TelegramUser {
   id: number;
@@ -83,14 +84,9 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       const dataToVerify = initDataString || initData;
       if (!dataToVerify) return false;
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/verify-initdata', {
+      const response = await callEdgeFunction('VERIFY_INITDATA', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          initData: dataToVerify
-        })
+        body: { initData: dataToVerify },
       });
 
       const result = await response.json();
@@ -108,14 +104,9 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
 
       // Prefer using initData for admin check
       if (initData) {
-        const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-check', {
+        const response = await callEdgeFunction('ADMIN_CHECK', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            initData: initData
-          })
+          body: { initData: initData },
         });
 
         const result = await response.json();
@@ -124,14 +115,9 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
         return adminStatus;
       } else {
         // Fallback to telegram_user_id check
-        const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-check', {
+        const response = await callEdgeFunction('ADMIN_CHECK', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            telegram_user_id: userIdToCheck
-          })
+          body: { telegram_user_id: userIdToCheck },
         });
 
         const result = await response.json();
@@ -147,14 +133,9 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
 
   const checkVipStatus = async (userId: string): Promise<boolean> => {
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp-health', {
+      const response = await callEdgeFunction('MINIAPP_HEALTH', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          telegram_id: userId
-        })
+        body: { telegram_id: userId },
       });
 
       const result = await response.json();
@@ -167,14 +148,14 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
 
   const syncUser = async (initDataString: string): Promise<void> => {
     try {
-      await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/api/sync-user', {
+      await fetch(`${buildFunctionUrl('MINIAPP')}/api/sync-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          initData: initDataString
-        })
+          initData: initDataString,
+        }),
       });
     } catch (error) {
       console.error('Failed to sync user:', error);
