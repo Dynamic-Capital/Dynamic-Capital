@@ -97,10 +97,10 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
 
   useEffect(() => {
     // Check if running inside Telegram
-    const isInTelegram = window.Telegram?.WebApp?.initData;
-    setIsTelegram(!!isInTelegram);
-    if (isInTelegram) {
-      setTelegramInitData(window.Telegram.WebApp.initData);
+    const tgInitData = window.Telegram?.WebApp?.initData;
+    setIsTelegram(!!tgInitData);
+    if (tgInitData) {
+      setTelegramInitData(tgInitData);
       logger.log("Running inside Telegram WebApp");
     }
 
@@ -113,6 +113,12 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
       setSelectedPlan(plan || plans[0]);
     }
   }, [selectedPlanId, plans]);
+
+  useEffect(() => {
+    if (currentStep === "pending") {
+      setShowReceipt(true);
+    }
+  }, [currentStep]);
 
 
   const validatePromoCode = async () => {
@@ -318,15 +324,9 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     );
   }
 
-  const finalPrice = calculateFinalPrice();
+    const finalPrice = calculateFinalPrice();
 
-  useEffect(() => {
-    if (currentStep === "pending") {
-      setShowReceipt(true);
-    }
-  }, [currentStep]);
-
-  const DigitalReceipt = ({ onClose }: { onClose: () => void }) => (
+    const DigitalReceipt = ({ onClose }: { onClose: () => void }) => (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}

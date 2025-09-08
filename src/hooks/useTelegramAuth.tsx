@@ -126,8 +126,8 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
   }, [verifyTelegramAuth, syncUser, checkAdminStatus, checkVipStatus]);
 
   useEffect(() => {
-    if (window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
       const telegramInitData = tg.initData;
       setInitData(telegramInitData);
 

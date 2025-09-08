@@ -2,7 +2,7 @@ const isDev = (() => {
   try {
     return import.meta.env.MODE !== 'production';
   } catch {
-    return process.env.NODE_ENV !== 'production';
+    return true;
   }
 })();
 

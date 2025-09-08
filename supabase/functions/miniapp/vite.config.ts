@@ -21,5 +21,8 @@ export default defineConfig({
   css: {
     postcss: './postcss.config.js',
   },
-  base: './',
+  base: '/',
+  server: {
+    strictPort: true,
+  },
 })
