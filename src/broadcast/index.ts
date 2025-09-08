@@ -16,7 +16,7 @@ export async function resolveTargets(
   if (segment && Array.isArray((segment as { userIds?: number[] }).userIds)) {
     return (segment as { userIds: number[] }).userIds;
   }
-  return [];
+  throw new Error("Invalid broadcast segment");
 }
 
 function sleep(ms: number) {
@@ -28,7 +28,13 @@ export async function planBroadcast(opts: PlanBroadcastOptions) {
     throw new Error("Broadcasts disabled");
   }
   const { segment, text, media, chunkSize = 25, pauseMs = 500 } = opts;
-  const targets = await resolveTargets(segment);
+  let targets: number[];
+  try {
+    targets = await resolveTargets(segment);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
   for (let i = 0; i < targets.length; i += chunkSize) {
     const chunk = targets.slice(i, i + chunkSize);
     enqueue("broadcast:sendBatch", { userIds: chunk, text, media }, {

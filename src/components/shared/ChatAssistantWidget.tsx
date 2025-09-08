@@ -7,10 +7,19 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
+export interface TelegramAuthData {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+}
+
 interface ChatAssistantWidgetProps {
-  telegramData?: any;
+  telegramData?: TelegramAuthData;
   className?: string;
 }
+
+const MAX_HISTORY = 50; // cap history to avoid unbounded localStorage growth
 
 export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,11 +29,20 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("chat-assistant-history");
-      return stored ? JSON.parse(stored) : [];
+      return stored ? (JSON.parse(stored) as { role: "user" | "assistant"; content: string }[]).slice(-MAX_HISTORY) : [];
     }
     return [];
   });
   const { toast } = useToast();
+
+  const appendMessages = (
+    ...msgs: { role: "user" | "assistant"; content: string }[]
+  ) => {
+    setMessages((prev) => {
+      const next = [...prev, ...msgs];
+      return next.slice(-MAX_HISTORY);
+    });
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -52,7 +70,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
 
     const userQuestion = question.trim();
     setIsLoading(true);
-    setMessages((prev) => [...prev, { role: "user", content: userQuestion }]);
+    appendMessages({ role: "user", content: userQuestion });
     setQuestion("");
 
     try {
@@ -65,11 +83,9 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
 
       if (error) {
         console.warn("AI service unavailable:", error);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: `I'm sorry, the AI service is temporarily unavailable.
+        appendMessages({
+          role: "assistant",
+          content: `I'm sorry, the AI service is temporarily unavailable.
 
 Here are some quick answers to common questions:
 
@@ -79,8 +95,7 @@ Here are some quick answers to common questions:
 🔹 **Risk Management**: Set stop losses, use proper position sizing, and never trade with emotion
 
 💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!`,
-          },
-        ]);
+        });
         toast({
           title: "AI service unavailable",
           description: "Showing fallback answers. Please try again later.",
@@ -90,17 +105,15 @@ Here are some quick answers to common questions:
       }
 
       if (data.answer) {
-        setMessages((prev) => [...prev, { role: "assistant", content: data.answer }]);
+        appendMessages({ role: "assistant", content: data.answer });
       } else {
         throw new Error("No answer received");
       }
     } catch (error: any) {
       console.error("Failed to get AI answer:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: `I apologize, but the AI service is currently experiencing issues.
+      appendMessages({
+        role: "assistant",
+        content: `I apologize, but the AI service is currently experiencing issues.
 
 Here are some helpful resources:
 
@@ -115,8 +128,7 @@ Here are some helpful resources:
 • Join our VIP community for live market analysis
 
 💡 Need immediate help? Contact @DynamicCapital_Support!`,
-        },
-      ]);
+      });
       toast({
         title: "Failed to get AI answer",
         description: error?.message || "Please try again later.",

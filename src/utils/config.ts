@@ -15,19 +15,28 @@ const SUPABASE_KEY =
     ? process.env.SUPABASE_ANON_KEY
     : import.meta.env?.SUPABASE_ANON_KEY) || "";
 
-async function call<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+import { withRetry } from "./retry.ts";
+
+async function call<T>(
+  action: string,
+  payload: Record<string, unknown> = {},
+): Promise<T> {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     throw new Error("Missing Supabase configuration");
   }
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/config`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-    },
-    body: JSON.stringify({ action, ...payload }),
-  });
+  const res = await withRetry(
+    () =>
+      fetch(`${SUPABASE_URL}/functions/v1/config`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+        body: JSON.stringify({ action, ...payload }),
+      }),
+    3,
+  );
   if (!res.ok) {
     throw new Error(`Config edge function error: ${await res.text()}`);
   }
