@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
 import { ok, bad, unauth, mna } from "../_shared/http.ts";
-import { getEnv } from "../_shared/env.ts";
+import { envOrSetting } from "../_shared/config.ts";
+import { signHS256 } from "../_shared/jwt.ts";
 
 serve(async (req) => {
   const corsHeaders = {
@@ -45,37 +46,22 @@ serve(async (req) => {
 
   // Generate admin session token
   try {
-    const secret = getEnv("ADMIN_API_SECRET");
-    const exp = Math.floor(Date.now() / 1000) + (60 * 60); // 1 hour
-    
-    const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-    const payload = btoa(JSON.stringify({ 
-      sub: user.id.toString(), 
-      exp, 
-      iat: Math.floor(Date.now() / 1000),
-      admin: true
-    }));
-    
-    const key = await crypto.subtle.importKey(
-      "raw",
-      new TextEncoder().encode(secret),
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"]
-    );
-    
-    const signature = await crypto.subtle.sign(
-      "HMAC",
-      key,
-      new TextEncoder().encode(`${header}.${payload}`)
-    );
-    
-    const token = `${header}.${payload}.${btoa(String.fromCharCode(...new Uint8Array(signature)))}`;
-    
-    return new Response(JSON.stringify({ 
+    const secret = await envOrSetting("ADMIN_API_SECRET");
+    if (!secret) throw new Error("Missing ADMIN_API_SECRET");
+    const now = Math.floor(Date.now() / 1000);
+    const exp = now + (60 * 60); // 1 hour
+
+    const token = await signHS256({
+      sub: user.id.toString(),
+      exp,
+      iat: now,
+      admin: true,
+    }, secret);
+
+    return new Response(JSON.stringify({
       token,
       exp,
-      user_id: user.id.toString()
+      user_id: user.id.toString(),
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

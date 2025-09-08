@@ -28,6 +28,7 @@ example value, and where it's referenced in the repository.
 | `TELEGRAM_BOT_USERNAME`   | Bot's public username for referral links.                    | No       | `mybot`                                          | `supabase/functions/referral-link/index.ts`                          |
 | `NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET` | Client-side copy of webhook secret for edge function calls. | No       | `longrandomsecret`                          | `src/config/supabase.ts`                                            |
 | `TELEGRAM_ID`             | Telegram user ID used for health checks.                     | No       | `123456789`                                      | `scripts/miniapp-health-check.ts`                                    |
+| `SESSION_JWT_SECRET`      | Signing key for Mini App session JWTs.                       | Yes      | `hexstring`                         | `supabase/functions/tg-verify-init/index.ts`                         |
 
 ## Mini App
 
@@ -58,8 +59,7 @@ example value, and where it's referenced in the repository.
 | `SESSION_TIMEOUT_MINUTES` | Minutes of inactivity before a user session is terminated. | No                  | `30`              | `supabase/functions/cleanup-old-sessions/index.ts`                                                      |
 | `FOLLOW_UP_DELAY_MINUTES` | Minutes of inactivity before sending follow-up messages.   | No                  | `10`              | `supabase/functions/cleanup-old-sessions/index.ts`                                                      |
 | `MAX_FOLLOW_UPS`          | Maximum number of follow-up messages to send per user.     | No                  | `3`               | `supabase/functions/cleanup-old-sessions/index.ts`                                                      |
-| `ADMIN_API_SECRET`        | Shared secret for privileged admin endpoints.              | Yes for admin tasks | `hexstring`       | `supabase/functions/rotate-webhook-secret/index.ts`, `supabase/functions/admin-review-payment/index.ts` |
-
+| `ADMIN_API_SECRET`        | Shared secret for privileged admin endpoints.              | Yes for admin tasks | `hexstring`      | `supabase/functions/admin-session/index.ts`, `supabase/functions/rotate-admin-secret/index.ts`, `supabase/functions/rotate-webhook-secret/index.ts`, `supabase/functions/admin-review-payment/index.ts` |
 ## Misc
 
 | Key                   | Purpose                                  | Required | Example                   | Used in                           |
