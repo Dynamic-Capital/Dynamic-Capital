@@ -17,11 +17,11 @@ async function importKey(token: string) {
   );
 }
 
-export async function verifyTelegramInitData(
+export async function verifyInitData(
   initData: string,
   windowSec = 900,
   token = getEnv("TELEGRAM_BOT_TOKEN"),
-) {
+): Promise<boolean> {
   if (!initData) return false;
   const key = await importKey(token);
   const params = new URLSearchParams(initData);
@@ -39,3 +39,6 @@ export async function verifyTelegramInitData(
   const age = Math.floor(Date.now() / 1000) - auth;
   return !(windowSec > 0 && (isNaN(auth) || age > windowSec));
 }
+
+// Backwards compatibility export
+export { verifyInitData as verifyTelegramInitData };
