@@ -2,7 +2,6 @@ path,size_bytes,ext,loc
 .env.example,362,example,16
 tsconfig.json,381,json,19
 .denoignore,123,denoignore,13
-vite.config.ts,471,ts,22
 deno.json,707,json,20
 supabase/functions/test-bot-status/index.ts,2175,ts,74
 supabase/functions/telegram-getwebhook/index.ts,1116,ts,37
@@ -145,7 +144,6 @@ src/utils/config.ts,5173,ts,196
 src/utils/retry.ts,370,ts,14
 src/utils/cache.ts,2050,ts,96
 src/utils/http-ca.ts,212,ts,7
-src/vite-env.d.ts,38,ts,1
 src/pages/RefreshBot.tsx,1666,tsx,61
 src/pages/Auth.tsx,718,tsx,30
 src/pages/Index.tsx,232,tsx,13

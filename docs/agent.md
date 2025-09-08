@@ -242,7 +242,7 @@ This integration enhances the development experience by combining the power of A
 **These areas are designed for UI improvements:**
 
 - **React Components**: All files in `src/components/`
-- **Pages & Routing**: `src/pages/` directory
+- **Pages & Routing**: `app/` directory (Next.js App Router)
 - **Styling & Theming**: `src/index.css`, `tailwind.config.ts`
 - **UI Component Library**: `src/components/ui/`
 - **Frontend Hooks**: `src/hooks/` (UI state only)

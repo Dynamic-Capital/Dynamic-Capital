@@ -148,8 +148,6 @@ async function identifyUnusedFiles(): Promise<string[]> {
     
     // Unused components
     'src/components/welcome/WelcomeMessage.tsx', // If not used in main app
-    'src/pages/NotFound.tsx', // If using a different 404 page
-    'src/pages/RefreshBot.tsx', // If functionality moved
     
     // Redundant scripts
     'scripts/audit/**', // If automated
@@ -192,11 +190,10 @@ async function getCleanupStatus(supabase: any) {
 const RECOMMENDED_STRUCTURE = {
   keep: [
     // Core application files
-    'src/App.tsx',
-    'src/main.tsx',
+    'app/**',
     'src/index.css',
     'tailwind.config.ts',
-    'vite.config.ts',
+    'next.config.mjs',
     'tsconfig.json',
     'package.json',
     
@@ -206,12 +203,9 @@ const RECOMMENDED_STRUCTURE = {
     'src/components/navigation/**', // Navigation
     'src/components/admin/ContactInfo.tsx', // Active admin components
     
-    // Essential pages
-    'src/pages/Index.tsx',
-    'src/pages/Contact.tsx',
-    'src/pages/Plans.tsx',
-    'src/pages/Checkout.tsx',
-    'src/pages/AdminDashboard.tsx',
+    // App router pages
+    'app/page.tsx',
+    'app/**/page.tsx',
     
     // Core hooks and utilities
     'src/hooks/**',
@@ -232,9 +226,6 @@ const RECOMMENDED_STRUCTURE = {
   remove: [
     // Duplicate or old components
     'src/components/admin/BotDebugger.tsx', // If functionality moved
-    'src/pages/BuildMiniApp.tsx', // If not used
-    'src/pages/UploadMiniApp.tsx', // If not used
-    'src/pages/MiniAppDemo.tsx', // If demo not needed
     
     // Development-only files
     'scripts/audit/**',

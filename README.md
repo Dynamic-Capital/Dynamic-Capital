@@ -102,7 +102,7 @@ graph TD
 **These areas are safe for UI improvements:**
 
 - **React Components**: All files in `src/components/`
-- **Pages**: All files in `src/pages/`
+- **Pages**: All files in `app/`
 - **Styling**: `src/index.css`, `tailwind.config.ts`
 - **UI Library**: `src/components/ui/`
 - **Hooks**: `src/hooks/` (UI-related only)

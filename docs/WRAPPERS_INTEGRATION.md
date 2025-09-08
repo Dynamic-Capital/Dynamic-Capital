@@ -43,7 +43,7 @@ CREATE FOREIGN TABLE s3_files (
 
 ## Application Usage
 
-Wrapper-backed tables can be queried from both the Vite React app and the Telegram bot. Helper functions are provided in `src/integrations/wrappers/queries.ts`:
+Wrapper-backed tables can be queried from both the Next.js app and the Telegram bot. Helper functions are provided in `src/integrations/wrappers/queries.ts`:
 
 ```ts
 import { getRedisSession, getAuth0User, listS3Files } from "@/integrations/wrappers";
