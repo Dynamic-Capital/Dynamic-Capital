@@ -131,7 +131,7 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
         iconColor = "text-green-500";
       } else if (cleanLine.includes('Join') || cleanLine.includes('traders')) {
         icon = Target;
-        iconColor = "text-purple-500";
+        iconColor = "text-primary";
       } else if (cleanLine.includes('VIP') || cleanLine.includes('Capital')) {
         icon = Crown;
         iconColor = "text-amber-500";
@@ -188,7 +188,7 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
         >
           <GradientText 
             text="Professional Trading • Premium Signals • VIP Support"
-            gradient="from-primary via-purple-500 to-pink-500"
+            gradient="from-primary via-accent to-accent"
             className="text-xl sm:text-2xl font-semibold mb-8 text-center font-inter block"
             animate={true}
             animationDuration={5}

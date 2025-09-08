@@ -30,7 +30,7 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
       title: "What would you like to do?",
       subtitle: "Choose your trading journey",
       emoji: "🚀",
-      color: "from-purple-500/20 to-pink-500/20"
+      color: "from-primary/20 to-accent/20"
     }
   ];
 

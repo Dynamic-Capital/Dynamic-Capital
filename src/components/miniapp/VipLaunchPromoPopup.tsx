@@ -50,7 +50,7 @@ export const VipLaunchPromoPopup = ({ isOpen, onClose, onApplyPromo }: PromoPopu
             <div className="space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <Gift className="h-6 w-6 text-primary animate-bounce" />
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   VIP Bot Launch!
                 </span>
               </div>
@@ -79,12 +79,12 @@ export const VipLaunchPromoPopup = ({ isOpen, onClose, onApplyPromo }: PromoPopu
             </p>
           </div>
 
-          <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 ui-rounded-lg ui-p-base ui-stack-base">
+          <div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 ui-rounded-lg ui-p-base ui-stack-base">
             <div className="text-center ui-stack-sm">
               <p className="text-body-sm font-medium text-foreground">Your exclusive promo code:</p>
               <div 
                 onClick={handleCopyCode}
-                className="bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 ui-rounded-lg ui-p-base cursor-pointer hover:from-primary/30 hover:to-purple-500/30 transition-all duration-300 group"
+                className="bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 ui-rounded-lg ui-p-base cursor-pointer hover:from-primary/30 hover:to-accent/30 transition-all duration-300 group"
               >
                 <code className="text-heading font-mono font-bold text-primary group-hover:scale-105 transition-transform inline-block">
                   {promoCode}
@@ -104,7 +104,7 @@ export const VipLaunchPromoPopup = ({ isOpen, onClose, onApplyPromo }: PromoPopu
           <div className="ui-stack-base">
             <Button 
               onClick={handleApplyNow}
-              className="w-full liquid-glass-button bg-gradient-to-r from-primary/20 to-purple-500/20 hover:from-primary/30 hover:to-purple-500/30 text-foreground font-semibold ui-p-base animate-pulse-glow"
+              className="w-full liquid-glass-button bg-gradient-to-r from-primary/20 to-accent/20 hover:from-primary/30 hover:to-accent/30 text-foreground font-semibold ui-p-base animate-pulse-glow"
             >
               <Gift className="icon-xs ui-mr-xs" />
               Apply & Choose Plan

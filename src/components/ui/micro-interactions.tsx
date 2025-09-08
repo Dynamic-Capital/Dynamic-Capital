@@ -206,7 +206,7 @@ export function MicroCard({
     >
       {variant === 'glow' && (
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-primary/10 via-purple-500/10 to-primary/10 rounded-xl"
+          className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-xl"
           animate={{
             opacity: [0.3, 0.6, 0.3],
             scale: [1, 1.01, 1]

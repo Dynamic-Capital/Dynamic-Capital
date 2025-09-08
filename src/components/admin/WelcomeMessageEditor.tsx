@@ -347,7 +347,7 @@ Choose an option below:`,
                         Dynamic Capital VIP Bot
                       </span>
                     </div>
-                    <div className="whitespace-pre-wrap text-sm bg-white rounded-lg p-3 shadow-sm">
+                    <div className="whitespace-pre-wrap text-sm bg-background text-foreground rounded-lg p-3 shadow-sm">
                       {editedMessage || "Enter a message to see preview..."}
                     </div>
                   </div>
