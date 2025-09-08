@@ -3,7 +3,8 @@
     "https://esm.sh/tesseract.js@5?dts": "./esm.sh/tesseract.js@5.1.1.js",
     "https://esm.sh/@supabase/supabase-js@2": "./esm.sh/@supabase/supabase-js@2.js",
     "https://esm.sh/@supabase/supabase-js@2.53.0": "./esm.sh/@supabase/supabase-js@2.53.0.js",
-    "https://esm.sh/": "./esm.sh/"
+    "https://esm.sh/": "./esm.sh/",
+    "@supabase/supabase-js": "./esm.sh/@supabase/supabase-js@2.js"
   },
   "scopes": {
     "./esm.sh/": {
