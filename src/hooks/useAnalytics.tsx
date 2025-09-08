@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+// Client-only hook: interacts with window, document, and navigator
+
 interface AnalyticsEvent {
   event_type: string;
   telegram_user_id?: string;
@@ -24,25 +26,25 @@ export const useAnalytics = () => {
 
   const trackEvent = useCallback(async (event: AnalyticsEvent) => {
     try {
-      // Add browser information
-      const eventWithContext = {
+      const eventWithContext: AnalyticsEvent = {
         ...event,
         session_id: sessionId.current,
-        user_agent: navigator.userAgent,
-        referrer: document.referrer,
-        page_context: window.location.pathname + window.location.search,
       };
+      if (typeof window !== 'undefined') {
+        eventWithContext.user_agent = navigator.userAgent;
+        eventWithContext.referrer = document.referrer;
+        eventWithContext.page_context = window.location.pathname + window.location.search;
 
-      // Extract UTM parameters from URL
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('utm_source')) {
-        eventWithContext.utm_source = urlParams.get('utm_source')!;
-      }
-      if (urlParams.get('utm_medium')) {
-        eventWithContext.utm_medium = urlParams.get('utm_medium')!;
-      }
-      if (urlParams.get('utm_campaign')) {
-        eventWithContext.utm_campaign = urlParams.get('utm_campaign')!;
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('utm_source')) {
+          eventWithContext.utm_source = urlParams.get('utm_source')!;
+        }
+        if (urlParams.get('utm_medium')) {
+          eventWithContext.utm_medium = urlParams.get('utm_medium')!;
+        }
+        if (urlParams.get('utm_campaign')) {
+          eventWithContext.utm_campaign = urlParams.get('utm_campaign')!;
+        }
       }
 
       // Call analytics edge function
@@ -62,7 +64,7 @@ export const useAnalytics = () => {
     trackEvent({
       event_type: 'page_view',
       interaction_data: {
-        page: page || window.location.pathname,
+        page: page || (typeof window !== 'undefined' ? window.location.pathname : undefined),
         timestamp: new Date().toISOString(),
       },
     });
@@ -126,8 +128,10 @@ export const useAnalytics = () => {
 
   const trackTelegramUser = useCallback((telegramUserId: string) => {
     // Store telegram user ID for future events in this session
-    sessionStorage.setItem('telegram_user_id', telegramUserId);
-    
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('telegram_user_id', telegramUserId);
+    }
+
     trackEvent({
       event_type: 'telegram_user_identified',
       telegram_user_id: telegramUserId,
@@ -139,7 +143,7 @@ export const useAnalytics = () => {
 
   // Enhanced tracking with telegram user context
   const trackWithTelegramContext = useCallback((event: Omit<AnalyticsEvent, 'telegram_user_id'>) => {
-    const telegramUserId = sessionStorage.getItem('telegram_user_id');
+    const telegramUserId = typeof window !== 'undefined' ? sessionStorage.getItem('telegram_user_id') : null;
     trackEvent({
       ...event,
       telegram_user_id: telegramUserId || undefined,
