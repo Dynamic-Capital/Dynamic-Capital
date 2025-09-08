@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getProfile } from "@/integrations/supabase/queries";
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +26,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: () => getProfile(user!.id),
+    enabled: !!user,
+  });
+
+  useEffect(() => {
+    setIsAdmin(profile?.role === 'admin');
+  }, [profile]);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -31,26 +44,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-
-        // Check admin status when user changes
-        if (session?.user) {
-          (async () => {
-            try {
-              const { data: profile } = await supabase
-                .from("profiles")
-                .select("role")
-                .eq("id", session.user.id)
-                .single();
-
-              setIsAdmin(profile?.role === "admin");
-            } catch (error) {
-              console.error("Error checking admin status:", error);
-              setIsAdmin(false);
-            }
-          })();
-        } else {
-          setIsAdmin(false);
-        }
 
         setLoading(false);
       },
@@ -104,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("selectedPlanId");
       localStorage.removeItem("paymentId");
       localStorage.removeItem("pending_payment_id");
+      queryClient.removeQueries({ queryKey: ['profile'] });
     } catch {
       /* ignore */
     }

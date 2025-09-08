@@ -44,7 +44,7 @@ export function BroadcastManager() {
         throw new Error("No admin authentication available");
       }
 
-      const { data } = await callEdgeFunction('BROADCAST_DISPATCH', {
+      const { data, error } = await callEdgeFunction('BROADCAST_DISPATCH', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -55,7 +55,10 @@ export function BroadcastManager() {
         }
       });
 
-      if ((data as any)?.ok) {
+      if (error) {
+        console.warn('Failed to load broadcasts:', error.message);
+        setMessages([]);
+      } else if ((data as any)?.ok) {
         setMessages((data as any).messages || []);
       } else {
         console.warn('Failed to load broadcasts:', (data as any)?.error);
@@ -86,7 +89,7 @@ export function BroadcastManager() {
         throw new Error("No admin authentication available");
       }
 
-      const { data } = await callEdgeFunction('BROADCAST_DISPATCH', {
+      const { data, error } = await callEdgeFunction('BROADCAST_DISPATCH', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -100,6 +103,10 @@ export function BroadcastManager() {
           scheduled_at: scheduledTime || undefined
         }
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       if ((data as any)?.ok) {
         toast({

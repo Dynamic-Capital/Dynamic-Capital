@@ -152,6 +152,23 @@ curl -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/verify-initdata 
 - Test in both light and dark modes
 - Follow mobile-first responsive design
 
+### Edge Function Error Handling
+
+Use the `callEdgeFunction` helper to invoke Supabase Edge Functions. It returns an
+object with optional `data` and `error` fields instead of throwing on failure:
+
+```ts
+const { data, error } = await callEdgeFunction<MyType>('FUNCTION_NAME');
+if (error) {
+  // handle error.message / error.status
+} else {
+  // use typed data
+}
+```
+
+This pattern keeps error handling consistent across the app and avoids
+unhandled promise rejections.
+
 ## Privacy & security
 
 No secrets in this repo; uses environment variables. Service role keys used only

@@ -79,22 +79,21 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
   useEffect(() => {
     const fetchWelcomeMessage = async () => {
       try {
-        const { data, status } = await callEdgeFunction('CONTENT_BATCH', {
+        const { data, error } = await callEdgeFunction('CONTENT_BATCH', {
           method: 'POST',
           body: { keys: ['welcome_message'] },
         });
 
-        if (status === 200 && data) {
+        if (!error && data) {
           const contents = (data as any).contents || [];
           const welcomeContent = contents.find((c: any) => c.content_key === 'welcome_message');
 
           if (welcomeContent?.content_value) {
             setWelcomeMessage(welcomeContent.content_value);
           }
+        } else if (error) {
+          console.error('Failed to fetch welcome message:', error.message);
         }
-      } catch (error) {
-        console.error('Failed to fetch welcome message:', error);
-        // Keep default fallback message
       } finally {
         setLoading(false);
         // Show stats after message loads and animation completes

@@ -45,7 +45,11 @@ const Plans: React.FC = () => {
   const fetchPlans = async () => {
     try {
       setLoading(true);
-      const { data } = await callEdgeFunction('PLANS');
+      const { data, error } = await callEdgeFunction('PLANS');
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       if ((data as any)?.plans) {
         setPlans((data as any).plans);

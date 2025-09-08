@@ -31,7 +31,7 @@ export function BotDiagnostics() {
         throw new Error("No admin authentication available");
       }
 
-      const { data } = await callEdgeFunction('BOT_STATUS_CHECK', {
+      const { data, error } = await callEdgeFunction('BOT_STATUS_CHECK', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -41,7 +41,10 @@ export function BotDiagnostics() {
         }
       });
 
-      if ((data as any)?.ok) {
+      if (error) {
+        console.warn('Failed to load bot status:', error.message);
+        setBotStatus(null);
+      } else if ((data as any)?.ok) {
         setBotStatus(data as BotStatus);
       } else {
         console.warn('Failed to load bot status:', (data as any)?.error);
@@ -63,7 +66,7 @@ export function BotDiagnostics() {
         throw new Error("No admin authentication available");
       }
 
-      const { data } = await callEdgeFunction('ROTATE_WEBHOOK_SECRET', {
+      const { data, error } = await callEdgeFunction('ROTATE_WEBHOOK_SECRET', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -72,6 +75,10 @@ export function BotDiagnostics() {
           ...(auth.initData ? { initData: auth.initData } : {})
         }
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       if ((data as any)?.ok) {
         toast({
@@ -101,7 +108,7 @@ export function BotDiagnostics() {
         throw new Error("No admin authentication available");
       }
 
-      const { data } = await callEdgeFunction('RESET_BOT', {
+      const { data, error } = await callEdgeFunction('RESET_BOT', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -110,6 +117,10 @@ export function BotDiagnostics() {
           ...(auth.initData ? { initData: auth.initData } : {})
         }
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       if ((data as any)?.ok) {
         toast({

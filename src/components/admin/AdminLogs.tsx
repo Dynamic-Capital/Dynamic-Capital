@@ -37,7 +37,7 @@ export function AdminLogs() {
         throw new Error("No admin authentication available");
       }
 
-      const { data } = await callEdgeFunction('ADMIN_LOGS', {
+      const { data, error } = await callEdgeFunction('ADMIN_LOGS', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -48,6 +48,10 @@ export function AdminLogs() {
           offset: 0
         }
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       if ((data as any)?.ok) {
         setLogs((data as any).items || []);

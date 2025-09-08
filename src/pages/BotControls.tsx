@@ -16,8 +16,11 @@ export default function BotControls() {
 
   const checkStatus = async () => {
     try {
-      const { data } = await callEdgeFunction("BOT_STATUS_CHECK");
-      const status = (data as StatusResponse)?.bot_status || (data as StatusResponse)?.status || "unknown";
+      const { data, error } = await callEdgeFunction<StatusResponse>("BOT_STATUS_CHECK");
+      if (error) {
+        throw new Error(error.message);
+      }
+      const status = data?.bot_status || data?.status || "unknown";
       setLastStatus(status);
       toast({
         title: "Bot status",
@@ -31,8 +34,11 @@ export default function BotControls() {
 
   const rotateSecret = async () => {
     try {
-      const { data } = await callEdgeFunction("ROTATE_WEBHOOK_SECRET", { method: "POST" });
-      toast({ title: "Secret rotated", description: (data as StatusResponse)?.message });
+      const { data, error } = await callEdgeFunction<StatusResponse>("ROTATE_WEBHOOK_SECRET", { method: "POST" });
+      if (error) {
+        throw new Error(error.message);
+      }
+      toast({ title: "Secret rotated", description: data?.message });
     } catch (err) {
       console.error("rotate error", err);
       toast({ title: "Rotation failed", variant: "destructive" });

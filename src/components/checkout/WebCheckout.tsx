@@ -78,7 +78,10 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
 
   const fetchPlans = useCallback(async () => {
     try {
-      const { data } = await callEdgeFunction('PLANS');
+      const { data, error } = await callEdgeFunction('PLANS');
+      if (error) {
+        throw new Error(error.message);
+      }
       setPlans((data as any)?.plans || []);
       if ((data as any)?.plans?.length > 0 && !selectedPlan) {
         setSelectedPlan((data as any).plans[0]);
@@ -115,13 +118,16 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     
     setValidatingPromo(true);
     try {
-      const { data } = await callEdgeFunction('PROMO_VALIDATE', {
+      const { data, error } = await callEdgeFunction('PROMO_VALIDATE', {
         method: 'POST',
         body: {
           code: promoCode,
           plan_id: selectedPlan.id,
         },
       });
+      if (error) {
+        throw new Error(error.message);
+      }
 
       setPromoValidation(data);
 
