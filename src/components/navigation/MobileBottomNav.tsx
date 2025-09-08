@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import NAV_ITEMS from "./nav-items";
 
@@ -9,6 +9,7 @@ const navItems = NAV_ITEMS.filter((n) => n.showOnMobile);
 
 export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
+  const reduceMotion = useReducedMotion();
 
   return (
     <motion.nav
@@ -19,9 +20,9 @@ export const MobileBottomNav: React.FC = () => {
       )}
       role="navigation"
       aria-label="Mobile navigation"
-      initial={{ y: 100, opacity: 0 }}
+      initial={reduceMotion ? false : { y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      transition={reduceMotion ? { duration: 0 } : { duration: 0.5, ease: "easeOut" }}
     >
       <div className="container mx-auto px-2">
         <div className="grid grid-cols-5 gap-0">
@@ -32,22 +33,27 @@ export const MobileBottomNav: React.FC = () => {
             return (
               <motion.div
                 key={item.id}
-                initial={{ scale: 0, opacity: 0 }}
+                initial={reduceMotion ? false : { scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{
-                  duration: 0.3,
-                  delay: index * 0.1,
-                  type: "spring",
-                  stiffness: 260,
-                  damping: 20,
-                }}
-                whileTap={{ scale: 0.9 }}
+                transition={
+                  reduceMotion
+                    ? { duration: 0 }
+                    : {
+                        duration: 0.3,
+                        delay: index * 0.1,
+                        type: "spring",
+                        stiffness: 260,
+                        damping: 20,
+                      }
+                }
+                whileTap={reduceMotion ? undefined : { scale: 0.9 }}
               >
                 <Link
                   to={item.path}
                   className={cn(
                     "relative flex flex-col items-center justify-center p-3 min-h-[64px]",
-                    "transition-all duration-300 group rounded-2xl mx-1",
+                    !reduceMotion && "transition-all duration-300",
+                    "group rounded-2xl mx-1",
                     "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                     "overflow-hidden",
                     isActive
@@ -58,7 +64,7 @@ export const MobileBottomNav: React.FC = () => {
                   aria-current={isActive ? "page" : undefined}
                 >
                   <AnimatePresence>
-                    {isActive && (
+                    {isActive && !reduceMotion && (
                       <motion.div
                         className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
                         initial={{ x: "-100%" }}
@@ -77,7 +83,7 @@ export const MobileBottomNav: React.FC = () => {
                     animate={
                       isActive ? { scale: 1.1, y: -2 } : { scale: 1, y: 0 }
                     }
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: reduceMotion ? 0 : 0.2 }}
                     className="relative z-10"
                   >
                     <Icon className="h-5 w-5" />
@@ -93,7 +99,7 @@ export const MobileBottomNav: React.FC = () => {
                     animate={
                       isActive ? { scale: 1.05, fontWeight: 600 } : { scale: 1 }
                     }
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: reduceMotion ? 0 : 0.2 }}
                   >
                     {item.label}
                   </motion.span>
@@ -105,18 +111,25 @@ export const MobileBottomNav: React.FC = () => {
           {/* Theme Toggle */}
           <motion.div
             className="flex flex-col items-center justify-center p-3 min-h-[64px] mx-1"
-            initial={{ scale: 0, opacity: 0 }}
+            initial={reduceMotion ? false : { scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{
-              duration: 0.3,
-              delay: 0.4,
-              type: "spring",
-              stiffness: 260,
-              damping: 20,
-            }}
-            whileTap={{ scale: 0.9 }}
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : {
+                    duration: 0.3,
+                    delay: 0.4,
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 20,
+                  }
+            }
+            whileTap={reduceMotion ? undefined : { scale: 0.9 }}
           >
-            <motion.div whileHover={{ rotate: 180 }} transition={{ duration: 0.3 }}>
+            <motion.div
+              whileHover={reduceMotion ? undefined : { rotate: 180 }}
+              transition={{ duration: reduceMotion ? 0 : 0.3 }}
+            >
               <ThemeToggle />
             </motion.div>
             <span className="text-xs font-medium mt-1 text-muted-foreground">
