@@ -14,6 +14,7 @@ import HeroSection from "@/components/landing/HeroSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import FeatureGrid from "@/components/landing/FeatureGrid";
 import CTASection from "@/components/landing/CTASection";
+import VipPriceSwitcher from "@/components/landing/VipPriceSwitcher";
 import { Award, Crown, Target, DollarSign, TrendingUp, Zap, CheckCircle, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -91,7 +92,8 @@ const Landing = () => {
               </p>
             </div>
           </MotionScrollReveal>
-          
+
+          <VipPriceSwitcher />
           <LivePlansSection showPromo={true} showHeader={false} />
         </div>
       </section>
