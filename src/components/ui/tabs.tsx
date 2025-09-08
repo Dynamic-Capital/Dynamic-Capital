@@ -11,7 +11,7 @@ const TabsList = React.forwardRef<
     orientation?: "horizontal" | "vertical";
     "aria-label"?: string;
   }
->(({ className, orientation = "horizontal", ...props }, ref) => (
+>(({ className, orientation = "horizontal", "aria-label": ariaLabel = "Tabs", ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
     className={cn(
@@ -20,6 +20,7 @@ const TabsList = React.forwardRef<
     )}
     role="tablist"
     aria-orientation={orientation}
+    aria-label={ariaLabel}
     {...props}
   />
 ));

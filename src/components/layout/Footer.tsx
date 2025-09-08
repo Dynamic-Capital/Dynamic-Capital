@@ -111,7 +111,11 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
 
   if (compact) {
     return (
-      <footer className="bg-card/80 backdrop-blur-md border-t border-border/50 mt-4">
+      <footer
+        className="bg-card/80 backdrop-blur-md border-t border-border/50 mt-4"
+        role="contentinfo"
+        aria-label="Site footer"
+      >
         <div className="container mx-auto px-4 py-3">
           <div className="flex flex-col items-center gap-2">
             {/* Social Media Icons Row */}
@@ -148,7 +152,11 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
   }
 
   return (
-    <footer className="bg-card border-t border-border mt-auto">
+    <footer
+      className="bg-card border-t border-border mt-auto"
+      role="contentinfo"
+      aria-label="Site footer"
+    >
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand Section */}
@@ -167,9 +175,9 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
           {/* Quick Links */}
           <div className="space-y-4">
             <h4 className="text-md font-medium text-foreground">Quick Links</h4>
-            <nav className="flex flex-col space-y-2" aria-label="Footer navigation">
-              <Link 
-                to="/plans" 
+            <nav className="flex flex-col space-y-2" aria-label="Quick links">
+              <Link
+                to="/plans"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 VIP Plans

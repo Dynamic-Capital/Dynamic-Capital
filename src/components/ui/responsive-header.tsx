@@ -100,15 +100,18 @@ interface ResponsiveTabsProps {
   activeTab: string;
   onTabChange: (tabId: string) => void;
   className?: string;
+  ariaLabel?: string;
 }
 
-export function ResponsiveTabs({ tabs, activeTab, onTabChange, className }: ResponsiveTabsProps) {
+export function ResponsiveTabs({ tabs, activeTab, onTabChange, className, ariaLabel = "Tabs" }: ResponsiveTabsProps) {
   return (
     <motion.nav
       className={cn(
         "sticky top-16 sm:top-20 lg:top-24 z-10 glass-card backdrop-blur-md border-b",
         className
       )}
+      role="tablist"
+      aria-label={ariaLabel}
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}
@@ -123,6 +126,10 @@ export function ResponsiveTabs({ tabs, activeTab, onTabChange, className }: Resp
           {tabs.map((tab, index) => (
             <motion.button
               key={tab.id}
+              role="tab"
+              id={`${tab.id}-tab`}
+              aria-selected={activeTab === tab.id}
+              aria-controls={`${tab.id}-panel`}
               onClick={() => onTabChange(tab.id)}
               className={cn(
                 "glass-tab flex flex-col items-center justify-center gap-0.5 sm:gap-1",
