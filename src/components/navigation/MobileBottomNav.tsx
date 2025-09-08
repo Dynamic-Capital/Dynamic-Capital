@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence, useReducedMotion, LayoutGroup } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -8,7 +11,7 @@ import NAV_ITEMS from "./nav-items";
 const navItems = NAV_ITEMS.filter((n) => n.showOnMobile);
 
 export const MobileBottomNav: React.FC = () => {
-  const location = useLocation();
+  const pathname = usePathname();
   const reduceMotion = useReducedMotion();
 
   return (
@@ -29,7 +32,7 @@ export const MobileBottomNav: React.FC = () => {
         <div className="grid grid-cols-5 gap-0">
           {navItems.map((item, index) => {
             const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+            const isActive = pathname === item.path;
 
             return (
               <motion.div
@@ -50,7 +53,7 @@ export const MobileBottomNav: React.FC = () => {
                 whileTap={reduceMotion ? undefined : { scale: 0.9 }}
               >
                 <Link
-                  to={item.path}
+                  href={item.path}
                   className={cn(
                     "relative flex flex-col items-center justify-center p-3 min-h-[64px]",
                     !reduceMotion && "transition-all duration-300",

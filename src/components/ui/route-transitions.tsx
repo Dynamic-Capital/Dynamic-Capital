@@ -1,6 +1,8 @@
+"use client";
+
 import React from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 
 // Route transition variants
 const routeVariants: Variants = {
@@ -104,7 +106,7 @@ export function RouteTransition({
   variant = 'fade',
   direction = 0
 }: RouteTransitionProps) {
-  const location = useLocation();
+  const pathname = usePathname();
 
   const getVariants = () => {
     switch (variant) {
@@ -120,7 +122,7 @@ export function RouteTransition({
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
-        key={location.pathname}
+        key={pathname}
         variants={getVariants()}
         initial="initial"
         animate="animate"

@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
@@ -10,13 +12,13 @@ interface VipGateProps {
 
 export function VipGate({ children, redirectTo = "/plans" }: VipGateProps) {
   const { isVip, loading } = useTelegramAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     if (!loading && !isVip) {
-      navigate(redirectTo, { replace: true });
+      router.replace(redirectTo);
     }
-  }, [loading, isVip, navigate, redirectTo]);
+  }, [loading, isVip, redirectTo, router]);
 
   if (loading) {
     return (

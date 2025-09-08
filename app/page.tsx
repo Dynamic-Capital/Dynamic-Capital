@@ -16,6 +16,8 @@ import FeatureGrid from "@/components/landing/FeatureGrid";
 import CTASection from "@/components/landing/CTASection";
 import { Award, Crown, Target, DollarSign, TrendingUp, Zap, CheckCircle, Sparkles } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 const Landing = () => {
   const handleOpenTelegram = () => {
     const botUsername = "Dynamic_VIP_BOT";
