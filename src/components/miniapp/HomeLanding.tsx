@@ -27,6 +27,7 @@ import { ThreeDEmoticon, TradingEmoticonSet } from "@/components/ui/three-d-emot
 import { motion, AnimatePresence } from "framer-motion";
 import { parentVariants, childVariants, slowParentVariants } from "@/lib/motion-variants";
 import { callEdgeFunction } from "@/config/supabase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface BotContent {
   content_key: string;
@@ -164,9 +165,10 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <ThreeDEmoticon emoji="⌛" size={32} />
-        <span className="ml-2 text-muted-foreground">Loading content...</span>
+      <div className="py-20 space-y-4">
+        <Skeleton className="h-8 w-1/2 mx-auto" />
+        <Skeleton className="h-4 w-3/4 mx-auto" />
+        <Skeleton className="h-4 w-2/3 mx-auto" />
       </div>
     );
   }

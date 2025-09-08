@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,7 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
   const [isValidating, setIsValidating] = useState(false);
   const [validation, setValidation] = useState<PromoValidation | null>(null);
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<"idle" | "success" | "error">("idle");
   const { toast } = useToast();
 
   const validatePromoCode = async () => {
@@ -59,8 +61,9 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
       }
 
       setValidation(data);
-      
+
       if (data.valid) {
+        setFeedback("success");
         setAppliedPromo(promoCode.trim().toUpperCase());
         onApplied?.(promoCode.trim().toUpperCase(), {
           ok: true,
@@ -73,6 +76,7 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
           description: `You saved ${data.discount_type === "percentage" ? `${data.discount_value}%` : `$${data.discount_value}`}`,
         });
       } else {
+        setFeedback("error");
         toast({
           title: "Invalid promo code",
           description: data.reason || "This promo code is not valid",
@@ -88,6 +92,7 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
       });
     } finally {
       setIsValidating(false);
+      setTimeout(() => setFeedback("idle"), 500);
     }
   };
 
@@ -115,7 +120,16 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
     <div className="space-y-4">
       {/* Promo Input */}
       <div className="space-y-3">
-        <div className="flex gap-2">
+        <motion.div
+          className="flex gap-2"
+          animate={
+            feedback === "success"
+              ? { scale: [1, 1.05, 1] }
+              : feedback === "error"
+                ? { x: [0, -8, 8, -8, 8, 0] }
+                : {}
+          }
+        >
           <div className="relative flex-1">
             <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -149,7 +163,7 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
               )}
             </Button>
           )}
-        </div>
+        </motion.div>
 
         {/* Popular Promo Codes */}
         <div className="flex flex-wrap gap-2">
