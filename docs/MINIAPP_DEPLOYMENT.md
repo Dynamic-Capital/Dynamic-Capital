@@ -9,9 +9,8 @@ bash scripts/build-deploy-miniapp.sh
 ```
 
 This will:
-1. Build the front-end in `miniapp/`
-2. Sync static files to `supabase/functions/miniapp/static/`
-3. Deploy both `miniapp` and `miniapp-deposit` edge functions to Supabase
+1. Build the front-end in `supabase/functions/miniapp/`
+2. Deploy both `miniapp` and `miniapp-deposit` edge functions to Supabase
 
 ## Manual Steps
 
@@ -19,11 +18,10 @@ If you prefer to run steps individually:
 
 ```bash
 # 1. Build the miniapp front-end
-cd miniapp
+cd supabase/functions/miniapp
 npm install
 npm run build
-cd ..
-node scripts/sync-miniapp-static.mjs
+cd ../..
 
 # 2. Deploy functions
 npx supabase functions deploy miniapp miniapp-deposit

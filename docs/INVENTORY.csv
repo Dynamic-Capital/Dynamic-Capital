@@ -228,15 +228,6 @@ src/main.tsx,161,tsx,5
 tsconfig.node.json,481,json,22
 postcss.config.js,81,js,6
 components.json,414,json,20
-miniapp/tsconfig.json,535,json,21
-miniapp/vite.config.ts,140,ts,6
-miniapp/tailwind.config.js,1917,js,46
-miniapp/src/index.css,3392,css,135
-miniapp/src/api.ts,1323,ts,46
-miniapp/src/App.tsx,1790,tsx,63
-miniapp/src/theme.ts,903,ts,37
-miniapp/src/main.tsx,251,tsx,10
-miniapp/postcss.config.js,181,js,7
 supabase/functions/miniapp/static/index.html,468,html,15
 docs/api-documentation.md,13941,md,599
 docs/supabase-audit-report.md,8586,md,314
