@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   CreditCard, 
   Shield, 
@@ -75,6 +76,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
   const [uploading, setUploading] = useState(false);
   const [isTelegram, setIsTelegram] = useState(false);
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   const fetchPlans = useCallback(async () => {
     try {
@@ -318,7 +320,38 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
 
   const finalPrice = calculateFinalPrice();
 
+  useEffect(() => {
+    if (currentStep === "pending") {
+      setShowReceipt(true);
+    }
+  }, [currentStep]);
+
+  const DigitalReceipt = ({ onClose }: { onClose: () => void }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      className="fixed inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-50"
+    >
+      <Card className="w-80">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Digital Receipt
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div><strong>Plan:</strong> {selectedPlan?.name}</div>
+          <div><strong>Amount:</strong> ${finalPrice.toFixed(2)}</div>
+          {promoCode && <div><strong>Promo:</strong> {promoCode}</div>}
+          <Button className="mt-4 w-full" onClick={onClose}>Close</Button>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+
   return (
+    <>
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
@@ -663,6 +696,10 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
         </div>
       </div>
     </div>
+    <AnimatePresence>
+      {showReceipt && <DigitalReceipt onClose={() => setShowReceipt(false)} />}
+    </AnimatePresence>
+    </>
   );
 };
 

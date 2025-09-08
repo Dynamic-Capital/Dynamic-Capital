@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { callEdgeFunction, buildFunctionUrl } from '@/config/supabase';
 import PromoCodeInput from '@/components/billing/PromoCodeInput';
 import { formatPrice } from '@/lib/utils';
+import { ActivePromosSection } from '@/components/shared/ActivePromosSection';
 
 interface Plan {
   id: string;
@@ -126,9 +127,12 @@ export const LivePlansSection = ({
             )}
 
             {showPromo && (
-              <div className="mb-6">
-                <h4 className="font-medium mb-3">Have a promo code?</h4>
-                <PromoCodeInput planId={plans[0]?.id || ""} />
+              <div className="mb-6 space-y-6">
+                <div>
+                  <h4 className="font-medium mb-3">Have a promo code?</h4>
+                  <PromoCodeInput planId={plans[0]?.id || ""} />
+                </div>
+                <ActivePromosSection />
               </div>
             )}
 

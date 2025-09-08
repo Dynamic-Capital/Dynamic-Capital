@@ -45,6 +45,11 @@ const MorphingText = dynamic(
 
 interface HeroSectionProps { onOpenTelegram: () => void; }
 
+const vaporVariants = {
+  hidden: { opacity: 0, filter: "blur(20px)", y: 20 },
+  show: { opacity: 1, filter: "blur(0px)", y: 0, transition: { duration: 1 } }
+};
+
 const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
   const isMobile = useIsMobile();
   const [showLoader, setShowLoader] = useState(true);
@@ -123,7 +128,12 @@ const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
           <MotionStagger className={`mx-auto ${isMobile ? 'max-w-lg' : 'max-w-5xl'} space-y-6`}>
             {/* Dynamic Floating Badge */}
             <ResponsiveMotion mobileVariant="fade" desktopVariant="bounce" delay={0.2}>
-              <div className={isMobile ? 'mb-6' : 'mb-8'}>
+              <motion.div
+                className={isMobile ? 'mb-6' : 'mb-8'}
+                variants={vaporVariants}
+                initial="hidden"
+                animate="show"
+              >
                 <Badge className={`bg-[hsl(var(--accent-light)/0.3)] text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.5)] hover:bg-[hsl(var(--accent-light)/0.4)] ${isMobile ? 'text-sm px-4 py-1.5' : 'text-base px-6 py-2'} backdrop-blur-md shadow-xl`}>
                   <motion.div
                     animate={shouldReduceMotion ? undefined : { rotate: [0, 5, -5, 0] }}
@@ -143,13 +153,18 @@ const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
                     morphDuration={0.6}
                   />
                 </Badge>
-              </div>
+              </motion.div>
             </ResponsiveMotion>
 
             {/* New Hero Content */}
-            <h1 className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-[hsl(var(--accent-light))] drop-shadow-lg`}>
+            <motion.h1
+              className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-[hsl(var(--accent-light))] drop-shadow-lg`}
+              variants={vaporVariants}
+              initial="hidden"
+              animate="show"
+            >
               Dynamic Capital VIP
-            </h1>
+            </motion.h1>
 
             <div className="flex justify-center">
               <Separator className="w-24 h-[2px] bg-[hsl(var(--accent-light)/0.5)] rounded-full" />
