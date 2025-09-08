@@ -1,6 +1,6 @@
 # Environment Variables
 
-This document lists environment variables used across the bot, mini app, and
+This document lists environment variables used across the botmini app, and
 maintenance scripts. Each entry notes its purpose, whether it's required, an
 example value, and where it's referenced in the repository.
 
@@ -9,7 +9,9 @@ example value, and where it's referenced in the repository.
 | Key                         | Purpose                                                   | Required | Example                     | Used in                                                                                                   |
 | --------------------------- | --------------------------------------------------------- | -------- | --------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `SUPABASE_URL`              | Base URL of the Supabase project.                         | Yes      | `https://xyz.supabase.co`   | `src/utils/config.ts`, `src/integrations/supabase/client.ts`, `supabase/functions/telegram-bot/index.ts` |
-| `SUPABASE_ANON_KEY`         | Public anon key for client-side calls.                    | Yes      | `eyJ...`                    | `src/integrations/supabase/client.ts`, `supabase/functions/theme-get/index.ts`, `supabase/functions/miniapp/src/lib/edge.ts` |
+| `SUPABASE_ANON_KEY`         | Public anon key for client-side calls.                    | Yes      | `eyJ...`                    | `src/integrations/supabase/client.ts`, `supabase/functions/theme-get/index.ts` |
+| `VITE_SUPABASE_URL`         | Build-time copy of `SUPABASE_URL` for the web app.        | Yes (web) | `https://xyz.supabase.co`   | `src/config/supabase.ts`, `supabase/functions/miniapp/src/lib/edge.ts` |
+| `VITE_SUPABASE_ANON_KEY`    | Build-time copy of `SUPABASE_ANON_KEY` for the web app.   | Yes (web) | `eyJ...`                    | `src/config/supabase.ts` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key for privileged Supabase access.          | Yes      | `service-role-key`          | `src/utils/config.ts`, `supabase/functions/telegram-bot/index.ts`                                         |
 | `SUPABASE_PROJECT_ID`       | Supabase project reference used to build URLs in scripts. | No       | `abcd1234`                  | `scripts/ping-webhook.ts`, `scripts/miniapp-health-check.ts`                                              |
 | `SUPABASE_ACCESS_TOKEN`     | Token for Supabase CLI operations.                        | No       | `sbp_at...`                 | Supabase CLI only                                                                                         |
