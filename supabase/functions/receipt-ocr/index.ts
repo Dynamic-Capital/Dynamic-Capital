@@ -71,6 +71,20 @@ serve(async (req) => {
 
   const supa = createClient();
 
+  const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
+  async function notify(userId: string, text: string) {
+    if (!token) return;
+    const { data: u } = await supa.from("bot_users").select("telegram_id")
+      .eq("id", userId).maybeSingle();
+    const chatId = u?.telegram_id;
+    if (!chatId) return;
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text }),
+    }).catch(() => {});
+  }
+
   // Load payment + plan + receipt path
   const { data: p } = await supa.from("payments")
     .select(
@@ -108,6 +122,10 @@ serve(async (req) => {
     ocr_at: new Date().toISOString(),
   };
   await supa.from("payments").update({ webhook_data: merged }).eq("id", p.id);
+
+  const amt = result.amount ? `${result.amount} ${result.currency || ""}` : "unknown amount";
+  const conf = result.confidence ? ` (confidence ${Math.round((result.confidence || 0) * 100)}%)` : "";
+  await notify(p.user_id, `📄 OCR result: ${amt}${conf}.`);
 
   return new Response(JSON.stringify({ ok: true, ocr: result }), {
     headers: { ...corsHeaders, "content-type": "application/json" },
