@@ -109,7 +109,7 @@ async function identifyDuplicateFiles(): Promise<string[]> {
     'src/**/*_backup.*',
     
     // Duplicate Mini App files (if main app has same functionality)
-    'miniapp/src/components/ui/**', // If shadcn components are duplicated
+    'supabase/functions/miniapp/src/components/ui/**', // If shadcn components are duplicated
     
     // Old configuration files
     'postcss.config.js', // If not needed
@@ -243,7 +243,7 @@ const RECOMMENDED_STRUCTURE = {
     'docs/CLEANUP_AND_CODEMODS.md',
     
     // Duplicate Mini App if main app has same functionality
-    'miniapp/**', // If functionality is in main app
+    'supabase/functions/miniapp/**', // If functionality is in main app
     
     // Old test files
     'tests/**', // If moved to proper test directories

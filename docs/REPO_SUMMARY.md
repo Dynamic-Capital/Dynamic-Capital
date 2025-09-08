@@ -21,8 +21,6 @@ docs/
   code-structure.md
   index-advisor.md
   supabase-audit-report.md
-miniapp/
-  src/
 public/
   favicon.ico
 scripts/
