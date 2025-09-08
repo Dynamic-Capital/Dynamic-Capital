@@ -1,57 +1,34 @@
-import { useEffect, useState } from "react";
-import { Sparkles, Shield, Zap, Users, TrendingUp, CheckCircle, Star, ArrowRight, Crown, Award, Target, DollarSign, MessageCircle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { MotionCard } from "@/components/ui/motion-card";
-import { AutoSizingGrid } from "@/components/ui/auto-sizing";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import MiniAppPreview from "@/components/telegram/MiniAppPreview";
+import { MotionFadeIn, MotionScrollReveal, MotionStagger, MotionHoverCard } from "@/components/ui/motion-components";
+import { MotionSection } from "@/components/ui/motion-theme";
+import { FullscreenAdaptive } from "@/components/ui/responsive-motion";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { ServiceStack } from "@/components/shared/ServiceStack";
-import { RotatingWords } from "@/components/ui/rotating-words";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { StatefulButton } from "@/components/ui/stateful-button";
-import { TextLoader } from "@/components/ui/text-loader";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { TypewriterText, GradientText, MorphingText } from "@/components/ui/animated-text";
-import { MotionFadeIn, MotionStagger, MotionCounter, MotionHoverCard, MotionScrollReveal } from "@/components/ui/motion-components";
-import { ResponsiveMotion, FullscreenAdaptive, ViewportAware } from "@/components/ui/responsive-motion";
-import { MotionSection, MotionGrid, MotionButtonWrapper } from "@/components/ui/motion-theme";
-import { useIsMobile } from "@/hooks/use-mobile";
+import MiniAppPreview from "@/components/telegram/MiniAppPreview";
+import HeroSection from "@/components/landing/HeroSection";
+import TestimonialsSection from "@/components/landing/TestimonialsSection";
+import FeatureGrid from "@/components/landing/FeatureGrid";
+import CTASection from "@/components/landing/CTASection";
+import { Award, Crown, Target, DollarSign, TrendingUp, Zap, CheckCircle, Sparkles } from "lucide-react";
 
 const Landing = () => {
-  const isMobile = useIsMobile();
-  const [showLoader, setShowLoader] = useState(true);
-  const shouldReduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowLoader(false), 900);
-    return () => clearTimeout(timer);
-  }, []);
-  
   const handleOpenTelegram = () => {
-    // Use the actual Dynamic Capital VIP Bot
     const botUsername = "Dynamic_VIP_BOT";
     const telegramUrl = `https://t.me/${botUsername}`;
     window.open(telegramUrl, '_blank');
   };
 
-  const handleOpenMiniApp = () => {
-    // Open mini app directly
-    window.location.href = '/miniapp';
-  };
-
   const handleJoinNow = () => {
-    // Check if in Telegram, otherwise go to plans page
     const isInTelegram = Boolean(
-      window.Telegram?.WebApp?.initData || 
+      window.Telegram?.WebApp?.initData ||
       window.Telegram?.WebApp?.initDataUnsafe ||
       window.location.search.includes('tgWebAppPlatform') ||
       navigator.userAgent.includes('TelegramWebApp')
     );
-    
+
     if (isInTelegram) {
       window.location.href = '/miniapp?tab=plan';
     } else {
@@ -63,370 +40,11 @@ const Landing = () => {
     <FullscreenAdaptive className="min-h-screen bg-background font-inter text-foreground">
       {/* Floating Theme Toggle */}
       <ThemeToggle />
-      {/* Enhanced Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[hsl(var(--accent-dark))] via-[hsl(var(--primary)/0.9)] to-[hsl(var(--dc-accent))] min-h-screen flex items-center">
-        {/* Dynamic Animated Background */}
-        <div className="absolute inset-0">
-          {/* Floating Orbs with Enhanced Animation */}
-            <motion.div
-              className={`absolute ${isMobile ? 'top-10 left-5 w-40 h-40' : 'top-20 left-10 w-72 h-72'} bg-[hsl(var(--accent-light)/0.2)] rounded-full blur-3xl`}
-              animate={shouldReduceMotion ? { opacity: 0.5 } : {
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.6, 0.3],
-                x: [0, isMobile ? 25 : 50, 0],
-                y: [0, isMobile ? -15 : -30, 0]
-              }}
-              transition={shouldReduceMotion ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.div
-              className={`absolute ${isMobile ? 'bottom-10 right-5 w-48 h-48' : 'bottom-20 right-10 w-96 h-96'} bg-[hsl(var(--accent-gold)/0.3)] rounded-full blur-3xl`}
-              animate={shouldReduceMotion ? { opacity: 0.3 } : {
-                scale: [1, 1.3, 1],
-                opacity: [0.2, 0.5, 0.2],
-                x: [0, isMobile ? -30 : -60, 0],
-                y: [0, isMobile ? 20 : 40, 0]
-              }}
-              transition={shouldReduceMotion ? { duration: 0 } : { duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            />
-            <motion.div
-              className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isMobile ? 'w-40 h-40' : 'w-80 h-80'} bg-[hsl(var(--accent-pink)/0.25)] rounded-full blur-3xl`}
-              animate={shouldReduceMotion ? { opacity: 0.3 } : {
-                scale: [1, 1.1, 1],
-                opacity: [0.2, 0.4, 0.2],
-                rotate: [0, 180, 360]
-              }}
-              transition={shouldReduceMotion ? { duration: 0 } : { duration: 12, repeat: Infinity, ease: "linear", delay: 2 }}
-            />
-          
-          {/* Particle Effects */}
-            {[...Array(shouldReduceMotion ? 0 : (isMobile ? 10 : 20))].map((_, i) => (
-              <motion.div
-                key={i}
-                className={`absolute ${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-[hsl(var(--accent-light)/0.4)] rounded-full`}
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                }}
-                animate={shouldReduceMotion ? undefined : {
-                  y: [0, isMobile ? -50 : -100, 0],
-                  opacity: [0, 1, 0],
-                  scale: [0, 1, 0]
-                }}
-                transition={shouldReduceMotion ? undefined : {
-                  duration: 4 + Math.random() * 2,
-                  repeat: Infinity,
-                  delay: Math.random() * 3,
-                  ease: "easeInOut"
-                }}
-              />
-            ))}
-          
-          {/* Gradient Overlay for Better Text Contrast */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[hsl(var(--accent-dark)/0.2)] to-[hsl(var(--accent-dark)/0.4)]" />
-        </div>
-        
-        <div className={`relative container mx-auto ${isMobile ? 'px-4 py-12' : 'px-6 py-20'} text-center`}>
-          <div className={`mx-auto ${isMobile ? 'max-w-lg' : 'max-w-5xl'}`}>
-            {/* Dynamic Floating Badge */}
-              <ResponsiveMotion mobileVariant="fade" desktopVariant="bounce" delay={0.2}>
-                <motion.div
-                  whileHover={shouldReduceMotion ? undefined : { scale: isMobile ? 1.02 : 1.05, y: -5 }}
-                  className={isMobile ? 'mb-6' : 'mb-8'}
-                >
-                  <Badge className={`bg-[hsl(var(--accent-light)/0.3)] text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.5)] hover:bg-[hsl(var(--accent-light)/0.4)] ${isMobile ? 'text-sm px-4 py-1.5' : 'text-base px-6 py-2'} backdrop-blur-md shadow-xl`}>
-                    <motion.div
-                      animate={shouldReduceMotion ? undefined : { rotate: [0, 5, -5, 0] }}
-                      transition={shouldReduceMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} />
-                    </motion.div>
-                    <MorphingText
-                      texts={[
-                        "#1 Premium Trading Platform",
-                        "5000+ Active VIP Members",
-                        "92% Success Rate Proven",
-                        "24/7 Expert Support"
-                      ]}
-                      interval={4000}
-                      morphDuration={0.6}
-                    />
-                  </Badge>
-                </motion.div>
-              </ResponsiveMotion>
-            
-            {/* New Hero Content */}
-            <div className="space-y-6">
-                <motion.h1
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: shouldReduceMotion ? 0 : 0.6 }}
-                  className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-[hsl(var(--accent-light))] drop-shadow-lg`}
-                >
-                  Dynamic Capital VIP
-                </motion.h1>
-
-              <div className="flex justify-center">
-                <Separator className="w-24 h-[2px] bg-[hsl(var(--accent-light)/0.5)] rounded-full" />
-              </div>
-
-                <motion.p
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.1 }}
-                  className={`${isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'} text-[hsl(var(--accent-light)/0.9)] max-w-3xl mx-auto`}
-                >
-                  <span className="text-[hsl(var(--accent-light)/0.8)]">Professional Trading • Premium </span>
-                  {showLoader ? (
-                    <span className="inline-flex items-center">
-                      <span className="mr-2">Signals</span>
-                      <TextLoader size="sm" dotColorClass="text-[hsl(var(--accent-gold))]" />
-                    </span>
-                  ) : (
-                    <RotatingWords
-                      words={["Signals", "Analysis", "Support", "Strategies"]}
-                      interval={2500}
-                      colorClass="text-[hsl(var(--accent-gold))] font-semibold"
-                    />
-                  )}
-                  <span className="text-[hsl(var(--accent-light)/0.8)]"> • VIP Support</span>
-                </motion.p>
-
-                <motion.p
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.2 }}
-                  className={`${isMobile ? 'text-base' : 'text-lg'} text-[hsl(var(--accent-light)/0.7)] max-w-2xl mx-auto`}
-                >
-                  Trade with expert-guided confidence
-                </motion.p>
-            </div>
-
-            {/* Enhanced CTA Buttons */}
-            <ResponsiveMotion mobileVariant="slide" desktopVariant="bounce" delay={0.3}>
-              <div className={`flex ${isMobile ? 'flex-col gap-4' : 'flex-col sm:flex-row gap-6'} justify-center pt-2 ${isMobile ? 'mb-12' : 'mb-16'}`}>
-                <StatefulButton
-                  variant="shimmer"
-                  size={isMobile ? "default" : "xl"}
-                  className={`${isMobile ? 'px-6 py-3 w-full' : 'px-8 py-4'}`}
-                  successText="Opening Plans..."
-                  loadingText="Loading..."
-                  icon={<Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />}
-                  onClick={() => {
-                    return new Promise((resolve) => {
-                      const isInTelegram = Boolean(
-                        (window as any).Telegram?.WebApp?.initData ||
-                        (window as any).Telegram?.WebApp?.initDataUnsafe ||
-                        window.location.search.includes("tgWebAppPlatform") ||
-                        navigator.userAgent.includes("TelegramWebApp")
-                      );
-                      setTimeout(() => {
-                        if (isInTelegram) {
-                          window.location.href = "/miniapp?tab=plan";
-                        } else {
-                          window.location.href = "/plans";
-                        }
-                        resolve(undefined);
-                      }, 600);
-                    });
-                  }}
-                >
-                  Start VIP Journey
-                  <ArrowRight className={`ml-2 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
-                </StatefulButton>
-
-                <EnhancedButton
-                  variant="glass"
-                  size={isMobile ? "default" : "xl"}
-                  className={`${isMobile ? 'px-6 py-3 w-full' : 'px-8 py-4'} text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.4)]`}
-                  onClick={handleOpenTelegram}
-                  icon={<MessageCircle className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />}
-                >
-                  Open Telegram Bot
-                </EnhancedButton>
-              </div>
-            </ResponsiveMotion>
-
-            {/* Enhanced Trust Indicators */}
-            <MotionStagger staggerDelay={0.2} initialDelay={1.8}>
-              <div className={`grid ${isMobile ? 'grid-cols-2 gap-6' : 'grid-cols-2 md:grid-cols-4 gap-8'} text-[hsl(var(--accent-light)/0.9)]`}>
-                <motion.div 
-                  className="text-center group cursor-pointer"
-                  whileHover={{ scale: isMobile ? 1.05 : 1.1, y: -5 }}
-                >
-                  <MotionCounter 
-                    from={0} 
-                    to={5000} 
-                    suffix="+" 
-                    className={`${isMobile ? 'text-2xl md:text-3xl' : 'text-3xl md:text-5xl'} font-black mb-2 text-[hsl(var(--accent-gold))] block`}
-                    delay={2}
-                  />
-                  <div className={`${isMobile ? 'text-xs md:text-sm' : 'text-sm md:text-base'} font-medium`}>Active VIP Members</div>
-                </motion.div>
-                
-                <motion.div 
-                  className="text-center group cursor-pointer"
-                  whileHover={{ scale: 1.1, y: -5 }}
-                >
-                  <MotionCounter 
-                    from={0} 
-                    to={92} 
-                    suffix="%" 
-                    className="text-3xl md:text-5xl font-black mb-2 text-[hsl(var(--accent-green))] block"
-                    delay={2.2}
-                  />
-                  <div className="text-sm md:text-base font-medium">Success Rate</div>
-                </motion.div>
-                
-                <motion.div 
-                  className="text-center group cursor-pointer"
-                  whileHover={{ scale: 1.1, y: -5 }}
-                >
-                  <div className="text-3xl md:text-5xl font-black mb-2 text-[hsl(var(--accent-pink))]">24/7</div>
-                  <div className="text-sm md:text-base font-medium">Expert Support</div>
-                </motion.div>
-                
-                <motion.div 
-                  className="text-center group cursor-pointer"
-                  whileHover={{ scale: 1.1, y: -5 }}
-                >
-                  <div className="text-3xl md:text-5xl font-black mb-2 text-[hsl(var(--dc-secondary))] flex items-center justify-center gap-1">
-                    5
-                    <motion.div
-                      animate={shouldReduceMotion ? undefined : { rotate: [0, 360] }}
-                      transition={shouldReduceMotion ? { duration: 0 } : { duration: 3, repeat: Infinity, ease: "linear" }}
-                    >
-                      ★
-                    </motion.div>
-                  </div>
-                  <div className="text-sm md:text-base font-medium">Customer Rating</div>
-                </motion.div>
-              </div>
-            </MotionStagger>
-
-            {/* Scroll Indicator */}
-              {!shouldReduceMotion && (
-                <MotionFadeIn delay={2.5}>
-                  <motion.div
-                    className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <div className="w-6 h-10 border-2 border-[hsl(var(--accent-light)/0.5)] rounded-full flex justify-center">
-                      <motion.div
-                        className="w-1 h-3 bg-[hsl(var(--accent-light)/0.7)] rounded-full mt-2"
-                        animate={{ y: [0, 15, 0], opacity: [1, 0.3, 1] }}
-                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                      />
-                    </div>
-                  </motion.div>
-                </MotionFadeIn>
-              )}
-          </div>
-        </div>
-      </section>
-
+      <HeroSection onOpenTelegram={handleOpenTelegram} />
       <Separator className="my-16 bg-[hsl(var(--accent-light)/0.2)]" />
-
-      {/* Social Proof Section */}
-      <section className="py-20 bg-gradient-to-b from-background via-muted/20 to-background relative">
-        {/* Subtle Background Animation */}
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div
-            className="absolute -top-40 -right-40 w-80 h-80 bg-[hsl(var(--primary)/0.05)] rounded-full blur-3xl"
-            animate={shouldReduceMotion ? undefined : {
-              scale: [1, 1.2, 1],
-              rotate: [0, 90, 0]
-            }}
-            transition={shouldReduceMotion ? { duration: 0 } : { duration: 20, repeat: Infinity, ease: "linear" }}
-          />
-          <motion.div
-            className="absolute -bottom-40 -left-40 w-80 h-80 bg-[hsl(var(--dc-accent)/0.05)] rounded-full blur-3xl"
-            animate={shouldReduceMotion ? undefined : {
-              scale: [1, 1.1, 1],
-              rotate: [0, -90, 0]
-            }}
-            transition={shouldReduceMotion ? { duration: 0 } : { duration: 25, repeat: Infinity, ease: "linear" }}
-          />
-        </div>
-        <div className="container mx-auto px-6">
-          <MotionScrollReveal>
-            <div className="text-center mb-16">
-              <GradientText 
-                text="Trusted by Elite Traders Worldwide"
-                gradient="from-foreground via-primary to-[hsl(var(--dc-accent))]"
-                className="text-3xl md:text-5xl font-bold mb-6 font-poppins block"
-                animate={true}
-                animationDuration={6}
-              />
-              <TypewriterText 
-                text="See what our VIP members are saying about their trading success"
-                className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed"
-                delay={1000}
-                speed={30}
-              />
-            </div>
-          </MotionScrollReveal>
-
-          <AutoSizingGrid stagger={0.2} minItemWidth={280} gap={32} className="mb-16">
-            {[
-              {
-                name: "Sarah M.",
-                role: "Professional Trader",
-                avatar: "💼",
-                text: "Dynamic Capital's signals increased my portfolio by 340% in 6 months. The accuracy is incredible!",
-                profit: "+$45,000"
-              },
-              {
-                name: "James L.",
-                role: "Investment Manager", 
-                avatar: "📈",
-                text: "Best trading signals I've ever used. The community support and analysis are unmatched.",
-                profit: "+$78,000"
-              },
-              {
-                name: "Maria K.",
-                role: "Day Trader",
-                avatar: "🎯",
-                text: "From losing money to consistent profits. Dynamic Capital changed my trading game completely!",
-                profit: "+$32,000"
-              }
-            ].map((testimonial, index) => (
-              <MotionCard 
-                key={index} 
-                variant="glass"
-                hover={true}
-                animate={true}
-                delay={index * 0.2}
-                className="p-6 motion-card-glow"
-              >
-                <CardContent className="space-y-4 p-0">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-[hsl(var(--dc-accent))] rounded-full flex items-center justify-center text-xl">
-                      {testimonial.avatar}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold font-poppins text-foreground">{testimonial.name}</h4>
-                      <p className="text-sm text-muted-foreground font-inter">{testimonial.role}</p>
-                    </div>
-                    <Badge className="ml-auto bg-[hsl(var(--accent-green)/0.1)] text-[hsl(var(--accent-green))] dark:bg-[hsl(var(--accent-green)/0.3)] dark:text-[hsl(var(--accent-green))] font-inter font-semibold">
-                      {testimonial.profit}
-                    </Badge>
-                  </div>
-                  <p className="text-muted-foreground italic font-inter leading-relaxed">"{testimonial.text}"</p>
-                  <div className="flex text-[hsl(var(--accent-gold))]">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-current" />
-                    ))}
-                  </div>
-                </CardContent>
-              </MotionCard>
-            ))}
-          </AutoSizingGrid>
-        </div>
-      </section>
-
+      <TestimonialsSection />
       <Separator className="my-16" />
-
+      {/* Services Section */}
       {/* Services Section */}
       <MotionSection className="py-20 bg-background">
         <div className="container mx-auto px-6">
@@ -453,65 +71,8 @@ const Landing = () => {
           />
         </div>
       </MotionSection>
-
       <Separator className="my-16" />
-
-      {/* Features Section */}
-      <section className="py-20 bg-gradient-to-b from-background via-muted/10 to-background relative">
-        {/* Interactive Background */}
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-[hsl(var(--dc-secondary)/0.1)] to-[hsl(var(--accent-teal)/0.1)] rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-[hsl(var(--dc-accent)/0.1)] to-[hsl(var(--accent-pink)/0.1)] rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-        </div>
-        <div className="container mx-auto px-6">
-          <MotionScrollReveal>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 font-poppins text-foreground">Why Choose Dynamic Capital VIP?</h2>
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed">
-                Get exclusive access to premium features designed for elite traders
-              </p>
-            </div>
-          </MotionScrollReveal>
-
-          <MotionStagger staggerDelay={0.2} className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: TrendingUp,
-                title: "Premium Signals",
-                description: "Receive high-accuracy trading signals with detailed entry, exit, and stop-loss levels. Our signals have a proven 92% success rate.",
-                color: "from-[hsl(var(--accent-green-light))] to-[hsl(var(--accent-green))]"
-              },
-              {
-                icon: Shield,
-                title: "Risk Management",
-                description: "Professional risk management strategies to protect your capital and maximize profits with expert guidance every step of the way.",
-                color: "from-[hsl(var(--dc-secondary))] to-[hsl(var(--accent-teal))]"
-              },
-              {
-                icon: Users,
-                title: "VIP Community",
-                description: "Join an exclusive community of successful traders and learn from the best. Network, share strategies, and grow together.",
-                color: "from-[hsl(var(--dc-accent))] to-[hsl(var(--accent-pink))]"
-              }
-            ].map((feature, index) => (
-              <MotionHoverCard key={index} hoverScale={1.05} hoverY={-10}>
-                <Card className="bot-card group hover:shadow-2xl transition-all duration-500 hover:scale-105">
-                  <CardContent className="p-8 text-center">
-                    <div className={`bot-icon-wrapper w-16 h-16 mx-auto mb-6 bg-gradient-to-br ${feature.color} transform group-hover:scale-110 transition-transform duration-300`}>
-                      <feature.icon className="w-8 h-8 text-[hsl(var(--accent-light))]" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors font-poppins">{feature.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed font-inter">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </MotionHoverCard>
-            ))}
-          </MotionStagger>
-        </div>
-      </section>
-
+      <FeatureGrid />
       {/* Live Plans Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-6">
@@ -531,7 +92,6 @@ const Landing = () => {
           <LivePlansSection showPromo={true} />
         </div>
       </section>
-
       {/* How It Works */}
       <section className="py-20 bg-gradient-to-b from-background to-muted/20 relative">
         {/* Animated Grid Background */}
@@ -596,7 +156,6 @@ const Landing = () => {
           </MotionStagger>
         </div>
       </section>
-
       {/* Mini App Preview */}
       <section id="preview-section" className="py-20 bg-background">
         <div className="container mx-auto px-6">
@@ -654,53 +213,7 @@ const Landing = () => {
       </section>
 
       {/* Enhanced CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-primary via-telegram to-[hsl(var(--dc-accent))] relative overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-[hsl(var(--accent-light)/0.1)] rounded-full blur-2xl animate-pulse"></div>
-          <div className="absolute bottom-10 right-10 w-40 h-40 bg-[hsl(var(--accent-gold)/0.2)] rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        </div>
-        
-        <div className="relative container mx-auto px-6 text-center">
-          <div className="mx-auto max-w-4xl">
-            <MotionFadeIn scale>
-              <Badge className="mb-6 bg-[hsl(var(--accent-light)/0.2)] text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.3)] text-lg px-6 py-2">
-                <Crown className="w-5 h-5 mr-2" />
-                Limited Time Offer
-              </Badge>
-              
-              <h2 className="text-4xl md:text-6xl font-black text-[hsl(var(--accent-light))] mb-8">
-                Ready to Transform Your Trading?
-              </h2>
-              
-              <p className="text-xl md:text-2xl text-[hsl(var(--accent-light)/0.95)] mb-12 leading-relaxed">
-                Join thousands of successful traders who trust Dynamic Capital for premium signals and proven strategies. 
-                <span className="block mt-2 text-[hsl(var(--accent-gold))] font-bold">Start your VIP journey today!</span>
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                <Button 
-                  size="lg" 
-                  className="bg-[hsl(var(--accent-light))] text-[hsl(var(--telegram))] hover:bg-[hsl(var(--accent-gold)/0.05)] shadow-2xl hover:shadow-[0_0_15px_hsl(var(--accent-gold)/0.25)] transform hover:scale-105 transition-all duration-300 text-xl px-10 py-5 font-bold"
-                  onClick={handleJoinNow}
-                >
-                  <Sparkles className="w-6 h-6 mr-2" />
-                  Get VIP Access Now
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-2 border-[hsl(var(--accent-light)/0.4)] text-[hsl(var(--accent-light))] hover:bg-[hsl(var(--accent-light)/0.2)] backdrop-blur-sm text-xl px-10 py-5 font-semibold transform hover:scale-105 transition-all duration-300"
-                  onClick={handleOpenTelegram}
-                >
-                  Start Free Trial
-                </Button>
-              </div>
-            </MotionFadeIn>
-          </div>
-        </div>
-      </section>
+      <CTASection onJoinNow={handleJoinNow} onOpenTelegram={handleOpenTelegram} />
     </FullscreenAdaptive>
   );
 };
