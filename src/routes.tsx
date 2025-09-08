@@ -10,6 +10,7 @@ const BuildMiniApp = lazy(() => import("./pages/BuildMiniApp"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const BotStatus = lazy(() => import("./pages/BotStatus"));
+const BotControls = lazy(() => import("./pages/BotControls"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const PaymentStatus = lazy(() => import("./pages/PaymentStatus"));
 const MiniAppDemo = lazy(() => import("./pages/MiniAppDemo"));
@@ -150,6 +151,16 @@ export const appRoutes = (
         <RouteTransition variant="fade">
           <PageWrapper>
             <BotStatus />
+          </PageWrapper>
+        </RouteTransition>
+      }
+    />
+    <Route
+      path="/bot-controls"
+      element={
+        <RouteTransition variant="fade">
+          <PageWrapper>
+            <BotControls />
           </PageWrapper>
         </RouteTransition>
       }

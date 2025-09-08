@@ -26,6 +26,7 @@ example value, and where it's referenced in the repository.
 | `TELEGRAM_WEBHOOK_URL`    | Explicit webhook endpoint; overrides derived URL in scripts. | No       | `https://xyz.functions.supabase.co/telegram-bot` | `scripts/set-webhook.ts`, `scripts/ping-webhook.ts`                  |
 | `TELEGRAM_ADMIN_IDS`      | Comma-separated list of admin Telegram IDs.                  | No       | `1001,1002`                                      | `supabase/functions/_shared/alerts.ts`                               |
 | `TELEGRAM_BOT_USERNAME`   | Bot's public username for referral links.                    | No       | `mybot`                                          | `supabase/functions/referral-link/index.ts`                          |
+| `VITE_TELEGRAM_WEBHOOK_SECRET` | Client-side copy of webhook secret for edge function calls. | No       | `longrandomsecret`                          | `src/config/supabase.ts`                                            |
 | `TELEGRAM_ID`             | Telegram user ID used for health checks.                     | No       | `123456789`                                      | `scripts/miniapp-health-check.ts`                                    |
 
 ## Mini App
