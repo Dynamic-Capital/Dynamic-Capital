@@ -29,13 +29,17 @@ skips the **Open Mini App** button.
 
 3. (One-time) set Telegram chat menu button:
 
-   ```bash
+  ```bash
    export TELEGRAM_BOT_TOKEN=<token>
    # Either MINI_APP_URL or MINI_APP_SHORT_NAME
    export MINI_APP_URL=https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/
    # export MINI_APP_SHORT_NAME=<short_name>
-   deno run -A scripts/set-chat-menu-button.ts
-   ```
+  deno run -A scripts/set-chat-menu-button.ts
+  ```
+
+   If configuring the Mini App via BotFather, set the **Direct URL** to the same
+   `MINI_APP_URL` (including the trailing `/miniapp/` segment) so Telegram opens
+   the deployed mini app path instead of the dashboard root.
 
 4. Sanity:
 
