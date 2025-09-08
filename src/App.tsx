@@ -57,12 +57,12 @@ const AppContent = () => {
       <SkipToContent />
       <TelegramRedirect />
       
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background mobile-optimized">
         {!isInMiniApp && <Header />}
-        
-        <main 
+
+        <main
           id="main-content"
-          className={isInMiniApp ? '' : 'pb-20 md:pb-0'}
+          className={isInMiniApp ? '' : 'pb-20 md:pb-0 safe-area-bottom'}
           role="main"
           tabIndex={-1}
         >

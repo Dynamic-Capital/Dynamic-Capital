@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RotatingWords } from "@/components/ui/rotating-words";
@@ -18,6 +18,8 @@ const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
   const isMobile = useIsMobile();
   const [showLoader, setShowLoader] = useState(true);
   const shouldReduceMotion = useReducedMotion();
+  const { scrollY } = useScroll();
+  const parallaxY = useTransform(scrollY, [0, 300], [0, 100]);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowLoader(false), 900);
@@ -26,8 +28,8 @@ const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
 
   return (
       <section className="relative overflow-hidden bg-gradient-to-br from-[hsl(var(--accent-dark))] via-[hsl(var(--primary)/0.9)] to-[hsl(var(--dc-accent))] min-h-screen flex items-center">
-        {/* Dynamic Animated Background */}
-        <div className="absolute inset-0">
+        {/* Dynamic Animated Background with parallax */}
+        <motion.div className="absolute inset-0" style={shouldReduceMotion ? undefined : { y: parallaxY }}>
           {/* Floating Orbs with Enhanced Animation */}
             <motion.div
               className={`absolute ${isMobile ? 'top-10 left-5 w-40 h-40' : 'top-20 left-10 w-72 h-72'} bg-[hsl(var(--accent-light)/0.2)] rounded-full blur-3xl`}
@@ -84,84 +86,65 @@ const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
           
           {/* Gradient Overlay for Better Text Contrast */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[hsl(var(--accent-dark)/0.2)] to-[hsl(var(--accent-dark)/0.4)]" />
-        </div>
+        </motion.div>
         
         <div className={`relative container mx-auto ${isMobile ? 'px-4 py-12' : 'px-6 py-20'} text-center`}>
-          <div className={`mx-auto ${isMobile ? 'max-w-lg' : 'max-w-5xl'}`}>
+          <MotionStagger className={`mx-auto ${isMobile ? 'max-w-lg' : 'max-w-5xl'} space-y-6`}>
             {/* Dynamic Floating Badge */}
-              <ResponsiveMotion mobileVariant="fade" desktopVariant="bounce" delay={0.2}>
-                <motion.div
-                  whileHover={shouldReduceMotion ? undefined : { scale: isMobile ? 1.02 : 1.05, y: -5 }}
-                  className={isMobile ? 'mb-6' : 'mb-8'}
-                >
-                  <Badge className={`bg-[hsl(var(--accent-light)/0.3)] text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.5)] hover:bg-[hsl(var(--accent-light)/0.4)] ${isMobile ? 'text-sm px-4 py-1.5' : 'text-base px-6 py-2'} backdrop-blur-md shadow-xl`}>
-                    <motion.div
-                      animate={shouldReduceMotion ? undefined : { rotate: [0, 5, -5, 0] }}
-                      transition={shouldReduceMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} />
-                    </motion.div>
-                    <MorphingText
-                      texts={[
-                        "#1 Premium Trading Platform",
-                        "5000+ Active VIP Members",
-                        "Seamless VIP Dashboard",
-                        "92% Success Rate Proven",
-                        "24/7 Expert Support"
-                      ]}
-                      interval={4000}
-                      morphDuration={0.6}
-                    />
-                  </Badge>
-                </motion.div>
-              </ResponsiveMotion>
-            
-            {/* New Hero Content */}
-            <div className="space-y-6">
-                <motion.h1
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: shouldReduceMotion ? 0 : 0.6 }}
-                  className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-[hsl(var(--accent-light))] drop-shadow-lg`}
-                >
-                  Dynamic Capital VIP
-                </motion.h1>
-
-              <div className="flex justify-center">
-                <Separator className="w-24 h-[2px] bg-[hsl(var(--accent-light)/0.5)] rounded-full" />
+            <ResponsiveMotion mobileVariant="fade" desktopVariant="bounce" delay={0.2}>
+              <div className={isMobile ? 'mb-6' : 'mb-8'}>
+                <Badge className={`bg-[hsl(var(--accent-light)/0.3)] text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.5)] hover:bg-[hsl(var(--accent-light)/0.4)] ${isMobile ? 'text-sm px-4 py-1.5' : 'text-base px-6 py-2'} backdrop-blur-md shadow-xl`}>
+                  <motion.div
+                    animate={shouldReduceMotion ? undefined : { rotate: [0, 5, -5, 0] }}
+                    transition={shouldReduceMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} />
+                  </motion.div>
+                  <MorphingText
+                    texts={[
+                      "#1 Premium Trading Platform",
+                      "5000+ Active VIP Members",
+                      "Seamless VIP Dashboard",
+                      "92% Success Rate Proven",
+                      "24/7 Expert Support"
+                    ]}
+                    interval={4000}
+                    morphDuration={0.6}
+                  />
+                </Badge>
               </div>
+            </ResponsiveMotion>
 
-                <motion.p
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.1 }}
-                  className={`${isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'} text-[hsl(var(--accent-light)/0.9)] max-w-3xl mx-auto`}
-                >
-                  <span className="text-[hsl(var(--accent-light)/0.8)]">Professional Trading • Premium </span>
-                  {showLoader ? (
-                    <span className="inline-flex items-center">
-                      <span className="mr-2">Signals</span>
-                      <TextLoader size="sm" dotColorClass="text-[hsl(var(--accent-gold))]" />
-                    </span>
-                  ) : (
-                    <RotatingWords
-                      words={["Signals", "Analysis", "Support", "Strategies"]}
-                      interval={2500}
-                      colorClass="text-[hsl(var(--accent-gold))] font-semibold"
-                    />
-                  )}
-                  <span className="text-[hsl(var(--accent-light)/0.8)]"> • VIP Support</span>
-                </motion.p>
+            {/* New Hero Content */}
+            <h1 className={`${isMobile ? 'text-3xl sm:text-4xl' : 'text-4xl sm:text-5xl lg:text-6xl'} font-bold font-poppins text-[hsl(var(--accent-light))] drop-shadow-lg`}>
+              Dynamic Capital VIP
+            </h1>
 
-                <motion.p
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: shouldReduceMotion ? 0 : 0.6, delay: shouldReduceMotion ? 0 : 0.2 }}
-                  className={`${isMobile ? 'text-base' : 'text-lg'} text-[hsl(var(--accent-light)/0.7)] max-w-2xl mx-auto`}
-                >
-                  Trade with expert-guided confidence
-                </motion.p>
+            <div className="flex justify-center">
+              <Separator className="w-24 h-[2px] bg-[hsl(var(--accent-light)/0.5)] rounded-full" />
             </div>
+
+            <p className={`${isMobile ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'} text-[hsl(var(--accent-light)/0.9)] max-w-3xl mx-auto`}>
+              <span className="text-[hsl(var(--accent-light)/0.8)]">Professional Trading • Premium </span>
+              {showLoader ? (
+                <span className="inline-flex items-center">
+                  <span className="mr-2">Signals</span>
+                  <TextLoader size="sm" dotColorClass="text-[hsl(var(--accent-gold))]" />
+                </span>
+              ) : (
+                <RotatingWords
+                  words={["Signals", "Analysis", "Support", "Strategies"]}
+                  interval={2500}
+                  colorClass="text-[hsl(var(--accent-gold))] font-semibold"
+                />
+              )}
+              <span className="text-[hsl(var(--accent-light)/0.8)]"> • VIP Support</span>
+            </p>
+
+              <p className={`${isMobile ? 'text-base' : 'text-lg'} text-[hsl(var(--accent-light)/0.7)] max-w-2xl mx-auto`}>
+                Trade with expert-guided confidence
+              </p>
+            </MotionStagger>
 
             {/* Enhanced CTA Buttons */}
             <ResponsiveMotion mobileVariant="slide" desktopVariant="bounce" delay={0.3}>
@@ -284,7 +267,6 @@ const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
                 </MotionFadeIn>
               )}
           </div>
-        </div>
       </section>
   );
 };
