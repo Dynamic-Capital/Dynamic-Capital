@@ -12,6 +12,7 @@ import { HorizontalSnapScroll } from '@/components/ui/horizontal-snap-scroll';
 import { useToast } from '@/hooks/use-toast';
 import { callEdgeFunction, buildFunctionUrl } from '@/config/supabase';
 import PromoCodeInput from '@/components/billing/PromoCodeInput';
+import { formatPrice } from '@/lib/utils';
 
 interface Plan {
   id: string;
@@ -82,11 +83,9 @@ export const LivePlansSection = ({
     }
   };
 
-  const formatPrice = (plan: Plan) => {
-    if (plan.is_lifetime) {
-      return `$${plan.price}`;
-    }
-    return `$${plan.price}/mo`;
+  const formatPlanPrice = (plan: Plan) => {
+    const price = formatPrice(plan.price, plan.currency);
+    return plan.is_lifetime ? price : `${price}/mo`;
   };
 
   const isVipPlan = (name: string) => 
@@ -163,9 +162,9 @@ export const LivePlansSection = ({
                     </div>
                     <div className="text-right ui-stack-xs">
                       <div className="text-title font-bold text-primary">
-                        ${formatPrice(plan)}
+                        {formatPlanPrice(plan)}
                       </div>
-                      <div className="text-caption text-muted-foreground">USD</div>
+                      <div className="text-caption text-muted-foreground">{plan.currency}</div>
                     </div>
                   </div>
 
