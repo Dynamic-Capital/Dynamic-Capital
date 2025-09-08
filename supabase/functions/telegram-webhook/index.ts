@@ -45,11 +45,21 @@ async function sendMessage(
     return;
   }
   try {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, ...extra }),
-    });
+    const resp = await fetch(
+      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text, ...extra }),
+      },
+    );
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => "");
+      baseLogger.error("sendMessage failed", {
+        status: resp.status,
+        body,
+      });
+    }
   } catch (err) {
     baseLogger.error("sendMessage error", err);
   }

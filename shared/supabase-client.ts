@@ -1,5 +1,9 @@
-import { createClient as createSupabaseClient, type SupabaseClient as SBClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types/supabase.ts";
+
+// Deno runtime doesn't provide Node's `process` global; declare a minimal shape
+// so type checking passes in both environments.
+declare const process: { env: Record<string, string | undefined> } | undefined;
 
 function getEnvVar(name: string): string | undefined {
   const prefixes = ["", "NEXT_PUBLIC_", "VITE_", "REACT_APP_"];
@@ -52,7 +56,14 @@ const loggingFetch: typeof fetch = async (input, init) => {
   const res = await fetch(input as RequestInfo, init);
   const end = Date.now();
   try {
-    const url = typeof input === "string" ? input : input.url;
+    let url: string;
+    if (typeof input === "string") {
+      url = input;
+    } else if (input instanceof Request) {
+      url = input.url;
+    } else {
+      url = input.toString();
+    }
     const path = new URL(url).pathname;
     queryCounts[path] = (queryCounts[path] || 0) + 1;
     console.log(`[Supabase] ${path} - ${res.status} - ${end - start}ms`);
@@ -66,7 +77,7 @@ export function getQueryCounts() {
   return { ...queryCounts };
 }
 
-export function createClient(key: "anon" | "service" = "anon"): SBClient<Database> {
+export function createClient(key: "anon" | "service" = "anon"): any {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     throw new Error("Missing Supabase configuration");
   }
@@ -82,7 +93,7 @@ export function createClient(key: "anon" | "service" = "anon"): SBClient<Databas
       removeItem: () => {},
     };
 
-  return createSupabaseClient<Database>(SUPABASE_URL, k, {
+  return createSupabaseClient(SUPABASE_URL, k, {
     auth: {
       storage,
       persistSession: isBrowser,
@@ -93,4 +104,4 @@ export function createClient(key: "anon" | "service" = "anon"): SBClient<Databas
 }
 
 export { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ENV_ERROR };
-export type SupabaseClient = SBClient<Database>;
+export type SupabaseClient = any;
