@@ -165,8 +165,6 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 - SUPABASE_URL
 - SUPABASE_ANON_KEY
 - SUPABASE_SERVICE_ROLE_KEY
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_ANON_KEY
 - TELEGRAM_BOT_TOKEN
 - TELEGRAM_WEBHOOK_SECRET
 - TELEGRAM_ADMIN_IDS _(comma-separated Telegram user IDs; spaces are ignored)_
@@ -182,8 +180,8 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 The Telegram MiniApp requires the following variables at build time:
 
 ```bash
-VITE_SUPABASE_URL=https://<project>.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_URL=https://<project>.supabase.co
+SUPABASE_ANON_KEY=eyJ...
 ```
 
 Set these in your hosting provider (e.g., Lovable.dev project settings). If either

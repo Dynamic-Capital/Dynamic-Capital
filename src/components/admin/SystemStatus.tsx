@@ -53,7 +53,7 @@ export const SystemStatus = () => {
   const supabasePublic = supabase.schema("public");
   const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? "";
+  const supabaseUrl = import.meta.env.SUPABASE_URL ?? "";
   const supabaseProjectId =
     supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] ?? "";
   const openSupabase = (path: string) => {

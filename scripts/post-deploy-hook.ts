@@ -2,7 +2,7 @@
 // Automatically updates Telegram mini app URL after deployment
 // This can be called from CI/CD or manually after deployments
 
-const PROJECT_REF = Deno.env.get("SUPABASE_PROJECT_REF") || Deno.env.get("VITE_SUPABASE_PROJECT_ID");
+const PROJECT_REF = Deno.env.get("SUPABASE_PROJECT_REF") || Deno.env.get("SUPABASE_PROJECT_ID");
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const WEBHOOK_SECRET = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
 
