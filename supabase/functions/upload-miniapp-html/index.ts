@@ -85,13 +85,13 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
   <div class="min-h-screen flex flex-col relative">
     <!-- Background Pattern -->
     <div class="absolute inset-0 opacity-5">
-      <div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, #3b82f6 2px, transparent 2px), radial-gradient(circle at 75% 75%, #8b5cf6 2px, transparent 2px); background-size: 50px 50px;"></div>
+      <div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, #3b82f6 2px, transparent 2px), radial-gradient(circle at 75% 75%, #ef4444 2px, transparent 2px); background-size: 50px 50px;"></div>
     </div>
     
     <!-- Header -->
     <header class="glass-effect px-6 py-6 border-b border-white/10 relative z-10 animate-fade-in">
       <div class="text-center">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 flex items-center justify-center shadow-2xl animate-pulse-glow">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-500 via-red-500 to-cyan-500 flex items-center justify-center shadow-2xl animate-pulse-glow">
           <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
           </svg>
@@ -102,7 +102,7 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
           <div class="flex space-x-1">
             <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
             <div class="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
-            <div class="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+            <div class="w-2 h-2 bg-red-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
           </div>
         </div>
       </div>
@@ -178,23 +178,23 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
                   <div class="text-xs text-tg-hint mt-1">Popular</div>
                 </button>
                 
-                <button type="button" class="suggestion-chip px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-sm font-medium cursor-pointer transition-all duration-300 text-tg-text hover:bg-purple-500/20 hover:border-purple-400 hover:scale-105 active:scale-95" data-amount="1000">
+                <button type="button" class="suggestion-chip px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-sm font-medium cursor-pointer transition-all duration-300 text-tg-text hover:bg-red-500/20 hover:border-red-400 hover:scale-105 active:scale-95" data-amount="1000">
                   <div class="flex items-center justify-center">
                     <span class="text-lg font-bold">$1K</span>
                   </div>
                   <div class="text-xs text-tg-hint mt-1">Pro</div>
                 </button>
                 
-                <button type="button" class="suggestion-chip px-4 py-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-lg text-sm font-medium cursor-pointer transition-all duration-300 text-tg-text hover:from-purple-500/30 hover:to-pink-500/30 hover:scale-105 active:scale-95" data-amount="5000">
+                <button type="button" class="suggestion-chip px-4 py-3 bg-gradient-to-r from-red-500/20 to-pink-500/20 border border-red-400/30 rounded-lg text-sm font-medium cursor-pointer transition-all duration-300 text-tg-text hover:from-red-500/30 hover:to-pink-500/30 hover:scale-105 active:scale-95" data-amount="5000">
                   <div class="flex items-center justify-center">
                     <span class="text-lg font-bold">$5K</span>
                   </div>
-                  <div class="text-xs text-purple-300 mt-1">Elite</div>
+                  <div class="text-xs text-red-300 mt-1">Elite</div>
                 </button>
               </div>
             </div>
             
-            <button type="submit" class="w-full px-6 py-4 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 text-white border-0 rounded-xl text-lg font-bold cursor-pointer transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none animate-pulse-glow" id="submitBtn">
+            <button type="submit" class="w-full px-6 py-4 bg-gradient-to-r from-blue-500 via-red-500 to-cyan-500 text-white border-0 rounded-xl text-lg font-bold cursor-pointer transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none animate-pulse-glow" id="submitBtn">
               <span class="flex items-center justify-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>

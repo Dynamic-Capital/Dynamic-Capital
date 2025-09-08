@@ -59,8 +59,8 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
           icon: Shield, 
           title: 'Risk Management', 
           description: 'Professional guidance on protecting and growing your trading capital',
-          color: 'text-purple-500',
-          gradient: 'from-purple-500 to-pink-600'
+          color: 'text-primary',
+          gradient: 'from-primary to-accent'
         };
         if (text.includes('Mentor')) return { 
           icon: Users, 
@@ -73,8 +73,8 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
           icon: Sparkles, 
           title: 'VIP Community', 
           description: 'Exclusive access to premium trading community and networking',
-          color: 'text-pink-500',
-          gradient: 'from-pink-500 to-purple-600'
+          color: 'text-accent',
+          gradient: 'from-accent to-primary'
         };
         if (text.includes('Support')) return { 
           icon: MessageSquare, 
@@ -89,7 +89,7 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
           title: cleanService, 
           description: 'Premium service designed exclusively for VIP members',
           color: 'text-primary',
-          gradient: 'from-primary to-purple-600'
+          gradient: 'from-primary to-accent'
         };
       };
       
@@ -160,7 +160,7 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
         className="text-center mb-12"
       >
         <motion.h2 
-          className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent"
+          className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-accent bg-clip-text text-transparent"
           animate={{
             backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
           }}
@@ -267,7 +267,7 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
               <CardContent className="p-8 h-full flex flex-col justify-center items-center text-center relative overflow-hidden">
                 {/* Animated background gradient */}
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-primary/5 via-purple-500/5 to-pink-500/5"
+                  className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-accent/5"
                   animate={{
                     backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
                   }}
@@ -384,7 +384,7 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
             className={cn(
               "rounded-full transition-all duration-300 border",
               index === currentIndex 
-                ? "w-12 h-4 bg-gradient-to-r from-primary to-purple-500 border-primary" 
+                ? "w-12 h-4 bg-gradient-to-r from-primary to-accent border-primary"
                 : "w-4 h-4 bg-muted-foreground/50 border-muted-foreground/50 hover:bg-muted-foreground/70"
             )}
             whileHover={{ scale: 1.2 }}
@@ -411,7 +411,7 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
         transition={{ duration: 0.6, delay: 1.2 }}
       >
         <motion.div
-          className="h-full bg-gradient-to-r from-primary to-purple-500 rounded-full"
+          className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
           animate={{ 
             width: `${((currentIndex + 1) / serviceItems.length) * 100}%`,
             x: [0, 2, 0]

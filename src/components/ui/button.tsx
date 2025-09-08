@@ -24,7 +24,7 @@ const buttonVariants = cva(
         warning: "bg-warning text-warning-foreground hover:bg-warning/90 hover:shadow-md hover:scale-[1.02] transition-all duration-300",
         info: "bg-info text-info-foreground hover:bg-info/90 hover:shadow-md hover:scale-[1.02] transition-all duration-300",
         premium: [
-          "bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300",
+          "bg-gradient-to-r from-primary to-accent text-white hover:from-primary/90 hover:to-accent/90 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300",
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
           "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
         ],

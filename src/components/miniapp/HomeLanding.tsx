@@ -228,7 +228,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
       {/* Announcements with 3D Emoticons */}
       <FadeInOnView delay={150} animation="slide-in-right">
         <MotionCard variant="glass" hover={true} animate={true} delay={0.2} className="ui-rounded-lg ui-shadow">
-          <div className="p-4 border-l-4 border-gradient-to-b from-primary to-purple-500">
+          <div className="p-4 border-l-4 border-gradient-to-b from-primary to-accent">
             <div className="flex items-center gap-2 mb-2">
               <ThreeDEmoticon emoji="📢" size={20} intensity={0.3} />
               <h3 className="text-subheading font-semibold">Latest Announcements</h3>

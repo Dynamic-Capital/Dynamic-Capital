@@ -198,7 +198,7 @@ export const SubscriptionStatusCard = ({
             <Button 
               onClick={onUpgrade} 
               size="lg" 
-              className="w-full max-w-xs mx-auto bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 text-white font-semibold animate-pulse-glow"
+              className="w-full max-w-xs mx-auto bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-semibold animate-pulse-glow"
             >
               <Crown className="w-4 h-4 mr-2" />
               Upgrade to VIP

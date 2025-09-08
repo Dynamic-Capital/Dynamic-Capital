@@ -232,8 +232,8 @@ export const WelcomeMessage = () => {
 
           <Card className="border-2 hover:border-primary/50 transition-colors">
             <CardHeader>
-              <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-4">
-                <GraduationCap className="w-6 h-6 text-purple-500" />
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                <GraduationCap className="w-6 h-6 text-primary" />
               </div>
               <CardTitle>Education Hub</CardTitle>
               <CardDescription>
