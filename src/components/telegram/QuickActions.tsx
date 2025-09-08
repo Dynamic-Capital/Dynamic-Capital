@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Shield, Activity, Users } from "lucide-react";
+import { FileText, Shield, Activity, Users, Bot } from "lucide-react";
 import { motion } from "framer-motion";
 import { parentVariants, childVariants, buttonVariants } from "@/lib/motion-variants";
 
@@ -27,6 +27,12 @@ export const QuickActions = ({ onRefreshStats, onCheckStatus }: QuickActionsProp
       icon: Activity,
       label: "Refresh Stats",
       action: onRefreshStats,
+      variant: "outline" as const,
+    },
+    {
+      icon: Bot,
+      label: "Bot Controls",
+      action: () => window.open("/bot-controls", "_blank"),
       variant: "outline" as const,
     },
     {

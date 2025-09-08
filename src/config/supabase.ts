@@ -47,6 +47,16 @@ export const SUPABASE_CONFIG = {
   }
 } as const;
 
+// Shared secret used by both the Telegram bot and web dashboard when calling
+// protected edge functions. In browser builds it must be exposed via the
+// VITE_ prefix.
+const TELEGRAM_WEBHOOK_SECRET =
+  (typeof Deno !== "undefined"
+    ? Deno.env.get("TELEGRAM_WEBHOOK_SECRET")
+    : typeof process !== "undefined"
+    ? process.env.TELEGRAM_WEBHOOK_SECRET
+    : import.meta.env?.VITE_TELEGRAM_WEBHOOK_SECRET) || "";
+
 // Helper function to build function URLs
 export const buildFunctionUrl = (functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS): string => {
   return `${SUPABASE_CONFIG.FUNCTIONS_URL}/${SUPABASE_CONFIG.FUNCTIONS[functionName]}`;
@@ -69,6 +79,10 @@ export const callEdgeFunction = async (
     'apikey': SUPABASE_CONFIG.ANON_KEY,
     ...headers,
   };
+
+  if (TELEGRAM_WEBHOOK_SECRET) {
+    requestHeaders['x-telegram-bot-api-secret-token'] = TELEGRAM_WEBHOOK_SECRET;
+  }
 
   if (token) {
     requestHeaders['Authorization'] = `Bearer ${token}`;
