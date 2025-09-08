@@ -43,7 +43,11 @@ export const LivePlansSection = ({
 
   const fetchPlans = useCallback(async () => {
     try {
-      const { data } = await callEdgeFunction('PLANS');
+      const { data, error } = await callEdgeFunction('PLANS');
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       if ((data as any)?.plans) {
         setPlans((data as any).plans);

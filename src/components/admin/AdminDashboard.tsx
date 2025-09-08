@@ -113,7 +113,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       }
 
       // Load admin stats
-      const { data: statsData } = await callEdgeFunction('ANALYTICS_DATA', {
+      const { data: statsData, error: statsError } = await callEdgeFunction<AdminStats>('ANALYTICS_DATA', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -124,12 +124,16 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         }
       });
 
+      if (statsError) {
+        throw new Error(statsError.message);
+      }
+
       if (statsData) {
         setStats(statsData as AdminStats);
       }
 
       // Load pending payments
-      const { data: paymentsData } = await callEdgeFunction('ADMIN_LIST_PENDING', {
+      const { data: paymentsData, error: paymentsError } = await callEdgeFunction('ADMIN_LIST_PENDING', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -140,6 +144,10 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
           offset: 0
         }
       });
+
+      if (paymentsError) {
+      throw new Error(paymentsError.message);
+      }
 
       if (paymentsData) {
         setPendingPayments((paymentsData as any).items || []);
@@ -177,7 +185,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         throw new Error("No admin authentication available");
       }
 
-      const { data } = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
+      const { data, error } = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -189,6 +197,10 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
           message: `Payment ${decision}d by admin`
         }
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       if ((data as any)?.ok) {
         toast({

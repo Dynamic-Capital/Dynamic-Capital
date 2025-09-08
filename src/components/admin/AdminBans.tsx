@@ -37,7 +37,7 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const { data } = await callEdgeFunction('ADMIN_BANS', {
+      const { data, error } = await callEdgeFunction('ADMIN_BANS', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -48,7 +48,10 @@ export function AdminBans() {
         }
       });
 
-      if ((data as any)?.ok) {
+      if (error) {
+        console.warn('Failed to load bans:', error.message);
+        setBans([]);
+      } else if ((data as any)?.ok) {
         setBans((data as any).bans || []);
       } else {
         console.warn('Failed to load bans:', (data as any)?.error);
@@ -79,7 +82,7 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const { data } = await callEdgeFunction('ADMIN_BANS', {
+      const { data, error } = await callEdgeFunction('ADMIN_BANS', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -92,6 +95,10 @@ export function AdminBans() {
           expires_at: newExpiration || undefined
         }
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       if ((data as any)?.ok) {
         toast({
@@ -124,7 +131,7 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await callEdgeFunction('ADMIN_BANS', {
+      const { data, error } = await callEdgeFunction('ADMIN_BANS', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -136,16 +143,18 @@ export function AdminBans() {
         }
       });
 
-      const data = await response.json();
-      
-      if (response.ok && data.ok) {
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if ((data as any)?.ok) {
         toast({
           title: "Success",
           description: "Ban removed successfully",
         });
         await loadBans();
       } else {
-        throw new Error(data.error || 'Failed to remove ban');
+        throw new Error((data as any)?.error || 'Failed to remove ban');
       }
     } catch (error) {
       console.error('Failed to remove ban:', error);

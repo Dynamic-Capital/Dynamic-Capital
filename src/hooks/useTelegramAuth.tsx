@@ -32,63 +32,63 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
   const [initData, setInitData] = useState<string | null>(null);
 
   const verifyTelegramAuth = useCallback(async (initDataString?: string): Promise<boolean> => {
-    try {
-      const dataToVerify = initDataString || initData;
-      if (!dataToVerify) return false;
+    const dataToVerify = initDataString || initData;
+    if (!dataToVerify) return false;
 
-      const { data } = await callEdgeFunction('VERIFY_INITDATA', {
-        method: 'POST',
-        body: { initData: dataToVerify },
-      });
-      return (data as any)?.ok === true;
-    } catch (error) {
-      console.error('Failed to verify telegram auth:', error);
+    const { data, error } = await callEdgeFunction('VERIFY_INITDATA', {
+      method: 'POST',
+      body: { initData: dataToVerify },
+    });
+
+    if (error) {
+      console.error('Failed to verify telegram auth:', error.message);
       return false;
     }
+
+    return (data as any)?.ok === true;
   }, [initData]);
 
   const checkAdminStatus = useCallback(async (userId?: string): Promise<boolean> => {
-    try {
-      const userIdToCheck = userId || telegramUser?.id?.toString();
-      if (!userIdToCheck) return false;
+    const userIdToCheck = userId || telegramUser?.id?.toString();
+    if (!userIdToCheck) return false;
 
-      if (initData) {
-        const { data } = await callEdgeFunction('ADMIN_CHECK', {
-          method: 'POST',
-          body: { initData: initData },
-        });
+    let data, error;
+    if (initData) {
+      ({ data, error } = await callEdgeFunction('ADMIN_CHECK', {
+        method: 'POST',
+        body: { initData: initData },
+      }));
+    } else {
+      ({ data, error } = await callEdgeFunction('ADMIN_CHECK', {
+        method: 'POST',
+        body: { telegram_user_id: userIdToCheck },
+      }));
+    }
 
-        const adminStatus = (data as any)?.ok === true;
-        setIsAdmin(adminStatus);
-        return adminStatus;
-      } else {
-        const { data } = await callEdgeFunction('ADMIN_CHECK', {
-          method: 'POST',
-          body: { telegram_user_id: userIdToCheck },
-        });
-
-        const adminStatus = (data as any)?.is_admin === true;
-        setIsAdmin(adminStatus);
-        return adminStatus;
-      }
-    } catch (error) {
-      console.error('Failed to check admin status:', error);
+    if (error) {
+      console.error('Failed to check admin status:', error.message);
       return false;
     }
+
+    const adminStatus = initData
+      ? (data as any)?.ok === true
+      : (data as any)?.is_admin === true;
+    setIsAdmin(adminStatus);
+    return adminStatus;
   }, [initData, telegramUser]);
 
   const checkVipStatus = useCallback(async (userId: string): Promise<boolean> => {
-    try {
-      const { data } = await callEdgeFunction('MINIAPP_HEALTH', {
-        method: 'POST',
-        body: { telegram_id: userId },
-      });
+    const { data, error } = await callEdgeFunction('MINIAPP_HEALTH', {
+      method: 'POST',
+      body: { telegram_id: userId },
+    });
 
-      return (data as any)?.vip?.is_vip === true;
-    } catch (error) {
-      console.error('Failed to check VIP status:', error);
+    if (error) {
+      console.error('Failed to check VIP status:', error.message);
       return false;
     }
+
+    return (data as any)?.vip?.is_vip === true;
   }, []);
 
   const syncUser = useCallback(async (initDataString: string): Promise<void> => {

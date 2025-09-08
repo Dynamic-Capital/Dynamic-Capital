@@ -70,14 +70,19 @@ export function createClient(key: "anon" | "service" = "anon"): SBClient<Databas
   const k = key === "service" && SUPABASE_SERVICE_ROLE_KEY
     ? SUPABASE_SERVICE_ROLE_KEY
     : SUPABASE_ANON_KEY;
+  const isBrowser = typeof window !== "undefined";
+  const storage = isBrowser
+    ? window.localStorage
+    : {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    };
+
   return createSupabaseClient<Database>(SUPABASE_URL, k, {
     auth: {
-      storage: {
-        getItem: () => null,
-        setItem: () => {},
-        removeItem: () => {},
-      },
-      persistSession: false,
+      storage,
+      persistSession: isBrowser,
       autoRefreshToken: true,
     },
     global: { fetch: loggingFetch },

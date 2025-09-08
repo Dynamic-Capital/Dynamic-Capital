@@ -60,13 +60,15 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
           method: 'POST',
           body: { keys: ['usd_mvr_rate'] },
         })
-        .then(({ data }) => {
-          const rateContent = (data as any)?.contents?.find((c: any) => c.content_key === 'usd_mvr_rate');
-          if (rateContent) {
-            const rate = parseFloat(rateContent.content_value) || 17.5;
-            setExchangeRate(rate);
-            localStorage.setItem('usd_mvr_rate', rate.toString());
-            localStorage.setItem('usd_mvr_rate_time', Date.now().toString());
+        .then(({ data, error }) => {
+          if (!error) {
+            const rateContent = (data as any)?.contents?.find((c: any) => c.content_key === 'usd_mvr_rate');
+            if (rateContent) {
+              const rate = parseFloat(rateContent.content_value) || 17.5;
+              setExchangeRate(rate);
+              localStorage.setItem('usd_mvr_rate', rate.toString());
+              localStorage.setItem('usd_mvr_rate_time', Date.now().toString());
+            }
           }
         })
         .catch(() => {

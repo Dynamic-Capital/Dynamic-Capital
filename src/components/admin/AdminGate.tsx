@@ -51,10 +51,14 @@ export function AdminGate({ children }: AdminGateProps) {
   const authenticateWithInitData = async (initDataToUse: string) => {
     setIsAuthenticating(true);
     try {
-      const { data } = await callEdgeFunction('ADMIN_SESSION', {
+      const { data, error } = await callEdgeFunction('ADMIN_SESSION', {
         method: 'POST',
         body: { initData: initDataToUse },
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       if ((data as any)?.token) {
         localStorage.setItem('dc_admin_token', (data as any).token);

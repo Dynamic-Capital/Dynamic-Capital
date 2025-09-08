@@ -70,7 +70,7 @@ export const buildFunctionUrl = (functionName: keyof typeof SUPABASE_CONFIG.FUNC
 };
 
 // Helper function for making authenticated requests to edge functions
-export const callEdgeFunction = async (
+export const callEdgeFunction = async <T>(
   functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS,
   options: {
     method?: string;
@@ -78,7 +78,7 @@ export const callEdgeFunction = async (
     headers?: Record<string, string>;
     token?: string;
   } = {},
-): Promise<{ data: any; status: number }> => {
+): Promise<{ data?: T; error?: { status: number; message: string } }> => {
   const { method = 'GET', body, headers = {}, token } = options;
 
   const requestHeaders: Record<string, string> = {
@@ -101,17 +101,23 @@ export const callEdgeFunction = async (
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  if (!res.ok) {
-    throw new Error(`Edge function ${functionName} failed: ${res.status} ${res.statusText}`);
-  }
-
-  let data: any = null;
+  let data: T | undefined;
   try {
     data = await res.json();
   } catch {
     /* ignore */
   }
-  return { data, status: res.status };
+
+  if (!res.ok) {
+    return {
+      error: {
+        status: res.status,
+        message: (data as any)?.message ?? res.statusText,
+      },
+    };
+  }
+
+  return { data };
 };
 
 // Telegram bot configuration

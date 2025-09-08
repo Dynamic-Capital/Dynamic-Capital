@@ -82,7 +82,7 @@ export function PaymentReview() {
     try {
       setProcessing(paymentId);
       
-      const { data } = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
+      const { data, error } = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
         method: 'POST',
         body: {
           payment_id: paymentId,
@@ -90,6 +90,10 @@ export function PaymentReview() {
           notes
         }
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
 
       if ((data as any)?.ok) {
         toast.success(`Payment ${action}d successfully`);

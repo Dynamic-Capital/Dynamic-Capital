@@ -55,18 +55,18 @@ export function SystemHealth({ className, showDetails = false }: SystemHealthPro
   const checkHealth = async () => {
     setLoading(true);
     try {
-      const { data, status } = await callEdgeFunction('WEB_APP_HEALTH');
+      const { data, error } = await callEdgeFunction<HealthStatus>('WEB_APP_HEALTH');
 
-      if (status !== 200 || !data) {
-        throw new Error('Health check failed');
+      if (error || !data) {
+        throw new Error(error?.message || 'Health check failed');
       }
 
-      setHealthStatus(data as HealthStatus);
+      setHealthStatus(data);
       setLastCheck(new Date());
 
-      if ((data as any).overall_status === 'degraded') {
+      if (data.overall_status === 'degraded') {
         toast.warning('Some systems are experiencing issues');
-      } else if ((data as any).overall_status === 'error') {
+      } else if (data.overall_status === 'error') {
         toast.error('System health check failed');
       }
     } catch (error) {

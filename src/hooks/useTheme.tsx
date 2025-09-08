@@ -29,17 +29,13 @@ export function useTheme() {
     const fetchTheme = async () => {
       const tg = window.Telegram?.WebApp;
       if (session?.access_token) {
-        try {
-          const { data, status } = await callEdgeFunction('THEME_GET', {
-            token: session.access_token,
-          });
-          if (status === 200 && data) {
-            const mode = (data as any).mode;
-            setTheme(mode === 'auto' ? 'system' : mode);
-            return;
-          }
-        } catch {
-          /* ignore */
+        const { data, error } = await callEdgeFunction('THEME_GET', {
+          token: session.access_token,
+        });
+        if (!error && data) {
+          const mode = (data as any).mode;
+          setTheme(mode === 'auto' ? 'system' : mode);
+          return;
         }
       }
 
@@ -107,14 +103,13 @@ export function useTheme() {
 
     const tg = window.Telegram?.WebApp;
     if (session?.access_token) {
-      try {
-        await callEdgeFunction('THEME_SAVE', {
-          method: 'POST',
-          token: session.access_token,
-          body: { mode: newTheme === 'system' ? 'auto' : newTheme },
-        });
-      } catch {
-        /* ignore */
+      const { error } = await callEdgeFunction('THEME_SAVE', {
+        method: 'POST',
+        token: session.access_token,
+        body: { mode: newTheme === 'system' ? 'auto' : newTheme },
+      });
+      if (error) {
+        // ignore errors
       }
     } else if (!tg) {
       try {
