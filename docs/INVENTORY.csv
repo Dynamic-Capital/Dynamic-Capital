@@ -154,8 +154,8 @@ src/pages/Education.tsx,15370,tsx,404
 src/pages/BotStatus.tsx,7943,tsx,233
 src/pages/NotFound.tsx,740,tsx,27
 src/broadcast/index.ts,1396,ts,48
-src/integrations/supabase/client.ts,1424,ts,46
-src/integrations/supabase/types.ts,48108,ts,1564
+src/integrations/supabase/client.ts,321,ts,8
+types/supabase.ts,48108,ts,1564
 src/components/telegram/BotDashboard.tsx,32653,tsx,877
 src/components/layout/Header.tsx,3407,tsx,99
 src/components/welcome/WelcomeMessage.tsx,11908,tsx,293

@@ -1,17 +1,6 @@
-import { optionalEnvVar, requireEnvVar } from "../utils/env.ts";
+import { optionalEnvVar } from "../utils/env.ts";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ENV_ERROR } from "../../shared/supabase-client.ts";
 
-// Centralized Supabase configuration
-let SUPABASE_URL = "";
-let SUPABASE_ANON_KEY = "";
-let SUPABASE_ENV_ERROR = "";
-
-try {
-  SUPABASE_URL = requireEnvVar("SUPABASE_URL");
-  SUPABASE_ANON_KEY = requireEnvVar("SUPABASE_ANON_KEY");
-} catch (e) {
-  SUPABASE_ENV_ERROR = (e as Error).message;
-  console.error("Configuration error:", SUPABASE_ENV_ERROR);
-}
 const PROJECT_ID = SUPABASE_URL.match(/^https:\/\/([a-z0-9]+)\.supabase\.co/)
   ? RegExp.$1
   : "";
@@ -28,7 +17,7 @@ export const SUPABASE_CONFIG = {
 
   // Edge functions base URL
   FUNCTIONS_URL,
-  
+
   // Edge function endpoints
   FUNCTIONS: {
     // Payment & checkout
@@ -39,7 +28,7 @@ export const SUPABASE_CONFIG = {
     ACTIVE_PROMOS: 'active-promos',
     SUBSCRIPTION_STATUS: 'subscription-status',
     CRYPTO_TXID: 'crypto-txid',
-    
+
     // Admin functions
     ADMIN_SESSION: 'admin-session',
     ADMIN_BANS: 'admin-bans',
@@ -47,7 +36,7 @@ export const SUPABASE_CONFIG = {
     ADMIN_ACT_ON_PAYMENT: 'admin-act-on-payment',
     ADMIN_LIST_PENDING: 'admin-list-pending',
     ADMIN_CHECK: 'admin-check',
-    
+
     // Bot & system
     BOT_STATUS_CHECK: 'bot-status-check',
     ROTATE_WEBHOOK_SECRET: 'rotate-webhook-secret',
@@ -57,12 +46,12 @@ export const SUPABASE_CONFIG = {
     MINIAPP_HEALTH: 'miniapp-health',
     THEME_GET: 'theme-get',
     THEME_SAVE: 'theme-save',
-    
+
     // Content & data
     CONTENT_BATCH: 'content-batch',
     ANALYTICS_DATA: 'analytics-data',
     MINIAPP: 'miniapp',
-    
+
     // Verification
     VERIFY_INITDATA: 'verify-initdata',
   }
@@ -88,10 +77,10 @@ export const callEdgeFunction = async (
     body?: any;
     headers?: Record<string, string>;
     token?: string;
-  } = {}
+  } = {},
 ): Promise<{ data: any; status: number }> => {
   const { method = 'GET', body, headers = {}, token } = options;
-  
+
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     'apikey': SUPABASE_CONFIG.ANON_KEY,
@@ -131,7 +120,7 @@ export const TELEGRAM_CONFIG = {
   BOT_URL: 'https://t.me/Dynamic_VIP_BOT',
 } as const;
 
-// Crypto configuration  
+// Crypto configuration
 export const CRYPTO_CONFIG = {
   USDT_TRC20_ADDRESS: optionalEnvVar('USDT_TRC20_ADDRESS') ?? '',
   NETWORKS: {
