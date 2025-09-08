@@ -85,8 +85,8 @@ export async function handler(req: Request): Promise<Response> {
     }
   }
 
-  // Use telegram_id from auth, initData, or body
-  const finalTelegramId = telegramId || body.telegram_id;
+  // Use telegram_id from auth or initData; allow body override only when auth header present
+  const finalTelegramId = telegramId || (authHeader ? body.telegram_id : null);
   if (!finalTelegramId) {
     return json({ error: "unauthorized" }, 401, corsHeaders);
   }

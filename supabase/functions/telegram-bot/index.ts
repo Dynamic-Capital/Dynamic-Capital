@@ -242,7 +242,8 @@ async function notifyUser(
 }
 
 async function hasMiniApp(): Promise<boolean> {
-  const { url, short } = await readMiniAppEnv();
+  const { url, short, ready } = await readMiniAppEnv();
+  if (!ready) return false;
   if (url) return true;
   const bot = await envOrSetting("TELEGRAM_BOT_USERNAME");
   return Boolean(short && bot);
@@ -263,14 +264,14 @@ export async function sendMiniAppLink(
     return null;
   }
 
-  const { url, short } = await readMiniAppEnv();
+  const { url, short, ready } = await readMiniAppEnv();
   const botUser = (await envOrSetting("TELEGRAM_BOT_USERNAME")) || "";
   const btnText = await getContent("miniapp_button_text") ??
     "Open VIP Mini App";
   const prompt = await getContent("miniapp_open_prompt") ??
     "<b>Open the VIP Mini App:</b>";
 
-  if (url) {
+  if (ready && url) {
     if (!silent) {
       await sendMessage(chatId, prompt, {
         reply_markup: {
@@ -281,7 +282,7 @@ export async function sendMiniAppLink(
     return url;
   }
 
-  if (short && botUser) {
+  if (ready && short && botUser) {
     const deepLink = `https://t.me/${botUser}/${short}`;
     if (!silent) {
       await sendMessage(chatId, prompt, {
@@ -359,7 +360,7 @@ export async function handleDashboardHelp(
 
 async function handleFaqCommand(chatId: number): Promise<void> {
   const faqContent = await getContent("faq_general");
-  const { url: miniAppUrl } = await readMiniAppEnv();
+  const { url: miniAppUrl, ready: miniAppReady } = await readMiniAppEnv();
   
   // Enhanced FAQ with structured content
   const faqText = `<b>❓ Frequently Asked Questions</b>
@@ -394,7 +395,7 @@ ${faqContent ?? `<b>Common Questions:</b>
   ]);
   
   // Add Mini App button if available
-  if (miniAppUrl) {
+  if (miniAppReady && miniAppUrl) {
     const miniAppText = await getContent("miniapp_button_text") ?? "🚀 Open VIP Mini App";
     keyboard.push([{ text: miniAppText, web_app: { url: miniAppUrl } }]);
   }
@@ -782,10 +783,10 @@ We typically respond within 2-4 hours.`;
       web_app?: { url: string };
     }[][];
   };
-  const { url } = await readMiniAppEnv();
+  const { url, ready } = await readMiniAppEnv();
   const miniText = await getContent("miniapp_button_text") ??
     "Open VIP Mini App";
-  if (url) {
+  if (ready && url) {
     markup.inline_keyboard.push([{ text: miniText, web_app: { url } }]);
   }
   const msg = await getContent("welcome_message");
@@ -1107,10 +1108,10 @@ export const commandHandlers: Record<string, CommandHandler> = {
 <b>What would you like to do?</b>`;
 
     // Get current Mini App configuration
-    const { url } = await readMiniAppEnv();
+    const { url, ready } = await readMiniAppEnv();
     const continueText = await getContent("continue_in_bot_button") ?? "Continue in Bot";
     const miniText = await getContent("miniapp_button_text") ?? "🚀 Open VIP Mini App";
-    
+
     // Build enhanced keyboard
     const keyboard: {
       text: string;
@@ -1119,9 +1120,9 @@ export const commandHandlers: Record<string, CommandHandler> = {
     }[][] = [
       [{ text: continueText, callback_data: "nav:dashboard" }]
     ];
-    
-    // Always add Mini App button since readMiniAppEnv now auto-derives URL
-    if (url) {
+
+    // Add Mini App button only when explicitly configured
+    if (ready && url) {
       keyboard[0].push({ text: miniText, web_app: { url } });
     }
     
