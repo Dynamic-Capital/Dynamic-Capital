@@ -137,8 +137,8 @@ export default function MiniApp() {
                           {activeTab === tab.id && (
                             <motion.div
                               layoutId="tabUnderline"
-                              className="absolute bottom-0 left-0 right-0 h-0.5 bg-white"
-                            />
+                              className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground"
+                              />
                           )}
                         </TabsTrigger>
                       ))}

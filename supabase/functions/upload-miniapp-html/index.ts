@@ -13,13 +13,13 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
       theme: {
         extend: {
           colors: {
-            'tg-bg': 'var(--tg-theme-bg-color, #0f172a)',
-            'tg-text': 'var(--tg-theme-text-color, #f8fafc)',
-            'tg-hint': 'var(--tg-theme-hint-color, #64748b)',
-            'tg-button': 'var(--tg-theme-button-color, #3b82f6)',
-            'tg-button-text': 'var(--tg-theme-button-text-color, #ffffff)',
-            'tg-secondary-bg': 'var(--tg-theme-secondary-bg-color, #1e293b)',
-            'tg-header-bg': 'var(--tg-theme-header-bg-color, #0f172a)',
+            'tg-bg': 'var(--tg-theme-bg-color)',
+            'tg-text': 'var(--tg-theme-text-color)',
+            'tg-hint': 'var(--tg-theme-hint-color)',
+            'tg-button': 'var(--tg-theme-button-color)',
+            'tg-button-text': 'var(--tg-theme-button-text-color)',
+            'tg-secondary-bg': 'var(--tg-theme-secondary-bg-color)',
+            'tg-header-bg': 'var(--tg-theme-header-bg-color)',
           },
           animation: {
             'fade-in': 'fadeIn 0.5s ease-out',
@@ -63,8 +63,8 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
     }
     .glass-effect {
       backdrop-filter: blur(10px);
-      background: rgba(30, 41, 59, 0.8);
-      border: 1px solid rgba(148, 163, 184, 0.1);
+      background: var(--tg-theme-secondary-bg-color);
+      border: 1px solid var(--tg-theme-hint-color);
     }
     .gradient-text {
       background: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4);
@@ -76,7 +76,7 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 0 20px rgba(59, 130, 246, 0.1);
     }
     body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      background: var(--tg-theme-bg-color);
       background-attachment: fixed;
     }
   </style>

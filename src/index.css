@@ -890,8 +890,8 @@
 
   /* === GLASS EFFECTS === */
   .glass-card {
-    @apply bg-white/80 dark:bg-black/70;
-    @apply backdrop-blur-xl border border-white/30 dark:border-white/15;
+    @apply bg-background/80 dark:bg-foreground/70;
+    @apply backdrop-blur-xl border border-border/30 dark:border-border/15;
     @apply shadow-2xl;
     backdrop-filter: blur(20px) saturate(1.8);
     -webkit-backdrop-filter: blur(20px) saturate(1.8);
@@ -907,17 +907,17 @@
   }
 
   .glass-tab {
-    @apply bg-white/15 hover:bg-white/25 data-[state=active]:bg-white/35;
-    @apply dark:bg-black/25 dark:hover:bg-black/35 dark:data-[state=active]:bg-black/45;
-    @apply backdrop-blur-md border border-white/25 dark:border-white/15;
+    @apply bg-background/15 hover:bg-background/25 data-[state=active]:bg-background/35;
+    @apply dark:bg-foreground/25 dark:hover:bg-foreground/35 dark:data-[state=active]:bg-foreground/45;
+    @apply backdrop-blur-md border border-border/25 dark:border-border/15;
     backdrop-filter: blur(10px) saturate(1.3);
     -webkit-backdrop-filter: blur(10px) saturate(1.3);
   }
 
   /* === LIQUID GLASS EFFECTS === */
   .liquid-glass {
-    @apply bg-white/95 dark:bg-black/85;
-    @apply backdrop-blur-2xl border border-white/50 dark:border-white/30;
+    @apply bg-background/95 dark:bg-foreground/85;
+    @apply backdrop-blur-2xl border border-border/50 dark:border-border/30;
     @apply shadow-2xl;
     backdrop-filter: blur(24px) saturate(2) brightness(1.1);
     -webkit-backdrop-filter: blur(24px) saturate(2) brightness(1.1);
@@ -928,16 +928,16 @@
   }
 
   .liquid-glass-button {
-    @apply bg-white/35 hover:bg-white/45 dark:bg-black/65 dark:hover:bg-black/75;
-    @apply backdrop-blur-lg border border-white/60 dark:border-white/40;
+    @apply bg-background/35 hover:bg-background/45 dark:bg-foreground/65 dark:hover:bg-foreground/75;
+    @apply backdrop-blur-lg border border-border/60 dark:border-border/40;
     @apply shadow-xl text-foreground;
     backdrop-filter: blur(16px) saturate(1.8) brightness(1.2);
     -webkit-backdrop-filter: blur(16px) saturate(1.8) brightness(1.2);
   }
 
   .liquid-glass-nav {
-    @apply bg-white/40 hover:bg-white/50 dark:bg-black/70 dark:hover:bg-black/80;
-    @apply backdrop-blur-xl border border-white/60 dark:border-white/40;
+    @apply bg-background/40 hover:bg-background/50 dark:bg-foreground/70 dark:hover:bg-foreground/80;
+    @apply backdrop-blur-xl border border-border/60 dark:border-border/40;
     @apply shadow-2xl text-foreground;
     backdrop-filter: blur(20px) saturate(2) brightness(1.3);
     -webkit-backdrop-filter: blur(20px) saturate(2) brightness(1.3);
