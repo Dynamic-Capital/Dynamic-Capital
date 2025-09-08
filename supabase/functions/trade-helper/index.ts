@@ -120,3 +120,5 @@ Remember to keep this educational and include proper risk disclaimers.`;
 }
 
 if (import.meta.main) serve(handler);
+
+export default handler;

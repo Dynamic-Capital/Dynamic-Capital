@@ -82,3 +82,5 @@ addEventListener("beforeunload", () => {
   stopKeepAlive();
   baseLogger.info("Keep-alive service stopped");
 });
+
+export default handler;
