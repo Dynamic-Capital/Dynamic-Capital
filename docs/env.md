@@ -35,6 +35,12 @@ example value, and where it's referenced in the repository.
 | `MINI_APP_SHORT_NAME` | BotFather short name that opens the Mini App.          | No       | `dynamic_pay`                                | `supabase/functions/telegram-bot/index.ts`, `scripts/set-chat-menu-button.ts` |
 | `FUNCTIONS_BASE`      | Base URL for integration tests hitting live functions. | No       | `https://xyz.supabase.co/functions/v1`       | `supabase/functions/_tests/integration_smoke_test.ts`                         |
 
+## Crypto
+
+| Key                | Purpose                                   | Required | Example                           | Used in                 |
+| ------------------ | ----------------------------------------- | -------- | --------------------------------- | ----------------------- |
+| `USDT_TRC20_ADDRESS` | TRC20 wallet address for USDT deposits. | Yes      | `TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7` | `src/config/supabase.ts` |
+
 ## AI / Feature toggles
 
 | Key                       | Purpose                                                    | Required            | Example           | Used in                                                                                                 |

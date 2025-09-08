@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, MessageCircle, Zap, TrendingUp, X } from 'lucide-react';
 import { TouchFeedback } from '@/components/ui/mobile-gestures';
 import { cn } from '@/lib/utils';
+import logger from '@/utils/logger';
 
 interface FloatingAction {
   id: string;
@@ -22,21 +23,21 @@ const defaultActions: FloatingAction[] = [
     icon: MessageCircle,
     label: 'Quick Support',
     color: 'bg-blue-500',
-    action: () => console.log('Support chat'),
+    action: () => logger.log('Support chat'),
   },
   {
     id: 'boost',
     icon: Zap,
     label: 'Boost Plan',
     color: 'bg-yellow-500',
-    action: () => console.log('Boost plan'),
+    action: () => logger.log('Boost plan'),
   },
   {
     id: 'analytics',
     icon: TrendingUp,
     label: 'View Stats',
     color: 'bg-green-500',
-    action: () => console.log('View analytics'),
+    action: () => logger.log('View analytics'),
   },
 ];
 

@@ -30,12 +30,11 @@ export function useTheme() {
       const tg = window.Telegram?.WebApp;
       if (session?.access_token) {
         try {
-          const res = await callEdgeFunction('THEME_GET', {
+          const { data, status } = await callEdgeFunction('THEME_GET', {
             token: session.access_token,
           });
-          if (res.ok) {
-            const data = await res.json();
-            const mode = data.mode;
+          if (status === 200 && data) {
+            const mode = (data as any).mode;
             setTheme(mode === 'auto' ? 'system' : mode);
             return;
           }

@@ -80,17 +80,15 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     const fetchContent = async () => {
       try {
         // Fetch about us and services from bot_content
-        const contentResponse = await callEdgeFunction('CONTENT_BATCH', {
+        const { data: contentData, status: contentStatus } = await callEdgeFunction('CONTENT_BATCH', {
           method: 'POST',
           body: {
             keys: ['about_us', 'our_services', 'announcements']
           }
         });
-        
-        if (contentResponse.ok) {
-          const contentData = await contentResponse.json();
-          if (contentData.ok && contentData.contents) {
-            const contents = contentData.contents;
+
+        if (contentStatus === 200 && (contentData as any)?.ok && (contentData as any).contents) {
+          const contents = (contentData as any).contents;
             
             const aboutContent = contents.find((c: BotContent) => c.content_key === 'about_us');
             const servicesContent = contents.find((c: BotContent) => c.content_key === 'our_services');
@@ -105,12 +103,9 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         // Fetch active promotions - Only if backend is available
         try {
           const { callEdgeFunction } = await import('@/config/supabase');
-          const promoResponse = await callEdgeFunction('ACTIVE_PROMOS');
-          if (promoResponse.ok) {
-            const promoData = await promoResponse.json();
-            if (promoData.ok && promoData.promotions) {
-              setActivePromos(promoData.promotions);
-            }
+          const { data: promoData, status: promoStatus } = await callEdgeFunction('ACTIVE_PROMOS');
+          if (promoStatus === 200 && (promoData as any)?.ok && (promoData as any).promotions) {
+            setActivePromos((promoData as any).promotions);
           }
         } catch (promoError) {
           console.warn('Promo fetch failed - using defaults');
@@ -118,17 +113,16 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
         // Fetch subscription status if in Telegram
         if (isInTelegram && telegramData?.user?.id) {
-          const subResponse = await callEdgeFunction('SUBSCRIPTION_STATUS', {
+          const { data: subData, status: subStatus } = await callEdgeFunction('SUBSCRIPTION_STATUS', {
             method: 'POST',
             body: {
               telegram_id: telegramData.user.id
             }
           });
-          if (subResponse.ok) {
-            const subData: SubscriptionStatus = await subResponse.json();
-            setSubscription(subData);
+          if (subStatus === 200 && subData) {
+            setSubscription(subData as SubscriptionStatus);
           } else {
-            console.warn('Subscription fetch failed:', subResponse.status);
+            console.warn('Subscription fetch failed:', subStatus);
           }
         }
 

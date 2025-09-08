@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { callEdgeFunction } from "@/config/supabase";
+import logger from "@/utils/logger";
 
 // Remove duplicate interface - already defined in useTelegramAuth.tsx
 
@@ -77,11 +78,10 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
 
   const fetchPlans = useCallback(async () => {
     try {
-      const response = await callEdgeFunction('PLANS');
-      const data = await response.json();
-      setPlans(data.plans || []);
-      if (data.plans?.length > 0 && !selectedPlan) {
-        setSelectedPlan(data.plans[0]);
+      const { data } = await callEdgeFunction('PLANS');
+      setPlans((data as any)?.plans || []);
+      if ((data as any)?.plans?.length > 0 && !selectedPlan) {
+        setSelectedPlan((data as any).plans[0]);
       }
     } catch (error) {
       toast.error('Failed to load plans');
@@ -96,7 +96,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     setIsTelegram(!!isInTelegram);
     if (isInTelegram) {
       setTelegramInitData(window.Telegram.WebApp.initData);
-      console.log("Running inside Telegram WebApp");
+      logger.log("Running inside Telegram WebApp");
     }
 
     fetchPlans();
@@ -115,7 +115,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     
     setValidatingPromo(true);
     try {
-      const response = await callEdgeFunction('PROMO_VALIDATE', {
+      const { data } = await callEdgeFunction('PROMO_VALIDATE', {
         method: 'POST',
         body: {
           code: promoCode,
@@ -123,13 +123,12 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
         },
       });
 
-      const data = await response.json();
       setPromoValidation(data);
-      
-      if (data.valid) {
-        toast.success(`Promo code applied! ${data.discount_type === 'percentage' ? data.discount_value + '%' : '$' + data.discount_value} discount`);
+
+      if ((data as any)?.valid) {
+        toast.success(`Promo code applied! ${(data as any).discount_type === 'percentage' ? (data as any).discount_value + '%' : '$' + (data as any).discount_value} discount`);
       } else {
-        toast.error(data.reason || 'Invalid promo code');
+        toast.error((data as any)?.reason || 'Invalid promo code');
       }
     } catch (error) {
       toast.error('Failed to validate promo code');
@@ -163,7 +162,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
       
       if (isTelegram && telegramInitData) {
         // Use Telegram initData for authentication
-        console.log("Using Telegram initData for checkout");
+        logger.log("Using Telegram initData for checkout");
       } else {
         // Fallback to Supabase auth
         const { data: { user } } = await supabase.auth.getUser();

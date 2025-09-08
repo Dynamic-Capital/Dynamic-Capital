@@ -167,6 +167,7 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 - SUPABASE_SERVICE_ROLE_KEY
 - TELEGRAM_BOT_TOKEN
 - TELEGRAM_WEBHOOK_SECRET
+- USDT_TRC20_ADDRESS
 - TELEGRAM_ADMIN_IDS _(comma-separated Telegram user IDs; spaces are ignored)_
 - MINI_APP_URL _(optional)_
 - AMOUNT_TOLERANCE _(optional)_

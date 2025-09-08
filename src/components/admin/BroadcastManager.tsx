@@ -44,7 +44,7 @@ export function BroadcastManager() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await callEdgeFunction('BROADCAST_DISPATCH', {
+      const { data } = await callEdgeFunction('BROADCAST_DISPATCH', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -55,12 +55,10 @@ export function BroadcastManager() {
         }
       });
 
-      const data = await response.json();
-      
-      if (response.ok && data.ok) {
-        setMessages(data.messages || []);
+      if ((data as any)?.ok) {
+        setMessages((data as any).messages || []);
       } else {
-        console.warn('Failed to load broadcasts:', data.error);
+        console.warn('Failed to load broadcasts:', (data as any)?.error);
         setMessages([]);
       }
     } catch (error) {
@@ -88,7 +86,7 @@ export function BroadcastManager() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await callEdgeFunction('BROADCAST_DISPATCH', {
+      const { data } = await callEdgeFunction('BROADCAST_DISPATCH', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -103,9 +101,7 @@ export function BroadcastManager() {
         }
       });
 
-      const data = await response.json();
-      
-      if (response.ok && data.ok) {
+      if ((data as any)?.ok) {
         toast({
           title: "Success",
           description: scheduledTime ? "Broadcast scheduled successfully" : "Broadcast sent successfully",
@@ -115,7 +111,7 @@ export function BroadcastManager() {
         setScheduledTime("");
         await loadBroadcasts();
       } else {
-        throw new Error(data.error || 'Failed to send broadcast');
+        throw new Error((data as any)?.error || 'Failed to send broadcast');
       }
     } catch (error) {
       console.error('Failed to send broadcast:', error);

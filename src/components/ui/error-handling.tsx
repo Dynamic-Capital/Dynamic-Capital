@@ -49,12 +49,12 @@ export function NetworkStatus({ className }: NetworkStatusProps) {
   const testConnection = async () => {
     setTesting(true);
     try {
-      const response = await callEdgeFunction('CONTENT_BATCH', {
+      const { status } = await callEdgeFunction('CONTENT_BATCH', {
         method: 'POST',
         body: { keys: ['network_test'] },
       });
 
-      if (response.ok) {
+      if (status === 200) {
         setIsOnline(true);
         toast.success('Connection test successful');
       } else {

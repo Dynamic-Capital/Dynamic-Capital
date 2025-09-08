@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getQueryCounts, supabase } from "@/integrations/supabase/client";
+import logger from "@/utils/logger";
 import { useToast } from "@/hooks/use-toast";
 import { getCached } from "@/utils/cache";
 import { getTimezones } from "@/utils/timezones";
@@ -110,7 +111,7 @@ export const SystemStatus = () => {
       ]);
       setFunctions(functionStatuses);
       setTables(tableInfos);
-      console.log("Supabase query counts", getQueryCounts());
+      logger.log("Supabase query counts", getQueryCounts());
     } catch (error) {
       console.error("Error checking system status:", error);
       toast({

@@ -43,11 +43,10 @@ export const LivePlansSection = ({
 
   const fetchPlans = useCallback(async () => {
     try {
-      const response = await callEdgeFunction('PLANS');
-      const data = await response.json();
-      
-      if (data.plans) {
-        setPlans(data.plans);
+      const { data } = await callEdgeFunction('PLANS');
+
+      if ((data as any)?.plans) {
+        setPlans((data as any).plans);
       }
     } catch (error) {
       console.error('Failed to fetch plans:', error);

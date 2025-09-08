@@ -37,7 +37,7 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await callEdgeFunction('ADMIN_BANS', {
+      const { data } = await callEdgeFunction('ADMIN_BANS', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -48,12 +48,10 @@ export function AdminBans() {
         }
       });
 
-      const data = await response.json();
-      
-      if (response.ok && data.ok) {
-        setBans(data.bans || []);
+      if ((data as any)?.ok) {
+        setBans((data as any).bans || []);
       } else {
-        console.warn('Failed to load bans:', data.error);
+        console.warn('Failed to load bans:', (data as any)?.error);
         setBans([]);
       }
     } catch (error) {
@@ -81,7 +79,7 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await callEdgeFunction('ADMIN_BANS', {
+      const { data } = await callEdgeFunction('ADMIN_BANS', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -95,9 +93,7 @@ export function AdminBans() {
         }
       });
 
-      const data = await response.json();
-      
-      if (response.ok && data.ok) {
+      if ((data as any)?.ok) {
         toast({
           title: "Success",
           description: "User banned successfully",
@@ -107,7 +103,7 @@ export function AdminBans() {
         setNewExpiration("");
         await loadBans();
       } else {
-        throw new Error(data.error || 'Failed to add ban');
+        throw new Error((data as any)?.error || 'Failed to add ban');
       }
     } catch (error) {
       console.error('Failed to add ban:', error);

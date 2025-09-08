@@ -79,16 +79,15 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
   useEffect(() => {
     const fetchWelcomeMessage = async () => {
       try {
-        const response = await callEdgeFunction('CONTENT_BATCH', {
+        const { data, status } = await callEdgeFunction('CONTENT_BATCH', {
           method: 'POST',
           body: { keys: ['welcome_message'] },
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          const contents = data.contents || [];
+        if (status === 200 && data) {
+          const contents = (data as any).contents || [];
           const welcomeContent = contents.find((c: any) => c.content_key === 'welcome_message');
-          
+
           if (welcomeContent?.content_value) {
             setWelcomeMessage(welcomeContent.content_value);
           }
