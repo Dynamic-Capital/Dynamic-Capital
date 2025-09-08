@@ -6,7 +6,7 @@ interface ErrorBoundaryState {
 }
 
 export default class ErrorBoundary extends React.Component<
-  React.PropsWithChildren<Record<string, never>>,
+  React.PropsWithChildren,
   ErrorBoundaryState
 > {
   state: ErrorBoundaryState = { hasError: false };
