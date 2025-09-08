@@ -72,7 +72,6 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
   const extra = new Set(opts.extraFiles ?? [
     "/favicon.svg",
     "/favicon.ico",
-    "/vite.svg",
     "/site.webmanifest",
     "/robots.txt",
   ]);
