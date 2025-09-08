@@ -33,6 +33,7 @@ import TelegramSetup from "./pages/TelegramSetup";
 import MiniApp from "./pages/MiniApp";
 import Plans from "./pages/Plans";
 import Contact from "./pages/Contact";
+import VipDashboard from "./pages/VipDashboard";
 
 const queryClient = new QueryClient();
 
@@ -167,6 +168,11 @@ const AppContent = () => {
               <Route path="/miniapp" element={
                 <RouteTransition variant="blur">
                   <PageWrapper background={false}><MiniApp /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/vip-dashboard" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><VipDashboard /></PageWrapper>
                 </RouteTransition>
               } />
               <Route path="/welcome" element={
