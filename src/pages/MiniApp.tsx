@@ -61,6 +61,7 @@ export default function MiniApp() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isMobile = useIsMobile();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showFab, setShowFab] = useState(true);
 
   const tabs = [
     { id: 'home', label: 'Home', icon: Home },
@@ -80,6 +81,21 @@ export default function MiniApp() {
     };
     window.addEventListener('popstate', handler);
     return () => window.removeEventListener('popstate', handler);
+  }, []);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      if (currentY > lastY && currentY > 80) {
+        setShowFab(false);
+      } else {
+        setShowFab(true);
+      }
+      lastY = currentY;
+    };
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const renderTabContent = () => {
@@ -181,10 +197,20 @@ export default function MiniApp() {
               </div>
             </div>
 
-            {/* Theme Toggle Button - Fixed bottom right */}
-            <div className="fixed bottom-6 right-6 z-50 bg-background/80 backdrop-blur-sm rounded-full p-2 border border-border/50 shadow-lg">
-              <ThemeToggle />
-            </div>
+            {/* Theme Toggle Button - hides on scroll */}
+            <AnimatePresence>
+              {showFab && (
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 40 }}
+                  className="fixed right-6 z-50 bg-background/80 backdrop-blur-sm rounded-full p-2 border border-border/50 shadow-lg"
+                  style={{ bottom: `calc(1.5rem + env(safe-area-inset-bottom))` }}
+                >
+                  <ThemeToggle />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </MobilePullToRefresh>
         </FullscreenAdaptive>
       </CurrencyProvider>

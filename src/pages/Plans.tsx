@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 import { callEdgeFunction } from "@/config/supabase";
 
 interface Plan {
@@ -77,6 +79,101 @@ const Plans: React.FC = () => {
 
   const popularPlanId = plans.length > 1 ? plans[1].id : plans[0]?.id;
 
+  const peelVariants = {
+    hidden: { opacity: 0, rotateX: -15, y: 40 },
+    visible: {
+      opacity: 1,
+      rotateX: 0,
+      y: 0,
+      transition: { type: "spring", stiffness: 260, damping: 24 }
+    }
+  };
+
+  const renderPlanCard = (plan: Plan, index: number) => {
+    const isPopular = plan.id === popularPlanId;
+    const isLifetime = plan.is_lifetime;
+
+    return (
+      <motion.div
+        key={plan.id}
+        variants={peelVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ delay: index * 0.1 }}
+        className="h-full"
+      >
+        <Card
+          className={cn(
+            "relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 h-full",
+            isPopular && "border-primary shadow-lg scale-105"
+          )}
+        >
+          {isPopular && (
+            <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs font-medium py-2 text-center">
+              Most Popular
+            </div>
+          )}
+
+          <CardHeader className={cn("text-center", isPopular && "pt-8")}> 
+            <div className="space-y-2">
+              <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
+                {isLifetime && <Star className="h-5 w-5 text-yellow-500" />}
+                {plan.name}
+              </CardTitle>
+              <CardDescription>
+                {isLifetime ? "One-time payment, lifetime access" : `${plan.duration_months} month subscription`}
+              </CardDescription>
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-4xl font-bold text-primary">
+                ${plan.price}
+                {!isLifetime && <span className="text-lg text-muted-foreground">/mo</span>}
+              </div>
+              {isLifetime && (
+                <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                  <Star className="h-3 w-3 mr-1" />
+                  Lifetime Deal
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {plan.features && plan.features.length > 0 && (
+              <div className="space-y-3">
+                {plan.features.map((feature, idx) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <Check className="h-4 w-4 text-green-500" />
+                    </div>
+                    <span className="text-sm">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Button
+              onClick={() => handleSelectPlan(plan.id)}
+              className={cn(
+                "w-full h-12 text-lg font-semibold transition-all duration-300",
+                isPopular
+                  ? "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 shadow-lg hover:shadow-xl"
+                  : "hover:scale-105"
+              )}
+              size="lg"
+            >
+              <CreditCard className="h-5 w-5 mr-2" />
+              Get Started
+              {isLifetime && <Zap className="h-4 w-4 ml-2 text-yellow-300" />}
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto px-4 py-8 space-y-12">
@@ -116,9 +213,10 @@ const Plans: React.FC = () => {
         )}
 
         {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {loading
-            ? Array.from({ length: 3 }).map((_, index) => (
+        <div className="max-w-6xl mx-auto">
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, index) => (
                 <Card key={index} className="relative overflow-hidden">
                   <CardHeader className="space-y-4">
                     <Skeleton className="h-7 w-3/4 mx-auto" />
@@ -137,84 +235,25 @@ const Plans: React.FC = () => {
                     <Skeleton className="h-12 w-full" />
                   </CardContent>
                 </Card>
-              ))
-            : plans.map((plan) => {
-                const isPopular = plan.id === popularPlanId;
-                const isLifetime = plan.is_lifetime;
-
-                return (
-                  <Card
-                    key={plan.id}
-                    className={cn(
-                      "relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105",
-                      isPopular && "border-primary shadow-lg scale-105"
-                    )}
-                  >
-                    {isPopular && (
-                      <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-xs font-medium py-2 text-center">
-                        Most Popular
-                      </div>
-                    )}
-
-                    <CardHeader className={cn("text-center", isPopular && "pt-8")}>
-                      <div className="space-y-2">
-                        <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
-                          {isLifetime && <Star className="h-5 w-5 text-yellow-500" />}
-                          {plan.name}
-                        </CardTitle>
-                        <CardDescription>
-                          {isLifetime ? 'One-time payment, lifetime access' : `${plan.duration_months} month subscription`}
-                        </CardDescription>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="text-4xl font-bold text-primary">
-                          ${plan.price}
-                          {!isLifetime && <span className="text-lg text-muted-foreground">/mo</span>}
-                        </div>
-                        {isLifetime && (
-                          <Badge variant="outline" className="text-yellow-600 border-yellow-600">
-                            <Star className="h-3 w-3 mr-1" />
-                            Lifetime Deal
-                          </Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="space-y-6">
-                      {/* Features */}
-                      {plan.features && plan.features.length > 0 && (
-                        <div className="space-y-3">
-                          {plan.features.map((feature, idx) => (
-                            <div key={idx} className="flex items-center gap-3">
-                              <div className="flex-shrink-0">
-                                <Check className="h-4 w-4 text-green-500" />
-                              </div>
-                              <span className="text-sm">{feature}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* CTA Button */}
-                      <Button
-                        onClick={() => handleSelectPlan(plan.id)}
-                        className={cn(
-                          "w-full h-12 text-lg font-semibold transition-all duration-300",
-                          isPopular
-                            ? "bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 shadow-lg hover:shadow-xl"
-                            : "hover:scale-105"
-                        )}
-                        size="lg"
-                      >
-                        <CreditCard className="h-5 w-5 mr-2" />
-                        Get Started
-                        {isLifetime && <Zap className="h-4 w-4 ml-2 text-yellow-300" />}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="md:hidden">
+                <HorizontalSnapScroll
+                  itemWidth="clamp(280px,85vw,340px)"
+                  gap="1rem"
+                  showArrows={plans.length > 1}
+                  className="pb-4"
+                >
+                  {plans.map((plan, index) => renderPlanCard(plan, index))}
+                </HorizontalSnapScroll>
+              </div>
+              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {plans.map((plan, index) => renderPlanCard(plan, index))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Why VIP Section */}
