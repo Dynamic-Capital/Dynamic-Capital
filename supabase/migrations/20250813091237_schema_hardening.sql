@@ -1,8 +1,8 @@
 -- SCHEMA HARDENING — Dynamic-Chatty-Bot
 -- Safe & idempotent where possible
 
--- 1) Extension required by gen_random_uuid()
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE SCHEMA IF NOT EXISTS extensions;
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
 -- 2) Ensure array columns use text[]
 DO $$
