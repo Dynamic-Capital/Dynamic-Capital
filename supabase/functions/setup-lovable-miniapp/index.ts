@@ -29,7 +29,8 @@ Deno.serve(async (req) => {
       throw new Error('Supabase configuration missing');
     }
 
-    const lovableMiniAppUrl = 'https://chatty-telly-bot.lovable.app/miniapp/';
+    const lovableMiniAppUrl =
+      Deno.env.get('MINI_APP_URL') ?? 'https://chatty-telly-bot.lovable.app/miniapp/';
     
     console.log('Setting up Lovable Mini App with URL:', lovableMiniAppUrl);
 
