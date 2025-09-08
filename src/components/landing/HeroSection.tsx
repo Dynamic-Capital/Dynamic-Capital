@@ -1,16 +1,47 @@
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { RotatingWords } from "@/components/ui/rotating-words";
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { StatefulButton } from "@/components/ui/stateful-button";
-import { TextLoader } from "@/components/ui/text-loader";
-import { MotionFadeIn, MotionStagger, MotionCounter } from "@/components/ui/motion-components";
-import { ResponsiveMotion } from "@/components/ui/responsive-motion";
+import dynamic from "next/dynamic";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Crown, ArrowRight, MessageCircle } from "lucide-react";
-import { MorphingText } from "@/components/ui/animated-text";
+
+const Badge = dynamic(() => import("@/components/ui/badge").then((m) => m.Badge), { ssr: false });
+const Separator = dynamic(() => import("@/components/ui/separator").then((m) => m.Separator), { ssr: false });
+const RotatingWords = dynamic(
+  () => import("@/components/ui/rotating-words").then((m) => m.RotatingWords),
+  { ssr: false, loading: () => <span /> }
+);
+const EnhancedButton = dynamic(
+  () => import("@/components/ui/enhanced-button").then((m) => m.EnhancedButton),
+  { ssr: false }
+);
+const StatefulButton = dynamic(
+  () => import("@/components/ui/stateful-button").then((m) => m.StatefulButton),
+  { ssr: false }
+);
+const TextLoader = dynamic(
+  () => import("@/components/ui/text-loader").then((m) => m.TextLoader),
+  { ssr: false, loading: () => <span /> }
+);
+const MotionFadeIn = dynamic(
+  () => import("@/components/ui/motion-components").then((m) => m.MotionFadeIn),
+  { ssr: false }
+);
+const MotionStagger = dynamic(
+  () => import("@/components/ui/motion-components").then((m) => m.MotionStagger),
+  { ssr: false }
+);
+const MotionCounter = dynamic(
+  () => import("@/components/ui/motion-components").then((m) => m.MotionCounter),
+  { ssr: false }
+);
+const ResponsiveMotion = dynamic(
+  () => import("@/components/ui/responsive-motion").then((m) => m.ResponsiveMotion),
+  { ssr: false }
+);
+const MorphingText = dynamic(
+  () => import("@/components/ui/animated-text").then((m) => m.MorphingText),
+  { ssr: false }
+);
 
 interface HeroSectionProps { onOpenTelegram: () => void; }
 
