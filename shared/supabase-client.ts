@@ -2,14 +2,25 @@ import { createClient as createSupabaseClient, type SupabaseClient as SBClient }
 import type { Database } from "../types/supabase.ts";
 
 function getEnvVar(name: string): string | undefined {
+  const prefixes = ["", "NEXT_PUBLIC_", "VITE_", "REACT_APP_"];
   if (typeof Deno !== "undefined" && typeof Deno.env?.get === "function") {
-    const v = Deno.env.get(name);
-    if (v) return v;
+    for (const p of prefixes) {
+      const v = Deno.env.get(`${p}${name}`);
+      if (v) return v;
+    }
   }
   if (typeof process !== "undefined" && typeof process.env !== "undefined") {
-    if (process.env[name]) return process.env[name];
-    const nextKey = `NEXT_PUBLIC_${name}`;
-    if (process.env[nextKey]) return process.env[nextKey];
+    for (const p of prefixes) {
+      const v = process.env[`${p}${name}`];
+      if (v) return v;
+    }
+  }
+  if (typeof import.meta !== "undefined" && (import.meta as any).env) {
+    const env = (import.meta as any).env as Record<string, string | undefined>;
+    for (const p of prefixes) {
+      const v = env[`${p}${name}`];
+      if (v) return v;
+    }
   }
   return undefined;
 }
