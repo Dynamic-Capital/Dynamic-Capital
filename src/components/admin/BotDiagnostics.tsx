@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Bot, Shield, RefreshCw, AlertTriangle, CheckCircle, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface BotStatus {
   bot_status: string;
@@ -30,15 +31,14 @@ export function BotDiagnostics() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/bot-status-check', {
+      const response = await callEdgeFunction('BOT_STATUS_CHECK', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {})
-        })
+        }
       });
 
       const data = await response.json();
@@ -65,15 +65,14 @@ export function BotDiagnostics() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/rotate-webhook-secret', {
+      const response = await callEdgeFunction('ROTATE_WEBHOOK_SECRET', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {})
-        })
+        }
       });
 
       const data = await response.json();
@@ -106,15 +105,14 @@ export function BotDiagnostics() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/reset-bot', {
+      const response = await callEdgeFunction('RESET_BOT', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {})
-        })
+        }
       });
 
       const data = await response.json();

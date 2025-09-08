@@ -13,6 +13,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface NetworkStatusProps {
   className?: string;
@@ -48,12 +49,11 @@ export function NetworkStatus({ className }: NetworkStatusProps) {
   const testConnection = async () => {
     setTesting(true);
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
+      const response = await callEdgeFunction('CONTENT_BATCH', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: ['network_test'] })
+        body: { keys: ['network_test'] },
       });
-      
+
       if (response.ok) {
         setIsOnline(true);
         toast.success('Connection test successful');

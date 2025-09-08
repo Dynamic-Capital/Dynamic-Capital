@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { callEdgeFunction } from "@/config/supabase";
 
 // Remove duplicate interface - already defined in useTelegramAuth.tsx
 
@@ -95,7 +96,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
 
   const fetchPlans = async () => {
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans');
+      const response = await callEdgeFunction('PLANS');
       const data = await response.json();
       setPlans(data.plans || []);
       if (data.plans?.length > 0 && !selectedPlan) {
@@ -113,15 +114,14 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     
     setValidatingPromo(true);
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/promo-validate', {
+      const response = await callEdgeFunction('PROMO_VALIDATE', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           code: promoCode,
-          plan_id: selectedPlan.id
-        })
+          plan_id: selectedPlan.id,
+        },
       });
-      
+
       const data = await response.json();
       setPromoValidation(data);
       
