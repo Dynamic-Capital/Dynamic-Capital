@@ -775,7 +775,13 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   // Try to use the static server helper for common routes
-  if (path === "/" || path === "/miniapp" || path === "/miniapp/" || path.startsWith("/assets/")) {
+  if (
+    path === "/" ||
+    path === "/miniapp" ||
+    path === "/miniapp/" ||
+    path.startsWith("/assets/") ||
+    path.startsWith("/miniapp/assets/")
+  ) {
     try {
       const staticOpts: StaticOpts = {
         rootDir: new URL("./static/", import.meta.url),
@@ -783,9 +789,12 @@ export async function handler(req: Request): Promise<Response> {
         security: ENHANCED_SECURITY_HEADERS,
         extraFiles: ["/favicon.ico", "/favicon.svg", "/vite.svg", "/robots.txt"]
       };
-      
-      // Try static serving first
-      const staticResponse = await serveStatic(req, staticOpts);
+
+      // Try static serving first (normalize /miniapp prefix if present)
+      const staticReq = path.startsWith("/miniapp")
+        ? new Request(req.url.replace("/miniapp", ""), req)
+        : req;
+      const staticResponse = await serveStatic(staticReq, staticOpts);
       
       // If static serving succeeds, add diagnostic header and return
       if (staticResponse.status === 200) {
@@ -917,9 +926,11 @@ export async function handler(req: Request): Promise<Response> {
     return withSecurity(resp);
   }
 
-  // GET /assets/* → serve from static build or storage
-  if (path.startsWith("/assets/")) {
-    const assetPath = path.slice("/assets/".length);
+  // GET /assets/* or /miniapp/assets/* → serve from static build or storage
+  if (path.startsWith("/assets/") || path.startsWith("/miniapp/assets/")) {
+    const assetPath = path.startsWith("/miniapp/assets/")
+      ? path.slice("/miniapp/assets/".length)
+      : path.slice("/assets/".length);
     let arr: Uint8Array | null = null;
     let servedFrom: string;
 
