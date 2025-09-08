@@ -26,8 +26,8 @@ const enhancedButtonVariants = cva(
           "hover:scale-105 animate-pulse-glow"
         ],
         glass: [
-          "bg-white/10 backdrop-blur-md border border-white/20 text-foreground",
-          "hover:bg-white/20 hover:border-white/30 shadow-lg hover:shadow-xl"
+          "bg-background/10 dark:bg-foreground/10 backdrop-blur-md border border-border/20 text-foreground",
+          "hover:bg-background/20 dark:hover:bg-foreground/20 hover:border-border/30 shadow-lg hover:shadow-xl"
         ],
         shimmer: [
           "bg-gradient-to-r from-primary via-purple-500 to-primary text-white font-semibold",
