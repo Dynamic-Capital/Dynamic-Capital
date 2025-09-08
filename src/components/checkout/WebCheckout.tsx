@@ -28,8 +28,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { callEdgeFunction } from "@/config/supabase";
 import logger from "@/utils/logger";
 
-// Remove duplicate interface - already defined in useTelegramAuth.tsx
-
 interface Plan {
   id: string;
   name: string;
