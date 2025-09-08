@@ -1,24 +1,44 @@
-import {
-  assert,
-  assertEquals,
-} from "https://deno.land/std@0.224.0/testing/asserts.ts";
-import { default as handler } from "../supabase/functions/miniapp/index.ts";
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import test from 'node:test';
+import { ok as assert, equal as assertEquals } from 'node:assert/strict';
+import { createServer } from 'node:http';
+import { rm, mkdir, writeFile, readFile } from 'node:fs/promises';
 
-Deno.test({
-  name: "miniapp edge host routes",
-  sanitizeResources: false,
-  sanitizeOps: false,
-  async fn() {
+(globalThis as any).Deno = {
+  env: { get: (name: string) => process.env[name] ?? '' },
+  readTextFile: (path: string) => readFile(path, 'utf8'),
+  readFile,
+};
+
+import handler from '../supabase/functions/miniapp/index.ts';
+
+function serve(
+  handler: (req: Request) => Response | Promise<Response>,
+  { signal }: { signal: AbortSignal },
+) {
+  const server = createServer(async (req, res) => {
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of req) chunks.push(chunk as Uint8Array);
+    const body = Buffer.concat(chunks);
+    const request = new Request(`http://localhost:8000${req.url}`, {
+      method: req.method,
+      headers: req.headers as any,
+      body: body.length ? body : undefined,
+    });
+    const response = await handler(request);
+    res.writeHead(response.status, Object.fromEntries(response.headers));
+    const buf = Buffer.from(await response.arrayBuffer());
+    res.end(buf);
+  });
+  server.listen(8000);
+  signal.addEventListener('abort', () => server.close());
+}
+
+test('miniapp edge host routes', async () => {
     const controller = new AbortController();
     serve(handler, { signal: controller.signal });
     const base = "http://localhost:8000";
 
-    try {
-      await Deno.remove("supabase/functions/miniapp/static/assets/app.css");
-    } catch {
-      // ignore
-    }
+    await rm('supabase/functions/miniapp/static/assets/app.css', { force: true }).catch(() => {});
 
     const resRoot = await fetch(`${base}/miniapp/`);
     assertEquals(resRoot.status, 200);
@@ -67,14 +87,8 @@ Deno.test({
     assertEquals(resHeadV1.status, 200);
     await resHeadV1.arrayBuffer();
 
-    await Deno.mkdir(
-      "supabase/functions/miniapp/static/assets",
-      { recursive: true },
-    );
-    await Deno.writeTextFile(
-      "supabase/functions/miniapp/static/assets/app.css",
-      "body{}",
-    );
+    await mkdir('supabase/functions/miniapp/static/assets', { recursive: true });
+    await writeFile('supabase/functions/miniapp/static/assets/app.css', 'body{}');
     const resCss = await fetch(`${base}/assets/app.css`);
     assertEquals(resCss.status, 200);
     assert(
@@ -91,10 +105,5 @@ Deno.test({
     await resPost.arrayBuffer();
 
     controller.abort();
-    try {
-      await Deno.remove("supabase/functions/miniapp/static/assets/app.css");
-    } catch {
-      // ignore
-    }
-  },
-});
+    await rm('supabase/functions/miniapp/static/assets/app.css', { force: true }).catch(() => {});
+  });

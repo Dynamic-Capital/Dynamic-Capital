@@ -1,28 +1,29 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import test from 'node:test';
+import { equal as assertEquals } from 'node:assert/strict';
 
 const supaState: any = { tables: { } };
 (globalThis as any).__SUPA_MOCK__ = supaState;
 
 function setEnv() {
-  Deno.env.set("TELEGRAM_BOT_TOKEN", "testtoken");
-    Deno.env.set("TELEGRAM_WEBHOOK_SECRET", "testsecret");
-    Deno.env.set("SUPABASE_URL", "http://local");
-    Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "svc");
-    Deno.env.set("SUPABASE_ANON_KEY", "anon");
-    Deno.env.set("MINI_APP_URL", "https://example.com/");
+  process.env.TELEGRAM_BOT_TOKEN = 'testtoken';
+  process.env.TELEGRAM_WEBHOOK_SECRET = 'testsecret';
+  process.env.SUPABASE_URL = 'http://local';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'svc';
+  process.env.SUPABASE_ANON_KEY = 'anon';
+  process.env.MINI_APP_URL = 'https://example.com/';
 }
 
 function cleanup() {
-  Deno.env.delete("TELEGRAM_BOT_TOKEN");
-  Deno.env.delete("TELEGRAM_WEBHOOK_SECRET");
-    Deno.env.delete("SUPABASE_URL");
-    Deno.env.delete("SUPABASE_SERVICE_ROLE_KEY");
-    Deno.env.delete("SUPABASE_ANON_KEY");
-    Deno.env.delete("MINI_APP_URL");
-    supaState.tables = {};
-  }
+  delete process.env.TELEGRAM_BOT_TOKEN;
+  delete process.env.TELEGRAM_WEBHOOK_SECRET;
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  delete process.env.SUPABASE_ANON_KEY;
+  delete process.env.MINI_APP_URL;
+  supaState.tables = {};
+}
 
-Deno.test("callback edits message instead of sending new one", async () => {
+test('callback edits message instead of sending new one', async () => {
   setEnv();
   supaState.tables = {
     bot_users: [{ id: "u1", telegram_id: 1, menu_message_id: null }],

@@ -1,15 +1,16 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import test from 'node:test';
+import { equal as assertEquals } from 'node:assert/strict';
 
-Deno.env.set("SUPABASE_URL", "http://localhost");
-Deno.env.set("SUPABASE_ANON_KEY", "anon");
-Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "service");
+process.env.SUPABASE_URL = 'http://localhost';
+process.env.SUPABASE_ANON_KEY = 'anon';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'service';
 
 const { buildMainMenu } = await import(
   "../supabase/functions/telegram-bot/menu.ts"
 );
 const cfg = await import("../supabase/functions/_shared/config.ts");
 
-Deno.test("buildMainMenu highlights active section", async () => {
+test('buildMainMenu highlights active section', async () => {
   const original = cfg.getContent;
   cfg.__setGetContent(
     async <T>(key: string): Promise<T | null> => {
