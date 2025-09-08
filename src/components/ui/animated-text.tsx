@@ -129,7 +129,7 @@ interface GradientTextProps {
 
 export const GradientText: React.FC<GradientTextProps> = ({
   text,
-  gradient = 'from-primary via-purple-500 to-pink-500',
+  gradient = 'from-primary via-accent to-accent',
   className = '',
   animate = true,
   animationDuration = 3

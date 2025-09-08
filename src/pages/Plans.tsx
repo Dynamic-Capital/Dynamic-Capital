@@ -218,7 +218,7 @@ const Plans: React.FC = () => {
 
         {/* Why VIP Section */}
         <div className="max-w-4xl mx-auto">
-          <Card className="bg-gradient-to-r from-primary/5 to-purple-500/5 border-primary/20">
+          <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
                 <Sparkles className="h-6 w-6 text-primary" />

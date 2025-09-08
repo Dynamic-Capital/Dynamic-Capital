@@ -43,23 +43,23 @@ export async function handler(req: Request): Promise<Response> {
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       margin: 0; padding: 1rem;
-      background: var(--tg-theme-bg-color, #ffffff);
-      color: var(--tg-theme-text-color, #000000);
+      background: var(--tg-theme-bg-color);
+      color: var(--tg-theme-text-color);
       min-height: 100vh;
     }
     #app { max-width: 400px; margin: 0 auto; }
     .card {
-      background: var(--tg-theme-secondary-bg-color, #f1f3f4);
+      background: var(--tg-theme-secondary-bg-color);
       border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .coming-soon { text-align: center; }
     h1 {
       margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 600;
-      color: var(--tg-theme-text-color, #000000);
+      color: var(--tg-theme-text-color);
     }
     .muted {
-      color: var(--tg-theme-hint-color, #708499);
+      color: var(--tg-theme-hint-color);
       font-size: 0.9rem; line-height: 1.4;
     }
   </style>

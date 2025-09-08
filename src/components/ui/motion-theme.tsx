@@ -3,6 +3,7 @@ import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-
 import { cn } from '@/lib/utils';
 import { MotionConfigProvider } from './motion-config';
 import { parentVariants, childVariants } from '@/lib/motion-variants';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MotionThemeProviderProps {
   children: React.ReactNode;
@@ -103,16 +104,17 @@ export const MotionSection: React.FC<MotionSectionProps> = ({
   delay = 0,
   viewport = { once: true, amount: 0.2 }
 }) => {
+  const isMobile = useIsMobile();
   return (
     <motion.section
       className={cn("motion-section", className)}
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: isMobile ? 20 : 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={viewport}
       transition={{
         type: "spring",
-        stiffness: 260,
-        damping: 20,
+        stiffness: isMobile ? 300 : 260,
+        damping: isMobile ? 25 : 20,
         delay,
       }}
     >

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { callEdgeFunction } from '@/config/supabase';
+import { useAuth } from './useAuth';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -7,17 +9,8 @@ interface TelegramWebApp {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Check if we're in Telegram first
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      return 'system'; // Default to system in Telegram
-    }
-    
-    // For web users, check localStorage or default to system
-    const stored = localStorage.getItem('theme') as Theme;
-    return stored || 'system';
-  });
+  const { session } = useAuth();
+  const [theme, setTheme] = useState<Theme>('system');
 
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window === 'undefined') return 'light';
@@ -31,6 +24,36 @@ export function useTheme() {
   });
 
   const currentTheme = theme === 'system' ? systemTheme : theme;
+
+  useEffect(() => {
+    const fetchTheme = async () => {
+      const tg = window.Telegram?.WebApp;
+      if (session?.access_token) {
+        try {
+          const res = await callEdgeFunction('THEME_GET', {
+            token: session.access_token,
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const mode = data.mode;
+            setTheme(mode === 'auto' ? 'system' : mode);
+            return;
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+
+      if (!tg) {
+        const stored = localStorage.getItem('theme') as Theme;
+        setTheme(stored || 'system');
+      } else {
+        setTheme('system');
+      }
+    };
+
+    fetchTheme();
+  }, [session]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -73,13 +96,26 @@ export function useTheme() {
     }
   }, []);
 
-  const setThemeMode = (newTheme: Theme) => {
+  const setThemeMode = async (newTheme: Theme) => {
     setTheme(newTheme);
-    
-    // Only store theme preference for non-Telegram users
+
     const tg = window.Telegram?.WebApp;
-    if (!tg) {
-      localStorage.setItem('theme', newTheme);
+    if (session?.access_token) {
+      try {
+        await callEdgeFunction('THEME_SAVE', {
+          method: 'POST',
+          token: session.access_token,
+          body: { mode: newTheme === 'system' ? 'auto' : newTheme },
+        });
+      } catch {
+        /* ignore */
+      }
+    } else if (!tg) {
+      try {
+        localStorage.setItem('theme', newTheme);
+      } catch {
+        /* ignore */
+      }
     }
   };
 

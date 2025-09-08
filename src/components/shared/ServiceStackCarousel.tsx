@@ -54,7 +54,7 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
           icon: Shield, 
           title: 'Risk Management', 
           description: 'Professional guidance on protecting your capital',
-          color: 'text-purple-500'
+          color: 'text-primary'
         };
         if (text.includes('Mentor')) return { 
           icon: Users, 
@@ -66,7 +66,7 @@ export function ServiceStackCarousel({ services, className }: ServiceStackCarous
           icon: Sparkles, 
           title: 'VIP Community', 
           description: 'Exclusive access to premium trading community',
-          color: 'text-pink-500'
+          color: 'text-accent'
         };
         if (text.includes('Support')) return { 
           icon: MessageSquare, 

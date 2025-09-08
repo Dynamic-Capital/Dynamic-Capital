@@ -1,6 +1,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface MotionCardProps {
   children: React.ReactNode;
@@ -23,20 +24,23 @@ const variantStyles = {
 
 const MotionCard = React.forwardRef<HTMLDivElement, MotionCardProps>(
   ({ className, variant = 'default', hover = true, animate = true, delay = 0, children, onClick }, ref) => {
+    const isMobile = useIsMobile();
+
     return (
       <motion.div
         ref={ref}
         className={cn("rounded-xl p-6 transition-all duration-300", variantStyles[variant], className)}
         variants={{
-          hidden: { opacity: 0, y: 20, scale: 0.95 },
+          hidden: { opacity: 0, y: isMobile ? 10 : 20, scale: isMobile ? 0.98 : 0.95 },
           visible: { opacity: 1, y: 0, scale: 1 }
         }}
         initial={animate ? "hidden" : undefined}
         whileInView={animate ? "visible" : undefined}
         viewport={{ once: true, amount: 0.2 }}
-        whileHover={hover ? { scale: 1.02, y: -5 } : undefined}
-        whileTap={hover ? { scale: 0.98 } : undefined}
-        transition={{ delay, type: "spring", stiffness: 260, damping: 20 }}
+        whileHover={hover && !isMobile ? { scale: 1.03, y: -4 } : undefined}
+        whileTap={hover && !isMobile ? { scale: 0.97 } : undefined}
+        layout
+        transition={{ delay, type: "spring", stiffness: isMobile ? 300 : 260, damping: isMobile ? 25 : 20 }}
         onClick={onClick}
       >
         {children}

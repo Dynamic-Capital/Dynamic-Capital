@@ -103,9 +103,14 @@
   --glass-motion-bg: hsl(var(--dc-brand) / 0.15);
   --glass-motion-border: hsl(var(--dc-brand-light) / 0.2);
   --glass-motion-shadow: 0 12px 40px hsl(var(--dc-brand-dark) / 0.6);
-  --gradient-motion-bg: radial-gradient(ellipse at top, hsl(var(--primary)/0.2) 0%, transparent 60%), 
+  --gradient-motion-bg: radial-gradient(ellipse at top, hsl(var(--primary)/0.2) 0%, transparent 60%),
                         radial-gradient(ellipse at bottom, hsl(var(--dc-brand-light)/0.15) 0%, transparent 60%),
                         linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
+
+  /* Dark mode glass effect */
+  --glass-bg: rgba(0, 0, 0, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
 
 @layer base {
@@ -659,34 +664,6 @@
 
 /* === DESIGN TOKENS === */
 :root {
-  /* Core palette */
-  --background: 0 0% 100%;
-  --foreground: 224 71.4% 4.1%;
-  --card: 0 0% 100%;
-  --card-foreground: 224 71.4% 4.1%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 224 71.4% 4.1%;
-  --primary: 266 100% 63%;
-  --primary-foreground: 210 20% 98%;
-  --secondary: 220 14.3% 95.9%;
-  --secondary-foreground: 220.9 39.3% 11%;
-  --muted: 220 14.3% 95.9%;
-  --muted-foreground: 220 8.9% 36.1%;
-  --elevated: 222.2 84% 4.9%;
-  --accent: 220 14.3% 95.9%;
-  --accent-foreground: 220.9 39.3% 11%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 20% 98%;
-  --border: 220 13% 91%;
-  --input: 220 13% 91%;
-  --ring: 262.1 83.3% 57.8%;
-  --radius: 0.5rem;
-  --chart-1: 12 76% 61%;
-  --chart-2: 173 58% 39%;
-  --chart-3: 197 37% 24%;
-  --chart-4: 43 74% 66%;
-  --chart-5: 27 87% 67%;
-
   /* Status colors */
   --success: 142 76% 36%;
   --success-foreground: 138 76% 97%;
@@ -753,16 +730,9 @@
   --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 8px 10px -6px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.25);
 
-  /* Dynamic Capital Brand Colors */
-  --dc-brand: 25 100% 50%;            /* Main brand gold */
-  --dc-brand-light: 28 100% 60%;      /* Light brand variant */
-  --dc-brand-dark: 22 100% 40%;       /* Dark brand variant */
-  --dc-secondary: 220 85% 55%;        /* Professional blue */
-  --dc-accent: 280 75% 65%;           /* Purple accent */
-
   /* Accent tokens */
-  --accent-light: 0 0% 100%;          /* Pure white */
-  --accent-dark: 0 0% 0%;             /* Pure black */
+  --accent-light: 0 0% 100%;
+  --accent-dark: 0 0% 0%;
   --accent-gold: var(--dc-brand);
   --accent-teal: 174 72% 45%;
   --accent-pink: 330 91% 70%;
@@ -789,34 +759,6 @@
   --glass-bg: rgba(255, 255, 255, 0.1);
   --glass-border: rgba(255, 255, 255, 0.2);
   --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-}
-
-.dark {
-  --background: 224 71.4% 4.1%;
-  --foreground: 210 20% 98%;
-  --card: 224 71.4% 4.1%;
-  --card-foreground: 210 20% 98%;
-  --popover: 224 71.4% 4.1%;
-  --popover-foreground: 210 20% 98%;
-  --primary: 263.4 70% 50.4%;
-  --primary-foreground: 210 20% 98%;
-  --secondary: 215 27.9% 16.9%;
-  --secondary-foreground: 210 20% 98%;
-  --muted: 215 27.9% 16.9%;
-  --muted-foreground: 217.9 10.6% 75.1%;
-  --elevated: 210 40% 95%;
-  --accent: 215 27.9% 16.9%;
-  --accent-foreground: 210 20% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 20% 98%;
-  --border: 215 27.9% 16.9%;
-  --input: 215 27.9% 16.9%;
-  --ring: 263.4 70% 50.4%;
-
-  /* Dark mode glass effect */
-  --glass-bg: rgba(0, 0, 0, 0.2);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
 
 @layer base {
@@ -890,8 +832,8 @@
 
   /* === GLASS EFFECTS === */
   .glass-card {
-    @apply bg-white/80 dark:bg-black/70;
-    @apply backdrop-blur-xl border border-white/30 dark:border-white/15;
+    @apply bg-background/80 dark:bg-foreground/70;
+    @apply backdrop-blur-xl border border-border/30 dark:border-border/15;
     @apply shadow-2xl;
     backdrop-filter: blur(20px) saturate(1.8);
     -webkit-backdrop-filter: blur(20px) saturate(1.8);
@@ -907,17 +849,17 @@
   }
 
   .glass-tab {
-    @apply bg-white/15 hover:bg-white/25 data-[state=active]:bg-white/35;
-    @apply dark:bg-black/25 dark:hover:bg-black/35 dark:data-[state=active]:bg-black/45;
-    @apply backdrop-blur-md border border-white/25 dark:border-white/15;
+    @apply bg-background/15 hover:bg-background/25 data-[state=active]:bg-background/35;
+    @apply dark:bg-foreground/25 dark:hover:bg-foreground/35 dark:data-[state=active]:bg-foreground/45;
+    @apply backdrop-blur-md border border-border/25 dark:border-border/15;
     backdrop-filter: blur(10px) saturate(1.3);
     -webkit-backdrop-filter: blur(10px) saturate(1.3);
   }
 
   /* === LIQUID GLASS EFFECTS === */
   .liquid-glass {
-    @apply bg-white/95 dark:bg-black/85;
-    @apply backdrop-blur-2xl border border-white/50 dark:border-white/30;
+    @apply bg-background/95 dark:bg-foreground/85;
+    @apply backdrop-blur-2xl border border-border/50 dark:border-border/30;
     @apply shadow-2xl;
     backdrop-filter: blur(24px) saturate(2) brightness(1.1);
     -webkit-backdrop-filter: blur(24px) saturate(2) brightness(1.1);
@@ -928,16 +870,16 @@
   }
 
   .liquid-glass-button {
-    @apply bg-white/35 hover:bg-white/45 dark:bg-black/65 dark:hover:bg-black/75;
-    @apply backdrop-blur-lg border border-white/60 dark:border-white/40;
+    @apply bg-background/35 hover:bg-background/45 dark:bg-foreground/65 dark:hover:bg-foreground/75;
+    @apply backdrop-blur-lg border border-border/60 dark:border-border/40;
     @apply shadow-xl text-foreground;
     backdrop-filter: blur(16px) saturate(1.8) brightness(1.2);
     -webkit-backdrop-filter: blur(16px) saturate(1.8) brightness(1.2);
   }
 
   .liquid-glass-nav {
-    @apply bg-white/40 hover:bg-white/50 dark:bg-black/70 dark:hover:bg-black/80;
-    @apply backdrop-blur-xl border border-white/60 dark:border-white/40;
+    @apply bg-background/40 hover:bg-background/50 dark:bg-foreground/70 dark:hover:bg-foreground/80;
+    @apply backdrop-blur-xl border border-border/60 dark:border-border/40;
     @apply shadow-2xl text-foreground;
     backdrop-filter: blur(20px) saturate(2) brightness(1.3);
     -webkit-backdrop-filter: blur(20px) saturate(2) brightness(1.3);
