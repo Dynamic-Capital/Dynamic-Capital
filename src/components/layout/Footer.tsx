@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, MessageCircle, Mail, Phone, Users, Instagram, Youtube, Facebook, TrendingUp } from "lucide-react";
+import { ExternalLink, MessageCircle, Mail, Phone, Users, Youtube, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SocialLinks } from "@/components/ui/social-icons";
 import { EdgeFunctionStatus } from "@/components/shared/EdgeFunctionStatus";
+import { PaymentIcons } from "@/components/ui/payment-icons";
 
 interface ContactLink {
   id: string;
@@ -74,11 +75,15 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
     if (platformLower.includes('email')) return <Mail className="h-4 w-4" />;
     if (platformLower.includes('phone')) return <Phone className="h-4 w-4" />;
     if (platformLower.includes('whatsapp')) return <MessageCircle className="h-4 w-4" />;
-    if (platformLower.includes('instagram')) return <Instagram className="h-4 w-4" />;
+    if (platformLower.includes('instagram'))
+      return <img src="/icons/instagram.svg" alt="Instagram" className="h-4 w-4" />;
     if (platformLower.includes('youtube')) return <Youtube className="h-4 w-4" />;
-    if (platformLower.includes('facebook')) return <Facebook className="h-4 w-4" />;
-    if (platformLower.includes('tiktok')) return <TrendingUp className="h-4 w-4" />;
-    if (platformLower.includes('tradingview')) return <TrendingUp className="h-4 w-4" />;
+    if (platformLower.includes('facebook'))
+      return <img src="/icons/facebook.svg" alt="Facebook" className="h-4 w-4" />;
+    if (platformLower.includes('tiktok'))
+      return <img src="/icons/tiktok.svg" alt="TikTok" className="h-4 w-4" />;
+    if (platformLower.includes('tradingview'))
+      return <img src="/icons/tradingview.svg" alt="TradingView" className="h-4 w-4" />;
     return <Users className="h-4 w-4" />;
   };
 
@@ -144,6 +149,7 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
             <p className="text-xs text-muted-foreground text-center">
               © {new Date().getFullYear()} Dynamic Capital. All rights reserved.
             </p>
+            <PaymentIcons className="mt-1" />
             <EdgeFunctionStatus />
           </div>
         </div>
@@ -257,6 +263,7 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
             © {new Date().getFullYear()} Dynamic Capital. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
+            <PaymentIcons />
             <EdgeFunctionStatus />
             <div className="hidden sm:block">
               <ThemeToggle />

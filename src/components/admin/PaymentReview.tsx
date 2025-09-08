@@ -7,18 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Eye, 
+import {
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Eye,
   RefreshCw,
   Search,
   Filter,
   ExternalLink,
   FileText,
-  Building2,
-  Coins,
   User,
   Calendar
 } from "lucide-react";
@@ -156,9 +154,9 @@ export function PaymentReview() {
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
       case 'bank_transfer':
-        return <Building2 className="h-4 w-4" />;
+        return <img src="/icons/bank.svg" alt="Bank Transfer" className="h-4 w-4" />;
       case 'crypto':
-        return <Coins className="h-4 w-4" />;
+        return <img src="/icons/usdt.svg" alt="Crypto" className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
     }

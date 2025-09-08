@@ -7,18 +7,16 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  CreditCard, 
-  Shield, 
-  Clock, 
-  Users, 
-  Sparkles, 
+import {
+  CreditCard,
+  Shield,
+  Clock,
+  Users,
+  Sparkles,
   Check,
   AlertCircle,
   Loader2,
   Upload,
-  Building,
-  Coins,
   ExternalLink,
   FileText
 } from "lucide-react";
@@ -525,13 +523,13 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
                       </SelectItem>
                       <SelectItem value="bank_transfer">
                         <div className="flex items-center gap-2">
-                          <Building className="h-4 w-4" />
+                          <img src="/icons/bank.svg" alt="Bank Transfer" className="h-4 w-4" />
                           Bank Transfer
                         </div>
                       </SelectItem>
                       <SelectItem value="crypto">
                         <div className="flex items-center gap-2">
-                          <Coins className="h-4 w-4" />
+                          <img src="/icons/usdt.svg" alt="Crypto" className="h-4 w-4" />
                           Cryptocurrency
                         </div>
                       </SelectItem>
@@ -571,7 +569,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Building className="h-5 w-5" />
+                      <img src="/icons/bank.svg" alt="Bank Transfer" className="h-5 w-5" />
                       Bank Transfer Details
                     </CardTitle>
                   </CardHeader>
@@ -594,7 +592,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Coins className="h-5 w-5" />
+                      <img src="/icons/usdt.svg" alt="Crypto" className="h-5 w-5" />
                       Cryptocurrency Payment
                     </CardTitle>
                   </CardHeader>
