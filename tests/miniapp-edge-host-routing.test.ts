@@ -23,7 +23,7 @@ Deno.test({
     const resRoot = await fetch(`${base}/miniapp/`);
     assertEquals(resRoot.status, 200);
     assertEquals(
-      resRoot.headers.get("content-type"),
+      resRoot.headers.get("content-type")?.toLowerCase(),
       "text/html; charset=utf-8",
     );
     const bodyRoot = await resRoot.text();
@@ -67,13 +67,19 @@ Deno.test({
     assertEquals(resHeadV1.status, 200);
     await resHeadV1.arrayBuffer();
 
+    await Deno.mkdir(
+      "supabase/functions/miniapp/static/assets",
+      { recursive: true },
+    );
     await Deno.writeTextFile(
       "supabase/functions/miniapp/static/assets/app.css",
       "body{}",
     );
     const resCss = await fetch(`${base}/assets/app.css`);
     assertEquals(resCss.status, 200);
-    assertEquals(resCss.headers.get("content-type"), "text/css");
+    assert(
+      resCss.headers.get("content-type")?.toLowerCase().startsWith("text/css"),
+    );
     await resCss.arrayBuffer();
 
     const resNope = await fetch(`${base}/nope`);

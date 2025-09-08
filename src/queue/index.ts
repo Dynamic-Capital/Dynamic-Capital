@@ -49,7 +49,6 @@ function sortQueue() {
 async function persist(job: JobRecord) {
   if (!supabaseClient) return;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabaseClient as any).from("jobs").upsert({
       id: job.id,
       type: job.type,
