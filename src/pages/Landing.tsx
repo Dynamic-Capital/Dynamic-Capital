@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Sparkles, Shield, Zap, Users, TrendingUp, CheckCircle, Star, ArrowRight, Crown, Award, Target, DollarSign, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
+import { MotionCard } from "@/components/ui/motion-card";
+import { AutoSizingGrid } from "@/components/ui/auto-sizing";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -366,7 +367,7 @@ const Landing = () => {
             </div>
           </MotionScrollReveal>
 
-          <MotionCardContainer staggerDelay={0.2} className="grid md:grid-cols-3 gap-8 mb-16">
+          <AutoSizingGrid stagger={0.2} minItemWidth={280} gap={32} className="mb-16">
             {[
               {
                 name: "Sarah M.",
@@ -420,7 +421,7 @@ const Landing = () => {
                 </CardContent>
               </MotionCard>
             ))}
-          </MotionCardContainer>
+          </AutoSizingGrid>
         </div>
       </section>
 
