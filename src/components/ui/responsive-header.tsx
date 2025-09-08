@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, LayoutGroup } from "framer-motion";
 import { AutoSizingContainer, AutoSizingText, ResponsiveSpacing } from "@/components/ui/auto-sizing";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -122,43 +122,50 @@ export function ResponsiveTabs({ tabs, activeTab, onTabChange, className, ariaLa
         maxHeight={72}
         className="overflow-x-auto scrollbar-hide"
       >
-        <div className={`grid grid-cols-${tabs.length} gap-0.5 sm:gap-1 p-1 h-full`}>
-          {tabs.map((tab, index) => (
-            <motion.button
-              key={tab.id}
-              role="tab"
-              id={`${tab.id}-tab`}
-              aria-selected={activeTab === tab.id}
-              aria-controls={`${tab.id}-panel`}
-              onClick={() => onTabChange(tab.id)}
-              className={cn(
-                "glass-tab flex flex-col items-center justify-center gap-0.5 sm:gap-1",
-                "text-xs sm:text-sm font-medium rounded-lg transition-all duration-200",
-                "hover:scale-105 px-1 sm:px-2 py-1 sm:py-2 min-w-0",
-                activeTab === tab.id 
-                  ? "bg-primary/20 text-primary border border-primary/30" 
-                  : "hover:bg-accent/50"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <div className="flex items-center justify-center h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 relative">
-                {tab.icon}
-                {tab.count && tab.count > 0 && (
-                  <span className="absolute -top-1 -right-1 h-3 w-3 bg-primary text-white text-xs rounded-full flex items-center justify-center">
-                    {tab.count > 9 ? "9+" : tab.count}
-                  </span>
+        <LayoutGroup>
+          <div className={`grid grid-cols-${tabs.length} gap-0.5 sm:gap-1 p-1 h-full`}>
+            {tabs.map((tab, index) => (
+              <motion.button
+                key={tab.id}
+                role="tab"
+                id={`${tab.id}-tab`}
+                aria-selected={activeTab === tab.id}
+                aria-controls={`${tab.id}-panel`}
+                onClick={() => onTabChange(tab.id)}
+                className={cn(
+                  "glass-tab relative flex flex-col items-center justify-center gap-0.5 sm:gap-1",
+                  "text-xs sm:text-sm font-medium rounded-lg transition-all duration-200",
+                  "hover:scale-105 px-1 sm:px-2 py-1 sm:py-2 min-w-0",
+                  activeTab === tab.id ? "text-primary" : "hover:bg-accent/50",
                 )}
-              </div>
-              <span className="text-xs lg:text-sm leading-none truncate max-w-full">
-                {tab.label}
-              </span>
-            </motion.button>
-          ))}
-        </div>
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="tab-indicator"
+                    className="absolute inset-0 rounded-lg bg-primary/20 border border-primary/30"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+                <div className="flex items-center justify-center h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 relative">
+                  {tab.icon}
+                  {tab.count && tab.count > 0 && (
+                    <span className="absolute -top-1 -right-1 h-3 w-3 bg-primary text-white text-xs rounded-full flex items-center justify-center">
+                      {tab.count > 9 ? "9+" : tab.count}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs lg:text-sm leading-none truncate max-w-full">
+                  {tab.label}
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        </LayoutGroup>
       </AutoSizingContainer>
     </motion.nav>
   );
