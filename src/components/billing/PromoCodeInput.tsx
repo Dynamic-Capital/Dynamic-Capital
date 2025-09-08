@@ -14,9 +14,12 @@ interface PromoCodeInputProps {
 }
 
 interface PromoValidation {
-  ok: boolean;
+  ok?: boolean;
+  valid?: boolean;
   type?: "percentage" | "fixed";
+  discount_type?: "percentage" | "fixed";
   value?: number;
+  discount_value?: number;
   final_amount?: number;
   reason?: string;
 }
@@ -57,12 +60,17 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
 
       setValidation(data);
       
-      if (data.ok) {
+      if (data.valid) {
         setAppliedPromo(promoCode.trim().toUpperCase());
-        onApplied?.(promoCode.trim().toUpperCase(), data);
+        onApplied?.(promoCode.trim().toUpperCase(), {
+          ok: true,
+          type: data.discount_type === 'percentage' ? 'percentage' : 'fixed',
+          value: data.discount_value,
+          final_amount: data.final_amount
+        });
         toast({
           title: "Promo code applied! 🎉",
-          description: `You saved ${data.type === "percentage" ? `${data.value}%` : `$${data.value}`}`,
+          description: `You saved ${data.discount_type === "percentage" ? `${data.discount_value}%` : `$${data.discount_value}`}`,
         });
       } else {
         toast({
@@ -90,14 +98,14 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
   };
 
   const getDiscountBadge = () => {
-    if (!validation?.ok) return null;
+    if (!validation?.valid) return null;
     
     return (
       <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
         <Sparkles className="w-3 h-3 mr-1" />
-        {validation.type === "percentage" 
-          ? `${validation.value}% OFF` 
-          : `$${validation.value} OFF`
+        {validation.discount_type === "percentage" 
+          ? `${validation.discount_value}% OFF` 
+          : `$${validation.discount_value} OFF`
         }
       </Badge>
     );
@@ -164,24 +172,24 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
       {/* Validation Result */}
       {validation && (
         <Card className={`border transition-all duration-300 ${
-          validation.ok 
+          validation.valid 
             ? "border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20" 
             : "border-destructive/50 bg-destructive/5"
         }`}>
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 mb-2">
-              {validation.ok ? (
+              {validation.valid ? (
                 <Check className="w-4 h-4 text-green-600" />
               ) : (
                 <X className="w-4 h-4 text-destructive" />
               )}
               <span className="font-medium">
-                {validation.ok ? "Promo code applied" : "Invalid code"}
+                {validation.valid ? "Promo code applied" : "Invalid code"}
               </span>
-              {validation.ok && getDiscountBadge()}
+              {validation.valid && getDiscountBadge()}
             </div>
             
-            {validation.ok && validation.final_amount !== undefined && (
+            {validation.valid && validation.final_amount !== undefined && (
               <div className="space-y-2">
                 <Separator />
                 <div className="flex justify-between items-center text-sm">
@@ -191,9 +199,9 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Discount:</span>
                   <span className="text-green-600 font-medium">
-                    -{validation.type === "percentage" 
-                      ? `${validation.value}%` 
-                      : `$${validation.value}`
+                    -{validation.discount_type === "percentage" 
+                      ? `${validation.discount_value}%` 
+                      : `$${validation.discount_value}`
                     }
                   </span>
                 </div>
@@ -204,7 +212,7 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
               </div>
             )}
             
-            {!validation.ok && validation.reason && (
+            {!validation.valid && validation.reason && (
               <p className="text-sm text-muted-foreground mt-1">
                 {validation.reason}
               </p>

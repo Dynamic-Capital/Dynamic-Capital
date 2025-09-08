@@ -202,8 +202,8 @@ const BotDashboard = () => {
 
         <Card className="p-6 bg-gradient-card border-0 shadow-telegram hover:shadow-xl transition-all duration-300 hover:scale-105 group">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-purple-500/10 rounded-xl group-hover:bg-purple-500/20 transition-colors">
-              <BarChart3 className="w-6 h-6 text-purple-500" />
+            <div className="p-3 bg-red-500/10 rounded-xl group-hover:bg-red-500/20 transition-colors">
+              <BarChart3 className="w-6 h-6 text-red-500" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -285,8 +285,8 @@ const BotDashboard = () => {
           onClick={() => setCurrentView("analytics")}
         >
           <div className="text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-500/10 rounded-2xl group-hover:bg-purple-500/20 transition-colors">
-              <BarChart3 className="w-8 h-8 text-purple-500" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-500/10 rounded-2xl group-hover:bg-red-500/20 transition-colors">
+              <BarChart3 className="w-8 h-8 text-red-500" />
             </div>
             <div>
               <h3 className="text-xl font-semibold mb-2">
@@ -519,7 +519,7 @@ const BotDashboard = () => {
         <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
           <div className="text-center space-y-2">
             <p className="text-sm text-muted-foreground">14 Days</p>
-            <p className="text-2xl font-bold text-purple-500">$18,420</p>
+            <p className="text-2xl font-bold text-red-500">$18,420</p>
             <p className="text-xs text-muted-foreground">+15% vs previous</p>
           </div>
         </Card>
@@ -912,7 +912,7 @@ const BotDashboard = () => {
             <p className="text-sm text-muted-foreground">Total redemptions</p>
           </div>
           <div className="text-center p-4 bg-background/50 rounded-lg">
-            <p className="text-2xl font-bold text-purple-500">23%</p>
+            <p className="text-2xl font-bold text-red-500">23%</p>
             <p className="text-sm text-muted-foreground">Conversion rate</p>
           </div>
         </div>

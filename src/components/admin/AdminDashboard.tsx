@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { AdminGate } from "./AdminGate";
 import { AdminLogs } from "./AdminLogs";
 import { AdminBans } from "./AdminBans";
@@ -56,21 +57,68 @@ interface AdminDashboardProps {
 export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [pendingPayments, setPendingPayments] = useState<PendingPayment[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { telegramUser, isAdmin, loading, getAdminAuth } = useTelegramAuth();
+  const { telegramUser, getAdminAuth } = useTelegramAuth();
 
   const getUserId = () => {
     return telegramUser?.id?.toString() || telegramData?.user?.id?.toString() || null;
   };
 
-  useEffect(() => {
-    if (isAdmin) {
-      loadAdminData();
+  const checkAdminAccess = async () => {
+    try {
+      // Check if user is admin via Telegram data
+      if (telegramData?.user?.id) {
+        const adminIds = ["123456789", "987654321"]; // Replace with actual admin IDs
+        if (adminIds.includes(telegramData.user.id.toString())) {
+          return true;
+        }
+      }
+
+      // Check if user is admin via Supabase auth
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        return profile?.role === 'admin';
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Admin access check error:', error);
+      return false;
     }
-  }, [isAdmin]);
+  };
+
+  useEffect(() => {
+    loadAdminData();
+  }, [telegramData]);
+
+  useEffect(() => {
+    // Auto-load admin data if Supabase user is authenticated
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user && !telegramData) {
+        loadAdminData();
+      }
+    });
+  }, []);
 
 
   const loadAdminData = async () => {
+    const hasAccess = await checkAdminAccess();
+    if (!hasAccess) {
+      setIsAdmin(false);
+      setLoading(false);
+      return;
+    }
+
+    setIsAdmin(true);
+    
     try {
       const auth = getAdminAuth();
       if (!auth) {

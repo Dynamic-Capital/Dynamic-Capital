@@ -46,18 +46,50 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
 
   const fetchPlans = async () => {
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/list-plans');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.ok && data.plans) {
-          // Add popular and savings info
-          const enhancedPlans = data.plans.map((plan: Plan, index: number) => ({
-            ...plan,
-            popular: index === 1, // Make second plan popular
-            savings: plan.duration_months >= 6 ? '25% OFF' : plan.duration_months >= 3 ? '15% OFF' : undefined
-          }));
-          setPlans(enhancedPlans);
-        }
+      setLoading(true);
+      
+      // Import supabase client
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Try fetching from the plans edge function first
+      const { data: edgeData, error: edgeError } = await supabase.functions.invoke("plans");
+      
+      if (!edgeError && edgeData?.plans) {
+        const mappedPlans = edgeData.plans.map((plan: any, index: number) => ({
+          id: plan.id,
+          name: plan.name,
+          price: plan.price,
+          duration_months: plan.duration_months,
+          is_lifetime: plan.is_lifetime || false,
+          currency: plan.currency || 'USD',
+          features: plan.features || [],
+          popular: index === 1, // Make second plan popular
+          savings: plan.duration_months >= 6 ? '25% OFF' : plan.duration_months >= 3 ? '15% OFF' : undefined
+        }));
+        setPlans(mappedPlans);
+        setLoading(false);
+        return;
+      }
+      
+      // Fallback to direct Supabase query
+      const { data: plans, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .order('price', { ascending: true });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      if (plans) {
+        // Add popular and savings info
+        const enhancedPlans = plans.map((plan: any, index: number) => ({
+          ...plan,
+          popular: index === 1, // Make second plan popular
+          savings: plan.duration_months >= 6 ? '25% OFF' : plan.duration_months >= 3 ? '15% OFF' : undefined
+        }));
+        setPlans(enhancedPlans);
       }
     } catch (error) {
       console.error('Failed to fetch plans:', error);
@@ -93,7 +125,7 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
     switch (index) {
       case 0: return 'from-blue-500 to-blue-600';
       case 1: return 'from-dc-brand to-dc-brand-dark';
-      case 2: return 'from-purple-500 to-purple-600';
+      case 2: return 'from-red-500 to-red-600';
       default: return 'from-gray-500 to-gray-600';
     }
   };

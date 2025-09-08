@@ -145,7 +145,7 @@ export const LivePlansSection = ({
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold text-heading text-foreground">{plan.name}</h4>
                         {isVipPlan(plan.name) && (
-                          <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs animate-pulse ui-p-xs">
+                          <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs animate-pulse ui-p-xs">
                             ⭐ VIP
                           </Badge>
                         )}
@@ -183,7 +183,7 @@ export const LivePlansSection = ({
                   <Button 
                     className={`w-full liquid-glass-button text-foreground hover:scale-105 transition-all duration-300 ui-rounded-full font-medium ${
                       isVipPlan(plan.name) 
-                        ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30' 
+                        ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30' 
                         : 'bg-gradient-to-r from-primary/20 to-blue-600/20 hover:from-primary/30 hover:to-blue-600/30'
                     }`}
                   >
