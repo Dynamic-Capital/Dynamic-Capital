@@ -16,5 +16,6 @@ export async function handler(req: Request): Promise<Response> {
   const intent_id = crypto.randomUUID();
   return ok({ intent_id, amount });
 }
-
-Deno.serve(handler);
+if (import.meta.main) {
+  Deno.serve(handler);
+}

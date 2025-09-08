@@ -112,7 +112,9 @@ export function AnimatedWelcome({ className }: AnimatedWelcomeProps) {
     
     return lines.map((line, index) => {
       // Remove emoji and clean text
-      const cleanLine = line.replace(/[👋🚀💰🎯📈💎⭐]/g, '').trim();
+      const cleanLine = line
+        .replace(/\p{Extended_Pictographic}/gu, '')
+        .trim();
       
       // Assign icons based on content
       let icon = Sparkles;

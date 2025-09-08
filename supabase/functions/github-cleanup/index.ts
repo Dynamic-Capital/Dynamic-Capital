@@ -19,14 +19,15 @@ serve(async (req) => {
       const { action } = await req.json();
 
       switch (action) {
-        case 'cleanup_duplicate_files':
+        case 'cleanup_duplicate_files': {
           // Run cleanup task
           const cleanupResult = await performGitHubCleanup(supabase);
           return ok({ message: 'GitHub cleanup completed', result: cleanupResult });
-        
+        }
+
         case 'get_cleanup_status':
           return await getCleanupStatus(supabase);
-        
+
         default:
           return json({ ok: false, error: 'Invalid action' }, 400);
       }

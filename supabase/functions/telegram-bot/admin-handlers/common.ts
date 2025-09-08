@@ -16,7 +16,7 @@ export function setCallbackMessageId(id: number | null) {
 // Sanitize markdown to prevent Telegram parsing errors
 function sanitizeMarkdown(text: string): string {
   return text
-    .replace(/[_*\[\]()~`>#+=|{}.!-]/g, '\\$&')
+    .replace(/[[\]_()*~`>#+=|{}.!-]/g, '\\$&')
     .replace(/\n/g, '\\n');
 }
 

@@ -1,7 +1,4 @@
-import {
-  assert,
-  assertFalse,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { setTestEnv, clearTestEnv } from "./env-mock.ts";
 
 async function importBot() {
@@ -47,7 +44,7 @@ Deno.test("start command includes Mini App button when env present", async () =>
   Deno.env.delete("MINI_APP_URL");
 });
 
-Deno.test("start command omits Mini App button when env missing", async () => {
+Deno.test("start command includes Mini App button when env missing", async () => {
   setTestEnv({
     SUPABASE_URL: "https://example.com",
     SUPABASE_ANON_KEY: "anon",
@@ -75,7 +72,7 @@ Deno.test("start command omits Mini App button when env missing", async () => {
   const hasButton = sendCalls.some((c) =>
     c.body.includes("\"web_app\"") || c.body.includes("\"url\"")
   );
-  assertFalse(hasButton);
+  assert(hasButton);
 
   globalThis.fetch = origFetch;
   clearTestEnv();

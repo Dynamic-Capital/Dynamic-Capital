@@ -38,7 +38,10 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
     const serviceLines = servicesText.split('\n').filter(service => service.trim());
     
     return serviceLines.map((service) => {
-      const cleanService = service.replace(/[📈📊🛡️👨‍🏫💎📞]/g, '').replace('•', '').trim();
+      const cleanService = service
+        .replace(/\p{Extended_Pictographic}/gu, '')
+        .replace('•', '')
+        .trim();
       
       const getServiceData = (text: string) => {
         if (text.includes('Signal')) return { 

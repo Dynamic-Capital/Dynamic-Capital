@@ -288,7 +288,7 @@ export async function processContactLinkOperation(
 ): Promise<void> {
   try {
     switch (operation) {
-      case "toggle":
+      case "toggle": {
         const { data: contact, error: fetchError } = await supabaseAdmin
           .from("contact_links")
           .select("*")
@@ -321,8 +321,9 @@ export async function processContactLinkOperation(
         const newStatus = !contact.is_active ? "activated" : "deactivated";
         await sendMessage(chatId, `✅ Contact link "${contact.display_name}" has been ${newStatus}.`);
         break;
+      }
 
-      case "delete":
+      case "delete": {
         const { data: deleteContact, error: deleteError } = await supabaseAdmin
           .from("contact_links")
           .delete()
@@ -345,6 +346,7 @@ export async function processContactLinkOperation(
 
         await sendMessage(chatId, `✅ Contact link "${deleteContact.display_name}" has been deleted.`);
         break;
+      }
 
       default:
         await sendMessage(chatId, "❌ Unknown operation.");

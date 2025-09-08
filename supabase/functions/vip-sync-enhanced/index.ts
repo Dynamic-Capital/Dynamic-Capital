@@ -192,7 +192,7 @@ async function assignLifetimeToCurrentMembers(supabase: any, botToken: string) {
     const results = [];
 
     // Get a default lifetime plan (or create one)
-    let { data: lifetimePlan, error: planError } = await supabase
+    const { data: lifetimePlan, error: planError } = await supabase
       .from('subscription_plans')
       .select('id, name, price')
       .eq('is_lifetime', true)
