@@ -1,4 +1,7 @@
+"use client";
+
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import logoImage from '@/assets/logo.png';
 import { cn } from '@/lib/utils';
@@ -54,8 +57,10 @@ const BrandLogo: React.FC<BrandLogoProps> = ({
     animated && 'group-hover:text-primary'
   );
 
+  const MotionImage = motion(Image);
+
   return (
-    <motion.div 
+    <motion.div
       className={containerClasses}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -63,23 +68,13 @@ const BrandLogo: React.FC<BrandLogoProps> = ({
       whileHover={animated ? { scale: 1.05 } : undefined}
       whileTap={animated ? { scale: 0.95 } : undefined}
     >
-      <motion.img 
-        src={logoImage} 
-        alt="Dynamic Capital Logo" 
+      <MotionImage
+        src={logoImage}
+        alt="Dynamic Capital Logo"
         className={logoClasses}
-        animate={animated ? {
-          rotate: [0, 5, -5, 0],
-        } : undefined}
-        transition={animated ? {
-          duration: 2,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut"
-        } : undefined}
-        whileHover={animated ? {
-          rotate: 10,
-          scale: 1.1
-        } : undefined}
+        animate={animated ? { rotate: [0, 5, -5, 0] } : undefined}
+        transition={animated ? { duration: 2, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" } : undefined}
+        whileHover={animated ? { rotate: 10, scale: 1.1 } : undefined}
       />
       {showText && (
         <motion.span 

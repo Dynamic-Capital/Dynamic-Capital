@@ -3,18 +3,10 @@ export function getEnvVar(name: string): string | undefined {
     const v = Deno.env.get(name);
     if (v) return v;
   }
-  if (typeof process !== "undefined" && process.env && process.env[name]) {
-    return process.env[name];
-  }
-  try {
-    const meta = (globalThis as any)?.import?.meta;
-    if (meta?.env) {
-      if (meta.env[name]) return meta.env[name];
-      const viteKey = `VITE_${name}`;
-      if (meta.env[viteKey]) return meta.env[viteKey];
-    }
-  } catch {
-    // ignore
+  if (typeof process !== "undefined" && process.env) {
+    if (process.env[name]) return process.env[name];
+    const nextKey = `NEXT_PUBLIC_${name}`;
+    if (process.env[nextKey]) return process.env[nextKey];
   }
   return undefined;
 }
