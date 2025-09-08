@@ -38,7 +38,7 @@ serve(async (req) => {
   }
 
   try {
-    const { question, context: _context, test } = await req
+    const { question, test } = await req
       .json()
       .catch(() => ({}));
 
@@ -102,15 +102,18 @@ Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support
       });
     }
 
-    const context = matches
+    const faqContext = matches
       ?.map((m) => `Q: ${m.question}\nA: ${m.answer}`)
       .join("\n\n");
 
     const messages = [
       { role: "system", content: systemPrompt },
     ];
-    if (context) {
-      messages.push({ role: "system", content: `FAQ context:\n${context}` });
+    if (faqContext) {
+      messages.push({
+        role: "system",
+        content: `FAQ context:\n${faqContext}`,
+      });
     }
     messages.push({ role: "user", content: question });
 

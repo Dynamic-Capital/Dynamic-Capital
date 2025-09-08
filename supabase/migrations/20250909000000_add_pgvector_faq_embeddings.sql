@@ -10,7 +10,7 @@ create table if not exists faq_embeddings (
 );
 
 create index if not exists faq_embeddings_embedding_idx on faq_embeddings
-  using ivfflat (embedding vector_l2_ops) with (lists = 100);
+  using ivfflat (embedding vector_cosine_ops) with (lists = 100);
 
 create or replace function match_faq(
   query_embedding vector(1536),
