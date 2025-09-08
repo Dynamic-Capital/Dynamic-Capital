@@ -40,7 +40,8 @@ export function useTheme() {
       }
 
       if (!tg) {
-        const stored = localStorage.getItem('theme') as Theme;
+        const match = document.cookie.match(/(?:^|; )theme=([^;]+)/);
+        const stored = match ? (decodeURIComponent(match[1]) as Theme) : null;
         setTheme(stored || 'system');
       } else {
         setTheme('system');
@@ -113,7 +114,7 @@ export function useTheme() {
       }
     } else if (!tg) {
       try {
-        localStorage.setItem('theme', newTheme);
+        document.cookie = `theme=${newTheme}; path=/; max-age=${60 * 60 * 24 * 365}`;
       } catch {
         /* ignore */
       }
