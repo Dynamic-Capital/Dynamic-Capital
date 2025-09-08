@@ -4,6 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { ThreeButton } from "./three-button";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden",
@@ -32,7 +33,8 @@ const buttonVariants = cva(
           "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300",
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
           "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
-        ]
+        ],
+        three: ""
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -72,7 +74,35 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, isLoading = false, fullWidth = false, responsive = false, children, disabled, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      isLoading = false,
+      fullWidth = false,
+      responsive = false,
+      children,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
+    if (variant === "three") {
+      const { onClick, color, hoverColor } = props as any;
+      return (
+        <ThreeButton
+          onClick={onClick}
+          color={color}
+          hoverColor={hoverColor}
+          className={cn(fullWidth && "w-full", className)}
+        >
+          {children}
+        </ThreeButton>
+      );
+    }
+
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
