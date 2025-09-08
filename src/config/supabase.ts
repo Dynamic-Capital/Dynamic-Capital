@@ -63,7 +63,7 @@ export { SUPABASE_ENV_ERROR };
 
 // Shared secret used by both the Telegram bot and web dashboard when calling
 // protected edge functions. In browser builds it must be exposed via the
-// VITE_ prefix.
+// NEXT_PUBLIC_ prefix.
 const TELEGRAM_WEBHOOK_SECRET = optionalEnvVar("TELEGRAM_WEBHOOK_SECRET");
 
 // Helper function to build function URLs

@@ -10,8 +10,8 @@ example value, and where it's referenced in the repository.
 | --------------------------- | --------------------------------------------------------- | -------- | --------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `SUPABASE_URL`              | Base URL of the Supabase project.                         | Yes      | `https://xyz.supabase.co`   | `src/utils/config.ts`, `src/integrations/supabase/client.ts`, `supabase/functions/telegram-bot/index.ts` |
 | `SUPABASE_ANON_KEY`         | Public anon key for client-side calls.                    | Yes      | `eyJ...`                    | `src/integrations/supabase/client.ts`, `supabase/functions/theme-get/index.ts`, `supabase/functions/miniapp/src/lib/edge.ts` |
-| `VITE_SUPABASE_URL`         | Build-time copy of `SUPABASE_URL` for the web app.        | Yes (web) | `https://xyz.supabase.co`   | `src/config/supabase.ts` |
-| `VITE_SUPABASE_ANON_KEY`    | Build-time copy of `SUPABASE_ANON_KEY` for the web app.   | Yes (web) | `eyJ...`                    | `src/config/supabase.ts` |
+| `NEXT_PUBLIC_SUPABASE_URL`         | Build-time copy of `SUPABASE_URL` for the web app.        | Yes (web) | `https://xyz.supabase.co`   | `src/config/supabase.ts` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`    | Build-time copy of `SUPABASE_ANON_KEY` for the web app.   | Yes (web) | `eyJ...`                    | `src/config/supabase.ts` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key for privileged Supabase access.          | Yes      | `service-role-key`          | `src/utils/config.ts`, `supabase/functions/telegram-bot/index.ts`                                         |
 | `SUPABASE_PROJECT_ID`       | Supabase project reference used to build URLs in scripts. | No       | `abcd1234`                  | `scripts/ping-webhook.ts`, `scripts/miniapp-health-check.ts`                                              |
 | `SUPABASE_ACCESS_TOKEN`     | Token for Supabase CLI operations.                        | No       | `sbp_at...`                 | Supabase CLI only                                                                                         |
@@ -26,7 +26,7 @@ example value, and where it's referenced in the repository.
 | `TELEGRAM_WEBHOOK_URL`    | Explicit webhook endpoint; overrides derived URL in scripts. | No       | `https://xyz.functions.supabase.co/telegram-bot` | `scripts/set-webhook.ts`, `scripts/ping-webhook.ts`                  |
 | `TELEGRAM_ADMIN_IDS`      | Comma-separated list of admin Telegram IDs.                  | No       | `1001,1002`                                      | `supabase/functions/_shared/alerts.ts`                               |
 | `TELEGRAM_BOT_USERNAME`   | Bot's public username for referral links.                    | No       | `mybot`                                          | `supabase/functions/referral-link/index.ts`                          |
-| `VITE_TELEGRAM_WEBHOOK_SECRET` | Client-side copy of webhook secret for edge function calls. | No       | `longrandomsecret`                          | `src/config/supabase.ts`                                            |
+| `NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET` | Client-side copy of webhook secret for edge function calls. | No       | `longrandomsecret`                          | `src/config/supabase.ts`                                            |
 | `TELEGRAM_ID`             | Telegram user ID used for health checks.                     | No       | `123456789`                                      | `scripts/miniapp-health-check.ts`                                    |
 
 ## Mini App

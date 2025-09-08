@@ -196,11 +196,11 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 ### Build environment
 
 Both the dashboard and the Telegram MiniApp require these variables at build time
-(exposed with Vite's `VITE_` prefix so they end up in the browser bundle):
+(exposed with Next.js `NEXT_PUBLIC_` prefix so they end up in the browser bundle):
 
 ```bash
-VITE_SUPABASE_URL=https://<project>.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
+NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 ```
 
 Set these in your hosting provider (e.g., Lovable.dev project settings). If either
