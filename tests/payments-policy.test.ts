@@ -1,6 +1,7 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import test from 'node:test';
+import { equal as assertEquals } from 'node:assert/strict';
 
-Deno.test("Bank transfer OCR auto-review", () => {
+test('Bank transfer OCR auto-review', () => {
   const tolerance = 0.05; // 5%
   const planPrice = 100;
   const paymentOK = { id: "p2", status: "pending", ocr: { amount: 102, currency: "USD" } };
@@ -15,7 +16,7 @@ Deno.test("Bank transfer OCR auto-review", () => {
   assertEquals(paymentBad.status, "pending");
 });
 
-Deno.test("Crypto payment auto-completes with confirmations", () => {
+test('Crypto payment auto-completes with confirmations', () => {
   const payment = { id: "p4", status: "pending", confirmations: 3 };
   const userSubs: any[] = [];
   function cryptoWebhook(p: any) {

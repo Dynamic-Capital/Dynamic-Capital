@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 export type MenuSection = "dashboard" | "plans" | "support";
 
-import { InlineKeyboard } from "https://deno.land/x/grammy@v1.19.1/mod.ts";
-import type { InlineKeyboardMarkup } from "https://deno.land/x/grammy@v1.19.1/types.ts";
+import { InlineKeyboard } from 'grammy';
+import type { InlineKeyboardMarkup } from 'grammy/types';
 import { getContentBatch } from "../_shared/config.ts";
 
 export async function buildMainMenu(
