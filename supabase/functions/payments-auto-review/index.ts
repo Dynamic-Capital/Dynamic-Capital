@@ -35,7 +35,7 @@ function num(x: unknown) {
   return isFinite(n) ? n : null;
 }
 
-serve(async (req) => {
+export async function handler(req: Request): Promise<Response> {
   try {
     const url = new URL(req.url);
     if (req.method === "GET" && url.pathname.endsWith("/version")) {
@@ -159,4 +159,8 @@ serve(async (req) => {
   } catch (e) {
     return oops("Internal Error", String(e));
   }
-});
+}
+
+if (import.meta.main) serve(handler);
+
+export default handler;

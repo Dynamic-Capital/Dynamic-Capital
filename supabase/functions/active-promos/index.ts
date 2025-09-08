@@ -63,3 +63,4 @@ export async function handler(req: Request): Promise<Response> {
 }
 
 serve(handler);
+export default handler;

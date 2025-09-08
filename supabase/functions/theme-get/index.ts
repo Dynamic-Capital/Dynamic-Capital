@@ -12,7 +12,7 @@ function parseToken(bearer: string | undefined) {
   }
 }
 
-serve(async (req) => {
+export async function handler(req: Request): Promise<Response> {
   const uid = parseToken(req.headers.get("authorization") || "");
   if (!uid) {
     return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
@@ -24,5 +24,9 @@ serve(async (req) => {
   return new Response(JSON.stringify({ mode }), {
     headers: { "content-type": "application/json" },
   });
-});
+}
+
+if (import.meta.main) serve(handler);
+
+export default handler;
 // <<< DC BLOCK: theme-get-core (end)

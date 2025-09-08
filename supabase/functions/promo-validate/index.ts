@@ -131,3 +131,5 @@ export async function handler(req: Request): Promise<Response> {
 }
 
 if (import.meta.main) serve(handler);
+
+export default handler;
