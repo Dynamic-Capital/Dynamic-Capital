@@ -4,7 +4,8 @@
     "https://esm.sh/@supabase/supabase-js@2": "./esm.sh/@supabase/supabase-js@2.js",
     "https://esm.sh/@supabase/supabase-js@2.53.0": "./esm.sh/@supabase/supabase-js@2.53.0.js",
     "https://esm.sh/": "./esm.sh/",
-    "@supabase/supabase-js": "./esm.sh/@supabase/supabase-js@2.js"
+    "@supabase/supabase-js": "./esm.sh/@supabase/supabase-js@2.js",
+    "mime-types": "./esm.sh/mime-types@3.0.1.js"
   },
   "scopes": {
     "./esm.sh/": {
@@ -14,7 +15,10 @@
       "/regenerator-runtime@^0.13.3/runtime?target=denonext": "./esm.sh/regenerator-runtime@0.13.11/runtime.js",
       "/is-electron@^2.2.2?target=denonext": "./esm.sh/is-electron@2.2.2.js",
       "/is-url@^1.2.4?target=denonext": "./esm.sh/is-url@1.2.4.js",
-      "/tesseract.js@5.1.1/denonext/tesseract.mjs": "./esm.sh/tesseract.js@5.1.1/denonext/tesseract.mjs"
+      "/tesseract.js@5.1.1/denonext/tesseract.mjs": "./esm.sh/tesseract.js@5.1.1/denonext/tesseract.mjs",
+      "/mime-types@3.0.1/denonext/mime-types.mjs": "./esm.sh/mime-types@3.0.1/denonext/mime-types.mjs",
+      "/mime-db@1.54.0/denonext/mime-db.mjs": "./esm.sh/mime-db@1.54.0/denonext/mime-db.mjs",
+      "/mime-db@^1.54.0?target=denonext": "./esm.sh/mime-db@1.54.0.js"
     }
   }
 }
