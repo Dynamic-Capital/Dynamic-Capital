@@ -21,5 +21,8 @@ export async function readMiniAppEnv(): Promise<MiniAppEnv> {
     url = autoUrl ? (autoUrl.endsWith("/") ? autoUrl : `${autoUrl}/`) : null;
   }
 
-  return { url, short: short ?? null, ready: Boolean(url || short) };
+  // "ready" should reflect explicit configuration, not auto-derived values
+  // so that features can gracefully disable Mini App integration when the
+  // required environment variables are absent.
+  return { url, short: short ?? null, ready: Boolean(urlRaw || short) };
 }

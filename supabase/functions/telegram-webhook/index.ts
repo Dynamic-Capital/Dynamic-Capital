@@ -89,12 +89,12 @@ export async function handler(req: Request): Promise<Response> {
 
     const handlers: Record<string, CommandHandler> = {
       "/start": async (chatId) => {
-        const { url, short } = await readMiniAppEnv();
+        const { url, short, ready } = await readMiniAppEnv();
         const botUsername = (await envOrSetting("TELEGRAM_BOT_USERNAME")) || "";
         const btnText = await getContent("miniapp_button_text") ?? "Open VIP Mini App";
         const prompt = await getContent("miniapp_open_prompt") ?? "Join the VIP Mini App:";
 
-        if (url) {
+        if (ready && url) {
           await sendMessage(chatId, prompt, {
             reply_markup: {
               inline_keyboard: [[{ text: btnText, web_app: { url } }]],
@@ -103,7 +103,7 @@ export async function handler(req: Request): Promise<Response> {
           return;
         }
 
-        if (short && botUsername) {
+        if (ready && short && botUsername) {
           await sendMessage(chatId, prompt, {
             reply_markup: {
               inline_keyboard: [[{
