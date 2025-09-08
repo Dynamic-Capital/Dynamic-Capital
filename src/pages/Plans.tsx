@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface Plan {
   id: string;
@@ -42,7 +43,7 @@ const Plans: React.FC = () => {
   const fetchPlans = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans');
+      const response = await callEdgeFunction('PLANS');
       const data = await response.json();
       
       if (data.plans) {

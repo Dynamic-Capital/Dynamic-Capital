@@ -28,6 +28,7 @@ import { AdminLogs } from "./AdminLogs";
 import { AdminBans } from "./AdminBans";
 import { BroadcastManager } from "./BroadcastManager";
 import { BotDiagnostics } from "./BotDiagnostics";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface AdminStats {
   total_users: number;
@@ -126,16 +127,15 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       }
 
       // Load admin stats
-      const statsResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/analytics-data', {
+      const statsResponse = await callEdgeFunction('ANALYTICS_DATA', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           timeframe: "today"
-        })
+        }
       });
 
       if (statsResponse.ok) {
@@ -144,17 +144,16 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       }
 
       // Load pending payments
-      const paymentsResponse = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-list-pending', {
+      const paymentsResponse = await callEdgeFunction('ADMIN_LIST_PENDING', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           limit: 20,
           offset: 0
-        })
+        }
       });
 
       if (paymentsResponse.ok) {
@@ -179,18 +178,17 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         throw new Error("No admin authentication available");
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-act-on-payment', {
+      const response = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           payment_id: paymentId,
           decision: decision,
           message: `Payment ${decision}d by admin`
-        })
+        }
       });
 
       const data = await response.json();

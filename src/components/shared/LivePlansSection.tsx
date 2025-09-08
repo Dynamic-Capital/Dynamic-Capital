@@ -10,6 +10,7 @@ import { Interactive3DCard, StaggeredGrid } from '@/components/ui/interactive-ca
 import { FadeInOnView } from '@/components/ui/fade-in-on-view';
 import { HorizontalSnapScroll } from '@/components/ui/horizontal-snap-scroll';
 import { useToast } from '@/hooks/use-toast';
+import { callEdgeFunction, buildFunctionUrl } from '@/config/supabase';
 import PromoCodeInput from '@/components/billing/PromoCodeInput';
 
 interface Plan {
@@ -43,7 +44,7 @@ export const LivePlansSection = ({
 
   const fetchPlans = async () => {
     try {
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/plans');
+      const response = await callEdgeFunction('PLANS');
       const data = await response.json();
       
       if (data.plans) {
@@ -66,11 +67,11 @@ export const LivePlansSection = ({
       onPlanSelect(planId);
     } else if (telegramData?.webApp) {
       // Open in Telegram Mini App
-      const url = `https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/?tab=plan&plan=${planId}`;
+      const url = `${buildFunctionUrl('MINIAPP')}?tab=plan&plan=${planId}`;
       window.open(url, '_blank');
     } else {
       // Open in new tab for web users
-      const url = `https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/?tab=plan&plan=${planId}`;
+      const url = `${buildFunctionUrl('MINIAPP')}?tab=plan&plan=${planId}`;
       window.open(url, '_blank');
       toast({
         title: "Opening in Mini App",

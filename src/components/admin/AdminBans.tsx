@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Shield, UserX, Plus, Calendar, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface AbuseBan {
   id: string;
@@ -36,16 +37,15 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-bans', {
+      const response = await callEdgeFunction('ADMIN_BANS', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           action: 'list'
-        })
+        }
       });
 
       const data = await response.json();
@@ -81,19 +81,18 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-bans', {
+      const response = await callEdgeFunction('ADMIN_BANS', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           action: 'add',
           telegram_id: newTelegramId,
           reason: newReason || undefined,
           expires_at: newExpiration || undefined
-        })
+        }
       });
 
       const data = await response.json();
@@ -129,17 +128,16 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-bans', {
+      const response = await callEdgeFunction('ADMIN_BANS', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           action: 'remove',
           ban_id: banId
-        })
+        }
       });
 
       const data = await response.json();

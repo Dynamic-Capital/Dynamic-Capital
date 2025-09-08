@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MessageSquare, Send, Calendar, Users, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface BroadcastMessage {
   id: string;
@@ -43,16 +44,15 @@ export function BroadcastManager() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/broadcast-dispatch', {
+      const response = await callEdgeFunction('BROADCAST_DISPATCH', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           action: 'list'
-        })
+        }
       });
 
       const data = await response.json();
@@ -88,20 +88,19 @@ export function BroadcastManager() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/broadcast-dispatch', {
+      const response = await callEdgeFunction('BROADCAST_DISPATCH', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           action: 'send',
           title: newTitle,
           content: newContent,
           target_audience: { type: targetAudience },
           scheduled_at: scheduledTime || undefined
-        })
+        }
       });
 
       const data = await response.json();

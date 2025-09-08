@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileText, Search, RefreshCw, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
+import { callEdgeFunction } from "@/config/supabase";
 
 interface AdminLog {
   id: string;
@@ -36,17 +37,16 @@ export function AdminLogs() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/admin-logs', {
+      const response = await callEdgeFunction('ADMIN_LOGS', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
         },
-        body: JSON.stringify({
+        body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           limit,
           offset: 0
-        })
+        }
       });
 
       const data = await response.json();

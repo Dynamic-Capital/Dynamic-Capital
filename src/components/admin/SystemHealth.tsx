@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { SUPABASE_CONFIG } from "@/config/supabase";
 
 interface HealthStatus {
   status: 'healthy' | 'warning' | 'error' | 'loading';
@@ -36,7 +37,7 @@ export const SystemHealth = () => {
   const [isDryRun, setIsDryRun] = useState(true);
   const [isFixing, setIsFixing] = useState(false);
 
-  const functionsHost = 'https://qeejuomcapbdlhnjqjcc.functions.supabase.co';
+  const functionsHost = SUPABASE_CONFIG.FUNCTIONS_URL;
 
   const checkMiniAppStatus = async () => {
     try {

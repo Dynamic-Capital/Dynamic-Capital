@@ -55,12 +55,11 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
     
     if (!cached || !cacheTime || (Date.now() - parseInt(cacheTime)) >= 3600000) {
       setIsLoading(true);
-      fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/content-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keys: ['usd_mvr_rate'] })
-      })
-      .then(res => res.json())
+      import('@/config/supabase').then(({ callEdgeFunction }) =>
+        callEdgeFunction('CONTENT_BATCH', {
+          method: 'POST',
+          body: { keys: ['usd_mvr_rate'] },
+        }).then(res => res.json())
       .then(data => {
         const rateContent = data.contents?.find((c: any) => c.content_key === 'usd_mvr_rate');
         if (rateContent) {
