@@ -3,6 +3,7 @@ import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-
 import { cn } from '@/lib/utils';
 import { MotionConfigProvider } from './motion-config';
 import { parentVariants, childVariants } from '@/lib/motion-variants';
+import { sectionVariants, SectionVariant } from '@/lib/section-variants';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MotionThemeProviderProps {
@@ -96,20 +97,24 @@ interface MotionSectionProps {
     once?: boolean;
     amount?: number;
   };
+  variant?: SectionVariant;
 }
 
 export const MotionSection: React.FC<MotionSectionProps> = ({
   children,
   className,
   delay = 0,
-  viewport = { once: true, amount: 0.2 }
+  viewport = { once: true, amount: 0.2 },
+  variant = "fadeUp",
 }) => {
   const isMobile = useIsMobile();
+  const selectedVariant = sectionVariants[variant] || sectionVariants.fadeUp;
   return (
     <motion.section
       className={cn("motion-section", className)}
-      initial={{ opacity: 0, y: isMobile ? 20 : 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      variants={selectedVariant}
+      initial="hidden"
+      whileInView="visible"
       viewport={viewport}
       transition={{
         type: "spring",

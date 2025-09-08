@@ -47,7 +47,7 @@ const Landing = () => {
       <TestimonialsSection />
       <Separator className="my-16" />
       {/* Services Section */}
-      <MotionSection className="py-20 bg-background">
+      <MotionSection variant="fadeUp" className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <MotionScrollReveal>
             <div className="text-center mb-16">
