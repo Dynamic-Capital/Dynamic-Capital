@@ -17,7 +17,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 import { callEdgeFunction } from "@/config/supabase";
@@ -127,9 +127,11 @@ const Plans: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">
-                ${plan.price}
-                {!isLifetime && <span className="text-lg text-muted-foreground">/mo</span>}
+              <div className="text-4xl font-bold text-primary flex items-baseline justify-center gap-1">
+                {formatPrice(plan.price, plan.currency)}
+                {!isLifetime && (
+                  <span className="text-lg text-muted-foreground">/mo</span>
+                )}
               </div>
               {isLifetime && (
                 <Badge variant="outline" className="text-yellow-600 border-yellow-600">
