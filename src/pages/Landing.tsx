@@ -45,7 +45,6 @@ const Landing = () => {
       <TestimonialsSection />
       <Separator className="my-16" />
       {/* Services Section */}
-      {/* Services Section */}
       <MotionSection className="py-20 bg-background">
         <div className="container mx-auto px-6">
           <MotionScrollReveal>
@@ -89,7 +88,7 @@ const Landing = () => {
             </div>
           </MotionScrollReveal>
           
-          <LivePlansSection showPromo={true} />
+          <LivePlansSection showPromo={true} showHeader={false} />
         </div>
       </section>
       {/* How It Works */}

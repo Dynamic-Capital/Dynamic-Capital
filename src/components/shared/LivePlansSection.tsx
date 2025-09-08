@@ -27,12 +27,14 @@ interface LivePlansSectionProps {
   showPromo?: boolean;
   onPlanSelect?: (planId: string) => void;
   telegramData?: any;
+  showHeader?: boolean;
 }
 
-export const LivePlansSection = ({ 
-  showPromo = false, 
-  onPlanSelect, 
-  telegramData 
+export const LivePlansSection = ({
+  showPromo = false,
+  onPlanSelect,
+  telegramData,
+  showHeader = true,
 }: LivePlansSectionProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,18 +106,22 @@ export const LivePlansSection = ({
   return (
     <FadeInOnView>
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Crown className="w-5 h-5 text-primary animate-pulse-glow" />
-              VIP Subscription Plans
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-6">
-              Choose the perfect plan for your trading journey. All plans include premium signals, 
-              market analysis, and exclusive access to our VIP community.
-            </p>
+        <Card className={showHeader ? undefined : "border-none shadow-none"}>
+          {showHeader && (
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-primary animate-pulse-glow" />
+                VIP Subscription Plans
+              </CardTitle>
+            </CardHeader>
+          )}
+          <CardContent className={showHeader ? undefined : "p-0"}>
+            {showHeader && (
+              <p className="text-muted-foreground mb-6">
+                Choose the perfect plan for your trading journey. All plans include premium signals,
+                market analysis, and exclusive access to our VIP community.
+              </p>
+            )}
 
             {showPromo && (
               <div className="mb-6">

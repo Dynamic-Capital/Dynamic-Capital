@@ -238,30 +238,27 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               <p className="text-body-sm whitespace-pre-line leading-relaxed text-foreground">{announcements}</p>
             </FadeInOnView>
           </div>
-             </MotionCard>
-           </FadeInOnView>
+        </MotionCard>
+      </FadeInOnView>
 
-      {/* Active Promo Codes */}
+      {/* Limited Offers / Active Promos */}
       <FadeInOnView delay={250} animation="bounce-in">
-        <Interactive3DCard 
-          intensity={0.1} 
-          scale={1.02} 
+        <Interactive3DCard
+          intensity={0.1}
+          scale={1.02}
           glowEffect={activePromos.length > 0}
           className="border-primary/20"
         >
           <div className="p-6">
             <div className="flex items-center gap-2 mb-2">
               <ThreeDEmoticon emoji="✨" size={24} intensity={0.4} animate={true} />
-              <h3 className="text-subheading font-semibold">
-                {activePromos.length > 0 ? "Active Promo Codes" : "Limited Time Offers"}
-              </h3>
+              <h3 className="text-subheading font-semibold">Limited Offers</h3>
               <TradingEmoticonSet variant="success" className="ml-auto" />
             </div>
             <p className="text-body-sm text-muted-foreground mb-4">
-              {activePromos.length > 0 
-                ? "Limited time offers - use these codes when subscribing!" 
-                : "Stay tuned for exclusive promo codes and special discounts!"
-              }
+              {activePromos.length > 0
+                ? "Use these promo codes when subscribing!"
+                : "Stay tuned for exclusive promo codes and special discounts!"}
             </p>
             {activePromos.length > 0 ? (
               <HorizontalSnapScroll 
@@ -337,24 +334,31 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         </Interactive3DCard>
       </FadeInOnView>
 
-       {/* About Dynamic Capital */}
-       <FadeInOnView delay={300} animation="bounce-in">
-        <LiquidCard className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01] ui-rounded-lg ui-shadow ui-border-glass" color="hsl(var(--primary))">
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <ThreeDEmoticon emoji="🏆" size={24} intensity={0.4} animate={true} />
-              <h3 className="text-heading font-semibold">About Dynamic Capital</h3>
-              <TradingEmoticonSet variant="vip" className="ml-auto" />
+      {/* About Dynamic Capital */}
+      <FadeInOnView delay={300} animation="bounce-in">
+        <motion.div whileHover={{ scale: 1.02 }}>
+          <LiquidCard
+            className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01] ui-rounded-lg ui-shadow ui-border-glass"
+            color="hsl(var(--primary))"
+          >
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <ThreeDEmoticon emoji="🏆" size={24} intensity={0.4} animate={true} />
+                <h3 className="text-heading font-semibold">About Dynamic Capital</h3>
+                <TradingEmoticonSet variant="vip" className="ml-auto" />
+              </div>
+              <p className="text-subheading text-foreground/90 whitespace-pre-line leading-relaxed">
+                {aboutUs}
+              </p>
             </div>
-            <p className="text-subheading text-foreground/90 whitespace-pre-line leading-relaxed">
-              {aboutUs}
-            </p>
-          </div>
-        </LiquidCard>
-       </FadeInOnView>
+          </LiquidCard>
+        </motion.div>
+      </FadeInOnView>
 
       {/* Our Services - Stack Carousel */}
-      <ServiceStackCarousel services={services} />
+      <FadeInOnView delay={320} animation="fade-in-up">
+        <ServiceStackCarousel services={services} />
+      </FadeInOnView>
 
       {/* VIP Packages - Enhanced */}
       <FadeInOnView delay={350} animation="fade-in-up">
@@ -370,9 +374,10 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
             </p>
           </div>
           
-          <LivePlansSection 
-            showPromo={!!isInTelegram} 
+          <LivePlansSection
+            showPromo={!!isInTelegram}
             telegramData={telegramData}
+            showHeader={false}
             onPlanSelect={(planId) => {
               // Switch to plan tab
               const url = new URL(window.location.href);
