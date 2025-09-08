@@ -36,13 +36,11 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       const dataToVerify = initDataString || initData;
       if (!dataToVerify) return false;
 
-      const response = await callEdgeFunction('VERIFY_INITDATA', {
+      const { data } = await callEdgeFunction('VERIFY_INITDATA', {
         method: 'POST',
         body: { initData: dataToVerify },
       });
-
-      const result = await response.json();
-      return result.ok === true;
+      return (data as any)?.ok === true;
     } catch (error) {
       console.error('Failed to verify telegram auth:', error);
       return false;
@@ -55,23 +53,21 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       if (!userIdToCheck) return false;
 
       if (initData) {
-        const response = await callEdgeFunction('ADMIN_CHECK', {
+        const { data } = await callEdgeFunction('ADMIN_CHECK', {
           method: 'POST',
           body: { initData: initData },
         });
 
-        const result = await response.json();
-        const adminStatus = result.ok === true;
+        const adminStatus = (data as any)?.ok === true;
         setIsAdmin(adminStatus);
         return adminStatus;
       } else {
-        const response = await callEdgeFunction('ADMIN_CHECK', {
+        const { data } = await callEdgeFunction('ADMIN_CHECK', {
           method: 'POST',
           body: { telegram_user_id: userIdToCheck },
         });
 
-        const result = await response.json();
-        const adminStatus = result.is_admin === true;
+        const adminStatus = (data as any)?.is_admin === true;
         setIsAdmin(adminStatus);
         return adminStatus;
       }
@@ -83,13 +79,12 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
 
   const checkVipStatus = useCallback(async (userId: string): Promise<boolean> => {
     try {
-      const response = await callEdgeFunction('MINIAPP_HEALTH', {
+      const { data } = await callEdgeFunction('MINIAPP_HEALTH', {
         method: 'POST',
         body: { telegram_id: userId },
       });
 
-      const result = await response.json();
-      return result.vip?.is_vip === true;
+      return (data as any)?.vip?.is_vip === true;
     } catch (error) {
       console.error('Failed to check VIP status:', error);
       return false;

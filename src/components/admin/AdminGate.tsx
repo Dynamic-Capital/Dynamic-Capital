@@ -51,22 +51,20 @@ export function AdminGate({ children }: AdminGateProps) {
   const authenticateWithInitData = async (initDataToUse: string) => {
     setIsAuthenticating(true);
     try {
-      const response = await callEdgeFunction('ADMIN_SESSION', {
+      const { data } = await callEdgeFunction('ADMIN_SESSION', {
         method: 'POST',
         body: { initData: initDataToUse },
       });
 
-      const data = await response.json();
-      
-      if (response.ok && data.token) {
-        localStorage.setItem('dc_admin_token', data.token);
-        setAdminToken(data.token);
+      if ((data as any)?.token) {
+        localStorage.setItem('dc_admin_token', (data as any).token);
+        setAdminToken((data as any).token);
         toast({
           title: "Success",
           description: "Admin session authenticated successfully",
         });
       } else {
-        throw new Error(data.error || 'Authentication failed');
+        throw new Error((data as any)?.error || 'Authentication failed');
       }
     } catch (error) {
       console.error('Admin auth failed:', error);

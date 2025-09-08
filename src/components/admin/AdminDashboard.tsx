@@ -113,7 +113,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       }
 
       // Load admin stats
-      const statsResponse = await callEdgeFunction('ANALYTICS_DATA', {
+      const { data: statsData } = await callEdgeFunction('ANALYTICS_DATA', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -124,13 +124,12 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         }
       });
 
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json();
-        setStats(statsData);
+      if (statsData) {
+        setStats(statsData as AdminStats);
       }
 
       // Load pending payments
-      const paymentsResponse = await callEdgeFunction('ADMIN_LIST_PENDING', {
+      const { data: paymentsData } = await callEdgeFunction('ADMIN_LIST_PENDING', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -142,9 +141,8 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         }
       });
 
-      if (paymentsResponse.ok) {
-        const paymentsData = await paymentsResponse.json();
-        setPendingPayments(paymentsData.items || []);
+      if (paymentsData) {
+        setPendingPayments((paymentsData as any).items || []);
       }
 
     } catch (error) {
@@ -179,7 +177,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         throw new Error("No admin authentication available");
       }
 
-      const response = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
+      const { data } = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -192,18 +190,16 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         }
       });
 
-      const data = await response.json();
-      
-      if (response.ok && data.ok) {
+      if ((data as any)?.ok) {
         toast({
           title: "Success",
           description: `Payment ${decision}d successfully`,
         });
-        
+
         // Refresh pending payments
         await loadAdminData();
       } else {
-        throw new Error(data.error || `Failed to ${decision} payment`);
+        throw new Error((data as any)?.error || `Failed to ${decision} payment`);
       }
     } catch (error) {
       console.error(`Failed to ${decision} payment:`, error);

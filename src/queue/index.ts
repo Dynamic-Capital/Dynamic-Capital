@@ -30,7 +30,7 @@ const jobStore = new Map<number, JobRecord>();
 let queue: number[] = [];
 let backoffBaseMs = 1000; // can be tuned for tests
 const backoffCapMs = 30000;
-let loopPromise: Promise<void> | null = null;
+let timer: ReturnType<typeof setTimeout> | null = null;
 
 // Optional persistence via Supabase if available
 let supabaseClient: unknown = null;
@@ -85,16 +85,13 @@ export function enqueue(
   queue.push(job.id);
   sortQueue();
   persist(job);
+  if (running) scheduleNext();
   return job.id;
 }
 
 function calculateBackoff(attempt: number): number {
   const delay = backoffBaseMs * Math.pow(2, attempt - 1);
   return Math.min(delay, backoffCapMs);
-}
-
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function processJob(job: JobRecord) {
@@ -123,40 +120,41 @@ async function processJob(job: JobRecord) {
   }
 }
 
-export async function workerLoop() {
-  while (running) {
-    if (queue.length === 0) {
-      await sleep(50);
-      continue;
-    }
-    const id = queue[0];
-    const job = jobStore.get(id);
-    if (!job) {
-      queue.shift();
-      continue;
-    }
-    const now = Date.now();
-    if (job.nextRunAt > now) {
-      await sleep(job.nextRunAt - now);
-      continue;
-    }
+function scheduleNext() {
+  if (!running) return;
+  if (timer) {
+    clearTimeout(timer);
+    timer = null;
+  }
+  if (queue.length === 0) return;
+
+  const id = queue[0];
+  const job = jobStore.get(id);
+  if (!job) {
+    queue.shift();
+    scheduleNext();
+    return;
+  }
+  const delay = Math.max(job.nextRunAt - Date.now(), 0);
+  timer = setTimeout(async () => {
     queue.shift();
     await processJob(job);
-  }
+    scheduleNext();
+  }, delay);
 }
 
 export function startWorker(map: ProcessorMap) {
   processors = map;
   if (running) return;
   running = true;
-  loopPromise = workerLoop();
+  scheduleNext();
 }
 
-export async function stopWorker() {
+export function stopWorker() {
   running = false;
-  if (loopPromise) {
-    await loopPromise;
-    loopPromise = null;
+  if (timer) {
+    clearTimeout(timer);
+    timer = null;
   }
 }
 

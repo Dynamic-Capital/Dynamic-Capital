@@ -20,7 +20,7 @@ import { PaymentOptions } from "./PaymentOptions";
 import { CurrencySelector } from "./CurrencySelector";
 import { useCurrency } from "@/hooks/useCurrency";
 import { toast } from "sonner";
-import { callEdgeFunction } from "@/config/supabase";
+import { callEdgeFunction, CRYPTO_CONFIG } from "@/config/supabase";
 
 interface Plan {
   id: string;
@@ -53,16 +53,15 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
   useEffect(() => {
     // Fetch plans
     callEdgeFunction('PLANS')
-      .then(res => res.json())
-      .then(plansData => {
-        setPlans(plansData.plans || []);
-        
+      .then(({ data }) => {
+        setPlans((data as any)?.plans || []);
+
         if (selectedPlanId) {
-          const plan = (plansData.plans || []).find((p: Plan) => p.id === selectedPlanId);
+          const plan = ((data as any)?.plans || []).find((p: Plan) => p.id === selectedPlanId);
           setSelectedPlan(plan || null);
           setStep("payment");
         }
-        
+
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -86,7 +85,7 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
 
     setInitiatingCheckout(true);
     try {
-      const response = await callEdgeFunction('CHECKOUT_INIT', {
+      const { data } = await callEdgeFunction('CHECKOUT_INIT', {
         method: 'POST',
         body: {
           plan_id: selectedPlan.id,
@@ -96,14 +95,12 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
           initData: isInTelegram ? window.Telegram?.WebApp?.initData : undefined,
         },
       });
-
-      const data = await response.json();
-      if (data.ok) {
-        setPaymentInstructions(data.instructions);
+      if ((data as any)?.ok) {
+        setPaymentInstructions((data as any).instructions);
         setStep("instructions");
         toast.success("Payment initiated! Follow the instructions below.");
       } else {
-        toast.error(data.error || "Failed to initiate payment");
+        toast.error((data as any)?.error || "Failed to initiate payment");
       }
     } catch (error) {
       toast.error("Failed to initiate checkout");
@@ -357,11 +354,11 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
                         <h4 className="font-semibold mb-3">USDT (TRC20) Address</h4>
                         <div className="space-y-2">
                           <div className="p-3 bg-muted rounded font-mono text-sm break-all">
-                            TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7
+                            {CRYPTO_CONFIG.USDT_TRC20_ADDRESS}
                           </div>
                           <Button 
                             variant="outline"
-                            onClick={() => copyToClipboard("TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7")}
+                            onClick={() => copyToClipboard(CRYPTO_CONFIG.USDT_TRC20_ADDRESS)}
                             className="w-full"
                           >
                             <Copy className="h-4 w-4 mr-2" />

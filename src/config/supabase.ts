@@ -73,7 +73,7 @@ export { SUPABASE_ENV_ERROR };
 // Shared secret used by both the Telegram bot and web dashboard when calling
 // protected edge functions. In browser builds it must be exposed via the
 // VITE_ prefix.
-const TELEGRAM_WEBHOOK_SECRET = optionalEnvVar("TELEGRAM_WEBHOOK_SECRET") || "";
+const TELEGRAM_WEBHOOK_SECRET = optionalEnvVar("TELEGRAM_WEBHOOK_SECRET");
 
 // Helper function to build function URLs
 export const buildFunctionUrl = (functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS): string => {
@@ -89,7 +89,7 @@ export const callEdgeFunction = async (
     headers?: Record<string, string>;
     token?: string;
   } = {}
-): Promise<Response> => {
+): Promise<{ data: any; status: number }> => {
   const { method = 'GET', body, headers = {}, token } = options;
   
   const requestHeaders: Record<string, string> = {
@@ -106,11 +106,23 @@ export const callEdgeFunction = async (
     requestHeaders['Authorization'] = `Bearer ${token}`;
   }
 
-  return fetch(buildFunctionUrl(functionName), {
+  const res = await fetch(buildFunctionUrl(functionName), {
     method,
     headers: requestHeaders,
     body: body ? JSON.stringify(body) : undefined,
   });
+
+  if (!res.ok) {
+    throw new Error(`Edge function ${functionName} failed: ${res.status} ${res.statusText}`);
+  }
+
+  let data: any = null;
+  try {
+    data = await res.json();
+  } catch {
+    /* ignore */
+  }
+  return { data, status: res.status };
 };
 
 // Telegram bot configuration
@@ -121,7 +133,7 @@ export const TELEGRAM_CONFIG = {
 
 // Crypto configuration  
 export const CRYPTO_CONFIG = {
-  USDT_TRC20_ADDRESS: 'TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7',
+  USDT_TRC20_ADDRESS: optionalEnvVar('USDT_TRC20_ADDRESS') ?? '',
   NETWORKS: {
     TRC20: 'TRON (TRC20)',
     ERC20: 'Ethereum (ERC20)',

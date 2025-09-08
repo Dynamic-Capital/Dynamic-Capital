@@ -111,7 +111,7 @@ export function EnhancedPaymentSection({ selectedPlan, onBack }: EnhancedPayment
 
     setIsProcessing(true);
     try {
-      const response = await callEdgeFunction('CHECKOUT_INIT', {
+      const { data, status } = await callEdgeFunction('CHECKOUT_INIT', {
         method: 'POST',
         body: {
           plan_id: selectedPlan.id,
@@ -121,15 +121,13 @@ export function EnhancedPaymentSection({ selectedPlan, onBack }: EnhancedPayment
         }
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Payment initiation failed');
+      if (status !== 200 || !(data as any)?.ok) {
+        throw new Error((data as any)?.error || 'Payment initiation failed');
       }
 
-      const data = await response.json();
-      setPaymentInstructions(data.instructions);
-      setPaymentId(data.payment_id);
-      
+      setPaymentInstructions((data as any).instructions);
+      setPaymentId((data as any).payment_id);
+
       toast.success("Payment instructions generated successfully!");
     } catch (error) {
       console.error('Payment initiation error:', error);

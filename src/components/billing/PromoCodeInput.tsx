@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import logger from "@/utils/logger";
 import { Sparkles, Tag, Percent, DollarSign, Loader2, Check, X } from "lucide-react";
 
 interface PromoCodeInputProps {
@@ -53,7 +54,7 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
         },
       });
 
-      console.log("Promo validation response:", { data, error });
+      logger.log("Promo validation response:", { data, error });
 
       if (error) {
         console.error("Promo validation error:", error);

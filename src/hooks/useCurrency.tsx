@@ -59,20 +59,21 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
         callEdgeFunction('CONTENT_BATCH', {
           method: 'POST',
           body: { keys: ['usd_mvr_rate'] },
-        }).then(res => res.json())
-      .then(data => {
-        const rateContent = data.contents?.find((c: any) => c.content_key === 'usd_mvr_rate');
-        if (rateContent) {
-          const rate = parseFloat(rateContent.content_value) || 17.5;
-          setExchangeRate(rate);
-          localStorage.setItem('usd_mvr_rate', rate.toString());
-          localStorage.setItem('usd_mvr_rate_time', Date.now().toString());
-        }
-      })
-      .catch(() => {
-        // Keep default rate on error
-      })
-      .finally(() => setIsLoading(false)));
+        })
+        .then(({ data }) => {
+          const rateContent = (data as any)?.contents?.find((c: any) => c.content_key === 'usd_mvr_rate');
+          if (rateContent) {
+            const rate = parseFloat(rateContent.content_value) || 17.5;
+            setExchangeRate(rate);
+            localStorage.setItem('usd_mvr_rate', rate.toString());
+            localStorage.setItem('usd_mvr_rate_time', Date.now().toString());
+          }
+        })
+        .catch(() => {
+          // Keep default rate on error
+        })
+        .finally(() => setIsLoading(false))
+      );
     }
   }, []);
 

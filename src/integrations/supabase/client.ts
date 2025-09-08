@@ -45,7 +45,7 @@ function createSupabaseClient() {
       SUPABASE_URL: SUPABASE_URL ? "present" : "missing",
       SUPABASE_KEY: SUPABASE_KEY ? "present" : "missing",
     });
-    return null;
+    throw new Error("Missing Supabase configuration");
   }
 
   const payload = decodeJwtPayload(SUPABASE_KEY);

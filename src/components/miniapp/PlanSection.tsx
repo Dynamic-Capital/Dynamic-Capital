@@ -60,30 +60,26 @@ export default function PlanSection() {
     const fetchData = async () => {
       try {
         const { callEdgeFunction } = await import('@/config/supabase');
-        const [plansResponse, contentResponse] = await Promise.all([
+        const [plansResult, contentResult] = await Promise.all([
           callEdgeFunction('PLANS'),
           callEdgeFunction('CONTENT_BATCH', {
             method: 'POST',
             body: { keys: ["popular_plan_id"] }
           })
         ]);
-        
-        if (!plansResponse.ok || !contentResponse.ok) {
+
+        if (plansResult.status !== 200 || contentResult.status !== 200) {
           throw new Error('Failed to load data');
         }
 
-        const [plansData, contentData] = await Promise.all([
-          plansResponse.json(),
-          contentResponse.json()
-        ]);
-      setPlans(plansData.plans || []);
+        setPlans((plansResult.data as any)?.plans || []);
 
-      const contents: ContentItem[] = contentData.contents || [];
-      const popularContent = contents.find((c) => c.content_key === 'popular_plan_id');
+        const contents: ContentItem[] = (contentResult.data as any)?.contents || [];
+        const popularContent = contents.find((c) => c.content_key === 'popular_plan_id');
 
-      if (popularContent) {
-        setPopularPlanId(popularContent.content_value);
-      }
+        if (popularContent) {
+          setPopularPlanId(popularContent.content_value);
+        }
 
         // Check user's selection history for most preferred plan
         const selectionCounts: Record<string, number> = JSON.parse(
@@ -130,7 +126,7 @@ export default function PlanSection() {
         return;
       }
 
-      const response = await callEdgeFunction('PROMO_VALIDATE', {
+      const { data, status } = await callEdgeFunction('PROMO_VALIDATE', {
         method: 'POST',
         body: {
           code: promoCode,
@@ -139,17 +135,16 @@ export default function PlanSection() {
         }
       });
 
-      if (!response.ok) {
+      if (status !== 200 || !data) {
         throw new Error('Network error');
       }
 
-      const data = await response.json();
       setPromoValidation(data);
-      
-      if (data.valid) {
-        toast.success(`Promo code applied! ${data.discount_type === 'percentage' ? data.discount_value + '%' : '$' + data.discount_value} discount`);
+
+      if ((data as any).valid) {
+        toast.success(`Promo code applied! ${(data as any).discount_type === 'percentage' ? (data as any).discount_value + '%' : '$' + (data as any).discount_value} discount`);
       } else {
-        toast.error(data.reason || 'Invalid promo code');
+        toast.error((data as any).reason || 'Invalid promo code');
       }
     } catch (error) {
       console.error('Promo validation error:', error);

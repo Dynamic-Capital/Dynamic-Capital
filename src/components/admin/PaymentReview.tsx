@@ -82,7 +82,7 @@ export function PaymentReview() {
     try {
       setProcessing(paymentId);
       
-      const response = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
+      const { data } = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
         method: 'POST',
         body: {
           payment_id: paymentId,
@@ -91,13 +91,13 @@ export function PaymentReview() {
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to process payment');
+      if ((data as any)?.ok) {
+        toast.success(`Payment ${action}d successfully`);
+        fetchPayments();
+        setSelectedPayment(null);
+      } else {
+        throw new Error((data as any)?.error || 'Failed to process payment');
       }
-
-      toast.success(`Payment ${action}d successfully`);
-      fetchPayments();
-      setSelectedPayment(null);
     } catch (error) {
       console.error('Error processing payment:', error);
       toast.error(`Failed to ${action} payment`);

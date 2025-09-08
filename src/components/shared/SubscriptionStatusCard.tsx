@@ -40,13 +40,11 @@ export const SubscriptionStatusCard = ({
 
   const fetchSubscriptionStatus = useCallback(async (userId: string) => {
     try {
-      const response = await callEdgeFunction('SUBSCRIPTION_STATUS', {
+      const { data } = await callEdgeFunction('SUBSCRIPTION_STATUS', {
         method: 'POST',
         body: { telegram_user_id: userId },
       });
-
-      const data = await response.json();
-      setStatus(data);
+      setStatus(data as SubscriptionStatus);
     } catch (error) {
       console.error('Failed to fetch subscription status:', error);
       toast({

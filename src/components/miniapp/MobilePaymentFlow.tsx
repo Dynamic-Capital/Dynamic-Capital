@@ -120,7 +120,7 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
     setLoading(true);
     try {
       const { callEdgeFunction } = await import('@/config/supabase');
-      const response = await callEdgeFunction('CHECKOUT_INIT', {
+      const { data } = await callEdgeFunction('CHECKOUT_INIT', {
         method: 'POST',
         body: {
           plan_id: selectedPlan.id,
@@ -131,13 +131,12 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
         }
       });
 
-      const data = await response.json();
-      if (data.ok) {
-        setPaymentInstructions(data.instructions);
+      if ((data as any)?.ok) {
+        setPaymentInstructions((data as any).instructions);
         setStep('instructions');
         toast.success("Payment instructions generated!");
       } else {
-        toast.error(data.error || "Failed to generate payment instructions");
+        toast.error((data as any)?.error || "Failed to generate payment instructions");
       }
     } catch (error) {
       console.error('Payment error:', error);

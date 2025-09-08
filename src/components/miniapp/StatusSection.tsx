@@ -47,17 +47,16 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
     }
 
     try {
-      const response = await callEdgeFunction('SUBSCRIPTION_STATUS', {
+      const { data, status } = await callEdgeFunction('SUBSCRIPTION_STATUS', {
         method: 'POST',
         body: { telegram_id: telegramData.user.id },
       });
 
-      if (!response.ok) {
+      if (status !== 200 || !data) {
         throw new Error('Failed to fetch subscription status');
       }
 
-      const data = await response.json();
-      setSubscription(data);
+      setSubscription(data as SubscriptionStatus);
     } catch (error) {
       console.error('Error fetching subscription:', error);
       toast.error('Failed to load subscription status');

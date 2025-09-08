@@ -45,11 +45,10 @@ const Plans: React.FC = () => {
   const fetchPlans = async () => {
     try {
       setLoading(true);
-      const response = await callEdgeFunction('PLANS');
-      const data = await response.json();
-      
-      if (data.plans) {
-        setPlans(data.plans);
+      const { data } = await callEdgeFunction('PLANS');
+
+      if ((data as any)?.plans) {
+        setPlans((data as any).plans);
       } else {
         setError('No plans available');
       }

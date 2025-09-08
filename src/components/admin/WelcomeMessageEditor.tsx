@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import logger from "@/utils/logger";
 import {
   Card,
   CardContent,
@@ -46,7 +47,7 @@ export const WelcomeMessageEditor = () => {
   const fetchWelcomeMessage = async () => {
     try {
       setLoading(true);
-      console.log("Fetching welcome message from database...");
+      logger.log("Fetching welcome message from database...");
 
       const { data, error } = await supabase
         .from("bot_content")
@@ -59,7 +60,7 @@ export const WelcomeMessageEditor = () => {
 
         // Create default welcome message if it doesn't exist
         if (error.code === "PGRST116") {
-          console.log("Welcome message not found, creating default...");
+          logger.log("Welcome message not found, creating default...");
           await createDefaultWelcomeMessage();
         } else {
           toast({
@@ -71,7 +72,7 @@ export const WelcomeMessageEditor = () => {
         return;
       }
 
-      console.log("Welcome message loaded successfully:", data);
+      logger.log("Welcome message loaded successfully:", data);
       setWelcomeMessage({
         ...data,
         content_type: (data.content_type as "text" | "html" | "markdown") || "text"
@@ -103,7 +104,7 @@ export const WelcomeMessageEditor = () => {
 👇 Choose what you need:`;
 
     try {
-      console.log("Creating default welcome message...");
+      logger.log("Creating default welcome message...");
 
       const { data, error } = await supabase
         .from("bot_content")
@@ -121,7 +122,7 @@ export const WelcomeMessageEditor = () => {
 
       if (error) throw error;
 
-      console.log("Default welcome message created:", data);
+      logger.log("Default welcome message created:", data);
       setWelcomeMessage({
         ...data,
         content_type: (data.content_type as "text" | "html" | "markdown") || "text"
@@ -147,7 +148,7 @@ export const WelcomeMessageEditor = () => {
 
     try {
       setSaving(true);
-      console.log("Saving welcome message...", {
+      logger.log("Saving welcome message...", {
         id: welcomeMessage.id,
         content: editedMessage,
       });
@@ -162,7 +163,7 @@ export const WelcomeMessageEditor = () => {
 
       if (error) throw error;
 
-      console.log("Welcome message saved successfully");
+      logger.log("Welcome message saved successfully");
       setWelcomeMessage((prev) =>
         prev
           ? {

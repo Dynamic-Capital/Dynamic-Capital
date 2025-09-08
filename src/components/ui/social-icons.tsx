@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Instagram, Facebook } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logger from "@/utils/logger";
 
 interface SocialIconProps {
   platform: "instagram" | "facebook" | "tiktok" | "tradingview";
@@ -130,7 +131,7 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
 
   const handleClick = () => {
     // Track social media clicks with console log for debugging
-    console.log(`Social media click: ${platform} -> ${href}`);
+    logger.log(`Social media click: ${platform} -> ${href}`);
     
     // Track with any available analytics
     if (typeof window !== 'undefined') {
@@ -138,7 +139,7 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
       try {
         // Example: window.gtag?.('event', 'social_click', { platform, destination: href });
       } catch (error) {
-        console.log('Analytics tracking not available');
+        logger.log('Analytics tracking not available');
       }
     }
   };

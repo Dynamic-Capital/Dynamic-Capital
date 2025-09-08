@@ -31,7 +31,7 @@ export function BotDiagnostics() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await callEdgeFunction('BOT_STATUS_CHECK', {
+      const { data } = await callEdgeFunction('BOT_STATUS_CHECK', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -41,12 +41,10 @@ export function BotDiagnostics() {
         }
       });
 
-      const data = await response.json();
-      
-      if (response.ok && data.ok) {
-        setBotStatus(data);
+      if ((data as any)?.ok) {
+        setBotStatus(data as BotStatus);
       } else {
-        console.warn('Failed to load bot status:', data.error);
+        console.warn('Failed to load bot status:', (data as any)?.error);
         setBotStatus(null);
       }
     } catch (error) {
@@ -65,7 +63,7 @@ export function BotDiagnostics() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await callEdgeFunction('ROTATE_WEBHOOK_SECRET', {
+      const { data } = await callEdgeFunction('ROTATE_WEBHOOK_SECRET', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -75,16 +73,14 @@ export function BotDiagnostics() {
         }
       });
 
-      const data = await response.json();
-      
-      if (response.ok && data.ok) {
+      if ((data as any)?.ok) {
         toast({
           title: "Success",
           description: "Webhook secret rotated successfully",
         });
         await loadBotStatus();
       } else {
-        throw new Error(data.error || 'Failed to rotate webhook secret');
+        throw new Error((data as any)?.error || 'Failed to rotate webhook secret');
       }
     } catch (error) {
       console.error('Failed to rotate webhook secret:', error);
@@ -105,7 +101,7 @@ export function BotDiagnostics() {
         throw new Error("No admin authentication available");
       }
 
-      const response = await callEdgeFunction('RESET_BOT', {
+      const { data } = await callEdgeFunction('RESET_BOT', {
         method: 'POST',
         headers: {
           ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
@@ -115,16 +111,14 @@ export function BotDiagnostics() {
         }
       });
 
-      const data = await response.json();
-      
-      if (response.ok && data.ok) {
+      if ((data as any)?.ok) {
         toast({
           title: "Success",
           description: "Bot reset successfully",
         });
         await loadBotStatus();
       } else {
-        throw new Error(data.error || 'Failed to reset bot');
+        throw new Error((data as any)?.error || 'Failed to reset bot');
       }
     } catch (error) {
       console.error('Failed to reset bot:', error);
