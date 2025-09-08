@@ -69,6 +69,14 @@ export function useApi() {
     return res.json();
   };
 
+  const get = async (path: string) => {
+    const initData = encodeURIComponent(getInitData());
+    const sep = path.includes("?") ? "&" : "?";
+    const res = await fetch(`${path}${sep}initData=${initData}`);
+    if (!res.ok) return handleError(res);
+    return res.json();
+  };
+
   const approve = async (id: string) => {
     const res = await fetch(`/api/receipt/${id}/approve`, {
       method: "POST",
@@ -155,6 +163,7 @@ export function useApi() {
     submitTxid,
     getReceipts,
     getPending,
+    get,
     approve,
     reject,
     checkAdminStatus,

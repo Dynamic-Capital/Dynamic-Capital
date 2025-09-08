@@ -228,7 +228,7 @@ src/main.tsx,161,tsx,5
 tsconfig.node.json,481,json,22
 postcss.config.js,81,js,6
 components.json,414,json,20
-supabase/functions/miniapp/static/index.html,468,html,15
+supabase/functions/miniapp/static/index.html,557,html,19
 docs/api-documentation.md,13941,md,599
 docs/supabase-audit-report.md,8586,md,314
 docs/index-advisor.md,719,md,28

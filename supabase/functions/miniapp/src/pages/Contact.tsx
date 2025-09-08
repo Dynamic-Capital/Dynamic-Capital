@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { PrimaryButton } from "../components/PrimaryButton";
+import PrimaryButton from "../components/PrimaryButton";
 import { useApi } from "../hooks/useApi";
 import Toast from "../components/Toast";
 
@@ -48,8 +48,9 @@ export default function Contact() {
 
   const handleContactClick = (url: string, platform: string) => {
     try {
-      if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.openLink(url);
+      const tg = (window as any).Telegram?.WebApp;
+      if (tg) {
+        tg.openLink(url);
       } else {
         window.open(url, '_blank', 'noopener,noreferrer');
       }
@@ -113,11 +114,10 @@ export default function Contact() {
                 </CardHeader>
                 <CardContent className="text-center">
                   <PrimaryButton
+                    label={`Contact via ${contact.platform}`}
                     onClick={() => handleContactClick(contact.url, contact.platform)}
                     className="w-full"
-                  >
-                    Contact via {contact.platform}
-                  </PrimaryButton>
+                  />
                 </CardContent>
               </Card>
             ))}

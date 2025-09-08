@@ -98,7 +98,6 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
             setServices(servicesContent?.content_value || "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support");
             setAnnouncements(announcementsContent?.content_value || "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.");
           }
-        }
 
         // Fetch active promotions - Only if backend is available
         try {
