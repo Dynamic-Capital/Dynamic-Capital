@@ -1,8 +1,29 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
+import { createClient } from "../_shared/client.ts";
 
 const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
+const supabase = createClient("service");
+
+async function getEmbedding(text: string): Promise<number[]> {
+  const res = await fetch("https://api.openai.com/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "text-embedding-3-small",
+      input: text,
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error?.message || "Embedding error");
+  }
+  return data.data[0].embedding as number[];
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,7 +38,7 @@ serve(async (req) => {
   }
 
   try {
-    const { question, context: _context, test } = await req
+    const { question, test } = await req
       .json()
       .catch(() => ({}));
 
@@ -36,7 +57,7 @@ serve(async (req) => {
     }
 
     const systemPrompt =
-      `You are a knowledgeable trading assistant for Dynamic Capital, a premium trading signals and education service. 
+      `You are a knowledgeable trading assistant for Dynamic Capital, a premium trading signals and education service.
 
 IMPORTANT GUIDELINES:
 - Provide helpful, educational trading information
@@ -65,6 +86,37 @@ COMMON TOPICS:
 
 Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!"`;
 
+    const questionEmbedding = await getEmbedding(question);
+
+    const { data: matches, error: matchError } = await supabase.rpc(
+      "match_faq",
+      { query_embedding: questionEmbedding, match_count: 3 },
+    );
+
+    if (matchError) console.error("match_faq error", matchError);
+
+    const topMatch = matches?.[0];
+    if (topMatch && topMatch.distance < 0.3) {
+      return new Response(JSON.stringify({ answer: topMatch.answer }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const faqContext = matches
+      ?.map((m) => `Q: ${m.question}\nA: ${m.answer}`)
+      .join("\n\n");
+
+    const messages = [
+      { role: "system", content: systemPrompt },
+    ];
+    if (faqContext) {
+      messages.push({
+        role: "system",
+        content: `FAQ context:\n${faqContext}`,
+      });
+    }
+    messages.push({ role: "user", content: question });
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -73,10 +125,7 @@ Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: question },
-        ],
+        messages,
         max_tokens: 500,
         temperature: 0.7,
       }),
@@ -88,7 +137,14 @@ Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support
       throw new Error(data.error?.message || "AI service error");
     }
 
-    const answer = data.choices[0].message.content;
+    const answer = data.choices[0].message.content as string;
+
+    const { error: insertError } = await supabase.from("faq_embeddings").insert({
+      question,
+      answer,
+      embedding: questionEmbedding,
+    });
+    if (insertError) console.error("insert faq_embeddings", insertError);
 
     return new Response(JSON.stringify({ answer }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
