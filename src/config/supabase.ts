@@ -1,12 +1,24 @@
+import { optionalEnvVar, requireEnvVar } from "@/utils/env";
+
 // Centralized Supabase configuration
+const SUPABASE_URL = requireEnvVar("SUPABASE_URL");
+const SUPABASE_ANON_KEY = requireEnvVar("SUPABASE_ANON_KEY");
+const PROJECT_ID = SUPABASE_URL.match(/^https:\/\/([a-z0-9]+)\.supabase\.co/)
+  ? RegExp.$1
+  : "";
+const FUNCTIONS_URL = SUPABASE_URL.replace(
+  ".supabase.co",
+  ".functions.supabase.co",
+);
+
 export const SUPABASE_CONFIG = {
   // Project configuration
-  PROJECT_ID: 'qeejuomcapbdlhnjqjcc',
-  URL: 'https://qeejuomcapbdlhnjqjcc.supabase.co',
-  ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZWp1b21jYXBiZGxobmpxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMDE4MTUsImV4cCI6MjA2OTc3NzgxNX0.GfK9Wwx0WX_GhDIz1sIQzNstyAQIF2Jd6p7t02G44zk',
-  
+  PROJECT_ID,
+  URL: SUPABASE_URL,
+  ANON_KEY: SUPABASE_ANON_KEY,
+
   // Edge functions base URL
-  FUNCTIONS_URL: 'https://qeejuomcapbdlhnjqjcc.functions.supabase.co',
+  FUNCTIONS_URL,
   
   // Edge function endpoints
   FUNCTIONS: {
@@ -50,12 +62,7 @@ export const SUPABASE_CONFIG = {
 // Shared secret used by both the Telegram bot and web dashboard when calling
 // protected edge functions. In browser builds it must be exposed via the
 // VITE_ prefix.
-const TELEGRAM_WEBHOOK_SECRET =
-  (typeof Deno !== "undefined"
-    ? Deno.env.get("TELEGRAM_WEBHOOK_SECRET")
-    : typeof process !== "undefined"
-    ? process.env.TELEGRAM_WEBHOOK_SECRET
-    : import.meta.env?.VITE_TELEGRAM_WEBHOOK_SECRET) || "";
+const TELEGRAM_WEBHOOK_SECRET = optionalEnvVar("TELEGRAM_WEBHOOK_SECRET") || "";
 
 // Helper function to build function URLs
 export const buildFunctionUrl = (functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS): string => {
