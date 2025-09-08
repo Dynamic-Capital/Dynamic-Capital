@@ -1,5 +1,7 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { CreditCard, Shield, Zap } from "lucide-react";
 
 interface CheckoutButtonProps {
@@ -7,11 +9,11 @@ interface CheckoutButtonProps {
 }
 
 export const CheckoutButton = ({ plan }: CheckoutButtonProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleCheckout = () => {
     // In a real app, this would call a payment provider.
-    navigate(`/payment-status?status=success&plan=${encodeURIComponent(plan)}`);
+    router.push(`/payment-status?status=success&plan=${encodeURIComponent(plan)}`);
   };
 
   return (

@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -9,10 +12,10 @@ import NAV_ITEMS from "./nav-items";
 const navItems = NAV_ITEMS;
 
 export const DesktopNav: React.FC = () => {
-  const location = useLocation();
+  const pathname = usePathname();
   const shouldReduceMotion = useReducedMotion();
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => pathname === path;
 
   return (
     <motion.nav
@@ -49,8 +52,8 @@ export const DesktopNav: React.FC = () => {
                 !active && "hover:bg-primary/10 hover:text-primary"
               )}
             >
-              <Link 
-                to={item.path} 
+              <Link
+                href={item.path}
                 className="flex items-center gap-2 relative overflow-hidden"
                 aria-label={item.ariaLabel}
                 aria-current={active ? "page" : undefined}
@@ -108,8 +111,8 @@ export const DesktopNav: React.FC = () => {
             "hover:text-primary hover:shadow-md"
           )}
         >
-          <Link 
-            to="/auth" 
+          <Link
+            href="/auth"
             className="flex items-center gap-2"
             aria-label="Sign in to your account"
           >

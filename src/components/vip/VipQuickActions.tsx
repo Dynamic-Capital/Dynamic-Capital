@@ -1,10 +1,12 @@
+"use client";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Upload, Crown } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 
 export const VipQuickActions = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const actions = [
     { icon: CreditCard, label: "Checkout", path: "/checkout" },
@@ -23,7 +25,7 @@ export const VipQuickActions = () => {
             key={label}
             variant="outline"
             className="flex items-center gap-2"
-            onClick={() => navigate(path)}
+            onClick={() => router.push(path)}
           >
             <Icon className="h-4 w-4" />
             {label}

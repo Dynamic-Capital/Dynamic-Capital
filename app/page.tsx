@@ -18,6 +18,8 @@ import VipPriceSwitcher from "@/components/landing/VipPriceSwitcher";
 import { Award, Crown, Target, DollarSign, TrendingUp, Zap, CheckCircle, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 const Landing = () => {
   const router = useRouter();
   const handleOpenTelegram = () => {

@@ -22,7 +22,9 @@ async function call<T>(
   payload: Record<string, unknown> = {},
 ): Promise<T> {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
-    throw new Error("Missing Supabase configuration");
+    console.warn("Missing Supabase configuration");
+    // Return an empty object so callers can handle missing data gracefully
+    return {} as T;
   }
   const res = await withRetry(
     () =>

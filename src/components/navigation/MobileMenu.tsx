@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -55,9 +58,9 @@ const navItems: NavItem[] = [
 
 export const MobileMenu: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
+  const pathname = usePathname();
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => pathname === path;
 
   const handleLinkClick = () => {
     setIsOpen(false);
@@ -96,7 +99,7 @@ export const MobileMenu: React.FC = () => {
               return (
                 <Link
                   key={item.id}
-                  to={item.path}
+                  href={item.path}
                   onClick={handleLinkClick}
                   className={cn(
                     "flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
@@ -117,7 +120,7 @@ export const MobileMenu: React.FC = () => {
             
             <div className="border-t border-border pt-4 mt-4">
               <Link
-                to="/auth"
+                href="/auth"
                 onClick={handleLinkClick}
                 className="flex items-center gap-3 p-3 rounded-lg transition-all duration-200 text-foreground hover:text-primary hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 aria-label="Sign in to your account"

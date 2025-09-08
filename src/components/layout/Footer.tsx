@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { ExternalLink, MessageCircle, Mail, Phone, Users, Instagram, Youtube, Facebook, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -177,25 +179,25 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
             <h4 className="text-md font-medium text-foreground">Quick Links</h4>
             <nav className="flex flex-col space-y-2" aria-label="Quick links">
               <Link
-                to="/plans"
+                href="/plans"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 VIP Plans
               </Link>
-              <Link 
-                to="/checkout" 
+              <Link
+                href="/checkout"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Checkout
               </Link>
-              <Link 
-                to="/contact" 
+              <Link
+                href="/contact"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Contact Us
               </Link>
-              <Link 
-                to="/education" 
+              <Link
+                href="/education"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Education
@@ -241,7 +243,7 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
             </div>
             
             {/* Contact Button */}
-            <Link to="/contact">
+            <Link href="/contact">
               <Button variant="outline" size="sm" className="h-8 px-3 text-xs w-full">
                 <Mail className="h-3 w-3 mr-1" />
                 Contact Support
