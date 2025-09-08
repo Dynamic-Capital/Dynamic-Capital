@@ -4,18 +4,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Home, 
-  CreditCard, 
-  User, 
-  HelpCircle, 
-  MessageCircle, 
+import {
+  Home,
+  CreditCard,
+  HelpCircle,
+  MessageCircle,
+  LayoutDashboard,
   Zap,
   Menu,
   X,
-  ChevronDown,
-  Settings,
-  Shield
+  ChevronDown
 } from 'lucide-react';
 import { MobileSwipeContainer, MobilePullToRefresh, TouchFeedback, MobileScrollIndicator } from '@/components/ui/mobile-gestures';
 import { ThreeDEmoticon } from '@/components/ui/three-d-emoticons';
@@ -50,7 +48,14 @@ interface Plan {
 }
 
 export default function MiniApp() {
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const param = new URLSearchParams(window.location.search).get('tab');
+      const valid = ['home', 'plan', 'dashboard', 'faq', 'ask'];
+      if (param && valid.includes(param)) return param;
+    }
+    return 'home';
+  });
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [paymentStep, setPaymentStep] = useState<'plan' | 'payment' | 'confirmation'>('plan');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -60,10 +65,22 @@ export default function MiniApp() {
   const tabs = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'plan', label: 'Plans', icon: CreditCard },
-    { id: 'status', label: 'Status', icon: User },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'faq', label: 'FAQ', icon: HelpCircle },
     { id: 'ask', label: 'Support', icon: MessageCircle },
   ];
+
+  useEffect(() => {
+    const handler = () => {
+      const param = new URLSearchParams(window.location.search).get('tab');
+      const valid = ['home', 'plan', 'dashboard', 'faq', 'ask'];
+      if (param && valid.includes(param)) {
+        setActiveTab(param);
+      }
+    };
+    window.addEventListener('popstate', handler);
+    return () => window.removeEventListener('popstate', handler);
+  }, []);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -88,7 +105,7 @@ export default function MiniApp() {
         return (
           <PlanSection />
         );
-      case 'status':
+      case 'dashboard':
         return <StatusSection telegramData={null} />;
       case 'faq':
         return <FAQSection />;

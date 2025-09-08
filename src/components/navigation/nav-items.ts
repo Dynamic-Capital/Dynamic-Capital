@@ -1,4 +1,4 @@
-import { Home, TrendingUp, Settings, GraduationCap, MessageCircle } from "lucide-react";
+import { Home, TrendingUp, GraduationCap, MessageCircle, Shield } from "lucide-react";
 
 export interface NavItem {
   id: string;
@@ -45,9 +45,9 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "dashboard",
     label: "Dashboard",
-    icon: Settings,
-    path: "/dashboard",
-    ariaLabel: "View member dashboard",
+    icon: Shield,
+    path: "/vip-dashboard",
+    ariaLabel: "View VIP dashboard",
     showOnMobile: true,
   },
 ];

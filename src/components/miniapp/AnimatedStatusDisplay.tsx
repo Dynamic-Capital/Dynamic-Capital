@@ -274,7 +274,7 @@ export function AnimatedStatusDisplay({
                 whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   const url = new URL(window.location.href);
-                  url.searchParams.set('tab', 'status');
+                  url.searchParams.set('tab', 'dashboard');
                   window.history.pushState({}, '', url.toString());
                   window.dispatchEvent(new PopStateEvent('popstate'));
                 }}

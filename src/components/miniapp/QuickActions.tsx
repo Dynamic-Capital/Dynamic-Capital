@@ -91,7 +91,7 @@ export function QuickActions() {
       icon: <TrendingUp className="h-5 w-5" />,
       action: () => {
         const url = new URL(window.location.href);
-        url.searchParams.set('tab', 'status');
+        url.searchParams.set('tab', 'dashboard');
         window.history.pushState({}, '', url.toString());
         window.dispatchEvent(new PopStateEvent('popstate'));
         toast.success('Opening performance tracker...');

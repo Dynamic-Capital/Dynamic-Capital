@@ -105,6 +105,7 @@ const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
                       texts={[
                         "#1 Premium Trading Platform",
                         "5000+ Active VIP Members",
+                        "Seamless VIP Dashboard",
                         "92% Success Rate Proven",
                         "24/7 Expert Support"
                       ]}
