@@ -90,15 +90,17 @@ interface AutoSizingGridProps {
   maxColumns?: number;
   gap?: number;
   responsive?: boolean;
+  stagger?: number;
 }
 
-export function AutoSizingGrid({ 
-  children, 
-  className, 
+export function AutoSizingGrid({
+  children,
+  className,
   minItemWidth = 280,
   maxColumns = 4,
   gap = 16,
-  responsive = true
+  responsive = true,
+  stagger = 0
 }: AutoSizingGridProps) {
   const [columns, setColumns] = useState(1);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -130,9 +132,35 @@ export function AutoSizingGrid({
         gap: `${gap}px`
       }}
       layout
+      initial={stagger ? 'hidden' : undefined}
+      whileInView={stagger ? 'visible' : undefined}
+      viewport={stagger ? { once: true, amount: 0.2 } : undefined}
+      variants={stagger ? {
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: { staggerChildren: stagger, delayChildren: 0.1 }
+        }
+      } : undefined}
       transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 30 }}
     >
-      {children}
+      {stagger
+        ? React.Children.map(children, (child) => (
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 20, scale: 0.95 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  transition: { type: 'spring', stiffness: 260, damping: 20 }
+                }
+              }}
+            >
+              {child}
+            </motion.div>
+          ))
+        : children}
     </motion.div>
   );
 }

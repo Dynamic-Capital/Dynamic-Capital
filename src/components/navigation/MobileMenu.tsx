@@ -3,15 +3,16 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { 
+import {
   Menu,
-  Home, 
-  CreditCard, 
-  Settings, 
+  Home,
+  CreditCard,
+  Settings,
   GraduationCap,
-  User,
   LogIn,
-  X
+  X,
+  Crown,
+  Shield
 } from "lucide-react";
 
 interface NavItem {
@@ -28,29 +29,43 @@ const navItems: NavItem[] = [
     label: "Home",
     icon: Home,
     path: "/",
-    ariaLabel: "Navigate to home page"
+    ariaLabel: "Navigate to home page",
   },
   {
     id: "plans",
     label: "Plans",
     icon: CreditCard,
     path: "/plans",
-    ariaLabel: "View subscription plans"
+    ariaLabel: "View subscription plans",
   },
   {
     id: "education",
     label: "Education",
     icon: GraduationCap,
     path: "/education",
-    ariaLabel: "Access educational content"
+    ariaLabel: "Access educational content",
   },
   {
     id: "dashboard",
     label: "Dashboard",
     icon: Settings,
     path: "/dashboard",
-    ariaLabel: "View dashboard"
-  }
+    ariaLabel: "View dashboard",
+  },
+  {
+    id: "vip-dashboard",
+    label: "VIP Dashboard",
+    icon: Crown,
+    path: "/vip-dashboard",
+    ariaLabel: "View VIP member dashboard",
+  },
+  {
+    id: "admin",
+    label: "Admin",
+    icon: Shield,
+    path: "/admin",
+    ariaLabel: "View admin dashboard",
+  },
 ];
 
 export const MobileMenu: React.FC = () => {
@@ -67,8 +82,8 @@ export const MobileMenu: React.FC = () => {
     <div className="md:hidden">
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             className="focus:ring-2 focus:ring-primary focus:ring-offset-2"
             aria-label="Open navigation menu"
@@ -76,8 +91,8 @@ export const MobileMenu: React.FC = () => {
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent 
-          side="right" 
+        <SheetContent
+          side="right"
           className="w-80 bg-background/95 backdrop-blur-sm"
           aria-describedby="mobile-nav-description"
         >
@@ -89,7 +104,7 @@ export const MobileMenu: React.FC = () => {
           <div id="mobile-nav-description" className="sr-only">
             Mobile navigation menu with links to main sections
           </div>
-          
+
           <nav className="flex flex-col gap-4 mt-8" role="navigation" aria-label="Mobile menu navigation">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -102,8 +117,8 @@ export const MobileMenu: React.FC = () => {
                     "flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
                     "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                     "hover:bg-accent active:scale-95",
-                    isActive(item.path) 
-                      ? "bg-primary/10 text-primary border border-primary/20" 
+                    isActive(item.path)
+                      ? "bg-primary/10 text-primary border border-primary/20"
                       : "text-foreground hover:text-primary"
                   )}
                   aria-label={item.ariaLabel}
@@ -114,7 +129,7 @@ export const MobileMenu: React.FC = () => {
                 </Link>
               );
             })}
-            
+
             <div className="border-t border-border pt-4 mt-4">
               <Link
                 to="/auth"

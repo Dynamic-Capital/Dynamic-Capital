@@ -32,6 +32,8 @@ export const SUPABASE_CONFIG = {
     RESET_BOT: 'reset-bot',
     BROADCAST_DISPATCH: 'broadcast-dispatch',
     WEB_APP_HEALTH: 'web-app-health',
+    THEME_GET: 'theme-get',
+    THEME_SAVE: 'theme-save',
     
     // Content & data
     CONTENT_BATCH: 'content-batch',

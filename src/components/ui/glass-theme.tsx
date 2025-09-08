@@ -17,16 +17,16 @@ const blurVariants = {
 };
 
 const opacityVariants = {
-  low: "bg-white/5 dark:bg-black/5",
-  medium: "bg-white/10 dark:bg-black/10",
-  high: "bg-white/20 dark:bg-black/20"
+  low: "bg-background/5 dark:bg-foreground/5",
+  medium: "bg-background/10 dark:bg-foreground/10",
+  high: "bg-background/20 dark:bg-foreground/20",
 };
 
 const borderVariants = {
-  light: "border-white/20",
-  dark: "border-black/20",
+  light: "border-border/20",
+  dark: "border-foreground/20",
   primary: "border-primary/20",
-  accent: "border-accent/20"
+  accent: "border-accent/20",
 };
 
 export function GlassCard({ 

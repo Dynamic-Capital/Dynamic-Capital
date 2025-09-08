@@ -24,6 +24,7 @@ import Education from "./pages/Education";
 import BuildMiniApp from "./pages/BuildMiniApp";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
+import VipDashboard from "./pages/VipDashboard";
 import { WelcomeMessage } from "./components/welcome/WelcomeMessage";
 import BotStatus from "./pages/BotStatus";
 import Checkout from "./pages/Checkout";
@@ -73,7 +74,7 @@ const AppContent = () => {
       <SkipToContent />
       <TelegramRedirect />
       
-      <div className="min-h-screen bg-background">
+      <div className="min-h-[100dvh] bg-background">
         {!isInMiniApp && <Header />}
         
         <main 
@@ -107,6 +108,11 @@ const AppContent = () => {
               <Route path="/contact" element={
                 <RouteTransition variant="fade">
                   <PageWrapper><Contact /></PageWrapper>
+                </RouteTransition>
+              } />
+              <Route path="/vip-dashboard" element={
+                <RouteTransition variant="fade">
+                  <PageWrapper><VipDashboard /></PageWrapper>
                 </RouteTransition>
               } />
               <Route path="/checkout" element={

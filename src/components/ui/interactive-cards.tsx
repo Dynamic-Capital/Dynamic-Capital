@@ -89,7 +89,7 @@ export function Interactive3DCard({
         {/* Glow effect */}
         {glowEffect && (
           <motion.div
-            className="absolute -inset-0.5 bg-gradient-to-r from-primary via-purple-500 to-primary rounded-xl opacity-0 blur-sm"
+            className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary rounded-xl opacity-0 blur-sm"
             animate={{
               opacity: isHovered ? 0.4 : 0,
             }}

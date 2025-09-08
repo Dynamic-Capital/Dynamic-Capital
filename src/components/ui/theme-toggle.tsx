@@ -1,36 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTheme } from '@/hooks/useTheme';
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-  useEffect(() => {
-    // Check for saved theme or default to light
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const initialTheme = savedTheme || systemTheme;
-    
-    setTheme(initialTheme);
-    updateTheme(initialTheme);
-  }, []);
-
-  const updateTheme = (newTheme: 'light' | 'dark') => {
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', newTheme);
-  };
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    updateTheme(newTheme);
-  };
+  const { currentTheme, toggleTheme } = useTheme();
 
   return (
     <motion.div
@@ -53,7 +29,7 @@ export function ThemeToggle() {
         )}
       >
         <AnimatePresence mode="wait">
-          {theme === 'light' ? (
+          {currentTheme === 'light' ? (
             <motion.div
               key="sun"
               initial={{ opacity: 0, rotate: -180, scale: 0.5 }}

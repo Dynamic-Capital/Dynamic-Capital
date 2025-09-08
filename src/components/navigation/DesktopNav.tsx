@@ -3,16 +3,15 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { 
-  Home, 
-  CreditCard, 
-  Settings, 
+import {
+  Home,
+  Settings,
   GraduationCap,
-  User,
-  LogIn,
   MessageCircle,
   TrendingUp,
-  Zap
+  Crown,
+  Shield,
+  LogIn
 } from "lucide-react";
 
 interface NavItem {
@@ -29,36 +28,50 @@ const navItems: NavItem[] = [
     label: "Home",
     icon: Home,
     path: "/",
-    ariaLabel: "Navigate to home page"
+    ariaLabel: "Navigate to home page",
   },
   {
     id: "plans",
     label: "VIP Plans",
     icon: TrendingUp,
     path: "/plans",
-    ariaLabel: "View VIP subscription plans"
+    ariaLabel: "View VIP subscription plans",
   },
   {
     id: "education",
     label: "Academy",
     icon: GraduationCap,
     path: "/education",
-    ariaLabel: "Access trading academy"
+    ariaLabel: "Access trading academy",
   },
   {
     id: "contact",
     label: "Support",
     icon: MessageCircle,
     path: "/contact",
-    ariaLabel: "Contact support team"
+    ariaLabel: "Contact support team",
   },
   {
     id: "dashboard",
     label: "Dashboard",
     icon: Settings,
     path: "/dashboard",
-    ariaLabel: "View member dashboard"
-  }
+    ariaLabel: "View member dashboard",
+  },
+  {
+    id: "vip-dashboard",
+    label: "VIP",
+    icon: Crown,
+    path: "/vip-dashboard",
+    ariaLabel: "View VIP member dashboard",
+  },
+  {
+    id: "admin",
+    label: "Admin",
+    icon: Shield,
+    path: "/admin",
+    ariaLabel: "View admin dashboard",
+  },
 ];
 
 export const DesktopNav: React.FC = () => {
@@ -102,8 +115,8 @@ export const DesktopNav: React.FC = () => {
                 !active && "hover:bg-primary/10 hover:text-primary"
               )}
             >
-              <Link 
-                to={item.path} 
+              <Link
+                to={item.path}
                 className="flex items-center gap-2 relative overflow-hidden"
                 aria-label={item.ariaLabel}
                 aria-current={active ? "page" : undefined}
@@ -132,7 +145,7 @@ export const DesktopNav: React.FC = () => {
                         transition={{
                           duration: 1.5,
                           repeat: Infinity,
-                          ease: "linear"
+                          ease: "linear",
                         }}
                       />
                     )}
@@ -142,15 +155,15 @@ export const DesktopNav: React.FC = () => {
           </motion.div>
         );
       })}
-      
+
       {/* Auth Button */}
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: shouldReduceMotion ? 0 : 0.3, delay: shouldReduceMotion ? 0 : 0.5 }}
-          whileHover={shouldReduceMotion ? undefined : { scale: 1.05 }}
-          whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
-        >
+      <motion.div
+        initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.3, delay: shouldReduceMotion ? 0 : 0.5 }}
+        whileHover={shouldReduceMotion ? undefined : { scale: 1.05 }}
+        whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
+      >
         <Button
           asChild
           variant="outline"
@@ -161,8 +174,8 @@ export const DesktopNav: React.FC = () => {
             "hover:text-primary hover:shadow-md"
           )}
         >
-          <Link 
-            to="/auth" 
+          <Link
+            to="/auth"
             className="flex items-center gap-2"
             aria-label="Sign in to your account"
           >
