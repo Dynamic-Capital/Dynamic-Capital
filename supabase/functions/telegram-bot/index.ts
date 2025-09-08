@@ -22,6 +22,7 @@ import {
 import { setCallbackMessageId } from "./admin-handlers/common.ts";
 import { recomputeVipForUser } from "../_shared/vip_sync.ts";
 import { getVipChannels, isMemberLike, recomputeVipFlag } from "../_shared/telegram_membership.ts";
+import { askChatGPT } from "./helpers/chatgpt.ts";
 // Type definition moved inline to avoid import issues
 interface Promotion {
   code: string;
@@ -451,20 +452,9 @@ async function handleAskCommand(ctx: CommandContext): Promise<void> {
     await notifyUser(ctx.chatId, usage);
     return;
   }
-  if (!SUPABASE_URL) {
-    const msg = await getContent("service_unavailable") ??
-      "Service unavailable.";
-    await notifyUser(ctx.chatId, msg);
-    return;
-  }
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-faq-assistant`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
-    });
-    const data = await res.json().catch(() => ({}));
-    const answer = data.answer ?? (await getContent("ask_no_answer")) ??
+    const answer = await askChatGPT(question) ??
+      (await getContent("ask_no_answer")) ??
       "Unable to get answer.";
     await notifyUser(ctx.chatId, answer);
   } catch {
