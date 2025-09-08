@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabase } from "@/context/SupabaseProvider";
 import { AdminGate } from "./AdminGate";
 import { AdminLogs } from "./AdminLogs";
 import { AdminBans } from "./AdminBans";
@@ -56,6 +56,7 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
+  const { supabase } = useSupabase();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [pendingPayments, setPendingPayments] = useState<PendingPayment[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -94,7 +95,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       console.error('Admin access check error:', error);
       return false;
     }
-  }, [telegramData]);
+  }, [telegramData, supabase]);
 
   const loadAdminData = useCallback(async () => {
     const hasAccess = await checkAdminAccess();
@@ -165,7 +166,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
 
   useEffect(() => {
     loadAdminData();
-  }, [loadAdminData, telegramData]);
+  }, [loadAdminData, telegramData, supabase]);
 
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
@@ -176,7 +177,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
     return () => {
       listener.subscription.unsubscribe();
     };
-  }, [loadAdminData, telegramData]);
+  }, [loadAdminData, telegramData, supabase]);
 
   const handlePaymentAction = async (paymentId: string, decision: 'approve' | 'reject') => {
     try {

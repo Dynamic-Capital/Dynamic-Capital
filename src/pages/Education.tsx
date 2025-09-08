@@ -1,4 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useSupabase } from '@/context/SupabaseProvider';
+import { useEdgeFunction } from '@/hooks/useEdgeFunction';
+import { formatSupabaseError } from '@/utils/supabaseError';
 import {
   Card,
   CardContent,
@@ -28,7 +32,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Clock, GraduationCap, Star, Target, Users } from "lucide-react";
 import Header from "@/components/layout/Header";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface EducationCategory {
@@ -77,11 +80,43 @@ type NoteInstructions = { type: "crypto"; note: string };
 type CheckoutInstructions = BankInstructions | NoteInstructions;
 
 const Education: React.FC = () => {
-  const [categories, setCategories] = useState<EducationCategory[]>([]);
-  const [packages, setPackages] = useState<EducationPackage[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
+  const { supabase } = useSupabase();
+  const edgeFunction = useEdgeFunction();
   const { toast } = useToast();
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ['education-categories'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('education_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order');
+      if (error) throw error;
+      return data as EducationCategory[];
+    },
+    onError: (error) => toast({ title: "Error", description: formatSupabaseError(error, "Failed to load education programs."), variant: "destructive" }),
+  });
+  const { data: packagesData = [], isLoading: packagesLoading } = useQuery({
+    queryKey: ['education-packages'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('education_packages')
+        .select('*')
+        .eq('is_active', true)
+        .order('is_featured', { ascending: false });
+      if (error) throw error;
+      return (data || []) as EducationPackage[];
+    },
+    onError: (error) => toast({ title: "Error", description: formatSupabaseError(error, "Failed to load education programs."), variant: "destructive" }),
+  });
+  const packages = packagesData.map(pkg => ({
+    ...pkg,
+    features: pkg.features || [],
+    requirements: pkg.requirements || [],
+    learning_outcomes: pkg.learning_outcomes || [],
+  }));
+  const loading = categoriesLoading || packagesLoading;
 
   const [selectedPackage, setSelectedPackage] =
     useState<EducationPackage | null>(null);
@@ -93,52 +128,6 @@ const Education: React.FC = () => {
     useState<CheckoutInstructions | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [enrolling, setEnrolling] = useState(false);
-
-  const fetchEducationData = useCallback(async () => {
-    try {
-      // Fetch categories
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from("education_categories")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order");
-
-      if (categoriesError) throw categoriesError;
-
-      // Fetch packages
-      const { data: packagesData, error: packagesError } = await supabase
-        .from("education_packages")
-        .select("*")
-        .eq("is_active", true)
-        .order("is_featured", { ascending: false });
-
-      if (packagesError) throw packagesError;
-
-      setCategories(categoriesData || []);
-      // Normalize array fields to always be arrays
-      setPackages(
-        (packagesData || []).map((pkg) => ({
-          ...pkg,
-          features: pkg.features || [],
-          requirements: pkg.requirements || [],
-          learning_outcomes: pkg.learning_outcomes || [],
-        })),
-      );
-    } catch (error) {
-      console.error("Error fetching education data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load education programs. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    fetchEducationData();
-  }, [fetchEducationData]);
 
   const filteredPackages = selectedCategory === "all"
     ? packages
@@ -171,12 +160,8 @@ const Education: React.FC = () => {
     if (!selectedPackage) return;
     setEnrolling(true);
     try {
-      const { data, error } = await supabase.functions.invoke<{
-        ok: boolean;
-        payment_id: string;
-        instructions: CheckoutInstructions;
-        error?: string;
-      }>("checkout-init", {
+      const { data, error } = await edgeFunction<{ ok: boolean; payment_id: string; instructions: CheckoutInstructions; error?: string; }>('CHECKOUT_INIT', {
+        method: 'POST',
         body: {
           telegram_id: telegramId,
           plan_id: selectedPackage.id,
@@ -185,17 +170,16 @@ const Education: React.FC = () => {
       });
 
       if (error || !data?.ok) {
-        throw new Error(data?.error || error?.message || "Checkout failed");
+        throw new Error(data?.error || error?.message || 'Checkout failed');
       }
 
       setPaymentId(data.payment_id);
       setInstructions(data.instructions);
     } catch (err) {
-      console.error("Error initiating checkout:", err);
       toast({
-        title: "Error",
-        description: "Failed to start checkout. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: formatSupabaseError(err, 'Failed to start checkout.'),
+        variant: 'destructive',
       });
     } finally {
       setEnrolling(false);

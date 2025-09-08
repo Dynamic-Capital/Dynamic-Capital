@@ -1,26 +1,26 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { useEdgeFunction } from '@/hooks/useEdgeFunction';
+import { formatSupabaseError } from '@/utils/supabaseError';
 
 export default function UploadMiniApp() {
+  const edgeFunction = useEdgeFunction();
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<string>('');
 
   const uploadHtml = async () => {
     setUploading(true);
     setResult('');
-    
     try {
-      const { data, error } = await supabase.functions.invoke('upload-miniapp-html');
-      
+      const { data, error } = await edgeFunction('UPLOAD_MINIAPP_HTML');
       if (error) {
         setResult(`Error: ${error.message}`);
       } else {
         setResult(`Success: ${JSON.stringify(data, null, 2)}`);
       }
     } catch (err) {
-      setResult(`Error: ${err}`);
+      setResult(`Error: ${formatSupabaseError(err)}`);
     } finally {
       setUploading(false);
     }
