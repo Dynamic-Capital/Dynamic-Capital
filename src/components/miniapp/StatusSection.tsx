@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
 
   const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
 
-  const fetchSubscriptionStatus = async () => {
+  const fetchSubscriptionStatus = useCallback(async () => {
     if (!isInTelegram || !telegramData?.user?.id) {
       setLoading(false);
       return;
@@ -64,11 +64,11 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isInTelegram, telegramData?.user?.id]);
 
   useEffect(() => {
     fetchSubscriptionStatus();
-  }, [isInTelegram, telegramData?.user?.id]);
+  }, [fetchSubscriptionStatus]);
 
   const handleRefresh = async () => {
     setRefreshing(true);

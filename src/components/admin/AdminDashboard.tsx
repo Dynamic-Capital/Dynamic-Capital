@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -67,7 +67,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
     return telegramUser?.id?.toString() || telegramData?.user?.id?.toString() || null;
   };
 
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     try {
       // Check if user is admin via Telegram data
       if (telegramData?.user?.id) {
@@ -94,23 +94,9 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       console.error('Admin access check error:', error);
       return false;
     }
-  };
-
-  useEffect(() => {
-    loadAdminData();
   }, [telegramData]);
 
-  useEffect(() => {
-    // Auto-load admin data if Supabase user is authenticated
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user && !telegramData) {
-        loadAdminData();
-      }
-    });
-  }, []);
-
-
-  const loadAdminData = async () => {
+  const loadAdminData = useCallback(async () => {
     const hasAccess = await checkAdminAccess();
     if (!hasAccess) {
       setIsAdmin(false);
@@ -169,7 +155,22 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         variant: "destructive",
       });
     }
-  };
+  }, [checkAdminAccess, getAdminAuth, toast]);
+
+  useEffect(() => {
+    loadAdminData();
+  }, [loadAdminData, telegramData]);
+
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user && !telegramData) {
+        loadAdminData();
+      }
+    });
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, [loadAdminData, telegramData]);
 
   const handlePaymentAction = async (paymentId: string, decision: 'approve' | 'reject') => {
     try {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +39,7 @@ export const SystemHealth = () => {
 
   const functionsHost = SUPABASE_CONFIG.FUNCTIONS_URL;
 
-  const checkMiniAppStatus = async () => {
+  const checkMiniAppStatus = useCallback(async () => {
     try {
       setMiniAppStatus({ status: 'loading', message: 'Checking Mini App...' });
       
@@ -68,9 +68,9 @@ export const SystemHealth = () => {
         message: `Mini App check failed: ${error}`
       });
     }
-  };
+  }, [functionsHost]);
 
-  const checkLinkageAudit = async () => {
+  const checkLinkageAudit = useCallback(async () => {
     try {
       setLinkageAudit({ status: 'loading', message: 'Checking linkage...' });
       
@@ -122,9 +122,9 @@ export const SystemHealth = () => {
         message: `Linkage check failed: ${error}`
       });
     }
-  };
+  }, [functionsHost]);
 
-  const checkWebhookStatus = async () => {
+  const checkWebhookStatus = useCallback(async () => {
     try {
       setWebhookStatus({ status: 'loading', message: 'Checking webhook...' });
       
@@ -167,7 +167,7 @@ export const SystemHealth = () => {
         message: `Webhook check failed: ${error}`
       });
     }
-  };
+  }, [functionsHost]);
 
   const fixDrift = async () => {
     if (!adminSecret) {
@@ -255,7 +255,7 @@ export const SystemHealth = () => {
     checkMiniAppStatus();
     checkLinkageAudit();
     checkWebhookStatus();
-  }, []);
+  }, [checkMiniAppStatus, checkLinkageAudit, checkWebhookStatus]);
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, useDragControls } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -102,10 +102,10 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
 
   const serviceItems = parseServices(services);
 
-  const nextService = () => {
+  const nextService = useCallback(() => {
     setDirection(1);
     setCurrentIndex((prev) => (prev + 1) % serviceItems.length);
-  };
+  }, [serviceItems.length]);
 
   const prevService = () => {
     setDirection(-1);
@@ -119,7 +119,7 @@ export function ServiceStack({ services, className }: ServiceStackProps) {
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [serviceItems.length]);
+  }, [nextService]);
 
   const stackVariants = {
     enter: (direction: number) => ({

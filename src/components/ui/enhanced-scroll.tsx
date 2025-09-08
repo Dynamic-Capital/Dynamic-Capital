@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,7 +43,7 @@ export function EnhancedScrollContainer({
   const opacity = useTransform(scrollX, [0, 100], [1, 0.8]);
   const scale = useTransform(scrollX, [0, 100], [1, 0.98]);
 
-  const checkScrollability = () => {
+  const checkScrollability = useCallback(() => {
     if (!scrollRef.current) return;
     
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
@@ -55,7 +55,7 @@ export function EnhancedScrollContainer({
     const gapPx = parseFloat(gap) * 16 || 24; // Convert rem to px
     const newActiveIndex = Math.round(scrollLeft / (itemWidthPx + gapPx));
     setActiveIndex(newActiveIndex);
-  };
+  }, [itemWidth, gap]);
 
   // Enhanced auto-scroll with smooth transitions
   useEffect(() => {
@@ -102,7 +102,7 @@ export function EnhancedScrollContainer({
         window.removeEventListener('resize', checkScrollability);
       };
     }
-  }, [children]);
+  }, [children, checkScrollability]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;

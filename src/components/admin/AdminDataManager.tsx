@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,11 +85,7 @@ export const AdminDataManager = () => {
     created_by: ""
   });
 
-  useEffect(() => {
-    fetchRecords();
-  }, [selectedTable]);
-
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -106,7 +102,11 @@ export const AdminDataManager = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedTable]);
+
+  useEffect(() => {
+    fetchRecords();
+  }, [fetchRecords]);
 
   const handleCreateKvConfig = async () => {
     try {
