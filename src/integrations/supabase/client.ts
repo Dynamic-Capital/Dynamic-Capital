@@ -6,16 +6,6 @@ import { SUPABASE_CONFIG } from "@/config/supabase";
 const SUPABASE_URL = SUPABASE_CONFIG.URL;
 const SUPABASE_KEY = SUPABASE_CONFIG.ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error("Supabase config debug:", {
-    SUPABASE_URL: SUPABASE_URL ? "present" : "missing",
-    SUPABASE_KEY: SUPABASE_KEY ? "present" : "missing",
-  });
-  throw new Error(
-    `Missing Supabase configuration - URL: ${SUPABASE_URL ? "OK" : "MISSING"}, KEY: ${SUPABASE_KEY ? "OK" : "MISSING"}`,
-  );
-}
-
 function decodeJwtPayload(token: string) {
   try {
     const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
@@ -26,11 +16,6 @@ function decodeJwtPayload(token: string) {
   } catch {
     return null;
   }
-}
-
-const payload = decodeJwtPayload(SUPABASE_KEY);
-if (payload && payload["role"] && payload["role"] !== "anon") {
-  throw new Error("Supabase key must be an anon key");
 }
 
 const queryCounts: Record<string, number> = {};
@@ -54,24 +39,41 @@ export function getQueryCounts() {
   return { ...queryCounts };
 }
 
+function createSupabaseClient() {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.error("Supabase config debug:", {
+      SUPABASE_URL: SUPABASE_URL ? "present" : "missing",
+      SUPABASE_KEY: SUPABASE_KEY ? "present" : "missing",
+    });
+    return null;
+  }
+
+  const payload = decodeJwtPayload(SUPABASE_KEY);
+  if (payload && payload["role"] && payload["role"] !== "anon") {
+    throw new Error("Supabase key must be an anon key");
+  }
+
+  return createClient<Database>(
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    {
+      auth: {
+        storage: {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {},
+        },
+        persistSession: false,
+        autoRefreshToken: true,
+      },
+      global: {
+        fetch: loggingFetch,
+      },
+    },
+  );
+}
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(
-  SUPABASE_URL,
-  SUPABASE_KEY,
-  {
-    auth: {
-      storage: {
-        getItem: () => null,
-        setItem: () => {},
-        removeItem: () => {},
-      },
-      persistSession: false,
-      autoRefreshToken: true,
-    },
-    global: {
-      fetch: loggingFetch,
-    },
-  },
-);
+export const supabase = createSupabaseClient();
