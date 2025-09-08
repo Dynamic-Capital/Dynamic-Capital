@@ -15,8 +15,10 @@ import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import FeatureGrid from "@/components/landing/FeatureGrid";
 import CTASection from "@/components/landing/CTASection";
 import { Award, Crown, Target, DollarSign, TrendingUp, Zap, CheckCircle, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const Landing = () => {
+  const router = useRouter();
   const handleOpenTelegram = () => {
     const botUsername = "Dynamic_VIP_BOT";
     const telegramUrl = `https://t.me/${botUsername}`;
@@ -32,9 +34,9 @@ const Landing = () => {
     );
 
     if (isInTelegram) {
-      window.location.href = '/miniapp?tab=plan';
+      router.push('/miniapp?tab=plan');
     } else {
-      window.location.href = '/plans';
+      router.push('/plans');
     }
   };
 

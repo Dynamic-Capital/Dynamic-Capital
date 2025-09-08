@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+// Client-only hook: accesses window and localStorage
+
 interface CurrencyContextType {
   currency: string;
   setCurrency: (currency: string) => void;
@@ -24,24 +26,29 @@ interface CurrencyProviderProps {
 
 export function CurrencyProvider({ children }: CurrencyProviderProps) {
   const [currency, setCurrencyState] = useState(() => {
-    // Initialize from URL params, then localStorage, then default
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlCurrency = urlParams.get('cur');
-    if (urlCurrency && ['USD', 'MVR'].includes(urlCurrency)) {
-      return urlCurrency;
+    if (typeof window !== 'undefined') {
+      // Initialize from URL params, then localStorage, then default
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlCurrency = urlParams.get('cur');
+      if (urlCurrency && ['USD', 'MVR'].includes(urlCurrency)) {
+        return urlCurrency;
+      }
+
+      const stored = localStorage.getItem('preferred_currency');
+      return stored && ['USD', 'MVR'].includes(stored) ? stored : 'USD';
     }
-    
-    const stored = localStorage.getItem('preferred_currency');
-    return stored && ['USD', 'MVR'].includes(stored) ? stored : 'USD';
+    return 'USD';
   });
-  
+
   const [exchangeRate, setExchangeRate] = useState(() => {
-    const cached = localStorage.getItem('usd_mvr_rate');
-    const cacheTime = localStorage.getItem('usd_mvr_rate_time');
-    
-    // Use cached rate if less than 1 hour old
-    if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 3600000) {
-      return parseFloat(cached);
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('usd_mvr_rate');
+      const cacheTime = localStorage.getItem('usd_mvr_rate_time');
+
+      // Use cached rate if less than 1 hour old
+      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 3600000) {
+        return parseFloat(cached);
+      }
     }
     return 17.5; // Default fallback
   });
@@ -81,12 +88,14 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
 
   const setCurrency = (newCurrency: string) => {
     setCurrencyState(newCurrency);
-    localStorage.setItem('preferred_currency', newCurrency);
-    
-    // Update URL parameter
-    const url = new URL(window.location.href);
-    url.searchParams.set('cur', newCurrency);
-    window.history.replaceState({}, '', url.toString());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('preferred_currency', newCurrency);
+
+      // Update URL parameter
+      const url = new URL(window.location.href);
+      url.searchParams.set('cur', newCurrency);
+      window.history.replaceState({}, '', url.toString());
+    }
   };
 
   return (
