@@ -45,6 +45,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
 
+        if (typeof window !== 'undefined') {
+          if (session?.access_token) {
+            fetch('/api/auth', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token: session.access_token }),
+            });
+          } else {
+            fetch('/api/auth', { method: 'DELETE' });
+          }
+        }
+
         setLoading(false);
       },
     );
