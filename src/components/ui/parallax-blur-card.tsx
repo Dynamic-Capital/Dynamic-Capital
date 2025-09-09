@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 /**
  * ParallaxBlurCard combines a parallax scrolling gradient backdrop with a blurred glass surface.

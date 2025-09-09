@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Send, Loader2, Bot, X, Minimize2, User, RotateCcw, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 export interface TelegramAuthData {
   id: number;

@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Instagram, Facebook } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import logger from "@/utils/logger";
 
 interface SocialIconProps {

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { EnhancedButton, EnhancedButtonProps } from "./enhanced-button";
 
 export type ButtonState = "idle" | "loading" | "success" | "error";

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { motion, AnimatePresence, useReducedMotion, LayoutGroup } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import NAV_ITEMS from "./nav-items";

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence, useMotionValue, animate, useMotionValueEvent } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 interface MotionFadeInProps {
   children: React.ReactNode;

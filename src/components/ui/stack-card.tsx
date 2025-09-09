@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { Card, CardContent } from "./card";
 
 interface StackCardProps {

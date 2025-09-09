@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface MotionCardProps {

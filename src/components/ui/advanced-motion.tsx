@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useInView, useAnimation } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 interface MagneticButtonProps {
   children: React.ReactNode;

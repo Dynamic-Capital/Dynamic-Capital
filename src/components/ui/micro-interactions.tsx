@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, useSpring, useTransform, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 // Enhanced Button with micro-interactions
 interface MicroButtonProps {
