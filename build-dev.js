@@ -3,9 +3,13 @@
 // build:dev script replacement for Lovable
 // This file acts as a workaround since package.json cannot be modified
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Read the current package.json
 const packageJsonPath = path.join(__dirname, 'package.json');
@@ -26,7 +30,7 @@ if (!packageJson.scripts['build:dev']) {
     console.log('✅ Build completed successfully!');
   } catch (error) {
     console.error('❌ Build failed:', error.message);
-    process.exit(1);
+    process.exitCode = 1;
   }
 } else {
   console.log('✅ build:dev script already exists');
@@ -35,6 +39,6 @@ if (!packageJson.scripts['build:dev']) {
     console.log('✅ Build completed successfully!');
   } catch (error) {
     console.error('❌ Build failed:', error.message);
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
