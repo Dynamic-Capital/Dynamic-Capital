@@ -4,6 +4,9 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    port: 8080
+  },
   resolve: {
     alias: {
       "@": resolve(__dirname, "./src"),
@@ -19,7 +22,6 @@ export default defineConfig({
     },
   },
   define: {
-    // Exclude problematic files from TypeScript checking
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   },
   base: './',
