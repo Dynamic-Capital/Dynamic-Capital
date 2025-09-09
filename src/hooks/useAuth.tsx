@@ -30,8 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
-    queryFn: () => getProfile(user!.id),
-    enabled: !!user,
+    queryFn: () => user ? getProfile(user.id) : Promise.resolve(null),
+    enabled: !!user?.id,
   });
 
   useEffect(() => {
@@ -65,7 +65,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     firstName?: string,
     lastName?: string,
   ) => {
-    const redirectUrl = `${globalThis.location.origin}/`;
+    const getRedirectUrl = () => {
+      if (typeof window !== 'undefined') {
+        return `${window.location.origin}/`;
+      }
+      return process.env.NEXT_PUBLIC_SITE_URL || undefined;
+    };
+    const redirectUrl = getRedirectUrl();
 
     const { error } = await supabase.auth.signUp({
       email,
