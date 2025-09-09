@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface UserProfileProps {
   name: string;
@@ -19,9 +20,11 @@ export default function UserProfile({ name, email, avatarUrl }: UserProfileProps
   return (
     <div className="flex items-center space-x-4">
       {avatarUrl && (
-        <img
+        <Image
           src={avatarUrl}
           alt={name}
+          width={48}
+          height={48}
           className="h-12 w-12 rounded-full object-cover"
         />
       )}
