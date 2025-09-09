@@ -250,6 +250,19 @@ npm run build:miniapp
 npm run build:all
 ```
 
+## API demo
+
+A simple `app/api/hello` route returns a JSON greeting. The client page in
+`app/api-demo/page.tsx` fetches this endpoint on mount and displays loading,
+success, or error states based on the fetch result.
+
+### Tests
+
+- `tests/api/hello.test.ts` calls the route handler and asserts the expected
+  JSON payload.
+- `tests/app/api-demo/page.test.tsx` renders the demo page with a mocked
+  `fetch` and verifies that the message appears.
+
 ## Quick start with Lovable Codex
 
 ### Using Lovable Codex (Recommended)
