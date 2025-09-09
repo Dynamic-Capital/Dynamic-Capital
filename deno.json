@@ -16,6 +16,7 @@
     "miniapp:update-telegram": "deno run -A scripts/update-telegram-miniapp.ts",
     "miniapp:deploy-and-update": "deno task miniapp:deploy && deno task miniapp:update-telegram"
   },
+  "lock": false,
   "nodeModulesDir": true,
   "compilerOptions": {
     "types": [
