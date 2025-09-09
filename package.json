@@ -12,7 +12,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "deno test --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors=deno.land,cdn.skypack.dev -A --no-check",
+    "test": "deno test --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors=deno.land,cdn.skypack.dev,registry.npmjs.org -A --no-check",
     "setup:supabase": "bash scripts/setup-supabase-cli.sh",
     "build:miniapp": "cd supabase/functions/miniapp && npm ci && npm run build",
     "build:all": "npm run build && npm run build:miniapp",
