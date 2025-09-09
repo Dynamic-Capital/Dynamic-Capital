@@ -333,6 +333,7 @@ This project features **bidirectional GitHub sync** through Lovable Codex:
 - GitHub changes sync back to Codex in real-time
 - Built-in version control and rollback capabilities
 - CI/CD integration with GitHub Actions
+- [Using Personal Access Tokens](docs/GITHUB_PAT.md) for pushes and workflow auth
 
 ## License / contributions
 
