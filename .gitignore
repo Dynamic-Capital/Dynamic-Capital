@@ -25,6 +25,7 @@ bun.lockb
 *.sln
 *.sw?
 .env
+.env.local
 # Deno/Supabase caches & artifacts
 .deno/
 .deno_cache/
