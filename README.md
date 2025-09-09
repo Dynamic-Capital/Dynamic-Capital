@@ -189,6 +189,10 @@ PII; rate limits enabled.
 
 Full list and usage notes: [docs/env.md](docs/env.md).
 
+- Copy `.env.example` to `.env.local` and replace the placeholder values with
+  real secrets for your environment. This file is ignored by Git so each
+  contributor maintains their own local configuration.
+
 - SUPABASE_URL
 - SUPABASE_ANON_KEY
 - SUPABASE_SERVICE_ROLE_KEY
@@ -257,6 +261,8 @@ npm run build:all
 
 ### Local Development
 ```bash
+# Create your local environment file
+cp .env.example .env.local
 # Ensure .env.local has all variables
 npm run sync-env
 
