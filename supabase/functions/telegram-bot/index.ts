@@ -1801,7 +1801,8 @@ export async function startReceiptPipeline(
       body: JSON.stringify({
         telegram_id: String(chatId),
         payment_id: pay.id,
-        storage_path: storagePath,
+        file_path: storagePath,
+        bucket: "payment-receipts",
       }),
     }).then((r) => r.json()).catch(() => null);
     if (!rs?.ok) {

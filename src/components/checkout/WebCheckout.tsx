@@ -211,7 +211,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
       const submitRequestBody: any = {
         payment_id: paymentId,
         file_path: uploadData.file_path,
-        storage_bucket: uploadData.bucket
+        bucket: uploadData.bucket
       };
       if (isTelegram && telegramInitData) {
         submitRequestBody.initData = telegramInitData;
