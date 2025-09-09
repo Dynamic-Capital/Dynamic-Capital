@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import logoImage from '@/assets/logo.png';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 interface BrandLogoProps {
   className?: string;

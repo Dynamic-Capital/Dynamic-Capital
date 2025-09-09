@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 interface PromoCodeFormProps {
   promoCode: string;

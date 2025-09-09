@@ -1,6 +1,6 @@
 import * as React from "react";
 import { icons, LucideProps } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 export type IconName = keyof typeof icons;
 

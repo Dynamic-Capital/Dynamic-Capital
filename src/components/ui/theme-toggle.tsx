@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence, usePresence, LayoutGroup } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { useTheme } from '@/hooks/useTheme';
 
 export function ThemeToggle() {

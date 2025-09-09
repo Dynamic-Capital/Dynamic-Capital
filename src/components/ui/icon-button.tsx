@@ -2,7 +2,7 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Icon, IconName } from "./icon";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const iconButtonVariants = cva(
   "ui-button ui-interactive rounded-full disabled:pointer-events-none disabled:opacity-50",

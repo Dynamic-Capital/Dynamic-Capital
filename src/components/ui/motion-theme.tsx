@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { MotionConfigProvider } from './motion-config';
 import { parentVariants, childVariants } from '@/lib/motion-variants';
 import { sectionVariants, SectionVariant } from '@/lib/section-variants';

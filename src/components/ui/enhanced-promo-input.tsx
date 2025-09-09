@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Sparkles, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { StatefulButton } from "./stateful-button";
 
 interface EnhancedPromoInputProps {

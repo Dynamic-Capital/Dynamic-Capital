@@ -2,7 +2,7 @@ import React from "react";
 import { motion, LayoutGroup } from "framer-motion";
 import { AutoSizingContainer, AutoSizingText, ResponsiveSpacing } from "@/components/ui/auto-sizing";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 interface ResponsiveHeaderProps {
   title: string;

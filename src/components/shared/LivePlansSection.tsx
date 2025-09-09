@@ -12,7 +12,7 @@ import { HorizontalSnapScroll } from '@/components/ui/horizontal-snap-scroll';
 import { useToast } from '@/hooks/use-toast';
 import { callEdgeFunction, buildFunctionUrl } from '@/config/supabase';
 import PromoCodeInput from '@/components/billing/PromoCodeInput';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice } from '@/utils';
 import { ActivePromosSection } from '@/components/shared/ActivePromosSection';
 
 interface Plan {

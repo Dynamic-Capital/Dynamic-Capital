@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Plus, MessageSquare, Phone, Mail, ChevronUp } from 'lucide-react';
 

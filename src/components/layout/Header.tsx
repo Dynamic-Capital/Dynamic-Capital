@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import BrandLogo from "@/components/BrandLogo";
 import DesktopNav from "@/components/navigation/DesktopNav";
 import MobileMenu from "@/components/navigation/MobileMenu";

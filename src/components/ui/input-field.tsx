@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Input } from "./input";
 import { Label } from "./label";
 import { Icon, IconName } from "./icon";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 
 const inputFieldVariants = cva("", {
   variants: {

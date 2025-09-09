@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import useEmblaCarousel from 'embla-carousel-react';
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { StackCard } from "@/components/ui/stack-card";
 import { PatternCard } from "@/components/ui/pattern-card";
 

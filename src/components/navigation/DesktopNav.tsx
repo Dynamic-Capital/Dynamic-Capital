@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { CreditCard, User, LogIn, Zap } from "lucide-react";
 import NAV_ITEMS from "./nav-items";
