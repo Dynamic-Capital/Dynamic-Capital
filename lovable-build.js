@@ -4,6 +4,14 @@ import { execSync } from 'node:child_process';
 
 console.log('🔧 Running Lovable build tasks...');
 
+// Ensure required environment variables are present
+try {
+  execSync('npx tsx scripts/check-env.ts', { stdio: 'inherit' });
+} catch (error) {
+  console.error('❌ Environment check failed:', error.message);
+  process.exit(1);
+}
+
 const tasks = [
   { cmd: 'npm run build', label: 'Next.js build' },
   { cmd: 'npm run build:miniapp', label: 'Miniapp build' }
