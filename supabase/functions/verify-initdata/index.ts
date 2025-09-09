@@ -9,6 +9,9 @@ export async function handler(req: Request): Promise<Response> {
   return ok({ ok: passed });
 }
 
-serve(handler);
+if (import.meta.main) {
+  serve(handler);
+}
 
 export default handler;
+export { verifyInitData as verifyFromRaw } from "../_shared/telegram_init.ts";
