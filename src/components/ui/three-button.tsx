@@ -1,3 +1,4 @@
+import type {} from "../../../types/react-three-fiber";
 import React, { useState, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";

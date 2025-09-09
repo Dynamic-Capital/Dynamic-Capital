@@ -1,3 +1,4 @@
+import "./setup.ts";
 import test from 'node:test';
 import { equal as assertEquals } from 'node:assert/strict';
 

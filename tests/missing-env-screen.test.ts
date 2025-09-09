@@ -1,3 +1,4 @@
+import "./setup.ts";
 import test from 'node:test';
 import { ok as assert } from 'node:assert/strict';
 

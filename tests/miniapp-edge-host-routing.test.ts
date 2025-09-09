@@ -1,3 +1,4 @@
+import "./setup.ts";
 import test from 'node:test';
 import { ok as assert, equal as assertEquals } from 'node:assert/strict';
 import { createServer } from 'node:http';
