@@ -144,8 +144,13 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
   }, [verifyAndCheckStatus]);
 
   const getAdminAuth = () => {
+    // Skip token checks if storage is unavailable
+    if (typeof window === 'undefined' || !('localStorage' in window)) {
+      return initData ? { initData } : null;
+    }
+
     // Check for stored admin token
-    const token = localStorage.getItem('dc_admin_token');
+    const token = window.localStorage.getItem('dc_admin_token');
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -153,17 +158,17 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
           return { token };
         }
         // Token expired, remove it
-        localStorage.removeItem('dc_admin_token');
+        window.localStorage.removeItem('dc_admin_token');
       } catch {
-        localStorage.removeItem('dc_admin_token');
+        window.localStorage.removeItem('dc_admin_token');
       }
     }
-    
+
     // Use initData if available
     if (initData) {
       return { initData };
     }
-    
+
     return null;
   };
 
