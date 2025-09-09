@@ -18,6 +18,8 @@ on:
   schedule:
     - cron: '28 23 * * 4'
 
+permissions: read-all
+
 jobs:
   eslint:
     name: Run eslint scanning
@@ -28,7 +30,7 @@ jobs:
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
       - name: Install ESLint
         run: |
@@ -46,7 +48,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload analysis results to GitHub
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@34d76e91962e8cb2510669cd96bebd94e796a11f
         with:
           sarif_file: eslint-results.sarif
           wait-for-processing: true

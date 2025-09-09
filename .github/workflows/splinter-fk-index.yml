@@ -3,11 +3,13 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 3 * * 1" # Mondays at 03:00 UTC
+
+permissions: read-all
 jobs:
   splinter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - name: Install Postgres client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Run Splinter + generate migration
