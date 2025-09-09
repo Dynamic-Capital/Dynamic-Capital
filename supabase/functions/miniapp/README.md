@@ -2,6 +2,16 @@
 
 Telegram Mini App implementing a glassmorphism UI for simple deposit flows. Built with **Lovable Codex** integration for enhanced development experience.
 
+## Development Process Overview
+
+| Tool | What It Does | How You Use It |
+| ---- | ------------ | -------------- |
+| **Lovable (Platform)** | Hosts the web app and provides a Supabase backend | Manage environment variables and monitor deployments via the Lovable dashboard |
+| **Lovable (AI)** | Generates scaffolding and high-level feature guidance | Use the chat interface to bootstrap components and features |
+| **Telegram/BotFather** | Configures the bot and links it to the mini app | Use commands like `/setmenubutton` to point the bot at the Lovable deployment URL |
+| **Codex CLI** | Helps with local code-level tasks | Run terminal commands for UI tweaks, refactors, and feature additions |
+| **GitHub** | Version control and deployment trigger | Push changes to GitHub to have Lovable rebuild and redeploy |
+
 ## Lovable Codex Integration
 
 This Mini App is developed using **Lovable Codex** for AI-powered development:
