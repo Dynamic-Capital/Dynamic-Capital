@@ -81,13 +81,15 @@ export function PaymentReview() {
   const handlePaymentAction = async (paymentId: string, action: 'approve' | 'reject', notes?: string) => {
     try {
       setProcessing(paymentId);
-      
-      const { data, error } = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { data, error } = await callEdgeFunction('ADMIN_REVIEW_PAYMENT', {
         method: 'POST',
         body: {
           payment_id: paymentId,
-          action,
-          notes
+          decision: action,
+          notes,
+          admin_telegram_id: user?.user_metadata?.telegram_id
         }
       });
 
@@ -95,7 +97,7 @@ export function PaymentReview() {
         throw new Error(error.message);
       }
 
-      if ((data as any)?.ok) {
+      if ((data as any)?.status) {
         toast.success(`Payment ${action}d successfully`);
         fetchPayments();
         setSelectedPayment(null);

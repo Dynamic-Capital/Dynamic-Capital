@@ -19,6 +19,7 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [retrying, setRetrying] = useState(false);
 
   const handleFileUpload = async () => {
     if (!uploadedFile || !paymentId) return;
@@ -81,6 +82,13 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
     }
   };
 
+  const handleRetry = async () => {
+    if (!uploadedFile) return;
+    setRetrying(true);
+    await handleFileUpload();
+    setRetrying(false);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -122,23 +130,39 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
           <Alert className="border-dc-brand/20 bg-dc-brand/10">
             <AlertCircle className="h-4 w-4 text-dc-brand-dark" />
             <AlertDescription className="text-dc-brand-dark">
-              Upload failed. Please try again or contact support.
+              Upload failed. Please try again.
             </AlertDescription>
           </Alert>
         )}
 
-        <Button 
-          onClick={handleFileUpload}
-          disabled={!uploadedFile || uploading}
-          className="w-full"
-        >
-          {uploading ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Upload className="h-4 w-4 mr-2" />
-          )}
-          {uploading ? "Uploading..." : "Submit Receipt"}
-        </Button>
+        {uploadStatus === 'error' ? (
+          <Button
+            variant="outline"
+            onClick={handleRetry}
+            disabled={retrying || uploading || !uploadedFile}
+            className="w-full"
+          >
+            {retrying ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Upload className="h-4 w-4 mr-2" />
+            )}
+            {retrying ? 'Retrying...' : 'Retry Upload'}
+          </Button>
+        ) : (
+          <Button
+            onClick={handleFileUpload}
+            disabled={!uploadedFile || uploading}
+            className="w-full"
+          >
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Upload className="h-4 w-4 mr-2" />
+            )}
+            {uploading ? "Uploading..." : "Submit Receipt"}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

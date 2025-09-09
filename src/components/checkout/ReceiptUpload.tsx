@@ -2,16 +2,20 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Upload, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Upload, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
 interface ReceiptUploadProps {
   uploadedFile: File | null;
   setUploadedFile: (file: File | null) => void;
   handleFileUpload: () => void;
   uploading: boolean;
+  uploadStatus: 'idle' | 'success' | 'error';
+  handleRetry: () => void;
+  retrying: boolean;
 }
 
-export const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ uploadedFile, setUploadedFile, handleFileUpload, uploading }) => (
+export const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ uploadedFile, setUploadedFile, handleFileUpload, uploading, uploadStatus, handleRetry, retrying }) => (
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -36,14 +40,43 @@ export const ReceiptUpload: React.FC<ReceiptUploadProps> = ({ uploadedFile, setU
         </div>
       )}
 
-      <Button onClick={handleFileUpload} disabled={!uploadedFile || uploading} className="w-full">
-        {uploading ? (
-          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-        ) : (
-          <Upload className="h-4 w-4 mr-2" />
-        )}
-        {uploading ? "Uploading..." : "Submit Receipt"}
-      </Button>
+      {uploadStatus === 'success' && (
+        <Alert className="border-green-500/20 bg-green-500/10">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-600">
+            Receipt uploaded successfully! Your payment is being reviewed.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {uploadStatus === 'error' && (
+        <Alert className="border-dc-brand/20 bg-dc-brand/10">
+          <AlertCircle className="h-4 w-4 text-dc-brand-dark" />
+          <AlertDescription className="text-dc-brand-dark">
+            Upload failed. Please try again.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {uploadStatus === 'error' ? (
+        <Button onClick={handleRetry} disabled={retrying || uploading || !uploadedFile} className="w-full" variant="outline">
+          {retrying ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Upload className="h-4 w-4 mr-2" />
+          )}
+          {retrying ? 'Retrying...' : 'Retry Upload'}
+        </Button>
+      ) : (
+        <Button onClick={handleFileUpload} disabled={!uploadedFile || uploading} className="w-full">
+          {uploading ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Upload className="h-4 w-4 mr-2" />
+          )}
+          {uploading ? "Uploading..." : "Submit Receipt"}
+        </Button>
+      )}
     </CardContent>
   </Card>
 );
