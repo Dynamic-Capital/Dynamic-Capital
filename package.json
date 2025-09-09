@@ -23,7 +23,8 @@
     "edge:smoke": "node scripts/smoke.js",
     "serve:functions": "supabase functions serve --no-verify-jwt",
     "drizzle:generate": "drizzle-kit generate",
-    "drizzle:migrate": "drizzle-kit migrate"
+    "drizzle:migrate": "drizzle-kit migrate",
+    "sync-env": "deno run -A scripts/sync-env.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

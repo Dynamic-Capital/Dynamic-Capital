@@ -245,6 +245,9 @@ npm run build:all
 
 ### Local Development
 ```bash
+# Ensure .env.local has all variables
+npm run sync-env
+
 # Start local stack
 supabase start
 
