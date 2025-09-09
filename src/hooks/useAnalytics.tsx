@@ -17,7 +17,7 @@ interface AnalyticsEvent {
 }
 
 export const useAnalytics = () => {
-  const sessionId = useRef<string>();
+  const sessionId = useRef<string | null>(null);
 
   useEffect(() => {
     // Generate session ID

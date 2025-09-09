@@ -3,21 +3,22 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { 
+import {
   Menu,
-  Home, 
-  CreditCard, 
-  Settings, 
+  Home,
+  CreditCard,
+  Settings,
   GraduationCap,
   User,
   LogIn,
-  X
+  X,
+  type LucideIcon,
 } from "lucide-react";
 
 interface NavItem {
   id: string;
   label: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   path: string;
   ariaLabel: string;
 }

@@ -9,6 +9,7 @@ import {
   Sparkles,
   MessageSquare,
   Award,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +19,7 @@ interface ServiceStackProps {
 }
 
 interface ServiceItem {
-  icon: React.ElementType;
+  icon: LucideIcon;
   title: string;
   description: string;
   color: string;

@@ -1,9 +1,16 @@
-import { Home, TrendingUp, GraduationCap, MessageCircle, Shield } from "lucide-react";
+import {
+  Home,
+  TrendingUp,
+  GraduationCap,
+  MessageCircle,
+  Shield,
+  type LucideIcon,
+} from "lucide-react";
 
 export interface NavItem {
   id: string;
   label: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   path: string;
   ariaLabel: string;
   showOnMobile?: boolean;
