@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "build:dev": "vite build --mode development",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
