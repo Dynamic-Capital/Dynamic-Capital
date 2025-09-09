@@ -29,7 +29,18 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("chat-assistant-history");
-      return stored ? (JSON.parse(stored) as { role: "user" | "assistant"; content: string }[]).slice(-MAX_HISTORY) : [];
+      if (stored) {
+        try {
+          return (
+            JSON.parse(stored) as {
+              role: "user" | "assistant";
+              content: string;
+            }[]
+          ).slice(-MAX_HISTORY);
+        } catch {
+          localStorage.removeItem("chat-assistant-history");
+        }
+      }
     }
     return [];
   });
