@@ -11,6 +11,14 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Verify required environment variables before building
+try {
+  execSync('npx tsx scripts/check-env.ts', { stdio: 'inherit' });
+} catch (error) {
+  console.error('❌ Environment check failed:', error.message);
+  process.exit(1);
+}
+
 // Read the current package.json
 const packageJsonPath = path.join(__dirname, 'package.json');
 let packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
