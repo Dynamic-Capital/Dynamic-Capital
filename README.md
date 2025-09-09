@@ -215,7 +215,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 
 Set these in your hosting provider (e.g., Lovable.dev project settings). If either
 value is missing, the app will render a configuration error screen instead of
-loading.
+loading. The client also accepts `SUPABASE_URL`/`SUPABASE_ANON_KEY` (and their
+`VITE_`/`REACT_APP_` variants) as fallbacks if the `NEXT_PUBLIC_` values are not
+provided.
 
 Values are set in Supabase function secrets, GitHub Environments, or Lovable Codex
 project settings. Do not commit them.
