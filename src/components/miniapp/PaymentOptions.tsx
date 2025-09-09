@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Banknote } from "lucide-react";
+import Image from "next/image";
 
 interface PaymentOption {
   id: string;
@@ -25,7 +26,13 @@ export function PaymentOptions({ selectedMethod, onSelect, currency }: PaymentOp
       name: "Bank Transfer",
       icon: (
         <div className="flex items-center gap-1">
-          <img src="/icons/bank.svg" alt="Bank" className="h-5 w-5" />
+          <Image
+            src="/icons/bank.svg"
+            alt="Bank"
+            width={20}
+            height={20}
+            className="h-5 w-5"
+          />
           <div className="flex gap-1 text-xs">
             <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">BML</span>
             <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded text-xs">MIB</span>
@@ -41,8 +48,20 @@ export function PaymentOptions({ selectedMethod, onSelect, currency }: PaymentOp
       name: "Cryptocurrency",
       icon: (
         <div className="flex items-center gap-1">
-          <img src="/icons/usdt.svg" alt="USDT" className="h-5 w-5" />
-          <img src="/icons/trc20.svg" alt="TRC20" className="h-4 w-4" />
+          <Image
+            src="/icons/usdt.svg"
+            alt="USDT"
+            width={20}
+            height={20}
+            className="h-5 w-5"
+          />
+          <Image
+            src="/icons/trc20.svg"
+            alt="TRC20"
+            width={16}
+            height={16}
+            className="h-4 w-4"
+          />
           <span className="text-xs text-green-600 font-medium">USDT</span>
         </div>
       ),

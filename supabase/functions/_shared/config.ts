@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { createClient } from "./client.ts";
 
 // In-memory fallback map when kv_config table is unavailable
