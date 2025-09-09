@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { callEdgeFunction } from '@/config/supabase';
 
 // Client-only hook: accesses window and localStorage
 
@@ -62,11 +63,10 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
     
     if (!cached || !cacheTime || (Date.now() - parseInt(cacheTime)) >= 3600000) {
       setIsLoading(true);
-      import('@/config/supabase').then(({ callEdgeFunction }) =>
-        callEdgeFunction('CONTENT_BATCH', {
-          method: 'POST',
-          body: { keys: ['usd_mvr_rate'] },
-        })
+      callEdgeFunction('CONTENT_BATCH', {
+        method: 'POST',
+        body: { keys: ['usd_mvr_rate'] },
+      })
         .then(({ data, error }) => {
           if (!error) {
             const rateContent = (data as any)?.contents?.find((c: any) => c.content_key === 'usd_mvr_rate');
@@ -81,8 +81,7 @@ export function CurrencyProvider({ children }: CurrencyProviderProps) {
         .catch(() => {
           // Keep default rate on error
         })
-        .finally(() => setIsLoading(false))
-      );
+        .finally(() => setIsLoading(false));
     }
   }, []);
 

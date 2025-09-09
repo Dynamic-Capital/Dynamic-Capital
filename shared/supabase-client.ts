@@ -32,9 +32,9 @@ function getEnvVar(name: string): string | undefined {
 const PLACEHOLDER_URL = "https://example.supabase.co";
 const PLACEHOLDER_ANON_KEY = "anon-key-placeholder";
 
-let SUPABASE_URL = getEnvVar("SUPABASE_URL") ?? PLACEHOLDER_URL;
-let SUPABASE_ANON_KEY = getEnvVar("SUPABASE_ANON_KEY") ?? PLACEHOLDER_ANON_KEY;
-let SUPABASE_SERVICE_ROLE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const SUPABASE_URL = getEnvVar("SUPABASE_URL") ?? PLACEHOLDER_URL;
+const SUPABASE_ANON_KEY = getEnvVar("SUPABASE_ANON_KEY") ?? PLACEHOLDER_ANON_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 let SUPABASE_ENV_ERROR = "";
 
 if (
