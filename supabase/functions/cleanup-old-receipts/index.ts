@@ -22,7 +22,7 @@ serve(async (req) => {
   try {
     logStep("Cleanup job started");
 
-    const supabaseClient = createClient();
+    const supabaseClient = createClient("service");
 
     // Calculate date 30 days ago
     const thirtyDaysAgo = new Date();
