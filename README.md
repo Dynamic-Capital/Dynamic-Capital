@@ -16,6 +16,16 @@ OCR + crypto TXID). Built with **Lovable Codex** for enhanced development experi
 - Admin commands for maintenance
 - **Lovable Codex Integration** for AI-powered development
 
+## Development Process Overview
+
+| Tool | What It Does | How You Use It |
+| ---- | ------------ | -------------- |
+| **Lovable (Platform)** | Hosts your web app, manages deployment, and provides a Supabase backend | Use the Lovable dashboard to configure environment variables and monitor deployments |
+| **Lovable (AI)** | Generates initial project scaffolding and high-level feature guidance | Use the chat interface during setup and when auto-generating components |
+| **Telegram/BotFather** | Manages the bot and links it to your web app | Run BotFather commands like `/setmenubutton` or `/mybots` to connect the bot to your Lovable deployment URL |
+| **Codex CLI** | Assists with granular, code-level tasks on your local machine | Use terminal commands for UI refinements, refactoring, and adding features |
+| **GitHub** | Version control and deployment trigger | Push local changes to GitHub to trigger Lovable to rebuild and redeploy your web app |
+
 ## 🎨 UI Development with Lovable Codex
 
 ### Quick UI Guidelines
