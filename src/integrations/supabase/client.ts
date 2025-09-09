@@ -9,8 +9,14 @@ const SUPABASE_PUBLISHABLE_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error('Missing Supabase environment variables');
+// In some build or test environments the Supabase environment variables may not
+// be present. Instead of throwing an error at import time (which breaks builds),
+// we gracefully handle the absence of these variables and initialise a "null"
+// client. Consumers attempting to use the client without proper environment
+// variables will receive a clear runtime error.
+const missingEnv = !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY;
+if (missingEnv) {
+  console.warn('Supabase environment variables are missing. Supabase client will be disabled.');
 }
 
 // When building in a non-browser environment (e.g. during SSR or in tests),
@@ -24,11 +30,20 @@ const storage: Storage | undefined = isBrowser
       removeItem: () => {},
     } as unknown as Storage;
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage,
-    // Only persist sessions in environments where storage is available
-    persistSession: isBrowser,
-    autoRefreshToken: true,
-  }
-});
+export const supabase = missingEnv
+  ? (new Proxy(
+      {},
+      {
+        get() {
+          throw new Error('Supabase environment variables are not set.');
+        },
+      },
+    ) as unknown as ReturnType<typeof createClient<Database>>)
+  : createClient<Database>(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!, {
+      auth: {
+        storage,
+        // Only persist sessions in environments where storage is available
+        persistSession: isBrowser,
+        autoRefreshToken: true,
+      },
+    });
