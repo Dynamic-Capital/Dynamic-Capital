@@ -12,6 +12,9 @@ example value, and where it's referenced in the repository.
 | `SUPABASE_ANON_KEY`         | Public anon key for client-side calls.                    | Yes      | `eyJ...`                    | `src/integrations/supabase/client.ts`, `supabase/functions/theme-get/index.ts`, `supabase/functions/miniapp/src/lib/edge.ts` |
 | `NEXT_PUBLIC_SUPABASE_URL`         | Build-time copy of `SUPABASE_URL` for the web app.        | Yes (web) | `https://xyz.supabase.co`   | `src/config/supabase.ts` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY`    | Build-time copy of `SUPABASE_ANON_KEY` for the web app.   | Yes (web) | `eyJ...`                    | `src/config/supabase.ts` |
+| `VITE_SUPABASE_URL`         | Build-time Supabase URL for Vite app.                | Yes (Vite) | `https://xyz.supabase.co` | `vite.config.ts` |
+| `VITE_SUPABASE_PROJECT_ID`  | Supabase project ID for Vite builds.                 | Yes (Vite) | `abcd1234`                | `vite.config.ts` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Public key for Vite app Supabase client.           | Yes (Vite) | `eyJ...`                  | `vite.config.ts` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key for privileged Supabase access.          | Yes      | `service-role-key`          | `src/utils/config.ts`, `supabase/functions/telegram-bot/index.ts`                                         |
 | `SUPABASE_PROJECT_ID`       | Supabase project reference used to build URLs in scripts. | No       | `abcd1234`                  | `scripts/ping-webhook.ts`, `scripts/miniapp-health-check.ts`                                              |
 | `SUPABASE_ACCESS_TOKEN`     | Token for Supabase CLI operations.                        | No       | `sbp_at...`                 | Supabase CLI only                                                                                         |
