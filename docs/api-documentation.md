@@ -9,6 +9,36 @@
 2. [Architecture](#architecture)
 3. [Database Schema](#database-schema)
 4. [API Endpoints](#api-endpoints)
+   - [Telegram Bot](#1-telegram-bot-telegram-bot)
+   - [Analytics Data](#2-analytics-data-analytics-data)
+   - [AI FAQ Assistant](#3-ai-faq-assistant-ai-faq-assistant)
+   - [Checkout Init](#4-checkout-init-checkout-init)
+   - [Intent](#5-intent-intent)
+   - [Plans](#6-plans-plans)
+   - [Promo Validate](#7-promo-validate-promo-validate)
+   - [Active Promos](#8-active-promos-active-promos)
+   - [Subscription Status](#9-subscription-status-subscription-status)
+   - [Crypto Txid](#10-crypto-txid-crypto-txid)
+   - [Admin Session](#11-admin-session-admin-session)
+   - [Admin Bans](#12-admin-bans-admin-bans)
+   - [Admin Logs](#13-admin-logs-admin-logs)
+   - [Admin Act On Payment](#14-admin-act-on-payment-admin-act-on-payment)
+   - [Admin List Pending](#15-admin-list-pending-admin-list-pending)
+   - [Admin Check](#16-admin-check-admin-check)
+   - [Bot Status Check](#17-bot-status-check-bot-status-check)
+   - [Rotate Webhook Secret](#18-rotate-webhook-secret-rotate-webhook-secret)
+   - [Rotate Admin Secret](#19-rotate-admin-secret-rotate-admin-secret)
+   - [Reset Bot](#20-reset-bot-reset-bot)
+   - [Broadcast Dispatch](#21-broadcast-dispatch-broadcast-dispatch)
+   - [Build Miniapp](#22-build-miniapp-build-miniapp)
+   - [Upload Miniapp HTML](#23-upload-miniapp-html-upload-miniapp-html)
+   - [Web App Health](#24-web-app-health-web-app-health)
+   - [Miniapp Health](#25-miniapp-health-miniapp-health)
+   - [Theme Get](#26-theme-get-theme-get)
+   - [Theme Save](#27-theme-save-theme-save)
+   - [Content Batch](#28-content-batch-content-batch)
+   - [Miniapp](#29-miniapp-miniapp)
+   - [Verify Initdata](#30-verify-initdata-verify-initdata)
 5. [Bot Commands](#bot-commands)
 6. [Admin Functions](#admin-functions)
 7. [Code Examples](#code-examples)
@@ -198,6 +228,428 @@ interface FAQResponse {
   sources?: string[];
 }
 ```
+
+#### 4. Checkout Init (`/checkout-init`)
+
+Initialize a new payment for a subscription plan.
+
+```http
+POST /functions/v1/checkout-init
+Authorization: Bearer <token> or Telegram initData
+Content-Type: application/json
+
+{
+  "plan_id": "uuid",
+  "method": "bank_transfer"
+}
+
+Response:
+{
+  "payment_id": "123",
+  "instructions": {}
+}
+```
+
+Auth: User token or valid Telegram init data.
+
+#### 5. Intent (`/intent`)
+
+Create a bank or crypto payment intent.
+
+```http
+POST /functions/v1/intent
+Content-Type: application/json
+
+{
+  "initData": "telegram-init-data",
+  "type": "bank"
+}
+
+Response:
+{ "pay_code": "ABC123" }
+```
+
+Auth: Telegram init data required.
+
+#### 6. Plans (`/plans`)
+
+Fetch available subscription plans.
+
+```http
+GET /functions/v1/plans
+
+Response:
+[
+  { "id": "uuid", "name": "Monthly", "price": 50 }
+]
+```
+
+Auth: None.
+
+#### 7. Promo Validate (`/promo-validate`)
+
+Validate a promotion code.
+
+```http
+POST /functions/v1/promo-validate
+Content-Type: application/json
+
+{ "code": "SUMMER" }
+
+Response:
+{ "valid": true, "discount": 10 }
+```
+
+Auth: None.
+
+#### 8. Active Promos (`/active-promos`)
+
+List all active promotion codes.
+
+```http
+GET /functions/v1/active-promos
+
+Response:
+[
+  { "code": "SUMMER", "discount": 10 }
+]
+```
+
+Auth: None.
+
+#### 9. Subscription Status (`/subscription-status`)
+
+Check a user's current subscription.
+
+```http
+POST /functions/v1/subscription-status
+Authorization: Bearer <token>
+
+{ "telegram_id": "123" }
+
+Response:
+{ "active": true, "expires_at": "2024-01-01" }
+```
+
+Auth: Bearer token required.
+
+#### 10. Crypto Txid (`/crypto-txid`)
+
+Validate a submitted crypto transaction ID.
+
+```http
+POST /functions/v1/crypto-txid
+Content-Type: application/json
+
+{ "txid": "abc123" }
+
+Response:
+{ "status": "pending" }
+```
+
+Auth: None.
+
+#### 11. Admin Session (`/admin-session`)
+
+Generate an admin JWT session token.
+
+```http
+POST /functions/v1/admin-session
+Content-Type: application/json
+
+{ "initData": "telegram-init-data" }
+
+Response:
+{ "token": "jwt" }
+```
+
+Auth: Telegram init data from admin user.
+
+#### 12. Admin Bans (`/admin-bans`)
+
+Manage banned users.
+
+```http
+POST /functions/v1/admin-bans
+Content-Type: application/json
+
+{ "initData": "telegram-init-data" }
+
+Response:
+{ "items": [] }
+```
+
+Auth: Telegram init data from admin user.
+
+#### 13. Admin Logs (`/admin-logs`)
+
+Retrieve administrative action logs.
+
+```http
+POST /functions/v1/admin-logs
+Content-Type: application/json
+
+{ "initData": "telegram-init-data" }
+
+Response:
+{ "items": [] }
+```
+
+Auth: Telegram init data from admin user.
+
+#### 14. Admin Act On Payment (`/admin-act-on-payment`)
+
+Approve or reject a pending payment.
+
+```http
+POST /functions/v1/admin-act-on-payment
+Content-Type: application/json
+
+{
+  "initData": "telegram-init-data",
+  "payment_id": "uuid",
+  "action": "approve"
+}
+
+Response:
+{ "ok": true }
+```
+
+Auth: Telegram init data from admin user.
+
+#### 15. Admin List Pending (`/admin-list-pending`)
+
+List payments awaiting review.
+
+```http
+POST /functions/v1/admin-list-pending
+Content-Type: application/json
+
+{ "initData": "telegram-init-data" }
+
+Response:
+{ "items": [] }
+```
+
+Auth: Telegram init data from admin user.
+
+#### 16. Admin Check (`/admin-check`)
+
+Verify admin status for a user.
+
+```http
+POST /functions/v1/admin-check
+Content-Type: application/json
+
+{ "initData": "telegram-init-data" }
+
+Response:
+{ "admin": true }
+```
+
+Auth: Telegram init data required.
+
+#### 17. Bot Status Check (`/bot-status-check`)
+
+Report bot uptime and version.
+
+```http
+GET /functions/v1/bot-status-check
+
+Response:
+{ "status": "ok", "version": "1.0" }
+```
+
+Auth: None.
+
+#### 18. Rotate Webhook Secret (`/rotate-webhook-secret`)
+
+Rotate the Telegram webhook secret token.
+
+```http
+POST /functions/v1/rotate-webhook-secret
+X-Admin-Secret: <secret>
+
+Response:
+{ "new_secret": "..." }
+```
+
+Auth: `X-Admin-Secret` header required.
+
+#### 19. Rotate Admin Secret (`/rotate-admin-secret`)
+
+Generate a new admin API secret.
+
+```http
+POST /functions/v1/rotate-admin-secret
+X-Admin-Secret: <secret>
+
+Response:
+{ "new_secret": "..." }
+```
+
+Auth: `X-Admin-Secret` header required.
+
+#### 20. Reset Bot (`/reset-bot`)
+
+Reset the bot's runtime state.
+
+```http
+POST /functions/v1/reset-bot
+X-Admin-Secret: <secret>
+
+Response:
+{ "ok": true }
+```
+
+Auth: `X-Admin-Secret` header required.
+
+#### 21. Broadcast Dispatch (`/broadcast-dispatch`)
+
+Send a broadcast message to users.
+
+```http
+POST /functions/v1/broadcast-dispatch
+X-Admin-Secret: <secret>
+Content-Type: application/json
+
+{ "message": "Hello" }
+
+Response:
+{ "sent": 100 }
+```
+
+Auth: `X-Admin-Secret` header required.
+
+#### 22. Build Miniapp (`/build-miniapp`)
+
+Build the Telegram Mini App assets.
+
+```http
+POST /functions/v1/build-miniapp
+X-Admin-Secret: <secret>
+
+Response:
+{ "ok": true }
+```
+
+Auth: `X-Admin-Secret` header required.
+
+#### 23. Upload Miniapp HTML (`/upload-miniapp-html`)
+
+Upload built Mini App HTML to storage.
+
+```http
+POST /functions/v1/upload-miniapp-html
+X-Admin-Secret: <secret>
+
+Response:
+{ "ok": true }
+```
+
+Auth: `X-Admin-Secret` header required.
+
+#### 24. Web App Health (`/web-app-health`)
+
+Health check for the web dashboard.
+
+```http
+GET /functions/v1/web-app-health
+
+Response:
+{ "status": "ok" }
+```
+
+Auth: None.
+
+#### 25. Miniapp Health (`/miniapp-health`)
+
+Health check for the Mini App.
+
+```http
+GET /functions/v1/miniapp-health
+
+Response:
+{ "status": "ok" }
+```
+
+Auth: None.
+
+#### 26. Theme Get (`/theme-get`)
+
+Retrieve the current theme settings.
+
+```http
+GET /functions/v1/theme-get
+Authorization: Bearer <token>
+
+Response:
+{ "theme": {} }
+```
+
+Auth: Bearer token required.
+
+#### 27. Theme Save (`/theme-save`)
+
+Save updated theme settings.
+
+```http
+POST /functions/v1/theme-save
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{ "theme": {} }
+
+Response:
+{ "ok": true }
+```
+
+Auth: Bearer token required.
+
+#### 28. Content Batch (`/content-batch`)
+
+Fetch multiple content entries at once.
+
+```http
+POST /functions/v1/content-batch
+Content-Type: application/json
+
+{ "keys": ["welcome", "help"] }
+
+Response:
+{ "welcome": "Hi", "help": "..." }
+```
+
+Auth: None.
+
+#### 29. Miniapp (`/miniapp`)
+
+Serve the Telegram Mini App configuration.
+
+```http
+GET /functions/v1/miniapp
+
+Response:
+{ "ok": true }
+```
+
+Auth: None.
+
+#### 30. Verify Initdata (`/verify-initdata`)
+
+Verify and decode Telegram `initData` payloads.
+
+```http
+POST /functions/v1/verify-initdata
+Content-Type: application/json
+
+{ "initData": "telegram-init-data" }
+
+Response:
+{ "valid": true, "user_id": "123" }
+```
+
+Auth: None.
 
 ---
 
