@@ -3,7 +3,12 @@
 // Minimal Telegram message type for command context
 interface TelegramMessage {
   chat: { id: number; type?: string };
-  from?: { id?: number; username?: string };
+  from?: {
+    id?: number;
+    username?: string;
+    first_name?: string;
+    last_name?: string;
+  };
   text?: string;
   [key: string]: unknown;
 }

@@ -2222,7 +2222,7 @@ export async function handleUserInteractionsManagement(
 
     if (interactions && interactions.length > 0) {
       interactionsMessage += `📋 *Recent Interactions:*\n`;
-      interactions.forEach((interaction, index) => {
+      interactions.forEach((interaction: any, index: number) => {
         interactionsMessage += `${index + 1}. **Type:** ${interaction.interaction_type}`;
         interactionsMessage += `\n   **User:** ${interaction.telegram_user_id}`;
         interactionsMessage += `\n   **Date:** ${new Date(interaction.created_at).toLocaleDateString()}`;
@@ -2273,7 +2273,7 @@ export async function handleChannelMembershipsManagement(
 
     if (memberships && memberships.length > 0) {
       membershipsMessage += `📋 *Recent Memberships:*\n`;
-      memberships.forEach((membership, index) => {
+      memberships.forEach((membership: any, index: number) => {
         membershipsMessage += `${index + 1}. **Channel:** ${membership.channel_name || membership.channel_id}`;
         membershipsMessage += `\n   **User:** ${membership.telegram_user_id}`;
         membershipsMessage += `\n   **Status:** ${membership.is_active ? '✅ Active' : '❌ Inactive'}`;
@@ -2322,7 +2322,7 @@ export async function handleMediaFilesManagement(
 
     if (files && files.length > 0) {
       filesMessage += `📋 *Recent Files:*\n`;
-      files.forEach((file, index) => {
+      files.forEach((file: any, index: number) => {
         filesMessage += `${index + 1}. **File:** ${file.filename}`;
         filesMessage += `\n   **Type:** ${file.file_type}`;
         if (file.file_size) {
@@ -2376,7 +2376,7 @@ export async function handleAdminLogsManagement(
 
     if (logs && logs.length > 0) {
       logsMessage += `📋 *Recent Admin Actions:*\n`;
-      logs.forEach((log, index) => {
+      logs.forEach((log: any, index: number) => {
         logsMessage += `${index + 1}. **Action:** ${log.action_type}`;
         logsMessage += `\n   **Admin:** ${log.admin_telegram_id}`;
         logsMessage += `\n   **Description:** ${log.action_description}`;
