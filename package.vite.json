@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build:dev": "vite build --mode development",
     "dev": "vite",
@@ -10,8 +13,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
     "react-router-dom": "^7.8.2",
     "@supabase/supabase-js": "^2.57.2",
     "lucide-react": "^0.462.0",
@@ -47,12 +50,12 @@
     "@radix-ui/react-tooltip": "^1.1.4"
   },
   "devDependencies": {
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react-swc": "^4.0.1",
     "vite": "^7.1.5",
-    "typescript": "^5.5.3",
-    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.2",
+    "tailwindcss": "^4.1.13",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.4.47",
     "lovable-tagger": "^1.1.9"
