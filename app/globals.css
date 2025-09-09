@@ -113,12 +113,12 @@
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  
-  body {
+  @layer base {
+    * {
+      border-color: hsl(var(--border));
+    }
+
+    body {
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background: var(--gradient-motion-bg);
@@ -761,12 +761,12 @@
   --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  
-  body {
+  @layer base {
+    * {
+      border-color: hsl(var(--border));
+    }
+
+    body {
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-image: linear-gradient(135deg, 
