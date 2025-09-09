@@ -13,12 +13,14 @@ export const SupabaseProvider = ({ children }: { children: React.ReactNode }) =>
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    // Load initial session
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+      },
+    );
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+    // After the listener is ready, load the current session
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
 
     return () => {
       listener.subscription.unsubscribe();

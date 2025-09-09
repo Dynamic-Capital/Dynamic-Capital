@@ -15,21 +15,27 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isVip, setIsVip] = useState(false);
   const [loading, setLoading] = useState(true);
+  const isBrowser = typeof window !== 'undefined';
 
   useEffect(() => {
+    if (!isBrowser) {
+      setLoading(false);
+      return;
+    }
+
     // Check for existing admin status in localStorage or session
     const storedAdminStatus = localStorage.getItem('isAdmin');
     const storedVipStatus = localStorage.getItem('isVip');
-    
+
     if (storedAdminStatus) {
       setIsAdmin(JSON.parse(storedAdminStatus));
     }
     if (storedVipStatus) {
       setIsVip(JSON.parse(storedVipStatus));
     }
-    
+
     setLoading(false);
-  }, []);
+  }, [isBrowser]);
 
   const checkAdminStatus = async (telegramUserId?: string): Promise<boolean> => {
     if (!telegramUserId) return false;
@@ -41,7 +47,9 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!adminError && adminData !== null) {
         setIsAdmin(adminData);
-        localStorage.setItem('isAdmin', JSON.stringify(adminData));
+        if (isBrowser) {
+          localStorage.setItem('isAdmin', JSON.stringify(adminData));
+        }
         return adminData;
       }
 
@@ -58,9 +66,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         
         setIsAdmin(adminStatus);
         setIsVip(vipStatus);
-        localStorage.setItem('isAdmin', JSON.stringify(adminStatus));
-        localStorage.setItem('isVip', JSON.stringify(vipStatus));
-        
+        if (isBrowser) {
+          localStorage.setItem('isAdmin', JSON.stringify(adminStatus));
+          localStorage.setItem('isVip', JSON.stringify(vipStatus));
+        }
+
         return adminStatus;
       }
 
@@ -92,8 +102,10 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       if (!error && data) {
         setIsAdmin(data.is_admin || false);
         setIsVip(data.is_vip || false);
-        localStorage.setItem('isAdmin', JSON.stringify(data.is_admin || false));
-        localStorage.setItem('isVip', JSON.stringify(data.is_vip || false));
+        if (isBrowser) {
+          localStorage.setItem('isAdmin', JSON.stringify(data.is_admin || false));
+          localStorage.setItem('isVip', JSON.stringify(data.is_vip || false));
+        }
         return true;
       }
 

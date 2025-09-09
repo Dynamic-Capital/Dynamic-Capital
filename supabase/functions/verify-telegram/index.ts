@@ -105,7 +105,7 @@ async function verifyInitData(initData: string) {
   return { ok: true, user } as const;
 }
 
-Deno.serve(async (req) => {
+export default async function handler(req: Request) {
   const origin = req.headers.get("Origin");
   if (origin && !allowList.has(origin)) {
     return json({ ok: false, error: "Forbidden" }, 403);
@@ -138,4 +138,8 @@ Deno.serve(async (req) => {
     console.error("verify-telegram error", err);
     return withCors(oops("SERVER_ERROR", String(err)), origin);
   }
-});
+}
+
+if (import.meta.main) {
+  Deno.serve(handler);
+}
