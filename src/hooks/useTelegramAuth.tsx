@@ -1,5 +1,10 @@
 import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { callEdgeFunction, buildFunctionUrl } from '@/config/supabase';
+import {
+  VerifyInitDataResponse,
+  AdminCheckResponse,
+  VipStatusResponse,
+} from '@/types/api';
 
 interface TelegramUser {
   id: number;
@@ -35,7 +40,7 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
     const dataToVerify = initDataString || initData;
     if (!dataToVerify) return false;
 
-    const { data, error } = await callEdgeFunction('VERIFY_INITDATA', {
+    const { data, error } = await callEdgeFunction<VerifyInitDataResponse>('VERIFY_INITDATA', {
       method: 'POST',
       body: { initData: dataToVerify },
     });
@@ -45,21 +50,22 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       return false;
     }
 
-    return (data as any)?.ok === true;
+    return data?.ok === true;
   }, [initData]);
 
   const checkAdminStatus = useCallback(async (userId?: string): Promise<boolean> => {
     const userIdToCheck = userId || telegramUser?.id?.toString();
     if (!userIdToCheck) return false;
 
-    let data, error;
+    let data: AdminCheckResponse | undefined;
+    let error;
     if (initData) {
-      ({ data, error } = await callEdgeFunction('ADMIN_CHECK', {
+      ({ data, error } = await callEdgeFunction<AdminCheckResponse>('ADMIN_CHECK', {
         method: 'POST',
-        body: { initData: initData },
+        body: { initData },
       }));
     } else {
-      ({ data, error } = await callEdgeFunction('ADMIN_CHECK', {
+      ({ data, error } = await callEdgeFunction<AdminCheckResponse>('ADMIN_CHECK', {
         method: 'POST',
         body: { telegram_user_id: userIdToCheck },
       }));
@@ -70,15 +76,13 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       return false;
     }
 
-    const adminStatus = initData
-      ? (data as any)?.ok === true
-      : (data as any)?.is_admin === true;
+    const adminStatus = initData ? data?.ok === true : data?.is_admin === true;
     setIsAdmin(adminStatus);
     return adminStatus;
   }, [initData, telegramUser]);
 
   const checkVipStatus = useCallback(async (userId: string): Promise<boolean> => {
-    const { data, error } = await callEdgeFunction('MINIAPP_HEALTH', {
+    const { data, error } = await callEdgeFunction<VipStatusResponse>('MINIAPP_HEALTH', {
       method: 'POST',
       body: { telegram_id: userId },
     });
@@ -88,7 +92,7 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
       return false;
     }
 
-    return (data as any)?.vip?.is_vip === true;
+    return data?.vip?.is_vip === true;
   }, []);
 
   const syncUser = useCallback(async (initDataString: string): Promise<void> => {
