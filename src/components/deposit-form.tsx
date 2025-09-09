@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, FormEvent, ChangeEvent } from 'react'
+import { supabase } from '@/integrations/supabase/client'
 
 export default function DepositForm() {
   const [file, setFile] = useState<File | null>(null)
@@ -23,12 +24,11 @@ export default function DepositForm() {
 
     setStatus('Uploading...')
     try {
-      const res = await fetch('/functions/v1/telegram-bot', {
-        method: 'POST',
+      const { error } = await supabase.functions.invoke('telegram-bot', {
         body: formData,
       })
-      if (!res.ok) {
-        throw new Error(await res.text())
+      if (error) {
+        throw error
       }
       setStatus('Deposit submitted successfully.')
       setFile(null)
