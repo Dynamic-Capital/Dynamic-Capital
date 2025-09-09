@@ -1,17 +1,18 @@
 // scripts/sync-env.ts
 // Sync missing variables from .env.example into .env.local, preserving existing values.
 
-const examplePath = ".env.example";
-const localPath = ".env.local";
+import fs from "node:fs";
+import path from "node:path";
 
-try {
-  await Deno.stat(localPath);
-} catch {
-  await Deno.writeTextFile(localPath, "");
+const examplePath = path.resolve(".env.example");
+const localPath = path.resolve(".env.local");
+
+if (!fs.existsSync(localPath)) {
+  fs.writeFileSync(localPath, "");
 }
 
-const exampleContent = await Deno.readTextFile(examplePath);
-const localContent = await Deno.readTextFile(localPath);
+const exampleContent = fs.readFileSync(examplePath, "utf8");
+const localContent = fs.readFileSync(localPath, "utf8");
 
 const localKeys = new Set<string>();
 for (const line of localContent.split(/\r?\n/)) {
@@ -39,8 +40,13 @@ for (const line of exampleContent.split(/\r?\n/)) {
 if (additions.length > 0) {
   const prefix = localContent.endsWith("\n") || localContent.length === 0 ? "" : "\n";
   const newContent = localContent + prefix + additions.join("\n") + "\n";
-  await Deno.writeTextFile(localPath, newContent);
-  console.log("Appended", additions.filter((l) => !l.startsWith("#") && l).length, "variables to .env.local");
+  fs.writeFileSync(localPath, newContent);
+  console.log(
+    "Appended",
+    additions.filter((l) => !l.startsWith("#") && l).length,
+    "variables to .env.local",
+  );
 } else {
   console.log(".env.local is up to date");
 }
+

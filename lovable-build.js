@@ -4,8 +4,9 @@ import { execSync } from 'node:child_process';
 
 console.log('🔧 Running Lovable build tasks...');
 
-// Ensure required environment variables are present
+// Sync and ensure required environment variables are present
 try {
+  execSync('npx tsx scripts/sync-env.ts', { stdio: 'inherit' });
   execSync('npx tsx scripts/check-env.ts', { stdio: 'inherit' });
 } catch (error) {
   console.error('❌ Environment check failed:', error.message);

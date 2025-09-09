@@ -24,7 +24,7 @@
     "serve:functions": "supabase functions serve --no-verify-jwt",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
-    "sync-env": "deno run -A scripts/sync-env.ts"
+    "sync-env": "npx tsx scripts/sync-env.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

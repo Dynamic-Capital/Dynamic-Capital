@@ -11,8 +11,9 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Verify required environment variables before building
+// Sync and verify required environment variables before building
 try {
+  execSync('npx tsx scripts/sync-env.ts', { stdio: 'inherit' });
   execSync('npx tsx scripts/check-env.ts', { stdio: 'inherit' });
 } catch (error) {
   console.error('❌ Environment check failed:', error.message);
