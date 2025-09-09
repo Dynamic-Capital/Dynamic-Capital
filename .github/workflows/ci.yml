@@ -6,12 +6,14 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions: read-all
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22
       - run: npm ci
@@ -20,8 +22,8 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: denoland/setup-deno@11b63cf76cfcafb4e43f97b6cad24d8e8438f62d
         with:
           deno-version: v1.x
       - run: deno test -A supabase/functions/_tests
@@ -29,8 +31,8 @@ jobs:
   integration-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: denoland/setup-deno@11b63cf76cfcafb4e43f97b6cad24d8e8438f62d
         with:
           deno-version: v1.x
       - run: deno test -A tests
@@ -41,8 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51
         with:
           version: latest
       - name: Deploy edge functions
@@ -57,7 +59,7 @@ jobs:
           SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
           supabase functions deploy telegram-webhook --no-verify-jwt --project-id $SUPABASE_PROJECT_ID
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22
       - name: Set Telegram webhook
@@ -79,8 +81,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51
         with:
           version: latest
       - name: Deploy edge functions
@@ -95,7 +97,7 @@ jobs:
           SUPABASE_PROJECT_ID: ${{ secrets.PROD_SUPABASE_PROJECT_ID }}
         run: |
           supabase functions deploy telegram-webhook --no-verify-jwt --project-id $SUPABASE_PROJECT_ID
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22
       - name: Set Telegram webhook

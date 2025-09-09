@@ -6,14 +6,16 @@ on:
   pull_request:
     branches: ["main"]
 
+permissions: read-all
+
 jobs:
   check:
     runs-on: ubuntu-latest
     env:
       DENO_TLS_CA_STORE: system
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: denoland/setup-deno@11b63cf76cfcafb4e43f97b6cad24d8e8438f62d
         with:
           deno-version: v1.x
       - name: CI (fmt/lint/typecheck/test)

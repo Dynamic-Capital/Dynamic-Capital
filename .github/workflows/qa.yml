@@ -5,12 +5,14 @@ on:
   push:
     branches: [ main ]
 
+permissions: read-all
+
 jobs:
   deno-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: denoland/setup-deno@11b63cf76cfcafb4e43f97b6cad24d8e8438f62d
         with: { deno-version: v1.x }
       - name: Run unit + integration tests
         env:
@@ -23,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' || github.event.pull_request.merged == false }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - name: Supabase CLI
         run: npm i -g supabase
       - name: List required edge secrets

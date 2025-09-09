@@ -19,3 +19,9 @@ channel and will acknowledge reports within **72 hours**.
 After verification, we aim to ship a fix within **14 days** and will keep you
 informed of progress. Once resolved, we coordinate disclosure and credit the
 reporter if desired.
+
+## GitHub Actions Update Policy
+
+All GitHub Actions used in this repository are pinned to specific commit SHAs
+to guard against supply‑chain attacks. Maintainers review and update these
+references at least monthly or whenever upstream security fixes are released.
