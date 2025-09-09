@@ -47,7 +47,9 @@ miniapp/
 
 # Include mini app static assets for deployment
 # (previously ignored to keep directory empty)
+!supabase/functions/miniapp/
 !supabase/functions/miniapp/static/**
+!supabase/functions/miniapp/manifest.json
 
 # Audit reports
 .audit/
