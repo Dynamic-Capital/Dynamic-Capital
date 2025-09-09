@@ -5,25 +5,33 @@ import type { Database } from "../types/supabase.ts";
 // so type checking passes in both environments.
 declare const process: { env: Record<string, string | undefined> } | undefined;
 
-function getEnvVar(name: string): string | undefined {
+function getEnvVar(name: string, aliases: string[] = []): string | undefined {
   const prefixes = ["", "NEXT_PUBLIC_", "VITE_", "REACT_APP_"];
+  const names = [name, ...aliases];
+
   if (typeof Deno !== "undefined" && typeof Deno.env?.get === "function") {
-    for (const p of prefixes) {
-      const v = Deno.env.get(`${p}${name}`);
-      if (v) return v;
+    for (const n of names) {
+      for (const p of prefixes) {
+        const v = Deno.env.get(`${p}${n}`);
+        if (v) return v;
+      }
     }
   }
   if (typeof process !== "undefined" && typeof process.env !== "undefined") {
-    for (const p of prefixes) {
-      const v = process.env[`${p}${name}`];
-      if (v) return v;
+    for (const n of names) {
+      for (const p of prefixes) {
+        const v = process.env[`${p}${n}`];
+        if (v) return v;
+      }
     }
   }
   if (typeof import.meta !== "undefined" && (import.meta as any).env) {
     const env = (import.meta as any).env as Record<string, string | undefined>;
-    for (const p of prefixes) {
-      const v = env[`${p}${name}`];
-      if (v) return v;
+    for (const n of names) {
+      for (const p of prefixes) {
+        const v = env[`${p}${n}`];
+        if (v) return v;
+      }
     }
   }
   return undefined;
@@ -33,7 +41,8 @@ const PLACEHOLDER_URL = "https://example.supabase.co";
 const PLACEHOLDER_ANON_KEY = "anon-key-placeholder";
 
 const SUPABASE_URL = getEnvVar("SUPABASE_URL") ?? PLACEHOLDER_URL;
-const SUPABASE_ANON_KEY = getEnvVar("SUPABASE_ANON_KEY") ?? PLACEHOLDER_ANON_KEY;
+const SUPABASE_ANON_KEY =
+  getEnvVar("SUPABASE_ANON_KEY", ["SUPABASE_KEY"]) ?? PLACEHOLDER_ANON_KEY;
 const SUPABASE_SERVICE_ROLE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 let SUPABASE_ENV_ERROR = "";
 
