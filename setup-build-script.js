@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Auto-add the build:dev script to package.json
 const packageJsonPath = path.join(__dirname, 'package.json');
@@ -15,5 +19,3 @@ try {
 } catch (error) {
   console.log('Note: Could not auto-add build:dev script:', error.message);
 }
-
-module.exports = {};

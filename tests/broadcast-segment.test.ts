@@ -1,5 +1,5 @@
 import test from 'node:test';
-import { equal as assertEquals, rejects as assertRejects } from 'node:assert/strict';
+import { deepEqual as assertEquals, rejects as assertRejects } from 'node:assert/strict';
 import { resolveTargets } from "../src/broadcast/index.ts";
 
 test('resolveTargets accepts array', async () => {

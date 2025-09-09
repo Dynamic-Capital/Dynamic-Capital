@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log('🔧 Setting up Lovable Vite preview...');
 
@@ -56,19 +60,21 @@ if (useVitePackage && fs.existsSync(vitePackageJsonPath)) {
   }
 }
 
-// Run the build
+// Run the build and ensure package.json is restored
 console.log('🔨 Building for Lovable preview...');
+let exitCode = 0;
 try {
   execSync('npm run build:dev', { stdio: 'inherit' });
   console.log('✅ Build completed successfully!');
 } catch (error) {
   console.error('❌ Build failed:', error.message);
-  process.exit(1);
+  exitCode = 1;
+} finally {
+  if (useVitePackage && fs.existsSync(packageJsonPath + '.backup')) {
+    console.log('🔄 Restoring original package.json...');
+    fs.copyFileSync(packageJsonPath + '.backup', packageJsonPath);
+    fs.unlinkSync(packageJsonPath + '.backup');
+  }
 }
 
-// Restore original package.json if we swapped it
-if (useVitePackage && fs.existsSync(packageJsonPath + '.backup')) {
-  console.log('🔄 Restoring original package.json...');
-  fs.copyFileSync(packageJsonPath + '.backup', packageJsonPath);
-  fs.unlinkSync(packageJsonPath + '.backup');
-}
+process.exitCode = exitCode;
