@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { getQueryCounts } from '@/integrations/supabase/client';
+// import { getQueryCounts } from '@/integrations/supabase/client';
 import { useSupabase } from '@/context/SupabaseProvider';
 import logger from '@/utils/logger';
 import { formatSupabaseError } from '@/utils/supabaseError';
@@ -114,7 +114,7 @@ export const SystemStatus = () => {
       ]);
       setFunctions(functionStatuses);
       setTables(tableInfos);
-      logger.log("Supabase query counts", getQueryCounts());
+      // logger.log("Supabase query counts", getQueryCounts());
     } catch (error) {
       toast({
         title: "Error",
