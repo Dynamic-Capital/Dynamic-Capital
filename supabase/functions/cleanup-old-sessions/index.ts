@@ -27,6 +27,17 @@ const MAX_FOLLOW_UPS = Number(
   optionalEnv("MAX_FOLLOW_UPS") ?? "3",
 );
 
+type SessionRow = {
+  id: string;
+  telegram_user_id: string;
+};
+
+type FollowUpUser = {
+  id: string;
+  telegram_id: string;
+  follow_up_count: number | null;
+};
+
 async function sendTelegramMessage(chatId: number, text: string) {
   try {
     const response = await fetch(
@@ -59,7 +70,7 @@ async function cleanupOldSessions() {
 
     const { data: inactiveSessions, error } = await supabaseAdmin
       .from("user_sessions")
-      .select("*")
+      .select("id, telegram_user_id")
       .lt("last_activity", timeoutThreshold.toISOString())
       .eq("is_active", true);
 
@@ -73,7 +84,8 @@ async function cleanupOldSessions() {
     );
 
     // Process each inactive session
-    for (const session of inactiveSessions || []) {
+    const sessions = (inactiveSessions ?? []) as SessionRow[];
+    for (const session of sessions) {
       // Mark session as inactive
       await supabaseAdmin
         .from("user_sessions")
@@ -87,7 +99,7 @@ async function cleanupOldSessions() {
       console.log(`Cleaned up session for user ${session.telegram_user_id}`);
     }
 
-    return inactiveSessions?.length || 0;
+    return sessions.length;
   } catch (error) {
     console.error("Error in cleanupOldSessions:", error);
     return 0;
@@ -105,7 +117,7 @@ async function sendFollowUpMessages() {
 
     const { data: inactiveUsers, error } = await supabaseAdmin
       .from("bot_users")
-      .select("*")
+      .select("id, telegram_id, follow_up_count")
       .lt("updated_at", followUpThreshold.toISOString())
       .lt("follow_up_count", MAX_FOLLOW_UPS);
 
@@ -125,7 +137,8 @@ async function sendFollowUpMessages() {
     ];
 
     // Send follow-up messages
-    for (const user of inactiveUsers || []) {
+    const users = (inactiveUsers ?? []) as FollowUpUser[];
+    for (const user of users) {
       const messageIndex = Math.min(
         user.follow_up_count || 0,
         followUpMessages.length - 1,
@@ -149,13 +162,13 @@ async function sendFollowUpMessages() {
 
         console.log(
           `Sent follow-up ${
-            user.follow_up_count + 1
+            (user.follow_up_count || 0) + 1
           } to user ${user.telegram_id}`,
         );
       }
     }
 
-    return inactiveUsers?.length || 0;
+    return users.length;
   } catch (error) {
     console.error("Error in sendFollowUpMessages:", error);
     return 0;
@@ -208,7 +221,7 @@ async function resetStuckSessions() {
 
     const { data: stuckSessions, error } = await supabaseAdmin
       .from("user_sessions")
-      .select("*")
+      .select("id, telegram_user_id")
       .not("awaiting_input", "is", null)
       .lt("last_activity", stuckThreshold.toISOString())
       .eq("is_active", true);
@@ -221,7 +234,8 @@ async function resetStuckSessions() {
     console.log(`Found ${stuckSessions?.length || 0} stuck sessions to reset`);
 
     // Reset stuck sessions
-    for (const session of stuckSessions || []) {
+    const sessions = (stuckSessions ?? []) as SessionRow[];
+    for (const session of sessions) {
       await supabaseAdmin
         .from("user_sessions")
         .update({
@@ -241,7 +255,7 @@ async function resetStuckSessions() {
       console.log(`Reset stuck session for user ${session.telegram_user_id}`);
     }
 
-    return stuckSessions?.length || 0;
+    return sessions.length;
   } catch (error) {
     console.error("Error in resetStuckSessions:", error);
     return 0;
