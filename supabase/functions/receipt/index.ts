@@ -18,7 +18,7 @@ serve(async (req) => {
     if (!(file instanceof File)) return bad("image required");
     let supa;
     try {
-      supa = createClient();
+      supa = createClient("service");
     } catch (_) {
       supa = null;
     }
@@ -40,7 +40,7 @@ serve(async (req) => {
     if (!u || !isAdmin(u.id)) return unauth();
     let supa;
     try {
-      supa = createClient();
+      supa = createClient("service");
     } catch (_) {
       supa = null;
     }

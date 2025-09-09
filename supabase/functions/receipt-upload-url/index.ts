@@ -78,7 +78,7 @@ export async function handler(req: Request): Promise<Response> {
     return json({ error: "unauthorized" }, 401, corsHeaders);
   }
 
-  const supa = createClient();
+  const supa = createClient("service");
 
   // Generate unique file path
   const timestamp = Date.now();

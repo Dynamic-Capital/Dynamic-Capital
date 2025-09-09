@@ -5,7 +5,7 @@ const { TELEGRAM_BOT_TOKEN: BOT_TOKEN } = requireEnv([
   "TELEGRAM_BOT_TOKEN",
 ] as const);
 
-export const supabaseAdmin = createClient();
+export const supabaseAdmin = createClient("service");
 
 let currentMessageId: number | null = null;
 

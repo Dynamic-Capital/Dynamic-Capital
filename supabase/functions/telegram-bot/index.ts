@@ -95,7 +95,7 @@ function getSupabase(): SupabaseClient | null {
   if (supabaseAdmin) return supabaseAdmin;
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
   try {
-    supabaseAdmin = createClient();
+    supabaseAdmin = createClient("service");
   } catch (_e) {
     supabaseAdmin = null;
   }

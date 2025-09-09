@@ -1,7 +1,7 @@
 // Database utility functions for the Telegram bot
 import { createClient } from "../_shared/client.ts";
 
-const supabaseAdmin = createClient();
+const supabaseAdmin = createClient("service");
 
 interface VipPackage {
   id: string;
