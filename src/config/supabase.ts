@@ -85,6 +85,10 @@ export const callEdgeFunction = async <T>(
 ): Promise<{ data?: T; error?: { status: number; message: string } }> => {
   const { method = 'GET', body, headers = {}, token } = options;
 
+  if (SUPABASE_ENV_ERROR) {
+    return { error: { status: 500, message: SUPABASE_ENV_ERROR } };
+  }
+
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     'apikey': SUPABASE_CONFIG.ANON_KEY,
@@ -99,29 +103,34 @@ export const callEdgeFunction = async <T>(
     requestHeaders['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(buildFunctionUrl(functionName), {
-    method,
-    headers: requestHeaders,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-
-  let data: T | undefined;
   try {
-    data = await res.json();
-  } catch {
-    /* ignore */
-  }
+    const res = await fetch(buildFunctionUrl(functionName), {
+      method,
+      headers: requestHeaders,
+      body: body ? JSON.stringify(body) : undefined,
+    });
 
-  if (!res.ok) {
-    return {
-      error: {
-        status: res.status,
-        message: (data as any)?.message ?? res.statusText,
-      },
-    };
-  }
+    let data: T | undefined;
+    try {
+      data = await res.json();
+    } catch {
+      /* ignore */
+    }
 
-  return { data };
+    if (!res.ok) {
+      return {
+        error: {
+          status: res.status,
+          message: (data as any)?.message ?? res.statusText,
+        },
+      };
+    }
+
+    return { data };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { error: { status: 500, message } };
+  }
 };
 
 // Telegram bot configuration

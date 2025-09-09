@@ -22,7 +22,8 @@ async function call<T>(
   payload: Record<string, unknown> = {},
 ): Promise<T> {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
-    throw new Error("Missing Supabase configuration");
+    console.warn("Supabase configuration missing; skipping config call.");
+    return undefined as unknown as T;
   }
   const res = await withRetry(
     () =>

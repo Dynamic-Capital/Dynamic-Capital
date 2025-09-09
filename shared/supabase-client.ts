@@ -29,24 +29,16 @@ function getEnvVar(name: string): string | undefined {
   return undefined;
 }
 
-function requireEnvVar(name: string): string {
-  const v = getEnvVar(name);
-  if (!v) throw new Error(`Missing required env: ${name}`);
-  return v;
-}
-
-let SUPABASE_URL = "";
-let SUPABASE_ANON_KEY = "";
-let SUPABASE_SERVICE_ROLE_KEY = "";
+let SUPABASE_URL = getEnvVar("SUPABASE_URL") ?? "";
+let SUPABASE_ANON_KEY = getEnvVar("SUPABASE_ANON_KEY") ?? "";
+let SUPABASE_SERVICE_ROLE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 let SUPABASE_ENV_ERROR = "";
 
-try {
-  SUPABASE_URL = requireEnvVar("SUPABASE_URL");
-  SUPABASE_ANON_KEY = requireEnvVar("SUPABASE_ANON_KEY");
-  SUPABASE_SERVICE_ROLE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-} catch (e) {
-  SUPABASE_ENV_ERROR = (e as Error).message;
-  console.error("Configuration error:", SUPABASE_ENV_ERROR);
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  SUPABASE_ENV_ERROR = "Missing Supabase configuration";
+  console.warn(`⚠️ ${SUPABASE_ENV_ERROR}. Using placeholders.`);
+  SUPABASE_URL = SUPABASE_URL || "https://placeholder.supabase.co";
+  SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || "placeholder-key";
 }
 
 const queryCounts: Record<string, number> = {};
@@ -78,9 +70,6 @@ export function getQueryCounts() {
 }
 
 export function createClient(key: "anon" | "service" = "anon"): any {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    throw new Error("Missing Supabase configuration");
-  }
   const k = key === "service" && SUPABASE_SERVICE_ROLE_KEY
     ? SUPABASE_SERVICE_ROLE_KEY
     : SUPABASE_ANON_KEY;
