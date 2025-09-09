@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* Base colors */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -24,6 +25,58 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
+
+    /* Dynamic Capital Brand Colors */
+    --dc-brand: 210 100% 50%;
+    --dc-brand-light: 210 100% 60%;
+    --dc-brand-dark: 210 100% 40%;
+    --dc-secondary: 120 100% 50%;
+    --dc-accent: 45 100% 50%;
+
+    /* Telegram Colors */
+    --telegram: 200 100% 50%;
+    --telegram-light: 200 100% 60%;
+    --telegram-dark: 200 100% 40%;
+
+    /* Status Colors */
+    --status-success: 120 100% 30%;
+    --status-success-foreground: 0 0% 100%;
+    --status-warning: 45 100% 50%;
+    --status-warning-foreground: 0 0% 0%;
+    --status-info: 200 100% 50%;
+    --status-info-foreground: 0 0% 100%;
+    --status-error: 0 100% 50%;
+    --status-error-foreground: 0 0% 100%;
+
+    /* Sidebar Colors */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 221.2 83.2% 53.3%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222.2 84% 4.9%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 221.2 83.2% 53.3%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-foreground)));
+    --gradient-brand: linear-gradient(135deg, hsl(var(--dc-brand)), hsl(var(--dc-brand-light)));
+    --gradient-telegram: linear-gradient(135deg, hsl(var(--telegram)), hsl(var(--telegram-light)));
+    --gradient-card: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    --gradient-navigation: linear-gradient(90deg, hsl(var(--background)), hsl(var(--card)));
+
+    /* Shadows */
+    --shadow-telegram: 0 4px 20px hsl(var(--telegram) / 0.3);
+    --shadow-primary: 0 4px 20px hsl(var(--primary) / 0.3);
+    --shadow-lg: 0 10px 30px -5px hsl(var(--foreground) / 0.1);
+
+    /* Transitions */
+    --transition-base: cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: cubic-bezier(0.4, 0, 1, 1);
+    --transition-slow: cubic-bezier(0, 0, 0.2, 1);
+
+    /* Chart colors */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
