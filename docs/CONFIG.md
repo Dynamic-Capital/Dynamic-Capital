@@ -14,6 +14,7 @@ below.
 | SUPABASE_DB_PASSWORD      | ✅                           | ✅                               | ✅                          |
 | TELEGRAM_BOT_TOKEN        | ✅                           | ✅                               | ❌                          |
 | TELEGRAM_WEBHOOK_SECRET   | ✅                           | ✅                               | ❌                          |
+| ADMIN_API_SECRET          | ✅                           | ✅                               | ❌                          |
 | BENEFICIARY_TABLE         | ✅                           | ✅                               | ❌                          |
 | OPENAI_API_KEY            | ✅                           | ✅                               | ❌                          |
 | OPENAI_ENABLED            | ✅                           | ✅                               | ❌                          |
