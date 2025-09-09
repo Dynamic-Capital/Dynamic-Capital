@@ -76,7 +76,8 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
 
       // Show uploader if payment is pending and no receipt uploaded yet
       const webhookData = data.webhook_data as any;
-      setShowUploader(data.status === 'pending' && !webhookData?.storage_path);
+      const needsResubmit = ['pending_review', 'failed'].includes(data.status);
+      setShowUploader((data.status === 'pending' && !webhookData?.storage_path) || needsResubmit);
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch payment status');
     } finally {
@@ -93,6 +94,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
       case 'completed':
         return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 'pending':
+      case 'pending_review':
         return <Clock className="h-5 w-5 text-yellow-500" />;
       case 'failed':
         return <XCircle className="h-5 w-5 text-dc-brand" />;
@@ -107,6 +109,8 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
         return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Completed</Badge>;
       case 'pending':
         return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Pending Review</Badge>;
+      case 'pending_review':
+        return <Badge variant="outline">Manual Review</Badge>;
       case 'failed':
         return <Badge className="bg-dc-brand/10 text-dc-brand-dark border-dc-brand/20">Failed</Badge>;
       default:
@@ -197,10 +201,19 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
               <Clock className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="text-yellow-600">
                 <strong>Payment Under Review</strong>
-                {payment.webhook_data?.storage_path 
+                {payment.webhook_data?.storage_path
                   ? ' Your receipt has been uploaded and is being processed.'
                   : ' Please upload your payment receipt to continue.'
                 }
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {payment.status === 'pending_review' && (
+            <Alert className="border-yellow-500/20 bg-yellow-500/10">
+              <Clock className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-600">
+                <strong>Manual Review Required</strong> Our team will check your payment. You may re-upload your receipt if needed.
               </AlertDescription>
             </Alert>
           )}

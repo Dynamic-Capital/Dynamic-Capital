@@ -486,6 +486,7 @@ export type DatabaseTable =
 export const PAYMENT_STATUSES = [
   "pending",
   "awaiting_admin",
+  "pending_review",
   "completed",
   "failed",
   "refunded",

@@ -34,6 +34,7 @@ export const SUPABASE_CONFIG = {
     ADMIN_BANS: 'admin-bans',
     ADMIN_LOGS: 'admin-logs',
     ADMIN_ACT_ON_PAYMENT: 'admin-act-on-payment',
+    ADMIN_REVIEW_PAYMENT: 'admin-review-payment',
     ADMIN_LIST_PENDING: 'admin-list-pending',
     ADMIN_CHECK: 'admin-check',
 

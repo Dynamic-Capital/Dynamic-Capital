@@ -45,6 +45,8 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [retrying, setRetrying] = useState(false);
   const [isTelegram, setIsTelegram] = useState(false);
   const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
   const [showReceipt, setShowReceipt] = useState(false);
@@ -178,6 +180,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
   const handleFileUpload = async () => {
     if (!uploadedFile || !paymentId) return;
     setUploading(true);
+    setUploadStatus('idle');
     try {
       const uploadRequestBody: any = {
         payment_id: paymentId,
@@ -218,12 +221,21 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
       });
       if (submitError) throw submitError;
       setCurrentStep("pending");
+      setUploadStatus('success');
       toast.success('Receipt uploaded successfully! Your payment is being reviewed.');
     } catch (error: any) {
+      setUploadStatus('error');
       toast.error(error.message || 'Failed to upload receipt');
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleRetryUpload = async () => {
+    if (!uploadedFile) return;
+    setRetrying(true);
+    await handleFileUpload();
+    setRetrying(false);
   };
 
   const calculateFinalPrice = () => {
@@ -340,6 +352,9 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
                 setUploadedFile={setUploadedFile}
                 handleFileUpload={handleFileUpload}
                 uploading={uploading}
+                uploadStatus={uploadStatus}
+                handleRetry={handleRetryUpload}
+                retrying={retrying}
               />
             )}
 
