@@ -1,7 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, TrendingUp, Star, Shield, Users, Sparkles, MessageSquare, Award } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  TrendingUp,
+  Star,
+  Shield,
+  Users,
+  Sparkles,
+  MessageSquare,
+  Award,
+  type LucideIcon,
+} from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import useEmblaCarousel from 'embla-carousel-react';
 import { cn } from "@/lib/utils";
@@ -14,7 +25,7 @@ interface ServiceStackCarouselProps {
 }
 
 interface ServiceItem {
-  icon: React.ElementType;
+  icon: LucideIcon;
   title: string;
   description: string;
   color: string;
