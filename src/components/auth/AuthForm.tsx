@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export function AuthForm() {
   const { signIn, signUp } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -41,29 +43,34 @@ export function AuthForm() {
     setLoading(true);
     setError(null);
 
-    if (!formData.email || !formData.password) {
-      setError("Please fill in all fields");
-      setLoading(false);
-      return;
-    }
-
-    const { error } = await signIn(formData.email, formData.password);
-
-    if (error) {
-      if (error.message.includes("Invalid login credentials")) {
-        setError(
-          "Invalid email or password. Please check your credentials and try again.",
-        );
-      } else if (error.message.includes("Email not confirmed")) {
-        setError(
-          "Please check your email and click the confirmation link before signing in.",
-        );
-      } else {
-        setError(error.message);
+    try {
+      if (!formData.email || !formData.password) {
+        setError("Please fill in all fields");
+        return;
       }
-    }
 
-    setLoading(false);
+      const { error } = await signIn(formData.email, formData.password);
+
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          setError(
+            "Invalid email or password. Please check your credentials and try again.",
+          );
+        } else if (error.message.includes("Email not confirmed")) {
+          setError(
+            "Please check your email and click the confirmation link before signing in.",
+          );
+        } else {
+          setError(error.message);
+        }
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -71,48 +78,51 @@ export function AuthForm() {
     setLoading(true);
     setError(null);
 
-    if (!formData.email || !formData.password || !formData.firstName) {
-      setError("Please fill in all required fields");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      setLoading(false);
-      return;
-    }
-
-    const { error } = await signUp(
-      formData.email,
-      formData.password,
-      formData.firstName,
-      formData.lastName,
-    );
-
-    if (error) {
-      if (error.message.includes("User already registered")) {
-        setError(
-          "An account with this email already exists. Please sign in instead.",
-        );
-      } else {
-        setError(error.message);
+    try {
+      if (!formData.email || !formData.password || !formData.firstName) {
+        setError("Please fill in all required fields");
+        return;
       }
-    } else {
-      setError(null);
-      // Show success message
-      alert(
-        "Account created successfully! Please check your email for a confirmation link.",
-      );
-    }
 
-    setLoading(false);
+      if (formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match");
+        return;
+      }
+
+      if (formData.password.length < 6) {
+        setError("Password must be at least 6 characters long");
+        return;
+      }
+
+      const { error } = await signUp(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName,
+      );
+
+      if (error) {
+        if (error.message.includes("User already registered")) {
+          setError(
+            "An account with this email already exists. Please sign in instead.",
+          );
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError(null);
+        toast({
+          title: "Account created successfully",
+          description: "Please check your email for a confirmation link.",
+        });
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
