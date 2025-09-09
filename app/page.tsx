@@ -1,46 +1,17 @@
 export default function HomePage() {
   return (
-    <div style={{ 
-      padding: '40px', 
-      textAlign: 'center',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      minHeight: '100vh',
-      backgroundColor: '#f8fafc'
-    }}>
-      <h1 style={{ 
-        color: '#2563eb', 
-        fontSize: '2.5rem',
-        marginBottom: '1rem',
-        fontWeight: 'bold'
-      }}>
+    <div className="min-h-screen bg-slate-50 p-10 text-center font-sans">
+      <h1 className="mb-4 text-4xl font-bold text-blue-600">
         Dynamic Capital VIP Bot
       </h1>
-      <p style={{ 
-        color: '#6b7280',
-        fontSize: '1.1rem',
-        marginBottom: '2rem'
-      }}>
+      <p className="mb-8 text-lg text-gray-500">
         Telegram VIP Bot Management System
       </p>
-      <div style={{
-        padding: '2rem',
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        maxWidth: '600px',
-        margin: '0 auto'
-      }}>
-        <h2 style={{
-          fontSize: '1.5rem',
-          marginBottom: '1rem',
-          color: '#374151'
-        }}>
+      <div className="mx-auto max-w-xl rounded-xl bg-white p-8 shadow-lg">
+        <h2 className="mb-4 text-2xl text-gray-700">
           Welcome to Dynamic Capital
         </h2>
-        <p style={{
-          color: '#6b7280',
-          lineHeight: '1.6'
-        }}>
+        <p className="leading-relaxed text-gray-500">
           Your premium Telegram bot for VIP services and crypto management.
         </p>
       </div>
