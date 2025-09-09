@@ -7,6 +7,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const GITHUB_PAT = Deno.env.get('GITHUB_PAT');
+const GITHUB_REPO = Deno.env.get('GITHUB_REPO'); // format: owner/name
+const DEFAULT_BRANCH = Deno.env.get('GITHUB_DEFAULT_BRANCH') ?? 'main';
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -36,27 +40,38 @@ serve(async (req) => {
     return json({ ok: false, error: 'Method not allowed' }, 405);
 
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('GitHub cleanup error:', error);
-    return oops('Internal server error', error.message);
+    return oops('Internal server error', message);
   }
 });
 
 async function performGitHubCleanup(supabase: any) {
   console.log('🧹 Starting GitHub cleanup process...');
-  
+
   try {
+    if (!GITHUB_PAT || !GITHUB_REPO) {
+      throw new Error('Missing GITHUB_PAT or GITHUB_REPO');
+    }
+    const [owner, repo] = GITHUB_REPO.split('/');
+
     // Log cleanup start
     await supabase.from('admin_logs').insert({
       action_type: 'github_cleanup_start',
       action_description: 'Started automated GitHub cleanup process',
     });
 
-    const duplicateFiles = await identifyDuplicateFiles();
-    const unusedFiles = await identifyUnusedFiles();
+    const tree = await fetchRepoTree(owner, repo);
+    const duplicateFiles = identifyDuplicateFiles(tree);
+    const unusedFiles = identifyUnusedFiles(tree);
+    const filesToRemove = [...duplicateFiles, ...unusedFiles];
+
+    await createCleanupBranchAndPR(owner, repo, filesToRemove);
+
     const cleanupSummary = {
       duplicate_files: duplicateFiles,
       unused_files: unusedFiles,
-      total_removable: duplicateFiles.length + unusedFiles.length,
+      total_removable: filesToRemove.length,
       cleanup_date: new Date().toISOString()
     };
 
@@ -77,92 +92,93 @@ async function performGitHubCleanup(supabase: any) {
     return cleanupSummary;
 
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('❌ GitHub cleanup failed:', error);
-    
+
     await supabase.from('admin_logs').insert({
       action_type: 'github_cleanup_error',
-      action_description: `Cleanup failed: ${error.message}`,
+      action_description: `Cleanup failed: ${message}`,
     });
 
     throw error;
   }
 }
 
-async function identifyDuplicateFiles(): Promise<string[]> {
-  // Files that are likely duplicates or unnecessary
-  const duplicatePatterns = [
-    // Old admin components that might be duplicated
-    'src/components/admin/AdminDashboard.tsx', // If there's a newer version
-    'src/components/admin/BotDebugger.tsx', // If functionality moved elsewhere
-    
-    // Potential duplicate styling files
-    'src/App.css', // If styles moved to index.css
-    
-    // Test files in wrong locations
-    'src/**/*.test.tsx',
-    'src/**/*.test.ts',
-    
-    // Backup or old files
-    'src/**/*.backup.*',
-    'src/**/*.old.*',
-    'src/**/*_old.*',
-    'src/**/*_backup.*',
-    
-    // Duplicate Mini App files (if main app has same functionality)
-    'supabase/functions/miniapp/src/components/ui/**', // If shadcn components are duplicated
-    
-    // Old configuration files
-    'postcss.config.js', // If not needed
-    
-    // Redundant documentation
-    'docs/CLEANUP_AND_CODEMODS.md', // If cleanup is automated
-    'docs/CONFIG.md', // If covered elsewhere
-  ];
-
-  console.log('🔍 Identifying duplicate files...');
-  return duplicatePatterns.filter(pattern => {
-    // In a real implementation, you'd check if the file exists and has duplicates
-    console.log(`  📁 Checking pattern: ${pattern}`);
-    return true; // Placeholder - would implement actual file checking
+async function fetchRepoTree(owner: string, repo: string) {
+  const resp = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${DEFAULT_BRANCH}?recursive=1`, {
+    headers: {
+      Authorization: `token ${GITHUB_PAT}`,
+      'User-Agent': 'github-cleanup-function',
+      Accept: 'application/vnd.github+json',
+    },
   });
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch repository tree: ${resp.status}`);
+  }
+  const data = await resp.json();
+  return data.tree.filter((item: any) => item.type === 'blob');
 }
 
-async function identifyUnusedFiles(): Promise<string[]> {
-  // Files that might be unused or obsolete
-  const potentiallyUnusedFiles = [
-    // Old build artifacts
-    'dist/**',
-    'build/**',
-    
-    // Unused assets
-    'public/placeholder.svg', // If using generated images instead
-    
-    // Development files that shouldn't be in production
-    '.denoignore', // If not using Deno
-    'deno.json',
-    'deno.jsonc',
-    'deno.lock',
-    
-    // Old migration files (keep recent ones)
-    'supabase/migrations/*_old_*.sql',
-    
-    // Unused components
-    'src/components/welcome/WelcomeMessage.tsx', // If not used in main app
-    
-    // Redundant scripts
-    'scripts/audit/**', // If automated
-    'scripts/cleanup/**', // If automated
-    'scripts/verify/**', // If automated
-    
-    // Old types
-    'types/deno.d.ts', // If not using Deno
-    'types/tesseract.d.ts', // If not using Tesseract
-  ];
+function identifyDuplicateFiles(tree: any[]): string[] {
+  console.log('🔍 Identifying duplicate files...');
+  const nameMap = new Map<string, string[]>();
+  for (const file of tree) {
+    const base = file.path.split('/').pop();
+    if (!base) continue;
+    const arr = nameMap.get(base) ?? [];
+    arr.push(file.path);
+    nameMap.set(base, arr);
+  }
+  return Array.from(nameMap.values()).filter(list => list.length > 1).flat();
+}
 
+function identifyUnusedFiles(tree: any[]): string[] {
   console.log('🔍 Identifying unused files...');
-  return potentiallyUnusedFiles.filter(file => {
-    console.log(`  📄 Checking file: ${file}`);
-    return true; // Placeholder - would implement actual usage checking
+  const patterns = [/\.backup\./, /\.old\./, /_old\./, /_backup\./];
+  return tree
+    .map((f: any) => f.path)
+    .filter((path: string) => patterns.some((re) => re.test(path)));
+}
+
+async function createCleanupBranchAndPR(owner: string, repo: string, files: string[]) {
+  if (files.length === 0) {
+    return;
+  }
+  const branchName = `cleanup/${Date.now()}`;
+
+  // Get latest commit on default branch
+  const refResp = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${DEFAULT_BRANCH}`, {
+    headers: { Authorization: `token ${GITHUB_PAT}`, Accept: 'application/vnd.github+json' },
+  });
+  if (!refResp.ok) throw new Error('Failed to fetch branch reference');
+  const refData = await refResp.json();
+  await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
+    method: 'POST',
+    headers: { Authorization: `token ${GITHUB_PAT}`, Accept: 'application/vnd.github+json' },
+    body: JSON.stringify({ ref: `refs/heads/${branchName}`, sha: refData.object.sha }),
+  });
+
+  // Delete up to five files to keep runtime small
+  const tree = await fetchRepoTree(owner, repo);
+  for (const path of files.slice(0, 5)) {
+    const file = tree.find((f: any) => f.path === path);
+    if (!file) continue;
+    await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      method: 'DELETE',
+      headers: { Authorization: `token ${GITHUB_PAT}`, Accept: 'application/vnd.github+json' },
+      body: JSON.stringify({ message: `chore: remove unused file ${path}`, branch: branchName, sha: file.sha }),
+    });
+  }
+
+  await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
+    method: 'POST',
+    headers: { Authorization: `token ${GITHUB_PAT}`, Accept: 'application/vnd.github+json' },
+    body: JSON.stringify({
+      title: 'chore: remove unused files',
+      head: branchName,
+      base: DEFAULT_BRANCH,
+      body: `Removed ${files.slice(0, 5).length} files identified as duplicates or unused.`,
+    }),
   });
 }
 
@@ -181,8 +197,9 @@ async function getCleanupStatus(supabase: any) {
     return ok({ status: 'completed', analysis: analysis.value });
 
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('❌ Error fetching cleanup status:', error);
-    return oops('Failed to fetch cleanup status', error.message);
+    return oops('Failed to fetch cleanup status', message);
   }
 }
 

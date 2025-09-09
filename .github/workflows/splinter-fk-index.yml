@@ -25,8 +25,9 @@ jobs:
       - name: Commit & PR if changes
         if: ${{ hashFiles('supabase/migrations/**_add_fk_indexes.sql') != '' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_WORKFLOW }}
         run: |
+          set +x
           BR="chore/add-fk-indexes-$(date +%Y%m%d%H%M%S)"
           git checkout -b "$BR"
           git add supabase/migrations/**_add_fk_indexes.sql .out/splinter_report.csv

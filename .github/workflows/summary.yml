@@ -27,8 +27,9 @@ jobs:
 
       - name: Comment with AI summary
         run: |
+          set +x
           gh issue comment $ISSUE_NUMBER --body '${{ steps.inference.outputs.response }}'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PAT_WORKFLOW }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           RESPONSE: ${{ steps.inference.outputs.response }}
