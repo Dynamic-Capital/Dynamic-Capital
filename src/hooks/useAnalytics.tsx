@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { TrackEventResponse } from '@/types/api';
 
 // Client-only hook: interacts with window, document, and navigator
 
@@ -48,7 +49,7 @@ export const useAnalytics = () => {
       }
 
       // Call analytics edge function
-      const { error } = await supabase.functions.invoke('web-app-analytics', {
+      const { error } = await supabase.functions.invoke<TrackEventResponse>('web-app-analytics', {
         body: eventWithContext,
       });
 
