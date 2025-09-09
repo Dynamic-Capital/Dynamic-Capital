@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Users, TrendingUp, Star, Smartphone, CheckCircle, Clock, AlertCircle, ExternalLink, Monitor } from "lucide-react";
+import { MINI_APP_URL } from "@/config";
 
 interface MiniAppPreviewProps {
   className?: string;
@@ -13,7 +14,7 @@ export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
   const [activeTab, setActiveTab] = useState("home");
   const [viewMode, setViewMode] = useState<"deployed" | "inline">("deployed");
 
-  const miniAppUrl = "https://chatty-telly-bot.lovable.app/miniapp/";
+  const miniAppUrl = MINI_APP_URL;
 
   const tabs = [
     { id: "home", label: "Home", icon: Star },
@@ -67,6 +68,9 @@ export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
                 src={miniAppUrl}
                 className="w-full h-full rounded-lg border border-border"
                 title="Dynamic Capital Mini App"
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin"
+                referrerPolicy="no-referrer"
               />
             </div>
           ) : (
