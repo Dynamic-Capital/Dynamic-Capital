@@ -8,6 +8,12 @@ export function getEnvVar(name: string): string | undefined {
     const nextKey = `NEXT_PUBLIC_${name}`;
     if (process.env[nextKey]) return process.env[nextKey];
   }
+  if (typeof import.meta !== "undefined" && import.meta.env) {
+    const env: Record<string, string | undefined> = (import.meta as any).env;
+    if (env[name]) return env[name];
+    const nextKey = `NEXT_PUBLIC_${name}`;
+    if (env[nextKey]) return env[nextKey];
+  }
   return undefined;
 }
 
