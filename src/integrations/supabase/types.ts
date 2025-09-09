@@ -1040,7 +1040,7 @@ export type Database = {
           is_active: boolean | null
           last_name: string | null
           phone: string | null
-          role: string | null
+          role: Database["public"]["Enums"]["user_role_enum"]
           telegram_id: string | null
           updated_at: string | null
           username: string | null
@@ -1055,7 +1055,7 @@ export type Database = {
           is_active?: boolean | null
           last_name?: string | null
           phone?: string | null
-          role?: string | null
+          role?: Database["public"]["Enums"]["user_role_enum"]
           telegram_id?: string | null
           updated_at?: string | null
           username?: string | null
@@ -1070,7 +1070,7 @@ export type Database = {
           is_active?: boolean | null
           last_name?: string | null
           phone?: string | null
-          role?: string | null
+          role?: Database["public"]["Enums"]["user_role_enum"]
           telegram_id?: string | null
           updated_at?: string | null
           username?: string | null
@@ -1696,7 +1696,7 @@ export type Database = {
       }
       get_user_role: {
         Args: { user_telegram_id: string }
-        Returns: string
+        Returns: Database["public"]["Enums"]["user_role_enum"]
       }
       get_user_subscription_status: {
         Args: { telegram_user_id: string }
@@ -1765,7 +1765,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      user_role_enum: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
