@@ -32,7 +32,7 @@ interface Promotion {
 
 interface TelegramMessage {
   chat: { id: number; type?: string };
-  from?: { id?: number; username?: string };
+  from?: { id?: number; username?: string; first_name?: string; last_name?: string };
   message_id?: number;
   text?: string;
   caption?: string;
@@ -1029,9 +1029,12 @@ async function fetchActiveContactLinks(): Promise<string> {
     }
 
     return links
-      .map((link) => 
-        `${link.icon_emoji || "🔗"} ${link.display_name}: ${link.url}`
-      )
+      .map((link: {
+        platform: string;
+        display_name: string;
+        url: string;
+        icon_emoji?: string;
+      }) => `${link.icon_emoji || "🔗"} ${link.display_name}: ${link.url}`)
       .join("\n");
   } catch (error) {
     console.error("Error fetching contact links:", error);
@@ -1289,7 +1292,7 @@ async function handleManageVipUsers(chatId: number, userId: string): Promise<voi
     
     if (vipUsers && vipUsers.length > 0) {
       message += "Current VIP Users:\n";
-      vipUsers.forEach((user, index) => {
+      vipUsers.forEach((user: any, index: number) => {
         const name = user.first_name || user.username || user.telegram_id;
         message += `${index + 1}. ${name} (${user.telegram_id})\n`;
       });
@@ -1343,11 +1346,11 @@ async function handleExportUsers(chatId: number, userId: string): Promise<void> 
     // Create a simple text summary
     let exportText = `📊 **User Export Summary**\n\n`;
     exportText += `Total Users: ${users.length}\n`;
-    exportText += `VIP Users: ${users.filter(u => u.is_vip).length}\n`;
-    exportText += `Admin Users: ${users.filter(u => u.is_admin).length}\n\n`;
+    exportText += `VIP Users: ${users.filter((u: any) => u.is_vip).length}\n`;
+    exportText += `Admin Users: ${users.filter((u: any) => u.is_admin).length}\n\n`;
     exportText += `Recent Users:\n`;
     
-    users.slice(0, 10).forEach((user, index) => {
+    users.slice(0, 10).forEach((user: any, index: number) => {
       const name = user.first_name || user.username || "Unknown";
       const status = user.is_vip ? "💎" : user.is_admin ? "👑" : "👤";
       exportText += `${index + 1}. ${status} ${name} (${user.telegram_id})\n`;

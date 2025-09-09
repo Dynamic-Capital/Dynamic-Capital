@@ -88,7 +88,8 @@ export async function handleVipFullSync(
 
   } catch (error) {
     console.error("VIP full sync error:", error);
-    await sendMessage(chatId, `❌ VIP sync failed: ${error.message}`);
+    const msg = error instanceof Error ? error.message : String(error);
+    await sendMessage(chatId, `❌ VIP sync failed: ${msg}`);
   }
 }
 
@@ -165,7 +166,8 @@ export async function handleVipAssignLifetimeConfirm(
 
   } catch (error) {
     console.error("VIP lifetime assignment error:", error);
-    await sendMessage(chatId, `❌ Lifetime assignment failed: ${error.message}`);
+    const msg = error instanceof Error ? error.message : String(error);
+    await sendMessage(chatId, `❌ Lifetime assignment failed: ${msg}`);
   }
 }
 
@@ -249,7 +251,8 @@ ${lifetime_assigned ? '🎁 Lifetime membership assigned!' : ''}
 
   } catch (error) {
     console.error("Single user sync error:", error);
-    await sendMessage(chatId, `❌ User sync failed: ${error.message}`);
+    const msg = error instanceof Error ? error.message : String(error);
+    await sendMessage(chatId, `❌ User sync failed: ${msg}`);
   }
 }
 
@@ -309,7 +312,8 @@ export async function handleVipViewStatus(
 
   } catch (error) {
     console.error("VIP status view error:", error);
-    await sendMessage(chatId, `❌ Failed to fetch VIP status: ${error.message}`);
+    const msg = error instanceof Error ? error.message : String(error);
+    await sendMessage(chatId, `❌ Failed to fetch VIP status: ${msg}`);
   }
 }
 
@@ -351,6 +355,7 @@ Use /cancel to abort.`;
     await sendMessage(chatId, message);
   } catch (error) {
     console.error("VIP configure channels error:", error);
-    await sendMessage(chatId, `❌ Error fetching channel configuration: ${error.message}`);
+    const msg = error instanceof Error ? error.message : String(error);
+    await sendMessage(chatId, `❌ Error fetching channel configuration: ${msg}`);
   }
 }

@@ -28,7 +28,9 @@ export type EnvKey =
   | "SESSION_TIMEOUT_MINUTES"
   | "FOLLOW_UP_DELAY_MINUTES"
   | "MAX_FOLLOW_UPS"
-  | "CRYPTO_DEPOSIT_ADDRESS";
+  | "CRYPTO_DEPOSIT_ADDRESS"
+  | "VIP_CHANNELS"
+  | "VIP_EXPIRY_GRACE_DAYS";
 
 /** Test-only env injection type */
 type TestEnv = Partial<Record<EnvKey, string>>;

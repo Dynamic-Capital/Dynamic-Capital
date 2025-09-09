@@ -90,7 +90,8 @@ The system is identifying:
 
   } catch (error) {
     console.error("GitHub analysis error:", error);
-    await sendMessage(chatId, `❌ Analysis failed: ${error.message}`);
+    const msg = error instanceof Error ? error.message : String(error);
+    await sendMessage(chatId, `❌ Analysis failed: ${msg}`);
   }
 }
 
@@ -161,7 +162,8 @@ Start an analysis to identify duplicate and unused files.`;
 
   } catch (error) {
     console.error("GitHub status error:", error);
-    await sendMessage(chatId, `❌ Failed to fetch status: ${error.message}`);
+    const msg = error instanceof Error ? error.message : String(error);
+    await sendMessage(chatId, `❌ Failed to fetch status: ${msg}`);
   }
 }
 

@@ -27,7 +27,13 @@ export async function handleContentManagement(
     const lines: string[] = [];
     const buttons: { text: string; callback_data: string }[][] = [];
 
-    (content || []).forEach((item, index) => {
+    (content || []).forEach(
+      (item: {
+        content_key: string;
+        content_value: string;
+        is_active: boolean;
+        updated_at: string;
+      }, index: number) => {
       const status = item.is_active ? "🟢" : "🔴";
       const preview = item.content_value.substring(0, 50) + "...";
       lines.push(
