@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useSupabase } from '@/context/SupabaseProvider';
 import { callEdgeFunction, SUPABASE_CONFIG } from "@/config/supabase";
 
@@ -12,12 +13,12 @@ type CallOptions = {
 export function useEdgeFunction() {
   const { session } = useSupabase();
 
-  return async function edgeFunction<T>(
-    name: FunctionName,
-    options: CallOptions = {},
-  ) {
-    const token = session?.access_token;
-    return callEdgeFunction<T>(name, { ...options, token });
-  };
+  return useCallback(
+    async <T,>(name: FunctionName, options: CallOptions = {}) => {
+      const token = session?.access_token;
+      return callEdgeFunction<T>(name, { ...options, token });
+    },
+    [session?.access_token],
+  );
 }
 
