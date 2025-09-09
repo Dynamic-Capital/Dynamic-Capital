@@ -28,13 +28,18 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
     setUploadStatus('idle');
 
     try {
+      const initData = (window as any).Telegram?.WebApp?.initData;
+
       // Get upload URL
+      const uploadBody: any = {
+        payment_id: paymentId,
+        filename: uploadedFile.name,
+        content_type: uploadedFile.type,
+      };
+      if (initData) uploadBody.initData = initData;
+
       const { data: uploadData, error: uploadError } = await supabase.functions.invoke('receipt-upload-url', {
-        body: { 
-          payment_id: paymentId,
-          filename: uploadedFile.name,
-          content_type: uploadedFile.type
-        }
+        body: uploadBody,
       });
 
       if (uploadError) throw uploadError;
@@ -47,7 +52,7 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
       const uploadResponse = await fetch(uploadData.upload_url, {
         method: 'PUT',
         body: uploadedFile,
-        headers: { 
+        headers: {
           'Content-Type': uploadedFile.type,
           'x-amz-acl': 'private'
         }
@@ -59,12 +64,15 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
       }
 
       // Submit receipt
+      const submitBody: any = {
+        payment_id: paymentId,
+        file_path: uploadData.file_path,
+        bucket: uploadData.bucket,
+      };
+      if (initData) submitBody.initData = initData;
+
       const { error: submitError } = await supabase.functions.invoke('receipt-submit', {
-        body: { 
-          payment_id: paymentId,
-          file_path: uploadData.file_path,
-          storage_bucket: uploadData.bucket
-        }
+        body: submitBody,
       });
 
       if (submitError) throw submitError;
