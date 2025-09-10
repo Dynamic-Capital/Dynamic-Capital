@@ -14,7 +14,7 @@ async function signSession(user_id: number, ttlSeconds = 1800) {
   }, secret);
 }
 
-serve(async (req) => {
+async function handler(req: Request): Promise<Response> {
   try {
     const { initData } = await req.json();
     if (!initData) {
@@ -67,6 +67,10 @@ serve(async (req) => {
       status: 500,
     });
   }
-});
+}
+
+if (import.meta.main) serve(handler);
+
+export default handler;
 // <<< DC BLOCK: tg-verify-core (end)
 
