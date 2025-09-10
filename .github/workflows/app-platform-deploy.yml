@@ -1,0 +1,19 @@
+name: Deploy to DigitalOcean App Platform
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy
+        uses: digitalocean/app_action/deploy@v2
+        with:
+          token: ${{ secrets.DO_API_TOKEN }}
+          app_name: ${{ secrets.DO_APP_NAME }}
+          project_id: ${{ secrets.DO_PROJECT_ID }}
+          print_build_logs: true
+          print_deploy_logs: true
