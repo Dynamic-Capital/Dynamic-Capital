@@ -10,6 +10,7 @@
     "dev": "next dev",
     "build": "next build",
     "preview": "next start -p 8080",
+    "preview:miniapp": "cd supabase/functions/miniapp && npm run preview",
     "start": "next start",
     "lint": "eslint .",
     "test": "deno test --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors=deno.land,cdn.skypack.dev,registry.npmjs.org -A --no-check",
