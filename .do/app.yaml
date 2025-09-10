@@ -1,0 +1,56 @@
+name: dynamic-chatty-bot
+services:
+  - name: web
+    source_dir: apps/web
+    environment_slug: node-js
+    build_command: npm ci && npm run build
+    run_command: npm run start
+    http_port: 3000
+    routes:
+      - path: /
+      - path: /:splat
+    envs:
+      - key: SUPABASE_URL
+        scope: RUN_TIME
+        type: GENERAL
+        value: ${SUPABASE_URL}
+      - key: SUPABASE_ANON_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: ${SUPABASE_ANON_KEY}
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: ${SUPABASE_SERVICE_ROLE_KEY}
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL
+        value: ${NEXT_PUBLIC_SUPABASE_URL}
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL
+        value: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - key: SITE_URL
+        scope: RUN_TIME
+        type: GENERAL
+        value: ${SITE_URL}
+      - key: NEXT_PUBLIC_SITE_URL
+        scope: RUN_AND_BUILD_TIME
+        type: GENERAL
+        value: ${NEXT_PUBLIC_SITE_URL}
+      - key: TELEGRAM_BOT_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+        value: ${TELEGRAM_BOT_TOKEN}
+      - key: TELEGRAM_WEBHOOK_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: ${TELEGRAM_WEBHOOK_SECRET}
+      - key: SESSION_JWT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: ${SESSION_JWT_SECRET}
+      - key: ALLOWED_ORIGINS
+        scope: RUN_TIME
+        type: GENERAL
+        value: ${ALLOWED_ORIGINS}
