@@ -955,21 +955,26 @@ async function storeReceiptImage(
   storagePath: string,
 ): Promise<string> {
   const supabase = getSupabase();
-  await supabase?.storage.from("payment-receipts").upload(storagePath, blob, {
-    contentType: blob.type || undefined,
-  });
+  const result = await supabase?.storage
+    .from("payment-receipts")
+    .upload(storagePath, blob, { contentType: blob.type || undefined });
+  const error = result?.error;
+  if (error) {
+    console.error("storeReceiptImage upload error", error);
+    throw error;
+  }
   return storagePath;
 }
 
-/** Ensure bot user exists and return true if this is a new user */
+/** Ensure bot user exists and report whether this is a new user */
 async function ensureBotUserExists(
   telegramUserId: string,
   firstName?: string,
   lastName?: string,
   username?: string,
-): Promise<boolean> {
+): Promise<{ created: boolean }> {
   const supa = getSupabase();
-  if (!supa) return false;
+  if (!supa) throw new Error("Supabase client unavailable");
 
   try {
     // Check if user exists
@@ -992,7 +997,7 @@ async function ensureBotUserExists(
           })
           .eq("telegram_id", telegramUserId);
       }
-      return false; // Returning user
+      return { created: false };
     }
 
     // Create new user
@@ -1003,10 +1008,10 @@ async function ensureBotUserExists(
       username: username,
     });
 
-    return true; // New user
+    return { created: true };
   } catch (error) {
     console.error("Error in ensureBotUserExists:", error);
-    return false;
+    throw error;
   }
 }
 
@@ -1082,8 +1087,19 @@ export const commandHandlers: Record<string, CommandHandler> = {
     const lastName = msg?.from?.last_name;
     const username = msg?.from?.username;
     
-    // Ensure user exists 
-    const isNewUser = await ensureBotUserExists(telegramUserId, firstName, lastName, username);
+    // Ensure user exists
+    let isNewUser = false;
+    try {
+      const result = await ensureBotUserExists(
+        telegramUserId,
+        firstName,
+        lastName,
+        username,
+      );
+      isNewUser = result.created;
+    } catch (error) {
+      console.error("ensureBotUserExists error", error);
+    }
     
     // Get welcome message with improved default
     const welcomeMessage = await getContent("welcome_message") ?? 
@@ -1767,7 +1783,15 @@ export async function startReceiptPipeline(
     ).then((r) => r.blob());
     const hash = await hashBytesToSha256(blob);
     const storagePath = `receipts/${chatId}/${hash}`;
-    await storeReceiptImage(blob, storagePath);
+    try {
+      await storeReceiptImage(blob, storagePath);
+    } catch (error) {
+      console.error("Failed to store receipt image", error);
+      const msg = await getContent("receipt_upload_failed") ??
+        "Failed to upload receipt. Please try again later.";
+      await notifyUser(chatId, msg);
+      return;
+    }
     
     // Get plan details for proper amount
     const { data: plan } = await supa.from("subscription_plans")
