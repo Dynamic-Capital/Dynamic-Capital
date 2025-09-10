@@ -454,7 +454,16 @@ Then POST to `http://localhost:54321/functions/v1/telegram-webhook` with
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment vars, tests,
 deployment, and troubleshooting.
 
-Deploy function:
+Set your Supabase project reference for the deploy scripts:
+
+```bash
+export PROJECT_REF=<your-project-ref>
+```
+
+The commands `npm run deploy:edge`, `npm run edge:deploy:core`, and
+`npm run edge:deploy:ops` will read this variable when deploying functions.
+
+Deploy a single function manually:
 
 ```bash
 supabase functions deploy telegram-bot --project-ref <PROJECT_REF>
