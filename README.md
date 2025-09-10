@@ -362,7 +362,7 @@ on images.
 1. **Build the image**
 
    ```bash
-   docker build -t dynamic-chatty-bot .
+   docker build -f docker/Dockerfile -t dynamic-chatty-bot .
    ```
 
 2. **Run the container**
