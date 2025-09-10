@@ -295,6 +295,12 @@ npm run build:miniapp
 npm run build:all
 ```
 
+Running `npm run build` also copies the Next.js build output into `supabase/functions/_static` so edge functions serve the latest assets. During development, run the watcher to keep `_static` in sync:
+
+```bash
+npm run dev:static
+```
+
 ## API demo
 
 A simple `app/api/hello` route returns a JSON greeting. The client page in
