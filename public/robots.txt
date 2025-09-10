@@ -12,3 +12,6 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /api/*
+
+Sitemap: https://dynamic-chatty-bot.com/sitemap.xml
