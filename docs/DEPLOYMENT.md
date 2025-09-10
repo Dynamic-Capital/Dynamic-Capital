@@ -19,6 +19,21 @@ Include your database connection string or anon key as needed:
 - `SUPABASE_ANON_KEY`
 - `DATABASE_URL` (connection string)
 
+## Connectivity validation
+
+Verify the app can reach Supabase before deploying or scaling out. Run a simple
+ping and the scripted check locally or as a predeploy step:
+
+```bash
+curl -i "$SUPABASE_URL"
+deno run -A scripts/check-supabase-connectivity.ts
+```
+
+If either command fails, DigitalOcean may be blocking outbound traffic. Ensure
+egress rules permit HTTPS requests to `*.supabase.co` and increase timeouts if
+requests are dropped under load. Add retries with exponential backoff in your
+pipeline or contact Supabase support if connectivity issues persist.
+
 ## API Routing
 
 When deploying a static landing page alongside Next.js API routes, forward
