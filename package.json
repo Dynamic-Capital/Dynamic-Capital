@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "predeploy": "node scripts/predeploy.js",
-    "build": "npm run predeploy && next build && next export && node scripts/generate-static.mjs",
+    "build": "npm run predeploy && next build && node scripts/generate-static.mjs",
     "watch-static": "chokidar 'app/**/*' -c 'npm run build'",
     "preview": "next start -H 0.0.0.0 -p ${PORT:-8080}",
     "preview:miniapp": "cd supabase/functions/miniapp && npm run preview",
