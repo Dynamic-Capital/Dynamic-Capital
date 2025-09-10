@@ -66,6 +66,7 @@ example value, and where it's referenced in the repository.
 | Key                   | Purpose                                  | Required | Example                   | Used in                           |
 | --------------------- | ---------------------------------------- | -------- | ------------------------- | --------------------------------- |
 | `SITE_URL`            | Base URL for the deployed site; used for redirects and canonical host checks. | Yes      | `https://example.com`     | `next.config.mjs`, `hooks/useAuth.tsx` |
+| `NEXT_PUBLIC_API_URL`  | Base URL for client API requests. | Yes | `https://example.com/api` | `env.ts` |
 | `NODE_EXTRA_CA_CERTS` | Additional CA bundle for outbound HTTPS. | No       | `/etc/ssl/custom.pem`     | `src/utils/http-ca.ts`            |
 | `A_SUPABASE_URL`      | Supabase URL used by audit scripts.      | No       | `https://xyz.supabase.co` | `scripts/audit/read_meta.mjs`     |
 | `A_SUPABASE_KEY`      | Supabase key used by audit scripts.      | No       | `service-role-key`        | `scripts/audit/read_meta.mjs`     |
