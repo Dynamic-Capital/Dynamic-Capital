@@ -1,7 +1,7 @@
 // Supabase client and helpers
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getEnvVar } from '../../utils/env.ts';
-import type { Database } from './types';
+import type { Database } from './types.ts';
 
 const PLACEHOLDER_URL = 'https://example.supabase.co';
 const PLACEHOLDER_ANON_KEY = 'anon-key-placeholder';
@@ -85,6 +85,6 @@ export const supabase = SUPABASE_ENV_ERROR
           throw new Error('Supabase environment variables are not set.');
         },
       },
-    ) as unknown as ReturnType<typeof createSupabaseClient<Database>>)
-  : (createClient() as ReturnType<typeof createSupabaseClient<Database>>);
+    ) as unknown as SupabaseClient)
+  : (createClient() as SupabaseClient);
 
