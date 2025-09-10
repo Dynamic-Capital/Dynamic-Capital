@@ -72,12 +72,14 @@ These steps install Nginx, enable HTTPS with Certbot, and force all traffic to y
    sudo systemctl reload nginx
    ```
 
-8. **Verify and renew**
+8. **Verify redirect and HTTPS**
    - Visit `http://dynamiccapital.duckdns.org`; it should redirect to `https://dynamiccapital.duckdns.org`.
-   - Confirm certificate renewal is scheduled:
-     ```bash
-     systemctl list-timers | grep certbot
-     sudo certbot renew --dry-run
-     ```
+   - Check in your browser that the certificate is valid.
+
+9. **Confirm automatic certificate renewal**
+   ```bash
+   systemctl list-timers | grep certbot
+   sudo certbot renew --dry-run
+   ```
 
 These steps secure the DuckDNS domain with automatic HTTPS certificates.
