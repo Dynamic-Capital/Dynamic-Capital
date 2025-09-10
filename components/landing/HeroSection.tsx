@@ -21,6 +21,18 @@ const vaporVariants = {
   show: { opacity: 1, filter: "blur(0px)", y: 0, transition: { duration: 1 } }
 };
 
+const isTelegramWebApp = () => {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return false;
+  }
+  return Boolean(
+    (window as any).Telegram?.WebApp?.initData ||
+    (window as any).Telegram?.WebApp?.initDataUnsafe ||
+    window.location.search.includes("tgWebAppPlatform") ||
+    navigator.userAgent.includes("TelegramWebApp")
+  );
+};
+
 const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -176,14 +188,9 @@ const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
                   icon={<Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />}
                   onClick={() => {
                     return new Promise((resolve) => {
-                      const isInTelegram = Boolean(
-                        (window as any).Telegram?.WebApp?.initData ||
-                        (window as any).Telegram?.WebApp?.initDataUnsafe ||
-                        window.location.search.includes("tgWebAppPlatform") ||
-                        navigator.userAgent.includes("TelegramWebApp")
-                      );
+                      const inTelegram = isTelegramWebApp();
                       setTimeout(() => {
-                        if (isInTelegram) {
+                        if (inTelegram) {
                           router.push("/miniapp?tab=plan");
                         } else {
                           router.push("/plans");
