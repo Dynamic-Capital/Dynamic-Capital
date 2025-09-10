@@ -1,6 +1,10 @@
 import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 let withSentryConfig = (config) => config;
 try {
   ({ withSentryConfig } = require('@sentry/nextjs'));
@@ -67,6 +71,7 @@ const nextConfig = {
     if (!dev) {
       config.cache = {
         type: 'filesystem',
+        cacheDirectory: path.join(__dirname, '.next/cache/webpack'),
         buildDependencies: {
           config: [__filename],
         },
@@ -74,58 +79,57 @@ const nextConfig = {
     }
     return config;
   },
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [
-          { type: 'header', key: 'x-forwarded-proto', value: 'http' },
-        ],
-        destination: 'https://:host/:path*',
-        permanent: true,
-      },
-      {
-        source: '/:path*',
-        has: [
-          { type: 'host', value: 'urchin-app-macix.ondigitalocean.app' },
-        ],
-        destination: `https://${CANONICAL_HOST}/:path*`,
-        permanent: true,
-      },
-    ];
-  },
-  async headers() {
-    return [
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/:all*(js|css|svg|jpg|png|gif|ico|woff2?)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
-          },
-        ],
-      },
-    ];
-  },
 };
+
+if (nextConfig.output !== 'export') {
+  nextConfig.redirects = async () => [
+    {
+      source: '/:path*',
+      has: [
+        { type: 'header', key: 'x-forwarded-proto', value: 'http' },
+      ],
+      destination: 'https://:host/:path*',
+      permanent: true,
+    },
+    {
+      source: '/:path*',
+      has: [
+        { type: 'host', value: 'urchin-app-macix.ondigitalocean.app' },
+      ],
+      destination: `https://${CANONICAL_HOST}/:path*`,
+      permanent: true,
+    },
+  ];
+  nextConfig.headers = async () => [
+    {
+      source: '/_next/static/:path*',
+      headers: [
+        {
+          key: 'Cache-Control',
+          value: 'public, max-age=31536000, immutable',
+        },
+      ],
+    },
+    {
+      source: '/:all*(js|css|svg|jpg|png|gif|ico|woff2?)',
+      headers: [
+        {
+          key: 'Cache-Control',
+          value: 'public, max-age=31536000, immutable',
+        },
+      ],
+    },
+    {
+      source: '/:path*',
+      headers: [
+        {
+          key: 'Cache-Control',
+          value: 'public, max-age=0, must-revalidate',
+        },
+      ],
+    },
+  ];
+}
 
 export default withSentryConfig(nextConfig, {
   silent: true,
