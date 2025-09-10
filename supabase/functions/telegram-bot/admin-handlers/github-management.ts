@@ -176,7 +176,7 @@ export async function handleGitHubStructure(
 
 ✅ **Keep These Files:**
 📂 **Core Application**
-```
+\`\`\`
 app/
 ├── page.tsx
 ├── ...
@@ -189,10 +189,10 @@ lib/
 ├── hooks/
 ├── integrations/supabase/
 └── utils/
-```
+\`\`\`
 
 📂 **Supabase Functions**
-```
+\`\`\`
 supabase/
 ├── functions/
 │   ├── contact-links/
@@ -201,7 +201,7 @@ supabase/
 │   └── _shared/
 ├── config.toml
 └── migrations/ (recent only)
-```
+\`\`\`
 
 ❌ **Remove These Files:**
 • Old/duplicate components
