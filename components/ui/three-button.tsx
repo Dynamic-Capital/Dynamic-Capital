@@ -1,7 +1,9 @@
+"use client";
+
 import React, { useState, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
-import * as THREE from "three";
+import { MathUtils, type Mesh } from "three";
 
 export interface ThreeButtonProps {
   children: React.ReactNode;
@@ -20,17 +22,17 @@ export function ThreeButton({
 }: ThreeButtonProps) {
   const [hovered, setHovered] = useState(false);
   const [active, setActive] = useState(false);
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
     const targetScale = active ? 0.95 : hovered ? 1.1 : 1;
     const targetRotX = hovered ? -0.05 : 0;
     const targetRotY = hovered ? 0.05 : 0;
-    const s = THREE.MathUtils.lerp(meshRef.current.scale.x, targetScale, 10 * delta);
+    const s = MathUtils.lerp(meshRef.current.scale.x, targetScale, 10 * delta);
     meshRef.current.scale.set(s, s, s);
-    meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, targetRotX, 10 * delta);
-    meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, targetRotY, 10 * delta);
+    meshRef.current.rotation.x = MathUtils.lerp(meshRef.current.rotation.x, targetRotX, 10 * delta);
+    meshRef.current.rotation.y = MathUtils.lerp(meshRef.current.rotation.y, targetRotY, 10 * delta);
   });
 
   return (

@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import { callEdgeFunction } from '@/config/supabase';
 import { useAuth } from './useAuth';

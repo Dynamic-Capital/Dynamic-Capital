@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
 import { cn } from '@/utils';
@@ -98,6 +100,7 @@ interface MotionSectionProps {
     amount?: number;
   };
   variant?: SectionVariant;
+  id?: string;
 }
 
 export const MotionSection: React.FC<MotionSectionProps> = ({
@@ -106,11 +109,13 @@ export const MotionSection: React.FC<MotionSectionProps> = ({
   delay = 0,
   viewport = { once: true, amount: 0.2 },
   variant = "fadeUp",
+  id,
 }) => {
   const isMobile = useIsMobile();
   const selectedVariant = sectionVariants[variant] || sectionVariants.fadeUp;
   return (
     <motion.section
+      id={id}
       className={cn("motion-section", className)}
       variants={selectedVariant}
       initial="hidden"
