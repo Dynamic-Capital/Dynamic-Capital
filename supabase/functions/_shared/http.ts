@@ -1,19 +1,34 @@
-export const corsHeaders = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+const allowedOrigins = (Deno.env.get("ALLOWED_ORIGINS") || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+export function corsHeaders(req: Request) {
+  const origin = req.headers.get("origin");
+  const headers: Record<string, string> = {
+    "access-control-allow-headers":
+      "authorization, x-client-info, apikey, content-type",
+    "access-control-allow-methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+  };
+  if (origin && allowedOrigins.includes(origin)) {
+    headers["access-control-allow-origin"] = origin;
+  }
+  return headers;
+}
 
 export function json(
   data: unknown,
   status = 200,
   extra: Record<string, string> = {},
+  req?: Request,
 ) {
   const h = new Headers({
     "content-type": "application/json; charset=utf-8",
-    ...corsHeaders,
     ...extra,
   });
+  if (req) {
+    Object.entries(corsHeaders(req)).forEach(([k, v]) => h.set(k, v));
+  }
   return new Response(JSON.stringify(data), { status, headers: h });
 }
 
