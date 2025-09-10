@@ -12,6 +12,7 @@
     "preview": "next start -H 0.0.0.0 -p ${PORT:-8080}",
     "preview:miniapp": "cd supabase/functions/miniapp && npm run preview",
     "start": "next start -H 0.0.0.0 -p ${PORT:-8080}",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors=deno.land,cdn.skypack.dev,registry.npmjs.org -A --no-check",
     "postbuild": "tsx scripts/copy-static.ts --copy-only",
