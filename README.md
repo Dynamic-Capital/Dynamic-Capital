@@ -32,9 +32,11 @@ shared between the static landing page and the Next.js API service:
 
 ```
 NEXT_PUBLIC_API_URL=...
-NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+NEXT_PUBLIC_SUPABASE_URL=...
 ```
+
+`NEXT_PUBLIC_API_URL` should point to your deployed API endpoint (e.g., `https://api.example.com`).
 
 Store these in your hosting platform's environment settings or in `.env.local`
 for local development. The static site should have access to the same values at
@@ -296,8 +298,8 @@ bundle):
 
 ```bash
 NEXT_PUBLIC_API_URL=https://<api.example.com>
-NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 ```
 
 Set these in your hosting provider (e.g., Lovable.dev project settings). If
