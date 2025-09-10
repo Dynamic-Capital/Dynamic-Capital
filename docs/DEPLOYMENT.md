@@ -3,7 +3,8 @@
 ## Environment variables
 
 Essential settings for the bot and Edge Functions. See [env.md](env.md) for a
-full list and usage notes.
+full list and usage notes. For DuckDNS + Nginx with automatic HTTPS, see
+[DUCKDNS_NGINX_CERTBOT.md](DUCKDNS_NGINX_CERTBOT.md).
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
