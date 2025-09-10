@@ -1,11 +1,12 @@
 // Utilities for accessing feature flag configuration via secure edge function
 
+import { requireEnvVar } from "./env.ts";
+import { withRetry } from "./retry.ts";
+
 type FlagSnapshot = { ts: number; data: Record<string, boolean> };
 
-const SUPABASE_URL = process.env.SUPABASE_URL || "";
-const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || "";
-
-import { withRetry } from "./retry.ts";
+const SUPABASE_URL = requireEnvVar("SUPABASE_URL");
+const SUPABASE_KEY = requireEnvVar("SUPABASE_ANON_KEY", ["SUPABASE_KEY"]);
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
@@ -14,9 +15,6 @@ async function call<T>(
   payload: Record<string, unknown> = {},
   timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<T> {
-  if (!SUPABASE_URL || !SUPABASE_KEY) {
-    throw new Error("Missing Supabase configuration");
-  }
   try {
     const res = await withRetry(
       async () => {
