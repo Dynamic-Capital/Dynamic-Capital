@@ -30,7 +30,7 @@ interface AnalyticsEvent {
   utm_campaign?: string;
 }
 
-serve(async (req) => {
+export async function handler(req) {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -59,7 +59,11 @@ serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+
 
 async function trackEvent(
   supabase: SupabaseClient,

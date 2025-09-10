@@ -9,7 +9,7 @@ function genHex(n = 24) {
   return Array.from(buf).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-serve(async (req) => {
+export async function handler(req) {
   try {
     const url = new URL(req.url);
     if (req.method === "GET" && url.pathname.endsWith("/version")) {
@@ -35,5 +35,9 @@ serve(async (req) => {
   } catch (e) {
     return oops("Internal Error", e instanceof Error ? e.message : String(e));
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+
 

@@ -3,7 +3,7 @@ import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
 import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
 
-serve(async (req) => {
+export async function handler(req) {
   const url = new URL(req.url);
   const approveMatch = url.pathname.match(/\/receipt\/([^/]+)\/(approve|reject)/);
 
@@ -79,4 +79,8 @@ serve(async (req) => {
   }
 
   return mna();
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

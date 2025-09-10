@@ -23,7 +23,7 @@ async function callTelegramAPI(botToken: string, method: string, body?: any): Pr
   return await response.json();
 }
 
-serve(async (req) => {
+export async function handler(req) {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -152,4 +152,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);

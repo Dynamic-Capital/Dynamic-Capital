@@ -73,5 +73,5 @@ export async function handler(req: Request): Promise<Response> {
   return ok({ success: true }, corsHeaders);
 }
 
-serve(handler);
 export default handler;
+if (import.meta.main) serve(handler);

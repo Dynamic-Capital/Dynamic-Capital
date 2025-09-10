@@ -10,7 +10,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+export async function handler(req) {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -122,4 +122,8 @@ serve(async (req) => {
     console.error("Receipt submission error:", error);
     return oops("Internal server error");
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

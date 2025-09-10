@@ -3,7 +3,7 @@ import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
 import { bad, mna, ok, unauth } from "../_shared/http.ts";
 
-serve(async (req) => {
+export async function handler(req) {
   if (req.method !== "POST") return mna();
 
   let body: { initData?: string; txid?: string; amount?: number; currency?: string };
@@ -54,4 +54,8 @@ serve(async (req) => {
   }
 
   return ok();
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

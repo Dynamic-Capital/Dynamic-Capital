@@ -14,7 +14,7 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   );
 };
 
-serve(async (req) => {
+export async function handler(req) {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -151,4 +151,8 @@ serve(async (req) => {
       },
     );
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

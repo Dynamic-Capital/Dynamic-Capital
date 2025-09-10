@@ -73,7 +73,7 @@ function json(data: unknown, status = 200) {
   });
 }
 
-serve(async (req) => {
+export async function handler(req) {
   let body: Record<string, unknown> = {};
   try {
     body = await req.json();
@@ -112,4 +112,8 @@ serve(async (req) => {
   } catch (e) {
     return json({ error: String(e) }, 500);
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

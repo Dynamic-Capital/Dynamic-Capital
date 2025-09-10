@@ -8,7 +8,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+export async function handler(req) {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -124,4 +124,8 @@ serve(async (req) => {
       },
     );
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

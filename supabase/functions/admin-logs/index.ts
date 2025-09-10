@@ -3,7 +3,7 @@ import { createClient } from "../_shared/client.ts";
 import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
 import { ok, bad, unauth, mna, oops } from "../_shared/http.ts";
 
-serve(async (req) => {
+export async function handler(req) {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "admin-logs", ts: new Date().toISOString() });
@@ -34,4 +34,8 @@ serve(async (req) => {
 
   if (error) return oops("Database error", error.message);
   return ok({ items: data });
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

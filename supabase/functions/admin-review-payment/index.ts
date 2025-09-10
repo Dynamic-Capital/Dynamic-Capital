@@ -25,7 +25,7 @@ async function tgSend(token: string, chatId: string, text: string) {
   }).catch(() => {});
 }
 
-serve(async (req) => {
+export async function handler(req) {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "admin-review-payment", ts: new Date().toISOString() });
@@ -174,4 +174,8 @@ serve(async (req) => {
   });
 
   return ok({ status: newStatus, subscription_expires_at: expiresAt });
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

@@ -3,7 +3,7 @@ import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
 import { ok, bad, unauth, mna, oops } from "../_shared/http.ts";
 
-serve(async (req) => {
+export async function handler(req) {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "admin-list-pending", ts: new Date().toISOString() });
@@ -60,4 +60,8 @@ serve(async (req) => {
   }
 
   return ok({ items: out });
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

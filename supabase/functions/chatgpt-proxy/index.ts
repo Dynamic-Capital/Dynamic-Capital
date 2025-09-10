@@ -5,7 +5,7 @@ import { corsHeaders } from "../_shared/http.ts";
 
 const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
 
-serve(async (req) => {
+export async function handler(req) {
   const origin = req.headers.get("origin");
   const headers = corsHeaders(req);
   if (req.method === "OPTIONS") {
@@ -73,5 +73,9 @@ serve(async (req) => {
       },
     );
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+
 

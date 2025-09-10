@@ -13,7 +13,7 @@ interface TelegramBotSyncRequest {
   data?: any;
 }
 
-serve(async (req) => {
+export async function handler(req) {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -69,7 +69,11 @@ serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+
 
 async function syncUser(supabase: any, telegram_user_id: string, userData: any) {
   try {
