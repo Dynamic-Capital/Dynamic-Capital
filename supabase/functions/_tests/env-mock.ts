@@ -28,9 +28,9 @@ export function setTestEnv(values: Partial<Record<EnvKey, string>>) {
     } catch {
       // ignore when Deno.env is not writable
     }
-    if (typeof process !== "undefined" && process.env) {
-      process.env[k] = v;
-    }
+    const g = globalThis as { process?: { env: Record<string, string> } };
+    if (!g.process) g.process = { env: {} };
+    g.process.env[k] = v;
   }
 
   // Default offline fetch stub to avoid accidental network calls during tests.
@@ -48,15 +48,14 @@ export function clearTestEnv() {
       } catch {
         // ignore
       }
-      if (typeof process !== "undefined" && process.env) {
-        delete process.env[k];
-      }
+      const g = globalThis as { process?: { env: Record<string, string> } };
+      if (g.process?.env) delete g.process.env[k];
     }
   }
   delete (globalThis as TestEnvGlobal).__TEST_ENV__;
 
   if (originalFetch) {
     globalThis.fetch = originalFetch;
-    originalFetch = undefined;
+    originalFetch = null;
   }
 }
