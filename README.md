@@ -47,6 +47,12 @@ For local work, create a `.env.local` inside `next-app/` and run `npm run dev`
 to load the variables. In production, manage secrets through your platform's
 configuration for each component.
 
+### Logging
+
+Control logger verbosity with the `LOG_LEVEL` environment variable. Supported
+values are `error`, `warn`, `info`, and `log`. It defaults to `log` in
+development and `error` in production.
+
 ## Project Structure
 
 - **Functions** – Edge functions live under `supabase/functions` and any
