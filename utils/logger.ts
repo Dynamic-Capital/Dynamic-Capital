@@ -1,3 +1,6 @@
+// Allow running in both Node and Deno environments
+declare const Deno: { env?: { get(name: string): string | undefined } } | undefined;
+
 function getEnv(name: string): string | undefined {
   if (typeof process !== 'undefined' && process.env) {
     return process.env[name];

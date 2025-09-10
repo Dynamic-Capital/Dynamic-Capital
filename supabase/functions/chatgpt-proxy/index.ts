@@ -1,18 +1,24 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
+import { corsHeaders } from "../_shared/http.ts";
 
 const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
-
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const headers = corsHeaders(req);
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    if (origin && !headers["access-control-allow-origin"]) {
+      return new Response(null, { status: 403 });
+    }
+    return new Response(null, { headers });
+  }
+  if (origin && !headers["access-control-allow-origin"]) {
+    return new Response(JSON.stringify({ error: "Origin not allowed" }), {
+      status: 403,
+      headers,
+    });
   }
 
   try {
@@ -21,14 +27,14 @@ serve(async (req) => {
     if (test) {
       return new Response(
         JSON.stringify({ success: true, message: "chatgpt-proxy OK" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        { headers: { ...headers, "Content-Type": "application/json" } },
       );
     }
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: "Prompt is required" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
       });
     }
 
@@ -53,7 +59,7 @@ serve(async (req) => {
     const answer = data.choices[0].message.content as string;
 
     return new Response(JSON.stringify({ answer }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...headers, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("chatgpt-proxy error:", err);
@@ -63,7 +69,7 @@ serve(async (req) => {
       JSON.stringify({ error: "Failed to get AI response", details }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...headers, "Content-Type": "application/json" },
       },
     );
   }

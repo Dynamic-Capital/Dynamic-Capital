@@ -65,3 +65,7 @@ const nextConfig = {
 };
 
 export default nextConfig;
+
+export const config = {
+  matcher: ['/api/:path*'],
+};
