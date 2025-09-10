@@ -33,6 +33,7 @@ deno_dir/
 supabase/.tmp/
 supabase/functions/**/vendor/
 supabase/functions/**/.edge/
+supabase/functions/**/dist/
 **/*.cas
 .bolt/
 
