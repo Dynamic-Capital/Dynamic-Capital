@@ -31,7 +31,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+export async function handler(req) {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -166,4 +166,8 @@ Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support
       },
     );
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

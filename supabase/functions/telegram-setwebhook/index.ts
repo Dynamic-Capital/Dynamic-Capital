@@ -7,7 +7,7 @@ const BASE = (optionalEnv("SUPABASE_URL") || "").replace(/\/$/, "");
 const FN = "telegram-webhook";
 const url = BASE ? `${BASE}/functions/v1/${FN}` : "";
 
-serve(async (req) => {
+export async function handler(req) {
   const SECRET = await expectedSecret();
   if (!BOT || !url) {
     return new Response(
@@ -61,4 +61,8 @@ serve(async (req) => {
       },
     },
   );
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

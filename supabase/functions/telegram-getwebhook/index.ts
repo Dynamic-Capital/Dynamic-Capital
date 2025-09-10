@@ -11,7 +11,7 @@ function red(s: string, keep = 4) {
   return s ? s.slice(0, keep) + "...redacted" : "";
 }
 
-serve(async () => {
+export async function handler() {
   const SECRET = await expectedSecret();
   if (!BOT) {
     return new Response(
@@ -36,4 +36,8 @@ serve(async () => {
       },
     },
   );
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

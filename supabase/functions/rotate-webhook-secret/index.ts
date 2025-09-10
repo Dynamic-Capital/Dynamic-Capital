@@ -17,7 +17,7 @@ async function tg(token: string, method: string, body?: unknown) {
   return await r.json().catch(() => ({}));
 }
 
-serve(async (req) => {
+export async function handler(req) {
   try {
     const urlObj = new URL(req.url);
     if (req.method === "GET" && urlObj.pathname.endsWith("/version")) {
@@ -65,4 +65,8 @@ serve(async (req) => {
   } catch (e) {
     return oops("Internal Error", String(e));
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

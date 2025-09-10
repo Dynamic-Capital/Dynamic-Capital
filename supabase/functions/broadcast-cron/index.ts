@@ -4,7 +4,7 @@ import { requireEnv } from "../_shared/env.ts";
 import { functionUrl } from "../_shared/edge.ts";
 import { ok, oops } from "../_shared/http.ts";
 
-serve(async (req) => {
+export async function handler(req) {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "broadcast-cron", ts: new Date().toISOString() });
@@ -37,5 +37,9 @@ serve(async (req) => {
     console.error("broadcast-cron error", err);
     return oops("Failed to dispatch broadcasts", String(err));
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+
 // <<< DC BLOCK: broadcast-cron-core (end)

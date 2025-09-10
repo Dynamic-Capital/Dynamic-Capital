@@ -3,7 +3,7 @@ import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
 import { ok, unauth, mna } from "../_shared/http.ts";
 
-serve(async (req) => {
+export async function handler(req) {
   if (req.method !== "GET") return mna();
   const url = new URL(req.url);
   const initData = url.searchParams.get("initData") || "";
@@ -43,4 +43,8 @@ serve(async (req) => {
     created_at: r.created_at,
   }));
   return ok({ items });
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

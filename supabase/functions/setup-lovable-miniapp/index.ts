@@ -11,7 +11,7 @@ interface TelegramResponse {
   description?: string;
 }
 
-Deno.serve(async (req) => {
+Deno.export async function handler(req) {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -149,4 +149,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);

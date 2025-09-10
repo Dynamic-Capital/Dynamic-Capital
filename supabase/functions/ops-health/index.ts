@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 
-serve(async (_req) => {
+export async function handler(_req) {
   const report: Record<string, unknown> = { ok: true, checks: {} };
 
   function checkEnv(name: string, required = true) {
@@ -39,4 +39,8 @@ serve(async (_req) => {
     headers: { "content-type": "application/json" },
     status: code,
   });
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

@@ -15,7 +15,7 @@ async function tgSend(token: string, chatId: string, text: string) {
   }).catch(() => {});
 }
 
-serve(async (req) => {
+export async function handler(req) {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "subscriptions-cron", ts: new Date().toISOString() });
@@ -104,4 +104,8 @@ serve(async (req) => {
       expired: expired?.length || 0,
     },
   });
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

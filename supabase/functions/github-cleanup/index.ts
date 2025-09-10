@@ -11,7 +11,7 @@ const GITHUB_PAT = Deno.env.get('GITHUB_PAT');
 const GITHUB_REPO = Deno.env.get('GITHUB_REPO'); // format: owner/name
 const DEFAULT_BRANCH = Deno.env.get('GITHUB_DEFAULT_BRANCH') ?? 'main';
 
-serve(async (req) => {
+export async function handler(req) {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -44,7 +44,11 @@ serve(async (req) => {
     console.error('GitHub cleanup error:', error);
     return oops('Internal server error', message);
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+
 
 async function performGitHubCleanup(supabase: any) {
   console.log('🧹 Starting GitHub cleanup process...');

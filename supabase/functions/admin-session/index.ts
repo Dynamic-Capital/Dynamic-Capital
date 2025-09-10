@@ -4,7 +4,7 @@ import { ok, bad, unauth, mna } from "../_shared/http.ts";
 import { envOrSetting } from "../_shared/config.ts";
 import { signHS256 } from "../_shared/jwt.ts";
 
-serve(async (req) => {
+export async function handler(req) {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -69,4 +69,8 @@ serve(async (req) => {
     console.error('Failed to generate admin token:', error);
     return bad("Failed to generate session");
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

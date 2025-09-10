@@ -20,7 +20,7 @@ function getLogger(req: Request) {
   });
 }
 
-serve(async (req) => {
+export async function handler(req) {
   const logger = getLogger(req);
   logger.info("🔧 Debug function called");
   logger.info("Method:", req.method);
@@ -131,4 +131,8 @@ serve(async (req) => {
       },
     );
   }
-});
+}
+
+export default handler;
+if (import.meta.main) serve(handler);
+

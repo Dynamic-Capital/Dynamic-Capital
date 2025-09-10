@@ -178,7 +178,5 @@ export async function handler(req: Request): Promise<Response> {
   }
 }
 
-Deno.serve(handler);
-
-
-export default handler;
+Deno.export default handler;
+if (import.meta.main) serve(handler);
