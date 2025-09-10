@@ -2,6 +2,11 @@
 
 import { useState, FormEvent, ChangeEvent } from 'react'
 import { supabase } from '@/integrations/supabase/client'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { MotionButtonWrapper } from '@/components/ui/motion-theme'
+import { motion } from 'framer-motion'
+import { childVariants } from '@/lib/motion-variants'
 
 export default function DepositForm() {
   const [file, setFile] = useState<File | null>(null)
@@ -39,19 +44,20 @@ export default function DepositForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-base">
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleFile}
-        className="border border-input rounded-md p-sm bg-background text-foreground"
-      />
-      <button
-        type="submit"
-        className="bg-primary text-primary-foreground px-base py-sm rounded-md"
-      >
-        Submit
-      </button>
-      {status && <p className="text-sm text-muted-foreground">{status}</p>}
+      <Input type="file" accept="image/*" onChange={handleFile} />
+      <MotionButtonWrapper>
+        <Button type="submit">Submit</Button>
+      </MotionButtonWrapper>
+      {status && (
+        <motion.p
+          className="text-sm text-muted-foreground"
+          variants={childVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {status}
+        </motion.p>
+      )}
     </form>
   )
 }
