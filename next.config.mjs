@@ -7,10 +7,20 @@ const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "stub-anon-key";
 
+if (
+  process.env.NODE_ENV === "production" &&
+  !process.env.SITE_URL &&
+  !process.env.NEXT_PUBLIC_SITE_URL
+) {
+  throw new Error("SITE_URL environment variable is required in production");
+}
+
 const SITE_URL =
   process.env.SITE_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||
-  "https://urchin-app-macix.ondigitalocean.app";
+  "http://localhost:3000";
+
+const CANONICAL_HOST = new URL(SITE_URL).hostname;
 
 process.env.SUPABASE_URL = SUPABASE_URL;
 process.env.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
@@ -39,6 +49,26 @@ const nextConfig = {
         hostname: '**',
       },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          { type: 'header', key: 'x-forwarded-proto', value: 'http' },
+        ],
+        destination: 'https://:host/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [
+          { type: 'host', value: 'urchin-app-macix.ondigitalocean.app' },
+        ],
+        destination: `https://${CANONICAL_HOST}/:path*`,
+        permanent: true,
+      },
+    ];
   },
   async headers() {
     return [

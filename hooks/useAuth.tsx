@@ -72,6 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return process.env.NEXT_PUBLIC_SITE_URL || undefined;
     };
     const redirectUrl = getRedirectUrl();
+    if (!redirectUrl) {
+      console.warn(
+        'NEXT_PUBLIC_SITE_URL is not set; auth emails may contain an invalid redirect URL.'
+      );
+    }
 
     const { error } = await supabase.auth.signUp({
       email,
