@@ -43,7 +43,7 @@ const navItems: NavItem[] = [
     id: "settings",
     label: "Settings",
     icon: Settings,
-    path: "/settings",
+    path: "/#settings",
     ariaLabel: "Adjust user settings"
   },
   {

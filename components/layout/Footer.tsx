@@ -182,8 +182,8 @@ const Footer: React.FC<FooterProps> = ({ compact = false }) => {
               >
                 VIP Plans
               </Link>
-              <Link 
-                href="/checkout" 
+              <Link
+                href="/#checkout"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Checkout

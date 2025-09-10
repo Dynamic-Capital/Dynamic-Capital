@@ -13,7 +13,7 @@
     "preview:miniapp": "cd supabase/functions/miniapp && npm run preview",
     "start": "next start",
     "lint": "eslint .",
-    "test": "deno test --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors=deno.land,cdn.skypack.dev,registry.npmjs.org -A --no-check",
+    "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors=deno.land,cdn.skypack.dev,registry.npmjs.org -A --no-check",
     "postbuild": "tsx scripts/copy-static.ts --copy-only",
     "dev:static": "chokidar .next -c 'tsx scripts/copy-static.ts --copy-only'",
     "setup:supabase": "bash scripts/setup-supabase-cli.sh",

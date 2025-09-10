@@ -7,7 +7,7 @@ export const VipQuickActions = () => {
   const router = useRouter();
 
   const actions = [
-    { icon: CreditCard, label: "Checkout", path: "/checkout" },
+    { icon: CreditCard, label: "Checkout", path: "/#checkout" },
     { icon: Upload, label: "Upload Receipt", path: "/payment-status" },
     { icon: Crown, label: "View Plans", path: "/plans" },
   ];

@@ -30,9 +30,6 @@
     "include": [
       "tests/**/*.test.ts",
       "tests/**/*.test.tsx"
-    ],
-    "exclude": [
-      "tests/app/api-demo/page.test.ts"
     ]
   },
   "deploy": {
