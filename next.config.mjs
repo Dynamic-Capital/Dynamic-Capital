@@ -7,10 +7,17 @@ const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "stub-anon-key";
 
+const SITE_URL =
+  process.env.SITE_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "https://dynamic-capital.lovable.app/";
+
 process.env.SUPABASE_URL = SUPABASE_URL;
 process.env.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 process.env.NEXT_PUBLIC_SUPABASE_URL = SUPABASE_URL;
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
+process.env.SITE_URL = SITE_URL;
+process.env.NEXT_PUBLIC_SITE_URL = SITE_URL;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -19,6 +26,8 @@ const nextConfig = {
     SUPABASE_ANON_KEY,
     NEXT_PUBLIC_SUPABASE_URL: SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: SUPABASE_ANON_KEY,
+    SITE_URL,
+    NEXT_PUBLIC_SITE_URL: SITE_URL,
   },
   eslint: {
     ignoreDuringBuilds: true,
