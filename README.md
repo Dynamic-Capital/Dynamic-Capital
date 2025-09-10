@@ -18,7 +18,7 @@ OCR + crypto TXID). Built with **Lovable Codex** for enhanced development experi
 
 ## Project starters
 
-- **Package scripts** – `npm run dev`, `npm run build`, and `npm run start` in `package.json`
+- **Package scripts** – launch development, build, and production with `npm run dev`, `npm run build`, and `npm run start` in `package.json`
 - **Next.js web app** – main layout and landing page entry points in `app/layout.tsx` and `app/page.tsx`
 - **Telegram bot** – Supabase Edge Function at `supabase/functions/telegram-bot/index.ts`
 - **Mini App function** – Supabase Edge Function at `supabase/functions/miniapp/index.ts`
