@@ -5,6 +5,8 @@ interface ApiResponse {
   message: string;
 }
 
+export const dynamic = 'force-static';
+
 export async function GET(req: Request) {
   const body: ApiResponse = { message: 'API is running' };
   return jsonResponse(body, {}, req);

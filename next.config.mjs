@@ -1,4 +1,12 @@
-import { withSentryConfig } from '@sentry/nextjs';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+let withSentryConfig = (config) => config;
+try {
+  ({ withSentryConfig } = require('@sentry/nextjs'));
+} catch {
+  console.warn('@sentry/nextjs not installed; skipping Sentry configuration');
+}
 
 const SUPABASE_URL =
   process.env.SUPABASE_URL ||
@@ -33,6 +41,7 @@ process.env.NEXT_PUBLIC_SITE_URL = SITE_URL;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
   env: {
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
