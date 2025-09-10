@@ -24,7 +24,16 @@ function sleep(ms: number) {
 }
 
 export async function planBroadcast(opts: PlanBroadcastOptions) {
-  if (!(await configClient.getFlag("broadcasts_enabled"))) {
+  let enabled: boolean;
+  try {
+    enabled = await configClient.getFlag("broadcasts_enabled");
+  } catch (err) {
+    if (err instanceof Error && err.message.includes("timed out")) {
+      throw new Error("Config request timed out while checking broadcasts_enabled");
+    }
+    throw err;
+  }
+  if (!enabled) {
     throw new Error("Broadcasts disabled");
   }
   const { segment, text, media, chunkSize = 25, pauseMs = 500 } = opts;
