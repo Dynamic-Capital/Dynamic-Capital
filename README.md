@@ -45,6 +45,18 @@ For local work, create a `.env.local` inside `next-app/` and run `npm run dev`
 to load the variables. In production, manage secrets through your platform's
 configuration for each component.
 
+## Project Structure
+
+- **Functions** – Edge functions live under `supabase/functions` and any
+  framework-managed API routes belong in `functions/`.
+- **Build outputs** – Use `npm run build:all` to compile both the Next.js app
+  and mini app functions. Generated directories such as `.next/` and
+  `supabase/functions/*/dist/` are excluded via `.gitignore`.
+- **Static files** – Place all user-facing assets in `public/`.
+- **Root configuration** – Key files like `package.json`, `tsconfig.json`,
+  `eslint.config.js`, and `.env.example` sit at the project root. Keep
+  `.env.example` updated when adding new environment variables.
+
 ## Project starters
 
 - **Package scripts** – launch development, build, and production with `npm run dev`, `npm run build`, and `npm run start` in `package.json`
