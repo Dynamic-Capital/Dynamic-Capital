@@ -63,6 +63,17 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.cache = {
+        type: 'filesystem',
+        buildDependencies: {
+          config: [__filename],
+        },
+      };
+    }
+    return config;
+  },
   async redirects() {
     return [
       {
