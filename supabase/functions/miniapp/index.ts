@@ -5,6 +5,8 @@ import { optionalEnv, requireEnv } from "../_shared/env.ts";
 import { serveStatic, StaticOpts } from "../_shared/static.ts";
 import { createClient } from '@supabase/supabase-js';
 import { extractTelegramUserId } from "../shared/telegram.ts";
+import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 // Env setup
 const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = requireEnv([
@@ -379,14 +381,14 @@ async function handleApiRoutes(req: Request, path: string): Promise<Response> {
   if (path === "/api/admin-check" && req.method === "POST") {
     try {
       const body = await req.json();
-      const telegram_user_id = body.telegram_user_id;
-      
-      if (!telegram_user_id) {
-        return new Response(JSON.stringify({ error: "telegram_user_id required" }), {
-          status: 400,
+      const u = await verifyInitDataAndGetUser(body.initData || "");
+      if (!u) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
           headers: { ...corsHeaders, "content-type": "application/json" }
         });
       }
+      const telegram_user_id = String(u.id);
 
       // Check admin status in database
       const { data: user, error } = await supabase
@@ -402,9 +404,9 @@ async function handleApiRoutes(req: Request, path: string): Promise<Response> {
         });
       }
 
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         is_admin: user?.is_admin || false,
-        telegram_user_id 
+        telegram_user_id
       }), {
         headers: { ...corsHeaders, "content-type": "application/json" }
       });
@@ -421,14 +423,14 @@ async function handleApiRoutes(req: Request, path: string): Promise<Response> {
   if (path === "/api/subscription-status" && req.method === "POST") {
     try {
       const body = await req.json();
-      const telegram_user_id = body.telegram_user_id;
-      
-      if (!telegram_user_id) {
-        return new Response(JSON.stringify({ error: "telegram_user_id required" }), {
-          status: 400,
+      const u = await verifyInitDataAndGetUser(body.initData || "");
+      if (!u) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
           headers: { ...corsHeaders, "content-type": "application/json" }
         });
       }
+      const telegram_user_id = String(u.id);
 
       // Get user subscription status
       const { data: statusData, error: statusError } = await supabase
@@ -436,7 +438,7 @@ async function handleApiRoutes(req: Request, path: string): Promise<Response> {
 
       if (statusError) {
         console.error('Subscription status error:', statusError);
-        return new Response(JSON.stringify({ 
+        return new Response(JSON.stringify({
           subscription: null,
           available_plans: []
         }), {
@@ -451,7 +453,7 @@ async function handleApiRoutes(req: Request, path: string): Promise<Response> {
         .select('*')
         .order('price', { ascending: true });
 
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         subscription: statusData?.[0] || null,
         available_plans: plans || []
       }), {
@@ -459,7 +461,7 @@ async function handleApiRoutes(req: Request, path: string): Promise<Response> {
       });
     } catch (error) {
       console.error('Subscription status error:', error);
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         subscription: null,
         available_plans: []
       }), {
@@ -607,52 +609,59 @@ async function handleApiRoutes(req: Request, path: string): Promise<Response> {
       const form = await req.formData();
       const initData = String(form.get("initData") || "");
       const file = form.get("image");
-      
+
       if (!(file instanceof File)) {
-        return new Response(JSON.stringify({ error: "image required" }), { 
+        return new Response(JSON.stringify({ error: "image required" }), {
           status: 400,
           headers: { ...corsHeaders, "content-type": "application/json" }
         });
       }
 
-      // Verify initData (simple implementation)
-      if (!initData) {
-        return new Response(JSON.stringify({ error: "initData required" }), { 
+      const u = await verifyInitDataAndGetUser(initData);
+      if (!u) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { ...corsHeaders, "content-type": "application/json" }
         });
       }
 
-      // Generate storage path
+      const allowed = ["image/png", "image/jpeg"];
+      if (!allowed.includes(file.type) || file.size > 5 * 1024 * 1024) {
+        return new Response(JSON.stringify({ error: "Invalid file" }), {
+          status: 400,
+          headers: { ...corsHeaders, "content-type": "application/json" }
+        });
+      }
+
       const ext = file.name.split(".").pop();
-      const userId = "temp"; // In real implementation, extract from initData
+      const userId = String(u.id);
       const path = `receipts/${userId}/${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
-      
-      // Upload to storage
+
       try {
-        await supabase.storage.from("payment-receipts").upload(path, file);
-        
-        return new Response(JSON.stringify({ 
-          ok: true, 
-          bucket: "payment-receipts", 
-          path 
-        }), { 
+        const { error } = await supabase.storage.from("payment-receipts").upload(path, file);
+        if (error) throw error;
+
+        return new Response(JSON.stringify({
+          ok: true,
+          bucket: "payment-receipts",
+          path
+        }), {
           headers: { ...corsHeaders, "content-type": "application/json" }
         });
       } catch (uploadError) {
         console.error("Upload error:", uploadError);
-        return new Response(JSON.stringify({ 
-          error: "Failed to upload receipt" 
-        }), { 
+        return new Response(JSON.stringify({
+          error: "Failed to upload receipt"
+        }), {
           status: 500,
           headers: { ...corsHeaders, "content-type": "application/json" }
         });
       }
     } catch (error) {
       console.error("Receipt upload error:", error);
-      return new Response(JSON.stringify({ 
-        error: "Failed to submit receipt. Please try again later." 
-      }), { 
+      return new Response(JSON.stringify({
+        error: "Failed to submit receipt. Please try again later."
+      }), {
         status: 500,
         headers: { ...corsHeaders, "content-type": "application/json" }
       });
@@ -664,10 +673,34 @@ async function handleApiRoutes(req: Request, path: string): Promise<Response> {
     const url = new URL(req.url);
     const limit = parseInt(url.searchParams.get("limit") || "10");
     const status = url.searchParams.get("status");
-    
-    // Mock response for now
-    const receipts = [];
-    return new Response(JSON.stringify({ receipts }), {
+    const initData = url.searchParams.get("initData") || "";
+
+    const u = await verifyInitDataAndGetUser(initData);
+    if (!u) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "content-type": "application/json" }
+      });
+    }
+
+    let query = supabase
+      .from('receipts')
+      .select('*')
+      .eq('telegram_id', String(u.id))
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (status) query = query.eq('verdict', status);
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Receipts fetch error:', error);
+      return new Response(JSON.stringify({ receipts: [] }), {
+        status: 500,
+        headers: { ...corsHeaders, "content-type": "application/json" }
+      });
+    }
+
+    return new Response(JSON.stringify({ receipts: data || [] }), {
       headers: { ...corsHeaders, "content-type": "application/json" }
     });
   }
@@ -695,22 +728,69 @@ async function handleApiRoutes(req: Request, path: string): Promise<Response> {
   // POST /api/intent - Create payment intent
   if (path === "/api/intent" && req.method === "POST") {
     try {
-      const body = await req.json();
-      const payCode = `PAY_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-      
-      return new Response(JSON.stringify({ 
-        ok: true, 
-        pay_code: payCode,
-        type: body.type || "bank"
-      }), {
-        headers: { ...corsHeaders, "content-type": "application/json" }
+      const schema = z.object({
+        initData: z.string(),
+        type: z.enum(["bank", "crypto"]),
+        amount: z.number().positive().optional(),
+        currency: z.string().optional(),
+        bank: z.string().optional(),
+        network: z.string().optional(),
+      });
+      const body = schema.parse(await req.json());
+
+      const u = await verifyInitDataAndGetUser(body.initData || "");
+      if (!u) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "content-type": "application/json" }
+        });
+      }
+
+      const pay_code = crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase();
+      const currency = body.currency === "MVR" ? "MVR" : "USD";
+      const expected = body.amount || 0;
+
+      let userId: string | undefined;
+      const { data: bu } = await supabase
+        .from('bot_users')
+        .select('id')
+        .eq('telegram_id', String(u.id))
+        .limit(1);
+      userId = bu?.[0]?.id as string | undefined;
+      if (!userId) {
+        const { data: ins } = await supabase
+          .from('bot_users')
+          .insert({ telegram_id: String(u.id) })
+          .select('id')
+          .single();
+        userId = ins?.id as string | undefined;
+      }
+
+      const { error: intentErr } = await supabase.from('payment_intents').insert({
+        user_id: userId ?? crypto.randomUUID(),
+        method: body.type,
+        expected_amount: expected,
+        currency,
+        pay_code,
+        status: 'pending',
+        notes: body.type === 'bank' ? body.bank || null : body.network || null,
+      });
+      if (intentErr) {
+        console.error('miniapp intent insert error', intentErr);
+        return new Response(JSON.stringify({ error: 'Failed to create payment intent' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'content-type': 'application/json' }
+        });
+      }
+
+      return new Response(JSON.stringify({ ok: true, pay_code }), {
+        headers: { ...corsHeaders, 'content-type': 'application/json' }
       });
     } catch (error) {
-      return new Response(JSON.stringify({ 
-        error: "Failed to create payment intent" 
-      }), { 
+      console.error('miniapp intent error', error);
+      return new Response(JSON.stringify({ error: 'Failed to create payment intent' }), {
         status: 500,
-        headers: { ...corsHeaders, "content-type": "application/json" }
+        headers: { ...corsHeaders, 'content-type': 'application/json' }
       });
     }
   }
