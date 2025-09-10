@@ -16,6 +16,35 @@ OCR + crypto TXID). Built with **Lovable Codex** for enhanced development experi
 - Admin commands for maintenance
 - **Lovable Codex Integration** for AI-powered development
 
+## Environment Setup
+
+Create `.env` files for each component and define variables needed in your
+deployment.
+
+### Client-side (`NEXT_PUBLIC_*`)
+
+Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser and can be
+shared between the static landing page and the Next.js API service:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=... 
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+Store these in your hosting platform's environment settings or in `.env.local`
+for local development. The static site should have access to the same values at
+build time.
+
+### Server-only secrets
+
+Keep secrets such as `SUPABASE_SERVICE_ROLE_KEY` or `TELEGRAM_BOT_TOKEN` only in
+the environment for the Next.js component. Do **not** prefix them with
+`NEXT_PUBLIC_` or expose them in the static site.
+
+For local work, create a `.env.local` inside `next-app/` and run `npm run dev`
+to load the variables. In production, manage secrets through your platform's
+configuration for each component.
+
 ## Project starters
 
 - **Package scripts** – launch development, build, and production with `npm run dev`, `npm run build`, and `npm run start` in `package.json`
