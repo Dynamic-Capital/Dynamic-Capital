@@ -60,6 +60,7 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
   url.pathname = url.pathname.replace(/^\/functions\/v1/, "");
   const path = url.pathname.replace(/\/+$/, ""); // strip trailing slash for routing
   const sec = { ...DEFAULT_SECURITY, ...(opts.security || {}) };
+  const spaRoots = (opts.spaRoots ?? ["/"]).map((r) => r.replace(/\/+$/, ""));
 
   console.log(`[static] Request: ${req.method} ${url.pathname}`);
 
@@ -76,9 +77,9 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
     "/robots.txt",
   ]);
 
-  // HEAD allowed on roots
+  // HEAD allowed on SPA roots
   if (req.method === "HEAD") {
-    if (path === "" || path === "/miniapp") {
+    if (spaRoots.includes(path)) {
       return setSec(new Response(null, { status: 200 }));
     }
     if (url.pathname.endsWith("/version")) {
@@ -107,10 +108,12 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
     return new Response(await r.arrayBuffer(), { headers: h, status: r.status });
   }
 
-  // Serve SPA index for roots and their subpaths
-  const spaRoots = opts.spaRoots ?? ["/", "/miniapp"];
+  // Serve SPA index for configured roots and their subpaths
   const normPath = path === "" ? "/" : path;
-  if (spaRoots.some((root) => normPath === root || normPath.startsWith(root + "/"))) {
+  if (
+    spaRoots.some((root) =>
+      normPath === root || normPath.startsWith((root ? root : "") + "/"))
+  ) {
     console.log(`[static] Serving index.html for SPA root: ${url.pathname}`);
     const idx = await readFileFrom(opts.rootDir, "index.html");
     if (idx) {

@@ -842,10 +842,9 @@ export async function handler(req: Request): Promise<Response> {
     }));
   }
 
-  // Try to use the static server helper for SPA routes and assets
+  // Try to use the static server helper for SPA routes
   if (
     path === "/" ||
-    path.startsWith("/assets/") ||
     (path.startsWith("/miniapp") &&
       !path.startsWith("/miniapp/api") &&
       !path.startsWith("/miniapp/assets"))
@@ -853,14 +852,18 @@ export async function handler(req: Request): Promise<Response> {
     try {
       const staticOpts: StaticOpts = {
         rootDir: new URL("./static/", import.meta.url),
-        spaRoots: ["/", "/miniapp"],
+        spaRoots: ["/"],
         security: ENHANCED_SECURITY_HEADERS,
         extraFiles: ["/favicon.ico", "/favicon.svg", "/vite.svg", "/robots.txt"]
       };
 
       // Try static serving first (normalize /miniapp prefix if present)
       const staticReq = path.startsWith("/miniapp")
-        ? new Request(req.url.replace("/miniapp", ""), req)
+        ? (() => {
+            const u = new URL(req.url);
+            u.pathname = u.pathname.replace(/^\/miniapp/, "");
+            return new Request(u, req);
+          })()
         : req;
       const staticResponse = await serveStatic(staticReq, staticOpts);
       
