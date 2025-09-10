@@ -106,21 +106,23 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background p-10 text-center font-sans">
-      <h1 className="mb-4 text-4xl font-bold text-dc-brand">
-        Dynamic Capital VIP Bot
-      </h1>
-      <p className="mb-8 text-lg text-muted-foreground">
-        Telegram VIP Bot Management System
-      </p>
-      <div className="mx-auto max-w-xl rounded-xl bg-card p-8 shadow-elegant">
-        <h2 className="mb-4 text-2xl text-foreground">
-          Welcome to Dynamic Capital
-        </h2>
-        <p className="leading-relaxed text-muted-foreground">
-          Your premium Telegram bot for VIP services and crypto management.
+    <>
+      <section className="motion-container motion-section min-h-screen bg-gradient-hero p-10 flex flex-col items-center justify-center text-center font-poppins">
+        <h1 className="mb-4 typography-4xl font-bold text-dc-brand">
+          Dynamic Capital VIP Bot
+        </h1>
+        <p className="mb-8 typography-xl text-muted-foreground">
+          Telegram VIP Bot Management System
         </p>
-      </div>
+        <div className="mx-auto max-w-xl rounded-xl bg-card p-8 shadow-elegant">
+          <h2 className="mb-4 typography-xl text-foreground">
+            Welcome to Dynamic Capital
+          </h2>
+          <p className="leading-relaxed text-muted-foreground">
+            Your premium Telegram bot for VIP services and crypto management.
+          </p>
+        </div>
+      </section>
 
       <section id="dashboard" className="container py-xl text-left">
         <h2 className="text-3xl font-bold mb-lg">
@@ -185,7 +187,7 @@ export default function HomePage() {
         {error && <p>{error}</p>}
         {message && <p>{message}</p>}
       </section>
-    </div>
+    </>
   );
 }
 
