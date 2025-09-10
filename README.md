@@ -45,6 +45,20 @@ For local work, create a `.env.local` inside `next-app/` and run `npm run dev`
 to load the variables. In production, manage secrets through your platform's
 configuration for each component.
 
+## Docker Compose
+
+Use the provided `docker-compose.yml` and `Dockerfile` to run the full stack locally. Build and start all services with:
+
+```bash
+ docker-compose up --build
+```
+
+This starts the Next.js app on [http://localhost:3000](http://localhost:3000) along with a Postgres database and a Supabase CLI container. Stop and remove the containers with:
+
+```bash
+ docker-compose down
+```
+
 ## Project starters
 
 - **Package scripts** – launch development, build, and production with `npm run dev`, `npm run build`, and `npm run start` in `package.json`
