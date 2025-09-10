@@ -74,6 +74,7 @@ configuration for each component.
   `supabase/functions/miniapp/index.ts`
 - **Broadcast planner** – standalone service at `broadcast/index.ts`
 - **Queue worker** – standalone service at `queue/index.ts`
+- **Gradient Playwright chat** – demo chat UI backed by Gradient's serverless inference at `app/gradient-chat` (see [docs/gradient-playwright.md](docs/gradient-playwright.md))
 
 ## Development Process Overview
 
