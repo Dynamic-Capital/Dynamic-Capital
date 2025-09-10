@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Send, Loader2, Bot, X, Minimize2, User, RotateCcw, MessageSquare } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/utils";
 

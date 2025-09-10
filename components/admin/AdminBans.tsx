@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Shield, UserX, Plus, Calendar, RefreshCw } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { callEdgeFunction } from "@/config/supabase";
 

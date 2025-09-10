@@ -4,7 +4,7 @@ import { cn } from '@/utils';
 import { MotionConfigProvider } from './motion-config';
 import { parentVariants, childVariants } from '@/lib/motion-variants';
 import { sectionVariants, SectionVariant } from '@/lib/section-variants';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/useMobile';
 
 interface MotionThemeProviderProps {
   children: React.ReactNode;

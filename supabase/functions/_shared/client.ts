@@ -1,1 +1,1 @@
-export { createClient, type SupabaseClient } from "../../../shared/supabase-client.ts";
+export { createClient, type SupabaseClient } from "../../../integrations/supabase/client.ts";

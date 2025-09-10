@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Icon } from "@/components/ui/icon";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { Separator } from "@/components/ui/separator";
 import { SUPABASE_CONFIG } from "@/config/supabase";
 
