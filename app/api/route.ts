@@ -1,4 +1,4 @@
-import { jsonResponse, methodNotAllowed } from '../../lib/http.ts';
+import { jsonResponse, methodNotAllowed } from '../../lib/http';
 
 interface ApiResponse {
   message: string;
