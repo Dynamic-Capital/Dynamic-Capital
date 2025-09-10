@@ -5,9 +5,11 @@
 ## What this is
 
 Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
-OCR + crypto TXID). Built with **Lovable Codex** for enhanced development experience.
+OCR + crypto TXID). Built with **Lovable Codex** for enhanced development
+experience.
 
-The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and backed by Supabase.
+The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
+backed by Supabase.
 
 ## Features
 
@@ -62,44 +64,55 @@ configuration for each component.
 
 ## Project starters
 
-- **Package scripts** – launch development, build, and production with `npm run dev`, `npm run build`, and `npm run start` in `package.json`
-- **Next.js web app** – main layout and landing page entry points in `app/layout.tsx` and `app/page.tsx`
-- **Telegram bot** – Supabase Edge Function at `supabase/functions/telegram-bot/index.ts`
-- **Mini App function** – Supabase Edge Function at `supabase/functions/miniapp/index.ts`
+- **Package scripts** – launch development, build, and production with
+  `npm run dev`, `npm run build`, and `npm run start` in `package.json`
+- **Next.js web app** – main layout and landing page entry points in
+  `app/layout.tsx` and `app/page.tsx`
+- **Telegram bot** – Supabase Edge Function at
+  `supabase/functions/telegram-bot/index.ts`
+- **Mini App function** – Supabase Edge Function at
+  `supabase/functions/miniapp/index.ts`
 - **Broadcast planner** – standalone service at `broadcast/index.ts`
 - **Queue worker** – standalone service at `queue/index.ts`
 
 ## Development Process Overview
 
-| Tool | What It Does | How You Use It |
-| ---- | ------------ | -------------- |
-| **Lovable (Platform)** | Hosts your web app, manages deployment, and provides a Supabase backend | Use the Lovable dashboard to configure environment variables and monitor deployments |
-| **Lovable (AI)** | Generates initial project scaffolding and high-level feature guidance | Use the chat interface during setup and when auto-generating components |
-| **Telegram/BotFather** | Manages the bot and links it to your web app | Run BotFather commands like `/setmenubutton` or `/mybots` to connect the bot to your Lovable deployment URL |
-| **Codex CLI** | Assists with granular, code-level tasks on your local machine | Use terminal commands for UI refinements, refactoring, and adding features |
-| **GitHub** | Version control and deployment trigger | Push local changes to GitHub to trigger Lovable to rebuild and redeploy your web app |
+| Tool                   | What It Does                                                            | How You Use It                                                                                              |
+| ---------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Lovable (Platform)** | Hosts your web app, manages deployment, and provides a Supabase backend | Use the Lovable dashboard to configure environment variables and monitor deployments                        |
+| **Lovable (AI)**       | Generates initial project scaffolding and high-level feature guidance   | Use the chat interface during setup and when auto-generating components                                     |
+| **Telegram/BotFather** | Manages the bot and links it to your web app                            | Run BotFather commands like `/setmenubutton` or `/mybots` to connect the bot to your Lovable deployment URL |
+| **Codex CLI**          | Assists with granular, code-level tasks on your local machine           | Use terminal commands for UI refinements, refactoring, and adding features                                  |
+| **GitHub**             | Version control and deployment trigger                                  | Push local changes to GitHub to trigger Lovable to rebuild and redeploy your web app                        |
 
 ## 🎨 UI Development with Lovable Codex
 
 ### Quick UI Guidelines
-- **Design System Only**: NEVER use direct colors like `text-white`, `bg-black`. Always use semantic tokens from `index.css` and `tailwind.config.ts`
-- **Component Structure**: Create focused, reusable components instead of modifying large files
-- **Visual Edits**: Use Lovable's Visual Edit button for quick text/color changes (saves credits)
+
+- **Design System Only**: NEVER use direct colors like `text-white`, `bg-black`.
+  Always use semantic tokens from `index.css` and `tailwind.config.ts`
+- **Component Structure**: Create focused, reusable components instead of
+  modifying large files
+- **Visual Edits**: Use Lovable's Visual Edit button for quick text/color
+  changes (saves credits)
 - **Real-time Preview**: See changes immediately in the live preview window
 
 ### Development Workflow
+
 1. **Chat-driven**: Describe UI changes in natural language
 2. **Visual Edits**: Use for simple text/color/font changes
 3. **Incremental**: Test each change before requesting more
 4. **Design System**: Always use semantic tokens, never hardcoded colors
 
 ### AI-Powered Features
+
 - **Natural Language Coding**: Describe features in plain English
 - **Automatic Optimization**: Code is refactored for best practices
 - **TypeScript Integration**: Full type safety and IntelliSense support
 - **Responsive Design**: Mobile-first approach with proper breakpoints
 
 ### Debugging Tools
+
 - **Console Access**: Real-time console log monitoring
 - **Network Inspection**: API call and edge function monitoring
 - **Error Detection**: Automatic error identification and fixes
@@ -117,7 +130,7 @@ graph TD
     D -->|initData auth| B
     B -->|Database| E[Supabase Tables]
     B -->|Storage| F[Receipt Files]
-    
+
     subgraph "Core Tables"
         E1[bot_users]
         E2[user_subscriptions]
@@ -127,9 +140,9 @@ graph TD
         E2 --> E3
         E3 --> E4
     end
-    
+
     E --> E1
-    
+
     subgraph "Payment Flow"
         G[Receipt Upload] --> H[OCR Processing]
         H --> I[Bank Parser]
@@ -137,8 +150,9 @@ graph TD
         J -->|Yes| K[Approved]
         J -->|No| L[Manual Review]
     end
-    
+
     B --> G
+
 </lov-mermaid>
 
 ### 🚨 CRITICAL: DO NOT MODIFY INTEGRATION
@@ -202,6 +216,7 @@ curl -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/verify-initdata 
 ### Common UI Pitfalls to Avoid
 
 ❌ **DON'T:**
+
 - Use `text-white`, `bg-black` or any direct colors
 - Modify API endpoints or database queries
 - Change authentication flows
@@ -209,6 +224,7 @@ curl -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/verify-initdata 
 - Hardcode URLs or tokens
 
 ✅ **DO:**
+
 - Use semantic tokens: `text-foreground`, `bg-background`
 - Create new UI components for features
 - Use the existing design system
@@ -217,11 +233,12 @@ curl -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/verify-initdata 
 
 ### Edge Function Error Handling
 
-Use the `callEdgeFunction` helper to invoke Supabase Edge Functions. It returns an
-object with optional `data` and `error` fields instead of throwing on failure:
+Use the `callEdgeFunction` helper to invoke Supabase Edge Functions. It returns
+an object with optional `data` and `error` fields instead of throwing on
+failure:
 
 ```ts
-const { data, error } = await callEdgeFunction<MyType>('FUNCTION_NAME');
+const { data, error } = await callEdgeFunction<MyType>("FUNCTION_NAME");
 if (error) {
   // handle error.message / error.status
 } else {
@@ -229,8 +246,8 @@ if (error) {
 }
 ```
 
-This pattern keeps error handling consistent across the app and avoids
-unhandled promise rejections.
+This pattern keeps error handling consistent across the app and avoids unhandled
+promise rejections.
 
 Admin and system functions such as `ADMIN_SESSION` or `RESET_BOT` require
 `TELEGRAM_WEBHOOK_SECRET` to be configured. The helper will throw before making
@@ -246,8 +263,10 @@ PII; rate limits enabled.
 
 Full list and usage notes: [docs/env.md](docs/env.md).
 
-- The `ALLOWED_ORIGINS` variable controls which domains may call the API and edge functions.
-- See [docs/NETWORKING.md](docs/NETWORKING.md) for port mappings, reverse proxy tips, and Cloudflare ingress IPs.
+- The `ALLOWED_ORIGINS` variable controls which domains may call the API and
+  edge functions.
+- See [docs/NETWORKING.md](docs/NETWORKING.md) for port mappings, reverse proxy
+  tips, and Cloudflare ingress IPs.
 - Copy `.env.example` to `.env.local` and replace the placeholder values with
   real secrets for your environment. This file is ignored by Git so each
   contributor maintains their own local configuration.
@@ -270,21 +289,22 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 
 ### Build environment
 
-Both the dashboard and the Telegram MiniApp require these variables at build time
-(exposed with Next.js `NEXT_PUBLIC_` prefix so they end up in the browser bundle):
+Both the dashboard and the Telegram MiniApp require these variables at build
+time (exposed with Next.js `NEXT_PUBLIC_` prefix so they end up in the browser
+bundle):
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 ```
 
-Set these in your hosting provider (e.g., Lovable.dev project settings). If either
-value is missing, the app will render a configuration error screen instead of
-loading. The client also accepts `SUPABASE_URL`/`SUPABASE_ANON_KEY` as fallbacks if the `NEXT_PUBLIC_`
-values are not provided.
+Set these in your hosting provider (e.g., Lovable.dev project settings). If
+either value is missing, the app will render a configuration error screen
+instead of loading. The client also accepts `SUPABASE_URL`/`SUPABASE_ANON_KEY`
+as fallbacks if the `NEXT_PUBLIC_` values are not provided.
 
-Values are set in Supabase function secrets, GitHub Environments, or Lovable Codex
-project settings. Do not commit them.
+Values are set in Supabase function secrets, GitHub Environments, or Lovable
+Codex project settings. Do not commit them.
 
 To troubleshoot `401 Unauthorized` from admin endpoints, generate a known-good
 `initData` string and verify it:
@@ -298,7 +318,8 @@ curl -X POST -H "Content-Type: application/json" \
 
 ## Building
 
-The main build compiles the dashboard only. Run the Mini App build separately when needed:
+The main build compiles the dashboard only. Run the Mini App build separately
+when needed:
 
 ```bash
 # build the dashboard
@@ -329,18 +350,20 @@ success, or error states based on the fetch result.
 
 - `tests/api/hello.test.ts` calls the route handler and asserts the expected
   JSON payload.
-- `tests/app/api-demo/page.test.tsx` renders the demo page with a mocked
-  `fetch` and verifies that the message appears.
+- `tests/app/api-demo/page.test.tsx` renders the demo page with a mocked `fetch`
+  and verifies that the message appears.
 
 ## Quick start with Lovable Codex
 
 ### Using Lovable Codex (Recommended)
+
 1. Open the project in Lovable Codex
 2. Use the chat interface to describe desired changes
 3. Use Visual Edits for quick UI modifications
 4. Monitor the live preview for real-time feedback
 
 ### Local Development
+
 ```bash
 # Create your local environment file
 cp .env.example .env.local
@@ -409,12 +432,18 @@ on images.
 
 ## VIP Sync
 
-- Bot must be an admin in VIP channels to receive membership updates and call `getChatMember`.
-- Configure VIP channels via `bot_settings.vip_channels` (JSON array) or env `VIP_CHANNELS`.
-- Memberships are synced on join/leave events and via `/vip-sync` helper endpoints.
-- Use `scripts/import-vip-csv.ts` for bulk backfills; users must `/start` the bot at least once.
+- Bot must be an admin in VIP channels to receive membership updates and call
+  `getChatMember`.
+- Configure VIP channels via `bot_settings.vip_channels` (JSON array) or env
+  `VIP_CHANNELS`.
+- Memberships are synced on join/leave events and via `/vip-sync` helper
+  endpoints.
+- Use `scripts/import-vip-csv.ts` for bulk backfills; users must `/start` the
+  bot at least once.
 
 ## CI / checks
+
+All Deno tasks live in `deno.json` and can be run via `deno task <name>`.
 
 Type check:
 
@@ -466,11 +495,13 @@ in README.
 ## GitHub Integration
 
 This project features **bidirectional GitHub sync** through Lovable Codex:
+
 - Changes in Codex automatically push to GitHub
 - GitHub changes sync back to Codex in real-time
 - Built-in version control and rollback capabilities
 - CI/CD integration with GitHub Actions
-- [Using Personal Access Tokens](docs/GITHUB_PAT.md) for pushes and workflow auth
+- [Using Personal Access Tokens](docs/GITHUB_PAT.md) for pushes and workflow
+  auth
 
 ## License / contributions
 
@@ -481,5 +512,6 @@ closed by default.
 
 Repo keeps source only. No caches (.cas), dist/, or node_modules/ are committed.
 
-Future changes may encrypt code and increase env usage; see [docs/agent.md](docs/agent.md) for
-behavior spec and Lovable Codex integration details.
+Future changes may encrypt code and increase env usage; see
+[docs/agent.md](docs/agent.md) for behavior spec and Lovable Codex integration
+details.
