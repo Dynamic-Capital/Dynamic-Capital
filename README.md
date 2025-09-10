@@ -511,6 +511,7 @@ Then POST to `http://localhost:54321/functions/v1/telegram-webhook` with
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment vars, tests,
 deployment, and troubleshooting.
+For Nginx + Let's Encrypt on DuckDNS, see [docs/DUCKDNS_NGINX_CERTBOT.md](docs/DUCKDNS_NGINX_CERTBOT.md).
 
 Set your Supabase project reference for the deploy scripts:
 
