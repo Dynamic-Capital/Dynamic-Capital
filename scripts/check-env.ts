@@ -8,10 +8,10 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     "⚠️  SUPABASE_URL or SUPABASE_ANON_KEY not set. Using placeholder values; some features may be disabled.",
   );
   if (!SUPABASE_URL) {
-    process.env.SUPABASE_URL = "https://example.supabase.co";
+    process.env.SUPABASE_URL = "https://stub.supabase.co";
   }
   if (!SUPABASE_ANON_KEY) {
-    process.env.SUPABASE_ANON_KEY = "anon-key-placeholder";
+    process.env.SUPABASE_ANON_KEY = "stub-anon-key";
   }
 } else {
   console.log("✅ Required env vars present");
