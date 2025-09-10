@@ -1,20 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
-  .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean);
-
-function buildCorsHeaders(origin: string | null) {
-  const headers: Record<string, string> = {
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  };
-  if (origin && allowedOrigins.includes(origin)) {
-    headers['Access-Control-Allow-Origin'] = origin;
-  }
-  return headers;
-}
+import { buildCorsHeaders } from './lib/cors';
 
 export function middleware(req: NextRequest) {
   const origin = req.headers.get('origin');

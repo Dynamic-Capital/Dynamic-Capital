@@ -1,14 +1,19 @@
 // Lightweight helpers for constructing HTTP responses
-export function jsonResponse(data: unknown, init: ResponseInit = {}) {
-  return new Response(JSON.stringify(data), {
-    ...init,
-    headers: {
-      'content-type': 'application/json',
-      ...(init.headers || {}),
-    },
-  });
+import { corsHeaders } from './cors';
+
+export function jsonResponse(
+  data: unknown,
+  init: ResponseInit = {},
+  req?: Request,
+) {
+  const headers = {
+    'content-type': 'application/json',
+    ...(init.headers || {}),
+    ...(req ? corsHeaders(req) : {}),
+  };
+  return new Response(JSON.stringify(data), { ...init, headers });
 }
 
-export function methodNotAllowed() {
-  return jsonResponse({ error: 'Method Not Allowed' }, { status: 405 });
+export function methodNotAllowed(req?: Request) {
+  return jsonResponse({ error: 'Method Not Allowed' }, { status: 405 }, req);
 }
