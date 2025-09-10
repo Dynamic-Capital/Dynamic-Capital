@@ -20,7 +20,8 @@
   "compilerOptions": {
     "types": [
       "./types/tesseract.d.ts",
-      "./types/deno.d.ts"
+      "./types/deno.d.ts",
+      "npm:@types/node"
     ]
   },
   "importMap": "./supabase/functions/telegram-bot/vendor/import_map.json"
