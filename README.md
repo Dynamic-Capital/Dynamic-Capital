@@ -61,6 +61,7 @@ configuration for each component.
 - **Root configuration** – Key files like `package.json`, `tsconfig.json`,
   `eslint.config.js`, and `.env.example` sit at the project root. Keep
   `.env.example` updated when adding new environment variables.
+- **Go service** – simple HTTP server in `go-service/` with a `/healthz` endpoint.
 
 ## Project starters
 
@@ -455,6 +456,27 @@ If tests present:
 
 ```bash
 deno test -A
+```
+
+## Go Service
+
+A minimal Go HTTP server lives in `go-service/` and exposes a `/healthz` endpoint on port `8080`.
+
+### Build and run
+
+```bash
+cd go-service
+go run main.go
+# or build
+go build
+./go-service
+```
+
+### Docker
+
+```bash
+docker build -f docker/go.Dockerfile -t go-service .
+docker run --rm -p 8080:8080 go-service
 ```
 
 ## Smoke checks
