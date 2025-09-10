@@ -1,4 +1,4 @@
-import { jsonResponse, methodNotAllowed } from '../../lib/http';
+import { jsonResponse, methodNotAllowed } from '../../lib/httpResponse';
 
 interface ApiResponse {
   message: string;

@@ -137,7 +137,7 @@ eslint.config.js,759,js,26
 types/telegram-bot.ts,14839,ts,646
 types/tesseract.d.ts,743,ts,24
 src/index.css,3192,css,132
-src/utils/http.ts,118,ts,4
+src/utils/httpClient.ts,118,ts,4
 src/utils/timezones.ts,641,ts,23
 src/utils/circuit.ts,584,ts,22
 src/utils/config.ts,5173,ts,196
@@ -180,7 +180,6 @@ src/components/ui/tooltip.tsx,1155,tsx,28
 src/components/ui/scroll-area.tsx,1651,tsx,46
 src/components/ui/menubar.tsx,8022,tsx,234
 src/components/ui/collapsible.tsx,320,tsx,9
-src/components/ui/use-toast.ts,82,ts,3
 src/components/ui/sheet.tsx,4318,tsx,141
 src/components/ui/checkbox.tsx,1064,tsx,28
 src/components/ui/toggle-group.tsx,1753,tsx,59
@@ -214,9 +213,9 @@ src/components/admin/AdminDashboard.tsx,18841,tsx,563
 src/components/admin/SystemStatus.tsx,22591,tsx,647
 src/components/admin/UserManagement.tsx,28987,tsx,828
 src/components/admin/WelcomeMessageEditor.tsx,14120,tsx,445
-src/hooks/use-mobile.tsx,614,tsx,23
+src/hooks/useMobile.tsx,614,tsx,23
 src/hooks/useAuth.tsx,3274,tsx,131
-src/hooks/use-toast.ts,4043,ts,190
+src/hooks/useToast.ts,4043,ts,190
 src/lib/utils.ts,169,ts,6
 src/queue/index.ts,3987,ts,172
 src/App.tsx,1642,tsx,43

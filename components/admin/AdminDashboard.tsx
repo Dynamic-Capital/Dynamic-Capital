@@ -20,7 +20,7 @@ import {
   XCircle,
   Loader2
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { useSupabase } from "@/context/SupabaseProvider";
 import { AdminGate } from "./AdminGate";

@@ -9,7 +9,7 @@ import { AnimatedHeading, GradientText, CountUp } from '@/components/ui/enhanced
 import { Interactive3DCard, StaggeredGrid } from '@/components/ui/interactive-cards';
 import { FadeInOnView } from '@/components/ui/fade-in-on-view';
 import { HorizontalSnapScroll } from '@/components/ui/horizontal-snap-scroll';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/useToast';
 import { callEdgeFunction, buildFunctionUrl } from '@/config/supabase';
 import PromoCodeInput from '@/components/billing/PromoCodeInput';
 import { formatPrice } from '@/utils';

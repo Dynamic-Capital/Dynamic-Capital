@@ -1,5 +1,5 @@
 import { optionalEnvVar } from "../utils/env.ts";
-import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ENV_ERROR } from "../shared/supabase-client.ts";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ENV_ERROR } from "../integrations/supabase/client.ts";
 
 const PROJECT_ID = SUPABASE_URL.match(/^https:\/\/([a-z0-9]+)\.supabase\.co/)
   ? RegExp.$1

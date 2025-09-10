@@ -4,7 +4,7 @@ import { MotionCard } from "@/components/ui/motion-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Crown, Calendar, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { callEdgeFunction } from "@/config/supabase";
 
 interface SubscriptionStatus {

@@ -19,7 +19,7 @@ import {
   Shield,
   Users,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";

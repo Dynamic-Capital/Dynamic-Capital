@@ -15,7 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSupabase } from '@/context/SupabaseProvider';
 import logger from '@/utils/logger';
 import { formatSupabaseError } from '@/utils/supabaseError';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/useToast";
 import { getCached } from "@/utils/cache";
 import { getTimezones } from "@/utils/timezones";
 import {
