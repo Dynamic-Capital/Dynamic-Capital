@@ -12,6 +12,7 @@ export default tseslint.config(
       "**/vendor/**",
       "supabase/functions/**",
       ".next/**",
+      "types/**",
       "scripts/**",
       "next-env.d.ts",
     ],
