@@ -4,6 +4,7 @@ import { useEffect, useState, FormEvent, ChangeEvent } from 'react';
 import WebCheckout from '@/components/checkout/WebCheckout';
 import DepositForm from '@/components/deposit-form';
 import { supabase } from '@/integrations/supabase/client';
+import Link from 'next/link';
 
 type BotUser = {
   id: string;
@@ -128,20 +129,14 @@ export default function HomePage() {
         <h2 className="text-3xl font-bold mb-lg">
           {user ? `Welcome, ${user.username || user.full_name || 'User'}!` : 'Welcome!'}
         </h2>
-        <div className="flex gap-base">
-          <a
-            href="#deposit"
-            className="px-base py-sm bg-primary text-primary-foreground rounded-md"
-          >
+        <nav className="flex gap-base">
+          <Link href="#deposit" className="motion-button-primary">
             Deposit
-          </a>
-          <a
-            href="#settings"
-            className="px-base py-sm bg-secondary text-secondary-foreground rounded-md"
-          >
+          </Link>
+          <Link href="#settings" className="motion-button-ghost">
             Settings
-          </a>
-        </div>
+          </Link>
+        </nav>
       </section>
 
       <section
