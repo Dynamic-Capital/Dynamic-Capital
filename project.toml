@@ -1,0 +1,16 @@
+[project]
+id = "dynamic-chatty-bot"
+name = "Dynamic Chatty Bot"
+version = "0.0.0"
+
+[build]
+  [[build.buildpacks]]
+    uri = "paketo-buildpacks/nodejs"
+
+  [[build.env]]
+    name = "NPM_START_SCRIPT"
+    value = "lovable-build.js"
+
+[[processes]]
+type = "web"
+command = "npm start"
