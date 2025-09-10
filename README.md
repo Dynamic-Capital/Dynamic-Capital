@@ -339,6 +339,38 @@ curl -X POST "http://127.0.0.1:54321/functions/v1/telegram-bot" \
 Note: for OCR parsing, send an actual Telegram image to the bot; OCR runs only
 on images.
 
+## Running with Docker
+
+1. **Build the image**
+
+   ```bash
+   docker build -t dynamic-chatty-bot .
+   ```
+
+2. **Run the container**
+
+   ```bash
+   docker run -p 3000:3000 --env-file .env.local dynamic-chatty-bot
+   # or
+   docker compose up
+   ```
+
+3. **Override configuration** using `-e` flags, `--env-file`, or custom `.env`
+   files to set `NEXT_PUBLIC_*` or other variables.
+
+4. **Run tests or Supabase functions** within the container:
+
+   ```bash
+   docker run --rm dynamic-chatty-bot npm test
+   docker run --rm dynamic-chatty-bot npm run serve:functions
+   ```
+
+5. **Troubleshooting**
+   - If ports like `3000` or `54321` are taken, adjust `-p` mappings or stop the
+     conflicting service.
+   - Ensure required environment variables are present; missing values may cause
+     runtime errors.
+
 ## Mini App
 
 - Set `MINI_APP_URL` in env (example domain only, do not hardcode).
