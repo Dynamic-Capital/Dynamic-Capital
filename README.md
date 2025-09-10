@@ -73,7 +73,7 @@ configuration for each component.
 - **Mini App function** – Supabase Edge Function at
   `supabase/functions/miniapp/index.ts`
 - **Broadcast planner** – standalone service at `broadcast/index.ts`
-- **Queue worker** – standalone service at `queue/index.ts`
+- **Distributed queue worker** – BullMQ/Redis-based service at `queue/index.ts`
 
 ## Development Process Overview
 

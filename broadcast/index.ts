@@ -1,4 +1,3 @@
-import { enqueue } from "../queue/index.ts";
 import { configClient } from "../utils/config.ts";
 
 export interface PlanBroadcastOptions {
@@ -44,9 +43,10 @@ export async function planBroadcast(opts: PlanBroadcastOptions) {
     console.error(err);
     throw err;
   }
+  const { enqueue } = await import("../queue/index.ts");
   for (let i = 0; i < targets.length; i += chunkSize) {
     const chunk = targets.slice(i, i + chunkSize);
-    enqueue("broadcast:sendBatch", { userIds: chunk, text, media }, {
+    await enqueue("broadcast:sendBatch", { userIds: chunk, text, media }, {
       maxAttempts: 5,
       backoff: "exp",
     });
