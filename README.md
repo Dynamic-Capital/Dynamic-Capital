@@ -7,6 +7,8 @@
 Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
 OCR + crypto TXID). Built with **Lovable Codex** for enhanced development experience.
 
+The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and backed by Supabase.
+
 ## Features
 
 - Telegram webhook (200-fast), OCR on images only
