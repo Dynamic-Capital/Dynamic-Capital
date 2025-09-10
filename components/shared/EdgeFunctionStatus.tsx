@@ -14,7 +14,7 @@ export const EdgeFunctionStatus = () => {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke<HealthResponse>(
+        const { data, error } = await supabase.functions.invoke(
           "web-app-health",
           { method: "GET" },
         );
@@ -22,7 +22,8 @@ export const EdgeFunctionStatus = () => {
           setStatus("error");
           return;
         }
-        setStatus(data?.overall_status || "degraded");
+        const typedData = data as HealthResponse;
+        setStatus(typedData?.overall_status || "degraded");
       } catch (_err) {
         setStatus("error");
       }
