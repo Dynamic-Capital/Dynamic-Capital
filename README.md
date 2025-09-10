@@ -16,6 +16,15 @@ OCR + crypto TXID). Built with **Lovable Codex** for enhanced development experi
 - Admin commands for maintenance
 - **Lovable Codex Integration** for AI-powered development
 
+## Project starters
+
+- **Package scripts** – `npm run dev`, `npm run build`, and `npm run start` in `package.json`
+- **Next.js web app** – main layout and landing page entry points in `app/layout.tsx` and `app/page.tsx`
+- **Telegram bot** – Supabase Edge Function at `supabase/functions/telegram-bot/index.ts`
+- **Mini App function** – Supabase Edge Function at `supabase/functions/miniapp/index.ts`
+- **Broadcast planner** – standalone service at `broadcast/index.ts`
+- **Queue worker** – standalone service at `queue/index.ts`
+
 ## Development Process Overview
 
 | Tool | What It Does | How You Use It |
