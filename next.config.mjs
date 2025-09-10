@@ -18,7 +18,7 @@ if (
 const SITE_URL =
   process.env.SITE_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||
-  "http://localhost:3000";
+    "http://localhost:8080";
 
 const CANONICAL_HOST = new URL(SITE_URL).hostname;
 
