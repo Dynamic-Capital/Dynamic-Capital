@@ -50,8 +50,9 @@ configuration for each component.
 - **Functions** – Edge functions live under `supabase/functions` and any
   framework-managed API routes belong in `functions/`.
 - **Build outputs** – Use `npm run build:all` to compile both the Next.js app
-  and mini app functions. Generated directories such as `.next/` and
-  `supabase/functions/*/dist/` are excluded via `.gitignore`.
+  and mini app functions. Optionally specify an output directory (relative to
+  the build context) to control where build assets are generated; if omitted,
+  the default location is used.
 - **Static files** – Place all user-facing assets in `public/`.
 - **Root configuration** – Key files like `package.json`, `tsconfig.json`,
   `eslint.config.js`, and `.env.example` sit at the project root. Keep
