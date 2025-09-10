@@ -4,6 +4,29 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  * {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer components {
+  .typography-xs { @apply text-xs; }
+  .typography-sm { @apply text-sm; }
+  .typography-base { @apply text-base; }
+  .typography-lg { @apply text-lg; }
+  .typography-xl { @apply text-xl; }
+  .typography-2xl { @apply text-2xl; }
+  .typography-3xl { @apply text-3xl; }
+  .typography-4xl { @apply text-4xl; }
+  .typography-5xl { @apply text-5xl; }
+  .typography-6xl { @apply text-6xl; }
+}
+
 /* === UNIVERSAL FRAMER MOTION THEME === */
 :root {
   /* Enhanced Motion Design Tokens - Red Theme */
