@@ -245,6 +245,7 @@ PII; rate limits enabled.
 Full list and usage notes: [docs/env.md](docs/env.md).
 
 - The `ALLOWED_ORIGINS` variable controls which domains may call the API and edge functions.
+- See [docs/NETWORKING.md](docs/NETWORKING.md) for port mappings, reverse proxy tips, and Cloudflare ingress IPs.
 - Copy `.env.example` to `.env.local` and replace the placeholder values with
   real secrets for your environment. This file is ignored by Git so each
   contributor maintains their own local configuration.
