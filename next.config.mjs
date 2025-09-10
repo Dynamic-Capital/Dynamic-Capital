@@ -10,7 +10,7 @@ const SUPABASE_ANON_KEY =
 const SITE_URL =
   process.env.SITE_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||
-  "https://dynamic-capital.lovable.app/";
+  "https://urchin-app-macix.ondigitalocean.app/";
 
 process.env.SUPABASE_URL = SUPABASE_URL;
 process.env.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
