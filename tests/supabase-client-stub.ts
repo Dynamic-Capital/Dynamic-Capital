@@ -21,8 +21,24 @@ export function createClient() {
             },
           };
         },
-        insert(_vals: unknown) {
-          return Promise.resolve({ data: null, error: null });
+        insert(vals: any) {
+          const base = Promise.resolve({ data: null, error: null });
+          return {
+            select(_cols?: string) {
+              const selectResp = Promise.resolve({ data: [vals], error: null });
+              return {
+                single() {
+                  return Promise.resolve({ data: vals, error: null });
+                },
+                then: selectResp.then.bind(selectResp),
+                catch: selectResp.catch.bind(selectResp),
+                finally: selectResp.finally.bind(selectResp),
+              };
+            },
+            then: base.then.bind(base),
+            catch: base.catch.bind(base),
+            finally: base.finally.bind(base),
+          };
         },
       };
     },
