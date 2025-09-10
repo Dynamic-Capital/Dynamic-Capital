@@ -78,8 +78,9 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
       const webhookData = data.webhook_data as any;
       const needsResubmit = ['pending_review', 'failed'].includes(data.status);
       setShowUploader((data.status === 'pending' && !webhookData?.storage_path) || needsResubmit);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to fetch payment status');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to fetch payment status';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

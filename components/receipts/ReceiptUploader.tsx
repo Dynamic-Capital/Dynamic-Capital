@@ -6,6 +6,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { TelegramWindow } from "@/types/telegram-webapp";
+import type { ReceiptUploadBody, ReceiptSubmitBody, ApiError } from "@/types/receipts";
 
 interface ReceiptUploaderProps {
   paymentId: string;
@@ -28,10 +30,13 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
     setUploadStatus('idle');
 
     try {
-      const initData = (window as any).Telegram?.WebApp?.initData;
+      const initData =
+        typeof window !== "undefined"
+          ? (window as TelegramWindow).Telegram?.WebApp?.initData
+          : undefined;
 
       // Get upload URL
-      const uploadBody: any = {
+      const uploadBody: ReceiptUploadBody = {
         payment_id: paymentId,
         filename: uploadedFile.name,
         content_type: uploadedFile.type,
@@ -42,7 +47,10 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
         body: uploadBody,
       });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        const { message } = uploadError as ApiError;
+        throw new Error(message);
+      }
 
       if (!uploadData?.upload_url) {
         throw new Error('No upload URL received');
@@ -64,7 +72,7 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
       }
 
       // Submit receipt
-      const submitBody: any = {
+      const submitBody: ReceiptSubmitBody = {
         payment_id: paymentId,
         file_path: uploadData.file_path,
         bucket: uploadData.bucket,
@@ -75,15 +83,19 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
         body: submitBody,
       });
 
-      if (submitError) throw submitError;
+      if (submitError) {
+        const { message } = submitError as ApiError;
+        throw new Error(message);
+      }
 
       setUploadStatus('success');
       toast.success('Receipt uploaded successfully! Your payment is being reviewed.');
       onUploadComplete?.(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Receipt upload error:', error);
       setUploadStatus('error');
-      toast.error(error.message || 'Failed to upload receipt');
+      const message = error instanceof Error ? error.message : 'Failed to upload receipt';
+      toast.error(message);
       onUploadComplete?.(false);
     } finally {
       setUploading(false);

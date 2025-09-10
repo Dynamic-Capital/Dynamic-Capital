@@ -13,6 +13,7 @@ import { TextLoader } from "@/components/ui/text-loader";
 import { MotionFadeIn, MotionStagger, MotionCounter } from "@/components/ui/motion-components";
 import { ResponsiveMotion } from "@/components/ui/responsive-motion";
 import { MorphingText } from "@/components/ui/animated-text";
+import type { TelegramWindow } from "@/types/telegram-webapp";
 
 interface HeroSectionProps { onOpenTelegram: () => void; }
 
@@ -176,9 +177,10 @@ const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
                   icon={<Crown className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />}
                   onClick={() => {
                     return new Promise((resolve) => {
+                      const tg = typeof window !== "undefined" ? (window as TelegramWindow).Telegram?.WebApp : undefined;
                       const isInTelegram = Boolean(
-                        (window as any).Telegram?.WebApp?.initData ||
-                        (window as any).Telegram?.WebApp?.initDataUnsafe ||
+                        tg?.initData ||
+                        tg?.initDataUnsafe ||
                         window.location.search.includes("tgWebAppPlatform") ||
                         navigator.userAgent.includes("TelegramWebApp")
                       );

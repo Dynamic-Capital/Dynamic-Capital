@@ -4,6 +4,7 @@ import { Badge } from "../components/ui/badge";
 import PrimaryButton from "../components/PrimaryButton";
 import { useApi } from "../hooks/useApi";
 import Toast from "../components/Toast";
+import type { TelegramWindow } from "../../../../types/telegram-webapp";
 
 interface ContactLink {
   id: string;
@@ -48,7 +49,7 @@ export default function Contact() {
 
   const handleContactClick = (url: string, platform: string) => {
     try {
-      const tg = (window as any).Telegram?.WebApp;
+      const tg = typeof window !== 'undefined' ? (window as TelegramWindow).Telegram?.WebApp : undefined;
       if (tg) {
         tg.openLink(url);
       } else {

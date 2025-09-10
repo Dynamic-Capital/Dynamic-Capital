@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { callEdgeFunction } from "@/config/supabase";
 import logger from "@/utils/logger";
 import type { Plan } from "@/types/plan";
+import type { TelegramWindow } from "@/types/telegram-webapp";
+import type { ReceiptUploadBody, ReceiptSubmitBody, ApiError } from "@/types/receipts";
 import { PaymentMethod, CheckoutStep, BankAccount } from "./types";
 import PlanSummary from "./PlanSummary";
 import PromoCodeForm from "./PromoCodeForm";
@@ -75,10 +77,11 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
   }, [selectedPlan]);
 
   useEffect(() => {
-    const isInTelegram = window.Telegram?.WebApp?.initData;
-    setIsTelegram(!!isInTelegram);
-    if (isInTelegram) {
-      setTelegramInitData(window.Telegram.WebApp.initData);
+    const tg = typeof window !== "undefined" ? (window as TelegramWindow).Telegram?.WebApp : undefined;
+    const initData = tg?.initData;
+    setIsTelegram(!!initData);
+    if (initData) {
+      setTelegramInitData(initData);
       logger.log("Running inside Telegram WebApp");
     }
     fetchPlans();
@@ -149,7 +152,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
           telegramId = crypto.randomUUID();
         }
       }
-      const requestBody: any = {
+      const requestBody: Record<string, unknown> = {
         plan_id: selectedPlan.id,
         method: paymentMethod
       };
@@ -170,8 +173,9 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
       }
       setCurrentStep("instructions");
       toast.success('Payment initiated successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to initiate checkout');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to initiate checkout';
+      toast.error(message);
     } finally {
       setProcessingCheckout(false);
     }
@@ -182,7 +186,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     setUploading(true);
     setUploadStatus('idle');
     try {
-      const uploadRequestBody: any = {
+      const uploadRequestBody: ReceiptUploadBody = {
         payment_id: paymentId,
         filename: uploadedFile.name,
         content_type: uploadedFile.type
@@ -193,7 +197,10 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
       const { data: uploadData, error: uploadError } = await supabase.functions.invoke('receipt-upload-url', {
         body: uploadRequestBody
       });
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        const { message } = uploadError as ApiError;
+        throw new Error(message);
+      }
       if (!uploadData?.upload_url) {
         throw new Error('No upload URL received');
       }
@@ -208,7 +215,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
       if (!uploadResponse.ok) {
         throw new Error(`Upload failed: ${uploadResponse.statusText}`);
       }
-      const submitRequestBody: any = {
+      const submitRequestBody: ReceiptSubmitBody = {
         payment_id: paymentId,
         file_path: uploadData.file_path,
         bucket: uploadData.bucket
@@ -219,13 +226,17 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
       const { error: submitError } = await supabase.functions.invoke('receipt-submit', {
         body: submitRequestBody
       });
-      if (submitError) throw submitError;
+      if (submitError) {
+        const { message } = submitError as ApiError;
+        throw new Error(message);
+      }
       setCurrentStep("pending");
       setUploadStatus('success');
       toast.success('Receipt uploaded successfully! Your payment is being reviewed.');
-    } catch (error: any) {
+    } catch (error: unknown) {
       setUploadStatus('error');
-      toast.error(error.message || 'Failed to upload receipt');
+      const message = error instanceof Error ? error.message : 'Failed to upload receipt';
+      toast.error(message);
     } finally {
       setUploading(false);
     }

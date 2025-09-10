@@ -120,7 +120,7 @@ Here are some quick answers to common questions:
       } else {
         throw new Error("No answer received");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to get AI answer:", error);
       appendMessages({
         role: "assistant",

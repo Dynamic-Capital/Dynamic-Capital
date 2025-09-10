@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import logger from "@/utils/logger";
 import { Sparkles, Tag, Percent, DollarSign, Loader2, Check, X } from "lucide-react";
+import type { TelegramWindow } from "@/types/telegram-webapp";
 
 interface PromoCodeInputProps {
   planId: string;
@@ -44,7 +45,10 @@ const PromoCodeInput = ({ planId, onApplied }: PromoCodeInputProps) => {
       const apiPlanId = uuidRegex.test(planId) ? planId : "6e07f718-606e-489d-9626-2a5fa3e84eec";
       
       // Try using Telegram data first, fall back to demo user
-      const telegramId = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || "123456789";
+      const telegramId =
+        (typeof window !== "undefined"
+          ? (window as TelegramWindow).Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString()
+          : undefined) || "123456789";
       
       const { data, error } = await supabase.functions.invoke("promo-validate", {
         body: {
