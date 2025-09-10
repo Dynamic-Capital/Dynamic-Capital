@@ -10,6 +10,13 @@ version = "0.0.0"
   [[build.buildpacks]]
     uri = "paketo-buildpacks/nodejs"
 
+  # Enable build caching for faster subsequent deployments
+  [[build.cache]]
+    path = "node_modules"
+
+  [[build.cache]]
+    path = ".next/cache"
+
   [[build.env]]
     name = "NPM_START_SCRIPT"
     value = "lovable-build.js"

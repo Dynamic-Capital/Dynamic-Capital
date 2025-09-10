@@ -1,5 +1,5 @@
 // Universal Motion Variants for consistent animations across the app
-import { Variants } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 
 // === PARENT ORCHESTRATION VARIANTS ===
 // These variants control children through stagger and orchestration
