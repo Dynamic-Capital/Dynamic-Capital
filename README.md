@@ -75,6 +75,12 @@ configuration for each component.
 - **Broadcast planner** – standalone service at `broadcast/index.ts`
 - **Queue worker** – standalone service at `queue/index.ts`
 
+## HTML Static Site Starter
+
+A minimal static landing page lives in `static-site/` with `index.html`, `styles.css`, and `scripts.js`.
+Run `npm run build:static` to copy it into the `_static/` directory for deployment.
+Modify the files to suit your needs before running the build.
+
 ## Development Process Overview
 
 | Tool                   | What It Does                                                            | How You Use It                                                                                              |
