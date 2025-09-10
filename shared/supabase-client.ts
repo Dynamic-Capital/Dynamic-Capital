@@ -1,23 +1,6 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { getEnvVar } from "../utils/env.ts";
 import type { Database } from "../types/supabase.ts";
-
-// Deno runtime doesn't provide Node's `process` global; declare a minimal shape
-// so type checking passes in both environments.
-declare const process: { env: Record<string, string | undefined> } | undefined;
-
-function getEnvVar(name: string, aliases: string[] = []): string | undefined {
-  const prefixes = ["", "NEXT_PUBLIC_"];
-  const names = [name, ...aliases];
-  if (typeof process !== 'undefined' && process.env) {
-    for (const n of names) {
-      for (const p of prefixes) {
-        const v = process.env[`${p}${n}`];
-        if (v) return v;
-      }
-    }
-  }
-  return undefined;
-}
 
 const PLACEHOLDER_URL = "https://example.supabase.co";
 const PLACEHOLDER_ANON_KEY = "anon-key-placeholder";
@@ -64,7 +47,9 @@ export function getQueryCounts() {
   return { ...queryCounts };
 }
 
-export function createClient(key: "anon" | "service" = "anon"): any {
+export type SupabaseClient = ReturnType<typeof createSupabaseClient<Database>>;
+
+export function createClient(key: "anon" | "service" = "anon"): SupabaseClient {
   if (SUPABASE_ENV_ERROR) {
     throw new Error(SUPABASE_ENV_ERROR);
   }
@@ -80,7 +65,7 @@ export function createClient(key: "anon" | "service" = "anon"): any {
       removeItem: () => {},
     };
 
-  return createSupabaseClient(SUPABASE_URL, k, {
+  return createSupabaseClient<Database>(SUPABASE_URL, k, {
     auth: {
       storage,
       persistSession: isBrowser,
@@ -91,4 +76,3 @@ export function createClient(key: "anon" | "service" = "anon"): any {
 }
 
 export { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ENV_ERROR };
-export type SupabaseClient = any;
