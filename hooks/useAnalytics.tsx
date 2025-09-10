@@ -49,7 +49,7 @@ export const useAnalytics = () => {
       }
 
       // Call analytics edge function
-      const { error } = await supabase.functions.invoke<TrackEventResponse>('web-app-analytics', {
+      const { error } = await supabase.functions.invoke('web-app-analytics', {
         body: eventWithContext,
       });
 
