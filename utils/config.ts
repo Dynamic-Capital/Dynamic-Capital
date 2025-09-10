@@ -7,30 +7,48 @@ const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || "";
 
 import { withRetry } from "./retry.ts";
 
+const DEFAULT_TIMEOUT_MS = 10_000;
+
 async function call<T>(
   action: string,
   payload: Record<string, unknown> = {},
+  timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<T> {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     throw new Error("Missing Supabase configuration");
   }
-  const res = await withRetry(
-    () =>
-      fetch(`${SUPABASE_URL}/functions/v1/config`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-        },
-        body: JSON.stringify({ action, ...payload }),
-      }),
-    3,
-  );
-  if (!res.ok) {
-    throw new Error(`Config edge function error: ${await res.text()}`);
+  try {
+    const res = await withRetry(
+      async () => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          return await fetch(`${SUPABASE_URL}/functions/v1/config`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_KEY,
+              Authorization: `Bearer ${SUPABASE_KEY}`,
+            },
+            body: JSON.stringify({ action, ...payload }),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timer);
+        }
+      },
+      3,
+    );
+    if (!res.ok) {
+      throw new Error(`Config edge function error: ${await res.text()}`);
+    }
+    return (await res.json()) as T;
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error(`Config request timed out after ${timeoutMs} ms`);
+    }
+    throw err;
   }
-  return (await res.json()) as T;
 }
 
 const configClient = {
