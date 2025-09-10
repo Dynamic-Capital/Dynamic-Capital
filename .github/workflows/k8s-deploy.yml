@@ -1,0 +1,22 @@
+name: Deploy to DigitalOcean Kubernetes
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_API_TOKEN }}
+      - name: Set up kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ secrets.DO_K8S_CLUSTER }}
+      - name: Build and push container image
+        run: |
+          docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY }}/app:${{ github.sha }} .
+          echo ${{ secrets.DO_REGISTRY_TOKEN }} | docker login registry.digitalocean.com -u ${{ secrets.DO_REGISTRY_USER }} --password-stdin
+          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY }}/app:${{ github.sha }}
+      - name: Apply manifests
+        run: kubectl apply -f k8s/

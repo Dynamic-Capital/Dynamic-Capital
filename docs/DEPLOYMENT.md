@@ -12,6 +12,13 @@ full list and usage notes.
 - `TELEGRAM_ADMIN_IDS` (optional)
 - `MINI_APP_URL` or `MINI_APP_SHORT_NAME` (optional)
 
+When deploying on DigitalOcean App Platform, configure these variables under
+**App Settings → Environment Variables** so the runtime can reach Supabase.
+Include your database connection string or anon key as needed:
+
+- `SUPABASE_ANON_KEY`
+- `DATABASE_URL` (connection string)
+
 ## API Routing
 
 When deploying a static landing page alongside Next.js API routes, forward
@@ -109,3 +116,12 @@ supabase functions deploy telegram-bot --project-ref <PROJECT_REF>
 
 Ensure the webhook still points to the current deployment and rerun tests after
 redeploying.
+
+## Monitoring and scaling
+
+Enable [DigitalOcean Monitoring](https://docs.digitalocean.com/products/monitoring/)
+for both the App Platform app and the Supabase project to track CPU, memory,
+and request metrics. Configure alert policies for critical thresholds.
+
+Scale horizontally by adjusting the App Platform instance count or, for
+Kubernetes deployments, adding additional node pools in your DOKS cluster.
