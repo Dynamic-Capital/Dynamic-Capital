@@ -31,7 +31,8 @@ Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser and can be
 shared between the static landing page and the Next.js API service:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=... 
+NEXT_PUBLIC_API_URL=...
+NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
@@ -294,6 +295,7 @@ time (exposed with Next.js `NEXT_PUBLIC_` prefix so they end up in the browser
 bundle):
 
 ```bash
+NEXT_PUBLIC_API_URL=https://<api.example.com>
 NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 ```
