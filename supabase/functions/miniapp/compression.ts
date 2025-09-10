@@ -37,8 +37,8 @@ export function smartCompress(
   for (const { name } of encodings) {
     if (name === "br" || name === "gzip") {
       try {
-        const stream = new Blob([body]).stream().pipeThrough(
-          new CompressionStream(name),
+        const stream = new Blob([body as BlobPart]).stream().pipeThrough(
+          new CompressionStream(name as CompressionFormat),
         );
         console.log(`[miniapp] Using compression: ${name}`);
         return { stream, encoding: name };

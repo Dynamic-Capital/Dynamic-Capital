@@ -1,7 +1,7 @@
 import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { extractTelegramUserId } from "../shared/telegram.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from "../_shared/client.ts";
 
 export async function handleApiRoutes(
   req: Request,

@@ -1,4 +1,4 @@
-import { type SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import type { SupabaseClient } from "../../_shared/client.ts";
 import { optionalEnv } from "../../_shared/env.ts";
 
 const BENEFICIARY_TABLE = optionalEnv("BENEFICIARY_TABLE") ?? "beneficiaries";

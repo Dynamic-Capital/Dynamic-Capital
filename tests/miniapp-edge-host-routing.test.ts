@@ -2,6 +2,7 @@ import test from 'node:test';
 import { ok as assert, equal as assertEquals } from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { rm, mkdir, writeFile, readFile } from 'node:fs/promises';
+import { Buffer } from 'node:buffer';
 
 const globalAny = globalThis as any;
 const supaState: any = { tables: {} };

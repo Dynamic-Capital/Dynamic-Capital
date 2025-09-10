@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 
 async function run() {
   const { GET } = await import('../../app/api/hello/route.ts')
-  const res = await GET(new Request('http://localhost'))
+  const res = await GET()
   assert.equal(res.status, 200)
   const data = await res.json()
   assert.deepEqual(data, { message: 'Hello from the API' })
