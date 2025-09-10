@@ -23,6 +23,7 @@ import { setCallbackMessageId } from "./admin-handlers/common.ts";
 import { recomputeVipForUser } from "../_shared/vip_sync.ts";
 import { getVipChannels, isMemberLike, recomputeVipFlag } from "../_shared/telegram_membership.ts";
 import { askChatGPT } from "./helpers/chatgpt.ts";
+import { escapeHtml } from "./helpers/escape.ts";
 // Type definition moved inline to avoid import issues
 interface Promotion {
   code: string;
@@ -91,14 +92,14 @@ const botUsername = (await envOrSetting<string>("TELEGRAM_BOT_USERNAME")) || "";
 const _OPENAI_ENABLED = optionalEnv("OPENAI_ENABLED") === "true";
 const _FAQ_ENABLED = optionalEnv("FAQ_ENABLED") === "true";
 let supabaseAdmin: SupabaseClient | null = null;
-function getSupabase(): SupabaseClient | null {
+export function getSupabase(): SupabaseClient {
   if (supabaseAdmin) return supabaseAdmin;
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
-  try {
-    supabaseAdmin = createClient("service");
-  } catch (_e) {
-    supabaseAdmin = null;
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    const msg = "Missing Supabase credentials";
+    console.error(msg);
+    throw new Error(msg);
   }
+  supabaseAdmin = createClient("service");
   return supabaseAdmin;
 }
 
@@ -120,6 +121,30 @@ const corsHeaders = {
 
 const DEFAULT_PARSE_MODE = "HTML";
 
+async function telegramFetch(method: string, payload: unknown): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const res = await fetch(
+      `https://api.telegram.org/bot${BOT_TOKEN}/${method}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      },
+    );
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`telegramFetch ${method} failed`, res.status, text.slice(0, 200));
+      throw new Error(`Telegram API ${method} error`);
+    }
+    return res;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function sendMessage(
   chatId: number,
   text: string,
@@ -132,30 +157,18 @@ async function sendMessage(
     return null;
   }
   try {
-    const r = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text,
-          disable_web_page_preview: true,
-          allow_sending_without_reply: true,
-          parse_mode: DEFAULT_PARSE_MODE,
-          ...extra,
-        }),
-      },
-    );
-    const outText = await r.text();
-    console.log("sendMessage", r.status, outText.slice(0, 200));
-    try {
-      const out = JSON.parse(outText);
-      const id = out?.result?.message_id;
-      return typeof id === "number" ? id : null;
-    } catch {
-      return null;
-    }
+    const { parse_mode = DEFAULT_PARSE_MODE, ...rest } = extra;
+    const r = await telegramFetch("sendMessage", {
+      chat_id: chatId,
+      text: parse_mode === "HTML" ? escapeHtml(text) : text,
+      disable_web_page_preview: true,
+      allow_sending_without_reply: true,
+      parse_mode,
+      ...rest,
+    });
+    const out = await r.json().catch(() => ({}));
+    const id = out?.result?.message_id;
+    return typeof id === "number" ? id : null;
   } catch (e) {
     console.error("sendMessage error", e);
     return null;
@@ -175,29 +188,17 @@ async function editMessage(
     return null;
   }
   try {
-    const r = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          message_id: messageId,
-          text,
-          parse_mode: DEFAULT_PARSE_MODE,
-          ...extra,
-        }),
-      },
-    );
-    const outText = await r.text();
-    console.log("editMessage", r.status, outText.slice(0, 200));
-    try {
-      const out = JSON.parse(outText);
-      const id = out?.result?.message_id;
-      return typeof id === "number" ? id : null;
-    } catch {
-      return null;
-    }
+    const { parse_mode = DEFAULT_PARSE_MODE, ...rest } = extra;
+    const r = await telegramFetch("editMessageText", {
+      chat_id: chatId,
+      message_id: messageId,
+      text: parse_mode === "HTML" ? escapeHtml(text) : text,
+      parse_mode,
+      ...rest,
+    });
+    const out = await r.json().catch(() => ({}));
+    const id = out?.result?.message_id;
+    return typeof id === "number" ? id : null;
   } catch (e) {
     console.error("editMessage error", e);
     return null;
@@ -215,16 +216,10 @@ async function answerCallbackQuery(
     return;
   }
   try {
-    const r = await fetch(
-      `https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ callback_query_id: cbId, ...opts }),
-      },
-    );
-    const out = await r.text();
-    console.log("answerCallbackQuery", r.status, out.slice(0, 200));
+    await telegramFetch("answerCallbackQuery", {
+      callback_query_id: cbId,
+      ...opts,
+    });
   } catch (e) {
     console.error("answerCallbackQuery error", e);
   }
@@ -782,23 +777,26 @@ We typically respond within 2-4 hours.`;
 }
 
 async function getMenuMessageId(chatId: number): Promise<number | null> {
-  const supa = getSupabase();
-  if (!supa) return null;
-  const { data } = await supa
-    .from("bot_users")
-    .select("menu_message_id")
-    .eq("telegram_id", chatId)
-    .maybeSingle();
-  return data?.menu_message_id ?? null;
+  try {
+    const supa = getSupabase();
+    const { data } = await supa
+      .from("bot_users")
+      .select("menu_message_id")
+      .eq("telegram_id", chatId)
+      .maybeSingle();
+    return data?.menu_message_id ?? null;
+  } catch (e) {
+    console.error("getMenuMessageId error", e);
+    return null;
+  }
 }
 
 async function setMenuMessageId(
   chatId: number,
   messageId: number | null,
 ): Promise<void> {
-  const supa = getSupabase();
-  if (!supa) return;
   try {
+    const supa = getSupabase();
     await supa
       .from("bot_users")
       .update({ menu_message_id: messageId })
@@ -892,11 +890,7 @@ function isStartMessage(m: TelegramMessage | undefined) {
 }
 
 function supaSvc() {
-  const client = getSupabase();
-  if (!client) {
-    throw new Error("Supabase client unavailable");
-  }
-  return client;
+  return getSupabase();
 }
 
 /** Persist one interaction for analytics. */
@@ -954,16 +948,21 @@ async function storeReceiptImage(
   blob: Blob,
   storagePath: string,
 ): Promise<string> {
-  const supabase = getSupabase();
-  const result = await supabase?.storage
-    .from("payment-receipts")
-    .upload(storagePath, blob, { contentType: blob.type || undefined });
-  const error = result?.error;
-  if (error) {
-    console.error("storeReceiptImage upload error", error);
-    throw error;
+  try {
+    const supabase = getSupabase();
+    const result = await supabase.storage
+      .from("payment-receipts")
+      .upload(storagePath, blob, { contentType: blob.type || undefined });
+    const error = result?.error;
+    if (error) {
+      console.error("storeReceiptImage upload error", error);
+      throw error;
+    }
+    return storagePath;
+  } catch (e) {
+    console.error("storeReceiptImage error", e);
+    throw e;
   }
-  return storagePath;
 }
 
 /** Ensure bot user exists and report whether this is a new user */
@@ -973,10 +972,8 @@ async function ensureBotUserExists(
   lastName?: string,
   username?: string,
 ): Promise<{ created: boolean }> {
-  const supa = getSupabase();
-  if (!supa) throw new Error("Supabase client unavailable");
-
   try {
+    const supa = getSupabase();
     // Check if user exists
     const { data: existingUser } = await supa
       .from("bot_users")
@@ -1017,12 +1014,8 @@ async function ensureBotUserExists(
 
 /** Fetch active contact links from database */
 async function fetchActiveContactLinks(): Promise<string> {
-  const supa = getSupabase();
-  if (!supa) {
-    return "📧 Email: support@dynamiccapital.com\n💬 Telegram: @DynamicCapital_Support";
-  }
-
   try {
+    const supa = getSupabase();
     const { data: links } = await supa
       .from("contact_links")
       .select("platform, display_name, url, icon_emoji")
@@ -1255,18 +1248,14 @@ async function handleCommand(update: TelegramUpdate): Promise<void> {
 }
 
 async function handleAddAdminUser(chatId: number, userId: string): Promise<void> {
-  const supabase = getSupabase();
-  if (!supabase) return;
-
   try {
-    // Set awaiting input for admin user ID
+    const supabase = getSupabase();
     await supabase.from("user_sessions").upsert({
       telegram_user_id: userId,
       awaiting_input: "add_admin_user",
       is_active: true,
       last_activity: new Date().toISOString(),
     });
-
     await notifyUser(chatId, "👤 **Add Admin User**\n\nSend the Telegram User ID to make admin:");
   } catch (error) {
     console.error("Error in handleAddAdminUser:", error);
@@ -1275,17 +1264,14 @@ async function handleAddAdminUser(chatId: number, userId: string): Promise<void>
 }
 
 async function handleSearchUser(chatId: number, userId: string): Promise<void> {
-  const supabase = getSupabase();
-  if (!supabase) return;
-
   try {
+    const supabase = getSupabase();
     await supabase.from("user_sessions").upsert({
       telegram_user_id: userId,
       awaiting_input: "search_user",
       is_active: true,
       last_activity: new Date().toISOString(),
     });
-
     await notifyUser(chatId, "🔍 **Search User**\n\nSend username, user ID, or name to search:");
   } catch (error) {
     console.error("Error in handleSearchUser:", error);
@@ -1294,10 +1280,8 @@ async function handleSearchUser(chatId: number, userId: string): Promise<void> {
 }
 
 async function handleManageVipUsers(chatId: number, userId: string): Promise<void> {
-  const supabase = getSupabase();
-  if (!supabase) return;
-
   try {
+    const supabase = getSupabase();
     const { data: vipUsers } = await supabase
       .from("bot_users")
       .select("telegram_id, username, first_name, last_name")
@@ -1305,7 +1289,7 @@ async function handleManageVipUsers(chatId: number, userId: string): Promise<voi
       .limit(10);
 
     let message = "💎 **VIP Users Management**\n\n";
-    
+
     if (vipUsers && vipUsers.length > 0) {
       message += "Current VIP Users:\n";
       vipUsers.forEach((user: any, index: number) => {
@@ -1337,10 +1321,8 @@ async function handleManageVipUsers(chatId: number, userId: string): Promise<voi
 }
 
 async function handleExportUsers(chatId: number, userId: string): Promise<void> {
-  const supabase = getSupabase();
-  if (!supabase) return;
-
   try {
+    const supabase = getSupabase();
     const { data: users } = await supabase
       .from("bot_users")
       .select("*")
@@ -1542,8 +1524,11 @@ async function handleCallback(update: TelegramUpdate): Promise<void> {
     }
     if (data.startsWith("currency:")) {
       const [, method, currency, planId] = data.split(":");
-      const supa = getSupabase();
-      if (!supa) {
+      let supa;
+      try {
+        supa = getSupabase();
+      } catch (e) {
+        console.error("payment creation error", e);
         const msg = await getContent("payment_create_failed") ??
           "Unable to create payment.";
         await notifyUser(chatId, msg);
@@ -1731,8 +1716,11 @@ export async function startReceiptPipeline(
       await notifyUser(chatId, msg);
       return;
     }
-    const supa = getSupabase();
-    if (!supa) {
+    let supa;
+    try {
+      supa = getSupabase();
+    } catch (e) {
+      console.error("startReceiptPipeline error", e);
       const msg = await getContent("receipt_processing_unavailable") ??
         "Receipt processing unavailable.";
       await notifyUser(chatId, msg);
@@ -1976,6 +1964,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
   }
 }
 
+export { sendMessage, editMessage, answerCallbackQuery };
 export default serveWebhook;
 if (import.meta.main) {
   Deno.serve(serveWebhook);
