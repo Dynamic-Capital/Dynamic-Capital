@@ -49,9 +49,31 @@ This guide outlines eight high-level steps to run, build, and deploy the Telegra
    - Verify deployed endpoints respond as expected:
    ```bash
    curl -s https://<PROJECT>.functions.supabase.co/miniapp/version
-   curl -s https://<PROJECT>.functions.supabase.co/telegram-bot/version
-   curl -s -X POST https://<PROJECT>.functions.supabase.co/telegram-bot \
-     -H 'x-telegram-bot-api-secret-token: <TELEGRAM_WEBHOOK_SECRET>' \
-     -H 'content-type: application/json' -d '{"test":"ping"}'
+  curl -s https://<PROJECT>.functions.supabase.co/telegram-bot/version
+  curl -s -X POST https://<PROJECT>.functions.supabase.co/telegram-bot \
+    -H 'x-telegram-bot-api-secret-token: <TELEGRAM_WEBHOOK_SECRET>' \
+    -H 'content-type: application/json' -d '{"test":"ping"}'
+  ```
+
+## Local static + API development
+
+When the landing page and API routes are deployed as separate components, you
+can mirror that setup locally:
+
+1. Start the Next.js API service on port 3000:
+
+   ```bash
+   cd next-app
+   npm run dev -- -p 3000
    ```
+
+2. In another terminal, serve the `static` directory and proxy `/api/*` to the
+   Next.js server:
+
+   ```bash
+   npx local-web-server --directory static --port 3001 --proxy /api http://localhost:3000/api
+   ```
+
+Open `http://localhost:3001` and the static page will forward any `/api/*`
+requests to the running Next.js service without CORS issues.
 

@@ -12,6 +12,35 @@ full list and usage notes.
 - `TELEGRAM_ADMIN_IDS` (optional)
 - `MINI_APP_URL` or `MINI_APP_SHORT_NAME` (optional)
 
+## API Routing
+
+When deploying a static landing page alongside Next.js API routes, forward
+`/api/*` traffic from the static host to the Next.js service. This keeps both
+components on the same domain and avoids CORS issues.
+
+Example nginx rule:
+
+```nginx
+location /api/ {
+  proxy_pass http://localhost:3000;
+  proxy_set_header Host $host;
+}
+```
+
+Adjust the upstream target for your hosting platform or reverse proxy.
+
+## Performance
+
+Enable caching for assets in the `static` directory and use a CDN when
+possible. Recommended headers:
+
+```
+Cache-Control: public, max-age=31536000, immutable
+```
+
+for hashed assets, and a short `max-age` for `index.html`. Ensure your host
+or CDN honors these headers and caches static content at the edge.
+
 ## Test commands
 
 Run basic checks before deploying:
