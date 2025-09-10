@@ -1,12 +1,13 @@
 import { jsonResponse, methodNotAllowed } from '../../../lib/httpResponse';
+import { corsHeaders } from '../../../lib/cors';
 
 interface HelloResponse {
   message: string;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const body: HelloResponse = { message: 'Hello from the API' };
-  return jsonResponse(body);
+  return jsonResponse(body, {}, req);
 }
 
 export const POST = methodNotAllowed;
@@ -14,4 +15,6 @@ export const PUT = methodNotAllowed;
 export const PATCH = methodNotAllowed;
 export const DELETE = methodNotAllowed;
 export const HEAD = methodNotAllowed;
-export const OPTIONS = methodNotAllowed;
+export function OPTIONS(req: Request) {
+  return new Response(null, { status: 204, headers: corsHeaders(req) });
+}
