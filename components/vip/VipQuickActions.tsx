@@ -1,10 +1,10 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Upload, Crown } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 
 export const VipQuickActions = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const actions = [
     { icon: CreditCard, label: "Checkout", path: "/checkout" },
@@ -18,15 +18,15 @@ export const VipQuickActions = () => {
         <CardTitle>Quick Actions</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">
-        {actions.map(({ icon: Icon, label, path }) => (
+        {actions.map((action) => (
           <Button
-            key={label}
+            key={action.label}
             variant="outline"
+            onClick={() => router.push(action.path)}
             className="flex items-center gap-2"
-            onClick={() => navigate(path)}
           >
-            <Icon className="h-4 w-4" />
-            {label}
+            <action.icon className="h-4 w-4" />
+            {action.label}
           </Button>
         ))}
       </CardContent>

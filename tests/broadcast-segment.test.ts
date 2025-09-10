@@ -1,6 +1,6 @@
 import test from 'node:test';
 import { deepEqual as assertEquals, rejects as assertRejects } from 'node:assert/strict';
-import { resolveTargets } from "../src/broadcast/index.ts";
+import { resolveTargets } from "../broadcast/index.ts";
 
 test('resolveTargets accepts array', async () => {
   const ids = await resolveTargets([1, 2]);

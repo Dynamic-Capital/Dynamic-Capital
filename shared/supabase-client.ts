@@ -6,30 +6,12 @@ import type { Database } from "../types/supabase.ts";
 declare const process: { env: Record<string, string | undefined> } | undefined;
 
 function getEnvVar(name: string, aliases: string[] = []): string | undefined {
-  const prefixes = ["", "NEXT_PUBLIC_", "VITE_", "REACT_APP_"];
+  const prefixes = ["", "NEXT_PUBLIC_"];
   const names = [name, ...aliases];
-
-  if (typeof Deno !== "undefined" && typeof Deno.env?.get === "function") {
-    for (const n of names) {
-      for (const p of prefixes) {
-        const v = Deno.env.get(`${p}${n}`);
-        if (v) return v;
-      }
-    }
-  }
-  if (typeof process !== "undefined" && typeof process.env !== "undefined") {
+  if (typeof process !== 'undefined' && process.env) {
     for (const n of names) {
       for (const p of prefixes) {
         const v = process.env[`${p}${n}`];
-        if (v) return v;
-      }
-    }
-  }
-  if (typeof import.meta !== "undefined" && (import.meta as any).env) {
-    const env = (import.meta as any).env as Record<string, string | undefined>;
-    for (const n of names) {
-      for (const p of prefixes) {
-        const v = env[`${p}${n}`];
         if (v) return v;
       }
     }
