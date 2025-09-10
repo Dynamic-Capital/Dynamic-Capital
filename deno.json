@@ -16,17 +16,27 @@
     "miniapp:update-telegram": "deno run -A scripts/update-telegram-miniapp.ts",
     "miniapp:deploy-and-update": "deno task miniapp:deploy && deno task miniapp:update-telegram"
   },
-  "nodeModulesDir": true,
+  "nodeModulesDir": false,
   "compilerOptions": {
     "types": [
       "./types/tesseract.d.ts",
-      "./types/deno.d.ts",
-      "npm:@types/node"
+      "./types/deno.d.ts"
+    ],
+    "typeRoots": ["./types"]
+  },
+  "importMap": "./supabase/functions/telegram-bot/vendor/import_map.json",
+  "test": {
+    "include": [
+      "tests/**/*.test.ts",
+      "tests/**/*.test.tsx"
+    ],
+    "exclude": [
+      "tests/app/api-demo/page.test.ts"
     ]
   },
-  "importMap": "./supabase/functions/telegram-bot/vendor/import_map.json"
-  ,
   "deploy": {
-    "include": ["supabase/functions/miniapp/static/**"]
+    "include": [
+      "supabase/functions/miniapp/static/**"
+    ]
   }
 }

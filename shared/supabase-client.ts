@@ -47,7 +47,10 @@ export function getQueryCounts() {
   return { ...queryCounts };
 }
 
-export type SupabaseClient = ReturnType<typeof createSupabaseClient<Database>>;
+// Supabase types are unavailable in the vendored esm build, so fall back to
+// a loose `any`-typed client for type checking purposes.
+// deno-lint-ignore no-explicit-any
+export type SupabaseClient = any;
 
 export function createClient(key: "anon" | "service" = "anon"): SupabaseClient {
   if (SUPABASE_ENV_ERROR) {
@@ -65,14 +68,14 @@ export function createClient(key: "anon" | "service" = "anon"): SupabaseClient {
       removeItem: () => {},
     };
 
-  return createSupabaseClient<Database>(SUPABASE_URL, k, {
+  return createSupabaseClient(SUPABASE_URL, k, {
     auth: {
       storage,
       persistSession: isBrowser,
       autoRefreshToken: true,
     },
     global: { fetch: loggingFetch },
-  });
+  }) as SupabaseClient;
 }
 
 export { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ENV_ERROR };

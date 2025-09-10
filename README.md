@@ -369,8 +369,8 @@ on images.
 
    ```bash
    docker run -p 3000:3000 --env-file .env.local dynamic-chatty-bot
-   # or
-   docker compose up
+   # or start via Compose with three app replicas
+   docker compose up --scale app=3
    ```
 
 3. **Override configuration** using `-e` flags, `--env-file`, or custom `.env`
@@ -383,7 +383,13 @@ on images.
    docker run --rm dynamic-chatty-bot npm run serve:functions
    ```
 
-5. **Troubleshooting**
+5. **Health check replicas**
+
+   ```bash
+   ./docker/healthcheck.sh
+   ```
+
+6. **Troubleshooting**
    - If ports like `3000` or `54321` are taken, adjust `-p` mappings or stop the
      conflicting service.
    - Ensure required environment variables are present; missing values may cause
