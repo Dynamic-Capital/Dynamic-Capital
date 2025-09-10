@@ -207,6 +207,11 @@ Full list and usage notes: [docs/env.md](docs/env.md).
   real secrets for your environment. This file is ignored by Git so each
   contributor maintains their own local configuration.
 
+- If `SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`) is missing at runtime, the app
+  will render a **Configuration Error: Missing required env: SUPABASE_URL** screen.
+  During local development you can run `node scripts/check-env.ts` to populate safe
+  placeholder values and avoid crashes.
+
 - SUPABASE_URL
 - SUPABASE_ANON_KEY
 - SUPABASE_SERVICE_ROLE_KEY
