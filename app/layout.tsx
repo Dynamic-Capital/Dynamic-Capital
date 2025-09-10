@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import './globals.css';
 import '../env';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 
 export const metadata = {
   title: 'Dynamic Capital VIP',
@@ -15,7 +17,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body>
+        <Navbar />
         <main>{children}</main>
+        <Footer />
       </body>
     </html>
   );
