@@ -13,8 +13,8 @@ dist-ssr
 .next
 *.local
 bun.lockb
-out/
-_static/
+/out/
+/_static/
 
 # Editor directories and files
 .vscode/*
