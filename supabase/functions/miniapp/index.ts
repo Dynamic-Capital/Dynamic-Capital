@@ -842,18 +842,18 @@ export async function handler(req: Request): Promise<Response> {
     }));
   }
 
-  // Try to use the static server helper for common routes
+  // Try to use the static server helper for SPA routes and assets
   if (
     path === "/" ||
-    path === "/miniapp" ||
-    path === "/miniapp/" ||
     path.startsWith("/assets/") ||
-    path.startsWith("/miniapp/assets/")
+    (path.startsWith("/miniapp") &&
+      !path.startsWith("/miniapp/api") &&
+      !path.startsWith("/miniapp/assets"))
   ) {
     try {
       const staticOpts: StaticOpts = {
         rootDir: new URL("./static/", import.meta.url),
-        spaRoots: ["/", "/miniapp", "/miniapp/"],
+        spaRoots: ["/", "/miniapp"],
         security: ENHANCED_SECURITY_HEADERS,
         extraFiles: ["/favicon.ico", "/favicon.svg", "/vite.svg", "/robots.txt"]
       };

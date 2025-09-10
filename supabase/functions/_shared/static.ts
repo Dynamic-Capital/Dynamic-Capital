@@ -107,9 +107,10 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
     return new Response(await r.arrayBuffer(), { headers: h, status: r.status });
   }
 
-  // Serve SPA index for roots
+  // Serve SPA index for roots and their subpaths
   const spaRoots = opts.spaRoots ?? ["/", "/miniapp"];
-  if (spaRoots.includes(url.pathname) || spaRoots.includes(path) || url.pathname === "/miniapp/") {
+  const normPath = path === "" ? "/" : path;
+  if (spaRoots.some((root) => normPath === root || normPath.startsWith(root + "/"))) {
     console.log(`[static] Serving index.html for SPA root: ${url.pathname}`);
     const idx = await readFileFrom(opts.rootDir, "index.html");
     if (idx) {
