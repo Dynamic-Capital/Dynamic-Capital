@@ -7,7 +7,7 @@ function run(cmd) {
 }
 
 const commands = [
-  "deno check supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts",
+  "DENO_TLS_CA_STORE=system deno check supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts",
   "npm test",
   "node scripts/assert-miniapp-bundle.mjs"
 ];
