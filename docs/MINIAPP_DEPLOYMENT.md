@@ -19,7 +19,7 @@ If you prefer to run steps individually:
 ```bash
 # 1. Build the miniapp front-end
 cd supabase/functions/miniapp
-npm install
+npm ci
 npm run build
 cd ../../..
 
@@ -64,7 +64,7 @@ Check that `supabase/functions/miniapp/static/index.html` exists and has content
 Ensure you have Node.js installed and run:
 ```bash
 cd supabase/functions/miniapp
-npm install
+npm ci
 ```
 
 ### Function deployment fails

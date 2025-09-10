@@ -6,8 +6,8 @@ echo "🚀 Building and deploying Dynamic Capital Mini App..."
 # Build the miniapp
 echo "📦 Building miniapp..."
 cd supabase/functions/miniapp
-NODE_TLS_REJECT_UNAUTHORIZED=0 npm_config_strict_ssl=false npm install
-NODE_TLS_REJECT_UNAUTHORIZED=0 npm_config_strict_ssl=false npm run build
+npm ci
+npm run build
 cd ../../..
 
 # Verify build output exists
@@ -20,7 +20,7 @@ echo "✅ Build successful!"
 
 # Check bundle quality
 echo "🔍 Checking bundle quality..."
-deno run --unsafely-ignore-certificate-errors=registry.npmjs.org,deno.land -A scripts/assert-miniapp-bundle.ts
+node scripts/assert-miniapp-bundle.mjs
 
 echo "🚀 Deploying miniapp function..."
 if [ -z "$SUPABASE_PROJECT_REF" ]; then

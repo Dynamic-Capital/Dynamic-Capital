@@ -9,7 +9,7 @@
     "typecheck": "bash scripts/typecheck.sh",
     "ci": "bash scripts/ci.sh",
     "fix:repo": "bash scripts/fix_and_check.sh",
-    "miniapp:build": "deno run -A scripts/build-miniapp.ts",
+    "miniapp:build": "bash scripts/build-miniapp.sh",
     "miniapp:dev": "cd supabase/functions/miniapp && npm run dev",
     "miniapp:preview": "cd supabase/functions/miniapp && npm run preview",
     "miniapp:check": "deno run -A scripts/miniapp-health-check.ts",
