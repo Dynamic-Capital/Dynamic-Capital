@@ -370,7 +370,7 @@ on images.
 2. **Run the container**
 
    ```bash
-   docker run -p 3000:3000 --env-file .env.local dynamic-chatty-bot
+   docker run -p 8080:8080 --env-file .env.local dynamic-chatty-bot
    # or start via Compose with three app replicas
    docker compose up --scale app=3
    ```
@@ -392,7 +392,7 @@ on images.
    ```
 
 6. **Troubleshooting**
-   - If ports like `3000` or `54321` are taken, adjust `-p` mappings or stop the
+   - If ports like `8080` or `54321` are taken, adjust `-p` mappings or stop the
      conflicting service.
    - Ensure required environment variables are present; missing values may cause
      runtime errors.

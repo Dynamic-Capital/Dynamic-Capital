@@ -44,7 +44,7 @@ Example nginx rule:
 
 ```nginx
 location /api/ {
-  proxy_pass http://localhost:3000;
+  proxy_pass http://localhost:8080;
   proxy_set_header Host $host;
 }
 ```

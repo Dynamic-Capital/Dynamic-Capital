@@ -29,5 +29,5 @@ RUN chown -R app:app /app
 
 USER app
 
-EXPOSE 3000
+EXPOSE 8080
 CMD ["npm", "start"]
