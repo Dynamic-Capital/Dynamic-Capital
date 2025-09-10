@@ -311,7 +311,9 @@ npm run build:miniapp
 npm run build:all
 ```
 
-Running `npm run build` also copies the Next.js build output into `supabase/functions/_static` so edge functions serve the latest assets. During development, run the watcher to keep `_static` in sync:
+Running `npm run build` also copies the Next.js build output into a root-level
+`_static` directory so DigitalOcean can serve the latest assets. During
+development, run the watcher to keep `_static` in sync:
 
 ```bash
 npm run dev:static
