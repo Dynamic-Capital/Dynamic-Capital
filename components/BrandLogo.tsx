@@ -3,7 +3,6 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import logoImage from '@/assets/logo.png';
 import { cn } from '@/utils';
 
 interface BrandLogoProps {
@@ -69,7 +68,7 @@ const BrandLogo: React.FC<BrandLogoProps> = ({
       whileTap={animated ? { scale: 0.95 } : undefined}
     >
       <MotionImage
-        src={logoImage}
+        src="/logo.png"
         alt="Dynamic Capital Logo"
         className={logoClasses}
         animate={animated ? { rotate: [0, 5, -5, 0] } : undefined}

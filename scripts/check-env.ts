@@ -1,4 +1,4 @@
-import { optionalEnvVar } from "../src/utils/env.ts";
+import { optionalEnvVar } from "../utils/env.ts";
 
 const SUPABASE_URL = optionalEnvVar("SUPABASE_URL");
 const SUPABASE_ANON_KEY = optionalEnvVar("SUPABASE_ANON_KEY");

@@ -177,23 +177,18 @@ export async function handleGitHubStructure(
 ✅ **Keep These Files:**
 📂 **Core Application**
 \`\`\`
-src/
-├── App.tsx
-├── main.tsx
-├── index.css
-├── components/
-│   ├── ui/ (shadcn)
-│   ├── layout/
-│   ├── navigation/
-│   └── admin/ContactInfo.tsx
-├── pages/
-│   ├── Index.tsx
-│   ├── Contact.tsx
-│   ├── Plans.tsx
-│   └── Checkout.tsx
+app/
+├── page.tsx
+├── ...
+components/
+├── ui/ (shadcn)
+├── layout/
+├── navigation/
+└── admin/ContactInfo.tsx
+lib/
 ├── hooks/
-├── lib/utils.ts
-└── integrations/supabase/
+├── integrations/supabase/
+└── utils/
 \`\`\`
 
 📂 **Supabase Functions**

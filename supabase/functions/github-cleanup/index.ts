@@ -208,26 +208,26 @@ const RECOMMENDED_STRUCTURE = {
   keep: [
     // Core application files
     'app/**',
-    'src/index.css',
+    'app/globals.css',
     'tailwind.config.ts',
     'next.config.mjs',
     'tsconfig.json',
     'package.json',
     
     // Essential components
-    'src/components/ui/**', // shadcn components
-    'src/components/layout/**', // Layout components
-    'src/components/navigation/**', // Navigation
-    'src/components/admin/ContactInfo.tsx', // Active admin components
+    'components/ui/**', // shadcn components
+    'components/layout/**', // Layout components
+    'components/navigation/**', // Navigation
+    'components/admin/ContactInfo.tsx', // Active admin components
     
     // App router pages
     'app/page.tsx',
     'app/**/page.tsx',
     
     // Core hooks and utilities
-    'src/hooks/**',
-    'src/lib/utils.ts',
-    'src/integrations/supabase/**',
+    'hooks/**',
+    'lib/**',
+    'integrations/supabase/**',
     
     // Supabase functions (active ones)
     'supabase/functions/contact-links/**',
@@ -242,7 +242,7 @@ const RECOMMENDED_STRUCTURE = {
   
   remove: [
     // Duplicate or old components
-    'src/components/admin/BotDebugger.tsx', // If functionality moved
+    'components/admin/BotDebugger.tsx', // If functionality moved
     
     // Development-only files
     'scripts/audit/**',

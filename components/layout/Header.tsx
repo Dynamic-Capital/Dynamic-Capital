@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { cn } from "@/utils";
 import BrandLogo from "@/components/BrandLogo";
 import DesktopNav from "@/components/navigation/DesktopNav";
@@ -36,7 +36,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           <Link
-            to="/"
+            href="/"
             className={cn(
               "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg",
               "transition-all duration-300 hover:scale-105"

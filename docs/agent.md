@@ -243,7 +243,7 @@ This integration enhances the development experience by combining the power of A
 
 - **React Components**: All files in `src/components/`
 - **Pages & Routing**: `app/` directory (Next.js App Router)
-- **Styling & Theming**: `src/index.css`, `tailwind.config.ts`
+- **Styling & Theming**: `app/globals.css`, `tailwind.config.ts`
 - **UI Component Library**: `src/components/ui/`
 - **Frontend Hooks**: `src/hooks/` (UI state only)
 - **Static Assets**: Icons, images, fonts

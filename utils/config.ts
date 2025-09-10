@@ -2,18 +2,8 @@
 
 type FlagSnapshot = { ts: number; data: Record<string, boolean> };
 
-const SUPABASE_URL =
-  (typeof Deno !== "undefined"
-    ? Deno.env.get("SUPABASE_URL")
-    : typeof process !== "undefined"
-    ? process.env.SUPABASE_URL
-    : import.meta.env?.SUPABASE_URL) || "";
-const SUPABASE_KEY =
-  (typeof Deno !== "undefined"
-    ? Deno.env.get("SUPABASE_ANON_KEY")
-    : typeof process !== "undefined"
-    ? process.env.SUPABASE_ANON_KEY
-    : import.meta.env?.SUPABASE_ANON_KEY) || "";
+const SUPABASE_URL = process.env.SUPABASE_URL || "";
+const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || "";
 
 import { withRetry } from "./retry.ts";
 

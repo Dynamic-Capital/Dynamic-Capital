@@ -57,7 +57,7 @@ export const SystemStatus = () => {
   const { toast } = useToast();
   const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-  const supabaseUrl = import.meta.env.SUPABASE_URL ?? "";
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const supabaseProjectId =
     supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] ?? "";
   const openSupabase = (path: string) => {
