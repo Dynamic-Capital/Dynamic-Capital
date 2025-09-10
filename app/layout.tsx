@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import './globals.css';
+import '../env';
 
 export const metadata = {
   title: 'Dynamic Capital VIP',
