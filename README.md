@@ -188,6 +188,10 @@ if (error) {
 This pattern keeps error handling consistent across the app and avoids
 unhandled promise rejections.
 
+Admin and system functions such as `ADMIN_SESSION` or `RESET_BOT` require
+`TELEGRAM_WEBHOOK_SECRET` to be configured. The helper will throw before making
+the request if the secret is missing.
+
 ## Privacy & security
 
 No secrets in this repo; uses environment variables. Service role keys used only
@@ -207,6 +211,8 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 - SUPABASE_SERVICE_ROLE_KEY
 - TELEGRAM_BOT_TOKEN
 - TELEGRAM_WEBHOOK_SECRET
+- TELEGRAM_BOT_USERNAME _(optional)_
+- TELEGRAM_BOT_URL _(optional)_
 - USDT_TRC20_ADDRESS
 - TELEGRAM_ADMIN_IDS _(comma-separated Telegram user IDs; spaces are ignored)_
 - MINI_APP_URL _(optional)_
