@@ -1,15 +1,34 @@
 import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
-import { ok, bad, unauth, mna, oops } from "../_shared/http.ts";
+import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
 import { getContent } from "../_shared/config.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      headers: {
+        ...corsHeaders,
+        "access-control-allow-methods": "POST,OPTIONS",
+      },
+    });
+  }
   if (req.method !== "POST") return mna();
 
-  let body: { initData?: string; type?: string; bank?: string; network?: string; amount?: number; currency?: string };
+  const schema = z.object({
+    initData: z.string(),
+    type: z.enum(["bank", "crypto"]),
+    bank: z.string().optional(),
+    network: z.string().optional(),
+    amount: z.number().positive().optional(),
+    currency: z.string().optional(),
+  });
+
+  let body: z.infer<typeof schema>;
   try {
-    body = await req.json();
+    body = schema.parse(await req.json());
   } catch {
-    return bad("Bad JSON");
+    return bad("Invalid request body");
   }
 
   const u = await verifyInitDataAndGetUser(body.initData || "");

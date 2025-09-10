@@ -1,11 +1,20 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
-import { ok, bad, unauth, mna } from "../_shared/http.ts";
+import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
 
 serve(async (req) => {
   const url = new URL(req.url);
   const approveMatch = url.pathname.match(/\/receipt\/([^/]+)\/(approve|reject)/);
+
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      headers: {
+        ...corsHeaders,
+        "access-control-allow-methods": "POST,OPTIONS",
+      },
+    });
+  }
 
   // Receipt upload
   if (req.method === "POST" && !approveMatch) {
@@ -16,16 +25,27 @@ serve(async (req) => {
     if (!u) return unauth();
     const file = form.get("image");
     if (!(file instanceof File)) return bad("image required");
+
+    const allowed = ["image/png", "image/jpeg"];
+    if (!allowed.includes(file.type) || file.size > 5 * 1024 * 1024) {
+      return bad("Invalid file");
+    }
+
     let supa;
     try {
       supa = createClient("service");
-    } catch (_) {
-      supa = null;
+    } catch (err) {
+      console.error("createClient failed", err);
+      return oops("Storage unavailable");
     }
     const ext = file.name.split(".").pop();
     const path = `${u.id}/${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
-    if (supa) {
-      await supa.storage.from("payment-receipts").upload(path, file).catch(() => null);
+    try {
+      const { error } = await supa.storage.from("payment-receipts").upload(path, file);
+      if (error) throw error;
+    } catch (err) {
+      console.error("upload error", err);
+      return oops("Failed to upload receipt");
     }
     return ok({ bucket: "payment-receipts", path });
   }

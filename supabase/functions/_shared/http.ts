@@ -1,3 +1,9 @@
+export const corsHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
 export function json(
   data: unknown,
   status = 200,
@@ -5,10 +11,12 @@ export function json(
 ) {
   const h = new Headers({
     "content-type": "application/json; charset=utf-8",
+    ...corsHeaders,
     ...extra,
   });
   return new Response(JSON.stringify(data), { status, headers: h });
 }
+
 export const ok = (data: unknown = {}) =>
   json({ ok: true, ...((typeof data === "object" && data) || {}) }, 200);
 export const bad = (message = "Bad Request", hint?: unknown) =>
