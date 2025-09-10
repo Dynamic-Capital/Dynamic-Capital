@@ -142,18 +142,36 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="deposit" className="container py-xl text-left">
-        <h2 className="text-3xl font-bold mb-lg">Deposit</h2>
+      <section
+        id="deposit"
+        className="motion-section motion-container mb-2xl text-left"
+      >
+        <h2 className="typography-3xl text-dc-brand mb-sm">Deposit</h2>
+        <p className="mb-lg text-muted-foreground">
+          Add funds to your account.
+        </p>
         <DepositForm />
       </section>
 
-      <section id="checkout" className="container py-xl text-left">
-        <h2 className="text-3xl font-bold mb-lg">Checkout</h2>
+      <section
+        id="checkout"
+        className="motion-section motion-container mb-2xl text-left"
+      >
+        <h2 className="typography-3xl text-dc-brand mb-sm">Checkout</h2>
+        <p className="mb-lg text-muted-foreground">
+          Complete your transaction securely.
+        </p>
         <WebCheckout />
       </section>
 
-      <section id="settings" className="container py-xl text-left">
-        <h2 className="text-3xl font-bold mb-lg">Settings</h2>
+      <section
+        id="settings"
+        className="motion-section motion-container mb-2xl text-left"
+      >
+        <h2 className="typography-3xl text-dc-brand mb-sm">Settings</h2>
+        <p className="mb-lg text-muted-foreground">
+          Customize your preferences.
+        </p>
         <form onSubmit={handleThemeSubmit} className="flex flex-col gap-lg">
           <div className="flex flex-col gap-sm">
             {themes.map((t) => (
@@ -179,8 +197,12 @@ export default function HomePage() {
         </form>
       </section>
 
-      <section id="api-demo" className="container py-xl text-left">
-        <h2 className="text-3xl font-bold mb-lg">API Demo</h2>
+      <section
+        id="api-demo"
+        className="motion-section motion-container mb-2xl text-left"
+      >
+        <h2 className="typography-3xl text-dc-brand mb-sm">API Demo</h2>
+        <p className="mb-lg text-muted-foreground">Explore a sample API call.</p>
         {isLoading && <p>Loading...</p>}
         {error && <p>{error}</p>}
         {message && <p>{message}</p>}
