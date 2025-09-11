@@ -1,13 +1,13 @@
 const rawAllowedOrigins =
-  typeof Deno !== 'undefined'
-    ? Deno.env.get('ALLOWED_ORIGINS')
+  'Deno' in globalThis
+    ? (globalThis as any).Deno.env.get('ALLOWED_ORIGINS')
     : typeof process !== 'undefined'
     ? process.env.ALLOWED_ORIGINS
     : undefined;
 
 const allowedOrigins = (rawAllowedOrigins || '')
   .split(',')
-  .map((o) => o.trim())
+  .map((o: string) => o.trim())
   .filter(Boolean);
 
 export function buildCorsHeaders(origin: string | null) {
