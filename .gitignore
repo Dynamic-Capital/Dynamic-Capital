@@ -1,3 +1,21 @@
+# Node modules & dependencies (reinstalled inside container)
+node_modules/
+.pnpm-store/
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+# Next.js & build outputs
+.next/
+.next/cache/
+out/
+dist/
+dist-ssr/
+_static/
+
 # Logs
 logs
 *.log
@@ -7,54 +25,47 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-.next
-*.local
-bun.lockb
-/out/
-/_static/
-/_next/
-/*.html
+# Environment files (never bake secrets into images)
+.env
+.env.local
+.env.*.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Editor & system junk
+.vscode/
+.idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-.env
-.env.local
-# Deno/Supabase caches & artifacts
-.deno/
-.deno_cache/
-deno_dir/
+
+# Supabase artifacts
+.supabase/
 supabase/.tmp/
-supabase/functions/**/vendor/
-supabase/functions/**/.edge/
 supabase/functions/**/dist/
+supabase/functions/**/.edge/
+supabase/functions/**/vendor/
 **/*.cas
 .bolt/
 
-# keep telegram-bot vendor in git
-!supabase/functions/telegram-bot/vendor/
-!supabase/functions/telegram-bot/vendor/**
-
-# Mini app build & deps
+# Mini app build outputs
 apps/mini/dist/
-apps/miniapp-react/package-lock.json
 miniapp/
 
-# Include mini app static assets for deployment
-# (previously ignored to keep directory empty)
+# Keep miniapp static assets (explicit allow)
 !supabase/functions/miniapp/
 !supabase/functions/miniapp/static/**
 !supabase/functions/miniapp/manifest.json
 
+# Keep telegram-bot vendor (explicit allow)
+!supabase/functions/telegram-bot/vendor/
+!supabase/functions/telegram-bot/vendor/**
+
 # Audit reports
 .audit/
+
+# Miscellaneous
+*.local
+bun.lockb
