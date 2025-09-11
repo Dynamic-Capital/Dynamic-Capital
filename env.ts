@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { getEnvVar } from './utils/env.ts';
 
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']),
@@ -9,9 +10,9 @@ const schema = z.object({
 });
 
 export const ENV = schema.parse({
-  NODE_ENV: process.env.NODE_ENV,
-  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN
+  NODE_ENV: getEnvVar('NODE_ENV'),
+  NEXT_PUBLIC_API_URL: getEnvVar('NEXT_PUBLIC_API_URL'),
+  NEXT_PUBLIC_SUPABASE_URL: getEnvVar('NEXT_PUBLIC_SUPABASE_URL'),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+  NEXT_PUBLIC_SENTRY_DSN: getEnvVar('NEXT_PUBLIC_SENTRY_DSN'),
 });
