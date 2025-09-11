@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import { MotionStagger } from "@/components/ui/motion-components";
@@ -27,3 +29,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

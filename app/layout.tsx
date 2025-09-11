@@ -5,6 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { MotionThemeProvider } from '@/components/ui/motion-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import Providers from './providers';
 
 export const metadata = {
   title: 'Dynamic Capital VIP',
@@ -19,12 +20,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body>
-        <MotionThemeProvider>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
-        </MotionThemeProvider>
-        <ThemeToggle />
+        <Providers>
+          <MotionThemeProvider>
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+          </MotionThemeProvider>
+          <ThemeToggle />
+        </Providers>
       </body>
     </html>
   );
