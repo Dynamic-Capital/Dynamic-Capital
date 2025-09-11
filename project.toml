@@ -8,6 +8,9 @@ version = "0.0.0"
     uri = "paketo-buildpacks/hugo"
 
   [[build.buildpacks]]
+    uri = "paketo-buildpacks/deno"
+
+  [[build.buildpacks]]
     uri = "paketo-buildpacks/nodejs"
 
   # Enable build caching for faster subsequent deployments

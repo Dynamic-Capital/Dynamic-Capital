@@ -97,7 +97,8 @@ const bot = BOT_TOKEN
     })
   : null;
 if (bot) {
-  bot.api.config.use(createThrottler());
+  // Throttler lacks full typings in our vendored stub; cast to satisfy type checks
+  bot.api.config.use(createThrottler() as any);
 }
 
 // Optional feature flags (currently unused)
@@ -1907,7 +1908,8 @@ export async function serveWebhook(req: Request): Promise<Response> {
       console.warn("Bot token not set; cannot handle update");
       return oops("Bot token not configured");
     }
-    await bot.handleUpdate(update);
+    // Cast to any since our TelegramUpdate type omits some required fields for grammy
+    await bot.handleUpdate(update as any);
 
     if (update.chat_member || update.my_chat_member) {
       await handleMembershipUpdate(update);
