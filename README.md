@@ -299,17 +299,18 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 
 Both the dashboard and the Telegram MiniApp require these variables at build
 time (exposed with Next.js `NEXT_PUBLIC_` prefix so they end up in the browser
-bundle):
+bundle). `NEXT_PUBLIC_API_URL` is optional and defaults to `/api` if omitted:
 
 ```bash
-NEXT_PUBLIC_API_URL=https://example.com/api
 NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+# NEXT_PUBLIC_API_URL=https://example.com/api
 ```
 
-Set these in your hosting provider (e.g., Lovable.dev project settings). If
+Set the required Supabase values in your hosting provider (e.g., Lovable.dev project settings). If
 either value is missing, the app will render a configuration error screen
-instead of loading. The client also accepts `SUPABASE_URL`/`SUPABASE_ANON_KEY`
+instead of loading. You can optionally set `NEXT_PUBLIC_API_URL` to point at a custom API; otherwise the client uses
+the relative `/api` path. The client also accepts `SUPABASE_URL`/`SUPABASE_ANON_KEY`
 as fallbacks if the `NEXT_PUBLIC_` values are not provided.
 
 Values are set in Supabase function secrets, GitHub Environments, or Lovable
