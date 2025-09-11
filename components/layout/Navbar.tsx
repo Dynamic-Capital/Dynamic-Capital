@@ -4,10 +4,10 @@ import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import { MotionStagger } from "@/components/ui/motion-components";
 import { motion } from "framer-motion";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = () => {
-  const { data: session } = useSession();
+  const { user, signOut } = useAuth();
   return (
     <nav className="glass-motion-nav border-b border-border">
       <div className="container mx-auto flex items-center justify-between p-4">
@@ -26,10 +26,10 @@ const Navbar = () => {
               <Link href="#settings" className="hover:text-primary">Settings</Link>
             </motion.div>
           </MotionStagger>
-          {session ? (
+          {user ? (
             <button onClick={() => signOut()} className="hover:text-primary">Logout</button>
           ) : (
-            <button onClick={() => signIn()} className="hover:text-primary">Login</button>
+            <Link href="/login" className="hover:text-primary">Login</Link>
           )}
         </div>
       </div>
