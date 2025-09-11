@@ -14,7 +14,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: actions/cache@v3
+        id: lint-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-lint-${{ hashFiles('package-lock.json') }}
       - run: npm ci
+        if: steps.lint-node-modules.outputs.cache-hit != 'true'
       - run: npm run lint
 
   unit-tests:
@@ -60,13 +66,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: actions/cache@v3
+        id: staging-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-deploy-${{ hashFiles('package-lock.json') }}
+      - run: npm ci
+        if: steps.staging-node-modules.outputs.cache-hit != 'true'
       - name: Set Telegram webhook
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
           SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co
         run: npx tsx scripts/set-telegram-webhook.ts
-      - run: npm ci
       - run: npm run build
       - name: Verify Mini App bundle
         run: node scripts/assert-miniapp-bundle.mjs
@@ -98,13 +110,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: actions/cache@v3
+        id: prod-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-deploy-${{ hashFiles('package-lock.json') }}
+      - run: npm ci
+        if: steps.prod-node-modules.outputs.cache-hit != 'true'
       - name: Set Telegram webhook
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.PROD_TELEGRAM_BOT_TOKEN }}
           TELEGRAM_WEBHOOK_SECRET: ${{ secrets.PROD_TELEGRAM_WEBHOOK_SECRET }}
           SUPABASE_URL: https://${{ secrets.PROD_SUPABASE_PROJECT_ID }}.supabase.co
         run: npx tsx scripts/set-telegram-webhook.ts
-      - run: npm ci
       - run: npm run build
       - name: Verify Mini App bundle
         run: node scripts/assert-miniapp-bundle.mjs
