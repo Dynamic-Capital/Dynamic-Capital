@@ -464,7 +464,7 @@ All Deno tasks live in `deno.json` and can be run via `deno task <name>`.
 Type check:
 
 ```bash
-deno check supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
+deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
 ```
 
 If tests present:

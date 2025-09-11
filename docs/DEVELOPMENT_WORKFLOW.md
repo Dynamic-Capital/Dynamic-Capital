@@ -33,7 +33,7 @@ This guide outlines eight high-level steps to run, build, and deploy the Telegra
 6. **Quality checks**
    - Type-check and test the codebase:
    ```bash
-   deno check supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
+   deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
    deno test -A
    ```
 
