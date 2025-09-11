@@ -33,13 +33,10 @@ export function getEnvVar(
   name: string,
   aliases: string[] = [],
 ): string | undefined {
-  const prefixes = ["", "NEXT_PUBLIC_"];
   const names = [name, ...aliases];
   for (const n of names) {
-    for (const p of prefixes) {
-      const v = readEnv(`${p}${n}`);
-      if (v) return v;
-    }
+    const v = readEnv(n);
+    if (v !== undefined) return v;
   }
   return undefined;
 }
