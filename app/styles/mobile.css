@@ -1,5 +1,22 @@
-@media (max-width: 768px) {
+/* Responsive typography across devices */
+
+/* Phones */
+@media (max-width: 767px) {
   html {
-    font-size: 14px;
+    font-size: clamp(0.875rem, 3vw, 1rem);
+  }
+}
+
+/* Tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+  html {
+    font-size: clamp(0.9375rem, 2vw, 1rem);
+  }
+}
+
+/* Desktops */
+@media (min-width: 1024px) {
+  html {
+    font-size: 1rem;
   }
 }
