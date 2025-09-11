@@ -90,7 +90,7 @@ This project also ships with a containerized Nginx and Certbot configuration.
 From the repository root, obtain the initial certificate and start the services:
 
 ```bash
-scripts/init-letsencrypt.sh
+EMAIL=you@example.com scripts/init-letsencrypt.sh
 docker compose up -d nginx certbot
 ```
 
