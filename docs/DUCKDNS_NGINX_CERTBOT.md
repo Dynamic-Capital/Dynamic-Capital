@@ -83,3 +83,16 @@ These steps install Nginx, enable HTTPS with Certbot, and force all traffic to y
    ```
 
 These steps secure the DuckDNS domain with automatic HTTPS certificates.
+
+## Docker-based setup
+
+This project also ships with a containerized Nginx and Certbot configuration.
+From the repository root, obtain the initial certificate and start the services:
+
+```bash
+scripts/init-letsencrypt.sh
+docker compose up -d nginx certbot
+```
+
+The `certbot` service renews certificates automatically and Nginx forces all
+traffic to `https://dynamiccapital.duckdns.org`.
