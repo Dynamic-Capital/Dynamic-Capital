@@ -2,6 +2,7 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import nextPWA from 'next-pwa';
+import bundleAnalyzer from '@next/bundle-analyzer';
 
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
@@ -46,7 +47,7 @@ process.env.NEXT_PUBLIC_SITE_URL = SITE_URL;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  output: 'standalone',
   env: {
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
@@ -133,10 +134,15 @@ if (nextConfig.output !== 'export') {
 }
 
 const withPWA = nextPWA({ dest: 'public', disable: process.env.NODE_ENV === 'development' });
+const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
 
-export default withPWA(withSentryConfig(nextConfig, {
-  silent: true,
-}));
+export default withBundleAnalyzer(
+  withPWA(
+    withSentryConfig(nextConfig, {
+      silent: true,
+    }),
+  ),
+);
 
 export const config = {
   matcher: ['/api/:path*'],

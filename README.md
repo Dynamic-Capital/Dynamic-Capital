@@ -342,12 +342,18 @@ npm run build:miniapp
 npm run build:all
 ```
 
-Running `npm run build` also copies the Next.js build output into a root-level
-`_static` directory so DigitalOcean can serve the latest assets. During
-development, run the watcher to keep `_static` in sync:
+`npm run build` produces a standalone bundle in `.next/standalone` which can be
+run with `node .next/standalone/server.js`. This output is ideal for Docker or
+process managers such as PM2.
+
+### Bundle analysis
+
+Inspect bundle size by enabling the analyzer during build:
 
 ```bash
-npm run dev:static
+npm run analyze
+# or
+ANALYZE=true npm run build
 ```
 
 ## API demo

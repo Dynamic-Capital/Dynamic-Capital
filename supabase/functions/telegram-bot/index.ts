@@ -26,7 +26,7 @@ import { askChatGPT } from "./helpers/chatgpt.ts";
 import { escapeHtml } from "./helpers/escape.ts";
 import { Bot } from "https://deno.land/x/grammy@v1.18.1/mod.ts";
 import { conversations, createConversation } from "https://deno.land/x/grammy_conversations@v1.2.0/mod.ts";
-import { createThrottler } from "https://deno.land/x/grammy_transformer_throttler@v1.1.4/mod.ts";
+import { createThrottler } from "./vendor/grammy_transformer_throttler.ts";
 // Type definition moved inline to avoid import issues
 interface Promotion {
   code: string;
@@ -91,13 +91,14 @@ const SUPABASE_SERVICE_ROLE_KEY = optionalEnv("SUPABASE_SERVICE_ROLE_KEY");
 const BOT_TOKEN = await envOrSetting<string>("TELEGRAM_BOT_TOKEN");
 const botUsername = (await envOrSetting<string>("TELEGRAM_BOT_USERNAME")) || "";
 
-const bot = new Bot(BOT_TOKEN || "");
-bot.api.config.use(createThrottler());
-bot.use(conversations());
-async function sampleConversation(conversation: any, ctx: any) {
-  await ctx.reply("This is a demo conversation.");
+const bot = BOT_TOKEN
+  ? new Bot(BOT_TOKEN, {
+      botInfo: { id: 0, is_bot: true, first_name: "stub", username: botUsername || "stub" } as any,
+    })
+  : null;
+if (bot) {
+  bot.api.config.use(createThrottler());
 }
-bot.use(createConversation(sampleConversation));
 
 // Optional feature flags (currently unused)
 const _OPENAI_ENABLED = optionalEnv("OPENAI_ENABLED") === "true";
@@ -1902,6 +1903,10 @@ export async function serveWebhook(req: Request): Promise<Response> {
       return json({ ok: false, error: "Invalid JSON" }, 400);
     }
     const update = body as TelegramUpdate;
+    if (!bot) {
+      console.warn("Bot token not set; cannot handle update");
+      return oops("Bot token not configured");
+    }
     await bot.handleUpdate(update);
 
     if (update.chat_member || update.my_chat_member) {
