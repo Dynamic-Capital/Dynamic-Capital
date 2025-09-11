@@ -69,7 +69,7 @@ or CDN honors these headers and caches static content at the edge.
 Run basic checks before deploying:
 
 ```bash
-deno check supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
+deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
 deno test -A
 node scripts/assert-miniapp-bundle.mjs
 ```

@@ -167,7 +167,7 @@ tests/
   - Expand coverage around Supabase client utilities
 
 ## 8) Deno Tasks
-- check → deno check supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
+- check → deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
 - serve → supabase functions serve
 - fmt → bash -lc '$(bash scripts/deno_bin.sh) fmt --check .'
 - fmt:write → bash -lc '$(bash scripts/deno_bin.sh) fmt .'

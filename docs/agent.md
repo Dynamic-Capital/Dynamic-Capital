@@ -146,7 +146,7 @@ crash).
   `supabase start` → `supabase functions serve telegram-bot --no-verify-jwt` →\
   `curl -X POST "http://127.0.0.1:54321/functions/v1/telegram-bot" -H "content-type: application/json" -H "X-Telegram-Bot-Api-Secret-Token: $TELEGRAM_WEBHOOK_SECRET" -d '{"test":"ping"}'`
 - **Typecheck:**
-  `deno check supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts`
+  `deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts`
 - **Post-deploy smoke:** invoke ping; check `getWebhookInfo` shows the correct
   URL and low pending updates.
 
