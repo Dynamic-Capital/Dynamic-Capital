@@ -1,16 +1,14 @@
-const sentryModule = '@sentry/nextjs';
-
-export function register() {
-  let Sentry;
+export async function register() {
   try {
-    // Load optional Sentry SDK at runtime
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    Sentry = require(sentryModule);
+    const Sentry =
+      typeof window === 'undefined'
+        ? await import('@sentry/nextjs')
+        : await import('@sentry/browser');
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
+      tracesSampleRate: 1.0,
+    });
   } catch {
-    return;
+    // Sentry SDK not installed; skip initialization
   }
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
-    tracesSampleRate: 1.0,
-  });
 }
