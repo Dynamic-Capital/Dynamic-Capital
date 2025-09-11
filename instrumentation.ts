@@ -1,4 +1,8 @@
 export async function register() {
+  // Skip Sentry initialization during the Next.js build phase to avoid
+  // issues when React isn't fully available (e.g. missing useContext).
+  if (process.env.NEXT_PHASE === 'phase-production-build') return;
+
   try {
     const Sentry =
       typeof window === 'undefined'

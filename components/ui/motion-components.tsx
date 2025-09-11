@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { motion, AnimatePresence, useMotionValue, animate, useMotionValueEvent } from 'framer-motion';
 import { cn } from '@/utils';
