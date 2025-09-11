@@ -78,6 +78,10 @@ const nextConfig = {
         },
       };
     }
+    config.module.rules.push({
+      test: /supabase[\\/]functions[\\/].*[\\/]vendor[\\/]/,
+      loader: path.join(__dirname, 'scripts/empty-loader.cjs'),
+    });
     return config;
   },
 };
