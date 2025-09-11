@@ -1,9 +1,13 @@
+// Access Node's process via globalThis to avoid TypeScript errors when `process`
+// is not defined (e.g. in Deno environments)
+const nodeProcess = (globalThis as any).process as
+  | { env?: Record<string, string | undefined> }
+  | undefined;
+
 const rawAllowedOrigins =
   'Deno' in globalThis
     ? (globalThis as any).Deno.env.get('ALLOWED_ORIGINS')
-    : typeof process !== 'undefined'
-    ? process.env.ALLOWED_ORIGINS
-    : undefined;
+    : nodeProcess?.env?.ALLOWED_ORIGINS;
 
 const allowedOrigins = (rawAllowedOrigins || '')
   .split(',')
