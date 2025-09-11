@@ -7,14 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import Link from 'next/link';
 import { MotionSection } from '@/components/ui/motion-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { useTheme } from '@/hooks/useTheme';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
+export const dynamic = 'force-dynamic';
 
 type BotUser = {
   id: string;
@@ -24,7 +18,6 @@ type BotUser = {
 
 export default function HomePage() {
   const [user, setUser] = useState<BotUser | null>(null);
-  const { theme, setTheme } = useTheme();
 
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -131,18 +124,6 @@ export default function HomePage() {
         <p className="mb-lg text-muted-foreground">
           Customize your preferences.
         </p>
-        <div className="flex flex-col gap-lg w-52">
-          <Select value={theme} onValueChange={(v) => setTheme(v as any)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select theme" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-              <SelectItem value="system">System</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
         <ThemeToggle />
       </MotionSection>
 

@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { MotionThemeProvider } from '@/components/ui/motion-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { SessionProvider } from 'next-auth/react';
+import Providers from './providers';
 import { DefaultSeo } from 'next-seo';
 import SEO from '../next-seo.config';
 import PostHogInit from '@/components/PostHogInit';
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <PostHogInit />
-        <SessionProvider>
+        <Providers>
           <DefaultSeo {...SEO} />
           <MotionThemeProvider>
             <Navbar />
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <Footer />
           </MotionThemeProvider>
           <ThemeToggle />
-        </SessionProvider>
+        </Providers>
       </body>
     </html>
   );

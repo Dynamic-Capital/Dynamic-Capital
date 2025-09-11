@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { callEdgeFunction } from '@/config/supabase';
-import { useAuth } from './useAuth';
+import type { Session } from '@supabase/supabase-js';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -11,7 +11,7 @@ interface TelegramWebApp {
 }
 
 export function useTheme() {
-  const { session } = useAuth();
+  const [session, setSession] = useState<Session | null>(null);
   const [theme, setTheme] = useState<Theme>('system');
 
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() => {
@@ -26,6 +26,21 @@ export function useTheme() {
   });
 
   const currentTheme = theme === 'system' ? systemTheme : theme;
+
+  useEffect(() => {
+    let mounted = true;
+    import('./useAuth').then(({ useAuth }) => {
+      try {
+        const { session } = useAuth();
+        if (mounted) setSession(session);
+      } catch {
+        // ignore missing auth provider during pre-render
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const fetchTheme = async () => {
