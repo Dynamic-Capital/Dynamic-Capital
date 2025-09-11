@@ -293,6 +293,7 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 - OPENAI_API_KEY _(optional)_
 - OPENAI_ENABLED _(optional)_
 - BENEFICIARY_TABLE _(optional)_
+- LOG_LEVEL _(optional)_
 
 ### Build environment
 
