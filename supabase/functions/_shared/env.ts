@@ -36,11 +36,20 @@ export type EnvKey =
 /** Test-only env injection type */
 type TestEnv = Partial<Record<EnvKey, string>>;
 
+function sanitize(value: string | undefined | null): string | null {
+  if (!value) return null;
+  const v = value.trim();
+  if (v === "" || v.toLowerCase() === "undefined" || v.toLowerCase() === "null") {
+    return null;
+  }
+  return v;
+}
+
 /** Get a single env value (production via Deno.env, tests via __TEST_ENV__). */
 export function getEnv<K extends EnvKey>(key: K): string {
   const testEnv =
     (globalThis as unknown as { __TEST_ENV__?: TestEnv }).__TEST_ENV__;
-  const v = Deno.env.get(key) ?? testEnv?.[key];
+  const v = sanitize(Deno.env.get(key) ?? testEnv?.[key]);
   if (!v) throw new Error(`Missing required env: ${key}`);
   return v;
 }
@@ -60,7 +69,7 @@ export function requireEnv<K extends readonly EnvKey[]>(
 export function optionalEnv<K extends EnvKey>(key: K): string | null {
   const testEnv =
     (globalThis as unknown as { __TEST_ENV__?: TestEnv }).__TEST_ENV__;
-  return Deno.env.get(key) ?? testEnv?.[key] ?? null;
+  return sanitize(Deno.env.get(key) ?? testEnv?.[key]);
 }
 
 /**
@@ -76,9 +85,9 @@ export function checkEnv(keys: readonly EnvKey[]): {
 }
 
 export function need(k: string): string {
-  const v = Deno.env.get(k);
+  const v = sanitize(Deno.env.get(k));
   if (!v) throw new Error(`Missing env: ${k}`);
   return v;
 }
 
-export const maybe = (k: string) => Deno.env.get(k) ?? null;
+export const maybe = (k: string) => sanitize(Deno.env.get(k));

@@ -4,13 +4,24 @@ declare const process:
   | undefined;
 declare const Deno: { env: { get(key: string): string | undefined } } | undefined;
 
+function sanitize(v: string | undefined): string | undefined {
+  if (!v) return undefined;
+  const val = v.trim();
+  if (val === "" || val.toLowerCase() === "undefined" || val.toLowerCase() === "null") {
+    return undefined;
+  }
+  return val;
+}
+
 function readEnv(key: string): string | undefined {
-  if (typeof process !== "undefined" && process.env?.[key]) {
-    return process.env[key];
+  if (typeof process !== "undefined" && process.env) {
+    const v = sanitize(process.env[key]);
+    if (v !== undefined) return v;
   }
   if (typeof Deno !== "undefined" && typeof Deno.env?.get === "function") {
     try {
-      return Deno.env.get(key) ?? undefined;
+      const v = sanitize(Deno.env.get(key) ?? undefined);
+      if (v !== undefined) return v;
     } catch {
       // ignore permission errors
     }
