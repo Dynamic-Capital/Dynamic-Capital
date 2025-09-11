@@ -11,20 +11,36 @@ function getEnv(name: string): string | undefined {
   return undefined;
 }
 
-const isDev = getEnv('NODE_ENV') !== 'production';
+const defaultLevel = getEnv('NODE_ENV') !== 'production' ? 'debug' : 'info';
+type Level = 'debug' | 'info' | 'warn' | 'error';
+const levelWeights: Record<Level, number> = {
+  debug: 10,
+  info: 20,
+  warn: 30,
+  error: 40,
+};
+
+const currentLevel = (getEnv('LOG_LEVEL') as Level | undefined) ?? defaultLevel;
+
+function shouldLog(level: Level): boolean {
+  return levelWeights[level] >= levelWeights[currentLevel];
+}
 
 export const logger = {
+  debug: (...args: unknown[]) => {
+    if (shouldLog('debug')) console.debug(...args);
+  },
   log: (...args: unknown[]) => {
-    if (isDev) console.log(...args);
+    if (shouldLog('info')) console.log(...args);
   },
   info: (...args: unknown[]) => {
-    if (isDev) console.info(...args);
+    if (shouldLog('info')) console.info(...args);
   },
   warn: (...args: unknown[]) => {
-    if (isDev) console.warn(...args);
+    if (shouldLog('warn')) console.warn(...args);
   },
   error: (...args: unknown[]) => {
-    if (isDev) console.error(...args);
+    if (shouldLog('error')) console.error(...args);
   },
 };
 

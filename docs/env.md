@@ -72,3 +72,4 @@ example value, and where it's referenced in the repository.
 | `A_SUPABASE_KEY`      | Supabase key used by audit scripts.      | No       | `service-role-key`        | `scripts/audit/read_meta.mjs`     |
 | `HEALTH_URL`          | Base URL for mini app health checks.     | No       | `https://example.com`     | `scripts/miniapp-health-check.ts` |
 | `ALLOWED_ORIGINS`     | Comma-separated origins allowed for CORS. | No       | `https://example.com`     | `middleware.ts`, `supabase/functions/_shared/http.ts` |
+| `LOG_LEVEL`           | Minimum log level for server logs (`debug`, `info`, `warn`, `error`). | No       | `warn`                    | `utils/logger.ts` |

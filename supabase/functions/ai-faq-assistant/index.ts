@@ -6,18 +6,49 @@ import { createClient } from "../_shared/client.ts";
 const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
 const supabase = createClient("service");
 
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit & { timeoutMs?: number; retries?: number } = {},
+): Promise<Response> {
+  const { timeoutMs = 10_000, retries = 1, ...options } = init;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        if (attempt === retries) {
+          throw new Error("Request to OpenAI timed out");
+        }
+      } else if (attempt === retries) {
+        throw err;
+      }
+    } finally {
+      clearTimeout(id);
+    }
+  }
+  // Should be unreachable
+  throw new Error("Failed to fetch after retries");
+}
+
 async function getEmbedding(text: string): Promise<number[]> {
-  const res = await fetch("https://api.openai.com/v1/embeddings", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${OPENAI_API_KEY}`,
-      "Content-Type": "application/json",
+  const res = await fetchWithTimeout(
+    "https://api.openai.com/v1/embeddings",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "text-embedding-3-small",
+        input: text,
+      }),
+      retries: 3,
     },
-    body: JSON.stringify({
-      model: "text-embedding-3-small",
-      input: text,
-    }),
-  });
+  );
   const data = await res.json();
   if (!res.ok) {
     throw new Error(data.error?.message || "Embedding error");
@@ -31,7 +62,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -117,19 +148,23 @@ Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support
     }
     messages.push({ role: "user", content: question });
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
+    const response = await fetchWithTimeout(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages,
+          max_tokens: 500,
+          temperature: 0.7,
+        }),
+        retries: 3,
       },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages,
-        max_tokens: 500,
-        temperature: 0.7,
-      }),
-    });
+    );
 
     const data = await response.json();
 
@@ -155,15 +190,22 @@ Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support
     if (error instanceof Error) {
       details = error.message;
     }
+    const status = details.includes("timed out") ? 504 : 500;
     return new Response(
       JSON.stringify({
         error: "Failed to get AI response",
         details,
       }),
       {
-        status: 500,
+        status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
     );
   }
-});
+};
+
+export default handler;
+
+if (import.meta.main) {
+  serve(handler);
+}
