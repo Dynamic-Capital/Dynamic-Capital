@@ -3,12 +3,15 @@
 import { ReactNode, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/hooks/useAuth';
+import { SupabaseProvider } from '@/context/SupabaseProvider';
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>{children}</AuthProvider>
+      <SupabaseProvider>
+        <AuthProvider>{children}</AuthProvider>
+      </SupabaseProvider>
     </QueryClientProvider>
   );
 }

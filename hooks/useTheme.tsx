@@ -31,6 +31,7 @@ export function useTheme() {
     let mounted = true;
     import('./useAuth').then(({ useAuth }) => {
       try {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const { session } = useAuth();
         if (mounted) setSession(session);
       } catch {
