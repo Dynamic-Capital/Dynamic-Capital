@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from 'react';
 
 // This hook is deprecated in favor of the new useTheme hook

@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback } from 'react';
 import { useSupabase } from '@/context/SupabaseProvider';
 import { callEdgeFunction, SUPABASE_CONFIG } from "@/config/supabase";

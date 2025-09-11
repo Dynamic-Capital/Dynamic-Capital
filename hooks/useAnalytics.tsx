@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { TrackEventResponse } from '@/types/api';

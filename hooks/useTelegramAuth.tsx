@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { callEdgeFunction, buildFunctionUrl } from '@/config/supabase';
 import {

@@ -60,6 +60,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   reactStrictMode: true,
+  productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [
       {
@@ -133,7 +134,12 @@ if (nextConfig.output !== 'export') {
   ];
 }
 
-const withPWA = nextPWA({ dest: 'public', disable: process.env.NODE_ENV === 'development' });
+const withPWA = nextPWA({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+  maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+  buildExcludes: [/.*\.map$/],
+});
 const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
 
 export default withBundleAnalyzer(

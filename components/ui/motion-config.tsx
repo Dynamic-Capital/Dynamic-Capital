@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { MotionConfig, LazyMotion, domAnimation } from "framer-motion";
 import { useReducedMotion } from "framer-motion";
