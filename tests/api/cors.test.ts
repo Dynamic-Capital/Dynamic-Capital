@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 Deno.env.set('ALLOWED_ORIGINS', 'https://allowed.com');
-const { corsHeaders } = await import('../../supabase/functions/_shared/http.ts');
+const { corsHeaders } = await import('../../utils/http.ts');
 
 Deno.test('allowed origin receives CORS header', () => {
   const req = new Request('http://localhost', { headers: { origin: 'https://allowed.com' } });

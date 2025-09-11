@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buildCorsHeaders } from './lib/cors';
+import { buildCorsHeaders } from './utils/http';
 
 export function middleware(req: NextRequest) {
   const origin = req.headers.get('origin');
   const headers = buildCorsHeaders(origin);
 
   if (req.method === 'OPTIONS') {
-    if (origin && !headers['Access-Control-Allow-Origin']) {
+    if (origin && !headers['access-control-allow-origin']) {
       return new NextResponse(null, { status: 403 });
     }
     return new NextResponse(null, { status: 204, headers });
   }
 
-  if (origin && !headers['Access-Control-Allow-Origin']) {
+  if (origin && !headers['access-control-allow-origin']) {
     return new NextResponse('Origin not allowed', { status: 403 });
   }
 
