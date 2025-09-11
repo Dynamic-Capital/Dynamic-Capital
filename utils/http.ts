@@ -39,6 +39,15 @@ export function jsonResponse(
   return new Response(JSON.stringify(data), { ...init, headers });
 }
 
+export function json(
+  data: unknown,
+  status = 200,
+  extra: Record<string, string> = {},
+  req?: Request,
+) {
+  return jsonResponse(data, { status, headers: extra }, req);
+}
+
 export const ok = (data: unknown = {}, req?: Request) =>
   jsonResponse(
     { ok: true, ...((typeof data === 'object' && data) || {}) },
