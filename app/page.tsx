@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+export const dynamic = 'force-dynamic';
+
 type BotUser = {
   id: string;
   username: string | null;
