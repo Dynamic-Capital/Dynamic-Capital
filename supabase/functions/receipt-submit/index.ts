@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
-import { ok, bad, unauth, oops } from "../_shared/http.ts";
+import { json, bad, unauth, oops } from "../_shared/http.ts";
 import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getEnv } from "../_shared/env.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
@@ -113,11 +113,12 @@ serve(async (req) => {
 
     console.log("Receipt submitted successfully for payment:", payment_id);
 
-    return ok({
+    return json({
+      ok: true,
       success: true,
       message: "Receipt submitted successfully",
       payment_id,
-    }, corsHeaders);
+    }, 200, corsHeaders);
   } catch (error) {
     console.error("Receipt submission error:", error);
     return oops("Internal server error");

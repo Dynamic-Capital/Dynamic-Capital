@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { getEnv } from "../_shared/env.ts";
-import { bad, mna, ok, oops, json } from "../_shared/http.ts";
+import { bad, mna, oops, json } from "../_shared/http.ts";
 import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -70,7 +70,7 @@ export async function handler(req: Request): Promise<Response> {
     if (error) return oops("Failed to reject payment");
   }
 
-  return ok({ success: true }, corsHeaders);
+  return json({ ok: true, success: true }, 200, corsHeaders);
 }
 
 serve(handler);

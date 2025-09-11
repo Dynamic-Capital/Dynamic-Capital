@@ -1,5 +1,8 @@
-import { jsonResponse, methodNotAllowed } from '../../../lib/httpResponse';
-import { corsHeaders } from '../../../lib/cors';
+import {
+  jsonResponse,
+  methodNotAllowed,
+  corsHeaders,
+} from '../../../utils/http';
 
 interface HelloResponse {
   message: string;
