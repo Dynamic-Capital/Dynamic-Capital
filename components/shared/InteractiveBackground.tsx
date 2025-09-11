@@ -25,8 +25,8 @@ export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({
           <div 
             className="h-full w-full opacity-20"
             style={{
-              backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)',
-              backgroundSize: '20px 20px'
+              backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 0.0625rem, transparent 0.0625rem)',
+              backgroundSize: '1.25rem 1.25rem'
             }}
           />
         </div>
@@ -42,10 +42,10 @@ export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({
             className="h-full w-full opacity-10"
             style={{
               backgroundImage: `
-                linear-gradient(hsl(var(--primary)) 1px, transparent 1px),
-                linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)
+                linear-gradient(hsl(var(--primary)) 0.0625rem, transparent 0.0625rem),
+                linear-gradient(90deg, hsl(var(--primary)) 0.0625rem, transparent 0.0625rem)
               `,
-              backgroundSize: '20px 20px'
+              backgroundSize: '1.25rem 1.25rem'
             }}
           />
         </div>

@@ -25,6 +25,8 @@ export default function UserProfile({ name, email, avatarUrl }: UserProfileProps
           alt={name}
           width={48}
           height={48}
+          sizes="(max-width: 768px) 32px, 48px"
+          loading="lazy"
           className="h-12 w-12 rounded-full object-cover"
         />
       )}
