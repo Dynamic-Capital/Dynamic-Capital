@@ -64,6 +64,10 @@ example value, and where it's referenced in the repository.
 | `ADMIN_API_SECRET`        | Shared secret for privileged admin endpoints.              | Yes for admin tasks | `hexstring`      | `supabase/functions/admin-session/index.ts`, `supabase/functions/rotate-admin-secret/index.ts`, `supabase/functions/rotate-webhook-secret/index.ts`, `supabase/functions/admin-review-payment/index.ts` |
 ## CDN
 
+These variables configure uploads to DigitalOcean Spaces. Set them in
+**App Settings → Environment Variables** when using DigitalOcean App Platform.
+You can confirm access with `doctl spaces list`.
+
 | Key | Purpose | Required | Example | Used in |
 | --- | ------- | -------- | ------- | ------- |
 | `CDN_BUCKET` | DigitalOcean Spaces bucket for static assets | Yes (landing build) | `my-space` | `scripts/upload-assets.js` |

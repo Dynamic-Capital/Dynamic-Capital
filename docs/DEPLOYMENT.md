@@ -21,6 +21,25 @@ Include your database connection string or anon key as needed:
 - `DATABASE_URL` (connection string)
 - `SITE_URL` (base URL of your deployment)
 
+### CDN configuration for DigitalOcean Spaces
+
+Static assets are uploaded to DigitalOcean Spaces by `scripts/upload-assets.js`.
+When deploying on App Platform, set these variables under **App Settings → Environment
+Variables** so the build can authenticate:
+
+- `CDN_BUCKET` – Spaces bucket name
+- `CDN_REGION` – Region slug (e.g. `nyc3`)
+- `CDN_ACCESS_KEY` – Spaces API key
+- `CDN_SECRET_KEY` – Spaces API secret
+
+Verify that credentials work with `doctl`:
+
+```bash
+doctl auth init --access-token $DIGITALOCEAN_TOKEN
+doctl spaces list | grep "$CDN_BUCKET"
+doctl spaces object list $CDN_BUCKET --region $CDN_REGION | head
+```
+
 ## Connectivity validation
 
 Verify the app can reach Supabase before deploying or scaling out. Run a simple
