@@ -9,13 +9,14 @@ const rawAllowedOrigins =
     ? (globalThis as any).Deno.env.get('ALLOWED_ORIGINS')
     : nodeProcess?.env?.ALLOWED_ORIGINS;
 
-const allowedOrigins = (rawAllowedOrigins || '')
+let allowedOrigins = (rawAllowedOrigins || '')
   .split(',')
   .map((o: string) => o.trim())
   .filter(Boolean);
 
 if (allowedOrigins.length === 0) {
-  console.warn('[CORS] ALLOWED_ORIGINS is empty; cross-origin requests will be rejected');
+  console.warn('[CORS] ALLOWED_ORIGINS is empty; allowing all origins');
+  allowedOrigins = ['*'];
 }
 
 export function buildCorsHeaders(origin: string | null, methods?: string) {
@@ -25,7 +26,9 @@ export function buildCorsHeaders(origin: string | null, methods?: string) {
     'access-control-allow-methods':
       methods || 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
   };
-  if (origin && allowedOrigins.includes(origin)) {
+  if (allowedOrigins.includes('*')) {
+    headers['access-control-allow-origin'] = '*';
+  } else if (origin && allowedOrigins.includes(origin)) {
     headers['access-control-allow-origin'] = origin;
   }
   return headers;
