@@ -35,3 +35,7 @@ spec:
       http_port: 8080
       routes:
         - path: /
+    - name: api
+      source_dir: .
+      environment_slug: node-js
+      run_command: "node server.js"
