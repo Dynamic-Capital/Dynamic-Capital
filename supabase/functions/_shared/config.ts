@@ -200,9 +200,10 @@ export async function getContentBatch(
 
     if (error) throw error;
     
+    const rows = (data as unknown) as any[] | undefined;
     const result: Record<string, string | null> = { ...cached };
     for (const key of uncached) {
-      const found = data?.find((row: any) => row.content_key === key);
+      const found = rows?.find((row: any) => row.content_key === key);
       const value = found?.content_value ?? defaults[key] ?? null;
       result[key] = value;
       if (value !== null) setCached(`c:${key}`, value);

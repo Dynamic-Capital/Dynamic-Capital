@@ -5,6 +5,13 @@ const SUPABASE_URL =
 const SUPABASE_ANON_KEY =
   getEnvVar("NEXT_PUBLIC_SUPABASE_ANON_KEY", ["SUPABASE_ANON_KEY"]) ?? "";
 
+export let SUPABASE_ENV_ERROR = "";
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  SUPABASE_ENV_ERROR = "Missing required Supabase env vars";
+  console.warn("Configuration warning:", SUPABASE_ENV_ERROR);
+}
+
 export const SUPABASE_CONFIG = {
   URL: SUPABASE_URL,
   ANON_KEY: SUPABASE_ANON_KEY,
