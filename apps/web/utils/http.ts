@@ -9,11 +9,15 @@ const rawAllowedOrigins =
     ? (globalThis as any).Deno.env.get('ALLOWED_ORIGINS')
     : nodeProcess?.env?.ALLOWED_ORIGINS;
 
+const defaultOrigin = 'http://localhost:3000';
+
 let allowedOrigins: string[];
 
 if (rawAllowedOrigins === undefined) {
-  console.warn('[CORS] ALLOWED_ORIGINS is missing; allowing all origins');
-  allowedOrigins = ['*'];
+  console.warn(
+    `[CORS] ALLOWED_ORIGINS is missing; defaulting to ${defaultOrigin}`,
+  );
+  allowedOrigins = [defaultOrigin];
 } else {
   allowedOrigins = rawAllowedOrigins
     .split(',')
@@ -21,8 +25,10 @@ if (rawAllowedOrigins === undefined) {
     .filter(Boolean);
 
   if (allowedOrigins.length === 0) {
-    console.warn('[CORS] ALLOWED_ORIGINS is empty; allowing all origins');
-    allowedOrigins = ['*'];
+    console.warn(
+      `[CORS] ALLOWED_ORIGINS is empty; defaulting to ${defaultOrigin}`,
+    );
+    allowedOrigins = [defaultOrigin];
   }
 }
 
