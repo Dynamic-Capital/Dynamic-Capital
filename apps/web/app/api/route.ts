@@ -21,5 +21,6 @@ export const PATCH = methodNotAllowed;
 export const DELETE = methodNotAllowed;
 export const HEAD = methodNotAllowed;
 export function OPTIONS(req: Request) {
-  return new Response(null, { status: 204, headers: corsHeaders(req) });
+  const headers = corsHeaders(req, 'GET');
+  return new Response(null, { status: 204, headers });
 }
