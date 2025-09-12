@@ -52,7 +52,11 @@ interface TableInfo {
 
 export const SystemStatus = () => {
   const { supabase } = useSupabase();
-  const supabasePublic = supabase.schema('public');
+  // The default Supabase client already targets the `public` schema,
+  // so we can use it directly without calling `.schema()`, which
+  // avoids a TypeScript type of `never` when strict typings are
+  // enabled.
+  const supabasePublic = supabase;
   const [functions, setFunctions] = useState<FunctionStatus[]>([]);
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [checking, setChecking] = useState(false);

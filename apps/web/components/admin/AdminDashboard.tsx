@@ -83,17 +83,18 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       // Check if user is admin via Supabase auth
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', user.id)
-          .single();
+          .single<{ role: string | null }>();
 
-        if (!profile) {
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
           return false;
         }
 
-        return profile.role === 'admin';
+        return profile?.role === 'admin';
       }
       
       return false;

@@ -2,9 +2,10 @@
 
 import { ReactNode, createContext, useContext } from 'react';
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 interface SupabaseContextValue {
-  supabase: ReturnType<typeof useSupabaseClient>;
+  supabase: SupabaseClient;
   session: ReturnType<typeof useSession>;
 }
 
