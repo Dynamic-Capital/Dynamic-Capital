@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export const dynamic = 'force-dynamic';
 
 export default function NotFound() {
@@ -7,9 +9,9 @@ export default function NotFound() {
       <p className="text-lg text-muted-foreground">
         The page you're looking for does not exist.
       </p>
-      <a href="/" className="mt-4 text-blue-500 underline">
+      <Link href="/" className="mt-4 text-blue-500 underline">
         Return home
-      </a>
+      </Link>
     </div>
   );
 }
