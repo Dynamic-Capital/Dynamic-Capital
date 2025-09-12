@@ -2,12 +2,28 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Send, Loader2, Bot, X, Minimize2, User, RotateCcw, MessageSquare } from "lucide-react";
+import {
+  Send,
+  Loader2,
+  Bot,
+  X,
+  Minimize2,
+  User,
+  RotateCcw,
+  MessageSquare,
+} from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/utils";
+import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 
 export interface TelegramAuthData {
   id: number;
@@ -160,166 +176,190 @@ Here are some helpful resources:
     }
   };
 
-  if (!isOpen) {
-    return (
-      <div className={cn("fixed bottom-20 left-4 z-40", className)}>
-        <Button
-          onClick={() => setIsOpen(true)}
-          size="lg"
-          className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 animate-pulse-glow"
-        >
-          <Bot className="h-6 w-6" />
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className={cn("fixed bottom-20 left-4 z-40 w-80 max-w-[calc(100vw-2rem)]", className)}>
-      <Card className="bg-card/95 backdrop-blur-md border shadow-xl">
-        {!isMinimized && (
-          <>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Bot className="h-5 w-5 text-primary animate-pulse-glow" />
-                  <CardTitle className="text-base">AI Assistant</CardTitle>
-                </div>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleReset}
-                    className="h-7 px-2 text-xs"
-                    disabled={isLoading}
-                  >
-                    <RotateCcw className="h-3 w-3 mr-1" /> Reset
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsMinimized(true)}
-                    className="h-7 w-7 p-0"
-                  >
-                    <Minimize2 className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsOpen(false)}
-                    className="h-7 w-7 p-0"
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              <CardDescription className="text-xs">
-                Ask any trading or platform question
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {/* Quick suggestion buttons */}
-              <div className="flex flex-wrap gap-1">
-                {quickSuggestions.map((suggestion, index) => (
-                  <Button
-                    key={index}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setQuestion(suggestion)}
-                    className="text-xs h-6 px-2"
-                    disabled={isLoading}
-                  >
-                    {suggestion}
-                  </Button>
-                ))}
-              </div>
-
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {messages.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={cn(
-                      "p-2 rounded-lg",
-                      msg.role === "assistant"
-                        ? "bg-primary/5 border border-primary/20"
-                        : "bg-muted"
-                    )}
-                  >
-                    <div className="flex items-start gap-2">
-                      {msg.role === "assistant" ? (
-                        <Bot className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <User className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <div className="text-xs leading-relaxed text-foreground whitespace-pre-wrap">
-                        {msg.content}
+    <LayoutGroup>
+      <AnimatePresence initial={false} mode="wait">
+        {isOpen ? (
+          <motion.div
+            key="chat-open"
+            layoutId="chat-assistant"
+            className={cn(
+              "fixed bottom-20 left-4 z-40 w-80 max-w-[calc(100vw-2rem)]",
+              className,
+            )}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            style={{ borderRadius: 16, overflow: "hidden" }}
+          >
+            <Card className="bg-card/95 backdrop-blur-md border shadow-xl">
+              {!isMinimized && (
+                <>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Bot className="h-5 w-5 text-primary animate-pulse-glow" />
+                        <CardTitle className="text-base">AI Assistant</CardTitle>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleReset}
+                          className="h-7 px-2 text-xs"
+                          disabled={isLoading}
+                        >
+                          <RotateCcw className="h-3 w-3 mr-1" /> Reset
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsMinimized(true)}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Minimize2 className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsOpen(false)}
+                          className="h-7 w-7 p-0"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
+                    <CardDescription className="text-xs">
+                      Ask any trading or platform question
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {/* Quick suggestion buttons */}
+                    <div className="flex flex-wrap gap-1">
+                      {quickSuggestions.map((suggestion, index) => (
+                        <Button
+                          key={index}
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setQuestion(suggestion)}
+                          className="text-xs h-6 px-2"
+                          disabled={isLoading}
+                        >
+                          {suggestion}
+                        </Button>
+                      ))}
+                    </div>
+
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {messages.map((msg, index) => (
+                        <div
+                          key={index}
+                          className={cn(
+                            "p-2 rounded-lg",
+                            msg.role === "assistant"
+                              ? "bg-primary/5 border border-primary/20"
+                              : "bg-muted",
+                          )}
+                        >
+                          <div className="flex items-start gap-2">
+                            {msg.role === "assistant" ? (
+                              <Bot className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                            ) : (
+                              <User className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                            )}
+                            <div className="text-xs leading-relaxed text-foreground whitespace-pre-wrap">
+                              {msg.content}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-3">
+                      <Input
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        placeholder="Ask about trading, signals, plans..."
+                        className="text-sm"
+                        disabled={isLoading}
+                      />
+
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        size="sm"
+                        disabled={isLoading || !question.trim()}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            Getting answer...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-3 w-3 mr-2" />
+                            Ask
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </>
+              )}
+
+              {isMinimized && (
+                <div className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Bot className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">AI Assistant</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsMinimized(false)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <MessageSquare className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsOpen(false)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                ))}
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <Input
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="Ask about trading, signals, plans..."
-                  className="text-sm"
-                  disabled={isLoading}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  size="sm"
-                  disabled={isLoading || !question.trim()}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                      Getting answer...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-3 w-3 mr-2" />
-                      Ask
-                    </>
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-          </>
+                </div>
+              )}
+            </Card>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="chat-closed"
+            layoutId="chat-assistant"
+            className={cn("fixed bottom-20 left-4 z-40", className)}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            style={{ borderRadius: 9999, overflow: "hidden" }}
+          >
+            <Button
+              onClick={() => setIsOpen(true)}
+              size="lg"
+              className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 animate-pulse-glow"
+            >
+              <Bot className="h-6 w-6" />
+            </Button>
+          </motion.div>
         )}
-
-        {isMinimized && (
-          <div className="p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bot className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">AI Assistant</span>
-              </div>
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsMinimized(false)}
-                  className="h-6 w-6 p-0"
-                >
-                  <MessageSquare className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsOpen(false)}
-                  className="h-6 w-6 p-0"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </Card>
-    </div>
+      </AnimatePresence>
+    </LayoutGroup>
   );
 }
+
