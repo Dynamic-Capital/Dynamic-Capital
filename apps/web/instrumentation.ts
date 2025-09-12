@@ -1,6 +1,16 @@
+import { registerOTel } from '@vercel/otel';
+
 export async function register() {
-  // Disable Sentry during the production build to avoid React context errors
-  if (process.env.NODE_ENV === 'production') return;
+  // Ensure Next.js' OpenTelemetry context is registered first to avoid null context errors
+  registerOTel();
+
+  // Only enable Sentry when explicitly requested and not during production build
+  if (
+    process.env.NODE_ENV === 'production' ||
+    process.env.ENABLE_SENTRY !== 'true'
+  ) {
+    return;
+  }
 
   try {
     const Sentry =
