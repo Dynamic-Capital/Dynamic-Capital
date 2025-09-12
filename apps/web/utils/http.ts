@@ -9,15 +9,17 @@ const rawAllowedOrigins =
     ? (globalThis as any).Deno.env.get('ALLOWED_ORIGINS')
     : nodeProcess?.env?.ALLOWED_ORIGINS;
 
-const defaultOrigin = 'http://localhost:3000';
+const defaultOrigin = nodeProcess?.env?.SITE_URL || 'http://localhost:3000';
 
 let allowedOrigins: string[];
 
 if (rawAllowedOrigins === undefined) {
-  console.warn(
-    `[CORS] ALLOWED_ORIGINS is missing; defaulting to ${defaultOrigin}`,
-  );
   allowedOrigins = [defaultOrigin];
+  if (!nodeProcess?.env?.SITE_URL) {
+    console.warn(
+      `[CORS] ALLOWED_ORIGINS is missing; defaulting to ${defaultOrigin}`,
+    );
+  }
 } else if (rawAllowedOrigins.trim() === '') {
   // Empty string means allow all origins
   allowedOrigins = ['*'];
