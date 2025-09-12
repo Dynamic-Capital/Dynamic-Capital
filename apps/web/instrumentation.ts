@@ -1,8 +1,11 @@
 import { registerOTel } from '@vercel/otel';
+import { registerInstrumentations } from '@opentelemetry/instrumentation';
 
 export async function register() {
   // Ensure Next.js' OpenTelemetry context is registered first to avoid null context errors
   registerOTel();
+  // Register OpenTelemetry instrumentations to avoid dynamic import warnings
+  registerInstrumentations({ instrumentations: [] });
 
   // Only enable Sentry when explicitly requested and not during production build
   if (
