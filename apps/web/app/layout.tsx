@@ -3,6 +3,7 @@ import './globals.css';
 import '../env';
 import Footer from '@/components/layout/Footer';
 import Providers from './providers';
+import DefaultSeo from '@/components/DefaultSeo';
 
 export const metadata = {
   title: 'Dynamic Capital VIP',
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <Providers>
+          <DefaultSeo />
           {/* Navbar removed to avoid build-time hook issues */}
           <main>{children}</main>
           <Footer />
