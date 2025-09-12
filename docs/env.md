@@ -62,6 +62,15 @@ example value, and where it's referenced in the repository.
 | `FOLLOW_UP_DELAY_MINUTES` | Minutes of inactivity before sending follow-up messages.   | No                  | `10`              | `supabase/functions/cleanup-old-sessions/index.ts`                                                      |
 | `MAX_FOLLOW_UPS`          | Maximum number of follow-up messages to send per user.     | No                  | `3`               | `supabase/functions/cleanup-old-sessions/index.ts`                                                      |
 | `ADMIN_API_SECRET`        | Shared secret for privileged admin endpoints.              | Yes for admin tasks | `hexstring`      | `supabase/functions/admin-session/index.ts`, `supabase/functions/rotate-admin-secret/index.ts`, `supabase/functions/rotate-webhook-secret/index.ts`, `supabase/functions/admin-review-payment/index.ts` |
+## CDN
+
+| Key | Purpose | Required | Example | Used in |
+| --- | ------- | -------- | ------- | ------- |
+| `CDN_BUCKET` | DigitalOcean Spaces bucket for static assets | Yes (landing build) | `my-space` | `scripts/upload-assets.js` |
+| `CDN_REGION` | Spaces region for the CDN bucket | Yes (landing build) | `nyc3` | `scripts/upload-assets.js` |
+| `CDN_ACCESS_KEY` | Spaces access key for uploads | Yes (landing build) | `DO0000000000EXAMPLE` | `scripts/upload-assets.js` |
+| `CDN_SECRET_KEY` | Spaces secret key for uploads | Yes (landing build) | `supersecret` | `scripts/upload-assets.js` |
+
 ## Misc
 
 | Key                   | Purpose                                  | Required | Example                   | Used in                           |
