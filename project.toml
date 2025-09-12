@@ -18,7 +18,7 @@ version = "0.0.0"
     path = "node_modules"
 
   [[build.cache]]
-    path = ".next/cache"
+    path = "apps/web/.next/cache"
 
   [[build.env]]
     name = "BP_NODE_VERSION"
@@ -27,6 +27,10 @@ version = "0.0.0"
   [[build.env]]
     name = "NPM_START_SCRIPT"
     value = "lovable-build.js"
+
+  [[build.env]]
+    name = "ALLOWED_ORIGINS"
+    value = "https://example.com"
 
 [[processes]]
 type = "web"

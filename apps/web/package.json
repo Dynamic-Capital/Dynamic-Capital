@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p ${PORT:-8080}",
+    "copy-static": "tsx ../../scripts/copy-static.ts --copy-only",
     "lint": "eslint .",
     "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check"
   },
