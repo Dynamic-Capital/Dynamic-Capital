@@ -9,14 +9,21 @@ const rawAllowedOrigins =
     ? (globalThis as any).Deno.env.get('ALLOWED_ORIGINS')
     : nodeProcess?.env?.ALLOWED_ORIGINS;
 
-let allowedOrigins = (rawAllowedOrigins || '')
-  .split(',')
-  .map((o: string) => o.trim())
-  .filter(Boolean);
+let allowedOrigins: string[];
 
-if (allowedOrigins.length === 0) {
-  console.warn('[CORS] ALLOWED_ORIGINS is empty; allowing all origins');
+if (rawAllowedOrigins === undefined) {
+  console.warn('[CORS] ALLOWED_ORIGINS is missing; allowing all origins');
   allowedOrigins = ['*'];
+} else {
+  allowedOrigins = rawAllowedOrigins
+    .split(',')
+    .map((o: string) => o.trim())
+    .filter(Boolean);
+
+  if (allowedOrigins.length === 0) {
+    console.warn('[CORS] ALLOWED_ORIGINS is empty; allowing all origins');
+    allowedOrigins = ['*'];
+  }
 }
 
 export function buildCorsHeaders(origin: string | null, methods?: string) {
