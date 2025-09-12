@@ -30,6 +30,16 @@ backed by Supabase.
 
 ## Environment Setup
 
+Copy `.env.example` to `.env.local` and adjust values for your environment:
+
+```bash
+cp .env.example .env.local
+```
+
+The example defaults `SITE_URL` and `NEXT_PUBLIC_SITE_URL` to
+`http://localhost:3000` so the app works locally out of the box. Replace these
+with your deployed domain when staging or going to production.
+
 Create `.env` files for each component and define variables needed in your
 deployment.
 
