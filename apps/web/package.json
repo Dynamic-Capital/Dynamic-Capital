@@ -11,8 +11,7 @@
     "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check"
   },
   "dependencies": {
-    "@auth/core": "0.40.0",
-    "@next-auth/supabase-adapter": "^0.2.1",
+    "@auth/supabase-adapter": "^1.10.0",
     "@grammyjs/conversations": "^2.1.0",
     "@grammyjs/transformer-throttler": "^1.2.1",
     "@heroicons/react": "^2.2.0",
@@ -64,7 +63,7 @@
     "lucide-react": "^0.462.0",
     "mime-types": "^3.0.1",
     "next": "^15.5.3",
-    "next-auth": "^4.24.7",
+    "next-auth": "5.0.0-beta.29",
     "next-intl": "^4.3.7",
     "next-pwa": "^5.6.0",
     "next-seo": "^6.8.0",
