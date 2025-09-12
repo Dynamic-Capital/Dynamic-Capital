@@ -27,8 +27,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="icon" type="image/png" sizes="192x192" href="/logo.png" />
       </head>
       <body>
-        <PostHogInit />
         <Providers>
+          <PostHogInit />
           <DefaultSeo {...SEO} />
           <MotionThemeProvider>
             <Navbar />

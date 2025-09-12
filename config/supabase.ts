@@ -1,16 +1,9 @@
 import { optionalEnvVar } from "../utils/env.ts";
-
-// Re-import the Supabase client on each load so tests that manipulate
-// environment variables get a fresh view of the configuration. This avoids
-// module cache issues where earlier imports lock in env vars before tests
-// delete them.
-const {
+import {
   SUPABASE_URL,
   SUPABASE_ANON_KEY,
   SUPABASE_ENV_ERROR,
-} = await import(
-  `../integrations/supabase/client.ts?${Date.now()}`
-);
+} from "../integrations/supabase/client.ts";
 
 const PROJECT_ID = SUPABASE_URL.match(/^https:\/\/([a-z0-9]+)\.supabase\.co/)
   ? RegExp.$1

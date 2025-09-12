@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import WebCheckout from '@/components/checkout/WebCheckout';
+import nextDynamic from 'next/dynamic';
 import DepositForm from '@/components/deposit-form';
 import { supabase } from '@/integrations/supabase/client';
 import Link from 'next/link';
 import { MotionSection } from '@/components/ui/motion-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+
+const WebCheckout = nextDynamic(() => import('@/components/checkout/WebCheckout'), { ssr: false });
 
 export const dynamic = 'force-dynamic';
 
