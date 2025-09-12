@@ -34,9 +34,7 @@
   },
   "include": [
     "**/*.ts",
-    "**/*.tsx",
-    "next-env.d.ts",
-    ".next/types/**/*.ts"
+    "**/*.tsx"
   ],
   "exclude": [
     "node_modules",
@@ -45,6 +43,7 @@
     "scripts/**",
     "components/miniapp/**",
     "components/ui/enhanced-typography.tsx",
-    "tests/**"
+    "tests/**",
+    "vite.config.ts"
   ]
 }
