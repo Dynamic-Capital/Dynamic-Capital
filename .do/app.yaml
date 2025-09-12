@@ -1,7 +1,6 @@
 spec:
   name: dynamic-capital
-  services: codex/switch-digitalocean-component-to-web-service
-
+  services:
     - name: landing
       source_dir: apps/landing
       environment_slug: node-js
@@ -19,7 +18,6 @@ spec:
           scope: RUN_AND_BUILD_TIME
         - key: CDN_SECRET_KEY
           scope: RUN_AND_BUILD_TIME
-main
     - name: web
       source_dir: apps/web
       environment_slug: node-js
