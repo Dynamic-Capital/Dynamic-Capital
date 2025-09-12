@@ -61,7 +61,7 @@ npm run build
 Check that `supabase/functions/miniapp/static/index.html` exists and has content.
 
 ### Build fails
-Ensure you have Node.js installed and run:
+Ensure you have Node.js 20.11.1 installed and run:
 ```bash
 cd supabase/functions/miniapp
 npm ci

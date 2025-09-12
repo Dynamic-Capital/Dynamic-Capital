@@ -4,20 +4,26 @@ const nodeProcess = (globalThis as any).process as
   | { env?: Record<string, string | undefined> }
   | undefined;
 
-const rawAllowedOrigins =
-  'Deno' in globalThis
-    ? (globalThis as any).Deno.env.get('ALLOWED_ORIGINS')
-    : nodeProcess?.env?.ALLOWED_ORIGINS;
+const isDeno = 'Deno' in globalThis;
+const getEnv = (key: string) =>
+  isDeno
+    ? (globalThis as any).Deno.env.get(key)
+    : nodeProcess?.env?.[key];
 
+const rawAllowedOrigins = getEnv('ALLOWED_ORIGINS');
 const defaultOrigin = 'http://localhost:3000';
+const siteFallback =
+  getEnv('NEXT_PUBLIC_SITE_URL') || getEnv('SITE_URL') || defaultOrigin;
+const nodeEnv = getEnv('NODE_ENV');
 
 let allowedOrigins: string[];
 
 if (rawAllowedOrigins === undefined) {
+  const fallback = nodeEnv === 'production' ? siteFallback : defaultOrigin;
   console.warn(
-    `[CORS] ALLOWED_ORIGINS is missing; defaulting to ${defaultOrigin}`,
+    `[CORS] ALLOWED_ORIGINS is missing; defaulting to ${fallback}`,
   );
-  allowedOrigins = [defaultOrigin];
+  allowedOrigins = [fallback];
 } else {
   allowedOrigins = rawAllowedOrigins
     .split(',')

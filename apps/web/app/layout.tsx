@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 import '../env';
 import Footer from '@/components/layout/Footer';
+import Navbar from '@/components/layout/Navbar';
 import Providers from './providers';
 import DefaultSeo from '@/components/DefaultSeo';
 
@@ -24,7 +25,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <Providers>
           <DefaultSeo />
-          {/* Navbar removed to avoid build-time hook issues */}
+          <Navbar />
           <main>{children}</main>
           <Footer />
         </Providers>

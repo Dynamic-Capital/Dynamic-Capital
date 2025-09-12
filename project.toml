@@ -22,7 +22,7 @@ version = "0.0.0"
 
   [[build.env]]
     name = "BP_NODE_VERSION"
-    value = "20.*"
+    value = "20.11.1"
 
   [[build.env]]
     name = "BP_NODE_RUN_SCRIPTS"

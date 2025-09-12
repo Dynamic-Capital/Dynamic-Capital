@@ -30,6 +30,8 @@ backed by Supabase.
 
 ## Environment Setup
 
+Requires **Node.js 20.11.1**. Install via your preferred version manager or use `.nvmrc`.
+
 Copy `.env.example` to `.env.local` and adjust values for your environment:
 
 ```bash
