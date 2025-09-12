@@ -1,7 +1,7 @@
 import http from 'node:http';
-import { createReadStream, statSync } from 'node:fs';
+import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
-import { extname, join } from 'node:path';
+import { extname, join, normalize } from 'node:path';
 
 const port = process.env.PORT || 3000;
 const root = process.cwd();
@@ -19,7 +19,7 @@ const mime = {
   '.svg': 'image/svg+xml',
 };
 
-function streamFile(res, filePath, status = 200) {
+async function streamFile(res, filePath, status = 200) {
   const type = mime[extname(filePath)] || 'application/octet-stream';
   const headers = { 'Content-Type': type };
   // Cache aggressively for hashed assets, otherwise require revalidation
@@ -32,14 +32,16 @@ function streamFile(res, filePath, status = 200) {
       : 'public, max-age=0, must-revalidate';
   }
   try {
-    const info = statSync(filePath);
+    const info = await stat(filePath);
     headers['Last-Modified'] = info.mtime.toUTCString();
   } catch {}
   res.writeHead(status, headers);
-  createReadStream(filePath).on('error', () => {
-    res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end('Internal Server Error');
-  }).pipe(res);
+  createReadStream(filePath)
+    .on('error', () => {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end('Internal Server Error');
+    })
+    .pipe(res);
 }
 
 const server = http.createServer(async (req, res) => {
@@ -52,20 +54,25 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (url === '/' || url === '/index.html') {
-    return streamFile(res, join(root, 'index.html'));
+    return await streamFile(res, join(root, 'index.html'));
   }
 
   if (url.startsWith('/_static/')) {
-    const filePath = join(root, url);
+    const normalizedUrl = normalize(url);
+    const filePath = join(root, normalizedUrl.slice(1));
+    if (!filePath.startsWith(staticRoot)) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      return res.end('404 Not Found');
+    }
     try {
       const info = await stat(filePath);
       if (info.isDirectory()) throw new Error('is directory');
-      return streamFile(res, filePath);
+      return await streamFile(res, filePath);
     } catch {
       const notFound = join(staticRoot, '404.html');
       try {
         await stat(notFound);
-        return streamFile(res, notFound, 404);
+        return await streamFile(res, notFound, 404);
       } catch {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         return res.end('404 Not Found');
@@ -76,7 +83,7 @@ const server = http.createServer(async (req, res) => {
   const notFound = join(staticRoot, '404.html');
   try {
     await stat(notFound);
-    return streamFile(res, notFound, 404);
+    return await streamFile(res, notFound, 404);
   } catch {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('404 Not Found');
