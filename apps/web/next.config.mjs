@@ -51,7 +51,7 @@ process.env.NEXT_PUBLIC_SITE_URL = SITE_URL;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  output: process.env.NEXT_OUTPUT || 'standalone',
   env: {
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
