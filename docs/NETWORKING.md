@@ -4,7 +4,7 @@ This project relies on a Next.js service and Supabase Edge Functions. Use the fo
 
 ## Environment variables
 - Copy `.env.example` to `.env.local` and fill in credentials.
-- `ALLOWED_ORIGINS` defines a comma-separated list of domains allowed to call the API and edge functions. If unset, all origins are permitted.
+- `ALLOWED_ORIGINS` defines a comma-separated list of domains allowed to call the API and edge functions. If unset, only `http://localhost:3000` is permitted.
 
 ## Exposing the app
 - Run the app in Docker (or similar) and map the container's port `8080` to your host.

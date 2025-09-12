@@ -2,7 +2,7 @@
 "name": "landing",
 "private": true,
 "scripts": {
-"build": "rm -rf dist && mkdir -p dist && cp -r public/* dist/",
-"start": "npx serve dist -l ${PORT:-8080}"
+"build": "rm -rf ../../_static && mkdir -p ../../_static && cp -r public/* ../../_static/",
+"start": "npx serve ../../_static -l ${PORT:-8080}"
 }
 }
