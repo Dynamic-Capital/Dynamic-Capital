@@ -17,11 +17,14 @@
     "start:web": "npm -w apps/web run start",
     "dev": "npm -w apps/web run dev",
     "debug": "NODE_OPTIONS='--inspect' npm run dev",
+    "upload-assets": "node scripts/upload-assets.js",
     "test": "node scripts/check-static-homepage.js && deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
+    "mime-types": "^2.1.35",
     "supabase": "^2.40.7"
   }
 }
