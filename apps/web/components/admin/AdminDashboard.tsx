@@ -87,7 +87,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
           .from('profiles')
           .select('role')
           .eq('id', user.id)
-          .single();
+          .single<{ role: string }>();
 
         if (!profile) {
           return false;
