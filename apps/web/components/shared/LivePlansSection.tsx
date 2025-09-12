@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Star, TrendingUp, Users, Crown, Zap, Check, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { CheckCircle, Star, TrendingUp, Users, Crown, Zap, Check } from 'lucide-react';
 import { ThreeDEmoticon, TradingEmoticonSet } from '@/components/ui/three-d-emoticons';
 import { AnimatedHeading, GradientText, CountUp } from '@/components/ui/enhanced-typography';
 import { Interactive3DCard, StaggeredGrid } from '@/components/ui/interactive-cards';
@@ -100,9 +101,12 @@ export const LivePlansSection = ({
   if (loading) {
     return (
       <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin" />
-          <span className="ml-2">Loading plans...</span>
+        <CardContent className="space-y-4 py-8">
+          <div className="flex gap-4">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-40 flex-1" />
+            ))}
+          </div>
         </CardContent>
       </Card>
     );

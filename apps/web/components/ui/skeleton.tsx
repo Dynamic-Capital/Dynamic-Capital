@@ -1,15 +1,19 @@
-import { cn } from "@/utils"
+import { cn } from "@/utils";
+import { motion } from "framer-motion";
 
 function Skeleton({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      className={cn("animate-pulse rounded-md bg-muted", className)}
+    <motion.div
+      className={cn("rounded-md bg-muted", className)}
+      initial={{ opacity: 0.6 }}
+      animate={{ opacity: [0.6, 1, 0.6] }}
+      transition={{ duration: 1.5, repeat: Infinity }}
       {...props}
     />
-  )
+  );
 }
 
-export { Skeleton }
+export { Skeleton };
