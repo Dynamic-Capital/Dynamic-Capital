@@ -16,6 +16,7 @@ dist/
 dist-ssr/
 _static/*
 !_static/404.html
+!_static/index.html
 
 # Logs
 logs
