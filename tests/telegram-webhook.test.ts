@@ -24,12 +24,13 @@ test('setup-telegram-webhook calls Telegram API', async () => {
     }
     return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
   };
+  let patched: URL | undefined;
   try {
-    const orig = 'supabase/functions/setup-telegram-webhook/index.ts';
-    const patched = 'supabase/functions/setup-telegram-webhook/index.test.ts';
+    const orig = new URL('../supabase/functions/setup-telegram-webhook/index.ts', import.meta.url);
+    patched = new URL('../supabase/functions/setup-telegram-webhook/index.test.ts', import.meta.url);
     const src = await Deno.readTextFile(orig);
     await Deno.writeTextFile(patched, src.replace('../_shared/telegram_secret.ts', '../../../tests/telegram-secret-stub.ts'));
-    const { handler } = await import(`../${patched}?${Math.random()}`);
+    const { handler } = await import(patched.href + `?${Math.random()}`);
     const res = await handler(new Request('http://localhost', { method: 'POST' }));
     assertEquals(res.status, 200);
     const data = await res.json();
@@ -41,7 +42,7 @@ test('setup-telegram-webhook calls Telegram API', async () => {
     assertEquals(payload.url, 'http://example.com/functions/v1/telegram-bot');
   } finally {
     globalThis.fetch = originalFetch;
-    await Deno.remove('supabase/functions/setup-telegram-webhook/index.test.ts').catch(() => {});
+    if (patched) await Deno.remove(patched).catch(() => {});
     cleanupEnv();
   }
 });
@@ -61,16 +62,17 @@ test('telegram-webhook processes /ping and responds', async () => {
     }
     return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
   };
+  let patched: URL | undefined;
   try {
-    const orig = 'supabase/functions/telegram-webhook/index.ts';
-    const patched = 'supabase/functions/telegram-webhook/index.test.ts';
+    const orig = new URL('../supabase/functions/telegram-webhook/index.ts', import.meta.url);
+    patched = new URL('../supabase/functions/telegram-webhook/index.test.ts', import.meta.url);
     let src = await Deno.readTextFile(orig);
     src = src.replace('../_shared/client.ts', '../../../tests/supabase-client-stub.ts');
     src = src.replace('../_shared/config.ts', '../../../tests/config-stub.ts');
     src = src.replace('../_shared/miniapp.ts', '../../../tests/miniapp-stub.ts');
     src = src.replace('../_shared/telegram_secret.ts', '../../../tests/telegram-secret-stub.ts');
     await Deno.writeTextFile(patched, src);
-    const { default: handler } = await import(`../${patched}?${Math.random()}`);
+    const { default: handler } = await import(patched.href + `?${Math.random()}`);
     const req = new Request('http://localhost/telegram-webhook', {
       method: 'POST',
       headers: {
@@ -89,7 +91,7 @@ test('telegram-webhook processes /ping and responds', async () => {
     assertMatch(payload.text, /pong/);
   } finally {
     globalThis.fetch = originalFetch;
-    await Deno.remove('supabase/functions/telegram-webhook/index.test.ts').catch(() => {});
+    if (patched) await Deno.remove(patched).catch(() => {});
     cleanupEnv();
   }
 });

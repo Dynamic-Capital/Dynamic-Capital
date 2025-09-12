@@ -1,7 +1,5 @@
-// @ts-nocheck
 "use client";
 
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/utils';
