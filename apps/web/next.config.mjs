@@ -106,11 +106,6 @@ if (nextConfig.output !== 'export') {
       destination: `https://${CANONICAL_HOST}/:path*`,
       permanent: true,
     },
-    {
-      source: '/',
-      destination: '/_static/',
-      permanent: true,
-    },
   ];
   nextConfig.headers = async () => [
     {
