@@ -30,6 +30,15 @@ request includes an `OpenAI-Signature` header containing an HMAC-SHA256 digest
 of the raw body signed with `OPENAI_WEBHOOK_SECRET`. Requests with missing or
 invalid signatures are rejected with `401`.
 
+Register the webhook in the OpenAI dashboard using your Supabase Functions URL:
+
+```
+${SUPABASE_URL}/functions/v1/openai-webhook
+```
+
+Replace `SUPABASE_URL` with your project's base URL; OpenAI will POST events to
+this endpoint.
+
 ### Rotating the secret
 
 1. Update `OPENAI_WEBHOOK_SECRET` in the environment.
