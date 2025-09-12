@@ -15,6 +15,7 @@ out/
 dist/
 dist-ssr/
 _static/
+!public/_static/
 
 # Logs
 logs

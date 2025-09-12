@@ -114,6 +114,15 @@ if (nextConfig.output !== 'export') {
       ],
     },
     {
+      source: '/_static/:path*',
+      headers: [
+        {
+          key: 'Cache-Control',
+          value: 'public, max-age=31536000, immutable',
+        },
+      ],
+    },
+    {
       source: '/:all*(js|css|svg|jpg|png|gif|ico|woff2?)',
       headers: [
         {

@@ -32,7 +32,7 @@
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
     "sync-env": "deno run -A scripts/sync-env.ts",
-    "build:static": "mkdir -p _static && cp -r static-site _static/"
+    "build:static": "mkdir -p public/_static && cp -r static-site/* public/_static/"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.10.0",

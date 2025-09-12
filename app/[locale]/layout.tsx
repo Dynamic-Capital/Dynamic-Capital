@@ -1,19 +1,32 @@
 import { NextIntlClientProvider } from 'next-intl';
-import { ReactNode } from 'react';
+import { ReactNode, ReactElement } from 'react';
+import { notFound } from 'next/navigation';
 import messages from './messages';
 
-export default async function LocaleLayout({
+function LocaleLayout({
   children,
   params,
 }: {
   children: ReactNode;
-  params: Promise<{ locale: string }>;
+  params: { locale?: string };
 }) {
-  const { locale } = await params;
-  const localeMessages = (messages as Record<string, any>)[locale] || messages.en;
+  const locale = params?.locale ?? 'en';
+  if (!(messages as Record<string, any>)[locale]) {
+    notFound();
+  }
+  const localeMessages = (messages as Record<string, any>)[locale];
   return (
     <NextIntlClientProvider locale={locale} messages={localeMessages}>
       {children}
     </NextIntlClientProvider>
   );
+}
+
+export default LocaleLayout as unknown as (props: {
+  children: ReactNode;
+  params: Promise<{ locale?: string }>;
+}) => ReactElement;
+
+export function generateStaticParams() {
+  return Object.keys(messages).map((locale) => ({ locale }));
 }

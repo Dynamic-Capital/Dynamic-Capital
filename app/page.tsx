@@ -8,8 +8,6 @@ import Link from 'next/link';
 import { MotionSection } from '@/components/ui/motion-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
-export const dynamic = 'force-dynamic';
-
 type BotUser = {
   id: string;
   username: string | null;
