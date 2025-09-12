@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import './globals.css';
 import '../env';
-import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { MotionThemeProvider } from '@/components/ui/motion-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
@@ -30,7 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <PostHogInit />
           <DefaultSeoClient />
           <MotionThemeProvider>
-            <Navbar />
+            {/* Navbar removed to avoid build-time hook issues */}
             <main>{children}</main>
             <Footer />
           </MotionThemeProvider>
