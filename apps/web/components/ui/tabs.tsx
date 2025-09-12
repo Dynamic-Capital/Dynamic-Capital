@@ -1,18 +1,28 @@
 "use client";
 
-import * as React from "react";
+import {
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  useEffect,
+  forwardRef,
+  type ElementRef,
+  type ComponentPropsWithoutRef,
+  type MutableRefObject,
+} from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { cn } from "@/utils";
 import { motion, LayoutGroup } from "framer-motion";
 
-const TabsIndicatorContext = React.createContext(false);
+const TabsIndicatorContext = createContext(false);
 
 const Tabs = TabsPrimitive.Root;
 
-const TabsList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & {
+const TabsList = forwardRef<
+  ElementRef<typeof TabsPrimitive.List>,
+  ComponentPropsWithoutRef<typeof TabsPrimitive.List> & {
     orientation?: "horizontal" | "vertical";
     "aria-label"?: string;
     animateIndicator?: boolean;
@@ -52,20 +62,20 @@ const TabsList = React.forwardRef<
 );
 TabsList.displayName = TabsPrimitive.List.displayName;
 
-const TabsTrigger = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+const TabsTrigger = forwardRef<
+  ElementRef<typeof TabsPrimitive.Trigger>,
+  ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
 >(({ className, children, ...props }, ref) => {
-  const animate = React.useContext(TabsIndicatorContext);
-  const internalRef = React.useRef<HTMLButtonElement>(null);
+  const animate = useContext(TabsIndicatorContext);
+  const internalRef = useRef<HTMLButtonElement>(null);
   const combinedRef = (node: HTMLButtonElement | null) => {
     internalRef.current = node;
     if (typeof ref === "function") ref(node);
-    else if (ref) (ref as React.MutableRefObject<HTMLButtonElement | null>).current = node;
+    else if (ref) (ref as MutableRefObject<HTMLButtonElement | null>).current = node;
   };
 
-  const [isActive, setIsActive] = React.useState(false);
-  React.useEffect(() => {
+  const [isActive, setIsActive] = useState(false);
+  useEffect(() => {
     const node = internalRef.current;
     if (!node) return;
     const observer = new MutationObserver(() => {
@@ -98,9 +108,9 @@ const TabsTrigger = React.forwardRef<
 });
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
 
-const TabsContent = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
+const TabsContent = forwardRef<
+  ElementRef<typeof TabsPrimitive.Content>,
+  ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}
