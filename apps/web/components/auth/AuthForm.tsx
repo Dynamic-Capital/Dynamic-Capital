@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useToast } from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";

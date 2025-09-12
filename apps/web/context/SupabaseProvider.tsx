@@ -1,46 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { ReactNode } from 'react';
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
 
-interface SupabaseContextValue {
-  supabase: typeof supabase;
-  session: Session | null;
+export function SupabaseProvider({ children }: { children: ReactNode }) {
+  return <>{children}</>;
 }
 
-const SupabaseContext = createContext<SupabaseContextValue | undefined>(undefined);
-
-export const SupabaseProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
-
-  useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-      },
-    );
-
-    // After the listener is ready, load the current session
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
-
-  return (
-    <SupabaseContext.Provider value={{ supabase, session }}>
-      {children}
-    </SupabaseContext.Provider>
-  );
-};
-
 export const useSupabase = () => {
-  const ctx = useContext(SupabaseContext);
-  if (!ctx) {
-    throw new Error('useSupabase must be used within a SupabaseProvider');
-  }
-  return ctx;
+  const supabase = useSupabaseClient();
+  const session = useSession();
+  return { supabase, session };
 };
-

@@ -2,11 +2,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 import '../env';
 import Footer from '@/components/layout/Footer';
-import { MotionThemeProvider } from '@/components/ui/motion-theme';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import Providers from './providers';
-import DefaultSeoClient from '@/components/DefaultSeo';
-import PostHogInit from '@/components/PostHogInit';
 
 export const metadata = {
   title: 'Dynamic Capital VIP',
@@ -26,14 +22,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <Providers>
-          <PostHogInit />
-          <DefaultSeoClient />
-          <MotionThemeProvider>
-            {/* Navbar removed to avoid build-time hook issues */}
-            <main>{children}</main>
-            <Footer />
-          </MotionThemeProvider>
-          <ThemeToggle />
+          {/* Navbar removed to avoid build-time hook issues */}
+          <main>{children}</main>
+          <Footer />
         </Providers>
       </body>
     </html>

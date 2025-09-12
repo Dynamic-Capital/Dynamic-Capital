@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { motion, useAnimation, useInView } from 'framer-motion';
 import { cn } from '@/utils';
