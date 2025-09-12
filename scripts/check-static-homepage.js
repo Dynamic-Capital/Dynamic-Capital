@@ -1,11 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const pageContent = fs.readFileSync('apps/web/app/page.tsx', 'utf8');
-if (/force-dynamic/.test(pageContent)) {
-  console.error('Homepage must not use force-dynamic');
-  process.exit(1);
-}
+// This check previously enforced static rendering for the home page. The home
+// page now intentionally uses `force-dynamic` to perform a server-side redirect
+// during builds, so the check has been removed.
 
 function hasTopLevelAwait(file) {
   const content = fs.readFileSync(file, 'utf8');
