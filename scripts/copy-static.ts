@@ -2,11 +2,16 @@ import { execSync } from 'node:child_process';
 import { cp, rm, mkdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const copyOnly = process.argv.includes('--copy-only');
+const copyOnly = process.argv.includes('--copy-only') || process.env.SKIP_NEXT_BUILD === '1';
 
 if (!copyOnly) {
   // Run Next.js build to ensure latest assets
-  execSync('next build', { stdio: 'inherit' });
+  try {
+    execSync('next build', { stdio: 'inherit' });
+  } catch (err) {
+    console.error('❌ Next.js build failed:', err);
+    process.exit(1);
+  }
 }
 
 const root = process.cwd();
