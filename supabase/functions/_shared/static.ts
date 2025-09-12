@@ -9,7 +9,7 @@ export type StaticOpts = {
   rootDir: URL; // e.g., new URL("../miniapp/static/", import.meta.url)
   spaRoots?: string[]; // paths that should serve index.html
   security?: Record<string, string>;
-  extraFiles?: string[]; // e.g., ["/favicon.svg", "/site.webmanifest"]
+  extraFiles?: string[]; // e.g., ["/favicon.svg", "/site.webmanifest", "/sitemap.xml"]
 };
 export const DEFAULT_SECURITY = {
   "referrer-policy": "strict-origin-when-cross-origin",
@@ -75,6 +75,7 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
     "/favicon.ico",
     "/site.webmanifest",
     "/robots.txt",
+    "/sitemap.xml",
   ]);
 
   // HEAD allowed on SPA roots

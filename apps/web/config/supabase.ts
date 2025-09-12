@@ -1,5 +1,4 @@
 import { getEnvVar } from "@/utils/env.ts";
-export { SUPABASE_ENV_ERROR } from "@/integrations/supabase/client.ts";
 
 const SUPABASE_URL = getEnvVar("NEXT_PUBLIC_SUPABASE_URL", ["SUPABASE_URL"]) ??
   "";

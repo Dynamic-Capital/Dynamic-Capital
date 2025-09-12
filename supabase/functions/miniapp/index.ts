@@ -298,7 +298,13 @@ export async function handler(req: Request): Promise<Response> {
         rootDir: new URL("./static/", import.meta.url),
         spaRoots: ["/"],
         security: ENHANCED_SECURITY_HEADERS,
-        extraFiles: ["/favicon.ico", "/favicon.svg", "/vite.svg", "/robots.txt"]
+        extraFiles: [
+          "/favicon.ico",
+          "/favicon.svg",
+          "/vite.svg",
+          "/robots.txt",
+          "/sitemap.xml",
+        ]
       };
 
       // Try static serving first (normalize /miniapp prefix if present)
