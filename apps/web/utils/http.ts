@@ -14,11 +14,16 @@ const allowedOrigins = (rawAllowedOrigins || '')
   .map((o: string) => o.trim())
   .filter(Boolean);
 
-export function buildCorsHeaders(origin: string | null) {
+if (allowedOrigins.length === 0) {
+  console.warn('[CORS] ALLOWED_ORIGINS is empty; cross-origin requests will be rejected');
+}
+
+export function buildCorsHeaders(origin: string | null, methods?: string) {
   const headers: Record<string, string> = {
-    'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
     'access-control-allow-headers':
       'authorization, x-client-info, apikey, content-type',
+    'access-control-allow-methods':
+      methods || 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
   };
   if (origin && allowedOrigins.includes(origin)) {
     headers['access-control-allow-origin'] = origin;
@@ -26,8 +31,8 @@ export function buildCorsHeaders(origin: string | null) {
   return headers;
 }
 
-export function corsHeaders(req: Request) {
-  return buildCorsHeaders(req.headers.get('origin'));
+export function corsHeaders(req: Request, methods?: string) {
+  return buildCorsHeaders(req.headers.get('origin'), methods);
 }
 
 export function jsonResponse(

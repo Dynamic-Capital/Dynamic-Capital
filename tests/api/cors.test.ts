@@ -14,3 +14,11 @@ Deno.test('disallowed origin is rejected', () => {
   const headers = corsHeaders(req);
   assert.ok(!('access-control-allow-origin' in headers));
 });
+
+Deno.test('preflight includes allowed methods', () => {
+  const req = new Request('http://localhost', {
+    headers: { origin: 'https://allowed.com' },
+  });
+  const headers = corsHeaders(req, 'GET,POST');
+  assert.equal(headers['access-control-allow-methods'], 'GET,POST');
+});

@@ -1,14 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders } from "../_shared/http.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    const headers = corsHeaders(req, 'POST');
+    return new Response(null, { headers });
   }
 
   try {
@@ -16,11 +13,11 @@ serve(async (req) => {
     
     if (!telegram_user_id) {
       return new Response(
-        JSON.stringify({ error: 'telegram_user_id is required' }), 
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ error: 'telegram_user_id is required' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
+        },
       );
     }
 
@@ -33,11 +30,11 @@ serve(async (req) => {
     if (subscriptionError) {
       console.error('Subscription status error:', subscriptionError);
       return new Response(
-        JSON.stringify({ error: 'Failed to get subscription status' }), 
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ error: 'Failed to get subscription status' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
+        },
       );
     }
 
@@ -62,20 +59,20 @@ serve(async (req) => {
 
     // Return the subscription data directly (not wrapped in another object)
     return new Response(
-      JSON.stringify(subscription), 
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      JSON.stringify(subscription),
+      {
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
+      },
     );
 
   } catch (error) {
     console.error('Error in subscription-status:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }), 
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      JSON.stringify({ error: 'Internal server error' }),
+      {
+        status: 500,
+        headers: { ...corsHeaders(req), 'Content-Type': 'application/json' },
+      },
     );
   }
 });
