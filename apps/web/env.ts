@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { getEnvVar, optionalEnvVar } from '@/utils/env.ts';
 
 const schema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']),
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   NEXT_PUBLIC_API_URL: z.string().url().optional(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(10),
