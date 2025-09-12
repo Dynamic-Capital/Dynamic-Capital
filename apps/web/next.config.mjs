@@ -74,16 +74,14 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config, { dev }) => {
-    if (!dev) {
-      config.cache = {
-        type: 'filesystem',
-        cacheDirectory: path.join(__dirname, '.next/cache/webpack'),
-        buildDependencies: {
-          config: [__filename],
-        },
-      };
-    }
+  webpack: (config) => {
+    config.cache = {
+      type: 'filesystem',
+      cacheDirectory: path.join(__dirname, '.next/cache/webpack'),
+      buildDependencies: {
+        config: [__filename],
+      },
+    };
     return config;
   },
 };

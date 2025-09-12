@@ -1,5 +1,5 @@
 import NextAuth from "next-auth";
-import { SupabaseAdapter } from "@auth/supabase-adapter";
+import { SupabaseAdapter } from "@next-auth/supabase-adapter";
 import GitHub from "next-auth/providers/github";
 
 const handler = NextAuth({
