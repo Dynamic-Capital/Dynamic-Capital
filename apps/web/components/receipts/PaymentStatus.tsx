@@ -68,12 +68,14 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
 
       if (error) throw error;
 
-      const paymentData = {
+      const paymentData: PaymentData = {
         ...data,
-        plan: data.subscription_plans,
-        webhook_data: data.webhook_data as any
+        plan: Array.isArray(data.subscription_plans)
+          ? data.subscription_plans[0]
+          : data.subscription_plans,
+        webhook_data: data.webhook_data as any,
       };
-      
+
       setPayment(paymentData);
 
       // Show uploader if payment is pending and no receipt uploaded yet
