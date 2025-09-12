@@ -550,6 +550,14 @@ This project features **bidirectional GitHub sync** through Lovable Codex:
 - [Using Personal Access Tokens](docs/GITHUB_PAT.md) for pushes and workflow
   auth
 
+## Hybrid Development Workflow
+
+For a combined approach that keeps production on DigitalOcean while iterating
+with Lovable and local tooling, see
+[docs/HYBRID_DEVELOPMENT_WORKFLOW.md](docs/HYBRID_DEVELOPMENT_WORKFLOW.md).
+It covers prototyping in Lovable, exporting via the Codex CLI, local testing,
+and syncing changes through GitHub to maintain a seamless deployment pipeline.
+
 ## License / contributions
 
 Proprietary / All rights reserved. Personal project; external PRs/issues are
