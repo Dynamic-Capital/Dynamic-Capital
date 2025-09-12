@@ -38,6 +38,9 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
     "http://localhost:8080";
 
+const ALLOWED_ORIGINS =
+  process.env.ALLOWED_ORIGINS || "http://localhost:3000";
+
 const CANONICAL_HOST = new URL(SITE_URL).hostname;
 
 process.env.SUPABASE_URL = SUPABASE_URL;
@@ -46,6 +49,7 @@ process.env.NEXT_PUBLIC_SUPABASE_URL = SUPABASE_URL;
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 process.env.SITE_URL = SITE_URL;
 process.env.NEXT_PUBLIC_SITE_URL = SITE_URL;
+process.env.ALLOWED_ORIGINS = ALLOWED_ORIGINS;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -57,6 +61,7 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: SUPABASE_ANON_KEY,
     SITE_URL,
     NEXT_PUBLIC_SITE_URL: SITE_URL,
+    ALLOWED_ORIGINS,
   },
   eslint: {
     ignoreDuringBuilds: true,

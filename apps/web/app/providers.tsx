@@ -9,6 +9,7 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { TelegramAuthProvider } from '@/hooks/useTelegramAuth';
 import { AdminAuthProvider } from '@/hooks/useAdminAuth';
 import { CurrencyProvider } from '@/hooks/useCurrency';
+import { SupabaseProvider } from '@/context/SupabaseProvider';
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [supabaseClient] = useState(() =>
@@ -17,15 +18,17 @@ export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
   return (
     <SessionContextProvider supabaseClient={supabaseClient}>
-      <QueryClientProvider client={queryClient}>
-        <TelegramAuthProvider>
-          <AdminAuthProvider>
-            <AuthProvider>
-              <CurrencyProvider>{children}</CurrencyProvider>
-            </AuthProvider>
-          </AdminAuthProvider>
-        </TelegramAuthProvider>
-      </QueryClientProvider>
+      <SupabaseProvider>
+        <QueryClientProvider client={queryClient}>
+          <TelegramAuthProvider>
+            <AdminAuthProvider>
+              <AuthProvider>
+                <CurrencyProvider>{children}</CurrencyProvider>
+              </AuthProvider>
+            </AdminAuthProvider>
+          </TelegramAuthProvider>
+        </QueryClientProvider>
+      </SupabaseProvider>
     </SessionContextProvider>
   );
 }
