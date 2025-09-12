@@ -14,7 +14,8 @@ node_modules/
 out/
 dist/
 dist-ssr/
-_static/
+_static/*
+!_static/404.html
 
 # Logs
 logs

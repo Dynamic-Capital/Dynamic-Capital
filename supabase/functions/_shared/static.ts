@@ -140,5 +140,11 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
 
   // Unknown path → 404
   console.log(`[static] Path not found: ${url.pathname}`);
+  const notFound = await readFileFrom(opts.rootDir, "404.html");
+  if (notFound) {
+    const h = new Headers(notFound.headers);
+    for (const [k, v] of Object.entries(sec)) h.set(k, v);
+    return new Response(notFound.body, { headers: h, status: 404 });
+  }
   return nf("Not Found");
 }
