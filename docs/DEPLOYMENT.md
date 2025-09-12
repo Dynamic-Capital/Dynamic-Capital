@@ -48,6 +48,14 @@ Run command: node apps/web/.next/standalone/apps/web/server.js
 The `SITE_URL` variable must match your public domain, e.g.
 `https://urchin-app-macix.ondigitalocean.app`.
 
+## Deployment logs
+
+The App Platform UI may sometimes display "Deploy logs are not available" after
+a build. Fetch logs using `doctl apps logs <app-id> <component-name> --type build`
+or the [DigitalOcean API](DIGITALOCEAN_APP_LOGS.md#automation) to diagnose
+failed deployments. See [DigitalOcean App Logs](DIGITALOCEAN_APP_LOGS.md) for
+more examples.
+
 ## API Routing
 
 When deploying a static landing page alongside Next.js API routes, forward
