@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { cp, rm, mkdir } from 'node:fs/promises';
+import { cp, rm, mkdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const copyOnly = process.argv.includes('--copy-only');
@@ -17,14 +17,32 @@ const nextServerApp = join(root, '.next', 'server', 'app');
 // served as a regular static site (e.g. on DigitalOcean).
 const destRoot = join(projectRoot, '_static');
 
+async function exists(path: string) {
+  try {
+    await stat(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function copyAssets() {
   // Remove existing destination
   await rm(destRoot, { recursive: true, force: true });
   await mkdir(destRoot, { recursive: true });
 
-  // Copy static assets
-  await cp(nextStatic, join(destRoot, 'static'), { recursive: true });
-  await cp(nextServerApp, join(destRoot, 'server', 'app'), { recursive: true });
+  // Copy static assets if present
+  if (await exists(nextStatic)) {
+    await cp(nextStatic, join(destRoot, 'static'), { recursive: true });
+  } else {
+    console.warn('⚠️  No static assets found at', nextStatic);
+  }
+
+  if (await exists(nextServerApp)) {
+    await cp(nextServerApp, join(destRoot, 'server', 'app'), { recursive: true });
+  } else {
+    console.warn('⚠️  No server/app directory found at', nextServerApp);
+  }
 
   console.log('✅ Copied Next.js build output to', destRoot);
 }

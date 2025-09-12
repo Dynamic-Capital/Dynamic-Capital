@@ -32,6 +32,10 @@ version = "0.0.0"
     name = "ALLOWED_ORIGINS"
     value = "https://example.com"
 
+  [[build.env]]
+    name = "NEXT_TELEMETRY_DISABLED"
+    value = "1"
+
 [[processes]]
 type = "web"
 command = "npm start"
