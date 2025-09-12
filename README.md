@@ -10,7 +10,7 @@ experience.
 
 The project is split into two deployables:
 
-- A **static landing page** served at `/` from `apps/landing`.
+- A **static landing page** served at `/_static` from `apps/landing`.
 - A **dynamic Next.js dashboard** served at `/app` from `apps/web`.
 
 Static content never touches runtime secrets, while the dashboard handles
