@@ -1,7 +1,7 @@
 import test from 'node:test';
 import { equal as assertEquals } from 'node:assert/strict';
 
-import { formatPrice } from '../utils/format-price.ts';
+import { formatPrice } from '../apps/web/utils/format-price.ts';
 
 test('formatPrice defaults to whole currency units', () => {
   assertEquals(formatPrice(1234.56, 'USD'), '$1,235');

@@ -6,7 +6,7 @@ test('missing Supabase env vars sets error flag', async () => {
   const prevKey = process.env.SUPABASE_ANON_KEY;
   delete process.env.SUPABASE_URL;
   delete process.env.SUPABASE_ANON_KEY;
-  const mod = await import(`../config/supabase.ts?${Date.now()}`);
+  const mod = await import(`../apps/web/config/supabase.ts?${Date.now()}`);
   assert(mod.SUPABASE_ENV_ERROR);
   if (prevUrl !== undefined) process.env.SUPABASE_URL = prevUrl;
   if (prevKey !== undefined) process.env.SUPABASE_ANON_KEY = prevKey;

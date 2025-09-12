@@ -8,6 +8,14 @@ Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
 OCR + crypto TXID). Built with **Lovable Codex** for enhanced development
 experience.
 
+The project is split into two deployables:
+
+- A **static landing page** served at `/` from `apps/landing`.
+- A **dynamic Next.js dashboard** served at `/app` from `apps/web`.
+
+Static content never touches runtime secrets, while the dashboard handles
+authentication, Supabase access and other server-side features.
+
 The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
 backed by Supabase.
 

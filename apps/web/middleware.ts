@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buildCorsHeaders } from './utils/http';
+import { buildCorsHeaders } from '@/utils/http';
 import createIntlMiddleware from 'next-intl/middleware';
 
 const intlMiddleware = createIntlMiddleware({

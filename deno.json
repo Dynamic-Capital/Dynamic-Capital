@@ -77,10 +77,10 @@
   "nodeModulesDir": false,
   "compilerOptions": {
     "types": [
-      "./types/tesseract.d.ts",
-      "./types/deno.d.ts"
+      "./apps/web/types/tesseract.d.ts",
+      "./apps/web/types/deno.d.ts"
     ],
-    "typeRoots": ["./types"]
+    "typeRoots": ["./apps/web/types"]
   },
   "importMap": "./supabase/functions/telegram-bot/vendor/import_map.json",
   "test": {

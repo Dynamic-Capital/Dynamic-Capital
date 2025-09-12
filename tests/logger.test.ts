@@ -2,7 +2,7 @@ import test from 'node:test';
 import { equal as assertEquals } from 'node:assert/strict';
 
 const importFresh = async () => {
-  return await import(`../utils/logger.ts?cachebust=${Math.random()}`);
+  return await import(`../apps/web/utils/logger.ts?cachebust=${Math.random()}`);
 };
 
 test('logger.error logs in production', async () => {
@@ -11,7 +11,7 @@ test('logger.error logs in production', async () => {
   const calls: unknown[][] = [];
   const original = console.error;
   console.error = (...args: unknown[]) => { calls.push(args); };
-  const { logger } = await importFresh();
+    const { logger } = await importFresh();
   logger.error('boom');
   console.error = original;
   assertEquals(calls.length, 1);

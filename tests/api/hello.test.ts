@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 
 async function run() {
-  const { GET } = await import('../../app/api/hello/route.ts')
+  const { GET } = await import('../../apps/web/app/api/hello/route.ts')
   const res = await GET()
   assert.equal(res.status, 200)
   const data = await res.json()

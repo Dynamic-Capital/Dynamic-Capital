@@ -1,5 +1,5 @@
 import { enqueue } from "../queue/index.ts";
-import { configClient } from "../utils/config.ts";
+import { configClient } from "../apps/web/utils/config.ts";
 
 export interface PlanBroadcastOptions {
   segment: number[] | { userIds: number[] };

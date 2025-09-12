@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getEnvVar, optionalEnvVar } from './utils/env.ts';
+import { getEnvVar, optionalEnvVar } from '@/utils/env.ts';
 
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']),
