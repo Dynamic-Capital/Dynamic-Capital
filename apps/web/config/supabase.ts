@@ -1,106 +1,55 @@
-import { optionalEnvVar } from "@/utils/env.ts";
+import { getEnvVar } from "@/utils/env.ts";
 
 const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env.SUPABASE_URL ||
-  "";
+  getEnvVar("NEXT_PUBLIC_SUPABASE_URL", ["SUPABASE_URL"]) ?? "";
 const SUPABASE_ANON_KEY =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.SUPABASE_ANON_KEY ||
-  "";
-export const SUPABASE_ENV_ERROR =
-  !SUPABASE_URL || !SUPABASE_ANON_KEY
-    ? "Missing required Supabase env vars"
-    : "";
-
-const PROJECT_ID = SUPABASE_URL.match(/^https:\/\/([a-z0-9]+)\.supabase\.co/)
-  ? RegExp.$1
-  : "";
-const FUNCTIONS_URL = SUPABASE_URL.replace(
-  ".supabase.co",
-  ".functions.supabase.co",
-);
+  getEnvVar("NEXT_PUBLIC_SUPABASE_ANON_KEY", ["SUPABASE_ANON_KEY"]) ?? "";
 
 export const SUPABASE_CONFIG = {
-  // Project configuration
-  PROJECT_ID,
   URL: SUPABASE_URL,
   ANON_KEY: SUPABASE_ANON_KEY,
-
-  // Edge functions base URL
-  FUNCTIONS_URL,
-
-  // Edge function endpoints
+  FUNCTIONS_URL: SUPABASE_URL.replace(
+    ".supabase.co",
+    ".functions.supabase.co",
+  ),
   FUNCTIONS: {
-    // Payment & checkout
-    CHECKOUT_INIT: 'checkout-init',
-    INTENT: 'intent',
-    PLANS: 'plans',
-    PROMO_VALIDATE: 'promo-validate',
-    ACTIVE_PROMOS: 'active-promos',
-    SUBSCRIPTION_STATUS: 'subscription-status',
-    CRYPTO_TXID: 'crypto-txid',
-
-    // Admin functions
-    ADMIN_SESSION: 'admin-session',
-    ADMIN_BANS: 'admin-bans',
-    ADMIN_LOGS: 'admin-logs',
-    ADMIN_ACT_ON_PAYMENT: 'admin-act-on-payment',
-    ADMIN_REVIEW_PAYMENT: 'admin-review-payment',
-    ADMIN_LIST_PENDING: 'admin-list-pending',
-    ADMIN_CHECK: 'admin-check',
-
-    // Bot & system
-    BOT_STATUS_CHECK: 'bot-status-check',
-    ROTATE_WEBHOOK_SECRET: 'rotate-webhook-secret',
-    ROTATE_ADMIN_SECRET: 'rotate-admin-secret',
-    RESET_BOT: 'reset-bot',
-    BROADCAST_DISPATCH: 'broadcast-dispatch',
-    BUILD_MINIAPP: 'build-miniapp',
-    UPLOAD_MINIAPP_HTML: 'upload-miniapp-html',
-    WEB_APP_HEALTH: 'web-app-health',
-    MINIAPP_HEALTH: 'miniapp-health',
-    THEME_GET: 'theme-get',
-    THEME_SAVE: 'theme-save',
-
-    // Content & data
-    CONTENT_BATCH: 'content-batch',
-    ANALYTICS_DATA: 'analytics-data',
-    MINIAPP: 'miniapp',
-
-    // Verification
-    VERIFY_INITDATA: 'verify-initdata',
-  }
+    CHECKOUT_INIT: "checkout-init",
+    INTENT: "intent",
+    PLANS: "plans",
+    PROMO_VALIDATE: "promo-validate",
+    ACTIVE_PROMOS: "active-promos",
+    SUBSCRIPTION_STATUS: "subscription-status",
+    CRYPTO_TXID: "crypto-txid",
+    ADMIN_SESSION: "admin-session",
+    ADMIN_BANS: "admin-bans",
+    ADMIN_LOGS: "admin-logs",
+    ADMIN_ACT_ON_PAYMENT: "admin-act-on-payment",
+    ADMIN_REVIEW_PAYMENT: "admin-review-payment",
+    ADMIN_LIST_PENDING: "admin-list-pending",
+    ADMIN_CHECK: "admin-check",
+    BOT_STATUS_CHECK: "bot-status-check",
+    ROTATE_WEBHOOK_SECRET: "rotate-webhook-secret",
+    ROTATE_ADMIN_SECRET: "rotate-admin-secret",
+    RESET_BOT: "reset-bot",
+    BROADCAST_DISPATCH: "broadcast-dispatch",
+    BUILD_MINIAPP: "build-miniapp",
+    UPLOAD_MINIAPP_HTML: "upload-miniapp-html",
+    WEB_APP_HEALTH: "web-app-health",
+    MINIAPP_HEALTH: "miniapp-health",
+    THEME_GET: "theme-get",
+    THEME_SAVE: "theme-save",
+    CONTENT_BATCH: "content-batch",
+    ANALYTICS_DATA: "analytics-data",
+    MINIAPP: "miniapp",
+    VERIFY_INITDATA: "verify-initdata",
+  },
 } as const;
-// Shared secret used by both the Telegram bot and web dashboard when calling
-// protected edge functions. In browser builds it must be exposed via the
-// NEXT_PUBLIC_ prefix.
-const TELEGRAM_WEBHOOK_SECRET = optionalEnvVar("TELEGRAM_WEBHOOK_SECRET");
 
-const SECRET_REQUIRED_FUNCTIONS = new Set<keyof typeof SUPABASE_CONFIG.FUNCTIONS>([
-  'ADMIN_SESSION',
-  'ADMIN_BANS',
-  'ADMIN_LOGS',
-  'ADMIN_ACT_ON_PAYMENT',
-  'ADMIN_REVIEW_PAYMENT',
-  'ADMIN_LIST_PENDING',
-  'ADMIN_CHECK',
-  'ANALYTICS_DATA',
-  'BOT_STATUS_CHECK',
-  'ROTATE_WEBHOOK_SECRET',
-  'ROTATE_ADMIN_SECRET',
-  'RESET_BOT',
-  'BROADCAST_DISPATCH',
-  'BUILD_MINIAPP',
-  'UPLOAD_MINIAPP_HTML',
-]);
+export const buildFunctionUrl = (
+  functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS,
+): string =>
+  `${SUPABASE_CONFIG.FUNCTIONS_URL}/${SUPABASE_CONFIG.FUNCTIONS[functionName]}`;
 
-// Helper function to build function URLs
-export const buildFunctionUrl = (functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS): string => {
-  return `${SUPABASE_CONFIG.FUNCTIONS_URL}/${SUPABASE_CONFIG.FUNCTIONS[functionName]}`;
-};
-
-// Helper function for making authenticated requests to edge functions
 export const callEdgeFunction = async <T>(
   functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS,
   options: {
@@ -110,24 +59,16 @@ export const callEdgeFunction = async <T>(
     token?: string;
   } = {},
 ): Promise<{ data?: T; error?: { status: number; message: string } }> => {
-  const { method = 'GET', body, headers = {}, token } = options;
+  const { method = "GET", body, headers = {}, token } = options;
 
   const requestHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'apikey': SUPABASE_CONFIG.ANON_KEY,
+    "Content-Type": "application/json",
+    apikey: SUPABASE_CONFIG.ANON_KEY,
     ...headers,
   };
-  if (SECRET_REQUIRED_FUNCTIONS.has(functionName)) {
-    if (!TELEGRAM_WEBHOOK_SECRET) {
-      throw new Error(`TELEGRAM_WEBHOOK_SECRET is required for ${functionName}`);
-    }
-    requestHeaders['x-telegram-bot-api-secret-token'] = TELEGRAM_WEBHOOK_SECRET;
-  } else if (TELEGRAM_WEBHOOK_SECRET) {
-    requestHeaders['x-telegram-bot-api-secret-token'] = TELEGRAM_WEBHOOK_SECRET;
-  }
 
   if (token) {
-    requestHeaders['Authorization'] = `Bearer ${token}`;
+    requestHeaders["Authorization"] = `Bearer ${token}`;
   }
 
   const res = await fetch(buildFunctionUrl(functionName), {
@@ -154,21 +95,3 @@ export const callEdgeFunction = async <T>(
 
   return { data };
 };
-
-// Telegram bot configuration
-const BOT_USERNAME = optionalEnvVar('TELEGRAM_BOT_USERNAME') ?? 'Dynamic_VIP_BOT';
-const BOT_URL = optionalEnvVar('TELEGRAM_BOT_URL') ?? `https://t.me/${BOT_USERNAME}`;
-
-export const TELEGRAM_CONFIG = {
-  BOT_USERNAME,
-  BOT_URL,
-} as const;
-
-// Crypto configuration
-export const CRYPTO_CONFIG = {
-  USDT_TRC20_ADDRESS: optionalEnvVar('USDT_TRC20_ADDRESS') ?? '',
-  NETWORKS: {
-    TRC20: 'TRON (TRC20)',
-    ERC20: 'Ethereum (ERC20)',
-  }
-} as const;

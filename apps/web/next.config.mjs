@@ -7,11 +7,15 @@ import bundleAnalyzer from '@next/bundle-analyzer';
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-let withSentryConfig = (config) => config;
-try {
-  ({ withSentryConfig } = require('@sentry/nextjs'));
-} catch {
-  console.warn('@sentry/nextjs not installed; skipping Sentry configuration');
+
+// Only enable Sentry when explicitly requested to avoid build-time issues
+let withSentry = (config) => config;
+if (process.env.ENABLE_SENTRY === 'true') {
+  try {
+    ({ withSentryConfig: withSentry } = require('@sentry/nextjs'));
+  } catch {
+    console.warn('@sentry/nextjs not installed; skipping Sentry configuration');
+  }
 }
 
 const SUPABASE_URL =
@@ -144,7 +148,7 @@ const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'tr
 
 export default withBundleAnalyzer(
   withPWA(
-    withSentryConfig(nextConfig, {
+    withSentry(nextConfig, {
       silent: true,
     }),
   ),

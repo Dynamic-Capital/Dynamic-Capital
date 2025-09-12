@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from 'react';
-import { useSupabase } from '@/context/SupabaseProvider';
+import { useSession } from '@supabase/auth-helpers-react';
 import { callEdgeFunction, SUPABASE_CONFIG } from "@/config/supabase";
 
 type FunctionName = keyof typeof SUPABASE_CONFIG.FUNCTIONS;
@@ -13,7 +13,7 @@ type CallOptions = {
 };
 
 export function useEdgeFunction() {
-  const { session } = useSupabase();
+  const session = useSession();
 
   return useCallback(
     async <T,>(name: FunctionName, options: CallOptions = {}) => {
@@ -23,4 +23,3 @@ export function useEdgeFunction() {
     [session?.access_token],
   );
 }
-

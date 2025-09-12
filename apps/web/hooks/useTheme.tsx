@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { callEdgeFunction } from '@/config/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import type { Session } from '@supabase/supabase-js';
 
 type Theme = 'light' | 'dark' | 'system';
@@ -29,14 +30,8 @@ export function useTheme() {
 
   useEffect(() => {
     let mounted = true;
-    import('./useAuth').then(({ useAuth }) => {
-      try {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const { session } = useAuth();
-        if (mounted) setSession(session);
-      } catch {
-        // ignore missing auth provider during pre-render
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) setSession(session);
     });
     return () => {
       mounted = false;
