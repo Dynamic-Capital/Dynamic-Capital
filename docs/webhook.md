@@ -23,3 +23,16 @@ computes the HMAC-SHA256 signature as described in the Telegram spec and rejects
 invalid payloads with `401`. Rotate the bot token or secret if verification
 fails consistently.
 
+## OpenAI Webhook
+
+The `openai-webhook` function receives event callbacks from OpenAI. Every
+request includes an `OpenAI-Signature` header containing an HMAC-SHA256 digest
+of the raw body signed with `OPENAI_WEBHOOK_SECRET`. Requests with missing or
+invalid signatures are rejected with `401`.
+
+### Rotating the secret
+
+1. Update `OPENAI_WEBHOOK_SECRET` in the environment.
+2. Re-deploy the function (`supabase functions deploy openai-webhook`).
+3. Update the webhook endpoint in the OpenAI dashboard with the same secret.
+
