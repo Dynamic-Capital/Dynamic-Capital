@@ -1,6 +1,7 @@
 spec:
   name: dynamic-capital
-  services:
+  services: codex/switch-digitalocean-component-to-web-service
+
     - name: landing
       source_dir: apps/landing
       environment_slug: node-js
@@ -18,21 +19,22 @@ spec:
           scope: RUN_AND_BUILD_TIME
         - key: CDN_SECRET_KEY
           scope: RUN_AND_BUILD_TIME
+main
     - name: web
       source_dir: apps/web
       environment_slug: node-js
       build_command: "npm ci && npm run build"
-      run_command: "npm run start"
+      run_command: "PORT=$PORT npm start"
       http_port: 8080
       envs:
+        - key: SITE_URL
+          value: https://urchin-app-macix.ondigitalocean.app
+          scope: RUN_AND_BUILD_TIME
         - key: NEXT_PUBLIC_SUPABASE_URL
-          scope: RUN_TIME
+          scope: RUN_AND_BUILD_TIME
         - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
-          scope: RUN_TIME
+          scope: RUN_AND_BUILD_TIME
         - key: SUPABASE_SERVICE_ROLE_KEY
           scope: RUN_TIME
-        - key: ALLOWED_ORIGINS
-          value: https://example.com
-          scope: RUN_AND_BUILD_TIME
       routes:
-        - path: /app
+        - path: /
