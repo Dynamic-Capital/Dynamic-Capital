@@ -46,7 +46,7 @@ Run command: node apps/web/.next/standalone/apps/web/server.js
 ```
 
 The `SITE_URL` variable must match your public domain, e.g.
-`https://urchin-app-macix.ondigitalocean.app`.
+`https://app.dynamic.capital`.
 
 ## Deployment logs
 
