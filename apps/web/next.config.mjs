@@ -1,10 +1,7 @@
-import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import nextPWA from 'next-pwa';
 import bundleAnalyzer from '@next/bundle-analyzer';
-
-const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -12,7 +9,8 @@ const __dirname = path.dirname(__filename);
 let withSentry = (config) => config;
 if (process.env.ENABLE_SENTRY === 'true') {
   try {
-    ({ withSentryConfig: withSentry } = require('@sentry/nextjs'));
+    const { withSentryConfig } = await import('@sentry/nextjs');
+    withSentry = withSentryConfig;
   } catch {
     console.warn('@sentry/nextjs not installed; skipping Sentry configuration');
   }
