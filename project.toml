@@ -25,7 +25,7 @@ version = "0.0.0"
     value = "22.*"
 
   [[build.env]]
-    name = "NPM_START_SCRIPT"
+    name = "BP_NODE_RUN_SCRIPTS"
     value = "lovable-build.js"
 
   [[build.env]]
@@ -38,4 +38,4 @@ version = "0.0.0"
 
 [[processes]]
 type = "web"
-command = "npm start"
+command = "node apps/web/.next/standalone/apps/web/server.js"

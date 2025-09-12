@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "tsx ../../scripts/copy-static.ts",
-    "start": "next start -p ${PORT:-8080}",
+    "start": "node .next/standalone/apps/web/server.js",
     "copy-static": "tsx ../../scripts/copy-static.ts --copy-only",
     "lint": "eslint .",
     "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check"

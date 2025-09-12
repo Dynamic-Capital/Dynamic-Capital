@@ -19,6 +19,7 @@ Include your database connection string or anon key as needed:
 
 - `SUPABASE_ANON_KEY`
 - `DATABASE_URL` (connection string)
+- `SITE_URL` (base URL of your deployment)
 
 ## Connectivity validation
 
@@ -34,6 +35,18 @@ If either command fails, DigitalOcean may be blocking outbound traffic. Ensure
 egress rules permit HTTPS requests to `*.supabase.co` and increase timeouts if
 requests are dropped under load. Add retries with exponential backoff in your
 pipeline or contact Supabase support if connectivity issues persist.
+
+## DigitalOcean build and run commands
+
+Configure the App Platform component to run the project build before serving the app:
+
+```
+Build command: npm run build
+Run command: node apps/web/.next/standalone/apps/web/server.js
+```
+
+The `SITE_URL` variable must match your public domain, e.g.
+`https://urchin-app-macix.ondigitalocean.app`.
 
 ## API Routing
 
