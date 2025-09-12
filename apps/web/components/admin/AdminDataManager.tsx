@@ -122,12 +122,10 @@ export const AdminDataManager = () => {
 
       const { error } = await supabase
         .from("kv_config")
-        .insert([
-          {
-            key: kvConfigForm.key,
-            value: parsedValue
-          } as TablesInsert<"kv_config">
-        ]);
+        .insert<TablesInsert<"kv_config">>({
+          key: kvConfigForm.key,
+          value: parsedValue
+        });
 
       if (error) throw error;
 
@@ -145,14 +143,12 @@ export const AdminDataManager = () => {
     try {
       const { error } = await supabase
         .from("abuse_bans")
-        .insert([
-          {
-            telegram_id: abuseBanForm.telegram_id,
-            reason: abuseBanForm.reason || null,
-            expires_at: abuseBanForm.expires_at || null,
-            created_by: abuseBanForm.created_by || null
-          } as TablesInsert<"abuse_bans">
-        ]);
+        .insert<TablesInsert<"abuse_bans">>({
+          telegram_id: abuseBanForm.telegram_id,
+          reason: abuseBanForm.reason || null,
+          expires_at: abuseBanForm.expires_at || null,
+          created_by: abuseBanForm.created_by || null
+        });
 
       if (error) throw error;
 
