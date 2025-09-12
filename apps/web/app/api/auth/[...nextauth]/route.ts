@@ -17,4 +17,3 @@ const { handlers } = NextAuth({
 
 export const { GET, POST } = handlers;
 
-export default handlers.GET;
