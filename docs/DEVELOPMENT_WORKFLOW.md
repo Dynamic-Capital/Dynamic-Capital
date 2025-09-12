@@ -6,7 +6,7 @@ This guide outlines eight high-level steps to run, build, and deploy the Telegra
    - Telegram bot for deposit workflows with optional Mini App for richer interactions.
 
 2. **Set up prerequisites**
-   - Install Node.js \u2265 22, Deno, and the Supabase CLI.
+   - Install Node.js \u2265 20, Deno, and the Supabase CLI.
 
 3. **Prepare environment variables**
    - Copy `.env.example` to `.env.local` and populate values:
