@@ -28,7 +28,7 @@ Deno.test("recomputeVipForUser sets VIP", async () => {
   const oldFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response(JSON.stringify({ ok: true, result: { status: "member" } }));
   try {
-    const res = await recomputeVipForUser("1", supa);
+    const res = await recomputeVipForUser("1", supa as any);
     assert(res?.is_vip);
     assert(supa.channel_memberships["1:-1001"].is_active);
   } finally {

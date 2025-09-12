@@ -57,6 +57,30 @@ export interface MockSupabaseClient {
   channel_memberships: Record<string, MockMembershipRecord>;
   bot_users: Record<string, MockBotUser>;
   admin_logs: unknown[];
+  storage: {
+    from(_bucket: string): {
+      upload: (..._args: any[]) => Promise<{ data: null; error: null }>;
+      createSignedUrl: (..._args: any[]) => Promise<{ data: { signedUrl: string }; error: null }>;
+      download: (
+        _key: any,
+      ) => Promise<{ data: Blob; error: null } | { data: null; error: { message: string } }>;
+    };
+  };
+  rpc(
+    name: string,
+    params: unknown,
+  ): Promise<
+    | { data: { count: number }; error: null }
+    | { data: null; error: { message: string } }
+    | { data: null; error: null }
+  >;
+  auth: {
+    getUser: () => Promise<{ data: { user: { id: string; user_metadata: { telegram_id: string } } }; error: null }>;
+    signJWT: (
+      payload: Record<string, unknown>,
+      opts: Record<string, unknown>,
+    ) => Promise<{ access_token: string }>;
+  };
   from(table: "channel_memberships"): ChannelMembershipTable;
   from(table: "user_subscriptions"): UserSubscriptionsTable;
   from(table: "bot_users"): BotUsersTable;
@@ -73,6 +97,38 @@ export function createMockSupabaseClient(): MockSupabaseClient {
     channel_memberships: cm,
     bot_users: users,
     admin_logs: logs,
+    storage: {
+      from(_bucket: string) {
+        return {
+          upload: async (..._args: any[]) => ({ data: null, error: null }),
+          createSignedUrl: async (..._args: any[]) => ({
+            data: { signedUrl: "http://example.com" },
+            error: null,
+          }),
+          download: async (_key: any) => ({
+            data: null,
+            error: { message: "not found" },
+          }),
+        };
+      },
+    },
+    rpc: async (name: string, _params: unknown) => {
+      if (name === "rl_touch") {
+        return { data: { count: 0 }, error: null };
+      }
+      return { data: null, error: null };
+    },
+    auth: {
+      async getUser() {
+        return {
+          data: { user: { id: "", user_metadata: { telegram_id: "" } } },
+          error: null,
+        };
+      },
+      async signJWT(_payload: Record<string, unknown>, _opts: Record<string, unknown>) {
+        return { access_token: "token" };
+      },
+    },
     from(table: string) {
       if (table === "channel_memberships") {
         return {

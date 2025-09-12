@@ -109,6 +109,18 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
     return new Response(await r.arrayBuffer(), { headers: h, status: r.status });
   }
 
+  // Serve explicitly allowed root files first (e.g., robots.txt, sitemap.xml)
+  if (extra.has(url.pathname)) {
+    const f = await readFileFrom(opts.rootDir, url.pathname);
+    return f ? setSec(f) : nf("Not Found");
+  }
+
+  // Serve /assets/* before falling back to SPA handling
+  if (url.pathname.startsWith("/assets/")) {
+    const f = await readFileFrom(opts.rootDir, url.pathname);
+    return f ? setSec(f) : nf("Not Found");
+  }
+
   // Serve SPA index for configured roots and their subpaths
   const normPath = path === "" ? "/" : path;
   if (
@@ -124,18 +136,6 @@ export async function serveStatic(req: Request, opts: StaticOpts): Promise<Respo
     }
     console.error(`[static] index.html not found in rootDir: ${opts.rootDir.pathname}`);
     return nf("index.html missing");
-  }
-
-  // Serve common root files (optional)
-  if (extra.has(url.pathname)) {
-    const f = await readFileFrom(opts.rootDir, url.pathname);
-    return f ? setSec(f) : nf("Not Found");
-  }
-
-  // Serve /assets/*
-  if (url.pathname.startsWith("/assets/")) {
-    const f = await readFileFrom(opts.rootDir, url.pathname);
-    return f ? setSec(f) : nf("Not Found");
   }
 
   // Unknown path → 404
