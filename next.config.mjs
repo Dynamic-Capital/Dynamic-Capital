@@ -56,6 +56,9 @@ const nextConfig = {
     SITE_URL,
     NEXT_PUBLIC_SITE_URL: SITE_URL,
   },
+  typescript: {
+    tsconfigPath: './tsconfig.next.json',
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

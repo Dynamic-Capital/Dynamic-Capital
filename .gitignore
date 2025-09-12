@@ -15,6 +15,13 @@ out/
 dist/
 dist-ssr/
 _static/
+next-env.d.ts
+
+# PWA artifacts
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
 
 # Logs
 logs
