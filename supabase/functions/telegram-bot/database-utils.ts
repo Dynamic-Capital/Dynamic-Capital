@@ -1,7 +1,13 @@
 // Database utility functions for the Telegram bot
 import { createClient } from "../_shared/client.ts";
 
-const supabaseAdmin = createClient("service");
+let supabaseAdmin: ReturnType<typeof createClient>;
+try {
+  supabaseAdmin = createClient("service");
+} catch {
+  // will surface when client is used
+  supabaseAdmin = {} as ReturnType<typeof createClient>;
+}
 
 interface VipPackage {
   id: string;

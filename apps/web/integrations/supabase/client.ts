@@ -1,5 +1,5 @@
 // Supabase client and helpers
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient as createBrowserClient } from '@supabase/supabase-js';
 import { getEnvVar } from '@/utils/env.ts';
 import type { Database } from './types.ts';
 
@@ -42,13 +42,21 @@ const loggingFetch: typeof fetch = async (input, init) => {
   return res;
 };
 
-export type SupabaseClient = ReturnType<typeof createBrowserClient<Database>>;
+export type SupabaseClient = ReturnType<typeof createBrowserClient>;
 
-export function createClient(): SupabaseClient {
-  if (SUPABASE_ENV_ERROR) {
-    throw new Error(SUPABASE_ENV_ERROR);
+export function createClient(role: 'anon' | 'service' = 'anon'): SupabaseClient {
+  const key =
+    role === 'service'
+      ? getEnvVar('SUPABASE_SERVICE_ROLE_KEY')
+      : SUPABASE_ANON_KEY;
+  if (!key) {
+    throw new Error(
+      role === 'service'
+        ? 'Missing Supabase service role key'
+        : SUPABASE_ENV_ERROR || 'Missing Supabase anon key',
+    );
   }
-  return createBrowserClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  return createBrowserClient(SUPABASE_URL, key, {
     global: { fetch: loggingFetch },
   });
 }
