@@ -1,9 +1,13 @@
-import { registerOTel } from '@vercel/otel';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 
 export async function register() {
   // Ensure Next.js' OpenTelemetry context is registered first to avoid null context errors
-  registerOTel();
+  try {
+    const { registerOTel } = await import('@vercel/otel');
+    registerOTel();
+  } catch {
+    // Optional dependency not installed; continue without OpenTelemetry registration
+  }
   // Register OpenTelemetry instrumentations to avoid dynamic import warnings
   registerInstrumentations({ instrumentations: [] });
 
