@@ -34,6 +34,8 @@ export function StackCard({
 
   const rotateX = useTransform(mouseY, [-300, 300], [15, -15]);
   const rotateY = useTransform(mouseX, [-300, 300], [-15, 15]);
+  const bgRotateX = useTransform(rotateX, (v) => v / 2);
+  const bgRotateY = useTransform(rotateY, (v) => v / 2);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -46,6 +48,7 @@ export function StackCard({
   return (
     <div
       className={cn("relative", className)}
+      style={{ perspective: 1000 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onMouseMove={handleMouseMove}
@@ -55,6 +58,11 @@ export function StackCard({
         <motion.div
           key={index}
           className="absolute inset-0"
+          style={{
+            rotateX: rotateOnHover ? bgRotateX : 0,
+            rotateY: rotateOnHover ? bgRotateY : 0,
+            transformStyle: "preserve-3d",
+          }}
           initial={{
             x: -(stackOffset * (stackSize - index - 1)),
             y: -(stackOffset * (stackSize - index - 1)),
@@ -94,6 +102,7 @@ export function StackCard({
         style={{
           rotateX: rotateOnHover ? rotateX : 0,
           rotateY: rotateOnHover ? rotateY : 0,
+          transformStyle: "preserve-3d",
         }}
         animate={{
           scale: isHovered && scaleOnHover ? 1.05 : 1,
