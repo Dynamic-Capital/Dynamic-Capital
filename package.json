@@ -1,13 +1,18 @@
 {
   "name": "dynamic-chatty-bot",
   "private": true,
-  "workspaces": ["apps/*"],
-  "engines": { "node": ">=22.0.0 <23.0.0" },
+  "workspaces": [
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.0.0 <23.0.0"
+  },
   "type": "module",
   "scripts": {
     "build": "npm -w apps/landing run build && npm -w apps/web run build",
     "build:landing": "npm -w apps/landing run build",
     "build:web": "npm -w apps/web run build",
+    "build:miniapp": "bash scripts/build-miniapp.sh",
     "start:web": "npm -w apps/web run start",
     "test": "node scripts/check-static-homepage.js && deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check"
   }
