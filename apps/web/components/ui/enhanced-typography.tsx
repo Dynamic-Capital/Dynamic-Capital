@@ -1,6 +1,7 @@
 "use client";
 
-import React from 'react';
+import * as React from 'react';
+import type { JSX } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/utils';
 
@@ -43,20 +44,18 @@ export const AnimatedHeading: React.FC<AnimatedHeadingProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay }}
     >
-      <Component 
-        className={cn(
-          baseClasses[level],
-          gradientClass,
-          glowClass,
-          className
-        )}
-      >
-        {typewriter ? (
-          <TypewriterText text={children as string} />
-        ) : (
-          children
-        )}
-      </Component>
+      {React.createElement(
+        Component,
+        {
+          className: cn(
+            baseClasses[level],
+            gradientClass,
+            glowClass,
+            className
+          )
+        },
+        typewriter ? <TypewriterText text={children as string} /> : children
+      )}
     </motion.div>
   );
 };
