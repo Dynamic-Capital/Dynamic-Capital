@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run copy-static",
     "start": "next start -p ${PORT:-8080}",
     "copy-static": "tsx ../../scripts/copy-static.ts --copy-only",
     "lint": "eslint .",
