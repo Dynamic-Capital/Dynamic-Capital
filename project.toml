@@ -30,7 +30,11 @@ version = "0.0.0"
 
   [[build.env]]
     name = "ALLOWED_ORIGINS"
-    value = "https://urchin-app-macix.ondigitalocean.app"
+    value = "https://app.dynamic.capital"
+
+  [[build.env]]
+    name = "SITE_URL"
+    value = "https://app.dynamic.capital"
 
   [[build.env]]
     name = "NEXT_TELEMETRY_DISABLED"

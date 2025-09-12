@@ -98,14 +98,16 @@ if (nextConfig.output !== 'export') {
       destination: 'https://:host/:path*',
       permanent: true,
     },
-    {
-      source: '/:path*',
-      has: [
-        { type: 'host', value: 'urchin-app-macix.ondigitalocean.app' },
-      ],
-      destination: `https://${CANONICAL_HOST}/:path*`,
-      permanent: true,
-    },
+    ...(process.env.LEGACY_HOST
+      ? [
+          {
+            source: '/:path*',
+            has: [{ type: 'host', value: process.env.LEGACY_HOST }],
+            destination: `https://${CANONICAL_HOST}/:path*`,
+            permanent: true,
+          },
+        ]
+      : []),
   ];
   nextConfig.headers = async () => [
     {
