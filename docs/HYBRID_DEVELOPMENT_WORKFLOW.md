@@ -1,0 +1,30 @@
+# Hybrid Development Workflow
+
+This guide describes a recommended approach for combining Lovable prototyping with traditional local development and production hosting.
+
+## Overview
+
+```mermaid
+graph TD
+    A[Next.js App on DigitalOcean] --> B[Continue Production Hosting]
+    C[Lovable Platform] --> D[Landing Page Prototyping]
+    E[Codex CLI] --> F[Local Development]
+    G[GitHub Sync] --> H[Version Control]
+    D --> I[Export Improvements]
+    I --> F
+    F --> G
+    B --> J[Live Production App]
+```
+
+1. **Maintain production on DigitalOcean** – The live app stays hosted on DigitalOcean with Supabase as its backend. Ensure environment variables are configured in the hosting platform.
+2. **Prototype in Lovable** – Use Lovable to design landing pages and UI updates. Configure the same environment variables so prototypes mirror production.
+3. **Export via Codex CLI** – Pull changes from Lovable into the repository using the Codex CLI and run `node lovable-build.js` to verify environment variables and build outputs.
+4. **Local testing and iteration** – Run `npm run dev` to preview the app locally and refine components as needed.
+5. **GitHub sync and version control** – Commit and push changes to GitHub so both Lovable and DigitalOcean stay in sync.
+6. **Deployment pipeline** – Merge validated changes to the production branch. DigitalOcean rebuilds from GitHub, keeping the live app current with Lovable and local updates.
+
+## Notes
+
+- Keep `.env.example` up to date when new variables are introduced.
+- Run `npm test` and `npm run lint` before committing to ensure code quality.
+- Use `npm run build:all` or `node lovable-build.js` to compile both the Next.js app and mini app functions.
