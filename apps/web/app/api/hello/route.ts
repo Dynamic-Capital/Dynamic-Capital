@@ -2,7 +2,7 @@ import {
   jsonResponse,
   methodNotAllowed,
   corsHeaders,
-} from '@/utils/http';
+} from '@/utils/http.ts';
 
 interface HelloResponse {
   message: string;
