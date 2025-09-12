@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/hooks/useAuth';
 import { TelegramAuthProvider } from '@/hooks/useTelegramAuth';
 import { AdminAuthProvider } from '@/hooks/useAdminAuth';
+import { CurrencyProvider } from '@/hooks/useCurrency';
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [supabaseClient] = useState(() =>
@@ -19,7 +20,9 @@ export default function Providers({ children }: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <TelegramAuthProvider>
           <AdminAuthProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <CurrencyProvider>{children}</CurrencyProvider>
+            </AuthProvider>
           </AdminAuthProvider>
         </TelegramAuthProvider>
       </QueryClientProvider>
