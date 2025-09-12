@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MotionCard } from "@/components/ui/motion-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Crown, Calendar, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Crown, Calendar, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/useToast";
 import { callEdgeFunction } from "@/config/supabase";
 
@@ -100,9 +101,13 @@ export const SubscriptionStatusCard = ({
   if (loading) {
     return (
       <MotionCard variant="glass" animate={true}>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin" />
-          <span className="ml-2">Loading subscription status...</span>
+        <CardHeader>
+          <Skeleton className="h-5 w-40" />
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-2/3" />
         </CardContent>
       </MotionCard>
     );
