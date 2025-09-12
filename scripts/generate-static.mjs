@@ -3,7 +3,8 @@ import { join } from 'node:path';
 
 const root = process.cwd();
 const outDir = join(root, 'out');
-const staticDir = join(root, '_static');
+// Output to a root-level directory so deployment tooling can pick it up
+const staticDir = join('/', '_static');
 
 async function copyOut() {
   await rm(staticDir, { recursive: true, force: true });

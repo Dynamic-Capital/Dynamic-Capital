@@ -87,7 +87,7 @@ configuration for each component.
 ## HTML Static Site Starter
 
 A minimal static landing page lives in `static-site/` with `index.html`, `styles.css`, and `scripts.js`.
-Run `npm run build:static` to copy it into the `_static/` directory for deployment.
+Run `npm run build:static` to copy it into the `/_static/` directory for deployment.
 Modify the files to suit your needs before running the build.
 
 ## Development Process Overview
