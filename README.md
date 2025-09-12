@@ -8,13 +8,8 @@ Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
 OCR + crypto TXID). Built with **Lovable Codex** for enhanced development
 experience.
 
-The project is split into two deployables:
-
-- A **static landing page** served at `/` from `apps/landing`.
-- A **dynamic Next.js dashboard** served at `/app` from `apps/web`.
-
-Static content never touches runtime secrets, while the dashboard handles
-authentication, Supabase access and other server-side features.
+The project runs a single **Next.js dashboard** served at `/` from `apps/web`,
+which handles authentication, Supabase access and other server-side features.
 
 The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
 backed by Supabase.
@@ -36,7 +31,7 @@ deployment.
 ### Client-side (`NEXT_PUBLIC_*`)
 
 Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser and can be
-shared between the static landing page and the Next.js API service:
+shared between client and server:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=... 
@@ -44,14 +39,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
 Store these in your hosting platform's environment settings or in `.env.local`
-for local development. The static site should have access to the same values at
-build time.
+for local development. The web service needs access to the same values at build
+time.
 
 ### Server-only secrets
 
 Keep secrets such as `SUPABASE_SERVICE_ROLE_KEY` or `TELEGRAM_BOT_TOKEN` only in
 the environment for the Next.js component. Do **not** prefix them with
-`NEXT_PUBLIC_` or expose them in the static site.
+`NEXT_PUBLIC_` or expose them in client-side code.
 
 For local work, create a `.env.local` inside `next-app/` and run `npm run dev`
 to load the variables. In production, manage secrets through your platform's
@@ -83,12 +78,6 @@ configuration for each component.
   `supabase/functions/miniapp/index.ts`
 - **Broadcast planner** – standalone service at `broadcast/index.ts`
 - **Queue worker** – standalone service at `queue/index.ts`
-
-## HTML Static Site Starter
-
-A minimal static landing page lives in `static-site/` with `index.html`, `styles.css`, and `scripts.js`.
-Run `npm run build:static` to copy it into the `_static/` directory for deployment.
-Modify the files to suit your needs before running the build.
 
 ## Development Process Overview
 
