@@ -8,6 +8,7 @@
     "build": "npm -w apps/landing run build && npm -w apps/web run build",
     "build:landing": "npm -w apps/landing run build",
     "build:web": "npm -w apps/web run build",
+    "build:miniapp": "npm --prefix supabase/functions/miniapp run build",
     "start:web": "npm -w apps/web run start",
     "test": "node scripts/check-static-homepage.js && deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check"
   }
