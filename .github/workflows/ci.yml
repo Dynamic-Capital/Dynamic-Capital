@@ -79,6 +79,10 @@ jobs:
           TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
           SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co
         run: npx tsx scripts/set-telegram-webhook.ts
+      - uses: actions/cache@v3
+        with:
+          path: apps/web/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json', 'apps/web/package.json') }}
       - run: npm run build
       - name: Verify Mini App bundle
         run: node scripts/assert-miniapp-bundle.mjs
@@ -123,6 +127,10 @@ jobs:
           TELEGRAM_WEBHOOK_SECRET: ${{ secrets.PROD_TELEGRAM_WEBHOOK_SECRET }}
           SUPABASE_URL: https://${{ secrets.PROD_SUPABASE_PROJECT_ID }}.supabase.co
         run: npx tsx scripts/set-telegram-webhook.ts
+      - uses: actions/cache@v3
+        with:
+          path: apps/web/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json', 'apps/web/package.json') }}
       - run: npm run build
       - name: Verify Mini App bundle
         run: node scripts/assert-miniapp-bundle.mjs

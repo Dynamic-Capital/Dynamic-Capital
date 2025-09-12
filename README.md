@@ -430,6 +430,15 @@ on images.
 
    BuildKit enables caching of Next.js build artifacts. For non-Docker CI,
    cache the `apps/web/.next/cache` directory between runs to speed up builds.
+   GitHub Actions uses `actions/cache` with a key derived from `package-lock.json`
+   and `apps/web/package.json`:
+
+   ```yaml
+   - uses: actions/cache@v3
+     with:
+       path: apps/web/.next/cache
+       key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json', 'apps/web/package.json') }}
+   ```
 
 2. **Run the container**
 
