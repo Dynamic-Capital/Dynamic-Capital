@@ -27,15 +27,21 @@ spec:
       routes:
         - path: /
   services:
-    - name: web
-      source_dir: apps/web
-      environment_slug: node-js
-      build_command: "npm ci && npm run build"
-      run_command: "PORT=$PORT npm start"
-      http_port: 8080
-      routes:
-        - path: /
-    - name: api
-      source_dir: .
-      environment_slug: node-js
-      run_command: "node server.js"
+      - name: web
+        source_dir: apps/web
+        environment_slug: node-js
+        build_command: "npm ci && npm run build"
+        run_command: "PORT=$PORT npm start"
+        http_port: 8080
+        routes:
+          - path: /
+        health_check:
+          http_path: /healthz
+      - name: api
+        source_dir: .
+        environment_slug: node-js
+        http_port: 8080
+        build_command: "npm ci"
+        run_command: "node server.js"
+        health_check:
+          http_path: /healthz
