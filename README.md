@@ -425,8 +425,11 @@ on images.
 1. **Build the image**
 
    ```bash
-   docker build -f docker/Dockerfile -t dynamic-chatty-bot .
+   DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile -t dynamic-chatty-bot .
    ```
+
+   BuildKit enables caching of Next.js build artifacts. For non-Docker CI,
+   cache the `apps/web/.next/cache` directory between runs to speed up builds.
 
 2. **Run the container**
 
