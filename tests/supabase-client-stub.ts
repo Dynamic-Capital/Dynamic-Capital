@@ -1,47 +1,36 @@
+import { createClient as createBaseClient } from "../supabase/functions/telegram-bot/vendor/esm.sh/@supabase/supabase-js@2.53.0.js";
+
 export function createClient() {
-  return {
-    storage: {
-      from(_bucket: string) {
+  const client = createBaseClient();
+  const origFrom = (client as any).from.bind(client);
+  (client as any).from = (table: string) => {
+    const api = origFrom(table);
+    const origInsert = api.insert?.bind(api);
+    if (origInsert) {
+      api.insert = (vals: any) => {
+        origInsert(vals);
+        const arr = Array.isArray(vals) ? vals : [vals];
         return {
-          createSignedUploadUrl: async (key: string) => ({
-            data: {
-              signedUrl: `http://example.com/storage/v1/object/upload/sign/${key}?token=token`
-            },
-            error: null,
-          }),
-        };
-      },
-    },
-    from(_table: string) {
+          select: () => Promise.resolve({ data: arr, error: null }),
+        } as any;
+      };
+    }
+    return api;
+  };
+  (client as any).storage = {
+    from(_bucket: string) {
       return {
-        update(_vals: unknown) {
-          return {
-            eq(_field: string, _val: unknown) {
-              return Promise.resolve({ error: null });
-            },
-          };
-        },
-        insert(vals: any) {
-          const base = Promise.resolve({ data: null, error: null });
-          return {
-            select(_cols?: string) {
-              const selectResp = Promise.resolve({ data: [vals], error: null });
-              return {
-                single() {
-                  return Promise.resolve({ data: vals, error: null });
-                },
-                then: selectResp.then.bind(selectResp),
-                catch: selectResp.catch.bind(selectResp),
-                finally: selectResp.finally.bind(selectResp),
-              };
-            },
-            then: base.then.bind(base),
-            catch: base.catch.bind(base),
-            finally: base.finally.bind(base),
-          };
-        },
+        createSignedUploadUrl: async (key: string) => ({
+          data: {
+            signedUrl:
+              `http://example.com/storage/v1/object/upload/sign/${key}?token=token`,
+          },
+          error: null,
+        }),
       };
     },
-  } as any;
+  };
+  return client as any;
 }
+
 export type SupabaseClient = ReturnType<typeof createClient>;

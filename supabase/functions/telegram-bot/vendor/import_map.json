@@ -6,7 +6,8 @@
     "https://esm.sh/": "./esm.sh/",
     "@supabase/supabase-js": "./esm.sh/@supabase/supabase-js@2.js",
     "mime-types": "./esm.sh/mime-types@3.0.1.js",
-    "@/": "../../../../apps/web/"
+    "@/": "../../../../apps/web/",
+    "@supabase/ssr": "../../../../tests/supabase-ssr-stub.ts"
   },
   "scopes": {
     "./esm.sh/": {
