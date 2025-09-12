@@ -18,6 +18,9 @@ if (rawAllowedOrigins === undefined) {
     `[CORS] ALLOWED_ORIGINS is missing; defaulting to ${defaultOrigin}`,
   );
   allowedOrigins = [defaultOrigin];
+} else if (rawAllowedOrigins.trim() === '') {
+  // Empty string means allow all origins
+  allowedOrigins = ['*'];
 } else {
   allowedOrigins = rawAllowedOrigins
     .split(',')
