@@ -6,8 +6,7 @@ import Footer from '@/components/layout/Footer';
 import { MotionThemeProvider } from '@/components/ui/motion-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import Providers from './providers';
-import { DefaultSeo } from 'next-seo';
-import SEO from '../next-seo.config';
+import DefaultSeoClient from '@/components/DefaultSeo';
 import PostHogInit from '@/components/PostHogInit';
 
 export const metadata = {
@@ -27,9 +26,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="icon" type="image/png" sizes="192x192" href="/logo.png" />
       </head>
       <body>
-        <PostHogInit />
         <Providers>
-          <DefaultSeo {...SEO} />
+          <PostHogInit />
+          <DefaultSeoClient />
           <MotionThemeProvider>
             <Navbar />
             <main>{children}</main>

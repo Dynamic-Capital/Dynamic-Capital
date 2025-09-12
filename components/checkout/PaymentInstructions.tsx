@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
