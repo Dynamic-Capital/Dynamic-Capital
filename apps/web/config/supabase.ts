@@ -72,9 +72,6 @@ export const SUPABASE_CONFIG = {
     VERIFY_INITDATA: 'verify-initdata',
   }
 } as const;
-
-export { SUPABASE_ENV_ERROR };
-
 // Shared secret used by both the Telegram bot and web dashboard when calling
 // protected edge functions. In browser builds it must be exposed via the
 // NEXT_PUBLIC_ prefix.

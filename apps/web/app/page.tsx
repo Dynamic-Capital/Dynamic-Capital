@@ -10,8 +10,6 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const WebCheckout = nextDynamic(() => import('@/components/checkout/WebCheckout'), { ssr: false });
 
-export const dynamic = 'force-static';
-
 type BotUser = {
   id: string;
   username: string | null;
