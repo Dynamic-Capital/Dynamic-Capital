@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/types/supabase";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,10 +122,12 @@ export const AdminDataManager = () => {
 
       const { error } = await supabase
         .from("kv_config")
-        .insert({
-          key: kvConfigForm.key,
-          value: parsedValue
-        });
+        .insert([
+          {
+            key: kvConfigForm.key,
+            value: parsedValue
+          } as TablesInsert<"kv_config">
+        ]);
 
       if (error) throw error;
 
@@ -142,12 +145,14 @@ export const AdminDataManager = () => {
     try {
       const { error } = await supabase
         .from("abuse_bans")
-        .insert({
-          telegram_id: abuseBanForm.telegram_id,
-          reason: abuseBanForm.reason || null,
-          expires_at: abuseBanForm.expires_at || null,
-          created_by: abuseBanForm.created_by || null
-        });
+        .insert([
+          {
+            telegram_id: abuseBanForm.telegram_id,
+            reason: abuseBanForm.reason || null,
+            expires_at: abuseBanForm.expires_at || null,
+            created_by: abuseBanForm.created_by || null
+          } as TablesInsert<"abuse_bans">
+        ]);
 
       if (error) throw error;
 
