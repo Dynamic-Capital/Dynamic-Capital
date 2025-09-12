@@ -18,15 +18,15 @@ spec:
       scope: RUN_AND_BUILD_TIME
     - key: SUPABASE_SERVICE_ROLE_KEY
       scope: RUN_TIME
-  services:
+  static_sites:
     - name: landing
       source_dir: apps/landing
-      environment_slug: node-js
+      output_dir: public
+      index_document: index.html
       build_command: "npm ci && npm run build && npm --prefix ../.. run upload-assets"
-      run_command: "npm run start"
-      http_port: 8080
       routes:
         - path: /
+  services:
     - name: web
       source_dir: apps/web
       environment_slug: node-js
