@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # Stage 1: build
 FROM node:22-alpine AS builder
 WORKDIR /app
@@ -8,7 +9,7 @@ RUN npm ci
 
 # Build application
 COPY . .
-RUN npm run build
+RUN --mount=type=cache,target=/app/.next/cache npm run build
 RUN npm prune --omit=dev
 
 # Stage 2: runtime
