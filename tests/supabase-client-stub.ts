@@ -30,6 +30,14 @@ export function createClient() {
       };
     },
   };
+  (client as any).auth = {
+    async getUser() {
+      return { data: { user: { id: "", user_metadata: { telegram_id: "" } } }, error: null };
+    },
+    async signJWT(_payload: any, _opts: any) {
+      return { access_token: "token" };
+    },
+  };
   return client as any;
 }
 
