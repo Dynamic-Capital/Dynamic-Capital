@@ -88,8 +88,12 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
           .select('role')
           .eq('id', user.id)
           .single();
-        
-        return profile?.role === 'admin';
+
+        if (!profile) {
+          return false;
+        }
+
+        return profile.role === 'admin';
       }
       
       return false;
