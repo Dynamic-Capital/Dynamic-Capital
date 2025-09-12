@@ -12,9 +12,9 @@ if (!copyOnly) {
 const root = process.cwd();
 const nextStatic = join(root, '.next', 'static');
 const nextServerApp = join(root, '.next', 'server', 'app');
-// Copy build output to a root-level `_static` directory so the site can be
+// Copy build output to a root-level `/_static` directory so the site can be
 // served as a regular static site (e.g. on DigitalOcean).
-const destRoot = join(root, '_static');
+const destRoot = join('/', '_static');
 
 async function copyAssets() {
   // Remove existing destination
