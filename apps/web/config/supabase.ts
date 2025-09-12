@@ -1,9 +1,17 @@
-import { optionalEnvVar } from "../utils/env.ts";
-import {
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  SUPABASE_ENV_ERROR,
-} from "../integrations/supabase/client.ts";
+import { optionalEnvVar } from "@/utils/env.ts";
+
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  "";
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  "";
+export const SUPABASE_ENV_ERROR =
+  !SUPABASE_URL || !SUPABASE_ANON_KEY
+    ? "Missing required Supabase env vars"
+    : "";
 
 const PROJECT_ID = SUPABASE_URL.match(/^https:\/\/([a-z0-9]+)\.supabase\.co/)
   ? RegExp.$1

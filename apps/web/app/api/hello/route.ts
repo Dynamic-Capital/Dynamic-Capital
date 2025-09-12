@@ -2,16 +2,16 @@ import {
   jsonResponse,
   methodNotAllowed,
   corsHeaders,
-} from '../../utils/http';
+} from '@/utils/http';
 
-interface ApiResponse {
+interface HelloResponse {
   message: string;
 }
 
 export const dynamic = 'force-static';
 
 export async function GET(req: Request) {
-  const body: ApiResponse = { message: 'API is running' };
+  const body: HelloResponse = { message: 'Hello from the API' };
   return jsonResponse(body, {}, req);
 }
 

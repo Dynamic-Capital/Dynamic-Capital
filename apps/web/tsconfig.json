@@ -40,11 +40,11 @@
   ],
   "exclude": [
     "node_modules",
-    "supabase/functions/**",
-    "functions/**",
-    "scripts/**",
+    "../supabase/functions/**",
+    "../functions/**",
+    "../scripts/**",
     "components/miniapp/**",
     "components/ui/enhanced-typography.tsx",
-    "tests/**"
+    "../tests/**"
   ]
 }

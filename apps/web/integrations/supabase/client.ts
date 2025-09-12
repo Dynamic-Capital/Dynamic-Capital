@@ -1,6 +1,6 @@
 // Supabase client and helpers
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { getEnvVar } from '../../utils/env.ts';
+import { getEnvVar } from '@/utils/env.ts';
 import type { Database } from './types.ts';
 
 const PLACEHOLDER_URL = 'https://example.supabase.co';

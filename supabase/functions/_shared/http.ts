@@ -1,1 +1,1 @@
-export * from "../../../utils/http.ts";
+export * from "../../../apps/web/utils/http.ts";

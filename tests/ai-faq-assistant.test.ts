@@ -6,7 +6,7 @@ const loadHandler = async () => {
   Deno.env.set('SUPABASE_URL', 'https://test.supabase.co');
   Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', 'service-role-key');
   Deno.env.set('SUPABASE_ANON_KEY', 'anon-key');
-  await import(`../integrations/supabase/client.ts?test=${Math.random()}`);
+  await import(`../apps/web/integrations/supabase/client.ts?test=${Math.random()}`);
   const mod = await import(`../supabase/functions/ai-faq-assistant/index.ts?test=${Math.random()}`);
   return mod.default as (req: Request) => Promise<Response>;
 };

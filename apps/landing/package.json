@@ -1,0 +1,8 @@
+{
+"name": "landing",
+"private": true,
+"scripts": {
+"build": "rm -rf dist && mkdir -p dist && cp -r public/* dist/",
+"start": "npx serve dist -l ${PORT:-8080}"
+}
+}
