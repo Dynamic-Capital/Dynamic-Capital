@@ -32,5 +32,8 @@ spec:
           scope: RUN_TIME
         - key: SUPABASE_SERVICE_ROLE_KEY
           scope: RUN_TIME
+        - key: ALLOWED_ORIGINS
+          value: https://example.com
+          scope: RUN_AND_BUILD_TIME
       routes:
         - path: /app
