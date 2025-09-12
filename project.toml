@@ -30,7 +30,7 @@ version = "0.0.0"
 
   [[build.env]]
     name = "ALLOWED_ORIGINS"
-    value = "https://example.com"
+    value = "https://urchin-app-macix.ondigitalocean.app"
 
   [[build.env]]
     name = "NEXT_TELEMETRY_DISABLED"
