@@ -1483,3 +1483,11 @@
     box-shadow: 0 0 15px hsl(var(--primary) / 0.8);
   }
 }
+
+@layer utilities {
+  .paw-bg {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ctext y='32' font-size='32'%3E%F0%9F%90%BE%3C/text%3E%3C/svg%3E");
+    background-repeat: repeat;
+    opacity: 0.05;
+  }
+}

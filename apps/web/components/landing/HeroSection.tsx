@@ -16,7 +16,14 @@ import { MotionFadeIn, MotionStagger, MotionCounter } from "@/components/ui/moti
 import { ResponsiveMotion } from "@/components/ui/responsive-motion";
 import { MorphingText } from "@/components/ui/animated-text";
 
-interface HeroSectionProps { onOpenTelegram: () => void; }
+interface HeroSectionProps {
+  onOpenTelegram: () => void;
+  /**
+   * Arc intensity for the ticker curve. Higher values create a deeper arc.
+   * Default is 200 which corresponds to the previous path `M 0,300 Q 500,100 1000,300`.
+   */
+  arcIntensity?: number;
+}
 
 const vaporVariants = {
   hidden: { opacity: 0, filter: "blur(20px)", y: 20 },
@@ -35,13 +42,19 @@ const isTelegramWebApp = () => {
   );
 };
 
-const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
+const MotionTextPath = motion.textPath;
+
+const HeroSection = ({ onOpenTelegram, arcIntensity = 200 }: HeroSectionProps) => {
   const isMobile = useIsMobile();
   const router = useRouter();
   const [showLoader, setShowLoader] = useState(true);
   const shouldReduceMotion = useReducedMotion();
   const { scrollY } = useScroll();
   const parallaxY = useTransform(scrollY, [0, 300], [0, 100]);
+  const catOpacity = useTransform(scrollY, [0, 150, 300], [0, 1, 0]);
+  const curvePath = (intensity: number) => `M 0,300 Q 500,${300 - intensity} 1000,300`;
+  const pathD = curvePath(arcIntensity);
+  const tickerText = " Dynamic Chatty Bot • Dynamic Chatty Bot •";
 
   useEffect(() => {
     const timer = setTimeout(() => setShowLoader(false), 900);
@@ -109,8 +122,47 @@ const HeroSection = ({ onOpenTelegram }: HeroSectionProps) => {
           {/* Gradient Overlay for Better Text Contrast */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[hsl(var(--accent-dark)/0.2)] to-[hsl(var(--accent-dark)/0.4)]" />
         </motion.div>
-        
+
+        {/* Cat mascot logo fading in/out on scroll */}
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          style={{ opacity: catOpacity }}
+        >
+          <span className={isMobile ? "text-6xl" : "text-8xl"}>🐱</span>
+        </motion.div>
+
+        {/* Top ticker */}
+        <svg viewBox="0 0 1000 300" className="absolute top-0 left-0 w-full h-48 pointer-events-none">
+          <path id="ticker-top" d={pathD} fill="none" />
+          <text className="fill-[hsl(var(--accent-light))]">
+            <MotionTextPath
+              xlinkHref="#ticker-top"
+              startOffset="-100%"
+              animate={{ startOffset: "100%" }}
+              transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
+            >
+              {tickerText}
+            </MotionTextPath>
+          </text>
+        </svg>
+
+        {/* Bottom ticker mirrored */}
+        <svg viewBox="0 0 1000 300" className="absolute bottom-0 left-0 w-full h-48 pointer-events-none rotate-180">
+          <path id="ticker-bottom" d={pathD} fill="none" />
+          <text className="fill-[hsl(var(--accent-light))]">
+            <MotionTextPath
+              xlinkHref="#ticker-bottom"
+              startOffset="100%"
+              animate={{ startOffset: "-100%" }}
+              transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
+            >
+              {tickerText}
+            </MotionTextPath>
+          </text>
+        </svg>
+
         <div className={`relative container mx-auto ${isMobile ? 'px-4 py-12' : 'px-6 py-20'} text-center`}>
+          <div className="absolute inset-0 paw-bg pointer-events-none" />
           <MotionStagger className={`mx-auto ${isMobile ? 'max-w-lg' : 'max-w-5xl'} space-y-6`}>
             {/* Dynamic Floating Badge */}
             <ResponsiveMotion mobileVariant="fade" desktopVariant="bounce" delay={0.2}>
