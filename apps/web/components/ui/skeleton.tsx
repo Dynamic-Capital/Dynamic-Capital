@@ -1,10 +1,10 @@
 import { cn } from "@/utils";
-import { motion } from "framer-motion";
+import { motion, type HTMLMotionProps } from "framer-motion";
 
 function Skeleton({
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
+}: HTMLMotionProps<"div">) {
   return (
     <motion.div
       className={cn("rounded-md bg-muted", className)}
