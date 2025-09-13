@@ -271,6 +271,10 @@
 }
 
 @layer utilities {
+  .bg-gradient-brand {
+    background-image: var(--gradient-brand);
+  }
+
   /* Text Gradients */
   .text-gradient-primary {
     @apply bg-gradient-to-r from-primary to-dc-accent bg-clip-text text-transparent;
