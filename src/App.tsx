@@ -1,10 +1,12 @@
 import React from 'react';
 import HeroSection from '../apps/web/components/landing/HeroSection';
 import FeatureGrid from '../apps/web/components/landing/FeatureGrid';
+import VipPriceSwitcher from '../apps/web/components/landing/VipPriceSwitcher';
 import { LivePlansSection } from '../apps/web/components/shared/LivePlansSection';
 import TestimonialsSection from '../apps/web/components/landing/TestimonialsSection';
 import IntegrationSection from '../apps/web/components/landing/IntegrationSection';
 import CTASection from '../apps/web/components/landing/CTASection';
+import { ChatAssistantWidget } from '../apps/web/components/shared/ChatAssistantWidget';
 
 function App() {
   const handleJoinVIP = () => {
@@ -42,31 +44,36 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-brand">
       <HeroSection onJoinVIP={handleJoinVIP} onLearnMore={handleLearnMore} />
-      
+
+      <VipPriceSwitcher />
+
       <div id="features">
         <FeatureGrid />
       </div>
-      
+
       <LivePlansSection
+        showPromo
         onPlanSelect={handleSelectPlan}
         onBankPayment={handleBankPayment}
         onCryptoPayment={handleCryptoPayment}
       />
-      
+
       <TestimonialsSection />
-      
-      <IntegrationSection 
+
+      <IntegrationSection
         onOpenTelegram={handleOpenTelegram}
         onViewAccount={handleViewAccount}
         onContactSupport={handleContactSupport}
       />
-      
-      <CTASection 
+
+      <CTASection
         onJoinNow={handleJoinVIP}
         onOpenTelegram={handleOpenTelegram}
       />
+
+      <ChatAssistantWidget />
     </div>
   );
 }
