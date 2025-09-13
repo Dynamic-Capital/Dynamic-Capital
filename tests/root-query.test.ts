@@ -1,4 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
+import { waitForServer } from "./utils/waitForServer.ts";
 
 Deno.test('redirects root path with query string to /_static/index.html', async () => {
   const command = new Deno.Command('node', {
@@ -8,7 +9,7 @@ Deno.test('redirects root path with query string to /_static/index.html', async 
   });
   const child = command.spawn();
   try {
-    await new Promise((r) => setTimeout(r, 200));
+    await waitForServer(8124);
     const res = await fetch('http://localhost:8124/?foo=bar', {
       redirect: 'manual',
     });
