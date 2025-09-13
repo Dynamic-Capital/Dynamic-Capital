@@ -111,10 +111,8 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
             </Badge>
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-black text-foreground mb-6">
-            <span className="bg-gradient-to-r from-foreground via-primary to-[hsl(var(--dc-accent))] bg-clip-text text-transparent">
-              {content.title}
-            </span>
+          <h1 className="text-5xl md:text-7xl font-black text-gradient-brand mb-6">
+            {content.title}
           </h1>
 
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed max-w-3xl mx-auto">

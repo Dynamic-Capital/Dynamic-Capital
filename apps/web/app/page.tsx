@@ -44,8 +44,8 @@ export default function HomePage() {
     window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
   };
 
-  return (
-    <div className="min-h-screen bg-background">
+    return (
+      <div className="min-h-screen bg-gradient-brand">
       <HeroSection onJoinVIP={handleJoinVIP} onLearnMore={handleLearnMore} />
       
       <div id="features">
