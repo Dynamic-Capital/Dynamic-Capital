@@ -1,13 +1,14 @@
 import test from 'node:test';
 import { equal as assertEquals } from 'node:assert/strict';
+import { freshImport } from './utils/freshImport.ts';
 
 const loadHandler = async () => {
   Deno.env.set('OPENAI_API_KEY', 'test-key');
   Deno.env.set('SUPABASE_URL', 'https://test.supabase.co');
   Deno.env.set('SUPABASE_SERVICE_ROLE_KEY', 'service-role-key');
   Deno.env.set('SUPABASE_ANON_KEY', 'anon-key');
-  await import(`../apps/web/integrations/supabase/client.ts?test=${Math.random()}`);
-  const mod = await import(`../supabase/functions/ai-faq-assistant/index.ts?test=${Math.random()}`);
+  await freshImport(new URL('../apps/web/integrations/supabase/client.ts', import.meta.url));
+  const mod = await freshImport(new URL('../supabase/functions/ai-faq-assistant/index.ts', import.meta.url));
   return mod.default as (req: Request) => Promise<Response>;
 };
 

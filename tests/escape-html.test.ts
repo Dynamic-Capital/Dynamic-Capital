@@ -1,5 +1,6 @@
 import test from 'node:test';
 import { equal as assertEquals } from 'node:assert/strict';
+import { freshImport } from './utils/freshImport.ts';
 
 const supaState: any = { tables: {} };
 (globalThis as any).__SUPA_MOCK__ = supaState;
@@ -28,7 +29,7 @@ test('sendMessage escapes HTML characters', async () => {
     return new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }), { status: 200 });
   };
   try {
-    const mod = await import(`../supabase/functions/telegram-bot/index.ts?${Math.random()}`);
+    const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
     await mod.sendMessage(1, '<script>alert(1)</script>');
     assertEquals(payloads[0].text, '&lt;script&gt;alert(1)&lt;/script&gt;');
   } finally {

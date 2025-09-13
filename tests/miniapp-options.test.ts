@@ -1,5 +1,6 @@
 import test from 'node:test';
 import { equal as assertEquals } from 'node:assert/strict';
+import { freshImport } from './utils/freshImport.ts';
 
 const supaState: any = { tables: {} };
 (globalThis as any).__SUPA_MOCK__ = supaState;
@@ -37,7 +38,7 @@ test('sendMiniAppOrBotOptions uses nav:plans callback', async () => {
     return new Response("{}", { status: 200 });
   };
   try {
-    const mod = await import(`../supabase/functions/telegram-bot/index.ts?${Math.random()}`);
+    const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
     await mod.sendMiniAppOrBotOptions(1);
     const payload = JSON.parse(calls[0].body);
     assertEquals(payload.reply_markup.inline_keyboard[0][0].callback_data, "nav:plans");

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import { equal as assertEquals, ok as assert } from 'node:assert/strict';
+import { freshImport } from './utils/freshImport.ts';
 
 const supaState: any = { tables: {} };
 (globalThis as any).__SUPA_MOCK__ = supaState;
@@ -40,7 +41,7 @@ test('sendMiniAppLink returns URL when enabled with direct URL', async () => {
     return new Response('{}', { status: 200 });
   };
   try {
-    const mod = await import(`../supabase/functions/telegram-bot/index.ts?${Math.random()}`);
+    const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
     const url = await mod.sendMiniAppLink(1);
     assertEquals(url, 'https://ma/');
     const payload = JSON.parse(calls[0].body);
@@ -67,7 +68,7 @@ test('sendMiniAppLink returns deep link when short name configured', async () =>
     return new Response('{}', { status: 200 });
   };
   try {
-    const mod = await import(`../supabase/functions/telegram-bot/index.ts?${Math.random()}`);
+    const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
     const url = await mod.sendMiniAppLink(1);
     assertEquals(url, 'https://t.me/mybot/short');
     const payload = JSON.parse(calls[0].body);
@@ -94,7 +95,7 @@ test('sendMiniAppLink disabled', async () => {
     return new Response('{}', { status: 200 });
   };
   try {
-    const mod = await import(`../supabase/functions/telegram-bot/index.ts?${Math.random()}`);
+    const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
     const url = await mod.sendMiniAppLink(1);
     assertEquals(url, null);
     assert(calls.length > 0);
@@ -120,7 +121,7 @@ test('sendMiniAppLink with missing token', async () => {
     return new Response('{}', { status: 200 });
   };
   try {
-    const mod = await import(`../supabase/functions/telegram-bot/index.ts?${Math.random()}`);
+    const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
     const url = await mod.sendMiniAppLink(1);
     assertEquals(url, null);
     assertEquals(calls.length, 0);

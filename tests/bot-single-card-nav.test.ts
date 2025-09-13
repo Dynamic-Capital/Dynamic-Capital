@@ -1,5 +1,6 @@
 import test from 'node:test';
 import { equal as assertEquals } from 'node:assert/strict';
+import { freshImport } from './utils/freshImport.ts';
 
 const supaState: any = { tables: { } };
 (globalThis as any).__SUPA_MOCK__ = supaState;
@@ -48,7 +49,7 @@ test('callback edits message instead of sending new one', async () => {
     return new Response("{}", { status: 200 });
   };
   try {
-    const mod = await import(`../supabase/functions/telegram-bot/index.ts?${Math.random()}`);
+    const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
     const reqStart = new Request("https://example.com", {
       method: "POST",
       headers: {

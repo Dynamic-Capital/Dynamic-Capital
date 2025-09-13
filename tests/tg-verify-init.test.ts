@@ -22,7 +22,7 @@ test('tg-verify-init returns session token for valid initData', async () => {
   Deno.env.set('SESSION_JWT_SECRET', 'secret');
   try {
     const initData = await makeInitData({ id: 1, username: 'alice' }, 'token');
-    const { default: handler } = await import('../supabase/functions/tg-verify-init/index.ts');
+    const { default: handler } = await import(/* @vite-ignore */ '../supabase/functions/tg-verify-init/index.ts');
     const req = new Request('http://localhost', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
