@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, Star, TrendingUp, Users, Crown, Zap, Check } from 'lucide-react';
+import { CheckCircle, Star, TrendingUp, Users, Crown, Zap, Check, CreditCard, Coins, ArrowRight } from 'lucide-react';
 import { ThreeDEmoticon, TradingEmoticonSet } from '@/components/ui/three-d-emoticons';
 import { AnimatedHeading, GradientText, CountUp } from '@/components/ui/enhanced-typography';
 import { Interactive3DCard, StaggeredGrid } from '@/components/ui/interactive-cards';
@@ -31,6 +31,8 @@ interface Plan {
 interface LivePlansSectionProps {
   showPromo?: boolean;
   onPlanSelect?: (planId: string) => void;
+  onBankPayment?: () => void;
+  onCryptoPayment?: () => void;
   telegramData?: any;
   showHeader?: boolean;
 }
@@ -38,6 +40,8 @@ interface LivePlansSectionProps {
 export const LivePlansSection = ({
   showPromo = false,
   onPlanSelect,
+  onBankPayment,
+  onCryptoPayment,
   telegramData,
   showHeader = true,
 }: LivePlansSectionProps) => {
@@ -221,6 +225,45 @@ export const LivePlansSection = ({
             </FadeInOnView>
           </CardContent>
         </Card>
+
+        {(onBankPayment || onCryptoPayment) && (
+          <div className="mt-8 grid md:grid-cols-2 gap-8">
+            {onBankPayment && (
+              <Card className="bot-card group hover:shadow-xl transition-all duration-300 cursor-pointer" onClick={onBankPayment}>
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-[hsl(var(--accent-green))] to-[hsl(var(--accent-green-light))] rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                    <CreditCard className="w-8 h-8 text-white" />
+                  </div>
+                  <h4 className="text-xl font-semibold mb-3 group-hover:text-primary transition-colors font-poppins">
+                    Bank Transfer
+                  </h4>
+                  <p className="text-muted-foreground font-inter">Secure bank-to-bank transfer</p>
+                  <Button variant="outline" className="mt-4" onClick={onBankPayment}>
+                    Select Method
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+            {onCryptoPayment && (
+              <Card className="bot-card group hover:shadow-xl transition-all duration-300 cursor-pointer" onClick={onCryptoPayment}>
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-[hsl(var(--accent-gold))] to-[hsl(var(--accent-yellow))] rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+                    <Coins className="w-8 h-8 text-white" />
+                  </div>
+                  <h4 className="text-xl font-semibold mb-3 group-hover:text-primary transition-colors font-poppins">
+                    Cryptocurrency
+                  </h4>
+                  <p className="text-muted-foreground font-inter">Bitcoin, USDT, and more</p>
+                  <Button variant="outline" className="mt-4" onClick={onCryptoPayment}>
+                    Select Method
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
     </FadeInOnView>
   );
