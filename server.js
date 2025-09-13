@@ -3,6 +3,7 @@ import https from 'node:https';
 import { createReadStream, readFileSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
+import { createGzip } from 'node:zlib';
 
 const port = process.env.PORT || 3000;
 const root = process.cwd();
@@ -34,7 +35,7 @@ const mime = {
   '.svg': 'image/svg+xml',
 };
 
-async function streamFile(res, filePath, status = 200) {
+async function streamFile(req, res, filePath, status = 200) {
   const type = mime[extname(filePath)] || 'application/octet-stream';
   const headers = { 'Content-Type': type };
   // Cache aggressively for hashed assets, otherwise require revalidation
@@ -46,17 +47,36 @@ async function streamFile(res, filePath, status = 200) {
       ? 'public, max-age=31536000, immutable'
       : 'public, max-age=0, must-revalidate';
   }
+  let info;
   try {
-    const info = await stat(filePath);
+    info = await stat(filePath);
     headers['Last-Modified'] = info.mtime.toUTCString();
+    const etag = `"${info.size}-${info.mtime.getTime()}"`;
+    headers['ETag'] = etag;
+    if (
+      req.headers['if-none-match'] === etag ||
+      (req.headers['if-modified-since'] &&
+        new Date(req.headers['if-modified-since']).getTime() >=
+          info.mtime.getTime())
+    ) {
+      res.writeHead(304, headers);
+      return res.end();
+    }
   } catch {}
-  res.writeHead(status, headers);
-  createReadStream(filePath)
-    .on('error', () => {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end('Internal Server Error');
-    })
-    .pipe(res);
+
+  const accept = req.headers['accept-encoding'] || '';
+  const stream = createReadStream(filePath).on('error', () => {
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end('Internal Server Error');
+  });
+  if (/\bgzip\b/.test(accept)) {
+    headers['Content-Encoding'] = 'gzip';
+    res.writeHead(status, headers);
+    stream.pipe(createGzip()).pipe(res);
+  } else {
+    res.writeHead(status, headers);
+    stream.pipe(res);
+  }
 }
 
 async function handler(req, res) {
@@ -74,10 +94,21 @@ async function handler(req, res) {
   }
 
   // Enable CORS and security headers for all requests
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  const origin = req.headers.origin;
+  if (origin && (allowedOrigins.length === 0 || allowedOrigins.includes(origin))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  res.setHeader('Content-Security-Policy', "default-src 'self'");
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -109,12 +140,12 @@ async function handler(req, res) {
     try {
       const info = await stat(filePath);
       if (info.isDirectory()) throw new Error('is directory');
-      return await streamFile(res, filePath);
+      return await streamFile(req, res, filePath);
     } catch {
       const notFound = join(staticRoot, '404.html');
       try {
         await stat(notFound);
-        return await streamFile(res, notFound, 404);
+        return await streamFile(req, res, notFound, 404);
       } catch {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         return res.end('404 Not Found');
@@ -125,7 +156,7 @@ async function handler(req, res) {
   const notFound = join(staticRoot, '404.html');
   try {
     await stat(notFound);
-    return await streamFile(res, notFound, 404);
+    return await streamFile(req, res, notFound, 404);
   } catch {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('404 Not Found');
