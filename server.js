@@ -55,20 +55,20 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  const url = req.url || '/';
-  console.log(`${req.method} ${url}`);
+  const { pathname } = new URL(req.url || '/', 'http://localhost');
+  console.log(`${req.method} ${pathname}`);
 
-  if (url === '/healthz') {
+  if (pathname === '/healthz') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     return res.end('ok');
   }
 
-  if (url === '/' || url === '/index.html') {
+  if (pathname === '/' || pathname === '/index.html') {
     return await streamFile(res, join(root, 'index.html'));
   }
 
-  if (url.startsWith('/_static/')) {
-    const normalizedUrl = normalize(url);
+  if (pathname.startsWith('/_static/')) {
+    const normalizedUrl = normalize(pathname);
     const filePath = join(root, normalizedUrl.slice(1));
     if (!filePath.startsWith(staticRoot)) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
