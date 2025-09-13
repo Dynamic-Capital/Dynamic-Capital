@@ -8,7 +8,7 @@ import { callEdgeFunction } from "@/config/supabase";
 
 const FeatureGrid = () => {
   const defaultContent = {
-    heading: "Why Choose Dynamic Capital VIP?",
+    heading: "Why Choose Dynamic Capital?",
     subheading: "Get exclusive access to premium features designed for elite traders",
     features: [
       {

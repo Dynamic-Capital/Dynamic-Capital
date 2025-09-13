@@ -1,4 +1,4 @@
-# Dynamic Capital VIP Bot API Documentation
+# Dynamic Capital Bot API Documentation
 
 > **AI-Friendly Documentation** - This documentation is optimized for AI code
 > generation tools like Codex, ChatGPT, and Bolt.
@@ -48,7 +48,7 @@
 
 ## 🚀 Project Overview
 
-The Dynamic Capital VIP Bot is a comprehensive Telegram bot built with
+The Dynamic Capital Bot is a comprehensive Telegram bot built with
 TypeScript, Supabase, and Deno Edge Functions. It manages VIP subscriptions,
 education packages, payments, and user interactions.
 

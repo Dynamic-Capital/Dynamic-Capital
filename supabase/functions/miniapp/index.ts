@@ -47,7 +47,7 @@ const REACT_APP_HTML = `<!doctype html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Dynamic Capital VIP • Mini App</title>
+  <title>Dynamic Capital • Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * {
@@ -162,7 +162,7 @@ const REACT_APP_HTML = `<!doctype html>
 <body>
   <div id="app">
     <div class="card">
-      <h1>Dynamic Capital VIP</h1>
+      <h1>Dynamic Capital</h1>
       <p class="muted">Welcome to the Mini App. Use the buttons below to verify the backend and your Telegram WebApp context.</p>
       <div class="row">
         <button id="btn-version" class="btn">Check /miniapp/version</button>

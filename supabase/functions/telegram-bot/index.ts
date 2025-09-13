@@ -1112,7 +1112,7 @@ export const commandHandlers: Record<string, CommandHandler> = {
     
     // Get welcome message with improved default
     const welcomeMessage = await getContent("welcome_message") ?? 
-      `👋 <b>Welcome to Dynamic Capital VIP!</b>
+      `👋 <b>Welcome to Dynamic Capital!</b>
 
 🚀 Premium signals &amp; expert guidance
 ✅ Smart risk management  

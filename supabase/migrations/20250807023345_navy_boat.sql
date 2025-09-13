@@ -36,7 +36,7 @@ CREATE POLICY "Bot can manage content"
 INSERT INTO bot_content (content_key, content_value, content_type, description, is_active, created_by, last_modified_by)
 VALUES (
   'welcome_message',
-  '🎯 Welcome to Dynamic Capital VIP Bot!
+  '🎯 Welcome to Dynamic Capital Bot!
 
 📈 Get premium trading signals & education
 💎 Join our VIP community
@@ -53,7 +53,7 @@ Use the buttons below or try commands like /packages, /promo, /account, /support
 INSERT INTO bot_content (content_key, content_value, content_type, description, is_active, created_by, last_modified_by)
 VALUES (
   'welcome_back_message',
-  '👋 Welcome back to Dynamic Capital VIP Bot!
+  '👋 Welcome back to Dynamic Capital Bot!
 
 🔥 VIP Packages:
 • 1 Month – access to premium signals

@@ -36,7 +36,7 @@ export async function handler(req: Request): Promise<Response> {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dynamic Capital VIP Mini App - Coming Soon</title>
+  <title>Dynamic Capital Mini App - Coming Soon</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -67,7 +67,7 @@ export async function handler(req: Request): Promise<Response> {
 <body>
   <div id="app">
     <div class="card coming-soon">
-      <h1>Dynamic Capital VIP</h1>
+      <h1>Dynamic Capital</h1>
       <p class="muted">Our mini app is coming soon. Stay tuned!</p>
     </div>
   </div>

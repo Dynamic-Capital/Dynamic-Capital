@@ -55,13 +55,13 @@ async function createDefaultContent(
   contentKey: string,
 ): Promise<string | null> {
   const defaultContents: Record<string, string> = {
-    "welcome_message": `🎯 Welcome to Dynamic Capital VIP Bot!
+    "welcome_message": `🎯 Welcome to Dynamic Capital Bot!
 
 📈 Get premium trading signals & education
 💎 Join our VIP community
 
 Use the buttons below or try commands like /packages, /promo, /account, /support, /help, /faq, /education, /ask or /shouldibuy to get started.`,
-    "welcome_back_message": `👋 Welcome back to Dynamic Capital VIP Bot!
+    "welcome_back_message": `👋 Welcome back to Dynamic Capital Bot!
 
 🔥 VIP Packages:
 • 1 Month – access to premium signals
