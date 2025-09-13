@@ -56,7 +56,7 @@ export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
         <div className="bg-gradient-telegram px-4 py-3 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Smartphone className="h-5 w-5 text-primary-foreground" />
-            <h2 className="text-lg font-bold text-primary-foreground">Dynamic Capital VIP</h2>
+            <h2 className="text-lg font-bold text-primary-foreground">Dynamic Capital</h2>
           </div>
           <p className="text-xs text-primary-foreground/80">Mini App Preview</p>
         </div>
@@ -74,7 +74,7 @@ export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
           ) : (
             <div className="p-4 space-y-4">
               <div className="text-center mb-6">
-                <h3 className="text-lg font-bold text-foreground mb-2">Dynamic Capital VIP</h3>
+                <h3 className="text-lg font-bold text-foreground mb-2">Dynamic Capital</h3>
                 <p className="text-xs text-muted-foreground">Mini App - Simple View</p>
               </div>
               

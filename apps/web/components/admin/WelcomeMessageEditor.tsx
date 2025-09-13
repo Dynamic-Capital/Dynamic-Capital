@@ -98,7 +98,7 @@ export const WelcomeMessageEditor = () => {
   }, []);
 
   const createDefaultWelcomeMessage = async () => {
-    const defaultMessage = `🎯 Welcome to Dynamic Capital VIP Bot!
+    const defaultMessage = `🎯 Welcome to Dynamic Capital Bot!
 
 📈 Get premium trading signals & education
 💎 Join our VIP community
@@ -213,7 +213,7 @@ export const WelcomeMessageEditor = () => {
   const templates = [
     {
       name: "Professional",
-      content: `🏢 Welcome to Dynamic Capital VIP!
+      content: `🏢 Welcome to Dynamic Capital!
 
 📊 Professional trading signals & analysis
 💎 Join our exclusive VIP community
@@ -223,7 +223,7 @@ export const WelcomeMessageEditor = () => {
     },
     {
       name: "Friendly",
-      content: `👋 Hey there! Welcome to Dynamic Capital VIP!
+      content: `👋 Hey there! Welcome to Dynamic Capital!
 
 🚀 Ready to level up your trading game?
 💰 Get premium signals & expert guidance
@@ -233,7 +233,7 @@ What would you like to do? 👇`,
     },
     {
       name: "Simple",
-      content: `🎯 Welcome to Dynamic Capital VIP Bot!
+      content: `🎯 Welcome to Dynamic Capital Bot!
 
 📈 Premium trading signals
 💎 VIP community access
@@ -347,7 +347,7 @@ Choose an option below:`,
                         🤖
                       </div>
                       <span className="font-medium">
-                        Dynamic Capital VIP Bot
+                        Dynamic Capital Bot
                       </span>
                     </div>
                     <div className="whitespace-pre-wrap text-sm bg-background text-foreground rounded-lg p-3 shadow-sm">

@@ -116,7 +116,7 @@ const BotDashboard = () => {
         </div>
         <div>
           <h1 className="text-5xl font-bold bg-gradient-telegram bg-clip-text text-transparent mb-3 animate-fade-in">
-            Dynamic Capital VIP Bot
+            Dynamic Capital Bot
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto leading-relaxed">
             Your premium Telegram bot for subscription management, payments, and

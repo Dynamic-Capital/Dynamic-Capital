@@ -6,7 +6,7 @@ import Providers from './providers';
 import DefaultSeo from '@/components/DefaultSeo';
 
 export const metadata = {
-  title: 'Dynamic Capital VIP',
+  title: 'Dynamic Capital',
   description: 'Premium trading platform with Next.js'
 };
 

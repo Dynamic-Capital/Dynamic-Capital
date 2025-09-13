@@ -2,7 +2,7 @@
 INSERT INTO public.bot_content (content_key, content_value, content_type, description, is_active, created_by, last_modified_by) VALUES
 (
   'auto_intro_new',
-  '🎉 Welcome to Dynamic Capital VIP Bot!
+  '🎉 Welcome to Dynamic Capital Bot!
 
 We''re excited to have you join our premium trading community!
 
@@ -21,7 +21,7 @@ Let''s get you started on your trading journey! 💎',
 ),
 (
   'auto_intro_returning',
-  '👋 Welcome back to Dynamic Capital VIP Bot!
+  '👋 Welcome back to Dynamic Capital Bot!
 
 Great to see you again! Here''s what you can do:
 

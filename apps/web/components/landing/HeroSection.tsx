@@ -18,7 +18,7 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
   const defaultContent = {
     badge: "Premium Trading Platform",
     badgeHighlight: "Elite Trading Platform",
-    title: "Dynamic Capital VIP",
+    title: "Dynamic Capital",
     description:
       "Join thousands of successful traders with exclusive market insights, daily analysis, and premium investment opportunities.",
     joinButton: "Join VIP Now",
@@ -88,7 +88,7 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
         <path id="curve" d="M 0,300 Q 500,100 1000,300" fill="transparent" />
         <text fill="hsl(var(--primary))" fontSize="48" fontWeight="bold" letterSpacing="3px">
           <textPath href="#curve" startOffset="0%">
-            DYNAMIC CAPITAL VIP — PREMIUM TRADING SIGNALS — DYNAMIC CAPITAL VIP —
+            DYNAMIC CAPITAL — PREMIUM TRADING SIGNALS — DYNAMIC CAPITAL —
           </textPath>
         </text>
       </motion.svg>

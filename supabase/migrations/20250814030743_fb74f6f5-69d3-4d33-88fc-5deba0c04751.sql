@@ -17,7 +17,7 @@ ON CONFLICT (setting_key) DO UPDATE SET
 
 -- Add welcome message setting if missing
 INSERT INTO bot_settings (setting_key, setting_value, is_active) 
-VALUES ('WELCOME_MESSAGE', 'Welcome to Dynamic Capital VIP Bot! 🚀\n\nUse /start to begin or click the menu button below to access our services.', true)
+VALUES ('WELCOME_MESSAGE', 'Welcome to Dynamic Capital Bot! 🚀\n\nUse /start to begin or click the menu button below to access our services.', true)
 ON CONFLICT (setting_key) DO UPDATE SET 
   setting_value = EXCLUDED.setting_value,
   is_active = true,

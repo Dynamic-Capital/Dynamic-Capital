@@ -1,7 +1,7 @@
 # Code Structure Guide for AI Tools
 
 > **AI Development Companion** - This guide helps AI coding tools understand and
-> modify the Dynamic Capital VIP Bot codebase effectively.
+> modify the Dynamic Capital Bot codebase effectively.
 
 ## 📁 Project Structure
 
@@ -468,7 +468,7 @@ async function processWithAI(
           {
             role: "system",
             content:
-              "You are a helpful trading assistant for Dynamic Capital VIP Bot.",
+              "You are a helpful trading assistant for Dynamic Capital Bot.",
           },
           {
             role: "user",

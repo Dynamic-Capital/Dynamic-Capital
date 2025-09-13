@@ -1,7 +1,7 @@
 /**
  * Telegram Bot TypeScript Definitions
  *
- * Comprehensive type definitions for the Dynamic Capital VIP Bot
+ * Comprehensive type definitions for the Dynamic Capital Bot
  * Compatible with AI code generation tools (Codex, ChatGPT, Bolt)
  *
  * @author Dynamic Capital Team

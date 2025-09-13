@@ -5,7 +5,7 @@ BEGIN
   -- Insert auto_intro_new if it doesn't exist
   IF NOT EXISTS (SELECT 1 FROM public.bot_content WHERE content_key = 'auto_intro_new') THEN
     INSERT INTO public.bot_content (content_key, content_value, content_type, description, is_active, created_by, last_modified_by) VALUES
-    ('auto_intro_new', '🎉 Welcome to Dynamic Capital VIP Bot!
+    ('auto_intro_new', '🎉 Welcome to Dynamic Capital Bot!
 
 We''re excited to have you join our premium trading community!
 
@@ -21,7 +21,7 @@ Let''s get you started on your trading journey! 💎', 'text', 'Auto-intro messa
   -- Insert auto_intro_returning if it doesn't exist
   IF NOT EXISTS (SELECT 1 FROM public.bot_content WHERE content_key = 'auto_intro_returning') THEN
     INSERT INTO public.bot_content (content_key, content_value, content_type, description, is_active, created_by, last_modified_by) VALUES
-    ('auto_intro_returning', '👋 Welcome back to Dynamic Capital VIP Bot!
+    ('auto_intro_returning', '👋 Welcome back to Dynamic Capital Bot!
 
 Great to see you again! Here''s what you can do:
 
