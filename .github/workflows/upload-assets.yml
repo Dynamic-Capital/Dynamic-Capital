@@ -1,0 +1,28 @@
+name: Upload Static Assets
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm ci
+      - name: Build landing
+        run: npm run build:landing
+      - name: Upload assets
+        env:
+          CDN_BUCKET: ${{ secrets.CDN_BUCKET }}
+          CDN_ACCESS_KEY: ${{ secrets.CDN_ACCESS_KEY }}
+          CDN_SECRET_KEY: ${{ secrets.CDN_SECRET_KEY }}
+          CDN_REGION: ${{ secrets.CDN_REGION }}
+          CDN_ENDPOINT: ${{ secrets.CDN_ENDPOINT }}
+        run: npm run upload-assets

@@ -107,6 +107,12 @@ A minimal static landing page lives in `apps/landing/public/` with `index.html`,
 Run `npm run build:landing` to copy these files into the `_static/` directory for deployment. The root `server.js` serves the `_static` directory and returns `404.html` for unknown routes.
 Modify the files to suit your needs before running the build.
 
+## Asset Deployment
+
+- Run `npm run upload-assets` to push the generated `_static` directory to the configured CDN.
+- A GitHub Actions workflow (`upload-assets.yml`) builds `apps/landing` and uploads assets on pushes to `main`. It expects `CDN_BUCKET`, `CDN_ACCESS_KEY`, `CDN_SECRET_KEY`, and optional `CDN_REGION`/`CDN_ENDPOINT` secrets.
+- During development, `npm run upload-assets:watch` monitors `_static` and uploads changes automatically.
+
 ## Development Process Overview
 
 | Tool                   | What It Does                                                            | How You Use It                                                                                              |

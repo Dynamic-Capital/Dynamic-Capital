@@ -9,7 +9,7 @@ const region = process.env.CDN_REGION || "nyc3";
 const endpoint = process.env.CDN_ENDPOINT || `https://${region}.digitaloceanspaces.com`;
 const accessKeyId = process.env.CDN_ACCESS_KEY;
 const secretAccessKey = process.env.CDN_SECRET_KEY;
-const distDir = process.argv[2] || "apps/landing/dist";
+const distDir = process.argv[2] || "_static";
 
 if (!bucket || !accessKeyId || !secretAccessKey) {
   console.error("Missing CDN configuration (CDN_BUCKET, CDN_ACCESS_KEY, CDN_SECRET_KEY).");
