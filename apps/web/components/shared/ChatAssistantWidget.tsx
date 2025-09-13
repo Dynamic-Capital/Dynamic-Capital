@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
+import { logChatMessage } from "@/integrations/supabase/queries";
 import { cn } from "@/utils";
 import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 
@@ -62,6 +63,17 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
     }
     return [];
   });
+  const [sessionId] = useState(() => {
+    if (typeof window !== "undefined") {
+      let sid = localStorage.getItem("chat-assistant-session-id");
+      if (!sid) {
+        sid = crypto.randomUUID();
+        localStorage.setItem("chat-assistant-session-id", sid);
+      }
+      return sid;
+    }
+    return "";
+  });
   const { toast } = useToast();
 
   const appendMessages = (
@@ -78,6 +90,32 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
       localStorage.setItem("chat-assistant-history", JSON.stringify(messages));
     }
   }, [messages]);
+
+  useEffect(() => {
+    async function loadHistory() {
+      if (!sessionId) return;
+      try {
+        const { data, error } = await supabase
+          .from("user_interactions")
+          .select("interaction_data")
+          .eq("interaction_type", "ai_chat")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: true })
+          .limit(MAX_HISTORY);
+        if (!error && data) {
+          const loaded = data
+            .map((r) => r.interaction_data as { role: "user" | "assistant"; content: string } | null)
+            .filter((m): m is { role: "user" | "assistant"; content: string } => m !== null);
+          if (loaded.length) {
+            setMessages(loaded.slice(-MAX_HISTORY));
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load chat history", err);
+      }
+    }
+    loadHistory();
+  }, [sessionId]);
 
   const quickSuggestions = [
     "How do I start?",
@@ -100,6 +138,12 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
     const userQuestion = question.trim();
     setIsLoading(true);
     appendMessages({ role: "user", content: userQuestion });
+    void logChatMessage({
+      telegramUserId: telegramData?.id,
+      sessionId,
+      role: "user",
+      content: userQuestion,
+    });
     setQuestion("");
 
     try {
@@ -112,9 +156,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
 
       if (error) {
         console.warn("AI service unavailable:", error);
-        appendMessages({
-          role: "assistant",
-          content: `I'm sorry, the AI service is temporarily unavailable.
+        const fallbackMessage = `I'm sorry, the AI service is temporarily unavailable.
 
 Here are some quick answers to common questions:
 
@@ -123,26 +165,36 @@ Here are some quick answers to common questions:
 🔹 **Trading Tips**: Always use proper risk management, never risk more than 2% per trade
 🔹 **Risk Management**: Set stop losses, use proper position sizing, and never trade with emotion
 
-💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!`,
-        });
+💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!`;
+        appendMessages({ role: "assistant", content: fallbackMessage });
         toast({
           title: "AI service unavailable",
           description: "Showing fallback answers. Please try again later.",
           variant: "destructive",
+        });
+        void logChatMessage({
+          telegramUserId: telegramData?.id,
+          sessionId,
+          role: "assistant",
+          content: fallbackMessage,
         });
         return;
       }
 
       if (data.answer) {
         appendMessages({ role: "assistant", content: data.answer });
+        void logChatMessage({
+          telegramUserId: telegramData?.id,
+          sessionId,
+          role: "assistant",
+          content: data.answer,
+        });
       } else {
         throw new Error("No answer received");
       }
     } catch (error: any) {
       console.error("Failed to get AI answer:", error);
-      appendMessages({
-        role: "assistant",
-        content: `I apologize, but the AI service is currently experiencing issues.
+      const fallbackMessage = `I apologize, but the AI service is currently experiencing issues.
 
 Here are some helpful resources:
 
@@ -156,12 +208,18 @@ Here are some helpful resources:
 • Follow our premium signals for best results
 • Join our VIP community for live market analysis
 
-💡 Need immediate help? Contact @DynamicCapital_Support!`,
-      });
+💡 Need immediate help? Contact @DynamicCapital_Support!`;
+      appendMessages({ role: "assistant", content: fallbackMessage });
       toast({
         title: "Failed to get AI answer",
         description: error?.message || "Please try again later.",
         variant: "destructive",
+      });
+      void logChatMessage({
+        telegramUserId: telegramData?.id,
+        sessionId,
+        role: "assistant",
+        content: fallbackMessage,
       });
     } finally {
       setIsLoading(false);
