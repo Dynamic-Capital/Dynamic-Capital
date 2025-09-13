@@ -1,12 +1,132 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: sans-serif;
   margin: 0;
-  padding: 2rem;
-  background-color: #f9f9f9;
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+  background: #000;
+  color: #fff;
+}
+
+.site-header {
+  padding: 1rem;
+  text-align: center;
+  background: #000;
+}
+
+.logo {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: lowercase;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
   text-align: center;
 }
 
-main {
-  max-width: 600px;
+.hero-content h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #fff;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn.primary {
+  background: #f13d00;
+  border-color: #f13d00;
+}
+
+.btn.primary:hover {
+  background: #c13100;
+  border-color: #c13100;
+}
+
+.btn:hover {
+  background: #fff;
+  color: #000;
+}
+
+.btn.small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.story,
+.services,
+.contact {
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.story p {
+  max-width: 40rem;
   margin: 0 auto;
+  color: #ddd;
+}
+
+.services .service-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.service-item {
+  background: #111;
+  border: 1px solid #444;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.service-item h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+}
+
+.service-item p {
+  flex: 1;
+  margin: 0 0 0.75rem;
+  color: #ccc;
+}
+
+.contact a {
+  color: #f13d00;
+}
+
+@media (min-width: 640px) {
+  .hero-content h2 {
+    font-size: 3rem;
+  }
+  .button-group {
+    flex-direction: row;
+    justify-content: center;
+  }
+  .service-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
