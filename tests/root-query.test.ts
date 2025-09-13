@@ -1,6 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
 
-Deno.test('redirects root path with query string to /app', async () => {
+Deno.test('redirects root path with query string to /_static/index.html', async () => {
   const command = new Deno.Command('node', {
     args: ['server.js'],
     cwd: new URL('..', import.meta.url).pathname,
@@ -13,7 +13,7 @@ Deno.test('redirects root path with query string to /app', async () => {
       redirect: 'manual',
     });
     assertEquals(res.status, 302);
-    assertEquals(res.headers.get('location'), '/app?foo=bar');
+    assertEquals(res.headers.get('location'), '/_static/index.html?foo=bar');
     await res.arrayBuffer();
   } finally {
     child.kill('SIGTERM');

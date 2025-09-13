@@ -65,7 +65,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === '/' || pathname === '/index.html') {
-    const location = '/app' + search;
+    const location = '/_static/index.html' + search;
     res.writeHead(302, { Location: location });
     return res.end();
   }
