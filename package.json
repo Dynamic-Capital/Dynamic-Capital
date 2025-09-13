@@ -20,6 +20,7 @@
     "debug": "NODE_OPTIONS='--inspect' npm run dev",
     "preview": "npm run dev",
     "upload-assets": "node scripts/upload-assets.js",
+    "upload-assets:watch": "chokidar '_static/**/*' -c 'npm run upload-assets'",
     "test": "node scripts/check-static-homepage.js && deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check",
     "verify": "bash scripts/verify/verify_all.sh",
     "export": "npm run build",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.600.0",
+    "chokidar-cli": "^3.0.0",
     "mime-types": "^2.1.35",
     "supabase": "^2.40.7"
   },
