@@ -1,12 +1,14 @@
 import React from 'react';
-import HeroSection from '../apps/web/components/landing/HeroSection';
-import FeatureGrid from '../apps/web/components/landing/FeatureGrid';
-import VipPriceSwitcher from '../apps/web/components/landing/VipPriceSwitcher';
-import { LivePlansSection } from '../apps/web/components/shared/LivePlansSection';
-import TestimonialsSection from '../apps/web/components/landing/TestimonialsSection';
-import IntegrationSection from '../apps/web/components/landing/IntegrationSection';
-import CTASection from '../apps/web/components/landing/CTASection';
-import { ChatAssistantWidget } from '../apps/web/components/shared/ChatAssistantWidget';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import HeroSection from '@/components/landing/HeroSection';
+import FeatureGrid from '@/components/landing/FeatureGrid';
+import VipPriceSwitcher from '@/components/landing/VipPriceSwitcher';
+import { LivePlansSection } from '@/components/shared/LivePlansSection';
+import TestimonialsSection from '@/components/landing/TestimonialsSection';
+import IntegrationSection from '@/components/landing/IntegrationSection';
+import CTASection from '@/components/landing/CTASection';
+import { ChatAssistantWidget } from '@/components/shared/ChatAssistantWidget';
 
 function App() {
   const handleJoinVIP = () => {
@@ -44,35 +46,38 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-brand">
-      <HeroSection onJoinVIP={handleJoinVIP} onLearnMore={handleLearnMore} />
+    <div className="min-h-screen flex flex-col bg-gradient-brand">
+      <Header />
+      <main className="flex-1">
+        <HeroSection onJoinVIP={handleJoinVIP} onLearnMore={handleLearnMore} />
 
-      <VipPriceSwitcher />
+        <VipPriceSwitcher />
 
-      <div id="features">
-        <FeatureGrid />
-      </div>
+        <div id="features">
+          <FeatureGrid />
+        </div>
 
-      <LivePlansSection
-        showPromo
-        onPlanSelect={handleSelectPlan}
-        onBankPayment={handleBankPayment}
-        onCryptoPayment={handleCryptoPayment}
-      />
+        <LivePlansSection
+          showPromo
+          onPlanSelect={handleSelectPlan}
+          onBankPayment={handleBankPayment}
+          onCryptoPayment={handleCryptoPayment}
+        />
 
-      <TestimonialsSection />
+        <TestimonialsSection />
 
-      <IntegrationSection
-        onOpenTelegram={handleOpenTelegram}
-        onViewAccount={handleViewAccount}
-        onContactSupport={handleContactSupport}
-      />
+        <IntegrationSection
+          onOpenTelegram={handleOpenTelegram}
+          onViewAccount={handleViewAccount}
+          onContactSupport={handleContactSupport}
+        />
 
-      <CTASection
-        onJoinNow={handleJoinVIP}
-        onOpenTelegram={handleOpenTelegram}
-      />
-
+        <CTASection
+          onJoinNow={handleJoinVIP}
+          onOpenTelegram={handleOpenTelegram}
+        />
+      </main>
+      <Footer />
       <ChatAssistantWidget />
     </div>
   );

@@ -76,14 +76,6 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
         <div className="absolute bottom-20 right-20 w-80 h-80 bg-[hsl(var(--dc-accent)/0.1)] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* Header with Logo */}
-      <header className="absolute top-0 left-0 w-full flex items-center justify-between p-6 z-20">
-        <BrandLogo size="lg" variant="brand" animated />
-        <Badge className="bg-[hsl(var(--accent-light)/0.2)] text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.3)]">
-          {content.badge}
-        </Badge>
-      </header>
-
       {/* Animated Background Text */}
       <motion.svg
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-[120%] pointer-events-none opacity-20"
@@ -104,13 +96,19 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
       {/* Hero Content */}
       <div className="relative z-10 max-w-5xl px-6">
         <MotionFadeIn>
+          <div className="mb-10 flex flex-col items-center">
+            <BrandLogo size="lg" variant="brand" animated />
+            <Badge className="mt-4 bg-[hsl(var(--accent-light)/0.2)] text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.3)]">
+              {content.badge}
+            </Badge>
+          </div>
           <div className="mb-6">
             <Badge className="mb-4 bg-[hsl(var(--accent-gold)/0.2)] text-[hsl(var(--accent-gold))] border-[hsl(var(--accent-gold)/0.3)] text-lg px-6 py-2">
               <Sparkles className="w-5 h-5 mr-2" />
               {content.badgeHighlight}
             </Badge>
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-black text-gradient-brand mb-6">
             {content.title}
           </h1>
