@@ -18,6 +18,7 @@ const root = process.cwd();
 const projectRoot = join(root, '..', '..');
 const nextStatic = join(root, '.next', 'static');
 const nextServerApp = join(root, '.next', 'server', 'app');
+const landingPublic = join(projectRoot, 'apps', 'landing', 'public');
 // Copy build output to a repository-level `_static` directory so the site can be
 // served as a regular static site (e.g. on DigitalOcean).
 const destRoot = join(projectRoot, '_static');
@@ -32,9 +33,10 @@ async function exists(path: string) {
 }
 
 async function copyAssets() {
-  // Remove existing destination
-  await rm(destRoot, { recursive: true, force: true });
+  // Ensure destination exists and clear previous Next.js output only
   await mkdir(destRoot, { recursive: true });
+  await rm(join(destRoot, 'static'), { recursive: true, force: true });
+  await rm(join(destRoot, 'server'), { recursive: true, force: true });
 
   // Copy static assets if present
   if (await exists(nextStatic)) {
@@ -49,7 +51,14 @@ async function copyAssets() {
     console.warn('⚠️  No server/app directory found at', nextServerApp);
   }
 
-  console.log('✅ Copied Next.js build output to', destRoot);
+  // Copy landing assets into the same destination
+  if (await exists(landingPublic)) {
+    await cp(landingPublic, destRoot, { recursive: true });
+  } else {
+    console.warn('⚠️  No landing assets found at', landingPublic);
+  }
+
+  console.log('✅ Copied Next.js build output and landing assets to', destRoot);
 }
 
 copyAssets().catch((err) => {
