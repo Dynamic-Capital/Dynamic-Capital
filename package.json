@@ -13,6 +13,7 @@
     "build:landing": "npm -w apps/landing run build",
     "build:web": "npm -w apps/web run build",
     "build:miniapp": "bash scripts/build-miniapp.sh",
+    "build:all": "npm run build:landing && npm run build:web && npm run build:miniapp",
     "build:dev": "vite build --mode development",
     "start": "npm -w apps/web run start",
     "start:web": "npm -w apps/web run start",
