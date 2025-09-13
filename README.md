@@ -28,6 +28,13 @@ backed by Supabase.
 - Admin commands for maintenance
 - **Lovable Codex Integration** for AI-powered development
 
+## Security Features
+
+- Optional HTTPS server enforces TLS 1.3 when SSL certificates are supplied.
+- HTTP Strict Transport Security (HSTS) headers for all responses.
+- Lightweight per-IP rate limiting to mitigate basic DDoS attacks.
+- Designed to align with Level 1 PCI compliance by keeping payment flows encrypted.
+
 ## Environment Setup
 
 Copy `.env.example` to `.env.local` and adjust values for your environment:

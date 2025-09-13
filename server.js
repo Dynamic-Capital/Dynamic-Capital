@@ -1,11 +1,26 @@
 import http from 'node:http';
-import { createReadStream } from 'node:fs';
+import https from 'node:https';
+import { createReadStream, readFileSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 
 const port = process.env.PORT || 3000;
 const root = process.cwd();
 const staticRoot = join(root, '_static');
+
+// Simple in-memory rate limiting to mitigate basic DDoS attacks
+const rateLimitWindowMs = 60 * 1000; // 1 minute
+const maxRequestsPerWindow = 100;
+const requestCounts = new Map(); // ip -> { count, startTime }
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of requestCounts) {
+    if (now - record.startTime > rateLimitWindowMs) {
+      requestCounts.delete(ip);
+    }
+  }
+}, rateLimitWindowMs);
 
 const mime = {
   '.html': 'text/html',
@@ -44,11 +59,25 @@ async function streamFile(res, filePath, status = 200) {
     .pipe(res);
 }
 
-const server = http.createServer(async (req, res) => {
-  // Enable CORS for all requests
+async function handler(req, res) {
+  const ip = req.socket.remoteAddress || '';
+  const now = Date.now();
+  let record = requestCounts.get(ip);
+  if (!record || now - record.startTime > rateLimitWindowMs) {
+    record = { count: 0, startTime: now };
+  }
+  record.count += 1;
+  requestCounts.set(ip, record);
+  if (record.count > maxRequestsPerWindow) {
+    res.writeHead(429, { 'Content-Type': 'text/plain' });
+    return res.end('Too Many Requests');
+  }
+
+  // Enable CORS and security headers for all requests
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -101,7 +130,17 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('404 Not Found');
   }
-});
+}
+
+let server;
+if (process.env.SSL_KEY_PATH && process.env.SSL_CERT_PATH) {
+  const key = readFileSync(process.env.SSL_KEY_PATH);
+  const cert = readFileSync(process.env.SSL_CERT_PATH);
+  server = https.createServer({ key, cert, minVersion: 'TLSv1.3', maxVersion: 'TLSv1.3' }, handler);
+  console.log('HTTPS server enabled');
+} else {
+  server = http.createServer(handler);
+}
 
 server.listen(port, () => {
   console.log(`API service listening on port ${port}`);
