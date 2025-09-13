@@ -55,7 +55,8 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  const { pathname } = new URL(req.url || '/', 'http://localhost');
+  const url = new URL(req.url || '/', 'http://localhost');
+  const { pathname, search } = url;
   console.log(`${req.method} ${pathname}`);
 
   if (pathname === '/healthz') {
@@ -64,7 +65,9 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pathname === '/' || pathname === '/index.html') {
-    return await streamFile(res, join(root, 'index.html'));
+    const location = '/app' + search;
+    res.writeHead(302, { Location: location });
+    return res.end();
   }
 
   if (pathname.startsWith('/_static/')) {
