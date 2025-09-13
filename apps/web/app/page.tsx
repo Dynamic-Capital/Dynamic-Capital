@@ -3,5 +3,5 @@ import { redirect } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
-  redirect('/_static/');
+  redirect('/_static/index.html');
 }
