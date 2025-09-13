@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { CardContent } from "@/components/ui/card";
@@ -8,9 +9,110 @@ import { AutoSizingGrid } from "@/components/ui/auto-sizing";
 import { MotionScrollReveal } from "@/components/ui/motion-components";
 import { GradientText, TypewriterText } from "@/components/ui/animated-text";
 import { Star } from "lucide-react";
+import { callEdgeFunction } from "@/config/supabase";
 
 const TestimonialsSection = () => {
   const shouldReduceMotion = useReducedMotion();
+
+  const defaultContent = {
+    heading: "Trusted by Elite Traders Worldwide",
+    subheading: "See what our VIP members are saying about their trading success",
+    testimonials: [
+      {
+        name: "Sarah M.",
+        role: "Professional Trader",
+        avatar: "💼",
+        text: "Dynamic Capital's signals increased my portfolio by 340% in 6 months. The accuracy is incredible!",
+        profit: "+$45,000",
+      },
+      {
+        name: "James L.",
+        role: "Investment Manager",
+        avatar: "📈",
+        text: "Best trading signals I've ever used. The community support and analysis are unmatched.",
+        profit: "+$78,000",
+      },
+      {
+        name: "Maria K.",
+        role: "Day Trader",
+        avatar: "🎯",
+        text: "From losing money to consistent profits. Dynamic Capital changed my trading game completely!",
+        profit: "+$32,000",
+      },
+    ],
+  };
+
+  const [content, setContent] = useState(defaultContent);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const { data, error } = await callEdgeFunction('CONTENT_BATCH', {
+          method: 'POST',
+          body: {
+            keys: [
+              'testimonials_heading',
+              'testimonials_subheading',
+              'testimonial1_name',
+              'testimonial1_role',
+              'testimonial1_text',
+              'testimonial1_profit',
+              'testimonial2_name',
+              'testimonial2_role',
+              'testimonial2_text',
+              'testimonial2_profit',
+              'testimonial3_name',
+              'testimonial3_role',
+              'testimonial3_text',
+              'testimonial3_profit',
+            ],
+          },
+        });
+
+        if (!error && data) {
+          const items = (data as any).contents || [];
+          const lookup: Record<string, string> = {};
+          items.forEach((c: any) => {
+            lookup[c.content_key] = c.content_value;
+          });
+
+          setContent({
+            heading: lookup.testimonials_heading ?? defaultContent.heading,
+            subheading: lookup.testimonials_subheading ?? defaultContent.subheading,
+            testimonials: [
+              {
+                ...defaultContent.testimonials[0],
+                name: lookup.testimonial1_name ?? defaultContent.testimonials[0].name,
+                role: lookup.testimonial1_role ?? defaultContent.testimonials[0].role,
+                text: lookup.testimonial1_text ?? defaultContent.testimonials[0].text,
+                profit: lookup.testimonial1_profit ?? defaultContent.testimonials[0].profit,
+              },
+              {
+                ...defaultContent.testimonials[1],
+                name: lookup.testimonial2_name ?? defaultContent.testimonials[1].name,
+                role: lookup.testimonial2_role ?? defaultContent.testimonials[1].role,
+                text: lookup.testimonial2_text ?? defaultContent.testimonials[1].text,
+                profit: lookup.testimonial2_profit ?? defaultContent.testimonials[1].profit,
+              },
+              {
+                ...defaultContent.testimonials[2],
+                name: lookup.testimonial3_name ?? defaultContent.testimonials[2].name,
+                role: lookup.testimonial3_role ?? defaultContent.testimonials[2].role,
+                text: lookup.testimonial3_text ?? defaultContent.testimonials[2].text,
+                profit: lookup.testimonial3_profit ?? defaultContent.testimonials[2].profit,
+              },
+            ],
+          });
+        } else if (error) {
+          console.error('Failed to fetch testimonials:', error.message);
+        }
+      } catch (err) {
+        console.error('Failed to fetch testimonials:', err);
+      }
+    };
+
+    fetchContent();
+  }, []);
 
   return (
       <section className="py-20 bg-gradient-to-b from-background via-muted/20 to-background relative">
@@ -36,15 +138,15 @@ const TestimonialsSection = () => {
         <div className="container mx-auto px-6">
           <MotionScrollReveal>
             <div className="text-center mb-16">
-              <GradientText 
-                text="Trusted by Elite Traders Worldwide"
+              <GradientText
+                text={content.heading}
                 gradient="from-foreground via-primary to-[hsl(var(--dc-accent))]"
                 className="text-3xl md:text-5xl font-bold mb-6 font-poppins block"
                 animate={true}
                 animationDuration={6}
               />
-              <TypewriterText 
-                text="See what our VIP members are saying about their trading success"
+              <TypewriterText
+                text={content.subheading}
                 className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed"
                 delay={1000}
                 speed={30}
@@ -53,31 +155,9 @@ const TestimonialsSection = () => {
           </MotionScrollReveal>
 
           <AutoSizingGrid stagger={0.2} minItemWidth={280} gap={32} className="mb-16">
-            {[
-              {
-                name: "Sarah M.",
-                role: "Professional Trader",
-                avatar: "💼",
-                text: "Dynamic Capital's signals increased my portfolio by 340% in 6 months. The accuracy is incredible!",
-                profit: "+$45,000"
-              },
-              {
-                name: "James L.",
-                role: "Investment Manager", 
-                avatar: "📈",
-                text: "Best trading signals I've ever used. The community support and analysis are unmatched.",
-                profit: "+$78,000"
-              },
-              {
-                name: "Maria K.",
-                role: "Day Trader",
-                avatar: "🎯",
-                text: "From losing money to consistent profits. Dynamic Capital changed my trading game completely!",
-                profit: "+$32,000"
-              }
-            ].map((testimonial, index) => (
-              <MotionCard 
-                key={index} 
+            {content.testimonials.map((testimonial, index) => (
+              <MotionCard
+                key={index}
                 variant="glass"
                 hover={true}
                 animate={true}

@@ -1,7 +1,7 @@
 import React from 'react';
 import HeroSection from '../apps/web/components/landing/HeroSection';
 import FeatureGrid from '../apps/web/components/landing/FeatureGrid';
-import ServicesSection from '../apps/web/components/landing/ServicesSection';
+import { LivePlansSection } from '../apps/web/components/shared/LivePlansSection';
 import TestimonialsSection from '../apps/web/components/landing/TestimonialsSection';
 import IntegrationSection from '../apps/web/components/landing/IntegrationSection';
 import CTASection from '../apps/web/components/landing/CTASection';
@@ -49,8 +49,8 @@ function App() {
         <FeatureGrid />
       </div>
       
-      <ServicesSection 
-        onSelectPlan={handleSelectPlan}
+      <LivePlansSection
+        onPlanSelect={handleSelectPlan}
         onBankPayment={handleBankPayment}
         onCryptoPayment={handleCryptoPayment}
       />

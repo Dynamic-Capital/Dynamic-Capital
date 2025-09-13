@@ -1,6 +1,6 @@
 import HeroSection from '@/components/landing/HeroSection';
 import FeatureGrid from '@/components/landing/FeatureGrid';
-import ServicesSection from '@/components/landing/ServicesSection';
+import { LivePlansSection } from '@/components/shared/LivePlansSection';
 import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import IntegrationSection from '@/components/landing/IntegrationSection';
 import CTASection from '@/components/landing/CTASection';
@@ -52,8 +52,8 @@ export default function HomePage() {
         <FeatureGrid />
       </div>
       
-      <ServicesSection 
-        onSelectPlan={handleSelectPlan}
+      <LivePlansSection
+        onPlanSelect={handleSelectPlan}
         onBankPayment={handleBankPayment}
         onCryptoPayment={handleCryptoPayment}
       />
