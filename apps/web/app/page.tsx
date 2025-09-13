@@ -1,9 +1,11 @@
 import HeroSection from '@/components/landing/HeroSection';
 import FeatureGrid from '@/components/landing/FeatureGrid';
+import VipPriceSwitcher from '@/components/landing/VipPriceSwitcher';
 import { LivePlansSection } from '@/components/shared/LivePlansSection';
 import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import IntegrationSection from '@/components/landing/IntegrationSection';
 import CTASection from '@/components/landing/CTASection';
+import { ChatAssistantWidget } from '@/components/shared/ChatAssistantWidget';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,31 +47,36 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-brand">
       <HeroSection onJoinVIP={handleJoinVIP} onLearnMore={handleLearnMore} />
-      
+
+      <VipPriceSwitcher />
+
       <div id="features">
         <FeatureGrid />
       </div>
-      
+
       <LivePlansSection
+        showPromo
         onPlanSelect={handleSelectPlan}
         onBankPayment={handleBankPayment}
         onCryptoPayment={handleCryptoPayment}
       />
-      
+
       <TestimonialsSection />
-      
-      <IntegrationSection 
+
+      <IntegrationSection
         onOpenTelegram={handleOpenTelegram}
         onViewAccount={handleViewAccount}
         onContactSupport={handleContactSupport}
       />
-      
-      <CTASection 
+
+      <CTASection
         onJoinNow={handleJoinVIP}
         onOpenTelegram={handleOpenTelegram}
       />
+
+      <ChatAssistantWidget />
     </div>
   );
 }
