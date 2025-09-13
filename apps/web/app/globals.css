@@ -28,8 +28,13 @@
 }
 
 @layer utilities {
+  .bg-gradient-brand {
+    background-image: var(--gradient-brand);
+  }
+
   .text-gradient-brand {
-    @apply bg-gradient-brand bg-clip-text text-transparent;
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-brand);
   }
 }
 
