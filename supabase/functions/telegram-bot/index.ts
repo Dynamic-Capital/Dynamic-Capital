@@ -86,6 +86,9 @@ const REQUIRED_ENV_KEYS = [
   "TELEGRAM_BOT_TOKEN",
 ] as const;
 
+// Header used by Telegram to authenticate webhook calls
+const SECRET_HEADER = "x-telegram-bot-api-secret-token";
+
 const SUPABASE_URL = optionalEnv("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = optionalEnv("SUPABASE_SERVICE_ROLE_KEY");
 const BOT_TOKEN = await envOrSetting<string>("TELEGRAM_BOT_TOKEN");
@@ -1865,14 +1868,16 @@ export async function serveWebhook(req: Request): Promise<Response> {
   if (req.method !== "POST") return mna();
 
   // Only validate webhook secret for POST requests
+  const receivedSecret = req.headers.get(SECRET_HEADER);
   const authResp = await validateTelegramHeader(req);
   if (authResp) {
-    console.log(
+    console.error(
       "Telegram webhook auth failed - expected secret not found or mismatch",
     );
-    console.log(
+    console.error(
       "Make sure TELEGRAM_WEBHOOK_SECRET is set correctly in Supabase secrets",
     );
+    console.error("received header", receivedSecret ? "present" : "missing");
     return authResp;
   }
 
