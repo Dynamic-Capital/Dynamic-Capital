@@ -20,10 +20,18 @@ export async function register() {
   }
 
   try {
+    // Use a dynamic import that is ignored by webpack so that Sentry's
+    // optional peer dependencies (which contain dynamic `require` calls)
+    // are not bundled during compilation. This suppresses "Critical
+    // dependency" warnings emitted by webpack when building the app.
     const Sentry =
       typeof window === 'undefined'
-        ? await import('@sentry/nextjs')
-        : await import('@sentry/browser');
+        ? await import(
+            /* webpackIgnore: true */ '@sentry/nextjs'
+          )
+        : await import(
+            /* webpackIgnore: true */ '@sentry/browser'
+          );
     Sentry.init({
       dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
       tracesSampleRate: 1.0,
