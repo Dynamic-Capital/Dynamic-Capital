@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "NODE_ENV=production tsx ../../scripts/copy-static.ts",
+    "build": "NODE_ENV=production next build && NODE_ENV=production tsx ../../scripts/copy-static.ts --copy-only",
     "start": "NODE_ENV=production node .next/standalone/apps/web/server.js",
     "copy-static": "tsx ../../scripts/copy-static.ts --copy-only",
     "lint": "eslint .",
