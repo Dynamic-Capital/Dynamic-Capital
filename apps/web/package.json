@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "tsx ../../scripts/copy-static.ts",
-    "start": "node .next/standalone/apps/web/server.js",
+    "build": "NODE_ENV=production tsx ../../scripts/copy-static.ts",
+    "start": "NODE_ENV=production node .next/standalone/apps/web/server.js",
     "copy-static": "tsx ../../scripts/copy-static.ts --copy-only",
     "lint": "eslint .",
     "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check"
