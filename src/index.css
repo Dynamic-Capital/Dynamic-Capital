@@ -1,0 +1,327 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Background Colors */
+    --background: 220 13% 9%;
+    --foreground: 220 9% 95%;
+    
+    /* Card Colors */
+    --card: 220 13% 11%;
+    --card-foreground: 220 9% 95%;
+    
+    /* Popover Colors */
+    --popover: 220 13% 11%;
+    --popover-foreground: 220 9% 95%;
+    
+    /* Primary Brand Colors */
+    --primary: 14 100% 57%; /* Dynamic Capital Red #f13d00 */
+    --primary-foreground: 0 0% 100%;
+    
+    /* Dynamic Capital Brand Colors */
+    --dc-brand: 14 100% 57%; /* Main brand red */
+    --dc-brand-light: 14 100% 67%;
+    --dc-brand-dark: 14 100% 47%;
+    --dc-secondary: 200 100% 50%; /* Professional blue */
+    --dc-accent: 340 75% 55%; /* Accent pink */
+    
+    /* Telegram Colors */
+    --telegram: 200 100% 50%;
+    --telegram-light: 200 100% 60%;
+    --telegram-dark: 200 100% 40%;
+    
+    /* Secondary Colors */
+    --secondary: 220 13% 15%;
+    --secondary-foreground: 220 9% 95%;
+    
+    /* Muted Colors */
+    --muted: 220 13% 15%;
+    --muted-foreground: 220 9% 63%;
+    
+    /* Accent Colors */
+    --accent: 220 13% 15%;
+    --accent-foreground: 220 9% 95%;
+    
+    /* Enhanced Color Palette */
+    --accent-light: 0 0% 100%;
+    --accent-gold: 45 100% 70%;
+    --accent-yellow: 60 100% 70%;
+    --accent-green: 120 100% 40%;
+    --accent-green-light: 120 60% 60%;
+    --accent-teal: 180 100% 40%;
+    --accent-pink: 340 75% 55%;
+    
+    /* Destructive Colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 220 9% 95%;
+    
+    /* Status Colors */
+    --status-success: 120 100% 40%;
+    --status-success-foreground: 0 0% 100%;
+    --status-warning: 45 100% 70%;
+    --status-warning-foreground: 220 13% 9%;
+    --status-info: 200 100% 50%;
+    --status-info-foreground: 0 0% 100%;
+    --status-error: 0 84% 60%;
+    --status-error-foreground: 0 0% 100%;
+    
+    /* Border & Input Colors */
+    --border: 220 13% 20%;
+    --input: 220 13% 20%;
+    --ring: 14 100% 57%;
+    
+    /* Radius */
+    --radius: 0.75rem;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--dc-accent)));
+    --gradient-brand: linear-gradient(135deg, hsl(var(--dc-brand)), hsl(var(--dc-brand-light)));
+    --gradient-telegram: linear-gradient(135deg, hsl(var(--telegram)), hsl(var(--telegram-light)));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(var(--muted)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--background)), hsl(var(--muted)));
+    --gradient-navigation: linear-gradient(90deg, hsl(var(--background)), hsl(var(--card)));
+    
+    /* Shadows */
+    --shadow-telegram: 0 10px 30px -10px hsl(var(--telegram) / 0.3);
+    --shadow-primary: 0 10px 30px -10px hsl(var(--primary) / 0.3);
+    --shadow-lg: 0 20px 40px -15px hsl(var(--foreground) / 0.1);
+    
+    /* Transitions */
+    --transition-base: cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-slow: cubic-bezier(0.23, 1, 0.32, 1);
+    
+    /* Sidebar Colors */
+    --sidebar-background: 220 13% 11%;
+    --sidebar-foreground: 220 9% 95%;
+    --sidebar-primary: 14 100% 57%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 13% 15%;
+    --sidebar-accent-foreground: 220 9% 95%;
+    --sidebar-border: 220 13% 20%;
+    --sidebar-ring: 14 100% 57%;
+  }
+
+  .light {
+    /* Background Colors */
+    --background: 0 0% 100%;
+    --foreground: 220 13% 9%;
+    
+    /* Card Colors */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 9%;
+    
+    /* Popover Colors */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 9%;
+    
+    /* Primary Brand Colors */
+    --primary: 14 100% 57%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Dynamic Capital Brand Colors */
+    --dc-brand: 14 100% 57%;
+    --dc-brand-light: 14 100% 67%;
+    --dc-brand-dark: 14 100% 47%;
+    --dc-secondary: 200 100% 50%;
+    --dc-accent: 340 75% 55%;
+    
+    /* Telegram Colors */
+    --telegram: 200 100% 50%;
+    --telegram-light: 200 100% 60%;
+    --telegram-dark: 200 100% 40%;
+    
+    /* Secondary Colors */
+    --secondary: 220 13% 96%;
+    --secondary-foreground: 220 13% 9%;
+    
+    /* Muted Colors */
+    --muted: 220 13% 96%;
+    --muted-foreground: 220 13% 45%;
+    
+    /* Accent Colors */
+    --accent: 220 13% 96%;
+    --accent-foreground: 220 13% 9%;
+    
+    /* Enhanced Color Palette */
+    --accent-light: 220 13% 9%;
+    --accent-gold: 45 100% 50%;
+    --accent-yellow: 60 100% 50%;
+    --accent-green: 120 100% 30%;
+    --accent-green-light: 120 60% 40%;
+    --accent-teal: 180 100% 30%;
+    --accent-pink: 340 75% 45%;
+    
+    /* Destructive Colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Status Colors */
+    --status-success: 120 100% 30%;
+    --status-success-foreground: 0 0% 100%;
+    --status-warning: 45 100% 50%;
+    --status-warning-foreground: 0 0% 100%;
+    --status-info: 200 100% 40%;
+    --status-info-foreground: 0 0% 100%;
+    --status-error: 0 84% 60%;
+    --status-error-foreground: 0 0% 100%;
+    
+    /* Border & Input Colors */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 14 100% 57%;
+    
+    /* Shadows */
+    --shadow-telegram: 0 10px 30px -10px hsl(var(--telegram) / 0.2);
+    --shadow-primary: 0 10px 30px -10px hsl(var(--primary) / 0.2);
+    --shadow-lg: 0 20px 40px -15px hsl(var(--foreground) / 0.1);
+    
+    /* Sidebar Colors */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 13% 9%;
+    --sidebar-primary: 14 100% 57%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 13% 96%;
+    --sidebar-accent-foreground: 220 13% 9%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 14 100% 57%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-poppins;
+  }
+  
+  p, span, div {
+    @apply font-inter;
+  }
+}
+
+@layer components {
+  /* Bot Card Component */
+  .bot-card {
+    @apply bg-card/80 backdrop-blur-sm border-border/50 rounded-lg transition-all duration-300;
+    @apply hover:bg-card hover:border-border hover:shadow-lg;
+  }
+  
+  /* Bot Icon Wrapper */
+  .bot-icon-wrapper {
+    @apply rounded-full flex items-center justify-center shadow-lg;
+    @apply transition-all duration-300;
+  }
+  
+  /* Motion Card Glow Effect */
+  .motion-card-glow {
+    @apply relative overflow-hidden;
+  }
+  
+  .motion-card-glow::before {
+    @apply content-[''] absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent;
+    @apply translate-x-[-100%] transition-transform duration-1000;
+  }
+  
+  .motion-card-glow:hover::before {
+    @apply translate-x-[100%];
+  }
+  
+  /* Glassmorphism Effects */
+  .glass {
+    @apply bg-card/10 backdrop-blur-md border border-border/20;
+  }
+  
+  .glass-strong {
+    @apply bg-card/20 backdrop-blur-lg border border-border/30;
+  }
+  
+  /* Professional Trading Card Styles */
+  .trading-card {
+    @apply relative overflow-hidden rounded-xl;
+    @apply bg-gradient-to-br from-card via-card/90 to-muted/50;
+    @apply border border-border/50 shadow-lg;
+    @apply transition-all duration-500 ease-out;
+  }
+  
+  .trading-card:hover {
+    @apply shadow-2xl border-primary/30 scale-[1.02];
+    @apply shadow-primary/20;
+  }
+  
+  /* Animated Backgrounds */
+  .animated-bg {
+    @apply relative overflow-hidden;
+  }
+  
+  .animated-bg::before {
+    @apply content-[''] absolute inset-0;
+    @apply bg-gradient-to-r from-primary/5 via-transparent to-dc-accent/5;
+    @apply animate-pulse;
+  }
+}
+
+@layer utilities {
+  /* Text Gradients */
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-primary to-dc-accent bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-dc-brand to-dc-brand-light bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-telegram {
+    @apply bg-gradient-to-r from-telegram to-telegram-light bg-clip-text text-transparent;
+  }
+  
+  /* Professional Shadows */
+  .shadow-professional {
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.2), 0 10px 20px -10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .shadow-glow-primary {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.3);
+  }
+  
+  .shadow-glow-telegram {
+    box-shadow: 0 0 30px hsl(var(--telegram) / 0.3);
+  }
+  
+  /* Scrollbar Styling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--muted));
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground));
+    border-radius: 3px;
+  }
+}

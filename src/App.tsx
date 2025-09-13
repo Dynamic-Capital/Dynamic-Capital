@@ -1,21 +1,18 @@
-import HeroSection from '@/components/landing/HeroSection';
-import FeatureGrid from '@/components/landing/FeatureGrid';
-import ServicesSection from '@/components/landing/ServicesSection';
-import TestimonialsSection from '@/components/landing/TestimonialsSection';
-import IntegrationSection from '@/components/landing/IntegrationSection';
-import CTASection from '@/components/landing/CTASection';
+import React from 'react';
+import HeroSection from '../apps/web/components/landing/HeroSection';
+import FeatureGrid from '../apps/web/components/landing/FeatureGrid';
+import ServicesSection from '../apps/web/components/landing/ServicesSection';
+import TestimonialsSection from '../apps/web/components/landing/TestimonialsSection';
+import IntegrationSection from '../apps/web/components/landing/IntegrationSection';
+import CTASection from '../apps/web/components/landing/CTASection';
 
-export const dynamic = 'force-dynamic';
-
-export default function HomePage() {
+function App() {
   const handleJoinVIP = () => {
     window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
   };
 
   const handleLearnMore = () => {
-    // Smooth scroll to features section
-    const featuresSection = document.getElementById('features');
-    featuresSection?.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleOpenTelegram = () => {
@@ -73,3 +70,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+export default App;
