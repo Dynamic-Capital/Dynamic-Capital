@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 
 async function run() {
-  const { GET } = await import('../../apps/web/app/api/hello/route.ts')
+  const { GET } = await import(/* @vite-ignore */ '../../apps/web/app/api/hello/route.ts')
   const res = await GET()
   assert.equal(res.status, 200)
   const data = await res.json()
@@ -11,6 +11,6 @@ async function run() {
 if (typeof Deno !== 'undefined') {
   Deno.test('GET /api/hello returns greeting', run)
 } else {
-  const { default: test } = await import('node:test')
+  const { default: test } = await import(/* @vite-ignore */ 'node:test')
   test('GET /api/hello returns greeting', run)
 }

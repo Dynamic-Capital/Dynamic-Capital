@@ -1,8 +1,9 @@
 import test from 'node:test';
 import { equal as assertEquals } from 'node:assert/strict';
+import { freshImport } from './utils/freshImport.ts';
 
 const importFresh = async () => {
-  return await import(`../apps/web/utils/logger.ts?cachebust=${Math.random()}`);
+  return await freshImport(new URL('../apps/web/utils/logger.ts', import.meta.url));
 };
 
 test('logger.error logs in production', async () => {

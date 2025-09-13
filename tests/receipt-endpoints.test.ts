@@ -1,5 +1,6 @@
 import test from 'node:test';
 import { equal as assertEquals, ok as assert, match as assertMatch, deepEqual as assertDeepEqual } from 'node:assert/strict';
+import { freshImport } from './utils/freshImport.ts';
 
 function setEnv() {
   process.env.SUPABASE_URL = 'http://example.com';
@@ -31,7 +32,7 @@ test('receipt-upload-url returns signed URL', async () => {
     patched = new URL('../supabase/functions/receipt-upload-url/index.test.ts', import.meta.url);
     const src = await Deno.readTextFile(orig);
     await Deno.writeTextFile(patched, src.replace('../_shared/client.ts', '../../../tests/supabase-client-stub.ts'));
-    const { handler } = await import(patched.href + `?${Math.random()}`);
+    const { handler } = await freshImport(patched);
     const body = { payment_id: 'p1', telegram_id: '123', filename: 'r.png' };
     const req = new Request('http://localhost', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
     const res = await handler(req);
@@ -73,8 +74,8 @@ test('receipt-submit updates payment and subscription', async () => {
     src = src.replace('../_shared/client.ts', '../../../tests/supabase-client-stub.ts');
     src = src.replace('https://deno.land/std@0.224.0/http/server.ts', '../../../tests/serve-stub.ts');
     await Deno.writeTextFile(patched, src);
-    const mod = await import(patched.href + `?${Math.random()}`);
-    const { capturedHandler } = await import('./serve-stub.ts');
+    const mod = await freshImport(patched);
+    const { capturedHandler } = await import(/* @vite-ignore */ './serve-stub.ts');
     captured = capturedHandler;
     assert(typeof captured === 'function');
     const body = { payment_id: 'p1', file_path: 'receipts/123/file.png', telegram_id: '123' };

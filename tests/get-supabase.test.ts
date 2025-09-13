@@ -1,5 +1,6 @@
 import test from 'node:test';
 import { throws } from 'node:assert/strict';
+import { freshImport } from './utils/freshImport.ts';
 
 const supaState: any = { tables: {} };
 (globalThis as any).__SUPA_MOCK__ = supaState;
@@ -21,7 +22,7 @@ function cleanup() {
 
 test('getSupabase throws when credentials missing', async () => {
   setEnv();
-  const mod = await import(`../supabase/functions/telegram-bot/index.ts?${Math.random()}`);
+  const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
   throws(() => mod.getSupabase(), /Missing Supabase credentials/);
   cleanup();
 });

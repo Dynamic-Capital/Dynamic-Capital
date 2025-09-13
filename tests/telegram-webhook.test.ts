@@ -1,5 +1,6 @@
 import test from 'node:test';
 import { equal as assertEquals, ok as assert, deepEqual as assertDeepEqual, match as assertMatch } from 'node:assert/strict';
+import { freshImport } from './utils/freshImport.ts';
 function setEnv() {
   process.env.TELEGRAM_BOT_TOKEN = 'token';
   process.env.TELEGRAM_WEBHOOK_SECRET = 'secret';
@@ -30,7 +31,7 @@ test('setup-telegram-webhook calls Telegram API', async () => {
     patched = new URL('../supabase/functions/setup-telegram-webhook/index.test.ts', import.meta.url);
     const src = await Deno.readTextFile(orig);
     await Deno.writeTextFile(patched, src.replace('../_shared/telegram_secret.ts', '../../../tests/telegram-secret-stub.ts'));
-    const { handler } = await import(patched.href + `?${Math.random()}`);
+    const { handler } = await freshImport(patched);
     const res = await handler(new Request('http://localhost', { method: 'POST' }));
     assertEquals(res.status, 200);
     const data = await res.json();
@@ -72,7 +73,7 @@ test('telegram-webhook processes /ping and responds', async () => {
     src = src.replace('../_shared/miniapp.ts', '../../../tests/miniapp-stub.ts');
     src = src.replace('../_shared/telegram_secret.ts', '../../../tests/telegram-secret-stub.ts');
     await Deno.writeTextFile(patched, src);
-    const { default: handler } = await import(patched.href + `?${Math.random()}`);
+    const { default: handler } = await freshImport(patched);
     const req = new Request('http://localhost/telegram-webhook', {
       method: 'POST',
       headers: {
