@@ -18,7 +18,7 @@ location /api/ {
 ```
 
 ## Cloudflare ingress
-Traffic routed through Cloudflare may arrive from public IPs such as `162.159.140.98` or `172.66.0.96`. Point your DNS to Cloudflare and let it proxy requests to the service running on port `8080`.
+Traffic routed through Cloudflare may arrive from public IPs such as `162.159.140.98` or `172.66.0.96`. Set your web app domain's A records to these IPs and let Cloudflare proxy requests to the service running on port `8080`.
 
 ## Outbound connectivity
 Ensure the runtime can reach external services like Supabase over HTTPS (`*.supabase.co`). Adjust firewall or egress rules as needed.
