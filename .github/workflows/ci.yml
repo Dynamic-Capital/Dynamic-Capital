@@ -84,6 +84,8 @@ jobs:
           path: apps/web/.next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json', 'apps/web/package.json') }}
       - run: npm run build
+        env:
+          SITE_URL: https://dynamic-capital.ondigitalocean.app
       - name: Verify Mini App bundle
         run: node scripts/assert-miniapp-bundle.mjs
       - name: Deploy Mini App
@@ -132,6 +134,8 @@ jobs:
           path: apps/web/.next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json', 'apps/web/package.json') }}
       - run: npm run build
+        env:
+          SITE_URL: https://dynamic-capital.ondigitalocean.app
       - name: Verify Mini App bundle
         run: node scripts/assert-miniapp-bundle.mjs
       - name: Deploy Mini App
