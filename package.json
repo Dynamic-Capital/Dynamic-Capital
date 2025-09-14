@@ -35,6 +35,7 @@
     "supabase": "^2.40.7"
   },
   "dependencies": {
-    "@vercel/otel": "^1.13.0"
+    "@vercel/otel": "^1.13.0",
+    "lovable-tagger": "^1.1.9"
   }
 }
