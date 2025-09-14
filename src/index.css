@@ -258,15 +258,42 @@
     @apply shadow-primary/20;
   }
   
-  /* Animated Backgrounds */
+  /* Enhanced Animated Backgrounds */
   .animated-bg {
     @apply relative overflow-hidden;
   }
-  
+
   .animated-bg::before {
     @apply content-[''] absolute inset-0;
     @apply bg-gradient-to-r from-primary/5 via-transparent to-dc-accent/5;
     @apply animate-pulse;
+  }
+  
+  /* Grid Pattern Background */
+  .bg-grid-white\/\[0\.02\] {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+  
+  /* Floating Animation */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-10px) rotate(1deg); }
+    66% { transform: translateY(5px) rotate(-1deg); }
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  /* Gradient Animation */
+  @keyframes gradient-x {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  .animate-gradient-x {
+    animation: gradient-x 3s ease infinite;
   }
 }
 

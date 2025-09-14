@@ -69,11 +69,16 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
   }, []);
 
   return (
-    <section className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background via-telegram/5 to-[hsl(var(--dc-accent)/0.1)] text-center overflow-hidden">
-      {/* Background Elements */}
+    <section className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background via-card/30 to-background text-center overflow-hidden">
+      {/* Enhanced Background Elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-64 h-64 bg-[hsl(var(--primary)/0.1)] rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-[hsl(var(--dc-accent)/0.1)] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-primary/20 via-dc-accent/15 to-transparent rounded-full blur-3xl animate-pulse opacity-50"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-l from-dc-accent/20 via-telegram/15 to-transparent rounded-full blur-3xl animate-pulse opacity-50" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/5 via-transparent to-dc-accent/5 rounded-full blur-3xl animate-pulse opacity-30" style={{ animationDelay: '4s' }}></div>
+        
+        {/* Animated Grid Pattern */}
+        <div className="absolute inset-0 bg-grid-white/[0.02] dark:bg-grid-white/[0.02]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background" />
       </div>
 
       {/* Animated Background Text */}
@@ -109,57 +114,98 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
             </Badge>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black text-gradient-brand mb-6">
-            {content.title}
-          </h1>
+          <motion.h1 
+            className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 relative"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            <span className="bg-gradient-to-r from-primary via-dc-accent to-primary bg-clip-text text-transparent animate-gradient-x bg-[length:200%_auto]">
+              {content.title}
+            </span>
+            <motion.div 
+              className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-dc-accent/20 to-primary/20 blur-xl opacity-30"
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </motion.h1>
 
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed max-w-3xl mx-auto">
+          <motion.p 
+            className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed max-w-3xl mx-auto font-light"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+          >
             {content.description}
-          </p>
+          </motion.p>
 
-          {/* Stats */}
-          <div className="flex flex-wrap justify-center gap-8 mb-12">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <TrendingUp className="w-5 h-5 text-[hsl(var(--accent-green))]" />
-                <span className="text-2xl font-bold text-[hsl(var(--accent-green))]">92%</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Success Rate</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Users className="w-5 h-5 text-[hsl(var(--dc-accent))]" />
-                <span className="text-2xl font-bold text-[hsl(var(--dc-accent))]">5000+</span>
-              </div>
-              <p className="text-sm text-muted-foreground">VIP Members</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Shield className="w-5 h-5 text-[hsl(var(--accent-teal))]" />
-                <span className="text-2xl font-bold text-[hsl(var(--accent-teal))]">24/7</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Support</p>
-            </div>
-          </div>
+          {/* Enhanced Stats */}
+          <motion.div 
+            className="flex flex-wrap justify-center gap-8 mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.7 }}
+          >
+            {[
+              { icon: TrendingUp, value: "92%", label: "Success Rate", color: "accent-green" },
+              { icon: Users, value: "5000+", label: "VIP Members", color: "dc-accent" },
+              { icon: Shield, value: "24/7", label: "Support", color: "accent-teal" }
+            ].map((stat, index) => (
+              <motion.div 
+                key={index}
+                className="text-center relative group"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:border-primary/30">
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <stat.icon className={`w-6 h-6 text-[hsl(var(--${stat.color}))] group-hover:scale-110 transition-transform`} />
+                    <span className={`text-3xl font-bold text-[hsl(var(--${stat.color}))] font-mono`}>{stat.value}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)] shadow-2xl hover:shadow-[0_0_15px_hsl(var(--primary)/0.5)] transform hover:scale-105 transition-all duration-300 text-xl px-10 py-6 font-bold"
-              onClick={onJoinVIP}
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-6 justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.9 }}
+          >
+            <motion.div
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
-              <Sparkles className="w-6 h-6 mr-2" />
-              {content.joinButton}
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-2 border-[hsl(var(--primary)/0.4)] text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary)/0.1)] backdrop-blur-sm text-xl px-10 py-6 font-semibold transform hover:scale-105 transition-all duration-300"
-              onClick={onLearnMore}
+              <Button 
+                size="lg" 
+                className="relative bg-gradient-to-r from-primary via-primary to-dc-accent text-primary-foreground shadow-2xl hover:shadow-[0_0_25px_hsl(var(--primary)/0.6)] text-xl px-12 py-6 font-bold border-0 overflow-hidden group"
+                onClick={onJoinVIP}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                <Sparkles className="w-6 h-6 mr-3 animate-pulse" />
+                {content.joinButton}
+              </Button>
+            </motion.div>
+            
+            <motion.div
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
-              {content.learnButton}
-            </Button>
-          </div>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-2 border-primary/40 text-primary hover:bg-primary/10 backdrop-blur-md bg-card/20 text-xl px-12 py-6 font-semibold relative overflow-hidden group"
+                onClick={onLearnMore}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
+                {content.learnButton}
+              </Button>
+            </motion.div>
+          </motion.div>
         </MotionFadeIn>
       </div>
     </section>

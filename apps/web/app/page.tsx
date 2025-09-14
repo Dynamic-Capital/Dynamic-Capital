@@ -1,6 +1,7 @@
 import HeroSection from '@/components/landing/HeroSection';
 import FeatureGrid from '@/components/landing/FeatureGrid';
 import VipPriceSwitcher from '@/components/landing/VipPriceSwitcher';
+import EnhancedStatsSection from '@/components/landing/EnhancedStatsSection';
 import { LivePlansSection } from '@/components/shared/LivePlansSection';
 import TestimonialsSection from '@/components/landing/TestimonialsSection';
 import IntegrationSection from '@/components/landing/IntegrationSection';
@@ -47,7 +48,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-brand">
+    <div className="min-h-screen bg-gradient-to-br from-background via-card/5 to-background">
       <HeroSection onJoinVIP={handleJoinVIP} onLearnMore={handleLearnMore} />
 
       <VipPriceSwitcher />
@@ -55,6 +56,8 @@ export default function HomePage() {
       <div id="features">
         <FeatureGrid />
       </div>
+
+      <EnhancedStatsSection />
 
       <LivePlansSection
         showPromo
