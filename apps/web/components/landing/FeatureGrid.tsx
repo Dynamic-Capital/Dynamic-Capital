@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MotionHoverCard, MotionStagger, MotionScrollReveal } from "@/components/ui/motion-components";
 import { TrendingUp, Shield, Users } from "lucide-react";
 import { callEdgeFunction } from "@/config/supabase";
+import { motion } from "framer-motion";
 
 const FeatureGrid = () => {
   const defaultContent = {
