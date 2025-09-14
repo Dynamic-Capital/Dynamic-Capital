@@ -10,7 +10,10 @@ spec:
     - key: CDN_SECRET_KEY
       scope: RUN_AND_BUILD_TIME
     - key: SITE_URL
-      value: https://urchin-app-macix.ondigitalocean.app
+      value: https://dynamic-capital.ondigitalocean.app
+      scope: RUN_AND_BUILD_TIME
+    - key: NEXT_PUBLIC_SITE_URL
+      value: https://dynamic-capital.ondigitalocean.app
       scope: RUN_AND_BUILD_TIME
     - key: NEXT_PUBLIC_SUPABASE_URL
       scope: RUN_AND_BUILD_TIME
