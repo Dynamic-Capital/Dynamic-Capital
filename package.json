@@ -17,6 +17,7 @@
     "start": "npm -w apps/web run start",
     "start:web": "npm -w apps/web run start",
     "dev": "npm -w apps/web run dev",
+    "dev:lovable": "node lovable-dev.js",
     "debug": "NODE_OPTIONS='--inspect' npm run dev",
     "preview": "npm run dev",
     "upload-assets": "node scripts/upload-assets.js",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.600.0",
     "chokidar-cli": "^3.0.0",
+    "deno": "^2.5.0",
     "mime-types": "^2.1.35",
     "supabase": "^2.40.7"
   },

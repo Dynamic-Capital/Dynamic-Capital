@@ -1,9 +1,9 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { isAdmin, verifyInitDataAndGetUser } from "../_shared/telegram.ts";
-import { ok, bad, unauth, mna } from "../_shared/http.ts";
+import { bad, mna, ok, unauth } from "../_shared/http.ts";
 
-serve(async (req) => {
+export async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "admin-bans", ts: new Date().toISOString() });
@@ -54,4 +54,8 @@ serve(async (req) => {
     return ok();
   }
   return bad("Bad Request");
-});
+}
+
+if (import.meta.main) serve(handler);
+
+export default handler;

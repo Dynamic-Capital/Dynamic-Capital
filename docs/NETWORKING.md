@@ -2,6 +2,13 @@
 
 This project relies on a Next.js service and Supabase Edge Functions. Use the following guidance to expose the services and control access.
 
+## DNS and domains
+- Point your domain's A/AAAA records to the host running the Next.js service or reverse proxy.
+- Create `www` and `api` CNAME records that resolve to that host so the frontend and backend share the same runtime endpoint.
+- Set `DOMAIN` in your `.env` to the root zone (e.g. `example.com`) for helper scripts and Nginx templates.
+- Update `SITE_URL` and `NEXT_PUBLIC_SITE_URL` to the canonical site URL, and adjust `NEXT_PUBLIC_API_URL` if using an API subdomain.
+- `ALLOWED_ORIGINS` should list the site and API origins so browsers can call the endpoints.
+
 ## Environment variables
 - Copy `.env.example` to `.env.local` and fill in credentials.
 - `ALLOWED_ORIGINS` defines a comma-separated list of domains allowed to call the API and edge functions. If unset, only `http://localhost:3000` is permitted.

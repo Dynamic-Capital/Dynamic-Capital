@@ -4,18 +4,23 @@ import { requireEnv } from "../_shared/env.ts";
 import { calcFinalAmount, redeemKey } from "../_shared/promo.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+export async function handler(req: Request): Promise<Response> {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-  const { code, telegram_id, plan_id, payment_id } = await req.json().catch(() => ({}));
+  const { code, telegram_id, plan_id, payment_id } = await req.json().catch(
+    () => ({}),
+  );
   if (!code || !telegram_id || !plan_id || !payment_id) {
-    return new Response(JSON.stringify({ ok: false, error: "bad_request" }), { status: 400 });
+    return new Response(JSON.stringify({ ok: false, error: "bad_request" }), {
+      status: 400,
+    });
   }
   const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = requireEnv(
     ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] as const,
@@ -30,14 +35,20 @@ serve(async (req) => {
   const vr = await fetch(`${SUPABASE_URL}/rest/v1/rpc/validate_promo_code`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ p_code: code, p_telegram_user_id: String(telegram_id) }),
+    body: JSON.stringify({
+      p_code: code,
+      p_telegram_user_id: String(telegram_id),
+    }),
   });
   const [res] = await vr.json();
   if (!res?.valid) {
-    return new Response(JSON.stringify({ ok: false, reason: res?.reason || "invalid" }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ ok: false, reason: res?.reason || "invalid" }),
+      {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      },
+    );
   }
 
   // check if already used
@@ -51,7 +62,10 @@ serve(async (req) => {
     await fetch(`${SUPABASE_URL}/rest/v1/rpc/record_promo_usage`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ p_promotion_id: res.promotion_id, p_telegram_user_id: String(telegram_id) }),
+      body: JSON.stringify({
+        p_promotion_id: res.promotion_id,
+        p_telegram_user_id: String(telegram_id),
+      }),
     });
   }
 
@@ -61,21 +75,37 @@ serve(async (req) => {
   );
   const plan = await pr.json();
   const price = plan?.[0]?.price || 0;
-  const final_amount = calcFinalAmount(price, res.discount_type, res.discount_value);
+  const final_amount = calcFinalAmount(
+    price,
+    res.discount_type,
+    res.discount_value,
+  );
   const discount_amount = price - final_amount;
 
   const idKey = redeemKey(payment_id, code);
   await fetch(`${SUPABASE_URL}/rest/v1/promo_analytics`, {
     method: "POST",
     headers: { ...headers, Prefer: "resolution=ignore-duplicates" },
-    body: JSON.stringify([{ id: idKey, promo_code: code, telegram_user_id: String(telegram_id), plan_id, event_type: "redeem", discount_amount, final_amount }]),
+    body: JSON.stringify([{
+      id: idKey,
+      promo_code: code,
+      telegram_user_id: String(telegram_id),
+      plan_id,
+      event_type: "redeem",
+      discount_amount,
+      final_amount,
+    }]),
   });
 
-  return new Response(JSON.stringify({ ok: true }), { 
-    headers: { 
-      'Content-Type': 'application/json',
-      ...corsHeaders 
-    } 
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: {
+      "Content-Type": "application/json",
+      ...corsHeaders,
+    },
   });
-});
+}
+
+if (import.meta.main) serve(handler);
+
+export default handler;
 // <<< DC BLOCK: promo-redeem-core (end)

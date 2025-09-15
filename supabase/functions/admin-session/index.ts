@@ -1,16 +1,17 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
-import { ok, bad, unauth, mna } from "../_shared/http.ts";
+import { isAdmin, verifyInitDataAndGetUser } from "../_shared/telegram.ts";
+import { bad, mna, ok, unauth } from "../_shared/http.ts";
 import { envOrSetting } from "../_shared/config.ts";
 import { signHS256 } from "../_shared/jwt.ts";
 
-serve(async (req) => {
+export async function handler(req: Request): Promise<Response> {
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
   };
 
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -20,7 +21,7 @@ serve(async (req) => {
   }
   if (req.method === "HEAD") return new Response(null, { status: 200 });
   if (req.method !== "POST") return mna();
-  
+
   let body: { initData: string };
   try {
     body = await req.json();
@@ -58,15 +59,22 @@ serve(async (req) => {
       admin: true,
     }, secret);
 
-    return new Response(JSON.stringify({
-      token,
-      exp,
-      user_id: user.id.toString(),
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({
+        token,
+        exp,
+        user_id: user.id.toString(),
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
-    console.error('Failed to generate admin token:', error);
+    console.error("Failed to generate admin token:", error);
     return bad("Failed to generate session");
   }
-});
+}
+
+if (import.meta.main) serve(handler);
+
+export default handler;

@@ -5,5 +5,5 @@ if command -v deno >/dev/null 2>&1; then
   echo "deno"
   exit 0
 fi
-# Fallback via npm distribution of Deno.
-echo "npx -y @deno/cli@1.46.3 deno"
+# Fallback using local npm-installed Deno package
+echo "npx deno"
