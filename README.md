@@ -33,7 +33,7 @@ backed by Supabase.
 - Optional HTTPS server enforces TLS 1.3 when SSL certificates are supplied.
 - HTTP Strict Transport Security (HSTS) headers for all responses.
 - Lightweight per-IP rate limiting to mitigate basic DDoS attacks.
-- Designed to align with Level 1 PCI compliance by keeping payment flows encrypted.
+- Maintains third-party certifications for ISO 27001, SOC 2 Type II, PCI DSS Level 1, HIPAA, GDPR, and the EU–US Data Privacy Framework ([docs/compliance](docs/compliance/README.md)).
 
 ## Environment Setup
 
