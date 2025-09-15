@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { bad, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { need } from "../_shared/env.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 async function tgSend(token: string, chatId: string, text: string) {
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -28,7 +28,7 @@ async function activateSubscription(
   }
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "crypto-webhook", ts: new Date().toISOString() });
@@ -116,3 +116,5 @@ serve(async (req) => {
 
   return ok({ status: isConfirmed ? "completed" : "pending" });
 });
+
+export default handler;

@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
 import { ok, bad, unauth, mna } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -61,3 +61,5 @@ serve(async (req) => {
     return ok({ user_id: u.id });
   }
 });
+
+export default handler;

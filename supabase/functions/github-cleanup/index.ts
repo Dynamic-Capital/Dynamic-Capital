@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { json, ok, oops } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +11,7 @@ const GITHUB_PAT = Deno.env.get('GITHUB_PAT');
 const GITHUB_REPO = Deno.env.get('GITHUB_REPO'); // format: owner/name
 const DEFAULT_BRANCH = Deno.env.get('GITHUB_DEFAULT_BRANCH') ?? 'main';
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -258,3 +258,5 @@ const RECOMMENDED_STRUCTURE = {
     'functions/_tests/**', // If consolidated
   ]
 };
+
+export default handler;

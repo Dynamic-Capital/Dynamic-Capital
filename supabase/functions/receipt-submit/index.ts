@@ -1,16 +1,15 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { createClient } from "../_shared/client.ts";
+import { createClient, createSupabaseClient } from "../_shared/client.ts";
 import { json, bad, unauth, oops } from "../_shared/http.ts";
-import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getEnv } from "../_shared/env.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -124,3 +123,5 @@ serve(async (req) => {
     return oops("Internal server error");
   }
 });
+
+export default handler;

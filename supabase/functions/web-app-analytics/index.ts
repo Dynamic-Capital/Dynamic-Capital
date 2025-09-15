@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { registerHandler } from "../_shared/serve.ts";
 import {
-  createClient,
-  SupabaseClient,
-} from "https://esm.sh/@supabase/supabase-js@2";
+  createSupabaseClient,
+  type SupabaseClient,
+} from "../_shared/client.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,14 +30,14 @@ interface AnalyticsEvent {
   utm_campaign?: string;
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
+    const supabase = createSupabaseClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
@@ -282,3 +282,5 @@ async function getAnalytics(
     );
   }
 }
+
+export default handler;

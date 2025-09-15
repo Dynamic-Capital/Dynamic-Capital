@@ -13,8 +13,8 @@ this header for every request, so disabling JWT verification is safe.
 
 1. Update the `TELEGRAM_WEBHOOK_SECRET` in the environment or database.
 2. Re-deploy the function (`supabase functions deploy telegram-webhook --no-verify-jwt`).
-3. Run `npx tsx scripts/set-telegram-webhook.ts` to register the new webhook URL and
-   secret.
+3. Run `deno run -A scripts/set-webhook.ts` (or `deno task set:webhook`) to register the new
+   webhook URL and secret.
 
 ## Mini App initData validation
 

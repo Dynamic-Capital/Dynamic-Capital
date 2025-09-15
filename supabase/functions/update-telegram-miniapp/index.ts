@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { envOrSetting } from "../_shared/config.ts";
 import { expectedSecret } from "../_shared/telegram_secret.ts";
 import { functionUrl } from "../_shared/edge.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,7 +23,7 @@ async function callTelegramAPI(botToken: string, method: string, body?: any): Pr
   return await response.json();
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -153,3 +153,5 @@ serve(async (req) => {
     });
   }
 });
+
+export default handler;

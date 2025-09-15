@@ -1,4 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { registerHandler } from "../_shared/serve.ts";
+import { createSupabaseClient } from "../_shared/client.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,7 +12,7 @@ interface TelegramResponse {
   description?: string;
 }
 
-Deno.serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -35,7 +36,7 @@ Deno.serve(async (req) => {
     console.log('Setting up Lovable Mini App with URL:', lovableMiniAppUrl);
 
     // Initialize Supabase client
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createSupabaseClient(supabaseUrl, supabaseServiceKey);
 
     // Store the Lovable URL as a bot setting
     const { error: settingError } = await supabase
@@ -150,3 +151,5 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+export default handler;

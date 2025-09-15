@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import {
+import { registerHandler } from "../_shared/serve.ts";
   getConfig,
   setConfig,
   getFlag as getFlagBase,
@@ -73,7 +73,7 @@ function json(data: unknown, status = 200) {
   });
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   let body: Record<string, unknown> = {};
   try {
     body = await req.json();
@@ -113,3 +113,5 @@ serve(async (req) => {
     return json({ error: String(e) }, 500);
   }
 });
+
+export default handler;

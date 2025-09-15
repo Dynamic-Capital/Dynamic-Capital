@@ -1,9 +1,9 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
 import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   const url = new URL(req.url);
   const approveMatch = url.pathname.match(/\/receipt\/([^/]+)\/(approve|reject)/);
 
@@ -80,3 +80,5 @@ serve(async (req) => {
 
   return mna();
 });
+
+export default handler;

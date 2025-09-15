@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { getEnv, optionalEnv } from "../_shared/env.ts";
 import { ok, bad, unauth, mna, nf } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 type Body = {
   admin_telegram_id?: string;
@@ -25,7 +25,7 @@ async function tgSend(token: string, chatId: string, text: string) {
   }).catch(() => {});
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "admin-review-payment", ts: new Date().toISOString() });
@@ -175,3 +175,5 @@ serve(async (req) => {
 
   return ok({ status: newStatus, subscription_expires_at: expiresAt });
 });
+
+export default handler;
