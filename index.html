@@ -6,11 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dynamic Capital - Premium Trading Platform</title>
     <meta name="description" content="Join thousands of successful traders with exclusive market insights, daily analysis, and premium investment opportunities." />
-    <meta http-equiv="refresh" content="0; url=http://localhost:3000" />
+    <script>
+      // Redirect to Next.js app for unified preview
+      if (window.location.port === '8080' && window.location.pathname === '/') {
+        window.location.href = 'http://localhost:3000';
+      }
+    </script>
   </head>
   <body>
     <div id="root">
-      <p>Redirecting to Next.js app... <a href="http://localhost:3000">Click here if not redirected</a></p>
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
+        <div style="text-align: center;">
+          <h2>Dynamic Capital</h2>
+          <p>Redirecting to Next.js app...</p>
+          <p><a href="http://localhost:3000" style="color: #f13d00;">Click here if not redirected automatically</a></p>
+        </div>
+      </div>
     </div>
   </body>
 </html>
