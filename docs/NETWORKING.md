@@ -8,6 +8,11 @@ This project relies on a Next.js service and Supabase Edge Functions. Use the fo
 - Set `DOMAIN` in your `.env` to the root zone (e.g. `example.com`) for helper scripts and Nginx templates.
 - Update `SITE_URL` and `NEXT_PUBLIC_SITE_URL` to the canonical site URL, and adjust `NEXT_PUBLIC_API_URL` if using an API subdomain.
 - `ALLOWED_ORIGINS` should list the site and API origins so browsers can call the endpoints.
+- The default DigitalOcean domain is tracked in
+  [`dns/dynamic-capital.ondigitalocean.app.zone`](../dns/dynamic-capital.ondigitalocean.app.zone);
+  reapply its NS and A records (162.159.140.98 and 172.66.0.96) if you recreate
+  the domain so Cloudflare keeps proxying both the Next.js UI and the Supabase
+  Edge Functions.
 
 ## Environment variables
 - Copy `.env.example` to `.env.local` and fill in credentials.
@@ -26,6 +31,12 @@ location /api/ {
 
 ## Cloudflare ingress
 Traffic routed through Cloudflare may arrive from public IPs such as `162.159.140.98` or `172.66.0.96`. Set your web app domain's A records to these IPs and let Cloudflare proxy requests to the service running on port `8080`.
+
+## Origin alignment across platforms
+- The DigitalOcean App Platform spec pins the ingress authority to `dynamic-capital.ondigitalocean.app` so load balancers terminate TLS on the canonical host before forwarding traffic to port `8080`.
+- `supabase/config.toml` sets `site_url`, `additional_redirect_urls`, and the Supabase Functions env block to the same origin so Edge Functions and Telegram verification enforce the correct allowlist.
+- `vercel.json` declares the canonical origin as environment defaults and redirects any deployments back to `https://dynamic-capital.ondigitalocean.app` to avoid diverging hosts.
+- `lovable-build.js` and `lovable-dev.js` hydrate `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` before running Lovable workflows so previews and builds share the production origin when values are omitted.
 
 ## Outbound connectivity
 Ensure the runtime can reach external services like Supabase over HTTPS (`*.supabase.co`). Adjust firewall or egress rules as needed.
