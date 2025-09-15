@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import BrandLogo from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
@@ -15,15 +15,18 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps) {
-  const defaultContent = {
-    badge: "Premium Trading Platform",
-    badgeHighlight: "Elite Trading Platform",
-    title: "Dynamic Capital",
-    description:
-      "Join thousands of successful traders with exclusive market insights, daily analysis, and premium investment opportunities.",
-    joinButton: "Join VIP Now",
-    learnButton: "Learn More",
-  };
+  const defaultContent = useMemo(
+    () => ({
+      badge: "Premium Trading Platform",
+      badgeHighlight: "Elite Trading Platform",
+      title: "Dynamic Capital",
+      description:
+        "Join thousands of successful traders with exclusive market insights, daily analysis, and premium investment opportunities.",
+      joinButton: "Join VIP Now",
+      learnButton: "Learn More",
+    }),
+    []
+  );
   const [content, setContent] = useState(defaultContent);
 
   useEffect(() => {
@@ -66,10 +69,10 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
     };
 
     fetchContent();
-  }, []);
+  }, [defaultContent]);
 
   return (
-    <section className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background via-card/30 to-background text-center overflow-hidden">
+    <section className="relative flex flex-col items-center justify-center min-h-[600px] sm:min-h-screen bg-gradient-to-br from-background via-card/30 to-background text-center overflow-hidden py-24 sm:py-32">
       {/* Enhanced Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-primary/20 via-dc-accent/15 to-transparent rounded-full blur-3xl animate-pulse opacity-50"></div>
@@ -99,7 +102,7 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
       </motion.svg>
 
       {/* Hero Content */}
-      <div className="relative z-10 max-w-5xl px-6">
+      <div className="relative z-10 max-w-5xl px-4 sm:px-6">
         <MotionFadeIn>
           <div className="mb-10 flex flex-col items-center">
             <BrandLogo size="lg" variant="brand" animated />
@@ -114,8 +117,8 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
             </Badge>
           </div>
 
-          <motion.h1 
-            className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 relative"
+          <motion.h1
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 relative"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
@@ -130,8 +133,8 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
             />
           </motion.h1>
 
-          <motion.p 
-            className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed max-w-3xl mx-auto font-light"
+          <motion.p
+            className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed max-w-3xl mx-auto font-light"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
@@ -140,8 +143,8 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
           </motion.p>
 
           {/* Enhanced Stats */}
-          <motion.div 
-            className="flex flex-wrap justify-center gap-8 mb-12"
+          <motion.div
+            className="flex flex-wrap justify-center gap-6 sm:gap-8 mb-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7 }}
@@ -157,10 +160,10 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
-                <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:border-primary/30">
+                <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5 sm:p-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:border-primary/30">
                   <div className="flex items-center justify-center gap-3 mb-2">
-                    <stat.icon className={`w-6 h-6 text-[hsl(var(--${stat.color}))] group-hover:scale-110 transition-transform`} />
-                    <span className={`text-3xl font-bold text-[hsl(var(--${stat.color}))] font-mono`}>{stat.value}</span>
+                    <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 text-[hsl(var(--${stat.color}))] group-hover:scale-110 transition-transform`} />
+                    <span className={`text-2xl sm:text-3xl font-bold text-[hsl(var(--${stat.color}))] font-mono`}>{stat.value}</span>
                   </div>
                   <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
                 </div>
@@ -178,10 +181,11 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              className="w-full sm:w-auto"
             >
-              <Button 
-                size="lg" 
-                className="relative bg-gradient-to-r from-primary via-primary to-dc-accent text-primary-foreground shadow-2xl hover:shadow-[0_0_25px_hsl(var(--primary)/0.6)] text-xl px-12 py-6 font-bold border-0 overflow-hidden group"
+              <Button
+                size="lg"
+                className="relative w-full bg-gradient-to-r from-primary via-primary to-dc-accent text-primary-foreground shadow-2xl hover:shadow-[0_0_25px_hsl(var(--primary)/0.6)] text-lg sm:text-xl px-8 sm:px-12 py-5 sm:py-6 font-bold border-0 overflow-hidden group"
                 onClick={onJoinVIP}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
@@ -194,11 +198,12 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              className="w-full sm:w-auto"
             >
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-primary/40 text-primary hover:bg-primary/10 backdrop-blur-md bg-card/20 text-xl px-12 py-6 font-semibold relative overflow-hidden group"
+                className="relative w-full border-2 border-primary/40 text-primary hover:bg-primary/10 backdrop-blur-md bg-card/20 text-lg sm:text-xl px-8 sm:px-12 py-5 sm:py-6 font-semibold overflow-hidden group"
                 onClick={onLearnMore}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />

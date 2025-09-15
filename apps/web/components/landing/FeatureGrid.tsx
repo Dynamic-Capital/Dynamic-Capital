@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { MotionHoverCard, MotionStagger, MotionScrollReveal } from "@/components/ui/motion-components";
 import { TrendingUp, Shield, Users } from "lucide-react";
@@ -8,33 +8,36 @@ import { callEdgeFunction } from "@/config/supabase";
 import { motion } from "framer-motion";
 
 const FeatureGrid = () => {
-  const defaultContent = {
-    heading: "Why Choose Dynamic Capital?",
-    subheading: "Get exclusive access to premium features designed for elite traders",
-    features: [
-      {
-        icon: TrendingUp,
-        title: "Premium Signals",
-        description:
-          "Receive high-accuracy trading signals with detailed entry, exit, and stop-loss levels. Our signals have a proven 92% success rate.",
-        color: "from-[hsl(var(--accent-green-light))] to-[hsl(var(--accent-green))]",
-      },
-      {
-        icon: Shield,
-        title: "Risk Management",
-        description:
-          "Professional risk management strategies to protect your capital and maximize profits with expert guidance every step of the way.",
-        color: "from-[hsl(var(--dc-secondary))] to-[hsl(var(--accent-teal))]",
-      },
-      {
-        icon: Users,
-        title: "VIP Community",
-        description:
-          "Join an exclusive community of successful traders and learn from the best. Network, share strategies, and grow together.",
-        color: "from-[hsl(var(--dc-accent))] to-[hsl(var(--accent-pink))]",
-      },
-    ],
-  };
+  const defaultContent = useMemo(
+    () => ({
+      heading: "Why Choose Dynamic Capital?",
+      subheading: "Get exclusive access to premium features designed for elite traders",
+      features: [
+        {
+          icon: TrendingUp,
+          title: "Premium Signals",
+          description:
+            "Receive high-accuracy trading signals with detailed entry, exit, and stop-loss levels. Our signals have a proven 92% success rate.",
+          color: "from-[hsl(var(--accent-green-light))] to-[hsl(var(--accent-green))]",
+        },
+        {
+          icon: Shield,
+          title: "Risk Management",
+          description:
+            "Professional risk management strategies to protect your capital and maximize profits with expert guidance every step of the way.",
+          color: "from-[hsl(var(--dc-secondary))] to-[hsl(var(--accent-teal))]",
+        },
+        {
+          icon: Users,
+          title: "VIP Community",
+          description:
+            "Join an exclusive community of successful traders and learn from the best. Network, share strategies, and grow together.",
+          color: "from-[hsl(var(--dc-accent))] to-[hsl(var(--accent-pink))]",
+        },
+      ],
+    }),
+    []
+  );
 
   const [content, setContent] = useState(defaultContent);
 
@@ -97,10 +100,10 @@ const FeatureGrid = () => {
     };
 
     fetchContent();
-  }, []);
+  }, [defaultContent]);
 
   return (
-    <section className="py-24 bg-gradient-to-b from-background via-card/20 to-background relative overflow-hidden">
+    <section className="py-20 sm:py-24 bg-gradient-to-b from-background via-card/20 to-background relative overflow-hidden">
       {/* Enhanced Interactive Background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-dc-secondary/15 via-accent-teal/10 to-transparent rounded-full blur-3xl animate-pulse opacity-60" />
@@ -112,11 +115,11 @@ const FeatureGrid = () => {
         <div className="absolute bottom-32 left-32 w-2 h-2 bg-dc-accent rounded-full animate-bounce opacity-60" style={{ animationDelay: '3s' }} />
         <div className="absolute top-40 left-1/4 w-4 h-4 bg-accent-teal rounded-full animate-bounce opacity-60" style={{ animationDelay: '5s' }} />
       </div>
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6">
         <MotionScrollReveal>
           <div className="text-center mb-20">
-            <motion.h2 
-              className="text-4xl md:text-6xl font-bold mb-8 font-poppins relative"
+            <motion.h2
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-8 font-poppins relative"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -127,8 +130,8 @@ const FeatureGrid = () => {
               </span>
               <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-dc-accent/10 to-primary/10 blur-2xl opacity-50 -z-10" />
             </motion.h2>
-            <motion.p 
-              className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto font-inter leading-relaxed font-light"
+            <motion.p
+              className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto font-inter leading-relaxed font-light"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -139,7 +142,7 @@ const FeatureGrid = () => {
           </div>
         </MotionScrollReveal>
 
-        <MotionStagger staggerDelay={0.15} className="grid md:grid-cols-3 gap-10">
+        <MotionStagger staggerDelay={0.15} className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 sm:gap-8">
           {content.features.map((feature, index) => (
             <MotionHoverCard key={index} hoverScale={1.02} hoverY={-8}>
               <motion.div
@@ -151,20 +154,20 @@ const FeatureGrid = () => {
                   {/* Hover Effect Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-dc-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
-                  <CardContent className="relative p-10 text-center">
+                  <CardContent className="relative p-8 sm:p-10 text-center">
                     <motion.div
-                      className={`bot-icon-wrapper w-20 h-20 mx-auto mb-8 bg-gradient-to-br ${feature.color} shadow-lg group-hover:shadow-xl`}
+                      className={`bot-icon-wrapper w-20 h-20 mx-auto mb-6 sm:mb-8 bg-gradient-to-br ${feature.color} shadow-lg group-hover:shadow-xl`}
                       whileHover={{ scale: 1.1, rotate: 5 }}
                       transition={{ type: "spring", stiffness: 400, damping: 17 }}
                     >
                       <feature.icon className="w-10 h-10 text-white" />
                     </motion.div>
                     
-                    <h3 className="text-2xl font-bold mb-5 group-hover:text-primary transition-colors font-poppins tracking-tight">
+                    <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-5 group-hover:text-primary transition-colors font-poppins tracking-tight">
                       {feature.title}
                     </h3>
                     
-                    <p className="text-muted-foreground leading-relaxed font-inter text-lg group-hover:text-foreground/80 transition-colors">
+                    <p className="text-muted-foreground leading-relaxed font-inter text-base sm:text-lg group-hover:text-foreground/80 transition-colors">
                       {feature.description}
                     </p>
                     

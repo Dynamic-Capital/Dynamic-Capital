@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,66 +25,69 @@ interface IntegrationSectionProps {
 }
 
 const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }: IntegrationSectionProps) => {
-  const defaultContent = {
-    badge: "Platform Integration",
-    title: "Seamless Trading Experience",
-    description:
-      "Connect with our ecosystem of tools and platforms designed for professional traders",
-    integrations: [
-      {
-        title: "Telegram Bot",
-        description: "Access premium signals and commands through our official bot",
-        icon: Bot,
-        link: "@Dynamic_VIP_BOT",
-        color: "from-[hsl(var(--telegram))] to-[hsl(var(--telegram-dark))]",
-        action: onOpenTelegram,
-        primary: true,
-      },
-      {
-        title: "Account Portal",
-        description: "Manage your subscription and view payment status",
-        icon: User,
-        link: "Account Dashboard",
-        color: "from-[hsl(var(--dc-secondary))] to-[hsl(var(--accent-teal))]",
-        action: onViewAccount,
-        primary: false,
-      },
-      {
-        title: "Support Center",
-        description: "Get help from our expert trading support team",
-        icon: HelpCircle,
-        link: "Contact Support",
-        color: "from-[hsl(var(--dc-accent))] to-[hsl(var(--accent-pink))]",
-        action: onContactSupport,
-        primary: false,
-      },
-    ],
-    botTitle: "@Dynamic_VIP_BOT",
-    botDescription:
-      "Your personal trading assistant with instant access to premium signals, market analysis, and VIP community features. Start receiving professional trading alerts directly in Telegram.",
-    botPrimaryButton: "Open Telegram Bot",
-    botSecondaryButton: "Copy Bot Link",
-    featuresTitle: "Platform Features",
-    featuresDescription:
-      "Built for professional traders with modern tools and security",
-    features: [
-      {
-        icon: Smartphone,
-        title: "Mobile Optimized",
-        description: "Access signals on any device, anywhere",
-      },
-      {
-        icon: Shield,
-        title: "Secure Platform",
-        description: "Your data protected with enterprise security",
-      },
-      {
-        icon: Globe,
-        title: "Global Access",
-        description: "Available worldwide, 24/7 market coverage",
-      },
-    ],
-  };
+  const defaultContent = useMemo(
+    () => ({
+      badge: "Platform Integration",
+      title: "Seamless Trading Experience",
+      description:
+        "Connect with our ecosystem of tools and platforms designed for professional traders",
+      integrations: [
+        {
+          title: "Telegram Bot",
+          description: "Access premium signals and commands through our official bot",
+          icon: Bot,
+          link: "@Dynamic_VIP_BOT",
+          color: "from-[hsl(var(--telegram))] to-[hsl(var(--telegram-dark))]",
+          action: onOpenTelegram,
+          primary: true,
+        },
+        {
+          title: "Account Portal",
+          description: "Manage your subscription and view payment status",
+          icon: User,
+          link: "Account Dashboard",
+          color: "from-[hsl(var(--dc-secondary))] to-[hsl(var(--accent-teal))]",
+          action: onViewAccount,
+          primary: false,
+        },
+        {
+          title: "Support Center",
+          description: "Get help from our expert trading support team",
+          icon: HelpCircle,
+          link: "Contact Support",
+          color: "from-[hsl(var(--dc-accent))] to-[hsl(var(--accent-pink))]",
+          action: onContactSupport,
+          primary: false,
+        },
+      ],
+      botTitle: "@Dynamic_VIP_BOT",
+      botDescription:
+        "Your personal trading assistant with instant access to premium signals, market analysis, and VIP community features. Start receiving professional trading alerts directly in Telegram.",
+      botPrimaryButton: "Open Telegram Bot",
+      botSecondaryButton: "Copy Bot Link",
+      featuresTitle: "Platform Features",
+      featuresDescription:
+        "Built for professional traders with modern tools and security",
+      features: [
+        {
+          icon: Smartphone,
+          title: "Mobile Optimized",
+          description: "Access signals on any device, anywhere",
+        },
+        {
+          icon: Shield,
+          title: "Secure Platform",
+          description: "Your data protected with enterprise security",
+        },
+        {
+          icon: Globe,
+          title: "Global Access",
+          description: "Available worldwide, 24/7 market coverage",
+        },
+      ],
+    }),
+    [onOpenTelegram, onViewAccount, onContactSupport]
+  );
 
   const [content, setContent] = useState(defaultContent);
 
@@ -181,7 +184,7 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
     };
 
     fetchContent();
-  }, [onOpenTelegram, onViewAccount, onContactSupport]);
+  }, [defaultContent]);
 
   return (
     <section className="py-20 bg-gradient-to-b from-background via-muted/10 to-background relative">
@@ -191,24 +194,24 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
         <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-r from-[hsl(var(--primary)/0.1)] to-[hsl(var(--dc-secondary)/0.1)] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
-      <div className="container mx-auto px-6 relative">
+      <div className="container mx-auto px-4 sm:px-6 relative">
         <MotionScrollReveal>
           <div className="text-center mb-16">
-            <Badge className="mb-6 bg-[hsl(var(--telegram)/0.1)] text-[hsl(var(--telegram))] border-[hsl(var(--telegram)/0.3)] text-lg px-6 py-2">
+            <Badge className="mb-6 bg-[hsl(var(--telegram)/0.1)] text-[hsl(var(--telegram))] border-[hsl(var(--telegram)/0.3)] text-base sm:text-lg px-5 sm:px-6 py-2">
               <MessageCircle className="w-5 h-5 mr-2" />
               {content.badge}
             </Badge>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 font-poppins text-foreground">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 font-poppins text-foreground">
               {content.title}
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed">
               {content.description}
             </p>
           </div>
         </MotionScrollReveal>
 
         {/* Main Integration Cards */}
-        <MotionStagger staggerDelay={0.2} className="grid md:grid-cols-3 gap-8 mb-16">
+        <MotionStagger staggerDelay={0.2} className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 mb-16">
           {content.integrations.map((integration, index) => (
             <MotionHoverCard key={integration.title} hoverScale={integration.primary ? 1.08 : 1.05} hoverY={-12}>
               <Card
@@ -250,23 +253,23 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
         {/* Telegram Bot Feature Highlight */}
         <MotionScrollReveal>
           <Card className="bg-gradient-to-r from-telegram/10 via-background to-telegram/10 border-telegram/20 mb-16">
-            <CardContent className="p-8 text-center">
+            <CardContent className="p-6 sm:p-8 text-center">
               <div className="max-w-4xl mx-auto">
                 <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-telegram to-telegram-dark rounded-full flex items-center justify-center">
                   <Bot className="w-10 h-10 text-white" />
                 </div>
 
-                <h3 className="text-2xl md:text-3xl font-bold mb-4 font-poppins">
+                <h3 className="text-2xl sm:text-3xl font-bold mb-4 font-poppins">
                   {content.botTitle}
                 </h3>
-                <p className="text-lg text-muted-foreground mb-6 font-inter max-w-2xl mx-auto">
+                <p className="text-base sm:text-lg text-muted-foreground mb-6 font-inter max-w-2xl mx-auto">
                   {content.botDescription}
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
                     size="lg"
-                    className="bg-telegram hover:bg-telegram/90 text-white font-semibold"
+                    className="w-full sm:w-auto bg-telegram hover:bg-telegram/90 text-white font-semibold"
                     onClick={onOpenTelegram}
                   >
                     <MessageCircle className="w-5 h-5 mr-2" />
@@ -276,7 +279,7 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-telegram text-telegram hover:bg-telegram/10"
+                    className="w-full sm:w-auto border-telegram text-telegram hover:bg-telegram/10"
                     onClick={() => window.open('https://t.me/Dynamic_VIP_BOT', '_blank')}
                   >
                     {content.botSecondaryButton}
@@ -291,27 +294,27 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
         {/* Platform Features */}
         <MotionScrollReveal>
           <div className="text-center mb-12">
-            <h3 className="text-2xl md:text-3xl font-bold mb-4 font-poppins text-foreground">
+            <h3 className="text-2xl sm:text-3xl font-bold mb-4 font-poppins text-foreground">
               {content.featuresTitle}
             </h3>
-            <p className="text-lg text-muted-foreground font-inter">
+            <p className="text-base sm:text-lg text-muted-foreground font-inter">
               {content.featuresDescription}
             </p>
           </div>
         </MotionScrollReveal>
 
-        <MotionStagger staggerDelay={0.3} className="grid md:grid-cols-3 gap-8">
+        <MotionStagger staggerDelay={0.3} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {content.features.map((feature, index) => (
             <MotionHoverCard key={feature.title} hoverScale={1.05} hoverY={-8}>
               <Card className="bot-card group hover:shadow-xl transition-all duration-300 text-center">
-                <CardContent className="p-6">
+                <CardContent className="p-5 sm:p-6">
                   <div className="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-primary to-[hsl(var(--dc-accent))] rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
                   <h4 className="text-lg font-semibold mb-3 group-hover:text-primary transition-colors font-poppins">
                     {feature.title}
                   </h4>
-                  <p className="text-muted-foreground font-inter text-sm">{feature.description}</p>
+                  <p className="text-muted-foreground font-inter text-sm sm:text-base">{feature.description}</p>
                 </CardContent>
               </Card>
             </MotionHoverCard>

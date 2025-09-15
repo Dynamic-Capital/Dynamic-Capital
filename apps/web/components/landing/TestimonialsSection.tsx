@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { CardContent } from "@/components/ui/card";
@@ -14,33 +14,36 @@ import { callEdgeFunction } from "@/config/supabase";
 const TestimonialsSection = () => {
   const shouldReduceMotion = useReducedMotion();
 
-  const defaultContent = {
-    heading: "Trusted by Elite Traders Worldwide",
-    subheading: "See what our VIP members are saying about their trading success",
-    testimonials: [
-      {
-        name: "Sarah M.",
-        role: "Professional Trader",
-        avatar: "💼",
-        text: "Dynamic Capital's signals increased my portfolio by 340% in 6 months. The accuracy is incredible!",
-        profit: "+$45,000",
-      },
-      {
-        name: "James L.",
-        role: "Investment Manager",
-        avatar: "📈",
-        text: "Best trading signals I've ever used. The community support and analysis are unmatched.",
-        profit: "+$78,000",
-      },
-      {
-        name: "Maria K.",
-        role: "Day Trader",
-        avatar: "🎯",
-        text: "From losing money to consistent profits. Dynamic Capital changed my trading game completely!",
-        profit: "+$32,000",
-      },
-    ],
-  };
+  const defaultContent = useMemo(
+    () => ({
+      heading: "Trusted by Elite Traders Worldwide",
+      subheading: "See what our VIP members are saying about their trading success",
+      testimonials: [
+        {
+          name: "Sarah M.",
+          role: "Professional Trader",
+          avatar: "💼",
+          text: "Dynamic Capital's signals increased my portfolio by 340% in 6 months. The accuracy is incredible!",
+          profit: "+$45,000",
+        },
+        {
+          name: "James L.",
+          role: "Investment Manager",
+          avatar: "📈",
+          text: "Best trading signals I've ever used. The community support and analysis are unmatched.",
+          profit: "+$78,000",
+        },
+        {
+          name: "Maria K.",
+          role: "Day Trader",
+          avatar: "🎯",
+          text: "From losing money to consistent profits. Dynamic Capital changed my trading game completely!",
+          profit: "+$32,000",
+        },
+      ],
+    }),
+    []
+  );
 
   const [content, setContent] = useState(defaultContent);
 
@@ -112,7 +115,7 @@ const TestimonialsSection = () => {
     };
 
     fetchContent();
-  }, []);
+  }, [defaultContent]);
 
   return (
       <section className="py-20 bg-gradient-to-b from-background via-muted/20 to-background relative">
@@ -135,26 +138,26 @@ const TestimonialsSection = () => {
             transition={shouldReduceMotion ? { duration: 0 } : { duration: 25, repeat: Infinity, ease: "linear" }}
           />
         </div>
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 sm:px-6">
           <MotionScrollReveal>
             <div className="text-center mb-16">
               <GradientText
                 text={content.heading}
                 gradient="from-foreground via-primary to-[hsl(var(--dc-accent))]"
-                className="text-3xl md:text-5xl font-bold mb-6 font-poppins block"
+                className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 font-poppins block"
                 animate={true}
                 animationDuration={6}
               />
               <TypewriterText
                 text={content.subheading}
-                className="text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed"
+                className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto font-inter leading-relaxed"
                 delay={1000}
                 speed={30}
               />
             </div>
           </MotionScrollReveal>
 
-          <AutoSizingGrid stagger={0.2} minItemWidth={280} gap={32} className="mb-16">
+          <AutoSizingGrid stagger={0.2} minItemWidth={260} gap={24} className="mb-16">
             {content.testimonials.map((testimonial, index) => (
               <MotionCard
                 key={index}
@@ -162,7 +165,7 @@ const TestimonialsSection = () => {
                 hover={true}
                 animate={true}
                 delay={index * 0.2}
-                className="p-6 motion-card-glow"
+                className="p-5 sm:p-6 motion-card-glow"
               >
                 <CardContent className="space-y-4 p-0">
                   <div className="flex items-center gap-4">
