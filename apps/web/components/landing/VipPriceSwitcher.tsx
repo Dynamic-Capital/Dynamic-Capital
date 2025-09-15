@@ -9,7 +9,7 @@ const VipPriceSwitcher = () => {
 
   return (
     <section className="py-16 bg-gradient-to-b from-transparent via-card/10 to-transparent">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6">
         <motion.div 
           className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
@@ -25,19 +25,19 @@ const VipPriceSwitcher = () => {
           </p>
         </motion.div>
 
-        <motion.div 
-          className="flex justify-center mb-8"
+        <motion.div
+          className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-8"
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
         >
           <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-2 shadow-lg">
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <motion.button
-                className={`px-8 py-4 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden ${
-                  billing === 'monthly' 
-                    ? 'bg-gradient-to-r from-primary to-dc-accent text-white shadow-lg shadow-primary/30' 
+                className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden ${
+                  billing === 'monthly'
+                    ? 'bg-gradient-to-r from-primary to-dc-accent text-white shadow-lg shadow-primary/30'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
                 onClick={() => setBilling('monthly')}
@@ -55,9 +55,9 @@ const VipPriceSwitcher = () => {
               </motion.button>
               
               <motion.button
-                className={`px-8 py-4 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden ${
-                  billing === 'annual' 
-                    ? 'bg-gradient-to-r from-primary to-dc-accent text-white shadow-lg shadow-primary/30' 
+                className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold transition-all duration-300 relative overflow-hidden ${
+                  billing === 'annual'
+                    ? 'bg-gradient-to-r from-primary to-dc-accent text-white shadow-lg shadow-primary/30'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
                 onClick={() => setBilling('annual')}
@@ -98,10 +98,10 @@ const VipPriceSwitcher = () => {
                   transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
                   className="text-center"
                 >
-                  <div className="text-6xl md:text-7xl font-black bg-gradient-to-r from-primary via-dc-accent to-primary bg-clip-text text-transparent mb-2">
+                  <div className="text-5xl sm:text-6xl md:text-7xl font-black bg-gradient-to-r from-primary via-dc-accent to-primary bg-clip-text text-transparent mb-2">
                     $49
                   </div>
-                  <div className="text-xl text-muted-foreground font-medium">
+                  <div className="text-lg sm:text-xl text-muted-foreground font-medium">
                     per month
                   </div>
                 </motion.div>
@@ -114,10 +114,10 @@ const VipPriceSwitcher = () => {
                   transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
                   className="text-center"
                 >
-                  <div className="text-6xl md:text-7xl font-black bg-gradient-to-r from-primary via-dc-accent to-primary bg-clip-text text-transparent mb-2">
+                  <div className="text-5xl sm:text-6xl md:text-7xl font-black bg-gradient-to-r from-primary via-dc-accent to-primary bg-clip-text text-transparent mb-2">
                     $480
                   </div>
-                  <div className="text-xl text-muted-foreground font-medium">
+                  <div className="text-lg sm:text-xl text-muted-foreground font-medium">
                     per year
                   </div>
                   <div className="text-sm text-accent-green font-semibold mt-2">

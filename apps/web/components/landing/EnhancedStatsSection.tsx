@@ -58,14 +58,14 @@ const EnhancedStatsSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-b from-background via-card/10 to-background relative overflow-hidden">
+    <section className="py-20 sm:py-24 bg-gradient-to-b from-background via-card/10 to-background relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-10 w-72 h-72 bg-gradient-to-r from-primary/10 via-dc-accent/5 to-transparent rounded-full blur-3xl animate-pulse opacity-60" />
         <div className="absolute bottom-1/4 right-10 w-80 h-80 bg-gradient-to-l from-dc-accent/10 via-primary/5 to-transparent rounded-full blur-3xl animate-pulse opacity-60" style={{ animationDelay: '2s' }} />
       </div>
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <motion.div 
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
@@ -81,7 +81,7 @@ const EnhancedStatsSection = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 sm:gap-6">
           {stats.map((stat, index) => (
             <motion.div
               key={index}
@@ -105,7 +105,7 @@ const EnhancedStatsSection = () => {
                 {/* Animated Border */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
-                <CardContent className="relative p-6 text-center">
+                <CardContent className="relative p-5 sm:p-6 text-center">
                   <motion.div
                     className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg mb-4 group-hover:shadow-xl`}
                     whileHover={{ scale: 1.1, rotate: 5 }}
@@ -156,7 +156,7 @@ const EnhancedStatsSection = () => {
         </div>
 
         {/* Call to Action */}
-        <motion.div 
+        <motion.div
           className="text-center mt-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -169,8 +169,9 @@ const EnhancedStatsSection = () => {
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            className="w-full sm:w-auto mx-auto"
           >
-            <button className="bg-gradient-to-r from-primary to-dc-accent text-white px-8 py-4 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden group">
+            <button className="w-full bg-gradient-to-r from-primary to-dc-accent text-white px-8 py-4 sm:px-10 sm:py-5 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
               Start Your VIP Journey
             </button>
