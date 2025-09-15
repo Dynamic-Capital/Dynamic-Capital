@@ -2,6 +2,13 @@
 
 This tracker documents the outstanding work required across the Dynamic Capital project. Check items off as they are completed.
 
+### Automation helper
+
+Run `npm run checklists -- --list` to see automation-friendly tasks mapped to this document and related checklists. When you
+need to execute the scripted steps for a section, call the helper with the relevant key, for example `npm run checklists --
+--checklist dynamic-capital`. Optional items (long-running builds or smoke tests) are skipped by default; include them with
+`--include-optional`. You can also target individual tasks with `--only <task-id>` or exclude steps with `--skip <task-id>`.
+
 ## Repo-Level Action Items
 - [ ] Add default exports to all Edge Functions.
 - [ ] Build out integration tests for payment and webhook flows.
