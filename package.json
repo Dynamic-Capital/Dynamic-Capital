@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@vercel/otel": "^1.13.0",
+    "inngest": "^3.40.3",
     "lovable-tagger": "^1.1.9"
   }
 }
