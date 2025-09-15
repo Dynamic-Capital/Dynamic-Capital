@@ -1,0 +1,31 @@
+.once-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+.once-btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 2px solid transparent;
+}
+.once-btn.primary {
+  background: #f13d00;
+  border-color: #f13d00;
+  color: #fff;
+}
+.once-btn.primary:hover {
+  background: #c13100;
+  border-color: #c13100;
+}
+.once-btn.outline {
+  background: transparent;
+  border-color: currentColor;
+  color: #fff;
+}
+.once-btn.small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
