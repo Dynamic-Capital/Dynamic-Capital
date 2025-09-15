@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { ok } from "../_shared/http.ts";
 
-serve(async (req) => {
+export async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "data-retention-cron", ts: new Date().toISOString() });
@@ -40,4 +40,8 @@ serve(async (req) => {
       bans: del3.data?.length || 0,
     },
   });
-});
+}
+
+if (import.meta.main) serve(handler);
+
+export default handler;

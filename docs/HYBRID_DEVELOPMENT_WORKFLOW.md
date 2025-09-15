@@ -19,7 +19,7 @@ graph TD
 1. **Maintain production on DigitalOcean** – The live app stays hosted on DigitalOcean with Supabase as its backend. Ensure environment variables are configured in the hosting platform.
 2. **Prototype in Lovable** – Use Lovable to design landing pages and UI updates. Configure the same environment variables so prototypes mirror production.
 3. **Export via Codex CLI** – Pull changes from Lovable into the repository using the Codex CLI and run `node lovable-build.js` to verify environment variables and build outputs.
-4. **Local testing and iteration** – Run `npm run dev` to preview the app locally and refine components as needed.
+4. **Local testing and iteration** – Run `node lovable-dev.js` (or `npm run dev:lovable`) to verify environment variables, check Supabase connectivity, and preview the app locally.
 5. **GitHub sync and version control** – Commit and push changes to GitHub so both Lovable and DigitalOcean stay in sync.
 6. **Deployment pipeline** – Merge validated changes to the production branch. DigitalOcean rebuilds from GitHub, keeping the live app current with Lovable and local updates.
 

@@ -1,14 +1,22 @@
 // scripts/check-supabase-connectivity.ts
 /**
- * Fails if the Supabase REST endpoint is unreachable or returns a non-2xx status.
+ * Verifies the Supabase REST endpoint is reachable. If the required environment
+ * variables are missing, the check is skipped with a warning.
  *
  * Usage:
  *   deno run -A scripts/check-supabase-connectivity.ts
  */
-import { requireEnvVar } from "../utils/env.ts";
+import { optionalEnvVar } from "../apps/web/utils/env.ts";
 
-const SUPABASE_URL = requireEnvVar("SUPABASE_URL");
-const SUPABASE_ANON_KEY = requireEnvVar("SUPABASE_ANON_KEY");
+const SUPABASE_URL = optionalEnvVar("SUPABASE_URL");
+const SUPABASE_ANON_KEY = optionalEnvVar("SUPABASE_ANON_KEY");
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.warn(
+    "⚠️  Skipping Supabase connectivity check: SUPABASE_URL or SUPABASE_ANON_KEY not set.",
+  );
+  Deno.exit(0);
+}
 
 try {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/`, {

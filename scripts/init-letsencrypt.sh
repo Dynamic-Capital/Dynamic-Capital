@@ -1,15 +1,18 @@
 #!/bin/bash
-# Obtain an initial Let's Encrypt certificate for dynamiccapital.duckdns.org
-# Usage: EMAIL=user@example.com ./scripts/init-letsencrypt.sh
+# Obtain an initial Let's Encrypt certificate for the provided DOMAIN and
+# common subdomains (api and www).
+# Usage: DOMAIN=example.com EMAIL=user@example.com ./scripts/init-letsencrypt.sh
 set -euo pipefail
 
-DOMAIN="dynamiccapital.duckdns.org"
-EMAIL="${EMAIL:-admin@dynamiccapital.duckdns.org}"
+DOMAIN="${DOMAIN:?DOMAIN environment variable is required}"
+EMAIL="${EMAIL:-admin@${DOMAIN}}"
 WEBROOT_PATH="/var/lib/letsencrypt"
 
 docker compose run --rm certbot certonly \
-  --webroot -w ${WEBROOT_PATH} \
+  --webroot -w "${WEBROOT_PATH}" \
   --email "${EMAIL}" \
   --agree-tos \
   --no-eff-email \
-  -d ${DOMAIN}
+  -d "${DOMAIN}" \
+  -d "www.${DOMAIN}" \
+  -d "api.${DOMAIN}"

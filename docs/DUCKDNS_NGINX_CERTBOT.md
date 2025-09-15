@@ -1,6 +1,6 @@
 # Nginx and Let's Encrypt for DuckDNS
 
-These steps install Nginx, enable HTTPS with Certbot, and force all traffic to your DuckDNS domain `dynamiccapital.duckdns.org`.
+These steps install Nginx, enable HTTPS with Certbot, and force all traffic to your DuckDNS domain (replace `example.duckdns.org` with your own).
 
 1. **Install Nginx**
    ```bash
@@ -16,18 +16,18 @@ These steps install Nginx, enable HTTPS with Certbot, and force all traffic to y
 
 3. **Create a web root**
    ```bash
-   sudo mkdir -p /var/www/dynamiccapital
-   sudo chown -R $USER:$USER /var/www/dynamiccapital
+   sudo mkdir -p /var/www/example
+   sudo chown -R $USER:$USER /var/www/example
    ```
 
 4. **Configure Nginx**
-   Create `/etc/nginx/sites-available/dynamiccapital`:
+   Create `/etc/nginx/sites-available/example`:
    ```nginx
    server {
        listen 80;
        listen [::]:80;
-       server_name dynamiccapital.duckdns.org;
-       root /var/www/dynamiccapital;
+       server_name example.duckdns.org;
+       root /var/www/example;
 
        location / {
            proxy_pass http://127.0.0.1:3000;  # adjust to your backend
@@ -37,12 +37,12 @@ These steps install Nginx, enable HTTPS with Certbot, and force all traffic to y
    server {
        listen 80 default_server;
        listen [::]:80 default_server;
-       return 301 https://dynamiccapital.duckdns.org$request_uri;
+       return 301 https://example.duckdns.org$request_uri;
    }
    ```
    Then enable the site and reload:
    ```bash
-   sudo ln -s /etc/nginx/sites-available/dynamiccapital /etc/nginx/sites-enabled/
+   sudo ln -s /etc/nginx/sites-available/example /etc/nginx/sites-enabled/
    sudo nginx -t
    sudo systemctl reload nginx
    ```
@@ -57,14 +57,14 @@ These steps install Nginx, enable HTTPS with Certbot, and force all traffic to y
 
 6. **Request a certificate and enable HTTPS**
    ```bash
-   sudo certbot --nginx -d dynamiccapital.duckdns.org
+   sudo certbot --nginx -d example.duckdns.org
    ```
    Certbot updates Nginx with an HTTPS server block.
 
 7. **Force HTTP to HTTPS**
    Ensure the port-80 block contains:
    ```nginx
-   return 301 https://dynamiccapital.duckdns.org$request_uri;
+   return 301 https://example.duckdns.org$request_uri;
    ```
    Reload Nginx:
    ```bash
@@ -73,7 +73,7 @@ These steps install Nginx, enable HTTPS with Certbot, and force all traffic to y
    ```
 
 8. **Verify redirect and HTTPS**
-   - Visit `http://dynamiccapital.duckdns.org`; it should redirect to `https://dynamiccapital.duckdns.org`.
+   - Visit `http://example.duckdns.org`; it should redirect to `https://example.duckdns.org`.
    - Check in your browser that the certificate is valid.
 
 9. **Confirm automatic certificate renewal**
@@ -87,12 +87,12 @@ These steps secure the DuckDNS domain with automatic HTTPS certificates.
 ## Docker-based setup
 
 This project also ships with a containerized Nginx and Certbot configuration.
-From the repository root, obtain the initial certificate and start the services:
+From the repository root, obtain the initial certificate (covering the root, `www`, and `api` subdomains) and start the services:
 
 ```bash
-EMAIL=you@example.com scripts/init-letsencrypt.sh
+DOMAIN=example.duckdns.org EMAIL=you@example.com scripts/init-letsencrypt.sh
 docker compose up -d nginx certbot
 ```
 
 The `certbot` service renews certificates automatically and Nginx forces all
-traffic to `https://dynamiccapital.duckdns.org`.
+traffic to `https://example.duckdns.org`.
