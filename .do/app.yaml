@@ -1,13 +1,8 @@
 spec:
   name: dynamic-capital
   envs:
-    - key: CDN_BUCKET
-      scope: RUN_AND_BUILD_TIME
-    - key: CDN_REGION
-      scope: RUN_AND_BUILD_TIME
-    - key: CDN_ACCESS_KEY
-      scope: RUN_AND_BUILD_TIME
-    - key: CDN_SECRET_KEY
+    - key: NODE_ENV
+      value: production
       scope: RUN_AND_BUILD_TIME
     - key: SITE_URL
       value: https://dynamic-capital.ondigitalocean.app
@@ -16,35 +11,31 @@ spec:
       value: https://dynamic-capital.ondigitalocean.app
       scope: RUN_AND_BUILD_TIME
     - key: NEXT_PUBLIC_SUPABASE_URL
+      value: https://qeejuomcapbdlhnjqjcc.supabase.co
       scope: RUN_AND_BUILD_TIME
     - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZWp1b21jYXBiZGxobmpxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMDE4MTUsImV4cCI6MjA2OTc3NzgxNX0.GfK9Wwx0WX_GhDIz1sIQzNstyAQIF2Jd6p7t02G44zk
       scope: RUN_AND_BUILD_TIME
     - key: SUPABASE_SERVICE_ROLE_KEY
       scope: RUN_TIME
-  static_sites:
-    - name: landing
-      source_dir: apps/landing
-      output_dir: public
-      index_document: index.html
-      build_command: "npm ci && npm run build && npm --prefix ../.. run upload-assets"
+    - key: CDN_BUCKET
+      scope: RUN_AND_BUILD_TIME
+    - key: CDN_REGION
+      scope: RUN_AND_BUILD_TIME
+    - key: CDN_ACCESS_KEY
+      scope: RUN_AND_BUILD_TIME
+    - key: CDN_SECRET_KEY
+      scope: RUN_AND_BUILD_TIME
+  services:
+    - name: web
+      source_dir: .
+      environment_slug: node-js
+      build_command: "cd apps/web && npm ci && npm run build"
+      run_command: "cd apps/web && PORT=$PORT npm start"
+      http_port: 8080
+      instance_count: 1
+      instance_size_slug: basic-xxs
       routes:
         - path: /
-  services:
-      - name: web
-        source_dir: apps/web
-        environment_slug: node-js
-        build_command: "npm ci && npm run build"
-        run_command: "PORT=$PORT npm start"
-        http_port: 8080
-        routes:
-          - path: /
-        health_check:
-          http_path: /healthz
-      - name: api
-        source_dir: .
-        environment_slug: node-js
-        http_port: 8080
-        build_command: "npm ci"
-        run_command: "node server.js"
-        health_check:
-          http_path: /healthz
+      health_check:
+        http_path: /
