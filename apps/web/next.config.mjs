@@ -36,7 +36,7 @@ if (
 const SITE_URL =
   process.env.SITE_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||
-    "http://localhost:8080";
+  "http://localhost:3000";
 
 const ALLOWED_ORIGINS =
   process.env.ALLOWED_ORIGINS || "http://localhost:3000";

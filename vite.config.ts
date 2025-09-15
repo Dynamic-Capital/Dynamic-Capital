@@ -3,10 +3,19 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { componentTagger } from "lovable-tagger"
 
+// Redirect to Next.js app for unified preview
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      // Proxy all requests to Next.js app
+      '/': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        ws: true,
+      }
+    }
   },
   plugins: [
     react(),
@@ -19,7 +28,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
-      input: './index.html'
+      input: './apps/web/app/page.tsx'
     }
   }
 }))
