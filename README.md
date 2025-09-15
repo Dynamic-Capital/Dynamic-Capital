@@ -430,6 +430,33 @@ curl -X POST "http://127.0.0.1:54321/functions/v1/telegram-bot" \
   -d '{"test":"ping"}'
 ```
 
+### Codex CLI workflow helper
+
+The Codex CLI pulls these changes into your local checkout. Run the helper
+scripts to reproduce Codex's post-export steps and keep everything in sync:
+
+- `npm run codex:post-pull` – install dependencies, sync environment files,
+  validate required variables, and run the combined Lovable build.
+- `npm run codex:dev` – ensure the environment is synced before launching
+  `lovable-dev.js` (Next.js dev server with Codex preflight checks).
+- `npm run codex:build` – run the Lovable production build locally (same as
+  Codex deploys).
+- `npm run codex:verify` – execute the repository verification suite.
+
+Pass extra flags after `--` to tweak the workflow:
+
+```bash
+npm run codex:post-pull -- --verify            # run verification after syncing
+npm run codex:post-pull -- --no-build          # skip the Lovable build step
+npm run codex:dev -- --no-sync                 # keep existing env values
+npm run codex:post-pull -- --dry-run           # list steps without executing
+```
+
+Available flags mirror the helper's usage (`--no-install`, `--no-sync`,
+`--no-env-check`, `--build-optional`, etc.). See
+`scripts/codex-workflow.js --help` for the full reference, and read
+`docs/codex_cli_workflow.md` for a deeper walkthrough of recommended flows.
+
 Note: for OCR parsing, send an actual Telegram image to the bot; OCR runs only
 on images.
 
