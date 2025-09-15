@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase, type Message } from '../lib/supabase';
+import { supabase, type Message, isSupabaseConfigured } from '../lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
@@ -11,51 +11,90 @@ export function MessagesDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMessages();
-    
-    // Set up real-time subscription
-    const subscription = supabase
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadMessages = async () => {
+      try {
+        setLoading(true);
+
+        const { data, error } = await supabase
+          .from('messages')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+        if (isMounted) {
+          setMessages(data ?? []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch messages:', err);
+        if (isMounted) {
+          setMessages([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadMessages();
+
+    const channel = supabase
       .channel('messages')
-      .on('postgres_changes', 
+      .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
-          setMessages(prev => [payload.new as Message, ...prev]);
+          const newMessage = payload.new as Message;
+          setMessages((prev) => {
+            const withoutDuplicate = prev.filter((message) => message.id !== newMessage.id);
+            return [newMessage, ...withoutDuplicate].slice(0, 50);
+          });
         }
-      )
-      .subscribe();
+      );
+
+    const subscription = channel.subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      isMounted = false;
+      if (typeof subscription?.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      } else if (typeof channel.unsubscribe === 'function') {
+        channel.unsubscribe();
+      }
     };
   }, []);
 
-  const fetchMessages = async () => {
-    try {
-      setLoading(true);
-      
-      // Check if Supabase is properly configured
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        console.warn('Supabase not configured. Using mock data.');
-        setMessages([]);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      setMessages(data || []);
-    } catch (err) {
-      console.error('Failed to fetch messages:', err);
-      // Set empty messages array on error to prevent UI breaking
-      setMessages([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!isSupabaseConfigured) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            Recent Messages
+            <Badge variant="secondary" className="ml-auto">
+              Supabase required
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>Supabase is not configured.</p>
+            <p className="text-sm">
+              Connect to Supabase to enable message history and real-time updates.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (loading) {
     return (
