@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Bot, MessageSquare, Database, Zap, ExternalLink } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 export function BotStatus() {
   const [messageCount, setMessageCount] = useState<number>(0);
@@ -13,43 +13,40 @@ export function BotStatus() {
   const botUsername = 'Dynamic_Pool_BOT';
 
   useEffect(() => {
+    const checkBotStatus = async () => {
+      try {
+        const response = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
+        const result = await response.json();
+        setIsOnline(result.ok);
+      } catch {
+        setIsOnline(false);
+      }
+    };
+
+    const loadMessageCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true });
+
+        if (!error && count !== null) {
+          setMessageCount(count);
+        } else {
+          setMessageCount(0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch message count:', error);
+        setMessageCount(0);
+      }
+    };
+
     checkBotStatus();
-    fetchMessageCount();
-  }, []);
-
-  const checkBotStatus = async () => {
-    try {
-      const response = await fetch(`https://api.telegram.org/bot${botToken}/getMe`);
-      const result = await response.json();
-      setIsOnline(result.ok);
-    } catch {
-      setIsOnline(false);
-    }
-  };
-
-  const fetchMessageCount = async () => {
-    try {
-      // Check if Supabase is properly configured
-      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        console.warn('Supabase not configured. Using default count.');
-        setMessageCount(0);
-        return;
-      }
-
-      const { count, error } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true });
-      
-      if (!error && count !== null) {
-        setMessageCount(count);
-      } else {
-        setMessageCount(0);
-      }
-    } catch (error) {
-      console.error('Failed to fetch message count:', error);
+    if (isSupabaseConfigured) {
+      loadMessageCount();
+    } else {
       setMessageCount(0);
     }
-  };
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -93,7 +90,14 @@ export function BotStatus() {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{messageCount}</div>
+            <div className="text-2xl font-bold">
+              {isSupabaseConfigured ? messageCount : '—'}
+            </div>
+            {!isSupabaseConfigured && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Connect Supabase to start tracking message history.
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -104,11 +108,16 @@ export function BotStatus() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <Badge variant="default">
+              <Badge variant={isSupabaseConfigured ? 'default' : 'secondary'}>
                 <Zap className="h-3 w-3 mr-1" />
-                Connected
+                {isSupabaseConfigured ? 'Connected' : 'Not configured'}
               </Badge>
             </div>
+            {!isSupabaseConfigured && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable database diagnostics.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

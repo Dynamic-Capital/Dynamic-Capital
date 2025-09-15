@@ -16,7 +16,7 @@ import {
   Database,
   ExternalLink
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, supabaseUrl as envSupabaseUrl } from '../lib/supabase';
 import { toast } from 'sonner';
 
 interface TestResult {
@@ -94,42 +94,46 @@ export function TelegramTester() {
     }
 
     // Test 3: Database Connection
-    updateResult('Database Connection', 'pending', 'Testing Supabase connection...');
-    try {
-      const { error } = await supabase.from('messages').select('count').limit(1);
-      if (error) throw error;
-      updateResult('Database Connection', 'success', 'Database connection successful', 
-        'Supabase connection and messages table accessible');
-    } catch (error) {
-      updateResult('Database Connection', 'error', 'Database connection failed', 
-        error instanceof Error ? error.message : 'Unknown error');
+    if (isSupabaseConfigured) {
+      updateResult('Database Connection', 'pending', 'Testing Supabase connection...');
+      try {
+        const { error } = await supabase.from('messages').select('count').limit(1);
+        if (error) throw error;
+        updateResult('Database Connection', 'success', 'Database connection successful',
+          'Supabase connection and messages table accessible');
+      } catch (error) {
+        updateResult('Database Connection', 'error', 'Database connection failed',
+          error instanceof Error ? error.message : 'Unknown error');
+      }
+    } else {
+      updateResult('Database Connection', 'warning', 'Supabase not configured. Skipping database test.',
+        'Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to run this check.');
     }
 
     // Test 4: Edge Function Health
-    updateResult('Edge Function', 'pending', 'Testing edge function...');
-    try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (supabaseUrl) {
-        const functionUrl = `${supabaseUrl}/functions/v1/telegram-webhook`;
-        const response = await fetch(functionUrl, { 
+    if (envSupabaseUrl) {
+      updateResult('Edge Function', 'pending', 'Testing edge function...');
+      try {
+        const functionUrl = `${envSupabaseUrl}/functions/v1/telegram-webhook`;
+        const response = await fetch(functionUrl, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
-        
+
         if (response.status === 405) {
-          updateResult('Edge Function', 'success', 'Edge function is deployed and responding', 
+          updateResult('Edge Function', 'success', 'Edge function is deployed and responding',
             `Function URL: ${functionUrl}`);
         } else {
-          updateResult('Edge Function', 'warning', 'Edge function responding unexpectedly', 
+          updateResult('Edge Function', 'warning', 'Edge function responding unexpectedly',
             `Status: ${response.status}, Expected: 405 (Method Not Allowed)`);
         }
-      } else {
-        updateResult('Edge Function', 'error', 'Supabase URL not configured', 
-          'VITE_SUPABASE_URL environment variable is missing');
+      } catch (error) {
+        updateResult('Edge Function', 'error', 'Edge function not accessible',
+          error instanceof Error ? error.message : 'Network error');
       }
-    } catch (error) {
-      updateResult('Edge Function', 'error', 'Edge function not accessible', 
-        error instanceof Error ? error.message : 'Network error');
+    } else {
+      updateResult('Edge Function', 'warning', 'Supabase URL not configured. Skipping test.',
+        'Set VITE_SUPABASE_URL to verify the edge function deployment.');
     }
 
     // Test 5: Send Test Message to Bot

@@ -18,6 +18,7 @@ import {
   Database
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabaseUrl as envSupabaseUrl } from '../lib/supabase';
 
 export function WebhookConfigurator() {
   const [webhookUrl, setWebhookUrl] = useState('');
@@ -27,19 +28,18 @@ export function WebhookConfigurator() {
   const [isCheckingWebhook, setIsCheckingWebhook] = useState(false);
 
   const botToken = '8423362395:AAGVVE-Fy6NPMWTQ77nDDKYZUYXh7Z2eIhc';
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  
+  const hasSupabaseConfig = Boolean(envSupabaseUrl);
   // Generate the webhook URL
-  const generatedWebhookUrl = supabaseUrl 
-    ? `${supabaseUrl}/functions/v1/telegram-webhook`
+  const generatedWebhookUrl = envSupabaseUrl
+    ? `${envSupabaseUrl}/functions/v1/telegram-webhook`
     : 'https://YOUR_PROJECT.supabase.co/functions/v1/telegram-webhook';
 
   useEffect(() => {
-    if (supabaseUrl) {
+    if (envSupabaseUrl) {
       setWebhookUrl(generatedWebhookUrl);
     }
     checkCurrentWebhook();
-  }, [supabaseUrl]);
+  }, [generatedWebhookUrl]);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -147,7 +147,9 @@ export function WebhookConfigurator() {
       <div className="flex items-center gap-2">
         <Webhook className="h-6 w-6" />
         <h2 className="text-2xl font-bold">Webhook Configuration</h2>
-        <Badge variant="secondary">Setup Required</Badge>
+        <Badge variant={hasSupabaseConfig ? 'default' : 'secondary'}>
+          {hasSupabaseConfig ? 'Ready' : 'Setup Required'}
+        </Badge>
       </div>
 
       {/* Current Webhook Status */}
@@ -204,6 +206,15 @@ export function WebhookConfigurator() {
                   <div className="mt-1 text-sm">{currentWebhookInfo.ip_address || 'Not available'}</div>
                 </div>
               </div>
+
+              {!hasSupabaseConfig && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Add <code>VITE_SUPABASE_URL</code> to generate a webhook endpoint automatically.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {currentWebhookInfo.last_error_date && (
                 <Alert variant="destructive">

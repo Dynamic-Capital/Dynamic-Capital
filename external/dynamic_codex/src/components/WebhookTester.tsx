@@ -15,7 +15,7 @@ import {
   MessageSquare,
   Server
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, supabaseUrl as envSupabaseUrl } from '../lib/supabase';
 import { toast } from 'sonner';
 
 interface TestResult {
@@ -49,15 +49,20 @@ export function WebhookTester() {
     setResults([]);
 
     // Test 1: Supabase Connection
-    updateResult('Supabase Connection', 'pending', 'Testing database connection...');
-    try {
-      const { error } = await supabase.from('messages').select('count').limit(1);
-      if (error) throw error;
-      updateResult('Supabase Connection', 'success', 'Database connection successful', 
-        `Connected to Supabase. Table accessible.`);
-    } catch (error) {
-      updateResult('Supabase Connection', 'error', 'Database connection failed', 
-        error instanceof Error ? error.message : 'Unknown error');
+    if (isSupabaseConfigured) {
+      updateResult('Supabase Connection', 'pending', 'Testing database connection...');
+      try {
+        const { error } = await supabase.from('messages').select('count').limit(1);
+        if (error) throw error;
+        updateResult('Supabase Connection', 'success', 'Database connection successful',
+          `Connected to Supabase. Table accessible.`);
+      } catch (error) {
+        updateResult('Supabase Connection', 'error', 'Database connection failed',
+          error instanceof Error ? error.message : 'Unknown error');
+      }
+    } else {
+      updateResult('Supabase Connection', 'warning', 'Supabase not configured. Skipping database test.',
+        'Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable this check.');
     }
 
     // Test 2: Bot Token Validation
@@ -101,81 +106,96 @@ export function WebhookTester() {
     }
 
     // Test 4: Edge Function Health
-    updateResult('Edge Function', 'pending', 'Testing edge function availability...');
-    try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (supabaseUrl) {
-        const functionUrl = `${supabaseUrl}/functions/v1/telegram-webhook`;
-        const response = await fetch(functionUrl, { 
+    if (envSupabaseUrl) {
+      updateResult('Edge Function', 'pending', 'Testing edge function availability...');
+      try {
+        const functionUrl = `${envSupabaseUrl}/functions/v1/telegram-webhook`;
+        const response = await fetch(functionUrl, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
-        
+
         if (response.status === 405) {
-          updateResult('Edge Function', 'success', 'Edge function is deployed and responding', 
+          updateResult('Edge Function', 'success', 'Edge function is deployed and responding',
             `Function URL: ${functionUrl}`);
         } else {
-          updateResult('Edge Function', 'warning', 'Edge function responding unexpectedly', 
+          updateResult('Edge Function', 'warning', 'Edge function responding unexpectedly',
             `Status: ${response.status}, Expected: 405 (Method Not Allowed)`);
         }
-      } else {
-        updateResult('Edge Function', 'error', 'Supabase URL not configured', 
-          'VITE_SUPABASE_URL environment variable is missing');
+      } catch (error) {
+        updateResult('Edge Function', 'error', 'Edge function not accessible',
+          error instanceof Error ? error.message : 'Network error');
       }
-    } catch (error) {
-      updateResult('Edge Function', 'error', 'Edge function not accessible', 
-        error instanceof Error ? error.message : 'Network error');
+    } else {
+      updateResult('Edge Function', 'warning', 'Supabase URL not configured. Skipping test.',
+        'Set VITE_SUPABASE_URL to validate your edge function deployment.');
     }
 
     // Test 5: Database Schema
-    updateResult('Database Schema', 'pending', 'Verifying database schema...');
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .select('id, user_id, username, text, date, created_at')
-        .limit(1);
+    if (isSupabaseConfigured) {
+      updateResult('Database Schema', 'pending', 'Verifying database schema...');
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .select('id, user_id, username, text, date, created_at')
+          .limit(1);
 
-      if (error) throw error;
-      updateResult('Database Schema', 'success', 'Database schema is correct', 
-        'All required columns are present and accessible');
-    } catch (error) {
-      updateResult('Database Schema', 'error', 'Database schema issue', 
-        error instanceof Error ? error.message : 'Schema validation failed');
+        if (error) throw error;
+        updateResult('Database Schema', 'success', 'Database schema is correct',
+          'All required columns are present and accessible');
+      } catch (error) {
+        updateResult('Database Schema', 'error', 'Database schema issue',
+          error instanceof Error ? error.message : 'Schema validation failed');
+      }
+    } else {
+      updateResult('Database Schema', 'warning', 'Supabase not configured. Skipping schema validation.',
+        'Configure Supabase to verify the messages table structure.');
     }
 
     // Test 6: Real-time Subscription
-    updateResult('Real-time Subscription', 'pending', 'Testing real-time capabilities...');
-    try {
-      const channel = supabase.channel('test-channel');
-      
-      channel
-        .on('postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'messages' },
-          () => {}
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            updateResult('Real-time Subscription', 'success', 'Real-time subscription active', 
-              'Dashboard will update automatically when new messages arrive');
-            channel.unsubscribe();
-          } else if (status === 'CHANNEL_ERROR') {
-            updateResult('Real-time Subscription', 'error', 'Real-time subscription failed', 
-              'Real-time updates may not work properly');
-            channel.unsubscribe();
-          }
-        });
+    if (isSupabaseConfigured) {
+      updateResult('Real-time Subscription', 'pending', 'Testing real-time capabilities...');
+      try {
+        const channel = supabase.channel('test-channel');
+        let subscriptionSettled = false;
 
-      // Timeout after 5 seconds
-      setTimeout(() => {
-        if (results.find(r => r.name === 'Real-time Subscription')?.status === 'pending') {
-          updateResult('Real-time Subscription', 'warning', 'Real-time subscription timeout', 
-            'Subscription took too long to establish');
-          channel.unsubscribe();
-        }
-      }, 5000);
-    } catch (error) {
-      updateResult('Real-time Subscription', 'error', 'Real-time setup failed', 
-        error instanceof Error ? error.message : 'Unknown error');
+        const subscription = channel
+          .on('postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'messages' },
+            () => {}
+          )
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              subscriptionSettled = true;
+              updateResult('Real-time Subscription', 'success', 'Real-time subscription active',
+                'Dashboard will update automatically when new messages arrive');
+              channel.unsubscribe();
+            } else if (status === 'CHANNEL_ERROR') {
+              subscriptionSettled = true;
+              updateResult('Real-time Subscription', 'error', 'Real-time subscription failed',
+                'Real-time updates may not work properly');
+              channel.unsubscribe();
+            }
+          });
+
+        setTimeout(() => {
+          if (!subscriptionSettled) {
+            updateResult('Real-time Subscription', 'warning', 'Real-time subscription timeout',
+              'Subscription took too long to establish');
+            if (typeof subscription?.unsubscribe === 'function') {
+              subscription.unsubscribe();
+            } else if (typeof channel.unsubscribe === 'function') {
+              channel.unsubscribe();
+            }
+          }
+        }, 5000);
+      } catch (error) {
+        updateResult('Real-time Subscription', 'error', 'Real-time setup failed',
+          error instanceof Error ? error.message : 'Unknown error');
+      }
+    } else {
+      updateResult('Real-time Subscription', 'warning', 'Supabase not configured. Skipping real-time test.',
+        'Provide Supabase credentials to verify realtime subscriptions.');
     }
 
     setIsRunning(false);
