@@ -1,9 +1,9 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
 import { ok, bad, unauth, mna, oops } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "admin-list-pending", ts: new Date().toISOString() });
@@ -61,3 +61,5 @@ serve(async (req) => {
 
   return ok({ items: out });
 });
+
+export default handler;

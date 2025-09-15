@@ -1,8 +1,8 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { corsHeaders } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   if (req.method === 'OPTIONS') {
     const headers = corsHeaders(req, 'POST');
     return new Response(null, { headers });
@@ -76,3 +76,5 @@ serve(async (req) => {
     );
   }
 });
+
+export default handler;

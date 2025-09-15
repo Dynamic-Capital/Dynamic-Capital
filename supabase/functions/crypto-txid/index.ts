@@ -1,9 +1,9 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
 import { bad, mna, ok, unauth } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   if (req.method !== "POST") return mna();
 
   let body: { initData?: string; txid?: string; amount?: number; currency?: string };
@@ -55,3 +55,5 @@ serve(async (req) => {
 
   return ok();
 });
+
+export default handler;

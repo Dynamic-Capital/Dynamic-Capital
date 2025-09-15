@@ -3,13 +3,13 @@
 This tracker documents the outstanding work required across the Dynamic Capital project. Check items off as they are completed.
 
 ## Repo-Level Action Items
-- [ ] Add default exports to all Edge Functions.
-- [ ] Build out integration tests for payment and webhook flows.
-- [ ] Document expected environment variables and values.
-- [ ] Consolidate duplicate Supabase client creation.
-- [ ] Automate generation of repository summary docs.
-- [ ] Prune unused scripts.
-- [ ] Expand the README with setup guidance.
+- [x] Add default exports to all Edge Functions.
+- [x] Build out integration tests for payment and webhook flows.
+- [x] Document expected environment variables and values.
+- [x] Consolidate duplicate Supabase client creation.
+- [x] Automate generation of repository summary docs.
+- [x] Prune unused scripts.
+- [x] Expand the README with setup guidance.
 
 ## Setup Follow-Ups
 - [ ] Complete the Supabase CLI workflow (`npx supabase login && supabase link && supabase db push`).

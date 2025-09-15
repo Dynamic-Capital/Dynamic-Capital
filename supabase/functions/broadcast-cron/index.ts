@@ -1,10 +1,10 @@
 // >>> DC BLOCK: broadcast-cron-core (start)
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
 import { functionUrl } from "../_shared/edge.ts";
 import { ok, oops } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "broadcast-cron", ts: new Date().toISOString() });
@@ -39,3 +39,5 @@ serve(async (req) => {
   }
 });
 // <<< DC BLOCK: broadcast-cron-core (end)
+
+export default handler;

@@ -13,8 +13,10 @@ example value, and where it's referenced in the repository.
 | `NEXT_PUBLIC_SUPABASE_URL`         | Build-time copy of `SUPABASE_URL` for the web app.        | Yes (web) | `https://xyz.supabase.co`   | `src/config/supabase.ts` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY`    | Build-time copy of `SUPABASE_ANON_KEY` for the web app.   | Yes (web) | `eyJ...`                    | `src/config/supabase.ts` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key for privileged Supabase access.          | Yes      | `service-role-key`          | `utils/config.ts`, `supabase/functions/telegram-bot/index.ts`                                         |
-| `SUPABASE_PROJECT_ID`       | Supabase project reference used to build URLs in scripts. | No       | `abcd1234`                  | `scripts/ping-webhook.ts`, `scripts/miniapp-health-check.ts`                                              |
-| `SUPABASE_ACCESS_TOKEN`     | Token for Supabase CLI operations.                        | No       | `sbp_at...`                 | Supabase CLI only                                                                                         |
+| `SUPABASE_PROJECT_ID`       | Supabase project reference used to build URLs in scripts. | No       | `abcd1234`
+       | `scripts/ping-webhook.ts`, `scripts/miniapp-health-check.ts`                                              |
+| `SUPABASE_PROJECT_REF`      | Alias for `SUPABASE_PROJECT_ID` consumed by CLI helpers. | No       | `abcd1234`
+       | `scripts/update-telegram-miniapp.ts`, `scripts/setup-db-webhooks.ts`                                      |
 | `SUPABASE_DB_PASSWORD`      | Postgres password for local or CI usage.                  | No       | `super-secret`              | Supabase CLI only                                                                                         |
 
 ## Telegram
@@ -88,3 +90,11 @@ You can confirm access with `doctl spaces list`.
 | `ALLOWED_ORIGINS`     | Comma-separated origins allowed for CORS (defaults to `http://localhost:3000`). | No       | `https://example.com`     | `middleware.ts`, `supabase/functions/_shared/http.ts` |
 | `MINIAPP_ORIGIN`      | Origins allowed to call Telegram verification and mini-app APIs.              | No (required for production bots) | `https://dynamic-capital.ondigitalocean.app` | `supabase/functions/verify-telegram/index.ts` |
 | `LOG_LEVEL`           | Minimum log level for server logs (`debug`, `info`, `warn`, `error`). | No       | `warn`                    | `utils/logger.ts` |
+| `FUNCTIONS_BASE_URL`   | Override Supabase functions host when provisioning database webhooks. | No       | `https://custom.functions.supabase.co` | `scripts/setup-db-webhooks.ts` |
+| `LOGTAIL_SOURCE_TOKEN` | Logtail source token used for Supabase log drain setup.              | No       | `gls_xxx`                    | `scripts/setup-log-drain.ts` |
+| `LOGTAIL_URL`          | Optional Logtail API endpoint override.                              | No       | `https://in.logtail.com`     | `scripts/setup-log-drain.ts` |
+| `GITHUB_PAT`           | GitHub personal access token for cleanup automation.                 | No       | `ghp_example`                | `supabase/functions/github-cleanup/index.ts` |
+| `GITHUB_REPO`          | GitHub repository targeted by cleanup jobs (`owner/name`).           | No       | `dynamic-labs/dynamic-capital` | `supabase/functions/github-cleanup/index.ts` |
+| `GITHUB_DEFAULT_BRANCH`| Default branch used by GitHub cleanup automation.                    | No       | `main`                       | `supabase/functions/github-cleanup/index.ts` |
+| `GITHUB_ID`            | GitHub OAuth client ID for NextAuth.                                 | No       | `Iv1.example`                | `apps/web/app/api/auth/[...nextauth]/route.ts` |
+| `GITHUB_SECRET`        | GitHub OAuth client secret for NextAuth.                             | No       | `super-secret`               | `apps/web/app/api/auth/[...nextauth]/route.ts` |

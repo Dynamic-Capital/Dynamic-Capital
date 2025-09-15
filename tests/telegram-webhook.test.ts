@@ -30,7 +30,12 @@ test('setup-telegram-webhook calls Telegram API', async () => {
     const orig = new URL('../supabase/functions/setup-telegram-webhook/index.ts', import.meta.url);
     patched = new URL('../supabase/functions/setup-telegram-webhook/index.test.ts', import.meta.url);
     const src = await Deno.readTextFile(orig);
-    await Deno.writeTextFile(patched, src.replace('../_shared/telegram_secret.ts', '../../../tests/telegram-secret-stub.ts'));
+    await Deno.writeTextFile(
+      patched,
+      src
+        .replace('../_shared/telegram_secret.ts', '../../../tests/telegram-secret-stub.ts')
+        .replace('../_shared/serve.ts', '../../../tests/serve-stub.ts'),
+    );
     const { handler } = await freshImport(patched);
     const res = await handler(new Request('http://localhost', { method: 'POST' }));
     assertEquals(res.status, 200);
@@ -72,6 +77,7 @@ test('telegram-webhook processes /ping and responds', async () => {
     src = src.replace('../_shared/config.ts', '../../../tests/config-stub.ts');
     src = src.replace('../_shared/miniapp.ts', '../../../tests/miniapp-stub.ts');
     src = src.replace('../_shared/telegram_secret.ts', '../../../tests/telegram-secret-stub.ts');
+    src = src.replace('../_shared/serve.ts', '../../../tests/serve-stub.ts');
     await Deno.writeTextFile(patched, src);
     const { default: handler } = await freshImport(patched);
     const req = new Request('http://localhost/telegram-webhook', {

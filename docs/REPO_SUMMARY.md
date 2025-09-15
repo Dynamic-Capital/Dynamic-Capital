@@ -1,206 +1,178 @@
-# Repository Summary — Dynamic Capital – VIP
+# Repository Summary — Dynamic-Capital
 
-**Generated:** Sun Aug 10 23:08:09 UTC 2025  
-**Repo root:** Dynamic-Chatty-Bot  
-**Add-only report (no code changes).**
+**Generated:** Mon, 15 Sep 2025 23:41:58 GMT
+**Repo root:** Dynamic-Capital
 
-## 1) High-Level Overview
-- Tech stack: Deno, Supabase Edge Functions, Postgres (Supabase), Telegram Bot.
-- Primary domains: bot automation (Telegram), subscriptions/payments, analytics, broadcasts.
-- `X-Frame-Options` header removed to allow embedding in Telegram.
+## Directory Map (top-level)
 
-## 2) Directory Map (top-level)
-```
-apps/
-  mini/
-docs/
-  CONFIG.md
-  GO_LIVE_CHECKLIST.md
-  agent.md
-  api-documentation.md
-  code-structure.md
-  index-advisor.md
-  supabase-audit-report.md
-public/
-  favicon.ico
-scripts/
-  cleanup/
-  codemods/
-  verify/
-  splinter_fk_index_pr.sh
-src/
-  broadcast/
-  components/
-  hooks/
-  integrations/
-  lib/
-  pages/
-  queue/
-  utils/
-supabase/
-  config.toml
-  functions/
-  migrations/
-tests/
-```
+- _static/
+- apps/
+- broadcast/
+- db/
+- dns/
+- docker/
+- docs/
+- external/
+- functions/
+- go-service/
+- node_modules/
+- queue/
+- scripts/
+- src/
+- supabase/
+- tests/
+- tools/
 
-## 3) Edge Functions Inventory
-| Function | Path | Entry file | Exports default? | Notes |
-|---|---|---|---|---|
-| ai-faq-assistant | supabase/functions/ai-faq-assistant | index.ts | no | |
-| analytics-data | supabase/functions/analytics-data | index.ts | no | |
-| cleanup-old-receipts | supabase/functions/cleanup-old-receipts | index.ts | no | |
-| cleanup-old-sessions | supabase/functions/cleanup-old-sessions | index.ts | no | |
-| debug-bot | supabase/functions/debug-bot | index.ts | no | |
-| keep-alive | supabase/functions/keep-alive | index.ts | no | |
-| reset-bot | supabase/functions/reset-bot | index.ts | no | |
-| setup-telegram-webhook | supabase/functions/setup-telegram-webhook | index.ts | no | |
-| setup-webhook | supabase/functions/setup-webhook | index.ts | no | |
-| telegram-bot | supabase/functions/telegram-bot | index.ts | no | |
-| telegram-getwebhook | supabase/functions/telegram-getwebhook | index.ts | no | |
-| telegram-selftest | supabase/functions/telegram-selftest | index.ts | no | |
-| telegram-setwebhook | supabase/functions/telegram-setwebhook | index.ts | no | |
-| telegram-start-sim | supabase/functions/telegram-start-sim | index.ts | no | |
-| telegram-webhook | supabase/functions/telegram-webhook | index.ts | no | |
-| test-bot-status | supabase/functions/test-bot-status | index.ts | no | |
-| test-webhook | supabase/functions/test-webhook | index.ts | no | |
-| tg-verify-init | supabase/functions/tg-verify-init | index.ts | no | |
-| theme-get | supabase/functions/theme-get | index.ts | no | |
-| theme-save | supabase/functions/theme-save | index.ts | no | |
-| trade-helper | supabase/functions/trade-helper | index.ts | no | |
-| verify-telegram | supabase/functions/verify-telegram | index.ts | no | |
+## Edge Functions Inventory
 
-## 4) Environment Variables (usages in code)
-- Keys referenced via `Deno.env.get(...)`:
-  - src/utils/config.ts:L11 SUPABASE_URL
-  - src/utils/config.ts:L15 SUPABASE_SERVICE_ROLE_KEY
-  - supabase/functions/theme-get/index.ts:L23 SUPABASE_URL
-  - supabase/functions/theme-get/index.ts:L24 SUPABASE_SERVICE_ROLE_KEY
-  - supabase/functions/theme-get/index.ts:L25 SUPABASE_ANON_KEY
-  - supabase/functions/test-bot-status/index.ts:L15 TELEGRAM_BOT_TOKEN
-  - supabase/functions/telegram-getwebhook/index.ts:L3 TELEGRAM_BOT_TOKEN
-  - supabase/functions/telegram-getwebhook/index.ts:L4 TELEGRAM_WEBHOOK_SECRET
-  - supabase/functions/telegram-getwebhook/index.ts:L5 SUPABASE_URL
-  - supabase/functions/reset-bot/index.ts:L23 TELEGRAM_BOT_TOKEN
-  - supabase/functions/reset-bot/index.ts:L30 SUPABASE_URL
-  - supabase/functions/trade-helper/index.ts:L4 OPENAI_API_KEY
-  - supabase/functions/keep-alive/index.ts:L36 TELEGRAM_BOT_TOKEN
-  - supabase/functions/analytics-data/index.ts:L24 SUPABASE_URL
-  - supabase/functions/analytics-data/index.ts:L25 SUPABASE_SERVICE_ROLE_KEY
-  - supabase/functions/verify-telegram/index.ts:L36 TELEGRAM_BOT_TOKEN
-  - supabase/functions/ai-faq-assistant/index.ts:L4 OPENAI_API_KEY
-  - supabase/functions/telegram-setwebhook/index.ts:L3 TELEGRAM_BOT_TOKEN
-  - supabase/functions/telegram-setwebhook/index.ts:L4 TELEGRAM_WEBHOOK_SECRET
-  - supabase/functions/telegram-setwebhook/index.ts:L5 SUPABASE_URL
-  - supabase/functions/setup-webhook/index.ts:L15 TELEGRAM_BOT_TOKEN
-  - supabase/functions/setup-webhook/index.ts:L22 SUPABASE_URL
-  - supabase/functions/test-webhook/index.ts:L3 TELEGRAM_BOT_TOKEN
-  - supabase/functions/theme-save/index.ts:L28 SUPABASE_URL
-  - supabase/functions/theme-save/index.ts:L29 SUPABASE_SERVICE_ROLE_KEY
-  - supabase/functions/theme-save/index.ts:L30 SUPABASE_ANON_KEY
-  - supabase/functions/telegram-start-sim/index.ts:L34 SUPABASE_URL
-  - supabase/functions/telegram-start-sim/index.ts:L58 TELEGRAM_WEBHOOK_SECRET
-  - supabase/functions/setup-telegram-webhook/index.ts:L3 TELEGRAM_BOT_TOKEN
-  - supabase/functions/setup-telegram-webhook/index.ts:L4 SUPABASE_URL
-  - supabase/functions/debug-bot/index.ts:L3 TELEGRAM_BOT_TOKEN
-  - supabase/functions/debug-bot/index.ts:L59 SUPABASE_URL
-  - supabase/functions/telegram-bot/admin-handlers.ts:L4 SUPABASE_URL
-  - supabase/functions/telegram-bot/admin-handlers.ts:L5 SUPABASE_SERVICE_ROLE_KEY
-  - supabase/functions/telegram-bot/admin-handlers.ts:L25 TELEGRAM_BOT_TOKEN
-  - supabase/functions/telegram-bot/admin-handlers.ts:L1491 BOT_VERSION
-  - supabase/functions/telegram-bot/database-utils.ts:L4 SUPABASE_URL
-  - supabase/functions/telegram-bot/database-utils.ts:L5 SUPABASE_SERVICE_ROLE_KEY
-  - supabase/functions/telegram-bot/index.ts:L46 SUPABASE_URL
-  - supabase/functions/telegram-bot/index.ts:L47 SUPABASE_SERVICE_ROLE_KEY
-  - supabase/functions/telegram-bot/index.ts:L49 TELEGRAM_BOT_TOKEN
-  - supabase/functions/telegram-bot/index.ts:L50 TELEGRAM_WEBHOOK_SECRET
-  - supabase/functions/telegram-bot/index.ts:L53 MINI_APP_URL
-  - supabase/functions/telegram-bot/index.ts:L57 MINI_APP_SHORT_NAME
-  - supabase/functions/telegram-bot/index.ts:L60 OPENAI_ENABLED
-  - supabase/functions/telegram-bot/index.ts:L61 FAQ_ENABLED
-  - supabase/functions/telegram-bot/index.ts:L62 WINDOW_SECONDS
-  - supabase/functions/telegram-bot/index.ts:L63 AMOUNT_TOLERANCE
-  - supabase/functions/telegram-bot/index.ts:L64 REQUIRE_PAY_CODE
-  - supabase/functions/telegram-bot/index.ts:L154 SB_REQUEST_ID
-  - supabase/functions/cleanup-old-receipts/index.ts:L26 SUPABASE_URL
-  - supabase/functions/cleanup-old-receipts/index.ts:L27 SUPABASE_SERVICE_ROLE_KEY
-  - supabase/functions/telegram-selftest/index.ts:L3 TELEGRAM_BOT_TOKEN
-  - supabase/functions/telegram-selftest/index.ts:L4 TELEGRAM_WEBHOOK_SECRET
-  - supabase/functions/telegram-selftest/index.ts:L5 SUPABASE_URL
-  - supabase/functions/telegram-bot/helpers/beneficiary.ts:L3 BENEFICIARY_TABLE
-  - supabase/functions/cleanup-old-sessions/index.ts:L4 SUPABASE_URL
-  - supabase/functions/cleanup-old-sessions/index.ts:L5 SUPABASE_SERVICE_ROLE_KEY
-  - supabase/functions/cleanup-old-sessions/index.ts:L6 TELEGRAM_BOT_TOKEN
-  - supabase/functions/tg-verify-init/index.ts:L5 TELEGRAM_BOT_TOKEN
-  - supabase/functions/tg-verify-init/index.ts:L6 TELEGRAM_WEBHOOK_SECRET
-- Note: secrets are provided by **Supabase Edge** at runtime; tests should mock.
+| Function | Entry file | Default export |
+|---|---|---|
+| active-promos | supabase/functions/active-promos/index.ts | Yes |
+| admin-act-on-payment | supabase/functions/admin-act-on-payment/index.ts | Yes |
+| admin-bans | supabase/functions/admin-bans/index.ts | Yes |
+| admin-check | supabase/functions/admin-check/index.ts | Yes |
+| admin-check-miniapp | supabase/functions/admin-check-miniapp/index.ts | Yes |
+| admin-clear-payments | supabase/functions/admin-clear-payments/index.ts | Yes |
+| admin-list-pending | supabase/functions/admin-list-pending/index.ts | Yes |
+| admin-logs | supabase/functions/admin-logs/index.ts | Yes |
+| admin-reset-system | supabase/functions/admin-reset-system/index.ts | Yes |
+| admin-review-payment | supabase/functions/admin-review-payment/index.ts | Yes |
+| admin-session | supabase/functions/admin-session/index.ts | Yes |
+| ai-faq-assistant | supabase/functions/ai-faq-assistant/index.ts | Yes |
+| analytics-collector | supabase/functions/analytics-collector/index.ts | Yes |
+| analytics-data | supabase/functions/analytics-data/index.ts | Yes |
+| auth/telegram-init | supabase/functions/auth/telegram-init/index.ts | Yes |
+| bot-status-check | supabase/functions/bot-status-check/index.ts | Yes |
+| broadcast-cron | supabase/functions/broadcast-cron/index.ts | Yes |
+| broadcast-dispatch | supabase/functions/broadcast-dispatch/index.ts | Yes |
+| build-miniapp | supabase/functions/build-miniapp/index.ts | Yes |
+| chatgpt-proxy | supabase/functions/chatgpt-proxy/index.ts | Yes |
+| checkout-init | supabase/functions/checkout-init/index.ts | Yes |
+| cleanup-old-receipts | supabase/functions/cleanup-old-receipts/index.ts | Yes |
+| cleanup-old-sessions | supabase/functions/cleanup-old-sessions/index.ts | Yes |
+| cleanup-old-webhook-updates | supabase/functions/cleanup-old-webhook-updates/index.ts | Yes |
+| config | supabase/functions/config/index.ts | Yes |
+| contact-links | supabase/functions/contact-links/index.ts | Yes |
+| content-batch | supabase/functions/content-batch/index.ts | Yes |
+| crypto-txid | supabase/functions/crypto-txid/index.ts | Yes |
+| crypto-webhook | supabase/functions/crypto-webhook/index.ts | Yes |
+| data-retention-cron | supabase/functions/data-retention-cron/index.ts | Yes |
+| debug-bot | supabase/functions/debug-bot/index.ts | Yes |
+| funnel-track | supabase/functions/funnel-track/index.ts | Yes |
+| github-cleanup | supabase/functions/github-cleanup/index.ts | Yes |
+| intent | supabase/functions/intent/index.ts | Yes |
+| keep-alive | supabase/functions/keep-alive/index.ts | Yes |
+| linkage-audit | supabase/functions/linkage-audit/index.ts | Yes |
+| miniapp-health | supabase/functions/miniapp-health/index.ts | Yes |
+| openai-webhook | supabase/functions/openai-webhook/index.ts | Yes |
+| ops-health | supabase/functions/ops-health/index.ts | Yes |
+| payments-auto-review | supabase/functions/payments-auto-review/index.ts | Yes |
+| plans | supabase/functions/plans/index.ts | Yes |
+| promo-redeem | supabase/functions/promo-redeem/index.ts | Yes |
+| promo-validate | supabase/functions/promo-validate/index.ts | Yes |
+| receipt | supabase/functions/receipt/index.ts | Yes |
+| receipt-ocr | supabase/functions/receipt-ocr/index.ts | Yes |
+| receipt-submit | supabase/functions/receipt-submit/index.ts | Yes |
+| receipt-upload-url | supabase/functions/receipt-upload-url/index.ts | Yes |
+| receipts | supabase/functions/receipts/index.ts | Yes |
+| referral-link | supabase/functions/referral-link/index.ts | Yes |
+| reset-bot | supabase/functions/reset-bot/index.ts | Yes |
+| rotate-admin-secret | supabase/functions/rotate-admin-secret/index.ts | Yes |
+| rotate-webhook-secret | supabase/functions/rotate-webhook-secret/index.ts | Yes |
+| setup-lovable-miniapp | supabase/functions/setup-lovable-miniapp/index.ts | Yes |
+| setup-miniapp | supabase/functions/setup-miniapp/index.ts | Yes |
+| setup-telegram-webhook | supabase/functions/setup-telegram-webhook/index.ts | Yes |
+| setup-webhook | supabase/functions/setup-webhook/index.ts | Yes |
+| setup-webhook-helper | supabase/functions/setup-webhook-helper/index.ts | Yes |
+| subscription-status | supabase/functions/subscription-status/index.ts | Yes |
+| subscriptions-cron | supabase/functions/subscriptions-cron/index.ts | Yes |
+| sync-audit | supabase/functions/sync-audit/index.ts | Yes |
+| system-health | supabase/functions/system-health/index.ts | Yes |
+| telegram-bot | supabase/functions/telegram-bot/index.ts | Yes |
+| telegram-bot-sync | supabase/functions/telegram-bot-sync/index.ts | Yes |
+| telegram-bot/admin-handlers | supabase/functions/telegram-bot/admin-handlers/index.ts | No |
+| telegram-getwebhook | supabase/functions/telegram-getwebhook/index.ts | Yes |
+| telegram-setwebhook | supabase/functions/telegram-setwebhook/index.ts | Yes |
+| telegram-webhook | supabase/functions/telegram-webhook/index.ts | Yes |
+| telegram-webhook-keeper | supabase/functions/telegram-webhook-keeper/index.ts | Yes |
+| tg-verify-init | supabase/functions/tg-verify-init/index.ts | Yes |
+| theme-get | supabase/functions/theme-get/index.ts | Yes |
+| theme-save | supabase/functions/theme-save/index.ts | Yes |
+| trade-helper | supabase/functions/trade-helper/index.ts | Yes |
+| traffic-monitor | supabase/functions/traffic-monitor/index.ts | Yes |
+| update-telegram-miniapp | supabase/functions/update-telegram-miniapp/index.ts | Yes |
+| upload-miniapp-html | supabase/functions/upload-miniapp-html/index.ts | Yes |
+| verify-initdata | supabase/functions/verify-initdata/index.ts | Yes |
+| verify-telegram | supabase/functions/verify-telegram/index.ts | Yes |
+| vip-sync | supabase/functions/vip-sync/index.ts | Yes |
+| vip-sync-enhanced | supabase/functions/vip-sync-enhanced/index.ts | Yes |
+| web-app-analytics | supabase/functions/web-app-analytics/index.ts | Yes |
+| web-app-health | supabase/functions/web-app-health/index.ts | Yes |
 
-## 5) Supabase & Database
-- Client creation points: supabase/functions/telegram-bot/database-utils.ts, supabase/functions/telegram-bot/admin-handlers.ts, supabase/functions/telegram-bot/index.ts, supabase/functions/cleanup-old-receipts/index.ts, supabase/functions/cleanup-old-sessions/index.ts, supabase/functions/analytics-data/index.ts, src/integrations/supabase/client.ts, src/utils/config.ts.
-- Migrations summary:
-  - Count: 16
-  - Tables touched: bot_content, subscription_plans, plan_channels, bot_settings, payment_intents, receipts, promotion_usage, conversion_tracking, promo_analytics, user_surveys, bot_users, user_subscriptions, user_sessions, user_interactions, channel_memberships, education_enrollments, payments.
-  - Views: current_vip
-  - Policies/RLS: "Bot can manage content", "Admins can manage subscription plans", "Public can view plan channels", "Bot can manage settings", "Bot can manage promotion usage", user/profile policies adjustments.
-  - Indexes: idx_bot_content_key_active, idx_subscription_plans_management, idx_subscription_plans_admin_lookup, idx_bot_users_current_plan_id, idx_channel_memberships_added_by, idx_channel_memberships_package_id, idx_user_package_assignments_assigned_by, idx_plan_channels_plan_id_active, various payments/user_subscriptions indexes.
-- Observations: extensive RLS usage with bot-managed policies; foreign key backfills linking tables to bot_users; numerous performance indexes.
+## Environment Keys (detected)
 
-## 6) CI Workflows
-- Workflows:
-  - assets_audit.yml — trigger: pull_request, workflow_dispatch; jobs: audit
-  - audit.yml — trigger: schedule (cron), workflow_dispatch; jobs: audit
-  - auto-merge.yml — trigger: workflow_run (Deno); jobs: merge
-  - auto-pr.yml — trigger: push (non-main); jobs: test-and-pr
-  - checks.yml — trigger: push main, pull_request main; jobs: typecheck
-  - ci-deploy-dc.yml — trigger: push main, pull_request main; jobs: check
-  - deno.yml — trigger: push main, pull_request main; jobs: test
-  - migrations.yml — trigger: push main, workflow_dispatch; jobs: migrate
-  - post_deploy_smoke.yml — trigger: workflow_dispatch; jobs: smoke
-  - splinter-fk-index.yml — trigger: workflow_dispatch, schedule; jobs: splinter
-  - verify.yml — trigger: pull_request, workflow_dispatch; jobs: verify
+- A_SUPABASE_KEY
+- A_SUPABASE_URL
+- ADMIN_API_SECRET
+- ADMIN_USER_ID
+- ALLOWED_ORIGINS
+- ANALYZE
+- CDN_ACCESS_KEY
+- CDN_BUCKET
+- CDN_ENDPOINT
+- CDN_REGION
+- CDN_SECRET_KEY
+- CI
+- DATABASE_URL
+- DEBUG
+- DENO_DEPLOYMENT_ID
+- DENO_REGION
+- ENABLE_SENTRY
+- EXAMPLE_KEY
+- FUNCTIONS_BASE
+- FUNCTIONS_BASE_URL
+- GITHUB_DEFAULT_BRANCH
+- GITHUB_ID
+- GITHUB_PAT
+- GITHUB_REPO
+- GITHUB_SECRET
+- HEALTH_URL
+- LEGACY_HOST
+- LOG_LEVEL
+- LOGTAIL_SOURCE_TOKEN
+- LOGTAIL_URL
+- LOVABLE_ORIGIN
+- MINI_APP_SHORT_NAME
+- MINI_APP_URL
+- MINIAPP_ORIGIN
+- NEXT_PUBLIC_POSTHOG_HOST
+- NEXT_PUBLIC_POSTHOG_KEY
+- NEXT_PUBLIC_SENTRY_DSN
+- NEXT_PUBLIC_SITE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- NEXT_PUBLIC_SUPABASE_URL
+- NODE_ENV
+- NODE_EXTRA_CA_CERTS
+- PORT
+- PREVIEW_URL
+- RETENTION_DAYS
+- SENTRY_DSN
+- SITE_URL
+- SKIP_NEXT_BUILD
+- SSL_CERT_PATH
+- SSL_KEY_PATH
+- SUPABASE_ACCESS_TOKEN
+- SUPABASE_ANON_KEY
+- SUPABASE_DB_PASSWORD
+- SUPABASE_PROJECT_ID
+- SUPABASE_PROJECT_REF
+- SUPABASE_SERVICE_ROLE_KEY
+- SUPABASE_URL
+- TELEGRAM_ADMIN_IDS
+- TELEGRAM_BOT_TOKEN
+- TELEGRAM_BOT_USERNAME
+- TELEGRAM_ID
+- TELEGRAM_WEBHOOK_SECRET
+- TELEGRAM_WEBHOOK_URL
 
-## 7) Tests & Coverage Hints
-- Test files: 6 — tests/broadcast-queue.test.ts, tests/telegram-webhook.test.ts, tests/featureflags.test.ts, tests/retry.test.ts, tests/cache.test.ts, tests/circuit.test.ts
-- `Deno.test` count: 6
-- Gaps/opportunities:
-  - Add integration tests for payment flows and edge functions
-  - Expand coverage around Supabase client utilities
-
-## 8) Deno Tasks
-- check → deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
-- serve → supabase functions serve
-- fmt → bash -lc '$(bash scripts/deno_bin.sh) fmt --check .'
-- fmt:write → bash -lc '$(bash scripts/deno_bin.sh) fmt .'
-- lint → bash -lc '$(bash scripts/deno_bin.sh) lint'
-- lint:fix → bash scripts/fix_all.sh
-- typecheck → bash scripts/typecheck.sh
-- ci → bash scripts/ci.sh
-- fix:repo → bash scripts/fix_and_check.sh
-
-## 9) Docs Present
-- README.md — project overview
-- docs/CONFIG.md — configuration notes
-- docs/GO_LIVE_CHECKLIST.md — deployment checklist
-- docs/agent.md — agent instructions
-- docs/api-documentation.md — API documentation
-- docs/code-structure.md — code layout
-- docs/index-advisor.md — index recommendations
-- docs/supabase-audit-report.md — audit report
-
-## 10) TODO / FIXME Inventory
-- None found
-
-## 11) Action Items (prioritized)
-- **High:**
-  - Add default exports to edge functions for clarity
-  - Implement integration tests for payment and webhook flows
-  - Document environment variables and expected values
-- **Medium:**
-  - Consolidate duplicate Supabase client creation
-  - Automate generation of repo summary docs
-- **Low:**
-  - Review and prune unused scripts
-  - Expand README with setup instructions
-
----
-*This file is generated add-only. No handlers were modified.*
+_Generated with `scripts/generate-repo-summary.ts`._

@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
-serve(async (_req) => {
+export const handler = registerHandler(async (_req) => {
   const report: Record<string, unknown> = { ok: true, checks: {} };
 
   function checkEnv(name: string, required = true) {
@@ -40,3 +40,5 @@ serve(async (_req) => {
     status: code,
   });
 });
+
+export default handler;

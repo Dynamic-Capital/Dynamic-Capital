@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { optionalEnv } from "../_shared/env.ts";
 import { createLogger } from "../_shared/logger.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const BOT_TOKEN = optionalEnv("TELEGRAM_BOT_TOKEN");
 
@@ -20,7 +20,7 @@ function getLogger(req: Request) {
   });
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   const logger = getLogger(req);
   logger.info("🔧 Debug function called");
   logger.info("Method:", req.method);
@@ -132,3 +132,5 @@ serve(async (req) => {
     );
   }
 });
+
+export default handler;

@@ -1,11 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
 import { corsHeaders } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   const origin = req.headers.get("origin");
   const headers = corsHeaders(req);
   if (req.method === "OPTIONS") {
@@ -75,3 +75,4 @@ serve(async (req) => {
   }
 });
 
+export default handler;

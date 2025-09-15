@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { optionalEnv } from "../_shared/env.ts";
 import { expectedSecret } from "../_shared/telegram_secret.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const BOT = optionalEnv("TELEGRAM_BOT_TOKEN") || "";
 const BASE = (optionalEnv("SUPABASE_URL") || "").replace(/\/$/, "");
@@ -11,7 +11,7 @@ function red(s: string, keep = 4) {
   return s ? s.slice(0, keep) + "...redacted" : "";
 }
 
-serve(async () => {
+export const handler = registerHandler(async () => {
   const SECRET = await expectedSecret();
   if (!BOT) {
     return new Response(
@@ -37,3 +37,5 @@ serve(async () => {
     },
   );
 });
+
+export default handler;

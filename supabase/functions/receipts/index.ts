@@ -1,9 +1,9 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
 import { ok, unauth, mna } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   if (req.method !== "GET") return mna();
   const url = new URL(req.url);
   const initData = url.searchParams.get("initData") || "";
@@ -44,3 +44,5 @@ serve(async (req) => {
   }));
   return ok({ items });
 });
+
+export default handler;

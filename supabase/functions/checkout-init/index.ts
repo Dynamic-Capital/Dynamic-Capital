@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { getEnv } from "../_shared/env.ts";
 import { bad, mna, oops, json } from "../_shared/http.ts";
-import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createSupabaseClient } from "../_shared/client.ts";
 import { version } from "../_shared/version.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { getContent } from "../_shared/config.ts";

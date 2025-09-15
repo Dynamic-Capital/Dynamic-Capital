@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { getEnv, EnvKey } from "../_shared/env.ts";
 import { ok } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 function need(k: EnvKey) {
   return getEnv(k);
@@ -15,7 +15,7 @@ async function tgSend(token: string, chatId: string, text: string) {
   }).catch(() => {});
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   const url = new URL(req.url);
   if (req.method === "GET" && url.pathname.endsWith("/version")) {
     return ok({ name: "subscriptions-cron", ts: new Date().toISOString() });
@@ -105,3 +105,5 @@ serve(async (req) => {
     },
   });
 });
+
+export default handler;

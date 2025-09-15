@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { optionalEnv, requireEnv } from "../_shared/env.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 const { TELEGRAM_BOT_TOKEN: BOT_TOKEN } = requireEnv(
   [
@@ -262,7 +262,7 @@ async function resetStuckSessions() {
   }
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -312,3 +312,5 @@ serve(async (req) => {
     );
   }
 });
+
+export default handler;

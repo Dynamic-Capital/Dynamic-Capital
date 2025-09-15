@@ -1,5 +1,8 @@
 // Supabase client and helpers
-import { createClient as createBrowserClient } from '@supabase/supabase-js';
+import {
+  createClient as createBrowserClient,
+  type SupabaseClientOptions,
+} from '@supabase/supabase-js';
 import { getEnvVar } from '@/utils/env.ts';
 
 const PLACEHOLDER_URL = 'https://example.supabase.co';
@@ -41,7 +44,12 @@ const loggingFetch: typeof fetch = async (input, init) => {
   return res;
 };
 
-export function createClient(role: 'anon' | 'service' = 'anon') {
+export type SupabaseCreateOptions = SupabaseClientOptions<'public'>;
+
+export function createClient(
+  role: 'anon' | 'service' = 'anon',
+  options: SupabaseCreateOptions = {},
+) {
   const key =
     role === 'service'
       ? getEnvVar('SUPABASE_SERVICE_ROLE_KEY')
@@ -53,8 +61,14 @@ export function createClient(role: 'anon' | 'service' = 'anon') {
         : SUPABASE_ENV_ERROR || 'Missing Supabase anon key',
     );
   }
+  const mergedGlobal = {
+    fetch: loggingFetch,
+    ...(options.global ?? {}),
+  };
+
   return createBrowserClient(SUPABASE_URL, key, {
-    global: { fetch: loggingFetch },
+    ...options,
+    global: mergedGlobal,
   });
 }
 

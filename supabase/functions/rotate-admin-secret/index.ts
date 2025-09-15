@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { getEnv } from "../_shared/env.ts";
 import { ok, mna, unauth, oops } from "../_shared/http.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 function genHex(n = 24) {
   const buf = new Uint8Array(n);
@@ -9,7 +9,7 @@ function genHex(n = 24) {
   return Array.from(buf).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   try {
     const url = new URL(req.url);
     if (req.method === "GET" && url.pathname.endsWith("/version")) {
@@ -37,3 +37,4 @@ serve(async (req) => {
   }
 });
 
+export default handler;

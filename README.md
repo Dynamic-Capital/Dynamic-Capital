@@ -113,6 +113,12 @@ Modify the files to suit your needs before running the build.
 - A GitHub Actions workflow (`upload-assets.yml`) builds `apps/landing` and uploads assets on pushes to `main`. It expects `CDN_BUCKET`, `CDN_ACCESS_KEY`, `CDN_SECRET_KEY`, and optional `CDN_REGION`/`CDN_ENDPOINT` secrets.
 - During development, `npm run upload-assets:watch` monitors `_static` and uploads changes automatically.
 
+## Maintenance & Automation
+
+- Regenerate the documentation inventory after touching edge functions or environment variables with `npm run docs:summary`. The script updates `docs/REPO_SUMMARY.md` so reviewers can confirm every handler exposes a default export and spot any new `Deno.env.get` usage.
+- Keep `docs/env.md` in sync when introducing deployment settings such as `FUNCTIONS_BASE_URL` or log drain credentials (`LOGTAIL_SOURCE_TOKEN`, `LOGTAIL_URL`). Pair updates with the summary script so both docs reference the same keys.
+- When rotating the Telegram webhook secret, run `deno run -A scripts/set-webhook.ts` (or `deno task set:webhook`) after deploying the updated function to re-register the webhook with BotFather.
+
 ## Development Process Overview
 
 | Tool                   | What It Does                                                            | How You Use It                                                                                              |

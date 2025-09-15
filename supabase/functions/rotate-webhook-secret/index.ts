@@ -1,7 +1,7 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { ok, mna, unauth, oops } from "../_shared/http.ts";
 import { getEnv, requireEnv } from "../_shared/env.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
 function genHex(n = 24) {
   const b = new Uint8Array(n);
@@ -17,7 +17,7 @@ async function tg(token: string, method: string, body?: unknown) {
   return await r.json().catch(() => ({}));
 }
 
-serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   try {
     const urlObj = new URL(req.url);
     if (req.method === "GET" && urlObj.pathname.endsWith("/version")) {
@@ -66,3 +66,5 @@ serve(async (req) => {
     return oops("Internal Error", String(e));
   }
 });
+
+export default handler;

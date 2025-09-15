@@ -3,8 +3,9 @@ import { createClient } from "../_shared/client.ts";
 import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
 import { getContent } from "../_shared/config.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { registerHandler } from "../_shared/serve.ts";
 
-Deno.serve(async (req) => {
+export const handler = registerHandler(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: {
@@ -125,3 +126,5 @@ Deno.serve(async (req) => {
 
   return bad("Unknown intent type");
 });
+
+export default handler;
