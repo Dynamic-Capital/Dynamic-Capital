@@ -1,27 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dynamic Capital - Premium Trading Platform</title>
-    <meta name="description" content="Join thousands of successful traders with exclusive market insights, daily analysis, and premium investment opportunities." />
-    <script>
-      // Redirect to Next.js app for unified preview
-      if (window.location.port === '8080' && window.location.pathname === '/') {
-        window.location.href = 'http://localhost:3000';
-      }
-    </script>
-  </head>
-  <body>
-    <div id="root">
-      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
-        <div style="text-align: center;">
-          <h2>Dynamic Capital</h2>
-          <p>Redirecting to Next.js app...</p>
-          <p><a href="http://localhost:3000" style="color: #f13d00;">Click here if not redirected automatically</a></p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynamic Capital - Fast Deposit Workflows</title>
+  <meta name="description" content="Streamline bank and crypto deposits with instant, automated verification." />
+  <meta property="og:title" content="Dynamic Capital - Fast Deposit Workflows" />
+  <meta property="og:description" content="Upload bank receipts or crypto TXIDs for rapid confirmation." />
+  <meta property="og:image" content="https://dynamiccapital.com/og-image.png" />
+  <meta property="og:url" content="https://dynamiccapital.com" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Dynamic Capital - Fast Deposit Workflows" />
+  <meta name="twitter:description" content="Streamline bank and crypto deposits with instant verification." />
+  <meta name="twitter:image" content="https://dynamiccapital.com/og-image.png" />
+  <link rel="stylesheet" href="_static/once-ui/once-ui.css" />
+  <link rel="stylesheet" href="_static/styles.css" />
+</head>
+<body>
+  <header class="site-header once-container">
+    <a href="/" class="logo">Dynamic Capital</a>
+  </header>
+
+  <main class="once-container">
+    <section class="hero">
+      <div class="hero-content">
+        <h2>Dynamic Capital</h2>
+        <p>Fast deposits with automated verification.</p>
+        <div class="button-group">
+          <a href="/app" class="once-btn primary">Start Deposit</a>
+          <a href="#story" class="once-btn outline">Learn More</a>
         </div>
       </div>
-    </div>
-  </body>
+    </section>
+
+    <section id="story" class="story">
+      <h2>Our Mission</h2>
+      <p>
+        Dynamic Capital streamlines fiat and crypto deposits. Our tools
+        verify bank receipts and blockchain transactions so funds reach
+        accounts in minutes, not days.
+      </p>
+    </section>
+
+    <section id="services" class="services">
+      <h2>Features</h2>
+      <div class="service-grid">
+        <div class="service-item">
+          <h3>Bank Receipt Auto-Verification</h3>
+          <p>Upload a transfer receipt and get instant confirmation via OCR.</p>
+          <a href="#contact" class="once-btn small outline">Get Started</a>
+        </div>
+        <div class="service-item">
+          <h3>Crypto TXID Submissions</h3>
+          <p>Submit blockchain transaction IDs to verify crypto deposits.</p>
+          <a href="#contact" class="once-btn small outline">Submit TXID</a>
+        </div>
+        <div class="service-item">
+          <h3>Optional Mini App</h3>
+          <p>Offer customers a lightweight deposit interface.</p>
+          <a href="/app" class="once-btn small primary">Open Mini App</a>
+        </div>
+        <div class="service-item">
+          <h3>Admin Tools</h3>
+          <p>Review submissions and manage approvals from one dashboard.</p>
+          <a href="#contact" class="once-btn small outline">Request Access</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="contact">
+      <h2>Contact</h2>
+      <p>Email us at <a href="mailto:support@dynamiccapital.com">support@dynamiccapital.com</a></p>
+      <p>Dynamic Capital Ltd.<br />123 Finance Street<br />New York, NY 10001</p>
+      <p>Chat with support on <a href="https://t.me/dynamiccapital" target="_blank">Telegram</a>.</p>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <p>&copy; 2024 Dynamic Capital. All rights reserved.</p>
+  </footer>
+  <script src="_static/once-ui/once-ui.js"></script>
+</body>
 </html>
