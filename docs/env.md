@@ -86,4 +86,5 @@ You can confirm access with `doctl spaces list`.
 | `A_SUPABASE_KEY`      | Supabase key used by audit scripts.      | No       | `service-role-key`        | `scripts/audit/read_meta.mjs`     |
 | `HEALTH_URL`          | Base URL for mini app health checks.     | No       | `https://example.com`     | `scripts/miniapp-health-check.ts` |
 | `ALLOWED_ORIGINS`     | Comma-separated origins allowed for CORS (defaults to `http://localhost:3000`). | No       | `https://example.com`     | `middleware.ts`, `supabase/functions/_shared/http.ts` |
+| `MINIAPP_ORIGIN`      | Origins allowed to call Telegram verification and mini-app APIs.              | No (required for production bots) | `https://dynamic-capital.ondigitalocean.app` | `supabase/functions/verify-telegram/index.ts` |
 | `LOG_LEVEL`           | Minimum log level for server logs (`debug`, `info`, `warn`, `error`). | No       | `warn`                    | `utils/logger.ts` |

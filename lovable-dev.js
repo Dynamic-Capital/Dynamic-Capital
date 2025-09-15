@@ -1,7 +1,30 @@
 #!/usr/bin/env node
 import { execSync } from 'node:child_process';
 
+const PRODUCTION_ORIGIN = 'https://dynamic-capital.ondigitalocean.app';
+const resolvedOrigin =
+  process.env.LOVABLE_ORIGIN ||
+  process.env.SITE_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  PRODUCTION_ORIGIN;
+
+for (const key of [
+  'SITE_URL',
+  'NEXT_PUBLIC_SITE_URL',
+  'ALLOWED_ORIGINS',
+  'MINIAPP_ORIGIN',
+]) {
+  if (!process.env[key]) {
+    process.env[key] = resolvedOrigin;
+  }
+}
+
+if (!process.env.LOVABLE_ORIGIN) {
+  process.env.LOVABLE_ORIGIN = resolvedOrigin;
+}
+
 console.log('🔧 Preparing Lovable dev environment...');
+console.log(`📡 Using origin ${resolvedOrigin} for Lovable dev services.`);
 
 try {
   execSync('npx tsx scripts/check-env.ts', { stdio: 'inherit' });

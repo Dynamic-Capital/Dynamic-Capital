@@ -18,7 +18,14 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SITE_URL) {
   if (!SITE_URL) {
     process.env.SITE_URL = "http://localhost:8080";
     process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:8080";
+    if (!process.env.MINIAPP_ORIGIN) {
+      process.env.MINIAPP_ORIGIN = "http://localhost:8080";
+    }
   }
 } else {
   console.log("✅ Required env vars present");
+}
+
+if (!process.env.MINIAPP_ORIGIN && process.env.SITE_URL) {
+  process.env.MINIAPP_ORIGIN = process.env.SITE_URL;
 }

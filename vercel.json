@@ -3,5 +3,18 @@
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "apps/web/.next",
-  "devCommand": "npm run dev"
+  "devCommand": "npm run dev",
+  "env": {
+    "SITE_URL": "https://dynamic-capital.ondigitalocean.app",
+    "NEXT_PUBLIC_SITE_URL": "https://dynamic-capital.ondigitalocean.app",
+    "ALLOWED_ORIGINS": "https://dynamic-capital.ondigitalocean.app",
+    "MINIAPP_ORIGIN": "https://dynamic-capital.ondigitalocean.app"
+  },
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://dynamic-capital.ondigitalocean.app/$1",
+      "permanent": false
+    }
+  ]
 }
