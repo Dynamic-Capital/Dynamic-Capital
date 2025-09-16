@@ -7,17 +7,17 @@ spec:
     - rule: DEPLOYMENT_FAILED
     - rule: DOMAIN_FAILED
   domains:
-    - domain: dynamic-capital.ondigitalocean.app
+    - domain: dynamic-capital.lovable.app
       type: PRIMARY
       wildcard: false
-      zone: dynamic-capital.ondigitalocean.app
+      zone: dynamic-capital.lovable.app
   ingress:
     rules:
       - component:
           name: dynamic-capital
         match:
           authority:
-            exact: dynamic-capital.ondigitalocean.app
+            exact: dynamic-capital.lovable.app
           path:
             prefix: /
   envs:
@@ -28,16 +28,16 @@ spec:
       value: "1"
       scope: RUN_AND_BUILD_TIME
     - key: SITE_URL
-      value: https://dynamic-capital.ondigitalocean.app
+      value: https://dynamic-capital.lovable.app
       scope: RUN_AND_BUILD_TIME
     - key: NEXT_PUBLIC_SITE_URL
-      value: https://dynamic-capital.ondigitalocean.app
+      value: https://dynamic-capital.lovable.app
       scope: RUN_AND_BUILD_TIME
     - key: ALLOWED_ORIGINS
-      value: https://dynamic-capital.ondigitalocean.app
+      value: https://dynamic-capital.lovable.app
       scope: RUN_AND_BUILD_TIME
     - key: MINIAPP_ORIGIN
-      value: https://dynamic-capital.ondigitalocean.app
+      value: https://dynamic-capital.lovable.app
       scope: RUN_AND_BUILD_TIME
     - key: NEXT_PUBLIC_SUPABASE_URL
       value: https://qeejuomcapbdlhnjqjcc.supabase.co
@@ -74,11 +74,11 @@ spec:
         http_path: /
       envs:
         - key: SITE_URL
-          value: https://dynamic-capital.ondigitalocean.app
+          value: https://dynamic-capital.lovable.app
           scope: RUN_AND_BUILD_TIME
         - key: NEXT_PUBLIC_SITE_URL
-          value: https://dynamic-capital.ondigitalocean.app
+          value: https://dynamic-capital.lovable.app
           scope: RUN_AND_BUILD_TIME
         - key: MINIAPP_ORIGIN
-          value: https://dynamic-capital.ondigitalocean.app
+          value: https://dynamic-capital.lovable.app
           scope: RUN_AND_BUILD_TIME

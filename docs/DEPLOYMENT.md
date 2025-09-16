@@ -10,13 +10,13 @@ The DigitalOcean App Platform spec used to provision the production app lives
 at [`.do/app.yml`](../.do/app.yml). Keep the spec in sync with any component or
 environment changes described in this document so the repository remains a
 single source of truth for deployments. The checked-in spec provisions a single
-Node.js service named `dynamic-capital`, configures the default
-`dynamic-capital.ondigitalocean.app` domain with ingress, pins the load balancer
-rule to that authority, and runs `npm run build` from the repository root before
+Node.js service named `dynamic-capital`, configures the
+`dynamic-capital.lovable.app` domain with ingress, pins the load balancer rule
+to that authority, and runs `npm run build` from the repository root before
 starting the Next.js server via `npm run start:web`. Requests are served on port
 `8080`, and the service sets `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`,
-and `MINIAPP_ORIGIN` to `https://dynamic-capital.ondigitalocean.app` so the web
-app, Supabase Edge Functions, and Telegram mini-app verification report the same
+and `MINIAPP_ORIGIN` to `https://dynamic-capital.lovable.app` so the web app,
+Supabase Edge Functions, and Telegram mini-app verification report the same
 origin. Update those values if you move to a different hostname.
 
 - `SUPABASE_URL`
@@ -40,13 +40,13 @@ Include your database connection string or anon key as needed:
 
 ## DNS for App Platform
 
-DigitalOcean assigns the default domain
-`dynamic-capital.ondigitalocean.app`. The authoritative zone lives in
+DigitalOcean still provisions a default `dynamic-capital.ondigitalocean.app`
+domain. Its exported zone file lives in
 [`dns/dynamic-capital.ondigitalocean.app.zone`](../dns/dynamic-capital.ondigitalocean.app.zone)
-and pins the required NS and A records (162.159.140.98 and 172.66.0.96). Apply
-those records if you recreate the domain or migrate DNS so Cloudflare continues
-proxying the web dashboard and the Supabase-powered Edge Functions through the
-same hostname.
+and captures the required NS and A records (162.159.140.98 and 172.66.0.96).
+Use that file if you need to rehydrate the fallback host while keeping
+Cloudflare in front of the service. Production traffic should target
+`dynamic-capital.lovable.app` once the Lovable domain is live.
 
 ### CDN configuration for DigitalOcean Spaces
 
@@ -96,7 +96,7 @@ sync with local expectations. Update both the spec and this section if the
 build or runtime command changes.
 
 The `SITE_URL` variable must match your public domain, e.g.
-`https://urchin-app-macix.ondigitalocean.app`.
+`https://dynamic-capital.lovable.app`.
 
 ## Deployment logs
 
