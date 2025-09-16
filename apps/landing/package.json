@@ -2,7 +2,7 @@
 "name": "landing",
 "private": true,
 "scripts": {
-"build": "rm -rf ../../_static && mkdir -p ../../_static && cp -r public/* ../../_static/ && rm -rf ../web/public/_static && mkdir -p ../web/public/_static && cp -r public/* ../web/public/_static/",
+"build": "npm run copy-static --workspace web",
 "start": "npx serve ../../_static -l ${PORT:-8080}"
 }
 }

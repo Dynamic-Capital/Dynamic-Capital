@@ -10,7 +10,7 @@ and to understand when to rely on automatic detection versus manual overrides.
 | --- | --- | --- | --- |
 | Framework Preset | **Next.js** | Project Settings → General → Framework Preset | Vercel usually auto-detects; choose it manually if "Other" appears. |
 | Install Command | `npm install` | Project Settings → Build & Development Settings → Install Command | Runs from the repo root to install workspace deps. |
-| Build Command | `npm run build` | Project Settings → Build & Development Settings → Build Command | Builds both `apps/landing` and `apps/web` before exporting the Next.js output. |
+| Build Command | `npm run build` | Project Settings → Build & Development Settings → Build Command | Builds the Next.js app and captures the landing snapshot for `_static/`. |
 | Output Directory | `apps/web/.next` | Project Settings → Build & Development Settings → Output Directory | Matches the checked-in `vercel.json` so the deployment serves the Next.js build. |
 | Development Command | `npm run dev -- --port $PORT` | Project Settings → Build & Development Settings → Development Command | For `vercel dev`; forwards Vercel's `$PORT` to the workspace script. |
 | Root Directory | `.` (repository root) | Project Settings → General → Root Directory | Keep at the root so the build script can reach both workspaces. |
@@ -31,7 +31,8 @@ and to understand when to rely on automatic detection versus manual overrides.
   `package.json` scripts. If no script is defined—such as a bare Next.js
   installation—Vercel runs `next build` by default.
 - Dynamic Capital default: `npm run build` executes the orchestrated build that
-  compiles the landing page and the Next.js app.
+  compiles the Next.js app and then exports the landing snapshot for CDN
+  hosting.
 - Enable the Override toggle in Project Settings to supply a custom command for
   all deployments, or set `buildCommand` inside `vercel.json` to override a single
   deployment.

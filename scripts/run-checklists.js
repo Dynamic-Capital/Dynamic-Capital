@@ -53,7 +53,7 @@ const TASK_LIBRARY = {
   },
   build: {
     id: 'build',
-    label: 'Build landing and dashboard bundles (npm run build)',
+    label: 'Build Next.js app and landing snapshot (npm run build)',
     command: 'npm run build',
     optional: true,
     docs: ['docs/once-ui-development-checklist.md'],

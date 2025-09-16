@@ -79,6 +79,54 @@ async function streamFile(req, res, filePath, status = 200) {
   }
 }
 
+function resolveStaticCandidates(pathname) {
+  let target = pathname;
+  if (target.startsWith('/_static')) {
+    target = target.slice('/_static'.length) || '/';
+  }
+  if (!target.startsWith('/')) {
+    target = `/${target}`;
+  }
+  const trimmed = target.replace(/^\/+/, '');
+  const candidates = new Set();
+  if (!trimmed) {
+    candidates.add('index.html');
+  } else {
+    candidates.add(trimmed);
+    if (trimmed.endsWith('/')) {
+      candidates.add(`${trimmed}index.html`);
+    } else {
+      candidates.add(`${trimmed}/index.html`);
+    }
+    if (!trimmed.endsWith('.html')) {
+      candidates.add(`${trimmed}.html`);
+    }
+  }
+  return Array.from(candidates);
+}
+
+async function tryServeStatic(req, res, pathname) {
+  const candidates = resolveStaticCandidates(pathname);
+  for (const candidate of candidates) {
+    const normalized = normalize(candidate);
+    if (normalized.startsWith('..')) {
+      continue;
+    }
+    const filePath = join(staticRoot, normalized);
+    if (!filePath.startsWith(staticRoot)) {
+      continue;
+    }
+    try {
+      const info = await stat(filePath);
+      if (info.isFile()) {
+        await streamFile(req, res, filePath);
+        return true;
+      }
+    } catch {}
+  }
+  return false;
+}
+
 async function handler(req, res) {
   const ip = req.socket.remoteAddress || '';
   const now = Date.now();
@@ -116,7 +164,7 @@ async function handler(req, res) {
   }
 
   const url = new URL(req.url || '/', 'http://localhost');
-  const { pathname, search } = url;
+  const { pathname } = url;
   console.log(`${req.method} ${pathname}`);
 
   if (pathname === '/healthz') {
@@ -124,33 +172,8 @@ async function handler(req, res) {
     return res.end('ok');
   }
 
-  if (pathname === '/' || pathname === '/index.html') {
-    const location = '/_static/index.html' + search;
-    res.writeHead(302, { Location: location });
-    return res.end();
-  }
-
-  if (pathname.startsWith('/_static/')) {
-    const normalizedUrl = normalize(pathname);
-    const filePath = join(root, normalizedUrl.slice(1));
-    if (!filePath.startsWith(staticRoot)) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      return res.end('404 Not Found');
-    }
-    try {
-      const info = await stat(filePath);
-      if (info.isDirectory()) throw new Error('is directory');
-      return await streamFile(req, res, filePath);
-    } catch {
-      const notFound = join(staticRoot, '404.html');
-      try {
-        await stat(notFound);
-        return await streamFile(req, res, notFound, 404);
-      } catch {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        return res.end('404 Not Found');
-      }
-    }
+  if (await tryServeStatic(req, res, pathname)) {
+    return;
   }
 
   const notFound = join(staticRoot, '404.html');

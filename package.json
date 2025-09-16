@@ -9,7 +9,7 @@
   },
   "type": "module",
   "scripts": {
-    "build": "npm run build:landing && npm run build:web",
+    "build": "npm run build:web && npm run build:landing",
     "build:landing": "npm -w apps/landing run build",
     "build:web": "npm -w apps/web run build",
     "build:miniapp": "bash scripts/build-miniapp.sh",
