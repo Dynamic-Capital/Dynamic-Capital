@@ -115,10 +115,5 @@
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.0.1",
     "vite": "^7.1.5"
-  },
-  "overrides": {
-    "@esbuild-kit/core-utils": {
-      "esbuild": "^0.25.9"
-    }
   }
 }
