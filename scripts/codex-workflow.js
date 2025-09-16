@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,10 +8,15 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 
-const argv = process.argv.slice(2);
-const flags = new Set(argv.filter((arg) => arg.startsWith('-') && arg !== '-'));
-const modeArg = argv.find((arg) => !arg.startsWith('-'));
-let mode = (modeArg ?? 'post-pull').toLowerCase();
+const DEFAULT_AGENT_ID = 'default';
+const STATE_VERSION = 2;
+
+const parsedArgs = parseArguments(process.argv.slice(2));
+const flags = parsedArgs.flags;
+const flagValues = parsedArgs.values;
+const positional = parsedArgs.positional;
+
+let mode = (positional[0] ?? 'post-pull').toLowerCase();
 
 if (flags.has('--help') || flags.has('-h')) {
   printUsage();
@@ -30,19 +36,44 @@ const runVerify = flags.has('--verify');
 const skipVerify = flags.has('--no-verify');
 const dryRun = flags.has('--dry-run');
 const resetIssues = flags.has('--reset-issues') || flags.has('--clear-issues');
+const disableSharedCache =
+  flags.has('--no-shared-cache') ||
+  flags.has('--disable-shared-cache') ||
+  isTruthy(process.env.CODEX_DISABLE_SHARED_CACHE);
 
-const hasNodeModules = existsSync(path.join(repoRoot, 'node_modules'));
+const agentValue =
+  flagValues.get('--agent') ??
+  flagValues.get('--agent-id') ??
+  flagValues.get('--profile') ??
+  process.env.CODEX_AGENT_ID ??
+  process.env.CODEX_AGENT ??
+  process.env.CODEX_PROFILE;
+const agentId = sanitizeAgentId(agentValue);
+
+const nodeModulesPath = path.join(repoRoot, 'node_modules');
+const hasNodeModules = () => existsSync(nodeModulesPath);
 const stateFile = path.join(repoRoot, '.codex-workflow-state.json');
 
 let state = loadState();
+const agentState = getAgentState(state, agentId);
+const sharedState = getSharedState(state);
 
 if (resetIssues) {
-  if (Object.keys(state.failures).length > 0) {
-    console.log('♻️  Clearing stored Codex workflow issue history.');
+  if (Object.keys(agentState.failures ?? {}).length > 0) {
+    console.log(`♻️  Clearing stored Codex workflow issue history for agent "${agentId}".`);
   }
-  state = { failures: {} };
+  agentState.failures = {};
   saveState(state);
 }
+
+const context = {
+  agentId,
+  agentState,
+  sharedState,
+  state,
+  disableSharedCache,
+  mode,
+};
 
 const troubleshootingTips = {
   'npm install': [
@@ -82,6 +113,7 @@ const tasksByMode = {
     command('Install npm dependencies', 'npm install', {
       skip: skipInstall,
       optional: false,
+      shared: sharedInstallOptions(),
     }),
     command('Sync local environment (npm run sync-env)', 'npm run sync-env', {
       skip: skipSync,
@@ -135,7 +167,7 @@ if (!tasksByMode[mode]) {
 
 const tasks = tasksByMode[mode]().filter(Boolean);
 
-if (mode === 'post-pull' && !skipInstall && hasNodeModules) {
+if (mode === 'post-pull' && !skipInstall && hasNodeModules()) {
   console.log('ℹ️  node_modules already present; use --no-install to skip reinstalling.');
 }
 
@@ -145,11 +177,16 @@ if (!tasks.length) {
 }
 
 console.log(`🧰 Codex workflow helper running in "${mode}" mode.`);
+console.log(`   Agent: ${agentId}`);
 if (flags.size > 0) {
   console.log(`   Flags: ${[...flags].join(', ')}`);
 }
+if (disableSharedCache) {
+  console.log('   Shared cache: disabled for this run.');
+}
 
-announceRecurringIssues(tasks, state);
+printSharedTaskSummary(tasks, sharedState, agentId, disableSharedCache);
+announceRecurringIssues(tasks, agentState);
 
 if (dryRun) {
   console.log('🔎 Dry run enabled. Listing planned steps without executing them:');
@@ -159,31 +196,50 @@ if (dryRun) {
   process.exit(0);
 }
 
-runTasks(tasks, state);
+runTasks(tasks, context);
 console.log('\n🎉 Codex workflow tasks completed.');
 
 function command(label, cmd, options = {}) {
-  const { optional = false, skip = false, key } = options;
-  if (skip) return null;
-  return { label, cmd, optional, key: key ?? cmd };
+  const { optional = false, skip = false, key, shared } = options;
+  return {
+    label,
+    cmd,
+    optional,
+    key: key ?? cmd,
+    shouldSkip: wrapSkip(skip),
+    shared,
+  };
 }
 
-function runTasks(taskList, currentState) {
+function runTasks(taskList, context) {
+  const { agentState, state } = context;
   for (let index = 0; index < taskList.length; index += 1) {
     const task = taskList[index];
     const step = index + 1;
     const key = taskKey(task);
-    const hadPreviousFailures = Boolean(currentState.failures[key]);
+    const hadPreviousFailures = Boolean(agentState.failures[key]);
+
+    const skipDecision = evaluateSkip(task, context);
+    if (skipDecision.skip) {
+      console.log(`\n⏭️  Step ${step}/${taskList.length}: ${task.label}`);
+      if (skipDecision.reason) {
+        console.log(`   ${skipDecision.reason}`);
+      }
+      continue;
+    }
 
     console.log(`\n➡️  Step ${step}/${taskList.length}: ${task.label}`);
+    const startTime = Date.now();
     try {
       execSync(task.cmd, { stdio: 'inherit', shell: true });
+      const durationMs = Date.now() - startTime;
       console.log(`✅ ${task.label}`);
-      if (recordSuccess(currentState, task) && hadPreviousFailures) {
+      if (recordSuccess(agentState, task) && hadPreviousFailures) {
         console.log('   ℹ️  Previous issues for this step have been cleared.');
       }
+      recordSharedSuccess(task, context, { durationMs });
     } catch (error) {
-      const failureRecord = recordFailure(currentState, task, error);
+      const failureRecord = recordFailure(agentState, task, error);
       const recurrenceNotice =
         failureRecord.count > 1 ? ` (seen ${failureRecord.count} times)` : '';
 
@@ -202,7 +258,7 @@ function runTasks(taskList, currentState) {
       printTroubleshootingTips(task, {
         header: 'Quick troubleshooting tips:',
       });
-      saveState(currentState);
+      saveState(state);
       if (error?.status) {
         process.exit(error.status);
       }
@@ -210,58 +266,285 @@ function runTasks(taskList, currentState) {
     }
   }
 
-  saveState(currentState);
+  saveState(state);
 }
 
 function printUsage() {
-  console.log(`Codex CLI workflow helper\n\nUsage: node scripts/codex-workflow.js [mode] [flags]\n\nModes:\n  post-pull (default)  Prepare the repo after pulling from Codex CLI.\n  dev                  Sync env and start Lovable dev server.\n  build                Run env checks and Lovable build.\n  verify               Run the verification suite.\n\nFlags:\n  --no-install         Skip \`npm install\` (post-pull).\n  --no-sync            Skip \`npm run sync-env\`.\n  --no-env-check       Skip env validation (not recommended).\n  --no-build           Skip Lovable build (post-pull/build).\n  --build-optional     Treat Lovable build failures as warnings.\n  --verify             Run \`npm run verify\` after post-pull steps.\n  --no-verify          Skip verify step even if --verify provided.\n  --dry-run            Show planned steps without executing.\n  --reset-issues       Clear stored failure history for Codex workflow steps.\n  --help, -h           Show this message.\n`);
+  console.log(`Codex CLI workflow helper\n\nUsage: node scripts/codex-workflow.js [mode] [flags]\n\nModes:\n  post-pull (default)  Prepare the repo after pulling from Codex CLI.\n  dev                  Sync env and start Lovable dev server.\n  build         Run env checks and Lovable build.\n  verify               Run the verification suite.\n\nFlags:\n  --no-install         Skip \`npm install\` (post-pull).\n  --no-sync            Skip \`npm run sync-env\`.\n  --no-env-check       Skip env validation (not recommended).\n  --no-build           Skip Lovable build (post-pull/build).\n  --build-optional     Treat Lovable build failures as warnings.\n  --verify             Run \`npm run verify\` after post-pull steps.\n  --no-verify          Skip verify step even if --verify provided.\n  --agent <id>         Track failures separately for a Codex agent.\n  --no-shared-cache    Disable shared success caching between agents.\n  --dry-run            Show planned steps without executing.\n  --reset-issues       Clear stored failure history for Codex workflow steps.\n  --help, -h           Show this message.\n`);
 }
 
 function taskKey(task) {
   return task.key ?? task.cmd;
 }
 
+function sharedKey(task) {
+  if (task.shared && task.shared.key) {
+    return task.shared.key;
+  }
+  return taskKey(task);
+}
+
+function freshState() {
+  return {
+    version: STATE_VERSION,
+    agents: {},
+    shared: { tasks: {} },
+  };
+}
+
+function isObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function getAgentState(state, agentId) {
+  if (!isObject(state.agents)) {
+    state.agents = {};
+  }
+  if (!isObject(state.agents[agentId])) {
+    state.agents[agentId] = { failures: {} };
+  }
+  const agentState = state.agents[agentId];
+  if (!isObject(agentState.failures)) {
+    agentState.failures = {};
+  }
+  return agentState;
+}
+
+function getSharedState(state) {
+  if (!isObject(state.shared)) {
+    state.shared = { tasks: {} };
+  }
+  if (!isObject(state.shared.tasks)) {
+    state.shared.tasks = {};
+  }
+  return state.shared;
+}
+
+function getSharedTasks(sharedState) {
+  if (!isObject(sharedState.tasks)) {
+    sharedState.tasks = {};
+  }
+  return sharedState.tasks;
+}
+
 function loadState() {
   if (!existsSync(stateFile)) {
-    return { failures: {} };
+    return freshState();
   }
 
   try {
     const contents = readFileSync(stateFile, 'utf8');
     const parsed = JSON.parse(contents);
-    if (!parsed || typeof parsed !== 'object') {
-      return { failures: {} };
+    if (!isObject(parsed)) {
+      return freshState();
     }
-    if (!parsed.failures || typeof parsed.failures !== 'object') {
-      parsed.failures = {};
+
+    const state = freshState();
+    if (isObject(parsed.agents)) {
+      for (const [agentId, value] of Object.entries(parsed.agents)) {
+        if (!isObject(value)) continue;
+        state.agents[agentId] = {
+          failures: isObject(value.failures) ? { ...value.failures } : {},
+        };
+      }
     }
-    return parsed;
+
+    if (isObject(parsed.failures)) {
+      const currentDefault = state.agents[DEFAULT_AGENT_ID] ?? { failures: {} };
+      state.agents[DEFAULT_AGENT_ID] = {
+        failures: {
+          ...(isObject(currentDefault.failures) ? currentDefault.failures : {}),
+          ...parsed.failures,
+        },
+      };
+    }
+
+    if (Object.keys(state.agents).length === 0) {
+      state.agents[DEFAULT_AGENT_ID] = { failures: {} };
+    }
+
+    if (isObject(parsed.shared) && isObject(parsed.shared.tasks)) {
+      const sharedTasks = {};
+      for (const [key, value] of Object.entries(parsed.shared.tasks)) {
+        if (isObject(value)) {
+          sharedTasks[key] = value;
+        }
+      }
+      state.shared.tasks = sharedTasks;
+    }
+
+    return state;
   } catch (error) {
     console.warn('⚠️  Unable to read Codex workflow state. Starting fresh.', error?.message ?? error);
-    return { failures: {} };
+    return freshState();
   }
 }
 
 function saveState(nextState) {
-  const failures = nextState.failures ?? {};
-  const keys = Object.keys(failures);
-  if (keys.length === 0) {
+  nextState.version = STATE_VERSION;
+
+  const agents = {};
+  if (isObject(nextState.agents)) {
+    for (const [agentId, value] of Object.entries(nextState.agents)) {
+      if (!isObject(value)) continue;
+      const failures = isObject(value.failures) ? value.failures : {};
+      if (Object.keys(failures).length > 0) {
+        agents[agentId] = { failures };
+      }
+    }
+  }
+
+  const sharedTasks = {};
+  if (isObject(nextState.shared) && isObject(nextState.shared.tasks)) {
+    for (const [key, value] of Object.entries(nextState.shared.tasks)) {
+      if (isObject(value) && Object.keys(value).length > 0) {
+        sharedTasks[key] = value;
+      }
+    }
+  }
+
+  nextState.agents = agents;
+  nextState.shared = { tasks: sharedTasks };
+
+  const payload = { version: STATE_VERSION };
+  if (Object.keys(agents).length > 0) {
+    payload.agents = agents;
+  }
+  if (Object.keys(sharedTasks).length > 0) {
+    payload.shared = { tasks: sharedTasks };
+  }
+
+  if (!payload.agents && !payload.shared) {
     if (existsSync(stateFile)) {
       rmSync(stateFile);
     }
+    nextState.agents = {};
+    nextState.shared = { tasks: {} };
     return;
   }
 
   try {
-    writeFileSync(stateFile, JSON.stringify({ failures }, null, 2));
+    writeFileSync(stateFile, JSON.stringify(payload, null, 2));
   } catch (error) {
     console.warn('⚠️  Failed to persist Codex workflow state.', error?.message ?? error);
   }
 }
 
-function recordFailure(currentState, task, error) {
+function wrapSkip(skip) {
+  if (typeof skip === 'function') {
+    return (context) => normalizeSkipDecision(skip(context));
+  }
+  return () => normalizeSkipDecision(skip);
+}
+
+function normalizeSkipDecision(result) {
+  if (typeof result === 'boolean') {
+    return { skip: result };
+  }
+  if (typeof result === 'string') {
+    return { skip: true, reason: result };
+  }
+  if (result && typeof result === 'object') {
+    if ('skip' in result) {
+      return {
+        skip: Boolean(result.skip),
+        reason: result.reason,
+      };
+    }
+  }
+  return { skip: false };
+}
+
+function evaluateSkip(task, context) {
+  if (typeof task.shouldSkip === 'function') {
+    const decision = normalizeSkipDecision(task.shouldSkip(context));
+    if (decision.skip) {
+      return decision;
+    }
+  }
+  return evaluateSharedSkip(task, context);
+}
+
+function evaluateSharedSkip(task, context) {
+  if (!task.shared || context.disableSharedCache) {
+    return { skip: false };
+  }
+
+  const sharedTasks = getSharedTasks(context.sharedState);
+  const key = sharedKey(task);
+  const record = sharedTasks[key];
+  if (!isObject(record)) {
+    return { skip: false };
+  }
+
+  if (typeof task.shared.canReuse === 'function') {
+    try {
+      if (!task.shared.canReuse(record, context)) {
+        return { skip: false };
+      }
+    } catch (error) {
+      console.warn(`⚠️  Shared reuse check failed for ${task.label}.`, error?.message ?? error);
+      return { skip: false };
+    }
+  }
+
+  const fingerprint = resolveSharedFingerprint(task, task.shared, context);
+  if (typeof task.shared.getFingerprint === 'function') {
+    if (!fingerprint || record.fingerprint !== fingerprint) {
+      return { skip: false };
+    }
+  }
+
+  if (typeof task.shared.isCacheValid === 'function') {
+    try {
+      if (!task.shared.isCacheValid(record, context)) {
+        return { skip: false };
+      }
+    } catch (error) {
+      console.warn(`⚠️  Shared cache validation failed for ${task.label}.`, error?.message ?? error);
+      return { skip: false };
+    }
+  }
+
+  if (typeof task.shared.onReuse === 'function') {
+    try {
+      task.shared.onReuse(record, context);
+    } catch (error) {
+      console.warn(`⚠️  Shared reuse callback failed for ${task.label}.`, error?.message ?? error);
+    }
+  }
+
+  const message =
+    typeof task.shared.skipMessage === 'function'
+      ? task.shared.skipMessage(record, context)
+      : task.shared.skipMessage;
+
+  return {
+    skip: true,
+    reason:
+      message ??
+      `Shared cache indicates "${task.label}" is up to date from ${record.agentId ?? 'another Codex agent'}.`,
+  };
+}
+
+function resolveSharedFingerprint(task, sharedOptions, context) {
+  if (typeof sharedOptions.getFingerprint !== 'function') {
+    return undefined;
+  }
+  try {
+    return sharedOptions.getFingerprint(context);
+  } catch (error) {
+    console.warn(`⚠️  Unable to compute fingerprint for ${task.label}.`, error?.message ?? error);
+    return undefined;
+  }
+}
+
+function recordFailure(agentState, task, error) {
+  if (!isObject(agentState.failures)) {
+    agentState.failures = {};
+  }
   const key = taskKey(task);
-  const failures = currentState.failures ?? {};
+  const failures = agentState.failures;
   const existing = failures[key] ?? { count: 0 };
   const message = extractErrorSnippet(error);
 
@@ -275,19 +558,208 @@ function recordFailure(currentState, task, error) {
   };
 
   failures[key] = updated;
-  currentState.failures = failures;
+  agentState.failures = failures;
   return updated;
 }
 
-function recordSuccess(currentState, task) {
+function recordSuccess(agentState, task) {
+  if (!isObject(agentState.failures)) {
+    agentState.failures = {};
+  }
   const key = taskKey(task);
-  const failures = currentState.failures ?? {};
+  const failures = agentState.failures;
   if (failures[key]) {
     delete failures[key];
-    currentState.failures = failures;
+    agentState.failures = failures;
     return true;
   }
   return false;
+}
+
+function recordSharedSuccess(task, context, metadata = {}) {
+  if (!task.shared) {
+    return;
+  }
+  const sharedTasks = getSharedTasks(context.sharedState);
+  const key = sharedKey(task);
+  const previous = isObject(sharedTasks[key]) ? sharedTasks[key] : {};
+  const fingerprint = resolveSharedFingerprint(task, task.shared, context);
+
+  const record = {
+    ...previous,
+    lastSuccess: new Date().toISOString(),
+    agentId: context.agentId,
+    runs: typeof previous.runs === 'number' ? previous.runs + 1 : 1,
+  };
+
+  if (fingerprint) {
+    record.fingerprint = fingerprint;
+  }
+
+  if (metadata && typeof metadata === 'object') {
+    if (typeof metadata.durationMs === 'number' && Number.isFinite(metadata.durationMs) && metadata.durationMs >= 0) {
+      record.durationMs = metadata.durationMs;
+    }
+  }
+
+  if (typeof task.shared.onSuccess === 'function') {
+    try {
+      const extra = task.shared.onSuccess({ previous, context, fingerprint });
+      if (extra && typeof extra === 'object') {
+        Object.assign(record, extra);
+      }
+    } catch (error) {
+      console.warn(`⚠️  Shared success callback failed for ${task.label}.`, error?.message ?? error);
+    }
+  }
+
+  sharedTasks[key] = record;
+}
+
+function printSharedTaskSummary(taskList, sharedState, agentId, disableSharedCache) {
+  if (!sharedState || !isObject(sharedState.tasks)) {
+    return;
+  }
+
+  const sharedTasks = sharedState.tasks;
+  const relevant = taskList.filter((task) => task.shared && isObject(sharedTasks[sharedKey(task)]));
+  if (relevant.length === 0) {
+    return;
+  }
+
+  const suffix = disableSharedCache ? ' (shared cache disabled for this run)' : '';
+  console.log(`\n🤝  Shared Codex agent activity${suffix}:`);
+  for (const task of relevant) {
+    const record = sharedTasks[sharedKey(task)];
+    const who = record.agentId ? `agent "${record.agentId}"` : 'another Codex agent';
+    const whenValue = record.lastSuccess ? formatTimestamp(record.lastSuccess) : 'recently';
+    const whenText = whenValue === 'recently' ? 'recently' : `on ${whenValue}`;
+    const duration = record.durationMs ? formatDuration(record.durationMs) : null;
+    const durationText = duration ? ` (took ${duration})` : '';
+    console.log(`   • ${task.label} last completed by ${who} ${whenText}${durationText}.`);
+  }
+}
+
+function sharedInstallOptions() {
+  return {
+    key: 'npm install',
+    getFingerprint: () => computeDependencyFingerprint(),
+    canReuse: () => hasNodeModules(),
+    skipMessage: (record) => formatInstallSkipMessage(record),
+  };
+}
+
+function computeDependencyFingerprint() {
+  const files = ['package-lock.json', 'package.json'];
+  const hash = createHash('sha1');
+  let seen = 0;
+
+  for (const fileName of files) {
+    const filePath = path.join(repoRoot, fileName);
+    if (!existsSync(filePath)) continue;
+    try {
+      const contents = readFileSync(filePath);
+      hash.update(fileName);
+      hash.update(contents);
+      seen += 1;
+    } catch (error) {
+      console.warn(`⚠️  Unable to read ${fileName} while computing dependency fingerprint.`, error?.message ?? error);
+      return undefined;
+    }
+  }
+
+  if (seen === 0) {
+    return undefined;
+  }
+
+  return hash.digest('hex');
+}
+
+function formatInstallSkipMessage(record) {
+  const who = record.agentId ? `Codex agent "${record.agentId}"` : 'Another Codex agent';
+  const whenValue = record.lastSuccess ? formatTimestamp(record.lastSuccess) : 'recently';
+  const whenText = whenValue === 'recently' ? ' recently' : ` on ${whenValue}`;
+  const duration = record.durationMs ? formatDuration(record.durationMs) : null;
+  const durationText = duration ? ` (took ${duration})` : '';
+  return `${who} already installed dependencies${whenText}${durationText}. Use --no-shared-cache to ignore shared results.`;
+}
+
+function formatDuration(durationMs) {
+  if (typeof durationMs !== 'number' || !Number.isFinite(durationMs) || durationMs <= 0) {
+    return null;
+  }
+  if (durationMs < 1000) {
+    return `${Math.round(durationMs)}ms`;
+  }
+  const seconds = durationMs / 1000;
+  if (seconds < 60) {
+    return seconds >= 10 ? `${Math.round(seconds)}s` : `${seconds.toFixed(1)}s`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remaining = Math.round(seconds % 60);
+  if (remaining === 0) {
+    return `${minutes}m`;
+  }
+  return `${minutes}m ${remaining}s`;
+}
+
+function parseArguments(args) {
+  const positional = [];
+  const flags = new Set();
+  const values = new Map();
+
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--') {
+      positional.push(...args.slice(i + 1));
+      break;
+    }
+    if (arg.startsWith('--')) {
+      const eqIndex = arg.indexOf('=');
+      if (eqIndex !== -1) {
+        const name = arg.slice(0, eqIndex);
+        const value = arg.slice(eqIndex + 1);
+        values.set(name, value);
+      } else {
+        const next = args[i + 1];
+        if (next && !next.startsWith('-')) {
+          values.set(arg, next);
+          i += 1;
+        } else {
+          flags.add(arg);
+        }
+      }
+      continue;
+    }
+    if (arg.startsWith('-') && arg !== '-') {
+      flags.add(arg);
+      continue;
+    }
+    positional.push(arg);
+  }
+
+  return { positional, flags, values };
+}
+
+function sanitizeAgentId(value) {
+  if (value === undefined || value === null) {
+    return DEFAULT_AGENT_ID;
+  }
+  const trimmed = String(value).trim();
+  if (!trimmed) {
+    return DEFAULT_AGENT_ID;
+  }
+  const sanitized = trimmed.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  const limited = sanitized.slice(0, 64);
+  return limited || DEFAULT_AGENT_ID;
+}
+
+function isTruthy(value) {
+  if (value === undefined || value === null) {
+    return false;
+  }
+  const normalized = String(value).trim().toLowerCase();
+  return ['1', 'true', 'yes', 'on'].includes(normalized);
 }
 
 function extractErrorSnippet(error) {
@@ -307,11 +779,11 @@ function extractErrorSnippet(error) {
   return undefined;
 }
 
-function announceRecurringIssues(taskList, currentState) {
+function announceRecurringIssues(taskList, agentState) {
   const problems = [];
   for (const task of taskList) {
     const key = taskKey(task);
-    const failure = currentState.failures?.[key];
+    const failure = agentState.failures?.[key];
     if (failure && failure.count >= 2) {
       problems.push({ task, failure });
     }

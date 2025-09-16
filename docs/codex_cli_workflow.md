@@ -28,13 +28,22 @@ Common flags accepted by the helper:
 - `--verify` – run `npm run verify` after the post-pull steps.
 - `--dry-run` – preview the steps without executing commands.
 - `--reset-issues` – clear the cached failure history before running tasks again.
+- `--agent <id>` – scope failure history and reminders to a specific Codex agent (also via `CODEX_AGENT_ID`).
+- `--no-shared-cache` – skip the shared dependency cache when coordinating with other agents.
 
 Run `scripts/codex-workflow.js --help` to see the full list of options.
 
 The helper keeps a small JSON file (`.codex-workflow-state.json`, ignored by
-Git) that tracks which steps failed recently. When a task fails multiple times,
-the CLI surfaces targeted troubleshooting tips before the next run. Use
-`--reset-issues` if you want to discard that history and silence the reminders.
+Git) that tracks which steps failed recently. Each `--agent` gets its own
+failure history so multiple Codex assistants can run the workflow without
+overwriting each other's reminders. When a task fails multiple times, the CLI
+surfaces targeted troubleshooting tips before the next run. Use `--reset-issues`
+if you want to discard that history and silence the reminders.
+
+To speed up cooperative runs, the helper fingerprints `package-lock.json` and
+shares `npm install` successes between agents. Skip the shared cache with
+`--no-shared-cache` (or `CODEX_DISABLE_SHARED_CACHE=1`) whenever you need a
+clean install.
 
 ## Suggested workflow
 

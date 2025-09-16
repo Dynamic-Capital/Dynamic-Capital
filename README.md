@@ -465,6 +465,8 @@ npm run codex:post-pull -- --no-build          # skip the Lovable build step
 npm run codex:dev -- --no-sync                 # keep existing env values
 npm run codex:post-pull -- --dry-run           # list steps without executing
 npm run codex:post-pull -- --reset-issues      # clear cached failure history & tips
+npm run codex:post-pull -- --agent ui-bot      # isolate failure tracking per Codex agent
+npm run codex:post-pull -- --no-shared-cache   # ignore shared install caches for this run
 ```
 
 Available flags mirror the helper's usage (`--no-install`, `--no-sync`,
@@ -472,7 +474,11 @@ Available flags mirror the helper's usage (`--no-install`, `--no-sync`,
 `scripts/codex-workflow.js --help` for the full reference, and read
 `docs/codex_cli_workflow.md` for a deeper walkthrough of recommended flows.
 
-The helper remembers which steps failed recently so it can surface
+Assigning an `--agent` name (or exporting `CODEX_AGENT_ID`) keeps failure
+history scoped to that agent while still sharing successes with the rest of the
+team. The helper fingerprints `package-lock.json` so multiple agents can reuse a
+single `npm install` run; pass `--no-shared-cache` if you need to force a fresh
+install. The helper remembers which steps failed recently so it can surface
 troubleshooting tips the next time you run it. If you want to start fresh,
 pass `--reset-issues` to clear that history before executing tasks.
 
