@@ -43,7 +43,7 @@ CREATE FOREIGN TABLE s3_files (
 
 ## Application Usage
 
-Wrapper-backed tables can be queried from both the Next.js app and the Telegram bot. Helper functions are provided in `src/integrations/wrappers/queries.ts`:
+Wrapper-backed tables can be queried from both the Next.js app and the Telegram bot. Place shared helpers under `apps/web/integrations/` so they can be imported from the web dashboard and edge functions alike:
 
 ```ts
 import { getRedisSession, getAuth0User, listS3Files } from "@/integrations/wrappers";

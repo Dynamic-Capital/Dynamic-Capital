@@ -25,7 +25,7 @@ Each key maps to a sequence defined in [`scripts/run-checklists.js`](../scripts/
 | [`Launch Checklist`](./LAUNCH_CHECKLIST.md) | Secrets and keeper setup | Harden Supabase edge functions ahead of launch | — |
 | [`Vercel Production Checklist`](./VERCEL_PRODUCTION_CHECKLIST.md) | Well-architected review for hosted frontends | Audit Vercel deployments for operational readiness | — |
 | [`Automated Trading System Build Checklist`](./automated-trading-checklist.md) | TradingView → Vercel → Supabase → MetaTrader 5 pipeline | Stand up or extend the automated trading stack | — |
-| [`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md) | Merging Dynamic Codex into this monorepo | Track integration status across frontend, backend, and tooling | — |
+| [`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md) | Merging Dynamic Codex into this monorepo | Completed — dashboard now lives at `/telegram` in the Next.js app | — |
 
 ## Project delivery
 
@@ -44,7 +44,7 @@ Each key maps to a sequence defined in [`scripts/run-checklists.js`](../scripts/
 
 ## Specialized projects & integrations
 - **[`Automated Trading System Build Checklist`](./automated-trading-checklist.md)** – sequences the deliverables for the TradingView → Supabase → MetaTrader 5 automation project, from Pine Script alerts to VPS hardening.
-- **[`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md)** – documents the remaining work to fold Dynamic Codex into this repository without regressing existing tooling.
+- **[`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md)** – archived after Dynamic Codex was merged into the main `/telegram` route; keep for historical context.
 
 ## Keep documentation in sync
 

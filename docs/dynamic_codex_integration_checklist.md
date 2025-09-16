@@ -2,6 +2,8 @@
 
 Use this checklist to track the work required to fold the Dynamic Codex project into the Dynamic Capital monorepo without fragmenting tooling or deployments.
 
+> **Status:** Complete. The standalone Vite workspace has been removed and the Telegram dashboard now lives at `apps/web/app/telegram/` inside the Next.js build.
+
 ## 1. Repository Preparation
 - [x] Review Dynamic Codex repo and capture versions of dependencies, environment variables, and Supabase migrations.
 - [x] Confirm no conflicting AGENTS or repo-wide conventions apply to affected directories in this monorepo.

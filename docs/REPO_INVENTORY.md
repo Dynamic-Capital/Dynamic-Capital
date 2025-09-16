@@ -33,7 +33,7 @@ _Last updated: 2025-09-15 (UTC)._
 - **`dns/`** – DNS zone export (`dynamic-capital.ondigitalocean.app.zone`) and
   DigitalOcean automation config (`dynamic-capital.lovable.app.json`) used to
   reproduce external records.【a93f31†L1-L2】
-- **`external/dynamic_codex/`** – Separate Lovable Codex project (Vite app, Supabase integration, telemetry README) maintained alongside the main bot for experiments and trading automation tie-ins.【c79fa4†L1-L7】【b8f4df†L1-L56】
+- **`apps/web/app/telegram/`** – Next.js route for the Telegram operations dashboard, replacing the standalone Dynamic Codex Vite workspace so bot tooling ships from the unified build.【F:apps/web/app/telegram/page.tsx†L1-L11】【F:README.md†L96-L117】
 - **`lovable-build.js` / `lovable-dev.js`** – Helper scripts that bootstrap environment variables and orchestrate combined Next.js + miniapp builds when running on Lovable’s deployment platform.【e53642†L1-L36】
 
 ## 5. Tooling, documentation & testing
@@ -59,6 +59,6 @@ _Last updated: 2025-09-15 (UTC)._
 | `docker/` | Containerization and reverse proxy assets (Dockerfiles, Compose, Nginx, health checks).【b095f5†L1-L2】 |
 | `go-service/` | Auxiliary Go health service exposing `/healthz`.【bf9fee†L1-L2】 |
 | `dns/` | Exported DNS zone records.【a93f31†L1-L2】 |
-| `external/dynamic_codex/` | Lovable Codex companion project with its own app and Supabase wiring.【c79fa4†L1-L7】【b8f4df†L1-L56】 |
+| `apps/web/app/telegram/` | Telegram bot dashboard route now served from the main Next.js build.【F:apps/web/app/telegram/page.tsx†L1-L11】 |
 | `db/` | TypeScript database client/schema utilities.【ddbcb5†L1-L2】 |
 | `Procfile` | Platform startup definition pointing at the Next.js standalone server build.【1512da†L1-L2】 |
