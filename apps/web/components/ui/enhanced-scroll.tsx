@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'fra
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils';
-import { cardVariants, staggerContainerVariants, staggerItemVariants } from '@/lib/motion-variants';
+import { onceMotionVariants } from '@/lib/motion-variants';
 
 interface EnhancedScrollProps {
   children: React.ReactNode;
@@ -240,19 +240,19 @@ export function EnhancedScrollContainer({
           className
         )}
         style={{ gap }}
-        variants={stagger ? staggerContainerVariants : undefined}
+        variants={stagger ? onceMotionVariants.staggerContainer : undefined}
         initial={stagger ? "hidden" : undefined}
         animate={stagger ? "visible" : undefined}
       >
         {React.Children.map(children, (child, index) => (
-          <motion.div 
+          <motion.div
             key={index}
             className="snap-center flex-none flex items-stretch"
-            style={{ 
+            style={{
               width: itemWidth,
               minHeight: 'fit-content'
             }}
-            variants={stagger ? staggerItemVariants : cardVariants}
+            variants={stagger ? onceMotionVariants.staggerItem : onceMotionVariants.card}
             whileHover="hover"
             whileTap="tap"
             custom={index}

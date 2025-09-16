@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { MotionButtonWrapper } from '@/components/ui/motion-theme'
 import { motion } from 'framer-motion'
-import { childVariants } from '@/lib/motion-variants'
+import { onceMotionVariants } from '@/lib/motion-variants'
 
 export default function DepositForm() {
   const [file, setFile] = useState<File | null>(null)
@@ -51,7 +51,7 @@ export default function DepositForm() {
       {status && (
         <motion.p
           className="text-sm text-muted-foreground"
-          variants={childVariants}
+          variants={onceMotionVariants.stackItem}
           initial="hidden"
           animate="visible"
         >

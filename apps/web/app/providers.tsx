@@ -10,6 +10,7 @@ import { TelegramAuthProvider } from '@/hooks/useTelegramAuth';
 import { AdminAuthProvider } from '@/hooks/useAdminAuth';
 import { CurrencyProvider } from '@/hooks/useCurrency';
 import { SupabaseProvider } from '@/context/SupabaseProvider';
+import { MotionConfigProvider } from '@/components/ui/motion-config';
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [supabaseClient] = useState(() =>
@@ -20,13 +21,15 @@ export default function Providers({ children }: { children: ReactNode }) {
     <SessionContextProvider supabaseClient={supabaseClient}>
       <SupabaseProvider>
         <QueryClientProvider client={queryClient}>
-          <TelegramAuthProvider>
-            <AdminAuthProvider>
-              <AuthProvider>
-                <CurrencyProvider>{children}</CurrencyProvider>
-              </AuthProvider>
-            </AdminAuthProvider>
-          </TelegramAuthProvider>
+          <MotionConfigProvider>
+            <TelegramAuthProvider>
+              <AdminAuthProvider>
+                <AuthProvider>
+                  <CurrencyProvider>{children}</CurrencyProvider>
+                </AuthProvider>
+              </AdminAuthProvider>
+            </TelegramAuthProvider>
+          </MotionConfigProvider>
         </QueryClientProvider>
       </SupabaseProvider>
     </SessionContextProvider>

@@ -113,3 +113,56 @@ body {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* Reveal animations */
+[data-once-reveal] {
+  transition-property: opacity, transform;
+  transition-duration: 0.4s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.once-js [data-once-reveal].once-ready {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.once-js [data-once-reveal="fade"].once-ready,
+.once-js [data-once-reveal="fade-up"].once-ready,
+.once-js [data-once-reveal="slide-up"].once-ready,
+.once-js [data-once-reveal="up"].once-ready {
+  transform: translateY(24px);
+}
+
+.once-js [data-once-reveal="fade-down"].once-ready,
+.once-js [data-once-reveal="slide-down"].once-ready,
+.once-js [data-once-reveal="down"].once-ready {
+  transform: translateY(-24px);
+}
+
+.once-js [data-once-reveal="fade-left"].once-ready,
+.once-js [data-once-reveal="slide-left"].once-ready,
+.once-js [data-once-reveal="left"].once-ready {
+  transform: translateX(24px);
+}
+
+.once-js [data-once-reveal="fade-right"].once-ready,
+.once-js [data-once-reveal="slide-right"].once-ready,
+.once-js [data-once-reveal="right"].once-ready {
+  transform: translateX(-24px);
+}
+
+.once-js [data-once-reveal="scale"].once-ready,
+.once-js [data-once-reveal="zoom"].once-ready {
+  transform: scale(0.94);
+}
+
+.once-js [data-once-reveal].once-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .once-js [data-once-reveal] {
+    transition: none;
+  }
+}
