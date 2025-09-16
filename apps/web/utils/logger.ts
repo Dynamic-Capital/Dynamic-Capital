@@ -1,3 +1,5 @@
+import { isProduction } from '@/config/node-env';
+
 // Allow running in both Node and Deno environments
 declare const Deno: { env?: { get(name: string): string | undefined } } | undefined;
 
@@ -11,7 +13,7 @@ function getEnv(name: string): string | undefined {
   return undefined;
 }
 
-const defaultLevel = getEnv('NODE_ENV') !== 'production' ? 'debug' : 'info';
+const defaultLevel = isProduction ? 'info' : 'debug';
 type Level = 'debug' | 'info' | 'warn' | 'error';
 const levelWeights: Record<Level, number> = {
   debug: 10,
