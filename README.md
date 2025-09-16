@@ -30,7 +30,7 @@ backed by Supabase.
 
 ## Security Features
 
-- Optional HTTPS server enforces TLS 1.3 when SSL certificates are supplied.
+- Optional HTTPS server enforces TLS 1.2+ (prefers TLS 1.3) when SSL certificates are supplied.
 - HTTP Strict Transport Security (HSTS) headers for all responses.
 - Lightweight per-IP rate limiting to mitigate basic DDoS attacks.
 - Maintains third-party certifications for ISO 27001, SOC 2 Type II, PCI DSS Level 1, HIPAA, GDPR, and the EU–US Data Privacy Framework ([docs/compliance](docs/compliance/README.md)).
