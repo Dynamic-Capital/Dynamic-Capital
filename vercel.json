@@ -3,7 +3,7 @@
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "apps/web/.next",
-  "devCommand": "npm run dev",
+  "devCommand": "npm run dev -- --port $PORT",
   "env": {
     "SITE_URL": "https://dynamic-capital.lovable.app",
     "NEXT_PUBLIC_SITE_URL": "https://dynamic-capital.lovable.app",
