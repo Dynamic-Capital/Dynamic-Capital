@@ -13,10 +13,12 @@ Use this checklist when you scope, build, and verify Dynamic Capital surfaces th
 - [ ] Document any required global styles (body background, typography) or layout constraints (grid, spacing tokens) before coding to avoid ad-hoc overrides.
 - [ ] Plan responsive breakpoints and theme variants (light/dark) using Once UI tokens so components remain consistent across surfaces.
 - [ ] Decide whether custom Once UI components should live alongside existing shared components or in an app-specific folder; create stubs with prop signatures when collaboration is needed.
+- [ ] Ensure the target React surface wraps its root layout with `MotionConfigProvider` so reduced-motion preferences are respected automatically.
 
 ## 2. Frontend Implementation
 ### Layout & Components
 - [ ] Reuse or extend existing layout wrappers (`once-container`, shared page shells) instead of redefining grid and spacing utilities.
+- [ ] Reach for the motion-enabled Once UI primitives (`<OnceContainer>`, `<OnceButton>`) before composing raw `motion.*` elements so animation tokens stay centralized.
 - [ ] Ensure Once UI components accept data via typed props and expose slots/hooks for dynamic states (loading, empty, error) rather than hardcoding copy.
 - [ ] Encapsulate repeated UI into composable components and update Storybook/MDX (if applicable) or inline docs that explain usage constraints.
 
@@ -24,11 +26,13 @@ Use this checklist when you scope, build, and verify Dynamic Capital surfaces th
 - [ ] Apply semantic Once UI classes (`once-btn`, `primary`, `outline`, typography helpers) or Tailwind tokens that map to the same palette; avoid raw hex colors or inline styles except for prototypes.
 - [ ] Confirm interactive states (hover, focus, pressed, disabled) respect accessibility contrast and use the shared transition durations.
 - [ ] Keep custom CSS scoped via module files or `:where` selectors so global Once UI styles remain unmodified.
+- [ ] Use the shared motion tokens exported from `@/lib/motion-variants` (`onceMotionVariants`, `ONCE_MOTION_SPRINGS`, etc.) instead of redefining easing, durations, or stagger timings.
 
 ### Accessibility & Interaction
 - [ ] Provide accessible names, roles, and ARIA attributes for interactive Once UI components (buttons, dialogs, tabs) and ensure keyboard navigation flows match WCAG.
 - [ ] Wire up form validation and error messaging so assistive tech announces issues; include server-error fallback copy.
 - [ ] Test front-end logic with sample data (approved payment, manual review, failure) to confirm state machines render the correct Once UI variants.
+- [ ] Verify both React (`useReducedMotion`) and static (`data-once-reveal`) surfaces honour `prefers-reduced-motion` and still present content when JavaScript is disabled.
 
 ## 3. Backend UI Support
 - [ ] Audit API routes, Supabase RPCs, and Edge Functions that feed the UI to confirm they expose all fields required for Once UI components (labels, icons, status flags, pagination counts).
@@ -42,3 +46,4 @@ Use this checklist when you scope, build, and verify Dynamic Capital surfaces th
 - [ ] Verify hydration/SSR boundaries in Next.js apps (`npm run build && npm run start` locally or preview deploy) and ensure no hydration mismatch warnings occur.
 - [ ] Document schema or API changes in the appropriate `docs/` guide and link the checklist in the PR description with notes on data migrations, feature flags, and manual QA evidence.
 - [ ] Monitor Supabase logs, queue workers, and browser consoles after deployment to catch regressions; plan rollback steps if Once UI components impact protected payment flows.
+- [ ] Smoke test static marketing pages that rely on `once-ui.js` helpers to confirm `window.OnceUI.observeReveals` works for dynamically injected nodes and that content remains visible without JavaScript.

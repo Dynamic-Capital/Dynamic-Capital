@@ -1,10 +1,15 @@
 "use client";
 
 import React from 'react';
-import { motion, AnimatePresence, MotionConfig, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+
 import { cn } from '@/utils';
 import { MotionConfigProvider } from './motion-config';
-import { parentVariants, childVariants } from '@/lib/motion-variants';
+import {
+  onceMotionVariants,
+  ONCE_MOTION_SPRINGS,
+  ONCE_MOTION_DURATIONS,
+} from '@/lib/motion-variants';
 import { sectionVariants, SectionVariant } from '@/lib/section-variants';
 import { useIsMobile } from '@/hooks/useMobile';
 
@@ -14,26 +19,16 @@ interface MotionThemeProviderProps {
   reducedMotion?: boolean;
 }
 
-// Global motion configuration
-const motionConfig = {
-  transition: {
-    type: "spring" as const,
-    stiffness: 260,
-    damping: 20,
-    mass: 0.8,
-  },
-  transformTemplate: ({ x, y, rotate }: any) => {
-    return `translate3d(${x}, ${y}, 0) rotateZ(${rotate})`;
-  },
-};
-
 export const MotionThemeProvider: React.FC<MotionThemeProviderProps> = ({
   children,
   className,
   reducedMotion = false
 }) => {
-  const shouldReduceMotion = useReducedMotion();
-  const isReduced = reducedMotion || shouldReduceMotion;
+  const prefersReducedMotion = useReducedMotion();
+  const isReduced = reducedMotion || prefersReducedMotion;
+  const containerVariants = isReduced
+    ? onceMotionVariants.fadeIn
+    : onceMotionVariants.stack;
 
   return (
     <MotionConfigProvider>
@@ -44,7 +39,7 @@ export const MotionThemeProvider: React.FC<MotionThemeProviderProps> = ({
           "transition-all duration-500 ease-out",
           className
         )}
-        variants={parentVariants}
+        variants={containerVariants}
         initial="hidden"
         animate="visible"
         exit="exit"
@@ -56,9 +51,7 @@ export const MotionThemeProvider: React.FC<MotionThemeProviderProps> = ({
           `,
         }}
       >
-        <AnimatePresence mode="wait">
-          {children}
-        </AnimatePresence>
+        <AnimatePresence mode="wait">{children}</AnimatePresence>
       </motion.div>
     </MotionConfigProvider>
   );
@@ -80,7 +73,7 @@ export const MotionPage: React.FC<MotionPageProps> = ({
     <motion.div
       key={pageKey}
       className={cn("motion-page", className)}
-      variants={childVariants}
+      variants={onceMotionVariants.stackItem}
       initial="hidden"
       animate="visible"
       exit="exit"
@@ -113,6 +106,9 @@ export const MotionSection: React.FC<MotionSectionProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const selectedVariant = sectionVariants[variant] || sectionVariants.fadeUp;
+  const spring = isMobile
+    ? { ...ONCE_MOTION_SPRINGS.base, stiffness: 300, damping: 25 }
+    : ONCE_MOTION_SPRINGS.base;
   return (
     <motion.section
       id={id}
@@ -122,9 +118,7 @@ export const MotionSection: React.FC<MotionSectionProps> = ({
       whileInView="visible"
       viewport={viewport}
       transition={{
-        type: "spring",
-        stiffness: isMobile ? 300 : 260,
-        damping: isMobile ? 25 : 20,
+        ...spring,
         delay,
       }}
     >
@@ -160,33 +154,16 @@ export const MotionGrid: React.FC<MotionGridProps> = ({
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.1 }}
-      variants={{
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: {
-            staggerChildren: staggerDelay,
-            delayChildren: 0.1,
-          },
-        },
+      variants={onceMotionVariants.staggerContainer}
+      transition={{
+        staggerChildren: staggerDelay,
+        delayChildren: ONCE_MOTION_DURATIONS.instant,
       }}
     >
       {React.Children.map(children, (child, index) => (
         <motion.div
           key={index}
-          variants={{
-            hidden: { opacity: 0, y: 20, scale: 0.95 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              transition: {
-                type: "spring",
-                stiffness: 260,
-                damping: 20,
-              },
-            },
-          }}
+          variants={onceMotionVariants.stackItem}
         >
           {child}
         </motion.div>
@@ -210,13 +187,11 @@ export const MotionButtonWrapper: React.FC<MotionButtonWrapperProps> = ({
   return (
     <motion.div
       className={className}
-      whileHover={disabled ? {} : { scale: 1.05, y: -2 }}
-      whileTap={disabled ? {} : { scale: 0.95 }}
-      transition={{
-        type: "spring",
-        stiffness: 400,
-        damping: 25,
-      }}
+      variants={onceMotionVariants.button}
+      initial="initial"
+      animate={disabled ? "disabled" : "initial"}
+      whileHover={disabled ? undefined : "hover"}
+      whileTap={disabled ? undefined : "tap"}
     >
       {children}
     </motion.div>
@@ -243,9 +218,10 @@ export const MotionModal: React.FC<MotionModalProps> = ({
         <>
           <motion.div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            variants={onceMotionVariants.backdrop}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             onClick={onClose}
           />
           <motion.div
@@ -253,14 +229,10 @@ export const MotionModal: React.FC<MotionModalProps> = ({
               "fixed inset-0 z-50 flex items-center justify-center p-4",
               className
             )}
-            initial={{ opacity: 0, scale: 0.8, y: 50 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 50 }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30,
-            }}
+            variants={onceMotionVariants.modal}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
           >
             {children}
           </motion.div>

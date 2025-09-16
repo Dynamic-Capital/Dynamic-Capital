@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Shield, Activity, Users, Bot } from "lucide-react";
 import { motion } from "framer-motion";
-import { parentVariants, childVariants, buttonVariants } from "@/lib/motion-variants";
+import { onceMotionVariants } from "@/lib/motion-variants";
 
 interface QuickActionsProps {
   onRefreshStats?: () => void;
@@ -45,26 +45,26 @@ export const QuickActions = ({ onRefreshStats, onCheckStatus }: QuickActionsProp
 
   return (
     <motion.div
-      variants={parentVariants}
+      variants={onceMotionVariants.stack}
       initial="hidden"
       animate="visible"
     >
       <Card className="p-6 bg-gradient-card border-0 shadow-telegram">
-        <motion.h3 
+        <motion.h3
           className="text-lg font-semibold mb-4 flex items-center gap-2"
-          variants={childVariants}
+          variants={onceMotionVariants.stackItem}
         >
           <Activity className="w-5 h-5 text-telegram" />
           Quick Actions
         </motion.h3>
-        <motion.div 
+        <motion.div
           className="flex flex-wrap gap-3"
-          variants={parentVariants}
+          variants={onceMotionVariants.stack}
         >
           {actions.map((action, index) => (
-            <motion.div key={index} variants={childVariants}>
+            <motion.div key={index} variants={onceMotionVariants.stackItem}>
               <motion.div
-                variants={buttonVariants}
+                variants={onceMotionVariants.button}
                 whileHover="hover"
                 whileTap="tap"
               >

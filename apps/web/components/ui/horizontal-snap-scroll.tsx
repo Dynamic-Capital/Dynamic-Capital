@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils';
-import { cardVariants } from '@/lib/motion-variants';
+import { onceMotionVariants } from '@/lib/motion-variants';
 
 interface HorizontalSnapScrollProps {
   children: React.ReactNode;
@@ -186,14 +186,14 @@ export function HorizontalSnapScroll({
         tabIndex={-1}
       >
         {React.Children.map(children, (child, index) => (
-          <motion.div 
+          <motion.div
             key={index}
             className="snap-center flex-none flex items-stretch"
-            style={{ 
+            style={{
               width: itemWidth,
               minHeight: 'fit-content'
             }}
-            variants={cardVariants}
+            variants={onceMotionVariants.card}
             initial="hidden"
             animate="visible"
             whileHover="hover"

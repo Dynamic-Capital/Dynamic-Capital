@@ -1,208 +1,337 @@
-// Universal Motion Variants for consistent animations across the app
-import type { Variants } from 'framer-motion';
+import type { Transition, Variants } from "framer-motion";
 
-// === PARENT ORCHESTRATION VARIANTS ===
-// These variants control children through stagger and orchestration
-export const parentVariants: Variants = {
-  hidden: {
-    opacity: 0,
-  },
+type Direction = "up" | "down" | "left" | "right";
+
+type SpringTransition = Transition & { type: "spring" };
+
+const spring = (config: SpringTransition): Transition => config;
+
+export const ONCE_MOTION_SPRINGS = {
+  base: spring({ type: "spring", stiffness: 320, damping: 28, mass: 1 }),
+  soft: spring({ type: "spring", stiffness: 260, damping: 24, mass: 1.05 }),
+  snappy: spring({ type: "spring", stiffness: 400, damping: 25, mass: 0.9 }),
+  modal: spring({ type: "spring", stiffness: 300, damping: 30, mass: 1.05 }),
+} as const;
+
+export const ONCE_MOTION_DURATIONS = {
+  instant: 0.12,
+  quick: 0.2,
+  base: 0.32,
+  slow: 0.48,
+  slower: 0.6,
+} as const;
+
+export const ONCE_MOTION_EASING = {
+  standard: [0.4, 0, 0.2, 1] as const,
+  entrance: [0.16, 1, 0.3, 1] as const,
+  exit: [0.4, 0, 0.6, 1] as const,
+} as const;
+
+export const ONCE_MOTION_STAGGERS = {
+  base: 0.12,
+  dense: 0.06,
+  spacious: 0.2,
+  delay: 0.18,
+} as const;
+
+const fadeIn: Variants = {
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
+      duration: ONCE_MOTION_DURATIONS.base,
+      ease: ONCE_MOTION_EASING.entrance,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.quick,
+      ease: ONCE_MOTION_EASING.exit,
+    },
+  },
+};
+
+const slideUp: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: ONCE_MOTION_SPRINGS.base,
+  },
+  exit: {
+    opacity: 0,
+    y: -24,
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.quick,
+      ease: ONCE_MOTION_EASING.exit,
+    },
+  },
+};
+
+const slideDown: Variants = {
+  hidden: { opacity: 0, y: -24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: ONCE_MOTION_SPRINGS.base,
+  },
+  exit: {
+    opacity: 0,
+    y: 24,
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.quick,
+      ease: ONCE_MOTION_EASING.exit,
+    },
+  },
+};
+
+const slideLeft: Variants = {
+  hidden: { opacity: 0, x: 24 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: ONCE_MOTION_SPRINGS.base,
+  },
+  exit: {
+    opacity: 0,
+    x: -24,
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.quick,
+      ease: ONCE_MOTION_EASING.exit,
+    },
+  },
+};
+
+const slideRight: Variants = {
+  hidden: { opacity: 0, x: -24 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: ONCE_MOTION_SPRINGS.base,
+  },
+  exit: {
+    opacity: 0,
+    x: 24,
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.quick,
+      ease: ONCE_MOTION_EASING.exit,
+    },
+  },
+};
+
+const scaleIn: Variants = {
+  hidden: { opacity: 0, scale: 0.94 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: ONCE_MOTION_SPRINGS.soft,
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.94,
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.quick,
+      ease: ONCE_MOTION_EASING.exit,
+    },
+  },
+};
+
+const stack: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: ONCE_MOTION_STAGGERS.base,
+      delayChildren: ONCE_MOTION_STAGGERS.delay,
       when: "beforeChildren",
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      staggerChildren: 0.05,
+      staggerChildren: ONCE_MOTION_STAGGERS.dense,
       staggerDirection: -1,
       when: "afterChildren",
     },
   },
 };
 
-// Fast stagger for UI elements
-export const fastParentVariants: Variants = {
+const stackFast: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1,
+      staggerChildren: ONCE_MOTION_STAGGERS.dense,
+      delayChildren: ONCE_MOTION_STAGGERS.base,
+      when: "beforeChildren",
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      staggerChildren: 0.02,
+      staggerChildren: ONCE_MOTION_STAGGERS.dense,
       staggerDirection: -1,
+      when: "afterChildren",
     },
   },
 };
 
-// Slow stagger for hero sections
-export const slowParentVariants: Variants = {
+const stackSlow: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2,
-      delayChildren: 0.3,
+      staggerChildren: ONCE_MOTION_STAGGERS.spacious,
+      delayChildren: ONCE_MOTION_STAGGERS.spacious,
+      when: "beforeChildren",
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      staggerChildren: 0.1,
+      staggerChildren: ONCE_MOTION_STAGGERS.base,
       staggerDirection: -1,
+      when: "afterChildren",
     },
   },
 };
 
-// === CHILD VARIANTS ===
-// These inherit from parent orchestration
-export const childVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-    scale: 0.95,
-  },
+const stackItem: Variants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 320,
-      damping: 28,
-    },
+    transition: ONCE_MOTION_SPRINGS.base,
   },
   exit: {
     opacity: 0,
     y: -20,
     scale: 0.95,
-    transition: {
-      duration: 0.2,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.quick },
   },
 };
 
-// Child variant with custom direction
-export const createChildVariant = (direction: 'up' | 'down' | 'left' | 'right' = 'up', distance = 20): Variants => ({
-  hidden: {
-    opacity: 0,
-    ...(direction === 'up' && { y: distance }),
-    ...(direction === 'down' && { y: -distance }),
-    ...(direction === 'left' && { x: distance }),
-    ...(direction === 'right' && { x: -distance }),
-    scale: 0.95,
-  },
+const stackItemSoft: Variants = {
+  hidden: { opacity: 0, y: 16, scale: 0.97 },
   visible: {
     opacity: 1,
-    x: 0,
+    y: 0,
+    scale: 1,
+    transition: ONCE_MOTION_SPRINGS.soft,
+  },
+  exit: {
+    opacity: 0,
+    y: -16,
+    scale: 0.97,
+    transition: { duration: ONCE_MOTION_DURATIONS.quick },
+  },
+};
+
+const stackItemSlow: Variants = {
+  hidden: { opacity: 0, y: 28, scale: 0.94 },
+  visible: {
+    opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      type: "spring",
-      stiffness: 320,
-      damping: 28,
+      ...ONCE_MOTION_SPRINGS.base,
+      duration: ONCE_MOTION_DURATIONS.slow,
     },
   },
   exit: {
     opacity: 0,
-    ...(direction === 'up' && { y: -distance }),
-    ...(direction === 'down' && { y: distance }),
-    ...(direction === 'left' && { x: -distance }),
-    ...(direction === 'right' && { x: distance }),
-    scale: 0.95,
-    transition: {
-      duration: 0.2,
-    },
+    y: -28,
+    scale: 0.94,
+    transition: { duration: ONCE_MOTION_DURATIONS.quick },
   },
-});
+};
 
-// Enhanced Card variants with better inheritance
-export const cardVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    scale: 0.95,
-    y: 20,
+const button: Variants = {
+  initial: { scale: 1 },
+  hover: {
+    scale: 1.02,
+    y: -2,
+    transition: ONCE_MOTION_SPRINGS.snappy,
   },
+  tap: {
+    scale: 0.96,
+    transition: { duration: ONCE_MOTION_DURATIONS.instant },
+  },
+  disabled: { opacity: 0.6, scale: 1 },
+};
+
+const primaryButton: Variants = {
+  ...button,
+  hover: {
+    scale: 1.05,
+    y: -3,
+    transition: ONCE_MOTION_SPRINGS.snappy,
+  },
+};
+
+const ghostButton: Variants = {
+  ...button,
+  hover: {
+    scale: 1.02,
+    transition: ONCE_MOTION_SPRINGS.snappy,
+  },
+};
+
+const card: Variants = {
+  hidden: { opacity: 0, scale: 0.95, y: 20 },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 320,
-      damping: 28,
-    },
+    transition: ONCE_MOTION_SPRINGS.base,
   },
   hover: {
     scale: 1.02,
     y: -5,
     transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 25,
+      ...ONCE_MOTION_SPRINGS.snappy,
+      stiffness: 420,
     },
   },
   tap: {
     scale: 0.96,
-    transition: {
-      duration: 0.1,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.instant },
   },
   exit: {
     opacity: 0,
     scale: 0.95,
     y: -20,
-    transition: {
-      duration: 0.2,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.quick },
   },
 };
 
-// Interactive card variants
-export const interactiveCardVariants: Variants = {
-  ...cardVariants,
+const interactiveCard: Variants = {
+  ...card,
   hover: {
     scale: 1.03,
     y: -8,
     rotateX: 1,
     transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 25,
+      ...ONCE_MOTION_SPRINGS.snappy,
+      stiffness: 420,
     },
   },
   tap: {
     scale: 0.98,
-    transition: {
-      duration: 0.1,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.instant },
   },
 };
 
-// Page variants
-export const pageVariants: Variants = {
-  initial: {
-    opacity: 0,
-    y: 30,
-    scale: 0.98,
-  },
+const page: Variants = {
+  initial: { opacity: 0, y: 30, scale: 0.98 },
   animate: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 30,
+      ...ONCE_MOTION_SPRINGS.soft,
       duration: 0.8,
     },
   },
@@ -210,185 +339,87 @@ export const pageVariants: Variants = {
     opacity: 0,
     y: -30,
     scale: 0.98,
-    transition: {
-      duration: 0.4,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.slow },
   },
 };
 
-// Enhanced Button variants with better micro-interactions
-export const buttonVariants: Variants = {
-  initial: {
-    scale: 1,
-  },
-  hover: {
-    scale: 1.02,
-    y: -2,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 25,
-    },
-  },
-  tap: {
-    scale: 0.96,
-    transition: {
-      duration: 0.1,
-    },
-  },
-  disabled: {
-    opacity: 0.6,
-    scale: 1,
-  },
-};
-
-// Primary button with enhanced effects
-export const primaryButtonVariants: Variants = {
-  ...buttonVariants,
-  hover: {
-    scale: 1.05,
-    y: -3,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 25,
-    },
-  },
-};
-
-// Ghost button with subtle effects
-export const ghostButtonVariants: Variants = {
-  ...buttonVariants,
-  hover: {
-    scale: 1.02,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 25,
-    },
-  },
-};
-
-// Stagger container variants
-export const staggerContainerVariants: Variants = {
-  hidden: {
-    opacity: 0,
-  },
+const staggerContainer: Variants = {
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
+      staggerChildren: ONCE_MOTION_STAGGERS.base,
+      delayChildren: ONCE_MOTION_STAGGERS.base,
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      staggerChildren: 0.05,
+      staggerChildren: ONCE_MOTION_STAGGERS.dense,
       staggerDirection: -1,
     },
   },
 };
 
-// Stagger item variants
-export const staggerItemVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 20,
-    scale: 0.95,
-  },
+const staggerItem: Variants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 260,
-      damping: 20,
-    },
+    transition: ONCE_MOTION_SPRINGS.soft,
   },
   exit: {
     opacity: 0,
     y: -20,
     scale: 0.95,
-    transition: {
-      duration: 0.2,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.quick },
   },
 };
 
-// Modal variants
-export const modalVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    scale: 0.8,
-    y: 50,
-  },
+const modal: Variants = {
+  hidden: { opacity: 0, scale: 0.8, y: 50 },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 30,
-    },
+    transition: ONCE_MOTION_SPRINGS.modal,
   },
   exit: {
     opacity: 0,
     scale: 0.8,
     y: 50,
-    transition: {
-      duration: 0.3,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.slow },
   },
 };
 
-// Backdrop variants
-export const backdropVariants: Variants = {
-  hidden: {
-    opacity: 0,
-  },
+const backdrop: Variants = {
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      duration: 0.3,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.base },
   },
   exit: {
     opacity: 0,
-    transition: {
-      duration: 0.3,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.base },
   },
 };
 
-// Navigation variants
-export const navVariants: Variants = {
-  hidden: {
-    y: -20,
-    opacity: 0,
-  },
+const nav: Variants = {
+  hidden: { y: -20, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 30,
-    },
+    transition: ONCE_MOTION_SPRINGS.base,
   },
   exit: {
     y: -20,
     opacity: 0,
-    transition: {
-      duration: 0.3,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.base },
   },
 };
 
-// Floating variants
-export const floatingVariants: Variants = {
+const floating: Variants = {
   floating: {
     y: [-10, 10, -10],
     x: [-5, 5, -5],
@@ -401,8 +432,7 @@ export const floatingVariants: Variants = {
   },
 };
 
-// Pulse variants
-export const pulseVariants: Variants = {
+const pulse: Variants = {
   pulse: {
     scale: [1, 1.05, 1],
     opacity: [1, 0.8, 1],
@@ -414,89 +444,166 @@ export const pulseVariants: Variants = {
   },
 };
 
-// Slide variants
-export const slideVariants: Variants = {
-  slideInFromLeft: {
-    x: -100,
-    opacity: 0,
-  },
-  slideInFromRight: {
-    x: 100,
-    opacity: 0,
-  },
-  slideInFromTop: {
-    y: -100,
-    opacity: 0,
-  },
-  slideInFromBottom: {
-    y: 100,
-    opacity: 0,
-  },
+const slidePresets: Variants = {
+  slideInFromLeft: { x: -100, opacity: 0 },
+  slideInFromRight: { x: 100, opacity: 0 },
+  slideInFromTop: { y: -100, opacity: 0 },
+  slideInFromBottom: { y: 100, opacity: 0 },
   center: {
     x: 0,
     y: 0,
     opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 260,
-      damping: 20,
-    },
+    transition: ONCE_MOTION_SPRINGS.soft,
   },
   slideOutToLeft: {
     x: -100,
     opacity: 0,
-    transition: {
-      duration: 0.3,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.base },
   },
   slideOutToRight: {
     x: 100,
     opacity: 0,
-    transition: {
-      duration: 0.3,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.base },
   },
   slideOutToTop: {
     y: -100,
     opacity: 0,
-    transition: {
-      duration: 0.3,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.base },
   },
   slideOutToBottom: {
     y: 100,
     opacity: 0,
-    transition: {
-      duration: 0.3,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.base },
   },
 };
 
-// Tab variants
-export const tabVariants: Variants = {
-  inactive: {
-    scale: 0.95,
-    opacity: 0.7,
-  },
+const tab: Variants = {
+  inactive: { scale: 0.95, opacity: 0.7 },
   active: {
     scale: 1,
     opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 25,
-    },
+    transition: ONCE_MOTION_SPRINGS.modal,
   },
   hover: {
     scale: 1.02,
     opacity: 0.9,
-    transition: {
-      duration: 0.2,
-    },
+    transition: { duration: ONCE_MOTION_DURATIONS.quick },
   },
 };
 
+export const onceRevealVariantKeys = [
+  "fadeIn",
+  "slideUp",
+  "slideDown",
+  "slideLeft",
+  "slideRight",
+  "scaleIn",
+] as const;
+
+export type OnceRevealVariantKey = (typeof onceRevealVariantKeys)[number];
+
+export const onceMotionVariants = {
+  fadeIn,
+  slideUp,
+  slideDown,
+  slideLeft,
+  slideRight,
+  scaleIn,
+  stack,
+  stackFast,
+  stackSlow,
+  stackItem,
+  stackItemSoft,
+  stackItemSlow,
+  button,
+  primaryButton,
+  ghostButton,
+  card,
+  interactiveCard,
+  page,
+  staggerContainer,
+  staggerItem,
+  modal,
+  backdrop,
+  nav,
+  floating,
+  pulse,
+  slidePresets,
+  tab,
+} satisfies Record<string, Variants>;
+
+export type OnceMotionVariantKey = keyof typeof onceMotionVariants;
+
+export const parentVariants = stack;
+export const fastParentVariants = stackFast;
+export const slowParentVariants = stackSlow;
+export const childVariants = stackItem;
+
+export const cardVariants = card;
+export const interactiveCardVariants = interactiveCard;
+export const pageVariants = page;
+export const buttonVariants = button;
+export const primaryButtonVariants = primaryButton;
+export const ghostButtonVariants = ghostButton;
+export const staggerContainerVariants = staggerContainer;
+export const staggerItemVariants = staggerItem;
+export const modalVariants = modal;
+export const backdropVariants = backdrop;
+export const navVariants = nav;
+export const floatingVariants = floating;
+export const pulseVariants = pulse;
+export const slideVariants = slidePresets;
+export const tabVariants = tab;
+
+export const createChildVariant = (
+  direction: Direction = "up",
+  distance = 20,
+  springPreset: keyof typeof ONCE_MOTION_SPRINGS = "base"
+): Variants => {
+  const hiddenPosition: Record<Direction, Partial<Record<"x" | "y", number>>> = {
+    up: { y: distance },
+    down: { y: -distance },
+    left: { x: distance },
+    right: { x: -distance },
+  };
+
+  const exitPosition: Record<Direction, Partial<Record<"x" | "y", number>>> = {
+    up: { y: -distance },
+    down: { y: distance },
+    left: { x: -distance },
+    right: { x: distance },
+  };
+
+  return {
+    hidden: {
+      opacity: 0,
+      ...hiddenPosition[direction],
+      scale: 0.95,
+    },
+    visible: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      scale: 1,
+      transition: ONCE_MOTION_SPRINGS[springPreset],
+    },
+    exit: {
+      opacity: 0,
+      ...exitPosition[direction],
+      scale: 0.95,
+      transition: { duration: ONCE_MOTION_DURATIONS.quick },
+    },
+  };
+};
+
 export default {
+  tokens: {
+    springs: ONCE_MOTION_SPRINGS,
+    durations: ONCE_MOTION_DURATIONS,
+    easing: ONCE_MOTION_EASING,
+    stagger: ONCE_MOTION_STAGGERS,
+  },
+  onceMotionVariants,
   cardVariants,
   pageVariants,
   buttonVariants,
