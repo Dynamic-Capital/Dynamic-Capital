@@ -167,7 +167,12 @@ let server;
 if (process.env.SSL_KEY_PATH && process.env.SSL_CERT_PATH) {
   const key = readFileSync(process.env.SSL_KEY_PATH);
   const cert = readFileSync(process.env.SSL_CERT_PATH);
-  server = https.createServer({ key, cert, minVersion: 'TLSv1.3', maxVersion: 'TLSv1.3' }, handler);
+  server = https.createServer({
+    key,
+    cert,
+    minVersion: 'TLSv1.2',
+    maxVersion: 'TLSv1.3',
+  }, handler);
   console.log('HTTPS server enabled');
 } else {
   server = http.createServer(handler);
