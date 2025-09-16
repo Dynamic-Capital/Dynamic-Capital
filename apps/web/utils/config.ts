@@ -1,12 +1,33 @@
 // Utilities for accessing feature flag configuration via secure edge function
 
-import { requireEnvVar } from "./env.ts";
+import { getEnvVar } from "./env.ts";
 import { withRetry } from "./retry.ts";
 
 type FlagSnapshot = { ts: number; data: Record<string, boolean> };
 
-const SUPABASE_URL = requireEnvVar("SUPABASE_URL");
-const SUPABASE_KEY = requireEnvVar("SUPABASE_ANON_KEY", ["SUPABASE_KEY"]);
+const PLACEHOLDER_URL = "https://stub.supabase.co";
+const PLACEHOLDER_KEY = "stub-anon-key";
+
+const SUPABASE_URL =
+  getEnvVar("SUPABASE_URL", ["NEXT_PUBLIC_SUPABASE_URL"]) ?? PLACEHOLDER_URL;
+const SUPABASE_KEY =
+  getEnvVar("SUPABASE_ANON_KEY", [
+    "SUPABASE_KEY",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  ]) ?? PLACEHOLDER_KEY;
+
+const SUPABASE_CONFIG_MISSING =
+  !SUPABASE_URL ||
+  SUPABASE_URL === PLACEHOLDER_URL ||
+  !SUPABASE_KEY ||
+  SUPABASE_KEY === PLACEHOLDER_KEY;
+
+const CONFIG_DISABLED_MESSAGE =
+  "Supabase configuration is missing; remote config client is disabled.";
+
+if (SUPABASE_CONFIG_MISSING) {
+  console.warn("Configuration warning:", CONFIG_DISABLED_MESSAGE);
+}
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
@@ -15,6 +36,9 @@ async function call<T>(
   payload: Record<string, unknown> = {},
   timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<T> {
+  if (SUPABASE_CONFIG_MISSING) {
+    throw new Error(CONFIG_DISABLED_MESSAGE);
+  }
   try {
     const res = await withRetry(
       async () => {
@@ -49,7 +73,7 @@ async function call<T>(
   }
 }
 
-const configClient = {
+const activeConfigClient = {
   async getFlag(name: string, def = false): Promise<boolean> {
     const data = await call<{ data: boolean }>("getFlag", { name, def });
     return data?.data ?? def;
@@ -71,6 +95,35 @@ const configClient = {
     await call("rollback", { adminId });
   },
 };
+
+const disabledConfigClient = {
+  async getFlag(name: string, def = false): Promise<boolean> {
+    console.warn(
+      `[config] ${CONFIG_DISABLED_MESSAGE} Returning default for "${name}".`,
+    );
+    return def;
+  },
+
+  async setFlag(_name: string, _value: boolean): Promise<void> {
+    throw new Error(CONFIG_DISABLED_MESSAGE);
+  },
+
+  async preview(): Promise<FlagSnapshot> {
+    throw new Error(CONFIG_DISABLED_MESSAGE);
+  },
+
+  async publish(_adminId?: string): Promise<void> {
+    throw new Error(CONFIG_DISABLED_MESSAGE);
+  },
+
+  async rollback(_adminId?: string): Promise<void> {
+    throw new Error(CONFIG_DISABLED_MESSAGE);
+  },
+};
+
+const configClient = SUPABASE_CONFIG_MISSING
+  ? disabledConfigClient
+  : activeConfigClient;
 
 export const { getFlag, setFlag, preview, publish, rollback } = configClient;
 export { configClient };
