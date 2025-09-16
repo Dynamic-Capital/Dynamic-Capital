@@ -1,4 +1,5 @@
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
+import { isProduction } from '@/config/node-env';
 
 export async function register() {
   // Ensure Next.js' OpenTelemetry context is registered first to avoid null context errors
@@ -12,10 +13,7 @@ export async function register() {
   registerInstrumentations({ instrumentations: [] });
 
   // Only enable Sentry when explicitly requested and not during production build
-  if (
-    process.env.NODE_ENV === 'production' ||
-    process.env.ENABLE_SENTRY !== 'true'
-  ) {
+  if (isProduction || process.env.ENABLE_SENTRY !== 'true') {
     return;
   }
 
