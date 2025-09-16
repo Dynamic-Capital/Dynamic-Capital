@@ -11,6 +11,13 @@ import { AdminAuthProvider } from '@/hooks/useAdminAuth';
 import { CurrencyProvider } from '@/hooks/useCurrency';
 import { SupabaseProvider } from '@/context/SupabaseProvider';
 import { MotionConfigProvider } from '@/components/ui/motion-config';
+import {
+  IconProvider,
+  ToastProvider,
+  ThemeProvider,
+  DataThemeProvider,
+  LayoutProvider,
+} from '@once-ui-system/core';
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [supabaseClient] = useState(() =>
@@ -18,20 +25,36 @@ export default function Providers({ children }: { children: ReactNode }) {
   );
   const [queryClient] = useState(() => new QueryClient());
   return (
-    <SessionContextProvider supabaseClient={supabaseClient}>
-      <SupabaseProvider>
-        <QueryClientProvider client={queryClient}>
-          <MotionConfigProvider>
-            <TelegramAuthProvider>
-              <AdminAuthProvider>
-                <AuthProvider>
-                  <CurrencyProvider>{children}</CurrencyProvider>
-                </AuthProvider>
-              </AdminAuthProvider>
-            </TelegramAuthProvider>
-          </MotionConfigProvider>
-        </QueryClientProvider>
-      </SupabaseProvider>
-    </SessionContextProvider>
+    <LayoutProvider
+      breakpoints={{
+        s: 640,
+        m: 1024,
+        l: 1200,
+      }}
+    >
+      <ThemeProvider>
+        <DataThemeProvider>
+          <ToastProvider>
+            <IconProvider>
+              <SessionContextProvider supabaseClient={supabaseClient}>
+                <SupabaseProvider>
+                  <QueryClientProvider client={queryClient}>
+                    <MotionConfigProvider>
+                      <TelegramAuthProvider>
+                        <AdminAuthProvider>
+                          <AuthProvider>
+                            <CurrencyProvider>{children}</CurrencyProvider>
+                          </AuthProvider>
+                        </AdminAuthProvider>
+                      </TelegramAuthProvider>
+                    </MotionConfigProvider>
+                  </QueryClientProvider>
+                </SupabaseProvider>
+              </SessionContextProvider>
+            </IconProvider>
+          </ToastProvider>
+        </DataThemeProvider>
+      </ThemeProvider>
+    </LayoutProvider>
   );
 }
