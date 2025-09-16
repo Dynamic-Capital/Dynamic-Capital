@@ -13,7 +13,7 @@ import {
   error as logError,
 } from './scripts/utils/friendly-logger.js';
 
-const PRODUCTION_ORIGIN = 'https://dynamic-capital.ondigitalocean.app';
+const PRODUCTION_ORIGIN = 'https://dynamic-capital.lovable.app';
 const resolvedOrigin =
   process.env.LOVABLE_ORIGIN ||
   process.env.SITE_URL ||

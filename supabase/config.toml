@@ -1,14 +1,14 @@
 project_id = "qeejuomcapbdlhnjqjcc"
 
 [global]
-  site_url = "https://dynamic-capital.ondigitalocean.app"
+  site_url = "https://dynamic-capital.lovable.app"
   additional_redirect_urls = [
-    "https://dynamic-capital.ondigitalocean.app",
+    "https://dynamic-capital.lovable.app",
   ]
 
 [functions]
   [functions.env]
-    SITE_URL = "https://dynamic-capital.ondigitalocean.app"
-    NEXT_PUBLIC_SITE_URL = "https://dynamic-capital.ondigitalocean.app"
-    ALLOWED_ORIGINS = "https://dynamic-capital.ondigitalocean.app"
-    MINIAPP_ORIGIN = "https://dynamic-capital.ondigitalocean.app"
+    SITE_URL = "https://dynamic-capital.lovable.app"
+    NEXT_PUBLIC_SITE_URL = "https://dynamic-capital.lovable.app"
+    ALLOWED_ORIGINS = "https://dynamic-capital.lovable.app"
+    MINIAPP_ORIGIN = "https://dynamic-capital.lovable.app"

@@ -5,15 +5,15 @@
   "outputDirectory": "apps/web/.next",
   "devCommand": "npm run dev",
   "env": {
-    "SITE_URL": "https://dynamic-capital.ondigitalocean.app",
-    "NEXT_PUBLIC_SITE_URL": "https://dynamic-capital.ondigitalocean.app",
-    "ALLOWED_ORIGINS": "https://dynamic-capital.ondigitalocean.app",
-    "MINIAPP_ORIGIN": "https://dynamic-capital.ondigitalocean.app"
+    "SITE_URL": "https://dynamic-capital.lovable.app",
+    "NEXT_PUBLIC_SITE_URL": "https://dynamic-capital.lovable.app",
+    "ALLOWED_ORIGINS": "https://dynamic-capital.lovable.app",
+    "MINIAPP_ORIGIN": "https://dynamic-capital.lovable.app"
   },
   "redirects": [
     {
       "source": "/(.*)",
-      "destination": "https://dynamic-capital.ondigitalocean.app/$1",
+      "destination": "https://dynamic-capital.lovable.app/$1",
       "permanent": false
     }
   ]
