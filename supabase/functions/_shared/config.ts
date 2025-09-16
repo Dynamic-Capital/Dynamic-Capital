@@ -1,4 +1,5 @@
 import { createClient } from "./client.ts";
+import { maybe } from "./env.ts";
 
 // In-memory fallback map when kv_config table is unavailable
 const memStore = new Map<string, unknown>();
@@ -131,7 +132,7 @@ async function envOrSetting<T = string>(
   envKey: string,
   settingKey = envKey,
 ): Promise<T | null> {
-  const envVal = Deno.env.get(envKey);
+  const envVal = maybe(envKey);
   if (envVal != null) return envVal as unknown as T;
   return await getSetting<T>(settingKey);
 }
