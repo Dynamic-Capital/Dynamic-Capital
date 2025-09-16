@@ -116,6 +116,7 @@ Modify the files to suit your needs before running the build.
 ## Maintenance & Automation
 
 - Regenerate the documentation inventory after touching edge functions or environment variables with `npm run docs:summary`. The script updates `docs/REPO_SUMMARY.md` so reviewers can confirm every handler exposes a default export and spot any new `Deno.env.get` usage.
+- Review the [Checklist Directory](docs/CHECKLISTS.md) to find the right project, launch, or integration checklist and see which ones have automation keys (`npm run checklists`).
 - Keep `docs/env.md` in sync when introducing deployment settings such as `FUNCTIONS_BASE_URL` or log drain credentials (`LOGTAIL_SOURCE_TOKEN`, `LOGTAIL_URL`). Pair updates with the summary script so both docs reference the same keys.
 - When rotating the Telegram webhook secret, run `deno run -A scripts/set-webhook.ts` (or `deno task set:webhook`) after deploying the updated function to re-register the webhook with BotFather.
 
