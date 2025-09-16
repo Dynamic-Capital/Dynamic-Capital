@@ -8,13 +8,11 @@ Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
 OCR + crypto TXID). Built with **Lovable Codex** for enhanced development
 experience.
 
-The project is split into two deployables:
-
-- A **static landing page** served at `/_static` from `apps/landing`.
-- A **dynamic Next.js dashboard** served at `/app` from `apps/web`.
-
-Static content never touches runtime secrets, while the dashboard handles
-authentication, Supabase access and other server-side features.
+A single Next.js application powers both the marketing landing page and the
+authenticated dashboard. The build pipeline captures the homepage into the
+repository-level `_static/` directory so it can be served via CDN without
+touching runtime secrets, while the live `/app` routes continue to handle
+Supabase access, authentication, and other server-side features.
 
 The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
 backed by Supabase.
@@ -82,7 +80,9 @@ configuration for each component.
   and mini app functions. Optionally specify an output directory (relative to
   the build context) to control where build assets are generated; if omitted,
   the default location is used.
-- **Static files** – Place all user-facing assets in `public/`.
+- **Static snapshot** – Place user-facing assets in `apps/web/public/` and run
+  `npm run build:web && npm run build:landing` to mirror the homepage into
+  `_static/` for CDN hosting.
 - **Root configuration** – Key files like `package.json`, `tsconfig.json`,
   `eslint.config.js`, and `.env.example` sit at the project root. Keep
   `.env.example` updated when adding new environment variables.
@@ -101,16 +101,22 @@ configuration for each component.
 - **Broadcast planner** – standalone service at `broadcast/index.ts`
 - **Queue worker** – standalone service at `queue/index.ts`
 
-## HTML Static Site Starter
+## Static snapshot pipeline
 
-A minimal static landing page lives in `apps/landing/public/` with `index.html`, `styles.css`, `scripts.js` and a `404.html` error page.
-Run `npm run build:landing` to copy these files into the `_static/` directory for deployment. The root `server.js` serves the `_static` directory and returns `404.html` for unknown routes.
-Modify the files to suit your needs before running the build.
+Run `npm run build:web` to produce the standalone Next.js server output. Follow
+with `npm run build:landing` to boot that server locally, capture the rendered
+homepage, and copy the necessary assets into the `_static/` directory. The
+hardened `server.js` serves this snapshot for CDN-style hosting, while the
+Next.js server continues to power authenticated routes.
+
+All landing page edits now live in `apps/web` (for example, `app/page.tsx` and
+the Once UI components). After changing those files, rerun the build steps above
+to refresh the snapshot.
 
 ## Asset Deployment
 
 - Run `npm run upload-assets` to push the generated `_static` directory to the configured CDN.
-- A GitHub Actions workflow (`upload-assets.yml`) builds `apps/landing` and uploads assets on pushes to `main`. It expects `CDN_BUCKET`, `CDN_ACCESS_KEY`, `CDN_SECRET_KEY`, and optional `CDN_REGION`/`CDN_ENDPOINT` secrets.
+- A GitHub Actions workflow (`upload-assets.yml`) builds the Next.js app, runs the landing snapshot helper, and uploads `_static/` on pushes to `main`. It expects `CDN_BUCKET`, `CDN_ACCESS_KEY`, `CDN_SECRET_KEY`, and optional `CDN_REGION`/`CDN_ENDPOINT` secrets.
 - During development, `npm run upload-assets:watch` monitors `_static` and uploads changes automatically.
 
 ## Maintenance & Automation

@@ -14,7 +14,7 @@ async function waitForServer(url: string, retries = 20, delayMs = 100) {
   throw new Error(`Server at ${url} did not become ready`);
 }
 
-Deno.test('redirects root path with query string to /_static/index.html', async () => {
+Deno.test('serves landing page from root even with query string', async () => {
   const command = new Deno.Command('node', {
     args: ['server.js'],
     cwd: new URL('..', import.meta.url).pathname,
@@ -24,11 +24,16 @@ Deno.test('redirects root path with query string to /_static/index.html', async 
   try {
     await waitForServer('http://localhost:8124/healthz');
     const res = await fetch('http://localhost:8124/?foo=bar', {
-      redirect: 'manual',
     });
-    assertEquals(res.status, 302);
-    assertEquals(res.headers.get('location'), '/_static/index.html?foo=bar');
-    await res.arrayBuffer();
+    assertEquals(res.status, 200);
+    assertEquals(res.headers.get('content-type'), 'text/html');
+    const body = await res.text();
+    if (!body.includes('<!DOCTYPE html>')) {
+      throw new Error('Root response did not include HTML doctype');
+    }
+    const legacy = await fetch('http://localhost:8124/_static/index.html');
+    assertEquals(legacy.status, 200);
+    await legacy.arrayBuffer();
   } finally {
     child.kill('SIGTERM');
     await child.status;

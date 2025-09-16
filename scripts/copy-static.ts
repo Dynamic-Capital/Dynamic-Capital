@@ -1,8 +1,9 @@
-import { execSync } from 'node:child_process';
-import { cp, rm, mkdir, stat } from 'node:fs/promises';
+import { execSync, spawn } from 'node:child_process';
+import { cp, rm, mkdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const copyOnly = process.argv.includes('--copy-only') || process.env.SKIP_NEXT_BUILD === '1';
+const args = new Set(process.argv.slice(2));
+const copyOnly = args.has('--copy-only') || process.env.SKIP_NEXT_BUILD === '1';
 
 if (!copyOnly) {
   // Run Next.js build to ensure latest assets
@@ -17,8 +18,8 @@ if (!copyOnly) {
 const root = process.cwd();
 const projectRoot = join(root, '..', '..');
 const nextStatic = join(root, '.next', 'static');
-const nextServerApp = join(root, '.next', 'server', 'app');
-const landingPublic = join(projectRoot, 'apps', 'landing', 'public');
+const nextStandalone = join(root, '.next', 'standalone', 'apps', 'web', 'server.js');
+const publicDir = join(root, 'public');
 // Copy build output to a repository-level `_static` directory so the site can be
 // served as a regular static site (e.g. on DigitalOcean).
 const destRoot = join(projectRoot, '_static');
@@ -32,33 +33,78 @@ async function exists(path: string) {
   }
 }
 
-async function copyAssets() {
-  // Ensure destination exists and clear previous Next.js output only
-  await mkdir(destRoot, { recursive: true });
-  await rm(join(destRoot, 'static'), { recursive: true, force: true });
-  await rm(join(destRoot, 'server'), { recursive: true, force: true });
+async function waitForServer(url: string, retries = 50, delayMs = 200) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const res = await fetch(url, { redirect: 'manual' });
+      if (res.ok) {
+        return;
+      }
+    } catch {
+      // retry until timeout
+    }
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  throw new Error(`Timed out waiting for Next.js server at ${url}`);
+}
 
-  // Copy static assets if present
+async function fetchHtml(url: string) {
+  const res = await fetch(url, { redirect: 'manual' });
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Unexpected status ${res.status} fetching ${url}`);
+  }
+  return await res.text();
+}
+
+async function startServerAndCapture() {
+  if (!(await exists(nextStandalone))) {
+    throw new Error('Next.js standalone server not found. Run `next build` first.');
+  }
+
+  const port = Number(process.env.STATIC_EXPORT_PORT || 4123);
+  const server = spawn('node', [nextStandalone], {
+    cwd: join(root, '.next', 'standalone'),
+    env: {
+      ...process.env,
+      PORT: String(port),
+      HOSTNAME: '127.0.0.1',
+      NODE_ENV: 'production',
+    },
+    stdio: ['ignore', 'ignore', 'inherit'],
+  });
+
+  try {
+    await waitForServer(`http://127.0.0.1:${port}/healthz`);
+    const indexHtml = await fetchHtml(`http://127.0.0.1:${port}/`);
+    await writeFile(join(destRoot, 'index.html'), indexHtml, 'utf8');
+
+    const notFoundHtml = await fetchHtml(`http://127.0.0.1:${port}/__static-not-found`);
+    await writeFile(join(destRoot, '404.html'), notFoundHtml, 'utf8');
+  } finally {
+    server.kill('SIGTERM');
+    await new Promise((resolve) => server.once('exit', resolve));
+  }
+}
+
+async function copyAssets() {
+  // Reset destination directory to ensure no stale files linger
+  await rm(destRoot, { recursive: true, force: true });
+  await mkdir(destRoot, { recursive: true });
+
   if (await exists(nextStatic)) {
-    await cp(nextStatic, join(destRoot, 'static'), { recursive: true });
+    await mkdir(join(destRoot, '_next'), { recursive: true });
+    await cp(nextStatic, join(destRoot, '_next', 'static'), { recursive: true });
   } else {
     console.warn('⚠️  No static assets found at', nextStatic);
   }
 
-  if (await exists(nextServerApp)) {
-    await cp(nextServerApp, join(destRoot, 'server', 'app'), { recursive: true });
-  } else {
-    console.warn('⚠️  No server/app directory found at', nextServerApp);
+  if (await exists(publicDir)) {
+    await cp(publicDir, destRoot, { recursive: true });
   }
 
-  // Copy landing assets into the same destination
-  if (await exists(landingPublic)) {
-    await cp(landingPublic, destRoot, { recursive: true });
-  } else {
-    console.warn('⚠️  No landing assets found at', landingPublic);
-  }
+  await startServerAndCapture();
 
-  console.log('✅ Copied Next.js build output and landing assets to', destRoot);
+  console.log('✅ Exported landing snapshot to', destRoot);
 }
 
 copyAssets().catch((err) => {

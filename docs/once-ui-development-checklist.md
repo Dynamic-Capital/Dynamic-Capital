@@ -9,7 +9,7 @@ Use this checklist when you scope, build, and verify Dynamic Capital surfaces th
 - [ ] Identify dependencies on Supabase, Supabase Edge Functions, Go services, or queues so backend contracts stay compatible with UI expectations.
 
 ## 1. Prepare Once UI Foundation
-- [ ] Verify Once UI assets are available to the target app (`once-ui.css`/`once-ui.js` via static import, bundler entry, or module federation) and match the expected version in `apps/landing/public/once-ui/`.
+- [ ] Verify Once UI assets are available to the target app (`once-ui.css`/`once-ui.js` via static import, bundler entry, or module federation) and match the version consumed by the React components in `apps/web/components/once-ui/`.
 - [ ] Document any required global styles (body background, typography) or layout constraints (grid, spacing tokens) before coding to avoid ad-hoc overrides.
 - [ ] Plan responsive breakpoints and theme variants (light/dark) using Once UI tokens so components remain consistent across surfaces.
 - [ ] Decide whether custom Once UI components should live alongside existing shared components or in an app-specific folder; create stubs with prop signatures when collaboration is needed.

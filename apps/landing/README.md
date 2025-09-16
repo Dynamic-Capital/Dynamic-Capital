@@ -1,45 +1,28 @@
-# Landing App
+# Landing Snapshot Helper
 
-The static landing site bundles the lightweight `once-ui.css` and `once-ui.js` assets that power marketing pages without a build step. The JavaScript helper now exposes Framer Motion-inspired reveal utilities that mirror the React experience in the Next.js app.
+This workspace no longer ships its own HTML bundle. Instead, it proxies to the
+Next.js application in `apps/web` to generate a static snapshot of the landing
+experience.
 
-## Scroll-based reveal helpers
+Running:
 
-Elements marked with the `data-once-reveal` attribute fade or slide into view when they enter the viewport. The helper observes those nodes with `IntersectionObserver`, adds a preparatory `once-ready` class, and toggles `once-visible` once the element is visible.
-
-```html
-<section class="hero" data-once-reveal="fade-up">
-  <h2>Dynamic Capital</h2>
-  <p>Fast deposits with automated verification.</p>
-</section>
+```bash
+npm run build --workspace web
+npm run build --workspace landing
 ```
 
-Supported values include:
+will build the Next.js app and then capture the rendered homepage into the
+repository-level `_static/` directory. The snapshot is what DigitalOcean and
+other static hosts serve for the marketing site while the standalone Next.js
+server continues to power the authenticated experience.
 
-- `fade-up` (default)
-- `fade-down`
-- `fade-left`
-- `fade-right`
-- `scale`
-- `slide-up`
-- `slide-down`
-- `slide-left`
-- `slide-right`
+You can still preview the exported bundle locally:
 
-Add the `data-once-reveal-repeat` attribute when you need the animation to play every time the element scrolls into view.
-
-```html
-<div class="stat" data-once-reveal data-once-reveal-repeat>
-  <strong>3x</strong>
-  Faster approvals
-</div>
+```bash
+npm run build --workspace web
+npm run build --workspace landing
+npm run start --workspace landing
 ```
 
-## Reduced-motion and hydration support
-
-- Users with `prefers-reduced-motion: reduce` enabled skip the animation; elements become visible immediately.
-- The framework only adds the `once-ready` class when JavaScript is active, so users without scripting continue to see static marketing content.
-- Dynamic content can opt into the reveal helper by calling `window.OnceUI.observeReveals(rootNode)` or `window.OnceUI.refreshReveals()` after injecting markup.
-
-## Smooth scrolling
-
-Anchor links that point to IDs continue to use the existing smooth-scroll helper for in-page navigation. No additional configuration is required.
+The preview command simply serves the `_static/` directory so you can verify the
+captured HTML without running the full Next.js server.
