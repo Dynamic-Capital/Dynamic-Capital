@@ -1,6 +1,8 @@
 import test from 'node:test';
 import { equal as assertEquals, ok as assert, match as assertMatch, deepEqual as assertDeepEqual } from 'node:assert/strict';
 import { freshImport } from './utils/freshImport.ts';
+import { __resetSupabaseState, __testSupabaseState } from './supabase-client-stub.ts';
+import { hashBlob } from '../supabase/functions/_shared/hash.ts';
 
 function setEnv() {
   process.env.SUPABASE_URL = 'http://example.com';
@@ -15,6 +17,7 @@ function cleanupEnv() {
 }
 
 test('receipt-upload-url returns signed URL', async () => {
+  __resetSupabaseState();
   setEnv();
   const calls: string[] = [];
   const originalFetch = globalThis.fetch;
@@ -55,21 +58,15 @@ test('receipt-upload-url returns signed URL', async () => {
 });
 
 test('receipt-submit updates payment and subscription', async () => {
+  __resetSupabaseState();
   setEnv();
-  const calls: { url: string; method: string }[] = [];
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (input: Request | string | URL, init?: RequestInit) => {
-    const url = typeof input === 'string' ? input : input instanceof Request ? input.url : String(input);
-    const method = init?.method || 'GET';
-    calls.push({ url, method });
-    if (url.includes('/rest/v1/payments')) {
-      return new Response(JSON.stringify([]), { status: 200, headers: { 'Content-Type': 'application/json' } });
-    }
-    if (url.includes('/rest/v1/user_subscriptions')) {
-      return new Response(JSON.stringify([]), { status: 200, headers: { 'Content-Type': 'application/json' } });
-    }
-    return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
-  };
+  globalThis.fetch = async () => new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+  const filePath = 'receipts/123/file.png';
+  const receiptBlob = new Blob(['fake-image']);
+  __testSupabaseState.storageFiles.set(filePath, receiptBlob);
+  __testSupabaseState.payments.set('p1', { id: 'p1', user_id: 'user-1', webhook_data: {} });
+  __testSupabaseState.userSubscriptions.set('123', { telegram_user_id: '123', payment_status: 'none' });
   let handler: (req: Request) => Promise<Response> | Response;
   let patched: URL | undefined;
   try {
@@ -82,14 +79,77 @@ test('receipt-submit updates payment and subscription', async () => {
     const mod = await freshImport(patched);
     handler = mod.handler;
     assert(typeof handler === 'function');
-    const body = { payment_id: 'p1', file_path: 'receipts/123/file.png', telegram_id: '123' };
+    const body = { payment_id: 'p1', file_path: filePath, telegram_id: '123' };
     const req = new Request('http://localhost/receipt-submit', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
     const res = await handler!(req);
     assertEquals(res.status, 200);
     const data = await res.json();
     assertEquals(data.success, true);
     assertEquals(data.payment_id, 'p1');
-    // Database update stubs executed without network calls
+    const payment = __testSupabaseState.payments.get('p1');
+    assert(payment);
+    assertEquals(payment!.status, 'pending');
+    const hash = await hashBlob(receiptBlob);
+    assertEquals(payment!.webhook_data?.image_sha256, hash);
+    assertEquals(payment!.webhook_data?.storage_bucket, 'payment-receipts');
+    const receiptRecord = __testSupabaseState.receiptsByHash.get(hash);
+    assert(receiptRecord);
+    assertEquals(receiptRecord!.payment_id, 'p1');
+    const subscription = __testSupabaseState.userSubscriptions.get('123');
+    assert(subscription);
+    assertEquals(subscription!.payment_status, 'pending');
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (patched) await Deno.remove(patched).catch(() => {});
+    cleanupEnv();
+  }
+});
+
+test('receipt-submit rejects duplicate receipt uploads', async () => {
+  __resetSupabaseState();
+  setEnv();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+  const fileBlob = new Blob(['duplicate-image']);
+  const initialPath = 'receipts/123/original.png';
+  __testSupabaseState.storageFiles.set(initialPath, fileBlob);
+  __testSupabaseState.payments.set('p1', { id: 'p1', user_id: 'user-1', webhook_data: {} });
+  __testSupabaseState.userSubscriptions.set('123', { telegram_user_id: '123', payment_status: 'none' });
+  let handler: (req: Request) => Promise<Response> | Response;
+  let patched: URL | undefined;
+  try {
+    const orig = new URL('../supabase/functions/receipt-submit/index.ts', import.meta.url);
+    patched = new URL('../supabase/functions/receipt-submit/index.test.ts', import.meta.url);
+    let src = await Deno.readTextFile(orig);
+    src = src.replace('../_shared/client.ts', '../../../tests/supabase-client-stub.ts');
+    src = src.replace('../_shared/serve.ts', '../../../tests/serve-stub.ts');
+    await Deno.writeTextFile(patched, src);
+    const mod = await freshImport(patched);
+    handler = mod.handler;
+    assert(typeof handler === 'function');
+
+    const firstReq = new Request('http://localhost/receipt-submit', {
+      method: 'POST',
+      body: JSON.stringify({ payment_id: 'p1', file_path: initialPath, telegram_id: '123' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const firstRes = await handler!(firstReq);
+    assertEquals(firstRes.status, 200);
+
+    const duplicatePath = 'receipts/123/duplicate.png';
+    __testSupabaseState.storageFiles.set(duplicatePath, fileBlob);
+    const dupReq = new Request('http://localhost/receipt-submit', {
+      method: 'POST',
+      body: JSON.stringify({ payment_id: 'p1', file_path: duplicatePath, telegram_id: '123' }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const dupRes = await handler!(dupReq);
+    assertEquals(dupRes.status, 409);
+    const dupBody = await dupRes.json();
+    assertEquals(dupBody.error, 'duplicate_receipt');
+    const hash = await hashBlob(fileBlob);
+    assert(__testSupabaseState.receiptsByHash.has(hash));
+    assert(!__testSupabaseState.storageFiles.has(duplicatePath));
   } finally {
     globalThis.fetch = originalFetch;
     if (patched) await Deno.remove(patched).catch(() => {});

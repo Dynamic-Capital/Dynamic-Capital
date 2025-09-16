@@ -4,6 +4,7 @@ import { alertAdmins } from "../_shared/alerts.ts";
 import { json, mna, ok, oops } from "../_shared/http.ts";
 import { validateTelegramHeader } from "../_shared/telegram_secret.ts";
 import { version } from "../_shared/version.ts";
+import { hashBlob } from "../_shared/hash.ts";
 import {
   getActivePromotions,
   getEducationPackages,
@@ -952,14 +953,6 @@ async function enforceRateLimit(tgId: string): Promise<null | Response> {
   return null;
 }
 
-async function hashBytesToSha256(blob: Blob): Promise<string> {
-  const arrayBuffer = await blob.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
-  return Array.from(new Uint8Array(hashBuffer)).map((b) =>
-    b.toString(16).padStart(2, "0")
-  ).join("");
-}
-
 async function storeReceiptImage(
   blob: Blob,
   storagePath: string,
@@ -1785,7 +1778,7 @@ export async function startReceiptPipeline(
     const blob = await fetch(
       `https://api.telegram.org/file/bot${BOT_TOKEN}/${path}`,
     ).then((r) => r.blob());
-    const hash = await hashBytesToSha256(blob);
+    const hash = await hashBlob(blob);
     const storagePath = `receipts/${chatId}/${hash}`;
     try {
       await storeReceiptImage(blob, storagePath);
@@ -1834,9 +1827,22 @@ export async function startReceiptPipeline(
       }),
     }).then((r) => r.json()).catch(() => null);
     if (!rs?.ok) {
-      const msg = await getContent("receipt_submit_failed") ??
-        "Failed to submit receipt. Please try again later.";
-      await notifyUser(chatId, msg);
+      if (rs?.error === "duplicate_receipt") {
+        const dupMsg = typeof rs.message === "string" && rs.message
+          ? rs.message
+          : await getContent("duplicate_receipt_detected") ??
+            "We already received this receipt. Please upload a different image.";
+        await notifyUser(chatId, dupMsg);
+        try {
+          await supa.from("payments").delete().eq("id", pay.id);
+        } catch (cleanupErr) {
+          console.error("Failed to clean up duplicate payment", cleanupErr);
+        }
+      } else {
+        const msg = await getContent("receipt_submit_failed") ??
+          "Failed to submit receipt. Please try again later.";
+        await notifyUser(chatId, msg);
+      }
       return;
     }
     await supa.from("user_sessions").update({ awaiting_input: null }).eq(

@@ -135,7 +135,7 @@ need to execute the scripted steps for a section, call the helper with the relev
 ## Go-Live Checklist
 - [ ] Verify the webhook.
 - [ ] Validate bank approval and manual review paths.
-- [ ] Ensure duplicate receipts are blocked.
+- [x] Ensure duplicate receipts are blocked.
 - [ ] Confirm crypto confirmation handling.
 - [ ] Test admin commands.
 

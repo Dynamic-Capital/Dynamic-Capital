@@ -3,6 +3,7 @@ import { json, bad, unauth, oops } from "../_shared/http.ts";
 import { getEnv } from "../_shared/env.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { registerHandler } from "../_shared/serve.ts";
+import { hashBlob } from "../_shared/hash.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -74,19 +75,79 @@ export const handler = registerHandler(async (req) => {
 
   console.log("Receipt submission:", { telegramId, payment_id, file_path, bucket });
 
-  const supa = createClient();
+  const supa = createClient("service");
 
   try {
-    // Update payment with receipt information
+    const { data: payment, error: paymentLookupError } = await supa
+      .from("payments")
+      .select("id,user_id,webhook_data")
+      .eq("id", payment_id)
+      .maybeSingle();
+
+    if (paymentLookupError) {
+      console.error("Payment lookup error:", paymentLookupError);
+    }
+    if (!payment) {
+      return oops("Payment not found");
+    }
+
+    const storageBucket = typeof bucket === "string" && bucket
+      ? bucket
+      : "payment-receipts";
+    const { data: downloaded, error: downloadError } = await supa.storage
+      .from(storageBucket)
+      .download(file_path);
+
+    if (downloadError || !downloaded) {
+      console.error("Receipt download error:", downloadError);
+      return oops("Failed to read receipt");
+    }
+
+    const imageHash = await hashBlob(downloaded);
+
+    const { data: existing, error: duplicateCheckError } = await supa
+      .from("receipts")
+      .select("id,payment_id,user_id,file_url")
+      .eq("image_sha256", imageHash)
+      .limit(1)
+      .maybeSingle();
+
+    if (duplicateCheckError) {
+      console.error("Receipt duplicate check error:", duplicateCheckError);
+    }
+
+    if (existing) {
+      await supa.storage.from(storageBucket).remove([file_path]).catch((err) => {
+        console.warn("Failed to remove duplicate receipt upload", err);
+      });
+      return json({
+        ok: false,
+        error: "duplicate_receipt",
+        message:
+          "This receipt was already submitted. Please upload a new image.",
+      }, 409, corsHeaders);
+    }
+
+    const baseWebhookData =
+      typeof payment.webhook_data === "object" && payment.webhook_data !== null
+        ? payment.webhook_data
+        : {};
+    const submittedAt = new Date().toISOString();
+    const webhookData = {
+      ...baseWebhookData,
+      file_path,
+      bucket: storageBucket,
+      storage_path: file_path,
+      storage_bucket: storageBucket,
+      image_sha256: imageHash,
+      submitted_at: submittedAt,
+    };
+
     const { error: paymentError } = await supa
       .from("payments")
       .update({
         status: "pending",
-        webhook_data: {
-          file_path,
-          bucket,
-          submitted_at: new Date().toISOString(),
-        },
+        webhook_data: webhookData,
       })
       .eq("id", payment_id);
 
@@ -95,7 +156,6 @@ export const handler = registerHandler(async (req) => {
       return oops("Failed to update payment");
     }
 
-    // Update user subscription if we know the user
     if (telegramId) {
       const { error: subscriptionError } = await supa
         .from("user_subscriptions")
@@ -108,6 +168,18 @@ export const handler = registerHandler(async (req) => {
       if (subscriptionError) {
         console.log("Subscription update error (non-critical):", subscriptionError);
       }
+    }
+
+    const { error: receiptInsertError } = await supa.from("receipts").insert({
+      payment_id,
+      user_id: payment.user_id,
+      file_url: file_path,
+      image_sha256: imageHash,
+    });
+
+    if (receiptInsertError) {
+      console.error("Receipt insert error:", receiptInsertError);
+      return oops("Failed to register receipt");
     }
 
     console.log("Receipt submitted successfully for payment:", payment_id);
