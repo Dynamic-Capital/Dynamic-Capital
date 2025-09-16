@@ -43,6 +43,7 @@ The database migration will be automatically applied when you connect to Supabas
 - `messages` table with proper structure
 - Row Level Security (RLS) policies
 - Real-time subscriptions enabled
+- Performance indexes on `messages` and `ea_reports` for fast queries
 
 ### 5. Deploy Edge Functions
 
