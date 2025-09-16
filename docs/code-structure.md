@@ -13,14 +13,11 @@ dynamic-capital-bot/
 │   ├── api-documentation.md     # Comprehensive API docs
 │   ├── code-structure.md        # This file
 │   └── deployment-guide.md      # Deployment instructions
-├── 📁 src/
-│   ├── 📁 components/
-│   │   ├── 📁 admin/           # Admin dashboard components
-│   │   ├── 📁 auth/            # Authentication components
-│   │   └── 📁 ui/              # Reusable UI components
-│   ├── 📁 pages/               # React pages
-│   └── 📁 integrations/
-│       └── supabase/           # Supabase client & types
+├── 📁 apps/
+│   └── 📁 web/
+│       ├── 📁 app/             # Next.js routes (landing page, /telegram dashboard)
+│       ├── 📁 components/      # Admin, auth, UI, and bot tooling components
+│       └── 📁 config/          # Supabase helpers and environment wiring
 └── 📁 supabase/
     ├── 📁 functions/
     │   └── 📁 telegram-bot/    # Main bot function

@@ -87,13 +87,17 @@ configuration for each component.
   `eslint.config.js`, and `.env.example` sit at the project root. Keep
   `.env.example` updated when adding new environment variables.
 - **Go service** – simple HTTP server in `go-service/` with a `/healthz` endpoint.
+- **Unified builds** – the previous `external/dynamic_codex` Vite workspace has
+  been merged; all bot tooling now ships from the Next.js app so the project is
+  maintained with a single build pipeline.
 
 ## Project starters
 
 - **Package scripts** – launch development, build, and production with
   `npm run dev`, `npm run build`, and `npm run start` in `package.json`
 - **Next.js web app** – main layout and landing page entry points in
-  `app/layout.tsx` and `app/page.tsx`
+  `app/layout.tsx` and `app/page.tsx`. Operational views such as the
+  Telegram bot dashboard live directly under `app/telegram`.
 - **Telegram bot** – Supabase Edge Function at
   `supabase/functions/telegram-bot/index.ts`
 - **Mini App function** – Supabase Edge Function at

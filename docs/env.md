@@ -8,10 +8,10 @@ example value, and where it's referenced in the repository.
 
 | Key                         | Purpose                                                   | Required | Example                     | Used in                                                                                                   |
 | --------------------------- | --------------------------------------------------------- | -------- | --------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `SUPABASE_URL`              | Base URL of the Supabase project.                         | Yes      | `https://xyz.supabase.co`   | `utils/config.ts`, `integrations/supabase/client.ts`, `supabase/functions/telegram-bot/index.ts` |
-| `SUPABASE_ANON_KEY`         | Public anon key for client-side calls (also accepts `SUPABASE_KEY`).                    | Yes      | `eyJ...`                    | `integrations/supabase/client.ts`, `supabase/functions/theme-get/index.ts`, `supabase/functions/miniapp/src/lib/edge.ts`, `utils/config.ts` |
-| `NEXT_PUBLIC_SUPABASE_URL`         | Build-time copy of `SUPABASE_URL` for the web app.        | Yes (web) | `https://xyz.supabase.co`   | `src/config/supabase.ts` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`    | Build-time copy of `SUPABASE_ANON_KEY` for the web app.   | Yes (web) | `eyJ...`                    | `src/config/supabase.ts` |
+| `SUPABASE_URL`              | Base URL of the Supabase project.                         | Yes      | `https://xyz.supabase.co`   | `utils/config.ts`, `apps/web/integrations/supabase/client.ts`, `supabase/functions/telegram-bot/index.ts` |
+| `SUPABASE_ANON_KEY`         | Public anon key for client-side calls (also accepts `SUPABASE_KEY`).                    | Yes      | `eyJ...`                    | `apps/web/integrations/supabase/client.ts`, `supabase/functions/theme-get/index.ts`, `supabase/functions/miniapp/src/lib/edge.ts`, `utils/config.ts` |
+| `NEXT_PUBLIC_SUPABASE_URL`         | Build-time copy of `SUPABASE_URL` for the web app.        | Yes (web) | `https://xyz.supabase.co`   | `apps/web/config/supabase.ts` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`    | Build-time copy of `SUPABASE_ANON_KEY` for the web app.   | Yes (web) | `eyJ...`                    | `apps/web/config/supabase.ts` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key for privileged Supabase access.          | Yes      | `service-role-key`          | `utils/config.ts`, `supabase/functions/telegram-bot/index.ts`                                         |
 | `SUPABASE_PROJECT_ID`       | Supabase project reference used to build URLs in scripts. | No       | `abcd1234`
        | `scripts/ping-webhook.ts`, `scripts/miniapp-health-check.ts`                                              |
@@ -24,12 +24,12 @@ example value, and where it's referenced in the repository.
 | Key                       | Purpose                                                      | Required | Example                                          | Used in                                                              |
 | ------------------------- | ------------------------------------------------------------ | -------- | ------------------------------------------------ | -------------------------------------------------------------------- |
 | `TELEGRAM_BOT_TOKEN`      | Bot API token for making Telegram requests.                  | Yes      | `123456:ABCDEF`                                  | `supabase/functions/_shared/telegram.ts`, `scripts/set-webhook.ts`   |
-| `TELEGRAM_WEBHOOK_SECRET` | Secret query param to validate webhook calls and required for privileged edge-function requests. | Yes      | `longrandomsecret`                               | `supabase/functions/telegram-bot/index.ts`, `scripts/set-webhook.ts`, `src/config/supabase.ts` |
+| `TELEGRAM_WEBHOOK_SECRET` | Secret query param to validate webhook calls and required for privileged edge-function requests. | Yes      | `longrandomsecret`                               | `supabase/functions/telegram-bot/index.ts`, `scripts/set-webhook.ts`, `apps/web/config/supabase.ts` |
 | `TELEGRAM_WEBHOOK_URL`    | Explicit webhook endpoint; overrides derived URL in scripts. | No       | `https://xyz.functions.supabase.co/telegram-bot` | `scripts/set-webhook.ts`, `scripts/ping-webhook.ts`                  |
 | `TELEGRAM_ADMIN_IDS`      | Comma-separated list of admin Telegram IDs.                  | No       | `1001,1002`                                      | `supabase/functions/_shared/alerts.ts`                               |
-| `TELEGRAM_BOT_USERNAME`   | Bot's public username for referral links.                    | No       | `mybot`                                 | `supabase/functions/referral-link/index.ts`, `src/config/supabase.ts`                          |
-| `TELEGRAM_BOT_URL`        | Public `t.me` link for the bot.                              | No       | `https://t.me/mybot`               | `src/config/supabase.ts`                                            |
-| `NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET` | Client-side copy of webhook secret for edge function calls. | No       | `longrandomsecret`                          | `src/config/supabase.ts`                                            |
+| `TELEGRAM_BOT_USERNAME`   | Bot's public username for referral links.                    | No       | `mybot`                                 | `supabase/functions/referral-link/index.ts`, `apps/web/config/supabase.ts`                          |
+| `TELEGRAM_BOT_URL`        | Public `t.me` link for the bot.                              | No       | `https://t.me/mybot`               | `apps/web/config/supabase.ts`                                            |
+| `NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET` | Client-side copy of webhook secret for edge function calls. | No       | `longrandomsecret`                          | `apps/web/config/supabase.ts`                                            |
 | `TELEGRAM_ID`             | Telegram user ID used for health checks.                     | No       | `123456789`                                      | `scripts/miniapp-health-check.ts`                                    |
 | `SESSION_JWT_SECRET`      | Signing key for Mini App session JWTs.                       | Yes      | `hexstring`                         | `supabase/functions/tg-verify-init/index.ts`                         |
 
@@ -45,7 +45,7 @@ example value, and where it's referenced in the repository.
 
 | Key                | Purpose                                   | Required | Example                           | Used in                 |
 | ------------------ | ----------------------------------------- | -------- | --------------------------------- | ----------------------- |
-| `USDT_TRC20_ADDRESS` | TRC20 wallet address for USDT deposits. | Yes      | `TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7` | `src/config/supabase.ts` |
+| `USDT_TRC20_ADDRESS` | TRC20 wallet address for USDT deposits. | Yes      | `TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7` | `apps/web/config/supabase.ts` |
 
 ## AI / Feature toggles
 
@@ -83,7 +83,7 @@ You can confirm access with `doctl spaces list`.
 | --------------------- | ---------------------------------------- | -------- | ------------------------- | --------------------------------- |
 | `SITE_URL`            | Base URL for the deployed site; used for redirects and canonical host checks. | Yes      | `http://localhost:3000` | `next.config.mjs`, `hooks/useAuth.tsx` |
 | `NEXT_PUBLIC_API_URL`  | Base URL for client API requests (defaults to same-origin `/api`). | No | `http://localhost:3000/api` | `env.ts` |
-| `NODE_EXTRA_CA_CERTS` | Additional CA bundle for outbound HTTPS. | No       | `/etc/ssl/custom.pem`     | `src/utils/http-ca.ts`            |
+| `NODE_EXTRA_CA_CERTS` | Additional CA bundle for outbound HTTPS. | No       | `/etc/ssl/custom.pem`     | `apps/web/utils/http-ca.ts`            |
 | `A_SUPABASE_URL`      | Supabase URL used by audit scripts.      | No       | `https://xyz.supabase.co` | `scripts/audit/read_meta.mjs`     |
 | `A_SUPABASE_KEY`      | Supabase key used by audit scripts.      | No       | `service-role-key`        | `scripts/audit/read_meta.mjs`     |
 | `HEALTH_URL`          | Base URL for mini app health checks.     | No       | `https://example.com`     | `scripts/miniapp-health-check.ts` |

@@ -51,10 +51,10 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     id: "dashboard",
-    label: "Dashboard",
+    label: "Bot Dashboard",
     icon: Shield,
-    path: "/vip-dashboard",
-    ariaLabel: "View VIP dashboard",
+    path: "/telegram",
+    ariaLabel: "View Telegram bot dashboard",
     showOnMobile: true,
   },
 ];

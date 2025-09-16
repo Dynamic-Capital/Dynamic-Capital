@@ -1,6 +1,6 @@
 # Repository Summary — Dynamic-Capital
 
-**Generated:** Mon, 15 Sep 2025 23:41:58 GMT
+**Generated:** Tue, 16 Sep 2025 12:29:24 GMT
 **Repo root:** Dynamic-Capital
 
 ## Directory Map (top-level)
@@ -12,13 +12,11 @@
 - dns/
 - docker/
 - docs/
-- external/
 - functions/
 - go-service/
 - node_modules/
 - queue/
 - scripts/
-- src/
 - supabase/
 - tests/
 - tools/
@@ -68,6 +66,9 @@
 | ops-health | supabase/functions/ops-health/index.ts | Yes |
 | payments-auto-review | supabase/functions/payments-auto-review/index.ts | Yes |
 | plans | supabase/functions/plans/index.ts | Yes |
+| private-pool-deposit | supabase/functions/private-pool-deposit/index.ts | Yes |
+| private-pool-settle-cycle | supabase/functions/private-pool-settle-cycle/index.ts | Yes |
+| private-pool-withdraw | supabase/functions/private-pool-withdraw/index.ts | Yes |
 | promo-redeem | supabase/functions/promo-redeem/index.ts | Yes |
 | promo-validate | supabase/functions/promo-validate/index.ts | Yes |
 | receipt | supabase/functions/receipt/index.ts | Yes |
@@ -114,7 +115,6 @@
 - A_SUPABASE_KEY
 - A_SUPABASE_URL
 - ADMIN_API_SECRET
-- ADMIN_USER_ID
 - ALLOWED_ORIGINS
 - ANALYZE
 - CDN_ACCESS_KEY
@@ -123,6 +123,10 @@
 - CDN_REGION
 - CDN_SECRET_KEY
 - CI
+- CODEX_AGENT
+- CODEX_AGENT_ID
+- CODEX_DISABLE_SHARED_CACHE
+- CODEX_PROFILE
 - DATABASE_URL
 - DEBUG
 - DENO_DEPLOYMENT_ID
@@ -161,6 +165,7 @@
 - SKIP_NEXT_BUILD
 - SSL_CERT_PATH
 - SSL_KEY_PATH
+- STATIC_EXPORT_PORT
 - SUPABASE_ACCESS_TOKEN
 - SUPABASE_ANON_KEY
 - SUPABASE_DB_PASSWORD

@@ -242,11 +242,11 @@ This integration enhances the development experience by combining the power of A
 
 **These areas are designed for UI improvements:**
 
-- **React Components**: All files in `src/components/`
-- **Pages & Routing**: `app/` directory (Next.js App Router)
+- **React Components**: All files in `apps/web/components/`
+- **Pages & Routing**: `apps/web/app/` directory (Next.js App Router)
 - **Styling & Theming**: `app/globals.css`, `tailwind.config.ts`
-- **UI Component Library**: `src/components/ui/`
-- **Frontend Hooks**: `src/hooks/` (UI state only)
+- **UI Component Library**: `apps/web/components/ui/`
+- **Frontend Hooks**: `apps/web/hooks/` (UI state only)
 - **Static Assets**: Icons, images, fonts
 
 ### Connectivity Map
