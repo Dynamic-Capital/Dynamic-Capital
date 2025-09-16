@@ -119,6 +119,7 @@ Modify the files to suit your needs before running the build.
 - Review the [Checklist Directory](docs/CHECKLISTS.md) to find the right project, launch, or integration checklist and see which ones have automation keys (`npm run checklists`).
 - Keep `docs/env.md` in sync when introducing deployment settings such as `FUNCTIONS_BASE_URL` or log drain credentials (`LOGTAIL_SOURCE_TOKEN`, `LOGTAIL_URL`). Pair updates with the summary script so both docs reference the same keys.
 - When rotating the Telegram webhook secret, run `deno run -A scripts/set-webhook.ts` (or `deno task set:webhook`) after deploying the updated function to re-register the webhook with BotFather.
+- Scaffold AlgoKit runtime functions with `python tools/algo-cli/algokit.py function strategy-name --lang both` to create matching Python and TypeScript stubs from the command line.
 
 ## Development Process Overview
 
