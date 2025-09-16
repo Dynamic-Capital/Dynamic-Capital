@@ -458,12 +458,17 @@ npm run codex:post-pull -- --verify            # run verification after syncing
 npm run codex:post-pull -- --no-build          # skip the Lovable build step
 npm run codex:dev -- --no-sync                 # keep existing env values
 npm run codex:post-pull -- --dry-run           # list steps without executing
+npm run codex:post-pull -- --reset-issues      # clear cached failure history & tips
 ```
 
 Available flags mirror the helper's usage (`--no-install`, `--no-sync`,
 `--no-env-check`, `--build-optional`, etc.). See
 `scripts/codex-workflow.js --help` for the full reference, and read
 `docs/codex_cli_workflow.md` for a deeper walkthrough of recommended flows.
+
+The helper remembers which steps failed recently so it can surface
+troubleshooting tips the next time you run it. If you want to start fresh,
+pass `--reset-issues` to clear that history before executing tasks.
 
 Note: for OCR parsing, send an actual Telegram image to the bot; OCR runs only
 on images.
