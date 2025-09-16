@@ -31,6 +31,7 @@
     "test": "node scripts/check-static-homepage.js && deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check",
     "verify": "bash scripts/verify/verify_all.sh",
     "sync-env": "deno run -A scripts/sync-env.ts",
+    "doctl:sync-site": "node scripts/doctl/sync-site-config.mjs",
     "checklists": "node scripts/run-checklists.js",
     "export": "npm run build",
     "output": "npm -w apps/web run copy-static",
@@ -42,7 +43,8 @@
     "chokidar-cli": "^3.0.0",
     "deno": "^2.5.0",
     "mime-types": "^2.1.35",
-    "supabase": "^2.40.7"
+    "supabase": "^2.40.7",
+    "yaml": "^2.8.1"
   },
   "dependencies": {
     "@vercel/otel": "^1.13.0",

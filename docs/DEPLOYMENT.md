@@ -48,6 +48,47 @@ Use that file if you need to rehydrate the fallback host while keeping
 Cloudflare in front of the service. Production traffic should target
 `dynamic-capital.lovable.app` once the Lovable domain is live.
 
+### Reconcile the site URL and zone records with `doctl`
+
+The repository ships with `scripts/doctl/sync-site-config.mjs` to patch the App
+Platform spec when `SITE_URL` (and related variables) drift or the primary
+domain is missing. The helper script also replays the exported zone file so the
+DigitalOcean-managed fallback domain (`dynamic-capital.ondigitalocean.app`)
+stays aligned with Cloudflare.
+
+Example usage:
+
+```bash
+# Update the app spec, aligning env vars, ingress, and primary domain.
+node scripts/doctl/sync-site-config.mjs \
+  --app-id $DIGITALOCEAN_APP_ID \
+  --site-url https://dynamic-capital.lovable.app \
+  --zone dynamic-capital.ondigitalocean.app \
+  --show-spec
+
+# Apply the spec changes and import the DNS zone in one go.
+node scripts/doctl/sync-site-config.mjs \
+  --app-id $DIGITALOCEAN_APP_ID \
+  --site-url https://dynamic-capital.lovable.app \
+  --zone dynamic-capital.ondigitalocean.app \
+  --apply \
+  --apply-zone
+```
+
+Flags:
+
+- `--app-id` – App Platform UUID (`doctl apps list`).
+- `--site-url` – Canonical host for the deployment. The script updates
+  `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and
+  `MINIAPP_ORIGIN` globally and on the `dynamic-capital` service.
+- `--zone` – DNS zone to import. Defaults to the site URL host.
+- `--zone-file` – Override the zone file path (defaults to
+  `dns/<zone>.zone`).
+- `--apply` / `--apply-zone` – Push changes via `doctl` instead of running a
+  dry run.
+
+Use `npm run doctl:sync-site -- --help` to see all available options.
+
 ### CDN configuration for DigitalOcean Spaces
 
 Static assets are uploaded to DigitalOcean Spaces by `scripts/upload-assets.js`.
