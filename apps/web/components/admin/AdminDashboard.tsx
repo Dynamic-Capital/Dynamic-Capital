@@ -1,24 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Shield, 
-  Users, 
-  CreditCard, 
-  Settings, 
-  BarChart3, 
-  UserCheck, 
-  MessageSquare,
-  Database,
+import {
+  Shield,
+  Users,
   Activity,
   DollarSign,
-  TrendingUp,
   Clock,
   CheckCircle,
+  CheckCircle2,
   XCircle,
   Loader2
 } from "lucide-react";
@@ -31,6 +23,7 @@ import { AdminBans } from "./AdminBans";
 import { BroadcastManager } from "./BroadcastManager";
 import { BotDiagnostics } from "./BotDiagnostics";
 import { callEdgeFunction } from "@/config/supabase";
+import { OnceButton, OnceContainer } from "@/components/once-ui";
 
 interface AdminStats {
   total_users: number;
@@ -233,196 +226,274 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin" />
-          <span className="ml-2">Loading admin dashboard...</span>
-        </CardContent>
-      </Card>
+      <OnceContainer
+        variant="fade"
+        className="flex min-h-[200px] items-center justify-center rounded-3xl border border-border/50 bg-card/60 px-6 py-12 text-sm font-medium text-muted-foreground shadow-lg"
+      >
+        <Loader2 className="mr-3 h-6 w-6 animate-spin text-primary" />
+        Loading admin dashboard...
+      </OnceContainer>
     );
   }
 
   if (!isAdmin) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-destructive" />
-            Access Denied
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-4">
-            You don't have admin privileges to access this dashboard.
-          </p>
-        </CardContent>
-      </Card>
+      <OnceContainer
+        variant="slideUp"
+        className="rounded-3xl border border-border/60 bg-card/70 p-8 text-center shadow-lg"
+      >
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+          <Shield className="h-8 w-8" />
+        </div>
+        <h2 className="mt-6 text-2xl font-semibold text-foreground">Access denied</h2>
+        <p className="mt-3 text-sm text-muted-foreground">
+          You don't have admin privileges to access this dashboard. Contact the Dynamic Capital team if you believe this is an error.
+        </p>
+      </OnceContainer>
     );
   }
 
+  const adminName = telegramUser?.first_name || "Admin";
+  const formattedLastUpdated = stats?.last_updated
+    ? new Date(stats.last_updated).toLocaleString()
+    : "Awaiting sync";
+  const overviewItems = stats
+    ? [
+        {
+          label: "Total users",
+          value: stats.total_users.toLocaleString(),
+          hint: `${stats.vip_users.toLocaleString()} VIP members`,
+          icon: Users,
+          accent: "text-primary",
+        },
+        {
+          label: "Revenue",
+          value: new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 0,
+          }).format(stats.total_revenue ?? 0),
+          hint: `${stats.completed_payments.toLocaleString()} payments settled`,
+          icon: DollarSign,
+          accent: "text-success",
+        },
+        {
+          label: "Pending reviews",
+          value: stats.pending_payments.toLocaleString(),
+          hint: "Awaiting manual decision",
+          icon: Clock,
+          accent: "text-warning",
+        },
+        {
+          label: "Daily activity",
+          value: stats.daily_interactions.toLocaleString(),
+          hint: `${stats.daily_sessions.toLocaleString()} sessions today`,
+          icon: Activity,
+          accent: "text-info",
+        },
+      ]
+    : [];
+  const pendingCount = pendingPayments.length;
+
   return (
     <AdminGate>
-      <div className="space-y-6 animate-in">
-      <Card className="glass-card border-primary/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-heading animate-glow">
-            <Shield className="icon-base text-primary animate-float" />
-            Admin Dashboard
-          </CardTitle>
-          <p className="text-body-sm text-muted-foreground">
-            Welcome back, {telegramUser?.first_name || 'Admin'}
-          </p>
-        </CardHeader>
-      </Card>
-
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6 glass-card">
-          <TabsTrigger value="overview" className="glass-tab">Overview</TabsTrigger>
-          <TabsTrigger value="payments" className="glass-tab">Payments</TabsTrigger>
-          <TabsTrigger value="logs" className="glass-tab">Logs</TabsTrigger>
-          <TabsTrigger value="bans" className="glass-tab">Bans</TabsTrigger>
-          <TabsTrigger value="broadcast" className="glass-tab">Broadcast</TabsTrigger>
-          <TabsTrigger value="bot" className="glass-tab">Bot</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4 animate-slide-up">
-          {stats && (
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="glass-card ui-card-interactive animate-bounce-in">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Users className="icon-sm text-primary animate-pulse-glow" />
-                    Total Users
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-primary">{stats.total_users}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.vip_users} VIP users
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card ui-card-interactive animate-bounce-in" style={{animationDelay: '0.1s'}}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <DollarSign className="icon-sm text-green-500 animate-pulse-glow" />
-                    Revenue
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-500">${stats.total_revenue}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.completed_payments} payments
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card ui-card-interactive animate-bounce-in" style={{animationDelay: '0.2s'}}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Clock className="icon-sm text-yellow-500 animate-pulse-glow" />
-                    Pending
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-yellow-500">{stats.pending_payments}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Awaiting review
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-card ui-card-interactive animate-bounce-in" style={{animationDelay: '0.3s'}}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <Activity className="icon-sm text-blue-500 animate-pulse-glow" />
-                    Daily Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-500">{stats.daily_interactions}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.daily_sessions} sessions
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="payments" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
-                Pending Payments ({pendingPayments.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {pendingPayments.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">
-                  No pending payments
+      <section className="relative overflow-hidden rounded-[32px] border border-border/40 bg-gradient-to-br from-background via-card/40 to-background p-[1px] shadow-xl">
+        <div className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from-primary/20 via-transparent to-dc-accent/20 opacity-40" />
+        <div className="relative rounded-[32px] bg-background/95 p-6 sm:p-10">
+          <OnceContainer variant="stack" className="space-y-10">
+            <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-2 text-left">
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  <Shield className="h-4 w-4 text-primary" />
+                  Once UI admin cockpit
+                </span>
+                <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Dynamic Capital operations</h1>
+                <p className="text-sm text-muted-foreground">
+                  Welcome back, {adminName}. Review deposits, broadcast updates, and inspect bot health without leaving the Once UI workspace.
                 </p>
-              ) : (
-                <div className="space-y-3">
-                  {pendingPayments.map((payment) => (
-                    <div
-                      key={payment.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
-                    >
-                      <div className="space-y-1">
-                        <div className="font-medium">
-                          ${payment.amount} {payment.currency}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          User: {payment.telegram_user_id}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(payment.created_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handlePaymentAction(payment.id, 'approve')}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handlePaymentAction(payment.id, 'reject')}
-                        >
-                          <XCircle className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+              </div>
+              <div className="flex flex-col items-start gap-2 sm:items-end">
+                <Badge variant="outline" className="border-border/60 bg-background/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Last sync {formattedLastUpdated}
+                </Badge>
+                <Badge className="bg-primary/15 text-primary">
+                  {pendingCount} pending reviews
+                </Badge>
+              </div>
+            </header>
+
+            <Tabs defaultValue="overview" className="space-y-6">
+              <TabsList className="grid grid-cols-2 gap-2 rounded-2xl border border-border/40 bg-card/60 p-2 md:grid-cols-6">
+                <TabsTrigger
+                  value="overview"
+                  className="rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="payments"
+                  className="rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Payments
+                </TabsTrigger>
+                <TabsTrigger
+                  value="logs"
+                  className="rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Logs
+                </TabsTrigger>
+                <TabsTrigger
+                  value="bans"
+                  className="rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Bans
+                </TabsTrigger>
+                <TabsTrigger
+                  value="broadcast"
+                  className="rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Broadcast
+                </TabsTrigger>
+                <TabsTrigger
+                  value="bot"
+                  className="rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Bot
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent
+                value="overview"
+                className="space-y-6 rounded-3xl border border-border/40 bg-card/70 p-6 shadow-inner"
+              >
+                <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                  <p>Monitor realtime metrics across the Dynamic Capital stack with Once UI automation.</p>
+                  <Badge variant="outline" className="border-border/60 bg-background/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Synced {formattedLastUpdated}
+                  </Badge>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {overviewItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <div
+                        key={item.label}
+                        className="flex flex-col gap-3 rounded-2xl border border-border/40 bg-background/85 p-5 shadow-sm"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                            <Icon className={`h-5 w-5 ${item.accent}`} aria-hidden="true" />
+                          </div>
+                          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                            {item.label}
+                          </span>
+                        </div>
+                        <div className={`text-2xl font-semibold ${item.accent}`}>{item.value}</div>
+                        <p className="text-xs text-muted-foreground">{item.hint}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </TabsContent>
 
-        <TabsContent value="logs" className="space-y-4">
-          <AdminLogs />
-        </TabsContent>
+              <TabsContent
+                value="payments"
+                className="space-y-6 rounded-3xl border border-border/40 bg-card/70 p-6 shadow-sm"
+              >
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground">Pending payments</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Approve or reject submissions in-line. All actions are logged for compliance.
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary">
+                    {pendingCount} awaiting review
+                  </Badge>
+                </div>
 
-        <TabsContent value="bans" className="space-y-4">
-          <AdminBans />
-        </TabsContent>
+                {pendingCount === 0 ? (
+                  <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-border/40 bg-background/85 py-12 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-8 w-8 text-success" />
+                    All caught up! New submissions will appear here instantly.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingPayments.map((payment) => (
+                      <div
+                        key={payment.id}
+                        className="flex flex-col gap-4 rounded-3xl border border-border/40 bg-background/85 p-5 shadow-sm md:flex-row md:items-center md:justify-between"
+                      >
+                        <div className="space-y-2">
+                          <p className="text-lg font-semibold text-foreground">
+                            ${payment.amount} {payment.currency}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
+                              User {payment.telegram_user_id}
+                            </span>
+                            <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
+                              {new Date(payment.created_at).toLocaleString()}
+                            </span>
+                            <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
+                              Status: {payment.status}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <OnceButton
+                            size="small"
+                            onClick={() => handlePaymentAction(payment.id, "approve")}
+                            className="bg-success text-success-foreground hover:bg-success/90"
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                          </OnceButton>
+                          <OnceButton
+                            size="small"
+                            variant="outline"
+                            onClick={() => handlePaymentAction(payment.id, "reject")}
+                            className="border-destructive/60 text-destructive hover:bg-destructive/10"
+                          >
+                            <XCircle className="mr-2 h-4 w-4" /> Reject
+                          </OnceButton>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
 
-        <TabsContent value="broadcast" className="space-y-4">
-          <BroadcastManager />
-        </TabsContent>
+              <TabsContent
+                value="logs"
+                className="rounded-3xl border border-border/40 bg-card/70 p-6 shadow-sm"
+              >
+                <AdminLogs />
+              </TabsContent>
 
-        <TabsContent value="bot" className="space-y-4">
-          <BotDiagnostics />
-        </TabsContent>
-        </Tabs>
-      </div>
+              <TabsContent
+                value="bans"
+                className="rounded-3xl border border-border/40 bg-card/70 p-6 shadow-sm"
+              >
+                <AdminBans />
+              </TabsContent>
+
+              <TabsContent
+                value="broadcast"
+                className="rounded-3xl border border-border/40 bg-card/70 p-6 shadow-sm"
+              >
+                <BroadcastManager />
+              </TabsContent>
+
+              <TabsContent
+                value="bot"
+                className="rounded-3xl border border-border/40 bg-card/70 p-6 shadow-sm"
+              >
+                <BotDiagnostics />
+              </TabsContent>
+            </Tabs>
+          </OnceContainer>
+        </div>
+      </section>
     </AdminGate>
   );
 };

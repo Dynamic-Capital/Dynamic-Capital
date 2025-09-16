@@ -1,12 +1,5 @@
-import HeroSection from '@/components/landing/HeroSection';
-import FeatureGrid from '@/components/landing/FeatureGrid';
-import VipPriceSwitcher from '@/components/landing/VipPriceSwitcher';
-import EnhancedStatsSection from '@/components/landing/EnhancedStatsSection';
-import { LivePlansSection } from '@/components/shared/LivePlansSection';
-import TestimonialsSection from '@/components/landing/TestimonialsSection';
-import IntegrationSection from '@/components/landing/IntegrationSection';
-import CTASection from '@/components/landing/CTASection';
 import { ChatAssistantWidget } from '@/components/shared/ChatAssistantWidget';
+import { OnceLandingPage } from '@/components/once-ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,11 +16,6 @@ export default function HomePage() {
 
   const handleOpenTelegram = () => {
     window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
-  };
-
-  const handleViewAccount = () => {
-    // Navigate to account page when implemented
-    console.log('Navigate to account page');
   };
 
   const handleContactSupport = () => {
@@ -48,35 +36,15 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-card/5 to-background">
-      <HeroSection onJoinVIP={handleJoinVIP} onLearnMore={handleLearnMore} />
-
-      <VipPriceSwitcher />
-
-      <div id="features">
-        <FeatureGrid />
-      </div>
-
-      <EnhancedStatsSection />
-
-      <LivePlansSection
-        showPromo
+    <div className="min-h-screen space-y-16 bg-gradient-to-br from-background via-card/10 to-background pb-24">
+      <OnceLandingPage
+        onJoinVIP={handleJoinVIP}
+        onLearnMore={handleLearnMore}
+        onOpenTelegram={handleOpenTelegram}
         onPlanSelect={handleSelectPlan}
         onBankPayment={handleBankPayment}
         onCryptoPayment={handleCryptoPayment}
-      />
-
-      <TestimonialsSection />
-
-      <IntegrationSection
-        onOpenTelegram={handleOpenTelegram}
-        onViewAccount={handleViewAccount}
         onContactSupport={handleContactSupport}
-      />
-
-      <CTASection
-        onJoinNow={handleJoinVIP}
-        onOpenTelegram={handleOpenTelegram}
       />
 
       <ChatAssistantWidget />
