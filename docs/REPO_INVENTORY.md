@@ -30,7 +30,9 @@ _Last updated: 2025-09-15 (UTC)._
 ## 4. Supporting infrastructure & configuration
 
 - **`docker/`** – Container assets including app and Go service Dockerfiles, compose file, Nginx config, and health check script for running the stack in controlled environments.【b095f5†L1-L2】
-- **`dns/`** – DNS zone export (`dynamic-capital.ondigitalocean.app.zone`) used to reproduce external records.【a93f31†L1-L2】
+- **`dns/`** – DNS zone export (`dynamic-capital.ondigitalocean.app.zone`) and
+  DigitalOcean automation config (`dynamic-capital.lovable.app.json`) used to
+  reproduce external records.【a93f31†L1-L2】
 - **`external/dynamic_codex/`** – Separate Lovable Codex project (Vite app, Supabase integration, telemetry README) maintained alongside the main bot for experiments and trading automation tie-ins.【c79fa4†L1-L7】【b8f4df†L1-L56】
 - **`lovable-build.js` / `lovable-dev.js`** – Helper scripts that bootstrap environment variables and orchestrate combined Next.js + miniapp builds when running on Lovable’s deployment platform.【e53642†L1-L36】
 

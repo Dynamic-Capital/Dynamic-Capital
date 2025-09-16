@@ -13,6 +13,10 @@ This project relies on a Next.js service and Supabase Edge Functions. Use the fo
   [`dns/dynamic-capital.ondigitalocean.app.zone`](../dns/dynamic-capital.ondigitalocean.app.zone)
   for reference so its NS and A records (162.159.140.98 and 172.66.0.96) can be
   restored if you ever need the fallback host.
+- Run `deno run -A scripts/configure-digitalocean-dns.ts --dry-run` to inspect the
+  planned DNS state for `dynamic-capital.lovable.app`. Remove `--dry-run` once the
+  plan looks correct to apply changes through `doctl`. The script reads the desired
+  records from [`dns/dynamic-capital.lovable.app.json`](../dns/dynamic-capital.lovable.app.json).
 
 ## Environment variables
 - Copy `.env.example` to `.env.local` and fill in credentials.

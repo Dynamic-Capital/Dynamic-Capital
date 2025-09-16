@@ -46,7 +46,17 @@ domain. Its exported zone file lives in
 and captures the required NS and A records (162.159.140.98 and 172.66.0.96).
 Use that file if you need to rehydrate the fallback host while keeping
 Cloudflare in front of the service. Production traffic should target
-`dynamic-capital.lovable.app` once the Lovable domain is live.
+`dynamic-capital.lovable.app` once the Lovable domain is live. The helper
+`configure-digitalocean-dns.ts` script keeps the Lovable domain aligned with the
+expected records:
+
+```bash
+# Preview the proposed DNS mutations
+deno run -A scripts/configure-digitalocean-dns.ts --dry-run
+
+# Apply the plan via doctl (requires an authenticated doctl session)
+deno run -A scripts/configure-digitalocean-dns.ts
+```
 
 ### CDN configuration for DigitalOcean Spaces
 
