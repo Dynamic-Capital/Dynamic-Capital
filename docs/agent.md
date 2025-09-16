@@ -202,6 +202,7 @@ The Dynamic Capital project is now integrated with **Lovable Codex** for enhance
 - Request specific debugging information via chat
 - Ask for code explanations and optimization suggestions
 - Request new feature implementations with detailed specifications
+- Scaffold AlgoKit runtime functions via `python tools/algo-cli/algokit.py function <name> --lang both`
 
 ### Integration with GitHub
 - **Bidirectional Sync**: Changes in Codex automatically sync to GitHub
