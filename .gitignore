@@ -71,3 +71,4 @@ miniapp/
 # Miscellaneous
 *.local
 bun.lockb
+.codex-workflow-state.json

@@ -27,8 +27,14 @@ Common flags accepted by the helper:
 - `--build-optional` – treat build failures as warnings.
 - `--verify` – run `npm run verify` after the post-pull steps.
 - `--dry-run` – preview the steps without executing commands.
+- `--reset-issues` – clear the cached failure history before running tasks again.
 
 Run `scripts/codex-workflow.js --help` to see the full list of options.
+
+The helper keeps a small JSON file (`.codex-workflow-state.json`, ignored by
+Git) that tracks which steps failed recently. When a task fails multiple times,
+the CLI surfaces targeted troubleshooting tips before the next run. Use
+`--reset-issues` if you want to discard that history and silence the reminders.
 
 ## Suggested workflow
 
