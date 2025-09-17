@@ -1,11 +1,12 @@
 # Repository Summary — Dynamic-Capital
 
-**Generated:** Tue, 16 Sep 2025 12:29:24 GMT
+**Generated:** Wed, 17 Sep 2025 08:28:10 GMT
 **Repo root:** Dynamic-Capital
 
 ## Directory Map (top-level)
 
 - _static/
+- algorithms/
 - apps/
 - broadcast/
 - db/
@@ -14,9 +15,11 @@
 - docs/
 - functions/
 - go-service/
+- mql5/
 - node_modules/
 - queue/
 - scripts/
+- src/
 - supabase/
 - tests/
 - tools/
@@ -159,6 +162,7 @@
 - NODE_EXTRA_CA_CERTS
 - PORT
 - PREVIEW_URL
+- QUEUE_PENDING_THRESHOLD
 - RETENTION_DAYS
 - SENTRY_DSN
 - SITE_URL
@@ -179,5 +183,16 @@
 - TELEGRAM_ID
 - TELEGRAM_WEBHOOK_SECRET
 - TELEGRAM_WEBHOOK_URL
+
+## Automation Notes
+
+- Run `npm run docs:summary` before merging to refresh this inventory.
+- When marketing assets change, rerun the landing build parity checklist below.
+
+### Landing Build Parity Checklist
+
+- [ ] Run `npm run build:landing` to regenerate `_static/` assets.
+- [ ] Compare `_static/` with `apps/web/app/(marketing)` and commit any differences.
+- [ ] Record the parity outcome in release notes or the PR description.
 
 _Generated with `scripts/generate-repo-summary.ts`._

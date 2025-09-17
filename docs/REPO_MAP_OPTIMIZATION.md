@@ -115,11 +115,11 @@ Staying future proof means keeping an explicit contract for each App Router entr
 | Infrastructure & DevEx | `docker/`, `lovable-*.js`, `tools/`, `scripts/*` | Platform Engineering | Backend Engineering | Own build pipelines, container images, Lovable integration, and developer tooling upgrades. |
 
 ## 3. Optimization Opportunities & Tracker
-- [ ] **Document landing build parity checks.** Extend `docs/REPO_SUMMARY.md` automation notes with a checklist to rerun `npm run build:landing` whenever marketing assets change so `_static/` and `apps/web/app/(marketing)` stay synchronized.
-- [ ] **Group Supabase health functions.** Extract shared uptime logic (`system-health`, `web-app-health`, `miniapp-health`) into a `_shared/health.ts` helper to reduce duplicated fetch/report code and standardize observability fields.
-- [ ] **Automate bot resilience audits.** Add a scheduled script under `scripts/ops/` that pings `telegram-webhook-keeper`, validates queue depth, and posts results to the Ops console so regressions surface before traders notice delays.
-- [ ] **Harden documentation drift detection.** Wire `npm run docs:summary` into CI alongside a diff check on `docs/REPO_SUMMARY.md` and `docs/REPO_MAP_OPTIMIZATION.md` to ensure repository maps stay current with structural changes.
-- [ ] **Modularize dashboard widgets.** Break `apps/web/app/telegram` monolithic sections into feature-specific components (e.g., `AnalyticsPanel.tsx`, `PromoManager.tsx`) co-located under `components/dashboard/` to unlock lazy loading and improve bundle clarity.
+ - [x] **Document landing build parity checks.** Added an automation notes section and parity checklist to `docs/REPO_SUMMARY.md` so marketing updates always trigger `npm run build:landing` and `_static/` parity reviews.【F:scripts/generate-repo-summary.ts†L138-L152】
+ - [x] **Group Supabase health functions.** Introduced `_shared/health.ts` and refactored `system-health`, `web-app-health`, and `miniapp-health` to reuse standardized measurement utilities and response shapes.【F:supabase/functions/_shared/health.ts†L1-L143】【F:supabase/functions/system-health/index.ts†L1-L158】【F:supabase/functions/web-app-health/index.ts†L1-L118】【F:supabase/functions/miniapp-health/index.ts†L1-L172】
+ - [x] **Automate bot resilience audits.** Added `scripts/ops/bot-resilience-audit.ts` to ping `telegram-webhook-keeper`, calculate queue depth, and log the summary to `admin_logs` for the Ops console.【F:scripts/ops/bot-resilience-audit.ts†L1-L117】
+ - [x] **Harden documentation drift detection.** CI now runs `npm run docs:summary` and fails when `docs/REPO_SUMMARY.md` or `docs/REPO_MAP_OPTIMIZATION.md` drift from the committed state.【F:.github/workflows/ci.yml†L1-L63】
+ - [x] **Modularize dashboard widgets.** Split the Telegram dashboard into dedicated view components under `components/telegram/dashboard` so bundles are clearer and views can be lazy-loaded.【F:apps/web/components/telegram/BotDashboard.tsx†L1-L109】【F:apps/web/components/telegram/dashboard/WelcomeView.tsx†L1-L210】【F:apps/web/components/telegram/dashboard/PromosView.tsx†L1-L165】
 
 ### 3.1 Plan Execution Checklist
 
@@ -129,14 +129,15 @@ Staying future proof means keeping an explicit contract for each App Router entr
 - [x] Landing page map detailed with CTA flows and section-by-section notes (Section&nbsp;1.6). 【F:docs/REPO_MAP_OPTIMIZATION.md†L71-L95】
 - [x] App map outlining the Telegram console architecture and major components (Section&nbsp;1.7). 【F:docs/REPO_MAP_OPTIMIZATION.md†L97-L139】
 - [x] App Router route inventory covering UI and server handlers with scalability guardrails (Section&nbsp;1.8). 【F:docs/REPO_MAP_OPTIMIZATION.md†L141-L205】
+- [x] Landing build parity checklist captured in the generated repository summary so `_static/` stays in sync with marketing routes. 【F:scripts/generate-repo-summary.ts†L138-L152】
+- [x] Supabase health routes share `_shared/health.ts` helpers for consistent telemetry and responses. 【F:supabase/functions/_shared/health.ts†L1-L143】【F:supabase/functions/system-health/index.ts†L1-L158】【F:supabase/functions/web-app-health/index.ts†L1-L118】【F:supabase/functions/miniapp-health/index.ts†L1-L172】
+- [x] Bot resilience audit script added under `scripts/ops/` to post keeper and queue status into `admin_logs`. 【F:scripts/ops/bot-resilience-audit.ts†L1-L117】
+- [x] CI runs `npm run docs:summary` and fails on drift in repository map documentation. 【F:.github/workflows/ci.yml†L1-L63】
+- [x] Telegram dashboard refactored into modular view components for analytics, promos, support, and welcome flows. 【F:apps/web/components/telegram/BotDashboard.tsx†L1-L109】【F:apps/web/components/telegram/dashboard/WelcomeView.tsx†L1-L210】【F:apps/web/components/telegram/dashboard/PromosView.tsx†L1-L165】
 
 **Incomplete / Pending**
 
-- [ ] Landing build parity checklist still missing from `docs/REPO_SUMMARY.md`, so rerun guidance for `npm run build:landing` remains undocumented. 【F:docs/REPO_SUMMARY.md†L1-L80】
-- [ ] Supabase health functions continue to implement checks inline (for example `system-health/index.ts`), indicating the shared `_shared/health.ts` helper has not been extracted yet. 【F:supabase/functions/system-health/index.ts†L1-L72】
-- [ ] Ops automation lacks the dedicated bot resilience audit script; `scripts/ops/` currently contains only smoke and sync utilities. 【052335†L1-L3】
-- [ ] CI search returns no references to `docs:summary`, so automated documentation drift enforcement is still outstanding. 【87c828†L1-L2】
-- [ ] Telegram dashboard components remain centralized within `BotDashboard.tsx`, showing modularization work is still pending. 【F:apps/web/components/telegram/BotDashboard.tsx†L1-L120】
+_None — tracker items in this section have been completed and moved above._
 
 ## 4. Usage Playbooks & Checklists
 ### 4.1 Onboarding Checklist
