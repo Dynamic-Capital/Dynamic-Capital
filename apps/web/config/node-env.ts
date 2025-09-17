@@ -39,16 +39,27 @@ function readEnv(name: string): string | undefined {
   return undefined;
 }
 
+const productionAliases = new Set(['production', 'prod', 'preview']);
+const developmentAliases = new Set(['development', 'dev', 'local']);
+const testAliases = new Set(['test', 'ci']);
+
+function interpretEnv(value: string | undefined): NodeEnv | undefined {
+  const normalized = sanitize(value)?.toLowerCase();
+  if (!normalized) return undefined;
+  if (productionAliases.has(normalized)) return 'production';
+  if (developmentAliases.has(normalized)) return 'development';
+  if (testAliases.has(normalized)) return 'test';
+  return undefined;
+}
+
 function resolveNodeEnv(): NodeEnv {
-  const raw = sanitize(readEnv('NODE_ENV'))?.toLowerCase();
-  switch (raw) {
-    case 'production':
-      return 'production';
-    case 'test':
-      return 'test';
-    default:
-      return 'development';
-  }
+  const explicit = interpretEnv(readEnv('NODE_ENV'));
+  if (explicit) return explicit;
+
+  const vercel = interpretEnv(readEnv('VERCEL_ENV'));
+  if (vercel) return vercel;
+
+  return 'development';
 }
 
 export const NODE_ENV: NodeEnv = resolveNodeEnv();
