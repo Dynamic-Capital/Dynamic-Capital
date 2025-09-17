@@ -1,9 +1,17 @@
 import test from 'node:test';
 import { equal as assertEquals } from 'node:assert/strict';
 import { freshImport } from './utils/freshImport.ts';
+import process from "node:process";
 
-const supaState: any = { tables: {} };
-(globalThis as any).__SUPA_MOCK__ = supaState;
+interface SupaMockState {
+  tables: Record<string, unknown>;
+}
+
+type GlobalWithSupaMock = typeof globalThis & { __SUPA_MOCK__?: SupaMockState };
+
+const supaState: SupaMockState = { tables: {} };
+const globalWithSupaMock = globalThis as GlobalWithSupaMock;
+globalWithSupaMock.__SUPA_MOCK__ = supaState;
 
 function setEnv() {
   process.env.TELEGRAM_BOT_TOKEN = 'testtoken';
@@ -29,14 +37,18 @@ test('sendMiniAppOrBotOptions uses nav:plans callback', async () => {
   };
   const calls: Array<{ body: string }> = [];
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (input: Request | string | URL, init?: RequestInit) => {
+  globalThis.fetch = ((input: Request | string | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.startsWith("https://api.telegram.org")) {
       calls.push({ body: init?.body ? String(init.body) : "" });
-      return new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }), { status: 200 });
+      const response = new Response(
+        JSON.stringify({ ok: true, result: { message_id: 1 } }),
+        { status: 200 },
+      );
+      return Promise.resolve(response);
     }
-    return new Response("{}", { status: 200 });
-  };
+    return Promise.resolve(new Response("{}", { status: 200 }));
+  }) as typeof globalThis.fetch;
   try {
     const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
     await mod.sendMiniAppOrBotOptions(1);

@@ -2,8 +2,6 @@
 // Ensures Telegram chat menu button always points to the latest mini app version
 // Usage: deno run -A scripts/update-telegram-miniapp.ts
 
-import { functionUrl } from "../supabase/functions/_shared/edge.ts";
-
 const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const PROJECT_REF = Deno.env.get("SUPABASE_PROJECT_REF") || Deno.env.get("SUPABASE_PROJECT_ID");
 
@@ -17,13 +15,28 @@ if (!PROJECT_REF) {
   Deno.exit(1);
 }
 
-async function callTelegramAPI(method: string, body?: any) {
+type TelegramRequestBody = Record<string, unknown>;
+
+interface TelegramAPIResponse {
+  ok: boolean;
+  description?: string;
+  result?: {
+    web_app?: { url?: string };
+    username?: string;
+    first_name?: string;
+  };
+}
+
+async function callTelegramAPI(
+  method: string,
+  body?: TelegramRequestBody,
+): Promise<TelegramAPIResponse> {
   const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${method}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
-  return await response.json();
+  return await response.json() as TelegramAPIResponse;
 }
 
 try {
@@ -83,6 +96,7 @@ try {
   }
 
 } catch (error) {
-  console.error("❌ Error updating Telegram Mini App URL:", error.message);
+  const message = error instanceof Error ? error.message : String(error);
+  console.error("❌ Error updating Telegram Mini App URL:", message);
   Deno.exit(1);
 }

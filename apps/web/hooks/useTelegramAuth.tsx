@@ -29,6 +29,32 @@ interface TelegramAuthContextType {
   getAdminAuth: () => { initData?: string; token?: string } | null;
 }
 
+interface TelegramButtonControl {
+  show?: () => void;
+  hide?: () => void;
+  onClick?: (handler: () => void) => void;
+  offClick?: (handler: () => void) => void;
+  [key: string]: unknown;
+}
+
+interface TelegramInitDataUnsafe {
+  user?: TelegramUser;
+  [key: string]: unknown;
+}
+
+interface TelegramWebApp {
+  initData: string;
+  initDataUnsafe: TelegramInitDataUnsafe;
+  ready: () => void;
+  expand: () => void;
+  colorScheme: 'light' | 'dark';
+  onEvent?: (event: string, handler: () => void) => void;
+  offEvent?: (event: string, handler: () => void) => void;
+  MainButton: TelegramButtonControl;
+  BackButton: TelegramButtonControl;
+  [key: string]: unknown;
+}
+
 const TelegramAuthContext = createContext<TelegramAuthContextType | undefined>(undefined);
 
 export function TelegramAuthProvider({ children }: { children: React.ReactNode }) {
@@ -132,8 +158,8 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
   }, [verifyTelegramAuth, syncUser, checkAdminStatus, checkVipStatus]);
 
   useEffect(() => {
-    if (window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
+    if (globalThis.Telegram?.WebApp) {
+      const tg = globalThis.Telegram.WebApp;
       const telegramInitData = tg.initData;
       setInitData(telegramInitData);
 
@@ -203,18 +229,7 @@ export function useTelegramAuth() {
 declare global {
   interface Window {
     Telegram?: {
-      WebApp: {
-        initData: string;
-        initDataUnsafe: {
-          user?: TelegramUser;
-          [key: string]: any;
-        };
-        ready: () => void;
-        expand: () => void;
-        MainButton: any;
-        BackButton: any;
-        [key: string]: any;
-      };
+      WebApp: TelegramWebApp;
     };
   }
 }

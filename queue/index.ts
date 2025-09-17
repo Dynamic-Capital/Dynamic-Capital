@@ -33,8 +33,16 @@ const backoffCapMs = 30000;
 let timer: ReturnType<typeof setTimeout> | null = null;
 
 // Optional persistence via Supabase if available
-let supabaseClient: unknown = null;
-export function setSupabase(client: unknown) {
+interface SupabaseTableClient {
+  upsert(values: Record<string, unknown>): Promise<unknown>;
+}
+
+interface SupabaseClientLike {
+  from(table: string): SupabaseTableClient;
+}
+
+let supabaseClient: SupabaseClientLike | null = null;
+export function setSupabase(client: SupabaseClientLike | null) {
   supabaseClient = client;
 }
 
@@ -49,7 +57,7 @@ function sortQueue() {
 async function persist(job: JobRecord) {
   if (!supabaseClient) return;
   try {
-    await (supabaseClient as any).from("jobs").upsert({
+    const record: Record<string, unknown> = {
       id: job.id,
       type: job.type,
       payload: job.payload,
@@ -57,7 +65,8 @@ async function persist(job: JobRecord) {
       attempts: job.attempts,
       next_run_at: new Date(job.nextRunAt).toISOString(),
       last_error: job.lastError ?? null,
-    });
+    };
+    await supabaseClient.from("jobs").upsert(record);
   } catch (_) {
     // ignore persistence errors
   }

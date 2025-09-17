@@ -6,9 +6,11 @@ import { callEdgeFunction, SUPABASE_CONFIG } from "@/config/supabase";
 
 type FunctionName = keyof typeof SUPABASE_CONFIG.FUNCTIONS;
 
+type JsonBody = Parameters<typeof JSON.stringify>[0];
+
 type CallOptions = {
   method?: string;
-  body?: any;
+  body?: JsonBody;
   headers?: Record<string, string>;
 };
 
@@ -16,7 +18,7 @@ export function useEdgeFunction() {
   const session = useSession();
 
   return useCallback(
-    async <T,>(name: FunctionName, options: CallOptions = {}) => {
+    <T,>(name: FunctionName, options: CallOptions = {}) => {
       const token = session?.access_token;
       return callEdgeFunction<T>(name, { ...options, token });
     },

@@ -57,11 +57,17 @@ export const buildFunctionUrl = (
 ): string =>
   `${SUPABASE_CONFIG.FUNCTIONS_URL}/${SUPABASE_CONFIG.FUNCTIONS[functionName]}`;
 
+type JsonBody = Parameters<typeof JSON.stringify>[0];
+
+interface EdgeFunctionErrorBody {
+  message?: unknown;
+}
+
 export const callEdgeFunction = async <T>(
   functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS,
   options: {
     method?: string;
-    body?: any;
+    body?: JsonBody;
     headers?: Record<string, string>;
     token?: string;
   } = {},
@@ -92,10 +98,18 @@ export const callEdgeFunction = async <T>(
   }
 
   if (!res.ok) {
+    let message = res.statusText;
+    if (data && typeof data === "object") {
+      const candidate = (data as EdgeFunctionErrorBody).message;
+      if (typeof candidate === "string" && candidate.length > 0) {
+        message = candidate;
+      }
+    }
+
     return {
       error: {
         status: res.status,
-        message: (data as any)?.message ?? res.statusText,
+        message,
       },
     };
   }
