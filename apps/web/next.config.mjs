@@ -25,21 +25,69 @@ const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "stub-anon-key";
 
-if (
-  process.env.NODE_ENV === "production" &&
-  !process.env.SITE_URL &&
-  !process.env.NEXT_PUBLIC_SITE_URL
-) {
-  throw new Error("SITE_URL environment variable is required in production");
+function coerceSiteUrl(raw) {
+  if (!raw) return undefined;
+  const trimmed = `${raw}`.trim();
+  if (!trimmed) return undefined;
+  try {
+    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    return new URL(candidate).origin;
+  } catch {
+    return undefined;
+  }
 }
 
-const SITE_URL =
-  process.env.SITE_URL ||
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  "http://localhost:3000";
+const siteUrlSources = [
+  ["SITE_URL", process.env.SITE_URL],
+  ["NEXT_PUBLIC_SITE_URL", process.env.NEXT_PUBLIC_SITE_URL],
+  ["URL", process.env.URL],
+  ["APP_URL", process.env.APP_URL],
+  ["PUBLIC_URL", process.env.PUBLIC_URL],
+  ["DEPLOY_URL", process.env.DEPLOY_URL],
+  ["DEPLOYMENT_URL", process.env.DEPLOYMENT_URL],
+  ["DIGITALOCEAN_APP_URL", process.env.DIGITALOCEAN_APP_URL],
+  [
+    "DIGITALOCEAN_APP_SITE_DOMAIN",
+    process.env.DIGITALOCEAN_APP_SITE_DOMAIN,
+  ],
+  [
+    "VERCEL_URL",
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : undefined,
+  ],
+];
+
+let SITE_URL = undefined;
+let siteUrlSource = undefined;
+for (const [source, value] of siteUrlSources) {
+  const normalized = coerceSiteUrl(value);
+  if (normalized) {
+    SITE_URL = normalized;
+    siteUrlSource = source;
+    break;
+  }
+}
+
+if (!SITE_URL) {
+  SITE_URL = "http://localhost:3000";
+  if (process.env.NODE_ENV === "production") {
+    console.warn(
+      "SITE_URL is not configured; defaulting to http://localhost:3000. Set SITE_URL or NEXT_PUBLIC_SITE_URL to your canonical domain.",
+    );
+  }
+} else if (
+  process.env.NODE_ENV === "production" &&
+  siteUrlSource &&
+  !["SITE_URL", "NEXT_PUBLIC_SITE_URL"].includes(siteUrlSource)
+) {
+  console.warn(
+    `SITE_URL not provided. Using ${siteUrlSource} to derive ${SITE_URL}. Set SITE_URL to avoid fallback behaviour.`,
+  );
+}
 
 const ALLOWED_ORIGINS =
-  process.env.ALLOWED_ORIGINS || "http://localhost:3000";
+  process.env.ALLOWED_ORIGINS || SITE_URL;
 
 const CANONICAL_HOST = new URL(SITE_URL).hostname;
 
