@@ -28,16 +28,16 @@ spec:
       value: "1"
       scope: RUN_AND_BUILD_TIME
     - key: SITE_URL
-      value: https://dynamic-capital.lovable.app
+      value: https://dynamic-capital.vercel.app
       scope: RUN_AND_BUILD_TIME
     - key: NEXT_PUBLIC_SITE_URL
-      value: https://dynamic-capital.lovable.app
+      value: https://dynamic-capital.vercel.app
       scope: RUN_AND_BUILD_TIME
     - key: ALLOWED_ORIGINS
-      value: https://dynamic-capital.lovable.app
+      value: "https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app,https://dynamic-capital.ondigitalocean.app"
       scope: RUN_AND_BUILD_TIME
     - key: MINIAPP_ORIGIN
-      value: https://dynamic-capital.lovable.app
+      value: https://dynamic-capital.vercel.app
       scope: RUN_AND_BUILD_TIME
     - key: NEXT_PUBLIC_SUPABASE_URL
       value: https://qeejuomcapbdlhnjqjcc.supabase.co
@@ -74,11 +74,11 @@ spec:
         http_path: /
       envs:
         - key: SITE_URL
-          value: https://dynamic-capital.lovable.app
+          value: https://dynamic-capital.vercel.app
           scope: RUN_AND_BUILD_TIME
         - key: NEXT_PUBLIC_SITE_URL
-          value: https://dynamic-capital.lovable.app
+          value: https://dynamic-capital.vercel.app
           scope: RUN_AND_BUILD_TIME
         - key: MINIAPP_ORIGIN
-          value: https://dynamic-capital.lovable.app
+          value: https://dynamic-capital.vercel.app
           scope: RUN_AND_BUILD_TIME

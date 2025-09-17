@@ -1,14 +1,16 @@
 project_id = "qeejuomcapbdlhnjqjcc"
 
 [global]
-  site_url = "https://dynamic-capital.lovable.app"
+  site_url = "https://dynamic-capital.vercel.app"
   additional_redirect_urls = [
+    "https://dynamic-capital.vercel.app",
     "https://dynamic-capital.lovable.app",
+    "https://dynamic-capital.ondigitalocean.app",
   ]
 
 [functions]
   [functions.env]
-    SITE_URL = "https://dynamic-capital.lovable.app"
-    NEXT_PUBLIC_SITE_URL = "https://dynamic-capital.lovable.app"
-    ALLOWED_ORIGINS = "https://dynamic-capital.lovable.app"
-    MINIAPP_ORIGIN = "https://dynamic-capital.lovable.app"
+    SITE_URL = "https://dynamic-capital.vercel.app"
+    NEXT_PUBLIC_SITE_URL = "https://dynamic-capital.vercel.app"
+    ALLOWED_ORIGINS = "https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app,https://dynamic-capital.ondigitalocean.app"
+    MINIAPP_ORIGIN = "https://dynamic-capital.vercel.app"

@@ -12,7 +12,12 @@ import {
   error as logError,
 } from './scripts/utils/friendly-logger.js';
 
-const PRODUCTION_ORIGIN = 'https://dynamic-capital.lovable.app';
+const PRODUCTION_ORIGIN = 'https://dynamic-capital.vercel.app';
+const PRODUCTION_ALLOWED_ORIGINS = [
+  'https://dynamic-capital.vercel.app',
+  'https://dynamic-capital.lovable.app',
+  'https://dynamic-capital.ondigitalocean.app',
+].join(',');
 const resolvedOrigin =
   process.env.LOVABLE_ORIGIN ||
   process.env.SITE_URL ||
@@ -29,18 +34,22 @@ const defaultedKeys = [];
 for (const key of [
   'SITE_URL',
   'NEXT_PUBLIC_SITE_URL',
-  'ALLOWED_ORIGINS',
   'MINIAPP_ORIGIN',
 ]) {
   if (!process.env[key]) {
     process.env[key] = resolvedOrigin;
-    defaultedKeys.push(key);
+    defaultedKeys.push(`${key} → ${resolvedOrigin}`);
   }
 }
 
+if (!process.env.ALLOWED_ORIGINS) {
+  process.env.ALLOWED_ORIGINS = PRODUCTION_ALLOWED_ORIGINS;
+  defaultedKeys.push(`ALLOWED_ORIGINS → ${PRODUCTION_ALLOWED_ORIGINS}`);
+}
+
 if (defaultedKeys.length > 0) {
-  warn('Origin variables were missing. Filling them with the resolved origin so previews stay happy.', {
-    details: defaultedKeys.map((key) => `${key} → ${resolvedOrigin}`),
+  warn('Origin variables were missing. Filling them with defaults so previews stay happy.', {
+    details: defaultedKeys,
   });
 } else {
   success('All origin-related environment variables were already set. Nice!');

@@ -8,14 +8,16 @@ This project relies on a Next.js service and Supabase Edge Functions. Use the fo
 - Set `DOMAIN` in your `.env` to the root zone (e.g. `example.com`) for helper scripts and Nginx templates.
 - Update `SITE_URL` and `NEXT_PUBLIC_SITE_URL` to the canonical site URL, and adjust `NEXT_PUBLIC_API_URL` if using an API subdomain.
 - `ALLOWED_ORIGINS` should list the site and API origins so browsers can call the endpoints.
-- `dynamic-capital.lovable.app` is the canonical production domain. The legacy
-  DigitalOcean default (`dynamic-capital.ondigitalocean.app`) remains exported in
+- `dynamic-capital.vercel.app` is the canonical production domain. Both
+  `dynamic-capital.lovable.app` and the legacy DigitalOcean default
+  (`dynamic-capital.ondigitalocean.app`) stay exported in
   [`dns/dynamic-capital.ondigitalocean.app.zone`](../dns/dynamic-capital.ondigitalocean.app.zone)
-  for reference so its NS and A records (162.159.140.98 and 172.66.0.96) can be
-  restored if you ever need the fallback host.
+  so every host can participate in load sharing while pointing at the same
+  Cloudflare anycast IPs (162.159.140.98 and 172.66.0.96).
 - Run `deno run -A scripts/configure-digitalocean-dns.ts --dry-run` to inspect the
   planned DNS state for `dynamic-capital.lovable.app`. Remove `--dry-run` once the
-  plan looks correct to apply changes through `doctl`. The script reads the desired
+  plan looks correct to apply changes through `doctl`. The script keeps the
+  Lovable zone aligned with the shared Cloudflare front door by replaying the
   records from [`dns/dynamic-capital.lovable.app.json`](../dns/dynamic-capital.lovable.app.json).
 
 ## Environment variables
@@ -37,10 +39,10 @@ location /api/ {
 Traffic routed through Cloudflare may arrive from public IPs such as `162.159.140.98` or `172.66.0.96`. Set your web app domain's A records to these IPs and let Cloudflare proxy requests to the service running on port `8080`.
 
 ## Origin alignment across platforms
-- The DigitalOcean App Platform spec pins the ingress authority to `dynamic-capital.lovable.app` so load balancers terminate TLS on the canonical host before forwarding traffic to port `8080`.
-- `supabase/config.toml` sets `site_url`, `additional_redirect_urls`, and the Supabase Functions env block to the same origin so Edge Functions and Telegram verification enforce the correct allowlist.
-- `vercel.json` declares the canonical origin as environment defaults and redirects any deployments back to `https://dynamic-capital.lovable.app` to avoid diverging hosts.
-- `lovable-build.js` and `lovable-dev.js` hydrate `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` before running Lovable workflows so previews and builds share the production origin when values are omitted.
+- The DigitalOcean App Platform spec pins the ingress authority to `dynamic-capital.lovable.app` so that host stays healthy for load sharing while the app itself publishes `https://dynamic-capital.vercel.app` links.
+- `supabase/config.toml` now sets `site_url`, `additional_redirect_urls`, and the Supabase Functions env block to the Vercel origin while allowlisting the Lovable and DigitalOcean hosts for cross-domain API calls.
+- `vercel.json` declares the Vercel domain as the default origin and exposes the full allow list without forcing a redirect, letting both production hosts serve traffic.
+- `lovable-build.js` and `lovable-dev.js` hydrate `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` before running Lovable workflows so previews and builds share the production origin when values are omitted, with `ALLOWED_ORIGINS` defaulting to the combined host list.
 
 ## Outbound connectivity
 Ensure the runtime can reach external services like Supabase over HTTPS (`*.supabase.co`). Adjust firewall or egress rules as needed.
