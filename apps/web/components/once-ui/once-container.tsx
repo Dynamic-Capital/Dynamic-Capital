@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/utils";
 import {
   onceMotionVariants,
-  type OnceRevealVariantKey,
+  type OnceMotionVariantKey,
 } from "@/lib/motion-variants";
 
 type MotionDivProps = React.ComponentPropsWithoutRef<typeof motion.div>;
@@ -15,7 +15,7 @@ export interface OnceContainerProps extends MotionDivProps {
   /**
    * Default animation preset triggered when the container enters the viewport.
    */
-  variant?: OnceRevealVariantKey | null;
+  variant?: OnceMotionVariantKey | null;
   /**
    * Disable the reveal animation while preserving the Once UI layout styles.
    */

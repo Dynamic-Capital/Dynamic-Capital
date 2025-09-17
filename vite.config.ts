@@ -40,7 +40,15 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'apps/web')
+      '@': path.resolve(__dirname, 'apps/web'),
+      '@once-ui-system/core/css': path.resolve(
+        __dirname,
+        'apps/web/node_modules/@once-ui-system/core/dist/css',
+      ),
+      '@once-ui-system/core': path.resolve(
+        __dirname,
+        'apps/web/node_modules/@once-ui-system/core',
+      ),
     }
   }
 }))
