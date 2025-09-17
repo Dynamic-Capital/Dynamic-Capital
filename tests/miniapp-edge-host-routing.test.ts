@@ -25,7 +25,7 @@ if (globalAny.Deno?.env?.set) {
   process.env.SUPABASE_ANON_KEY = 'anon';
 }
 
-const { default: handler } = await import(/* @vite-ignore */ '../supabase/functions/miniapp/index.ts');
+const { default: handler } = await import(/* webpackIgnore: true */ '../supabase/functions/miniapp/index.ts');
 
 function serve(
   handler: (req: Request) => Response | Promise<Response>,

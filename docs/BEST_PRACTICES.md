@@ -9,7 +9,7 @@ This document outlines a high-level plan for keeping the project organized and m
 - Favor small, single-responsibility handlers and add tests under `tests/` when adding new endpoints.
 
 ## 2. Build Outputs
-- Use the unified script `npm run build:all` to compile both the Next.js app and mini app functions.
+- Use `npm run build` for the Next.js app and `npm run build:miniapp` (or `node lovable-build.js`) to compile the Supabase Mini App when needed.
 - Ensure build artifacts (`.next`, `supabase/functions/*/dist`) are excluded from version control via `.gitignore`.
 - Document any build steps that require additional tooling inside `docs/` so new contributors can reproduce them.
 

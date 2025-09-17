@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
 Deno.env.set('ALLOWED_ORIGINS', 'https://allowed.com');
-const { corsHeaders } = await import(/* @vite-ignore */ '../../apps/web/utils/http.ts');
+const { corsHeaders } = await import(/* webpackIgnore: true */ '../../apps/web/utils/http.ts');
 
 Deno.test('allowed origin receives CORS header', () => {
   const req = new Request('http://localhost', { headers: { origin: 'https://allowed.com' } });

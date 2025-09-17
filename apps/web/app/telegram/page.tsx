@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     'Unified control center for Dynamic Capital. Monitor Telegram bot activity, configure webhooks, and access admin tooling from the Next.js app.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function TelegramDashboardPage() {
   return <BotDashboard />;
 }

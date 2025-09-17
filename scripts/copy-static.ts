@@ -48,11 +48,25 @@ async function waitForServer(url: string, retries = 50, delayMs = 200) {
   throw new Error(`Timed out waiting for Next.js server at ${url}`);
 }
 
-async function fetchHtml(url: string) {
+async function fetchHtml(url: string, depth = 0): Promise<string> {
   const res = await fetch(url, { redirect: 'manual' });
+
+  if (res.status >= 300 && res.status < 400) {
+    const location = res.headers.get('location');
+    if (!location) {
+      throw new Error(`Redirect without location header fetching ${url}`);
+    }
+    if (depth > 5) {
+      throw new Error(`Too many redirects fetching ${url}`);
+    }
+    const nextUrl = new URL(location, url).toString();
+    return fetchHtml(nextUrl, depth + 1);
+  }
+
   if (!res.ok && res.status !== 404) {
     throw new Error(`Unexpected status ${res.status} fetching ${url}`);
   }
+
   return await res.text();
 }
 
@@ -69,6 +83,8 @@ async function startServerAndCapture() {
       PORT: String(port),
       HOSTNAME: '127.0.0.1',
       NODE_ENV: 'production',
+      STATIC_EXPORT: '1',
+      NEXT_PUBLIC_STATIC_EXPORT: '1',
     },
     stdio: ['ignore', 'ignore', 'inherit'],
   });

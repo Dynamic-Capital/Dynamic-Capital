@@ -1,9 +1,13 @@
+"use client";
+
 import { ChatAssistantWidget } from '@/components/shared/ChatAssistantWidget';
 import { OnceLandingPage } from '@/components/once-ui';
 
 export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
+  const isStaticExport = process.env.NEXT_PUBLIC_STATIC_EXPORT === '1';
+
   const handleJoinVIP = () => {
     window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
   };
@@ -47,7 +51,7 @@ export default function HomePage() {
         onContactSupport={handleContactSupport}
       />
 
-      <ChatAssistantWidget />
+      {!isStaticExport && <ChatAssistantWidget />}
     </div>
   );
 }
