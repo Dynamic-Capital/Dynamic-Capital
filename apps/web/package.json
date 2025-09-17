@@ -103,7 +103,7 @@
     "autoprefixer": "^10.4.21",
     "chokidar-cli": "^3.0.0",
     "deno": "^2.4.4",
-    "drizzle-kit": "^0.18.1",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^9.35.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
