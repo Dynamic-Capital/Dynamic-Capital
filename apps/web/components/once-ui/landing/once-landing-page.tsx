@@ -256,7 +256,7 @@ export function OnceLandingPage({
         </OnceContainer>
       </section>
 
-      <section>
+      <section id="features">
         <OnceContainer
           variant="stack"
           className="space-y-10 rounded-[32px] border border-border/40 bg-card/60 p-10 shadow-lg"
