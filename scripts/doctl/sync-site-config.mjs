@@ -144,7 +144,7 @@ async function main() {
 
   if (!siteUrl) {
     usage();
-    throw new Error('--site-url is required (e.g. https://dynamic-capital.lovable.app).');
+    throw new Error('--site-url is required (e.g. https://dynamic-capital.vercel.app).');
   }
 
   const parsedSiteUrl = parseSiteUrl(siteUrl);

@@ -5,16 +5,9 @@
   "outputDirectory": "apps/web/.next",
   "devCommand": "npm run dev -- --port $PORT",
   "env": {
-    "SITE_URL": "https://dynamic-capital.lovable.app",
-    "NEXT_PUBLIC_SITE_URL": "https://dynamic-capital.lovable.app",
-    "ALLOWED_ORIGINS": "https://dynamic-capital.lovable.app",
-    "MINIAPP_ORIGIN": "https://dynamic-capital.lovable.app"
-  },
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "destination": "https://dynamic-capital.lovable.app/$1",
-      "permanent": false
-    }
-  ]
+    "SITE_URL": "https://dynamic-capital.vercel.app",
+    "NEXT_PUBLIC_SITE_URL": "https://dynamic-capital.vercel.app",
+    "ALLOWED_ORIGINS": "https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app,https://dynamic-capital.ondigitalocean.app",
+    "MINIAPP_ORIGIN": "https://dynamic-capital.vercel.app"
+  }
 }
