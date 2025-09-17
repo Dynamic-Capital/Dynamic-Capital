@@ -7,15 +7,30 @@ This tracker documents the outstanding work required across the Dynamic Capital 
 ## Priority navigation
 
 1. [Automation helper](#automation-helper)
-2. [Setup Follow-Ups](#setup-follow-ups)
-3. [Launch & Production Readiness](#launch--production-readiness)
-4. [Development & Delivery Guides](#development--delivery-guides)
-5. [Specialized Projects](#specialized-projects)
-6. [Completed Repo-Level Action Items](#completed-repo-level-action-items)
+2. [Core automation tasks](#core-automation-tasks)
+3. [Setup Follow-Ups](#setup-follow-ups)
+4. [Go Live Checklist](#go-live-checklist)
+5. [Development & Delivery Guides](#development--delivery-guides)
+6. [Launch & Production Readiness](#launch--production-readiness)
+7. [Specialized Projects](#specialized-projects)
+8. [Completed Repo-Level Action Items](#completed-repo-level-action-items)
 
 ## Automation helper
 
 Run `npm run checklists -- --list` to see automation-friendly tasks mapped to this document and related checklists. When you need to execute the scripted steps for a section, call the helper with the relevant key—for example `npm run checklists -- --checklist dynamic-capital`. Optional items (long-running builds or smoke tests) are skipped by default; include them with `--include-optional`. You can also target individual tasks with `--only <task-id>` or exclude steps with `--skip <task-id>`. The same helper powers the automation keys highlighted in the [Checklist Directory](./CHECKLISTS.md).
+
+## Core automation tasks
+
+Use the automation helper (or run commands directly) to complete the recurring repo health checks before audits, launches, or large merges. Track the results in your PR/issue notes so reviewers can see the evidence.
+
+- [ ] Sync `.env.local` with `.env.example` (`npm run sync-env`) to ensure new environment keys are captured locally.
+- [ ] Run the repository test suite (`npm run test`) so Deno and Next.js smoke tests cover the latest changes.
+- [ ] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to apply formatting and rerun Deno format/lint/type checks.
+- [ ] Run the aggregated verification suite (`npm run verify`) for the bundled static, runtime, and integration safety checks.
+- [ ] Audit Supabase Edge function hosts (`deno run -A scripts/audit-edge-hosts.ts`) to detect environment drift between deployments.
+- [ ] Check linkage across environment variables and outbound URLs (`deno run -A scripts/check-linkage.ts`) before promoting builds.
+- [ ] Verify the Telegram webhook configuration (`deno run -A scripts/check-webhook.ts`) so bot traffic hits the expected endpoint.
+- [ ] _Optional:_ Run the mini app smoke test (`deno run -A scripts/smoke-miniapp.ts`) to mirror the go-live walkthrough end-to-end.
 
 ## Setup Follow-Ups
 
@@ -23,6 +38,18 @@ Run `npm run checklists -- --list` to see automation-friendly tasks mapped to th
 2. [ ] Refresh or open the pending PR ensuring CI checks pass.
 3. [ ] Enable auto-merge with the required branch protections.
 4. [ ] Run the production sanity test (`/start`, `/plans`, approve test payment) to confirm `current_vip.is_vip`.
+
+## Go Live Checklist
+
+Run the `go-live` automation key (`npm run checklists -- --checklist go-live --include-optional`) and mirror the manual validations below before exposing updates to traders or admins. Refer to the detailed [Go Live Checklist](./GO_LIVE_CHECKLIST.md) for curl commands and troubleshooting steps.
+
+1. [ ] Confirm the Telegram webhook is set and returning `200` responses for health pings.
+2. [ ] Walk through the bank happy path to ensure approvals mark `current_vip.is_vip` correctly.
+3. [ ] Trigger a bank near-miss so `manual_review` captures the reason and the workflow pauses safely.
+4. [ ] Verify duplicate image uploads are blocked to prevent bypassing compliance checks.
+5. [ ] (If crypto rails are enabled) Submit a transaction with a pending TXID and ensure the approval occurs after confirmations land.
+6. [ ] Exercise admin commands (`/plans`, `/sync`, etc.) to confirm operations tooling responds.
+7. [ ] Capture evidence (screenshots, curl output) and attach it to the release/PR summary for audit trails.
 
 ## Development & Delivery Guides
 
@@ -35,7 +62,7 @@ Use these references to plan individual features and keep day-to-day work aligne
 
 Confirm the deployment posture before exposing new entry points or changes to end users.
 
-1. **[Go Live Checklist](./GO_LIVE_CHECKLIST.md)** – Manual Telegram webhook and Mini App validation steps. Use the `go-live` automation key to bundle repeatable smoke tests.
+1. **[Go Live Checklist](#go-live-checklist)** – Manual Telegram webhook and Mini App validation steps. Use the `go-live` automation key to bundle repeatable smoke tests.
 2. **[Launch Checklist](./LAUNCH_CHECKLIST.md)** – Supabase secret inventories and keeper scheduling required ahead of production launches.
 3. **[Variables and Links Checklist](./VARIABLES_AND_LINKS_CHECKLIST.md)** – Environment variable, hostname, and URL verification. The `variables-and-links` automation key runs the scripted audits that complement the manual review.
 4. **[Vercel Production Checklist](./VERCEL_PRODUCTION_CHECKLIST.md)** – Applies the Vercel Well-Architected pillars to hosted frontends so operations, reliability, and cost expectations stay aligned.
