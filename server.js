@@ -9,6 +9,36 @@ const port = process.env.PORT || 3000;
 const root = process.cwd();
 const staticRoot = join(root, '_static');
 
+const defaultOrigin = process.env.SITE_URL || 'http://localhost:3000';
+const rawAllowedOrigins = process.env.ALLOWED_ORIGINS;
+
+let allowedOrigins;
+if (rawAllowedOrigins === undefined) {
+  allowedOrigins = [defaultOrigin];
+  if (!process.env.SITE_URL) {
+    console.warn(
+      `[CORS] ALLOWED_ORIGINS is missing; defaulting to ${defaultOrigin}`,
+    );
+  }
+} else if (rawAllowedOrigins.trim() === '') {
+  allowedOrigins = ['*'];
+} else {
+  allowedOrigins = rawAllowedOrigins
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  if (allowedOrigins.length === 0) {
+    console.warn(
+      `[CORS] ALLOWED_ORIGINS is empty; defaulting to ${defaultOrigin}`,
+    );
+    allowedOrigins = [defaultOrigin];
+  }
+}
+
+const allowAllOrigins = allowedOrigins.includes('*');
+const allowedOriginSet = new Set(allowedOrigins);
+allowedOriginSet.delete('*');
+
 // Simple in-memory rate limiting to mitigate basic DDoS attacks
 const rateLimitWindowMs = 60 * 1000; // 1 minute
 const maxRequestsPerWindow = 100;
@@ -142,17 +172,21 @@ async function handler(req, res) {
   }
 
   // Enable CORS and security headers for all requests
-  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
-    .split(',')
-    .map((o) => o.trim())
-    .filter(Boolean);
   const origin = req.headers.origin;
-  if (origin && (allowedOrigins.length === 0 || allowedOrigins.includes(origin))) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
+  if (allowAllOrigins) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  } else {
     res.setHeader('Vary', 'Origin');
+    if (origin && allowedOriginSet.has(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
   }
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'authorization, x-client-info, apikey, content-type, x-admin-secret, x-requested-with, accept, origin',
+  );
+  res.setHeader('Access-Control-Max-Age', '86400');
   res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   res.setHeader('Content-Security-Policy', "default-src 'self'");
   res.setHeader('X-Frame-Options', 'DENY');
