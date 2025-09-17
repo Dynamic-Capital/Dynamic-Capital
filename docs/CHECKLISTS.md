@@ -25,6 +25,7 @@ Each key maps to a sequence defined in [`scripts/run-checklists.js`](../scripts/
 | [`Launch Checklist`](./LAUNCH_CHECKLIST.md) | Secrets and keeper setup | Harden Supabase edge functions ahead of launch | — |
 | [`Vercel Production Checklist`](./VERCEL_PRODUCTION_CHECKLIST.md) | Well-architected review for hosted frontends | Audit Vercel deployments for operational readiness | — |
 | [`Automated Trading System Build Checklist`](./automated-trading-checklist.md) | TradingView → Vercel → Supabase → MetaTrader 5 pipeline | Stand up or extend the automated trading stack | — |
+| [`TradingView → MT5 Onboarding Checklist`](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md) | Cross-team onboarding for the TradingView webhook to MT5 flow | Coordinate roadmap execution across teams | — |
 | [`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md) | Merging Dynamic Codex into this monorepo | Completed — dashboard now lives at `/telegram` in the Next.js app | — |
 
 ## Project delivery
@@ -44,6 +45,7 @@ Each key maps to a sequence defined in [`scripts/run-checklists.js`](../scripts/
 
 ## Specialized projects & integrations
 - **[`Automated Trading System Build Checklist`](./automated-trading-checklist.md)** – sequences the deliverables for the TradingView → Supabase → MetaTrader 5 automation project, from Pine Script alerts to VPS hardening.
+- **[`TradingView → MT5 Onboarding Checklist`](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md)** – mirrors the onboarding roadmap so TradingView, webhook, Supabase, and MT5 teams can work in parallel with clear hand-offs.
 - **[`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md)** – archived after Dynamic Codex was merged into the main `/telegram` route; keep for historical context.
 
 ## Keep documentation in sync

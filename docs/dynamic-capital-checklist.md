@@ -55,4 +55,5 @@ Confirm the deployment posture before exposing new entry points or changes to en
 Track larger initiatives that span multiple teams or subsystems and copy the detailed checklists into project docs for visibility.
 
 - **[Automated Trading System Build Checklist](./automated-trading-checklist.md)** – Sequences the TradingView → Vercel → Supabase → MetaTrader 5 automation effort, from alert payloads to VPS hardening and monitoring.
+- **[TradingView → MT5 Onboarding Checklist](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md)** – Tracks the cross-team onboarding roadmap so Pine Script, webhook, Supabase, and EA owners can coordinate deliverables.
 - **[Dynamic Codex Integration Checklist](./dynamic_codex_integration_checklist.md)** – Archived context after merging Dynamic Codex into the `/telegram` Next.js route; keep for historical reference.
