@@ -48,8 +48,37 @@ async function waitForServer(url: string, retries = 50, delayMs = 200) {
   throw new Error(`Timed out waiting for Next.js server at ${url}`);
 }
 
-async function fetchHtml(url: string) {
-  const res = await fetch(url, { redirect: 'manual' });
+async function fetchHtml(url: string, visited = new Set<string>()) {
+  const res = await fetch(url, {
+    redirect: 'manual',
+    headers: {
+      'x-forwarded-proto': 'https',
+    },
+  });
+  if (res.status >= 300 && res.status < 400) {
+    const location = res.headers.get('location');
+    if (!location) {
+      throw new Error(`Redirect status ${res.status} without location header fetching ${url}`);
+    }
+    const baseUrl = new URL(url);
+    const nextUrlObj = new URL(location, url);
+    if (nextUrlObj.hostname === ':host') {
+      nextUrlObj.hostname = baseUrl.hostname;
+      nextUrlObj.port = baseUrl.port;
+    }
+    if (nextUrlObj.protocol === 'https:' && baseUrl.protocol === 'http:') {
+      nextUrlObj.protocol = 'http:';
+    }
+    if (nextUrlObj.pathname.includes('__ESC_COLON_path*')) {
+      nextUrlObj.pathname = baseUrl.pathname || '/';
+    }
+    const nextUrl = nextUrlObj.toString();
+    if (visited.has(nextUrl)) {
+      throw new Error(`Redirect loop detected while resolving ${url}`);
+    }
+    visited.add(nextUrl);
+    return fetchHtml(nextUrl, visited);
+  }
   if (!res.ok && res.status !== 404) {
     throw new Error(`Unexpected status ${res.status} fetching ${url}`);
   }
@@ -69,6 +98,7 @@ async function startServerAndCapture() {
       PORT: String(port),
       HOSTNAME: '127.0.0.1',
       NODE_ENV: 'production',
+      SKIP_CANONICAL_REDIRECTS: 'true',
     },
     stdio: ['ignore', 'ignore', 'inherit'],
   });

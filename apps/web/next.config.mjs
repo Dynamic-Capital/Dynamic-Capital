@@ -42,6 +42,7 @@ const ALLOWED_ORIGINS =
   process.env.ALLOWED_ORIGINS || "http://localhost:3000";
 
 const CANONICAL_HOST = new URL(SITE_URL).hostname;
+const SKIP_CANONICAL_REDIRECTS = process.env.SKIP_CANONICAL_REDIRECTS === 'true';
 
 process.env.SUPABASE_URL = SUPABASE_URL;
 process.env.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
@@ -90,26 +91,29 @@ const nextConfig = {
 };
 
 if (nextConfig.output !== 'export') {
-  nextConfig.redirects = async () => [
-    {
-      source: '/:path*',
-      has: [
-        { type: 'header', key: 'x-forwarded-proto', value: 'http' },
-      ],
-      destination: 'https://:host/:path*',
-      permanent: true,
-    },
-    ...(process.env.LEGACY_HOST
-      ? [
+  nextConfig.redirects = async () =>
+    SKIP_CANONICAL_REDIRECTS
+      ? []
+      : [
           {
             source: '/:path*',
-            has: [{ type: 'host', value: process.env.LEGACY_HOST }],
-            destination: `https://${CANONICAL_HOST}/:path*`,
+            has: [
+              { type: 'header', key: 'x-forwarded-proto', value: 'http' },
+            ],
+            destination: 'https://:host/:path*',
             permanent: true,
           },
-        ]
-      : []),
-  ];
+          ...(process.env.LEGACY_HOST
+            ? [
+                {
+                  source: '/:path*',
+                  has: [{ type: 'host', value: process.env.LEGACY_HOST }],
+                  destination: `https://${CANONICAL_HOST}/:path*`,
+                  permanent: true,
+                },
+              ]
+            : []),
+        ];
   nextConfig.headers = async () => [
     {
       source: '/_next/static/:path*',

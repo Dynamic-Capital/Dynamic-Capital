@@ -227,7 +227,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   if (loading) {
     return (
       <OnceContainer
-        variant="fade"
+        variant="fadeIn"
         className="flex min-h-[200px] items-center justify-center rounded-3xl border border-border/50 bg-card/60 px-6 py-12 text-sm font-medium text-muted-foreground shadow-lg"
       >
         <Loader2 className="mr-3 h-6 w-6 animate-spin text-primary" />

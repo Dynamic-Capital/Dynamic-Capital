@@ -17,6 +17,10 @@ dist-ssr/
 _static/*
 !_static/404.html
 !_static/index.html
+!_static/styles.css
+!_static/once-ui/
+!_static/once-ui/once-ui.css
+!_static/once-ui/once-ui.js
 
 # Logs
 logs
