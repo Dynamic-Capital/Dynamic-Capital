@@ -1,11 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from '@/components/theme-provider';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { ChatAssistantWidget } from '@/components/shared/ChatAssistantWidget';
-import { OnceLandingPage } from '@/components/once-ui';
-import Footer from '@/components/layout/Footer';
+import { ThemeProvider } from './components/theme-provider';
+import { Toaster } from './components/ui/toaster';
+import { Toaster as Sonner } from './components/ui/sonner';
+import { ChatAssistantWidget } from './components/shared/ChatAssistantWidget';
+import { OnceLandingPage } from './components/once-ui';
+import Footer from './components/layout/Footer';
 import './index.css';
 
 const queryClient = new QueryClient();

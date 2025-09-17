@@ -1,0 +1,18 @@
+/* Mobile styles */
+@media (max-width: 768px) {
+  .motion-card:hover {
+    transform: translateY(-2px) scale(1.01);
+  }
+  
+  .motion-button:hover {
+    transform: translateY(-1px) scale(1.02);
+  }
+  
+  .text-title {
+    font-size: 1.5rem;
+  }
+  
+  .text-heading {
+    font-size: 1.25rem;
+  }
+}
