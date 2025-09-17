@@ -248,6 +248,9 @@ function runTasks(taskList, context) {
         printTroubleshootingTips(task, {
           header: 'Optional step troubleshooting tips:',
         });
+        printDynamicIssueHints(task, error, {
+          header: 'Detected quick fixes to try:',
+        });
         continue;
       }
 
@@ -258,6 +261,7 @@ function runTasks(taskList, context) {
       printTroubleshootingTips(task, {
         header: 'Quick troubleshooting tips:',
       });
+      printDynamicIssueHints(task, error);
       saveState(state);
       if (error?.status) {
         process.exit(error.status);
@@ -829,4 +833,195 @@ function printTroubleshootingTips(task, options = {}) {
   tips.forEach((tip) => {
     console.log(`${indent}   - ${tip}`);
   });
+}
+
+function printDynamicIssueHints(task, error, options = {}) {
+  const { indent = '   ', header = 'Additional fixes to consider:' } = options;
+  const hints = collectDynamicIssueHints(task, error);
+  if (!hints || hints.length === 0) {
+    return;
+  }
+
+  console.log(`${indent}🛠️  ${header}`);
+  hints.forEach((hint) => {
+    console.log(`${indent}   - ${hint}`);
+  });
+}
+
+function collectDynamicIssueHints(task, error) {
+  const text = gatherErrorText(error);
+  if (!text) {
+    return [];
+  }
+
+  const hints = new Set();
+
+  const missingScriptRegex = /Missing script:\s*["']?([\w:-]+)["']?/gi;
+  for (const match of text.matchAll?.(missingScriptRegex) ?? []) {
+    const scriptName = match?.[1];
+    if (!scriptName) continue;
+    hints.add(`Define the "${scriptName}" script in package.json or regenerate it from Codex before rerunning this helper.`);
+  }
+
+  const missingModuleRegex = /Cannot find module ['"]([^'"\n]+)['"]/gi;
+  for (const match of text.matchAll?.(missingModuleRegex) ?? []) {
+    const moduleName = match?.[1];
+    if (!moduleName) continue;
+    if (looksLikeFilePath(moduleName)) {
+      const formatted = describeMissingPath(moduleName);
+      hints.add(`Create the missing file at ${formatted} or update the import path if it moved.`);
+    } else if (!moduleName.startsWith('node:')) {
+      hints.add(`Install the dependency via "npm install ${moduleName}" (or add it to package.json) so this command can resolve it.`);
+    }
+  }
+
+  const missingPackageRegex = /Cannot find package ['"]([^'"\n]+)['"]/gi;
+  for (const match of text.matchAll?.(missingPackageRegex) ?? []) {
+    const packageName = match?.[1];
+    if (!packageName) continue;
+    if (looksLikeFilePath(packageName)) {
+      const formatted = describeMissingPath(packageName);
+      hints.add(`Ensure the package at ${formatted} exists or adjust the import to the correct location.`);
+    } else if (!packageName.startsWith('node:')) {
+      hints.add(`Install the npm package "${packageName}" (e.g. with npm install ${packageName}) before rerunning the workflow.`);
+    }
+  }
+
+  const enoentRegex = /ENOENT[^'"\n]*['"]([^'"\n]+)['"]/gi;
+  for (const match of text.matchAll?.(enoentRegex) ?? []) {
+    const missingPath = match?.[1];
+    if (!missingPath) continue;
+    const formatted = describeMissingPath(missingPath);
+    hints.add(`Verify ${formatted} exists. Recreate it if the Codex export removed the file.`);
+  }
+
+  if (error && typeof error.code === 'string' && error.code.toUpperCase() === 'ENOENT' && error.path) {
+    const formatted = describeMissingPath(String(error.path));
+    hints.add(`Verify ${formatted} exists. Recreate it if the Codex export removed the file.`);
+  }
+
+  const commandNotFoundRegex = /(?:command not found:?\s+([\w@/.-]+))|(?:sh:\s*([\w@/.-]+):\s*not found)|(?:'([^']+)' is not recognized as an internal or external command)/gi;
+  for (const match of text.matchAll?.(commandNotFoundRegex) ?? []) {
+    const cmd = match?.[1] || match?.[2] || match?.[3];
+    if (!cmd) continue;
+    hints.add(`Install the "${cmd}" command or ensure it is available on your PATH (rerun npm install if it should be provided by dependencies).`);
+  }
+
+  return [...hints];
+}
+
+function gatherErrorText(error) {
+  if (!error) {
+    return '';
+  }
+
+  const parts = [];
+  if (error.stderr) {
+    parts.push(bufferToString(error.stderr));
+  }
+  if (error.stdout) {
+    parts.push(bufferToString(error.stdout));
+  }
+  if (error.message) {
+    parts.push(String(error.message));
+  }
+
+  return parts
+    .map((part) => (typeof part === 'string' ? part : String(part)))
+    .map((part) => part.replace(/\x1B\[[0-9;]*m/g, '').trim())
+    .filter((part) => part.length > 0)
+    .join('\n');
+}
+
+function bufferToString(value) {
+  if (!value) {
+    return '';
+  }
+  if (Buffer.isBuffer(value)) {
+    return value.toString();
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => bufferToString(item)).join('\n');
+  }
+  return String(value);
+}
+
+function looksLikeFilePath(value) {
+  if (!value) {
+    return false;
+  }
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return false;
+  }
+  if (normalized.startsWith('file://')) {
+    return true;
+  }
+  if (normalized.startsWith('.') || normalized.startsWith('/') || normalized.includes('\\')) {
+    return true;
+  }
+  if (/^[A-Za-z]:[\\/]/.test(normalized)) {
+    return true;
+  }
+  if (
+    normalized.includes('/') &&
+    !normalized.startsWith('@') &&
+    (normalized.includes('.') ||
+      normalized.includes('-') ||
+      normalized.startsWith('scripts/') ||
+      normalized.startsWith('apps/') ||
+      normalized.startsWith('src/') ||
+      normalized.startsWith('functions/') ||
+      normalized.startsWith('packages/') ||
+      normalized.startsWith('tools/') ||
+      normalized.startsWith('scripts\\') ||
+      normalized.startsWith('apps\\') ||
+      normalized.startsWith('src\\'))
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function describeMissingPath(value) {
+  if (!value) {
+    return 'the expected path';
+  }
+
+  let normalized = String(value);
+  if (normalized.startsWith('file://')) {
+    try {
+      normalized = fileURLToPath(normalized);
+    } catch (error) {
+      normalized = normalized.replace('file://', '');
+    }
+  }
+
+  normalized = normalized.replace(/\\/g, '/');
+  const repoPrefix = repoRoot.replace(/\\/g, '/');
+  if (normalized.startsWith(repoPrefix)) {
+    normalized = normalized.slice(repoPrefix.length);
+    if (normalized.startsWith('/')) {
+      normalized = normalized.slice(1);
+    }
+  }
+
+  try {
+    const relative = path.relative(repoRoot, normalized);
+    if (relative && !relative.startsWith('..') && !path.isAbsolute(relative)) {
+      normalized = relative.replace(/\\/g, '/');
+    }
+  } catch (error) {
+    // ignore relative path conversion failures
+  }
+
+  if (/^[A-Za-z]:\//.test(normalized)) {
+    return normalized;
+  }
+
+  if (!normalized.startsWith('.') && !normalized.startsWith('/')) {
+    normalized = `./${normalized}`;
+  }
+
+  return normalized;
 }

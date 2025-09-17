@@ -45,6 +45,16 @@ shares `npm install` successes between agents. Skip the shared cache with
 `--no-shared-cache` (or `CODEX_DISABLE_SHARED_CACHE=1`) whenever you need a
 clean install.
 
+### Adaptive issue detection
+
+Beyond the static troubleshooting tips, the helper now inspects command output
+for common failure signatures—missing npm scripts, `MODULE_NOT_FOUND`
+exceptions, `ENOENT` file paths, and shell `command not found` errors. Whenever
+it recognizes one of these patterns, it prints focused next steps (e.g. recreate
+Codex-exported scripts, add the missing dependency with `npm install`, or create
+the referenced file) so new issues can be resolved without manually scanning the
+logs.
+
 ## Suggested workflow
 
 ```bash
