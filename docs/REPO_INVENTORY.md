@@ -62,3 +62,7 @@ _Last updated: 2025-09-15 (UTC)._
 | `apps/web/app/telegram/` | Telegram bot dashboard route now served from the main Next.js build.【F:apps/web/app/telegram/page.tsx†L1-L11】 |
 | `db/` | TypeScript database client/schema utilities.【ddbcb5†L1-L2】 |
 | `Procfile` | Platform startup definition pointing at the Next.js standalone server build.【1512da†L1-L2】 |
+
+## 7. Trading automation scaffolding
+
+- **`algorithms/`** – Workspace for the TradingView Pine Script strategies, Vercel webhook receiver, and MetaTrader 5 Expert Advisor. Each sub-folder ships with a README that outlines recommended structure, handoff expectations, and next steps so the automation pipeline can come together incrementally.【F:algorithms/README.md†L1-L18】【F:algorithms/pine-script/README.md†L1-L33】【F:algorithms/vercel-webhook/README.md†L1-L29】【F:algorithms/mql5/README.md†L1-L31】
