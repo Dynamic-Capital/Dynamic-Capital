@@ -486,6 +486,12 @@ install. The helper remembers which steps failed recently so it can surface
 troubleshooting tips the next time you run it. If you want to start fresh,
 pass `--reset-issues` to clear that history before executing tasks.
 
+When a command fails, the helper now scans the error output for familiar
+patterns (missing package scripts, `MODULE_NOT_FOUND` errors, `ENOENT` paths,
+etc.) and prints actionable fixes—like re-creating Codex-exported scripts or
+running `npm install` for a missing dependency—so new issues can be resolved
+without digging through logs.
+
 Note: for OCR parsing, send an actual Telegram image to the bot; OCR runs only
 on images.
 
