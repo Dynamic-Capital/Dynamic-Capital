@@ -1,6 +1,6 @@
 # TradingView → MT5 Onboarding Checklist
 
-Use this list when spinning up the TradingView webhook to MetaTrader 5 automation flow. It mirrors the onboarding roadmap so cross-functional contributors can work in parallel while keeping hand-offs explicit.
+Use this list when spinning up the TradingView webhook to MetaTrader 5 automation flow. It mirrors the onboarding roadmap so cross-functional contributors can work in parallel while keeping hand-offs explicit. When reusing the `tradingview-to-metatrader5` bridge, pair this guide with the dedicated [TradingView→MT5 Bridge Integration Checklist](./TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md).
 
 ## 1. Align scope & shared artifacts
 - [ ] Document the end-to-end architecture (TradingView → webhook → Supabase → MT5 EA) in the project tracker.
