@@ -1,6 +1,6 @@
 # Repository Summary — Dynamic-Capital
 
-**Generated:** Wed, 17 Sep 2025 08:28:10 GMT
+**Generated:** Wed, 17 Sep 2025 10:33:26 GMT
 **Repo root:** Dynamic-Capital
 
 ## Directory Map (top-level)
@@ -94,7 +94,7 @@
 | system-health | supabase/functions/system-health/index.ts | Yes |
 | telegram-bot | supabase/functions/telegram-bot/index.ts | Yes |
 | telegram-bot-sync | supabase/functions/telegram-bot-sync/index.ts | Yes |
-| telegram-bot/admin-handlers | supabase/functions/telegram-bot/admin-handlers/index.ts | No |
+| telegram-bot/admin-handlers | supabase/functions/telegram-bot/admin-handlers/index.ts | Yes |
 | telegram-getwebhook | supabase/functions/telegram-getwebhook/index.ts | Yes |
 | telegram-setwebhook | supabase/functions/telegram-setwebhook/index.ts | Yes |
 | telegram-webhook | supabase/functions/telegram-webhook/index.ts | Yes |
@@ -120,6 +120,7 @@
 - ADMIN_API_SECRET
 - ALLOWED_ORIGINS
 - ANALYZE
+- APP_URL
 - CDN_ACCESS_KEY
 - CDN_BUCKET
 - CDN_ENDPOINT
@@ -134,6 +135,10 @@
 - DEBUG
 - DENO_DEPLOYMENT_ID
 - DENO_REGION
+- DEPLOY_URL
+- DEPLOYMENT_URL
+- DIGITALOCEAN_APP_SITE_DOMAIN
+- DIGITALOCEAN_APP_URL
 - ENABLE_SENTRY
 - EXAMPLE_KEY
 - FUNCTIONS_BASE
@@ -162,6 +167,7 @@
 - NODE_EXTRA_CA_CERTS
 - PORT
 - PREVIEW_URL
+- PUBLIC_URL
 - QUEUE_PENDING_THRESHOLD
 - RETENTION_DAYS
 - SENTRY_DSN
@@ -183,6 +189,9 @@
 - TELEGRAM_ID
 - TELEGRAM_WEBHOOK_SECRET
 - TELEGRAM_WEBHOOK_URL
+- URL
+- VERCEL_ENV
+- VERCEL_URL
 
 ## Automation Notes
 

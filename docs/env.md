@@ -83,6 +83,8 @@ You can confirm access with `doctl spaces list`.
 | --------------------- | ---------------------------------------- | -------- | ------------------------- | --------------------------------- |
 | `SITE_URL`            | Base URL for the deployed site; used for redirects and canonical host checks. | Yes      | `http://localhost:3000` | `next.config.mjs`, `hooks/useAuth.tsx` |
 | `NEXT_PUBLIC_API_URL`  | Base URL for client API requests (defaults to same-origin `/api`). | No | `http://localhost:3000/api` | `env.ts` |
+| `NODE_ENV`             | Node runtime environment (`development`, `test`, or `production`). | No       | `development`             | `apps/web/config/node-env.ts`, `apps/web/app/healthz/route.ts`, `apps/web/instrumentation.ts` |
+| `VERCEL_ENV`           | Deployment stage provided by Vercel; used as a fallback when `NODE_ENV` is unset. | No       | `production`              | `apps/web/config/node-env.ts` |
 | `NODE_EXTRA_CA_CERTS` | Additional CA bundle for outbound HTTPS. | No       | `/etc/ssl/custom.pem`     | `apps/web/utils/http-ca.ts`            |
 | `A_SUPABASE_URL`      | Supabase URL used by audit scripts.      | No       | `https://xyz.supabase.co` | `scripts/audit/read_meta.mjs`     |
 | `A_SUPABASE_KEY`      | Supabase key used by audit scripts.      | No       | `service-role-key`        | `scripts/audit/read_meta.mjs`     |
