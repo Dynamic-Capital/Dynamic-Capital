@@ -1,11 +1,13 @@
-export async function expectedSecret() {
-  return Deno.env.get('TELEGRAM_WEBHOOK_SECRET') || null;
+export function expectedSecret(): Promise<string | null> {
+  return Promise.resolve(Deno.env.get('TELEGRAM_WEBHOOK_SECRET') || null);
 }
-export async function validateTelegramHeader(req: Request) {
+export function validateTelegramHeader(
+  req: Request,
+): Promise<Response | null> {
   const exp = Deno.env.get('TELEGRAM_WEBHOOK_SECRET');
   const got = req.headers.get('x-telegram-bot-api-secret-token');
   if (!exp || got !== exp) {
-    return new Response('Unauthorized', { status: 401 });
+    return Promise.resolve(new Response('Unauthorized', { status: 401 }));
   }
-  return null;
+  return Promise.resolve(null);
 }

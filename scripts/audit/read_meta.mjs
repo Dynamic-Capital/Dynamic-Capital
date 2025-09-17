@@ -1,4 +1,5 @@
 import fs from "fs";
+import process from "node:process";
 
 const url = process.env.A_SUPABASE_URL;
 const key = process.env.A_SUPABASE_KEY;
@@ -27,12 +28,16 @@ async function r(path) {
 let tables = [], indexes = [];
 try {
   tables = await r("pg_meta.tables?select=schema,name");
-} catch (e) {}
+} catch {
+  console.warn("Failed to fetch pg_meta tables metadata");
+}
 try {
   indexes = await r(
     "pg_meta.indexes?select=schema,table,name,is_unique,is_primary,columns",
   );
-} catch (e) {}
+} catch {
+  console.warn("Failed to fetch pg_meta indexes metadata");
+}
 
 const meta = {
   ok: true,

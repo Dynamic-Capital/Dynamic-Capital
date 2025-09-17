@@ -165,6 +165,8 @@ export function __setGetContent(fn: typeof getContent) {
 }
 
 // Batch get multiple content keys for performance
+type ContentRow = { content_key: string; content_value: string | null };
+
 export async function getContentBatch(
   keys: string[],
   defaults: Record<string, string> = {},
@@ -201,10 +203,12 @@ export async function getContentBatch(
 
     if (error) throw error;
     
-    const rows = (data as unknown) as any[] | undefined;
+    const rows: ContentRow[] = Array.isArray(data)
+      ? data as ContentRow[]
+      : [];
     const result: Record<string, string | null> = { ...cached };
     for (const key of uncached) {
-      const found = rows?.find((row: any) => row.content_key === key);
+      const found = rows.find((row) => row.content_key === key);
       const value = found?.content_value ?? defaults[key] ?? null;
       result[key] = value;
       if (value !== null) setCached(`c:${key}`, value);

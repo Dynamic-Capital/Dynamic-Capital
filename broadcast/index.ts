@@ -9,9 +9,9 @@ export interface PlanBroadcastOptions {
   pauseMs?: number;
 }
 
-export async function resolveTargets(
+export function resolveTargets(
   segment: PlanBroadcastOptions["segment"],
-): Promise<number[]> {
+): number[] {
   if (Array.isArray(segment)) return segment;
   if (segment && Array.isArray((segment as { userIds?: number[] }).userIds)) {
     return (segment as { userIds: number[] }).userIds;

@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "std/assert/mod.ts";
 
 async function waitForServer(url: string, retries = 20, delayMs = 100) {
   for (let attempt = 0; attempt < retries; attempt++) {
