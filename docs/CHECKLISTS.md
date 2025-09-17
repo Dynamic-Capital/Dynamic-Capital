@@ -29,6 +29,7 @@ Follow the numbered order below when coordinating large efforts. Each entry link
 | 8 | [`Automated Trading System Build Checklist`](./automated-trading-checklist.md) | TradingView → Vercel → Supabase → MetaTrader 5 pipeline | Stand up or extend the automated trading stack | — |
 | 9 | [`TradingView → MT5 Onboarding Checklist`](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md) | Cross-team onboarding for the TradingView webhook to MT5 flow | Coordinate roadmap execution across teams | — |
 | 10 | [`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md) | Merging Dynamic Codex into this monorepo | Completed — dashboard now lives at `/telegram` in the Next.js app | — |
+| 11 | [`Git Branch Organization Checklist`](./git-branch-organization-checklist.md) | Align Git branches with deployable services and domains | Rework branching strategy to support independent deployments | — |
 
 ## Project delivery (priorities 1–3)
 
@@ -49,6 +50,7 @@ Follow the numbered order below when coordinating large efforts. Each entry link
 - **[`Automated Trading System Build Checklist`](./automated-trading-checklist.md)** – sequences the deliverables for the TradingView → Supabase → MetaTrader 5 automation project, from Pine Script alerts to VPS hardening.
 - **[`TradingView → MT5 Onboarding Checklist`](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md)** – mirrors the onboarding roadmap so TradingView, webhook, Supabase, and MT5 teams can work in parallel with clear hand-offs.
 - **[`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md)** – archived after Dynamic Codex was merged into the main `/telegram` route; keep for historical context.
+- **[`Git Branch Organization Checklist`](./git-branch-organization-checklist.md)** – guides the restructuring of branches so each deployable service can map to its own domain and load-balanced release flow.
 
 ## Keep documentation in sync
 
