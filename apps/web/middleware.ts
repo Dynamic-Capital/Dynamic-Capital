@@ -8,6 +8,10 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 export function middleware(req: NextRequest) {
+  if (process.env.STATIC_EXPORT === '1') {
+    return NextResponse.next();
+  }
+
   if (req.nextUrl.pathname.startsWith('/api')) {
     const origin = req.headers.get('origin');
     const headers = buildCorsHeaders(origin);

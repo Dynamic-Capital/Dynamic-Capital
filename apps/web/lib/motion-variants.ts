@@ -197,6 +197,28 @@ const stackSlow: Variants = {
   },
 };
 
+const fade: Variants = fadeIn;
+
+const badge: Variants = {
+  hidden: { opacity: 0, y: -8 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.base,
+      ease: ONCE_MOTION_EASING.entrance,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.instant,
+      ease: ONCE_MOTION_EASING.exit,
+    },
+  },
+};
+
 const stackItem: Variants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
   visible: {
@@ -498,12 +520,14 @@ export const onceRevealVariantKeys = [
   "slideLeft",
   "slideRight",
   "scaleIn",
+  "stack",
 ] as const;
 
 export type OnceRevealVariantKey = (typeof onceRevealVariantKeys)[number];
 
 export const onceMotionVariants = {
   fadeIn,
+  fade,
   slideUp,
   slideDown,
   slideLeft,
@@ -515,6 +539,7 @@ export const onceMotionVariants = {
   stackItem,
   stackItemSoft,
   stackItemSlow,
+  badge,
   button,
   primaryButton,
   ghostButton,

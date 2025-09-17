@@ -20,6 +20,7 @@ Each key maps to a sequence defined in [`scripts/run-checklists.js`](../scripts/
 | [`Dynamic Capital Checklist`](./dynamic-capital-checklist.md) | Aggregated repo status and cross-checks | Kick off large initiatives or review overall progress | `dynamic-capital` |
 | [`Coding Efficiency Checklist`](./coding-efficiency-checklist.md) | Day-to-day development hygiene | Scope and deliver individual features or maintenance updates | `coding-efficiency` |
 | [`Once UI Development Checklist`](./once-ui-development-checklist.md) | Frontend/back-end surfaces using Once UI | Build or refactor any Once UI-powered surface (landing, dashboard, mini app shell) | `once-ui` |
+| [`Next.js Toolchain Cleanup Checklist`](./NEXTJS_TOOLCHAIN_CLEANUP_CHECKLIST.md) | Retire the legacy Vite proxy and confirm a single Next.js pipeline | Decommission duplicate builds before handoff | — |
 | [`Variables and Links Checklist`](./VARIABLES_AND_LINKS_CHECKLIST.md) | Environment variables and outbound link audits | Confirm production configuration before toggling features | `variables-and-links` |
 | [`Go Live Checklist`](./GO_LIVE_CHECKLIST.md) | Manual production readiness smoke tests | Validate Telegram webhook flows before launch | `go-live` |
 | [`Launch Checklist`](./LAUNCH_CHECKLIST.md) | Secrets and keeper setup | Harden Supabase edge functions ahead of launch | — |
@@ -35,6 +36,7 @@ Each key maps to a sequence defined in [`scripts/run-checklists.js`](../scripts/
 
 ### UI & shared tooling
 - **[`Once UI Development Checklist`](./once-ui-development-checklist.md)** – ensures surfaces built on the Once UI design system follow linting, testing, and build expectations. Includes optional automation for production builds and mini app packaging.
+- **[`Next.js Toolchain Cleanup Checklist`](./NEXTJS_TOOLCHAIN_CLEANUP_CHECKLIST.md)** – consolidates the web app build pipeline by retiring the root-level Vite tooling and validating Next.js as the sole entry point.
 
 ## Launch & production hardening
 - **[`Go Live Checklist`](./GO_LIVE_CHECKLIST.md)** – quick Telegram webhook and Mini App validation steps. Use alongside the `go-live` automation key for repeatable smoke tests.

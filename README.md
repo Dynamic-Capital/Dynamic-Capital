@@ -76,10 +76,11 @@ configuration for each component.
 
 - **Functions** – Edge functions live under `supabase/functions` and any
   framework-managed API routes belong in `functions/`.
-- **Build outputs** – Use `npm run build:all` to compile both the Next.js app
-  and mini app functions. Optionally specify an output directory (relative to
-  the build context) to control where build assets are generated; if omitted,
-  the default location is used.
+- **Build outputs** – Run `npm run build` for the Next.js app and
+  `npm run build:miniapp` when the Supabase Mini App needs a fresh bundle.
+  Optionally specify an output directory (relative to the build context) to
+  control where build assets are generated; if omitted, the default location is
+  used.
 - **Static snapshot** – Place user-facing assets in `apps/web/public/` and run
   `npm run build:web && npm run build:landing` to mirror the homepage into
   `_static/` for CDN hosting.
@@ -87,9 +88,9 @@ configuration for each component.
   `eslint.config.js`, and `.env.example` sit at the project root. Keep
   `.env.example` updated when adding new environment variables.
 - **Go service** – simple HTTP server in `go-service/` with a `/healthz` endpoint.
-- **Unified builds** – the previous `external/dynamic_codex` Vite workspace has
-  been merged; all bot tooling now ships from the Next.js app so the project is
-  maintained with a single build pipeline.
+- **Unified builds** – the legacy root-level Vite proxy has been retired; all
+  dashboard and bot tooling now ship from the Next.js workspace. Vite remains
+  only inside the Supabase Mini App package.
 
 ## Project starters
 
@@ -388,7 +389,7 @@ npm run build
 npm run build:miniapp
 
 # build both targets
-npm run build:all
+npm run build && npm run build:miniapp
 ```
 
 `npm run build` produces a standalone bundle in `.next/standalone` which can be

@@ -6,9 +6,9 @@ process.env.SUPABASE_ANON_KEY = 'anon';
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'service';
 
 const { buildMainMenu } = await import(
-  /* @vite-ignore */ "../supabase/functions/telegram-bot/menu.ts"
+  /* webpackIgnore: true */ "../supabase/functions/telegram-bot/menu.ts"
 );
-const cfg = await import(/* @vite-ignore */ "../supabase/functions/_shared/config.ts");
+const cfg = await import(/* webpackIgnore: true */ "../supabase/functions/_shared/config.ts");
 
 test('buildMainMenu highlights active section', async () => {
   const original = cfg.getContent;
