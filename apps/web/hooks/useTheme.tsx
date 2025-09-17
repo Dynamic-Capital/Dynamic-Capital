@@ -18,12 +18,12 @@ export function useTheme() {
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window === 'undefined') return 'light';
     
-    const tg = window.Telegram?.WebApp;
+    const tg = globalThis.Telegram?.WebApp;
     if (tg) {
       return tg.colorScheme;
     }
     
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return globalThis.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
   const currentTheme = theme === 'system' ? systemTheme : theme;
@@ -40,13 +40,13 @@ export function useTheme() {
 
   useEffect(() => {
     const fetchTheme = async () => {
-      const tg = window.Telegram?.WebApp;
+      const tg = globalThis.Telegram?.WebApp;
       if (session?.access_token) {
-        const { data, error } = await callEdgeFunction('THEME_GET', {
+        const { data, error } = await callEdgeFunction<{ mode?: 'auto' | Theme }>('THEME_GET', {
           token: session.access_token,
         });
         if (!error && data) {
-          const mode = (data as any).mode;
+          const mode = data.mode;
           setTheme(mode === 'auto' ? 'system' : mode);
           return;
         }
@@ -75,7 +75,7 @@ export function useTheme() {
   }, [currentTheme]);
 
   useEffect(() => {
-    const tg = window.Telegram?.WebApp;
+    const tg = globalThis.Telegram?.WebApp;
     
     if (tg) {
       // For Telegram users, prefer the WebApp event API
@@ -98,7 +98,7 @@ export function useTheme() {
       return () => clearInterval(interval);
     } else {
       // For web users, listen to system theme changes
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const mediaQuery = globalThis.matchMedia('(prefers-color-scheme: dark)');
       
       const handleSystemThemeChange = (e: MediaQueryListEvent) => {
         setSystemTheme(e.matches ? 'dark' : 'light');
@@ -114,7 +114,7 @@ export function useTheme() {
   const setThemeMode = async (newTheme: Theme) => {
     setTheme(newTheme);
 
-    const tg = window.Telegram?.WebApp;
+    const tg = globalThis.Telegram?.WebApp;
     if (session?.access_token) {
       const { error } = await callEdgeFunction('THEME_SAVE', {
         method: 'POST',
@@ -143,7 +143,7 @@ export function useTheme() {
     }
   };
 
-  const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+  const isInTelegram = typeof window !== 'undefined' && globalThis.Telegram?.WebApp;
 
   return {
     theme,

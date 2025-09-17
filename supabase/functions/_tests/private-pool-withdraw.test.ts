@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "std/assert/mod.ts";
 import { createDepositHandler } from "../private-pool-deposit/index.ts";
 import { createWithdrawHandler } from "../private-pool-withdraw/index.ts";
 import { MockPrivatePoolStore } from "./private_pool_mock.ts";
@@ -16,12 +16,12 @@ denoTest("private-pool-withdraw enforces notice and admin approval recalculates 
   });
   const depositHandlerA = createDepositHandler({
     createStore: () => store,
-    resolveProfile: async () => ({ profileId: investorProfile, telegramId: "101" }),
+    resolveProfile: () => Promise.resolve({ profileId: investorProfile, telegramId: "101" }),
     now: () => new Date("2025-02-01T00:00:00Z"),
   });
   const depositHandlerB = createDepositHandler({
     createStore: () => store,
-    resolveProfile: async () => ({ profileId: investorTwoProfile, telegramId: "102" }),
+    resolveProfile: () => Promise.resolve({ profileId: investorTwoProfile, telegramId: "102" }),
     now: () => new Date("2025-02-01T00:05:00Z"),
   });
   await depositHandlerA(new Request("http://localhost", {
@@ -36,7 +36,7 @@ denoTest("private-pool-withdraw enforces notice and admin approval recalculates 
   }));
   const withdrawHandlerInvestor = createWithdrawHandler({
     createStore: () => store,
-    resolveProfile: async () => ({ profileId: investorProfile, telegramId: "101" }),
+    resolveProfile: () => Promise.resolve({ profileId: investorProfile, telegramId: "101" }),
     now: () => new Date("2025-02-10T00:00:00Z"),
   });
   const requestResp = await withdrawHandlerInvestor(new Request("http://localhost", {
@@ -53,7 +53,7 @@ denoTest("private-pool-withdraw enforces notice and admin approval recalculates 
   assertEquals(pending.notice_expires_at !== null, true);
   const adminHandler = createWithdrawHandler({
     createStore: () => store,
-    resolveProfile: async () => ({ profileId: adminProfile, telegramId: "201" }),
+    resolveProfile: () => Promise.resolve({ profileId: adminProfile, telegramId: "201" }),
     now: () => new Date("2025-02-18T00:00:00Z"),
   });
   const approveResp = await adminHandler(new Request("http://localhost", {

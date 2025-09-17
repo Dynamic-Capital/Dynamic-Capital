@@ -97,27 +97,27 @@ const activeConfigClient = {
 };
 
 const disabledConfigClient = {
-  async getFlag(name: string, def = false): Promise<boolean> {
+  getFlag(name: string, def = false): Promise<boolean> {
     console.warn(
       `[config] ${CONFIG_DISABLED_MESSAGE} Returning default for "${name}".`,
     );
-    return def;
+    return Promise.resolve(def);
   },
 
-  async setFlag(_name: string, _value: boolean): Promise<void> {
-    throw new Error(CONFIG_DISABLED_MESSAGE);
+  setFlag(_name: string, _value: boolean): Promise<void> {
+    return Promise.reject(new Error(CONFIG_DISABLED_MESSAGE));
   },
 
-  async preview(): Promise<FlagSnapshot> {
-    throw new Error(CONFIG_DISABLED_MESSAGE);
+  preview(): Promise<FlagSnapshot> {
+    return Promise.reject(new Error(CONFIG_DISABLED_MESSAGE));
   },
 
-  async publish(_adminId?: string): Promise<void> {
-    throw new Error(CONFIG_DISABLED_MESSAGE);
+  publish(_adminId?: string): Promise<void> {
+    return Promise.reject(new Error(CONFIG_DISABLED_MESSAGE));
   },
 
-  async rollback(_adminId?: string): Promise<void> {
-    throw new Error(CONFIG_DISABLED_MESSAGE);
+  rollback(_adminId?: string): Promise<void> {
+    return Promise.reject(new Error(CONFIG_DISABLED_MESSAGE));
   },
 };
 

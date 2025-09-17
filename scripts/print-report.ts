@@ -1,7 +1,6 @@
 const inputs = await new Response(await Deno.stdin.readable).text();
 const lines = inputs.trim().split("\n").filter(Boolean).map(s=>{try{return JSON.parse(s)}catch{return {raw:s}}});
 function pick(name){ return lines.find(x=>x.__name===name) || {}; }
-function as(name,obj){ return JSON.stringify({__name:name, ...obj}); }
 function yn(v){ return v ? "yes" : "no"; }
 const sec = pick("secrets");
 const ver = pick("versions");

@@ -1,9 +1,17 @@
 import test from 'node:test';
 import { throws } from 'node:assert/strict';
 import { freshImport } from './utils/freshImport.ts';
+import process from "node:process";
 
-const supaState: any = { tables: {} };
-(globalThis as any).__SUPA_MOCK__ = supaState;
+interface SupaMockState {
+  tables: Record<string, unknown>;
+}
+
+type GlobalWithSupaMock = typeof globalThis & { __SUPA_MOCK__?: SupaMockState };
+
+const supaState: SupaMockState = { tables: {} };
+const globalWithSupaMock = globalThis as GlobalWithSupaMock;
+globalWithSupaMock.__SUPA_MOCK__ = supaState;
 
 function setEnv() {
   process.env.SUPABASE_URL = 'http://local';

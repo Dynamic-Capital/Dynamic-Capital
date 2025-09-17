@@ -1,5 +1,6 @@
 import test from 'node:test';
 import { equal as assertEquals } from 'node:assert/strict';
+import process from "node:process";
 
 process.env.SUPABASE_URL = 'http://localhost';
 process.env.SUPABASE_ANON_KEY = 'anon';
@@ -13,7 +14,7 @@ const cfg = await import(/* @vite-ignore */ "../supabase/functions/_shared/confi
 test('buildMainMenu highlights active section', async () => {
   const original = cfg.getContent;
   cfg.__setGetContent(
-    async <T>(key: string): Promise<T | null> => {
+    <T>(key: string): Promise<T | null> => {
       const map: Record<string, string | undefined> = {
         menu_dashboard_label: "📊 Dashboard",
         menu_plans_label: "💳 Plans",
@@ -26,7 +27,8 @@ test('buildMainMenu highlights active section', async () => {
         menu_ask_label: "🤖 Ask",
         menu_shouldibuy_label: "💡 Should I Buy?",
       };
-      return (map[key] ?? null) as T | null;
+      const value = (map[key] ?? null) as T | null;
+      return Promise.resolve(value);
     },
   );
 
