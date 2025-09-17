@@ -19,12 +19,13 @@ from __future__ import annotations
 import importlib
 import logging
 import math
+import pickle
 import sys
 from collections import deque
-from dataclasses import dataclass
-from datetime import date, datetime
+from dataclasses import asdict, dataclass, field, fields
+from datetime import UTC, date, datetime
 from types import ModuleType, SimpleNamespace
-from typing import Callable, List, Literal, Optional, Sequence
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Literal, Optional, Sequence, Tuple
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -125,6 +126,18 @@ class FeatureRow:
     close: float
     timestamp: datetime
     label: Optional[int] = None
+    persisted: bool = False
+
+
+@dataclass(slots=True)
+class LabeledFeature:
+    """Immutable sample used for offline training and persistence."""
+
+    features: tuple[float, ...]
+    label: int
+    close: float
+    timestamp: datetime
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -182,6 +195,7 @@ class ActivePosition:
     entry_price: float
     stop_loss: Optional[float] = None
     take_profit: Optional[float] = None
+    opened_at: Optional[datetime] = None
 
 
 @dataclass(slots=True)
@@ -229,12 +243,16 @@ class OnlineFeatureScaler:
         self._mean: list[float] | None = None
         self._m2: list[float] | None = None
 
-    def push(self, values: Sequence[float]) -> tuple[float, ...]:
+    def _initialise(self, vector: Sequence[float]) -> None:
+        self._mean = [float(v) for v in vector]
+        self._m2 = [0.0 for _ in vector]
+        self._count = 1
+
+    def transform(self, values: Sequence[float], *, update: bool = True) -> tuple[float, ...]:
         vector = tuple(float(v) for v in values)
         if self._count == 0:
-            self._mean = list(vector)
-            self._m2 = [0.0 for _ in vector]
-            self._count = 1
+            if update:
+                self._initialise(vector)
             return tuple(0.0 for _ in vector)
 
         assert self._mean is not None and self._m2 is not None
@@ -246,26 +264,50 @@ class OnlineFeatureScaler:
         for idx, value in enumerate(vector):
             mean = self._mean[idx]
             if self._count > 1:
-                variance = self._m2[idx] / (self._count - 1)
+                variance = self._m2[idx] / max(self._count - 1, 1)
                 std = math.sqrt(variance) if variance > 1e-12 else 1.0
             else:
                 std = 1.0
             normalised.append((value - mean) / std)
 
-        self._count += 1
-        for idx, value in enumerate(vector):
-            delta = value - self._mean[idx]
-            self._mean[idx] += delta / self._count
-            self._m2[idx] += delta * (value - self._mean[idx])
+        if update:
+            self._count += 1
+            for idx, value in enumerate(vector):
+                delta = value - self._mean[idx]
+                self._mean[idx] += delta / self._count
+                self._m2[idx] += delta * (value - self._mean[idx])
 
         return tuple(normalised)
+
+    def push(self, values: Sequence[float]) -> tuple[float, ...]:
+        return self.transform(values, update=True)
+
+    def state_dict(self) -> Dict[str, Any]:
+        return {
+            "count": self._count,
+            "mean": list(self._mean or []),
+            "m2": list(self._m2 or []),
+        }
+
+    def load_state_dict(self, state: Dict[str, Any]) -> None:
+        self._count = int(state.get("count", 0))
+        mean = state.get("mean")
+        m2 = state.get("m2")
+        if mean is None or m2 is None or len(mean) != len(m2):
+            self._mean = None
+            self._m2 = None
+            self._count = 0
+            return
+        self._mean = [float(v) for v in mean]
+        self._m2 = [float(v) for v in m2]
+
 
 
 class FeaturePipeline:
     """Pipeline that optionally leverages jdehorty ML helpers for scaling."""
 
-    def __init__(self) -> None:
-        self._scaler = self._resolve_remote_scaler() or OnlineFeatureScaler()
+    def __init__(self, *, scaler: Optional[object] = None) -> None:
+        self._scaler = scaler or self._resolve_remote_scaler() or OnlineFeatureScaler()
 
     @staticmethod
     def _resolve_remote_scaler() -> Optional[object]:
@@ -288,10 +330,10 @@ class FeaturePipeline:
                 instance = attr()
             except Exception:
                 continue
-            if hasattr(instance, "push"):
+            if hasattr(instance, "push") and hasattr(instance, "transform"):
                 logger.info("Using %s.%s for feature scaling", module_name, name)
                 return instance
-            if hasattr(instance, "transform") and hasattr(instance, "partial_fit"):
+            if hasattr(instance, "transform"):
                 logger.info(
                     "Wrapping %s.%s (sklearn-style scaler) for feature scaling",
                     module_name,
@@ -300,13 +342,75 @@ class FeaturePipeline:
                 return _SklearnLikeScaler(instance)
         return None
 
-    def push(self, values: Sequence[float]) -> tuple[float, ...]:
-        if hasattr(self._scaler, "push"):
-            return tuple(self._scaler.push(values))  # type: ignore[attr-defined]
-        if hasattr(self._scaler, "transform"):
-            transformed = self._scaler.transform([list(values)])  # type: ignore[attr-defined]
+    def transform(self, values: Sequence[float], *, update: bool = True) -> tuple[float, ...]:
+        scaler = self._scaler
+        if isinstance(scaler, OnlineFeatureScaler):
+            return scaler.transform(values, update=update)
+        if isinstance(scaler, _SklearnLikeScaler):
+            return scaler.transform(values, update=update)
+        if hasattr(scaler, "transform") and hasattr(scaler, "partial_fit"):
+            vector = [list(values)]
+            if update:
+                scaler.partial_fit(vector)  # type: ignore[attr-defined]
+            transformed = scaler.transform(vector)  # type: ignore[attr-defined]
+            return tuple(float(x) for x in transformed[0])
+        if hasattr(scaler, "push"):
+            if update:
+                return tuple(scaler.push(values))  # type: ignore[attr-defined]
+            if hasattr(scaler, "transform"):
+                try:
+                    return tuple(
+                        scaler.transform(values, update=False)  # type: ignore[attr-defined]
+                    )
+                except TypeError:
+                    transformed = scaler.transform([list(values)])  # type: ignore[attr-defined]
+                    return tuple(float(x) for x in transformed[0])
+            return tuple(scaler.push(values))  # type: ignore[attr-defined]
+        if hasattr(scaler, "transform"):
+            transformed = scaler.transform([list(values)])  # type: ignore[attr-defined]
             return tuple(float(x) for x in transformed[0])
         return tuple(float(v) for v in values)
+
+    def push(self, values: Sequence[float]) -> tuple[float, ...]:
+        return self.transform(values, update=True)
+
+    def fit(self, rows: Iterable[Sequence[float]]) -> None:
+        for row in rows:
+            self.transform(row, update=True)
+
+    def state_dict(self) -> Dict[str, Any]:
+        scaler = self._scaler
+        if isinstance(scaler, OnlineFeatureScaler):
+            return {"type": "online", "state": scaler.state_dict()}
+        if isinstance(scaler, _SklearnLikeScaler):
+            return {"type": "sklearn", "state": scaler.state_dict()}
+        if hasattr(scaler, "state_dict"):
+            return {"type": "external", "state": scaler.state_dict()}  # type: ignore[attr-defined]
+        try:
+            payload = pickle.dumps(scaler)
+        except Exception as exc:  # pragma: no cover - fallback path
+            raise TypeError(f"Scaler is not serialisable: {exc}") from exc
+        return {"type": "pickle", "state": payload}
+
+    def load_state_dict(self, state: Dict[str, Any]) -> None:
+        kind = state.get("type")
+        payload = state.get("state")
+        if kind == "online":
+            scaler = OnlineFeatureScaler()
+            if isinstance(payload, dict):
+                scaler.load_state_dict(payload)
+            self._scaler = scaler
+        elif kind == "sklearn":
+            self._scaler = _SklearnLikeScaler.from_state(payload)
+        elif kind == "external":
+            if hasattr(self._scaler, "load_state_dict"):
+                self._scaler.load_state_dict(payload)  # type: ignore[attr-defined]
+            else:
+                self._scaler = payload
+        elif kind == "pickle":
+            self._scaler = pickle.loads(payload)
+        else:
+            raise ValueError(f"Unknown scaler state kind: {kind}")
 
 
 class _SklearnLikeScaler:
@@ -316,16 +420,33 @@ class _SklearnLikeScaler:
         self._scaler = scaler
         self._is_fitted = False
 
-    def push(self, values: Sequence[float]) -> tuple[float, ...]:
+    def transform(self, values: Sequence[float], *, update: bool = True) -> tuple[float, ...]:
         vector = [list(values)]
-        if not self._is_fitted:
+        if update or not self._is_fitted:
             if hasattr(self._scaler, "partial_fit"):
-                self._scaler.partial_fit(vector)
+                self._scaler.partial_fit(vector)  # type: ignore[attr-defined]
             else:
-                self._scaler.fit(vector)
+                self._scaler.fit(vector)  # type: ignore[attr-defined]
             self._is_fitted = True
-        transformed = self._scaler.transform(vector)
+        transformed = self._scaler.transform(vector)  # type: ignore[attr-defined]
+        self._is_fitted = True
         return tuple(float(x) for x in transformed[0])
+
+    def state_dict(self) -> Dict[str, Any]:
+        try:
+            payload = pickle.dumps(self._scaler)
+        except Exception as exc:  # pragma: no cover - fallback path
+            raise TypeError(f"Scaler is not serialisable: {exc}") from exc
+        return {"payload": payload, "fitted": self._is_fitted}
+
+    @classmethod
+    def from_state(cls, state: Any) -> "_SklearnLikeScaler":
+        if not isinstance(state, dict) or "payload" not in state:
+            raise ValueError("Invalid sklearn scaler state")
+        scaler = pickle.loads(state["payload"])
+        instance = cls(scaler)
+        instance._is_fitted = bool(state.get("fitted", False))
+        return instance
 
 
 # ---------------------------------------------------------------------------
@@ -372,6 +493,116 @@ def _resolve_distance_function() -> Callable[[Sequence[float], Sequence[float]],
 
 
 # ---------------------------------------------------------------------------
+# Model container
+# ---------------------------------------------------------------------------
+
+
+class LorentzianKNNModel:
+    """Standalone Lorentzian k-NN model with fit/predict semantics."""
+
+    def __init__(
+        self,
+        *,
+        neighbors: int,
+        max_samples: Optional[int] = None,
+        distance_fn: Optional[Callable[[Sequence[float], Sequence[float]], float]] = None,
+    ) -> None:
+        if neighbors <= 0:
+            raise ValueError("neighbors must be positive")
+        self.neighbors = neighbors
+        self.max_samples = max_samples
+        self.distance_fn = distance_fn or _resolve_distance_function()
+        self._samples: deque[LabeledFeature] = deque()
+
+    def __len__(self) -> int:  # pragma: no cover - trivial
+        return len(self._samples)
+
+    def reset(self) -> None:
+        self._samples.clear()
+
+    def fit(self, samples: Iterable[LabeledFeature]) -> None:
+        self.reset()
+        for sample in samples:
+            self.add_sample(sample)
+
+    def add_sample(self, sample: LabeledFeature) -> None:
+        self._samples.append(sample)
+        if self.max_samples is not None:
+            while len(self._samples) > self.max_samples:
+                self._samples.popleft()
+
+    def iter_samples(self) -> Iterator[LabeledFeature]:
+        yield from self._samples
+
+    def predict(self, features: Sequence[float]) -> Optional[TradeSignal]:
+        labelled_rows = [row for row in self._samples if row.label is not None]
+        if len(labelled_rows) < self.neighbors:
+            return None
+
+        distances: list[tuple[float, int]] = []
+        for row in labelled_rows:
+            distance = self.distance_fn(row.features, features)
+            distances.append((distance, int(row.label)))
+        distances.sort(key=lambda item: item[0])
+
+        limit = min(self.neighbors, len(distances))
+        vote = sum(label for _, label in distances[:limit])
+        if vote > 0:
+            direction = 1
+        elif vote < 0:
+            direction = -1
+        else:
+            return TradeSignal(
+                direction=0,
+                confidence=0.0,
+                votes=0,
+                neighbors_considered=limit,
+            )
+
+        confidence = abs(vote) / limit if limit else 0.0
+        return TradeSignal(
+            direction=direction,
+            confidence=confidence,
+            votes=vote,
+            neighbors_considered=limit,
+        )
+
+    def state_dict(self) -> Dict[str, Any]:
+        return {
+            "neighbors": self.neighbors,
+            "max_samples": self.max_samples,
+            "samples": [
+                {
+                    "features": list(sample.features),
+                    "label": sample.label,
+                    "close": sample.close,
+                    "timestamp": sample.timestamp.isoformat(),
+                    "metadata": sample.metadata,
+                }
+                for sample in self._samples
+            ],
+        }
+
+    @classmethod
+    def from_state(cls, state: Dict[str, Any]) -> "LorentzianKNNModel":
+        neighbors = int(state.get("neighbors", 0))
+        max_samples = state.get("max_samples")
+        model = cls(neighbors=neighbors, max_samples=max_samples)
+        samples = state.get("samples", [])
+        for payload in samples:
+            timestamp = datetime.fromisoformat(payload["timestamp"])
+            sample = LabeledFeature(
+                features=tuple(float(x) for x in payload["features"]),
+                label=int(payload["label"]),
+                close=float(payload["close"]),
+                timestamp=timestamp,
+                metadata=dict(payload.get("metadata", {})),
+            )
+            model.add_sample(sample)
+        return model
+
+
+# ---------------------------------------------------------------------------
 # Strategy core
 # ---------------------------------------------------------------------------
 
@@ -400,6 +631,11 @@ class LorentzianKNNStrategy:
         self.neutral_zone_pips = neutral_zone_pips
         self.pipeline = FeaturePipeline()
         self.distance_fn = _resolve_distance_function()
+        self.model = LorentzianKNNModel(
+            neighbors=self.neighbors,
+            max_samples=self.max_rows,
+            distance_fn=self.distance_fn,
+        )
         self._rows: deque[FeatureRow] = deque()
 
     def update(self, snapshot: MarketSnapshot) -> Optional[TradeSignal]:
@@ -422,31 +658,130 @@ class LorentzianKNNStrategy:
                     label_row.label = 0
                 else:
                     label_row.label = 1 if snapshot.close > label_row.close else -1
+            if label_row is not None and label_row.label is not None and not label_row.persisted:
+                labelled = LabeledFeature(
+                    features=label_row.features,
+                    label=int(label_row.label),
+                    close=label_row.close,
+                    timestamp=label_row.timestamp,
+                )
+                self.model.add_sample(labelled)
+                label_row.persisted = True
 
         return self._evaluate(transformed)
 
     def _evaluate(self, features: Sequence[float]) -> Optional[TradeSignal]:
-        labelled_rows = [row for row in self._rows if row.label is not None]
-        if len(labelled_rows) < self.neighbors:
-            return None
+        return self.model.predict(features)
 
-        distances: list[tuple[float, int]] = []
-        for row in labelled_rows:
-            distance = self.distance_fn(row.features, features)
-            distances.append((distance, int(row.label)))
-        distances.sort(key=lambda item: item[0])
+    def ingest_labelled(self, samples: Iterable[LabeledFeature]) -> None:
+        for sample in samples:
+            self.model.add_sample(sample)
 
-        limit = min(self.neighbors, len(distances))
-        vote = sum(label for _, label in distances[:limit])
-        if vote > 0:
-            direction = 1
-        elif vote < 0:
-            direction = -1
+    def snapshot_state(self) -> Dict[str, Any]:
+        return {
+            "pipeline": self.pipeline.state_dict(),
+            "model": self.model.state_dict(),
+        }
+
+    def restore_state(self, state: Dict[str, Any]) -> None:
+        pipeline_state = state.get("pipeline")
+        if pipeline_state:
+            self.pipeline.load_state_dict(pipeline_state)
+        model_state = state.get("model")
+        if model_state:
+            restored = LorentzianKNNModel.from_state(model_state)
+            restored.distance_fn = self.distance_fn
+            self.model = restored
+
+
+# ---------------------------------------------------------------------------
+# Risk analytics and monitoring
+# ---------------------------------------------------------------------------
+
+
+@dataclass(slots=True)
+class CompletedTrade:
+    """Representation of a fully realised position used for analytics."""
+
+    symbol: str
+    direction: int
+    size: float
+    entry_price: float
+    exit_price: float
+    open_time: datetime
+    close_time: datetime
+    profit: float
+    pips: float
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True)
+class PerformanceMetrics:
+    total_trades: int
+    wins: int
+    losses: int
+    hit_rate: float
+    profit_factor: float
+    max_drawdown_pct: float
+    equity_curve: List[tuple[datetime, float]]
+
+
+@dataclass(slots=True)
+class RiskEvent:
+    """Event emitted by :class:`RiskManager` for monitoring hooks."""
+
+    type: str
+    timestamp: datetime
+    payload: Dict[str, Any] = field(default_factory=dict)
+
+
+class PerformanceTracker:
+    """Tracks realised performance statistics for monitoring and backtests."""
+
+    def __init__(self, initial_equity: float = 0.0) -> None:
+        self.initial_equity = float(initial_equity)
+        self._equity_curve: List[tuple[datetime, float]] = []
+        self._trades: List[CompletedTrade] = []
+        self._gross_profit = 0.0
+        self._gross_loss = 0.0
+        self._peak_equity = initial_equity
+        self._max_drawdown_pct = 0.0
+
+    def record_equity(self, timestamp: datetime, equity: float) -> None:
+        equity = float(equity)
+        self._equity_curve.append((timestamp, equity))
+        if equity > self._peak_equity:
+            self._peak_equity = equity
+        if self._peak_equity > 0:
+            drawdown = (self._peak_equity - equity) / self._peak_equity * 100
+            if drawdown > self._max_drawdown_pct:
+                self._max_drawdown_pct = drawdown
+
+    def record_trade(self, trade: CompletedTrade) -> None:
+        self._trades.append(trade)
+        if trade.profit >= 0:
+            self._gross_profit += float(trade.profit)
         else:
-            return TradeSignal(direction=0, confidence=0.0, votes=0, neighbors_considered=limit)
+            self._gross_loss += abs(float(trade.profit))
 
-        confidence = abs(vote) / limit if limit else 0.0
-        return TradeSignal(direction=direction, confidence=confidence, votes=vote, neighbors_considered=limit)
+    def metrics(self) -> PerformanceMetrics:
+        total_trades = len(self._trades)
+        wins = sum(1 for trade in self._trades if trade.profit > 0)
+        losses = sum(1 for trade in self._trades if trade.profit < 0)
+        hit_rate = wins / total_trades if total_trades else 0.0
+        if self._gross_loss > 0:
+            profit_factor = self._gross_profit / self._gross_loss
+        else:
+            profit_factor = float("inf") if self._gross_profit > 0 else 0.0
+        return PerformanceMetrics(
+            total_trades=total_trades,
+            wins=wins,
+            losses=losses,
+            hit_rate=hit_rate,
+            profit_factor=profit_factor,
+            max_drawdown_pct=self._max_drawdown_pct,
+            equity_curve=list(self._equity_curve),
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -461,13 +796,16 @@ class RiskManager:
         self.params = params or RiskParameters()
         self._daily_start_equity: Optional[float] = None
         self._daily_marker: Optional[date] = None
+        self.performance = PerformanceTracker(self.params.balance)
+        self._monitors: List[Callable[[RiskEvent], None]] = []
 
     def update_equity(self, equity: float, *, timestamp: Optional[datetime] = None) -> None:
-        ts_date = (timestamp or datetime.utcnow()).date()
+        ts_date = (timestamp or datetime.now(UTC)).date()
         if self._daily_marker != ts_date:
             self._daily_marker = ts_date
             self._daily_start_equity = equity
         self.params.balance = equity
+        self.performance.record_equity(timestamp or datetime.now(UTC), equity)
 
     def can_open(
         self,
@@ -515,6 +853,24 @@ class RiskManager:
         size = lot_steps * self.params.lot_step
         return max(self.params.min_lot, round(size, 4))
 
+    def register_monitor(self, callback: Callable[[RiskEvent], None]) -> None:
+        self._monitors.append(callback)
+
+    def notify(self, event_type: str, payload: Optional[Dict[str, Any]] = None) -> None:
+        event = RiskEvent(type=event_type, timestamp=datetime.now(UTC), payload=payload or {})
+        for callback in list(self._monitors):
+            try:
+                callback(event)
+            except Exception:  # pragma: no cover - monitoring should not break trading
+                logger.exception("Risk monitor callback failed for event %s", event_type)
+
+    def record_closed_trade(self, trade: CompletedTrade) -> None:
+        self.performance.record_trade(trade)
+        self.notify("trade_closed", {"trade": trade, "metrics": self.performance.metrics()})
+
+    def metrics(self) -> PerformanceMetrics:
+        return self.performance.metrics()
+
 
 # ---------------------------------------------------------------------------
 # Average daily range tracker
@@ -559,6 +915,7 @@ class TradeLogic:
         self,
         config: Optional[TradeConfig] = None,
         risk: Optional[RiskManager] = None,
+        monitors: Optional[Sequence[Callable[[RiskEvent], None]]] = None,
     ) -> None:
         self.config = config or TradeConfig()
         self.strategy = LorentzianKNNStrategy(
@@ -573,6 +930,8 @@ class TradeLogic:
             if self.config.use_adr
             else None
         )
+        for monitor in monitors or []:
+            self.risk.register_monitor(monitor)
 
     def on_bar(
         self,
@@ -593,8 +952,20 @@ class TradeLogic:
 
         signal = self.strategy.update(snapshot)
         if signal is None or signal.direction == 0:
+            self.risk.notify(
+                "signal_skipped",
+                {"snapshot": snapshot, "reason": "no_signal", "signal": signal},
+            )
             return []
         if signal.confidence < self.config.min_confidence:
+            self.risk.notify(
+                "signal_skipped",
+                {
+                    "snapshot": snapshot,
+                    "reason": "low_confidence",
+                    "signal": signal,
+                },
+            )
             return []
 
         if not self.risk.can_open(
@@ -604,6 +975,14 @@ class TradeLogic:
             direction=signal.direction,
             equity=account_equity,
         ):
+            self.risk.notify(
+                "signal_rejected",
+                {
+                    "snapshot": snapshot,
+                    "reason": "risk_limits",
+                    "signal": signal,
+                },
+            )
             return []
 
         decisions: List[TradeDecision] = []
@@ -647,6 +1026,10 @@ class TradeLogic:
             )
         )
 
+        for decision in decisions:
+            event_type = "trade_open" if decision.action == "open" else "trade_close"
+            self.risk.notify(event_type, {"decision": decision, "snapshot": snapshot})
+
         return decisions
 
     def _determine_sl_tp(self, snapshot: MarketSnapshot) -> tuple[float, float]:
@@ -659,13 +1042,38 @@ class TradeLogic:
                 take_profit_pips = max(0.1, adr_pips * self.config.adr_take_profit_factor)
         return (stop_loss_pips, take_profit_pips)
 
+    def export_artifacts(self) -> Dict[str, Any]:
+        return {
+            "config": asdict(self.config),
+            "model": self.strategy.snapshot_state(),
+        }
+
+    def load_artifacts(self, payload: Dict[str, Any]) -> None:
+        config_payload = payload.get("config")
+        if isinstance(config_payload, dict):
+            for field_info in fields(TradeConfig):
+                if field_info.name in config_payload:
+                    setattr(self.config, field_info.name, config_payload[field_info.name])
+        model_payload = payload.get("model")
+        if isinstance(model_payload, dict):
+            self.strategy.restore_state(model_payload)
+
 
 __all__ = [
     "ActivePosition",
+    "CompletedTrade",
     "FeatureRow",
+    "FeaturePipeline",
+    "LabeledFeature",
+    "LorentzianKNNModel",
+    "LorentzianKNNStrategy",
     "MarketSnapshot",
+    "OnlineFeatureScaler",
+    "PerformanceMetrics",
+    "PerformanceTracker",
     "RiskManager",
     "RiskParameters",
+    "RiskEvent",
     "TradeConfig",
     "TradeDecision",
     "TradeLogic",
@@ -678,7 +1086,7 @@ __all__ = [
 if __name__ == "__main__":  # pragma: no cover - convenience usage example
     logging.basicConfig(level=logging.INFO)
     logic = TradeLogic()
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     snapshot = MarketSnapshot(
         symbol="XAUUSD",
         timestamp=now,

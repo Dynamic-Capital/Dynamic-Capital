@@ -1,27 +1,6 @@
 """Python trading strategy utilities for Dynamic Capital."""
 
-from .trade_logic import (
-    ActivePosition,
-    MarketSnapshot,
-    RiskManager,
-    RiskParameters,
-    TradeConfig,
-    TradeDecision,
-    TradeLogic,
-    TradeSignal,
-    kernels,
-    ml,
-)
+from . import trade_logic as _trade_logic
 
-__all__ = [
-    "ActivePosition",
-    "MarketSnapshot",
-    "RiskManager",
-    "RiskParameters",
-    "TradeConfig",
-    "TradeDecision",
-    "TradeLogic",
-    "TradeSignal",
-    "ml",
-    "kernels",
-]
+__all__ = getattr(_trade_logic, "__all__", [])  # type: ignore[attr-defined]
+globals().update({name: getattr(_trade_logic, name) for name in __all__})
