@@ -1,5 +1,5 @@
-@reference "./theme.css";
 @import './styles/mobile.css';
+@reference "./theme.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

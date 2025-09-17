@@ -1,0 +1,13 @@
+{
+  "extends": "./apps/web/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["apps/web/*"],
+      "~/*": ["src/*"]
+    },
+    "types": ["vite/client"]
+  },
+  "include": ["src", "apps/web"],
+  "exclude": ["node_modules"]
+}

@@ -52,6 +52,26 @@ const fadeIn: Variants = {
   },
 };
 
+const badge: Variants = {
+  hidden: { opacity: 0, y: -8 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.quick,
+      ease: ONCE_MOTION_EASING.entrance,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.instant,
+      ease: ONCE_MOTION_EASING.exit,
+    },
+  },
+};
+
 const slideUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: {
@@ -503,6 +523,7 @@ export const onceRevealVariantKeys = [
 export type OnceRevealVariantKey = (typeof onceRevealVariantKeys)[number];
 
 export const onceMotionVariants = {
+  fade: fadeIn,
   fadeIn,
   slideUp,
   slideDown,
@@ -518,6 +539,7 @@ export const onceMotionVariants = {
   button,
   primaryButton,
   ghostButton,
+  badge,
   card,
   interactiveCard,
   page,

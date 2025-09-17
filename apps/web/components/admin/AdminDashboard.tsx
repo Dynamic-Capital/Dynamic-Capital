@@ -227,7 +227,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   if (loading) {
     return (
       <OnceContainer
-        variant="fade"
+        variant="fadeIn"
         className="flex min-h-[200px] items-center justify-center rounded-3xl border border-border/50 bg-card/60 px-6 py-12 text-sm font-medium text-muted-foreground shadow-lg"
       >
         <Loader2 className="mr-3 h-6 w-6 animate-spin text-primary" />
@@ -300,7 +300,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       <section className="relative overflow-hidden rounded-[32px] border border-border/40 bg-gradient-to-br from-background via-card/40 to-background p-[1px] shadow-xl">
         <div className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from-primary/20 via-transparent to-dc-accent/20 opacity-40" />
         <div className="relative rounded-[32px] bg-background/95 p-6 sm:p-10">
-          <OnceContainer variant="stack" className="space-y-10">
+          <OnceContainer variant="slideUp" className="space-y-10">
             <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-2 text-left">
                 <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
