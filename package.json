@@ -5,8 +5,10 @@
     "apps/*"
   ],
   "engines": {
-    "node": "20.x"
+    "node": ">=18.17.0 <21",
+    "npm": ">=11.6.0"
   },
+  "packageManager": "npm@11.6.0",
   "type": "module",
   "scripts": {
     "build": "npm run build:web && npm run build:landing",
