@@ -135,7 +135,29 @@ for (const key of envKeys) {
   lines.push(`- ${key}`);
 }
 lines.push("");
+lines.push("## Automation Notes");
+lines.push("");
+lines.push(
+  "- Run `npm run docs:summary` before merging to refresh this inventory.",
+);
+lines.push(
+  "- When marketing assets change, rerun the landing build parity checklist below.",
+);
+lines.push("");
+lines.push("### Landing Build Parity Checklist");
+lines.push("");
+lines.push(
+  "- [ ] Run `npm run build:landing` to regenerate `_static/` assets.",
+);
+lines.push(
+  "- [ ] Compare `_static/` with `apps/web/app/(marketing)` and commit any differences.",
+);
+lines.push(
+  "- [ ] Record the parity outcome in release notes or the PR description.",
+);
+lines.push("");
 lines.push("_Generated with `scripts/generate-repo-summary.ts`._");
+lines.push("");
 
 const target = join(repoRoot, "docs", "REPO_SUMMARY.md");
 await Deno.writeTextFile(target, lines.join("\n"));

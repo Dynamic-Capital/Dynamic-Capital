@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
-import { bad, mna, oops, ok } from "../_shared/http.ts";
+import { bad, jsonResponse, mna, oops } from "../_shared/http.ts";
+import {
+  buildHealthReport,
+  guardHealthRequest,
+  measureHealthCheck,
+} from "../_shared/health.ts";
 import { version } from "../_shared/version.ts";
 
 interface SupabaseLike {
@@ -22,7 +27,7 @@ async function checkEnvAdmin(telegramId: string): Promise<boolean> {
     const { isAdmin } = await import("../_shared/telegram.ts");
     return await isAdmin(telegramId);
   } catch (error) {
-    console.warn('Failed to check env admin:', error);
+    console.warn("Failed to check env admin:", error);
     return false;
   }
 }
@@ -56,7 +61,11 @@ export async function getVipForTelegram(
 export async function handler(req: Request): Promise<Response> {
   const v = version(req, "miniapp-health");
   if (v) return v;
+
+  const guard = guardHealthRequest(req, ["POST"]);
+  if (guard) return guard;
   if (req.method !== "POST") return mna();
+
   let body: { telegram_id?: string; initData?: string };
   try {
     body = await req.json();
@@ -64,18 +73,17 @@ export async function handler(req: Request): Promise<Response> {
     return bad("Bad JSON");
   }
 
-  // Extract telegram_id from initData if provided
   let tg = String(body.telegram_id || "").trim();
   if (!tg && body.initData) {
     try {
       const params = new URLSearchParams(body.initData);
-      const userStr = params.get('user');
+      const userStr = params.get("user");
       if (userStr) {
         const user = JSON.parse(userStr);
-        tg = user.id?.toString() || '';
+        tg = user.id?.toString() || "";
       }
     } catch (error) {
-      console.warn('Failed to parse initData:', error);
+      console.warn("Failed to parse initData:", error);
     }
   }
 
@@ -84,32 +92,77 @@ export async function handler(req: Request): Promise<Response> {
   const supa = createClient();
 
   let isVip: boolean | null = null;
-  let isAdmin: boolean = false;
-  try {
-    isVip = await getVipForTelegram(supa, tg);
-    
-    // Check admin status from both DB and environment allowlist
-    const { data: adminData } = await supa
-      .from("bot_users")
-      .select("is_admin")
-      .eq("telegram_id", tg)
-      .single();
-    
-    const dbAdmin = adminData?.is_admin || false;
-    
-    // Also check environment allowlist
-    const envAdmin = await checkEnvAdmin(tg);
-    
-    isAdmin = dbAdmin || envAdmin;
-  } catch (error) {
-    return oops((error as Error).message);
-  }
+  let isAdmin = false;
 
-  return ok({ 
-    vip: { is_vip: isVip }, 
-    admin: { is_admin: isAdmin },
-    telegram_user_id: tg
-  });
+  try {
+    const checks = await Promise.all([
+      measureHealthCheck("vip_lookup", async () => {
+        const vip = await getVipForTelegram(supa, tg);
+        isVip = vip;
+        if (vip === null) {
+          return {
+            status: "warning",
+            message: "No VIP membership found",
+            metadata: { is_vip: vip },
+          };
+        }
+        if (vip === false) {
+          return {
+            status: "warning",
+            message: "User is not VIP",
+            metadata: { is_vip: vip },
+          };
+        }
+        return {
+          message: "VIP membership active",
+          metadata: { is_vip: vip },
+        };
+      }),
+      measureHealthCheck("admin_lookup", async () => {
+        const { data, error } = await supa
+          .from("bot_users")
+          .select("is_admin")
+          .eq("telegram_id", tg)
+          .limit(1);
+        if (error) {
+          return {
+            status: "error",
+            message: `Admin lookup failed: ${error.message}`,
+          };
+        }
+        const dbAdmin = Boolean(data?.[0]?.is_admin);
+        const envAdmin = await checkEnvAdmin(tg);
+        isAdmin = dbAdmin || envAdmin;
+        return {
+          status: isAdmin ? "healthy" : "warning",
+          message: isAdmin
+            ? "Admin privileges confirmed"
+            : "Admin privileges not granted",
+          metadata: { db_admin: dbAdmin, env_admin: envAdmin },
+        };
+      }),
+    ]);
+
+    const health = buildHealthReport(checks, {
+      systemInfo: { surface: "miniapp-health" },
+    });
+
+    const status = health.overall_status === "error" ? 503 : 200;
+
+    return jsonResponse(
+      {
+        ok: status === 200,
+        health,
+        vip: { is_vip: isVip },
+        admin: { is_admin: isAdmin },
+        telegram_user_id: tg,
+      },
+      { status },
+      req,
+    );
+  } catch (error) {
+    return oops((error as Error).message, undefined, req);
+  }
 }
 
 if (import.meta.main) {

@@ -41,9 +41,26 @@ jobs:
           deno-version: v1.x
       - run: deno test -A tests
 
+  docs-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+      - name: Generate repository summary
+        run: deno run -A scripts/generate-repo-summary.ts
+      - name: Verify documentation inventory is committed
+        run: |
+          if ! git diff --quiet -- docs/REPO_SUMMARY.md docs/REPO_MAP_OPTIMIZATION.md; then
+            echo "::error::Documentation summary files are out of date. Run npm run docs:summary and commit the results."
+            git --no-pager diff -- docs/REPO_SUMMARY.md docs/REPO_MAP_OPTIMIZATION.md
+            exit 1
+          fi
+
   deploy-staging:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [lint, unit-tests, integration-tests]
+    needs: [lint, unit-tests, integration-tests, docs-drift]
     runs-on: ubuntu-latest
     environment: staging
     steps:
