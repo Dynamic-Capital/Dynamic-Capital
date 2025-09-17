@@ -14,6 +14,7 @@ function usage() {
     `Options:\n` +
     `  --app-id <id>             DigitalOcean App Platform app ID (required)\n` +
     `  --site-url <url>         Canonical site URL to enforce (required)\n` +
+    `  --allowed-origins <list> Override the comma-separated CORS allow list\n` +
     `  --domain <host>          Override the hostname portion of the site URL\n` +
     `  --zone <domain>          DNS zone to import (defaults to domain)\n` +
     `  --service <name>         Service name to update (default: dynamic-capital)\n` +
@@ -35,6 +36,45 @@ function parseSiteUrl(value) {
 
 function ensureArray(value) {
   return Array.isArray(value) ? value : [];
+}
+
+const PRODUCTION_ALLOWED_ORIGINS = [
+  'https://dynamic-capital.vercel.app',
+  'https://dynamic-capital.lovable.app',
+  'https://dynamic-capital.ondigitalocean.app',
+];
+
+function normalizeOrigin(value) {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return '';
+  }
+  return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
+}
+
+function parseAllowedOrigins(value) {
+  return value
+    .split(',')
+    .map(normalizeOrigin)
+    .filter((origin) => origin.length > 0);
+}
+
+function resolveAllowedOrigins({
+  requested,
+  existing,
+  canonicalOrigin,
+}) {
+  const baseList = requested
+    ? parseAllowedOrigins(requested)
+    : existing
+      ? parseAllowedOrigins(existing)
+      : [...PRODUCTION_ALLOWED_ORIGINS];
+
+  if (!baseList.includes(canonicalOrigin)) {
+    baseList.push(canonicalOrigin);
+  }
+
+  return Array.from(new Set(baseList)).join(',');
 }
 
 function upsertEnv(envs, key, value, scope, changes) {
@@ -116,6 +156,7 @@ async function main() {
     options: {
       'app-id': { type: 'string' },
       'site-url': { type: 'string' },
+      'allowed-origins': { type: 'string' },
       domain: { type: 'string' },
       zone: { type: 'string' },
       service: { type: 'string', default: 'dynamic-capital' },
@@ -151,6 +192,7 @@ async function main() {
   const domain = values.domain ?? parsedSiteUrl.host;
   const zone = values.zone ?? domain;
   const serviceName = values.service ?? 'dynamic-capital';
+  const requestedAllowedOrigins = values['allowed-origins'];
 
   let specOutput;
   try {
@@ -174,9 +216,15 @@ async function main() {
   const changes = new Set();
 
   spec.envs = ensureArray(spec.envs);
+  const existingAllowedOrigins = spec.envs.find((item) => item?.key === 'ALLOWED_ORIGINS')?.value;
+  const allowedOrigins = resolveAllowedOrigins({
+    requested: requestedAllowedOrigins,
+    existing: existingAllowedOrigins,
+    canonicalOrigin: parsedSiteUrl.origin,
+  });
   upsertEnv(spec.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes);
   upsertEnv(spec.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes);
-  upsertEnv(spec.envs, 'ALLOWED_ORIGINS', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes);
+  upsertEnv(spec.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes);
   upsertEnv(spec.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes);
 
   spec.services = ensureArray(spec.services);
@@ -242,6 +290,7 @@ async function main() {
   console.log(`  Site URL: ${parsedSiteUrl.toString()}`);
   console.log(`  Domain: ${domain}`);
   console.log(`  Zone: ${zone}`);
+  console.log(`  Allowed origins: ${allowedOrigins}`);
 
   if (changes.size > 0) {
     console.log('  Applied updates:');
