@@ -934,32 +934,107 @@
   }
 
   /* === LIQUID GLASS EFFECTS === */
-  .liquid-glass {
-    @apply bg-background/95 dark:bg-foreground/85;
-    @apply border border-border/50 dark:border-border/30;
-    @apply shadow-2xl;
-    backdrop-filter: blur(24px) saturate(2) brightness(1.1);
-    -webkit-backdrop-filter: blur(24px) saturate(2) brightness(1.1);
-    background-image: 
-      radial-gradient(at 40% 20%, hsla(var(--primary), 0.1) 0px, transparent 50%),
-      radial-gradient(at 80% 0%, hsla(var(--accent), 0.1) 0px, transparent 50%),
-      radial-gradient(at 0% 50%, hsla(var(--secondary), 0.1) 0px, transparent 50%);
+  .liquid-glass,
+  .liquid-glass-button,
+  .liquid-glass-nav {
+    --liquid-glass-base: 255 255 255;
+    --liquid-glass-opacity: 0.12;
+    --liquid-glass-border-opacity: 0.24;
+    --liquid-glass-highlight: var(--primary);
+    --liquid-glass-highlight-strength: 0.18;
+    --liquid-glass-accent: var(--accent);
+    --liquid-glass-accent-strength: 0.14;
+    --liquid-glass-glow: var(--secondary);
+    --liquid-glass-glow-strength: 0.1;
+    --liquid-glass-blur: 26px;
+    --liquid-glass-saturation: 1.85;
+    --liquid-glass-brightness: 1.1;
+    --liquid-glass-shadow: 0 20px 45px rgb(15 23 42 / 0.25);
+
+    background-color: rgb(var(--liquid-glass-base) / var(--liquid-glass-opacity));
+    border: 1px solid rgb(var(--liquid-glass-base) / var(--liquid-glass-border-opacity));
+    background-image:
+      radial-gradient(at 40% 20%, hsla(var(--liquid-glass-highlight), var(--liquid-glass-highlight-strength)) 0px, transparent 55%),
+      radial-gradient(at 80% 0%, hsla(var(--liquid-glass-accent), var(--liquid-glass-accent-strength)) 0px, transparent 55%),
+      radial-gradient(at 0% 50%, hsla(var(--liquid-glass-glow), var(--liquid-glass-glow-strength)) 0px, transparent 60%);
+    backdrop-filter: blur(var(--liquid-glass-blur)) saturate(var(--liquid-glass-saturation))
+      brightness(var(--liquid-glass-brightness));
+    -webkit-backdrop-filter: blur(var(--liquid-glass-blur)) saturate(var(--liquid-glass-saturation))
+      brightness(var(--liquid-glass-brightness));
+    box-shadow: var(--liquid-glass-shadow);
+    color: rgb(var(--foreground));
+    transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease,
+      backdrop-filter 200ms ease, -webkit-backdrop-filter 200ms ease;
   }
 
   .liquid-glass-button {
-    @apply bg-background/35 hover:bg-background/45 dark:bg-foreground/65 dark:hover:bg-foreground/75;
-    @apply border border-border/60 dark:border-border/40;
-    @apply shadow-xl text-foreground;
-    backdrop-filter: blur(16px) saturate(1.8) brightness(1.2);
-    -webkit-backdrop-filter: blur(16px) saturate(1.8) brightness(1.2);
+    @apply text-foreground transition-all duration-300;
+    --liquid-glass-opacity: 0.1;
+    --liquid-glass-border-opacity: 0.2;
+    --liquid-glass-blur: 20px;
+    --liquid-glass-saturation: 1.7;
+    --liquid-glass-brightness: 1.16;
+    --liquid-glass-shadow: 0 12px 30px rgb(15 23 42 / 0.18);
+  }
+
+  .liquid-glass-button:hover,
+  .liquid-glass-button:focus-visible {
+    --liquid-glass-opacity: 0.15;
+    --liquid-glass-border-opacity: 0.28;
+    --liquid-glass-blur: 24px;
+    --liquid-glass-brightness: 1.22;
   }
 
   .liquid-glass-nav {
-    @apply bg-background/40 hover:bg-background/50 dark:bg-foreground/70 dark:hover:bg-foreground/80;
-    @apply border border-border/60 dark:border-border/40;
-    @apply shadow-2xl text-foreground;
-    backdrop-filter: blur(20px) saturate(2) brightness(1.3);
-    -webkit-backdrop-filter: blur(20px) saturate(2) brightness(1.3);
+    @apply text-foreground;
+    --liquid-glass-opacity: 0.12;
+    --liquid-glass-border-opacity: 0.26;
+    --liquid-glass-blur: 24px;
+    --liquid-glass-saturation: 1.9;
+    --liquid-glass-brightness: 1.14;
+    --liquid-glass-shadow: 0 18px 40px rgb(15 23 42 / 0.22);
+  }
+
+  .liquid-glass-nav:hover,
+  .liquid-glass-nav:focus-within {
+    --liquid-glass-opacity: 0.15;
+    --liquid-glass-border-opacity: 0.3;
+    --liquid-glass-blur: 28px;
+  }
+
+  /* Surface modifiers allow per-component tuning of tint/blur without duplicating styles. */
+  :is(.liquid-glass, .liquid-glass-button, .liquid-glass-nav)[data-liquid-depth='soft'] {
+    --liquid-glass-opacity: 0.08;
+    --liquid-glass-border-opacity: 0.18;
+    --liquid-glass-blur: 18px;
+    --liquid-glass-saturation: 1.55;
+    --liquid-glass-brightness: 1.05;
+  }
+
+  :is(.liquid-glass, .liquid-glass-button, .liquid-glass-nav)[data-liquid-depth='bold'] {
+    --liquid-glass-opacity: 0.15;
+    --liquid-glass-border-opacity: 0.32;
+    --liquid-glass-blur: 32px;
+    --liquid-glass-saturation: 2.1;
+    --liquid-glass-brightness: 1.18;
+  }
+
+  :is(.liquid-glass, .liquid-glass-button, .liquid-glass-nav)[data-liquid-theme='brand'] {
+    --liquid-glass-highlight: var(--dc-brand);
+    --liquid-glass-accent: var(--dc-brand-light);
+    --liquid-glass-glow: var(--dc-brand-dark);
+  }
+
+  :is(.liquid-glass, .liquid-glass-button, .liquid-glass-nav)[data-liquid-theme='accent'] {
+    --liquid-glass-highlight: var(--accent);
+    --liquid-glass-accent: var(--accent-pink);
+    --liquid-glass-glow: var(--accent-teal);
+  }
+
+  :is(.liquid-glass, .liquid-glass-button, .liquid-glass-nav)[data-liquid-theme='emerald'] {
+    --liquid-glass-highlight: 158 64% 52%;
+    --liquid-glass-accent: 174 72% 45%;
+    --liquid-glass-glow: 122 39% 49%;
   }
 
   /* === STATUS INDICATORS === */
