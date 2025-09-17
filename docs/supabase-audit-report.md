@@ -293,6 +293,51 @@ Expected additional functions may be:
 
 ---
 
+## 🛠️ **FOLLOW-UP PLAYBOOK**
+
+### ✅ Deploy the missing Edge Functions
+
+Bring the live environment back in sync with the repository by deploying the
+high-priority operational functions:
+
+```bash
+supabase functions deploy admin-session admin-review-payment rotate-admin-secret \
+  rotate-webhook-secret payments-auto-review vip-sync
+```
+
+After deployment, verify the list with `supabase functions list` to ensure all
+six appear as `ACTIVE`.
+
+### ✅ Configure at least one admin user
+
+Either grant an existing Telegram user admin status or insert a new record. The
+service-role key is required when running the SQL below from the Supabase SQL
+editor or CLI:
+
+```sql
+update bot_users
+set is_admin = true
+where telegram_id = '<TELEGRAM_ID>'; -- replace with the admin's numeric ID
+```
+
+### ✅ Clear the backlog of pending payments
+
+Use the `admin-review-payment` Edge Function to approve or reject the four
+pending payments so the finance pipeline can progress:
+
+```bash
+curl -X POST "$SUPABASE_URL/functions/v1/admin-review-payment" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+  -H "x-admin-secret: $ADMIN_API_SECRET" \
+  -d '{"payment_id": "<PAYMENT_UUID>", "action": "approve"}'
+```
+
+Repeat for each payment (swap `approve` for `reject` if necessary) and confirm
+the new status via the `payments` table.
+
+---
+
 ## ✅ **FINAL VERDICT**
 
 ### 🏆 **OVERALL HEALTH: EXCELLENT (85/100)**
