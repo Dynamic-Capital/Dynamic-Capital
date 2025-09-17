@@ -107,7 +107,60 @@ if (process.env.CI === '1') {
 }
 
 divider();
-step('Starting the Next.js dev server with extra cheer...');
-note('Tip: Watch for build output below. Press Ctrl+C when you are done.');
-celebrate('Happy coding! The server logs will stream next.');
-execSync('npm run dev', { stdio: 'inherit' });
+step('Starting the development servers...');
+
+// Start Next.js dev server in background
+info('Starting Next.js dev server on port 3000...');
+const { spawn } = await import('node:child_process');
+
+const nextProcess = spawn('npm', ['run', 'dev', '--', '--port', '3000'], {
+  cwd: 'apps/web',
+  stdio: 'pipe',
+  env: { ...process.env }
+});
+
+let nextReady = false;
+
+// Monitor Next.js server startup
+nextProcess.stdout?.on('data', (data) => {
+  const output = data.toString();
+  if (output.includes('Local:') || output.includes('Ready')) {
+    if (!nextReady) {
+      nextReady = true;
+      success('Next.js dev server is ready!');
+      
+      // Start Vite proxy server after Next.js is ready
+      setTimeout(() => {
+        info('Starting Vite proxy server on port 8080...');
+        note('Tip: Your app will be available at http://localhost:8080');
+        celebrate('Happy coding! Vite will proxy requests to Next.js.');
+        
+        try {
+          execSync('vite dev', { stdio: 'inherit' });
+        } catch (error) {
+          logError('Vite server failed to start', {
+            details: error?.message ? [error.message] : undefined,
+          });
+        }
+      }, 1000);
+    }
+  }
+  // Forward Next.js logs with prefix
+  process.stdout.write(`[Next.js] ${output}`);
+});
+
+nextProcess.stderr?.on('data', (data) => {
+  process.stderr.write(`[Next.js] ${data}`);
+});
+
+// Handle process cleanup
+process.on('SIGINT', () => {
+  info('Shutting down development servers...');
+  nextProcess.kill('SIGINT');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  nextProcess.kill('SIGTERM');
+  process.exit(0);
+});

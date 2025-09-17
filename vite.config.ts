@@ -14,18 +14,24 @@ export default defineConfig(({ mode }) => ({
         target: 'http://localhost:3000',
         changeOrigin: true,
         ws: true,
+        secure: false,
+        timeout: 30000,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
-            console.log('proxy error', err);
+            console.log('🔴 Proxy error:', err.message);
           });
           proxy.on('proxyReq', (proxyReq, req, _res) => {
-            console.log('Sending Request to the Target:', req.method, req.url);
+            console.log('➡️  Proxying:', req.method, req.url);
           });
           proxy.on('proxyRes', (proxyRes, req, _res) => {
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            console.log('✅ Response:', proxyRes.statusCode, req.url);
           });
         },
       }
+    },
+    // Enable Hot Module Replacement for better dev experience
+    hmr: {
+      port: 8081,
     }
   },
   plugins: [
