@@ -8,10 +8,11 @@ This project relies on a Next.js service and Supabase Edge Functions. Use the fo
 - Set `DOMAIN` in your `.env` to the root zone (e.g. `example.com`) for helper scripts and Nginx templates.
 - Update `SITE_URL` and `NEXT_PUBLIC_SITE_URL` to the canonical site URL, and adjust `NEXT_PUBLIC_API_URL` if using an API subdomain.
 - `ALLOWED_ORIGINS` should list the site and API origins so browsers can call the endpoints.
-- `dynamic-capital.vercel.app` is the canonical production domain. Both
-  `dynamic-capital.lovable.app` and the legacy DigitalOcean default
-  (`dynamic-capital.ondigitalocean.app`) stay exported in
-  [`dns/dynamic-capital.ondigitalocean.app.zone`](../dns/dynamic-capital.ondigitalocean.app.zone)
+- `dynamic-capital-qazf2.ondigitalocean.app` is the canonical production
+  domain. Both `dynamic-capital.vercel.app` and `dynamic-capital.lovable.app`
+  stay exported in
+  [`dns/dynamic-capital-qazf2.ondigitalocean.app.zone`](../dns/dynamic-capital-qazf2.ondigitalocean.app.zone)
+  and [`dns/dynamic-capital.lovable.app.json`](../dns/dynamic-capital.lovable.app.json)
   so every host can participate in load sharing while pointing at the same
   Cloudflare anycast IPs (162.159.140.98 and 172.66.0.96).
 - Run `deno run -A scripts/configure-digitalocean-dns.ts --dry-run` to inspect the
@@ -39,10 +40,21 @@ location /api/ {
 Traffic routed through Cloudflare may arrive from public IPs such as `162.159.140.98` or `172.66.0.96`. Set your web app domain's A records to these IPs and let Cloudflare proxy requests to the service running on port `8080`.
 
 ## Origin alignment across platforms
-- The DigitalOcean App Platform spec pins the ingress authority to `dynamic-capital.lovable.app` so that host stays healthy for load sharing while the app itself publishes `https://dynamic-capital.vercel.app` links.
-- `supabase/config.toml` now sets `site_url`, `additional_redirect_urls`, and the Supabase Functions env block to the Vercel origin while allowlisting the Lovable and DigitalOcean hosts for cross-domain API calls.
-- `vercel.json` declares the Vercel domain as the default origin and exposes the full allow list without forcing a redirect, letting both production hosts serve traffic.
-- `lovable-build.js` and `lovable-dev.js` hydrate `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` before running Lovable workflows so previews and builds share the production origin when values are omitted, with `ALLOWED_ORIGINS` defaulting to the combined host list.
+- The DigitalOcean App Platform spec keeps ingress open so
+  `dynamic-capital-qazf2.ondigitalocean.app`, `dynamic-capital.vercel.app`, and
+  `dynamic-capital.lovable.app` all route to the same service while the app
+  publishes DigitalOcean-hosted links.
+- `supabase/config.toml` now sets `site_url`, `additional_redirect_urls`, and
+  the Supabase Functions env block to the DigitalOcean origin while allowlisting
+  the Lovable and Vercel hosts for cross-domain API calls.
+- `vercel.json` and the Lovable scripts default to the DigitalOcean domain but
+  expose the full allow list so alternate hosts continue to work without
+  additional overrides.
+- `lovable-build.js` and `lovable-dev.js` hydrate `SITE_URL`,
+  `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` before running
+  Lovable workflows so previews and builds share the production origin when
+  values are omitted, with `ALLOWED_ORIGINS` defaulting to the combined host
+  list.
 
 ## Outbound connectivity
 Ensure the runtime can reach external services like Supabase over HTTPS (`*.supabase.co`). Adjust firewall or egress rules as needed.
