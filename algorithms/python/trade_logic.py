@@ -21,6 +21,7 @@ import logging
 import math
 import pickle
 import sys
+from heapq import nsmallest
 from collections import deque
 from dataclasses import asdict, dataclass, field, fields
 from datetime import UTC, date, datetime
@@ -543,10 +544,13 @@ class LorentzianKNNModel:
         for row in labelled_rows:
             distance = self.distance_fn(row.features, features)
             distances.append((distance, int(row.label)))
-        distances.sort(key=lambda item: item[0])
 
-        limit = min(self.neighbors, len(distances))
-        vote = sum(label for _, label in distances[:limit])
+        winners = nsmallest(self.neighbors, distances, key=lambda item: item[0])
+        limit = len(winners)
+        if limit == 0:
+            return None
+
+        vote = sum(label for _, label in winners)
         if vote > 0:
             direction = 1
         elif vote < 0:
@@ -649,7 +653,7 @@ class LorentzianKNNStrategy:
         if self.label_lookahead > 0 and len(self._rows) > self.label_lookahead:
             label_index = -self.label_lookahead - 1
             try:
-                label_row = list(self._rows)[label_index]
+                label_row = self._rows[label_index]
             except IndexError:
                 label_row = None
             if label_row is not None and label_row.label is None:
@@ -950,13 +954,19 @@ class TradeLogic:
                 pip_size=snapshot.pip_size,
             )
 
+        exit_decisions, filtered_positions = self._generate_exit_decisions(
+            snapshot, open_positions
+        )
+        decisions: List[TradeDecision] = list(exit_decisions)
+        open_positions = filtered_positions
+
         signal = self.strategy.update(snapshot)
         if signal is None or signal.direction == 0:
             self.risk.notify(
                 "signal_skipped",
                 {"snapshot": snapshot, "reason": "no_signal", "signal": signal},
             )
-            return []
+            return self._finalise_decisions(decisions, snapshot)
         if signal.confidence < self.config.min_confidence:
             self.risk.notify(
                 "signal_skipped",
@@ -966,7 +976,16 @@ class TradeLogic:
                     "signal": signal,
                 },
             )
-            return []
+            return self._finalise_decisions(decisions, snapshot)
+
+        reversal_decisions, filtered_positions = self._close_opposing_positions(
+            symbol=snapshot.symbol,
+            signal=signal,
+            open_positions=open_positions,
+        )
+        if reversal_decisions:
+            decisions.extend(reversal_decisions)
+        open_positions = filtered_positions
 
         if not self.risk.can_open(
             symbol=snapshot.symbol,
@@ -983,27 +1002,20 @@ class TradeLogic:
                     "signal": signal,
                 },
             )
-            return []
-
-        decisions: List[TradeDecision] = []
-        opposing_positions = [pos for pos in open_positions if pos.symbol == snapshot.symbol and pos.direction != signal.direction]
-        for pos in opposing_positions:
-            decisions.append(
-                TradeDecision(
-                    action="close",
-                    symbol=pos.symbol,
-                    direction=pos.direction,
-                    size=pos.size,
-                    entry=pos.entry_price,
-                    stop_loss=pos.stop_loss,
-                    take_profit=pos.take_profit,
-                    reason="Reverse signal",
-                    signal=signal,
-                )
-            )
+            return self._finalise_decisions(decisions, snapshot)
 
         stop_loss_pips, take_profit_pips = self._determine_sl_tp(snapshot)
         size = self.risk.position_size(stop_loss_pips=stop_loss_pips, pip_value=snapshot.pip_value)
+        if size <= 0:
+            self.risk.notify(
+                "signal_rejected",
+                {
+                    "snapshot": snapshot,
+                    "reason": "position_size",
+                    "signal": signal,
+                },
+            )
+            return self._finalise_decisions(decisions, snapshot)
         entry = snapshot.close
         if signal.direction > 0:
             stop_loss_price = entry - stop_loss_pips * snapshot.pip_size
@@ -1026,11 +1038,89 @@ class TradeLogic:
             )
         )
 
+        return self._finalise_decisions(decisions, snapshot)
+
+    def _generate_exit_decisions(
+        self,
+        snapshot: MarketSnapshot,
+        open_positions: Sequence[ActivePosition],
+    ) -> tuple[List[TradeDecision], List[ActivePosition]]:
+        decisions: List[TradeDecision] = []
+        remaining: List[ActivePosition] = []
+        price = snapshot.close
+        for pos in open_positions:
+            if pos.symbol != snapshot.symbol:
+                remaining.append(pos)
+                continue
+            stop_hit = False
+            if pos.stop_loss is not None:
+                if pos.direction > 0 and price <= pos.stop_loss:
+                    stop_hit = True
+                elif pos.direction < 0 and price >= pos.stop_loss:
+                    stop_hit = True
+            take_hit = False
+            if not stop_hit and pos.take_profit is not None:
+                if pos.direction > 0 and price >= pos.take_profit:
+                    take_hit = True
+                elif pos.direction < 0 and price <= pos.take_profit:
+                    take_hit = True
+            if stop_hit or take_hit:
+                decisions.append(
+                    TradeDecision(
+                        action="close",
+                        symbol=pos.symbol,
+                        direction=pos.direction,
+                        size=pos.size,
+                        entry=pos.entry_price,
+                        stop_loss=pos.stop_loss,
+                        take_profit=pos.take_profit,
+                        reason="Stop loss hit" if stop_hit else "Take profit hit",
+                    )
+                )
+            else:
+                remaining.append(pos)
+        return decisions, remaining
+
+    def _close_opposing_positions(
+        self,
+        *,
+        symbol: str,
+        signal: TradeSignal,
+        open_positions: Sequence[ActivePosition],
+    ) -> tuple[List[TradeDecision], List[ActivePosition]]:
+        decisions: List[TradeDecision] = []
+        remaining: List[ActivePosition] = []
+        for pos in open_positions:
+            if pos.symbol == symbol and pos.direction != signal.direction:
+                decisions.append(
+                    TradeDecision(
+                        action="close",
+                        symbol=pos.symbol,
+                        direction=pos.direction,
+                        size=pos.size,
+                        entry=pos.entry_price,
+                        stop_loss=pos.stop_loss,
+                        take_profit=pos.take_profit,
+                        reason="Reverse signal",
+                        signal=signal,
+                    )
+                )
+            else:
+                remaining.append(pos)
+        return decisions, remaining
+
+    def _finalise_decisions(
+        self, decisions: List[TradeDecision], snapshot: MarketSnapshot
+    ) -> List[TradeDecision]:
+        self._notify_decisions(decisions, snapshot)
+        return decisions
+
+    def _notify_decisions(
+        self, decisions: Sequence[TradeDecision], snapshot: MarketSnapshot
+    ) -> None:
         for decision in decisions:
             event_type = "trade_open" if decision.action == "open" else "trade_close"
             self.risk.notify(event_type, {"decision": decision, "snapshot": snapshot})
-
-        return decisions
 
     def _determine_sl_tp(self, snapshot: MarketSnapshot) -> tuple[float, float]:
         stop_loss_pips = self.config.manual_stop_loss_pips
