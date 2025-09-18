@@ -4,7 +4,7 @@
  * Configure DigitalOcean DNS records for Dynamic Capital using the `doctl` CLI.
  *
  * Usage:
- *   deno run -A scripts/configure-digitalocean-dns.ts [--domain=<domain>] [--config=<path>] [--dry-run] [--prune] [--state=<json>]
+ *   deno run -A scripts/configure-digitalocean-dns.ts [--domain=<domain>] [--config=<path>] [--dry-run] [--prune] [--state=<json>] [--context=<name>]
  *
  * - `--domain` overrides the domain in the config file.
  * - `--config` points at a JSON file describing the desired records.
@@ -39,6 +39,7 @@ interface CliOptions {
   dryRun: boolean;
   prune: boolean;
   statePath?: string;
+  context?: string;
 }
 
 const DEFAULT_DOMAIN = "dynamic-capital.lovable.app";
@@ -63,6 +64,8 @@ function parseArgs(args: string[]): CliOptions {
       opts.configPath = arg.split("=", 2)[1];
     } else if (arg.startsWith("--state=")) {
       opts.statePath = arg.split("=", 2)[1];
+    } else if (arg.startsWith("--context=")) {
+      opts.context = arg.split("=", 2)[1];
     } else if (arg === "--help" || arg === "-h") {
       console.log(`Configure DigitalOcean DNS records via doctl.
 
@@ -72,6 +75,7 @@ Options:
   --state=<path>      Read existing records from JSON instead of doctl.
   --dry-run           Only show the plan (do not call doctl mutate commands).
   --prune             Delete managed records that are not in the config.
+  --context=<name>    Use a specific doctl context for all commands.
 `);
       Deno.exit(0);
     } else {
@@ -153,7 +157,8 @@ async function loadConfig(path?: string): Promise<DomainConfig> {
 
 async function readExistingRecords(
   domain: string,
-  statePath?: string,
+  statePath: string | undefined,
+  context: string | undefined,
 ): Promise<DomainRecord[]> {
   if (statePath) {
     const text = await Deno.readTextFile(statePath);
@@ -172,7 +177,7 @@ async function readExistingRecords(
     domain,
     "--output",
     "json",
-  ]);
+  ], context);
   const parsed = JSON.parse(output) as DomainRecord[];
   return parsed.map((record) => ({
     ...record,
@@ -181,10 +186,16 @@ async function readExistingRecords(
   }));
 }
 
-async function runDoctl(args: string[]): Promise<string> {
+async function runDoctl(
+  args: string[],
+  context: string | undefined,
+): Promise<string> {
   try {
+    const finalArgs = context
+      ? ["--context", context, ...args]
+      : args;
     const command = new Deno.Command("doctl", {
-      args,
+      args: finalArgs,
       stdout: "piped",
       stderr: "piped",
     });
@@ -192,7 +203,7 @@ async function runDoctl(args: string[]): Promise<string> {
     if (code !== 0) {
       const errText = new TextDecoder().decode(stderr);
       throw new Error(
-        `doctl ${args.join(" ")} failed (exit ${code}): ${errText}`,
+        `doctl ${finalArgs.join(" ")} failed (exit ${code}): ${errText}`,
       );
     }
     return new TextDecoder().decode(stdout);
@@ -280,6 +291,7 @@ async function executePlan(
   domain: string,
   plan: PlannedAction[],
   dryRun: boolean,
+  context: string | undefined,
 ): Promise<void> {
   if (plan.length === 0) {
     console.log("DNS records already match desired state.");
@@ -314,7 +326,7 @@ async function executePlan(
         if (record.priority) {
           args.push("--record-priority", String(record.priority));
         }
-        await runDoctl(args);
+        await runDoctl(args, context);
       }
     } else if (action.type === "update" && action.existing) {
       const { record, existing } = action;
@@ -340,7 +352,7 @@ async function executePlan(
         if (record.name !== existing.name) {
           args.push("--record-name", record.name);
         }
-        await runDoctl(args);
+        await runDoctl(args, context);
       }
     } else if (action.type === "delete" && action.existing) {
       console.log(
@@ -357,7 +369,7 @@ async function executePlan(
           domain,
           String(action.existing.id),
           "--force",
-        ]);
+        ], context);
       }
     }
   }
@@ -371,10 +383,14 @@ async function main() {
   }
 
   const desiredRecords = config.records;
-  const existing = await readExistingRecords(config.domain, opts.statePath);
+  const existing = await readExistingRecords(
+    config.domain,
+    opts.statePath,
+    opts.context,
+  );
 
   const plan = planChanges(desiredRecords, existing, opts.prune);
-  await executePlan(config.domain, plan, opts.dryRun);
+  await executePlan(config.domain, plan, opts.dryRun, opts.context);
 }
 
 if (import.meta.main) {
