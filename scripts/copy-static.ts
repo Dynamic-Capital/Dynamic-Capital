@@ -33,10 +33,36 @@ async function exists(path: string) {
   }
 }
 
+async function fetchWithRedirects(url: string, maxRedirects = 5) {
+  let currentUrl = url;
+  for (let redirects = 0; redirects <= maxRedirects; redirects++) {
+    const res = await fetch(currentUrl, { redirect: 'manual' });
+    if (res.status >= 300 && res.status < 400) {
+      const location = res.headers.get('location');
+      if (!location) {
+        return res;
+      }
+      const nextUrl = new URL(location, currentUrl);
+      const baseUrl = new URL(currentUrl);
+      nextUrl.protocol = 'http:';
+      if (!nextUrl.port) {
+        nextUrl.port = baseUrl.port;
+      }
+      if (nextUrl.hostname === 'localhost') {
+        nextUrl.hostname = baseUrl.hostname;
+      }
+      currentUrl = nextUrl.toString();
+      continue;
+    }
+    return res;
+  }
+  throw new Error(`Too many redirects while fetching ${url}`);
+}
+
 async function waitForServer(url: string, retries = 50, delayMs = 200) {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      const res = await fetch(url, { redirect: 'manual' });
+      const res = await fetchWithRedirects(url);
       if (res.ok) {
         return;
       }
@@ -49,7 +75,7 @@ async function waitForServer(url: string, retries = 50, delayMs = 200) {
 }
 
 async function fetchHtml(url: string) {
-  const res = await fetch(url, { redirect: 'manual' });
+  const res = await fetchWithRedirects(url);
   if (!res.ok && res.status !== 404) {
     throw new Error(`Unexpected status ${res.status} fetching ${url}`);
   }
@@ -69,6 +95,7 @@ async function startServerAndCapture() {
       PORT: String(port),
       HOSTNAME: '127.0.0.1',
       NODE_ENV: 'production',
+      DISABLE_HTTP_REDIRECTS: 'true',
     },
     stdio: ['ignore', 'ignore', 'inherit'],
   });
