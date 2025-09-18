@@ -92,7 +92,8 @@ Flags:
 - `--app-id` – App Platform UUID (`doctl apps list`).
 - `--site-url` – Canonical host for the deployment. The script updates
   `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and
-  `MINIAPP_ORIGIN` globally and on the `dynamic-capital` service.
+  `MINIAPP_ORIGIN` globally, on the `dynamic-capital` service, and on any
+  static site components.
 - `--zone` – DNS zone to import. Defaults to the site URL host.
 - `--zone-file` – Override the zone file path (defaults to
   `dns/<zone>.zone`).
