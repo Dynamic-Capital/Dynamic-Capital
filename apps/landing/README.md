@@ -16,6 +16,10 @@ repository-level `_static/` directory. The snapshot is what DigitalOcean and
 other static hosts serve for the marketing site while the standalone Next.js
 server continues to power the authenticated experience.
 
+If the web build fails, the landing build will now keep the previous `_static/`
+export (or generate a lightweight placeholder) so the broader pipeline can
+continue without losing the last good snapshot.
+
 You can still preview the exported bundle locally:
 
 ```bash
