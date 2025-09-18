@@ -55,6 +55,7 @@ Lovable domain aligned with the expected records:
 ```bash
 # Preview the proposed DNS mutations
 deno run -A scripts/configure-digitalocean-dns.ts --dry-run
+# Append --context <name> to target a specific authenticated doctl context.
 
 # Apply the plan via doctl (requires an authenticated doctl session)
 deno run -A scripts/configure-digitalocean-dns.ts
@@ -70,12 +71,16 @@ stays aligned with Cloudflare.
 
 Example usage:
 
+Set `DOCTL_CONTEXT` to the `doctl` context you authenticated (omit the flag if
+you only use the default context):
+
 ```bash
 # Update the app spec, aligning env vars, ingress, and primary domain.
 node scripts/doctl/sync-site-config.mjs \
   --app-id $DIGITALOCEAN_APP_ID \
   --site-url https://dynamic-capital.vercel.app \
   --zone dynamic-capital.ondigitalocean.app \
+  --context $DOCTL_CONTEXT \
   --show-spec
 
 # Apply the spec changes and import the DNS zone in one go.
@@ -83,6 +88,7 @@ node scripts/doctl/sync-site-config.mjs \
   --app-id $DIGITALOCEAN_APP_ID \
   --site-url https://dynamic-capital.vercel.app \
   --zone dynamic-capital.ondigitalocean.app \
+  --context $DOCTL_CONTEXT \
   --apply \
   --apply-zone
 ```
@@ -94,6 +100,7 @@ Flags:
   `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and
   `MINIAPP_ORIGIN` globally, on the `dynamic-capital` service, and on any
   static site components.
+- `--context` – doctl context to run commands against (defaults to the active context).
 - `--zone` – DNS zone to import. Defaults to the site URL host.
 - `--zone-file` – Override the zone file path (defaults to
   `dns/<zone>.zone`).

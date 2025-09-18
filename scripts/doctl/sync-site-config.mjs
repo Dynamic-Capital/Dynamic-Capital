@@ -18,6 +18,7 @@ function usage() {
     `  --domain <host>          Override the hostname portion of the site URL\n` +
     `  --zone <domain>          DNS zone to import (defaults to domain)\n` +
     `  --service <name>         Service name to update (default: dynamic-capital)\n` +
+    `  --context <name>        doctl context to use (defaults to active context)\n` +
     `  --zone-file <path>       Zone file to import when --apply-zone is set\n` +
     `  --output <path>          Write the updated spec YAML to a file\n` +
     `  --apply                  Push the updated spec via doctl\n` +
@@ -109,10 +110,11 @@ class DoctlError extends Error {
   }
 }
 
-async function runDoctl(args, { inherit = false } = {}) {
+async function runDoctl(args, { inherit = false, context } = {}) {
   return await new Promise((resolve, reject) => {
     const stdio = inherit ? ['inherit', 'inherit', 'inherit'] : ['ignore', 'pipe', 'pipe'];
-    const child = spawn('doctl', args, { stdio });
+    const finalArgs = context ? ['--context', context, ...args] : args;
+    const child = spawn('doctl', finalArgs, { stdio });
     const stdoutChunks = [];
     const stderrChunks = [];
 
@@ -134,7 +136,7 @@ async function runDoctl(args, { inherit = false } = {}) {
     child.on('close', (code) => {
       if (code !== 0) {
         const stderr = Buffer.concat(stderrChunks).toString('utf8');
-        reject(new DoctlError(`doctl ${args.join(' ')} exited with code ${code}.`, stderr, code));
+        reject(new DoctlError(`doctl ${finalArgs.join(' ')} exited with code ${code}.`, stderr, code));
         return;
       }
 
@@ -168,6 +170,7 @@ async function main() {
       domain: { type: 'string' },
       zone: { type: 'string' },
       service: { type: 'string', default: 'dynamic-capital' },
+      context: { type: 'string' },
       'zone-file': { type: 'string' },
       output: { type: 'string' },
       apply: { type: 'boolean', default: false },
@@ -201,10 +204,13 @@ async function main() {
   const zone = values.zone ?? domain;
   const serviceName = values.service ?? 'dynamic-capital';
   const requestedAllowedOrigins = values['allowed-origins'];
+  const context = values.context;
+  const canonicalSiteUrl = parsedSiteUrl.toString().replace(/\/$/, '');
+  const canonicalOrigin = parsedSiteUrl.origin;
 
   let specOutput;
   try {
-    specOutput = await runDoctl(['apps', 'spec', 'get', appId]);
+    specOutput = await runDoctl(['apps', 'spec', 'get', appId], { context });
   } catch (error) {
     if (error instanceof DoctlError && error.stderr) {
       console.error(error.stderr.trim());
@@ -228,22 +234,22 @@ async function main() {
   const allowedOrigins = resolveAllowedOrigins({
     requested: requestedAllowedOrigins,
     existing: existingAllowedOrigins,
-    canonicalOrigin: parsedSiteUrl.origin,
+    canonicalOrigin,
   });
   const globalContext = 'app env';
-  upsertEnv(spec.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, globalContext);
-  upsertEnv(spec.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, globalContext);
+  upsertEnv(spec.envs, 'SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, globalContext);
+  upsertEnv(spec.envs, 'NEXT_PUBLIC_SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, globalContext);
   upsertEnv(spec.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes, globalContext);
-  upsertEnv(spec.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, globalContext);
+  upsertEnv(spec.envs, 'MINIAPP_ORIGIN', canonicalOrigin, 'RUN_AND_BUILD_TIME', changes, globalContext);
 
   spec.services = ensureArray(spec.services);
   const service = spec.services.find((svc) => svc && typeof svc === 'object' && svc.name === serviceName);
   if (service) {
     service.envs = ensureArray(service.envs);
     const serviceContext = service.name ? `service '${service.name}'` : 'service';
-    upsertEnv(service.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, serviceContext);
-    upsertEnv(service.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, serviceContext);
-    upsertEnv(service.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, serviceContext);
+    upsertEnv(service.envs, 'SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, serviceContext);
+    upsertEnv(service.envs, 'NEXT_PUBLIC_SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, serviceContext);
+    upsertEnv(service.envs, 'MINIAPP_ORIGIN', canonicalOrigin, 'RUN_AND_BUILD_TIME', changes, serviceContext);
   } else {
     console.warn(`Warning: Service '${serviceName}' not found in the app spec. Only global env vars were updated.`);
   }
@@ -255,10 +261,10 @@ async function main() {
     }
     site.envs = ensureArray(site.envs);
     const siteContext = site.name ? `static site '${site.name}'` : 'static site';
-    upsertEnv(site.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, siteContext);
-    upsertEnv(site.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, siteContext);
+    upsertEnv(site.envs, 'SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, siteContext);
+    upsertEnv(site.envs, 'NEXT_PUBLIC_SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, siteContext);
     upsertEnv(site.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes, siteContext);
-    upsertEnv(site.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, siteContext);
+    upsertEnv(site.envs, 'MINIAPP_ORIGIN', canonicalOrigin, 'RUN_AND_BUILD_TIME', changes, siteContext);
   }
 
   if (spec.ingress && typeof spec.ingress === 'object') {
@@ -310,10 +316,14 @@ async function main() {
   console.log('DigitalOcean app configuration summary:');
   console.log(`  App ID: ${appId}`);
   console.log(`  Service: ${serviceName}`);
-  console.log(`  Site URL: ${parsedSiteUrl.toString()}`);
+  console.log(`  Site URL: ${canonicalSiteUrl}`);
   console.log(`  Domain: ${domain}`);
   console.log(`  Zone: ${zone}`);
   console.log(`  Allowed origins: ${allowedOrigins}`);
+  console.log(`  Miniapp origin: ${canonicalOrigin}`);
+  if (context) {
+    console.log(`  doctl context: ${context}`);
+  }
 
   if (changes.size > 0) {
     console.log('  Applied updates:');
@@ -330,7 +340,7 @@ async function main() {
     await fs.writeFile(tempFile, rendered, 'utf8');
     console.log(`\nApplying spec update via doctl (temporary file: ${tempFile})...`);
     try {
-      await runDoctl(['apps', 'spec', 'update', appId, '--spec', tempFile], { inherit: true });
+      await runDoctl(['apps', 'spec', 'update', appId, '--spec', tempFile], { inherit: true, context });
       console.log('✅ App spec updated successfully.');
     } finally {
       await fs.rm(tmpBase, { recursive: true, force: true });
@@ -342,7 +352,7 @@ async function main() {
   if (values['apply-zone']) {
     const zoneFile = await ensureZoneFile(zone, values['zone-file']);
     console.log(`\nImporting DNS zone '${zone}' via doctl (zone file: ${zoneFile})...`);
-    await runDoctl(['compute', 'domain', 'records', 'import', zone, '--zone-file', zoneFile], { inherit: true });
+    await runDoctl(['compute', 'domain', 'records', 'import', zone, '--zone-file', zoneFile], { inherit: true, context });
     console.log('✅ DNS zone imported successfully.');
   } else {
     const hint = values['zone-file']
