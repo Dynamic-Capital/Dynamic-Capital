@@ -12,12 +12,14 @@ function usage() {
   console.log(`Sync the DigitalOcean App Platform spec and DNS zone records with the desired site URL.\n\n` +
     `Usage:\n  node scripts/doctl/sync-site-config.mjs --app-id <id> --site-url https://example.com [options]\n\n` +
     `Options:\n` +
-    `  --app-id <id>             DigitalOcean App Platform app ID (required)\n` +
+    `  --app-id <id>             DigitalOcean App Platform app ID (required unless --spec is used)\n` +
     `  --site-url <url>         Canonical site URL to enforce (required)\n` +
     `  --allowed-origins <list> Override the comma-separated CORS allow list\n` +
     `  --domain <host>          Override the hostname portion of the site URL\n` +
+    `  --spec <path>           Load an existing app spec from a local YAML file\n` +
     `  --zone <domain>          DNS zone to import (defaults to domain)\n` +
     `  --service <name>         Service name to update (default: dynamic-capital)\n` +
+    `  --context <name>        doctl context to use (defaults to active context)\n` +
     `  --zone-file <path>       Zone file to import when --apply-zone is set\n` +
     `  --output <path>          Write the updated spec YAML to a file\n` +
     `  --apply                  Push the updated spec via doctl\n` +
@@ -109,10 +111,11 @@ class DoctlError extends Error {
   }
 }
 
-async function runDoctl(args, { inherit = false } = {}) {
+async function runDoctl(args, { inherit = false, context } = {}) {
   return await new Promise((resolve, reject) => {
     const stdio = inherit ? ['inherit', 'inherit', 'inherit'] : ['ignore', 'pipe', 'pipe'];
-    const child = spawn('doctl', args, { stdio });
+    const finalArgs = context ? ['--context', context, ...args] : args;
+    const child = spawn('doctl', finalArgs, { stdio });
     const stdoutChunks = [];
     const stderrChunks = [];
 
@@ -134,7 +137,7 @@ async function runDoctl(args, { inherit = false } = {}) {
     child.on('close', (code) => {
       if (code !== 0) {
         const stderr = Buffer.concat(stderrChunks).toString('utf8');
-        reject(new DoctlError(`doctl ${args.join(' ')} exited with code ${code}.`, stderr, code));
+        reject(new DoctlError(`doctl ${finalArgs.join(' ')} exited with code ${code}.`, stderr, code));
         return;
       }
 
@@ -167,7 +170,9 @@ async function main() {
       'allowed-origins': { type: 'string' },
       domain: { type: 'string' },
       zone: { type: 'string' },
+      spec: { type: 'string' },
       service: { type: 'string', default: 'dynamic-capital' },
+      context: { type: 'string' },
       'zone-file': { type: 'string' },
       output: { type: 'string' },
       apply: { type: 'boolean', default: false },
@@ -185,10 +190,11 @@ async function main() {
 
   const appId = values['app-id'];
   const siteUrl = values['site-url'];
+  const specPath = values.spec ? path.resolve(process.cwd(), values.spec) : undefined;
 
-  if (!appId) {
+  if (!appId && !specPath) {
     usage();
-    throw new Error('--app-id is required. Use `doctl apps list` to locate the UUID.');
+    throw new Error('--app-id is required unless --spec supplies a local app spec.');
   }
 
   if (!siteUrl) {
@@ -201,18 +207,33 @@ async function main() {
   const zone = values.zone ?? domain;
   const serviceName = values.service ?? 'dynamic-capital';
   const requestedAllowedOrigins = values['allowed-origins'];
+  const context = values.context;
+  const canonicalSiteUrl = parsedSiteUrl.toString().replace(/\/$/, '');
+  const canonicalOrigin = parsedSiteUrl.origin;
 
-  let specOutput;
-  try {
-    specOutput = await runDoctl(['apps', 'spec', 'get', appId]);
-  } catch (error) {
-    if (error instanceof DoctlError && error.stderr) {
-      console.error(error.stderr.trim());
+  let parsedSpec;
+  if (specPath) {
+    let fileContents;
+    try {
+      fileContents = await fs.readFile(specPath, 'utf8');
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      throw new Error(`Unable to read spec file at ${specPath}. ${reason}`);
     }
-    throw error;
-  }
+    parsedSpec = YAML.parse(fileContents);
+  } else {
+    let specOutput;
+    try {
+      specOutput = await runDoctl(['apps', 'spec', 'get', appId], { context });
+    } catch (error) {
+      if (error instanceof DoctlError && error.stderr) {
+        console.error(error.stderr.trim());
+      }
+      throw error;
+    }
 
-  const parsedSpec = YAML.parse(specOutput.stdout);
+    parsedSpec = YAML.parse(specOutput.stdout);
+  }
   const spec = (parsedSpec && typeof parsedSpec === 'object' && parsedSpec.spec)
     ? parsedSpec.spec
     : parsedSpec;
@@ -228,38 +249,47 @@ async function main() {
   const allowedOrigins = resolveAllowedOrigins({
     requested: requestedAllowedOrigins,
     existing: existingAllowedOrigins,
-    canonicalOrigin: parsedSiteUrl.origin,
+    canonicalOrigin,
   });
   const globalContext = 'app env';
-  upsertEnv(spec.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, globalContext);
-  upsertEnv(spec.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, globalContext);
+  upsertEnv(spec.envs, 'SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, globalContext);
+  upsertEnv(spec.envs, 'NEXT_PUBLIC_SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, globalContext);
   upsertEnv(spec.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes, globalContext);
-  upsertEnv(spec.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, globalContext);
+  upsertEnv(spec.envs, 'MINIAPP_ORIGIN', canonicalOrigin, 'RUN_AND_BUILD_TIME', changes, globalContext);
+
+  function updateComponentEnvs(components, { includeAllowedOrigins = false, label }) {
+    const list = ensureArray(components);
+    for (const component of list) {
+      if (!component || typeof component !== 'object') {
+        continue;
+      }
+      component.envs = ensureArray(component.envs);
+      const componentContext = component.name ? `${label} '${component.name}'` : label;
+      upsertEnv(component.envs, 'SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, componentContext);
+      upsertEnv(component.envs, 'NEXT_PUBLIC_SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, componentContext);
+      if (includeAllowedOrigins) {
+        upsertEnv(component.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes, componentContext);
+      }
+      upsertEnv(component.envs, 'MINIAPP_ORIGIN', canonicalOrigin, 'RUN_AND_BUILD_TIME', changes, componentContext);
+    }
+    return list;
+  }
 
   spec.services = ensureArray(spec.services);
   const service = spec.services.find((svc) => svc && typeof svc === 'object' && svc.name === serviceName);
   if (service) {
-    service.envs = ensureArray(service.envs);
-    const serviceContext = service.name ? `service '${service.name}'` : 'service';
-    upsertEnv(service.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, serviceContext);
-    upsertEnv(service.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, serviceContext);
-    upsertEnv(service.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, serviceContext);
+    updateComponentEnvs([service], { label: 'service' });
+  } else if (spec.services.length > 0) {
+    console.warn(`Warning: Service '${serviceName}' not found. Updating all services instead.`);
+    updateComponentEnvs(spec.services, { label: 'service' });
   } else {
-    console.warn(`Warning: Service '${serviceName}' not found in the app spec. Only global env vars were updated.`);
+    console.warn(`Warning: No services defined in the app spec. Only global env vars were updated.`);
   }
 
-  spec.static_sites = ensureArray(spec.static_sites);
-  for (const site of spec.static_sites) {
-    if (!site || typeof site !== 'object') {
-      continue;
-    }
-    site.envs = ensureArray(site.envs);
-    const siteContext = site.name ? `static site '${site.name}'` : 'static site';
-    upsertEnv(site.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, siteContext);
-    upsertEnv(site.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, siteContext);
-    upsertEnv(site.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes, siteContext);
-    upsertEnv(site.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, siteContext);
-  }
+  spec.static_sites = updateComponentEnvs(spec.static_sites, { includeAllowedOrigins: true, label: 'static site' });
+  spec.workers = updateComponentEnvs(spec.workers, { label: 'worker' });
+  spec.jobs = updateComponentEnvs(spec.jobs, { label: 'job' });
+  spec.functions = updateComponentEnvs(spec.functions, { label: 'function' });
 
   if (spec.ingress && typeof spec.ingress === 'object') {
     spec.ingress.rules = ensureArray(spec.ingress.rules);
@@ -295,8 +325,11 @@ async function main() {
 
   const rendered = YAML.stringify(parsedSpec, { lineWidth: 0 });
 
-  if (values.output) {
-    const outputPath = path.resolve(process.cwd(), values.output);
+  const outputPath = values.output
+    ? path.resolve(process.cwd(), values.output)
+    : undefined;
+
+  if (outputPath) {
     await fs.writeFile(outputPath, rendered, 'utf8');
     console.log(`Updated spec written to ${outputPath}.`);
   }
@@ -308,12 +341,28 @@ async function main() {
   }
 
   console.log('DigitalOcean app configuration summary:');
-  console.log(`  App ID: ${appId}`);
+  if (appId) {
+    console.log(`  App ID: ${appId}`);
+  } else {
+    console.log('  App ID: (not provided; local spec only)');
+  }
   console.log(`  Service: ${serviceName}`);
-  console.log(`  Site URL: ${parsedSiteUrl.toString()}`);
+  console.log(`  Site URL: ${canonicalSiteUrl}`);
   console.log(`  Domain: ${domain}`);
   console.log(`  Zone: ${zone}`);
   console.log(`  Allowed origins: ${allowedOrigins}`);
+  console.log(`  Miniapp origin: ${canonicalOrigin}`);
+  if (specPath) {
+    console.log(`  Spec source: ${specPath}`);
+    if (!outputPath) {
+      console.log('  Output: (dry-run only; pass --output to write the updated spec)');
+    }
+  } else {
+    console.log('  Spec source: DigitalOcean API (doctl apps spec get)');
+  }
+  if (context) {
+    console.log(`  doctl context: ${context}`);
+  }
 
   if (changes.size > 0) {
     console.log('  Applied updates:');
@@ -325,12 +374,15 @@ async function main() {
   }
 
   if (values.apply) {
+    if (!appId) {
+      throw new Error('--apply requires --app-id to target the DigitalOcean app.');
+    }
     const tmpBase = await fs.mkdtemp(path.join(tmpdir(), 'doctl-app-spec-'));
     const tempFile = path.join(tmpBase, 'app-spec.yml');
     await fs.writeFile(tempFile, rendered, 'utf8');
     console.log(`\nApplying spec update via doctl (temporary file: ${tempFile})...`);
     try {
-      await runDoctl(['apps', 'spec', 'update', appId, '--spec', tempFile], { inherit: true });
+      await runDoctl(['apps', 'spec', 'update', appId, '--spec', tempFile], { inherit: true, context });
       console.log('✅ App spec updated successfully.');
     } finally {
       await fs.rm(tmpBase, { recursive: true, force: true });
@@ -342,7 +394,7 @@ async function main() {
   if (values['apply-zone']) {
     const zoneFile = await ensureZoneFile(zone, values['zone-file']);
     console.log(`\nImporting DNS zone '${zone}' via doctl (zone file: ${zoneFile})...`);
-    await runDoctl(['compute', 'domain', 'records', 'import', zone, '--zone-file', zoneFile], { inherit: true });
+    await runDoctl(['compute', 'domain', 'records', 'import', zone, '--zone-file', zoneFile], { inherit: true, context });
     console.log('✅ DNS zone imported successfully.');
   } else {
     const hint = values['zone-file']
