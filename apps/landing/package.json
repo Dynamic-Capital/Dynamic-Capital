@@ -2,7 +2,7 @@
 "name": "landing",
 "private": true,
 "scripts": {
-"build": "npm run copy-static --workspace web",
+"build": "node ../../scripts/build-landing.mjs",
 "start": "npx serve ../../_static -l ${PORT:-8080}"
 }
 }
