@@ -5,6 +5,10 @@ import { join } from 'node:path';
 const args = new Set(process.argv.slice(2));
 const copyOnly = args.has('--copy-only') || process.env.SKIP_NEXT_BUILD === '1';
 
+if (!process.env.DISABLE_HTTP_REDIRECTS) {
+  process.env.DISABLE_HTTP_REDIRECTS = 'true';
+}
+
 if (!copyOnly) {
   // Run Next.js build to ensure latest assets
   try {
@@ -59,8 +63,20 @@ async function fetchWithRedirects(url: string, maxRedirects = 5) {
   throw new Error(`Too many redirects while fetching ${url}`);
 }
 
-async function waitForServer(url: string, retries = 50, delayMs = 200) {
+type WaitForServerOptions = {
+  retries?: number;
+  delayMs?: number;
+  shouldAbort?: () => boolean;
+  getAbortError?: () => Error | undefined;
+};
+
+async function waitForServer(url: string, options: WaitForServerOptions = {}) {
+  const { retries = 50, delayMs = 200, shouldAbort, getAbortError } = options;
+
   for (let attempt = 0; attempt < retries; attempt++) {
+    if (shouldAbort?.()) {
+      throw getAbortError?.() ?? new Error(`Aborted while waiting for ${url}`);
+    }
     try {
       const res = await fetchWithRedirects(url);
       if (res.ok) {
@@ -69,9 +85,12 @@ async function waitForServer(url: string, retries = 50, delayMs = 200) {
     } catch {
       // retry until timeout
     }
+    if (shouldAbort?.()) {
+      throw getAbortError?.() ?? new Error(`Aborted while waiting for ${url}`);
+    }
     await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
-  throw new Error(`Timed out waiting for Next.js server at ${url}`);
+  throw getAbortError?.() ?? new Error(`Timed out waiting for Next.js server at ${url}`);
 }
 
 async function fetchHtml(url: string) {
@@ -83,13 +102,29 @@ async function fetchHtml(url: string) {
 }
 
 async function startServerAndCapture() {
+  const port = Number(process.env.STATIC_EXPORT_PORT || 4123);
+  const baseUrl = `http://127.0.0.1:${port}`;
+
+  let serverCwd = join(root, '.next', 'standalone');
+  let command = 'node';
+  let args = [nextStandalone];
+
   if (!(await exists(nextStandalone))) {
-    throw new Error('Next.js standalone server not found. Run `next build` first.');
+    const nextExecutableName = process.platform === 'win32' ? 'next.cmd' : 'next';
+    const nextExecutable = join(projectRoot, 'node_modules', '.bin', nextExecutableName);
+    const resolvedCommand = (await exists(nextExecutable)) ? nextExecutable : nextExecutableName;
+
+    console.warn(
+      '⚠️  Next.js standalone server not found; falling back to `next start` for snapshot capture.',
+    );
+
+    command = resolvedCommand;
+    args = ['start', '-p', String(port), '-H', '127.0.0.1'];
+    serverCwd = root;
   }
 
-  const port = Number(process.env.STATIC_EXPORT_PORT || 4123);
-  const server = spawn('node', [nextStandalone], {
-    cwd: join(root, '.next', 'standalone'),
+  const server = spawn(command, args, {
+    cwd: serverCwd,
     env: {
       ...process.env,
       PORT: String(port),
@@ -97,19 +132,57 @@ async function startServerAndCapture() {
       NODE_ENV: 'production',
       DISABLE_HTTP_REDIRECTS: 'true',
     },
-    stdio: ['ignore', 'ignore', 'inherit'],
+    stdio: ['ignore', 'inherit', 'inherit'],
+  });
+
+  let shuttingDown = false;
+  let serverExited = false;
+  let exitError: Error | undefined;
+
+  const exitPromise = new Promise<void>((resolve) => {
+    server.once('exit', (code, signal) => {
+      if (!shuttingDown) {
+        serverExited = true;
+        exitError =
+          exitError ??
+          new Error(
+            `Next.js server exited before it became ready (code: ${code ?? 'null'}, signal: ${
+              signal ?? 'null'
+            }).`,
+          );
+      }
+      resolve();
+    });
+  });
+
+  server.once('error', (err) => {
+    if (shuttingDown) {
+      return;
+    }
+    serverExited = true;
+    exitError = err instanceof Error ? err : new Error(String(err));
   });
 
   try {
-    await waitForServer(`http://127.0.0.1:${port}/healthz`);
-    const indexHtml = await fetchHtml(`http://127.0.0.1:${port}/`);
+    await waitForServer(`${baseUrl}/healthz`, {
+      retries: 75,
+      delayMs: 200,
+      shouldAbort: () => serverExited,
+      getAbortError: () =>
+        exitError ?? new Error(`Next.js server exited before ${baseUrl}/healthz responded.`),
+    });
+
+    const indexHtml = await fetchHtml(`${baseUrl}/`);
     await writeFile(join(destRoot, 'index.html'), indexHtml, 'utf8');
 
-    const notFoundHtml = await fetchHtml(`http://127.0.0.1:${port}/__static-not-found`);
+    const notFoundHtml = await fetchHtml(`${baseUrl}/__static-not-found`);
     await writeFile(join(destRoot, '404.html'), notFoundHtml, 'utf8');
   } finally {
-    server.kill('SIGTERM');
-    await new Promise((resolve) => server.once('exit', resolve));
+    shuttingDown = true;
+    if (!server.killed) {
+      server.kill('SIGTERM');
+    }
+    await exitPromise;
   }
 }
 
