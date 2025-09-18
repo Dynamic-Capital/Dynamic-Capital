@@ -23,7 +23,7 @@ Run `npm run checklists -- --list` to see automation-friendly tasks mapped to th
 
 Use the automation helper (or run commands directly) to complete the recurring repo health checks before audits, launches, or large merges. Track the results in your PR/issue notes so reviewers can see the evidence.
 
-- [ ] Sync `.env.local` with `.env.example` (`npm run sync-env`) to ensure new environment keys are captured locally.
+- [ ] Sync `.env` and `.env.local` with `.env.example` (`npm run sync-env`) to ensure new environment keys are captured locally.
 - [ ] Run the repository test suite (`npm run test`) so Deno and Next.js smoke tests cover the latest changes.
 - [ ] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to apply formatting and rerun Deno format/lint/type checks.
 - [ ] Run the aggregated verification suite (`npm run verify`) for the bundled static, runtime, and integration safety checks.

@@ -82,12 +82,12 @@ const troubleshootingTips = {
     'If lockfile conflicts persist, run `npm ci` from a clean checkout.',
   ],
   'npm run sync-env': [
-    'Verify `.env.local` exists and is writable before syncing.',
+    'Verify `.env` and `.env.local` exist and are writable before syncing.',
     'Re-run `npm install` to make sure the sync script dependencies are available.',
     'If the Supabase CLI is required, install it via `npm install supabase --global` or use `npx supabase`.',
   ],
   'npx tsx scripts/check-env.ts': [
-    'Double-check required environment variables in `.env.local` or the active shell.',
+    'Double-check required environment variables in `.env`/`.env.local` or the active shell.',
     'Run `npm run sync-env` to copy placeholders from `.env.example`.',
     'Use `--no-env-check` temporarily only if you know the missing variables are safe to ignore.',
   ],

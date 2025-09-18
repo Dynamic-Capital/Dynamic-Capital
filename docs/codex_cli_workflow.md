@@ -8,8 +8,8 @@ can reproduce Codex's build steps locally and keep your environment in sync.
 
 | Command | Purpose |
 | --- | --- |
-| `npm run codex:post-pull` | Install dependencies, sync `.env.local`, validate core environment variables, and execute the combined `lovable-build.js` pipeline. |
-| `npm run codex:dev` | Optionally sync `.env.local` before delegating to `lovable-dev.js`, which runs preflight checks and launches the Next.js dev server. |
+| `npm run codex:post-pull` | Install dependencies, sync `.env`/`.env.local`, validate core environment variables, and execute the combined `lovable-build.js` pipeline. |
+| `npm run codex:dev` | Optionally sync `.env`/`.env.local` before delegating to `lovable-dev.js`, which runs preflight checks and launches the Next.js dev server. |
 | `npm run codex:build` | Run the Lovable production build locally (Next.js dashboard + Telegram mini app). |
 | `npm run codex:verify` | Execute `scripts/verify/verify_all.sh` for the full repository verification sweep. |
 

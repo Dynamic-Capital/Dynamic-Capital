@@ -35,9 +35,12 @@ backed by Supabase.
 
 ## Environment Setup
 
-Copy `.env.example` to `.env.local` and adjust values for your environment:
+Copy `.env.example` to `.env` and `.env.local`, then adjust values for your
+environment. Running `npm run sync-env` later will append newly added variables
+from the example file into both destinations without overwriting your values:
 
 ```bash
+cp .env.example .env
 cp .env.example .env.local
 ```
 
@@ -58,7 +61,7 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
-Store these in your hosting platform's environment settings or in `.env.local`
+Store these in your hosting platform's environment settings or in `.env`/`.env.local`
 for local development. The static site should have access to the same values at
 build time.
 
@@ -68,9 +71,9 @@ Keep secrets such as `SUPABASE_SERVICE_ROLE_KEY` or `TELEGRAM_BOT_TOKEN` only in
 the environment for the Next.js component. Do **not** prefix them with
 `NEXT_PUBLIC_` or expose them in the static site.
 
-For local work, create a `.env.local` inside `next-app/` and run `npm run dev`
-to load the variables. In production, manage secrets through your platform's
-configuration for each component.
+For local work, create `.env`/`.env.local` at the repository root and run
+`npm run dev` to load the variables. In production, manage secrets through your
+platform's configuration for each component.
 
 ## Project Structure
 
@@ -431,9 +434,10 @@ success, or error states based on the fetch result.
 ### Local Development
 
 ```bash
-# Create your local environment file
+# Create your local environment files
+cp .env.example .env
 cp .env.example .env.local
-# Ensure .env.local has all variables
+# Ensure .env and .env.local have all variables
 npm run sync-env
 
 # Start local stack

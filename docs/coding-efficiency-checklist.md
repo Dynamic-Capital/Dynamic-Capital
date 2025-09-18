@@ -15,7 +15,7 @@ Use this checklist to stay aligned with the existing automation, docs, and workf
 - [ ] Draft a lightweight implementation plan that lists the modules/functions you expect to change and how they integrate.
 
 ## 2. Prepare the Environment
-- [ ] Duplicate `.env.example` to `.env.local` (or the relevant workspace file).
+- [ ] Duplicate `.env.example` to `.env` and `.env.local` (or the relevant workspace file).
 - [ ] Run `npm run sync-env` to populate required variables.
 - [ ] Start local dependencies as needed: `npm run supabase:start`, `supabase functions serve telegram-bot --no-verify-jwt`, or other commands from the workflow guide.
 - [ ] When prototyping with Lovable, launch `npm run dev:lovable` to backfill origins, validate env keys, and ping Supabase for early configuration issues.
