@@ -77,11 +77,19 @@ function resolveAllowedOrigins({
   return Array.from(new Set(baseList)).join(',');
 }
 
-function upsertEnv(envs, key, value, scope, changes) {
+function formatChangeLabel(key, value, context) {
+  if (context && context.length > 0) {
+    return `${context}: ${key} → ${value}`;
+  }
+  return `${key} → ${value}`;
+}
+
+function upsertEnv(envs, key, value, scope, changes, context) {
   const entry = envs.find((item) => item?.key === key);
+  const changeLabel = formatChangeLabel(key, value, context);
   if (entry) {
     if (entry.value !== value) {
-      changes.add(`${key} → ${value}`);
+      changes.add(changeLabel);
     }
     entry.value = value;
     if (!entry.scope) {
@@ -89,7 +97,7 @@ function upsertEnv(envs, key, value, scope, changes) {
     }
   } else {
     envs.push({ key, value, scope });
-    changes.add(`${key} → ${value}`);
+    changes.add(changeLabel);
   }
 }
 
@@ -222,20 +230,35 @@ async function main() {
     existing: existingAllowedOrigins,
     canonicalOrigin: parsedSiteUrl.origin,
   });
-  upsertEnv(spec.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes);
-  upsertEnv(spec.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes);
-  upsertEnv(spec.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes);
-  upsertEnv(spec.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes);
+  const globalContext = 'app env';
+  upsertEnv(spec.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, globalContext);
+  upsertEnv(spec.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, globalContext);
+  upsertEnv(spec.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes, globalContext);
+  upsertEnv(spec.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, globalContext);
 
   spec.services = ensureArray(spec.services);
   const service = spec.services.find((svc) => svc && typeof svc === 'object' && svc.name === serviceName);
   if (service) {
     service.envs = ensureArray(service.envs);
-    upsertEnv(service.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes);
-    upsertEnv(service.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes);
-    upsertEnv(service.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes);
+    const serviceContext = service.name ? `service '${service.name}'` : 'service';
+    upsertEnv(service.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, serviceContext);
+    upsertEnv(service.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, serviceContext);
+    upsertEnv(service.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, serviceContext);
   } else {
     console.warn(`Warning: Service '${serviceName}' not found in the app spec. Only global env vars were updated.`);
+  }
+
+  spec.static_sites = ensureArray(spec.static_sites);
+  for (const site of spec.static_sites) {
+    if (!site || typeof site !== 'object') {
+      continue;
+    }
+    site.envs = ensureArray(site.envs);
+    const siteContext = site.name ? `static site '${site.name}'` : 'static site';
+    upsertEnv(site.envs, 'SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, siteContext);
+    upsertEnv(site.envs, 'NEXT_PUBLIC_SITE_URL', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, siteContext);
+    upsertEnv(site.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes, siteContext);
+    upsertEnv(site.envs, 'MINIAPP_ORIGIN', parsedSiteUrl.toString(), 'RUN_AND_BUILD_TIME', changes, siteContext);
   }
 
   if (spec.ingress && typeof spec.ingress === 'object') {
