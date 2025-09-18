@@ -41,9 +41,9 @@ function ensureArray(value) {
 }
 
 const PRODUCTION_ALLOWED_ORIGINS = [
+  'https://dynamic-capital-qazf2.ondigitalocean.app',
   'https://dynamic-capital.vercel.app',
   'https://dynamic-capital.lovable.app',
-  'https://dynamic-capital.ondigitalocean.app',
 ];
 
 function normalizeOrigin(value) {
@@ -199,7 +199,7 @@ async function main() {
 
   if (!siteUrl) {
     usage();
-    throw new Error('--site-url is required (e.g. https://dynamic-capital.vercel.app).');
+    throw new Error('--site-url is required (e.g. https://dynamic-capital-qazf2.ondigitalocean.app).');
   }
 
   const parsedSiteUrl = parseSiteUrl(siteUrl);

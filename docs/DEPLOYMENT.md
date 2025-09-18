@@ -10,16 +10,17 @@ The DigitalOcean App Platform spec used to provision the production app lives
 at [`.do/app.yml`](../.do/app.yml). Keep the spec in sync with any component or
 environment changes described in this document so the repository remains a
 single source of truth for deployments. The checked-in spec provisions a single
-Node.js service named `dynamic-capital`, configures the
-`dynamic-capital.lovable.app` domain with ingress so the Lovable host continues
-serving traffic, pins the load balancer rule to that authority, and runs
-`npm run build` from the repository root before starting the Next.js server via
-`npm run start:web`. Requests are served on port `8080`, and the service now sets
-`SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` to
-`https://dynamic-capital.vercel.app` (while allowlisting the companion hosts) so
-the web app, Supabase Edge Functions, and Telegram mini-app verification report
-the new canonical origin. Update those values if you move to a different
-hostname.
+Node.js service named `dynamic-capital`, configures
+`dynamic-capital-qazf2.ondigitalocean.app` as the primary domain while
+registering the Vercel and Lovable hosts as aliases, and leaves ingress open so
+every hostname continues to route traffic. The service runs `npm run build` from
+the repository root before starting the Next.js server via `npm run start:web`.
+Requests are served on port `8080`, and the runtime sets `SITE_URL`,
+`NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` to
+`https://dynamic-capital-qazf2.ondigitalocean.app` (while allowlisting the
+companion hosts) so the web app, Supabase Edge Functions, and Telegram mini-app
+verification report the DigitalOcean-hosted canonical origin. Update those
+values if you move to a different hostname.
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
@@ -42,15 +43,17 @@ Include your database connection string or anon key as needed:
 
 ## DNS for App Platform
 
-DigitalOcean still provisions a default `dynamic-capital.ondigitalocean.app`
-domain. Its exported zone file lives in
-[`dns/dynamic-capital.ondigitalocean.app.zone`](../dns/dynamic-capital.ondigitalocean.app.zone)
+DigitalOcean still provisions a default
+`dynamic-capital-qazf2.ondigitalocean.app` domain. Its exported zone file lives
+in
+[`dns/dynamic-capital-qazf2.ondigitalocean.app.zone`](../dns/dynamic-capital-qazf2.ondigitalocean.app.zone)
 and captures the required NS and A records (162.159.140.98 and 172.66.0.96).
 Use that file if you need to rehydrate the fallback host while keeping
-Cloudflare in front of the service. Production traffic now targets
-`dynamic-capital.vercel.app`, with `dynamic-capital.lovable.app` staying active
-for load sharing. The helper `configure-digitalocean-dns.ts` script keeps the
-Lovable domain aligned with the expected records:
+Cloudflare in front of the service. Production traffic now targets the
+DigitalOcean domain, with `dynamic-capital.vercel.app` and
+`dynamic-capital.lovable.app` staying active for load sharing. The helper
+`configure-digitalocean-dns.ts` script keeps the Lovable domain aligned with the
+expected records:
 
 ```bash
 # Preview the proposed DNS mutations
@@ -66,7 +69,7 @@ deno run -A scripts/configure-digitalocean-dns.ts
 The repository ships with `scripts/doctl/sync-site-config.mjs` to patch the App
 Platform spec when `SITE_URL` (and related variables) drift or the primary
 domain is missing. The helper script also replays the exported zone file so the
-DigitalOcean-managed fallback domain (`dynamic-capital.ondigitalocean.app`)
+DigitalOcean-managed fallback domain (`dynamic-capital-qazf2.ondigitalocean.app`)
 stays aligned with Cloudflare while normalizing environment variables on the
 app itself along with any services, static sites, workers, jobs, and functions
 declared in the spec.
@@ -80,8 +83,8 @@ you only use the default context):
 # Update the app spec, aligning env vars, ingress, and primary domain.
 node scripts/doctl/sync-site-config.mjs \
   --app-id $DIGITALOCEAN_APP_ID \
-  --site-url https://dynamic-capital.vercel.app \
-  --zone dynamic-capital.ondigitalocean.app \
+  --site-url https://dynamic-capital-qazf2.ondigitalocean.app \
+  --zone dynamic-capital-qazf2.ondigitalocean.app \
   --spec .do/app.yml \
   --output .do/app.yml \
   --context $DOCTL_CONTEXT \
@@ -90,8 +93,8 @@ node scripts/doctl/sync-site-config.mjs \
 # Apply the spec changes and import the DNS zone in one go.
 node scripts/doctl/sync-site-config.mjs \
   --app-id $DIGITALOCEAN_APP_ID \
-  --site-url https://dynamic-capital.vercel.app \
-  --zone dynamic-capital.ondigitalocean.app \
+  --site-url https://dynamic-capital-qazf2.ondigitalocean.app \
+  --zone dynamic-capital-qazf2.ondigitalocean.app \
   --context $DOCTL_CONTEXT \
   --apply \
   --apply-zone
@@ -163,8 +166,8 @@ sync with local expectations. Update both the spec and this section if the
 build or runtime command changes.
 
 The `SITE_URL` variable must match your public domain, e.g.
-`https://dynamic-capital.vercel.app`, and `ALLOWED_ORIGINS` should include the
-Lovable and DigitalOcean hosts if you continue to share load across them.
+`https://dynamic-capital-qazf2.ondigitalocean.app`, and `ALLOWED_ORIGINS` should
+include the Lovable and Vercel hosts if you continue to share load across them.
 
 ## Deployment logs
 
