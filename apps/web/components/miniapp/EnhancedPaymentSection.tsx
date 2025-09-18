@@ -277,10 +277,10 @@ export function EnhancedPaymentSection({ selectedPlan, onBack }: EnhancedPayment
                       onClick={() => method.available && handleMethodSelect(method.id)}
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
-                          <div className="p-2 rounded-lg bg-primary/10">
-                            <method.icon className="h-6 w-6 text-primary" />
-                          </div>
+                         <div className="flex items-center gap-4">
+                           <div className="p-2 rounded-lg bg-primary/10">
+                             {React.createElement(method.icon as React.ComponentType<{ className?: string }>, { className: "h-6 w-6 text-primary" })}
+                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <h3 className="font-medium">{method.name}</h3>

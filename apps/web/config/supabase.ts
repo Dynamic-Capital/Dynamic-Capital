@@ -55,6 +55,7 @@ export const SUPABASE_CONFIG = {
 export const CRYPTO_CONFIG = {
   SUPPORTED_CURRENCIES: ['BTC', 'ETH', 'USDT', 'LTC'],
   DEPOSIT_ADDRESS: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+  USDT_TRC20_ADDRESS: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
   NETWORK: "mainnet"
 } as const;
 
@@ -83,7 +84,7 @@ export const callEdgeFunction = async <T>(
     headers?: Record<string, string>;
     token?: string;
   } = {},
-): Promise<{ data?: T; error?: { status: number; message: string } }> => {
+): Promise<{ data?: T; error?: { status: number; message: string }; status?: number }> => {
   const { method = "GET", body, headers = {}, token } = options;
 
   const requestHeaders: Record<string, string> = {
@@ -123,8 +124,9 @@ export const callEdgeFunction = async <T>(
         status: res.status,
         message,
       },
+      status: res.status,
     };
   }
 
-  return { data };
+  return { data, status: res.status };
 };

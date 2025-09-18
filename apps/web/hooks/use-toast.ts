@@ -5,6 +5,7 @@ export interface Toast {
   title?: string
   description?: string
   action?: React.ReactNode
+  variant?: 'default' | 'destructive' | 'success' | 'warning'
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }

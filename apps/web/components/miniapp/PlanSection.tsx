@@ -139,7 +139,7 @@ export default function PlanSection() {
         throw new Error('Network error');
       }
 
-      setPromoValidation(data);
+      setPromoValidation(data as PromoValidation);
 
       if ((data as any).valid) {
         toast.success(`Promo code applied! ${(data as any).discount_type === 'percentage' ? (data as any).discount_value + '%' : '$' + (data as any).discount_value} discount`);

@@ -58,7 +58,7 @@ export const MobileFloatingActions: React.FC<MobileFloatingActionsProps> = ({
             className="flex flex-col space-y-3 mb-4"
           >
             {actions.map((action, index) => {
-              const Icon = action.icon;
+              const Icon = action.icon as React.ComponentType<{ size?: number; className?: string }>;
               return (
                 <motion.div
                   key={action.id}

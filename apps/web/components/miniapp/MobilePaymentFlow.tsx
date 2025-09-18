@@ -154,9 +154,15 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
   const openTelegramBot = async () => {
     const { TELEGRAM_CONFIG } = await import('@/config/supabase');
     const url = TELEGRAM_CONFIG.BOT_URL;
-    if (isInTelegram) {
-      window.Telegram?.WebApp?.openTelegramLink(url);
-    } else {
+    if (isInTelegram && typeof window !== 'undefined') {
+      // Check if Telegram WebApp is available
+      const telegram = (window as any).Telegram;
+      if (telegram?.WebApp?.openTelegramLink && typeof telegram.WebApp.openTelegramLink === 'function') {
+        telegram.WebApp.openTelegramLink(url);
+      } else {
+        window.open(url, '_blank');
+      }
+    } else if (typeof window !== 'undefined') {
       window.open(url, '_blank');
     }
   };
@@ -261,7 +267,7 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
           >
             <div className="space-y-3">
               {paymentMethods.map((method) => {
-                const Icon = method.icon;
+                const Icon = method.icon as React.ComponentType<{ className?: string }>;
                 return (
                   <TouchFeedback key={method.id}>
                     <motion.div
