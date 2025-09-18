@@ -52,6 +52,18 @@ export const SUPABASE_CONFIG = {
   },
 } as const;
 
+export const CRYPTO_CONFIG = {
+  SUPPORTED_CURRENCIES: ['BTC', 'ETH', 'USDT', 'LTC'],
+  DEPOSIT_ADDRESS: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+  NETWORK: "mainnet"
+} as const;
+
+export const TELEGRAM_CONFIG = {
+  BOT_URL: "https://t.me/your_bot",
+  MINI_APP_URL: "https://your-miniapp.supabase.co",
+  WEBHOOK_SECRET: ""
+} as const;
+
 export const buildFunctionUrl = (
   functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS,
 ): string =>
