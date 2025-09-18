@@ -5,11 +5,11 @@ import process from 'node:process';
 const TASK_LIBRARY = {
   'sync-env': {
     id: 'sync-env',
-    label: 'Sync .env.local with .env.example (npm run sync-env)',
+    label: 'Sync .env and .env.local with .env.example (npm run sync-env)',
     command: 'npm run sync-env',
     optional: false,
     docs: ['docs/coding-efficiency-checklist.md', 'docs/dynamic-capital-checklist.md'],
-    notes: ['Appends any missing keys from .env.example into .env.local without overwriting existing values.'],
+    notes: ['Appends any missing keys from .env.example into .env and .env.local without overwriting existing values.'],
   },
   'repo-test': {
     id: 'repo-test',

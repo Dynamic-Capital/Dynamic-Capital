@@ -21,7 +21,7 @@ This project relies on a Next.js service and Supabase Edge Functions. Use the fo
   records from [`dns/dynamic-capital.lovable.app.json`](../dns/dynamic-capital.lovable.app.json).
 
 ## Environment variables
-- Copy `.env.example` to `.env.local` and fill in credentials.
+- Copy `.env.example` to `.env` and `.env.local`, then fill in credentials.
 - `ALLOWED_ORIGINS` defines a comma-separated list of domains allowed to call the API and edge functions. If unset, it falls back to `SITE_URL` (or `http://localhost:3000` when `SITE_URL` is missing).
 
 ## Exposing the app

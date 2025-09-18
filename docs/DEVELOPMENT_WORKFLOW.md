@@ -9,8 +9,9 @@ This guide outlines eight high-level steps to run, build, and deploy the Telegra
    - Install Node.js 22.x (LTS), Deno, and the Supabase CLI.
 
 3. **Prepare environment variables**
-   - Copy `.env.example` to `.env.local` and populate values:
+   - Copy `.env.example` to `.env` and `.env.local`, then populate values:
    ```bash
+   cp .env.example .env
    cp .env.example .env.local
    npm run sync-env
    ```
