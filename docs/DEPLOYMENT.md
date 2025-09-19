@@ -117,6 +117,33 @@ Flags:
 
 Use `npm run doctl:sync-site -- --help` to see all available options.
 
+When the DigitalOcean CLI is unavailable (for example in CI pipelines), the
+repository now also ships `scripts/digitalocean/sync-site-config.mjs`, which
+talks directly to the DigitalOcean REST API. Provide an API token via
+`--token` or the `DIGITALOCEAN_TOKEN` environment variable:
+
+```bash
+# Fetch, normalize, and optionally write the spec without applying.
+node scripts/digitalocean/sync-site-config.mjs \
+  --app-id $DIGITALOCEAN_APP_ID \
+  --site-url https://dynamic-capital.ondigitalocean.app \
+  --token $DIGITALOCEAN_TOKEN \
+  --output .do/app.yml \
+  --show-spec
+
+# Push the rendered spec back to DigitalOcean via the REST API.
+node scripts/digitalocean/sync-site-config.mjs \
+  --app-id $DIGITALOCEAN_APP_ID \
+  --site-url https://dynamic-capital.ondigitalocean.app \
+  --token $DIGITALOCEAN_TOKEN \
+  --apply
+```
+
+The API-powered helper shares flags with the `doctl` variant (including
+`--spec`, `--allowed-origins`, `--domain`, and `--zone`) so workflows can swap
+between them without additional changes. Run `npm run do:sync-site -- --help`
+for the full list of options.
+
 ### CDN configuration for DigitalOcean Spaces
 
 Static assets are uploaded to DigitalOcean Spaces by `scripts/upload-assets.js`.
