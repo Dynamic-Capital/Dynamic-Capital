@@ -18,6 +18,7 @@ Use this list when spinning up the TradingView webhook to MetaTrader 5 automatio
 ## 3. Webhook ingestion service
 - [ ] Stand up the webhook receiver (Vercel serverless function or Python service) following repo conventions.
 - [ ] Implement authentication (shared secret, signature) and reject unauthorized payloads.
+- [ ] Record shared secrets such as `TRADING_SIGNALS_WEBHOOK_SECRET` and `MT5_BRIDGE_WORKER_ID` in the deployment checklist so they map cleanly to Supabase.
 - [ ] Normalize symbols, timestamps, and payload shape to match Supabase expectations.
 - [ ] Add idempotency or deduplication to prevent duplicate trade executions.
 - [ ] Emit structured logs and capture metrics for received, processed, and failed alerts.
@@ -25,6 +26,7 @@ Use this list when spinning up the TradingView webhook to MetaTrader 5 automatio
 
 ## 4. Supabase backend enablement
 - [ ] Design and migrate tables such as `signals`, `trades`, `positions`, and configuration stores.
+- [ ] Apply the `20250920000000_trading_signals_pipeline.sql` migration so `trading_accounts`, `signals`, `signal_dispatches`, and `trades` exist with polling indexes.
 - [ ] Define RLS policies or restrict access via service-role keys for automation components.
 - [ ] Enable Realtime channels or RPC endpoints that the EA/process will consume.
 - [ ] Run manual inserts from the webhook service to confirm database connectivity.
@@ -35,6 +37,7 @@ Use this list when spinning up the TradingView webhook to MetaTrader 5 automatio
 - [ ] Parse incoming payloads and map to MT5 trade parameters with validation.
 - [ ] Implement execution logic, risk management, and post-trade reconciliation.
 - [ ] Forward execution status, fills, and error states back to Supabase for observability.
+- [ ] Exercise the `claim_trading_signal`, `mark_trading_signal_status`, and `record_trade_update` RPC helpers before wiring production order flow.
 - [ ] Add robust logging, retries, and fail-safes for network or broker issues.
 - [ ] Backtest and forward-test with demo accounts using staged signals.
 

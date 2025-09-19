@@ -22,9 +22,11 @@ Use this checklist to track progress when implementing the TradingView → Verce
 
 ## 3. Supabase Backend
 - [ ] Design database schema (e.g., `signals`, `trades`, `settings` tables).
+- [ ] Apply `supabase/migrations/20250920000000_trading_signals_pipeline.sql` to provision `trading_accounts`, `signals`, `signal_dispatches`, and `trades` with realtime + polling indexes.
 - [ ] Apply migrations and verify table indexes/constraints.
 - [ ] Enable Supabase Realtime for relevant tables/channels.
 - [ ] Create policies or use service-role key to secure inserts/reads.
+- [ ] Smoke test RPC helpers (`claim_trading_signal`, `mark_trading_signal_status`, `record_trade_update`) with a local Supabase client before wiring the MT5 listener.
 - [ ] Test manual insert to confirm Vercel → Supabase integration.
 - [ ] Document API endpoints or client libraries used by the EA.
 

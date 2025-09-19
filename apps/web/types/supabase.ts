@@ -1225,6 +1225,133 @@ export type Database = {
           },
         ]
       }
+      signal_dispatches: {
+        Row: {
+          claimed_at: string
+          completed_at: string | null
+          created_at: string
+          failed_at: string | null
+          id: string
+          last_heartbeat_at: string | null
+          metadata: Json
+          retry_count: number
+          signal_id: string
+          status: Database["public"]["Enums"]["signal_dispatch_status_enum"]
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          completed_at?: string | null
+          created_at?: string
+          failed_at?: string | null
+          id?: string
+          last_heartbeat_at?: string | null
+          metadata?: Json
+          retry_count?: number
+          signal_id: string
+          status?: Database["public"]["Enums"]["signal_dispatch_status_enum"]
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          claimed_at?: string
+          completed_at?: string | null
+          created_at?: string
+          failed_at?: string | null
+          id?: string
+          last_heartbeat_at?: string | null
+          metadata?: Json
+          retry_count?: number
+          signal_id?: string
+          status?: Database["public"]["Enums"]["signal_dispatch_status_enum"]
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_dispatches_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signals: {
+        Row: {
+          account_id: string | null
+          acknowledged_at: string | null
+          alert_id: string
+          cancelled_at: string | null
+          created_at: string
+          direction: string
+          error_reason: string | null
+          executed_at: string | null
+          id: string
+          last_heartbeat_at: string | null
+          next_poll_at: string
+          order_type: string
+          payload: Json
+          priority: number
+          source: string
+          status: Database["public"]["Enums"]["signal_status_enum"]
+          symbol: string
+          timeframe: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          acknowledged_at?: string | null
+          alert_id: string
+          cancelled_at?: string | null
+          created_at?: string
+          direction: string
+          error_reason?: string | null
+          executed_at?: string | null
+          id?: string
+          last_heartbeat_at?: string | null
+          next_poll_at?: string
+          order_type?: string
+          payload?: Json
+          priority?: number
+          source?: string
+          status?: Database["public"]["Enums"]["signal_status_enum"]
+          symbol: string
+          timeframe?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          acknowledged_at?: string | null
+          alert_id?: string
+          cancelled_at?: string | null
+          created_at?: string
+          direction?: string
+          error_reason?: string | null
+          executed_at?: string | null
+          id?: string
+          last_heartbeat_at?: string | null
+          next_poll_at?: string
+          order_type?: string
+          payload?: Json
+          priority?: number
+          source?: string
+          status?: Database["public"]["Enums"]["signal_status_enum"]
+          symbol?: string
+          timeframe?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signals_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "trading_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_audit_log: {
         Row: {
           action_type: string
@@ -1298,6 +1425,129 @@ export type Database = {
           is_lifetime?: boolean
           name?: string
           price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      trades: {
+        Row: {
+          account_id: string | null
+          closed_at: string | null
+          created_at: string
+          direction: string
+          error_reason: string | null
+          execution_payload: Json
+          filled_at: string | null
+          filled_price: number | null
+          id: string
+          mt5_ticket_id: string | null
+          opened_at: string
+          order_type: string
+          requested_price: number | null
+          signal_id: string | null
+          status: Database["public"]["Enums"]["trade_status_enum"]
+          stop_loss: number | null
+          symbol: string
+          take_profit: number | null
+          updated_at: string
+          volume: number | null
+        }
+        Insert: {
+          account_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          direction: string
+          error_reason?: string | null
+          execution_payload?: Json
+          filled_at?: string | null
+          filled_price?: number | null
+          id?: string
+          mt5_ticket_id?: string | null
+          opened_at?: string
+          order_type?: string
+          requested_price?: number | null
+          signal_id?: string | null
+          status?: Database["public"]["Enums"]["trade_status_enum"]
+          stop_loss?: number | null
+          symbol: string
+          take_profit?: number | null
+          updated_at?: string
+          volume?: number | null
+        }
+        Update: {
+          account_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          direction?: string
+          error_reason?: string | null
+          execution_payload?: Json
+          filled_at?: string | null
+          filled_price?: number | null
+          id?: string
+          mt5_ticket_id?: string | null
+          opened_at?: string
+          order_type?: string
+          requested_price?: number | null
+          signal_id?: string | null
+          status?: Database["public"]["Enums"]["trade_status_enum"]
+          stop_loss?: number | null
+          symbol?: string
+          take_profit?: number | null
+          updated_at?: string
+          volume?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trades_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "trading_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trades_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trading_accounts: {
+        Row: {
+          account_code: string
+          broker: string | null
+          created_at: string
+          display_name: string | null
+          environment: string
+          id: string
+          last_heartbeat_at: string | null
+          metadata: Json
+          status: Database["public"]["Enums"]["trading_account_status_enum"]
+          updated_at: string
+        }
+        Insert: {
+          account_code: string
+          broker?: string | null
+          created_at?: string
+          display_name?: string | null
+          environment?: string
+          id?: string
+          last_heartbeat_at?: string | null
+          metadata?: Json
+          status?: Database["public"]["Enums"]["trading_account_status_enum"]
+          updated_at?: string
+        }
+        Update: {
+          account_code?: string
+          broker?: string | null
+          created_at?: string
+          display_name?: string | null
+          environment?: string
+          id?: string
+          last_heartbeat_at?: string | null
+          metadata?: Json
+          status?: Database["public"]["Enums"]["trading_account_status_enum"]
           updated_at?: string
         }
         Relationships: []
@@ -1765,6 +2015,27 @@ export type Database = {
       }
     }
     Enums: {
+      signal_dispatch_status_enum:
+        | "pending"
+        | "claimed"
+        | "processing"
+        | "completed"
+        | "failed"
+      signal_status_enum:
+        | "pending"
+        | "claimed"
+        | "processing"
+        | "executed"
+        | "failed"
+        | "cancelled"
+      trade_status_enum:
+        | "pending"
+        | "executing"
+        | "partial_fill"
+        | "filled"
+        | "failed"
+        | "cancelled"
+      trading_account_status_enum: "active" | "maintenance" | "disabled"
       user_role_enum: "admin" | "user"
     }
     CompositeTypes: {

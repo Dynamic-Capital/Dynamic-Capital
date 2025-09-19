@@ -13,6 +13,7 @@ Use this list when adapting the [`abhidp/tradingview-to-metatrader5`](https://gi
 - [ ] Wire `src/config/database.py` to accept a Supabase/Postgres connection string and CA bundle instead of the local `init.sql` bootstrap.
 - [ ] Remove or retire the upstream `src/scripts/init_db.py` workflow so migrations originate from the Dynamic Capital Supabase schema repo.
 - [ ] Map Supabase `signals` columns to the copier’s models (`models/database.py`) and trim unused tables/fields that Supabase will not expose.
+- [ ] Use the new `trading_accounts`, `signals`, `signal_dispatches`, and `trades` tables from `20250920000000_trading_signals_pipeline.sql` as the source of truth (alert IDs remain unique).
 - [ ] Configure Redis credentials/hostnames via `.env.example` so the Windows host can talk to Dynamic Capital’s managed queue (or confirm the local Docker Redis remains the source of truth).
 
 ## 3. Replace the mitmproxy ingestion path with a Supabase listener
@@ -20,11 +21,13 @@ Use this list when adapting the [`abhidp/tradingview-to-metatrader5`](https://gi
 - [ ] Register a CLI entry point (e.g., `python run.py supabase-listener`) mirroring how `run.py proxy` and `run.py worker` are exposed upstream.
 - [ ] Reuse `utils/queue_handler.RedisQueue.push_trade` to enqueue Supabase payloads so `workers/mt5_worker.py` and `services/mt5_service.py` stay untouched.
 - [ ] Implement optimistic locking or status transitions (`pending → in_progress`) when publishing a Supabase signal to Redis to avoid double execution.
+- [ ] Invoke the RPC helpers (`claim_trading_signal`, `mark_trading_signal_status`, `record_trade_update`) rather than raw table writes to keep dispatch counters and timestamps consistent.
 - [ ] Capture Supabase credentials via Windows Credential Manager or encrypted `.env` values and load them in the new listener.
 
 ## 4. Propagate execution results back into Supabase
 - [ ] Extend `services/mt5_service.MT5Service` (or wrap `workers/mt5_worker`) to call Supabase REST/RPC endpoints once an order fills, partially fills, or errors.
 - [ ] Persist MT5 ticket IDs, fill prices, and error messages onto the originating Supabase record so downstream dashboards stay accurate.
+- [ ] Subscribe to the `SUPABASE_SIGNALS_CHANNEL` (default `realtime:public:signals`) so the bridge can react to new rows without busy polling.
 - [ ] Ensure Supabase updates occur atomically (`status`, `filled_at`, `mt5_ticket_id`) and implement retry/backoff helpers in case the REST call fails.
 - [ ] Publish health metrics (last fill timestamp, outstanding in-flight trades) into Supabase or another telemetry sink so ops can monitor the copier.
 
