@@ -91,9 +91,9 @@ const troubleshootingTips = {
     'Run `npm run sync-env` to copy placeholders from `.env.example`.',
     'Use `--no-env-check` temporarily only if you know the missing variables are safe to ignore.',
   ],
-  'node lovable-build.js': [
-    'Inspect the preceding Next.js or mini app build output for the root error.',
-    'Try `npm run build` directly to reproduce the failure outside the helper.',
+  'npm run build': [
+    'Inspect the preceding Next.js build output for the root error.',
+    'Run `npm run build` manually to reproduce the failure outside the helper.',
     'Use `--build-optional` if you only need to unblock other steps while debugging the build.',
   ],
   'npm run verify': [
@@ -123,7 +123,7 @@ const tasksByMode = {
       skip: skipEnvCheck,
       optional: false,
     }),
-    command('Run Lovable build (Next.js + mini app)', 'node lovable-build.js', {
+    command('Run Next.js build', 'npm run build', {
       skip: skipBuild,
       optional: optionalBuild,
     }),
@@ -147,7 +147,7 @@ const tasksByMode = {
       skip: skipEnvCheck,
       optional: false,
     }),
-    command('Run Lovable build (Next.js + mini app)', 'node lovable-build.js', {
+    command('Run Next.js build', 'npm run build', {
       skip: skipBuild,
       optional: optionalBuild,
     }),
@@ -274,7 +274,7 @@ function runTasks(taskList, context) {
 }
 
 function printUsage() {
-  console.log(`Codex CLI workflow helper\n\nUsage: node scripts/codex-workflow.js [mode] [flags]\n\nModes:\n  post-pull (default)  Prepare the repo after pulling from Codex CLI.\n  dev                  Sync env and start Lovable dev server.\n  build         Run env checks and Lovable build.\n  verify               Run the verification suite.\n\nFlags:\n  --no-install         Skip \`npm install\` (post-pull).\n  --no-sync            Skip \`npm run sync-env\`.\n  --no-env-check       Skip env validation (not recommended).\n  --no-build           Skip Lovable build (post-pull/build).\n  --build-optional     Treat Lovable build failures as warnings.\n  --verify             Run \`npm run verify\` after post-pull steps.\n  --no-verify          Skip verify step even if --verify provided.\n  --agent <id>         Track failures separately for a Codex agent.\n  --no-shared-cache    Disable shared success caching between agents.\n  --dry-run            Show planned steps without executing.\n  --reset-issues       Clear stored failure history for Codex workflow steps.\n  --help, -h           Show this message.\n`);
+  console.log(`Codex CLI workflow helper\n\nUsage: node scripts/codex-workflow.js [mode] [flags]\n\nModes:\n  post-pull (default)  Prepare the repo after pulling from Codex CLI.\n  dev                  Sync env and start Lovable dev server.\n  build         Run env checks and Next.js build.\n  verify               Run the verification suite.\n\nFlags:\n  --no-install         Skip \`npm install\` (post-pull).\n  --no-sync            Skip \`npm run sync-env\`.\n  --no-env-check       Skip env validation (not recommended).\n  --no-build           Skip `npm run build` (post-pull/build).\n  --build-optional     Treat Next.js build failures as warnings.\n  --verify             Run \`npm run verify\` after post-pull steps.\n  --no-verify          Skip verify step even if --verify provided.\n  --agent <id>         Track failures separately for a Codex agent.\n  --no-shared-cache    Disable shared success caching between agents.\n  --dry-run            Show planned steps without executing.\n  --reset-issues       Clear stored failure history for Codex workflow steps.\n  --help, -h           Show this message.\n`);
 }
 
 function taskKey(task) {
