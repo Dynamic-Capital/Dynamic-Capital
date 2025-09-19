@@ -9,7 +9,116 @@ const port = process.env.PORT || 3000;
 const root = process.cwd();
 const staticRoot = join(root, '_static');
 
-const defaultOrigin = process.env.SITE_URL || 'http://localhost:3000';
+function coerceSiteUrl(raw) {
+  if (!raw) return undefined;
+  const trimmed = `${raw}`.trim();
+  if (!trimmed) return undefined;
+  try {
+    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    return new URL(candidate).origin;
+  } catch {
+    return undefined;
+  }
+}
+
+function coerceHost(raw) {
+  if (!raw) return undefined;
+  const trimmed = `${raw}`.trim();
+  if (!trimmed) return undefined;
+  try {
+    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    return new URL(candidate).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
+const siteUrlSources = [
+  ['SITE_URL', process.env.SITE_URL],
+  ['NEXT_PUBLIC_SITE_URL', process.env.NEXT_PUBLIC_SITE_URL],
+  ['URL', process.env.URL],
+  ['APP_URL', process.env.APP_URL],
+  ['PUBLIC_URL', process.env.PUBLIC_URL],
+  ['DEPLOY_URL', process.env.DEPLOY_URL],
+  ['DEPLOYMENT_URL', process.env.DEPLOYMENT_URL],
+  ['DIGITALOCEAN_APP_URL', process.env.DIGITALOCEAN_APP_URL],
+  [
+    'DIGITALOCEAN_APP_SITE_DOMAIN',
+    process.env.DIGITALOCEAN_APP_SITE_DOMAIN,
+  ],
+  [
+    'VERCEL_URL',
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+  ],
+];
+
+let SITE_URL = undefined;
+let siteUrlSource = undefined;
+for (const [source, value] of siteUrlSources) {
+  const normalized = coerceSiteUrl(value);
+  if (normalized) {
+    SITE_URL = normalized;
+    siteUrlSource = source;
+    break;
+  }
+}
+
+if (!SITE_URL) {
+  SITE_URL = 'http://localhost:3000';
+  if (process.env.NODE_ENV === 'production') {
+    console.warn(
+      'SITE_URL is not configured; defaulting to http://localhost:3000. Set SITE_URL or NEXT_PUBLIC_SITE_URL to your canonical domain.',
+    );
+  }
+} else if (
+  process.env.NODE_ENV === 'production' &&
+  siteUrlSource &&
+  !['SITE_URL', 'NEXT_PUBLIC_SITE_URL'].includes(siteUrlSource)
+) {
+  console.warn(
+    `SITE_URL not provided. Using ${siteUrlSource} to derive ${SITE_URL}. Set SITE_URL to avoid fallback behaviour.`,
+  );
+}
+
+const canonicalHostSources = [
+  ['PRIMARY_HOST', process.env.PRIMARY_HOST],
+  ['DIGITALOCEAN_APP_SITE_DOMAIN', process.env.DIGITALOCEAN_APP_SITE_DOMAIN],
+  ['DIGITALOCEAN_APP_URL', process.env.DIGITALOCEAN_APP_URL],
+];
+
+let CANONICAL_HOST = undefined;
+let canonicalHostSource = undefined;
+for (const [source, value] of canonicalHostSources) {
+  const normalized = coerceHost(value);
+  if (normalized) {
+    CANONICAL_HOST = normalized;
+    canonicalHostSource = source;
+    break;
+  }
+}
+
+if (!CANONICAL_HOST) {
+  CANONICAL_HOST = new URL(SITE_URL).hostname;
+  canonicalHostSource = canonicalHostSource ?? 'SITE_URL';
+} else {
+  const siteUrlHost = new URL(SITE_URL).hostname;
+  if (siteUrlHost !== CANONICAL_HOST) {
+    if (process.env.NODE_ENV === 'production') {
+      console.warn(
+        `Overriding SITE_URL host ${siteUrlHost} with ${CANONICAL_HOST} derived from ${canonicalHostSource}.`,
+      );
+    }
+    SITE_URL = `https://${CANONICAL_HOST}`;
+  }
+}
+
+CANONICAL_HOST = CANONICAL_HOST.toLowerCase();
+
+process.env.SITE_URL = SITE_URL;
+
+const CANONICAL_ORIGIN = SITE_URL;
+
+const defaultOrigin = SITE_URL;
 const rawAllowedOrigins = process.env.ALLOWED_ORIGINS;
 
 let allowedOrigins;
@@ -33,6 +142,10 @@ if (rawAllowedOrigins === undefined) {
     );
     allowedOrigins = [defaultOrigin];
   }
+}
+
+if (!allowedOrigins.includes('*') && !allowedOrigins.includes(defaultOrigin)) {
+  allowedOrigins.push(defaultOrigin);
 }
 
 const allowAllOrigins = allowedOrigins.includes('*');
@@ -169,6 +282,35 @@ async function handler(req, res) {
   if (record.count > maxRequestsPerWindow) {
     res.writeHead(429, { 'Content-Type': 'text/plain' });
     return res.end('Too Many Requests');
+  }
+
+  const forwardedHost = req.headers['x-forwarded-host'];
+  const rawHost = (forwardedHost || req.headers.host || '').trim();
+  let requestHost;
+  if (rawHost) {
+    try {
+      requestHost = new URL(`http://${rawHost}`).hostname.toLowerCase();
+    } catch {}
+  }
+
+  if (requestHost && requestHost !== CANONICAL_HOST) {
+    let requestPath = req.url || '/';
+    if (!requestPath.startsWith('/')) {
+      try {
+        const parsed = new URL(requestPath, CANONICAL_ORIGIN);
+        requestPath = `${parsed.pathname}${parsed.search}${parsed.hash}` || '/';
+      } catch {
+        requestPath = '/';
+      }
+    }
+    const target = `${CANONICAL_ORIGIN}${requestPath || '/'}`;
+    res.writeHead(301, {
+      Location: target,
+      'Cache-Control': 'public, max-age=300',
+      'Content-Type': 'text/plain',
+      Vary: 'Host',
+    });
+    return res.end(`Redirecting to ${target}`);
   }
 
   // Enable CORS and security headers for all requests
