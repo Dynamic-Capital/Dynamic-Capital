@@ -154,8 +154,17 @@ class MarketSnapshot:
     adx_slow: float
     pip_size: float
     pip_value: float
+    open: Optional[float] = None
+    high: Optional[float] = None
+    low: Optional[float] = None
     daily_high: Optional[float] = None
     daily_low: Optional[float] = None
+    previous_daily_high: Optional[float] = None
+    previous_daily_low: Optional[float] = None
+    weekly_high: Optional[float] = None
+    weekly_low: Optional[float] = None
+    previous_week_high: Optional[float] = None
+    previous_week_low: Optional[float] = None
     correlation_scores: Optional[Dict[str, float]] = None
     seasonal_bias: Optional[float] = None
     seasonal_confidence: Optional[float] = None
@@ -223,6 +232,14 @@ class TradeConfig:
     max_correlation_adjustment: float = 0.4
     seasonal_bias_weight: float = 0.5
     max_seasonal_adjustment: float = 0.3
+    use_smc_context: bool = True
+    smc_level_threshold_pips: float = 10.0
+    smc_round_number_interval_pips: float = 50.0
+    smc_structure_lookback: int = 12
+    smc_structure_threshold_pips: float = 6.0
+    smc_bias_weight: float = 0.15
+    smc_liquidity_weight: float = 0.1
+    max_smc_adjustment: float = 0.25
 
 
 @dataclass(slots=True)
@@ -239,6 +256,258 @@ class RiskParameters:
     max_total_positions: int = 3
     max_daily_drawdown_pct: Optional[float] = None
 
+
+# ---------------------------------------------------------------------------
+# Smart Money Concepts (SMC) context analyser
+# ---------------------------------------------------------------------------
+
+
+class SMCAnalyzer:
+    """Derives lightweight SMC context to enrich trade decisions."""
+
+    def __init__(self, config: TradeConfig) -> None:
+        self.config = config
+        lookback = max(2, int(config.smc_structure_lookback))
+        self._lookback = lookback
+        self._high_window: deque[float] = deque(maxlen=lookback)
+        self._low_window: deque[float] = deque(maxlen=lookback)
+        self._previous_close: Optional[float] = None
+        self._structure_bias: int = 0
+        self._last_context: Optional[Dict[str, Any]] = None
+
+    def observe(self, snapshot: MarketSnapshot) -> Dict[str, Any]:
+        """Update internal state with the latest snapshot and return context."""
+
+        context = self._compute_context(snapshot)
+        self._last_context = context
+        return context
+
+    def apply(self, signal: TradeSignal) -> tuple[float, Dict[str, Any]]:
+        """Compute the SMC-driven confidence modifier for a signal."""
+
+        if self._last_context is None:
+            return 1.0, {"enabled": False, "modifier": 1.0, "reason": "insufficient_history"}
+
+        base = self._last_context
+        structure_context = dict(base["structure"])
+        levels_context = {
+            "near": [dict(level) for level in base["levels"]["near"]],
+            "swept": [dict(level) for level in base["levels"]["swept"]],
+            "pressure": {
+                "long": list(base["levels"]["pressure"]["long"]),
+                "short": list(base["levels"]["pressure"]["short"]),
+            },
+            "threshold_pips": base["levels"]["threshold_pips"],
+            "round_number_interval_pips": base["levels"]["round_number_interval_pips"],
+            "all_levels": [dict(level) for level in base["levels"]["all_levels"]],
+        }
+        if base["levels"].get("round_number") is not None:
+            levels_context["round_number"] = dict(base["levels"]["round_number"])
+
+        history_ready = bool(base.get("history_ready", False))
+        components: Dict[str, float] = {
+            "structure_alignment": 0.0,
+            "sms_penalty": 0.0,
+            "liquidity_penalty": 0.0,
+        }
+        if not history_ready:
+            structure_context["applied_adjustment"] = 0.0
+            meta = {
+                "enabled": True,
+                "structure": structure_context,
+                "levels": levels_context,
+                "components": components,
+                "liquidity": {"penalised_levels": [], "penalty": 0.0},
+                "adjustment": 0.0,
+                "modifier": 1.0,
+            }
+            return 1.0, meta
+
+        structure_adjustment = 0.0
+        liquidity_penalty = 0.0
+        penalised_levels: List[str] = []
+
+        bias = structure_context.get("bias", 0)
+        sms = bool(structure_context.get("sms", False))
+
+        if signal.direction != 0 and bias != 0:
+            alignment = 1.0 if bias == signal.direction else -1.0
+            structure_adjustment += alignment * self.config.smc_bias_weight
+            components["structure_alignment"] = alignment * self.config.smc_bias_weight
+
+        if sms:
+            sms_penalty = self.config.smc_bias_weight * 0.5
+            structure_adjustment -= sms_penalty
+            components["sms_penalty"] = -sms_penalty
+
+        pressure_key = "long" if signal.direction > 0 else "short"
+        pressure_levels = levels_context["pressure"].get(pressure_key, [])
+        if signal.direction != 0 and pressure_levels:
+            liquidity_penalty = self.config.smc_liquidity_weight
+            penalised_levels = list(pressure_levels)
+        components["liquidity_penalty"] = -liquidity_penalty
+
+        adjustment = structure_adjustment - liquidity_penalty
+        max_adjust = max(0.0, self.config.max_smc_adjustment)
+        modifier = 1.0 + adjustment
+        lower_bound = max(0.0, 1.0 - max_adjust)
+        upper_bound = 1.0 + max_adjust
+        modifier = max(lower_bound, min(modifier, upper_bound))
+
+        structure_context["applied_adjustment"] = structure_adjustment
+        meta = {
+            "enabled": True,
+            "structure": structure_context,
+            "levels": levels_context,
+            "components": components,
+            "liquidity": {
+                "penalised_levels": penalised_levels,
+                "penalty": liquidity_penalty,
+            },
+            "adjustment": adjustment,
+            "modifier": modifier,
+        }
+        return modifier, meta
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _compute_context(self, snapshot: MarketSnapshot) -> Dict[str, Any]:
+        pip_size = snapshot.pip_size if snapshot.pip_size > 0 else 1.0
+        structure_threshold = max(0.0, self.config.smc_structure_threshold_pips) * pip_size
+        level_threshold_pips = max(0.0, self.config.smc_level_threshold_pips)
+        tolerance = pip_size * 0.1
+
+        high = snapshot.high if snapshot.high is not None else snapshot.close
+        low = snapshot.low if snapshot.low is not None else snapshot.close
+
+        prev_high = max(self._high_window) if self._high_window else None
+        prev_low = min(self._low_window) if self._low_window else None
+
+        bos: Optional[str] = None
+        sms = False
+        previous_bias = self._structure_bias
+        structure_bias = previous_bias
+
+        if prev_high is not None and snapshot.close >= prev_high + structure_threshold:
+            bos = "bullish"
+            structure_bias = 1
+        elif prev_low is not None and snapshot.close <= prev_low - structure_threshold:
+            bos = "bearish"
+            structure_bias = -1
+
+        if bos is not None and previous_bias not in (0, structure_bias):
+            sms = True
+        if bos is not None:
+            self._structure_bias = structure_bias
+
+        levels: List[Dict[str, Any]] = []
+
+        def push_level(name: str, value: Optional[float]) -> None:
+            if value is None:
+                return
+            level_value = float(value)
+            distance_pips = abs(snapshot.close - level_value) / pip_size if pip_size > 0 else float("inf")
+            relation = "at"
+            if level_value > snapshot.close + tolerance:
+                relation = "above"
+            elif level_value < snapshot.close - tolerance:
+                relation = "below"
+            levels.append(
+                {
+                    "name": name,
+                    "value": level_value,
+                    "distance_pips": float(distance_pips),
+                    "relation": relation,
+                }
+            )
+
+        push_level("PDH", snapshot.previous_daily_high)
+        push_level("PDL", snapshot.previous_daily_low)
+        push_level("PWH", snapshot.previous_week_high)
+        push_level("PWL", snapshot.previous_week_low)
+        push_level("DailyHigh", snapshot.daily_high)
+        push_level("DailyLow", snapshot.daily_low)
+        push_level("WeeklyHigh", snapshot.weekly_high)
+        push_level("WeeklyLow", snapshot.weekly_low)
+
+        round_number_info: Optional[Dict[str, Any]] = None
+        rn_interval = max(0.0, self.config.smc_round_number_interval_pips) * pip_size
+        if rn_interval >= pip_size and rn_interval > 0:
+            rn_value = round(snapshot.close / rn_interval) * rn_interval
+            distance_pips = abs(snapshot.close - rn_value) / pip_size if pip_size > 0 else float("inf")
+            relation = "at"
+            if rn_value > snapshot.close + tolerance:
+                relation = "above"
+            elif rn_value < snapshot.close - tolerance:
+                relation = "below"
+            round_number_info = {
+                "name": "RN",
+                "value": float(rn_value),
+                "distance_pips": float(distance_pips),
+                "relation": relation,
+            }
+            levels.append(round_number_info)
+
+        near_levels = [dict(level) for level in levels if level["distance_pips"] <= level_threshold_pips]
+        pressure_long = sorted({level["name"] for level in near_levels if level["relation"] in {"above", "at"}})
+        pressure_short = sorted({level["name"] for level in near_levels if level["relation"] in {"below", "at"}})
+
+        cross_threshold = max(structure_threshold, pip_size)
+        swept_levels: List[Dict[str, Any]] = []
+        history_ready = self._previous_close is not None
+        if history_ready:
+            prev_close = self._previous_close
+            for level in levels:
+                level_value = level["value"]
+                moved_pips = abs(snapshot.close - level_value) / pip_size if pip_size > 0 else float("inf")
+                if prev_close <= level_value and snapshot.close >= level_value + cross_threshold:
+                    swept_levels.append(
+                        {
+                            "name": level["name"],
+                            "direction": "above",
+                            "value": level_value,
+                            "moved_pips": float(moved_pips),
+                        }
+                    )
+                elif prev_close >= level_value and snapshot.close <= level_value - cross_threshold:
+                    swept_levels.append(
+                        {
+                            "name": level["name"],
+                            "direction": "below",
+                            "value": level_value,
+                            "moved_pips": float(moved_pips),
+                        }
+                    )
+
+        self._high_window.append(float(high))
+        self._low_window.append(float(low))
+        self._previous_close = float(snapshot.close)
+
+        context = {
+            "enabled": True,
+            "structure": {
+                "bos": bos,
+                "sms": sms,
+                "bias": structure_bias,
+                "previous_bias": previous_bias,
+                "lookback": self._high_window.maxlen or self._lookback,
+                "threshold_pips": self.config.smc_structure_threshold_pips,
+            },
+            "levels": {
+                "near": near_levels,
+                "swept": swept_levels,
+                "pressure": {"long": pressure_long, "short": pressure_short},
+                "threshold_pips": level_threshold_pips,
+                "round_number_interval_pips": self.config.smc_round_number_interval_pips,
+                "all_levels": [dict(level) for level in levels],
+            },
+            "history_ready": history_ready,
+        }
+        if round_number_info is not None:
+            context["levels"]["round_number"] = dict(round_number_info)
+        return context
 
 # ---------------------------------------------------------------------------
 # Feature pipeline helpers
@@ -943,6 +1212,7 @@ class TradeLogic:
             if self.config.use_adr
             else None
         )
+        self.smc = SMCAnalyzer(self.config) if self.config.use_smc_context else None
         for monitor in monitors or []:
             self.risk.register_monitor(monitor)
 
@@ -954,6 +1224,9 @@ class TradeLogic:
         account_equity: Optional[float] = None,
     ) -> List[TradeDecision]:
         open_positions = list(open_positions or [])
+
+        if self.smc:
+            self.smc.observe(snapshot)
 
         if self.adr_tracker:
             self.adr_tracker.update(
@@ -1044,11 +1317,14 @@ class TradeLogic:
         reason = "Lorentzian k-NN signal"
         correlation_modifier = context["correlation"]["modifier"]
         seasonal_modifier = context["seasonal"]["modifier"]
+        smc_modifier = context.get("smc", {}).get("modifier", 1.0)
         reason_details: List[str] = []
         if not math.isclose(correlation_modifier, 1.0, rel_tol=1e-6):
             reason_details.append(f"correlation {correlation_modifier:.2f}x")
         if not math.isclose(seasonal_modifier, 1.0, rel_tol=1e-6):
             reason_details.append(f"seasonal {seasonal_modifier:.2f}x")
+        if not math.isclose(smc_modifier, 1.0, rel_tol=1e-6):
+            reason_details.append(f"smc {smc_modifier:.2f}x")
         if reason_details:
             reason = f"{reason} ({', '.join(reason_details)})"
 
@@ -1155,13 +1431,20 @@ class TradeLogic:
             snapshot=snapshot,
             signal=signal,
         )
-        adjusted_confidence = original_confidence * correlation_modifier * seasonal_modifier
+        smc_modifier = 1.0
+        smc_meta: Dict[str, Any] = {"enabled": False, "modifier": 1.0}
+        if self.smc:
+            smc_modifier, smc_meta = self.smc.apply(signal)
+        adjusted_confidence = (
+            original_confidence * correlation_modifier * seasonal_modifier * smc_modifier
+        )
         adjusted_confidence = max(0.0, min(1.0, adjusted_confidence))
         context = {
             "original_confidence": original_confidence,
             "final_confidence": adjusted_confidence,
             "correlation": {"modifier": correlation_modifier, **correlation_meta},
             "seasonal": {"modifier": seasonal_modifier, **seasonal_meta},
+            "smc": smc_meta,
         }
         if math.isclose(adjusted_confidence, original_confidence, rel_tol=1e-6):
             return signal, context
@@ -1328,6 +1611,7 @@ __all__ = [
     "TradeDecision",
     "TradeLogic",
     "TradeSignal",
+    "SMCAnalyzer",
     "ml",
     "kernels",
 ]

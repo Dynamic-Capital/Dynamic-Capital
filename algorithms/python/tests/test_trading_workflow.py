@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import sys
@@ -179,3 +180,125 @@ def test_trade_logic_applies_correlation_and_seasonal_context():
     assert decision.context["seasonal"]["modifier"] == pytest.approx(1.24, rel=1e-3)
     assert "correlation" in decision.reason
     assert "seasonal" in decision.reason
+    assert decision.context["smc"]["modifier"] == pytest.approx(1.0, rel=1e-3)
+
+
+def test_trade_logic_layers_smc_context():
+    config = TradeConfig(
+        neighbors=1,
+        label_lookahead=0,
+        min_confidence=0.0,
+        use_adr=False,
+        smc_structure_lookback=3,
+        smc_structure_threshold_pips=5.0,
+        smc_level_threshold_pips=12.0,
+        smc_round_number_interval_pips=50.0,
+        smc_bias_weight=0.2,
+        smc_liquidity_weight=0.1,
+        max_smc_adjustment=0.3,
+    )
+    logic = TradeLogic(config=config)
+
+    signals = deque(
+        [
+            TradeSignal(direction=0, confidence=0.0, votes=0, neighbors_considered=0),
+            TradeSignal(direction=0, confidence=0.0, votes=0, neighbors_considered=0),
+            TradeSignal(direction=1, confidence=0.8, votes=6, neighbors_considered=8),
+        ]
+    )
+
+    class SequenceStrategy:
+        def __init__(self, queue: deque[TradeSignal]) -> None:
+            self._signals = queue
+
+        def update(self, snapshot: MarketSnapshot) -> TradeSignal:
+            if self._signals:
+                return self._signals.popleft()
+            return TradeSignal(direction=0, confidence=0.0, votes=0, neighbors_considered=0)
+
+    logic.strategy = SequenceStrategy(signals)
+
+    base_time = datetime(2024, 1, 2, 0, 0, tzinfo=timezone.utc)
+    snapshots = [
+        MarketSnapshot(
+            symbol="GBPUSD",
+            timestamp=base_time,
+            open=1.2000,
+            high=1.2010,
+            low=1.1990,
+            close=1.2005,
+            rsi_fast=55.0,
+            adx_fast=20.0,
+            rsi_slow=52.0,
+            adx_slow=18.0,
+            pip_size=0.0001,
+            pip_value=10.0,
+            daily_high=1.2010,
+            daily_low=1.1990,
+            previous_daily_high=1.1985,
+            previous_daily_low=1.1950,
+            weekly_high=1.2050,
+            weekly_low=1.1950,
+            previous_week_high=1.2100,
+            previous_week_low=1.1900,
+        ),
+        MarketSnapshot(
+            symbol="GBPUSD",
+            timestamp=base_time + timedelta(minutes=5),
+            open=1.2005,
+            high=1.2020,
+            low=1.2000,
+            close=1.2015,
+            rsi_fast=56.0,
+            adx_fast=21.0,
+            rsi_slow=52.5,
+            adx_slow=18.5,
+            pip_size=0.0001,
+            pip_value=10.0,
+            daily_high=1.2020,
+            daily_low=1.1990,
+            previous_daily_high=1.1985,
+            previous_daily_low=1.1950,
+            weekly_high=1.2050,
+            weekly_low=1.1950,
+            previous_week_high=1.2100,
+            previous_week_low=1.1900,
+        ),
+        MarketSnapshot(
+            symbol="GBPUSD",
+            timestamp=base_time + timedelta(minutes=10),
+            open=1.2015,
+            high=1.2040,
+            low=1.2010,
+            close=1.2035,
+            rsi_fast=57.5,
+            adx_fast=22.0,
+            rsi_slow=53.0,
+            adx_slow=19.0,
+            pip_size=0.0001,
+            pip_value=10.0,
+            daily_high=1.2040,
+            daily_low=1.1990,
+            previous_daily_high=1.2040,
+            previous_daily_low=1.1950,
+            weekly_high=1.2050,
+            weekly_low=1.1950,
+            previous_week_high=1.2100,
+            previous_week_low=1.1900,
+        ),
+    ]
+
+    decisions: list[TradeDecision] = []
+    for snapshot in snapshots:
+        decisions = logic.on_bar(snapshot)
+
+    open_decisions = [decision for decision in decisions if decision.action == "open"]
+    assert open_decisions, "expected an open trade decision with SMC context"
+
+    decision = open_decisions[0]
+    smc_context = decision.context["smc"]
+    assert smc_context["enabled"]
+    assert smc_context["modifier"] == pytest.approx(1.1, rel=1e-3)
+    assert smc_context["structure"]["bos"] == "bullish"
+    assert "PDH" in smc_context["liquidity"]["penalised_levels"]
+    assert "smc" in decision.reason

@@ -6,7 +6,7 @@ import math
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence
+from typing import Iterable, List, Optional, Sequence, Tuple
 
 from .trade_logic import MarketSnapshot
 
@@ -140,16 +140,40 @@ class MarketDataIngestionJob:
         snapshots: List[MarketSnapshot] = []
         daily_high: Optional[float] = None
         daily_low: Optional[float] = None
+        previous_daily_high: Optional[float] = None
+        previous_daily_low: Optional[float] = None
         current_day: Optional[date] = None
+        weekly_high: Optional[float] = None
+        weekly_low: Optional[float] = None
+        previous_week_high: Optional[float] = None
+        previous_week_low: Optional[float] = None
+        current_week: Optional[Tuple[int, int]] = None
         for idx, bar in enumerate(rows):
             snapshot_day = bar.timestamp.date()
+            iso_calendar = bar.timestamp.isocalendar()
+            week_key = (iso_calendar[0], iso_calendar[1])
+
             if snapshot_day != current_day:
+                if current_day is not None:
+                    previous_daily_high = daily_high
+                    previous_daily_low = daily_low
                 current_day = snapshot_day
                 daily_high = bar.high
                 daily_low = bar.low
             else:
                 daily_high = max(daily_high or bar.high, bar.high)
                 daily_low = min(daily_low or bar.low, bar.low)
+
+            if week_key != current_week:
+                if current_week is not None:
+                    previous_week_high = weekly_high
+                    previous_week_low = weekly_low
+                current_week = week_key
+                weekly_high = bar.high
+                weekly_low = bar.low
+            else:
+                weekly_high = max(weekly_high or bar.high, bar.high)
+                weekly_low = min(weekly_low or bar.low, bar.low)
 
             rsi_fast = rsi_fast_values[idx]
             rsi_slow = rsi_slow_values[idx]
@@ -168,8 +192,17 @@ class MarketDataIngestionJob:
                     adx_slow=float(adx_slow),
                     pip_size=instrument.pip_size,
                     pip_value=instrument.pip_value,
+                    open=bar.open,
+                    high=bar.high,
+                    low=bar.low,
                     daily_high=daily_high,
                     daily_low=daily_low,
+                    previous_daily_high=previous_daily_high,
+                    previous_daily_low=previous_daily_low,
+                    weekly_high=weekly_high,
+                    weekly_low=weekly_low,
+                    previous_week_high=previous_week_high,
+                    previous_week_low=previous_week_low,
                 )
             )
         return snapshots
