@@ -21,6 +21,15 @@ This project relies on a Next.js service and Supabase Edge Functions. Use the fo
   Lovable zone aligned with the shared Cloudflare front door by replaying the
   records from [`dns/dynamic-capital.lovable.app.json`](../dns/dynamic-capital.lovable.app.json).
 
+## Public static ingress IPs
+
+Cloudflare terminates TLS for the production hosts and forwards requests to the
+Next.js service running on port `8080`. When you need to allowlist ingress or
+recreate DNS records, use the anycast A records published for the app:
+
+- `162.159.140.98`
+- `172.66.0.96`
+
 ## Environment variables
 - Copy `.env.example` to `.env` and `.env.local`, then fill in credentials.
 - `ALLOWED_ORIGINS` defines a comma-separated list of domains allowed to call the API and edge functions. If unset, it falls back to `SITE_URL` (or `http://localhost:3000` when `SITE_URL` is missing).
