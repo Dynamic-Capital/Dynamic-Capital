@@ -199,18 +199,30 @@ async function main() {
   const token = resolveToken(values.token);
   assertToken(token);
 
-  const originInput = values.origin ?? buildOriginFromSpace(values.space, values.region);
+  const endpointId = values['endpoint-id']?.trim();
+
+  let originInput;
+  if (values.origin !== undefined) {
+    originInput = values.origin;
+  } else if (!endpointId) {
+    originInput = buildOriginFromSpace(values.space, values.region);
+  } else if (values.space !== undefined || values.region !== undefined) {
+    if (values.space === undefined || values.region === undefined) {
+      console.warn('Ignoring incomplete --space/--region because --endpoint-id was provided.');
+    } else {
+      originInput = buildOriginFromSpace(values.space, values.region);
+    }
+  }
   const origin = coerceOrigin(originInput);
-  if (!origin) {
+  if (!origin && !endpointId) {
     usage();
-    throw new Error('An origin is required. Provide --origin or --space with --region.');
+    throw new Error('An origin is required. Provide --origin, --space with --region, or --endpoint-id.');
   }
 
   if (values.origin && values.space) {
     console.warn('Both --origin and --space provided. Using --origin and ignoring --space/--region.');
   }
 
-  const endpointId = values['endpoint-id'];
   const ttl = parsePositiveInt(values.ttl ?? '3600', 'ttl');
   const customDomain = values['custom-domain']?.trim();
   const certificateId = values['certificate-id']?.trim();
@@ -219,18 +231,28 @@ async function main() {
     : [];
 
   const endpoints = await listEndpoints(token);
-  const existing = ensureEndpointMatch(endpoints, { endpointId, origin, customDomain });
+  const existing = ensureEndpointMatch(endpoints, { endpointId, origin: origin || undefined, customDomain });
+
+  const resolvedOrigin = origin || existing?.origin || '';
+  if (!resolvedOrigin) {
+    usage();
+    throw new Error('Unable to determine origin. Provide --origin, --space with --region, or ensure the endpoint exists.');
+  }
+
+  if (!origin && existing?.origin) {
+    console.log(`Reusing origin ${existing.origin} from endpoint ${existing.id}.`);
+  }
 
   if (endpointId && !existing) {
     console.warn(`Endpoint with id=${endpointId} not found. A new endpoint will be created.`);
-  } else if (existing && existing.origin !== origin) {
+  } else if (origin && existing && existing.origin !== origin) {
     console.warn(`Existing endpoint origin (${existing.origin}) differs from desired ${origin}. Origins cannot be changed. A new endpoint will be created.`);
   }
 
-  const canUpdate = existing && existing.origin === origin;
+  const canUpdate = existing && existing.origin === resolvedOrigin;
 
   const desired = {
-    origin,
+    origin: resolvedOrigin,
     ttl,
     custom_domain: customDomain,
     certificate_id: certificateId,
@@ -327,7 +349,7 @@ async function main() {
     const finalEndpoints = await listEndpoints(token);
     const final = ensureEndpointMatch(finalEndpoints, {
       endpointId: endpoint?.id,
-      origin,
+      origin: resolvedOrigin,
       customDomain,
     });
     if (final) {
