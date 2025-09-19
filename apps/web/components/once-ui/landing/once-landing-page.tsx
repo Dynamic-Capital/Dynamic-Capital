@@ -9,10 +9,12 @@ import {
   CheckCircle2,
   Clock3,
   Coins,
+  Gauge,
+  GraduationCap,
   LineChart,
   ShieldCheck,
   Sparkles,
-  Wallet,
+  Users2,
 } from "lucide-react";
 
 import { OnceButton, OnceContainer } from "@/components/once-ui";
@@ -52,120 +54,154 @@ interface PlanItem {
   featured?: boolean;
 }
 
+interface AboutHighlight {
+  title: string;
+  description: string;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
+}
+
 const heroStats = [
-  { label: "Average approval time", value: "3m 45s" },
-  { label: "Payments cleared weekly", value: "1,200+" },
-  { label: "Chargeback prevention", value: "99.4%" },
+  { label: "Active VIP members", value: "8,500+" },
+  { label: "Mentorship satisfaction", value: "4.9/5" },
+  { label: "Capital managed in pools", value: "$42M" },
+];
+
+const aboutHighlights: AboutHighlight[] = [
+  {
+    title: "Quant-led market intelligence",
+    description:
+      "Signals are engineered by analysts covering global FX, crypto, and commodities with multi-timeframe confirmation.",
+    icon: LineChart,
+  },
+  {
+    title: "Coaching tailored to your goals",
+    description:
+      "Mentors build trading playbooks with you, supported by weekly office hours, accountability cohorts, and recorded sessions.",
+    icon: GraduationCap,
+  },
+  {
+    title: "Transparent risk and execution",
+    description:
+      "Pool trading dashboards show positions, performance, and safeguards in real time across every connected exchange.",
+    icon: ShieldCheck,
+  },
 ];
 
 const workflowSteps: WorkflowStep[] = [
   {
-    label: "Submit your proof",
-    detail: "Upload a bank receipt or share a crypto TXID directly from Telegram.",
-    metric: "Secure upload & OCR",
+    label: "Join the VIP signal desk",
+    detail: "Activate your membership and receive real-time entries, exits, and risk levels via Telegram and web dashboard.",
+    metric: "Signals in under 10 minutes",
   },
   {
-    label: "Automated verification",
-    detail: "Once UI orchestrates policy checks, AML rules, and fraud heuristics instantly.",
-    metric: "15+ backend guardrails",
+    label: "Set your trading objectives",
+    detail: "Use the client hub to track performance, book mentorship sessions, and sync exchange accounts for oversight.",
+    metric: "Personalized game plan",
   },
   {
-    label: "Admin hand-off",
-    detail: "Our Once-powered dashboard highlights outliers for human review with one tap actions.",
-    metric: "< 30s manual triage",
+    label: "Access pool trading capital",
+    detail: "Participate in curated pools with managed drawdown controls and transparent share reporting every session.",
+    metric: "$42M managed capital",
   },
   {
-    label: "Funds released",
-    detail: "Customers are notified automatically once the deposit clears the guardrail stack.",
-    metric: "Real-time Telegram alerts",
+    label: "Automate with the DC bot",
+    detail: "Deploy our exchange-ready algorithm to execute strategies hands-off while keeping manual override options.",
+    metric: "24/7 automated trading",
   },
 ];
 
 const testimonials = [
   {
-    name: "Elena Moritz",
-    role: "FX Desk Lead, Apex Trading",
+    name: "Maya Chen",
+    role: "Swing Trader, Atlas Collective",
     quote:
-      "The Once UI workflow removed four manual steps from our ops checklist. Deposits now clear in minutes without sacrificing compliance.",
-    metric: "↑ 38% processing speed",
+      "Dynamic Capital's VIP signals cut out noise and gave me structured entries. Pairing them with the mentorship playbooks doubled my monthly returns.",
+    metric: "↑ 78% win rate",
   },
   {
-    name: "Rahul Mehta",
-    role: "Founder, NovaQuant",
+    name: "Luis Romero",
+    role: "Founder, Helios Alpha",
     quote:
-      "Dynamic Capital pairs beautifully with Telegram. Our VIPs submit proofs directly from the chat and the admin console stays in sync.",
-    metric: "7k VIP traders onboarded",
+      "The pool trading desk gives my community exposure to pro management without opaque fees. Reporting inside the dashboard is instant and auditable.",
+    metric: "$180K capital growth",
   },
   {
-    name: "Sophia Allen",
-    role: "Operations, Velocity Markets",
+    name: "Amina Diallo",
+    role: "Quant Analyst, Vertex Labs",
     quote:
-      "Once UI gave us a single source of truth for fiat and crypto flows. The status cards and risk signals are a game changer.",
-    metric: "↓ 64% review backlog",
+      "The automated trading bot executes the same discipline we coach in mentorship. It freed our team to focus on strategy instead of screen time.",
+    metric: "99.9% automation uptime",
   },
 ];
 
 const plans: PlanItem[] = [
   {
-    id: "vip-monthly",
-    title: "VIP Momentum",
-    price: "$49",
+    id: "signals-pro",
+    title: "Signals Pro",
+    price: "$59",
     cadence: "per month",
-    description: "Core access for traders who need verified deposits and premium market calls.",
+    description: "Real-time VIP alerts, curated watchlists, and portfolio tracking across every session.",
     benefits: [
-      "Daily momentum & swing plays",
-      "Bank + crypto deposit routing",
-      "Priority Telegram support",
+      "Intraday & swing trade calls",
+      "Risk levels with live updates",
+      "VIP Telegram community",
     ],
   },
   {
-    id: "vip-quarterly",
-    title: "VIP Quantum",
-    price: "$129",
+    id: "mentor-elite",
+    title: "Mentor Elite",
+    price: "$249",
     cadence: "per quarter",
-    description: "Unlock quarterly strategy reviews, shared research, and white-glove onboarding.",
+    description: "Executive mentorship, small-group intensives, and accountability tracking for consistent growth.",
     benefits: [
-      "Quarterly strategy sync",
-      "Advanced risk alerts",
-      "Managed OTC settlement",
+      "1:1 quarterly intensives",
+      "Weekly strategy office hours",
+      "Performance review dashboard",
     ],
     featured: true,
   },
   {
-    id: "vip-annual",
-    title: "VIP Titan",
-    price: "$480",
+    id: "pool-alpha",
+    title: "Pool Alpha",
+    price: "$960",
     cadence: "per year",
-    description: "Annual license for teams scaling fast-moving desks and multi-signal portfolios.",
+    description: "Priority allocation to managed pools plus early access to the automated trading bot rollout.",
     benefits: [
-      "Unlimited desk seats",
-      "Custom Once UI workspaces",
-      "Dedicated compliance liaison",
+      "Dedicated capital concierge",
+      "Automated bot beta access",
+      "Transparent profit sharing",
     ],
   },
 ];
 
 const featureItems: FeatureItem[] = [
   {
-    title: "Bank-grade verification",
+    title: "VIP trading signals",
     description:
-      "OCR, AML screening, and webhook reconciliation combine to approve fiat deposits without manual spreadsheets.",
-    icon: ShieldCheck,
-    highlight: "Policy-backed guardrails",
+      "Directional calls, entries, exits, and risk guidance delivered instantly to Telegram and the Dynamic Capital dashboard.",
+    icon: LineChart,
+    highlight: "Live market coverage",
   },
   {
-    title: "Crypto-native routing",
+    title: "Mentorship programs",
     description:
-      "Track TXIDs, match confirmations, and surface suspicious flows with heuristics tuned for high velocity desks.",
+      "Progressive curriculums, mastermind cohorts, and office hours that adapt to your experience level and trading style.",
+    icon: GraduationCap,
+    highlight: "Personalized coaching",
+  },
+  {
+    title: "Pool trading desk",
+    description:
+      "Gain exposure to curated pools managed by institutional traders with transparent reporting and compliance controls.",
     icon: Coins,
-    highlight: "L2 & multi-chain ready",
+    highlight: "Institutional oversight",
   },
   {
-    title: "Admin cockpit",
+    title: "Automated trading bot",
     description:
-      "The Once UI dashboard keeps operators focused on exceptions with insight cards, actions, and broadcast tooling.",
+      "Connect supported exchanges and let our algorithms execute the vetted strategies while you monitor performance.",
     icon: Bot,
-    highlight: "Realtime status overlays",
+    highlight: "Hands-off execution",
   },
 ];
 
@@ -198,21 +234,21 @@ export function OnceLandingPage({
             variants={onceMotionVariants.badge}
           >
             <Sparkles className="h-4 w-4 text-primary" />
-            Powered by Once UI automation
+            Dynamic Capital trading ecosystem
           </motion.span>
 
           <motion.h1
             className="max-w-3xl bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-4xl font-black tracking-tight text-transparent sm:text-5xl lg:text-6xl"
             variants={onceMotionVariants.slideUp}
           >
-            Fast deposits with a fully-orchestrated Once UI control plane
+            Unlock elite trading intelligence & automation
           </motion.h1>
 
           <motion.p
             className="max-w-2xl text-balance text-lg text-muted-foreground sm:text-xl"
             variants={onceMotionVariants.fade}
           >
-            Dynamic Capital unifies bank and crypto deposits, risk scoring, and Telegram delivery. Ship deposits in minutes with automated guardrails from intake to approval.
+            Dynamic Capital delivers VIP trading signals, personalized mentorship, institutional pool access, and an automated trading bot—all orchestrated inside a single dashboard with Telegram at the core.
           </motion.p>
 
           <motion.div
@@ -223,7 +259,7 @@ export function OnceLandingPage({
               onClick={onJoinVIP}
               className="px-8 py-4 text-lg font-semibold shadow-primary"
             >
-              Join the VIP desk
+              Join the VIP signals desk
               <ArrowRight className="ml-2 h-5 w-5" />
             </OnceButton>
             <OnceButton
@@ -231,7 +267,7 @@ export function OnceLandingPage({
               onClick={onLearnMore}
               className="px-8 py-4 text-lg"
             >
-              Explore how it works
+              Explore services & pricing
             </OnceButton>
           </motion.div>
 
@@ -256,6 +292,58 @@ export function OnceLandingPage({
         </OnceContainer>
       </section>
 
+      <section id="about">
+        <OnceContainer
+          variant="stack"
+          className="grid gap-10 rounded-[32px] border border-border/40 bg-card/70 p-10 shadow-lg md:grid-cols-[1.1fr_0.9fr]"
+        >
+          <motion.div variants={onceMotionVariants.slideUp} className="space-y-6">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/80 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <Users2 className="h-3.5 w-3.5 text-primary" />
+              About Dynamic Capital
+            </span>
+            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
+              Build a complete trading edge with human expertise and automation
+            </h2>
+            <p className="text-lg leading-relaxed text-muted-foreground">
+              We combine quant-proven signal engineering, immersive mentorship programs, and professionally managed pool trading into one membership. The upcoming DC automated trading bot extends those same strategies with hands-off execution while keeping you in control.
+            </p>
+            <p className="text-base leading-relaxed text-muted-foreground">
+              Access everything through our client dashboard with checkout, performance tracking, and Telegram-native notifications that keep you informed in real time.
+            </p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <OnceButton onClick={onBankPayment} className="justify-center px-6 py-3">
+                Open client dashboard
+              </OnceButton>
+              <OnceButton variant="outline" onClick={onOpenTelegram} className="justify-center px-6 py-3">
+                Preview signals in Telegram
+              </OnceButton>
+            </div>
+          </motion.div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {aboutHighlights.map((highlight) => {
+              const Icon = highlight.icon;
+              return (
+                <motion.article
+                  key={highlight.title}
+                  variants={onceMotionVariants.slideUp}
+                  className="flex flex-col gap-4 rounded-3xl border border-border/50 bg-background/80 p-6 shadow-sm"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <Icon className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold text-foreground">{highlight.title}</h3>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{highlight.description}</p>
+                  </div>
+                </motion.article>
+              );
+            })}
+          </div>
+        </OnceContainer>
+      </section>
+
       <section id="features">
         <OnceContainer
           variant="stack"
@@ -263,17 +351,13 @@ export function OnceLandingPage({
         >
           <header className="space-y-3 text-center sm:text-left">
             <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-              Why operators choose Dynamic Capital
+              Why traders choose Dynamic Capital
             </p>
-            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-              Once UI turns deposit complexity into a guided workflow
-            </h2>
-            <p className="max-w-3xl text-lg text-muted-foreground">
-              Every surface inherits Once motion, accessibility, and automation primitives. From customer intake to backend approvals, the same system orchestrates the journey.
-            </p>
+            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">Dynamic Capital powers every phase of your trading journey</h2>
+            <p className="max-w-3xl text-lg text-muted-foreground">Each service is built on proven playbooks, live automation, and a unified client dashboard so you can move from education to execution without switching platforms.</p>
           </header>
 
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {featureChunks.map((feature) => {
               const Icon = feature.icon;
               return (
@@ -311,20 +395,20 @@ export function OnceLandingPage({
           <div className="space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-card/80 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               <Building2 className="h-3.5 w-3.5 text-primary" />
-              Operator-ready plans
+              Service packages
             </span>
             <h2 className="text-3xl font-bold text-foreground">
-              Pick the runway that matches your trading velocity
+              Choose the access tier that fits your trading ambitions
             </h2>
             <p className="text-lg leading-relaxed text-muted-foreground">
-              Every plan comes with verified deposit routing, risk controls, and direct Telegram support. Upgrade or downgrade seamlessly as your desk scales.
+              Every membership connects to the Dynamic Capital dashboard for checkout, analytics, and concierge onboarding. Scale from pure signal consumption to full pool participation without losing continuity.
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
               <OnceButton onClick={onBankPayment} className="justify-center">
-                Bank transfer workflow
+                Enter checkout dashboard
               </OnceButton>
               <OnceButton variant="outline" onClick={onCryptoPayment} className="justify-center">
-                Crypto settlement guide
+                Book mentorship consult
               </OnceButton>
             </div>
           </div>
@@ -366,7 +450,7 @@ export function OnceLandingPage({
                     onClick={() => onPlanSelect(plan.id)}
                     className="self-start px-4"
                   >
-                    Choose plan
+                    Select package
                   </OnceButton>
                 </div>
               </motion.div>
@@ -382,14 +466,14 @@ export function OnceLandingPage({
         >
           <header className="space-y-3 text-center sm:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/80 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              <Wallet className="h-3.5 w-3.5 text-primary" />
-              Unified settlement
+              <Gauge className="h-3.5 w-3.5 text-primary" />
+              Client experience
             </span>
             <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-              Once UI keeps operations aligned from submission to release
+              Navigate the Dynamic Capital journey from onboarding to automation
             </h2>
             <p className="max-w-4xl text-lg text-muted-foreground">
-              Follow the journey of every deposit with contextual insights, SLA timers, and auto-messaging baked directly into Telegram.
+              Track how signals, mentorship, pool allocations, and the automated trading bot connect inside our unified dashboard and Telegram workflow.
             </p>
           </header>
 
@@ -425,10 +509,10 @@ export function OnceLandingPage({
           <header className="space-y-3 text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               <LineChart className="h-3.5 w-3.5 text-primary" />
-              Trusted by leading desks
+              Trusted by traders & founders
             </span>
             <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-              Proof that Once UI workflows scale with your traders
+              Proof that Dynamic Capital elevates every trading desk
             </h2>
           </header>
 
@@ -451,10 +535,10 @@ export function OnceLandingPage({
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <OnceButton onClick={onOpenTelegram} className="px-8 py-4">
-              Launch Telegram workspace
+              Access VIP Telegram hub
             </OnceButton>
             <OnceButton variant="outline" onClick={onContactSupport} className="px-8 py-4">
-              Talk to the support desk
+              Talk to our concierge team
             </OnceButton>
           </div>
         </OnceContainer>
