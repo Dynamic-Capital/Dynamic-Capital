@@ -8,6 +8,8 @@ import { promises as fs } from 'node:fs';
 import { parseArgs } from 'node:util';
 import YAML from 'yaml';
 
+import { normalizeAppSpec } from '../digitalocean/site-config-utils.mjs';
+
 function usage() {
   console.log(`Sync the DigitalOcean App Platform spec and DNS zone records with the desired site URL.\n\n` +
     `Usage:\n  node scripts/doctl/sync-site-config.mjs --app-id <id> --site-url https://example.com [options]\n\n` +
@@ -26,81 +28,6 @@ function usage() {
     `  --apply-zone             Import the zone file via doctl compute\n` +
     `  --show-spec              Print the rendered YAML to stdout\n` +
     `  --help                   Display this help message\n`);
-}
-
-function parseSiteUrl(value) {
-  try {
-    return new URL(value);
-  } catch (error) {
-    throw new Error(`Invalid site URL: ${value}. ${error instanceof Error ? error.message : ''}`);
-  }
-}
-
-function ensureArray(value) {
-  return Array.isArray(value) ? value : [];
-}
-
-const PRODUCTION_ALLOWED_ORIGINS = [
-  'https://dynamic-capital.ondigitalocean.app',
-  'https://dynamic-capital.vercel.app',
-  'https://dynamic-capital.lovable.app',
-];
-
-function normalizeOrigin(value) {
-  const trimmed = value.trim();
-  if (trimmed.length === 0) {
-    return '';
-  }
-  return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
-}
-
-function parseAllowedOrigins(value) {
-  return value
-    .split(',')
-    .map(normalizeOrigin)
-    .filter((origin) => origin.length > 0);
-}
-
-function resolveAllowedOrigins({
-  requested,
-  existing,
-  canonicalOrigin,
-}) {
-  const baseList = requested
-    ? parseAllowedOrigins(requested)
-    : existing
-      ? parseAllowedOrigins(existing)
-      : [...PRODUCTION_ALLOWED_ORIGINS];
-
-  if (!baseList.includes(canonicalOrigin)) {
-    baseList.push(canonicalOrigin);
-  }
-
-  return Array.from(new Set(baseList)).join(',');
-}
-
-function formatChangeLabel(key, value, context) {
-  if (context && context.length > 0) {
-    return `${context}: ${key} → ${value}`;
-  }
-  return `${key} → ${value}`;
-}
-
-function upsertEnv(envs, key, value, scope, changes, context) {
-  const entry = envs.find((item) => item?.key === key);
-  const changeLabel = formatChangeLabel(key, value, context);
-  if (entry) {
-    if (entry.value !== value) {
-      changes.add(changeLabel);
-    }
-    entry.value = value;
-    if (!entry.scope) {
-      entry.scope = scope;
-    }
-  } else {
-    envs.push({ key, value, scope });
-    changes.add(changeLabel);
-  }
 }
 
 class DoctlError extends Error {
@@ -202,14 +129,11 @@ async function main() {
     throw new Error('--site-url is required (e.g. https://dynamic-capital.ondigitalocean.app).');
   }
 
-  const parsedSiteUrl = parseSiteUrl(siteUrl);
-  const domain = values.domain ?? parsedSiteUrl.host;
-  const zone = values.zone ?? domain;
+  const domainOverride = values.domain;
+  const zoneOverride = values.zone;
   const serviceName = values.service ?? 'dynamic-capital';
   const requestedAllowedOrigins = values['allowed-origins'];
   const context = values.context;
-  const canonicalSiteUrl = parsedSiteUrl.toString().replace(/\/$/, '');
-  const canonicalOrigin = parsedSiteUrl.origin;
 
   let parsedSpec;
   if (specPath) {
@@ -242,86 +166,21 @@ async function main() {
     throw new Error('Unexpected spec format received from doctl.');
   }
 
-  const changes = new Set();
-
-  spec.envs = ensureArray(spec.envs);
-  const existingAllowedOrigins = spec.envs.find((item) => item?.key === 'ALLOWED_ORIGINS')?.value;
-  const allowedOrigins = resolveAllowedOrigins({
-    requested: requestedAllowedOrigins,
-    existing: existingAllowedOrigins,
+  const {
+    canonicalSiteUrl,
     canonicalOrigin,
+    domain,
+    zone,
+    allowedOrigins,
+    changes,
+  } = normalizeAppSpec({
+    spec,
+    siteUrl,
+    domain: domainOverride,
+    zone: zoneOverride,
+    serviceName,
+    allowedOriginsOverride: requestedAllowedOrigins,
   });
-  const globalContext = 'app env';
-  upsertEnv(spec.envs, 'SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, globalContext);
-  upsertEnv(spec.envs, 'NEXT_PUBLIC_SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, globalContext);
-  upsertEnv(spec.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes, globalContext);
-  upsertEnv(spec.envs, 'MINIAPP_ORIGIN', canonicalOrigin, 'RUN_AND_BUILD_TIME', changes, globalContext);
-
-  function updateComponentEnvs(components, { includeAllowedOrigins = false, label }) {
-    const list = ensureArray(components);
-    for (const component of list) {
-      if (!component || typeof component !== 'object') {
-        continue;
-      }
-      component.envs = ensureArray(component.envs);
-      const componentContext = component.name ? `${label} '${component.name}'` : label;
-      upsertEnv(component.envs, 'SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, componentContext);
-      upsertEnv(component.envs, 'NEXT_PUBLIC_SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, componentContext);
-      if (includeAllowedOrigins) {
-        upsertEnv(component.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes, componentContext);
-      }
-      upsertEnv(component.envs, 'MINIAPP_ORIGIN', canonicalOrigin, 'RUN_AND_BUILD_TIME', changes, componentContext);
-    }
-    return list;
-  }
-
-  spec.services = ensureArray(spec.services);
-  const service = spec.services.find((svc) => svc && typeof svc === 'object' && svc.name === serviceName);
-  if (service) {
-    updateComponentEnvs([service], { label: 'service' });
-  } else if (spec.services.length > 0) {
-    console.warn(`Warning: Service '${serviceName}' not found. Updating all services instead.`);
-    updateComponentEnvs(spec.services, { label: 'service' });
-  } else {
-    console.warn(`Warning: No services defined in the app spec. Only global env vars were updated.`);
-  }
-
-  spec.static_sites = updateComponentEnvs(spec.static_sites, { includeAllowedOrigins: true, label: 'static site' });
-  spec.workers = updateComponentEnvs(spec.workers, { label: 'worker' });
-  spec.jobs = updateComponentEnvs(spec.jobs, { label: 'job' });
-  spec.functions = updateComponentEnvs(spec.functions, { label: 'function' });
-
-  if (spec.ingress && typeof spec.ingress === 'object') {
-    spec.ingress.rules = ensureArray(spec.ingress.rules);
-    for (const rule of spec.ingress.rules) {
-      if (rule && typeof rule === 'object' && rule.match && typeof rule.match === 'object' && rule.match.authority) {
-        const authority = rule.match.authority;
-        if (authority.exact !== domain) {
-          authority.exact = domain;
-          changes.add(`ingress authority exact → ${domain}`);
-        }
-      }
-    }
-  }
-
-  spec.domains = ensureArray(spec.domains);
-  if (spec.domains.length === 0) {
-    spec.domains.push({ domain, type: 'PRIMARY', wildcard: false, zone });
-    changes.add(`domains[0] set to ${domain} (zone: ${zone})`);
-  } else {
-    const primary = spec.domains.find((item) => item && item.type === 'PRIMARY') ?? spec.domains[0];
-    if (primary.domain !== domain) {
-      primary.domain = domain;
-      changes.add(`primary domain → ${domain}`);
-    }
-    if (primary.zone !== zone) {
-      primary.zone = zone;
-      changes.add(`primary zone → ${zone}`);
-    }
-    if (primary.wildcard === undefined) {
-      primary.wildcard = false;
-    }
-  }
 
   const rendered = YAML.stringify(parsedSpec, { lineWidth: 0 });
 
@@ -364,7 +223,7 @@ async function main() {
     console.log(`  doctl context: ${context}`);
   }
 
-  if (changes.size > 0) {
+  if (changes.length > 0) {
     console.log('  Applied updates:');
     for (const change of changes) {
       console.log(`    - ${change}`);
