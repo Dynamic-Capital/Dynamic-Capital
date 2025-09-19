@@ -156,6 +156,9 @@ class MarketSnapshot:
     pip_value: float
     daily_high: Optional[float] = None
     daily_low: Optional[float] = None
+    correlation_scores: Optional[Dict[str, float]] = None
+    seasonal_bias: Optional[float] = None
+    seasonal_confidence: Optional[float] = None
 
     def feature_vector(self) -> tuple[float, float, float, float]:
         return (self.rsi_fast, self.adx_fast, self.rsi_slow, self.adx_slow)
@@ -184,6 +187,7 @@ class TradeDecision:
     take_profit: Optional[float] = None
     reason: str = ""
     signal: Optional[TradeSignal] = None
+    context: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -214,6 +218,11 @@ class TradeConfig:
     adr_stop_loss_factor: float = 0.5
     adr_take_profit_factor: float = 1.0
     min_confidence: float = 0.0
+    correlation_threshold: float = 0.6
+    correlation_weight: float = 0.5
+    max_correlation_adjustment: float = 0.4
+    seasonal_bias_weight: float = 0.5
+    max_seasonal_adjustment: float = 0.3
 
 
 @dataclass(slots=True)
@@ -967,6 +976,11 @@ class TradeLogic:
                 {"snapshot": snapshot, "reason": "no_signal", "signal": signal},
             )
             return self._finalise_decisions(decisions, snapshot)
+        signal, context = self._apply_contextual_adjustments(
+            snapshot=snapshot,
+            signal=signal,
+            open_positions=open_positions,
+        )
         if signal.confidence < self.config.min_confidence:
             self.risk.notify(
                 "signal_skipped",
@@ -974,6 +988,7 @@ class TradeLogic:
                     "snapshot": snapshot,
                     "reason": "low_confidence",
                     "signal": signal,
+                    "context": context,
                 },
             )
             return self._finalise_decisions(decisions, snapshot)
@@ -1000,6 +1015,7 @@ class TradeLogic:
                     "snapshot": snapshot,
                     "reason": "risk_limits",
                     "signal": signal,
+                    "context": context,
                 },
             )
             return self._finalise_decisions(decisions, snapshot)
@@ -1013,6 +1029,7 @@ class TradeLogic:
                     "snapshot": snapshot,
                     "reason": "position_size",
                     "signal": signal,
+                    "context": context,
                 },
             )
             return self._finalise_decisions(decisions, snapshot)
@@ -1024,6 +1041,17 @@ class TradeLogic:
             stop_loss_price = entry + stop_loss_pips * snapshot.pip_size
             take_profit_price = entry - take_profit_pips * snapshot.pip_size
 
+        reason = "Lorentzian k-NN signal"
+        correlation_modifier = context["correlation"]["modifier"]
+        seasonal_modifier = context["seasonal"]["modifier"]
+        reason_details: List[str] = []
+        if not math.isclose(correlation_modifier, 1.0, rel_tol=1e-6):
+            reason_details.append(f"correlation {correlation_modifier:.2f}x")
+        if not math.isclose(seasonal_modifier, 1.0, rel_tol=1e-6):
+            reason_details.append(f"seasonal {seasonal_modifier:.2f}x")
+        if reason_details:
+            reason = f"{reason} ({', '.join(reason_details)})"
+
         decisions.append(
             TradeDecision(
                 action="open",
@@ -1033,8 +1061,9 @@ class TradeLogic:
                 entry=entry,
                 stop_loss=stop_loss_price,
                 take_profit=take_profit_price,
-                reason="Lorentzian k-NN signal",
+                reason=reason,
                 signal=signal,
+                context=context,
             )
         )
 
@@ -1108,6 +1137,137 @@ class TradeLogic:
             else:
                 remaining.append(pos)
         return decisions, remaining
+
+    def _apply_contextual_adjustments(
+        self,
+        *,
+        snapshot: MarketSnapshot,
+        signal: TradeSignal,
+        open_positions: Sequence[ActivePosition],
+    ) -> tuple[TradeSignal, Dict[str, Any]]:
+        original_confidence = signal.confidence
+        correlation_modifier, correlation_meta = self._compute_correlation_modifier(
+            snapshot=snapshot,
+            signal=signal,
+            open_positions=open_positions,
+        )
+        seasonal_modifier, seasonal_meta = self._compute_seasonal_modifier(
+            snapshot=snapshot,
+            signal=signal,
+        )
+        adjusted_confidence = original_confidence * correlation_modifier * seasonal_modifier
+        adjusted_confidence = max(0.0, min(1.0, adjusted_confidence))
+        context = {
+            "original_confidence": original_confidence,
+            "final_confidence": adjusted_confidence,
+            "correlation": {"modifier": correlation_modifier, **correlation_meta},
+            "seasonal": {"modifier": seasonal_modifier, **seasonal_meta},
+        }
+        if math.isclose(adjusted_confidence, original_confidence, rel_tol=1e-6):
+            return signal, context
+        adjusted_signal = TradeSignal(
+            direction=signal.direction,
+            confidence=adjusted_confidence,
+            votes=signal.votes,
+            neighbors_considered=signal.neighbors_considered,
+        )
+        return adjusted_signal, context
+
+    def _compute_correlation_modifier(
+        self,
+        *,
+        snapshot: MarketSnapshot,
+        signal: TradeSignal,
+        open_positions: Sequence[ActivePosition],
+    ) -> tuple[float, Dict[str, Any]]:
+        correlations = snapshot.correlation_scores or {}
+        if not correlations or not open_positions:
+            return 1.0, {"penalised": [], "boosted": [], "penalty": 0.0, "boost": 0.0}
+
+        weight = max(0.0, self.config.correlation_weight)
+        max_adjust = max(0.0, self.config.max_correlation_adjustment)
+        if weight == 0.0 or max_adjust == 0.0:
+            return 1.0, {"penalised": [], "boosted": [], "penalty": 0.0, "boost": 0.0}
+
+        threshold = max(0.0, min(1.0, self.config.correlation_threshold))
+        penalty_strength = 0.0
+        boost_strength = 0.0
+        penalised: List[Dict[str, Any]] = []
+        boosted: List[Dict[str, Any]] = []
+
+        for pos in open_positions:
+            if pos.symbol == snapshot.symbol:
+                continue
+            corr = correlations.get(pos.symbol)
+            if corr is None:
+                continue
+            corr_value = max(-1.0, min(1.0, float(corr)))
+            same_direction = pos.direction == signal.direction
+            record = {
+                "symbol": pos.symbol,
+                "correlation": corr_value,
+                "position_direction": pos.direction,
+            }
+            if same_direction and corr_value >= threshold:
+                penalty_strength = max(penalty_strength, abs(corr_value))
+                penalised.append(record)
+            elif not same_direction and corr_value <= -threshold:
+                penalty_strength = max(penalty_strength, abs(corr_value))
+                penalised.append(record)
+            elif same_direction and corr_value <= -threshold:
+                boost_strength = max(boost_strength, abs(corr_value))
+                boosted.append(record)
+            elif not same_direction and corr_value >= threshold:
+                boost_strength = max(boost_strength, abs(corr_value))
+                boosted.append(record)
+
+        penalty = min(max_adjust, penalty_strength * weight)
+        boost = min(max_adjust, boost_strength * weight)
+        modifier = 1.0 - penalty + boost
+        lower_bound = max(0.0, 1.0 - max_adjust)
+        upper_bound = 1.0 + max_adjust
+        modifier = max(lower_bound, min(modifier, upper_bound))
+        return modifier, {
+            "penalised": penalised,
+            "boosted": boosted,
+            "penalty": penalty,
+            "boost": boost,
+            "threshold": threshold,
+        }
+
+    def _compute_seasonal_modifier(
+        self,
+        *,
+        snapshot: MarketSnapshot,
+        signal: TradeSignal,
+    ) -> tuple[float, Dict[str, Any]]:
+        bias = snapshot.seasonal_bias
+        weight = max(0.0, self.config.seasonal_bias_weight)
+        max_adjust = max(0.0, self.config.max_seasonal_adjustment)
+        if bias is None or weight == 0.0 or max_adjust == 0.0:
+            confidence = snapshot.seasonal_confidence
+            return 1.0, {
+                "bias": bias,
+                "confidence": confidence,
+                "alignment": 0.0,
+                "adjustment": 0.0,
+            }
+
+        bias_value = max(-1.0, min(1.0, float(bias)))
+        confidence = snapshot.seasonal_confidence
+        conviction = 1.0 if confidence is None else max(0.0, min(1.0, float(confidence)))
+        alignment = bias_value if signal.direction > 0 else -bias_value
+        alignment *= conviction
+        adjustment = alignment * weight
+        adjustment = max(-max_adjust, min(max_adjust, adjustment))
+        modifier = 1.0 + adjustment
+        modifier = max(0.0, modifier)
+        return modifier, {
+            "bias": bias_value,
+            "confidence": conviction,
+            "alignment": alignment,
+            "adjustment": adjustment,
+        }
 
     def _finalise_decisions(
         self, decisions: List[TradeDecision], snapshot: MarketSnapshot
