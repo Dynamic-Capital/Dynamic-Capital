@@ -8,10 +8,10 @@ This project relies on a Next.js service and Supabase Edge Functions. Use the fo
 - Set `DOMAIN` in your `.env` to the root zone (e.g. `example.com`) for helper scripts and Nginx templates.
 - Update `SITE_URL` and `NEXT_PUBLIC_SITE_URL` to the canonical site URL, and adjust `NEXT_PUBLIC_API_URL` if using an API subdomain.
 - `ALLOWED_ORIGINS` should list the site and API origins so browsers can call the endpoints.
-- `dynamic-capital-qazf2.ondigitalocean.app` is the canonical production
+- `dynamic-capital.ondigitalocean.app` is the canonical production
   domain. Both `dynamic-capital.vercel.app` and `dynamic-capital.lovable.app`
   stay exported in
-  [`dns/dynamic-capital-qazf2.ondigitalocean.app.zone`](../dns/dynamic-capital-qazf2.ondigitalocean.app.zone)
+  [`dns/dynamic-capital.ondigitalocean.app.zone`](../dns/dynamic-capital.ondigitalocean.app.zone)
   and [`dns/dynamic-capital.lovable.app.json`](../dns/dynamic-capital.lovable.app.json)
   so every host can participate in load sharing while pointing at the same
   Cloudflare anycast IPs (162.159.140.98 and 172.66.0.96).
@@ -41,7 +41,7 @@ Traffic routed through Cloudflare may arrive from public IPs such as `162.159.14
 
 ## Origin alignment across platforms
 - The DigitalOcean App Platform spec keeps ingress open so
-  `dynamic-capital-qazf2.ondigitalocean.app`, `dynamic-capital.vercel.app`, and
+  `dynamic-capital.ondigitalocean.app`, `dynamic-capital.vercel.app`, and
   `dynamic-capital.lovable.app` all route to the same service while the app
   publishes DigitalOcean-hosted links.
 - `supabase/config.toml` now sets `site_url`, `additional_redirect_urls`, and
