@@ -124,6 +124,7 @@ to refresh the snapshot.
 
 - Run `npm run upload-assets` to push the generated `_static` directory to the configured CDN.
 - A GitHub Actions workflow (`upload-assets.yml`) builds the Next.js app, runs the landing snapshot helper, and uploads `_static/` on pushes to `main`. It expects `CDN_BUCKET`, `CDN_ACCESS_KEY`, `CDN_SECRET_KEY`, and optional `CDN_REGION`/`CDN_ENDPOINT` secrets.
+- Use `npm run do:sync-cdn -- --space <bucket> --region <slug> --apply` to create or update the DigitalOcean CDN endpoint via the REST API. Pass `--custom-domain`/`--certificate-id` when attaching a vanity domain, or omit `--apply` for a dry run.
 - During development, `npm run upload-assets:watch` monitors `_static` and uploads changes automatically.
 
 ## Maintenance & Automation

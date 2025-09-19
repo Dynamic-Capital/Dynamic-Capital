@@ -155,6 +155,27 @@ Variables** so the build can authenticate:
 - `CDN_ACCESS_KEY` – Spaces API key
 - `CDN_SECRET_KEY` – Spaces API secret
 
+Manage the CDN endpoint for the bucket using the REST helper:
+
+```bash
+# Preview the desired configuration (dry run)
+npm run do:sync-cdn -- \
+  --space "$CDN_BUCKET" \
+  --region "$CDN_REGION" \
+  --custom-domain static.example.com
+
+# Create or update the endpoint
+npm run do:sync-cdn -- \
+  --space "$CDN_BUCKET" \
+  --region "$CDN_REGION" \
+  --custom-domain static.example.com \
+  --certificate-id <managed-cert-id> \
+  --apply
+```
+
+Provide a DigitalOcean API token via `--token` or `DIGITALOCEAN_TOKEN`.
+Add `--purge "*"` after updates to invalidate cached assets on demand.
+
 Verify that credentials work with `doctl`:
 
 ```bash

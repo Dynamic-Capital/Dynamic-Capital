@@ -82,6 +82,7 @@ You can confirm access with `doctl spaces list`.
 | --- | ------- | -------- | ------- | ------- |
 | `CDN_BUCKET` | DigitalOcean Spaces bucket for static assets | Yes (landing build) | `my-space` | `scripts/upload-assets.js` |
 | `CDN_REGION` | Spaces region for the CDN bucket | Yes (landing build) | `nyc3` | `scripts/upload-assets.js` |
+| `CDN_ENDPOINT` | Custom CDN endpoint domain (if different from the default `<region>.digitaloceanspaces.com`) | No | `static.example.com` | `scripts/upload-assets.js`, `scripts/digitalocean/sync-cdn-config.mjs` |
 | `CDN_ACCESS_KEY` | Spaces access key for uploads | Yes (landing build) | `DO0000000000EXAMPLE` | `scripts/upload-assets.js` |
 | `CDN_SECRET_KEY` | Spaces secret key for uploads | Yes (landing build) | `supersecret` | `scripts/upload-assets.js` |
 
