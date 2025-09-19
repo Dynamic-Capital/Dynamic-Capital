@@ -137,7 +137,7 @@ async function main() {
 
   if (!siteUrl) {
     usage();
-    throw new Error('--site-url is required (e.g. https://dynamic-capital.ondigitalocean.app).');
+    throw new Error('--site-url is required (e.g. https://dynamic-capital-qazf2.ondigitalocean.app).');
   }
 
   if (!specPath) {

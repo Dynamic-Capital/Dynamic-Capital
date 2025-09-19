@@ -1,9 +1,0 @@
-; DigitalOcean App Platform primary domain for Dynamic Capital
-$ORIGIN dynamic-capital.ondigitalocean.app.
-$TTL 1800
-dynamic-capital.ondigitalocean.app. IN SOA ns1.digitalocean.com. hostmaster.dynamic-capital.ondigitalocean.app. 1757878623 10800 3600 604800 1800
-dynamic-capital.ondigitalocean.app. 1800 IN NS ns1.digitalocean.com.
-dynamic-capital.ondigitalocean.app. 1800 IN NS ns2.digitalocean.com.
-dynamic-capital.ondigitalocean.app. 1800 IN NS ns3.digitalocean.com.
-dynamic-capital.ondigitalocean.app. 3600 IN A 162.159.140.98
-dynamic-capital.ondigitalocean.app. 3600 IN A 172.66.0.96
