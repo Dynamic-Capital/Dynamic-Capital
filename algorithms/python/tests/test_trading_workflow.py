@@ -24,6 +24,7 @@ from algorithms.python.trade_logic import (
     TradeDecision,
     TradeConfig,
     TradeLogic,
+    TradeSignal,
 )
 
 
@@ -121,3 +122,60 @@ def test_realtime_executor_updates_state():
     stored_positions = executor.state_store.load()
     assert isinstance(stored_positions, list)
     assert total >= 0
+
+
+def test_trade_logic_applies_correlation_and_seasonal_context():
+    config = TradeConfig(
+        neighbors=1,
+        label_lookahead=0,
+        min_confidence=0.0,
+        use_adr=False,
+        correlation_threshold=0.5,
+        correlation_weight=0.5,
+        max_correlation_adjustment=0.4,
+        seasonal_bias_weight=0.5,
+        max_seasonal_adjustment=0.3,
+    )
+    logic = TradeLogic(config=config)
+
+    class StaticStrategy:
+        def __init__(self, signal: TradeSignal) -> None:
+            self._signal = signal
+
+        def update(self, snapshot: MarketSnapshot) -> TradeSignal:
+            return self._signal
+
+    logic.strategy = StaticStrategy(
+        TradeSignal(direction=1, confidence=0.8, votes=6, neighbors_considered=8)
+    )
+
+    snapshot = MarketSnapshot(
+        symbol="GBPUSD",
+        timestamp=datetime.now(timezone.utc),
+        close=1.2750,
+        rsi_fast=55.0,
+        adx_fast=20.0,
+        rsi_slow=52.0,
+        adx_slow=18.0,
+        pip_size=0.0001,
+        pip_value=10.0,
+        correlation_scores={"EURUSD": 0.9},
+        seasonal_bias=0.6,
+        seasonal_confidence=0.8,
+    )
+
+    open_positions = [
+        ActivePosition(symbol="EURUSD", direction=1, size=0.1, entry_price=1.1000)
+    ]
+
+    decisions = logic.on_bar(snapshot, open_positions=open_positions)
+    open_decisions = [decision for decision in decisions if decision.action == "open"]
+    assert open_decisions, "expected an open trade decision"
+
+    decision = open_decisions[0]
+    assert decision.signal is not None
+    assert decision.signal.confidence == pytest.approx(0.8 * 0.6 * 1.24, rel=1e-3)
+    assert decision.context["correlation"]["modifier"] == pytest.approx(0.6, rel=1e-3)
+    assert decision.context["seasonal"]["modifier"] == pytest.approx(1.24, rel=1e-3)
+    assert "correlation" in decision.reason
+    assert "seasonal" in decision.reason
