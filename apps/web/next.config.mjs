@@ -2,6 +2,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import nextPWA from 'next-pwa';
 import bundleAnalyzer from '@next/bundle-analyzer';
+import localeConfig from './config/locales.json' with { type: 'json' };
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -132,6 +133,28 @@ if (!CANONICAL_HOST) {
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS || SITE_URL;
 
+function normalizeLocale(value) {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  return trimmed;
+}
+
+const configuredLocales = Array.isArray(localeConfig?.locales)
+  ? localeConfig.locales
+      .map((locale) => normalizeLocale(locale))
+      .filter((locale) => Boolean(locale))
+  : [];
+
+const FALLBACK_LOCALE = 'en';
+const LOCALES = configuredLocales.length > 0 ? configuredLocales : [FALLBACK_LOCALE];
+
+const configuredDefaultLocale = normalizeLocale(localeConfig?.defaultLocale);
+const DEFAULT_LOCALE =
+  configuredDefaultLocale && LOCALES.includes(configuredDefaultLocale)
+    ? configuredDefaultLocale
+    : LOCALES[0];
+
 process.env.SUPABASE_URL = SUPABASE_URL;
 process.env.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 process.env.NEXT_PUBLIC_SUPABASE_URL = SUPABASE_URL;
@@ -139,6 +162,8 @@ process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
 process.env.SITE_URL = SITE_URL;
 process.env.NEXT_PUBLIC_SITE_URL = SITE_URL;
 process.env.ALLOWED_ORIGINS = ALLOWED_ORIGINS;
+process.env.DEFAULT_LOCALE = DEFAULT_LOCALE;
+process.env.NEXT_PUBLIC_DEFAULT_LOCALE = DEFAULT_LOCALE;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -151,6 +176,8 @@ const nextConfig = {
     SITE_URL,
     NEXT_PUBLIC_SITE_URL: SITE_URL,
     ALLOWED_ORIGINS,
+    DEFAULT_LOCALE,
+    NEXT_PUBLIC_DEFAULT_LOCALE: DEFAULT_LOCALE,
   },
   eslint: {
     ignoreDuringBuilds: true,
