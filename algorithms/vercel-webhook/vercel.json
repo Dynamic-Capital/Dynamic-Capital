@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/tradingview-alerts.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/tradingview-alerts",
+      "dest": "api/tradingview-alerts.ts"
+    }
+  ]
+}
