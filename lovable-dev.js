@@ -12,9 +12,9 @@ import {
   error as logError,
 } from './scripts/utils/friendly-logger.js';
 
-const PRODUCTION_ORIGIN = 'https://dynamic-capital-qazf2.ondigitalocean.app';
+const PRODUCTION_ORIGIN = 'https://dynamic-capital.ondigitalocean.app';
 const PRODUCTION_ALLOWED_ORIGINS = [
-  'https://dynamic-capital-qazf2.ondigitalocean.app',
+  'https://dynamic-capital.ondigitalocean.app',
   'https://dynamic-capital.vercel.app',
   'https://dynamic-capital.lovable.app',
 ].join(',');
