@@ -25,7 +25,7 @@ spec:
           name: dynamic-capital
         match:
           authority:
-            exact: ""
+            exact: dynamic-capital-qazf2.ondigitalocean.app
           path:
             prefix: /
   envs:
@@ -42,7 +42,7 @@ spec:
       value: https://dynamic-capital-qazf2.ondigitalocean.app
       scope: RUN_AND_BUILD_TIME
     - key: ALLOWED_ORIGINS
-      value: "https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app"
+      value: https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app
       scope: RUN_AND_BUILD_TIME
     - key: MINIAPP_ORIGIN
       value: https://dynamic-capital-qazf2.ondigitalocean.app
@@ -90,3 +90,7 @@ spec:
         - key: MINIAPP_ORIGIN
           value: https://dynamic-capital-qazf2.ondigitalocean.app
           scope: RUN_AND_BUILD_TIME
+  static_sites: []
+  workers: []
+  jobs: []
+  functions: []
