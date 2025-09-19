@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import '@once-ui-system/core/dist/css/tokens.css';
+import '@once-ui-system/core/dist/css/styles.css';
 import './globals.css';
 import '../env';
 import Footer from '@/components/layout/Footer';
