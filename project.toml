@@ -26,7 +26,7 @@ version = "0.0.0"
 
   [[build.env]]
     name = "BP_NODE_RUN_SCRIPTS"
-    value = "lovable-build.js"
+    value = "build"
 
   [[build.env]]
     name = "ALLOWED_ORIGINS"
