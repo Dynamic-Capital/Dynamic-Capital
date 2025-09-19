@@ -41,14 +41,13 @@
     "supabase:stop": "supabase stop"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.600.0",
     "chokidar-cli": "^3.0.0",
     "deno": "^2.5.0",
-    "mime-types": "^2.1.35",
     "supabase": "^2.40.7",
     "yaml": "^2.8.1"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
     "@auth/supabase-adapter": "^1.10.0",
     "@once-ui-system/core": "^1.4.31",
     "@supabase/auth-helpers-react": "^0.5.0",
@@ -63,7 +62,8 @@
     "next-intl": "^4.3.9",
     "next-seo": "^6.8.0",
     "posthog-js": "^1.266.2",
-    "sonner": "^2.0.7"
+    "sonner": "^2.0.7",
+    "mime-types": "^2.1.35"
   },
   "overrides": {
     "esbuild": "^0.25.10",
