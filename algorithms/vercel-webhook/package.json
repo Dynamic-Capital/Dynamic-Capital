@@ -1,0 +1,21 @@
+{
+  "name": "tradingview-webhook-receiver",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "tsc --noEmit",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.1",
+    "zod": "^3.22.4",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@vercel/node": "^3.0.20",
+    "typescript": "^5.4.5",
+    "vitest": "^1.5.0"
+  }
+}
