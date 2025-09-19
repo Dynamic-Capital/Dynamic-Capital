@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildCorsHeaders } from '@/utils/http.ts';
 import createIntlMiddleware from 'next-intl/middleware';
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/config/localization';
 
 const intlMiddleware = createIntlMiddleware({
-  locales: ['en'],
-  defaultLocale: 'en'
+  locales: SUPPORTED_LOCALES,
+  defaultLocale: DEFAULT_LOCALE,
 });
 
 export function middleware(req: NextRequest) {
@@ -32,5 +33,9 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/(en)/:path*', '/api/:path*'],
+  matcher: [
+    '/',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/api/:path*',
+  ],
 };
