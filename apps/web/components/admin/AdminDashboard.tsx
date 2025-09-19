@@ -296,7 +296,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const pendingCount = pendingPayments.length;
 
   return (
-    <AdminGate>
+    <AdminGate>{/* Adding missing children */}
       <section className="relative overflow-hidden rounded-[32px] border border-border/40 bg-gradient-to-br from-background via-card/40 to-background p-[1px] shadow-xl">
         <div className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from-primary/20 via-transparent to-dc-accent/20 opacity-40" />
         <div className="relative rounded-[32px] bg-background/95 p-6 sm:p-10">
@@ -313,10 +313,10 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                 </p>
               </div>
               <div className="flex flex-col items-start gap-2 sm:items-end">
-                <Badge variant="outline" className="border-border/60 bg-background/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <Badge variant="outline">
                   Last sync {formattedLastUpdated}
                 </Badge>
-                <Badge className="bg-primary/15 text-primary">
+                <Badge variant="default">
                   {pendingCount} pending reviews
                 </Badge>
               </div>

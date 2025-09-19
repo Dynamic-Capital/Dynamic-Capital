@@ -155,6 +155,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  transpilePackages: ['lucide-react'],
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
   images: {
