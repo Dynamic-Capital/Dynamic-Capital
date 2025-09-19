@@ -13,14 +13,17 @@ single source of truth for deployments. The checked-in spec provisions a single
 Node.js service named `dynamic-capital`, configures
 `dynamic-capital-qazf2.ondigitalocean.app` as the primary domain while registering the
 Vercel and Lovable hosts as aliases, and leaves ingress open so every hostname
-continues to route traffic. The service runs `npm run build` from the
-repository root before starting the Next.js server via `npm run start:web`.
+continues to route traffic. The service runs `node scripts/digitalocean-build.mjs`
+from the repository root before starting the Next.js server via `npm run start:web`.
 Requests are served on port `8080`, and the runtime sets `SITE_URL`,
 `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` to
 `https://dynamic-capital-qazf2.ondigitalocean.app` (while allowlisting the companion
 hosts) so the web app, Supabase Edge Functions, and Telegram mini-app
 verification report the DigitalOcean-hosted canonical origin. Update those
-values if you move to a different hostname.
+values if you move to a different hostname. The custom build helper first runs
+the standard `npm run build` pipeline and then uploads the refreshed `_static/`
+snapshot to the configured DigitalOcean Spaces bucket when credentials are
+present, keeping the marketing CDN in sync with each deployment.
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
