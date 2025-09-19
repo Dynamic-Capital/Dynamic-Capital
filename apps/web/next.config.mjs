@@ -37,6 +37,18 @@ function coerceSiteUrl(raw) {
   }
 }
 
+function coerceHost(raw) {
+  if (!raw) return undefined;
+  const trimmed = `${raw}`.trim();
+  if (!trimmed) return undefined;
+  try {
+    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    return new URL(candidate).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
 const siteUrlSources = [
   ["SITE_URL", process.env.SITE_URL],
   ["NEXT_PUBLIC_SITE_URL", process.env.NEXT_PUBLIC_SITE_URL],
@@ -86,10 +98,39 @@ if (!SITE_URL) {
   );
 }
 
-const ALLOWED_ORIGINS =
-  process.env.ALLOWED_ORIGINS || SITE_URL;
+const canonicalHostSources = [
+  ["PRIMARY_HOST", process.env.PRIMARY_HOST],
+  ["DIGITALOCEAN_APP_SITE_DOMAIN", process.env.DIGITALOCEAN_APP_SITE_DOMAIN],
+  ["DIGITALOCEAN_APP_URL", process.env.DIGITALOCEAN_APP_URL],
+];
 
-const CANONICAL_HOST = new URL(SITE_URL).hostname;
+let CANONICAL_HOST = undefined;
+let canonicalHostSource = undefined;
+for (const [source, value] of canonicalHostSources) {
+  const normalized = coerceHost(value);
+  if (normalized) {
+    CANONICAL_HOST = normalized;
+    canonicalHostSource = source;
+    break;
+  }
+}
+
+if (!CANONICAL_HOST) {
+  CANONICAL_HOST = new URL(SITE_URL).hostname;
+  canonicalHostSource = canonicalHostSource ?? "SITE_URL";
+} else {
+  const siteUrlHost = new URL(SITE_URL).hostname;
+  if (siteUrlHost !== CANONICAL_HOST) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn(
+        `Overriding SITE_URL host ${siteUrlHost} with ${CANONICAL_HOST} derived from ${canonicalHostSource}.`,
+      );
+    }
+    SITE_URL = `https://${CANONICAL_HOST}`;
+  }
+}
+
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS || SITE_URL;
 
 process.env.SUPABASE_URL = SUPABASE_URL;
 process.env.SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
@@ -148,7 +189,7 @@ if (nextConfig.output !== 'export') {
         has: [
           { type: 'header', key: 'x-forwarded-proto', value: 'http' },
         ],
-        destination: 'https://:host/:path*',
+        destination: `https://${CANONICAL_HOST}/:path*`,
         permanent: true,
       },
       ...(process.env.LEGACY_HOST
