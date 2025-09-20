@@ -22,6 +22,11 @@ export default async function LocaleLayout({
   children: ReactNode;
   params: Promise<LocaleParams>;
 }) {
+  const isStaticSnapshot = globalThis?.process?.env?.['STATIC_SNAPSHOT'] === 'true';
+  if (isStaticSnapshot) {
+    return children;
+  }
+
   const resolvedParams = await params;
   const locale = resolveLocale(resolvedParams.locale);
   const fallbackMessages = (messages as Record<string, any>)[DEFAULT_LOCALE] ?? {};

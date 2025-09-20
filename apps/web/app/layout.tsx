@@ -7,13 +7,29 @@ import Footer from '@/components/layout/Footer';
 import Providers from './providers';
 import DefaultSeo from '@/components/DefaultSeo';
 import Navbar from '@/components/layout/Navbar';
+import { getStaticLandingDocument } from '@/lib/staticLanding';
 
 export const metadata = {
   title: 'Dynamic Capital',
   description: 'Premium trading platform with Next.js'
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const isStaticSnapshot = globalThis?.process?.env?.['STATIC_SNAPSHOT'] === 'true';
+
+  if (isStaticSnapshot) {
+    const { head, body, lang } = await getStaticLandingDocument();
+    return (
+      <html lang={lang}>
+        <head dangerouslySetInnerHTML={{ __html: head }} />
+        <body
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: body }}
+        />
+      </html>
+    );
+  }
+
   return (
     <html lang="en">
       <head>
