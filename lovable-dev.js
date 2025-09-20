@@ -11,6 +11,7 @@ import {
   warn,
   error as logError,
 } from './scripts/utils/friendly-logger.js';
+import { createSanitizedNpmEnv } from './scripts/utils/npm-env.mjs';
 
 const PRODUCTION_ORIGIN = 'https://dynamic-capital-qazf2.ondigitalocean.app';
 const PRODUCTION_ALLOWED_ORIGINS = [
@@ -84,7 +85,10 @@ step('Running friendly preflight checks...');
 
 try {
   info('Validating required environment variables...');
-  execSync('npx tsx scripts/check-env.ts', { stdio: 'inherit' });
+  execSync('npx tsx scripts/check-env.ts', {
+    stdio: 'inherit',
+    env: createSanitizedNpmEnv(),
+  });
   success('Environment bootstrap complete.');
 
   if (supabaseFallbacks.length === 0) {
@@ -125,7 +129,7 @@ const { spawn } = await import('node:child_process');
 const nextProcess = spawn('npm', ['run', 'dev', '--', '--port', '3000'], {
   cwd: 'apps/web',
   stdio: 'pipe',
-  env: { ...process.env }
+  env: createSanitizedNpmEnv(),
 });
 
 let nextReady = false;

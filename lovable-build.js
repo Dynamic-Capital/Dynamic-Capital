@@ -12,6 +12,7 @@ import {
   warn,
   error as logError,
 } from './scripts/utils/friendly-logger.js';
+import { createSanitizedNpmEnv } from './scripts/utils/npm-env.mjs';
 
 const PRODUCTION_ORIGIN = 'https://dynamic-capital-qazf2.ondigitalocean.app';
 const PRODUCTION_ALLOWED_ORIGINS = [
@@ -82,7 +83,10 @@ if (supabaseFallbacks.length > 0) {
 divider();
 step('Ensuring required environment variables are present...');
 try {
-  execSync('npx tsx scripts/check-env.ts', { stdio: 'inherit' });
+  execSync('npx tsx scripts/check-env.ts', {
+    stdio: 'inherit',
+    env: createSanitizedNpmEnv(),
+  });
   success('Environment check passed.');
 } catch (error) {
   logError('Environment check failed. Fix the issues above before building.', {
@@ -101,7 +105,10 @@ let exitCode = 0;
 for (const { cmd, label } of tasks) {
   step(`${label} in progress...`);
   try {
-    execSync(cmd, { stdio: 'inherit' });
+    execSync(cmd, {
+      stdio: 'inherit',
+      env: createSanitizedNpmEnv(),
+    });
     success(`${label} completed successfully!`);
   } catch (error) {
     logError(`${label} failed. Check the output above for details.`, {

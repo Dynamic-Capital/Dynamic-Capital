@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createSanitizedNpmEnv } from './utils/npm-env.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
@@ -231,7 +232,11 @@ function runTasks(taskList, context) {
     console.log(`\n➡️  Step ${step}/${taskList.length}: ${task.label}`);
     const startTime = Date.now();
     try {
-      execSync(task.cmd, { stdio: 'inherit', shell: true });
+      execSync(task.cmd, {
+        stdio: 'inherit',
+        shell: true,
+        env: createSanitizedNpmEnv(),
+      });
       const durationMs = Date.now() - startTime;
       console.log(`✅ ${task.label}`);
       if (recordSuccess(agentState, task) && hadPreviousFailures) {

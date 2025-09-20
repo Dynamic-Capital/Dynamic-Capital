@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { cp, mkdir, rm, access, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createSanitizedNpmEnv } from './utils/npm-env.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..');
@@ -21,11 +22,14 @@ async function pathExists(path) {
   }
 }
 
-function runCommand(command, args, options) {
+function runCommand(command, args, options = {}) {
+  const { env: envOverrides, ...rest } = options ?? {};
+  const env = createSanitizedNpmEnv(envOverrides ?? {});
   return new Promise((resolve) => {
     const child = spawn(command, args, {
       stdio: 'inherit',
-      ...options,
+      ...rest,
+      env,
     });
 
     child.on('close', (code, signal) => {
@@ -166,19 +170,13 @@ async function runCopyStatic({ copyOnly, extraEnv = {} }) {
   if (copyOnly) {
     return runCommand(npmCommand, ['run', 'copy-static'], {
       cwd: webWorkspace,
-      env: {
-        ...process.env,
-        ...extraEnv,
-      },
+      env: extraEnv,
     });
   }
 
   return runCommand(npxCommand, ['tsx', '../../scripts/copy-static.ts'], {
     cwd: webWorkspace,
-    env: {
-      ...process.env,
-      ...extraEnv,
-    },
+    env: extraEnv,
   });
 }
 

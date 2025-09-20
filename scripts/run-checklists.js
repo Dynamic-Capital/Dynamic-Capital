@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
 import process from 'node:process';
+import { createSanitizedNpmEnv } from './utils/npm-env.mjs';
 
 const TASK_LIBRARY = {
   'sync-env': {
@@ -311,6 +312,7 @@ async function runCommand(command) {
     const child = spawn(command, {
       shell: true,
       stdio: 'inherit',
+      env: createSanitizedNpmEnv(),
     });
     child.on('close', (code, signal) => {
       if (typeof code === 'number' && code === 0) {
