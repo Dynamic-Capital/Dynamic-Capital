@@ -6,8 +6,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export { formatPrice } from "./format-price.ts";
-export {
-  getAppRoutes,
-  getPageRoutes,
-  type RouteRecord,
-} from "./routes.ts";
+// Route-related helpers rely on Node.js modules. Import them directly from
+// `./routes.ts` in server-only contexts to avoid bundling Node-specific code in
+// client modules.
