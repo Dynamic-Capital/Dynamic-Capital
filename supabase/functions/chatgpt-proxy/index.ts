@@ -3,6 +3,49 @@ import { requireEnv } from "../_shared/env.ts";
 import { corsHeaders } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
+type ChatCompletionRole = "system" | "user" | "assistant";
+
+interface ChatCompletionMessage {
+  role: ChatCompletionRole;
+  content: string;
+}
+
+const ALLOWED_ROLES: ChatCompletionRole[] = ["system", "user", "assistant"];
+
+const MAX_HISTORY_MESSAGES = 24;
+
+function parseMessages(payload: unknown): ChatCompletionMessage[] {
+  if (!Array.isArray(payload)) {
+    return [];
+  }
+
+  const sanitized: ChatCompletionMessage[] = [];
+
+  for (const entry of payload) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+    const role = (entry as { role?: unknown }).role;
+    const content = (entry as { content?: unknown }).content;
+    if (
+      typeof role === "string" &&
+      ALLOWED_ROLES.includes(role as ChatCompletionRole) &&
+      typeof content === "string"
+    ) {
+      const trimmedContent = content.trim();
+      if (trimmedContent.length > 0) {
+        sanitized.push({ role: role as ChatCompletionRole, content: trimmedContent });
+      }
+    }
+  }
+
+  if (sanitized.length <= MAX_HISTORY_MESSAGES) {
+    return sanitized;
+  }
+
+  return sanitized.slice(-MAX_HISTORY_MESSAGES);
+}
+
 const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
 
 export const handler = registerHandler(async (req) => {
@@ -22,7 +65,12 @@ export const handler = registerHandler(async (req) => {
   }
 
   try {
-    const { prompt, test } = await req.json().catch(() => ({}));
+    const {
+      prompt,
+      messages: rawMessages,
+      test,
+      temperature,
+    } = await req.json().catch(() => ({}));
 
     if (test) {
       return new Response(
@@ -31,12 +79,31 @@ export const handler = registerHandler(async (req) => {
       );
     }
 
-    if (!prompt) {
-      return new Response(JSON.stringify({ error: "Prompt is required" }), {
-        status: 400,
-        headers: { ...headers, "Content-Type": "application/json" },
-      });
+    const historyMessages = parseMessages(rawMessages);
+    let hasUserMessage = historyMessages.some((msg) => msg.role === "user");
+
+    if (typeof prompt === "string") {
+      const trimmedPrompt = prompt.trim();
+      if (trimmedPrompt.length > 0 && !hasUserMessage) {
+        historyMessages.push({ role: "user", content: trimmedPrompt });
+        hasUserMessage = true;
+      }
     }
+
+    if (!hasUserMessage) {
+      return new Response(
+        JSON.stringify({ error: "At least one user message is required" }),
+        {
+          status: 400,
+          headers: { ...headers, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const clampedTemperature = Math.max(
+      0,
+      Math.min(1, typeof temperature === "number" ? temperature : 0.7),
+    );
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -46,7 +113,9 @@ export const handler = registerHandler(async (req) => {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
+        messages: historyMessages,
+        temperature: clampedTemperature,
+        max_tokens: 700,
       }),
     });
 
