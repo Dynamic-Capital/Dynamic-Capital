@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Button,
@@ -14,55 +13,9 @@ import {
   Text,
 } from "@once-ui-system/core";
 
-import { callEdgeFunction } from "@/config/supabase";
 import { formatPrice } from "@/utils";
 import type { Plan } from "@/types/plan";
-
-interface PlansResponse {
-  plans: Plan[];
-}
-
-const FALLBACK_PLANS: Plan[] = [
-  {
-    id: "vip-monthly",
-    name: "VIP Monthly",
-    price: 49,
-    currency: "USD",
-    duration_months: 1,
-    is_lifetime: false,
-    features: [
-      "24/7 signal desk coverage",
-      "Live trade recaps",
-      "Priority mentor Q&A",
-    ],
-  },
-  {
-    id: "vip-quarterly",
-    name: "VIP Quarterly",
-    price: 129,
-    currency: "USD",
-    duration_months: 3,
-    is_lifetime: false,
-    features: [
-      "Everything in VIP Monthly",
-      "Quarterly strategy audit",
-      "Automation checklist upgrades",
-    ],
-  },
-  {
-    id: "vip-lifetime",
-    name: "VIP Lifetime",
-    price: 990,
-    currency: "USD",
-    duration_months: 0,
-    is_lifetime: true,
-    features: [
-      "Lifetime signal desk access",
-      "Priority desk hotline",
-      "Founders circle workshops",
-    ],
-  },
-];
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 
 const formatDuration = (plan: Plan) => {
   if (plan.is_lifetime) {
@@ -79,39 +32,14 @@ const formatDuration = (plan: Plan) => {
 };
 
 export function VipPackagesSection() {
-  const [plans, setPlans] = useState<Plan[]>(FALLBACK_PLANS);
-  const [loading, setLoading] = useState(true);
-  const [usingFallback, setUsingFallback] = useState(true);
+  const {
+    plans,
+    loading,
+    error,
+    hasData,
+    refresh,
+  } = useSubscriptionPlans();
   const router = useRouter();
-
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchPlans = async () => {
-      try {
-        const { data, error } = await callEdgeFunction<PlansResponse>("PLANS");
-        if (!mounted) {
-          return;
-        }
-        if (!error && data?.plans && data.plans.length > 0) {
-          setPlans(data.plans);
-          setUsingFallback(false);
-        }
-      } catch (err) {
-        console.warn("Failed to load live plans, falling back to defaults", err);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    void fetchPlans();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const handleCheckout = (planId: string) => {
     router.push(`/checkout?plan=${encodeURIComponent(planId)}`);
@@ -133,10 +61,22 @@ export function VipPackagesSection() {
         <Text variant="body-default-l" onBackground="neutral-weak">
           Choose the desk access that matches your trading cadence. Every package includes live signals, trade accountability, and automation templates.
         </Text>
-        {usingFallback ? (
-          <Text variant="body-default-s" onBackground="brand-weak">
-            Live pricing will refresh once the Supabase connection is available. Showing reference packages in the meantime.
-          </Text>
+        {error ? (
+          <Column gap="6">
+            <Text variant="body-default-s" onBackground="brand-weak">
+              {error}
+            </Text>
+            <Row gap="8">
+              <Button
+                size="s"
+                variant="secondary"
+                data-border="rounded"
+                onClick={() => refresh(true)}
+              >
+                Retry loading plans
+              </Button>
+            </Row>
+          </Column>
         ) : null}
       </Column>
       {loading ? (
@@ -144,6 +84,32 @@ export function VipPackagesSection() {
           <Spinner />
           <Text variant="body-default-m">Loading plans…</Text>
         </Row>
+      ) : !hasData ? (
+        <Column gap="12" paddingY="24">
+          <Text variant="body-default-m" onBackground="neutral-weak">
+            VIP packages will appear once they are published in Supabase. Check back soon for live pricing.
+          </Text>
+          <Row gap="12" s={{ direction: "column" }}>
+            <Button
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              prefixIcon="rocket"
+              href="/checkout"
+            >
+              Open secure checkout
+            </Button>
+            <Button
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              arrowIcon
+              href="#mentorship-programs"
+            >
+              Compare mentorship support
+            </Button>
+          </Row>
+        </Column>
       ) : (
         <Column gap="20">
           <Row gap="16" wrap>
