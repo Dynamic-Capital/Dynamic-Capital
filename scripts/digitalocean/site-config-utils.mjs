@@ -46,20 +46,45 @@ function formatChangeLabel(key, value, context) {
   return `${key} → ${value}`;
 }
 
+function formatScopeChangeLabel(key, previous, next, context) {
+  const detail = `${key} scope ${previous ?? 'unset'} → ${next}`;
+  if (context && context.length > 0) {
+    return `${context}: ${detail}`;
+  }
+  return detail;
+}
+
 function upsertEnv(envs, key, value, scope, changes, context) {
   const entry = envs.find((item) => item?.key === key);
   const changeLabel = formatChangeLabel(key, value, context);
   if (entry) {
-    if (entry.value !== value) {
+    if (value !== undefined && entry.value !== value) {
       changes.add(changeLabel);
+      entry.value = value;
     }
-    entry.value = value;
-    if (!entry.scope) {
+    if (entry.scope !== scope) {
+      changes.add(formatScopeChangeLabel(key, entry.scope, scope, context));
       entry.scope = scope;
     }
   } else {
-    envs.push({ key, value, scope });
+    const nextEntry = { key, scope };
+    if (value !== undefined) {
+      nextEntry.value = value;
+    }
+    envs.push(nextEntry);
     changes.add(changeLabel);
+    changes.add(formatScopeChangeLabel(key, undefined, scope, context));
+  }
+}
+
+function ensureEnvScope(envs, key, scope, changes, context) {
+  const entry = envs.find((item) => item?.key === key);
+  if (!entry) {
+    return;
+  }
+  if (entry.scope !== scope) {
+    changes.add(formatScopeChangeLabel(key, entry.scope, scope, context));
+    entry.scope = scope;
   }
 }
 
@@ -108,6 +133,11 @@ export function normalizeAppSpec({
   upsertEnv(spec.envs, 'NEXT_PUBLIC_SITE_URL', canonicalSiteUrl, 'RUN_AND_BUILD_TIME', changes, globalContext);
   upsertEnv(spec.envs, 'ALLOWED_ORIGINS', allowedOrigins, 'RUN_AND_BUILD_TIME', changes, globalContext);
   upsertEnv(spec.envs, 'MINIAPP_ORIGIN', canonicalOrigin, 'RUN_AND_BUILD_TIME', changes, globalContext);
+
+  const buildCredentialKeys = ['CDN_BUCKET', 'CDN_REGION', 'CDN_ACCESS_KEY', 'CDN_SECRET_KEY'];
+  for (const key of buildCredentialKeys) {
+    ensureEnvScope(spec.envs, key, 'RUN_AND_BUILD_TIME', changes, globalContext);
+  }
 
   function updateComponentEnvs(components, { includeAllowedOrigins = false, label }) {
     const list = ensureArray(components);
