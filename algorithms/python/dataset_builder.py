@@ -67,12 +67,18 @@ class DatasetWriter:
         return partitions
 
     def _write_split(self, split: str, records: List[dict]) -> None:
-        path = self.output_dir / f"{split}.{self.file_format if self.file_format != 'json' else 'jsonl'}"
         if self.file_format == "parquet" and _pd is not None:
+            path = self.output_dir / f"{split}.parquet"
             frame = _pd.DataFrame.from_records(records)
             frame.to_parquet(path, index=False)
             return
-        if self.file_format in {"json", "jsonl"}:
+        if self.file_format == "json":
+            path = self.output_dir / f"{split}.json"
+            with path.open("w") as handle:
+                json.dump(records, handle, indent=2)
+            return
+        if self.file_format == "jsonl":
+            path = self.output_dir / f"{split}.jsonl"
             with path.open("w") as handle:
                 for record in records:
                     handle.write(json.dumps(record) + "\n")

@@ -78,18 +78,25 @@ class RealtimeExecutor:
             logger.warning("Falling back to cached positions after broker error: %s", exc)
             open_positions = list(self._fallback_positions)
         decisions = self.logic.on_bar(snapshot, open_positions=open_positions, account_equity=account_equity)
+        execution_errors: List[str] = []
         for decision in decisions:
             try:
                 self.broker.execute(decision)
                 self._apply_decision(decision, snapshot, open_positions)
-            except Exception:
+            except Exception as exc:
                 logger.exception("Failed to execute trade decision %s", decision)
+                execution_errors.append(f"{type(exc).__name__}: {exc}")
         self.state_store.save(open_positions)
         self._fallback_positions = list(open_positions)
+        status = "ok" if not execution_errors else "error"
+        details = {"decisions": len(decisions)}
+        if execution_errors:
+            details["failed_decisions"] = len(execution_errors)
+            details["errors"] = execution_errors
         self.health_monitor.record_status(
-            "ok",
+            status,
             timestamp=snapshot.timestamp,
-            details={"decisions": len(decisions)},
+            details=details,
         )
         return decisions
 

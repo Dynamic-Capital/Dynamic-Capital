@@ -125,6 +125,66 @@ def test_realtime_executor_updates_state():
     assert total >= 0
 
 
+def test_realtime_executor_reports_broker_failures():
+    snapshot = MarketSnapshot(
+        symbol="XAUUSD",
+        timestamp=datetime.now(timezone.utc),
+        close=1800.0,
+        rsi_fast=50.0,
+        adx_fast=20.0,
+        rsi_slow=52.0,
+        adx_slow=18.0,
+        pip_size=0.1,
+        pip_value=1.0,
+    )
+
+    class StaticLogic:
+        def on_bar(self, snapshot, *, open_positions, account_equity=None):
+            return [
+                TradeDecision(
+                    action="open",
+                    symbol=snapshot.symbol,
+                    direction=1,
+                    size=0.1,
+                    entry=snapshot.close,
+                )
+            ]
+
+    class FailingBroker:
+        def fetch_open_positions(self):
+            return []
+
+        def execute(self, decision):
+            raise RuntimeError("broker outage")
+
+    class SpyHealthMonitor:
+        def __init__(self):
+            self.calls = []
+
+        def record_status(self, status, *, timestamp, details=None):
+            self.calls.append((status, timestamp, details or {}))
+
+    monitor = SpyHealthMonitor()
+    executor = RealtimeExecutor(
+        StaticLogic(),
+        FailingBroker(),
+        state_store=InMemoryStateStore(),
+        health_monitor=monitor,
+    )
+
+    decisions = executor.process_snapshot(snapshot)
+
+    assert len(decisions) == 1
+    stored_positions = executor.state_store.load()
+    assert stored_positions == []
+    assert monitor.calls, "health monitor should receive status updates"
+    status, timestamp, details = monitor.calls[-1]
+    assert status == "error"
+    assert details["decisions"] == 1
+    assert details["failed_decisions"] == 1
+    assert any("broker outage" in message for message in details["errors"])
+
+
 def test_trade_logic_applies_correlation_and_seasonal_context():
     config = TradeConfig(
         neighbors=1,
