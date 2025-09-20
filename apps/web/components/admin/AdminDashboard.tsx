@@ -296,7 +296,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const pendingCount = pendingPayments.length;
 
   return (
-    <AdminGate>{/* Adding missing children */}
+    <AdminGate>
       <section className="relative overflow-hidden rounded-[32px] border border-border/40 bg-gradient-to-br from-background via-card/40 to-background p-[1px] shadow-xl">
         <div className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from-primary/20 via-transparent to-dc-accent/20 opacity-40" />
         <div className="relative rounded-[32px] bg-background/95 p-6 sm:p-10">
