@@ -8,6 +8,14 @@ type OgContext = {
   accent: string;
 };
 
+type ReactCreateElement = typeof import('react')["createElement"];
+type OgReactElement = ReturnType<ReactCreateElement>;
+type CreateElement = (
+  type: string,
+  props: Record<string, unknown> | null,
+  ...children: unknown[]
+) => OgReactElement;
+
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
 const MAX_TITLE_LENGTH = 90;
@@ -161,9 +169,7 @@ function buildSvg({ title, description, domain, accent }: OgContext) {
 </svg>`;
 }
 
-type CreateElement = (...args: unknown[]) => unknown;
-
-function buildOgTree(createElement: CreateElement, data: OgContext) {
+function buildOgTree(createElement: CreateElement, data: OgContext): OgReactElement {
   return createElement(
     'div',
     {
@@ -289,7 +295,10 @@ async function tryCreateImageResponse(context: OgContext) {
       import('react'),
     ]);
 
-    const element = buildOgTree((React as any).createElement, context);
+    const element = buildOgTree(
+      (React as typeof import('react')).createElement as CreateElement,
+      context,
+    );
     return new ImageResponse(element, {
       width: OG_WIDTH,
       height: OG_HEIGHT,

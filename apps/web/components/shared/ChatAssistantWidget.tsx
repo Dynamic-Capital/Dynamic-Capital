@@ -379,6 +379,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                   <form onSubmit={handleSubmit}>
                     <Column gap="12">
                       <Input
+                        id="chat-assistant-question"
                         value={question}
                         onChange={(event) => setQuestion(event.target.value)}
                         placeholder="Ask about pricing, onboarding, or platform access"

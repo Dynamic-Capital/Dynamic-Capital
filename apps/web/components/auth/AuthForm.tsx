@@ -143,12 +143,12 @@ export function AuthForm() {
   return (
     <Column
       fillWidth
-      minHeight="100vh"
       horizontal="center"
       align="center"
       padding="xl"
       background="page"
       gap="32"
+      style={{ minHeight: "100vh" }}
     >
       <Column
         maxWidth={28}

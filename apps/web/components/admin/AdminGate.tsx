@@ -44,7 +44,14 @@ export function AdminGate({ children }: AdminGateProps) {
 
   if (loading) {
     return (
-      <Column fillWidth minHeight="60vh" horizontal="center" align="center" gap="16" padding="xl">
+      <Column
+        fillWidth
+        horizontal="center"
+        align="center"
+        gap="16"
+        padding="xl"
+        style={{ minHeight: "60vh" }}
+      >
         <Spinner />
         <Text variant="body-default-m">Checking admin access…</Text>
       </Column>
@@ -119,12 +126,12 @@ export function AdminGate({ children }: AdminGateProps) {
   return (
     <Column
       fillWidth
-      minHeight="100vh"
       horizontal="center"
       align="center"
       padding="xl"
       gap="24"
       background="page"
+      style={{ minHeight: "100vh" }}
     >
       <Column
         maxWidth={28}
@@ -177,6 +184,7 @@ export function AdminGate({ children }: AdminGateProps) {
               Paste Telegram initData
             </Text>
             <Input
+              id="manual-init-data"
               value={manualInitData}
               onChange={(event) => setManualInitData(event.target.value)}
               placeholder="Paste initData here"

@@ -17,19 +17,34 @@ import {
 import { baseURL, about, blog, person, toAbsoluteUrl } from "@/resources";
 import { formatDate } from "@/utils/magic-portfolio/formatDate";
 import { getPosts } from "@/utils/magic-portfolio/utils";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { cache } from "react";
 import { Posts } from "@/components/magic-portfolio/blog/Posts";
 import { ShareSection } from "@/components/magic-portfolio/blog/ShareSection";
 
+type MaybePromise<T> = T | Promise<T>;
 type BlogPageParams = { slug: string | string[] };
+type BlogPageProps = {
+  params?: MaybePromise<BlogPageParams>;
+  searchParams?: unknown;
+};
 
 const BLOG_POSTS_PATH = ["app", "blog", "posts"] as const;
 
-const loadBlogPosts = cache(() => getPosts(BLOG_POSTS_PATH));
+const loadBlogPosts = cache(() => getPosts(Array.from(BLOG_POSTS_PATH)));
 
-const resolveSlugFromParams = (params: BlogPageParams): string =>
-  (Array.isArray(params.slug) ? params.slug.join("/") : params.slug) || "";
+const resolveSlugFromParams = async (
+  params: BlogPageProps["params"],
+): Promise<string> => {
+  if (!params) return "";
+
+  const resolved = await params;
+  const slug = Array.isArray(resolved.slug)
+    ? resolved.slug.join("/")
+    : resolved.slug;
+
+  return slug || "";
+};
 
 const findBlogPost = (slug: string) => loadBlogPosts().find((post) => post.slug === slug);
 
@@ -37,12 +52,8 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
   return loadBlogPosts().map((post) => ({ slug: post.slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: BlogPageParams;
-}): Promise<Metadata> {
-  const slugPath = resolveSlugFromParams(params);
+export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
+  const slugPath = await resolveSlugFromParams(params);
   const post = findBlogPost(slugPath);
 
   if (!post) return {};
@@ -56,8 +67,8 @@ export async function generateMetadata({
   });
 }
 
-export default function Blog({ params }: { params: BlogPageParams }) {
-  const slugPath = resolveSlugFromParams(params);
+export default async function Blog({ params }: BlogPageProps) {
+  const slugPath = await resolveSlugFromParams(params);
   const post = findBlogPost(slugPath);
 
   if (!post) {
