@@ -23,9 +23,28 @@ export type DisplayConfig = {
 };
 
 /**
+ * Route configuration value for a single path.
+ */
+export type RouteConfigValue =
+  | boolean
+  | {
+      enabled: boolean;
+      includeChildren?: boolean;
+    };
+
+/**
  * Route configuration for enabled/disabled routes.
  */
-export type RoutesConfig = Record<`/${string}`, boolean>;
+export type RoutesConfig = Record<`/${string}`, RouteConfigValue>;
+
+/**
+ * Normalized route definition.
+ */
+export type NormalizedRouteDefinition = {
+  path: `/${string}`;
+  enabled: boolean;
+  includeChildren: boolean;
+};
 
 /**
  * Protected route configuration.
