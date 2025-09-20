@@ -12,10 +12,13 @@ import {
   Tag,
   Text,
 } from "@once-ui-system/core";
+import type { SpacingToken } from "@once-ui-system/core";
 
 import { formatPrice } from "@/utils";
 import type { Plan } from "@/types/plan";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+
+const ERROR_STATE_GAP: SpacingToken = "8";
 
 const formatDuration = (plan: Plan) => {
   if (plan.is_lifetime) {
@@ -62,11 +65,11 @@ export function VipPackagesSection() {
           Choose the desk access that matches your trading cadence. Every package includes live signals, trade accountability, and automation templates.
         </Text>
         {error ? (
-          <Column gap="6">
+          <Column gap={ERROR_STATE_GAP}>
             <Text variant="body-default-s" onBackground="brand-weak">
               {error}
             </Text>
-            <Row gap="8">
+            <Row gap={ERROR_STATE_GAP}>
               <Button
                 size="s"
                 variant="secondary"
