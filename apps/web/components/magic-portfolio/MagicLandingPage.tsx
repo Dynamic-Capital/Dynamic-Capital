@@ -1,28 +1,13 @@
-import {
-  Avatar,
-  Badge,
-  Button,
-  Column,
-  Heading,
-  Line,
-  RevealFx,
-  Row,
-  Schema,
-  Text,
-} from "@once-ui-system/core";
-import { home, about, person, baseURL, isRouteEnabled, toAbsoluteUrl } from "@/resources";
+import { Badge, Button, Column, Heading, RevealFx, Row, Schema, Text } from "@once-ui-system/core";
+import { home, about, person, baseURL, toAbsoluteUrl } from "@/resources";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
-import { Projects } from "@/components/magic-portfolio/work/Projects";
-import { Posts } from "@/components/magic-portfolio/blog/Posts";
 import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
 import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
 import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
-
-const TELEGRAM_VIP_URL = "https://t.me/Dynamic_VIP_BOT";
+import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
+import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
 
 export function MagicLandingPage() {
-  const blogEnabled = isRouteEnabled("/blog");
-
   return (
     <Column maxWidth="m" gap="xl" paddingY="12" horizontal="center">
       <Schema
@@ -72,58 +57,42 @@ export function MagicLandingPage() {
             </Text>
           </RevealFx>
           <RevealFx paddingTop="12" delay={0.4} horizontal="center" paddingLeft="12">
-            <Button
-              id="about"
-              data-border="rounded"
-              href={TELEGRAM_VIP_URL}
-              variant="secondary"
-              size="m"
-              weight="default"
-              arrowIcon
-            >
-              <Row gap="8" vertical="center" paddingRight="4">
-                {about.avatar.display && (
-                  <Avatar
-                    marginRight="8"
-                    style={{ marginLeft: "-0.75rem" }}
-                    src={person.avatar}
-                    size="m"
-                  />
-                )}
-                Join the desk
-              </Row>
-            </Button>
+            <Row gap="12" s={{ direction: "column" }}>
+              <Button
+                id="about"
+                data-border="rounded"
+                href="/checkout"
+                variant="primary"
+                size="m"
+                weight="default"
+                prefixIcon="rocket"
+              >
+                Start checkout
+              </Button>
+              <Button
+                data-border="rounded"
+                href="#vip-packages"
+                variant="secondary"
+                size="m"
+                weight="default"
+                arrowIcon
+              >
+                View VIP packages
+              </Button>
+            </Row>
           </RevealFx>
         </Column>
       </Column>
-      <RevealFx translateY="16" delay={0.6}>
-        <Projects range={[1, 1]} />
-      </RevealFx>
       <RevealFx translateY="20" delay={0.7}>
         <AboutShowcase />
       </RevealFx>
-      {blogEnabled && (
-        <Column fillWidth gap="24" marginBottom="l">
-          <Row fillWidth paddingRight="64">
-            <Line maxWidth={48} />
-          </Row>
-          <Row fillWidth gap="24" marginTop="40" s={{ direction: "column" }}>
-            <Row flex={1} paddingLeft="l" paddingTop="24">
-              <Heading as="h2" variant="display-strong-xs" wrap="balance">
-                Latest from the desk
-              </Heading>
-            </Row>
-            <Row flex={3} paddingX="20">
-              <Posts range={[1, 2]} columns="2" />
-            </Row>
-          </Row>
-          <Row fillWidth paddingLeft="64" horizontal="end">
-            <Line maxWidth={48} />
-          </Row>
-        </Column>
-      )}
-      <Projects range={[2]} />
       <RevealFx translateY="20" delay={0.8}>
+        <MentorshipProgramsSection />
+      </RevealFx>
+      <RevealFx translateY="20" delay={0.8}>
+        <PoolTradingSection />
+      </RevealFx>
+      <RevealFx translateY="20" delay={0.85}>
         <VipPackagesSection />
       </RevealFx>
       <RevealFx translateY="20" delay={0.9}>
