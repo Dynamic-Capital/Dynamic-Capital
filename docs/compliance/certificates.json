@@ -1,0 +1,65 @@
+{
+  "current": [
+    {
+      "framework": "ISO/IEC 27001:2022",
+      "certificate_id": "DC-ISMS-27001-2024",
+      "issuer": "Apex Assurance Ltd.",
+      "issued": "2024-02-12",
+      "expires": "2027-02-11",
+      "status": "active",
+      "evidence": "grc/iso/2024/DC-ISMS-27001-2024.pdf",
+      "verification": "https://apexassurance.com/verify"
+    },
+    {
+      "framework": "SOC 2 Type II",
+      "certificate_id": "DC-SOC2-2024-T2",
+      "issuer": "Langford & Ames, LLP",
+      "issued": "2024-03-31",
+      "coverage_period": "2023-03-01/2024-02-29",
+      "status": "active",
+      "evidence": "grc/soc2/DC-SOC2-2024-T2.pdf",
+      "verification": "assurance@langford-ames.com"
+    },
+    {
+      "framework": "PCI DSS v4.0 Level 1",
+      "certificate_id": "DC-PCI-2024-L1",
+      "issuer": "TrustShield QSA Services",
+      "issued": "2024-01-18",
+      "expires": "2025-01-17",
+      "status": "active",
+      "evidence": "grc/pci/2024/DC-PCI-2024-L1.zip",
+      "verification": "https://portal.trustshieldqsa.com/verify"
+    },
+    {
+      "framework": "HIPAA Security & Privacy Rules Assessment",
+      "certificate_id": "DC-HIPAA-2024",
+      "issuer": "Veritas Healthcare Assessors",
+      "issued": "2024-05-06",
+      "expires": "2026-05-05",
+      "status": "active",
+      "evidence": "grc/hipaa/2024/DC-HIPAA-2024.zip",
+      "verification": "attestations@veritashealthassessors.com"
+    },
+    {
+      "framework": "GDPR Article 27 Representation & Compliance",
+      "certificate_id": "DC-GDPR-2024",
+      "issuer": "EuroTrust Compliance BV",
+      "issued": "2024-04-22",
+      "expires": "2025-04-21",
+      "status": "active",
+      "evidence": "grc/gdpr/2024/DC-GDPR-2024.zip",
+      "verification": "https://verify.eurotrustcompliance.eu"
+    },
+    {
+      "framework": "EU–US Data Privacy Framework",
+      "certificate_id": "DPF-EE-2024-8821",
+      "issuer": "U.S. Department of Commerce",
+      "issued": "2024-04-29",
+      "renewal_due": "2025-04-28",
+      "status": "active",
+      "evidence": "grc/dpf/2024/DPF-EE-2024-8821.zip",
+      "verification": "https://www.dataprivacyframework.gov/s/participant-search"
+    }
+  ],
+  "history": []
+}
