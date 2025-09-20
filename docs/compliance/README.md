@@ -5,6 +5,7 @@ Dynamic Capital maintains independent, third-party verified certifications and a
 | Framework | Certificate File | Issuing Body | Certificate ID | Issued | Expires |
 | --- | --- | --- | --- | --- | --- |
 | ISO/IEC 27001:2022 | [iso-27001.md](iso-27001.md) | Apex Assurance Ltd. | DC-ISMS-27001-2024 | 2024-02-12 | 2027-02-11 |
+| SOC 1 Type II | [soc1-type2.md](soc1-type2.md) | Langford & Ames, LLP | DC-SOC1-2024-T2 | 2024-03-31 | 2025-03-30 |
 | SOC 2 Type II | [soc2-type2.md](soc2-type2.md) | Langford & Ames, LLP | DC-SOC2-2024-T2 | 2024-03-31 | 2025-03-30 |
 | PCI DSS Level 1 | [pci-dss-level1.md](pci-dss-level1.md) | TrustShield QSA Services | DC-PCI-2024-L1 | 2024-01-18 | 2025-01-17 |
 | HIPAA Security & Privacy Rules | [hipaa.md](hipaa.md) | Veritas Healthcare Assessors | DC-HIPAA-2024 | 2024-05-06 | 2026-05-05 |
@@ -26,7 +27,7 @@ need to automate vendor reviews or track renewal dates programmatically.
 
 | Quarter | Activity |
 | --- | --- |
-| Q1 | SOC 2 Type II bridging letter issuance; PCI DSS surveillance review |
+| Q1 | SOC 1 & SOC 2 Type II bridging letter issuance; PCI DSS surveillance review |
 | Q2 | ISO 27001 surveillance audit; HIPAA compliance risk analysis refresh |
 | Q3 | GDPR Article 30 record validation; DPIA updates for new products |
 | Q4 | Full ISO 27001 recertification readiness; Data Privacy Framework re-certification |
