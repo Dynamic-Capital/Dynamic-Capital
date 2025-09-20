@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import '@once-ui-system/core/css/tokens.css';
 import '@once-ui-system/core/css/styles.css';
@@ -5,13 +6,34 @@ import './globals.css';
 import '../env';
 import Footer from '@/components/layout/Footer';
 import Providers from './providers';
-import DefaultSeo from '@/components/DefaultSeo';
 import Navbar from '@/components/layout/Navbar';
 import { getStaticLandingDocument } from '@/lib/staticLanding';
 
-export const metadata = {
-  title: 'Dynamic Capital',
-  description: 'Premium trading platform with Next.js'
+const SITE_URL = process.env.SITE_URL || 'http://localhost:8080';
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'Dynamic Capital',
+    template: '%s | Dynamic Capital',
+  },
+  description: 'Premium trading platform with Next.js',
+  alternates: {
+    canonical: SITE_URL,
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: SITE_URL,
+    siteName: 'Dynamic Capital',
+    title: 'Dynamic Capital',
+    description: 'Premium trading platform with Next.js',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Dynamic Capital',
+    description: 'Premium trading platform with Next.js',
+  },
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
@@ -42,7 +64,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body>
         <Providers>
-          <DefaultSeo />
           <Navbar />
           <main>{children}</main>
           <Footer />

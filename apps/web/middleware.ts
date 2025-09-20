@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildCorsHeaders } from '@/utils/http.ts';
-import createIntlMiddleware from 'next-intl/middleware';
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/config/localization';
 
-const intlMiddleware = createIntlMiddleware({
-  locales: SUPPORTED_LOCALES,
-  defaultLocale: DEFAULT_LOCALE,
-});
+const LEGACY_LOCALE_PREFIX = '/en';
 
 export function middleware(req: NextRequest) {
   if (req.nextUrl.pathname.startsWith('/api')) {
@@ -29,7 +24,16 @@ export function middleware(req: NextRequest) {
     return res;
   }
 
-  return intlMiddleware(req);
+  const { pathname } = req.nextUrl;
+
+  if (pathname === LEGACY_LOCALE_PREFIX || pathname.startsWith(`${LEGACY_LOCALE_PREFIX}/`)) {
+    const rewrited = req.nextUrl.clone();
+    const nextPath = pathname.slice(LEGACY_LOCALE_PREFIX.length) || '/';
+    rewrited.pathname = nextPath;
+    return NextResponse.rewrite(rewrited);
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
