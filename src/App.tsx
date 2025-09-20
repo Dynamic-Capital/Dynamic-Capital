@@ -6,7 +6,8 @@ import { MotionConfigProvider } from '@/components/ui/motion-config';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { LandingPageShell } from '@/components/landing/LandingPageShell';
-import Footer from '@/components/layout/Footer';
+import CheckoutPage from './pages/CheckoutPage';
+import { Footer } from '@/components/magic-portfolio/Footer';
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ function App() {
             <main className="flex-1">
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
               </Routes>
             </main>
             <Footer />
