@@ -1,11 +1,12 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 
 import { Button, Fade, Flex, Line, Row, ToggleButton } from "@once-ui-system/core";
 
 import { display, person, about, blog, work, gallery, isRouteEnabled } from "@/resources";
+import type { IconName } from "@/resources/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Header.module.scss";
@@ -48,10 +49,74 @@ export const Header = () => {
   const { user, signOut } = useAuth();
 
   const homeEnabled = isRouteEnabled("/");
+  const plansEnabled = isRouteEnabled("/plans");
   const aboutEnabled = isRouteEnabled("/about");
   const workEnabled = isRouteEnabled("/work");
   const blogEnabled = isRouteEnabled("/blog");
   const galleryEnabled = isRouteEnabled("/gallery");
+
+  const navItems = [
+    homeEnabled
+      ? {
+          key: "home",
+          label: "Home",
+          icon: "home" as IconName,
+          href: "/",
+          selected: pathname === "/",
+        }
+      : null,
+    plansEnabled
+      ? {
+          key: "plans",
+          label: "VIP Plans",
+          icon: "crown" as IconName,
+          href: "/plans",
+          selected: pathname.startsWith("/plans"),
+        }
+      : null,
+    aboutEnabled
+      ? {
+          key: "about",
+          label: about.label,
+          icon: "person" as IconName,
+          href: "/about",
+          selected: pathname === "/about",
+        }
+      : null,
+    workEnabled
+      ? {
+          key: "work",
+          label: work.label,
+          icon: "grid" as IconName,
+          href: "/work",
+          selected: pathname.startsWith("/work"),
+        }
+      : null,
+    blogEnabled
+      ? {
+          key: "blog",
+          label: blog.label,
+          icon: "book" as IconName,
+          href: "/blog",
+          selected: pathname.startsWith("/blog"),
+        }
+      : null,
+    galleryEnabled
+      ? {
+          key: "gallery",
+          label: gallery.label,
+          icon: "gallery" as IconName,
+          href: "/gallery",
+          selected: pathname.startsWith("/gallery"),
+        }
+      : null,
+  ].filter((item): item is {
+    key: string;
+    label: string;
+    icon: IconName;
+    href: string;
+    selected: boolean;
+  } => Boolean(item));
 
   return (
     <>
@@ -94,86 +159,41 @@ export const Header = () => {
             zIndex={1}
           >
             <Row gap="4" vertical="center" textVariant="body-default-s" suppressHydrationWarning>
-              {homeEnabled && (
-                <ToggleButton prefixIcon="home" href="/" selected={pathname === "/"} />
-              )}
-              <Line background="neutral-alpha-medium" vert maxHeight="24" />
-              {aboutEnabled && (
-                <>
-                  <Row s={{ hide: true }}>
-                    <ToggleButton
-                      prefixIcon="person"
-                      href="/about"
-                      label={about.label}
-                      selected={pathname === "/about"}
-                    />
-                  </Row>
-                  <Row hide s={{ hide: false }}>
-                    <ToggleButton
-                      prefixIcon="person"
-                      href="/about"
-                      selected={pathname === "/about"}
-                    />
-                  </Row>
-                </>
-              )}
-              {workEnabled && (
-                <>
-                  <Row s={{ hide: true }}>
-                    <ToggleButton
-                      prefixIcon="grid"
-                      href="/work"
-                      label={work.label}
-                      selected={pathname.startsWith("/work")}
-                    />
-                  </Row>
-                  <Row hide s={{ hide: false }}>
-                    <ToggleButton
-                      prefixIcon="grid"
-                      href="/work"
-                      selected={pathname.startsWith("/work")}
-                    />
-                  </Row>
-                </>
-              )}
-              {blogEnabled && (
-                <>
-                  <Row s={{ hide: true }}>
-                    <ToggleButton
-                      prefixIcon="book"
-                      href="/blog"
-                      label={blog.label}
-                      selected={pathname.startsWith("/blog")}
-                    />
-                  </Row>
-                  <Row hide s={{ hide: false }}>
-                    <ToggleButton
-                      prefixIcon="book"
-                      href="/blog"
-                      selected={pathname.startsWith("/blog")}
-                    />
-                  </Row>
-                </>
-              )}
-              {galleryEnabled && (
-                <>
-                  <Row s={{ hide: true }}>
-                    <ToggleButton
-                      prefixIcon="gallery"
-                      href="/gallery"
-                      label={gallery.label}
-                      selected={pathname.startsWith("/gallery")}
-                    />
-                  </Row>
-                  <Row hide s={{ hide: false }}>
-                    <ToggleButton
-                      prefixIcon="gallery"
-                      href="/gallery"
-                      selected={pathname.startsWith("/gallery")}
-                    />
-                  </Row>
-                </>
-              )}
+              {navItems.flatMap((item, index) => {
+                const toggle = (
+                  <React.Fragment key={item.key}>
+                    <Row s={{ hide: true }}>
+                      <ToggleButton
+                        prefixIcon={item.icon}
+                        href={item.href}
+                        label={item.label}
+                        selected={item.selected}
+                      />
+                    </Row>
+                    <Row hide s={{ hide: false }}>
+                      <ToggleButton
+                        prefixIcon={item.icon}
+                        href={item.href}
+                        selected={item.selected}
+                      />
+                    </Row>
+                  </React.Fragment>
+                );
+
+                if (index === 0) {
+                  return [toggle];
+                }
+
+                return [
+                  <Line
+                    key={`divider-${item.key}`}
+                    background="neutral-alpha-medium"
+                    vert
+                    maxHeight="24"
+                  />,
+                  toggle,
+                ];
+              })}
               {display.themeSwitcher && (
                 <>
                   <Line background="neutral-alpha-medium" vert maxHeight="24" />
