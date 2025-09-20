@@ -16,27 +16,31 @@ import { baseURL, about, person, toAbsoluteUrl, work } from "@/resources";
 import { formatDate } from "@/utils/magic-portfolio/formatDate";
 import { ScrollToHash, CustomMDX } from "@/components/magic-portfolio";
 import { Metadata } from "next";
+import { cache } from "react";
 import { Projects } from "@/components/magic-portfolio/work/Projects";
 
+type WorkPageParams = { slug: string | string[] };
+
+const WORK_POSTS_PATH = ["app", "work", "projects"] as const;
+
+const loadWorkPosts = cache(() => getPosts(WORK_POSTS_PATH));
+
+const resolveSlugFromParams = (params: WorkPageParams): string =>
+  (Array.isArray(params.slug) ? params.slug.join("/") : params.slug) || "";
+
+const findWorkPost = (slug: string) => loadWorkPosts().find((post) => post.slug === slug);
+
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const posts = getPosts(["app", "work", "projects"]);
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
+  return loadWorkPosts().map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string | string[] }>;
+  params: WorkPageParams;
 }): Promise<Metadata> {
-  const routeParams = await params;
-  const slugPath = Array.isArray(routeParams.slug)
-    ? routeParams.slug.join("/")
-    : routeParams.slug || "";
-
-  const posts = getPosts(["app", "work", "projects"]);
-  const post = posts.find((post) => post.slug === slugPath);
+  const slugPath = resolveSlugFromParams(params);
+  const post = findWorkPost(slugPath);
 
   if (!post) return {};
 
@@ -49,17 +53,9 @@ export async function generateMetadata({
   });
 }
 
-export default async function Project({
-  params,
-}: {
-  params: Promise<{ slug: string | string[] }>;
-}) {
-  const routeParams = await params;
-  const slugPath = Array.isArray(routeParams.slug)
-    ? routeParams.slug.join("/")
-    : routeParams.slug || "";
-
-  const post = getPosts(["app", "work", "projects"]).find((post) => post.slug === slugPath);
+export default function Project({ params }: { params: WorkPageParams }) {
+  const slugPath = resolveSlugFromParams(params);
+  const post = findWorkPost(slugPath);
 
   if (!post) {
     notFound();

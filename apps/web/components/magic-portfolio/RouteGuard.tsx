@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { routes, protectedRoutes } from "@/resources";
+import { isRouteEnabled, protectedRoutes } from "@/resources";
 import { Flex, Spinner, Button, Heading, Column, PasswordInput } from "@once-ui-system/core";
 import NotFound from "@/app/not-found";
 
@@ -33,7 +33,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
   };
 
   const normalizedPathname = normalizePathname(pathname);
-  const [isRouteEnabled, setIsRouteEnabled] = useState(false);
+  const [isAllowed, setIsAllowed] = useState(false);
   const [isPasswordRequired, setIsPasswordRequired] = useState(false);
   const [password, setPassword] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,29 +43,12 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
   useEffect(() => {
     const performChecks = async () => {
       setLoading(true);
-      setIsRouteEnabled(false);
+      setIsAllowed(false);
       setIsPasswordRequired(false);
       setIsAuthenticated(false);
 
-      const checkRouteEnabled = () => {
-        if (!normalizedPathname) return false;
-
-        if (normalizedPathname in routes) {
-          return routes[normalizedPathname as keyof typeof routes];
-        }
-
-        const dynamicRoutes = ["/blog", "/work"] as const;
-        for (const route of dynamicRoutes) {
-          if (normalizedPathname.startsWith(route) && routes[route]) {
-            return true;
-          }
-        }
-
-        return false;
-      };
-
-      const routeEnabled = checkRouteEnabled();
-      setIsRouteEnabled(routeEnabled);
+      const routeEnabled = Boolean(normalizedPathname && isRouteEnabled(normalizedPathname));
+      setIsAllowed(routeEnabled);
 
       if (protectedRoutes[normalizedPathname as keyof typeof protectedRoutes]) {
         setIsPasswordRequired(true);
@@ -105,7 +88,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
     );
   }
 
-  if (!isRouteEnabled) {
+  if (!isAllowed) {
     return <NotFound />;
   }
 

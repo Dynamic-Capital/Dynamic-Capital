@@ -10,7 +10,7 @@ import {
   Schema,
   Text,
 } from "@once-ui-system/core";
-import { home, about, person, baseURL, routes, toAbsoluteUrl } from "@/resources";
+import { home, about, person, baseURL, isRouteEnabled, toAbsoluteUrl } from "@/resources";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { Projects } from "@/components/magic-portfolio/work/Projects";
 import { Posts } from "@/components/magic-portfolio/blog/Posts";
@@ -18,6 +18,8 @@ import { Posts } from "@/components/magic-portfolio/blog/Posts";
 const TELEGRAM_VIP_URL = "https://t.me/Dynamic_VIP_BOT";
 
 export function MagicLandingPage() {
+  const blogEnabled = isRouteEnabled("/blog");
+
   return (
     <Column maxWidth="m" gap="xl" paddingY="12" horizontal="center">
       <Schema
@@ -94,7 +96,7 @@ export function MagicLandingPage() {
       <RevealFx translateY="16" delay={0.6}>
         <Projects range={[1, 1]} />
       </RevealFx>
-      {routes["/blog"] && (
+      {blogEnabled && (
         <Column fillWidth gap="24" marginBottom="l">
           <Row fillWidth paddingRight="64">
             <Line maxWidth={48} />

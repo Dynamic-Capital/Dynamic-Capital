@@ -31,3 +31,5 @@ export {
   magicPortfolioBucketBaseUrl,
   magicPortfolioBucketName,
 } from "./assets";
+
+export { getRouteDefinitions, isRouteEnabled } from "./routes";

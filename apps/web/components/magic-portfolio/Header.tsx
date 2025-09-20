@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { Button, Fade, Flex, Line, Row, ToggleButton } from "@once-ui-system/core";
 
-import { routes, display, person, about, blog, work, gallery } from "@/resources";
+import { display, person, about, blog, work, gallery, isRouteEnabled } from "@/resources";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Header.module.scss";
@@ -46,6 +46,12 @@ export default TimeDisplay;
 export const Header = () => {
   const pathname = usePathname() ?? "";
   const { user, signOut } = useAuth();
+
+  const homeEnabled = isRouteEnabled("/");
+  const aboutEnabled = isRouteEnabled("/about");
+  const workEnabled = isRouteEnabled("/work");
+  const blogEnabled = isRouteEnabled("/blog");
+  const galleryEnabled = isRouteEnabled("/gallery");
 
   return (
     <>
@@ -88,11 +94,11 @@ export const Header = () => {
             zIndex={1}
           >
             <Row gap="4" vertical="center" textVariant="body-default-s" suppressHydrationWarning>
-              {routes["/"] && (
+              {homeEnabled && (
                 <ToggleButton prefixIcon="home" href="/" selected={pathname === "/"} />
               )}
               <Line background="neutral-alpha-medium" vert maxHeight="24" />
-              {routes["/about"] && (
+              {aboutEnabled && (
                 <>
                   <Row s={{ hide: true }}>
                     <ToggleButton
@@ -111,7 +117,7 @@ export const Header = () => {
                   </Row>
                 </>
               )}
-              {routes["/work"] && (
+              {workEnabled && (
                 <>
                   <Row s={{ hide: true }}>
                     <ToggleButton
@@ -130,7 +136,7 @@ export const Header = () => {
                   </Row>
                 </>
               )}
-              {routes["/blog"] && (
+              {blogEnabled && (
                 <>
                   <Row s={{ hide: true }}>
                     <ToggleButton
@@ -149,7 +155,7 @@ export const Header = () => {
                   </Row>
                 </>
               )}
-              {routes["/gallery"] && (
+              {galleryEnabled && (
                 <>
                   <Row s={{ hide: true }}>
                     <ToggleButton

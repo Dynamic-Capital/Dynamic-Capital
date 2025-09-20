@@ -18,29 +18,32 @@ import { baseURL, about, blog, person, toAbsoluteUrl } from "@/resources";
 import { formatDate } from "@/utils/magic-portfolio/formatDate";
 import { getPosts } from "@/utils/magic-portfolio/utils";
 import { Metadata } from "next";
-import React from "react";
+import { cache } from "react";
 import { Posts } from "@/components/magic-portfolio/blog/Posts";
 import { ShareSection } from "@/components/magic-portfolio/blog/ShareSection";
 
+type BlogPageParams = { slug: string | string[] };
+
+const BLOG_POSTS_PATH = ["app", "blog", "posts"] as const;
+
+const loadBlogPosts = cache(() => getPosts(BLOG_POSTS_PATH));
+
+const resolveSlugFromParams = (params: BlogPageParams): string =>
+  (Array.isArray(params.slug) ? params.slug.join("/") : params.slug) || "";
+
+const findBlogPost = (slug: string) => loadBlogPosts().find((post) => post.slug === slug);
+
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const posts = getPosts(["app", "blog", "posts"]);
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
+  return loadBlogPosts().map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string | string[] }>;
+  params: BlogPageParams;
 }): Promise<Metadata> {
-  const routeParams = await params;
-  const slugPath = Array.isArray(routeParams.slug)
-    ? routeParams.slug.join("/")
-    : routeParams.slug || "";
-
-  const posts = getPosts(["app", "blog", "posts"]);
-  const post = posts.find((post) => post.slug === slugPath);
+  const slugPath = resolveSlugFromParams(params);
+  const post = findBlogPost(slugPath);
 
   if (!post) return {};
 
@@ -53,13 +56,9 @@ export async function generateMetadata({
   });
 }
 
-export default async function Blog({ params }: { params: Promise<{ slug: string | string[] }> }) {
-  const routeParams = await params;
-  const slugPath = Array.isArray(routeParams.slug)
-    ? routeParams.slug.join("/")
-    : routeParams.slug || "";
-
-  const post = getPosts(["app", "blog", "posts"]).find((post) => post.slug === slugPath);
+export default function Blog({ params }: { params: BlogPageParams }) {
+  const slugPath = resolveSlugFromParams(params);
+  const post = findBlogPost(slugPath);
 
   if (!post) {
     notFound();

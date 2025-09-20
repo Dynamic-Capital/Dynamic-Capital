@@ -11,15 +11,15 @@ import {
   SocialSharingConfig,
   StyleConfig,
 } from "@/resources/types";
-import { home } from "./index";
+import { home } from "./content";
 
 const baseURL: string = "https://dynamic.capital";
 
 const routes: RoutesConfig = {
   "/": true,
   "/about": true,
-  "/work": true,
-  "/blog": true,
+  "/work": { enabled: true, includeChildren: true },
+  "/blog": { enabled: true, includeChildren: true },
   "/gallery": true,
   "/telegram": true,
 };
