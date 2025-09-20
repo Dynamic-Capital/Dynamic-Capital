@@ -1,0 +1,35 @@
+---
+title: "The macro cues we track before issuing a high-conviction signal"
+summary: "Our pre-trade checklist blends discretionary reads with quantitative confirmation across FX, crypto, and commodities."
+publishedAt: "2024-11-14"
+tag: "Macro"
+image: "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/magic-portfolio/images/projects/alpha-lab/cover-02.jpg"
+---
+
+Before any analyst tags a trade as high conviction, they must walk through a shared macro checklist. It keeps our desks aligned even when opinions differ.
+
+## Liquidity heatmap
+
+We start with a simple question: *where is liquidity migrating?* Using aggregated order book data we map:
+
+- Net flow into or out of the dollar
+- Stablecoin issuance across major chains
+- Cross-border capital controls that could skew FX pairs
+
+## Catalyst timeline
+
+We overlay the upcoming week of catalysts—central bank decisions, CPI prints, energy inventory releases—against existing positions. No trade is isolated; it lives inside a timeline that may accelerate or invalidate it.
+
+## Quant confirmation
+
+The final gate is quantitative:
+
+```python
+from once.analytics import volatility_band
+
+signal = volatility_band(asset="XAUUSD", window=14)
+if signal.confirm_trend(direction="long") and signal.deviation < 1.5:
+    approve_trade()
+```
+
+Only when discretionary structure, catalysts, and quantitative confirmation align do we publish the signal to members.

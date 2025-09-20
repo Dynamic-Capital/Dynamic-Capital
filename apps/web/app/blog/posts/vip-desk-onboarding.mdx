@@ -1,0 +1,47 @@
+---
+title: "How we onboard VIP members in 72 hours"
+summary: "A behind-the-scenes look at the interviews, account linking, and first-week rituals every Dynamic Capital member experiences."
+publishedAt: "2025-01-22"
+tag: "Operations"
+image: "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/magic-portfolio/images/projects/liquidity-desk/cover-01.jpg"
+---
+
+Our VIP desk has grown to more than 8,500 members, but the experience still feels bespoke. That is not by accident—it is engineered through three tight feedback loops that begin before a member pays their first invoice.
+
+## 1. Trading diagnostics call
+
+Every applicant completes a 30-minute interview where we benchmark their current approach. We review:
+
+- Core market focus and trade frequency
+- Risk appetite, typical size, and drawdown tolerance
+- Tooling stack—brokers, custodians, execution bridges, and journaling habits
+
+The call is recorded and synced to our Notion CRM so mentors can build a playbook before onboarding even starts.
+
+## 2. Account linking & risk controls
+
+Members connect exchanges or broker accounts to our oversight layer. We deploy API keys with withdrawal permissions disabled, then apply drawdown governors that can pause automation if a max daily loss triggers. This ensures new capital enters the ecosystem with the same safeguards we use for internal desks.
+
+```json
+{
+  "maxDailyLoss": 0.03,
+  "sessionPause": true,
+  "alertChannels": ["telegram", "email"],
+  "escalation": {
+    "mentor": "assigned",
+    "riskTeam": "on-call"
+  }
+}
+```
+
+## 3. The first-week sprint
+
+Day one members receive:
+
+- A personalised signal stream with position sizing notes
+- Automation presets tuned to their exchange stack
+- Access to a mentor-only chat for direct escalations
+
+By the end of week one we schedule a review to assess adherence and emotional performance. The cadence creates accountability without overwhelming new operators.
+
+We repeat the same structure for every cohort because consistency builds trust. Within 72 hours a new member understands our execution rhythm, knows how to escalate, and has a roadmap for scaling safely.

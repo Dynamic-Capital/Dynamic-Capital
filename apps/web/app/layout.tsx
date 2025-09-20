@@ -1,91 +1,87 @@
-import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
-import '@once-ui-system/core/css/tokens.css';
-import '@once-ui-system/core/css/styles.css';
-import './once-ui.css';
-import './globals.css';
-import '../env';
-import Footer from '@/components/layout/Footer';
-import Providers from './providers';
-import Navbar from '@/components/layout/Navbar';
-import { getStaticLandingDocument } from '@/lib/staticLanding';
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import "@once-ui-system/core/css/tokens.css";
+import "@once-ui-system/core/css/styles.css";
+import "./once-ui.css";
+import "./globals.css";
+import "../env";
 
-const SITE_URL = process.env.SITE_URL || 'http://localhost:8080';
-const DEFAULT_THEME = 'dark' as const;
-const THEME_ATTRIBUTE_PREFIX = 'data-' as const;
-const THEME_STORAGE_KEY = `${THEME_ATTRIBUTE_PREFIX}theme` as const;
-const ONCE_THEME_DATA_ATTRIBUTES = {
-  'data-neutral': 'gray',
-  'data-brand': 'red',
-  'data-accent': 'magenta',
-  'data-solid': 'contrast',
-  'data-solid-style': 'flat',
-  'data-border': 'playful',
-  'data-surface': 'filled',
-  'data-transition': 'all',
-  'data-scaling': '100',
-  'data-viz-style': 'categorical',
-} as const satisfies Record<string, string>;
+import classNames from "classnames";
+import { Background, Column, Flex, RevealFx, opacity, SpacingToken } from "@once-ui-system/core";
 
-const ONCE_THEME_SCRIPT_ID = 'once-ui-theme';
-const serializedAttributeDefaults = JSON.stringify(ONCE_THEME_DATA_ATTRIBUTES);
-const serializedStyleKeys = JSON.stringify(
-  Object.keys(ONCE_THEME_DATA_ATTRIBUTES).map((attribute) =>
-    attribute.replace(THEME_ATTRIBUTE_PREFIX, ''),
-  ),
+import Providers from "./providers";
+import { getStaticLandingDocument } from "@/lib/staticLanding";
+import { Footer, Header, RouteGuard, ScrollToHash } from "@/components/magic-portfolio";
+import { dataStyle, effects, fonts, style } from "@/resources";
+
+const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
+const DEFAULT_THEME = "dark" as const;
+const THEME_SCRIPT_ID = "theme-init";
+
+const htmlAttributeDefaults: Record<string, string> = {
+  "data-neutral": style.neutral,
+  "data-brand": style.brand,
+  "data-accent": style.accent,
+  "data-solid": style.solid,
+  "data-solid-style": style.solidStyle,
+  "data-border": style.border,
+  "data-surface": style.surface,
+  "data-transition": style.transition,
+  "data-scaling": style.scaling,
+  "data-viz-style": dataStyle.variant,
+};
+
+const themeAttributeDefaults = Object.fromEntries(
+  Object.entries(htmlAttributeDefaults).map(([key, value]) => [key.replace(/^data-/, ""), value]),
 );
 
 const onceThemeScript = `(function () {
   try {
     var root = document.documentElement;
-    var defaultThemeSetting = 'system';
-    var attributeDefaults = ${serializedAttributeDefaults};
+    var defaultTheme = '${style.theme}';
+    var attributes = ${JSON.stringify(themeAttributeDefaults)};
 
-    Object.entries(attributeDefaults).forEach(function ([attribute, value]) {
+    Object.entries(attributes).forEach(function ([key, value]) {
+      var attribute = 'data-' + key;
       if (!root.hasAttribute(attribute)) {
         root.setAttribute(attribute, value);
       }
     });
 
     var resolveTheme = function (themeValue) {
-      if (!themeValue || themeValue === defaultThemeSetting) {
-        var supportsMatchMedia = typeof window.matchMedia === 'function';
-        if (supportsMatchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          return 'dark';
-        }
-        return 'light';
+      if (!themeValue || themeValue === 'system') {
+        var prefersDark = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        return prefersDark ? 'dark' : 'light';
       }
       return themeValue;
     };
 
-    var storedTheme = localStorage.getItem('${THEME_STORAGE_KEY}') || defaultThemeSetting;
-    var resolvedTheme = resolveTheme(storedTheme);
-    root.setAttribute('${THEME_STORAGE_KEY}', resolvedTheme);
+    var storedTheme = localStorage.getItem('data-theme');
+    var resolvedTheme = resolveTheme(storedTheme || defaultTheme);
+    root.setAttribute('data-theme', resolvedTheme);
 
-    var styleKeys = ${serializedStyleKeys};
-    styleKeys.forEach(function (key) {
-      var storageKey = '${THEME_ATTRIBUTE_PREFIX}' + key;
+    Object.keys(attributes).forEach(function (key) {
+      var storageKey = 'data-' + key;
       var storedValue = localStorage.getItem(storageKey);
       if (storedValue) {
         root.setAttribute(storageKey, storedValue);
       }
     });
   } catch (error) {
-    document.documentElement.setAttribute('${THEME_STORAGE_KEY}', '${DEFAULT_THEME}');
+    document.documentElement.setAttribute('data-theme', '${DEFAULT_THEME}');
   }
 })();`;
-const onceThemeScriptTag = `<script id="${ONCE_THEME_SCRIPT_ID}">${onceThemeScript}</script>`;
 
-function ensureOnceThemeScript(markup: string): string {
+function ensureThemeScript(markup: string): string {
   if (!markup) {
-    return onceThemeScriptTag;
+    return `<script id="${THEME_SCRIPT_ID}">${onceThemeScript}</script>`;
   }
 
-  if (markup.includes(`id="${ONCE_THEME_SCRIPT_ID}"`)) {
+  if (markup.includes(`id="${THEME_SCRIPT_ID}"`)) {
     return markup;
   }
 
-  return `${markup}\n${onceThemeScriptTag}`;
+  return `${markup}\n<script id="${THEME_SCRIPT_ID}">${onceThemeScript}</script>`;
 }
 
 function resolveMetadataBase(url: string) {
@@ -101,30 +97,40 @@ const resolvedMetadataBase = resolveMetadataBase(SITE_URL);
 export const metadata: Metadata = {
   metadataBase: resolvedMetadataBase,
   title: {
-    default: 'Dynamic Capital',
-    template: '%s | Dynamic Capital',
+    default: "Dynamic Capital",
+    template: "%s | Dynamic Capital",
   },
-  description: 'Premium trading platform with Next.js',
+  description:
+    "Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.",
   alternates: {
     canonical: resolvedMetadataBase?.toString() ?? SITE_URL,
   },
   openGraph: {
-    type: 'website',
-    locale: 'en_US',
+    type: "website",
+    locale: "en_US",
     url: resolvedMetadataBase?.toString() ?? SITE_URL,
-    siteName: 'Dynamic Capital',
-    title: 'Dynamic Capital',
-    description: 'Premium trading platform with Next.js',
+    siteName: "Dynamic Capital",
+    title: "Dynamic Capital",
+    description:
+      "Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.",
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Dynamic Capital',
-    description: 'Premium trading platform with Next.js',
+    card: "summary_large_image",
+    title: "Dynamic Capital",
+    description:
+      "Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.",
   },
 };
 
+const fontClassName = classNames(
+  fonts.heading.variable,
+  fonts.body.variable,
+  fonts.label.variable,
+  fonts.code.variable,
+);
+
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const isStaticSnapshot = globalThis?.process?.env?.['STATIC_SNAPSHOT'] === 'true';
+  const isStaticSnapshot = globalThis?.process?.env?.["STATIC_SNAPSHOT"] === "true";
 
   if (isStaticSnapshot) {
     const { head, body, lang } = await getStaticLandingDocument();
@@ -132,14 +138,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <html
         lang={lang}
         suppressHydrationWarning
-        {...ONCE_THEME_DATA_ATTRIBUTES}
+        className={fontClassName}
+        {...htmlAttributeDefaults}
         data-theme={DEFAULT_THEME}
       >
-        <head dangerouslySetInnerHTML={{ __html: ensureOnceThemeScript(head) }} />
-        <body
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: body }}
-        />
+        <head dangerouslySetInnerHTML={{ __html: ensureThemeScript(head) }} />
+        <body suppressHydrationWarning dangerouslySetInnerHTML={{ __html: body }} />
       </html>
     );
   }
@@ -148,7 +152,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-      {...ONCE_THEME_DATA_ATTRIBUTES}
+      className={fontClassName}
+      {...htmlAttributeDefaults}
       data-theme={DEFAULT_THEME}
     >
       <head>
@@ -159,16 +164,74 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <link rel="apple-touch-icon" href="/logo.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/logo.png" />
         <script
-          id={ONCE_THEME_SCRIPT_ID}
+          id={THEME_SCRIPT_ID}
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: onceThemeScript }}
         />
       </head>
       <body>
         <Providers>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
+          <ScrollToHash />
+          <Column
+            as="div"
+            background="page"
+            fillWidth
+            style={{ minHeight: "100vh" }}
+            margin="0"
+            padding="0"
+            horizontal="center"
+          >
+            <RevealFx fill position="absolute">
+              <Background
+                mask={{
+                  x: effects.mask.x,
+                  y: effects.mask.y,
+                  radius: effects.mask.radius,
+                  cursor: effects.mask.cursor,
+                }}
+                gradient={{
+                  display: effects.gradient.display,
+                  opacity: effects.gradient.opacity as opacity,
+                  x: effects.gradient.x,
+                  y: effects.gradient.y,
+                  width: effects.gradient.width,
+                  height: effects.gradient.height,
+                  tilt: effects.gradient.tilt,
+                  colorStart: effects.gradient.colorStart,
+                  colorEnd: effects.gradient.colorEnd,
+                }}
+                dots={{
+                  display: effects.dots.display,
+                  opacity: effects.dots.opacity as opacity,
+                  size: effects.dots.size as SpacingToken,
+                  color: effects.dots.color,
+                }}
+                grid={{
+                  display: effects.grid.display,
+                  opacity: effects.grid.opacity as opacity,
+                  color: effects.grid.color,
+                  width: effects.grid.width,
+                  height: effects.grid.height,
+                }}
+                lines={{
+                  display: effects.lines.display,
+                  opacity: effects.lines.opacity as opacity,
+                  size: effects.lines.size as SpacingToken,
+                  thickness: effects.lines.thickness,
+                  angle: effects.lines.angle,
+                  color: effects.lines.color,
+                }}
+              />
+            </RevealFx>
+            <Flex fillWidth minHeight="16" s={{ hide: true }} />
+            <Header />
+            <Flex zIndex={0} fillWidth padding="l" horizontal="center" flex={1}>
+              <Flex horizontal="center" fillWidth minHeight="0">
+                <RouteGuard>{children}</RouteGuard>
+              </Flex>
+            </Flex>
+            <Footer />
+          </Column>
         </Providers>
       </body>
     </html>
