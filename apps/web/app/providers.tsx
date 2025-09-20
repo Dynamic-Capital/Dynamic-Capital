@@ -4,6 +4,12 @@ import { ReactNode, useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  DataThemeProvider,
+  IconProvider,
+  ThemeProvider,
+  ToastProvider as OnceToastProvider,
+} from '@once-ui-system/core';
 import { AuthProvider } from '@/hooks/useAuth';
 import { SupabaseProvider } from '@/context/SupabaseProvider';
 
@@ -17,14 +23,22 @@ export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <SessionContextProvider supabaseClient={supabaseClient}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SupabaseProvider>
-            {children}
-          </SupabaseProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </SessionContextProvider>
+    <ThemeProvider>
+      <DataThemeProvider>
+        <OnceToastProvider>
+          <IconProvider>
+            <SessionContextProvider supabaseClient={supabaseClient}>
+              <QueryClientProvider client={queryClient}>
+                <AuthProvider>
+                  <SupabaseProvider>
+                    {children}
+                  </SupabaseProvider>
+                </AuthProvider>
+              </QueryClientProvider>
+            </SessionContextProvider>
+          </IconProvider>
+        </OnceToastProvider>
+      </DataThemeProvider>
+    </ThemeProvider>
   );
 }
