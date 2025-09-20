@@ -75,6 +75,12 @@ For local work, create `.env`/`.env.local` at the repository root and run
 `npm run dev` to load the variables. In production, manage secrets through your
 platform's configuration for each component.
 
+> **Proxy-friendly npm wrapper:** if your terminal session provides legacy
+> `npm_config_http_proxy` variables you may see `npm warn Unknown env config
+> "http-proxy"`. Run commands through `node scripts/npm-safe.mjs <npm args>`
+> (for example `node scripts/npm-safe.mjs run dev`) to strip the deprecated
+> proxy keys and silence the warning while preserving HTTP/HTTPS proxy support.
+
 ## Project Structure
 
 - **Functions** – Edge functions live under `supabase/functions` and any

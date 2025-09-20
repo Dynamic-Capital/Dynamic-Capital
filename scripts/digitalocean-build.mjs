@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
+import { createSanitizedNpmEnv } from './utils/npm-env.mjs';
 
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 function run(command, args, options = {}) {
+  const { env: providedEnv, ...rest } = options;
+  const env = createSanitizedNpmEnv(providedEnv ?? {});
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: 'inherit',
-      ...options,
+      ...rest,
+      env,
     });
 
     child.on('error', (error) => {
