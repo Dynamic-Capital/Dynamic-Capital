@@ -22,9 +22,9 @@ const routes: RoutesConfig = {
   "/checkout": true,
   "/login": true,
   "/admin": true,
-  "/work": { enabled: true, includeChildren: true },
-  "/blog": { enabled: true, includeChildren: true },
-  "/gallery": true,
+  "/work": false,
+  "/blog": false,
+  "/gallery": false,
   "/telegram": true,
 };
 

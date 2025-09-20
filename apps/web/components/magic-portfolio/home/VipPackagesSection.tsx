@@ -14,7 +14,6 @@ import {
   Text,
 } from "@once-ui-system/core";
 
-import { OnceButton } from "@/components/once-ui";
 import { callEdgeFunction } from "@/config/supabase";
 import { formatPrice } from "@/utils";
 import type { Plan } from "@/types/plan";
@@ -120,6 +119,7 @@ export function VipPackagesSection() {
 
   return (
     <Column
+      id="vip-packages"
       fillWidth
       background="surface"
       border="neutral-alpha-medium"
@@ -220,13 +220,24 @@ export function VipPackagesSection() {
           </Row>
           <Line background="neutral-alpha-weak" />
           <Row gap="16" s={{ direction: "column" }}>
-            <OnceButton onClick={() => router.push("/checkout")}>Open checkout</OnceButton>
-            <OnceButton
-              variant="outline"
-              onClick={() => router.push("/telegram")}
+            <Button
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              prefixIcon="rocket"
+              href="/checkout"
             >
-              View bot dashboard
-            </OnceButton>
+              Open secure checkout
+            </Button>
+            <Button
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              arrowIcon
+              href="#mentorship-programs"
+            >
+              Compare mentorship support
+            </Button>
           </Row>
         </Column>
       )}

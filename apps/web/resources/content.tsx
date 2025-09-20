@@ -56,21 +56,20 @@ const home: Home = {
     title: (
       <Row gap="12" vertical="center">
         <Text onBackground="brand-strong" className="ml-4 font-semibold tracking-tight">
-          VIP signal desk now accepting members
+          VIP packages now available on-site
         </Text>
         <Line background="brand-alpha-strong" vert height="20" />
         <Text marginRight="4" onBackground="brand-medium">
-          Reserve a strategy consult
+          Checkout without leaving dynamic.capital
         </Text>
       </Row>
     ),
-    href: "/work/liquidity-signal-desk",
+    href: "/plans",
   },
   subline: (
     <>
-      Dynamic Capital combines quantitative research, human mentorship, and automation to guide every position.
-      <br />
-      Join a desk built for macro, crypto, and commodities traders who need disciplined execution.
+      Dynamic Capital combines quantitative research, human mentorship, and automation to guide every position. Explore VIP
+      membership packages, mentorship programs, and managed pools directly from the site.
     </>
   ),
 };

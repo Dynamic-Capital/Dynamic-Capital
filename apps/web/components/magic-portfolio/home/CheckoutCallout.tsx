@@ -30,13 +30,13 @@ export function CheckoutCallout() {
           Go to secure checkout
         </Button>
         <Button
-          href="/telegram"
+          href="#pool-trading"
           size="m"
           variant="secondary"
           data-border="rounded"
           arrowIcon
         >
-          Explore the admin dashboard
+          Review pool trading options
         </Button>
       </Row>
     </Column>
