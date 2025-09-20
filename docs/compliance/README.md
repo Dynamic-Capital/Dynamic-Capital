@@ -11,6 +11,10 @@ Dynamic Capital maintains independent, third-party verified certifications and a
 | GDPR (EU & UK) | [gdpr.md](gdpr.md) | EuroTrust Compliance BV | DC-GDPR-2024 | 2024-04-22 | 2025-04-21 |
 | EU–US Data Privacy Framework | [dpf.md](dpf.md) | U.S. Department of Commerce | DPF-EE-2024-8821 | 2024-04-29 | 2025-04-28 |
 
+The machine-readable certificate inventory stored in
+[certificates.json](certificates.json) mirrors the table above for teams that
+need to automate vendor reviews or track renewal dates programmatically.
+
 ## Verification Process
 
 1. Review the individual certificate file for scope, controls, and the validation channel maintained by the issuing body.
@@ -32,3 +36,5 @@ Dynamic Capital maintains independent, third-party verified certifications and a
 - Certificate records are versioned in Git and mirrored to the secure GRC portal.
 - Any updates must include links to supporting audit evidence stored in the portal.
 - When a certificate is superseded, retain the previous markdown file with a suffix indicating the retired year (for example, `iso-27001-2023.md`).
+- Update `certificates.json` with the new record and move the retired entry to
+  the history array used by governance tooling.

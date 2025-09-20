@@ -678,8 +678,10 @@ and syncing changes through GitHub to maintain a seamless deployment pipeline.
 
 ## License / contributions
 
-Proprietary / All rights reserved. Personal project; external PRs/issues are
-closed by default.
+Proprietary / All rights reserved. Review the root [`LICENSE`](LICENSE) file for
+usage terms and [`docs/legal/THIRD_PARTY_LICENSES.md`](docs/legal/THIRD_PARTY_LICENSES.md)
+for attribution of bundled open-source components. Personal project; external
+PRs/issues are closed by default.
 
 ## Notes
 
