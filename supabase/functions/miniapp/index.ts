@@ -271,8 +271,18 @@ export async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
   url.pathname = url.pathname.replace(/^\/functions\/v1/, "");
   const path = url.pathname;
+  const normalizedPath = path.startsWith("/miniapp")
+    ? (() => {
+        const stripped = path.slice("/miniapp".length) || "/";
+        return stripped.startsWith("/") ? stripped : `/${stripped}`;
+      })()
+    : path;
 
-  console.log(`[miniapp] ${req.method} ${path}`);
+  const logPath = normalizedPath === path
+    ? path
+    : `${path} -> ${normalizedPath}`;
+
+  console.log(`[miniapp] ${req.method} ${logPath}`);
   
   // Handle version endpoint for health checks and deployment verification
   if (path === "/version" || path === "/miniapp/version") {
@@ -500,8 +510,8 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   // API Routes
-  if (path.startsWith("/api/")) {
-    return handleApiRoutes(req, path, supabase);
+  if (normalizedPath.startsWith("/api/")) {
+    return handleApiRoutes(req, normalizedPath, supabase);
   }
 
   // Unknown path → 404
