@@ -2,6 +2,7 @@ import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/
 import { Line, Row, Text } from "@once-ui-system/core";
 
 import { supabaseAsset } from "./assets";
+import { ogDefaults } from "./og-defaults";
 
 const person: Person = {
   firstName: "Noah",
@@ -47,9 +48,8 @@ const home: Home = {
   path: "/",
   image: supabaseAsset("images/og/home.jpg"),
   label: "Home",
-  title: "Dynamic Capital — Institutional trading intelligence",
-  description:
-    "Dynamic Capital delivers institutional-grade trading signals, mentorship, and automation for ambitious operators.",
+  title: ogDefaults.title,
+  description: ogDefaults.description,
   headline: <>Trade with institutional precision, without building the desk yourself.</>,
   featured: {
     display: true,
