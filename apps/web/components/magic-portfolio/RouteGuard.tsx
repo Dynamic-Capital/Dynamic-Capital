@@ -12,6 +12,27 @@ interface RouteGuardProps {
 
 const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
   const pathname = usePathname();
+
+  const normalizePathname = (value: string | null): string => {
+    if (!value) {
+      return "/";
+    }
+
+    let normalized = value;
+
+    if (normalized.startsWith("/_sites/")) {
+      const withoutPreviewPrefix = normalized.replace(/^\/_sites\/[\w-]+/, "");
+      normalized = withoutPreviewPrefix || "/";
+    }
+
+    if (normalized.length > 1 && normalized.endsWith("/")) {
+      normalized = normalized.replace(/\/+$/, "");
+    }
+
+    return normalized || "/";
+  };
+
+  const normalizedPathname = normalizePathname(pathname);
   const [isRouteEnabled, setIsRouteEnabled] = useState(false);
   const [isPasswordRequired, setIsPasswordRequired] = useState(false);
   const [password, setPassword] = useState("");
@@ -27,15 +48,15 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
       setIsAuthenticated(false);
 
       const checkRouteEnabled = () => {
-        if (!pathname) return false;
+        if (!normalizedPathname) return false;
 
-        if (pathname in routes) {
-          return routes[pathname as keyof typeof routes];
+        if (normalizedPathname in routes) {
+          return routes[normalizedPathname as keyof typeof routes];
         }
 
         const dynamicRoutes = ["/blog", "/work"] as const;
         for (const route of dynamicRoutes) {
-          if (pathname?.startsWith(route) && routes[route]) {
+          if (normalizedPathname.startsWith(route) && routes[route]) {
             return true;
           }
         }
@@ -46,7 +67,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
       const routeEnabled = checkRouteEnabled();
       setIsRouteEnabled(routeEnabled);
 
-      if (protectedRoutes[pathname as keyof typeof protectedRoutes]) {
+      if (protectedRoutes[normalizedPathname as keyof typeof protectedRoutes]) {
         setIsPasswordRequired(true);
 
         const response = await fetch("/api/check-auth");
@@ -59,7 +80,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
     };
 
     performChecks();
-  }, [pathname]);
+  }, [normalizedPathname, pathname]);
 
   const handlePasswordSubmit = async () => {
     const response = await fetch("/api/authenticate", {
