@@ -15,18 +15,33 @@ import {
 import { baseURL, about, person, toAbsoluteUrl, work } from "@/resources";
 import { formatDate } from "@/utils/magic-portfolio/formatDate";
 import { ScrollToHash, CustomMDX } from "@/components/magic-portfolio";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { cache } from "react";
 import { Projects } from "@/components/magic-portfolio/work/Projects";
 
+type MaybePromise<T> = T | Promise<T>;
 type WorkPageParams = { slug: string | string[] };
+type WorkPageProps = {
+  params?: MaybePromise<WorkPageParams>;
+  searchParams?: unknown;
+};
 
 const WORK_POSTS_PATH = ["app", "work", "projects"] as const;
 
-const loadWorkPosts = cache(() => getPosts(WORK_POSTS_PATH));
+const loadWorkPosts = cache(() => getPosts(Array.from(WORK_POSTS_PATH)));
 
-const resolveSlugFromParams = (params: WorkPageParams): string =>
-  (Array.isArray(params.slug) ? params.slug.join("/") : params.slug) || "";
+const resolveSlugFromParams = async (
+  params: WorkPageProps["params"],
+): Promise<string> => {
+  if (!params) return "";
+
+  const resolved = await params;
+  const slug = Array.isArray(resolved.slug)
+    ? resolved.slug.join("/")
+    : resolved.slug;
+
+  return slug || "";
+};
 
 const findWorkPost = (slug: string) => loadWorkPosts().find((post) => post.slug === slug);
 
@@ -34,12 +49,8 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
   return loadWorkPosts().map((post) => ({ slug: post.slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: WorkPageParams;
-}): Promise<Metadata> {
-  const slugPath = resolveSlugFromParams(params);
+export async function generateMetadata({ params }: WorkPageProps): Promise<Metadata> {
+  const slugPath = await resolveSlugFromParams(params);
   const post = findWorkPost(slugPath);
 
   if (!post) return {};
@@ -53,8 +64,8 @@ export async function generateMetadata({
   });
 }
 
-export default function Project({ params }: { params: WorkPageParams }) {
-  const slugPath = resolveSlugFromParams(params);
+export default async function Project({ params }: WorkPageProps) {
+  const slugPath = await resolveSlugFromParams(params);
   const post = findWorkPost(slugPath);
 
   if (!post) {

@@ -50,7 +50,7 @@ export function PoolTradingSection() {
             gap="8"
           >
             <Heading variant="display-strong-xs">{metric.value}</Heading>
-            <Text variant="body-default-s" onBackground="brand-on-background-weak">
+            <Text variant="body-default-s" onBackground="brand-weak">
               {metric.label}
             </Text>
           </Column>

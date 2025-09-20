@@ -15,7 +15,6 @@ import {
   HiMapPin,
   HiCheckCircle,
   HiSparkles,
-  HiInfinity,
 } from "react-icons/hi2";
 
 import {
@@ -34,7 +33,20 @@ import {
   SiSupabase,
 } from "react-icons/si";
 
-import { FaDiscord, FaGithub, FaLinkedin, FaX, FaThreads, FaXTwitter, FaFacebook, FaPinterest, FaWhatsapp, FaReddit, FaTelegram, } from "react-icons/fa6";
+import {
+  FaDiscord,
+  FaGithub,
+  FaLinkedin,
+  FaX,
+  FaThreads,
+  FaXTwitter,
+  FaFacebook,
+  FaPinterest,
+  FaWhatsapp,
+  FaReddit,
+  FaTelegram,
+  FaInfinity,
+} from "react-icons/fa6";
 
 export const iconLibrary: Record<string, IconType> = {
   arrowUpRight: HiArrowUpRight,
@@ -63,7 +75,7 @@ export const iconLibrary: Record<string, IconType> = {
   location: HiMapPin,
   check: HiCheckCircle,
   sparkles: HiSparkles,
-  infinity: HiInfinity,
+  infinity: FaInfinity,
   javascript: SiJavascript,
   nextjs: SiNextdotjs,
   supabase: SiSupabase,
