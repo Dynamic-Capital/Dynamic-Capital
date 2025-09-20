@@ -37,10 +37,14 @@ async function exists(path: string) {
   }
 }
 
-async function fetchWithRedirects(url: string, maxRedirects = 5) {
+async function fetchWithRedirects(url: string, maxRedirects = 5, init?: RequestInit) {
   let currentUrl = url;
+  const baseInit = init ? { ...init } : undefined;
   for (let redirects = 0; redirects <= maxRedirects; redirects++) {
-    const res = await fetch(currentUrl, { redirect: 'manual' });
+    const res = await fetch(currentUrl, {
+      ...baseInit,
+      redirect: 'manual',
+    });
     if (res.status >= 300 && res.status < 400) {
       const location = res.headers.get('location');
       if (!location) {
@@ -68,33 +72,69 @@ type WaitForServerOptions = {
   delayMs?: number;
   shouldAbort?: () => boolean;
   getAbortError?: () => Error | undefined;
+  checkPaths?: string[];
+  fetchInit?: RequestInit;
 };
 
 async function waitForServer(url: string, options: WaitForServerOptions = {}) {
-  const { retries = 50, delayMs = 200, shouldAbort, getAbortError } = options;
+  const {
+    retries = 50,
+    delayMs = 200,
+    shouldAbort,
+    getAbortError,
+    checkPaths = ['/healthz', '/api/healthz', '/'],
+    fetchInit,
+  } = options;
+
+  const normalizedPaths =
+    checkPaths.length > 0
+      ? Array.from(
+          new Set(
+            checkPaths.map((path) => {
+              if (!path) {
+                return '/';
+              }
+              return path.startsWith('/') ? path : `/${path}`;
+            }),
+          ),
+        )
+      : ['/'];
+
+  let lastError: unknown;
 
   for (let attempt = 0; attempt < retries; attempt++) {
     if (shouldAbort?.()) {
       throw getAbortError?.() ?? new Error(`Aborted while waiting for ${url}`);
     }
-    try {
-      const res = await fetchWithRedirects(url);
-      if (res.ok) {
-        return;
+    for (const path of normalizedPaths) {
+      if (shouldAbort?.()) {
+        throw getAbortError?.() ?? new Error(`Aborted while waiting for ${url}`);
       }
-    } catch {
-      // retry until timeout
+      try {
+        const target = new URL(path, url).toString();
+        const res = await fetchWithRedirects(target, 5, fetchInit);
+        if (res.ok || res.status === 404) {
+          return;
+        }
+        lastError = res.status;
+      } catch (err) {
+        lastError = err;
+      }
     }
     if (shouldAbort?.()) {
       throw getAbortError?.() ?? new Error(`Aborted while waiting for ${url}`);
     }
     await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
-  throw getAbortError?.() ?? new Error(`Timed out waiting for Next.js server at ${url}`);
+  const fallbackError =
+    lastError instanceof Error
+      ? lastError
+      : new Error(`Timed out waiting for Next.js server at ${url}`);
+  throw getAbortError?.() ?? fallbackError;
 }
 
-async function fetchHtml(url: string) {
-  const res = await fetchWithRedirects(url);
+async function fetchHtml(url: string, init?: RequestInit) {
+  const res = await fetchWithRedirects(url, 5, init);
   if (!res.ok && res.status !== 404) {
     throw new Error(`Unexpected status ${res.status} fetching ${url}`);
   }
@@ -123,10 +163,25 @@ async function startServerAndCapture() {
     serverCwd = root;
   }
 
+  const defaultSiteUrl =
+    process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const supabaseUrl =
+    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://stub.supabase.co';
+  const supabaseAnonKey =
+    process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'stub-anon-key';
+
   const server = spawn(command, args, {
     cwd: serverCwd,
     env: {
       ...process.env,
+      SITE_URL: process.env.SITE_URL || defaultSiteUrl,
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || defaultSiteUrl,
+      SUPABASE_URL: process.env.SUPABASE_URL || supabaseUrl,
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || supabaseUrl,
+      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || supabaseAnonKey,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY:
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || supabaseAnonKey,
+      ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || defaultSiteUrl,
       PORT: String(port),
       HOSTNAME: '127.0.0.1',
       NODE_ENV: 'production',
@@ -163,19 +218,26 @@ async function startServerAndCapture() {
     exitError = err instanceof Error ? err : new Error(String(err));
   });
 
+  const fetchInit: RequestInit = {
+    headers: {
+      'accept-language': 'en-US,en;q=0.9',
+    },
+  };
+
   try {
-    await waitForServer(`${baseUrl}/healthz`, {
+    await waitForServer(baseUrl, {
       retries: 75,
       delayMs: 200,
       shouldAbort: () => serverExited,
       getAbortError: () =>
-        exitError ?? new Error(`Next.js server exited before ${baseUrl}/healthz responded.`),
+        exitError ?? new Error(`Next.js server exited before ${baseUrl} responded.`),
+      fetchInit,
     });
 
-    const indexHtml = await fetchHtml(`${baseUrl}/`);
+    const indexHtml = await fetchHtml(`${baseUrl}/`, fetchInit);
     await writeFile(join(destRoot, 'index.html'), indexHtml, 'utf8');
 
-    const notFoundHtml = await fetchHtml(`${baseUrl}/__static-not-found`);
+    const notFoundHtml = await fetchHtml(`${baseUrl}/__static-not-found`, fetchInit);
     await writeFile(join(destRoot, '404.html'), notFoundHtml, 'utf8');
   } finally {
     shuttingDown = true;
