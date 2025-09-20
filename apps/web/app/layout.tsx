@@ -7,29 +7,25 @@ import Footer from '@/components/layout/Footer';
 import Providers from './providers';
 import DefaultSeo from '@/components/DefaultSeo';
 import Navbar from '@/components/layout/Navbar';
+import { getStaticLandingDocument } from '@/lib/staticLanding';
 
 export const metadata = {
   title: 'Dynamic Capital',
   description: 'Premium trading platform with Next.js'
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
   const isStaticSnapshot = globalThis?.process?.env?.['STATIC_SNAPSHOT'] === 'true';
 
   if (isStaticSnapshot) {
+    const { head, body, lang } = await getStaticLandingDocument();
     return (
-      <html lang="en">
-        <head>
-          <meta charSet="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <meta name="theme-color" content="#000000" />
-          <meta name="apple-mobile-web-app-capable" content="yes" />
-          <link rel="apple-touch-icon" href="/logo.png" />
-          <link rel="icon" type="image/png" sizes="192x192" href="/logo.png" />
-        </head>
-        <body>
-          <main>{children}</main>
-        </body>
+      <html lang={lang}>
+        <head dangerouslySetInnerHTML={{ __html: head }} />
+        <body
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: body }}
+        />
       </html>
     );
   }
