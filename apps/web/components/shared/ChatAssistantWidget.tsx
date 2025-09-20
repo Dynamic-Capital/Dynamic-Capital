@@ -1,10 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
-import { Bot, Minimize2, RotateCcw, Send, User, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, LayoutGroup } from "framer-motion";
+import {
+  Bot,
+  CheckCircle2,
+  Loader2,
+  Minimize2,
+  RotateCcw,
+  Sparkles,
+  User,
+  WifiOff,
+  X,
+} from "lucide-react";
 
-import { OnceButton } from "@/components/once-ui";
+import { OnceButton, OnceContainer } from "@/components/once-ui";
+import { Badge } from "@/components/ui/badge";
 import {
   Button,
   Column,
@@ -31,17 +42,28 @@ interface ChatAssistantWidgetProps {
 }
 
 const MAX_HISTORY = 50;
+const MAX_REQUEST_HISTORY = 20;
 
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
 }
 
+interface ChatRequestMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
+
+type SyncStatus = "idle" | "syncing" | "connected" | "error";
+
+const SYSTEM_PROMPT = `You are the Dynamic Capital desk assistant. Answer like an elite trading desk lead: confident, structured, and concise. Use short paragraphs or bullet points when useful, keep replies under 180 words, and highlight VIP access, execution support, automation templates, and 24/7 desk coverage when relevant. Always include a short risk disclaimer and finish with: "💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!"`;
+
 export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     if (typeof window === "undefined") {
       return [];
@@ -72,6 +94,8 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
     return stored;
   });
   const { toast } = useToast();
+  const messageContainerRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const quickSuggestions = useMemo(
     () => [
@@ -117,6 +141,9 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
 
         if (loaded.length > 0) {
           setMessages(loaded.slice(-MAX_HISTORY));
+          if (loaded.some((message) => message.role === "assistant")) {
+            setSyncStatus("connected");
+          }
         }
       } catch (err) {
         console.warn("Failed to load chat history", err);
@@ -130,12 +157,65 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
     };
   }, [sessionId]);
 
-  const appendMessages = (...msgs: ChatMessage[]) => {
+  useEffect(() => {
+    if (!messageContainerRef.current) {
+      return;
+    }
+    messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
+  }, [messages, isLoading]);
+
+  const appendMessages = useCallback((...msgs: ChatMessage[]) => {
     setMessages((previous) => {
       const next = [...previous, ...msgs];
       return next.slice(-MAX_HISTORY);
     });
-  };
+  }, []);
+
+  const focusInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+  }, []);
+
+  const handleSuggestion = useCallback(
+    (value: string) => {
+      setQuestion(value);
+      focusInput();
+    },
+    [focusInput],
+  );
+
+  const buildChatPayload = useCallback(
+    (history: ChatMessage[]): ChatRequestMessage[] => {
+      const trimmedHistory = history.slice(-MAX_REQUEST_HISTORY);
+      const conversation: ChatRequestMessage[] = [
+        { role: "system", content: SYSTEM_PROMPT },
+      ];
+
+      if (telegramData) {
+        const fullName = [telegramData.first_name, telegramData.last_name]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        const username = telegramData.username ? `@${telegramData.username}` : "not provided";
+        const displayName = fullName || "Unknown";
+        conversation.push({
+          role: "system",
+          content: `User context: Telegram ID ${telegramData.id}. Display name: ${displayName}. Username: ${username}. Use this context only when it improves the answer.`,
+        });
+      }
+
+      for (const entry of trimmedHistory) {
+        conversation.push({
+          role: entry.role,
+          content: entry.content,
+        });
+      }
+
+      return conversation.slice(-MAX_REQUEST_HISTORY - 4);
+    },
+    [telegramData],
+  );
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -149,8 +229,11 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
     }
 
     const userQuestion = question.trim();
+    const nextHistory = [...messages, { role: "user", content: userQuestion }];
+
     setQuestion("");
     setIsLoading(true);
+    setSyncStatus("syncing");
 
     appendMessages({ role: "user", content: userQuestion });
     void logChatMessage({
@@ -161,10 +244,11 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
     });
 
     try {
-      const { data, error } = await supabase.functions.invoke("ai-faq-assistant", {
+      const payload = buildChatPayload(nextHistory);
+      const { data, error } = await supabase.functions.invoke("chatgpt-proxy", {
         body: {
-          question: userQuestion,
-          context: telegramData ? { telegram: telegramData } : undefined,
+          messages: payload,
+          temperature: 0.65,
         },
       });
 
@@ -172,31 +256,36 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
         throw new Error(error.message || "AI service unavailable");
       }
 
-      if (data?.answer) {
-        appendMessages({ role: "assistant", content: data.answer });
+      const assistantReply =
+        typeof data?.answer === "string" ? data.answer.trim() : "";
+
+      if (assistantReply) {
+        appendMessages({ role: "assistant", content: assistantReply });
         void logChatMessage({
           telegramUserId: telegramData?.id,
           sessionId,
           role: "assistant",
-          content: data.answer,
+          content: assistantReply,
         });
+        setSyncStatus("connected");
       } else {
         throw new Error("No answer returned");
       }
     } catch (err) {
       console.error("Failed to get AI answer", err);
       const fallbackMessage = [
-        "I’m sorry, the assistant is taking a quick break.",
-        "Here’s what most traders ask for:",
-        "• VIP onboarding: pick a plan, complete checkout, and the bot unlocks everything instantly",
+        "I'm sorry — the AI desk lost the connection for a moment.",
+        "Here's what most traders look for while we reconnect:",
+        "• VIP onboarding: choose a membership, complete checkout, and unlock bots instantly",
         "• Benefits: 24/7 desk coverage, live playbooks, automation templates",
-        "• Risk management: position sizing calculators, trade review frameworks",
+        "• Risk management: sizing calculators, journaling frameworks, daily debriefs",
         "Need a human? Message @DynamicCapital_Support",
       ].join("\n\n");
       appendMessages({ role: "assistant", content: fallbackMessage });
+      setSyncStatus("error");
       toast({
-        title: "Assistant unavailable",
-        description: "Showing the fallback playbook",
+        title: "Assistant temporarily offline",
+        description: "We saved your message and loaded the fallback playbook.",
         variant: "destructive",
       });
       void logChatMessage({
@@ -213,41 +302,93 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
   const handleReset = () => {
     setMessages([]);
     setQuestion("");
+    setSyncStatus("idle");
     if (typeof window !== "undefined") {
       localStorage.removeItem("chat-assistant-history");
     }
   };
 
+  const statusMeta = useMemo(() => {
+    switch (syncStatus) {
+      case "syncing":
+        return {
+          badge: "Syncing",
+          badgeClassName: "border-primary/50 bg-primary/10 text-primary",
+          label: "Syncing with ChatGPT",
+          description: "Crafting a desk-style answer using your latest messages.",
+          icon: <Loader2 className="h-4 w-4 animate-spin text-primary" />,
+        };
+      case "connected":
+        return {
+          badge: "Live",
+          badgeClassName: "border-emerald-500/40 bg-emerald-500/10 text-emerald-500",
+          label: "Connected to ChatGPT",
+          description: "Follow-up questions stay in the same AI conversation.",
+          icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
+        };
+      case "error":
+        return {
+          badge: "Retrying",
+          badgeClassName: "border-rose-500/40 bg-rose-500/10 text-rose-500",
+          label: "Fallback playbook active",
+          description: "We saved the chat and will resync automatically.",
+          icon: <WifiOff className="h-4 w-4 text-rose-500" />,
+        };
+      default:
+        return {
+          badge: "Ready",
+          badgeClassName: "border-border/60 bg-muted/40 text-muted-foreground",
+          label: "ChatGPT sync ready",
+          description: "Ask about VIP onboarding, execution, or automation.",
+          icon: <Sparkles className="h-4 w-4 text-primary" />,
+        };
+    }
+  }, [syncStatus]);
+
+  const containerPositionClass = cn("fixed bottom-20 left-4 z-40", className);
+
   return (
     <LayoutGroup>
       <AnimatePresence initial={false} mode="wait">
         {isOpen ? (
-          <motion.div
+          <OnceContainer
             key="chat-open"
             layoutId="chat-assistant"
-            className={cn("fixed bottom-20 left-4 z-40", className)}
+            variant={null}
+            animateIn={false}
+            className={containerPositionClass}
+            style={{ width: "min(25rem, 92vw)" }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 260, damping: 26 }}
-            style={{ width: "min(22rem, 88vw)" }}
           >
             <Column
-              background="surface"
-              border="neutral-alpha-medium"
-              radius="l"
+              radius="xl"
               padding="l"
               gap="16"
-              shadow="xl"
+              className="relative overflow-hidden border border-border/60 bg-background/95 shadow-[0_24px_60px_-24px_rgba(15,23,42,0.6)] backdrop-blur-xl"
             >
+              <div
+                className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-dc-accent/15"
+                aria-hidden="true"
+              />
               {isMinimized ? (
-                <Row horizontal="between" vertical="center">
-                  <Row gap="8" vertical="center">
-                    <Bot className="h-4 w-4" />
-                    <Text variant="body-default-m">Desk assistant</Text>
+                <Row horizontal="between" vertical="center" className="relative z-[1]">
+                  <Row gap="10" vertical="center">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                      <Bot className="h-5 w-5" />
+                    </div>
+                    <Column>
+                      <Text variant="heading-strong-s">Desk assistant</Text>
+                      <Text variant="body-default-xs" onBackground="neutral-weak">
+                        {statusMeta.label}
+                      </Text>
+                    </Column>
                   </Row>
                   <Row gap="8">
                     <Button
+                      type="button"
                       size="s"
                       variant="secondary"
                       data-border="rounded"
@@ -256,6 +397,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                       Reopen
                     </Button>
                     <Button
+                      type="button"
                       size="s"
                       variant="secondary"
                       data-border="rounded"
@@ -266,19 +408,22 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                   </Row>
                 </Row>
               ) : (
-                <>
+                <Column gap="16" className="relative z-[1]">
                   <Row horizontal="between" vertical="center">
-                    <Row gap="8" vertical="center">
-                      <Bot className="h-5 w-5" />
+                    <Row gap="10" vertical="center">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <Bot className="h-5 w-5" />
+                      </div>
                       <Column>
                         <Text variant="heading-strong-s">Desk assistant</Text>
                         <Text variant="body-default-s" onBackground="neutral-weak">
-                          Ask anything about VIP access or execution support.
+                          Live chat powered by ChatGPT and the Dynamic Capital playbook.
                         </Text>
                       </Column>
                     </Row>
                     <Row gap="8">
                       <Button
+                        type="button"
                         size="s"
                         variant="secondary"
                         data-border="rounded"
@@ -289,6 +434,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                         <RotateCcw className="h-4 w-4" />
                       </Button>
                       <Button
+                        type="button"
                         size="s"
                         variant="secondary"
                         data-border="rounded"
@@ -298,6 +444,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                         <Minimize2 className="h-4 w-4" />
                       </Button>
                       <Button
+                        type="button"
                         size="s"
                         variant="secondary"
                         data-border="rounded"
@@ -308,77 +455,118 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                       </Button>
                     </Row>
                   </Row>
+
+                  <Row
+                    gap="12"
+                    vertical="center"
+                    className="items-start rounded-2xl border border-border/60 bg-background/80 p-3"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+                      {statusMeta.icon}
+                    </div>
+                    <Column gap="4" className="flex-1">
+                      <Text variant="body-default-m">{statusMeta.label}</Text>
+                      <Text variant="body-default-xs" onBackground="neutral-weak">
+                        {statusMeta.description}
+                      </Text>
+                    </Column>
+                    <Badge className={cn("shrink-0", statusMeta.badgeClassName)}>
+                      {statusMeta.badge}
+                    </Badge>
+                  </Row>
+
                   <Row wrap gap="8">
                     {quickSuggestions.map((suggestion) => (
                       <Button
                         key={suggestion}
+                        type="button"
                         size="s"
                         variant="secondary"
                         data-border="rounded"
-                        onClick={() => setQuestion(suggestion)}
+                        onClick={() => handleSuggestion(suggestion)}
                         disabled={isLoading}
                       >
                         {suggestion}
                       </Button>
                     ))}
                   </Row>
-                  <Column
-                    gap="12"
-                    style={{ maxHeight: "16rem", overflowY: "auto" }}
+
+                  <div
+                    ref={messageContainerRef}
+                    role="log"
+                    aria-live="polite"
+                    aria-busy={isLoading}
+                    className="flex max-h-72 flex-col gap-3 overflow-y-auto pr-1"
                   >
                     {messages.length === 0 ? (
                       <Column
-                        background="page"
-                        border="neutral-alpha-weak"
-                        radius="m"
+                        radius="l"
                         padding="m"
                         gap="8"
+                        className="border border-dashed border-border/60 bg-background/90 text-left"
                       >
                         <Text variant="body-default-m">
                           Welcome! Ask how to join the VIP desk, what’s inside the admin dashboard, or how to automate risk.
                         </Text>
                         <Text variant="body-default-s" onBackground="neutral-weak">
-                          Responses blend live bot knowledge with the macro playbook.
+                          Responses stay synced with ChatGPT so you can ask follow-up questions in the same thread.
                         </Text>
                       </Column>
                     ) : (
                       messages.map((message, index) => (
                         <Column
                           key={`${message.role}-${index}`}
-                          background={
-                            message.role === "assistant"
-                              ? "brand-alpha-weak"
-                              : "page"
-                          }
-                          border={
-                            message.role === "assistant"
-                              ? "brand-alpha-medium"
-                              : "neutral-alpha-weak"
-                          }
-                          radius="m"
+                          radius="l"
                           padding="m"
                           gap="8"
+                          className={cn(
+                            "relative overflow-hidden border text-left shadow-[0_20px_40px_-28px_rgba(15,23,42,0.55)]",
+                            message.role === "assistant"
+                              ? "border-primary/40 bg-gradient-to-br from-primary/15 via-background/85 to-background/95"
+                              : "border-border/60 bg-background/90",
+                          )}
                         >
-                          <Row gap="8" vertical="center">
-                            {message.role === "assistant" ? (
-                              <Bot className="h-4 w-4" />
-                            ) : (
-                              <User className="h-4 w-4" />
-                            )}
+                          {message.role === "assistant" ? (
+                            <div
+                              className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-dc-accent/10"
+                              aria-hidden="true"
+                            />
+                          ) : null}
+                          <Row gap="8" vertical="center" className="relative z-[1] text-muted-foreground">
+                            <div
+                              className={cn(
+                                "flex h-7 w-7 items-center justify-center rounded-full",
+                                message.role === "assistant"
+                                  ? "bg-primary/15 text-primary"
+                                  : "bg-muted/40 text-muted-foreground",
+                              )}
+                            >
+                              {message.role === "assistant" ? (
+                                <Bot className="h-4 w-4" />
+                              ) : (
+                                <User className="h-4 w-4" />
+                              )}
+                            </div>
                             <Text variant="body-default-s" onBackground="neutral-weak">
                               {message.role === "assistant" ? "Desk" : "You"}
                             </Text>
                           </Row>
-                          <Text variant="body-default-m" style={{ whiteSpace: "pre-wrap" }}>
+                          <Text
+                            variant="body-default-m"
+                            style={{ whiteSpace: "pre-wrap" }}
+                            className="relative z-[1] text-foreground"
+                          >
                             {message.content}
                           </Text>
                         </Column>
                       ))
                     )}
-                  </Column>
-                  <form onSubmit={handleSubmit}>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-3">
                     <Column gap="12">
                       <Input
+                        ref={inputRef}
                         id="chat-assistant-question"
                         value={question}
                         onChange={(event) => setQuestion(event.target.value)}
@@ -395,26 +583,28 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                         {isLoading ? (
                           <Row gap="8" vertical="center">
                             <Spinner />
-                            <Text variant="body-default-s">Gathering answer…</Text>
+                            <Text variant="body-default-s">Syncing with ChatGPT…</Text>
                           </Row>
                         ) : (
                           <Row gap="8" vertical="center">
-                            <Send className="h-4 w-4" />
+                            <Sparkles className="h-4 w-4" />
                             Ask the desk
                           </Row>
                         )}
                       </Button>
                     </Column>
                   </form>
-                </>
+                </Column>
               )}
             </Column>
-          </motion.div>
+          </OnceContainer>
         ) : (
-          <motion.div
+          <OnceContainer
             key="chat-closed"
             layoutId="chat-assistant"
-            className={cn("fixed bottom-20 left-4 z-40", className)}
+            variant={null}
+            animateIn={false}
+            className={containerPositionClass}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -423,18 +613,19 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
             <OnceButton
               variant="primary"
               size="default"
-              className="rounded-full"
+              className="rounded-full shadow-primary"
               onClick={() => {
                 setIsOpen(true);
                 setIsMinimized(false);
+                setTimeout(() => focusInput(), 220);
               }}
             >
               <Row gap="8" vertical="center">
-                <Bot className="h-5 w-5" />
+                <Sparkles className="h-5 w-5" />
                 Chat with the desk
               </Row>
             </OnceButton>
-          </motion.div>
+          </OnceContainer>
         )}
       </AnimatePresence>
     </LayoutGroup>
