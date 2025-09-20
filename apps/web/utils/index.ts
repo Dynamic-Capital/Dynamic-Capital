@@ -6,3 +6,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export { formatPrice } from "./format-price.ts";
+export {
+  getAppRoutes,
+  getPageRoutes,
+  type RouteRecord,
+} from "./routes.ts";
