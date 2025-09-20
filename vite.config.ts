@@ -49,6 +49,10 @@ export default defineConfig(({ mode }) => ({
         __dirname,
         'node_modules/@once-ui-system/core',
       ),
+      'next/font/google': path.resolve(
+        __dirname,
+        'src/stubs/next-font-google.ts',
+      ),
     }
   }
 }))
