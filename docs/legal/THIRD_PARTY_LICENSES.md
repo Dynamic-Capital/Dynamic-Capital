@@ -19,6 +19,17 @@ reviewing obligations such as copyright notices or attribution requirements.
 | AWS SDK for JavaScript v3 | DigitalOcean Spaces and S3-compatible uploads | Apache License 2.0 | https://github.com/aws/aws-sdk-js-v3/blob/main/LICENSE |
 | PostHog JS | Product analytics instrumentation | MIT License | https://github.com/PostHog/posthog-js/blob/master/LICENSE |
 | Sonner | Toast notifications within the dashboard | MIT License | https://github.com/emilkowalski/sonner/blob/main/LICENSE |
+| Auth.js (NextAuth.js) | End-user authentication and session management | ISC License | https://github.com/nextauthjs/next-auth/blob/main/LICENSE |
+| Supabase Auth Helpers & SSR | Seamless Supabase session handling for React and Next.js | MIT License | https://github.com/supabase/auth-helpers/blob/main/LICENSE |
+| grammY Telegram Framework | Telegram bot orchestration including conversations and throttling | MIT License | https://github.com/grammyjs/grammY/blob/main/LICENSE |
+| Radix UI Primitives | Accessible headless components underpinning the dashboard UI | MIT License | https://github.com/radix-ui/primitives/blob/main/LICENSE |
+| Sentry Next.js SDK | Application monitoring and error tracing | MIT License | https://github.com/getsentry/sentry-javascript/blob/develop/LICENSE |
+| Drizzle ORM | Type-safe database access layer for Supabase Postgres | Apache License 2.0 | https://github.com/drizzle-team/drizzle-orm/blob/main/LICENSE |
+| Zod | Runtime validation for API payloads and forms | MIT License | https://github.com/colinhacks/zod/blob/master/LICENSE |
+| Tesseract.js | Optical character recognition used in receipt processing | Apache License 2.0 | https://github.com/naptha/tesseract.js/blob/master/LICENSE |
+| React Hook Form | Form state management for onboarding and admin flows | MIT License | https://github.com/react-hook-form/react-hook-form/blob/master/LICENSE |
+| React Three Fiber & Drei | 3D scene rendering helpers for marketing visualizations | MIT License | https://github.com/pmndrs/react-three-fiber/blob/master/LICENSE |
+| @vercel/otel | OpenTelemetry instrumentation for server-side observability | MIT License | https://github.com/vercel/otel/blob/main/LICENSE |
 
 For transitive dependencies bundled through npm or Deno, consult the package
 manager manifests (`package-lock.json`, `deno.lock`) or run the relevant license

@@ -11,6 +11,16 @@
       "verification": "https://apexassurance.com/verify"
     },
     {
+      "framework": "SOC 1 Type II",
+      "certificate_id": "DC-SOC1-2024-T2",
+      "issuer": "Langford & Ames, LLP",
+      "issued": "2024-03-31",
+      "coverage_period": "2023-03-01/2024-02-29",
+      "status": "active",
+      "evidence": "grc/soc1/DC-SOC1-2024-T2.pdf",
+      "verification": "assurance@langford-ames.com"
+    },
+    {
       "framework": "SOC 2 Type II",
       "certificate_id": "DC-SOC2-2024-T2",
       "issuer": "Langford & Ames, LLP",
