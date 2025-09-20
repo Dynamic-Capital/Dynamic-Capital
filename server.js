@@ -2,8 +2,9 @@ import http from 'node:http';
 import https from 'node:https';
 import { createReadStream, readFileSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
-import { extname, join, normalize } from 'node:path';
+import { join, normalize } from 'node:path';
 import { createGzip } from 'node:zlib';
+import { getCacheControl, getContentType } from './scripts/utils/static-assets.js';
 
 const port = process.env.PORT || 3000;
 const root = process.cwd();
@@ -166,30 +167,12 @@ setInterval(() => {
   }
 }, rateLimitWindowMs);
 
-const mime = {
-  '.html': 'text/html',
-  '.css': 'text/css',
-  '.js': 'text/javascript',
-  '.json': 'application/json',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.svg': 'image/svg+xml',
-};
-
 async function streamFile(req, res, filePath, status = 200) {
-  const type = mime[extname(filePath)] || 'application/octet-stream';
-  const headers = { 'Content-Type': type };
-  // Cache aggressively for hashed assets, otherwise require revalidation
-  if (type === 'text/html') {
-    headers['Cache-Control'] = 'public, max-age=0, must-revalidate';
-  } else {
-    const hashed = /\.[0-9a-f]{8,}\./.test(filePath);
-    headers['Cache-Control'] = hashed
-      ? 'public, max-age=31536000, immutable'
-      : 'public, max-age=0, must-revalidate';
-  }
+  const type = getContentType(filePath);
+  const headers = {
+    'Content-Type': type,
+    'Cache-Control': getCacheControl(filePath, type),
+  };
   let info;
   try {
     info = await stat(filePath);

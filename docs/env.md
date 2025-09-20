@@ -82,16 +82,25 @@ You can confirm access with `doctl spaces list`.
 | --- | ------- | -------- | ------- | ------- |
 | `CDN_BUCKET` | DigitalOcean Spaces bucket for static assets | Yes (landing build) | `my-space` | `scripts/upload-assets.js` |
 | `CDN_REGION` | Spaces region for the CDN bucket | Yes (landing build) | `nyc3` | `scripts/upload-assets.js` |
-| `CDN_ENDPOINT` | Custom CDN endpoint domain (if different from the default `<region>.digitaloceanspaces.com`) | No | `static.example.com` | `scripts/upload-assets.js`, `scripts/digitalocean/sync-cdn-config.mjs` |
+| `CDN_ENDPOINT` | Override for the DigitalOcean Spaces API host (defaults to `<region>.digitaloceanspaces.com`); leave unset when specifying a CDN vanity domain | No | `https://nyc3.digitaloceanspaces.com` | `scripts/upload-assets.js`, `scripts/digitalocean/sync-cdn-config.mjs` |
 | `CDN_ACCESS_KEY` | Spaces access key for uploads | Yes (landing build) | `DO0000000000EXAMPLE` | `scripts/upload-assets.js` |
 | `CDN_SECRET_KEY` | Spaces secret key for uploads | Yes (landing build) | `supersecret` | `scripts/upload-assets.js` |
+| `CDN_ENDPOINT_ID` | CDN endpoint ID used for automated cache purges | No (required for purge) | `a1b2c3d4-5678-90ab-cdef-1234567890ab` | `scripts/upload-assets.js` |
+| `CDN_PURGE_PATHS` | Comma-separated CDN paths to purge after uploads | No | `/index.html,/` | `scripts/upload-assets.js` |
+| `DIGITALOCEAN_TOKEN` | API token used for CDN purges and other DigitalOcean automation | No | `dop_v1_example` | `scripts/upload-assets.js`, `scripts/digitalocean/*` |
 
 ## Misc
 
 | Key                   | Purpose                                  | Required | Example                   | Used in                           |
 | --------------------- | ---------------------------------------- | -------- | ------------------------- | --------------------------------- |
+| `DOMAIN`              | Apex domain used for DNS scripts and certificate provisioning. | Yes (prod) | `example.com` | `scripts/dns/*`, deployment docs |
 | `SITE_URL`            | Base URL for the deployed site; used for redirects and canonical host checks. | Yes      | `http://localhost:3000` | `next.config.mjs`, `hooks/useAuth.tsx` |
+| `NEXT_PUBLIC_SITE_URL`| Client-side canonical site URL surfaced in marketing metadata. | Yes (web) | `https://example.com/` | `apps/web/app/layout.tsx`, `docs/NETWORKING.md` |
 | `NEXT_PUBLIC_API_URL`  | Base URL for client API requests (defaults to same-origin `/api`). | No | `http://localhost:3000/api` | `env.ts` |
+| `SENTRY_DSN`          | Server-side Sentry DSN for error reporting. | No | `https://public@o0.ingest.sentry.io/0` | `apps/web/sentry.server.config.ts` |
+| `NEXT_PUBLIC_SENTRY_DSN` | Browser Sentry DSN exposed to the client. | No | `https://public@o0.ingest.sentry.io/0` | `apps/web/env.ts`, `apps/web/sentry.client.config.ts` |
+| `NEXT_PUBLIC_POSTHOG_KEY` | PostHog project key for analytics tracking. | No | `phc_xxx` | `apps/web/components/PostHogInit.tsx` |
+| `NEXT_PUBLIC_POSTHOG_HOST` | Optional PostHog API host override. | No | `https://app.posthog.com` | `apps/web/components/PostHogInit.tsx` |
 | `NODE_EXTRA_CA_CERTS` | Additional CA bundle for outbound HTTPS. | No       | `/etc/ssl/custom.pem`     | `apps/web/utils/http-ca.ts`            |
 | `A_SUPABASE_URL`      | Supabase URL used by audit scripts.      | No       | `https://xyz.supabase.co` | `scripts/audit/read_meta.mjs`     |
 | `A_SUPABASE_KEY`      | Supabase key used by audit scripts.      | No       | `service-role-key`        | `scripts/audit/read_meta.mjs`     |

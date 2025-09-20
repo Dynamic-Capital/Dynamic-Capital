@@ -157,6 +157,7 @@ Variables** so the build can authenticate:
 - `CDN_REGION` – Region slug (e.g. `nyc3`)
 - `CDN_ACCESS_KEY` – Spaces API key
 - `CDN_SECRET_KEY` – Spaces API secret
+- `CDN_ENDPOINT` – Optional override for the Spaces API host. Leave unset when using a custom CDN domain; the uploader now detects non-Spaces hosts and falls back to `<region>.digitaloceanspaces.com` so uploads succeed.
 
 Manage the CDN endpoint for the bucket using the REST helper:
 
@@ -177,7 +178,17 @@ npm run do:sync-cdn -- \
 ```
 
 Provide a DigitalOcean API token via `--token` or `DIGITALOCEAN_TOKEN`.
-Add `--purge "*"` after updates to invalidate cached assets on demand.
+Use `--show-endpoint` to print the resolved CDN endpoint ID after a dry run or apply; this value powers automated cache purges.
+
+#### Automated cache purge via API
+
+Set these optional variables to trigger a CDN purge after each asset upload:
+
+- `DIGITALOCEAN_TOKEN` – API token with write access to the CDN endpoint
+- `CDN_ENDPOINT_ID` – Target CDN endpoint identifier (available from `npm run do:sync-cdn -- --show-endpoint` or `doctl cdn endpoints list`)
+- `CDN_PURGE_PATHS` – Comma-separated list of paths to invalidate (for example, `/index.html,/` or `*`)
+
+When all three are present, `npm run upload-assets` calls the DigitalOcean API to purge cached files once the new snapshot lands in Spaces. Missing values skip the purge but do not block the upload. Tailor the path list to include un-hashed assets that should refresh immediately, like the landing page HTML or sitemap.
 
 Verify that credentials work with `doctl`:
 
