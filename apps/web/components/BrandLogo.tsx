@@ -27,6 +27,13 @@ const BrandLogo: React.FC<BrandLogoProps> = ({
     xl: 'w-16 h-16'
   };
 
+  const sizeDimensions: Record<NonNullable<BrandLogoProps['size']>, number> = {
+    sm: 24,
+    md: 32,
+    lg: 48,
+    xl: 64,
+  };
+
   const textSizeClasses = {
     sm: 'text-sm',
     md: 'text-xl',
@@ -70,6 +77,8 @@ const BrandLogo: React.FC<BrandLogoProps> = ({
       <MotionImage
         src="/logo.png"
         alt="Dynamic Capital Logo"
+        width={sizeDimensions[size]}
+        height={sizeDimensions[size]}
         className={logoClasses}
         sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw"
         loading="lazy"
