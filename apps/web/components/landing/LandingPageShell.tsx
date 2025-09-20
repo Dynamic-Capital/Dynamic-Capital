@@ -1,7 +1,7 @@
 import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
 
-import { OnceLandingPageClient } from "./OnceLandingPageClient";
+import { MagicLandingPage } from "@/components/magic-portfolio/MagicLandingPage";
 
 export interface LandingPageShellProps {
   /**
@@ -30,7 +30,7 @@ export function LandingPageShell({
         className,
       )}
     >
-      <OnceLandingPageClient />
+      <MagicLandingPage />
       {showAssistant ? <ChatAssistantWidget className={assistantClassName} /> : null}
     </div>
   );

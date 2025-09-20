@@ -2,6 +2,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import nextPWA from 'next-pwa';
 import bundleAnalyzer from '@next/bundle-analyzer';
+import createMDX from '@next/mdx';
 import localeConfig from './config/locales.json' with { type: 'json' };
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -168,6 +169,7 @@ process.env.NEXT_PUBLIC_DEFAULT_LOCALE = DEFAULT_LOCALE;
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   env: {
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
@@ -270,10 +272,15 @@ const withPWA = nextPWA({
   buildExcludes: [/.*\.map$/],
 });
 const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
+const withMDX = createMDX({
+  extension: /\.mdx?$/,
+});
+
+const mdxEnhancedConfig = withMDX(nextConfig);
 
 export default withBundleAnalyzer(
   withPWA(
-    withSentry(nextConfig, {
+    withSentry(mdxEnhancedConfig, {
       silent: true,
     }),
   ),

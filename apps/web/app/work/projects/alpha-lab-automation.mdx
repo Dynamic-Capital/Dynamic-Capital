@@ -1,0 +1,38 @@
+---
+title: "Alpha Lab Automation"
+summary: "Engineered the automation layer that routes discretionary trade ideas into exchange-ready orders with drawdown governors."
+publishedAt: "2024-09-07"
+images:
+  - "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/magic-portfolio/images/projects/alpha-lab/cover-01.jpg"
+  - "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/magic-portfolio/images/projects/alpha-lab/cover-02.jpg"
+team:
+  - name: "Amina Diallo"
+    role: "Quant Analyst"
+    avatar: "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/magic-portfolio/images/avatar.jpg"
+    linkedIn: "https://www.linkedin.com/company/dynamic-capital-ai/"
+link: "https://dynamic.capital"
+---
+
+## Challenge
+
+Manual execution could not keep up with the volume of signals analysts produced. We needed automation that respected human intent, complied with risk limits, and remained observable.
+
+## Solution
+
+- Built event-driven workers that subscribe to asset-specific Redis streams.
+- Added a central risk registry with per-member drawdown governors and auto-pause logic.
+- Exposed mentor overrides so discretionary adjustments could be layered without redeploying code.
+
+```ts
+export function shouldPause(memberId: string) {
+  const state = riskRegistry.get(memberId);
+  if (!state) return false;
+  return state.realizedDrawdown >= state.maxDrawdown || state.flags.includes("mentor_pause");
+}
+```
+
+## Impact
+
+- Average time from signal publish to execution fell from 12 minutes to under 2 seconds.
+- Automation now manages $42M AUM across 17 exchanges with consistent reporting and audit trails.
+- Mentors gained a live console showing order status, overrides, and performance per strategy.
