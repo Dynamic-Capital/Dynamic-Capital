@@ -35,15 +35,18 @@ const BotDashboard = () => {
   const fetchBotStats = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke("analytics-data");
+      const { data, error } = await supabase.functions.invoke(
+        "analytics-data",
+        { body: { timeframe: "month" } },
+      );
 
       if (error) throw error;
 
       setStats({
-        totalUsers: data?.total_users || 0,
-        vipMembers: data?.vip_users || 0,
-        totalRevenue: data?.total_revenue || 0,
-        pendingPayments: data?.pending_payments || 0,
+        totalUsers: data?.total_users ?? 0,
+        vipMembers: data?.vip_users ?? 0,
+        totalRevenue: data?.total_revenue ?? 0,
+        pendingPayments: data?.pending_payments ?? 0,
         lastUpdated: new Date().toISOString(),
       });
     } catch (error) {
@@ -55,8 +58,15 @@ const BotDashboard = () => {
 
   const checkBotStatus = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke("test-bot-status");
-      setIsConnected(!error && data?.bot_status?.includes("✅"));
+      const { data, error } = await supabase.functions.invoke(
+        "bot-status-check",
+      );
+      const connected =
+        !error &&
+        Boolean(data?.ok) &&
+        Boolean(data?.bot_info?.success) &&
+        Boolean(data?.webhook_info?.data?.url);
+      setIsConnected(connected);
     } catch (error) {
       console.error("Error checking bot status:", error);
       setIsConnected(false);

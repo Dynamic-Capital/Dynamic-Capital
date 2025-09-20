@@ -20,7 +20,7 @@ export const handler = registerHandler(async (req) => {
   try {
     logStep("Analytics data request started");
 
-    const supabaseClient = createClient();
+    const supabaseClient = createClient("service");
 
     const { timeframe } = await req.json().catch(() => ({
       timeframe: "today",
@@ -93,6 +93,42 @@ export const handler = registerHandler(async (req) => {
       throw new Error(`Plans query failed: ${plansError.message}`);
     }
 
+    // Get aggregate metrics for dashboard overview
+    const [
+      { count: totalUsers, error: usersError },
+      { count: vipUsers, error: vipError },
+      { count: pendingPayments, error: pendingPaymentsError },
+    ] = await Promise.all([
+      supabaseClient
+        .from("bot_users")
+        .select("id", { count: "exact", head: true }),
+      supabaseClient
+        .from("current_vip")
+        .select("telegram_id", { count: "exact", head: true })
+        .eq("is_vip", true),
+      supabaseClient
+        .from("payments")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending"),
+    ]);
+
+    if (usersError) {
+      logStep("Total users query error", { error: usersError });
+      throw new Error(`User count query failed: ${usersError.message}`);
+    }
+
+    if (vipError) {
+      logStep("VIP users query error", { error: vipError });
+      throw new Error(`VIP count query failed: ${vipError.message}`);
+    }
+
+    if (pendingPaymentsError) {
+      logStep("Pending payments query error", { error: pendingPaymentsError });
+      throw new Error(
+        `Pending payments query failed: ${pendingPaymentsError.message}`,
+      );
+    }
+
     // Calculate total revenue
     const totalRevenue = revenueData?.reduce((sum, payment) =>
       sum + (payment.amount || 0), 0) || 0;
@@ -137,6 +173,9 @@ export const handler = registerHandler(async (req) => {
       comparison: comparisonData,
       package_performance: packagePerformance,
       generated_at: new Date().toISOString(),
+      total_users: totalUsers ?? 0,
+      vip_users: vipUsers ?? 0,
+      pending_payments: pendingPayments ?? 0,
     };
 
     logStep("Analytics data prepared", {
