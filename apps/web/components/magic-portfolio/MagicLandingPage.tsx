@@ -14,6 +14,9 @@ import { home, about, person, baseURL, isRouteEnabled, toAbsoluteUrl } from "@/r
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { Projects } from "@/components/magic-portfolio/work/Projects";
 import { Posts } from "@/components/magic-portfolio/blog/Posts";
+import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
+import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
+import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
 
 const TELEGRAM_VIP_URL = "https://t.me/Dynamic_VIP_BOT";
 
@@ -96,6 +99,9 @@ export function MagicLandingPage() {
       <RevealFx translateY="16" delay={0.6}>
         <Projects range={[1, 1]} />
       </RevealFx>
+      <RevealFx translateY="20" delay={0.7}>
+        <AboutShowcase />
+      </RevealFx>
       {blogEnabled && (
         <Column fillWidth gap="24" marginBottom="l">
           <Row fillWidth paddingRight="64">
@@ -117,6 +123,12 @@ export function MagicLandingPage() {
         </Column>
       )}
       <Projects range={[2]} />
+      <RevealFx translateY="20" delay={0.8}>
+        <VipPackagesSection />
+      </RevealFx>
+      <RevealFx translateY="20" delay={0.9}>
+        <CheckoutCallout />
+      </RevealFx>
       <Mailchimp />
     </Column>
   );

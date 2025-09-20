@@ -1,30 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { Bot, Minimize2, RotateCcw, Send, User, X } from "lucide-react";
+
+import { OnceButton } from "@/components/once-ui";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Send,
-  Loader2,
-  Bot,
-  X,
-  Minimize2,
-  User,
-  RotateCcw,
-  MessageSquare,
-} from "lucide-react";
+  Button,
+  Column,
+  Input,
+  Row,
+  Spinner,
+  Text,
+} from "@once-ui-system/core";
 import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import { logChatMessage } from "@/integrations/supabase/queries";
 import { cn } from "@/utils";
-import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 
 export interface TelegramAuthData {
   id: number;
@@ -38,62 +30,74 @@ interface ChatAssistantWidgetProps {
   className?: string;
 }
 
-const MAX_HISTORY = 50; // cap history to avoid unbounded localStorage growth
+const MAX_HISTORY = 50;
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
 
 export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("chat-assistant-history");
-      if (stored) {
-        try {
-          return (
-            JSON.parse(stored) as {
-              role: "user" | "assistant";
-              content: string;
-            }[]
-          ).slice(-MAX_HISTORY);
-        } catch {
-          localStorage.removeItem("chat-assistant-history");
-        }
-      }
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (typeof window === "undefined") {
+      return [];
     }
-    return [];
+
+    try {
+      const stored = localStorage.getItem("chat-assistant-history");
+      if (!stored) {
+        return [];
+      }
+      const parsed = JSON.parse(stored) as ChatMessage[];
+      return parsed.slice(-MAX_HISTORY);
+    } catch (error) {
+      console.warn("Failed to parse stored chat history", error);
+      localStorage.removeItem("chat-assistant-history");
+      return [];
+    }
   });
   const [sessionId] = useState(() => {
-    if (typeof window !== "undefined") {
-      let sid = localStorage.getItem("chat-assistant-session-id");
-      if (!sid) {
-        sid = crypto.randomUUID();
-        localStorage.setItem("chat-assistant-session-id", sid);
-      }
-      return sid;
+    if (typeof window === "undefined") {
+      return "";
     }
-    return "";
+    let stored = localStorage.getItem("chat-assistant-session-id");
+    if (!stored) {
+      stored = crypto.randomUUID();
+      localStorage.setItem("chat-assistant-session-id", stored);
+    }
+    return stored;
   });
   const { toast } = useToast();
 
-  const appendMessages = (
-    ...msgs: { role: "user" | "assistant"; content: string }[]
-  ) => {
-    setMessages((prev) => {
-      const next = [...prev, ...msgs];
-      return next.slice(-MAX_HISTORY);
-    });
-  };
+  const quickSuggestions = useMemo(
+    () => [
+      "How do I start?",
+      "VIP benefits?",
+      "Trading tips?",
+      "Risk management?",
+    ],
+    [],
+  );
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("chat-assistant-history", JSON.stringify(messages));
+    if (typeof window === "undefined") {
+      return;
     }
+    localStorage.setItem("chat-assistant-history", JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {
-    async function loadHistory() {
-      if (!sessionId) return;
+    if (!sessionId) {
+      return;
+    }
+
+    let active = true;
+
+    const loadHistory = async () => {
       try {
         const { data, error } = await supabase
           .from("user_interactions")
@@ -102,41 +106,52 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
           .eq("session_id", sessionId)
           .order("created_at", { ascending: true })
           .limit(MAX_HISTORY);
-        if (!error && data) {
-          const loaded = data
-            .map((r) => r.interaction_data as { role: "user" | "assistant"; content: string } | null)
-            .filter((m): m is { role: "user" | "assistant"; content: string } => m !== null);
-          if (loaded.length) {
-            setMessages(loaded.slice(-MAX_HISTORY));
-          }
+
+        if (!active || error || !data) {
+          return;
+        }
+
+        const loaded = data
+          .map((row) => row.interaction_data as ChatMessage | null)
+          .filter((item): item is ChatMessage => Boolean(item));
+
+        if (loaded.length > 0) {
+          setMessages(loaded.slice(-MAX_HISTORY));
         }
       } catch (err) {
         console.warn("Failed to load chat history", err);
       }
-    }
-    loadHistory();
+    };
+
+    void loadHistory();
+
+    return () => {
+      active = false;
+    };
   }, [sessionId]);
 
-  const quickSuggestions = [
-    "How do I start?",
-    "VIP benefits?",
-    "Trading tips?",
-    "Risk management?",
-  ];
+  const appendMessages = (...msgs: ChatMessage[]) => {
+    setMessages((previous) => {
+      const next = [...previous, ...msgs];
+      return next.slice(-MAX_HISTORY);
+    });
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!question.trim()) {
       toast({
         title: "Please enter a question",
-        description: "Type your trading or platform related question",
+        description: "Ask about trading, VIP membership, or the admin tools",
         variant: "destructive",
       });
       return;
     }
 
     const userQuestion = question.trim();
+    setQuestion("");
     setIsLoading(true);
+
     appendMessages({ role: "user", content: userQuestion });
     void logChatMessage({
       telegramUserId: telegramData?.id,
@@ -144,7 +159,6 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
       role: "user",
       content: userQuestion,
     });
-    setQuestion("");
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-faq-assistant", {
@@ -155,33 +169,10 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
       });
 
       if (error) {
-        console.warn("AI service unavailable:", error);
-        const fallbackMessage = `I'm sorry, the AI service is temporarily unavailable.
-
-Here are some quick answers to common questions:
-
-🔹 **Getting Started**: Choose a VIP plan → Make payment → Get access to our premium signals and community
-🔹 **VIP Benefits**: Real-time signals, market analysis, 24/7 support, and exclusive community access
-🔹 **Trading Tips**: Always use proper risk management, never risk more than 2% per trade
-🔹 **Risk Management**: Set stop losses, use proper position sizing, and never trade with emotion
-
-💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!`;
-        appendMessages({ role: "assistant", content: fallbackMessage });
-        toast({
-          title: "AI service unavailable",
-          description: "Showing fallback answers. Please try again later.",
-          variant: "destructive",
-        });
-        void logChatMessage({
-          telegramUserId: telegramData?.id,
-          sessionId,
-          role: "assistant",
-          content: fallbackMessage,
-        });
-        return;
+        throw new Error(error.message || "AI service unavailable");
       }
 
-      if (data.answer) {
+      if (data?.answer) {
         appendMessages({ role: "assistant", content: data.answer });
         void logChatMessage({
           telegramUserId: telegramData?.id,
@@ -190,29 +181,22 @@ Here are some quick answers to common questions:
           content: data.answer,
         });
       } else {
-        throw new Error("No answer received");
+        throw new Error("No answer returned");
       }
-    } catch (error: any) {
-      console.error("Failed to get AI answer:", error);
-      const fallbackMessage = `I apologize, but the AI service is currently experiencing issues.
-
-Here are some helpful resources:
-
-🔹 **Trading Questions**: Our VIP community provides real-time support and guidance
-🔹 **Platform Help**: Contact @DynamicCapital_Support for technical assistance
-🔹 **Account Issues**: Email support@dynamiccapital.com for account-related questions
-🔹 **VIP Plans**: Choose from 1, 3, 6, 12 month or Lifetime VIP access
-
-📈 **Quick Trading Tips**:
-• Use proper risk management (max 2% per trade)
-• Follow our premium signals for best results
-• Join our VIP community for live market analysis
-
-💡 Need immediate help? Contact @DynamicCapital_Support!`;
+    } catch (err) {
+      console.error("Failed to get AI answer", err);
+      const fallbackMessage = [
+        "I’m sorry, the assistant is taking a quick break.",
+        "Here’s what most traders ask for:",
+        "• VIP onboarding: pick a plan, complete checkout, and the bot unlocks everything instantly",
+        "• Benefits: 24/7 desk coverage, live playbooks, automation templates",
+        "• Risk management: position sizing calculators, trade review frameworks",
+        "Need a human? Message @DynamicCapital_Support",
+      ].join("\n\n");
       appendMessages({ role: "assistant", content: fallbackMessage });
       toast({
-        title: "Failed to get AI answer",
-        description: error?.message || "Please try again later.",
+        title: "Assistant unavailable",
+        description: "Showing the fallback playbook",
         variant: "destructive",
       });
       void logChatMessage({
@@ -241,179 +225,214 @@ Here are some helpful resources:
           <motion.div
             key="chat-open"
             layoutId="chat-assistant"
-            className={cn(
-              "fixed bottom-20 left-4 z-40 w-80 max-w-[calc(100vw-2rem)]",
-              className,
-            )}
-            initial={{ opacity: 0, scale: 0.8 }}
+            className={cn("fixed bottom-20 left-4 z-40", className)}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            style={{ borderRadius: 16, overflow: "hidden" }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 260, damping: 26 }}
+            style={{ width: "min(22rem, 88vw)" }}
           >
-            <Card className="bg-card/95 backdrop-blur-md border shadow-xl">
-              {!isMinimized && (
+            <Column
+              background="surface"
+              border="neutral-alpha-medium"
+              radius="l"
+              padding="l"
+              gap="16"
+              shadow="xl"
+            >
+              {isMinimized ? (
+                <Row horizontal="between" vertical="center">
+                  <Row gap="8" vertical="center">
+                    <Bot className="h-4 w-4" />
+                    <Text variant="body-default-m">Desk assistant</Text>
+                  </Row>
+                  <Row gap="8">
+                    <Button
+                      size="s"
+                      variant="secondary"
+                      data-border="rounded"
+                      onClick={() => setIsMinimized(false)}
+                    >
+                      Reopen
+                    </Button>
+                    <Button
+                      size="s"
+                      variant="secondary"
+                      data-border="rounded"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </Row>
+                </Row>
+              ) : (
                 <>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Bot className="h-5 w-5 text-primary animate-pulse-glow" />
-                        <CardTitle className="text-base">AI Assistant</CardTitle>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleReset}
-                          className="h-7 px-2 text-xs"
-                          disabled={isLoading}
+                  <Row horizontal="between" vertical="center">
+                    <Row gap="8" vertical="center">
+                      <Bot className="h-5 w-5" />
+                      <Column>
+                        <Text variant="heading-strong-s">Desk assistant</Text>
+                        <Text variant="body-default-s" onBackground="neutral-weak">
+                          Ask anything about VIP access or execution support.
+                        </Text>
+                      </Column>
+                    </Row>
+                    <Row gap="8">
+                      <Button
+                        size="s"
+                        variant="secondary"
+                        data-border="rounded"
+                        onClick={handleReset}
+                        disabled={isLoading}
+                        aria-label="Reset conversation"
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="s"
+                        variant="secondary"
+                        data-border="rounded"
+                        onClick={() => setIsMinimized(true)}
+                        aria-label="Minimize chat"
+                      >
+                        <Minimize2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="s"
+                        variant="secondary"
+                        data-border="rounded"
+                        onClick={() => setIsOpen(false)}
+                        aria-label="Close chat"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </Row>
+                  </Row>
+                  <Row wrap gap="8">
+                    {quickSuggestions.map((suggestion) => (
+                      <Button
+                        key={suggestion}
+                        size="s"
+                        variant="secondary"
+                        data-border="rounded"
+                        onClick={() => setQuestion(suggestion)}
+                        disabled={isLoading}
+                      >
+                        {suggestion}
+                      </Button>
+                    ))}
+                  </Row>
+                  <Column
+                    gap="12"
+                    style={{ maxHeight: "16rem", overflowY: "auto" }}
+                  >
+                    {messages.length === 0 ? (
+                      <Column
+                        background="page"
+                        border="neutral-alpha-weak"
+                        radius="m"
+                        padding="m"
+                        gap="8"
+                      >
+                        <Text variant="body-default-m">
+                          Welcome! Ask how to join the VIP desk, what’s inside the admin dashboard, or how to automate risk.
+                        </Text>
+                        <Text variant="body-default-s" onBackground="neutral-weak">
+                          Responses blend live bot knowledge with the macro playbook.
+                        </Text>
+                      </Column>
+                    ) : (
+                      messages.map((message, index) => (
+                        <Column
+                          key={`${message.role}-${index}`}
+                          background={
+                            message.role === "assistant"
+                              ? "brand-alpha-weak"
+                              : "page"
+                          }
+                          border={
+                            message.role === "assistant"
+                              ? "brand-alpha-medium"
+                              : "neutral-alpha-weak"
+                          }
+                          radius="m"
+                          padding="m"
+                          gap="8"
                         >
-                          <RotateCcw className="h-3 w-3 mr-1" /> Reset
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsMinimized(true)}
-                          className="h-7 w-7 p-0"
-                        >
-                          <Minimize2 className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsOpen(false)}
-                          className="h-7 w-7 p-0"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    <CardDescription className="text-xs">
-                      Ask any trading or platform question
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {/* Quick suggestion buttons */}
-                    <div className="flex flex-wrap gap-1">
-                      {quickSuggestions.map((suggestion, index) => (
-                        <Button
-                          key={index}
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setQuestion(suggestion)}
-                          className="text-xs h-6 px-2"
-                          disabled={isLoading}
-                        >
-                          {suggestion}
-                        </Button>
-                      ))}
-                    </div>
-
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {messages.map((msg, index) => (
-                        <div
-                          key={index}
-                          className={cn(
-                            "p-2 rounded-lg",
-                            msg.role === "assistant"
-                              ? "bg-primary/5 border border-primary/20"
-                              : "bg-muted",
-                          )}
-                        >
-                          <div className="flex items-start gap-2">
-                            {msg.role === "assistant" ? (
-                              <Bot className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                          <Row gap="8" vertical="center">
+                            {message.role === "assistant" ? (
+                              <Bot className="h-4 w-4" />
                             ) : (
-                              <User className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                              <User className="h-4 w-4" />
                             )}
-                            <div className="text-xs leading-relaxed text-foreground whitespace-pre-wrap">
-                              {msg.content}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="space-y-3">
+                            <Text variant="body-default-s" onBackground="neutral-weak">
+                              {message.role === "assistant" ? "Desk" : "You"}
+                            </Text>
+                          </Row>
+                          <Text variant="body-default-m" style={{ whiteSpace: "pre-wrap" }}>
+                            {message.content}
+                          </Text>
+                        </Column>
+                      ))
+                    )}
+                  </Column>
+                  <form onSubmit={handleSubmit}>
+                    <Column gap="12">
                       <Input
                         value={question}
-                        onChange={(e) => setQuestion(e.target.value)}
-                        placeholder="Ask about trading, signals, plans..."
-                        className="text-sm"
+                        onChange={(event) => setQuestion(event.target.value)}
+                        placeholder="Ask about pricing, onboarding, or platform access"
                         disabled={isLoading}
                       />
-
                       <Button
                         type="submit"
-                        className="w-full"
-                        size="sm"
+                        size="m"
+                        variant="secondary"
+                        data-border="rounded"
                         disabled={isLoading || !question.trim()}
                       >
                         {isLoading ? (
-                          <>
-                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                            Getting answer...
-                          </>
+                          <Row gap="8" vertical="center">
+                            <Spinner />
+                            <Text variant="body-default-s">Gathering answer…</Text>
+                          </Row>
                         ) : (
-                          <>
-                            <Send className="h-3 w-3 mr-2" />
-                            Ask
-                          </>
+                          <Row gap="8" vertical="center">
+                            <Send className="h-4 w-4" />
+                            Ask the desk
+                          </Row>
                         )}
                       </Button>
-                    </form>
-                  </CardContent>
+                    </Column>
+                  </form>
                 </>
               )}
-
-              {isMinimized && (
-                <div className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Bot className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">AI Assistant</span>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsMinimized(false)}
-                        className="h-6 w-6 p-0"
-                      >
-                        <MessageSquare className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsOpen(false)}
-                        className="h-6 w-6 p-0"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Card>
+            </Column>
           </motion.div>
         ) : (
           <motion.div
             key="chat-closed"
             layoutId="chat-assistant"
             className={cn("fixed bottom-20 left-4 z-40", className)}
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            style={{ borderRadius: 9999, overflow: "hidden" }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 260, damping: 26 }}
           >
-            <Button
-              onClick={() => setIsOpen(true)}
-              size="lg"
-              className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 animate-pulse-glow"
+            <OnceButton
+              variant="primary"
+              size="default"
+              className="rounded-full"
+              onClick={() => {
+                setIsOpen(true);
+                setIsMinimized(false);
+              }}
             >
-              <Bot className="h-6 w-6" />
-            </Button>
+              <Row gap="8" vertical="center">
+                <Bot className="h-5 w-5" />
+                Chat with the desk
+              </Row>
+            </OnceButton>
           </motion.div>
         )}
       </AnimatePresence>
@@ -421,3 +440,4 @@ Here are some helpful resources:
   );
 }
 
+export default ChatAssistantWidget;

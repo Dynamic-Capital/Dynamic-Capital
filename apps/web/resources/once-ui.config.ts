@@ -18,6 +18,10 @@ const baseURL: string = "https://dynamic.capital";
 const routes: RoutesConfig = {
   "/": true,
   "/about": true,
+  "/plans": true,
+  "/checkout": true,
+  "/login": true,
+  "/admin": true,
   "/work": { enabled: true, includeChildren: true },
   "/blog": { enabled: true, includeChildren: true },
   "/gallery": true,
