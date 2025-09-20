@@ -135,3 +135,17 @@
     width: 100%;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .once-btn,
+  .once-btn:hover,
+  .once-btn:active {
+    transition: none;
+    transform: none;
+    box-shadow: var(--shadow-motion-sm);
+  }
+
+  .once-btn::after {
+    transition: none;
+  }
+}
