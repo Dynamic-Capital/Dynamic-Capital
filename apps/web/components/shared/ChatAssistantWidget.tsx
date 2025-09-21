@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from "react";
 import { AnimatePresence, LayoutGroup } from "framer-motion";
 import {
   Bot,
@@ -15,8 +23,8 @@ import {
 } from "lucide-react";
 
 import { OnceButton, OnceContainer } from "@/components/once-ui";
-import { Badge } from "@/components/ui/badge";
 import {
+  Badge,
   Button,
   Column,
   Input,
@@ -57,6 +65,16 @@ interface ChatRequestMessage {
 type SyncStatus = "idle" | "syncing" | "connected" | "error";
 
 const SYSTEM_PROMPT = `You are the Dynamic Capital desk assistant. Answer like an elite trading desk lead: confident, structured, and concise. Use short paragraphs or bullet points when useful, keep replies under 180 words, and highlight VIP access, execution support, automation templates, and 24/7 desk coverage when relevant. Always include a short risk disclaimer and finish with: "💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!"`;
+
+type StatusBadgeProps = Partial<ComponentPropsWithoutRef<typeof Badge>>;
+
+interface StatusMeta {
+  badge: string;
+  badgeProps: StatusBadgeProps;
+  label: string;
+  description: string;
+  icon: ReactNode;
+}
 
 export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -229,18 +247,22 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
     }
 
     const userQuestion = question.trim();
-    const nextHistory = [...messages, { role: "user", content: userQuestion }];
+    const userMessage: ChatMessage = {
+      role: "user",
+      content: userQuestion,
+    };
+    const nextHistory = [...messages, userMessage];
 
     setQuestion("");
     setIsLoading(true);
     setSyncStatus("syncing");
 
-    appendMessages({ role: "user", content: userQuestion });
+    appendMessages(userMessage);
     void logChatMessage({
       telegramUserId: telegramData?.id,
       sessionId,
-      role: "user",
-      content: userQuestion,
+      role: userMessage.role,
+      content: userMessage.content,
     });
 
     try {
@@ -308,12 +330,26 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
     }
   };
 
-  const statusMeta = useMemo(() => {
+  const statusMeta = useMemo<StatusMeta>(() => {
+    const baseBadgeProps: StatusBadgeProps = {
+      arrow: false,
+      effect: false,
+      paddingX: "12",
+      paddingY: "4",
+      textVariant: "label-strong-s",
+      className: "shrink-0",
+    };
+
     switch (syncStatus) {
       case "syncing":
         return {
           badge: "Syncing",
-          badgeClassName: "border-primary/50 bg-primary/10 text-primary",
+          badgeProps: {
+            ...baseBadgeProps,
+            background: "brand-alpha-weak",
+            border: "brand-alpha-medium",
+            onBackground: "brand-strong",
+          },
           label: "Syncing with ChatGPT",
           description: "Crafting a desk-style answer using your latest messages.",
           icon: <Loader2 className="h-4 w-4 animate-spin text-primary" />,
@@ -321,7 +357,12 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
       case "connected":
         return {
           badge: "Live",
-          badgeClassName: "border-emerald-500/40 bg-emerald-500/10 text-emerald-500",
+          badgeProps: {
+            ...baseBadgeProps,
+            background: "success-alpha-weak",
+            border: "success-alpha-medium",
+            onBackground: "success-strong",
+          },
           label: "Connected to ChatGPT",
           description: "Follow-up questions stay in the same AI conversation.",
           icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
@@ -329,7 +370,12 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
       case "error":
         return {
           badge: "Retrying",
-          badgeClassName: "border-rose-500/40 bg-rose-500/10 text-rose-500",
+          badgeProps: {
+            ...baseBadgeProps,
+            background: "danger-alpha-weak",
+            border: "danger-alpha-medium",
+            onBackground: "danger-strong",
+          },
           label: "Fallback playbook active",
           description: "We saved the chat and will resync automatically.",
           icon: <WifiOff className="h-4 w-4 text-rose-500" />,
@@ -337,7 +383,12 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
       default:
         return {
           badge: "Ready",
-          badgeClassName: "border-border/60 bg-muted/40 text-muted-foreground",
+          badgeProps: {
+            ...baseBadgeProps,
+            background: "neutral-alpha-weak",
+            border: "neutral-alpha-medium",
+            onBackground: "brand-strong",
+          },
           label: "ChatGPT sync ready",
           description: "Ask about VIP onboarding, execution, or automation.",
           icon: <Sparkles className="h-4 w-4 text-primary" />,
@@ -367,7 +418,10 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
               radius="xl"
               padding="l"
               gap="16"
-              className="relative overflow-hidden border border-border/60 bg-background/95 shadow-[0_24px_60px_-24px_rgba(15,23,42,0.6)] backdrop-blur-xl"
+              background="surface"
+              border="neutral-alpha-medium"
+              shadow="xl"
+              className="relative overflow-hidden backdrop-blur-xl"
             >
               <div
                 className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-dc-accent/15"
@@ -459,7 +513,12 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                   <Row
                     gap="12"
                     vertical="center"
-                    className="items-start rounded-2xl border border-border/60 bg-background/80 p-3"
+                    background="surface"
+                    border="neutral-alpha-medium"
+                    radius="l"
+                    paddingX="12"
+                    paddingY="12"
+                    className="items-start"
                   >
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
                       {statusMeta.icon}
@@ -470,9 +529,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                         {statusMeta.description}
                       </Text>
                     </Column>
-                    <Badge className={cn("shrink-0", statusMeta.badgeClassName)}>
-                      {statusMeta.badge}
-                    </Badge>
+                    <Badge {...statusMeta.badgeProps}>{statusMeta.badge}</Badge>
                   </Row>
 
                   <Row wrap gap="8">
