@@ -10,6 +10,7 @@ import {
   SchemaConfig,
   SocialSharingConfig,
   StyleConfig,
+  SystemUIConfig,
 } from "@/resources/types";
 import { home } from "./content";
 
@@ -211,6 +212,40 @@ const socialSharing: SocialSharingConfig = {
   },
 };
 
+const systemUI = {
+  basics: {
+    baseURL,
+    display,
+    fonts,
+    style,
+  },
+  contexts: {
+    routes,
+    protectedRoutes,
+    schema,
+    sameAs,
+    socialSharing,
+  },
+  modules: {
+    mailchimp,
+  },
+  formControls: {
+    newsletter: mailchimp,
+  },
+  components: {
+    display,
+    fonts,
+    style,
+  },
+  dataViz: {
+    dataStyle,
+  },
+  effects: {
+    background: effects,
+    newsletter: mailchimp.effects,
+  },
+} satisfies SystemUIConfig;
+
 export {
   display,
   mailchimp,
@@ -224,4 +259,5 @@ export {
   socialSharing,
   effects,
   dataStyle,
+  systemUI,
 };

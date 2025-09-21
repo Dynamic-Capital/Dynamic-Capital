@@ -24,8 +24,15 @@ import {
 import { AuthProvider } from '@/hooks/useAuth';
 import { SupabaseProvider } from '@/context/SupabaseProvider';
 import { MotionConfigProvider } from '@/components/ui/motion-config';
-import { dataStyle, style } from '@/resources';
+import { systemUI } from '@/resources';
 import { iconLibrary } from '@/resources/icons';
+
+const {
+  basics: basicsConfig,
+  dataViz: dataVizConfig,
+} = systemUI;
+const { style } = basicsConfig;
+const { dataStyle } = dataVizConfig;
 
 const SUPABASE_URL = "https://qeejuomcapbdlhnjqjcc.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZWp1b21jYXBiZGxobmpxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMDE4MTUsImV4cCI6MjA2OTc3NzgxNX0.GfK9Wwx0WX_GhDIz1sIQzNstyAQIF2Jd6p7t02G44zk";

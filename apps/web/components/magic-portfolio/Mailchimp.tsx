@@ -1,9 +1,14 @@
 "use client";
 
-import { mailchimp, newsletter } from "@/resources";
+import { newsletter, systemUI } from "@/resources";
 import { Button, Heading, Input, Text, Background, Column, Row } from "@once-ui-system/core";
 import { opacity, SpacingToken } from "@once-ui-system/core";
 import { useState } from "react";
+
+const {
+  formControls: { newsletter: newsletterFormConfig },
+  effects: { newsletter: newsletterEffects },
+} = systemUI;
 
 function debounce<T extends (...args: any[]) => void>(func: T, delay: number): T {
   let timeout: ReturnType<typeof setTimeout>;
@@ -66,42 +71,42 @@ export const Mailchimp: React.FC<React.ComponentProps<typeof Column>> = ({ ...fl
         top="0"
         position="absolute"
         mask={{
-          x: mailchimp.effects.mask.x,
-          y: mailchimp.effects.mask.y,
-          radius: mailchimp.effects.mask.radius,
-          cursor: mailchimp.effects.mask.cursor,
+          x: newsletterEffects.mask.x,
+          y: newsletterEffects.mask.y,
+          radius: newsletterEffects.mask.radius,
+          cursor: newsletterEffects.mask.cursor,
         }}
         gradient={{
-          display: mailchimp.effects.gradient.display,
-          opacity: mailchimp.effects.gradient.opacity as opacity,
-          x: mailchimp.effects.gradient.x,
-          y: mailchimp.effects.gradient.y,
-          width: mailchimp.effects.gradient.width,
-          height: mailchimp.effects.gradient.height,
-          tilt: mailchimp.effects.gradient.tilt,
-          colorStart: mailchimp.effects.gradient.colorStart,
-          colorEnd: mailchimp.effects.gradient.colorEnd,
+          display: newsletterEffects.gradient.display,
+          opacity: newsletterEffects.gradient.opacity as opacity,
+          x: newsletterEffects.gradient.x,
+          y: newsletterEffects.gradient.y,
+          width: newsletterEffects.gradient.width,
+          height: newsletterEffects.gradient.height,
+          tilt: newsletterEffects.gradient.tilt,
+          colorStart: newsletterEffects.gradient.colorStart,
+          colorEnd: newsletterEffects.gradient.colorEnd,
         }}
         dots={{
-          display: mailchimp.effects.dots.display,
-          opacity: mailchimp.effects.dots.opacity as opacity,
-          size: mailchimp.effects.dots.size as SpacingToken,
-          color: mailchimp.effects.dots.color,
+          display: newsletterEffects.dots.display,
+          opacity: newsletterEffects.dots.opacity as opacity,
+          size: newsletterEffects.dots.size as SpacingToken,
+          color: newsletterEffects.dots.color,
         }}
         grid={{
-          display: mailchimp.effects.grid.display,
-          opacity: mailchimp.effects.grid.opacity as opacity,
-          color: mailchimp.effects.grid.color,
-          width: mailchimp.effects.grid.width,
-          height: mailchimp.effects.grid.height,
+          display: newsletterEffects.grid.display,
+          opacity: newsletterEffects.grid.opacity as opacity,
+          color: newsletterEffects.grid.color,
+          width: newsletterEffects.grid.width,
+          height: newsletterEffects.grid.height,
         }}
         lines={{
-          display: mailchimp.effects.lines.display,
-          opacity: mailchimp.effects.lines.opacity as opacity,
-          size: mailchimp.effects.lines.size as SpacingToken,
-          thickness: mailchimp.effects.lines.thickness,
-          angle: mailchimp.effects.lines.angle,
-          color: mailchimp.effects.lines.color,
+          display: newsletterEffects.lines.display,
+          opacity: newsletterEffects.lines.opacity as opacity,
+          size: newsletterEffects.lines.size as SpacingToken,
+          thickness: newsletterEffects.lines.thickness,
+          angle: newsletterEffects.lines.angle,
+          color: newsletterEffects.lines.color,
         }}
       />
       <Column maxWidth="xs" horizontal="center">
@@ -118,7 +123,7 @@ export const Mailchimp: React.FC<React.ComponentProps<typeof Column>> = ({ ...fl
           display: "flex",
           justifyContent: "center",
         }}
-        action={mailchimp.action}
+        action={newsletterFormConfig.action}
         method="post"
         id="mc-embedded-subscribe-form"
         name="mc-embedded-subscribe-form"

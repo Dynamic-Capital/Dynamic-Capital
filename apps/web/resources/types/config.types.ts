@@ -187,6 +187,78 @@ export type SocialSharingConfig = {
 };
 
 /**
+ * High-level Once UI primitives used to configure global surfaces.
+ */
+export type SystemUIBasicsConfig = {
+  baseURL: string;
+  display: DisplayConfig;
+  fonts: FontsConfig;
+  style: StyleConfig;
+};
+
+/**
+ * Routing, schema, and metadata contexts required by the UI system.
+ */
+export type SystemUIContextsConfig = {
+  routes: RoutesConfig;
+  protectedRoutes: ProtectedRoutesConfig;
+  schema: SchemaConfig;
+  sameAs: SameAsConfig;
+  socialSharing: SocialSharingConfig;
+};
+
+/**
+ * Modular feature blocks that can be toggled independently.
+ */
+export type SystemUIModulesConfig = {
+  mailchimp: MailchimpConfig;
+};
+
+/**
+ * Form-oriented configuration shared across newsletter and lead capture flows.
+ */
+export type SystemUIFormControlsConfig = {
+  newsletter: MailchimpConfig;
+};
+
+/**
+ * Core component tokens exposed to consuming surfaces.
+ */
+export type SystemUIComponentsConfig = {
+  display: DisplayConfig;
+  fonts: FontsConfig;
+  style: StyleConfig;
+};
+
+/**
+ * Data visualisation primitives for charts and analytics widgets.
+ */
+export type SystemUIDataVizConfig = {
+  dataStyle: DataStyleConfig;
+};
+
+/**
+ * Effect layers used across hero backgrounds and form modules.
+ */
+export type SystemUIEffectsConfig = {
+  background: EffectsConfig;
+  newsletter: EffectsConfig;
+};
+
+/**
+ * Aggregate view of the system UI building blocks.
+ */
+export type SystemUIConfig = {
+  basics: SystemUIBasicsConfig;
+  contexts: SystemUIContextsConfig;
+  modules: SystemUIModulesConfig;
+  formControls: SystemUIFormControlsConfig;
+  components: SystemUIComponentsConfig;
+  dataViz: SystemUIDataVizConfig;
+  effects: SystemUIEffectsConfig;
+};
+
+/**
  * Top-level config types for once-ui.config.js
  */
 export type OnceUIConfig = {

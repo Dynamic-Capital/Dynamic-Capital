@@ -12,11 +12,20 @@ import { Background, Column, Flex, RevealFx, opacity, SpacingToken } from "@once
 import Providers from "./providers";
 import { getStaticLandingDocument } from "@/lib/staticLanding";
 import { Footer, Header, RouteGuard, ScrollToHash } from "@/components/magic-portfolio";
-import { dataStyle, effects, fonts, style } from "@/resources";
+import { systemUI } from "@/resources";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
 const DEFAULT_THEME = "dark" as const;
 const THEME_SCRIPT_ID = "theme-init";
+
+const {
+  basics: basicsConfig,
+  dataViz: dataVizConfig,
+  effects: effectsConfig,
+} = systemUI;
+const { fonts, style } = basicsConfig;
+const { dataStyle } = dataVizConfig;
+const backgroundEffects = effectsConfig.background;
 
 const htmlAttributeDefaults: Record<string, string> = {
   "data-neutral": style.neutral,
@@ -184,42 +193,42 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <RevealFx fill position="absolute">
               <Background
                 mask={{
-                  x: effects.mask.x,
-                  y: effects.mask.y,
-                  radius: effects.mask.radius,
-                  cursor: effects.mask.cursor,
+                  x: backgroundEffects.mask.x,
+                  y: backgroundEffects.mask.y,
+                  radius: backgroundEffects.mask.radius,
+                  cursor: backgroundEffects.mask.cursor,
                 }}
                 gradient={{
-                  display: effects.gradient.display,
-                  opacity: effects.gradient.opacity as opacity,
-                  x: effects.gradient.x,
-                  y: effects.gradient.y,
-                  width: effects.gradient.width,
-                  height: effects.gradient.height,
-                  tilt: effects.gradient.tilt,
-                  colorStart: effects.gradient.colorStart,
-                  colorEnd: effects.gradient.colorEnd,
+                  display: backgroundEffects.gradient.display,
+                  opacity: backgroundEffects.gradient.opacity as opacity,
+                  x: backgroundEffects.gradient.x,
+                  y: backgroundEffects.gradient.y,
+                  width: backgroundEffects.gradient.width,
+                  height: backgroundEffects.gradient.height,
+                  tilt: backgroundEffects.gradient.tilt,
+                  colorStart: backgroundEffects.gradient.colorStart,
+                  colorEnd: backgroundEffects.gradient.colorEnd,
                 }}
                 dots={{
-                  display: effects.dots.display,
-                  opacity: effects.dots.opacity as opacity,
-                  size: effects.dots.size as SpacingToken,
-                  color: effects.dots.color,
+                  display: backgroundEffects.dots.display,
+                  opacity: backgroundEffects.dots.opacity as opacity,
+                  size: backgroundEffects.dots.size as SpacingToken,
+                  color: backgroundEffects.dots.color,
                 }}
                 grid={{
-                  display: effects.grid.display,
-                  opacity: effects.grid.opacity as opacity,
-                  color: effects.grid.color,
-                  width: effects.grid.width,
-                  height: effects.grid.height,
+                  display: backgroundEffects.grid.display,
+                  opacity: backgroundEffects.grid.opacity as opacity,
+                  color: backgroundEffects.grid.color,
+                  width: backgroundEffects.grid.width,
+                  height: backgroundEffects.grid.height,
                 }}
                 lines={{
-                  display: effects.lines.display,
-                  opacity: effects.lines.opacity as opacity,
-                  size: effects.lines.size as SpacingToken,
-                  thickness: effects.lines.thickness,
-                  angle: effects.lines.angle,
-                  color: effects.lines.color,
+                  display: backgroundEffects.lines.display,
+                  opacity: backgroundEffects.lines.opacity as opacity,
+                  size: backgroundEffects.lines.size as SpacingToken,
+                  thickness: backgroundEffects.lines.thickness,
+                  angle: backgroundEffects.lines.angle,
+                  color: backgroundEffects.lines.color,
                 }}
               />
             </RevealFx>
