@@ -8,11 +8,16 @@ import { MotionFadeIn } from "@/components/ui/motion-components";
 import { callEdgeFunction } from "@/config/supabase";
 import {
   ArrowRight,
+  BadgeCheck,
   Clock3,
   Crown,
+  CreditCard,
+  Globe2,
   Mail,
+  Shield,
   ShieldCheck,
   Sparkles,
+  Stethoscope,
   Users,
 } from "lucide-react";
 import { cn } from "@/utils";
@@ -39,7 +44,23 @@ interface CTAContent {
   newsletterPrivacy: string;
 }
 
-const trustSignalIcons = [ShieldCheck, Clock3, Users];
+const trustSignalIcons = [
+  ShieldCheck,
+  BadgeCheck,
+  CreditCard,
+  Stethoscope,
+  Globe2,
+  Shield,
+];
+
+const TRUST_SIGNAL_KEYS: Array<[string, string]> = [
+  ["cta_trust_signal_1", "cta_trust_signal_one"],
+  ["cta_trust_signal_2", "cta_trust_signal_two"],
+  ["cta_trust_signal_3", "cta_trust_signal_three"],
+  ["cta_trust_signal_4", "cta_trust_signal_four"],
+  ["cta_trust_signal_5", "cta_trust_signal_five"],
+  ["cta_trust_signal_6", "cta_trust_signal_six"],
+];
 
 const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
   const defaultContent = useMemo<CTAContent>(
@@ -54,9 +75,12 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
       responseTime: "Average approval time under 3 minutes",
       capacity: "Limited VIP seats released weekly",
       trustSignals: [
-        "Bank-grade verification",
-        "24/7 trader support",
-        "Cancel anytime",
+        "ISO 27001 certification",
+        "Certificate of SOC 2",
+        "Certificate of PCI DSS",
+        "Certificate of HIPAA",
+        "Certificate of GDPR",
+        "Certificate of DPF",
       ],
       newsletterTitle: "Stay in sync with Dynamic Capital",
       newsletterDescription:
@@ -94,12 +118,7 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
               "cta_secondary_button",
               "cta_response_time",
               "cta_capacity",
-              "cta_trust_signal_1",
-              "cta_trust_signal_2",
-              "cta_trust_signal_3",
-              "cta_trust_signal_one",
-              "cta_trust_signal_two",
-              "cta_trust_signal_three",
+              ...TRUST_SIGNAL_KEYS.flat(),
               "cta_newsletter_title",
               "cta_newsletter_description",
               "cta_newsletter_placeholder",
@@ -116,11 +135,10 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
             lookup[c.content_key] = c.content_value;
           });
 
-          const trustSignals = [
-            lookup.cta_trust_signal_1 || lookup.cta_trust_signal_one,
-            lookup.cta_trust_signal_2 || lookup.cta_trust_signal_two,
-            lookup.cta_trust_signal_3 || lookup.cta_trust_signal_three,
-          ].map((signal, index) => signal ?? defaultContent.trustSignals[index]);
+          const trustSignals = TRUST_SIGNAL_KEYS.map(
+            ([numericKey, wordKey], index) =>
+              lookup[numericKey] ?? lookup[wordKey] ?? defaultContent.trustSignals[index],
+          ).filter((signal): signal is string => Boolean(signal));
 
           setContent({
             badge: lookup.cta_badge ?? defaultContent.badge,
