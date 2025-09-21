@@ -435,7 +435,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
               />
               {isMinimized ? (
                 <Row horizontal="between" vertical="center" className="relative z-[1]">
-                  <Row gap="10" vertical="center">
+                  <Row gap="12" vertical="center">
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                       <Bot className="h-5 w-5" />
                     </div>
@@ -470,7 +470,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
               ) : (
                 <Column gap="16" className="relative z-[1]">
                   <Row horizontal="between" vertical="center">
-                    <Row gap="10" vertical="center">
+                    <Row gap="12" vertical="center">
                       <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                         <Bot className="h-5 w-5" />
                       </div>
