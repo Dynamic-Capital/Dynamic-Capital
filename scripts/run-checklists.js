@@ -100,6 +100,40 @@ const TASK_LIBRARY = {
     docs: ['docs/dynamic-capital-checklist.md'],
     notes: ['Executes scripted flows that mirror the production sanity checklist for the Telegram mini app.'],
   },
+  'supabase-cli-workflow': {
+    id: 'supabase-cli-workflow',
+    label: 'Run Supabase CLI workflow (bash scripts/supabase-cli-workflow.sh)',
+    command: 'bash scripts/supabase-cli-workflow.sh',
+    optional: false,
+    docs: ['docs/dynamic-capital-checklist.md', 'docs/SETUP_SUMMARY.md'],
+    notes: [
+      'Logs in with SUPABASE_ACCESS_TOKEN, links the configured project, and pushes pending migrations.',
+    ],
+  },
+  'deno-typecheck': {
+    id: 'deno-typecheck',
+    label: 'Run Deno typecheck (deno task typecheck)',
+    command: 'deno task typecheck',
+    optional: false,
+    docs: ['docs/SETUP_SUMMARY.md', 'docs/coding-efficiency-checklist.md'],
+    notes: ['Matches the standalone typecheck executed in CI (test-and-pr job).'],
+  },
+  'npm-audit': {
+    id: 'npm-audit',
+    label: 'Run npm dependency audit (npm run audit)',
+    command: 'npm run audit',
+    optional: false,
+    docs: ['docs/SETUP_SUMMARY.md'],
+    notes: ['Surfaces vulnerable packages to keep parity with the GitHub Actions audit step.'],
+  },
+  'ci-test-and-pr': {
+    id: 'ci-test-and-pr',
+    label: 'Run CI parity checks (deno task ci)',
+    command: 'deno task ci',
+    optional: false,
+    docs: ['docs/SETUP_SUMMARY.md'],
+    notes: ['Executes the aggregated formatting, linting, and test routine used by the test-and-pr workflow.'],
+  },
 };
 
 const CHECKLISTS = {
@@ -136,6 +170,18 @@ const CHECKLISTS = {
     tasks: [
       'check-webhook',
       { task: 'smoke-miniapp', optional: true, note: 'Complements manual go-live validation with scripted coverage.' },
+    ],
+  },
+  'setup-followups': {
+    name: 'Setup Follow-Ups',
+    doc: 'docs/dynamic-capital-checklist.md#setup-follow-ups',
+    description: 'Supabase CLI linking and CI parity checks referenced after initial onboarding.',
+    tasks: [
+      'supabase-cli-workflow',
+      'deno-typecheck',
+      'repo-test',
+      'npm-audit',
+      'ci-test-and-pr',
     ],
   },
   'dynamic-capital': {

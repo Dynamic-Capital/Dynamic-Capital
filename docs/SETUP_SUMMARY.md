@@ -29,7 +29,7 @@
 - Future contributors have a clear checklist.
 
 ## What’s Left
-- If not already: `npx supabase login && supabase link && supabase db push`.
+- If not already: run `npx supabase login && supabase link && supabase db push` (or `bash scripts/supabase-cli-workflow.sh`).
 - Open/refresh the PR with the add-only files; ensure checks (`typecheck`, `test`, `audit`, `test-and-pr`) pass.
 - Enable auto-merge and add branch protection (mark those checks as required).
 - Quick production sanity: `/start`, `/plans`, approve a test payment → confirm `current_vip.is_vip = true`.
