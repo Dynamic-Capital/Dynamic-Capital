@@ -34,8 +34,10 @@ Use the automation helper (or run commands directly) to complete the recurring r
 
 ## Setup Follow-Ups
 
-1. [ ] Complete the Supabase CLI workflow (`npx supabase login && supabase link && supabase db push`).
-2. [ ] Refresh or open the pending PR ensuring CI checks pass.
+> [!TIP] Run `npm run checklists -- --checklist setup-followups` to execute the Supabase CLI automation and CI parity checks captured in this section.
+
+1. [ ] Complete the Supabase CLI workflow (`npx supabase login && supabase link && supabase db push`) or run `bash scripts/supabase-cli-workflow.sh` with the required credentials exported.
+2. [ ] Refresh or open the pending PR ensuring CI checks pass (`deno task typecheck`, `npm run test`, `npm run audit`, `deno task ci`).
 3. [ ] Enable auto-merge with the required branch protections.
 4. [ ] Run the production sanity test (`/start`, `/plans`, approve test payment) to confirm `current_vip.is_vip`.
 
