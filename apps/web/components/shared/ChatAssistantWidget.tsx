@@ -22,7 +22,12 @@ import {
   X,
 } from "lucide-react";
 
-import { OnceButton, OnceContainer } from "@/components/once-ui";
+import {
+  OnceButton,
+  OnceContainer,
+  OnceMotionRow,
+  OnceMotionStackItem,
+} from "@/components/once-ui";
 import {
   Badge,
   Button,
@@ -35,6 +40,7 @@ import {
 import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import { logChatMessage } from "@/integrations/supabase/queries";
+import { ONCE_MOTION_SPRINGS } from "@/lib/motion-variants";
 import { cn } from "@/utils";
 
 export interface TelegramAuthData {
@@ -510,7 +516,12 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                     </Row>
                   </Row>
 
-                  <Row
+                  <OnceMotionRow
+                    layout
+                    variant="slideUp"
+                    initial="hidden"
+                    animate="visible"
+                    transition={{ ...ONCE_MOTION_SPRINGS.soft, delay: 0.1 }}
                     gap="12"
                     vertical="center"
                     background="surface"
@@ -530,9 +541,22 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                       </Text>
                     </Column>
                     <Badge {...statusMeta.badgeProps}>{statusMeta.badge}</Badge>
-                  </Row>
+                  </OnceMotionRow>
 
-                  <Row wrap gap="8">
+                  <OnceMotionRow
+                    layout
+                    variant="stackItemSoft"
+                    initial="hidden"
+                    animate="visible"
+                    transition={{
+                      ...ONCE_MOTION_SPRINGS.soft,
+                      stiffness: 280,
+                      damping: 24,
+                      delay: 0.15,
+                    }}
+                    wrap
+                    gap="8"
+                  >
                     {quickSuggestions.map((suggestion) => (
                       <Button
                         key={suggestion}
@@ -546,7 +570,7 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                         {suggestion}
                       </Button>
                     ))}
-                  </Row>
+                  </OnceMotionRow>
 
                   <div
                     ref={messageContainerRef}
@@ -555,69 +579,85 @@ export function ChatAssistantWidget({ telegramData, className }: ChatAssistantWi
                     aria-busy={isLoading}
                     className="flex max-h-72 flex-col gap-3 overflow-y-auto pr-1"
                   >
-                    {messages.length === 0 ? (
-                      <Column
-                        radius="l"
-                        padding="m"
-                        gap="8"
-                        className="border border-dashed border-border/60 bg-background/90 text-left"
-                      >
-                        <Text variant="body-default-m">
-                          Welcome! Ask how to join the VIP desk, what’s inside the admin dashboard, or how to automate risk.
-                        </Text>
-                        <Text variant="body-default-s" onBackground="neutral-weak">
-                          Responses stay synced with ChatGPT so you can ask follow-up questions in the same thread.
-                        </Text>
-                      </Column>
-                    ) : (
-                      messages.map((message, index) => (
-                        <Column
-                          key={`${message.role}-${index}`}
+                    <AnimatePresence initial={false}>
+                      {messages.length === 0 ? (
+                        <OnceMotionStackItem
+                          key="empty-state"
+                          density="soft"
+                          variant="messageBubble"
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          transition={{ ...ONCE_MOTION_SPRINGS.soft, damping: 24 }}
                           radius="l"
                           padding="m"
                           gap="8"
-                          className={cn(
-                            "relative overflow-hidden border text-left shadow-[0_20px_40px_-28px_rgba(15,23,42,0.55)]",
-                            message.role === "assistant"
-                              ? "border-primary/40 bg-gradient-to-br from-primary/15 via-background/85 to-background/95"
-                              : "border-border/60 bg-background/90",
-                          )}
+                          className="border border-dashed border-border/60 bg-background/90 text-left"
                         >
-                          {message.role === "assistant" ? (
-                            <div
-                              className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-dc-accent/10"
-                              aria-hidden="true"
-                            />
-                          ) : null}
-                          <Row gap="8" vertical="center" className="relative z-[1] text-muted-foreground">
-                            <div
-                              className={cn(
-                                "flex h-7 w-7 items-center justify-center rounded-full",
-                                message.role === "assistant"
-                                  ? "bg-primary/15 text-primary"
-                                  : "bg-muted/40 text-muted-foreground",
-                              )}
-                            >
-                              {message.role === "assistant" ? (
-                                <Bot className="h-4 w-4" />
-                              ) : (
-                                <User className="h-4 w-4" />
-                              )}
-                            </div>
-                            <Text variant="body-default-s" onBackground="neutral-weak">
-                              {message.role === "assistant" ? "Desk" : "You"}
-                            </Text>
-                          </Row>
-                          <Text
-                            variant="body-default-m"
-                            style={{ whiteSpace: "pre-wrap" }}
-                            className="relative z-[1] text-foreground"
-                          >
-                            {message.content}
+                          <Text variant="body-default-m">
+                            Welcome! Ask how to join the VIP desk, what’s inside the admin dashboard, or how to automate risk.
                           </Text>
-                        </Column>
-                      ))
-                    )}
+                          <Text variant="body-default-s" onBackground="neutral-weak">
+                            Responses stay synced with ChatGPT so you can ask follow-up questions in the same thread.
+                          </Text>
+                        </OnceMotionStackItem>
+                      ) : (
+                        messages.map((message, index) => (
+                          <OnceMotionStackItem
+                            key={`${message.role}-${index}`}
+                            layout
+                            density="soft"
+                            variant="messageBubble"
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            transition={{ ...ONCE_MOTION_SPRINGS.soft, damping: 24 }}
+                            radius="l"
+                            padding="m"
+                            gap="8"
+                            className={cn(
+                              "relative overflow-hidden border text-left shadow-[0_20px_40px_-28px_rgba(15,23,42,0.55)]",
+                              message.role === "assistant"
+                                ? "border-primary/40 bg-gradient-to-br from-primary/15 via-background/85 to-background/95"
+                                : "border-border/60 bg-background/90",
+                            )}
+                          >
+                            {message.role === "assistant" ? (
+                              <div
+                                className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-dc-accent/10"
+                                aria-hidden="true"
+                              />
+                            ) : null}
+                            <Row gap="8" vertical="center" className="relative z-[1] text-muted-foreground">
+                              <div
+                                className={cn(
+                                  "flex h-7 w-7 items-center justify-center rounded-full",
+                                  message.role === "assistant"
+                                    ? "bg-primary/15 text-primary"
+                                    : "bg-muted/40 text-muted-foreground",
+                                )}
+                              >
+                                {message.role === "assistant" ? (
+                                  <Bot className="h-4 w-4" />
+                                ) : (
+                                  <User className="h-4 w-4" />
+                                )}
+                              </div>
+                              <Text variant="body-default-s" onBackground="neutral-weak">
+                                {message.role === "assistant" ? "Desk" : "You"}
+                              </Text>
+                            </Row>
+                            <Text
+                              variant="body-default-m"
+                              style={{ whiteSpace: "pre-wrap" }}
+                              className="relative z-[1] text-foreground"
+                            >
+                              {message.content}
+                            </Text>
+                          </OnceMotionStackItem>
+                        ))
+                      )}
+                    </AnimatePresence>
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-3">

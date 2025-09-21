@@ -268,6 +268,31 @@ const stackItemSlow: Variants = {
   },
 };
 
+const messageBubble: Variants = {
+  hidden: { opacity: 0, y: 18, scale: 0.96, filter: "blur(10px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: {
+      ...ONCE_MOTION_SPRINGS.soft,
+      damping: 26,
+      mass: 0.95,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -18,
+    scale: 0.96,
+    filter: "blur(6px)",
+    transition: {
+      duration: ONCE_MOTION_DURATIONS.quick,
+      ease: ONCE_MOTION_EASING.exit,
+    },
+  },
+};
+
 const button: Variants = {
   initial: { scale: 1 },
   hover: {
@@ -536,6 +561,7 @@ export const onceMotionVariants = {
   stackItem,
   stackItemSoft,
   stackItemSlow,
+  messageBubble,
   button,
   primaryButton,
   ghostButton,
@@ -567,6 +593,7 @@ export const pageVariants = page;
 export const buttonVariants = button;
 export const primaryButtonVariants = primaryButton;
 export const ghostButtonVariants = ghostButton;
+export const messageBubbleVariants = messageBubble;
 export const staggerContainerVariants = staggerContainer;
 export const staggerItemVariants = staggerItem;
 export const modalVariants = modal;
@@ -629,6 +656,7 @@ export default {
   cardVariants,
   pageVariants,
   buttonVariants,
+  messageBubbleVariants,
   staggerContainerVariants,
   staggerItemVariants,
   modalVariants,

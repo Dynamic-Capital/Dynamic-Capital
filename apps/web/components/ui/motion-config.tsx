@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { MotionConfig, LazyMotion, domAnimation } from "framer-motion";
-import { useReducedMotion } from "framer-motion";
+import { MotionConfig, LazyMotion, domAnimation, useReducedMotion } from "framer-motion";
+
+import { ONCE_MOTION_SPRINGS } from "@/lib/motion-variants";
 
 interface MotionConfigProviderProps {
   children: React.ReactNode;
@@ -14,11 +15,7 @@ export const MotionConfigProvider: React.FC<MotionConfigProviderProps> = ({ chil
   return (
     <LazyMotion features={domAnimation}>
       <MotionConfig
-        transition={{
-          type: "spring",
-          stiffness: 320,
-          damping: 28,
-        }}
+        transition={ONCE_MOTION_SPRINGS.base}
         reducedMotion={shouldReduceMotion ? "always" : "user"}
       >
         {children}

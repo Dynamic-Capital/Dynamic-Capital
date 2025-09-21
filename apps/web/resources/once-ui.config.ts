@@ -73,7 +73,7 @@ const fonts: FontsConfig = {
 const style: StyleConfig = {
   theme: "system",
   neutral: "gray",
-  brand: "cyan",
+  brand: "red",
   accent: "magenta",
   solid: "contrast",
   solidStyle: "flat",
