@@ -109,9 +109,11 @@
   --scale-motion-md: 1.05;
   --scale-motion-lg: 1.08;
   --scale-motion-press: 0.96;
+  color-scheme: light;
 }
 
-.dark {
+.dark,
+[data-theme="dark"] {
   --background: 0 5% 6%;
   --foreground: 0 5% 98%;
   --card: 0 8% 8%;
@@ -145,6 +147,7 @@
   --glass-bg: rgba(0, 0, 0, 0.2);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  color-scheme: dark;
 }
 
   @layer base {
