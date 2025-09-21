@@ -19,6 +19,9 @@ import type { Plan } from "@/types/plan";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 
 const ERROR_STATE_GAP: SpacingToken = "8";
+const SECTION_GAP: SpacingToken = "32";
+const SECTION_CONTENT_GAP: SpacingToken = "20";
+const PLAN_CARD_GAP: SpacingToken = "20";
 
 const formatDuration = (plan: Plan) => {
   if (plan.is_lifetime) {
@@ -56,7 +59,7 @@ export function VipPackagesSection() {
       border="neutral-alpha-medium"
       radius="l"
       padding="xl"
-      gap="32"
+      gap={SECTION_GAP}
       shadow="l"
     >
       <Column gap="12" maxWidth={32}>
@@ -114,7 +117,7 @@ export function VipPackagesSection() {
           </Row>
         </Column>
       ) : (
-        <Column gap="20">
+        <Column gap={SECTION_CONTENT_GAP}>
           <Row gap="16" wrap>
             {plans.map((plan) => (
               <Column
@@ -126,7 +129,7 @@ export function VipPackagesSection() {
                 border={plan.is_lifetime ? "brand-alpha-medium" : "neutral-alpha-weak"}
                 radius="l"
                 padding="l"
-                gap="20"
+                gap={PLAN_CARD_GAP}
                 shadow={plan.is_lifetime ? "l" : undefined}
               >
                 <Column gap="12">
