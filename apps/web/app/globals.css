@@ -48,20 +48,20 @@
   --card-foreground: 224 71.4% 4.1%;
   --popover: 0 0% 100%;
   --popover-foreground: 224 71.4% 4.1%;
-  --primary: 14 100% 57%;
+  --primary: 0 84% 58%;
   --primary-foreground: 0 0% 100%;
   --secondary: 0 68% 95%;
   --secondary-foreground: 0 45% 20%;
   --muted: 0 5% 96%;
   --muted-foreground: 0 5% 45%;
   --elevated: 0 72% 10%;
-  --accent: 340 75% 55%;
+  --accent: 350 88% 60%;
   --accent-foreground: 0 0% 100%;
-  --destructive: 0 72% 51%;
+  --destructive: 0 72% 50%;
   --destructive-foreground: 0 0% 98%;
   --border: 0 10% 89%;
   --input: 0 10% 89%;
-  --ring: 14 100% 57%;
+  --ring: 0 84% 58%;
   --radius: 0.5rem;
   --chart-1: 14 100% 57%;
   --chart-2: 200 100% 50%;
@@ -78,11 +78,11 @@
   --motion-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Dynamic Capital Red Brand Colors */
-  --dc-brand: 14 100% 57%;
-  --dc-brand-light: 14 100% 67%;
-  --dc-brand-dark: 14 100% 47%;
-  --dc-secondary: 200 100% 50%;
-  --dc-accent: 340 75% 55%;
+  --dc-brand: 0 84% 58%;
+  --dc-brand-light: 0 92% 68%;
+  --dc-brand-dark: 0 76% 48%;
+  --dc-secondary: 200 96% 52%;
+  --dc-accent: 350 88% 60%;
 
   /* Motion-Enhanced Red Gradients */
   --gradient-motion-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--dc-brand-light)) 50%, hsl(var(--dc-accent)) 100%);
@@ -118,20 +118,20 @@
   --card-foreground: 0 5% 98%;
   --popover: 0 8% 8%;
   --popover-foreground: 0 5% 98%;
-  --primary: 14 100% 57%;
+  --primary: 0 84% 58%;
   --primary-foreground: 0 0% 100%;
   --secondary: 0 10% 15%;
   --secondary-foreground: 0 5% 98%;
   --muted: 0 10% 15%;
   --muted-foreground: 0 5% 65%;
   --elevated: 0 5% 95%;
-  --accent: 340 75% 55%;
+  --accent: 350 88% 60%;
   --accent-foreground: 0 0% 100%;
-  --destructive: 0 65% 45%;
+  --destructive: 0 68% 46%;
   --destructive-foreground: 0 5% 98%;
   --border: 0 15% 18%;
   --input: 0 15% 18%;
-  --ring: 14 100% 57%;
+  --ring: 0 84% 58%;
 
   /* Dark mode motion effects */
   --glass-motion-bg: hsl(var(--dc-brand) / 0.15);
