@@ -9,6 +9,7 @@ import { Bot, Shield, RefreshCw, AlertTriangle, CheckCircle, Settings } from "lu
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { callEdgeFunction } from "@/config/supabase";
+import { formatIsoDateTime } from "@/utils/isoFormat";
 
 interface BotStatus {
   bot_status: string;
@@ -251,7 +252,7 @@ export function BotDiagnostics() {
               )}
 
               <div className="text-xs text-muted-foreground">
-                Last checked: {new Date(botStatus.last_update).toLocaleString()}
+                Last checked: {formatIsoDateTime(botStatus.last_update)}
               </div>
             </div>
           ) : (

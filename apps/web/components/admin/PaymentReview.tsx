@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { callEdgeFunction } from "@/config/supabase";
+import { formatIsoDate, formatIsoTime } from "@/utils/isoFormat";
 
 interface Payment {
   id: string;
@@ -264,10 +265,10 @@ export function PaymentReview() {
                       <p className="text-muted-foreground">Date</p>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        <span>{new Date(payment.created_at).toLocaleDateString()}</span>
+                        <span>{formatIsoDate(payment.created_at)}</span>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(payment.created_at).toLocaleTimeString()}
+                        {formatIsoTime(payment.created_at)}
                       </p>
                     </div>
                   </div>

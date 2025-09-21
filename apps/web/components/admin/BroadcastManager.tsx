@@ -12,6 +12,7 @@ import { MessageSquare, Send, Calendar, Users, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { callEdgeFunction } from "@/config/supabase";
+import { formatIsoDateTime } from "@/utils/isoFormat";
 
 interface BroadcastMessage {
   id: string;
@@ -139,7 +140,7 @@ export function BroadcastManager() {
   }, [loadBroadcasts]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    return formatIsoDateTime(dateString);
   };
 
   const getStatusColor = (status: string) => {

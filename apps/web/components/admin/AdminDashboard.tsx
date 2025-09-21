@@ -23,6 +23,7 @@ import { AdminBans } from "./AdminBans";
 import { BroadcastManager } from "./BroadcastManager";
 import { BotDiagnostics } from "./BotDiagnostics";
 import { callEdgeFunction } from "@/config/supabase";
+import { formatIsoDateTime } from "@/utils/isoFormat";
 import { OnceButton, OnceContainer } from "@/components/once-ui";
 
 interface AdminStats {
@@ -255,7 +256,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
 
   const adminName = telegramUser?.first_name || "Admin";
   const formattedLastUpdated = stats?.last_updated
-    ? new Date(stats.last_updated).toLocaleString()
+    ? formatIsoDateTime(stats.last_updated)
     : "Awaiting sync";
   const overviewItems = stats
     ? [
@@ -433,7 +434,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                               User {payment.telegram_user_id}
                             </span>
                             <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
-                              {new Date(payment.created_at).toLocaleString()}
+                              {formatIsoDateTime(payment.created_at)}
                             </span>
                             <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
                               Status: {payment.status}

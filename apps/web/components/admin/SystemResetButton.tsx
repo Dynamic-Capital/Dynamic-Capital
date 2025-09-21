@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertTriangle, RefreshCw, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { formatIsoDateTime } from "@/utils/isoFormat";
 
 interface ResetResults {
   payments_cleared: number;
@@ -108,7 +109,7 @@ export function SystemResetButton() {
               Last Reset: {lastReset.success ? "Success" : "Failed"}
             </CardTitle>
             <CardDescription>
-              {lastReset.timestamp && `Executed at: ${new Date(lastReset.timestamp).toLocaleString()}`}
+              {lastReset.timestamp && `Executed at: ${formatIsoDateTime(lastReset.timestamp)}`}
             </CardDescription>
           </CardHeader>
           {lastReset.results && (

@@ -9,6 +9,7 @@ import { Crown, Calendar, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/useToast";
 import { callEdgeFunction } from "@/config/supabase";
+import { formatIsoDate } from "@/utils/isoFormat";
 
 interface SubscriptionStatus {
   is_vip: boolean;
@@ -73,11 +74,7 @@ export const SubscriptionStatusCard = ({
   }, [getUserId, fetchSubscriptionStatus]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    return formatIsoDate(dateString);
   };
 
   const getStatusBadge = () => {

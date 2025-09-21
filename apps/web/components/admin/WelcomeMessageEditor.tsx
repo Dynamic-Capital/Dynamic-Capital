@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/useToast";
+import { formatIsoDateTime } from "@/utils/isoFormat";
 import {
   Eye,
   Info,
@@ -359,7 +360,7 @@ Choose an option below:`,
                     <div className="text-xs text-muted-foreground space-y-1">
                       <p>
                         <strong>Last updated:</strong>{" "}
-                        {new Date(welcomeMessage.updated_at).toLocaleString()}
+                        {formatIsoDateTime(welcomeMessage.updated_at)}
                       </p>
                       <p>
                         <strong>Modified by:</strong>{" "}
