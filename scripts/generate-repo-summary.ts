@@ -141,6 +141,9 @@ lines.push(
   "- Run `npm run docs:summary` before merging to refresh this inventory.",
 );
 lines.push(
+  "- Run `npm run docs:organize` to update `docs/REPO_FILE_ORGANIZER.md` when the top-level layout changes.",
+);
+lines.push(
   "- When marketing assets change, rerun the landing build parity checklist below.",
 );
 lines.push("");

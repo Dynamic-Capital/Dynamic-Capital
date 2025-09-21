@@ -1,6 +1,6 @@
 # Repository Summary — Dynamic-Capital
 
-**Generated:** Wed, 17 Sep 2025 08:28:10 GMT
+**Generated:** Sun, 21 Sep 2025 07:07:22 GMT
 **Repo root:** Dynamic-Capital
 
 ## Directory Map (top-level)
@@ -15,7 +15,6 @@
 - docs/
 - functions/
 - go-service/
-- mql5/
 - node_modules/
 - queue/
 - scripts/
@@ -94,7 +93,7 @@
 | system-health | supabase/functions/system-health/index.ts | Yes |
 | telegram-bot | supabase/functions/telegram-bot/index.ts | Yes |
 | telegram-bot-sync | supabase/functions/telegram-bot-sync/index.ts | Yes |
-| telegram-bot/admin-handlers | supabase/functions/telegram-bot/admin-handlers/index.ts | No |
+| telegram-bot/admin-handlers | supabase/functions/telegram-bot/admin-handlers/index.ts | Yes |
 | telegram-getwebhook | supabase/functions/telegram-getwebhook/index.ts | Yes |
 | telegram-setwebhook | supabase/functions/telegram-setwebhook/index.ts | Yes |
 | telegram-webhook | supabase/functions/telegram-webhook/index.ts | Yes |
@@ -120,9 +119,12 @@
 - ADMIN_API_SECRET
 - ALLOWED_ORIGINS
 - ANALYZE
+- APP_URL
 - CDN_ACCESS_KEY
 - CDN_BUCKET
 - CDN_ENDPOINT
+- CDN_ENDPOINT_ID
+- CDN_PURGE_PATHS
 - CDN_REGION
 - CDN_SECRET_KEY
 - CI
@@ -132,8 +134,15 @@
 - CODEX_PROFILE
 - DATABASE_URL
 - DEBUG
+- DEFAULT_LOCALE
 - DENO_DEPLOYMENT_ID
 - DENO_REGION
+- DEPLOY_URL
+- DEPLOYMENT_URL
+- DIGITALOCEAN_APP_SITE_DOMAIN
+- DIGITALOCEAN_APP_URL
+- DIGITALOCEAN_TOKEN
+- DISABLE_HTTP_REDIRECTS
 - ENABLE_SENTRY
 - EXAMPLE_KEY
 - FUNCTIONS_BASE
@@ -152,6 +161,7 @@
 - MINI_APP_SHORT_NAME
 - MINI_APP_URL
 - MINIAPP_ORIGIN
+- NEXT_PUBLIC_DEFAULT_LOCALE
 - NEXT_PUBLIC_POSTHOG_HOST
 - NEXT_PUBLIC_POSTHOG_KEY
 - NEXT_PUBLIC_SENTRY_DSN
@@ -160,8 +170,11 @@
 - NEXT_PUBLIC_SUPABASE_URL
 - NODE_ENV
 - NODE_EXTRA_CA_CERTS
+- PATH
 - PORT
 - PREVIEW_URL
+- PRIMARY_HOST
+- PUBLIC_URL
 - QUEUE_PENDING_THRESHOLD
 - RETENTION_DAYS
 - SENTRY_DSN
@@ -171,6 +184,7 @@
 - SSL_KEY_PATH
 - STATIC_EXPORT_PORT
 - SUPABASE_ACCESS_TOKEN
+- SUPABASE_ALERTS_TABLE
 - SUPABASE_ANON_KEY
 - SUPABASE_DB_PASSWORD
 - SUPABASE_PROJECT_ID
@@ -183,10 +197,14 @@
 - TELEGRAM_ID
 - TELEGRAM_WEBHOOK_SECRET
 - TELEGRAM_WEBHOOK_URL
+- TRADINGVIEW_WEBHOOK_SECRET
+- URL
+- VERCEL_URL
 
 ## Automation Notes
 
 - Run `npm run docs:summary` before merging to refresh this inventory.
+- Run `npm run docs:organize` to update `docs/REPO_FILE_ORGANIZER.md` when the top-level layout changes.
 - When marketing assets change, rerun the landing build parity checklist below.
 
 ### Landing Build Parity Checklist

@@ -19,6 +19,38 @@ mql5/
 Create folders as the EA evolves—MetaTrader only recognizes the `Experts/` and
 `Include/` casing above.
 
+## Current Layout
+
+The workspace now follows the recommended layout so MetaTrader contributors can
+find active source files quickly:
+
+```
+algorithms/mql5/
+├── Experts/
+│   ├── Lorentzian_Classification_EA.mq5
+│   └── MA_Cross_EA.mq5
+├── Include/
+│   ├── equity_protection.mqh
+│   ├── logger.mqh
+│   ├── multi_timeframe.mqh
+│   ├── position_manager.mqh
+│   ├── risk_management.mqh
+│   ├── session_filter.mqh
+│   ├── stats_reporter.mqh
+│   └── utils.mqh
+└── tradingview_to_mt5_bridge/
+    ├── README.md
+    ├── THIRD_PARTY.md
+    ├── docker-compose.yml
+    ├── requirements.txt
+    ├── run.py
+    └── src/
+```
+
+Add `Docs/`, `Tests/`, and supporting tooling as they come online—keeping those
+folders scoped within this workspace keeps the trading automation pipeline
+auditable and portable.
+
 ## Handoff Requirements
 
 - Document how the EA retrieves signals from Supabase (polling vs. websockets).
