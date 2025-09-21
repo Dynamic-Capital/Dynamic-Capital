@@ -1,15 +1,15 @@
-import { useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Column, Heading, Text } from '@once-ui-system/core';
-import { WebCheckout } from '@/components/checkout/WebCheckout';
+import { useMemo } from "react";
+import { useLocation } from "react-router-dom";
+import { Column, Heading, Text } from "@once-ui-system/core";
+import { WebCheckout } from "@/components/checkout/WebCheckout";
 
 function useCheckoutParams() {
   const location = useLocation();
 
   return useMemo(() => {
     const params = new URLSearchParams(location.search);
-    const plan = params.get('plan') || undefined;
-    const promo = params.get('promo') || undefined;
+    const plan = params.get("plan") || undefined;
+    const promo = params.get("promo") || undefined;
 
     return { plan, promo };
   }, [location.search]);
@@ -24,8 +24,13 @@ export function CheckoutPage() {
         <Heading variant="display-strong-s" align="center">
           Secure checkout
         </Heading>
-        <Text variant="body-default-m" onBackground="neutral-weak" align="center">
-          Review your plan, select a payment method, and submit proof if you’re joining via bank transfer or crypto.
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          align="center"
+        >
+          Review your plan, select a payment method, and submit proof if you’re
+          joining via bank transfer or crypto.
         </Text>
       </Column>
       <WebCheckout selectedPlanId={plan} promoCode={promo} />

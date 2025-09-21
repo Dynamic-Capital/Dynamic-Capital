@@ -16,23 +16,24 @@ export interface NextFontResult {
 }
 
 function createFont(name: string) {
-  const fontFamily = name.replace(/_/g, ' ');
+  const fontFamily = name.replace(/_/g, " ");
 
   return function loadFont(options: NextFontOptions = {}): NextFontResult {
     const variable = options.variable;
-    const className = variable ? variable.replace(/^--/, '') : `font-${fontFamily.toLowerCase().replace(/\s+/g, '-')}`;
+    const className = variable
+      ? variable.replace(/^--/, "")
+      : `font-${fontFamily.toLowerCase().replace(/\s+/g, "-")}`;
 
     return {
       className,
       variable,
       style: {
         fontFamily,
-        fontDisplay: options.display ?? 'swap',
+        fontDisplay: options.display ?? "swap",
       },
     };
   };
 }
 
-export const Geist = createFont('Geist');
-export const Geist_Mono = createFont('Geist_Mono');
-
+export const Geist = createFont("Geist");
+export const Geist_Mono = createFont("Geist_Mono");
