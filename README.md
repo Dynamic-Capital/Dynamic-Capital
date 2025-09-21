@@ -99,6 +99,9 @@ platform's configuration for each component.
 - **Unified builds** – the previous `external/dynamic_codex` Vite workspace has
   been merged; all bot tooling now ships from the Next.js app so the project is
   maintained with a single build pipeline.
+- **File organizer** – Run `npm run docs:organize` to regenerate
+  `docs/REPO_FILE_ORGANIZER.md`, which groups top-level files by domain so
+  contributors can quickly find the right surface.
 
 ## Project starters
 
