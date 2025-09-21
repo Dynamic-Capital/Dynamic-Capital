@@ -1,54 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
-
-interface HealthResponse {
-  overall_status?: "healthy" | "degraded" | "error";
-}
+import {
+  SystemHealthStatusBadge,
+  SYSTEM_HEALTH_STATUS_META,
+  type SystemHealthDisplayStatus,
+} from '@/components/ui/system-health';
+import { useSystemHealth } from '@/hooks/useSystemHealth';
 
 export const EdgeFunctionStatus = () => {
-  const [status, setStatus] = useState<
-    "checking" | "healthy" | "degraded" | "error"
-  >("checking");
+  const { data, isLoading, isError } = useSystemHealth();
 
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke(
-          "web-app-health",
-          { method: "GET" },
-        );
-        if (error) {
-          setStatus("error");
-          return;
-        }
-        const typedData = data as HealthResponse;
-        setStatus(typedData?.overall_status || "degraded");
-      } catch (_err) {
-        setStatus("error");
-      }
-    };
+  const status: SystemHealthDisplayStatus = data
+    ? data.overall_status
+    : isLoading
+    ? 'loading'
+    : isError
+    ? 'unknown'
+    : 'loading';
 
-    checkStatus();
-  }, []);
+  const label = data
+    ? `Edge functions: ${SYSTEM_HEALTH_STATUS_META[data.overall_status].label}`
+    : status === 'loading'
+    ? 'Checking edge functions…'
+    : 'Edge functions unavailable';
 
-  const variant =
-    status === "healthy"
-      ? "default"
-      : status === "degraded"
-      ? "secondary"
-      : status === "checking"
-      ? "outline"
-      : "destructive";
-
-  const label =
-    status === "checking"
-      ? "Checking edge functions..."
-      : `Edge functions: ${status}`;
-
-  return <Badge variant={variant}>{label}</Badge>;
+  return (
+    <SystemHealthStatusBadge status={status} className="whitespace-nowrap">
+      {label}
+    </SystemHealthStatusBadge>
+  );
 };
 
 export default EdgeFunctionStatus;
