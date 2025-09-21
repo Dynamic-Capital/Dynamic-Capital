@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatIsoDateTime } from "@/utils/isoFormat";
 import type { AnalyticsData } from "./types";
 import { ViewHeader } from "./ViewHeader";
 
@@ -211,7 +212,7 @@ export function AnalyticsView({ onBack }: AnalyticsViewProps) {
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">Audience overview</h3>
                 <p className="text-sm text-muted-foreground">
-                  Snapshot generated at {new Date(analytics.generated_at).toLocaleString()}
+                  Snapshot generated at {formatIsoDateTime(analytics.generated_at ?? new Date())}
                 </p>
               </div>
               <div className="flex flex-wrap gap-4">

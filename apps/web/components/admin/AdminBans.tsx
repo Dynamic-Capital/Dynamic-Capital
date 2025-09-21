@@ -11,6 +11,7 @@ import { Shield, UserX, Plus, Calendar, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { callEdgeFunction } from "@/config/supabase";
+import { formatIsoDateTime } from "@/utils/isoFormat";
 
 interface AbuseBan {
   id: string;
@@ -173,7 +174,7 @@ export function AdminBans() {
   }, [loadBans]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    return formatIsoDateTime(dateString);
   };
 
   const isExpired = (expiresAt?: string) => {

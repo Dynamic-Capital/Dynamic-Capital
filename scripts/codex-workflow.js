@@ -822,7 +822,7 @@ function formatTimestamp(iso) {
     return iso;
   }
 
-  return date.toLocaleString();
+  return date.toISOString();
 }
 
 function printTroubleshootingTips(task, options = {}) {

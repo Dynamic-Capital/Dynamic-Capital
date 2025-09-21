@@ -20,6 +20,7 @@ import { formatSupabaseError } from '@/utils/supabaseError';
 import { useToast } from "@/hooks/useToast";
 import { getCached } from "@/utils/cache";
 import { getTimezones } from "@/utils/timezones";
+import { formatIsoDate, formatIsoTime } from "@/utils/isoFormat";
 import {
   Activity,
   AlertTriangle,
@@ -398,7 +399,7 @@ export const SystemStatus = () => {
                         {getStatusBadge(func.status)}
                         {func.lastChecked && (
                           <span className="text-xs text-muted-foreground">
-                            {new Date(func.lastChecked).toLocaleTimeString()}
+                            {formatIsoTime(func.lastChecked)}
                           </span>
                         )}
                       </div>
@@ -449,7 +450,7 @@ export const SystemStatus = () => {
                           {table.lastUpdated && (
                             <p className="text-xs text-muted-foreground">
                               Last updated:{" "}
-                              {new Date(table.lastUpdated).toLocaleDateString()}
+                              {formatIsoDate(table.lastUpdated)}
                             </p>
                           )}
                         </div>

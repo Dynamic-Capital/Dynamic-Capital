@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Column, Heading, Line, Row, Tag, Text } from "@once-ui-system/core";
 import type { IconName } from "@/resources/icons";
+import { formatIsoTime } from "@/utils/isoFormat";
 
 interface MarketWatchlistItem {
   symbol: string;
@@ -374,11 +375,7 @@ const getStatusLabel = (updatedAt: Date | null, isFetching: boolean) => {
     return "Syncing live prices…";
   }
   if (updatedAt) {
-    return `Synced ${updatedAt.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    })}`;
+    return `Synced ${formatIsoTime(updatedAt)}`;
   }
   return "Waiting for live feed…";
 };

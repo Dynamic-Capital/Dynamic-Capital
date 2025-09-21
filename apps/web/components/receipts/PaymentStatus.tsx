@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ReceiptUploader from "./ReceiptUploader";
+import { formatIsoDate } from "@/utils/isoFormat";
 
 interface PaymentStatusProps {
   paymentId?: string;
@@ -186,7 +187,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
             <div>
               <div className="text-sm font-medium text-muted-foreground">Created</div>
               <div className="font-medium">
-                {new Date(payment.created_at).toLocaleDateString()}
+                {formatIsoDate(payment.created_at)}
               </div>
             </div>
           </div>

@@ -26,6 +26,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/utils';
+import { formatIsoTime } from '@/utils/isoFormat';
 import {
   type SystemHealthCheck,
   type SystemHealthCheckKey,
@@ -463,7 +464,7 @@ export function SystemHealth({
         </div>
         {lastChecked && (
           <CardDescription className="text-xs">
-            Last checked: {lastChecked.toLocaleTimeString()}
+            Last checked: {formatIsoTime(lastChecked)}
           </CardDescription>
         )}
       </CardHeader>

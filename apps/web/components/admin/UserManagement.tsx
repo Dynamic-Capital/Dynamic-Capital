@@ -35,6 +35,7 @@ import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, Package, Plus, Search, Users } from "lucide-react";
+import { formatIsoDate } from "@/utils/isoFormat";
 
 interface Profile {
   id: string;
@@ -668,7 +669,7 @@ export function UserManagement() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {new Date(user.created_at).toLocaleDateString()}
+                            {formatIsoDate(user.created_at)}
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
@@ -722,13 +723,11 @@ export function UserManagement() {
                             {assignment.package_id.substring(0, 8)}...
                           </TableCell>
                           <TableCell>
-                            {new Date(assignment.assigned_at)
-                              .toLocaleDateString()}
+                            {formatIsoDate(assignment.assigned_at)}
                           </TableCell>
                           <TableCell>
                             {assignment.expires_at
-                              ? new Date(assignment.expires_at)
-                                .toLocaleDateString()
+                              ? formatIsoDate(assignment.expires_at)
                               : "Never"}
                           </TableCell>
                           <TableCell>
@@ -798,7 +797,7 @@ export function UserManagement() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {new Date(payment.created_at).toLocaleDateString()}
+                            {formatIsoDate(payment.created_at)}
                           </TableCell>
                           <TableCell>
                             {payment.receipt_telegram_file_id

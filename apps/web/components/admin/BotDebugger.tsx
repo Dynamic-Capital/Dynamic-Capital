@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/useToast";
 import { Badge } from "@/components/ui/badge";
+import { formatIsoDateTime } from "@/utils/isoFormat";
 
 interface BotStatusResponse {
   bot_status: string;
@@ -152,7 +153,7 @@ export const BotDebugger = () => {
                 <div className="mt-4 p-3 bg-muted rounded">
                   <p className="text-sm text-muted-foreground">
                     Last checked:{" "}
-                    {new Date(botStatus.timestamp).toLocaleString()}
+                    {formatIsoDateTime(botStatus.timestamp)}
                   </p>
                 </div>
               </div>
