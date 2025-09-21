@@ -1,20 +1,18 @@
-import { type ReactNode } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { type ReactNode } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // Removed Once UI system dependencies
-import { MotionConfigProvider } from '@/components/ui/motion-config';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { LandingPageShell } from '@/components/landing/LandingPageShell';
-import CheckoutPage from './pages/CheckoutPage';
-import { Footer } from '@/components/magic-portfolio/Footer';
+import { MotionConfigProvider } from "@/components/ui/motion-config";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { LandingPageShell } from "@/components/landing/LandingPageShell";
+import CheckoutPage from "./pages/CheckoutPage";
+import { Footer } from "@/components/magic-portfolio/Footer";
 
 const queryClient = new QueryClient();
 
 function AppProviders({ children }: { children: ReactNode }) {
-  return (
-    <MotionConfigProvider>{children}</MotionConfigProvider>
-  );
+  return <MotionConfigProvider>{children}</MotionConfigProvider>;
 }
 
 function HomePage() {
