@@ -181,6 +181,10 @@ const nextConfig = {
     DEFAULT_LOCALE,
     NEXT_PUBLIC_DEFAULT_LOCALE: DEFAULT_LOCALE,
   },
+  i18n: {
+    locales: LOCALES,
+    defaultLocale: DEFAULT_LOCALE,
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
