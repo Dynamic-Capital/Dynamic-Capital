@@ -1,0 +1,23 @@
+{
+  "milestones": [
+    {
+      "title": "Q4-2025 Kickoff (v0.1.0)",
+      "state": "open",
+      "description": "MVP: CI/automerge/stable preview deploys",
+      "due_on": "2025-10-31T23:59:59Z"
+    },
+    {
+      "title": "Q4-2025 Mid (v0.2.0)",
+      "state": "open",
+      "description": "Integrations & polish",
+      "due_on": "2025-11-30T23:59:59Z"
+    },
+    {
+      "title": "Q4-2025 GA (v1.0.0)",
+      "state": "open",
+      "description": "Public launch & docs",
+      "due_on": "2025-12-31T23:59:59Z"
+    }
+  ]
+}
+

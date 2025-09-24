@@ -1,0 +1,29 @@
+name: Auto-assign milestone from label
+
+on:
+  pull_request:
+    types: [opened, labeled, synchronize, reopened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign when PR has a `milestone:<title>` label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          FILE="$GITHUB_EVENT_PATH"
+          want=$(jq -r '.pull_request.labels[].name | select(startswith("milestone:"))' "$FILE" | head -n1 || true)
+          [ -z "$want" ] && { echo "No milestone label found; skipping"; exit 0; }
+          title="${want#milestone:}"
+          num=$(gh api repos/${{ github.repository }}/milestones --paginate \
+                 -q ".[] | select(.title==\"$title\") | .number")
+          [ -z "$num" ] && { echo "Milestone '$title' not found"; exit 0; }
+          pr=$(jq -r '.number' "$FILE")
+          gh api -X PATCH repos/${{ github.repository }}/issues/$pr -f milestone="$num"
+
