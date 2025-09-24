@@ -1,28 +1,130 @@
 import {
-  createClient as baseCreateClient,
+  createClient as createSupabaseClient,
   type SupabaseClient,
   type SupabaseClientOptions,
-} from "../../../apps/web/integrations/supabase/client.ts";
-import { createClient as createSupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+} from "https://esm.sh/@supabase/supabase-js@2?dts";
 
-export type { SupabaseClient, SupabaseClientOptions };
+declare const process:
+  | { env: Record<string, string | undefined> }
+  | undefined;
+declare const Deno: { env: { get(key: string): string | undefined } } | undefined;
+
+type ResolvedValue = {
+  value: string;
+  fromEnv: boolean;
+};
+
+function sanitize(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (
+    trimmed === "" ||
+    trimmed.toLowerCase() === "undefined" ||
+    trimmed.toLowerCase() === "null"
+  ) {
+    return undefined;
+  }
+  return trimmed;
+}
+
+function readEnv(key: string): string | undefined {
+  if (typeof process !== "undefined" && process?.env) {
+    const val = sanitize(process.env[key]);
+    if (val !== undefined) return val;
+  }
+  if (typeof Deno !== "undefined" && typeof Deno.env?.get === "function") {
+    try {
+      const val = sanitize(Deno.env.get(key) ?? undefined);
+      if (val !== undefined) return val;
+    } catch {
+      // Ignore permission errors in local dev or tests.
+    }
+  }
+  return undefined;
+}
+
+function getEnvVar(name: string, aliases: string[] = []): string | undefined {
+  for (const key of [name, ...aliases]) {
+    const val = readEnv(key);
+    if (val !== undefined) return val;
+  }
+  return undefined;
+}
+
+function resolveValue(
+  primary: string,
+  aliases: string[],
+  fallback: string,
+): ResolvedValue {
+  const resolved = getEnvVar(primary, aliases);
+  if (resolved && resolved.length > 0) {
+    return { value: resolved, fromEnv: true };
+  }
+  return { value: fallback, fromEnv: false };
+}
+
+const DEFAULT_SUPABASE_URL = "https://qeejuomcapbdlhnjqjcc.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZWp1b21jYXBiZGxobmpxamNjIiwicm9sZSI6ImFub24iLCJpYXRpIjoxNzU0MjAxODE1LCJleHAiOjIwNjk3Nzc4MTV9.GfK9Wwx0WX_GhDIz1sIQzNstyAQIF2Jd6p7t02G44zk";
+
+const SUPABASE_URL_RESOLUTION = resolveValue(
+  "SUPABASE_URL",
+  ["NEXT_PUBLIC_SUPABASE_URL"],
+  DEFAULT_SUPABASE_URL,
+);
+
+const SUPABASE_ANON_KEY_RESOLUTION = resolveValue(
+  "SUPABASE_ANON_KEY",
+  ["NEXT_PUBLIC_SUPABASE_ANON_KEY"],
+  DEFAULT_SUPABASE_ANON_KEY,
+);
+
+const SUPABASE_URL = SUPABASE_URL_RESOLUTION.value;
+const SUPABASE_ANON_KEY = SUPABASE_ANON_KEY_RESOLUTION.value;
+const SUPABASE_SERVICE_ROLE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY", [
+  "SUPABASE_SERVICE_ROLE",
+]);
 
 let anonClient: SupabaseClient | null = null;
 let serviceClient: SupabaseClient | null = null;
+
+export type { SupabaseClient, SupabaseClientOptions };
 
 export function createClient(
   role: "anon" | "service" = "anon",
   options?: SupabaseClientOptions<"public">,
 ): SupabaseClient {
+  const key =
+    role === "service"
+      ? SUPABASE_SERVICE_ROLE_KEY
+      : SUPABASE_ANON_KEY;
+
+  if (!SUPABASE_URL) {
+    throw new Error("Missing Supabase URL");
+  }
+
+  if (!key) {
+    throw new Error(
+      role === "service"
+        ? "Missing Supabase service role key"
+        : "Missing Supabase anon key",
+    );
+  }
+
   if (!options) {
     if (role === "anon") {
-      if (!anonClient) anonClient = baseCreateClient(role);
+      if (!anonClient) {
+        anonClient = createSupabaseClient(SUPABASE_URL, key);
+      }
       return anonClient;
     }
-    if (!serviceClient) serviceClient = baseCreateClient(role);
+    if (!serviceClient) {
+      serviceClient = createSupabaseClient(SUPABASE_URL, key);
+    }
     return serviceClient;
   }
-  return baseCreateClient(role, options);
+
+  return createSupabaseClient(SUPABASE_URL, key, options);
 }
 
 export function getServiceClient(): SupabaseClient {
