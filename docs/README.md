@@ -1,0 +1,155 @@
+# Dynamic Capital Documentation Index
+
+This index groups every document in `docs/` by workflow so contributors can
+locate the right guide without scanning dozens of filenames. Each table is
+numbered for quick reference—use the `Ref` code when coordinating handoffs or
+documenting which assets were consulted.
+
+## How to Use This Index
+
+- Start with **Section 1** to understand the platform layout, repo maps, and
+  high-level plans.
+- Jump to the section that matches your current task (development, deployment,
+  trading operations, etc.) and open the linked guides.
+- Reference the `Ref` codes in issues/PR descriptions so reviewers know which
+  procedures or checklists were followed.
+- Regenerate generated documents (e.g., `REPO_SUMMARY.md`) via the scripts noted
+  inside them before committing updates.
+
+## 1. Orientation & Repo Maps
+
+| Ref  | Document                                               | Summary                                                                                           |
+| ---- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| 1.1  | [FLOW_OVERVIEW.md](./FLOW_OVERVIEW.md)                 | End-to-end map of how the marketing site, Telegram bot, Supabase functions, and Mini App connect. |
+| 1.2  | [agent.md](./agent.md)                                 | Behavioral contract for the Dynamic Capital agent across Telegram commands and the Mini App.      |
+| 1.3  | [FEATURES.md](./FEATURES.md)                           | Feature catalog outlining customer-facing capabilities and planned enhancements.                  |
+| 1.4  | [ROADMAP.md](./ROADMAP.md)                             | Timeline of in-flight and upcoming initiatives with milestone guidance.                           |
+| 1.5  | [REPO_SUMMARY.md](./REPO_SUMMARY.md)                   | Generated snapshot of top-level directories, edge functions, and environment keys.                |
+| 1.6  | [REPO_MAP_OPTIMIZATION.md](./REPO_MAP_OPTIMIZATION.md) | Deep dive on code surface responsibilities plus optimization tracker.                             |
+| 1.7  | [REPO_FILE_ORGANIZER.md](./REPO_FILE_ORGANIZER.md)     | Categorized listing of top-level files/folders and their roles.                                   |
+| 1.8  | [REPO_INVENTORY.md](./REPO_INVENTORY.md)               | Narrative walkthrough of major directories, Supabase assets, and trading scaffolding.             |
+| 1.9  | [SETUP_SUMMARY.md](./SETUP_SUMMARY.md)                 | Generated recap of setup goals, migration highlights, and CI guardrails.                          |
+| 1.10 | [INVENTORY.csv](./INVENTORY.csv)                       | CSV export that tracks documentation counts, line totals, and repo metrics.                       |
+| 1.11 | [CHANGELOG.md](./CHANGELOG.md)                         | Chronological release notes maintained by the release automation.                                 |
+
+## 2. Development Workflow & Standards
+
+| Ref | Document                                                           | Summary                                                                                 |
+| --- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| 2.1 | [BEST_PRACTICES.md](./BEST_PRACTICES.md)                           | Coding conventions, review expectations, and shared quality bars.                       |
+| 2.2 | [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)               | Local development flow, tooling setup, and day-to-day commands.                         |
+| 2.3 | [HYBRID_DEVELOPMENT_WORKFLOW.md](./HYBRID_DEVELOPMENT_WORKFLOW.md) | Guidance for working across Lovable, Supabase, and local Next.js surfaces concurrently. |
+| 2.4 | [code-structure.md](./code-structure.md)                           | High-level overview of monorepo structure and module boundaries.                        |
+| 2.5 | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Notes for collaborating with the Codex CLI agents on scoped tasks.                      |
+| 2.6 | [CLEANUP_AND_CODEMODS.md](./CLEANUP_AND_CODEMODS.md)               | Strategy for running codemods and debt cleanups safely.                                 |
+| 2.7 | [NEXTJS_BUILD_CACHE_TASK.md](./NEXTJS_BUILD_CACHE_TASK.md)         | Instructions for the Next.js build cache maintenance task.                              |
+
+## 3. Environment & Configuration
+
+| Ref | Document                                                 | Summary                                                                  |
+| --- | -------------------------------------------------------- | ------------------------------------------------------------------------ |
+| 3.1 | [CONFIG.md](./CONFIG.md)                                 | Central list of configuration surfaces and how they map to environments. |
+| 3.2 | [CONFIG_SECRETS.md](./CONFIG_SECRETS.md)                 | Playbook for syncing sensitive configuration between environments.       |
+| 3.3 | [env.md](./env.md)                                       | Environment variable reference with default values and usage notes.      |
+| 3.4 | [SECRETS.md](./SECRETS.md)                               | Supabase Edge secret handling patterns and guard tasks.                  |
+| 3.5 | [GITHUB_PAT.md](./GITHUB_PAT.md)                         | Requirements for generating and using GitHub Personal Access Tokens.     |
+| 3.6 | [SUPABASE_LOG_STREAMING.md](./SUPABASE_LOG_STREAMING.md) | Steps to forward Supabase logs to external aggregators.                  |
+
+## 4. Deployment & Infrastructure
+
+| Ref | Document                                                                   | Summary                                                                                |
+| --- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 4.1 | [DEPLOYMENT.md](./DEPLOYMENT.md)                                           | End-to-end deployment procedure for the Next.js app, Mini App, and Supabase functions. |
+| 4.2 | [INCREMENTAL_MIGRATION_TO_VERCEL.md](./INCREMENTAL_MIGRATION_TO_VERCEL.md) | Guide for migrating workloads into Vercel iteratively.                                 |
+| 4.3 | [DIGITALOCEAN_APP_LOGS.md](./DIGITALOCEAN_APP_LOGS.md)                     | Collecting and analyzing DigitalOcean App Platform logs.                               |
+| 4.4 | [DUCKDNS_NGINX_CERTBOT.md](./DUCKDNS_NGINX_CERTBOT.md)                     | DuckDNS and Certbot automation notes for the hardened Nginx proxy.                     |
+| 4.5 | [NETWORKING.md](./NETWORKING.md)                                           | DNS, domain, and origin configuration for the platform.                                |
+| 4.6 | [VERCEL_PROJECT_SETTINGS.md](./VERCEL_PROJECT_SETTINGS.md)                 | Recommended Vercel project settings matching the checked-in config.                    |
+| 4.7 | [VERCEL_PRODUCTION_CHECKLIST.md](./VERCEL_PRODUCTION_CHECKLIST.md)         | Well-architected review for Vercel deployments.                                        |
+| 4.8 | [postgres-upgrade.md](./postgres-upgrade.md)                               | Steps to upgrade PostgreSQL safely to the latest patched release.                      |
+
+## 5. Telegram & Mini App Delivery
+
+| Ref  | Document                                                   | Summary                                                                                    |
+| ---- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 5.1  | [MINI_APP_FLOW.md](./MINI_APP_FLOW.md)                     | Overview of the Telegram Mini App user journey and technical hooks.                        |
+| 5.2  | [MINI_APP_ON_SUPABASE.md](./MINI_APP_ON_SUPABASE.md)       | Wiring the Mini App to Supabase auth, storage, and edge functions.                         |
+| 5.3  | [MINI_APP_URL_SETUP.md](./MINI_APP_URL_SETUP.md)           | URL, domain, and configuration requirements for the Mini App host.                         |
+| 5.4  | [MINI_APP_VERIFY.md](./MINI_APP_VERIFY.md)                 | Verification checklist to confirm the Mini App build is production-ready.                  |
+| 5.5  | [MINIAPP_DEPLOYMENT.md](./MINIAPP_DEPLOYMENT.md)           | Deployment plan for packaging and shipping the Mini App.                                   |
+| 5.6  | [MAKE_INITDATA.md](./MAKE_INITDATA.md)                     | Procedure for generating Telegram Mini App `initData` payloads.                            |
+| 5.7  | [VERIFY_INITDATA.md](./VERIFY_INITDATA.md)                 | Steps to validate Telegram `initData` signatures.                                          |
+| 5.8  | [TELEGRAM_WEBHOOK_KEEPER.md](./TELEGRAM_WEBHOOK_KEEPER.md) | Bot keeper that maintains webhook health and retries updates.                              |
+| 5.9  | [webhook.md](./webhook.md)                                 | Telegram webhook configuration, rotation, and troubleshooting guide.                       |
+| 5.10 | [LINKAGE_CHECKLIST.md](./LINKAGE_CHECKLIST.md)             | Audit to ensure bot, Mini App, and Supabase edge functions share consistent hosts/secrets. |
+
+## 6. Trading & Financial Operations
+
+| Ref | Document                                                                             | Summary                                                                  |
+| --- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| 6.1 | [automated-trading-checklist.md](./automated-trading-checklist.md)                   | Project plan for delivering the TradingView → Supabase → MT5 automation. |
+| 6.2 | [TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md](./TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md)   | Detailed bridge build between TradingView alerts and MetaTrader 5.       |
+| 6.3 | [TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md) | Cross-team onboarding workflow for the TradingView/MT5 stack.            |
+| 6.4 | [investing-com-candlestick-checklist.md](./investing-com-candlestick-checklist.md)   | Checklist for ingesting Investing.com candlestick signals.               |
+| 6.5 | [trading-runbook.md](./trading-runbook.md)                                           | Day-to-day trading operations, monitoring, and model lifecycle steps.    |
+| 6.6 | [private-fund-pool.md](./private-fund-pool.md)                                       | Architecture and database design for the private fund pool service.      |
+| 6.7 | [index-advisor.md](./index-advisor.md)                                               | Using Supabase Index Advisor to tune query performance.                  |
+| 6.8 | [WRAPPERS_INTEGRATION.md](./WRAPPERS_INTEGRATION.md)                                 | How to connect external services via Postgres foreign data wrappers.     |
+
+## 7. Operational Runbooks & Launch Phases
+
+| Ref  | Document                                                             | Summary                                                                   |
+| ---- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 7.1  | [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md)                       | Pre-launch smoke tests for Telegram webhook flows and Mini App readiness. |
+| 7.2  | [LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md)                         | Secrets, keeper setup, and production readiness tasks before launch.      |
+| 7.3  | [RUNBOOK_start-not-responding.md](./RUNBOOK_start-not-responding.md) | Incident response for the Telegram `/start` command failing.              |
+| 7.4  | [PHASE_3_CHECKOUT.md](./PHASE_3_CHECKOUT.md)                         | Launch program phase covering checkout automation and payment flows.      |
+| 7.5  | [PHASE_4_ADMIN.md](./PHASE_4_ADMIN.md)                               | Phase plan for admin tooling rollout.                                     |
+| 7.6  | [PHASE_5_ADMIN_UI.md](./PHASE_5_ADMIN_UI.md)                         | UI hardening tasks for the admin console.                                 |
+| 7.7  | [PHASE_6_OPS.md](./PHASE_6_OPS.md)                                   | Operational readiness workstream for post-launch support.                 |
+| 7.8  | [PHASE_7_QA.md](./PHASE_7_QA.md)                                     | QA strategy including automation coverage and manual validation.          |
+| 7.9  | [PHASE_8_GROWTH.md](./PHASE_8_GROWTH.md)                             | Growth experiments and marketing activation plan.                         |
+| 7.10 | [PHASE_9_SECURITY.md](./PHASE_9_SECURITY.md)                         | Security hardening checklist for the launch program.                      |
+| 7.11 | [PHASE_10_AUTOVERIFY.md](./PHASE_10_AUTOVERIFY.md)                   | Automated verification tasks to keep the stack healthy post-launch.       |
+
+## 8. Security, Compliance & Legal
+
+| Ref  | Document                                                         | Summary                                                               |
+| ---- | ---------------------------------------------------------------- | --------------------------------------------------------------------- |
+| 8.1  | [secrets-checklist.md](./secrets-checklist.md)                   | Environment-specific secret coverage required before shipping.        |
+| 8.2  | [SECURITY_service-role.md](./SECURITY_service-role.md)           | Handling and rotation procedures for the Supabase service-role key.   |
+| 8.3  | [supabase-audit-report.md](./supabase-audit-report.md)           | Generated audit of Supabase tables, policies, functions, and indexes. |
+| 8.4  | [content-policy.md](./content-policy.md)                         | Content moderation rules governing bot responses and marketing copy.  |
+| 8.5  | [compliance/README.md](./compliance/README.md)                   | Entry point for compliance evidence and certification summaries.      |
+| 8.6  | [compliance/gdpr.md](./compliance/gdpr.md)                       | GDPR compliance posture and required controls.                        |
+| 8.7  | [compliance/hipaa.md](./compliance/hipaa.md)                     | HIPAA considerations for handling sensitive financial data.           |
+| 8.8  | [compliance/iso-27001.md](./compliance/iso-27001.md)             | ISO 27001 control mapping for the project.                            |
+| 8.9  | [compliance/pci-dss-level1.md](./compliance/pci-dss-level1.md)   | PCI DSS Level 1 checklist tailored to the bot workflow.               |
+| 8.10 | [compliance/soc1-type2.md](./compliance/soc1-type2.md)           | SOC 1 Type II readiness documentation.                                |
+| 8.11 | [compliance/soc2-type2.md](./compliance/soc2-type2.md)           | SOC 2 Type II readiness documentation.                                |
+| 8.12 | [compliance/dpf.md](./compliance/dpf.md)                         | Digital Platform Fairness compliance overview.                        |
+| 8.13 | [compliance/certificates.json](./compliance/certificates.json)   | Machine-readable compliance certificates referenced by audits.        |
+| 8.14 | [legal/README.md](./legal/README.md)                             | Legal documentation index for licensing obligations.                  |
+| 8.15 | [legal/THIRD_PARTY_LICENSES.md](./legal/THIRD_PARTY_LICENSES.md) | Third-party license disclosures bundled with the project.             |
+
+## 9. Checklists & Automation
+
+| Ref | Document                                                                           | Summary                                                                 |
+| --- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| 9.1 | [CHECKLISTS.md](./CHECKLISTS.md)                                                   | Master directory of automation-aware checklists with priority guidance. |
+| 9.2 | [dynamic-capital-checklist.md](./dynamic-capital-checklist.md)                     | Umbrella repo health tracker covering setup, automation, and QA.        |
+| 9.3 | [coding-efficiency-checklist.md](./coding-efficiency-checklist.md)                 | Repeatable template for feature delivery hygiene.                       |
+| 9.4 | [git-branch-organization-checklist.md](./git-branch-organization-checklist.md)     | Steps for aligning Git branches with deployable services.               |
+| 9.5 | [once-ui-development-checklist.md](./once-ui-development-checklist.md)             | Checklist for Once UI powered surfaces (landing, dashboard, Mini App).  |
+| 9.6 | [VARIABLES_AND_LINKS_CHECKLIST.md](./VARIABLES_AND_LINKS_CHECKLIST.md)             | Environment variable and outbound link audit.                           |
+| 9.7 | [dynamic_codex_integration_checklist.md](./dynamic_codex_integration_checklist.md) | Historic plan for folding Dynamic Codex into the monorepo.              |
+| 9.8 | [project-updater.md](./project-updater.md)                                         | Automation suite that regenerates release docs and project metadata.    |
+
+## 10. Reference, Content & Growth
+
+| Ref  | Document                                                          | Summary                                                                     |
+| ---- | ----------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 10.1 | [BOT_CONTENT.md](./BOT_CONTENT.md)                                | Default Telegram bot content keys and override instructions.                |
+| 10.2 | [MENTORSHIP — Pricing Strategy](./mentorship/pricing-strategy.md) | Pricing, positioning, and enrollment plan for the mentorship offering.      |
+| 10.3 | [ict-terminology-cheatsheet.md](./ict-terminology-cheatsheet.md)  | Glossary of ICT/market structure terminology used across docs.              |
+| 10.4 | [api-documentation.md](./api-documentation.md)                    | Supabase edge function API reference optimised for AI-assisted development. |
