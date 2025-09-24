@@ -140,7 +140,8 @@ const effects: EffectsConfig = {
 };
 
 const mailchimp: MailchimpConfig = {
-  action: "https://dynamiccapital.us21.list-manage.com/subscribe/post?u=c1a5a210340eb6c7bff33b2ba&id=0462d244aa",
+  action:
+    "https://dynamiccapital.us21.list-manage.com/subscribe/post?u=c1a5a210340eb6c7bff33b2ba&id=0462d244aa",
   effects: {
     mask: {
       cursor: true,
@@ -212,7 +213,7 @@ const socialSharing: SocialSharingConfig = {
   },
 };
 
-const systemUI = {
+const dyamicUI = {
   basics: {
     baseURL,
     display,
@@ -247,17 +248,17 @@ const systemUI = {
 } satisfies SystemUIConfig;
 
 export {
-  display,
-  mailchimp,
-  routes,
-  protectedRoutes,
   baseURL,
-  fonts,
-  style,
-  schema,
-  sameAs,
-  socialSharing,
-  effects,
   dataStyle,
-  systemUI,
+  display,
+  dyamicUI,
+  effects,
+  fonts,
+  mailchimp,
+  protectedRoutes,
+  routes,
+  sameAs,
+  schema,
+  socialSharing,
+  style,
 };

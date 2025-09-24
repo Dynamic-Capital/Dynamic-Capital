@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 import dynamic from "next/dynamic";
 import { Background, Column, RevealFx } from "@once-ui-system/core";
 import { opacity, SpacingToken } from "@once-ui-system/core";
 import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
-import { systemUI } from "@/resources";
+import { dyamicUI } from "@/resources";
 import { MagicLandingPage } from "@/components/magic-portfolio/MagicLandingPage";
 import type {
   ChromaBackgroundProps,
@@ -14,7 +14,7 @@ import type {
 
 const DynamicChromaBackground = dynamic<ChromaBackgroundProps>(
   () => import("@/components/landing/ChromaBackground"),
-  { ssr: false }
+  { ssr: false },
 );
 
 export interface LandingPageShellProps {
@@ -42,7 +42,7 @@ export function LandingPageShell({
   assistantClassName,
   chromaBackgroundVariant = null,
 }: LandingPageShellProps) {
-  const backgroundEffects = systemUI.effects.background;
+  const backgroundEffects = dyamicUI.effects.background;
 
   return (
     <Column
@@ -97,12 +97,14 @@ export function LandingPageShell({
           }}
         />
       </RevealFx>
-      {chromaBackgroundVariant ? (
-        <DynamicChromaBackground
-          variant={chromaBackgroundVariant}
-          className="pointer-events-none absolute inset-0 z-0"
-        />
-      ) : null}
+      {chromaBackgroundVariant
+        ? (
+          <DynamicChromaBackground
+            variant={chromaBackgroundVariant}
+            className="pointer-events-none absolute inset-0 z-0"
+          />
+        )
+        : null}
       <Column
         zIndex={1}
         fillWidth
@@ -113,12 +115,13 @@ export function LandingPageShell({
       >
         <MagicLandingPage />
       </Column>
-      {showAssistant ? (
-        <Column zIndex={1} paddingX="16">
-          <ChatAssistantWidget className={assistantClassName} />
-        </Column>
-      ) : null}
+      {showAssistant
+        ? (
+          <Column zIndex={1} paddingX="16">
+            <ChatAssistantWidget className={assistantClassName} />
+          </Column>
+        )
+        : null}
     </Column>
   );
 }
-
