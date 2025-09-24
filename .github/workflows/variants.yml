@@ -1,0 +1,50 @@
+name: Variant matrix
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+permissions:
+  contents: read
+jobs:
+  compare-variants:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        variant: [v1, v2, v3, v4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Prepare variant branch
+        run: |
+          git checkout -b chore/codex-${{ matrix.variant }}
+          echo "// ${{ matrix.variant }} placeholder change" >> codex-${{ matrix.variant }}.md
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+        run: pnpm -w build
+      - name: Size snapshot
+        run: |
+          du -sh .next || true
+          du -sh out || true
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.variant }}-artifacts
+          path: |
+            .next
+            out
+            codex-${{ matrix.variant }}.md
+  pick-winner:
+    needs: compare-variants
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide winner (placeholder)
+        run: echo "Pick variant with successful build and smallest artifact size"
