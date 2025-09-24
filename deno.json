@@ -74,13 +74,15 @@
   // Telegram webhook keeper: every 15 minutes
   // supabase functions schedule create "*/15 * * * *" telegram-webhook-keeper
   "lock": false,
-  "nodeModulesDir": false,
+  "nodeModulesDir": "none",
   "compilerOptions": {
     "types": [
       "./apps/web/types/tesseract.d.ts",
-      "./apps/web/types/deno.d.ts"
-    ],
-    "typeRoots": ["./apps/web/types"]
+      "./apps/web/types/deno.d.ts",
+      "./apps/web/types/import-meta.d.ts",
+      "./apps/web/types/sentry-nextjs.d.ts",
+      "./apps/web/types/@types/node/index.d.ts"
+    ]
   },
   "importMap": "./supabase/functions/telegram-bot/vendor/import_map.json",
   "test": {
