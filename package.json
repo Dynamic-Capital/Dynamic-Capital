@@ -36,6 +36,9 @@
     "audit": "npm audit",
     "audit:fix": "npm audit fix",
     "sync-env": "deno run -A scripts/sync-env.ts",
+    "env:validate": "tsx scripts/env/validate.ts",
+    "env:sync": "tsx scripts/env/sync.ts",
+    "env:report": "tsx scripts/env/report.ts",
     "do:sync-site": "node scripts/digitalocean/sync-site-config.mjs",
     "do:sync-cdn": "node scripts/digitalocean/sync-cdn-config.mjs",
     "doctl:sync-site": "node scripts/doctl/sync-site-config.mjs",
@@ -54,7 +57,8 @@
     "chokidar-cli": "^3.0.0",
     "deno": "^2.5.0",
     "supabase": "^2.40.7",
-    "yaml": "^2.8.1"
+    "yaml": "^2.8.1",
+    "tsx": "^4.20.5"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.10.0",
