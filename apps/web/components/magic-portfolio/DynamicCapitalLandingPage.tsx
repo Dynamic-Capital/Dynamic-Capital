@@ -1,24 +1,16 @@
-import {
-  Badge,
-  Button,
-  Column,
-  Heading,
-  RevealFx,
-  Row,
-  Schema,
-  Text,
-} from "@once-ui-system/core";
-import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
-import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
+import { Column, RevealFx, Schema } from "@once-ui-system/core";
 import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
-import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
 import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
-import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
-import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
-import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
 import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
 import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
 import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
+import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
+import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
+import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
+import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
+import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
+import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
+import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 
 export function DynamicCapitalLandingPage() {
   return (
@@ -36,86 +28,7 @@ export function DynamicCapitalLandingPage() {
           image: toAbsoluteUrl(baseURL, person.avatar),
         }}
       />
-      <Column fillWidth horizontal="center" gap="m">
-        <Column maxWidth="s" horizontal="center" align="center">
-          {home.featured.display && (
-            <RevealFx
-              fillWidth
-              horizontal="center"
-              paddingTop="16"
-              paddingBottom="32"
-              paddingLeft="12"
-            >
-              <Badge
-                background="brand-alpha-weak"
-                paddingX="12"
-                paddingY="4"
-                onBackground="neutral-strong"
-                textVariant="label-default-s"
-                arrow={false}
-                href={home.featured.href}
-              >
-                <Row paddingY="2">{home.featured.title}</Row>
-              </Badge>
-            </RevealFx>
-          )}
-          <RevealFx
-            translateY="4"
-            fillWidth
-            horizontal="center"
-            paddingBottom="16"
-          >
-            <Heading wrap="balance" variant="display-strong-l">
-              {home.headline}
-            </Heading>
-          </RevealFx>
-          <RevealFx
-            translateY="8"
-            delay={0.2}
-            fillWidth
-            horizontal="center"
-            paddingBottom="32"
-          >
-            <Text
-              wrap="balance"
-              onBackground="neutral-weak"
-              variant="heading-default-xl"
-            >
-              {home.subline}
-            </Text>
-          </RevealFx>
-          <RevealFx
-            paddingTop="12"
-            delay={0.4}
-            horizontal="center"
-            paddingLeft="12"
-          >
-            <Row gap="12" s={{ direction: "column" }}>
-              <Button
-                id="about"
-                data-border="rounded"
-                href="/checkout"
-                variant="primary"
-                size="m"
-                weight="default"
-                prefixIcon="rocket"
-              >
-                Start checkout
-              </Button>
-              <Button
-                data-border="rounded"
-                href="#vip-packages"
-                variant="secondary"
-                size="m"
-                weight="default"
-                arrowIcon
-              >
-                View VIP packages
-              </Button>
-            </Row>
-          </RevealFx>
-        </Column>
-      </Column>
+      <HeroExperience />
       <RevealFx translateY="20" delay={0.65}>
         <MarketWatchlist />
       </RevealFx>

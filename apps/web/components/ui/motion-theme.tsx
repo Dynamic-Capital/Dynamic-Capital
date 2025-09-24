@@ -1,17 +1,17 @@
 "use client";
 
-import React from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import React from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { cn } from '@/utils';
-import { MotionConfigProvider } from './motion-config';
+import { cn } from "@/utils";
+import { MotionConfigProvider } from "./motion-config";
 import {
-  onceMotionVariants,
-  ONCE_MOTION_SPRINGS,
-  ONCE_MOTION_DURATIONS,
-} from '@/lib/motion-variants';
-import { sectionVariants, SectionVariant } from '@/lib/section-variants';
-import { useIsMobile } from '@/hooks/useMobile';
+  DYNAMIC_MOTION_DURATIONS,
+  DYNAMIC_MOTION_SPRINGS,
+  dynamicMotionVariants,
+} from "@/lib/motion-variants";
+import { SectionVariant, sectionVariants } from "@/lib/section-variants";
+import { useIsMobile } from "@/hooks/useMobile";
 
 interface MotionThemeProviderProps {
   children: React.ReactNode;
@@ -22,13 +22,13 @@ interface MotionThemeProviderProps {
 export const MotionThemeProvider: React.FC<MotionThemeProviderProps> = ({
   children,
   className,
-  reducedMotion = false
+  reducedMotion = false,
 }) => {
   const prefersReducedMotion = useReducedMotion();
   const isReduced = reducedMotion || prefersReducedMotion;
   const containerVariants = isReduced
-    ? onceMotionVariants.fadeIn
-    : onceMotionVariants.stack;
+    ? dynamicMotionVariants.fadeIn
+    : dynamicMotionVariants.stack;
 
   return (
     <MotionConfigProvider>
@@ -37,7 +37,7 @@ export const MotionThemeProvider: React.FC<MotionThemeProviderProps> = ({
           "motion-theme-provider",
           "min-h-screen",
           "transition-all duration-500 ease-out",
-          className
+          className,
         )}
         variants={containerVariants}
         initial="hidden"
@@ -67,13 +67,13 @@ interface MotionPageProps {
 export const MotionPage: React.FC<MotionPageProps> = ({
   children,
   className,
-  pageKey = "page"
+  pageKey = "page",
 }) => {
   return (
     <motion.div
       key={pageKey}
       className={cn("motion-page", className)}
-      variants={onceMotionVariants.stackItem}
+      variants={dynamicMotionVariants.stackItem}
       initial="hidden"
       animate="visible"
       exit="exit"
@@ -107,8 +107,8 @@ export const MotionSection: React.FC<MotionSectionProps> = ({
   const isMobile = useIsMobile();
   const selectedVariant = sectionVariants[variant] || sectionVariants.fadeUp;
   const spring = isMobile
-    ? { ...ONCE_MOTION_SPRINGS.base, stiffness: 300, damping: 25 }
-    : ONCE_MOTION_SPRINGS.base;
+    ? { ...DYNAMIC_MOTION_SPRINGS.base, stiffness: 300, damping: 25 }
+    : DYNAMIC_MOTION_SPRINGS.base;
   return (
     <motion.section
       id={id}
@@ -139,7 +139,7 @@ export const MotionGrid: React.FC<MotionGridProps> = ({
   children,
   className,
   staggerDelay = 0.1,
-  columns = 1
+  columns = 1,
 }) => {
   const gridClass = {
     1: "grid-cols-1",
@@ -154,16 +154,16 @@ export const MotionGrid: React.FC<MotionGridProps> = ({
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.1 }}
-      variants={onceMotionVariants.staggerContainer}
+      variants={dynamicMotionVariants.staggerContainer}
       transition={{
         staggerChildren: staggerDelay,
-        delayChildren: ONCE_MOTION_DURATIONS.instant,
+        delayChildren: DYNAMIC_MOTION_DURATIONS.instant,
       }}
     >
       {React.Children.map(children, (child, index) => (
         <motion.div
           key={index}
-          variants={onceMotionVariants.stackItem}
+          variants={dynamicMotionVariants.stackItem}
         >
           {child}
         </motion.div>
@@ -182,12 +182,12 @@ interface MotionButtonWrapperProps {
 export const MotionButtonWrapper: React.FC<MotionButtonWrapperProps> = ({
   children,
   className,
-  disabled = false
+  disabled = false,
 }) => {
   return (
     <motion.div
       className={className}
-      variants={onceMotionVariants.button}
+      variants={dynamicMotionVariants.button}
       initial="initial"
       animate={disabled ? "disabled" : "initial"}
       whileHover={disabled ? undefined : "hover"}
@@ -210,7 +210,7 @@ export const MotionModal: React.FC<MotionModalProps> = ({
   children,
   isOpen,
   onClose,
-  className
+  className,
 }) => {
   return (
     <AnimatePresence>
@@ -218,7 +218,7 @@ export const MotionModal: React.FC<MotionModalProps> = ({
         <>
           <motion.div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-            variants={onceMotionVariants.backdrop}
+            variants={dynamicMotionVariants.backdrop}
             initial="hidden"
             animate="visible"
             exit="exit"
@@ -227,9 +227,9 @@ export const MotionModal: React.FC<MotionModalProps> = ({
           <motion.div
             className={cn(
               "fixed inset-0 z-50 flex items-center justify-center p-4",
-              className
+              className,
             )}
-            variants={onceMotionVariants.modal}
+            variants={dynamicMotionVariants.modal}
             initial="hidden"
             animate="visible"
             exit="exit"

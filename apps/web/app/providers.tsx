@@ -18,7 +18,7 @@ import {
   SolidType,
   SurfaceStyle,
   ThemeProvider,
-  ToastProvider as OnceToastProvider,
+  ToastProvider as DynamicToastProvider,
   TransitionStyle,
 } from "@once-ui-system/core";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -67,7 +67,7 @@ export default function Providers({ children }: { children: ReactNode }) {
             line: dataStyle.tick.line,
           }}
         >
-          <OnceToastProvider>
+          <DynamicToastProvider>
             <IconProvider icons={iconLibrary}>
               <MotionConfigProvider>
                 <SessionContextProvider supabaseClient={supabaseClient}>
@@ -81,7 +81,7 @@ export default function Providers({ children }: { children: ReactNode }) {
                 </SessionContextProvider>
               </MotionConfigProvider>
             </IconProvider>
-          </OnceToastProvider>
+          </DynamicToastProvider>
         </DataThemeProvider>
       </ThemeProvider>
     </LayoutProvider>

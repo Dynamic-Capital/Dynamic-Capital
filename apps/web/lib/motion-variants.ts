@@ -6,14 +6,14 @@ type SpringTransition = Transition & { type: "spring" };
 
 const spring = (config: SpringTransition): Transition => config;
 
-export const ONCE_MOTION_SPRINGS = {
+export const DYNAMIC_MOTION_SPRINGS = {
   base: spring({ type: "spring", stiffness: 320, damping: 28, mass: 1 }),
   soft: spring({ type: "spring", stiffness: 260, damping: 24, mass: 1.05 }),
   snappy: spring({ type: "spring", stiffness: 400, damping: 25, mass: 0.9 }),
   modal: spring({ type: "spring", stiffness: 300, damping: 30, mass: 1.05 }),
 } as const;
 
-export const ONCE_MOTION_DURATIONS = {
+export const DYNAMIC_MOTION_DURATIONS = {
   instant: 0.12,
   quick: 0.2,
   base: 0.32,
@@ -21,13 +21,13 @@ export const ONCE_MOTION_DURATIONS = {
   slower: 0.6,
 } as const;
 
-export const ONCE_MOTION_EASING = {
+export const DYNAMIC_MOTION_EASING = {
   standard: [0.4, 0, 0.2, 1] as const,
   entrance: [0.16, 1, 0.3, 1] as const,
   exit: [0.4, 0, 0.6, 1] as const,
 } as const;
 
-export const ONCE_MOTION_STAGGERS = {
+export const DYNAMIC_MOTION_STAGGERS = {
   base: 0.12,
   dense: 0.06,
   spacious: 0.2,
@@ -39,15 +39,15 @@ const fadeIn: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      duration: ONCE_MOTION_DURATIONS.base,
-      ease: ONCE_MOTION_EASING.entrance,
+      duration: DYNAMIC_MOTION_DURATIONS.base,
+      ease: DYNAMIC_MOTION_EASING.entrance,
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      duration: ONCE_MOTION_DURATIONS.quick,
-      ease: ONCE_MOTION_EASING.exit,
+      duration: DYNAMIC_MOTION_DURATIONS.quick,
+      ease: DYNAMIC_MOTION_EASING.exit,
     },
   },
 };
@@ -58,16 +58,16 @@ const badge: Variants = {
     opacity: 1,
     y: 0,
     transition: {
-      duration: ONCE_MOTION_DURATIONS.quick,
-      ease: ONCE_MOTION_EASING.entrance,
+      duration: DYNAMIC_MOTION_DURATIONS.quick,
+      ease: DYNAMIC_MOTION_EASING.entrance,
     },
   },
   exit: {
     opacity: 0,
     y: -8,
     transition: {
-      duration: ONCE_MOTION_DURATIONS.instant,
-      ease: ONCE_MOTION_EASING.exit,
+      duration: DYNAMIC_MOTION_DURATIONS.instant,
+      ease: DYNAMIC_MOTION_EASING.exit,
     },
   },
 };
@@ -77,14 +77,14 @@ const slideUp: Variants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: ONCE_MOTION_SPRINGS.base,
+    transition: DYNAMIC_MOTION_SPRINGS.base,
   },
   exit: {
     opacity: 0,
     y: -24,
     transition: {
-      duration: ONCE_MOTION_DURATIONS.quick,
-      ease: ONCE_MOTION_EASING.exit,
+      duration: DYNAMIC_MOTION_DURATIONS.quick,
+      ease: DYNAMIC_MOTION_EASING.exit,
     },
   },
 };
@@ -94,14 +94,14 @@ const slideDown: Variants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: ONCE_MOTION_SPRINGS.base,
+    transition: DYNAMIC_MOTION_SPRINGS.base,
   },
   exit: {
     opacity: 0,
     y: 24,
     transition: {
-      duration: ONCE_MOTION_DURATIONS.quick,
-      ease: ONCE_MOTION_EASING.exit,
+      duration: DYNAMIC_MOTION_DURATIONS.quick,
+      ease: DYNAMIC_MOTION_EASING.exit,
     },
   },
 };
@@ -111,14 +111,14 @@ const slideLeft: Variants = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: ONCE_MOTION_SPRINGS.base,
+    transition: DYNAMIC_MOTION_SPRINGS.base,
   },
   exit: {
     opacity: 0,
     x: -24,
     transition: {
-      duration: ONCE_MOTION_DURATIONS.quick,
-      ease: ONCE_MOTION_EASING.exit,
+      duration: DYNAMIC_MOTION_DURATIONS.quick,
+      ease: DYNAMIC_MOTION_EASING.exit,
     },
   },
 };
@@ -128,14 +128,14 @@ const slideRight: Variants = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: ONCE_MOTION_SPRINGS.base,
+    transition: DYNAMIC_MOTION_SPRINGS.base,
   },
   exit: {
     opacity: 0,
     x: 24,
     transition: {
-      duration: ONCE_MOTION_DURATIONS.quick,
-      ease: ONCE_MOTION_EASING.exit,
+      duration: DYNAMIC_MOTION_DURATIONS.quick,
+      ease: DYNAMIC_MOTION_EASING.exit,
     },
   },
 };
@@ -145,14 +145,14 @@ const scaleIn: Variants = {
   visible: {
     opacity: 1,
     scale: 1,
-    transition: ONCE_MOTION_SPRINGS.soft,
+    transition: DYNAMIC_MOTION_SPRINGS.soft,
   },
   exit: {
     opacity: 0,
     scale: 0.94,
     transition: {
-      duration: ONCE_MOTION_DURATIONS.quick,
-      ease: ONCE_MOTION_EASING.exit,
+      duration: DYNAMIC_MOTION_DURATIONS.quick,
+      ease: DYNAMIC_MOTION_EASING.exit,
     },
   },
 };
@@ -162,15 +162,15 @@ const stack: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: ONCE_MOTION_STAGGERS.base,
-      delayChildren: ONCE_MOTION_STAGGERS.delay,
+      staggerChildren: DYNAMIC_MOTION_STAGGERS.base,
+      delayChildren: DYNAMIC_MOTION_STAGGERS.delay,
       when: "beforeChildren",
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      staggerChildren: ONCE_MOTION_STAGGERS.dense,
+      staggerChildren: DYNAMIC_MOTION_STAGGERS.dense,
       staggerDirection: -1,
       when: "afterChildren",
     },
@@ -182,15 +182,15 @@ const stackFast: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: ONCE_MOTION_STAGGERS.dense,
-      delayChildren: ONCE_MOTION_STAGGERS.base,
+      staggerChildren: DYNAMIC_MOTION_STAGGERS.dense,
+      delayChildren: DYNAMIC_MOTION_STAGGERS.base,
       when: "beforeChildren",
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      staggerChildren: ONCE_MOTION_STAGGERS.dense,
+      staggerChildren: DYNAMIC_MOTION_STAGGERS.dense,
       staggerDirection: -1,
       when: "afterChildren",
     },
@@ -202,15 +202,15 @@ const stackSlow: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: ONCE_MOTION_STAGGERS.spacious,
-      delayChildren: ONCE_MOTION_STAGGERS.spacious,
+      staggerChildren: DYNAMIC_MOTION_STAGGERS.spacious,
+      delayChildren: DYNAMIC_MOTION_STAGGERS.spacious,
       when: "beforeChildren",
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      staggerChildren: ONCE_MOTION_STAGGERS.base,
+      staggerChildren: DYNAMIC_MOTION_STAGGERS.base,
       staggerDirection: -1,
       when: "afterChildren",
     },
@@ -223,13 +223,13 @@ const stackItem: Variants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: ONCE_MOTION_SPRINGS.base,
+    transition: DYNAMIC_MOTION_SPRINGS.base,
   },
   exit: {
     opacity: 0,
     y: -20,
     scale: 0.95,
-    transition: { duration: ONCE_MOTION_DURATIONS.quick },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.quick },
   },
 };
 
@@ -239,13 +239,13 @@ const stackItemSoft: Variants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: ONCE_MOTION_SPRINGS.soft,
+    transition: DYNAMIC_MOTION_SPRINGS.soft,
   },
   exit: {
     opacity: 0,
     y: -16,
     scale: 0.97,
-    transition: { duration: ONCE_MOTION_DURATIONS.quick },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.quick },
   },
 };
 
@@ -256,15 +256,15 @@ const stackItemSlow: Variants = {
     y: 0,
     scale: 1,
     transition: {
-      ...ONCE_MOTION_SPRINGS.base,
-      duration: ONCE_MOTION_DURATIONS.slow,
+      ...DYNAMIC_MOTION_SPRINGS.base,
+      duration: DYNAMIC_MOTION_DURATIONS.slow,
     },
   },
   exit: {
     opacity: 0,
     y: -28,
     scale: 0.94,
-    transition: { duration: ONCE_MOTION_DURATIONS.quick },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.quick },
   },
 };
 
@@ -276,7 +276,7 @@ const messageBubble: Variants = {
     scale: 1,
     filter: "blur(0px)",
     transition: {
-      ...ONCE_MOTION_SPRINGS.soft,
+      ...DYNAMIC_MOTION_SPRINGS.soft,
       damping: 26,
       mass: 0.95,
     },
@@ -287,8 +287,8 @@ const messageBubble: Variants = {
     scale: 0.96,
     filter: "blur(6px)",
     transition: {
-      duration: ONCE_MOTION_DURATIONS.quick,
-      ease: ONCE_MOTION_EASING.exit,
+      duration: DYNAMIC_MOTION_DURATIONS.quick,
+      ease: DYNAMIC_MOTION_EASING.exit,
     },
   },
 };
@@ -298,11 +298,11 @@ const button: Variants = {
   hover: {
     scale: 1.02,
     y: -2,
-    transition: ONCE_MOTION_SPRINGS.snappy,
+    transition: DYNAMIC_MOTION_SPRINGS.snappy,
   },
   tap: {
     scale: 0.96,
-    transition: { duration: ONCE_MOTION_DURATIONS.instant },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.instant },
   },
   disabled: { opacity: 0.6, scale: 1 },
 };
@@ -312,7 +312,7 @@ const primaryButton: Variants = {
   hover: {
     scale: 1.05,
     y: -3,
-    transition: ONCE_MOTION_SPRINGS.snappy,
+    transition: DYNAMIC_MOTION_SPRINGS.snappy,
   },
 };
 
@@ -320,7 +320,7 @@ const ghostButton: Variants = {
   ...button,
   hover: {
     scale: 1.02,
-    transition: ONCE_MOTION_SPRINGS.snappy,
+    transition: DYNAMIC_MOTION_SPRINGS.snappy,
   },
 };
 
@@ -330,25 +330,25 @@ const card: Variants = {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: ONCE_MOTION_SPRINGS.base,
+    transition: DYNAMIC_MOTION_SPRINGS.base,
   },
   hover: {
     scale: 1.02,
     y: -5,
     transition: {
-      ...ONCE_MOTION_SPRINGS.snappy,
+      ...DYNAMIC_MOTION_SPRINGS.snappy,
       stiffness: 420,
     },
   },
   tap: {
     scale: 0.96,
-    transition: { duration: ONCE_MOTION_DURATIONS.instant },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.instant },
   },
   exit: {
     opacity: 0,
     scale: 0.95,
     y: -20,
-    transition: { duration: ONCE_MOTION_DURATIONS.quick },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.quick },
   },
 };
 
@@ -359,13 +359,13 @@ const interactiveCard: Variants = {
     y: -8,
     rotateX: 1,
     transition: {
-      ...ONCE_MOTION_SPRINGS.snappy,
+      ...DYNAMIC_MOTION_SPRINGS.snappy,
       stiffness: 420,
     },
   },
   tap: {
     scale: 0.98,
-    transition: { duration: ONCE_MOTION_DURATIONS.instant },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.instant },
   },
 };
 
@@ -376,7 +376,7 @@ const page: Variants = {
     y: 0,
     scale: 1,
     transition: {
-      ...ONCE_MOTION_SPRINGS.soft,
+      ...DYNAMIC_MOTION_SPRINGS.soft,
       duration: 0.8,
     },
   },
@@ -384,7 +384,7 @@ const page: Variants = {
     opacity: 0,
     y: -30,
     scale: 0.98,
-    transition: { duration: ONCE_MOTION_DURATIONS.slow },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.slow },
   },
 };
 
@@ -393,14 +393,14 @@ const staggerContainer: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: ONCE_MOTION_STAGGERS.base,
-      delayChildren: ONCE_MOTION_STAGGERS.base,
+      staggerChildren: DYNAMIC_MOTION_STAGGERS.base,
+      delayChildren: DYNAMIC_MOTION_STAGGERS.base,
     },
   },
   exit: {
     opacity: 0,
     transition: {
-      staggerChildren: ONCE_MOTION_STAGGERS.dense,
+      staggerChildren: DYNAMIC_MOTION_STAGGERS.dense,
       staggerDirection: -1,
     },
   },
@@ -412,13 +412,13 @@ const staggerItem: Variants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: ONCE_MOTION_SPRINGS.soft,
+    transition: DYNAMIC_MOTION_SPRINGS.soft,
   },
   exit: {
     opacity: 0,
     y: -20,
     scale: 0.95,
-    transition: { duration: ONCE_MOTION_DURATIONS.quick },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.quick },
   },
 };
 
@@ -428,13 +428,13 @@ const modal: Variants = {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: ONCE_MOTION_SPRINGS.modal,
+    transition: DYNAMIC_MOTION_SPRINGS.modal,
   },
   exit: {
     opacity: 0,
     scale: 0.8,
     y: 50,
-    transition: { duration: ONCE_MOTION_DURATIONS.slow },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.slow },
   },
 };
 
@@ -442,11 +442,11 @@ const backdrop: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { duration: ONCE_MOTION_DURATIONS.base },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.base },
   },
   exit: {
     opacity: 0,
-    transition: { duration: ONCE_MOTION_DURATIONS.base },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.base },
   },
 };
 
@@ -455,12 +455,12 @@ const nav: Variants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: ONCE_MOTION_SPRINGS.base,
+    transition: DYNAMIC_MOTION_SPRINGS.base,
   },
   exit: {
     y: -20,
     opacity: 0,
-    transition: { duration: ONCE_MOTION_DURATIONS.base },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.base },
   },
 };
 
@@ -498,27 +498,27 @@ const slidePresets: Variants = {
     x: 0,
     y: 0,
     opacity: 1,
-    transition: ONCE_MOTION_SPRINGS.soft,
+    transition: DYNAMIC_MOTION_SPRINGS.soft,
   },
   slideOutToLeft: {
     x: -100,
     opacity: 0,
-    transition: { duration: ONCE_MOTION_DURATIONS.base },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.base },
   },
   slideOutToRight: {
     x: 100,
     opacity: 0,
-    transition: { duration: ONCE_MOTION_DURATIONS.base },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.base },
   },
   slideOutToTop: {
     y: -100,
     opacity: 0,
-    transition: { duration: ONCE_MOTION_DURATIONS.base },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.base },
   },
   slideOutToBottom: {
     y: 100,
     opacity: 0,
-    transition: { duration: ONCE_MOTION_DURATIONS.base },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.base },
   },
 };
 
@@ -527,16 +527,16 @@ const tab: Variants = {
   active: {
     scale: 1,
     opacity: 1,
-    transition: ONCE_MOTION_SPRINGS.modal,
+    transition: DYNAMIC_MOTION_SPRINGS.modal,
   },
   hover: {
     scale: 1.02,
     opacity: 0.9,
-    transition: { duration: ONCE_MOTION_DURATIONS.quick },
+    transition: { duration: DYNAMIC_MOTION_DURATIONS.quick },
   },
 };
 
-export const onceRevealVariantKeys = [
+export const dynamicRevealVariantKeys = [
   "fadeIn",
   "slideUp",
   "slideDown",
@@ -545,9 +545,9 @@ export const onceRevealVariantKeys = [
   "scaleIn",
 ] as const;
 
-export type OnceRevealVariantKey = (typeof onceRevealVariantKeys)[number];
+export type DynamicRevealVariantKey = (typeof dynamicRevealVariantKeys)[number];
 
-export const onceMotionVariants = {
+export const dynamicMotionVariants = {
   fade: fadeIn,
   fadeIn,
   slideUp,
@@ -580,7 +580,7 @@ export const onceMotionVariants = {
   tab,
 } satisfies Record<string, Variants>;
 
-export type OnceMotionVariantKey = keyof typeof onceMotionVariants;
+export type DynamicMotionVariantKey = keyof typeof dynamicMotionVariants;
 
 export const parentVariants = stack;
 export const fastParentVariants = stackFast;
@@ -607,14 +607,15 @@ export const tabVariants = tab;
 export const createChildVariant = (
   direction: Direction = "up",
   distance = 20,
-  springPreset: keyof typeof ONCE_MOTION_SPRINGS = "base"
+  springPreset: keyof typeof DYNAMIC_MOTION_SPRINGS = "base",
 ): Variants => {
-  const hiddenPosition: Record<Direction, Partial<Record<"x" | "y", number>>> = {
-    up: { y: distance },
-    down: { y: -distance },
-    left: { x: distance },
-    right: { x: -distance },
-  };
+  const hiddenPosition: Record<Direction, Partial<Record<"x" | "y", number>>> =
+    {
+      up: { y: distance },
+      down: { y: -distance },
+      left: { x: distance },
+      right: { x: -distance },
+    };
 
   const exitPosition: Record<Direction, Partial<Record<"x" | "y", number>>> = {
     up: { y: -distance },
@@ -634,25 +635,25 @@ export const createChildVariant = (
       x: 0,
       y: 0,
       scale: 1,
-      transition: ONCE_MOTION_SPRINGS[springPreset],
+      transition: DYNAMIC_MOTION_SPRINGS[springPreset],
     },
     exit: {
       opacity: 0,
       ...exitPosition[direction],
       scale: 0.95,
-      transition: { duration: ONCE_MOTION_DURATIONS.quick },
+      transition: { duration: DYNAMIC_MOTION_DURATIONS.quick },
     },
   };
 };
 
 export default {
   tokens: {
-    springs: ONCE_MOTION_SPRINGS,
-    durations: ONCE_MOTION_DURATIONS,
-    easing: ONCE_MOTION_EASING,
-    stagger: ONCE_MOTION_STAGGERS,
+    springs: DYNAMIC_MOTION_SPRINGS,
+    durations: DYNAMIC_MOTION_DURATIONS,
+    easing: DYNAMIC_MOTION_EASING,
+    stagger: DYNAMIC_MOTION_STAGGERS,
   },
-  onceMotionVariants,
+  dynamicMotionVariants,
   cardVariants,
   pageVariants,
   buttonVariants,

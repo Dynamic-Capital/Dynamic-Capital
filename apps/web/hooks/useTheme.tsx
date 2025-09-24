@@ -1,52 +1,55 @@
 "use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import { useTheme as useOnceTheme } from '@once-ui-system/core';
+import { useCallback, useEffect, useState } from "react";
+import { useTheme as useDynamicUiTheme } from "@once-ui-system/core";
 
-import { callEdgeFunction } from '@/config/supabase';
-import { supabase } from '@/integrations/supabase/client';
-import type { Session } from '@supabase/supabase-js';
+import { callEdgeFunction } from "@/config/supabase";
+import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = "light" | "dark" | "system";
 
 interface TelegramWebApp {
-  colorScheme: 'light' | 'dark';
-  onEvent?: (event: 'themeChanged', handler: () => void) => void;
-  offEvent?: (event: 'themeChanged', handler: () => void) => void;
+  colorScheme: "light" | "dark";
+  onEvent?: (event: "themeChanged", handler: () => void) => void;
+  offEvent?: (event: "themeChanged", handler: () => void) => void;
 }
 
 const isValidTheme = (value: unknown): value is Theme =>
-  value === 'light' || value === 'dark' || value === 'system';
+  value === "light" || value === "dark" || value === "system";
 
 export function useTheme() {
-  const { theme: onceTheme, resolvedTheme, setTheme: setOnceTheme } = useOnceTheme();
-  const preference = (onceTheme ?? 'system') as Theme;
+  const { theme: dynamicUiTheme, resolvedTheme, setTheme: setDynamicUiTheme } =
+    useDynamicUiTheme();
+  const preference = (dynamicUiTheme ?? "system") as Theme;
   const [session, setSession] = useState<Session | null>(null);
-  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window === 'undefined') return 'light';
+  const [systemTheme, setSystemTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light";
 
     const tg = globalThis.Telegram?.WebApp as TelegramWebApp | undefined;
     if (tg) {
       return tg.colorScheme;
     }
 
-    return globalThis.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return globalThis.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   });
 
-  const appliedTheme =
-    resolvedTheme ?? (preference === 'system' ? systemTheme : preference);
+  const appliedTheme = resolvedTheme ??
+    (preference === "system" ? systemTheme : preference);
 
   const persistPreference = useCallback(
     (value: Theme, { skip } = { skip: false }) => {
-      if (typeof window === 'undefined') {
+      if (typeof window === "undefined") {
         return;
       }
 
       try {
         if (!skip) {
-          localStorage.setItem('data-theme', value);
+          localStorage.setItem("data-theme", value);
         }
-        localStorage.removeItem('theme');
+        localStorage.removeItem("theme");
       } catch {
         // ignore persistence issues
       }
@@ -68,7 +71,7 @@ export function useTheme() {
 
   useEffect(() => {
     const applyTheme = (value: Theme) => {
-      setOnceTheme(value);
+      setDynamicUiTheme(value);
       const tg = globalThis.Telegram?.WebApp as TelegramWebApp | undefined;
       persistPreference(value, { skip: Boolean(tg) });
     };
@@ -77,8 +80,10 @@ export function useTheme() {
       const tg = globalThis.Telegram?.WebApp as TelegramWebApp | undefined;
 
       if (session?.access_token) {
-        const { data, error } = await callEdgeFunction<{ mode?: 'auto' | Theme }>(
-          'THEME_GET',
+        const { data, error } = await callEdgeFunction<
+          { mode?: "auto" | Theme }
+        >(
+          "THEME_GET",
           {
             token: session.access_token,
           },
@@ -86,52 +91,52 @@ export function useTheme() {
 
         if (!error && data) {
           const mode = data.mode;
-          applyTheme(mode === 'auto' ? 'system' : mode);
+          applyTheme(mode === "auto" ? "system" : mode);
           return;
         }
       }
 
-      if (typeof window === 'undefined') {
+      if (typeof window === "undefined") {
         return;
       }
 
       if (!tg) {
         try {
-          const stored =
-            (localStorage.getItem('data-theme') as Theme | null) ??
-            (localStorage.getItem('theme') as Theme | null);
+          const stored = (localStorage.getItem("data-theme") as Theme | null) ??
+            (localStorage.getItem("theme") as Theme | null);
 
           if (isValidTheme(stored)) {
             applyTheme(stored);
           } else {
-            applyTheme('system');
+            applyTheme("system");
           }
         } catch {
-          applyTheme('system');
+          applyTheme("system");
         }
       } else {
-        applyTheme('system');
+        applyTheme("system");
       }
     };
 
     fetchTheme();
-  }, [persistPreference, session, setOnceTheme]);
+  }, [persistPreference, session, setDynamicUiTheme]);
 
   useEffect(() => {
-    if (typeof document === 'undefined') {
+    if (typeof document === "undefined") {
       return;
     }
 
     const root = document.documentElement;
     const themeToApply = appliedTheme;
 
-    root.classList.toggle('dark', themeToApply === 'dark');
-    root.setAttribute('data-theme', themeToApply);
-    root.style.colorScheme = themeToApply === 'dark' ? 'dark' : 'light';
+    root.classList.toggle("dark", themeToApply === "dark");
+    root.setAttribute("data-theme", themeToApply);
+    root.style.colorScheme = themeToApply === "dark" ? "dark" : "light";
 
     if (document.body) {
-      document.body.style.colorScheme =
-        themeToApply === 'dark' ? 'dark' : 'light';
+      document.body.style.colorScheme = themeToApply === "dark"
+        ? "dark"
+        : "light";
     }
   }, [appliedTheme]);
 
@@ -145,10 +150,10 @@ export function useTheme() {
 
       handleTelegramTheme();
 
-      if (typeof tg.onEvent === 'function') {
-        tg.onEvent('themeChanged', handleTelegramTheme);
+      if (typeof tg.onEvent === "function") {
+        tg.onEvent("themeChanged", handleTelegramTheme);
         return () => {
-          tg.offEvent?.('themeChanged', handleTelegramTheme);
+          tg.offEvent?.("themeChanged", handleTelegramTheme);
         };
       }
 
@@ -156,33 +161,34 @@ export function useTheme() {
       return () => clearInterval(interval);
     }
 
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
-    const mediaQuery = globalThis.matchMedia('(prefers-color-scheme: dark)');
+    const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
 
     const handleSystemThemeChange = (e: MediaQueryListEvent) => {
-      setSystemTheme(e.matches ? 'dark' : 'light');
+      setSystemTheme(e.matches ? "dark" : "light");
     };
 
-    setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
-    mediaQuery.addEventListener('change', handleSystemThemeChange);
+    setSystemTheme(mediaQuery.matches ? "dark" : "light");
+    mediaQuery.addEventListener("change", handleSystemThemeChange);
 
-    return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    return () =>
+      mediaQuery.removeEventListener("change", handleSystemThemeChange);
   }, []);
 
   const setThemeMode = useCallback(
     async (newTheme: Theme) => {
-      setOnceTheme(newTheme);
+      setDynamicUiTheme(newTheme);
       const tg = globalThis.Telegram?.WebApp as TelegramWebApp | undefined;
       persistPreference(newTheme, { skip: Boolean(tg) });
 
       if (session?.access_token) {
-        const { error } = await callEdgeFunction('THEME_SAVE', {
-          method: 'POST',
+        const { error } = await callEdgeFunction("THEME_SAVE", {
+          method: "POST",
           token: session.access_token,
-          body: { mode: newTheme === 'system' ? 'auto' : newTheme },
+          body: { mode: newTheme === "system" ? "auto" : newTheme },
         });
 
         if (error) {
@@ -190,21 +196,20 @@ export function useTheme() {
         }
       }
     },
-    [persistPreference, session, setOnceTheme],
+    [persistPreference, session, setDynamicUiTheme],
   );
 
   const toggleTheme = useCallback(() => {
-    if (preference === 'light') {
-      setThemeMode('dark');
-    } else if (preference === 'dark') {
-      setThemeMode('system');
+    if (preference === "light") {
+      setThemeMode("dark");
+    } else if (preference === "dark") {
+      setThemeMode("system");
     } else {
-      setThemeMode('light');
+      setThemeMode("light");
     }
   }, [preference, setThemeMode]);
 
-  const isInTelegram =
-    typeof window !== 'undefined' &&
+  const isInTelegram = typeof window !== "undefined" &&
     Boolean(globalThis.Telegram?.WebApp as TelegramWebApp | undefined);
 
   return {

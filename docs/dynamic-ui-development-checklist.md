@@ -22,9 +22,9 @@ a glance.
 ## 1. Prepare Dynamic UI Foundation
 
 - [ ] Verify Dynamic UI assets are available to the target app
-      (`once-ui.css`/`once-ui.js` via static import, bundler entry, or module
-      federation) and match the version consumed by the React components in
-      `apps/web/components/once-ui/`.
+      (`dynamic-ui.css`/`dynamic-ui.js` via static import, bundler entry, or
+      module federation) and match the version consumed by the React components
+      in `apps/web/components/dynamic-ui/`.
 - [ ] Document any required global styles (body background, typography) or
       layout constraints (grid, spacing tokens) before coding to avoid ad-hoc
       overrides.
@@ -41,10 +41,10 @@ a glance.
 
 ### Layout & Components
 
-- [ ] Reuse or extend existing layout wrappers (`once-container`, shared page
+- [ ] Reuse or extend existing layout wrappers (`dynamic-container`, shared page
       shells) instead of redefining grid and spacing utilities.
-- [ ] Reach for the motion-enabled Dynamic UI primitives (`<OnceContainer>`,
-      `<OnceButton>`) before composing raw `motion.*` elements so animation
+- [ ] Reach for the motion-enabled Dynamic UI primitives (`<DynamicContainer>`,
+      `<DynamicButton>`) before composing raw `motion.*` elements so animation
       tokens stay centralized.
 - [ ] Ensure Dynamic UI components accept data via typed props and expose
       slots/hooks for dynamic states (loading, empty, error) rather than
@@ -55,7 +55,7 @@ a glance.
 
 ### Styling & Theming
 
-- [ ] Apply semantic Dynamic UI classes (`once-btn`, `primary`, `outline`,
+- [ ] Apply semantic Dynamic UI classes (`dynamic-btn`, `primary`, `outline`,
       typography helpers) or Tailwind tokens that map to the same palette; avoid
       raw hex colors or inline styles except for prototypes.
 - [ ] Confirm interactive states (hover, focus, pressed, disabled) respect
@@ -63,8 +63,8 @@ a glance.
 - [ ] Keep custom CSS scoped via module files or `:where` selectors so global
       Dynamic UI styles remain unmodified.
 - [ ] Use the shared motion tokens exported from `@/lib/motion-variants`
-      (`onceMotionVariants`, `ONCE_MOTION_SPRINGS`, etc.) instead of redefining
-      easing, durations, or stagger timings.
+      (`dynamicMotionVariants`, `DYNAMIC_MOTION_SPRINGS`, etc.) instead of
+      redefining easing, durations, or stagger timings.
 
 ### Accessibility & Interaction
 
@@ -75,7 +75,7 @@ a glance.
       issues; include server-error fallback copy.
 - [ ] Test front-end logic with sample data (approved payment, manual review,
       failure) to confirm state machines render the correct Dynamic UI variants.
-- [ ] Verify both React (`useReducedMotion`) and static (`data-once-reveal`)
+- [ ] Verify both React (`useReducedMotion`) and static (`data-dynamic-reveal`)
       surfaces honour `prefers-reduced-motion` and still present content when
       JavaScript is disabled.
 
@@ -109,6 +109,6 @@ a glance.
 - [ ] Monitor Supabase logs, queue workers, and browser consoles after
       deployment to catch regressions; plan rollback steps if Dynamic UI
       components impact protected payment flows.
-- [ ] Smoke test static marketing pages that rely on `once-ui.js` helpers to
+- [ ] Smoke test static marketing pages that rely on `dynamic-ui.js` helpers to
       confirm `window.OnceUI.observeReveals` works for dynamically injected
       nodes and that content remains visible without JavaScript.

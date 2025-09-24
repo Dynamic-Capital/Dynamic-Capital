@@ -5,17 +5,17 @@ import { motion } from "framer-motion";
 
 import { cn } from "@/utils";
 import {
-  type OnceMotionVariantKey,
-  onceMotionVariants,
+  type DynamicMotionVariantKey,
+  dynamicMotionVariants,
 } from "@/lib/motion-variants";
 
 type MotionDivProps = React.ComponentPropsWithoutRef<typeof motion.div>;
 
-export interface OnceContainerProps extends MotionDivProps {
+export interface DynamicContainerProps extends MotionDivProps {
   /**
    * Default animation preset triggered when the container enters the viewport.
    */
-  variant?: OnceMotionVariantKey | null;
+  variant?: DynamicMotionVariantKey | null;
   /**
    * Disable the reveal animation while preserving the Dynamic UI layout styles.
    */
@@ -32,9 +32,9 @@ export interface OnceContainerProps extends MotionDivProps {
 
 const MotionDiv = motion.div;
 
-export const OnceContainer = React.forwardRef<
+export const DynamicContainer = React.forwardRef<
   HTMLDivElement,
-  OnceContainerProps
+  DynamicContainerProps
 >(
   (
     {
@@ -55,7 +55,9 @@ export const OnceContainer = React.forwardRef<
   ) => {
     const shouldApplyPreset = animateIn && animateProp === undefined;
     const resolvedVariants = variantsProp ??
-      (shouldApplyPreset && variant ? onceMotionVariants[variant] : undefined);
+      (shouldApplyPreset && variant
+        ? dynamicMotionVariants[variant]
+        : undefined);
 
     const initialValue = shouldApplyPreset && resolvedVariants
       ? initialProp ?? "hidden"
@@ -70,7 +72,7 @@ export const OnceContainer = React.forwardRef<
     return (
       <MotionDiv
         ref={ref}
-        className={cn("once-container", className)}
+        className={cn("dynamic-container", className)}
         variants={resolvedVariants}
         initial={initialValue}
         animate={animateProp}
@@ -84,4 +86,4 @@ export const OnceContainer = React.forwardRef<
   },
 );
 
-OnceContainer.displayName = "OnceContainer";
+DynamicContainer.displayName = "DynamicContainer";

@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { Column, Flex, Row } from "@once-ui-system/core";
 
 import {
-  onceMotionVariants,
-  type OnceMotionVariantKey,
+  type DynamicMotionVariantKey,
+  dynamicMotionVariants,
 } from "@/lib/motion-variants";
 
 const MotionFlexBase = motion(Flex, { forwardMotionProps: true });
@@ -22,7 +22,7 @@ type MotionPresetShape = Pick<
 
 interface MotionPresetInput extends MotionPresetShape {
   animateIn: boolean;
-  variant?: OnceMotionVariantKey | null;
+  variant?: DynamicMotionVariantKey | null;
   once: boolean;
   viewportAmount: number;
 }
@@ -39,31 +39,36 @@ function resolveMotionPreset({
   whileInView,
 }: MotionPresetInput) {
   const shouldUsePreset = animateIn && variant !== null;
-  const resolvedVariants =
-    variants ?? (shouldUsePreset && variant ? onceMotionVariants[variant] : undefined);
+  const resolvedVariants = variants ??
+    (shouldUsePreset && variant ? dynamicMotionVariants[variant] : undefined);
 
   const shouldAutoInView = shouldUsePreset && animate === undefined;
 
   return {
     variants: resolvedVariants,
-    initial: shouldAutoInView && resolvedVariants ? initial ?? "hidden" : initial,
-    whileInView:
-      shouldAutoInView && resolvedVariants ? whileInView ?? "visible" : whileInView,
-    viewport:
-      shouldAutoInView && resolvedVariants
-        ? viewport ?? { once, amount: viewportAmount }
-        : viewport,
+    initial: shouldAutoInView && resolvedVariants
+      ? initial ?? "hidden"
+      : initial,
+    whileInView: shouldAutoInView && resolvedVariants
+      ? whileInView ?? "visible"
+      : whileInView,
+    viewport: shouldAutoInView && resolvedVariants
+      ? viewport ?? { once, amount: viewportAmount }
+      : viewport,
   } as const;
 }
 
-export interface OnceMotionFlexProps extends MotionBaseProps {
-  variant?: OnceMotionVariantKey | null;
+export interface DynamicMotionFlexProps extends MotionBaseProps {
+  variant?: DynamicMotionVariantKey | null;
   animateIn?: boolean;
   once?: boolean;
   viewportAmount?: number;
 }
 
-export const OnceMotionFlex = React.forwardRef<HTMLDivElement, OnceMotionFlexProps>(
+export const DynamicMotionFlex = React.forwardRef<
+  HTMLDivElement,
+  DynamicMotionFlexProps
+>(
   (
     {
       variant = "slideUp",
@@ -79,17 +84,18 @@ export const OnceMotionFlex = React.forwardRef<HTMLDivElement, OnceMotionFlexPro
     },
     ref,
   ) => {
-    const { variants, initial, whileInView, viewport: resolvedViewport } = resolveMotionPreset({
-      animateIn,
-      variant,
-      once,
-      viewportAmount,
-      animate: animateProp,
-      variants: variantsProp,
-      viewport,
-      initial: initialProp,
-      whileInView: whileInViewProp,
-    });
+    const { variants, initial, whileInView, viewport: resolvedViewport } =
+      resolveMotionPreset({
+        animateIn,
+        variant,
+        once,
+        viewportAmount,
+        animate: animateProp,
+        variants: variantsProp,
+        viewport,
+        initial: initialProp,
+        whileInView: whileInViewProp,
+      });
 
     return (
       <MotionFlexBase
@@ -104,17 +110,20 @@ export const OnceMotionFlex = React.forwardRef<HTMLDivElement, OnceMotionFlexPro
     );
   },
 );
-OnceMotionFlex.displayName = "OnceMotionFlex";
+DynamicMotionFlex.displayName = "DynamicMotionFlex";
 
-export interface OnceMotionColumnProps
+export interface DynamicMotionColumnProps
   extends React.ComponentPropsWithoutRef<typeof MotionColumnBase> {
-  variant?: OnceMotionVariantKey | null;
+  variant?: DynamicMotionVariantKey | null;
   animateIn?: boolean;
   once?: boolean;
   viewportAmount?: number;
 }
 
-export const OnceMotionColumn = React.forwardRef<HTMLDivElement, OnceMotionColumnProps>(
+export const DynamicMotionColumn = React.forwardRef<
+  HTMLDivElement,
+  DynamicMotionColumnProps
+>(
   (
     {
       variant = "slideUp",
@@ -130,17 +139,18 @@ export const OnceMotionColumn = React.forwardRef<HTMLDivElement, OnceMotionColum
     },
     ref,
   ) => {
-    const { variants, initial, whileInView, viewport: resolvedViewport } = resolveMotionPreset({
-      animateIn,
-      variant,
-      once,
-      viewportAmount,
-      animate: animateProp,
-      variants: variantsProp,
-      viewport,
-      initial: initialProp,
-      whileInView: whileInViewProp,
-    });
+    const { variants, initial, whileInView, viewport: resolvedViewport } =
+      resolveMotionPreset({
+        animateIn,
+        variant,
+        once,
+        viewportAmount,
+        animate: animateProp,
+        variants: variantsProp,
+        viewport,
+        initial: initialProp,
+        whileInView: whileInViewProp,
+      });
 
     return (
       <MotionColumnBase
@@ -155,17 +165,20 @@ export const OnceMotionColumn = React.forwardRef<HTMLDivElement, OnceMotionColum
     );
   },
 );
-OnceMotionColumn.displayName = "OnceMotionColumn";
+DynamicMotionColumn.displayName = "DynamicMotionColumn";
 
-export interface OnceMotionRowProps
+export interface DynamicMotionRowProps
   extends React.ComponentPropsWithoutRef<typeof MotionRowBase> {
-  variant?: OnceMotionVariantKey | null;
+  variant?: DynamicMotionVariantKey | null;
   animateIn?: boolean;
   once?: boolean;
   viewportAmount?: number;
 }
 
-export const OnceMotionRow = React.forwardRef<HTMLDivElement, OnceMotionRowProps>(
+export const DynamicMotionRow = React.forwardRef<
+  HTMLDivElement,
+  DynamicMotionRowProps
+>(
   (
     {
       variant = "slideUp",
@@ -181,17 +194,18 @@ export const OnceMotionRow = React.forwardRef<HTMLDivElement, OnceMotionRowProps
     },
     ref,
   ) => {
-    const { variants, initial, whileInView, viewport: resolvedViewport } = resolveMotionPreset({
-      animateIn,
-      variant,
-      once,
-      viewportAmount,
-      animate: animateProp,
-      variants: variantsProp,
-      viewport,
-      initial: initialProp,
-      whileInView: whileInViewProp,
-    });
+    const { variants, initial, whileInView, viewport: resolvedViewport } =
+      resolveMotionPreset({
+        animateIn,
+        variant,
+        once,
+        viewportAmount,
+        animate: animateProp,
+        variants: variantsProp,
+        viewport,
+        initial: initialProp,
+        whileInView: whileInViewProp,
+      });
 
     return (
       <MotionRowBase
@@ -206,36 +220,42 @@ export const OnceMotionRow = React.forwardRef<HTMLDivElement, OnceMotionRowProps
     );
   },
 );
-OnceMotionRow.displayName = "OnceMotionRow";
+DynamicMotionRow.displayName = "DynamicMotionRow";
 
-type OnceMotionStackDensity = "base" | "soft" | "slow";
+type DynamicMotionStackDensity = "base" | "soft" | "slow";
 
-const densityToVariant: Record<OnceMotionStackDensity, OnceMotionVariantKey> = {
+const densityToVariant: Record<
+  DynamicMotionStackDensity,
+  DynamicMotionVariantKey
+> = {
   base: "stackItem",
   soft: "stackItemSoft",
   slow: "stackItemSlow",
 };
 
-export type OnceMotionStackProps = OnceMotionColumnProps;
+export type DynamicMotionStackProps = DynamicMotionColumnProps;
 
-export const OnceMotionStack = React.forwardRef<HTMLDivElement, OnceMotionStackProps>(
+export const DynamicMotionStack = React.forwardRef<
+  HTMLDivElement,
+  DynamicMotionStackProps
+>(
   ({ variant, ...rest }, ref) => (
-    <OnceMotionColumn ref={ref} variant={variant ?? "stack"} {...rest} />
+    <DynamicMotionColumn ref={ref} variant={variant ?? "stack"} {...rest} />
   ),
 );
-OnceMotionStack.displayName = "OnceMotionStack";
+DynamicMotionStack.displayName = "DynamicMotionStack";
 
-export interface OnceMotionStackItemProps extends OnceMotionColumnProps {
-  density?: OnceMotionStackDensity;
+export interface DynamicMotionStackItemProps extends DynamicMotionColumnProps {
+  density?: DynamicMotionStackDensity;
 }
 
-export const OnceMotionStackItem = React.forwardRef<
+export const DynamicMotionStackItem = React.forwardRef<
   HTMLDivElement,
-  OnceMotionStackItemProps
+  DynamicMotionStackItemProps
 >(({ density = "base", variant, ...rest }, ref) => {
   const resolvedVariant = variant ?? densityToVariant[density];
-  return <OnceMotionColumn ref={ref} variant={resolvedVariant} {...rest} />;
+  return <DynamicMotionColumn ref={ref} variant={resolvedVariant} {...rest} />;
 });
-OnceMotionStackItem.displayName = "OnceMotionStackItem";
+DynamicMotionStackItem.displayName = "DynamicMotionStackItem";
 
-export type { OnceMotionStackDensity };
+export type { DynamicMotionStackDensity };
