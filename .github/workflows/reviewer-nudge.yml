@@ -1,0 +1,61 @@
+name: Reviewer Nudge
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  remind:
+    name: Remind reviewers of stale awaiting-review PRs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send reminders
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const labelName = 'awaiting-review';
+            const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+            const commentBody = `👋 Friendly reminder: this pull request is still labeled \`${labelName}\` and hasn't been updated in at least 48 hours.
+
+If you're waiting on review, please nudge a reviewer or update the checklist.`;
+            const prs = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            for (const pr of prs) {
+              const hasLabel = pr.labels.some(label => label.name === labelName);
+              const updatedAt = new Date(pr.updated_at);
+              if (!hasLabel || updatedAt > cutoff) {
+                continue;
+              }
+
+              const marker = '<!-- reviewer-nudge -->';
+              const fullComment = `${marker}\n${commentBody}`;
+
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                per_page: 100
+              });
+
+              const alreadyCommented = comments.some(comment => comment.body && comment.body.includes(marker));
+              if (alreadyCommented) {
+                continue;
+              }
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: fullComment
+              });
+            }
