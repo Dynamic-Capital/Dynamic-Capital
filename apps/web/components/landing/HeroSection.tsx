@@ -1,18 +1,26 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { Sparkles, TrendingUp, Shield, Users } from "lucide-react";
+
 import BrandLogo from "@/components/BrandLogo";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MotionFadeIn } from "@/components/ui/motion-components";
-import { TrendingUp, Shield, Users, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { callEdgeFunction } from "@/config/supabase";
+
+import InteractiveAscii from "./InteractiveAscii";
 
 interface HeroSectionProps {
   onJoinVIP?: () => void;
   onLearnMore?: () => void;
 }
+
+const stats = [
+  { icon: TrendingUp, value: "92%", label: "Success Rate", color: "accent-green" },
+  { icon: Users, value: "5000+", label: "VIP Members", color: "dc-accent" },
+  { icon: Shield, value: "24/7", label: "Support", color: "accent-teal" },
+];
 
 export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps) {
   const defaultContent = useMemo(
@@ -32,16 +40,16 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const { data, error } = await callEdgeFunction('CONTENT_BATCH', {
-          method: 'POST',
+        const { data, error } = await callEdgeFunction("CONTENT_BATCH", {
+          method: "POST",
           body: {
             keys: [
-              'hero_badge',
-              'hero_badge_highlight',
-              'hero_title',
-              'hero_description',
-              'hero_join_button',
-              'hero_learn_button',
+              "hero_badge",
+              "hero_badge_highlight",
+              "hero_title",
+              "hero_description",
+              "hero_join_button",
+              "hero_learn_button",
             ],
           },
         });
@@ -61,10 +69,10 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
             learnButton: lookup.hero_learn_button ?? defaultContent.learnButton,
           });
         } else if (error) {
-          console.error('Failed to fetch hero content:', error.message);
+          console.error("Failed to fetch hero content:", error.message);
         }
       } catch (err) {
-        console.error('Failed to fetch hero content:', err);
+        console.error("Failed to fetch hero content:", err);
       }
     };
 
@@ -72,146 +80,123 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
   }, [defaultContent]);
 
   return (
-    <section className="relative flex flex-col items-center justify-center min-h-[600px] sm:min-h-screen bg-gradient-to-br from-background via-card/30 to-background text-center overflow-hidden py-24 sm:py-32">
-      {/* Enhanced Background Elements */}
+    <section className="relative isolate overflow-hidden">
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-r from-primary/20 via-dc-accent/15 to-transparent rounded-full blur-3xl animate-pulse opacity-50"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-l from-dc-accent/20 via-telegram/15 to-transparent rounded-full blur-3xl animate-pulse opacity-50" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/5 via-transparent to-dc-accent/5 rounded-full blur-3xl animate-pulse opacity-30" style={{ animationDelay: '4s' }}></div>
-        
-        {/* Animated Grid Pattern */}
-        <div className="absolute inset-0 bg-grid-white/[0.02] dark:bg-grid-white/[0.02]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background" />
+        <InteractiveAscii
+          className="h-full w-full"
+          style={{ width: "100%", height: "100%" }}
+          backgroundColor="transparent"
+          outputWidth={180}
+          brightness={10}
+          contrast={20}
+          ditheringMode="ordered"
+          color={{
+            mode: "gradient",
+            color1: "#e0f2ff",
+            color1Point: 10,
+            color2: "#6ad3ff",
+            color2Point: 90,
+          }}
+          cursor={{
+            style: "gradient",
+            width: 36,
+            smoothing: 24,
+            invert: false,
+          }}
+          glow={{ blur: 32, opacity: 0.2 }}
+          staticEffect={{ interval: 0.35 }}
+          font={{ fontSize: "11px", lineHeight: "1.1em", fontWeight: 500 }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/80 to-background" />
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background via-background/10 to-transparent" />
       </div>
 
-      {/* Animated Background Text */}
-      <motion.svg
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-[120%] pointer-events-none opacity-20"
-        viewBox="0 0 1000 500"
-        initial={{ x: 0 }}
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{ repeat: Infinity, repeatType: "loop", duration: 40, ease: "linear" }}
-        style={{ willChange: "transform" }}
-      >
-        <path id="curve" d="M 0,300 Q 500,100 1000,300" fill="transparent" />
-        <text fill="hsl(var(--primary))" fontSize="48" fontWeight="bold" letterSpacing="3px">
-          <textPath href="#curve" startOffset="0%">
-            DYNAMIC CAPITAL — PREMIUM TRADING SIGNALS — DYNAMIC CAPITAL —
-          </textPath>
-        </text>
-      </motion.svg>
-
-      {/* Hero Content */}
-      <div className="relative z-10 max-w-5xl px-4 sm:px-6">
-        <MotionFadeIn>
-          <div className="mb-10 flex flex-col items-center">
-            <BrandLogo size="lg" variant="brand" animated />
-            <Badge className="mt-4 bg-[hsl(var(--accent-light)/0.2)] text-[hsl(var(--accent-light))] border-[hsl(var(--accent-light)/0.3)]">
-              {content.badge}
-            </Badge>
-          </div>
-          <div className="mb-6">
-            <Badge className="mb-4 bg-[hsl(var(--accent-gold)/0.2)] text-[hsl(var(--accent-gold))] border-[hsl(var(--accent-gold)/0.3)] text-lg px-6 py-2">
-              <Sparkles className="w-5 h-5 mr-2" />
-              {content.badgeHighlight}
-            </Badge>
-          </div>
-
+      <div className="relative z-10 mx-auto flex min-h-[640px] w-full max-w-6xl flex-col items-center justify-center gap-12 px-4 py-24 text-center sm:py-32">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="flex flex-col items-center gap-6"
+        >
+          <BrandLogo size="lg" variant="brand" animated />
+          <Badge className="border border-primary/30 bg-primary/10 text-primary">
+            {content.badge}
+          </Badge>
+          <Badge className="flex items-center gap-2 border border-accent-gold/40 bg-accent-gold/15 text-[hsl(var(--accent-gold))] text-base md:text-lg">
+            <Sparkles className="h-4 w-4" />
+            {content.badgeHighlight}
+          </Badge>
           <motion.h1
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 relative"
-            initial={{ opacity: 0, y: 30 }}
+            className="relative max-w-3xl text-4xl font-black tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.9, delay: 0.1, ease: "easeOut" }}
           >
-            <span className="bg-gradient-to-r from-primary via-dc-accent to-primary bg-clip-text text-transparent animate-gradient-x bg-[length:200%_auto]">
+            <span className="bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--dc-accent))] to-[hsl(var(--primary))] bg-clip-text text-transparent">
               {content.title}
             </span>
-            <motion.div 
-              className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-dc-accent/20 to-primary/20 blur-xl opacity-30"
-              animate={{ opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            />
+            <span className="absolute -inset-2 -z-10 rounded-full bg-gradient-to-r from-primary/20 via-dc-accent/20 to-primary/20 blur-2xl opacity-40" />
           </motion.h1>
-
           <motion.p
-            className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed max-w-3xl mx-auto font-light"
-            initial={{ opacity: 0, y: 20 }}
+            className="max-w-2xl text-balance text-lg text-muted-foreground sm:text-xl md:text-2xl"
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
+            transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
           >
             {content.description}
           </motion.p>
+        </motion.div>
 
-          {/* Enhanced Stats */}
-          <motion.div
-            className="flex flex-wrap justify-center gap-6 sm:gap-8 mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.7 }}
-          >
-            {[
-              { icon: TrendingUp, value: "92%", label: "Success Rate", color: "accent-green" },
-              { icon: Users, value: "5000+", label: "VIP Members", color: "dc-accent" },
-              { icon: Shield, value: "24/7", label: "Support", color: "accent-teal" }
-            ].map((stat, index) => (
-              <motion.div 
-                key={index}
-                className="text-center relative group"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              >
-                <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5 sm:p-6 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:border-primary/30">
-                  <div className="flex items-center justify-center gap-3 mb-2">
-                    <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 text-[hsl(var(--${stat.color}))] group-hover:scale-110 transition-transform`} />
-                    <span className={`text-2xl sm:text-3xl font-bold text-[hsl(var(--${stat.color}))] font-mono`}>{stat.value}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-          
-          <motion.div 
-            className="flex flex-col sm:flex-row gap-6 justify-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.9 }}
-          >
+        <motion.div
+          className="flex flex-wrap justify-center gap-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.25, ease: "easeOut" }}
+        >
+          {stats.map((stat) => (
             <motion.div
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className="w-full sm:w-auto"
+              key={stat.label}
+              whileHover={{ y: -6, scale: 1.03 }}
+              transition={{ type: "spring", stiffness: 320, damping: 22 }}
+              className="relative overflow-hidden rounded-2xl border border-border/60 bg-background/70 px-6 py-5 backdrop-blur-xl shadow-lg"
             >
-              <Button
-                size="lg"
-                className="relative w-full bg-gradient-to-r from-primary via-primary to-dc-accent text-primary-foreground shadow-2xl hover:shadow-[0_0_25px_hsl(var(--primary)/0.6)] text-lg sm:text-xl px-8 sm:px-12 py-5 sm:py-6 font-bold border-0 overflow-hidden group"
-                onClick={onJoinVIP}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                <Sparkles className="w-6 h-6 mr-3 animate-pulse" />
-                {content.joinButton}
-              </Button>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-70" />
+              <div className="relative flex flex-col items-center gap-2">
+                <stat.icon className={`h-6 w-6 text-[hsl(var(--${stat.color}))]`} />
+                <span className={`text-3xl font-bold text-[hsl(var(--${stat.color}))] font-mono`}>{stat.value}</span>
+                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+              </div>
             </motion.div>
-            
-            <motion.div
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-              className="w-full sm:w-auto"
-            >
-              <Button
-                size="lg"
-                variant="outline"
-                className="relative w-full border-2 border-primary/40 text-primary hover:bg-primary/10 backdrop-blur-md bg-card/20 text-lg sm:text-xl px-8 sm:px-12 py-5 sm:py-6 font-semibold overflow-hidden group"
-                onClick={onLearnMore}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
-                {content.learnButton}
-              </Button>
-            </motion.div>
-          </motion.div>
-        </MotionFadeIn>
+          ))}
+        </motion.div>
+
+        <motion.div
+          className="flex w-full flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.35, ease: "easeOut" }}
+        >
+          <Button
+            size="lg"
+            className="group relative w-full overflow-hidden rounded-full bg-gradient-to-r from-[hsl(var(--primary))] via-[hsl(var(--dc-accent))] to-[hsl(var(--primary))] px-8 py-6 text-lg font-semibold text-primary-foreground shadow-[0_0_35px_rgba(80,214,255,0.25)] transition-shadow duration-300 sm:w-auto"
+            onClick={onJoinVIP}
+          >
+            <span className="absolute inset-0 translate-x-[-120%] bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[120%]" />
+            <span className="relative flex items-center justify-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              {content.joinButton}
+            </span>
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="group relative w-full overflow-hidden rounded-full border-primary/40 bg-background/80 px-8 py-6 text-lg font-semibold text-primary transition-all duration-300 hover:bg-primary/10 sm:w-auto"
+            onClick={onLearnMore}
+          >
+            <span className="absolute inset-0 translate-x-[-110%] bg-gradient-to-r from-transparent via-primary/15 to-transparent transition-transform duration-500 ease-out group-hover:translate-x-[110%]" />
+            <span className="relative">{content.learnButton}</span>
+          </Button>
+        </motion.div>
       </div>
     </section>
   );
