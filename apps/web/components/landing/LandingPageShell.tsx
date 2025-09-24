@@ -1,19 +1,11 @@
-import dynamic from "next/dynamic";
 import { Background, Column, RevealFx } from "@once-ui-system/core";
 import { opacity, SpacingToken } from "@once-ui-system/core";
 import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
 import { systemUI } from "@/resources";
 import { MagicLandingPage } from "@/components/magic-portfolio/MagicLandingPage";
-import type {
-  ChromaBackgroundProps,
-  ChromaBackgroundStyle,
-} from "@/components/landing/ChromaBackground";
-
-const DynamicChromaBackground = dynamic<ChromaBackgroundProps>(
-  () => import("@/components/landing/ChromaBackground"),
-  { ssr: false }
-);
+import type { ChromaBackgroundStyle } from "@/components/landing/ChromaBackground";
+import { DynamicChromaBackground } from "@/components/landing/DynamicChromaBackground";
 
 export interface LandingPageShellProps {
   /**
