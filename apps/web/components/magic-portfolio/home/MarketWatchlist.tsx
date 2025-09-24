@@ -13,6 +13,7 @@ interface MarketWatchlistItem {
   category: InstrumentCategory;
   session: string;
   focus: string;
+  beginnerTip: string;
   bias: "Long" | "Short" | "Monitoring";
   dataKey: string;
   format: Intl.NumberFormatOptions;
@@ -84,6 +85,8 @@ const WATCHLIST: MarketWatchlistItem[] = [
     session: "Asia accumulation",
     focus:
       "Risk-off flows keep gold bid; running partial hedge overlay with alerts for a break of $2,400 support to flip defensive.",
+    beginnerTip:
+      "Gold is the safety trade. We stay cautious if price slips under $2,400 and look for steadier moves before adding risk.",
     bias: "Monitoring",
     dataKey: "XAUUSD",
     format: {
@@ -101,6 +104,8 @@ const WATCHLIST: MarketWatchlistItem[] = [
     session: "Global dollar flows",
     focus:
       "Watching rate expectations and Treasury auctions for momentum cues. Dollar strength keeps risk desks defensive on global beta.",
+    beginnerTip:
+      "When the dollar index rises, other currencies and risk assets usually cool off. Strong DXY means scale position sizes down.",
     bias: "Long",
     dataKey: "DXY",
     format: {
@@ -117,6 +122,8 @@ const WATCHLIST: MarketWatchlistItem[] = [
     session: "Tokyo carry unwind",
     focus:
       "Tracking MoF rhetoric and US yields for timing on fresh shorts. Alerted automation for spikes sub 147.00 as risk trigger.",
+    beginnerTip:
+      "A falling USD/JPY means the yen is getting stronger. Quick drops toward 147 are our cue to slow down and reassess entries.",
     bias: "Monitoring",
     dataKey: "USDJPY",
     format: {
@@ -134,6 +141,8 @@ const WATCHLIST: MarketWatchlistItem[] = [
     session: "London spot flow",
     focus:
       "Watching BoE commentary and US data for continuation shorts while price is capped below key weekly supply near 1.36.",
+    beginnerTip:
+      "Sellers stay in control while GBP/USD holds below 1.36. Keep any long ideas small and respect the broader downtrend.",
     bias: "Short",
     dataKey: "GBPUSD",
     format: {
@@ -151,6 +160,8 @@ const WATCHLIST: MarketWatchlistItem[] = [
     session: "London momentum",
     focus:
       "Scaling automation on the $64k breakout shelf while funding stays balanced. Monitoring for exhaustion near $66k liquidity.",
+    beginnerTip:
+      "Bitcoin pushing above $64k keeps bullish momentum alive, but we plan exits near $66k in case buyers tire out.",
     bias: "Long",
     dataKey: "BTCUSD",
     format: {
@@ -168,6 +179,8 @@ const WATCHLIST: MarketWatchlistItem[] = [
     session: "US overlap",
     focus:
       "Looking for acceptance above $3.1k to continue the weekly trend. Mentors tightening invalidation beneath $2.95k swing lows.",
+    beginnerTip:
+      "Ether needs to hold above $3.1k to confirm the uptrend. Below $2.95k we step aside and wait for clarity.",
     bias: "Long",
     dataKey: "ETHUSD",
     format: {
@@ -449,12 +462,18 @@ export function MarketWatchlist() {
       gap="32"
       shadow="l"
     >
-      <Column gap="12" maxWidth={32}>
+      <Column gap="16" maxWidth={32}>
         <Heading variant="display-strong-xs">Live market watchlist</Heading>
-        <Text variant="body-default-l" onBackground="neutral-weak">
-          Instruments the desk is actively briefing members on. Live quotes refresh automatically so you can plan risk in sync
-          with the trade desk.
-        </Text>
+        <Column gap="8">
+          <Text variant="body-default-l" onBackground="neutral-weak">
+            New to the markets? Start with the quick takeaways in each card. We refresh prices automatically so you always see
+            the latest levels the desk is working with.
+          </Text>
+          <Row gap="8" wrap>
+            <Tag size="s" prefixIcon="clock">Maldives Time (MVT)</Tag>
+            <Tag size="s" prefixIcon="repeat">Updates every 60 seconds</Tag>
+          </Row>
+        </Column>
         <Row gap="8" vertical="center" wrap>
           <Tag size="s">{statusLabel}</Tag>
           {error ? (
@@ -547,9 +566,17 @@ export function MarketWatchlist() {
                   </Text>
                   <Text variant="body-default-m">{formatRange(quote, item.format)}</Text>
                 </Column>
+                <Column flex={1} minWidth={24} gap="8" background="brand-alpha-weak" padding="m" radius="m">
+                  <Text variant="label-default-s" onBackground="brand-strong">
+                    Quick takeaway
+                  </Text>
+                  <Text variant="body-default-s" onBackground="brand-strong">
+                    {item.beginnerTip}
+                  </Text>
+                </Column>
                 <Column flex={1} minWidth={24} gap="8">
                   <Text variant="label-default-s" onBackground="neutral-weak">
-                    Desk guidance
+                    Strategy focus
                   </Text>
                   <Text variant="body-default-m">{item.focus}</Text>
                 </Column>

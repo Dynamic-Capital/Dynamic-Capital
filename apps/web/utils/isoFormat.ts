@@ -1,5 +1,9 @@
 export type IsoDateInput = string | number | Date;
 
+const MALDIVES_TIME_ZONE = "Indian/Maldives";
+const MALDIVES_TIME_SUFFIX = "MVT";
+const LOCALE = "en-GB";
+
 function toDate(value: IsoDateInput): Date | null {
   if (value instanceof Date) {
     return new Date(value.getTime());
@@ -10,11 +14,37 @@ function toDate(value: IsoDateInput): Date | null {
 }
 
 function formatWithPrecision(date: Date, includeMilliseconds: boolean): string {
-  const iso = date.toISOString();
-  if (includeMilliseconds) {
-    return iso;
+  const formatter = new Intl.DateTimeFormat(LOCALE, {
+    timeZone: MALDIVES_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date);
+
+  const lookup: Record<string, string> = {};
+  for (const part of parts) {
+    if (part.type !== "literal") {
+      lookup[part.type] = part.value;
+    }
   }
-  return iso.replace(/\.\d{3}Z$/, "Z");
+
+  const year = lookup.year ?? "0000";
+  const month = lookup.month ?? "00";
+  const day = lookup.day ?? "00";
+  const hour = lookup.hour ?? "00";
+  const minute = lookup.minute ?? "00";
+  const second = lookup.second ?? "00";
+  const milliseconds = includeMilliseconds
+    ? `.${String(date.getMilliseconds()).padStart(3, "0")}`
+    : "";
+
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}${milliseconds} (${MALDIVES_TIME_SUFFIX})`;
 }
 
 export function formatIsoDateTime(
