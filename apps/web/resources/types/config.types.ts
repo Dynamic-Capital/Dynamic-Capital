@@ -28,9 +28,9 @@ export type DisplayConfig = {
 export type RouteConfigValue =
   | boolean
   | {
-      enabled: boolean;
-      includeChildren?: boolean;
-    };
+    enabled: boolean;
+    includeChildren?: boolean;
+  };
 
 /**
  * Route configuration for enabled/disabled routes.
@@ -187,7 +187,7 @@ export type SocialSharingConfig = {
 };
 
 /**
- * High-level Once UI primitives used to configure global surfaces.
+ * High-level Dynamic UI primitives used to configure global surfaces.
  */
 export type SystemUIBasicsConfig = {
   baseURL: string;

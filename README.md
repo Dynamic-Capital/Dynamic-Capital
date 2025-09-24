@@ -8,7 +8,9 @@
 ## What's New
 
 <!-- WHATS_NEW:START -->
+
 Project highlights will appear here after the first automated release.
+
 <!-- WHATS_NEW:END -->
 
 ## Shortcuts
@@ -23,7 +25,8 @@ Project highlights will appear here after the first automated release.
 - [PRs you've reviewed](https://github.com/search?q=is%3Apr+reviewed-by%3ADynamic-Capital&type=pullrequests)
 - [PRs requesting your review](https://github.com/search?q=is%3Apr+review-requested%3ADynamic-Capital&type=pullrequests)
 
-> 💡 Add filters like `created:>=2025-09-01` to any query URL above to focus on activity within a date range.
+> 💡 Add filters like `created:>=2025-09-01` to any query URL above to focus on
+> activity within a date range.
 
 ### GitHub CLI one-liners
 
@@ -51,6 +54,7 @@ The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
 backed by Supabase.
 
 ## Telegram Mini App — Next.js + React + Icons
+
 - Built with **Next.js (App Router)** + **React 18**
 - Uses **lucide-react** icons (swap to `react-icons` if preferred)
 - Telegram theme drives CSS vars (auto updates on theme change)
@@ -58,6 +62,7 @@ backed by Supabase.
 - MainButton/BackButton + haptics helpers in `lib/telegram.ts`
 
 ### Install
+
 ```bash
 pnpm add lucide-react # or: npm i lucide-react
 ```
@@ -73,7 +78,7 @@ pnpm add react-icons
 Then in `BottomNav.tsx`:
 
 ```ts
-import { FiHome, FiActivity, FiUser } from 'react-icons/fi';
+import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 // ...use <FiHome/>, <FiActivity/>, <FiUser/>
 ```
 
@@ -88,10 +93,13 @@ import { FiHome, FiActivity, FiUser } from 'react-icons/fi';
 
 ## Security Features
 
-- Optional HTTPS server enforces TLS 1.2+ (prefers TLS 1.3) when SSL certificates are supplied.
+- Optional HTTPS server enforces TLS 1.2+ (prefers TLS 1.3) when SSL
+  certificates are supplied.
 - HTTP Strict Transport Security (HSTS) headers for all responses.
 - Lightweight per-IP rate limiting to mitigate basic DDoS attacks.
-- Maintains third-party certifications for ISO 27001, SOC 2 Type II, PCI DSS Level 1, HIPAA, GDPR, and the EU–US Data Privacy Framework ([docs/compliance](docs/compliance/README.md)).
+- Maintains third-party certifications for ISO 27001, SOC 2 Type II, PCI DSS
+  Level 1, HIPAA, GDPR, and the EU–US Data Privacy Framework
+  ([docs/compliance](docs/compliance/README.md)).
 
 ## Environment Setup
 
@@ -121,9 +129,9 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
-Store these in your hosting platform's environment settings or in `.env`/`.env.local`
-for local development. The static site should have access to the same values at
-build time.
+Store these in your hosting platform's environment settings or in
+`.env`/`.env.local` for local development. The static site should have access to
+the same values at build time.
 
 ### Server-only secrets
 
@@ -136,10 +144,12 @@ For local work, create `.env`/`.env.local` at the repository root and run
 platform's configuration for each component.
 
 > **Proxy-friendly npm wrapper:** if your terminal session provides legacy
-> `npm_config_http_proxy` variables you may see `npm warn Unknown env config
-> "http-proxy"`. Run commands through `node scripts/npm-safe.mjs <npm args>`
-> (for example `node scripts/npm-safe.mjs run dev`) to strip the deprecated
-> proxy keys and silence the warning while preserving HTTP/HTTPS proxy support.
+> `npm_config_http_proxy` variables you may see
+> `npm warn Unknown env config
+> "http-proxy"`. Run commands through
+> `node scripts/npm-safe.mjs <npm args>` (for example
+> `node scripts/npm-safe.mjs run dev`) to strip the deprecated proxy keys and
+> silence the warning while preserving HTTP/HTTPS proxy support.
 
 ## Project Structure
 
@@ -155,7 +165,8 @@ platform's configuration for each component.
 - **Root configuration** – Key files like `package.json`, `tsconfig.json`,
   `eslint.config.js`, and `.env.example` sit at the project root. Keep
   `.env.example` updated when adding new environment variables.
-- **Go service** – simple HTTP server in `go-service/` with a `/healthz` endpoint.
+- **Go service** – simple HTTP server in `go-service/` with a `/healthz`
+  endpoint.
 - **Unified builds** – the previous `external/dynamic_codex` Vite workspace has
   been merged; all bot tooling now ships from the Next.js app so the project is
   maintained with a single build pipeline.
@@ -168,8 +179,8 @@ platform's configuration for each component.
 - **Package scripts** – launch development, build, and production with
   `npm run dev`, `npm run build`, and `npm run start` in `package.json`
 - **Next.js web app** – main layout and landing page entry points in
-  `app/layout.tsx` and `app/page.tsx`. Operational views such as the
-  Telegram bot dashboard live directly under `app/telegram`.
+  `app/layout.tsx` and `app/page.tsx`. Operational views such as the Telegram
+  bot dashboard live directly under `app/telegram`.
 - **Telegram bot** – Supabase Edge Function at
   `supabase/functions/telegram-bot/index.ts`
 - **Mini App function** – Supabase Edge Function at
@@ -186,24 +197,48 @@ hardened `server.js` serves this snapshot for CDN-style hosting, while the
 Next.js server continues to power authenticated routes.
 
 All landing page edits now live in `apps/web` (for example, `app/page.tsx` and
-the Once UI components). After changing those files, rerun the build steps above
-to refresh the snapshot.
+the Dynamic UI components). After changing those files, rerun the build steps
+above to refresh the snapshot.
 
 ## Asset Deployment
 
-- Run `npm run upload-assets` to push the generated `_static` directory to the configured CDN. The helper validates `CDN_ENDPOINT` and falls back to the regional Spaces endpoint if a custom CDN host is provided by mistake.
-- Provide `DIGITALOCEAN_TOKEN`, `CDN_ENDPOINT_ID`, and `CDN_PURGE_PATHS` (comma-separated paths such as `/index.html,/`) to let the uploader purge stale CDN cache entries through the DigitalOcean API after each upload.
-- A GitHub Actions workflow (`upload-assets.yml`) builds the Next.js app, runs the landing snapshot helper, and uploads `_static/` on pushes to `main`. It expects `CDN_BUCKET`, `CDN_ACCESS_KEY`, `CDN_SECRET_KEY`, and optional `CDN_REGION`/`CDN_ENDPOINT` secrets.
-- Use `npm run do:sync-cdn -- --space <bucket> --region <slug> --apply --show-endpoint` to create or update the DigitalOcean CDN endpoint via the REST API and surface the endpoint ID. Pass `--custom-domain`/`--certificate-id` when attaching a vanity domain, or omit `--apply` for a dry run.
-- During development, `npm run upload-assets:watch` monitors `_static` and uploads changes automatically.
+- Run `npm run upload-assets` to push the generated `_static` directory to the
+  configured CDN. The helper validates `CDN_ENDPOINT` and falls back to the
+  regional Spaces endpoint if a custom CDN host is provided by mistake.
+- Provide `DIGITALOCEAN_TOKEN`, `CDN_ENDPOINT_ID`, and `CDN_PURGE_PATHS`
+  (comma-separated paths such as `/index.html,/`) to let the uploader purge
+  stale CDN cache entries through the DigitalOcean API after each upload.
+- A GitHub Actions workflow (`upload-assets.yml`) builds the Next.js app, runs
+  the landing snapshot helper, and uploads `_static/` on pushes to `main`. It
+  expects `CDN_BUCKET`, `CDN_ACCESS_KEY`, `CDN_SECRET_KEY`, and optional
+  `CDN_REGION`/`CDN_ENDPOINT` secrets.
+- Use
+  `npm run do:sync-cdn -- --space <bucket> --region <slug> --apply --show-endpoint`
+  to create or update the DigitalOcean CDN endpoint via the REST API and surface
+  the endpoint ID. Pass `--custom-domain`/`--certificate-id` when attaching a
+  vanity domain, or omit `--apply` for a dry run.
+- During development, `npm run upload-assets:watch` monitors `_static` and
+  uploads changes automatically.
 
 ## Maintenance & Automation
 
-- Regenerate the documentation inventory after touching edge functions or environment variables with `npm run docs:summary`. The script updates `docs/REPO_SUMMARY.md` so reviewers can confirm every handler exposes a default export and spot any new `Deno.env.get` usage.
-- Review the [Checklist Directory](docs/CHECKLISTS.md) to find the right project, launch, or integration checklist and see which ones have automation keys (`npm run checklists`).
-- Keep `docs/env.md` in sync when introducing deployment settings such as `FUNCTIONS_BASE_URL` or log drain credentials (`LOGTAIL_SOURCE_TOKEN`, `LOGTAIL_URL`). Pair updates with the summary script so both docs reference the same keys.
-- When rotating the Telegram webhook secret, run `deno run -A scripts/set-webhook.ts` (or `deno task set:webhook`) after deploying the updated function to re-register the webhook with BotFather.
-- Scaffold AlgoKit runtime functions with `python tools/algo-cli/algokit.py function strategy-name --lang both` to create matching Python and TypeScript stubs from the command line.
+- Regenerate the documentation inventory after touching edge functions or
+  environment variables with `npm run docs:summary`. The script updates
+  `docs/REPO_SUMMARY.md` so reviewers can confirm every handler exposes a
+  default export and spot any new `Deno.env.get` usage.
+- Review the [Checklist Directory](docs/CHECKLISTS.md) to find the right
+  project, launch, or integration checklist and see which ones have automation
+  keys (`npm run checklists`).
+- Keep `docs/env.md` in sync when introducing deployment settings such as
+  `FUNCTIONS_BASE_URL` or log drain credentials (`LOGTAIL_SOURCE_TOKEN`,
+  `LOGTAIL_URL`). Pair updates with the summary script so both docs reference
+  the same keys.
+- When rotating the Telegram webhook secret, run
+  `deno run -A scripts/set-webhook.ts` (or `deno task set:webhook`) after
+  deploying the updated function to re-register the webhook with BotFather.
+- Scaffold AlgoKit runtime functions with
+  `python tools/algo-cli/algokit.py function strategy-name --lang both` to
+  create matching Python and TypeScript stubs from the command line.
 
 ## Development Process Overview
 
@@ -431,10 +466,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 # NEXT_PUBLIC_API_URL=https://example.com/api
 ```
 
-Set the required Supabase values in your hosting provider (e.g., Lovable.dev project settings). If
-either value is missing, the app will render a configuration error screen
-instead of loading. You can optionally set `NEXT_PUBLIC_API_URL` to point at a custom API; otherwise the client uses
-the relative `/api` path. The client also accepts `SUPABASE_URL`/`SUPABASE_ANON_KEY`
+Set the required Supabase values in your hosting provider (e.g., Lovable.dev
+project settings). If either value is missing, the app will render a
+configuration error screen instead of loading. You can optionally set
+`NEXT_PUBLIC_API_URL` to point at a custom API; otherwise the client uses the
+relative `/api` path. The client also accepts `SUPABASE_URL`/`SUPABASE_ANON_KEY`
 as fallbacks if the `NEXT_PUBLIC_` values are not provided.
 
 Values are set in Supabase function secrets, GitHub Environments, or Lovable
@@ -560,8 +596,8 @@ history scoped to that agent while still sharing successes with the rest of the
 team. The helper fingerprints `package-lock.json` so multiple agents can reuse a
 single `npm install` run; pass `--no-shared-cache` if you need to force a fresh
 install. The helper remembers which steps failed recently so it can surface
-troubleshooting tips the next time you run it. If you want to start fresh,
-pass `--reset-issues` to clear that history before executing tasks.
+troubleshooting tips the next time you run it. If you want to start fresh, pass
+`--reset-issues` to clear that history before executing tasks.
 
 When a command fails, the helper now scans the error output for familiar
 patterns (missing package scripts, `MODULE_NOT_FOUND` errors, `ENOENT` paths,
@@ -580,10 +616,10 @@ on images.
    DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile -t dynamic-chatty-bot .
    ```
 
-   BuildKit enables caching of Next.js build artifacts. For non-Docker CI,
-   cache the `apps/web/.next/cache` directory between runs to speed up builds.
-   GitHub Actions uses `actions/cache` with a key derived from `package-lock.json`
-   and `apps/web/package.json`:
+   BuildKit enables caching of Next.js build artifacts. For non-Docker CI, cache
+   the `apps/web/.next/cache` directory between runs to speed up builds. GitHub
+   Actions uses `actions/cache` with a key derived from `package-lock.json` and
+   `apps/web/package.json`:
 
    ```yaml
    - uses: actions/cache@v3
@@ -657,7 +693,8 @@ deno test -A
 
 ## Go Service
 
-A minimal Go HTTP server lives in `go-service/` and exposes a `/healthz` endpoint on port `8080`.
+A minimal Go HTTP server lives in `go-service/` and exposes a `/healthz`
+endpoint on port `8080`.
 
 ### Build and run
 
@@ -700,8 +737,8 @@ Then POST to `http://localhost:54321/functions/v1/telegram-webhook` with
 ## Deployment
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment vars, tests,
-deployment, and troubleshooting.
-For Nginx + Let's Encrypt on DuckDNS, see [docs/DUCKDNS_NGINX_CERTBOT.md](docs/DUCKDNS_NGINX_CERTBOT.md).
+deployment, and troubleshooting. For Nginx + Let's Encrypt on DuckDNS, see
+[docs/DUCKDNS_NGINX_CERTBOT.md](docs/DUCKDNS_NGINX_CERTBOT.md).
 
 Set your Supabase project reference for the deploy scripts:
 
@@ -736,15 +773,16 @@ This project features **bidirectional GitHub sync** through Lovable Codex:
 
 For a combined approach that keeps production on DigitalOcean while iterating
 with Lovable and local tooling, see
-[docs/HYBRID_DEVELOPMENT_WORKFLOW.md](docs/HYBRID_DEVELOPMENT_WORKFLOW.md).
-It covers prototyping in Lovable, exporting via the Codex CLI, local testing,
-and syncing changes through GitHub to maintain a seamless deployment pipeline.
+[docs/HYBRID_DEVELOPMENT_WORKFLOW.md](docs/HYBRID_DEVELOPMENT_WORKFLOW.md). It
+covers prototyping in Lovable, exporting via the Codex CLI, local testing, and
+syncing changes through GitHub to maintain a seamless deployment pipeline.
 
 ## License / contributions
 
 Proprietary / All rights reserved. Review the root [`LICENSE`](LICENSE) file for
-usage terms and [`docs/legal/THIRD_PARTY_LICENSES.md`](docs/legal/THIRD_PARTY_LICENSES.md)
-for attribution of bundled open-source components. Personal project; external
+usage terms and
+[`docs/legal/THIRD_PARTY_LICENSES.md`](docs/legal/THIRD_PARTY_LICENSES.md) for
+attribution of bundled open-source components. Personal project; external
 PRs/issues are closed by default.
 
 ## Notes
