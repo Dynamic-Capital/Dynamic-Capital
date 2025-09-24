@@ -1,0 +1,300 @@
+"""Unit tests for technical indicator helpers used by the data pipeline."""
+
+from __future__ import annotations
+
+import pytest
+
+from algorithms.python.data_pipeline import _compute_adx, _compute_rsi
+
+
+@pytest.mark.parametrize(
+    "period, closes, expected",
+    [
+        (
+            14,
+            [
+                1.2345,
+                1.2350,
+                1.2330,
+                1.2380,
+                1.2400,
+                1.2375,
+                1.2390,
+                1.2410,
+                1.2450,
+                1.2440,
+                1.2460,
+                1.2475,
+                1.2490,
+                1.2510,
+                1.2500,
+                1.2480,
+                1.2520,
+                1.2530,
+                1.2545,
+                1.2550,
+                1.2565,
+                1.2580,
+                1.2570,
+                1.2595,
+                1.2600,
+                1.2615,
+                1.2630,
+                1.2620,
+                1.2610,
+                1.2640,
+                1.2660,
+                1.2650,
+                1.2675,
+                1.2690,
+                1.2680,
+                1.2705,
+                1.2720,
+            ],
+            [
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                77.1929824561,
+                71.7691342535,
+                75.4799228770,
+                76.3180020552,
+                77.5571337964,
+                77.9709040317,
+                79.2092904365,
+                80.3961144950,
+                77.2309111727,
+                79.4130539879,
+                79.8294155981,
+                81.0665434895,
+                82.2396370156,
+                78.7371553056,
+                75.2842588586,
+                78.3514360428,
+                80.1224482102,
+                76.7419555197,
+                79.1144067718,
+                80.4058810885,
+                76.9880115189,
+                79.3511454074,
+                80.6360310924,
+            ],
+        ),
+    ],
+)
+def test_compute_rsi_matches_reference(period: int, closes: list[float], expected: list[float | None]) -> None:
+    result = _compute_rsi(closes, period)
+    assert len(result) == len(expected)
+    for idx, (value, expected_value) in enumerate(zip(result, expected)):
+        if expected_value is None:
+            assert value is None, f"Expected None at index {idx}, got {value}"
+            continue
+        assert value is not None
+        assert value == pytest.approx(expected_value, rel=1e-6)
+
+
+def test_compute_rsi_rejects_non_positive_period() -> None:
+    with pytest.raises(ValueError):
+        _compute_rsi([1.0, 1.1], 0)
+
+
+@pytest.mark.parametrize(
+    "period, highs, lows, closes, expected",
+    [
+        (
+            14,
+            [c + 0.0015 for c in [
+                1.2345,
+                1.2350,
+                1.2330,
+                1.2380,
+                1.2400,
+                1.2375,
+                1.2390,
+                1.2410,
+                1.2450,
+                1.2440,
+                1.2460,
+                1.2475,
+                1.2490,
+                1.2510,
+                1.2500,
+                1.2480,
+                1.2520,
+                1.2530,
+                1.2545,
+                1.2550,
+                1.2565,
+                1.2580,
+                1.2570,
+                1.2595,
+                1.2600,
+                1.2615,
+                1.2630,
+                1.2620,
+                1.2610,
+                1.2640,
+                1.2660,
+                1.2650,
+                1.2675,
+                1.2690,
+                1.2680,
+                1.2705,
+                1.2720,
+            ]],
+            [c - 0.0012 for c in [
+                1.2345,
+                1.2350,
+                1.2330,
+                1.2380,
+                1.2400,
+                1.2375,
+                1.2390,
+                1.2410,
+                1.2450,
+                1.2440,
+                1.2460,
+                1.2475,
+                1.2490,
+                1.2510,
+                1.2500,
+                1.2480,
+                1.2520,
+                1.2530,
+                1.2545,
+                1.2550,
+                1.2565,
+                1.2580,
+                1.2570,
+                1.2595,
+                1.2600,
+                1.2615,
+                1.2630,
+                1.2620,
+                1.2610,
+                1.2640,
+                1.2660,
+                1.2650,
+                1.2675,
+                1.2690,
+                1.2680,
+                1.2705,
+                1.2720,
+            ]],
+            [
+                1.2345,
+                1.2350,
+                1.2330,
+                1.2380,
+                1.2400,
+                1.2375,
+                1.2390,
+                1.2410,
+                1.2450,
+                1.2440,
+                1.2460,
+                1.2475,
+                1.2490,
+                1.2510,
+                1.2500,
+                1.2480,
+                1.2520,
+                1.2530,
+                1.2545,
+                1.2550,
+                1.2565,
+                1.2580,
+                1.2570,
+                1.2595,
+                1.2600,
+                1.2615,
+                1.2630,
+                1.2620,
+                1.2610,
+                1.2640,
+                1.2660,
+                1.2650,
+                1.2675,
+                1.2690,
+                1.2680,
+                1.2705,
+                1.2720,
+            ],
+            [
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                54.3859649123,
+                53.6111294548,
+                53.4217520476,
+                53.3656271949,
+                53.4905300805,
+                53.6656213650,
+                54.0051184727,
+                54.4899120811,
+                54.4879056714,
+                54.7977772645,
+                55.1449954025,
+                55.6441448008,
+                56.2752254602,
+                56.3608743995,
+                55.9471346365,
+                56.0011158829,
+                56.3042430641,
+                56.1027907766,
+                56.2546495457,
+                56.5801575908,
+                56.3941479799,
+                56.5590153252,
+                56.8956615295,
+            ],
+        ),
+    ],
+)
+def test_compute_adx_matches_reference(
+    period: int,
+    highs: list[float],
+    lows: list[float],
+    closes: list[float],
+    expected: list[float | None],
+) -> None:
+    result = _compute_adx(highs, lows, closes, period)
+    assert len(result) == len(expected)
+    for idx, (value, expected_value) in enumerate(zip(result, expected)):
+        if expected_value is None:
+            assert value is None, f"Expected None at index {idx}, got {value}"
+            continue
+        assert value is not None
+        assert value == pytest.approx(expected_value, rel=1e-6)
+
+
+def test_compute_adx_validates_lengths() -> None:
+    with pytest.raises(ValueError):
+        _compute_adx([1.0, 1.1], [0.9], [1.0, 1.1], 14)
+
+
+def test_compute_adx_rejects_non_positive_period() -> None:
+    with pytest.raises(ValueError):
+        _compute_adx([1.0, 1.1], [0.9, 1.0], [1.0, 1.1], 0)
