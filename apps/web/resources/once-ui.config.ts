@@ -5,7 +5,6 @@ import {
   FontsConfig,
   MailchimpConfig,
   ProtectedRoutesConfig,
-  RoutesConfig,
   SameAsConfig,
   SchemaConfig,
   SocialSharingConfig,
@@ -13,21 +12,9 @@ import {
   SystemUIConfig,
 } from "@/resources/types";
 import { home } from "./content";
+import { routes } from "./routes.config";
 
 const baseURL: string = "https://dynamic.capital";
-
-const routes: RoutesConfig = {
-  "/": true,
-  "/about": true,
-  "/plans": true,
-  "/checkout": true,
-  "/login": true,
-  "/admin": true,
-  "/work": false,
-  "/blog": false,
-  "/gallery": false,
-  "/telegram": true,
-};
 
 const display: DisplayConfig = {
   location: true,
