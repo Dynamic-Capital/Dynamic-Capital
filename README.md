@@ -11,6 +11,30 @@
 Project highlights will appear here after the first automated release.
 <!-- WHATS_NEW:END -->
 
+## Shortcuts
+
+### Saved GitHub queries
+
+- [Everything you've opened (issues + PRs)](https://github.com/search?q=author%3ADynamic-Capital&type=issues)
+- [Only PRs you've opened](https://github.com/search?q=is%3Apr+author%3ADynamic-Capital+sort%3Aupdated-desc&type=pullrequests)
+- [Only issues you've opened](https://github.com/search?q=is%3Aissue+author%3ADynamic-Capital+is%3Aopen&type=issues)
+- [This repo: your PRs](https://github.com/search?q=repo%3ADynamic-Capital%2FDynamic-Capital+author%3ADynamic-Capital+is%3Apr&type=pullrequests)
+- [Everything you're involved in](https://github.com/search?q=involves%3ADynamic-Capital&type=issues)
+- [PRs you've reviewed](https://github.com/search?q=is%3Apr+reviewed-by%3ADynamic-Capital&type=pullrequests)
+- [PRs requesting your review](https://github.com/search?q=is%3Apr+review-requested%3ADynamic-Capital&type=pullrequests)
+
+> 💡 Add filters like `created:>=2025-09-01` to any query URL above to focus on activity within a date range.
+
+### GitHub CLI one-liners
+
+```bash
+# All of your PRs in this repo
+gh api 'search/issues?q=repo:Dynamic-Capital/Dynamic-Capital+is:pr+author:Dynamic-Capital' -q '.items[].html_url'
+
+# Your commits in this repo
+gh api 'repos/Dynamic-Capital/Dynamic-Capital/commits?author=Dynamic-Capital' -q '.[].html_url'
+```
+
 ## What this is
 
 Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
