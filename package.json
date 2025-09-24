@@ -31,6 +31,7 @@
     "upload-assets:watch": "chokidar '_static/**/*' -c 'node scripts/npm-safe.mjs run upload-assets'",
     "docs:summary": "deno run -A scripts/generate-repo-summary.ts",
     "docs:organize": "$(bash scripts/deno_bin.sh) run -A scripts/repo-file-organizer.ts",
+    "drizzle:migrations:validate": "deno run -A scripts/validate-drizzle-migrations.ts",
     "test": "node scripts/check-static-homepage.js && deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check",
     "verify": "bash scripts/verify/verify_all.sh",
     "audit": "npm audit",
