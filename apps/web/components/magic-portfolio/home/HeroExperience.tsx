@@ -1,7 +1,7 @@
 "use client";
 
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   motion,
   useMotionValue,
@@ -21,19 +21,25 @@ import { home } from "@/resources";
 
 const ONBOARDING_STEPS = [
   {
-    title: "Guided setup",
+    title: "Pick your path",
+    subtitle: "60-second quiz tunes the workspace",
     description:
-      "Answer a few quick questions and we suggest the exact playbook that matches your goals and starting capital.",
+      "Answer five prompts and we pre-load a trading lane that matches your schedule, asset focus, and risk dial.",
+    actions: ["Risk dial", "Asset focus", "Session length"],
   },
   {
-    title: "Practice in a safe workspace",
+    title: "Run guided drills",
+    subtitle: "Practice inside the simulator",
     description:
-      "Test the strategy in our sandbox first. Visual timers and checklists walk you through each trade with zero pressure.",
+      "Follow interactive checklists, timers, and mentor cues while you practice in a zero-capital sandbox.",
+    actions: ["Drill timers", "Video cues", "Instant resets"],
   },
   {
-    title: "Go live with confidence",
+    title: "Go live with guardrails",
+    subtitle: "Unlock signals once you pass readiness",
     description:
-      "Graduate into real positions with automated risk controls, instant feedback, and weekly office hours.",
+      "Flip on live alerts, auto-journaling, and human support the moment your readiness score crosses the line.",
+    actions: ["Risk locks", "Mentor ping", "Auto journal"],
   },
 ] as const;
 
@@ -69,6 +75,8 @@ const PREVIEW_CARDS = [
 
 export function HeroExperience() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const activeStep = ONBOARDING_STEPS[activeStepIndex];
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const springX = useSpring(pointerX, {
@@ -104,6 +112,12 @@ export function HeroExperience() {
   const backCardY = useTransform(springY, (value) => value * 10);
   const backRotateX = useTransform(springY, (value) => `${value * -4}deg`);
   const backRotateY = useTransform(springX, (value) => `${value * 4}deg`);
+
+  const orderedCards = useMemo(() => {
+    const cards = PREVIEW_CARDS.slice();
+    const [active] = cards.splice(activeStepIndex, 1);
+    return active ? [active, ...cards] : cards;
+  }, [activeStepIndex]);
 
   const cardTransforms = useMemo(
     () => [
@@ -300,32 +314,94 @@ export function HeroExperience() {
         maxWidth="xl"
       >
         <Column flex={3} gap="20">
-          <Column as="ol" gap="16">
-            {ONBOARDING_STEPS.map((step, index) => (
-              <motion.li
-                key={step.title}
-                initial={{ opacity: 0, x: -18 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{
-                  delay: 0.6 + index * 0.08,
-                  type: "spring",
-                  stiffness: 180,
-                  damping: 26,
-                }}
-                style={{ listStyle: "none" }}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              delay: 0.56,
+              type: "spring",
+              stiffness: 180,
+              damping: 24,
+            }}
+            style={{ width: "100%" }}
+          >
+            <Row gap="12" vertical="center">
+              <Badge
+                background="brand-alpha-weak"
+                onBackground="brand-strong"
+                paddingX="12"
+                paddingY="2"
+                textVariant="label-default-s"
               >
-                <Column
-                  background="surface"
-                  border="neutral-alpha-medium"
-                  radius="l"
-                  padding="m"
-                  gap="12"
-                  shadow="m"
+                Guided path
+              </Badge>
+              <Text onBackground="neutral-weak" variant="label-default-m">
+                Tap a tile to preview the experience.
+              </Text>
+            </Row>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              delay: 0.6,
+              type: "spring",
+              stiffness: 180,
+              damping: 24,
+            }}
+            style={{
+              display: "grid",
+              gap: "12px",
+              width: "100%",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            }}
+          >
+            {ONBOARDING_STEPS.map((step, index) => {
+              const isActive = activeStepIndex === index;
+
+              return (
+                <motion.button
+                  key={step.title}
+                  type="button"
+                  onClick={() => setActiveStepIndex(index)}
+                  aria-pressed={isActive}
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: "10px",
+                    padding: "20px 24px",
+                    borderRadius: "24px",
+                    border: `1px solid ${
+                      isActive
+                        ? "rgba(99, 102, 241, 0.45)"
+                        : "rgba(148, 163, 184, 0.25)"
+                    }`,
+                    background: isActive
+                      ? "linear-gradient(135deg, rgba(129, 140, 248, 0.22), rgba(56, 189, 248, 0.12))"
+                      : "rgba(15, 23, 42, 0.35)",
+                    boxShadow: isActive
+                      ? "0 22px 60px rgba(15, 23, 42, 0.45)"
+                      : "0 14px 40px rgba(15, 23, 42, 0.28)",
+                    color: "inherit",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    backdropFilter: "blur(14px)",
+                    transition:
+                      "border 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
+                  }}
                 >
                   <Row gap="12" vertical="center">
                     <Badge
-                      background="brand-alpha-weak"
-                      onBackground="brand-strong"
+                      background={isActive
+                        ? "brand-alpha-medium"
+                        : "neutral-alpha-weak"}
+                      onBackground={isActive
+                        ? "brand-strong"
+                        : "neutral-strong"}
                       paddingX="12"
                       paddingY="2"
                       textVariant="label-default-s"
@@ -334,13 +410,54 @@ export function HeroExperience() {
                     </Badge>
                     <Text variant="heading-strong-s">{step.title}</Text>
                   </Row>
-                  <Text onBackground="neutral-weak" variant="body-default-m">
-                    {step.description}
+                  <Text onBackground="neutral-weak" variant="body-default-s">
+                    {step.subtitle}
                   </Text>
-                </Column>
-              </motion.li>
-            ))}
-          </Column>
+                </motion.button>
+              );
+            })}
+          </motion.div>
+
+          <motion.div
+            key={activeStep.title}
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 190, damping: 26 }}
+            style={{
+              width: "100%",
+              borderRadius: "24px",
+              padding: "24px",
+              border: "1px solid rgba(129, 140, 248, 0.22)",
+              background: "rgba(15, 23, 42, 0.4)",
+              boxShadow: "0 18px 45px rgba(15, 23, 42, 0.35)",
+              backdropFilter: "blur(16px)",
+            }}
+          >
+            <Text variant="body-default-m" onBackground="neutral-weak">
+              {activeStep.description}
+            </Text>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "10px",
+                marginTop: "16px",
+              }}
+            >
+              {activeStep.actions.map((action) => (
+                <Badge
+                  key={action}
+                  background="neutral-alpha-weak"
+                  onBackground="neutral-strong"
+                  paddingX="12"
+                  paddingY="2"
+                  textVariant="label-default-s"
+                >
+                  {action}
+                </Badge>
+              ))}
+            </div>
+          </motion.div>
         </Column>
         <Column flex={4} align="center" fillWidth>
           <motion.div
@@ -396,7 +513,7 @@ export function HeroExperience() {
                 }}
               />
 
-              {PREVIEW_CARDS.map((card, index) => (
+              {orderedCards.map((card, index) => (
                 <motion.div
                   key={card.title}
                   style={{
