@@ -6,9 +6,9 @@ const denoEnv = 'Deno' in globalThis
   ? ((globalThis as any).Deno?.env as { get?: (key: string) => string | undefined })
   : undefined;
 
-const commitEnvOrder = [
-  'COMMIT_SHA',
+export const COMMIT_ENV_KEYS = [
   'NEXT_PUBLIC_COMMIT_SHA',
+  'COMMIT_SHA',
   'GIT_COMMIT_SHA',
   'GIT_COMMIT',
   'VERCEL_GIT_COMMIT_SHA',
@@ -18,7 +18,7 @@ const commitEnvOrder = [
   'DIGITALOCEAN_APP_DEPLOYMENT_SHA',
   'RENDER_GIT_COMMIT',
   'HEROKU_SLUG_COMMIT',
-];
+] as const;
 
 function readEnv(key: string): string | undefined {
   const fromDeno = denoEnv?.get?.(key);
@@ -46,7 +46,7 @@ let cachedCommit: string | undefined;
 export function getCommitSha(): string {
   if (cachedCommit) return cachedCommit;
 
-  for (const key of commitEnvOrder) {
+  for (const key of COMMIT_ENV_KEYS) {
     const candidate = normalizeCommit(readEnv(key));
     if (candidate) {
       cachedCommit = candidate;
@@ -54,7 +54,7 @@ export function getCommitSha(): string {
     }
   }
 
-  cachedCommit = 'unknown';
+  cachedCommit = 'dev';
   return cachedCommit;
 }
 
