@@ -17,7 +17,7 @@ import TableOfContents from "@/components/magic-portfolio/about/TableOfContents"
 import styles from "@/components/magic-portfolio/about/about.module.scss";
 import React from "react";
 
-export async function generateMetadata() {
+export function generateMetadata() {
   return Meta.generate({
     title: about.title,
     description: about.description,

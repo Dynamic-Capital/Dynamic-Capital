@@ -12,15 +12,20 @@ interface ContactLink {
   display_order: number;
 }
 
+type InlineKeyboard = {
+  inline_keyboard: Array<Array<{ text: string; callback_data: string }>>;
+};
+
 // Handle Contact Links Management
 export async function handleContactLinksManagement(
   chatId: number,
-  userId: string,
+  _userId: string,
 ): Promise<void> {
   try {
     const { data: contacts, error } = await supabaseAdmin
       .from("contact_links")
       .select("*")
+      .returns<ContactLink>()
       .order("display_order", { ascending: true })
       .limit(10);
 
@@ -48,7 +53,7 @@ export async function handleContactLinksManagement(
 🔗 *Current Contact Links:*`;
 
     if (contacts && contacts.length > 0) {
-      contacts.forEach((contact: any, index: number) => {
+      contacts.forEach((contact, index) => {
         const status = contact.is_active ? "✅" : "❌";
         const emoji = contact.icon_emoji || "🔗";
         contactMessage += `
@@ -92,7 +97,7 @@ ${index + 1}. ${status} ${emoji} **${contact.display_name}**
 // Add new contact link
 export async function handleAddContactLink(
   chatId: number,
-  userId: string,
+  _userId: string,
 ): Promise<void> {
   const message = `➕ *Add New Contact Link*
 
@@ -121,12 +126,13 @@ Reply with the details or use /cancel to abort.`;
 // Edit existing contact link
 export async function handleEditContactLink(
   chatId: number,
-  userId: string,
+  _userId: string,
 ): Promise<void> {
   try {
     const { data: contacts, error } = await supabaseAdmin
       .from("contact_links")
       .select("*")
+      .returns<ContactLink>()
       .order("display_order", { ascending: true })
       .limit(20);
 
@@ -141,9 +147,9 @@ Select a contact link to edit:
 
 `;
 
-    const keyboard: any = { inline_keyboard: [] };
-    
-    contacts.forEach((contact: any, index: number) => {
+    const keyboard: InlineKeyboard = { inline_keyboard: [] };
+
+    contacts.forEach((contact, index) => {
       const status = contact.is_active ? "✅" : "❌";
       const emoji = contact.icon_emoji || "🔗";
       message += `${index + 1}. ${status} ${emoji} ${contact.display_name} (${contact.platform})\n`;
@@ -168,12 +174,13 @@ Select a contact link to edit:
 // Toggle contact link active status
 export async function handleToggleContactLink(
   chatId: number,
-  userId: string,
+  _userId: string,
 ): Promise<void> {
   try {
     const { data: contacts, error } = await supabaseAdmin
       .from("contact_links")
       .select("*")
+      .returns<ContactLink>()
       .order("display_order", { ascending: true })
       .limit(20);
 
@@ -188,9 +195,9 @@ Select a contact link to toggle:
 
 `;
 
-    const keyboard: any = { inline_keyboard: [] };
-    
-    contacts.forEach((contact: any, index: number) => {
+    const keyboard: InlineKeyboard = { inline_keyboard: [] };
+
+    contacts.forEach((contact, index) => {
       const status = contact.is_active ? "✅ Active" : "❌ Inactive";
       const emoji = contact.icon_emoji || "🔗";
       message += `${index + 1}. ${status} ${emoji} ${contact.display_name}\n`;
@@ -215,12 +222,13 @@ Select a contact link to toggle:
 // Delete contact link
 export async function handleDeleteContactLink(
   chatId: number,
-  userId: string,
+  _userId: string,
 ): Promise<void> {
   try {
     const { data: contacts, error } = await supabaseAdmin
       .from("contact_links")
       .select("*")
+      .returns<ContactLink>()
       .order("display_order", { ascending: true })
       .limit(20);
 
@@ -237,9 +245,9 @@ Select a contact link to delete:
 
 `;
 
-    const keyboard: any = { inline_keyboard: [] };
-    
-    contacts.forEach((contact: any, index: number) => {
+    const keyboard: InlineKeyboard = { inline_keyboard: [] };
+
+    contacts.forEach((contact, index) => {
       const status = contact.is_active ? "✅" : "❌";
       const emoji = contact.icon_emoji || "🔗";
       message += `${index + 1}. ${status} ${emoji} ${contact.display_name} (${contact.platform})\n`;
@@ -264,7 +272,7 @@ Select a contact link to delete:
 // Reorder contact links
 export async function handleReorderContactLinks(
   chatId: number,
-  userId: string,
+  _userId: string,
 ): Promise<void> {
   const message = `↕️ *Reorder Contact Links*
 
@@ -292,6 +300,7 @@ export async function processContactLinkOperation(
         const { data: contact, error: fetchError } = await supabaseAdmin
           .from("contact_links")
           .select("*")
+          .returns<ContactLink>()
           .eq("id", contactId)
           .single();
 
@@ -329,6 +338,7 @@ export async function processContactLinkOperation(
           .delete()
           .eq("id", contactId)
           .select()
+          .returns<ContactLink>()
           .single();
 
         if (deleteError) {

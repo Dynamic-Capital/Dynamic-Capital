@@ -27,7 +27,7 @@ interface SettlementTotals {
   performance_fee_total: number;
 }
 
-interface NotifyArgs {
+export interface NotifyArgs {
   cycle: FundCycle;
   summary: PayoutEntry[];
   newShares: InvestorShare[];

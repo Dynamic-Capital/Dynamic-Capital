@@ -1,9 +1,9 @@
 import { Column, Heading, Meta, Schema } from "@once-ui-system/core";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { Posts } from "@/components/magic-portfolio/blog/Posts";
-import { baseURL, blog, person, newsletter, toAbsoluteUrl } from "@/resources";
+import { baseURL, blog, person, toAbsoluteUrl } from "@/resources";
 
-export async function generateMetadata() {
+export function generateMetadata() {
   return Meta.generate({
     title: blog.title,
     description: blog.description,
