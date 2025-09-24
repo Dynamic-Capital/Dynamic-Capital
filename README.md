@@ -1,6 +1,15 @@
 # Dynamic Capital — Telegram Bot & Mini App
 
+<!-- BADGES:START -->
+<!-- BADGES:END -->
+
 **Fast deposits for traders. Bank & crypto, verified.**
+
+## What's New
+
+<!-- WHATS_NEW:START -->
+Project highlights will appear here after the first automated release.
+<!-- WHATS_NEW:END -->
 
 ## What this is
 
