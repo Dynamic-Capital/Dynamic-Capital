@@ -95,15 +95,17 @@ export function PoolTradingSection() {
         >
           Start allocation checkout
         </Button>
-        <Button
-          size="m"
-          variant="secondary"
-          data-border="rounded"
-          prefixIcon="calendar"
-          href={about.calendar.link}
-        >
-          Schedule a pool strategy call
-        </Button>
+        {about.calendar.display && about.calendar.link ? (
+          <Button
+            size="m"
+            variant="secondary"
+            data-border="rounded"
+            prefixIcon="calendar"
+            href={about.calendar.link}
+          >
+            Schedule a pool strategy call
+          </Button>
+        ) : null}
       </Row>
     </Column>
   );

@@ -31,7 +31,7 @@ export const handler = registerHandler(async (req) => {
     }
 
     const lovableMiniAppUrl =
-      Deno.env.get('MINI_APP_URL') ?? 'https://chatty-telly-bot.lovable.app/miniapp/';
+      Deno.env.get('MINI_APP_URL') ?? 'https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/';
     
     console.log('Setting up Lovable Mini App with URL:', lovableMiniAppUrl);
 

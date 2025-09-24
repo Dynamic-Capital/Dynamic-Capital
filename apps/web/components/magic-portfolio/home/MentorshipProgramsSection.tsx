@@ -119,15 +119,17 @@ export function MentorshipProgramsSection() {
                 >
                   {program.primaryCtaLabel}
                 </Button>
-                <Button
-                  size="m"
-                  variant="secondary"
-                  data-border="rounded"
-                  prefixIcon="calendar"
-                  href={about.calendar.link}
-                >
-                  {program.secondaryCtaLabel}
-                </Button>
+                {about.calendar.display && about.calendar.link ? (
+                  <Button
+                    size="m"
+                    variant="secondary"
+                    data-border="rounded"
+                    prefixIcon="calendar"
+                    href={about.calendar.link}
+                  >
+                    {program.secondaryCtaLabel}
+                  </Button>
+                ) : null}
               </Row>
             </Column>
             {index < PROGRAMS.length - 1 ? <Line background="neutral-alpha-weak" /> : null}
