@@ -15,3 +15,13 @@ List URLs/internal docs that support bios and any numeric claims (AUM, members, 
 ## Verification
 - [ ] I confirm no placeholders or invented details were added.
 - [ ] All claim-heavy text has sources (see docs/content-policy.md).
+
+## Impact & Risk
+- Systems impacted:
+- User-facing changes:
+- Risk level: (low/med/high)
+
+## Verification
+- [ ] Local dev run OK
+- [ ] CI green (build/lint/typecheck/tests)
+- [ ] Screenshots / screenshots added (if UI)
