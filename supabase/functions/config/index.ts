@@ -1,5 +1,5 @@
-import {
 import { registerHandler } from "../_shared/serve.ts";
+import {
   getConfig,
   setConfig,
   getFlag as getFlagBase,
