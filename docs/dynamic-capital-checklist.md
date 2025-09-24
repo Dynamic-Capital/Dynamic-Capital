@@ -23,35 +23,35 @@ Run `npm run checklists -- --list` to see automation-friendly tasks mapped to th
 
 Use the automation helper (or run commands directly) to complete the recurring repo health checks before audits, launches, or large merges. Track the results in your PR/issue notes so reviewers can see the evidence.
 
-- [x] Sync `.env` and `.env.local` with `.env.example` (`npm run sync-env`) to ensure new environment keys are captured locally. _Ran on this branch; both files were created and populated from the template._
-- [x] Run the repository test suite (`npm run test`) so Deno and Next.js smoke tests cover the latest changes. _All 51 checks passed, matching the CI suite._
-- [x] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to apply formatting and rerun Deno format/lint/type checks. _Ran successfully; no additional fixes were required._
-- [x] Run the aggregated verification suite (`npm run verify`) for the bundled static, runtime, and integration safety checks. _Completed with all suites passing and optional steps skipped per helper defaults._
-- [x] Audit Supabase Edge function hosts (`deno run -A scripts/audit-edge-hosts.ts`) to detect environment drift between deployments. _Script executed successfully with no mismatched hosts detected._
-- [x] Check linkage across environment variables and outbound URLs (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Script ran with warnings only for missing local secrets (e.g., `TELEGRAM_BOT_TOKEN`)._
-- [x] Verify the Telegram webhook configuration (`deno run -A scripts/check-webhook.ts`) so bot traffic hits the expected endpoint. _Webhook responded with `200` and matches the documented URL._
-- [x] _Optional:_ Run the mini app smoke test (`deno run -A scripts/smoke-miniapp.ts`) to mirror the go-live walkthrough end-to-end. _Smoke paths returned expected success responses._
+- [x] Sync `.env` and `.env.local` with `.env.example` (`npm run sync-env`) to ensure new environment keys are captured locally. _`npm run sync-env` appended 82 variables to each file on this branch._
+- [x] Run the repository test suite (`npm run test`) so Deno and Next.js smoke tests cover the latest changes. _`npm run test` completed with 51 passing suites; see terminal logs for recorded warnings._
+- [ ] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to apply formatting and rerun Deno format/lint/type checks. _Attempted, but the script exits on existing `no-explicit-any`, `no-unused-vars`, and import prefix violations across Supabase functions and web app utilities._
+- [ ] Run the aggregated verification suite (`npm run verify`) for the bundled static, runtime, and integration safety checks. _Started `npm run verify`, but the helper stalled during "Deployed Function Checks" and required manual interruption after no progress._
+- [x] Audit Supabase Edge function hosts (`deno run -A scripts/audit-edge-hosts.ts`) to detect environment drift between deployments. _`npx deno run -A scripts/audit-edge-hosts.ts` reported 26 URLs with no mismatched hosts detected._
+- [x] Check linkage across environment variables and outbound URLs (`deno run -A scripts/check-linkage.ts`) before promoting builds. _`npx deno run -A scripts/check-linkage.ts` completed and highlighted the missing `TELEGRAM_BOT_TOKEN` for webhook checks._
+- [ ] Verify the Telegram webhook configuration (`deno run -A scripts/check-webhook.ts`) so bot traffic hits the expected endpoint. _Blocked without `TELEGRAM_BOT_TOKEN`; command exits early._
+- [ ] _Optional:_ Run the mini app smoke test (`deno run -A scripts/smoke-miniapp.ts`) to mirror the go-live walkthrough end-to-end. _Requires `FUNCTIONS_BASE`; execution aborted with configuration warning._
 
 ## Setup Follow-Ups
 
 > [!TIP] Run `npm run checklists -- --checklist setup-followups` to execute the Supabase CLI automation and CI parity checks captured in this section.
 
-1. [x] Complete the Supabase CLI workflow (`npx supabase login && supabase link && supabase db push`) or run `bash scripts/supabase-cli-workflow.sh` with the required credentials exported. _Workflow finished with the latest migrations applied._
-2. [x] Refresh or open the pending PR ensuring CI checks pass (`deno task typecheck`, `npm run test`, `npm run audit`, `deno task ci`). _All CI-equivalent commands returned clean status._
-3. [x] Enable auto-merge with the required branch protections. _Protections verified in the repository settings._
-4. [x] Run the production sanity test (`/start`, `/plans`, approve test payment) to confirm `current_vip.is_vip`. _Happy-path walkthrough confirmed expected Supabase flags._
+1. [ ] Complete the Supabase CLI workflow (`npx supabase login && supabase link && supabase db push`) or run `bash scripts/supabase-cli-workflow.sh` with the required credentials exported. _Cannot proceed without Supabase credentials for this environment._
+2. [ ] Refresh or open the pending PR ensuring CI checks pass (`deno task typecheck`, `npm run test`, `npm run audit`, `deno task ci`). _Local parity blocked on `deno task` commands that require the Supabase CLI auth context._
+3. [ ] Enable auto-merge with the required branch protections. _Requires repository administrator access to confirm settings._
+4. [ ] Run the production sanity test (`/start`, `/plans`, approve test payment) to confirm `current_vip.is_vip`. _Manual verification depends on live bot access and test payment credentials._
 
 ## Go Live Checklist
 
 Run the `go-live` automation key (`npm run checklists -- --checklist go-live --include-optional`) and mirror the manual validations below before exposing updates to traders or admins. Refer to the detailed [Go Live Checklist](./GO_LIVE_CHECKLIST.md) for curl commands and troubleshooting steps.
 
-1. [x] Confirm the Telegram webhook is set and returning `200` responses for health pings. _Health checks returned `200` for successive pings._
-2. [x] Walk through the bank happy path to ensure approvals mark `current_vip.is_vip` correctly. _VIP flag toggled as expected after approval._
-3. [x] Trigger a bank near-miss so `manual_review` captures the reason and the workflow pauses safely. _Manual review logged the injected failure reason._
-4. [x] Verify duplicate image uploads are blocked to prevent bypassing compliance checks. _Duplicate uploads were rejected with the documented error state._
-5. [x] (If crypto rails are enabled) Submit a transaction with a pending TXID and ensure the approval occurs after confirmations land. _Confirmed approval is deferred until confirmations are observed._
-6. [x] Exercise admin commands (`/plans`, `/sync`, etc.) to confirm operations tooling responds. _Admin commands responded successfully with current data._
-7. [x] Capture evidence (screenshots, curl output) and attach it to the release/PR summary for audit trails. _Artifacts stored with the release documentation._
+1. [ ] Confirm the Telegram webhook is set and returning `200` responses for health pings. _Dependent on production bot credentials; cannot confirm in this workspace._
+2. [ ] Walk through the bank happy path to ensure approvals mark `current_vip.is_vip` correctly. _Requires live trading environment with reviewer permissions._
+3. [ ] Trigger a bank near-miss so `manual_review` captures the reason and the workflow pauses safely. _Needs access to orchestrated failure scenarios in production._
+4. [ ] Verify duplicate image uploads are blocked to prevent bypassing compliance checks. _Manual test requires storage bucket access in production._
+5. [ ] (If crypto rails are enabled) Submit a transaction with a pending TXID and ensure the approval occurs after confirmations land. _Pending access to crypto settlement environment._
+6. [ ] Exercise admin commands (`/plans`, `/sync`, etc.) to confirm operations tooling responds. _Requires live Telegram bot session with admin scope._
+7. [ ] Capture evidence (screenshots, curl output) and attach it to the release/PR summary for audit trails. _Deferred until the preceding validation steps can be executed._
 
 ## Development & Delivery Guides
 
