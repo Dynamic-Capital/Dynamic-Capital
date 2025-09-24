@@ -8,5 +8,5 @@ export default function HomePage() {
     return <StaticLandingPage />;
   }
 
-  return <LandingPageShell />;
+  return <LandingPageShell chromaBackgroundVariant="liquid" />;
 }

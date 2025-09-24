@@ -1,10 +1,10 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type Transition } from "framer-motion";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-const transition = {
+const transition: Transition = {
   type: "spring",
   stiffness: 200,
   damping: 30,

@@ -1,9 +1,19 @@
+import dynamic from "next/dynamic";
 import { Background, Column, RevealFx } from "@once-ui-system/core";
 import { opacity, SpacingToken } from "@once-ui-system/core";
 import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
 import { systemUI } from "@/resources";
 import { MagicLandingPage } from "@/components/magic-portfolio/MagicLandingPage";
+import type {
+  ChromaBackgroundProps,
+  ChromaBackgroundStyle,
+} from "@/components/landing/ChromaBackground";
+
+const DynamicChromaBackground = dynamic<ChromaBackgroundProps>(
+  () => import("@/components/landing/ChromaBackground"),
+  { ssr: false }
+);
 
 export interface LandingPageShellProps {
   /**
@@ -18,12 +28,17 @@ export interface LandingPageShellProps {
    * Additional className passed to the chat assistant widget when rendered.
    */
   assistantClassName?: string;
+  /**
+   * Optional dynamic Unicorn Studio background variant.
+   */
+  chromaBackgroundVariant?: ChromaBackgroundStyle | null;
 }
 
 export function LandingPageShell({
   className,
   showAssistant = true,
   assistantClassName,
+  chromaBackgroundVariant = null,
 }: LandingPageShellProps) {
   const backgroundEffects = systemUI.effects.background;
 
@@ -80,6 +95,12 @@ export function LandingPageShell({
           }}
         />
       </RevealFx>
+      {chromaBackgroundVariant ? (
+        <DynamicChromaBackground
+          variant={chromaBackgroundVariant}
+          className="pointer-events-none absolute inset-0 z-0"
+        />
+      ) : null}
       <Column
         zIndex={1}
         fillWidth
