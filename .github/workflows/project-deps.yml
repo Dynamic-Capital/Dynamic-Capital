@@ -1,0 +1,413 @@
+name: Project Dependencies
+on:
+  issues:
+    types: [opened, edited, reopened, closed]
+permissions:
+  issues: write
+  contents: read
+  project: write
+jobs:
+  check_blockers:
+    if: github.event.action == 'opened' || github.event.action == 'edited' || github.event.action == 'reopened'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PROJECT_URL secret
+        id: guard
+        run: |
+          if [ -z "${{ secrets.PROJECT_URL }}" ]; then
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "missing=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Notify about missing project configuration
+        if: steps.guard.outputs.missing == 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body-includes: "PROJECT_URL"
+          body: |
+            ⚠️ Project automation is almost ready, but the `PROJECT_URL` secret is not configured yet. Set it to your GitHub Project URL so dependency status can update automatically.
+      - name: Manage dependency labels and status
+        uses: actions/github-script@v7
+        env:
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
+        with:
+          script: |
+            function parseBlockers(text) {
+              if (!text) return [];
+              const lines = text.split(/\r?\n/);
+              const numbers = new Set();
+              let capture = false;
+              for (const rawLine of lines) {
+                const line = rawLine.trim();
+                if (line.length === 0) {
+                  capture = false;
+                  continue;
+                }
+                if (/blocked[\s_-]?by/i.test(line)) {
+                  capture = true;
+                }
+                if (capture) {
+                  const matches = line.match(/#(\d+)/g) || [];
+                  if (matches.length === 0 && !/[-*]/.test(line) && !/blocked[\s_-]?by/i.test(line)) {
+                    capture = false;
+                    continue;
+                  }
+                  for (const match of matches) {
+                    numbers.add(Number(match.replace('#', '')));
+                  }
+                }
+              }
+              return [...numbers].filter((num) => Number.isInteger(num));
+            }
+
+            async function updateProjectStatus(statusName) {
+              const projectUrl = process.env.PROJECT_URL;
+              if (!projectUrl) {
+                core.info('PROJECT_URL not configured; skipping project status update.');
+                return;
+              }
+
+              const owner = context.repo.owner;
+              const repo = context.repo.repo;
+              const issueNumber = context.payload.issue.number;
+
+              const issueData = await github.graphql(`
+                query($owner: String!, $repo: String!, $number: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $number) {
+                      id
+                    }
+                  }
+                }
+              `, { owner, repo, number: issueNumber });
+              const issueId = issueData.repository?.issue?.id;
+              if (!issueId) {
+                core.warning('Unable to resolve issue id for project update.');
+                return;
+              }
+
+              const projectData = await github.graphql(`
+                query($projectUrl: URI!, $contentId: ID!) {
+                  projectV2(url: $projectUrl) {
+                    id
+                    fields(first: 20) {
+                      nodes {
+                        ... on ProjectV2SingleSelectField {
+                          id
+                          name
+                          options { id name }
+                        }
+                      }
+                    }
+                    items(first: 20, contentId: $contentId) {
+                      nodes { id }
+                    }
+                  }
+                }
+              `, { projectUrl, contentId: issueId });
+
+              const project = projectData.projectV2;
+              if (!project) {
+                core.warning('Project not found for provided URL.');
+                return;
+              }
+
+              const itemId = project.items.nodes[0]?.id;
+              if (!itemId) {
+                core.info('Issue is not currently in the project; skipping status update.');
+                return;
+              }
+
+              const statusField = project.fields.nodes.find((field) => field?.name?.toLowerCase() === 'status');
+              const option = statusField?.options?.find((opt) => opt.name?.toLowerCase() === statusName.toLowerCase());
+
+              if (statusField?.id && option?.id) {
+                await github.graphql(`
+                  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                    updateProjectV2ItemFieldValue(input: {
+                      projectId: $projectId,
+                      itemId: $itemId,
+                      fieldId: $fieldId,
+                      value: { singleSelectOptionId: $optionId }
+                    }) {
+                      projectV2Item { id }
+                    }
+                  }
+                `, {
+                  projectId: project.id,
+                  itemId,
+                  fieldId: statusField.id,
+                  optionId: option.id,
+                });
+                core.info(`Set project status to ${statusName}.`);
+              } else {
+                core.warning(`Status field or option "${statusName}" not found.`);
+              }
+            }
+
+            const body = context.payload.issue.body || '';
+            const blockers = parseBlockers(body);
+            const issueNumber = context.payload.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const existingLabels = (context.payload.issue.labels || []).map((label) => label.name);
+            const hasBlockedLabel = existingLabels.includes('status: blocked');
+            const hasTriageLabel = existingLabels.includes('status: needs-triage');
+
+            if (blockers.length > 0) {
+              core.info(`Issue #${issueNumber} is blocked by: ${blockers.join(', ')}`);
+              if (!hasBlockedLabel) {
+                await github.rest.issues.addLabels({
+                  owner,
+                  repo,
+                  issue_number: issueNumber,
+                  labels: ['status: blocked'],
+                });
+              }
+              await updateProjectStatus('blocked');
+            } else {
+              core.info(`Issue #${issueNumber} has no blockers detected.`);
+              if (hasBlockedLabel) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner,
+                    repo,
+                    issue_number: issueNumber,
+                    name: 'status: blocked',
+                  });
+                } catch (error) {
+                  core.warning(`Unable to remove status: blocked label: ${error.message}`);
+                }
+              }
+              if (!hasTriageLabel) {
+                await github.rest.issues.addLabels({
+                  owner,
+                  repo,
+                  issue_number: issueNumber,
+                  labels: ['status: needs-triage'],
+                });
+              }
+              await updateProjectStatus('needs-triage');
+            }
+  unblock_dependents:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PROJECT_URL secret
+        id: guard
+        run: |
+          if [ -z "${{ secrets.PROJECT_URL }}" ]; then
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "missing=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Notify about missing project configuration
+        if: steps.guard.outputs.missing == 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body-includes: "PROJECT_URL"
+          body: |
+            ⚠️ Project automation is almost ready, but the `PROJECT_URL` secret is not configured yet. Set it to your GitHub Project URL so dependency status can update automatically.
+      - name: Unblock dependent issues
+        uses: actions/github-script@v7
+        env:
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
+        with:
+          script: |
+            function parseBlockers(text) {
+              if (!text) return [];
+              const lines = text.split(/\r?\n/);
+              const numbers = new Set();
+              let capture = false;
+              for (const rawLine of lines) {
+                const line = rawLine.trim();
+                if (line.length === 0) {
+                  capture = false;
+                  continue;
+                }
+                if (/blocked[\s_-]?by/i.test(line)) {
+                  capture = true;
+                }
+                if (capture) {
+                  const matches = line.match(/#(\d+)/g) || [];
+                  if (matches.length === 0 && !/[-*]/.test(line) && !/blocked[\s_-]?by/i.test(line)) {
+                    capture = false;
+                    continue;
+                  }
+                  for (const match of matches) {
+                    numbers.add(Number(match.replace('#', '')));
+                  }
+                }
+              }
+              return [...numbers].filter((num) => Number.isInteger(num));
+            }
+
+            async function updateProjectStatus(issueNumber, statusName) {
+              const projectUrl = process.env.PROJECT_URL;
+              if (!projectUrl) {
+                core.info('PROJECT_URL not configured; skipping project status update.');
+                return;
+              }
+
+              const owner = context.repo.owner;
+              const repo = context.repo.repo;
+
+              const issueData = await github.graphql(`
+                query($owner: String!, $repo: String!, $number: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $number) {
+                      id
+                    }
+                  }
+                }
+              `, { owner, repo, number: issueNumber });
+              const issueId = issueData.repository?.issue?.id;
+              if (!issueId) {
+                core.warning(`Unable to resolve issue #${issueNumber} for project update.`);
+                return;
+              }
+
+              const projectData = await github.graphql(`
+                query($projectUrl: URI!, $contentId: ID!) {
+                  projectV2(url: $projectUrl) {
+                    id
+                    fields(first: 20) {
+                      nodes {
+                        ... on ProjectV2SingleSelectField {
+                          id
+                          name
+                          options { id name }
+                        }
+                      }
+                    }
+                    items(first: 20, contentId: $contentId) {
+                      nodes { id }
+                    }
+                  }
+                }
+              `, { projectUrl, contentId: issueId });
+
+              const project = projectData.projectV2;
+              if (!project) {
+                core.warning('Project not found for provided URL.');
+                return;
+              }
+
+              const itemId = project.items.nodes[0]?.id;
+              if (!itemId) {
+                core.info(`Issue #${issueNumber} is not currently in the project; skipping status update.`);
+                return;
+              }
+
+              const statusField = project.fields.nodes.find((field) => field?.name?.toLowerCase() === 'status');
+              const option = statusField?.options?.find((opt) => opt.name?.toLowerCase() === statusName.toLowerCase());
+
+              if (statusField?.id && option?.id) {
+                await github.graphql(`
+                  mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                    updateProjectV2ItemFieldValue(input: {
+                      projectId: $projectId,
+                      itemId: $itemId,
+                      fieldId: $fieldId,
+                      value: { singleSelectOptionId: $optionId }
+                    }) {
+                      projectV2Item { id }
+                    }
+                  }
+                `, {
+                  projectId: project.id,
+                  itemId,
+                  fieldId: statusField.id,
+                  optionId: option.id,
+                });
+                core.info(`Set project status for issue #${issueNumber} to ${statusName}.`);
+              } else {
+                core.warning(`Status field or option "${statusName}" not found.`);
+              }
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const closedNumber = context.payload.issue.number;
+
+            const searchQuery = `repo:${owner}/${repo} state:open type:issue ${closedNumber} in:body`;
+            const searchResults = await github.paginate(github.rest.search.issuesAndPullRequests, {
+              q: searchQuery,
+              per_page: 100,
+            });
+
+            for (const item of searchResults) {
+              if (item.number === closedNumber) {
+                continue;
+              }
+
+              try {
+                const issue = await github.rest.issues.get({
+                  owner,
+                  repo,
+                  issue_number: item.number,
+                });
+
+                const blockers = parseBlockers(issue.data.body || '');
+                if (!blockers.includes(closedNumber)) {
+                  continue;
+                }
+
+                let hasOpenBlockers = false;
+                for (const blocker of blockers) {
+                  if (blocker === closedNumber) {
+                    continue;
+                  }
+                  try {
+                    const blockerIssue = await github.rest.issues.get({
+                      owner,
+                      repo,
+                      issue_number: blocker,
+                    });
+                    if (blockerIssue.data.state !== 'closed') {
+                      hasOpenBlockers = true;
+                      break;
+                    }
+                  } catch (error) {
+                    core.warning(`Unable to inspect blocker #${blocker} for issue #${item.number}: ${error.message}`);
+                  }
+                }
+
+                if (hasOpenBlockers) {
+                  core.info(`Issue #${item.number} still has other open blockers.`);
+                  continue;
+                }
+
+                const labels = issue.data.labels.map((label) => label.name);
+                if (labels.includes('status: blocked')) {
+                  try {
+                    await github.rest.issues.removeLabel({
+                      owner,
+                      repo,
+                      issue_number: item.number,
+                      name: 'status: blocked',
+                    });
+                    core.info(`Removed blocked label from issue #${item.number}.`);
+                  } catch (error) {
+                    core.warning(`Unable to remove blocked label from issue #${item.number}: ${error.message}`);
+                  }
+                }
+
+                if (!labels.includes('status: needs-triage')) {
+                  await github.rest.issues.addLabels({
+                    owner,
+                    repo,
+                    issue_number: item.number,
+                    labels: ['status: needs-triage'],
+                  });
+                  core.info(`Reapplied needs-triage label to issue #${item.number}.`);
+                }
+
+                await updateProjectStatus(item.number, 'needs-triage');
+              } catch (error) {
+                core.warning(`Failed to process dependent issue #${item.number}: ${error.message}`);
+              }
+            }

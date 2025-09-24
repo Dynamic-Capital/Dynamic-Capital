@@ -1,0 +1,412 @@
+name: Project Status Sync
+on:
+  issues:
+    types: [closed, reopened]
+  pull_request:
+    types: [closed]
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  project: write
+jobs:
+  issue_closed:
+    if: github.event_name == 'issues' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PROJECT_URL secret
+        id: guard
+        run: |
+          if [ -z "${{ secrets.PROJECT_URL }}" ]; then
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "missing=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Notify about missing project configuration
+        if: steps.guard.outputs.missing == 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body-includes: "PROJECT_URL"
+          body: |
+            ⚠️ Project automation is almost ready, but the `PROJECT_URL` secret is not configured yet. Set it to your GitHub Project URL so status sync can complete automatically.
+      - name: Stop when project is not configured
+        if: steps.guard.outputs.missing == 'true'
+        run: exit 0
+      - name: Apply status done label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: status: done
+      - name: Update project status and archive
+        uses: actions/github-script@v7
+        env:
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
+        with:
+          script: |
+            const projectUrl = process.env.PROJECT_URL;
+            if (!projectUrl) {
+              core.info('PROJECT_URL not configured; skipping project sync.');
+              return;
+            }
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueNumber = context.payload.issue.number;
+
+            const issueData = await github.graphql(`
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $number) {
+                    id
+                  }
+                }
+              }
+            `, { owner, repo, number: issueNumber });
+            const issueId = issueData.repository?.issue?.id;
+            if (!issueId) {
+              core.warning('Unable to resolve issue id.');
+              return;
+            }
+
+            const projectData = await github.graphql(`
+              query($projectUrl: URI!, $contentId: ID!) {
+                projectV2(url: $projectUrl) {
+                  id
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                  items(first: 20, contentId: $contentId) {
+                    nodes { id }
+                  }
+                }
+              }
+            `, { projectUrl, contentId: issueId });
+
+            const project = projectData.projectV2;
+            if (!project) {
+              core.warning('Project not found.');
+              return;
+            }
+
+            const itemId = project.items.nodes[0]?.id;
+            if (!itemId) {
+              core.info('Issue was not in the project; nothing to update.');
+              return;
+            }
+
+            const statusField = project.fields.nodes.find((field) => field?.name?.toLowerCase() === 'status');
+            const doneOption = statusField?.options?.find((opt) => opt.name?.toLowerCase() === 'done');
+
+            if (statusField?.id && doneOption?.id) {
+              await github.graphql(`
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId,
+                    itemId: $itemId,
+                    fieldId: $fieldId,
+                    value: { singleSelectOptionId: $optionId }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }
+              `, {
+                projectId: project.id,
+                itemId,
+                fieldId: statusField.id,
+                optionId: doneOption.id,
+              });
+              core.info('Set project status to done.');
+            } else {
+              core.warning('Status field or done option not available.');
+            }
+
+            try {
+              await github.graphql(`
+                mutation($projectId: ID!, $itemId: ID!) {
+                  archiveProjectV2Item(input: { projectId: $projectId, itemId: $itemId }) {
+                    archivedItem { id }
+                  }
+                }
+              `, { projectId: project.id, itemId });
+              core.info('Archived project item.');
+            } catch (error) {
+              core.warning(`Unable to archive project item: ${error.message}`);
+            }
+  issue_reopened:
+    if: github.event_name == 'issues' && github.event.action == 'reopened'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PROJECT_URL secret
+        id: guard
+        run: |
+          if [ -z "${{ secrets.PROJECT_URL }}" ]; then
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "missing=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Notify about missing project configuration
+        if: steps.guard.outputs.missing == 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body-includes: "PROJECT_URL"
+          body: |
+            ⚠️ Project automation is almost ready, but the `PROJECT_URL` secret is not configured yet. Set it to your GitHub Project URL so status sync can complete automatically.
+      - name: Stop when project is not configured
+        if: steps.guard.outputs.missing == 'true'
+        run: exit 0
+      - name: Remove done label
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: status: done
+      - name: Apply needs-triage label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: status: needs-triage
+      - name: Restore project status and unarchive
+        uses: actions/github-script@v7
+        env:
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
+        with:
+          script: |
+            const projectUrl = process.env.PROJECT_URL;
+            if (!projectUrl) {
+              core.info('PROJECT_URL not configured; skipping project sync.');
+              return;
+            }
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueNumber = context.payload.issue.number;
+
+            const issueData = await github.graphql(`
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $number) {
+                    id
+                  }
+                }
+              }
+            `, { owner, repo, number: issueNumber });
+            const issueId = issueData.repository?.issue?.id;
+            if (!issueId) {
+              core.warning('Unable to resolve issue id.');
+              return;
+            }
+
+            const projectData = await github.graphql(`
+              query($projectUrl: URI!, $contentId: ID!) {
+                projectV2(url: $projectUrl) {
+                  id
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                  items(first: 20, contentId: $contentId) {
+                    nodes { id, isArchived }
+                  }
+                }
+              }
+            `, { projectUrl, contentId: issueId });
+
+            const project = projectData.projectV2;
+            if (!project) {
+              core.warning('Project not found.');
+              return;
+            }
+
+            const item = project.items.nodes[0];
+            if (!item?.id) {
+              core.info('Issue is not in the project; nothing to update.');
+              return;
+            }
+
+            const statusField = project.fields.nodes.find((field) => field?.name?.toLowerCase() === 'status');
+            const triageOption = statusField?.options?.find((opt) => opt.name?.toLowerCase() === 'needs-triage');
+
+            if (statusField?.id && triageOption?.id) {
+              await github.graphql(`
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId,
+                    itemId: $itemId,
+                    fieldId: $fieldId,
+                    value: { singleSelectOptionId: $optionId }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }
+              `, {
+                projectId: project.id,
+                itemId: item.id,
+                fieldId: statusField.id,
+                optionId: triageOption.id,
+              });
+              core.info('Restored project status to needs-triage.');
+            } else {
+              core.warning('Status field or needs-triage option not available.');
+            }
+
+            if (item.isArchived) {
+              try {
+                await github.graphql(`
+                  mutation($projectId: ID!, $itemId: ID!) {
+                    unarchiveProjectV2Item(input: { projectId: $projectId, itemId: $itemId }) {
+                      projectV2Item { id }
+                    }
+                  }
+                `, { projectId: project.id, itemId: item.id });
+                core.info('Unarchived project item.');
+              } catch (error) {
+                core.warning(`Unable to unarchive project item: ${error.message}`);
+              }
+            }
+  pr_merged:
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PROJECT_URL secret
+        id: guard
+        run: |
+          if [ -z "${{ secrets.PROJECT_URL }}" ]; then
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "missing=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Notify about missing project configuration
+        if: steps.guard.outputs.missing == 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: "PROJECT_URL"
+          body: |
+            ⚠️ Project automation is almost ready, but the `PROJECT_URL` secret is not configured yet. Set it to your GitHub Project URL so status sync can complete automatically.
+      - name: Stop when project is not configured
+        if: steps.guard.outputs.missing == 'true'
+        run: exit 0
+      - name: Apply status done label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: status: done
+      - name: Update project status and archive
+        uses: actions/github-script@v7
+        env:
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
+        with:
+          script: |
+            const projectUrl = process.env.PROJECT_URL;
+            if (!projectUrl) {
+              core.info('PROJECT_URL not configured; skipping project sync.');
+              return;
+            }
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            const prData = await github.graphql(`
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) {
+                    id
+                  }
+                }
+              }
+            `, { owner, repo, number: prNumber });
+            const prId = prData.repository?.pullRequest?.id;
+            if (!prId) {
+              core.warning('Unable to resolve pull request id.');
+              return;
+            }
+
+            const projectData = await github.graphql(`
+              query($projectUrl: URI!, $contentId: ID!) {
+                projectV2(url: $projectUrl) {
+                  id
+                  fields(first: 20) {
+                    nodes {
+                      ... on ProjectV2SingleSelectField {
+                        id
+                        name
+                        options {
+                          id
+                          name
+                        }
+                      }
+                    }
+                  }
+                  items(first: 20, contentId: $contentId) {
+                    nodes { id }
+                  }
+                }
+              }
+            `, { projectUrl, contentId: prId });
+
+            const project = projectData.projectV2;
+            if (!project) {
+              core.warning('Project not found.');
+              return;
+            }
+
+            const itemId = project.items.nodes[0]?.id;
+            if (!itemId) {
+              core.info('Pull request is not in the project; nothing to update.');
+              return;
+            }
+
+            const statusField = project.fields.nodes.find((field) => field?.name?.toLowerCase() === 'status');
+            const doneOption = statusField?.options?.find((opt) => opt.name?.toLowerCase() === 'done');
+
+            if (statusField?.id && doneOption?.id) {
+              await github.graphql(`
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId,
+                    itemId: $itemId,
+                    fieldId: $fieldId,
+                    value: { singleSelectOptionId: $optionId }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }
+              `, {
+                projectId: project.id,
+                itemId,
+                fieldId: statusField.id,
+                optionId: doneOption.id,
+              });
+              core.info('Set project status to done.');
+            } else {
+              core.warning('Status field or done option not available.');
+            }
+
+            try {
+              await github.graphql(`
+                mutation($projectId: ID!, $itemId: ID!) {
+                  archiveProjectV2Item(input: { projectId: $projectId, itemId: $itemId }) {
+                    archivedItem { id }
+                  }
+                }
+              `, { projectId: project.id, itemId });
+              core.info('Archived project item.');
+            } catch (error) {
+              core.warning(`Unable to archive project item: ${error.message}`);
+            }

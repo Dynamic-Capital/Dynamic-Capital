@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose a new capability
+title: "feat: "
+labels: ["type: feature", "status: needs-triage"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What problem does this solve?
+      placeholder: Short description…
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Bullet list of outcomes that must be true
+      placeholder: "- User can …"
+  - type: textarea
+    id: subissues
+    attributes:
+      label: Sub-issues (task list)
+      description: Break this into smaller issues if possible
+      placeholder: "- [ ] #<issue> or - [ ] Write subtask"
+  - type: input
+    id: target
+    attributes:
+      label: Target ship date
+      placeholder: "YYYY-MM-DD"
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options: ["priority: high", "priority: medium", "priority: low"]
+  - type: input
+    id: estimate
+    attributes:
+      label: Estimate (story points)
+      placeholder: "e.g., 3"

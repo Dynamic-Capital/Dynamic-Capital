@@ -7,3 +7,36 @@
 - name: no-fakes
   color: B60205
   description: Contains placeholders/fakes
+- name: type: feature
+  color: 1D76DB
+  description: New capability or enhancement
+- name: type: bug
+  color: D73A4A
+  description: Something is broken and needs fixing
+- name: type: chore
+  color: C5DEF5
+  description: Internal maintenance or cleanup
+- name: priority: high
+  color: B60205
+  description: Urgent – address as soon as possible
+- name: priority: medium
+  color: FBCA04
+  description: Important but not blocking
+- name: priority: low
+  color: 0E8A16
+  description: Nice to have or low urgency
+- name: status: needs-triage
+  color: D4C5F9
+  description: Awaiting review or assignment
+- name: status: in-progress
+  color: 1D76DB
+  description: Work actively happening
+- name: status: blocked
+  color: B60205
+  description: Blocked by another issue or dependency
+- name: status: needs-review
+  color: FBCA04
+  description: Ready for review
+- name: status: done
+  color: 0E8A16
+  description: Completed work

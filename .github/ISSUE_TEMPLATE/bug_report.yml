@@ -1,0 +1,31 @@
+name: Bug report
+description: Something isn’t working
+title: "fix: "
+labels: ["type: bug", "status: needs-triage"]
+body:
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to Reproduce
+      placeholder: "1) … 2) … 3) …"
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs Actual
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "OS/Browser/Node version"
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options: ["priority: high", "priority: medium", "priority: low"]
+  - type: textarea
+    id: deps
+    attributes:
+      label: Blocked by
+      description: List issues that block this one
+      placeholder: "#123, #456"

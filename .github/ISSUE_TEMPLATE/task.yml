@@ -1,0 +1,19 @@
+name: Task / Chore
+description: Internal work item
+title: "chore: "
+labels: ["type: chore", "status: needs-triage"]
+body:
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+  - type: textarea
+    id: subtasks
+    attributes:
+      label: Sub-issues (task list)
+      placeholder: "- [ ] #<issue> …"
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options: ["priority: high", "priority: medium", "priority: low"]
