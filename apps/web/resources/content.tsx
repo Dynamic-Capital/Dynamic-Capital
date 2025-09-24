@@ -50,17 +50,17 @@ const home: Home = {
   label: "Home",
   title: ogDefaults.title,
   description: ogDefaults.description,
-  headline: <>Trade with institutional precision, without building the desk yourself.</>,
+  headline: <>Trade with confidence, even if you&apos;re just getting started.</>,
   featured: {
     display: true,
     title: (
       <Row gap="12" vertical="center">
         <Text onBackground="brand-strong" className="ml-4 font-semibold tracking-tight">
-          VIP packages now available on-site
+          New: Guided onboarding workspace
         </Text>
         <Line background="brand-alpha-strong" vert height="20" />
         <Text marginRight="4" onBackground="brand-medium">
-          Checkout without leaving dynamic.capital
+          Build your first trading plan in minutes
         </Text>
       </Row>
     ),
@@ -68,8 +68,8 @@ const home: Home = {
   },
   subline: (
     <>
-      Dynamic Capital combines quantitative research, human mentorship, and automation to guide every position. Explore VIP
-      membership packages, mentorship programs, and managed pools directly from the site.
+      Dynamic Capital blends clear education, human mentorship, and automation so you always know the next step. Learn inside a
+      safe practice workspace, then graduate to live markets with expert guardrails.
     </>
   ),
 };
