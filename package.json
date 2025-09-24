@@ -23,6 +23,8 @@
     "codex:build": "node scripts/codex-workflow.js build",
     "codex:verify": "node scripts/codex-workflow.js verify",
     "lint": "node scripts/npm-safe.mjs -w apps/web run lint",
+    "format": "deno fmt apps supabase scripts db docs",
+    "typecheck": "node scripts/npm-safe.mjs -w apps/web run typecheck",
     "debug": "NODE_OPTIONS='--inspect' node scripts/npm-safe.mjs run dev",
     "preview": "node scripts/npm-safe.mjs run dev",
     "upload-assets": "node scripts/upload-assets.js",
@@ -41,7 +43,12 @@
     "export": "node scripts/npm-safe.mjs run build",
     "output": "node scripts/npm-safe.mjs -w apps/web run copy-static",
     "supabase:start": "supabase start",
-    "supabase:stop": "supabase stop"
+    "supabase:stop": "supabase stop",
+    "migrate:gen": "supabase migration new",
+    "migrate:apply": "supabase migration up",
+    "supabase:functions:deploy": "supabase functions deploy --project-ref $SUPABASE_PROJECT_REF --password $SUPABASE_DB_PASSWORD",
+    "screenshot:install": "npx playwright install --with-deps",
+    "screenshot:preview": "npx playwright show-report"
   },
   "devDependencies": {
     "chokidar-cli": "^3.0.0",
