@@ -1,33 +1,38 @@
-name: Enable Auto Merge
-
+name: Auto-merge labeled PRs
 on:
-  pull_request_target:
-    types:
-      - labeled
-      - unlabeled
-      - opened
-      - reopened
-
+  pull_request:
+    types: [opened, labeled, synchronize, ready_for_review, reopened]
 permissions:
-  pull-requests: write
   contents: write
-
+  pull-requests: write
 jobs:
+  paths:
+    runs-on: ubuntu-latest
+    outputs:
+      content_changed: ${{ steps.filter.outputs.content }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            content:
+              - 'content/**'
+              - 'docs/**'
+              - 'pages/**'
+              - 'app/**/team/**'
+              - 'app/**/about/**'
   enable:
-    if: github.event.action == 'labeled' && github.event.label.name == 'automerge-candidate'
+    needs: paths
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'automerge-candidate') &&
+      !contains(github.event.pull_request.labels.*.name, 'needs-sources') &&
+      !contains(github.event.pull_request.labels.*.name, 'no-fakes') &&
+      !contains(github.event.pull_request.labels.*.name, 'content') &&
+      needs.paths.outputs.content_changed != 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Enable auto-merge
+      - name: Enable native auto-merge (squash)
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          merge-method: squash
-
-  disable:
-    if: github.event.action == 'unlabeled' && github.event.label.name == 'automerge-candidate'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Disable auto-merge
-        uses: peter-evans/disable-pull-request-automerge@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          merge-method: SQUASH
