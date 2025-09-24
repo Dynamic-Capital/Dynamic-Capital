@@ -40,6 +40,9 @@ overwriting each other's reminders. When a task fails multiple times, the CLI
 surfaces targeted troubleshooting tips before the next run. Use `--reset-issues`
 if you want to discard that history and silence the reminders.
 
+> **ProTip!** Add `.patch` or `.diff` to the end of GitHub URLs when you need a
+> plaintext view of a change for the Codex CLI or other tooling.
+
 To speed up cooperative runs, the helper fingerprints `package-lock.json` and
 shares `npm install` successes between agents. Skip the shared cache with
 `--no-shared-cache` (or `CODEX_DISABLE_SHARED_CACHE=1`) whenever you need a
