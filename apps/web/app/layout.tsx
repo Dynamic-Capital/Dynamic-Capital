@@ -4,7 +4,7 @@ import "@once-ui-system/core/css/tokens.css";
 import "@once-ui-system/core/css/styles.css";
 import "./once-ui.css";
 import "./globals.css";
-import "../env";
+import "@/lib/env";
 
 import classNames from "classnames";
 import { Background, Column, Flex, RevealFx, opacity, SpacingToken } from "@once-ui-system/core";

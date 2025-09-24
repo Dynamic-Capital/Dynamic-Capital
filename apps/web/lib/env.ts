@@ -1,0 +1,131 @@
+import { z } from 'zod';
+import { getEnvVar, optionalEnvVar } from '../utils/env.ts';
+
+type Mode = 'throw' | 'report';
+
+type MissingMap = {
+  public: string[];
+  server: string[];
+};
+
+type ValidationResult = {
+  success: boolean;
+  missing: MissingMap;
+};
+
+export const publicSchema = z.object({
+  NEXT_PUBLIC_ENV: z.string().default('development'),
+  NEXT_PUBLIC_COMMIT_SHA: z.string().optional(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(10),
+  NEXT_PUBLIC_API_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+  NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
+  NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
+  NEXT_PUBLIC_POSTHOG_HOST: z.string().optional(),
+});
+
+export const serverSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_ANON_KEY: z.string().min(10),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(10),
+  SUPABASE_SERVICE_ROLE: z.string().min(10),
+  SENTRY_DSN: z.string().optional(),
+  LOG_LEVEL: z.string().optional(),
+  SITE_URL: z.string().url().optional(),
+});
+
+export const envDefinition = {
+  app: 'web',
+  public: Object.keys(publicSchema.shape),
+  server: Object.keys(serverSchema.shape),
+};
+
+function unique(values: (string | number | symbol | undefined)[]): string[] {
+  return Array.from(new Set(values.filter((value): value is string => typeof value === 'string'))).sort();
+}
+
+function extractMissing(error: z.ZodError): string[] {
+  return unique(
+    error.issues
+      .filter((issue) => issue.code === 'invalid_type' || issue.code === 'too_small' || issue.code === 'custom')
+      .map((issue) => issue.path?.[0])
+      .filter((key): key is string => typeof key === 'string'),
+  );
+}
+
+function validatePublicEnv(): ValidationResult {
+  const raw = {
+    NEXT_PUBLIC_ENV: optionalEnvVar('NEXT_PUBLIC_ENV'),
+    NEXT_PUBLIC_COMMIT_SHA: optionalEnvVar('NEXT_PUBLIC_COMMIT_SHA', ['COMMIT_SHA']),
+    NEXT_PUBLIC_SUPABASE_URL: getEnvVar('NEXT_PUBLIC_SUPABASE_URL', ['SUPABASE_URL']),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY', ['SUPABASE_ANON_KEY', 'SUPABASE_KEY']),
+    NEXT_PUBLIC_API_URL: optionalEnvVar('NEXT_PUBLIC_API_URL', ['API_URL']),
+    NEXT_PUBLIC_SENTRY_DSN: optionalEnvVar('NEXT_PUBLIC_SENTRY_DSN', ['SENTRY_DSN']),
+    NEXT_PUBLIC_SITE_URL: optionalEnvVar('NEXT_PUBLIC_SITE_URL', ['SITE_URL']),
+    NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET: optionalEnvVar('NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET', ['TELEGRAM_WEBHOOK_SECRET']),
+    NEXT_PUBLIC_POSTHOG_KEY: optionalEnvVar('NEXT_PUBLIC_POSTHOG_KEY'),
+    NEXT_PUBLIC_POSTHOG_HOST: optionalEnvVar('NEXT_PUBLIC_POSTHOG_HOST'),
+  } satisfies Record<string, string | undefined>;
+
+  const result = publicSchema.safeParse(raw);
+  if (result.success) {
+    return { success: true, missing: { public: [], server: [] } };
+  }
+
+  return { success: false, missing: { public: extractMissing(result.error), server: [] } };
+}
+
+function validateServerEnv(): ValidationResult {
+  const raw = {
+    NODE_ENV: optionalEnvVar('NODE_ENV'),
+    SUPABASE_URL: getEnvVar('SUPABASE_URL', ['NEXT_PUBLIC_SUPABASE_URL']),
+    SUPABASE_ANON_KEY: getEnvVar('SUPABASE_ANON_KEY', ['SUPABASE_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY']),
+    SUPABASE_SERVICE_ROLE_KEY: getEnvVar('SUPABASE_SERVICE_ROLE_KEY', ['SUPABASE_SERVICE_ROLE']),
+    SUPABASE_SERVICE_ROLE: getEnvVar('SUPABASE_SERVICE_ROLE', ['SUPABASE_SERVICE_ROLE_KEY']),
+    SENTRY_DSN: optionalEnvVar('SENTRY_DSN', ['NEXT_PUBLIC_SENTRY_DSN']),
+    LOG_LEVEL: optionalEnvVar('LOG_LEVEL'),
+    SITE_URL: optionalEnvVar('SITE_URL', ['NEXT_PUBLIC_SITE_URL']),
+  } satisfies Record<string, string | undefined>;
+
+  const result = serverSchema.safeParse(raw);
+  if (result.success) {
+    return { success: true, missing: { public: [], server: [] } };
+  }
+
+  return { success: false, missing: { public: [], server: extractMissing(result.error) } };
+}
+
+export class WebEnvError extends Error {
+  constructor(public missing: MissingMap) {
+    const missingPublic = missing.public.length ? `public → ${missing.public.join(', ')}` : undefined;
+    const missingServer = missing.server.length ? `server → ${missing.server.join(', ')}` : undefined;
+    const details = [missingPublic, missingServer].filter(Boolean).join('; ');
+    super(details ? `Missing required environment variables: ${details}` : 'Missing required environment variables');
+  }
+}
+
+export function checkRuntimeEnv(mode: Mode = 'throw'): ValidationResult {
+  const publicResult = validatePublicEnv();
+  const serverResult = validateServerEnv();
+
+  const merged: MissingMap = {
+    public: unique([...publicResult.missing.public]),
+    server: unique([...serverResult.missing.server]),
+  };
+
+  const success = merged.public.length === 0 && merged.server.length === 0;
+
+  if (!success && mode === 'throw') {
+    throw new WebEnvError(merged);
+  }
+
+  return { success, missing: merged };
+}
+
+const shouldThrow = process.env.DC_SKIP_RUNTIME_ENV_CHECK !== 'true';
+const validation = checkRuntimeEnv(shouldThrow ? 'throw' : 'report');
+
+export const runtimeEnv = validation;
