@@ -70,3 +70,41 @@ npm run codex:build
 
 This workflow keeps the Lovable environment, the local repo, and GitHub in lock
 step while providing a single entry point for Codex-specific automation.
+
+## Auto-conflict resolution & merge guardrails
+
+Codex now acts as the repository's auto-conflict resolver and auto-merge
+assistant. When you delegate a merge, the agent follows a conservative plan so
+resolved branches stay safe and reproducible:
+
+1. **Identify the branches/PR** – confirm the source, target, and any required
+   reviewers or checks before touching Git history.
+2. **Synchronize remotes** – run `git fetch --all --prune` to ensure the local
+   view matches GitHub, then enable `git config rerere.enabled true` so future
+   runs can reuse conflict resolutions.
+3. **Rebase preferred** – rebase feature branches onto the protected target
+   branch (`dev` or `main`) whenever possible to minimize the diff. If the
+   repository enforces merge commits, use `git merge --no-ff` instead.
+4. **Resolve conflicts intentionally**:
+   - **Lockfiles** – keep the target branch version (`ours`), reinstall with the
+     repo's package manager, and commit the regenerated file.
+   - **package.json/config JSON** – union scripts and dependencies, preferring
+     the highest compatible version when both sides bump a dependency.
+   - **.env templates** – merge keys by union and preserve comments/order.
+   - **Markdown/docs** – union content so no context is lost.
+   - **Source code** – union imports, keep target signatures, and integrate new
+     logic additively without removing existing behavior.
+   - **Drizzle migrations** – if the same migration file diverges, stop and
+     request human review rather than guessing.
+5. **Post-merge verification** – reinstall dependencies, run linting, type
+   checks, tests, database checks, and builds (`npm run lint`, `npm run
+   typecheck`, `npm test`, `npx drizzle-kit check`, `npm run build`) so the
+   merged branch stays green.
+6. **Auto-merge only when safe** – enable GitHub auto-merge (`--squash` by
+   default) once required checks are passing and branch protections are
+   satisfied. If approvals or failing checks block the merge, leave a PR comment
+   summarizing the resolution and next steps instead of forcing the merge.
+
+When in doubt, Codex favors the target branch's established behavior and adds
+new logic conservatively. Security-sensitive files or migration conflicts in the
+same file escalate to human review.
