@@ -30,25 +30,25 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
     return `${cycleId}:${investorId}`;
   }
 
-  async findProfileById(id: string): Promise<Profile | null> {
-    return this.profiles.get(id) ?? null;
+  findProfileById(id: string): Promise<Profile | null> {
+    return Promise.resolve(this.profiles.get(id) ?? null);
   }
 
-  async findProfileByTelegramId(telegramId: string): Promise<Profile | null> {
+  findProfileByTelegramId(telegramId: string): Promise<Profile | null> {
     for (const profile of this.profiles.values()) {
       if (profile.telegram_id === telegramId) return profile;
     }
-    return null;
+    return Promise.resolve(null);
   }
 
-  async getInvestorByProfileId(profileId: string): Promise<Investor | null> {
+  getInvestorByProfileId(profileId: string): Promise<Investor | null> {
     for (const investor of this.investors.values()) {
       if (investor.profile_id === profileId) return investor;
     }
-    return null;
+    return Promise.resolve(null);
   }
 
-  async createInvestor(profileId: string, joinedAt: string): Promise<Investor> {
+  createInvestor(profileId: string, joinedAt: string): Promise<Investor> {
     const investor: Investor = {
       id: crypto.randomUUID(),
       profile_id: profileId,
@@ -56,17 +56,17 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
       joined_at: joinedAt,
     };
     this.investors.set(investor.id, investor);
-    return investor;
+    return Promise.resolve(investor);
   }
 
-  async getActiveCycle(): Promise<FundCycle | null> {
+  getActiveCycle(): Promise<FundCycle | null> {
     for (const cycle of this.fundCycles.values()) {
       if (cycle.status === "active") return cycle;
     }
-    return null;
+    return Promise.resolve(null);
   }
 
-  async createCycle(data: {
+  createCycle(data: {
     cycle_month: number;
     cycle_year: number;
     status?: CycleStatus;
@@ -87,10 +87,10 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
       closed_at: null,
     };
     this.fundCycles.set(cycle.id, cycle);
-    return cycle;
+    return Promise.resolve(cycle);
   }
 
-  async closeCycle(
+  closeCycle(
     cycleId: string,
     changes: {
       status: CycleStatus;
@@ -113,9 +113,10 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
     cycle.payout_summary = changes.payout_summary;
     cycle.closed_at = changes.closed_at;
     cycle.notes = changes.notes ?? null;
+    return Promise.resolve();
   }
 
-  async insertDeposit(entry: {
+  insertDeposit(entry: {
     investor_id: string;
     cycle_id: string;
     amount_usdt: number;
@@ -135,22 +136,24 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
       created_at: entry.created_at ?? new Date().toISOString(),
     };
     this.deposits.push(deposit);
-    return deposit;
+    return Promise.resolve(deposit);
   }
 
-  async listDepositsByCycle(cycleId: string): Promise<InvestorDeposit[]> {
-    return this.deposits.filter((d) => d.cycle_id === cycleId);
+  listDepositsByCycle(cycleId: string): Promise<InvestorDeposit[]> {
+    return Promise.resolve(this.deposits.filter((d) => d.cycle_id === cycleId));
   }
 
-  async listWithdrawalsByCycle(
+  listWithdrawalsByCycle(
     cycleId: string,
     statuses: WithdrawalStatus[],
   ): Promise<InvestorWithdrawal[]> {
     const allowed = new Set(statuses);
-    return this.withdrawals.filter((w) => w.cycle_id === cycleId && (allowed.size === 0 || allowed.has(w.status)));
+    return Promise.resolve(
+      this.withdrawals.filter((w) => w.cycle_id === cycleId && (allowed.size === 0 || allowed.has(w.status))),
+    );
   }
 
-  async upsertShares(records: InvestorShare[]): Promise<void> {
+  upsertShares(records: InvestorShare[]): Promise<void> {
     for (const record of records) {
       this.shares.set(this.shareKey(record.cycle_id, record.investor_id), {
         ...record,
@@ -158,17 +161,18 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
         contribution_usdt: roundCurrency(record.contribution_usdt),
       });
     }
+    return Promise.resolve();
   }
 
-  async listShares(cycleId: string): Promise<InvestorShare[]> {
+  listShares(cycleId: string): Promise<InvestorShare[]> {
     const out: InvestorShare[] = [];
     for (const record of this.shares.values()) {
       if (record.cycle_id === cycleId) out.push(record);
     }
-    return out;
+    return Promise.resolve(out);
   }
 
-  async createWithdrawal(entry: {
+  createWithdrawal(entry: {
     investor_id: string;
     cycle_id: string;
     amount_usdt: number;
@@ -193,29 +197,29 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
       admin_notes: entry.admin_notes ?? null,
     };
     this.withdrawals.push(withdrawal);
-    return withdrawal;
+    return Promise.resolve(withdrawal);
   }
 
-  async updateWithdrawal(
+  updateWithdrawal(
     id: string,
     changes: Partial<InvestorWithdrawal>,
   ): Promise<InvestorWithdrawal | null> {
     const index = this.withdrawals.findIndex((w) => w.id === id);
-    if (index === -1) return null;
+    if (index === -1) return Promise.resolve(null);
     const current = this.withdrawals[index];
     const updated: InvestorWithdrawal = {
       ...current,
       ...changes,
     };
     this.withdrawals[index] = updated;
-    return updated;
+    return Promise.resolve(updated);
   }
 
-  async findWithdrawalById(id: string): Promise<InvestorWithdrawal | null> {
-    return this.withdrawals.find((w) => w.id === id) ?? null;
+  findWithdrawalById(id: string): Promise<InvestorWithdrawal | null> {
+    return Promise.resolve(this.withdrawals.find((w) => w.id === id) ?? null);
   }
 
-  async listInvestorContacts(investorIds: string[]): Promise<InvestorContact[]> {
+  listInvestorContacts(investorIds: string[]): Promise<InvestorContact[]> {
     const out: InvestorContact[] = [];
     const set = new Set(investorIds);
     for (const investor of this.investors.values()) {
@@ -229,6 +233,6 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
         display_name: profile.display_name ?? null,
       });
     }
-    return out;
+    return Promise.resolve(out);
   }
 }

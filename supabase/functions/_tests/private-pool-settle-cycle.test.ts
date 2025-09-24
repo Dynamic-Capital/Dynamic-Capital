@@ -1,6 +1,6 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "std/assert/mod.ts";
 import { createDepositHandler } from "../private-pool-deposit/index.ts";
-import { createSettleHandler } from "../private-pool-settle-cycle/index.ts";
+import { createSettleHandler, type NotifyArgs } from "../private-pool-settle-cycle/index.ts";
 import { MockPrivatePoolStore } from "./private_pool_mock.ts";
 
 denoTest("private-pool-settle-cycle splits profit and seeds next cycle", async () => {
@@ -16,12 +16,12 @@ denoTest("private-pool-settle-cycle splits profit and seeds next cycle", async (
   });
   const depositA = createDepositHandler({
     createStore: () => store,
-    resolveProfile: async () => ({ profileId: investorAProfile, telegramId: "301" }),
+    resolveProfile: () => Promise.resolve({ profileId: investorAProfile, telegramId: "301" }),
     now: () => new Date("2025-03-01T00:00:00Z"),
   });
   const depositB = createDepositHandler({
     createStore: () => store,
-    resolveProfile: async () => ({ profileId: investorBProfile, telegramId: "302" }),
+    resolveProfile: () => Promise.resolve({ profileId: investorBProfile, telegramId: "302" }),
     now: () => new Date("2025-03-01T00:05:00Z"),
   });
   await depositA(new Request("http://localhost", {
@@ -34,12 +34,15 @@ denoTest("private-pool-settle-cycle splits profit and seeds next cycle", async (
     body: JSON.stringify({ amount: 100 }),
     headers: { "content-type": "application/json" },
   }));
-  const notifications: any[] = [];
+  const notifications: NotifyArgs[] = [];
   const settle = createSettleHandler({
     createStore: () => store,
-    resolveProfile: async () => ({ profileId: adminProfile, telegramId: "300" }),
+    resolveProfile: () => Promise.resolve({ profileId: adminProfile, telegramId: "300" }),
     now: () => new Date("2025-03-31T18:00:00Z"),
-    notifyInvestors: async (args) => notifications.push(args),
+    notifyInvestors: (args) => {
+      notifications.push(args);
+      return Promise.resolve();
+    },
   });
   const resp = await settle(new Request("http://localhost", {
     method: "POST",

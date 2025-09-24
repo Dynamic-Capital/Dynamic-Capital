@@ -143,6 +143,46 @@ function asNumber(value: unknown): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+type FundCycleRow = {
+  id: string;
+  cycle_month: number;
+  cycle_year: number;
+  status: CycleStatus;
+  profit_total_usdt: number | null;
+  investor_payout_usdt: number | null;
+  reinvested_total_usdt: number | null;
+  performance_fee_usdt: number | null;
+  payout_summary: FundCycle["payout_summary"];
+  notes: string | null;
+  opened_at: string;
+  closed_at: string | null;
+};
+
+type InvestorDepositRow = {
+  id: string;
+  investor_id: string;
+  cycle_id: string;
+  amount_usdt: number | null;
+  deposit_type: DepositType;
+  tx_hash: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+type InvestorWithdrawalRow = {
+  id: string;
+  investor_id: string;
+  cycle_id: string;
+  amount_usdt: number | null;
+  net_amount_usdt: number | null;
+  reinvested_amount_usdt: number | null;
+  status: WithdrawalStatus;
+  requested_at: string;
+  notice_expires_at: string | null;
+  fulfilled_at: string | null;
+  admin_notes: string | null;
+};
+
 export class SupabasePrivatePoolStore implements PrivatePoolStore {
   constructor(private readonly client: SupabaseClient) {}
 
@@ -431,7 +471,7 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
     }));
   }
 
-  private mapFundCycle(row: any): FundCycle {
+  private mapFundCycle(row: FundCycleRow): FundCycle {
     return {
       id: row.id,
       cycle_month: row.cycle_month,
@@ -448,7 +488,7 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
     };
   }
 
-  private mapDeposit(row: any): InvestorDeposit {
+  private mapDeposit(row: InvestorDepositRow): InvestorDeposit {
     return {
       id: row.id,
       investor_id: row.investor_id,
@@ -461,7 +501,7 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
     };
   }
 
-  private mapWithdrawal(row: any): InvestorWithdrawal {
+  private mapWithdrawal(row: InvestorWithdrawalRow): InvestorWithdrawal {
     return {
       id: row.id,
       investor_id: row.investor_id,

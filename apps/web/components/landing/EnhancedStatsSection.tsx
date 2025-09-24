@@ -171,7 +171,10 @@ const EnhancedStatsSection = () => {
             whileTap={{ scale: 0.95 }}
             className="w-full sm:w-auto mx-auto"
           >
-            <button className="w-full bg-gradient-to-r from-primary to-dc-accent text-white px-8 py-4 sm:px-10 sm:py-5 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden group">
+            <button
+              type="button"
+              className="w-full bg-gradient-to-r from-primary to-dc-accent text-white px-8 py-4 sm:px-10 sm:py-5 rounded-2xl font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden group"
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
               Start Your VIP Journey
             </button>

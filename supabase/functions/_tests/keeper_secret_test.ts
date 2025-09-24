@@ -1,4 +1,4 @@
-import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert } from "std/assert/mod.ts";
 import { ensureWebhookSecret } from "../_shared/telegram_secret.ts";
 
 type SupabaseLike = Parameters<typeof ensureWebhookSecret>[0];

@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "std/assert/mod.ts";
 import { createDepositHandler } from "../private-pool-deposit/index.ts";
 import { MockPrivatePoolStore } from "./private_pool_mock.ts";
 
@@ -11,7 +11,7 @@ denoTest("private-pool-deposit records deposit and recalculates shares", async (
   });
   const handler = createDepositHandler({
     createStore: () => store,
-    resolveProfile: async () => ({ profileId, telegramId: "100" }),
+    resolveProfile: () => Promise.resolve({ profileId, telegramId: "100" }),
     now: () => new Date("2025-01-01T00:00:00Z"),
   });
   const resp = await handler(new Request("http://localhost", {
@@ -40,7 +40,7 @@ denoTest("private-pool-deposit rejects invalid amount", async () => {
   });
   const handler = createDepositHandler({
     createStore: () => store,
-    resolveProfile: async () => ({ profileId: "profile-2", telegramId: "200" }),
+    resolveProfile: () => Promise.resolve({ profileId: "profile-2", telegramId: "200" }),
     now: () => new Date("2025-01-01T00:00:00Z"),
   });
   const resp = await handler(new Request("http://localhost", {
