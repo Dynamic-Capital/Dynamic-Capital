@@ -10,7 +10,7 @@ type MotionButtonProps = React.ComponentPropsWithoutRef<typeof motion.button>;
 
 export interface OnceButtonProps extends MotionButtonProps {
   /**
-   * Applies the Once UI button skin. Defaults to the solid primary button.
+   * Applies the Dynamic UI button skin. Defaults to the solid primary button.
    */
   variant?: "primary" | "outline";
   /**
@@ -36,7 +36,7 @@ export const OnceButton = React.forwardRef<HTMLButtonElement, OnceButtonProps>(
       whileTap: whileTapProp,
       ...rest
     },
-    ref
+    ref,
   ) => {
     const { type: buttonType, ...otherProps } = rest;
     const motionVariants = variantsProp ?? onceMotionVariants.button;
@@ -48,7 +48,12 @@ export const OnceButton = React.forwardRef<HTMLButtonElement, OnceButtonProps>(
     return (
       <MotionButton
         ref={ref}
-        className={cn("once-btn", variant, size === "small" && "small", className)}
+        className={cn(
+          "once-btn",
+          variant,
+          size === "small" && "small",
+          className,
+        )}
         disabled={disabled}
         type={buttonType ?? "button"}
         variants={motionVariants}
@@ -61,7 +66,7 @@ export const OnceButton = React.forwardRef<HTMLButtonElement, OnceButtonProps>(
         {children}
       </MotionButton>
     );
-  }
+  },
 );
 
 OnceButton.displayName = "OnceButton";

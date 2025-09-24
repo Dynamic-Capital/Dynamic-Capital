@@ -9,8 +9,13 @@ const TASK_LIBRARY = {
     label: 'Sync .env and .env.local with .env.example (npm run sync-env)',
     command: 'npm run sync-env',
     optional: false,
-    docs: ['docs/coding-efficiency-checklist.md', 'docs/dynamic-capital-checklist.md'],
-    notes: ['Appends any missing keys from .env.example into .env and .env.local without overwriting existing values.'],
+    docs: [
+      'docs/coding-efficiency-checklist.md',
+      'docs/dynamic-capital-checklist.md',
+    ],
+    notes: [
+      'Appends any missing keys from .env.example into .env and .env.local without overwriting existing values.',
+    ],
   },
   'repo-test': {
     id: 'repo-test',
@@ -18,67 +23,94 @@ const TASK_LIBRARY = {
     command: 'npm run test',
     optional: false,
     docs: ['docs/coding-efficiency-checklist.md'],
-    notes: ['Executes the static homepage regression check and the Deno-based unit tests.'],
+    notes: [
+      'Executes the static homepage regression check and the Deno-based unit tests.',
+    ],
   },
   'fix-and-check': {
     id: 'fix-and-check',
     label: 'Run repo fix-and-check script (bash scripts/fix_and_check.sh)',
     command: 'bash scripts/fix_and_check.sh',
     optional: false,
-    docs: ['docs/coding-efficiency-checklist.md', 'docs/once-ui-development-checklist.md'],
-    notes: ['Runs formatting, linting, and Deno type checks used throughout the project.'],
+    docs: [
+      'docs/coding-efficiency-checklist.md',
+      'docs/dynamic-ui-development-checklist.md',
+    ],
+    notes: [
+      'Runs formatting, linting, and Deno type checks used throughout the project.',
+    ],
   },
   verify: {
     id: 'verify',
     label: 'Run aggregated verification suite (npm run verify)',
     command: 'npm run verify',
     optional: false,
-    docs: ['docs/coding-efficiency-checklist.md', 'docs/dynamic-capital-checklist.md'],
-    notes: ['Executes scripts/verify/verify_all.sh which bundles static, runtime, and integration safety checks.'],
+    docs: [
+      'docs/coding-efficiency-checklist.md',
+      'docs/dynamic-capital-checklist.md',
+    ],
+    notes: [
+      'Executes scripts/verify/verify_all.sh which bundles static, runtime, and integration safety checks.',
+    ],
   },
   'web-lint': {
     id: 'web-lint',
     label: 'Run Next.js workspace lint (npm --workspace apps/web run lint)',
     command: 'npm --workspace apps/web run lint',
     optional: false,
-    docs: ['docs/once-ui-development-checklist.md'],
-    notes: ['Uses the Next.js ESLint configuration to validate Once UI surfaces.'],
+    docs: ['docs/dynamic-ui-development-checklist.md'],
+    notes: [
+      'Uses the Next.js ESLint configuration to validate Dynamic UI surfaces.',
+    ],
   },
   'web-test': {
     id: 'web-test',
     label: 'Run Next.js workspace tests (npm --workspace apps/web run test)',
     command: 'npm --workspace apps/web run test',
     optional: false,
-    docs: ['docs/once-ui-development-checklist.md'],
-    notes: ['Executes workspace-level Deno tests for web routes and components.'],
+    docs: ['docs/dynamic-ui-development-checklist.md'],
+    notes: [
+      'Executes workspace-level Deno tests for web routes and components.',
+    ],
   },
   build: {
     id: 'build',
     label: 'Build Next.js app and landing snapshot (npm run build)',
     command: 'npm run build',
     optional: true,
-    docs: ['docs/once-ui-development-checklist.md'],
-    notes: ['Generates production bundles to surface hydration or build-time regressions.'],
+    docs: ['docs/dynamic-ui-development-checklist.md'],
+    notes: [
+      'Generates production bundles to surface hydration or build-time regressions.',
+    ],
   },
   'build-miniapp': {
     id: 'build-miniapp',
     label: 'Build Supabase mini app bundle (npm run build:miniapp)',
     command: 'npm run build:miniapp',
     optional: true,
-    docs: ['docs/once-ui-development-checklist.md', 'docs/dynamic-capital-checklist.md'],
-    notes: ['Runs scripts/build-miniapp.sh to compile the Telegram mini app assets.'],
+    docs: [
+      'docs/dynamic-ui-development-checklist.md',
+      'docs/dynamic-capital-checklist.md',
+    ],
+    notes: [
+      'Runs scripts/build-miniapp.sh to compile the Telegram mini app assets.',
+    ],
   },
   'check-webhook': {
     id: 'check-webhook',
-    label: 'Check Telegram webhook configuration (deno run -A scripts/check-webhook.ts)',
+    label:
+      'Check Telegram webhook configuration (deno run -A scripts/check-webhook.ts)',
     command: 'deno run -A scripts/check-webhook.ts',
     optional: false,
     docs: ['docs/dynamic-capital-checklist.md'],
-    notes: ['Verifies that the Telegram bot webhook is reachable and configured with the expected URL.'],
+    notes: [
+      'Verifies that the Telegram bot webhook is reachable and configured with the expected URL.',
+    ],
   },
   'audit-edge-hosts': {
     id: 'audit-edge-hosts',
-    label: 'Audit Supabase edge hosts (deno run -A scripts/audit-edge-hosts.ts)',
+    label:
+      'Audit Supabase edge hosts (deno run -A scripts/audit-edge-hosts.ts)',
     command: 'deno run -A scripts/audit-edge-hosts.ts',
     optional: false,
     docs: ['docs/VARIABLES_AND_LINKS_CHECKLIST.md'],
@@ -90,7 +122,9 @@ const TASK_LIBRARY = {
     command: 'deno run -A scripts/check-linkage.ts',
     optional: false,
     docs: ['docs/VARIABLES_AND_LINKS_CHECKLIST.md'],
-    notes: ['Validates that environment variables and service URLs match their expected targets.'],
+    notes: [
+      'Validates that environment variables and service URLs match their expected targets.',
+    ],
   },
   'smoke-miniapp': {
     id: 'smoke-miniapp',
@@ -98,7 +132,9 @@ const TASK_LIBRARY = {
     command: 'deno run -A scripts/smoke-miniapp.ts',
     optional: true,
     docs: ['docs/dynamic-capital-checklist.md'],
-    notes: ['Executes scripted flows that mirror the production sanity checklist for the Telegram mini app.'],
+    notes: [
+      'Executes scripted flows that mirror the production sanity checklist for the Telegram mini app.',
+    ],
   },
   'supabase-cli-workflow': {
     id: 'supabase-cli-workflow',
@@ -116,7 +152,9 @@ const TASK_LIBRARY = {
     command: 'deno task typecheck',
     optional: false,
     docs: ['docs/SETUP_SUMMARY.md', 'docs/coding-efficiency-checklist.md'],
-    notes: ['Matches the standalone typecheck executed in CI (test-and-pr job).'],
+    notes: [
+      'Matches the standalone typecheck executed in CI (test-and-pr job).',
+    ],
   },
   'npm-audit': {
     id: 'npm-audit',
@@ -124,7 +162,9 @@ const TASK_LIBRARY = {
     command: 'npm run audit',
     optional: false,
     docs: ['docs/SETUP_SUMMARY.md'],
-    notes: ['Surfaces vulnerable packages to keep parity with the GitHub Actions audit step.'],
+    notes: [
+      'Surfaces vulnerable packages to keep parity with the GitHub Actions audit step.',
+    ],
   },
   'ci-test-and-pr': {
     id: 'ci-test-and-pr',
@@ -132,7 +172,9 @@ const TASK_LIBRARY = {
     command: 'deno task ci',
     optional: false,
     docs: ['docs/SETUP_SUMMARY.md'],
-    notes: ['Executes the aggregated formatting, linting, and test routine used by the test-and-pr workflow.'],
+    notes: [
+      'Executes the aggregated formatting, linting, and test routine used by the test-and-pr workflow.',
+    ],
   },
 };
 
@@ -140,21 +182,35 @@ const CHECKLISTS = {
   'coding-efficiency': {
     name: 'Coding Efficiency Checklist',
     doc: 'docs/coding-efficiency-checklist.md',
-    description: 'Automation hooks referenced in the coding efficiency checklist.',
+    description:
+      'Automation hooks referenced in the coding efficiency checklist.',
     tasks: ['sync-env', 'repo-test', 'fix-and-check', 'verify'],
   },
-  'once-ui': {
-    name: 'Once UI Frontend & Backend Checklist',
-    doc: 'docs/once-ui-development-checklist.md',
-    description: 'Frontend and backend quality gates for Once UI surfaces.',
+  'dynamic-ui': {
+    name: 'Dynamic UI Frontend & Backend Checklist',
+    doc: 'docs/dynamic-ui-development-checklist.md',
+    description: 'Frontend and backend quality gates for Dynamic UI surfaces.',
     tasks: [
       'web-lint',
       'web-test',
-      { task: 'repo-test', optional: true, note: 'Runs repository-wide tests alongside workspace coverage.' },
+      {
+        task: 'repo-test',
+        optional: true,
+        note: 'Runs repository-wide tests alongside workspace coverage.',
+      },
       'fix-and-check',
       'verify',
-      { task: 'build', optional: true, note: 'Useful when verifying hydration and production builds locally.' },
-      { task: 'build-miniapp', optional: true, note: 'Required when Once UI changes impact the Telegram mini app shell.' },
+      {
+        task: 'build',
+        optional: true,
+        note: 'Useful when verifying hydration and production builds locally.',
+      },
+      {
+        task: 'build-miniapp',
+        optional: true,
+        note:
+          'Required when Dynamic UI changes impact the Telegram mini app shell.',
+      },
     ],
   },
   'variables-and-links': {
@@ -169,13 +225,18 @@ const CHECKLISTS = {
     description: 'Production readiness smoke tests.',
     tasks: [
       'check-webhook',
-      { task: 'smoke-miniapp', optional: true, note: 'Complements manual go-live validation with scripted coverage.' },
+      {
+        task: 'smoke-miniapp',
+        optional: true,
+        note: 'Complements manual go-live validation with scripted coverage.',
+      },
     ],
   },
   'setup-followups': {
     name: 'Setup Follow-Ups',
     doc: 'docs/dynamic-capital-checklist.md#setup-follow-ups',
-    description: 'Supabase CLI linking and CI parity checks referenced after initial onboarding.',
+    description:
+      'Supabase CLI linking and CI parity checks referenced after initial onboarding.',
     tasks: [
       'supabase-cli-workflow',
       'deno-typecheck',
@@ -201,7 +262,8 @@ const CHECKLISTS = {
   },
 };
 
-const HELP_TEXT = `Usage: npm run checklists -- [options]\n       node scripts/run-checklists.js --[options]\n\nOptions:\n  --checklist, -c <names>   Comma-separated checklist keys to run.\n  --only <task-ids>         Run the specified task IDs (comma-separated) without loading a checklist.\n  --skip <task-ids>         Skip the specified task IDs.\n  --include-optional        Include tasks marked as optional.\n  --continue-on-error       Continue executing tasks even if a required task fails.\n  --dry-run                 Print the resolved tasks without executing commands.\n  --list                    List available checklists and tasks.\n  --help, -h                Show this help message.\n`;
+const HELP_TEXT =
+  `Usage: npm run checklists -- [options]\n       node scripts/run-checklists.js --[options]\n\nOptions:\n  --checklist, -c <names>   Comma-separated checklist keys to run.\n  --only <task-ids>         Run the specified task IDs (comma-separated) without loading a checklist.\n  --skip <task-ids>         Skip the specified task IDs.\n  --include-optional        Include tasks marked as optional.\n  --continue-on-error       Continue executing tasks even if a required task fails.\n  --dry-run                 Print the resolved tasks without executing commands.\n  --list                    List available checklists and tasks.\n  --help, -h                Show this help message.\n`;
 
 function parseArgs(argv) {
   const options = {
@@ -225,7 +287,9 @@ function parseArgs(argv) {
           throw new Error('Missing value for --checklist');
         }
         i += 1;
-        options.checklists.push(...value.split(',').map((item) => item.trim()).filter(Boolean));
+        options.checklists.push(
+          ...value.split(',').map((item) => item.trim()).filter(Boolean),
+        );
         break;
       }
       case '--only': {
@@ -234,7 +298,9 @@ function parseArgs(argv) {
           throw new Error('Missing value for --only');
         }
         i += 1;
-        options.only.push(...value.split(',').map((item) => item.trim()).filter(Boolean));
+        options.only.push(
+          ...value.split(',').map((item) => item.trim()).filter(Boolean),
+        );
         break;
       }
       case '--skip': {
@@ -243,7 +309,9 @@ function parseArgs(argv) {
           throw new Error('Missing value for --skip');
         }
         i += 1;
-        value.split(',').map((item) => item.trim()).filter(Boolean).forEach((item) => options.skip.add(item));
+        value.split(',').map((item) => item.trim()).filter(Boolean).forEach((
+          item,
+        ) => options.skip.add(item));
         break;
       }
       case '--include-optional':
@@ -303,24 +371,41 @@ function formatTaskRef(ref) {
   const config = typeof ref === 'string' ? { task: ref } : ref;
   const base = TASK_LIBRARY[config.task ?? config.id ?? ''];
   if (!base) {
-    throw new Error(`Unknown task reference: ${typeof ref === 'string' ? ref : JSON.stringify(ref)}`);
+    throw new Error(
+      `Unknown task reference: ${
+        typeof ref === 'string' ? ref : JSON.stringify(ref)
+      }`,
+    );
   }
   return {
     id: base.id,
     label: config.label ?? base.label,
-    optional: typeof config.optional === 'boolean' ? config.optional : base.optional ?? false,
+    optional: typeof config.optional === 'boolean'
+      ? config.optional
+      : base.optional ?? false,
   };
 }
 
-function resolveTask(ref, checklistName, includeOptional, { forceInclude = false } = {}) {
+function resolveTask(
+  ref,
+  checklistName,
+  includeOptional,
+  { forceInclude = false } = {},
+) {
   const config = typeof ref === 'string' ? { task: ref } : ref;
   const baseKey = config.task ?? config.id ?? '';
   const base = TASK_LIBRARY[baseKey];
   if (!base) {
-    throw new Error(`Unknown task reference: ${typeof ref === 'string' ? ref : JSON.stringify(ref)}`);
+    throw new Error(
+      `Unknown task reference: ${
+        typeof ref === 'string' ? ref : JSON.stringify(ref)
+      }`,
+    );
   }
 
-  const resolvedOptional = typeof config.optional === 'boolean' ? config.optional : base.optional ?? false;
+  const resolvedOptional = typeof config.optional === 'boolean'
+    ? config.optional
+    : base.optional ?? false;
   if (resolvedOptional && !includeOptional && !forceInclude) {
     return null;
   }
@@ -366,7 +451,11 @@ async function runCommand(command) {
       } else if (typeof code === 'number') {
         reject(new Error(`Command failed with exit code ${code}: ${command}`));
       } else {
-        reject(new Error(`Command terminated by signal ${signal ?? 'unknown'}: ${command}`));
+        reject(
+          new Error(
+            `Command terminated by signal ${signal ?? 'unknown'}: ${command}`,
+          ),
+        );
       }
     });
     child.on('error', (error) => {
@@ -433,7 +522,9 @@ async function main() {
     });
   } else {
     if (options.checklists.length === 0) {
-      console.error('No checklist selected. Use --checklist <key> or --list to see available options.');
+      console.error(
+        'No checklist selected. Use --checklist <key> or --list to see available options.',
+      );
       printUsage();
       process.exit(1);
     }
@@ -455,7 +546,9 @@ async function main() {
     });
   }
 
-  const filteredTasks = plannedTasks.filter((task) => !options.skip.has(task.id));
+  const filteredTasks = plannedTasks.filter((task) =>
+    !options.skip.has(task.id)
+  );
 
   if (filteredTasks.length === 0) {
     console.log('No tasks to run after applying filters.');
@@ -465,7 +558,9 @@ async function main() {
   console.log(`Planned tasks (${filteredTasks.length}):`);
   filteredTasks.forEach((task, index) => {
     const optionalText = task.optional ? 'optional' : 'required';
-    const sources = task.sources.size > 0 ? `Sources: ${Array.from(task.sources).join(', ')}` : 'Sources: manual selection';
+    const sources = task.sources.size > 0
+      ? `Sources: ${Array.from(task.sources).join(', ')}`
+      : 'Sources: manual selection';
     console.log(`\n${index + 1}. ${task.label}`);
     console.log(`   Command: ${task.command}`);
     console.log(`   Type: ${optionalText}`);

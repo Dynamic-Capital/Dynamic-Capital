@@ -68,7 +68,7 @@ Capital's existing automation stack.
       fresh signals with timestamps and reliability badges.
 - [ ] Add UI states for "no recent signals" and loading/error conditions to
       prevent empty panels.
-- [ ] Ensure formatting matches Once UI/Tailwind conventions (spacing,
+- [ ] Ensure formatting matches Dynamic UI/Tailwind conventions (spacing,
       typography, color usage).
 - [ ] Write integration tests or Storybook stories to validate rendering against
       mock signal data.

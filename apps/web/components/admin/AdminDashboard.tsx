@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Shield,
-  Users,
   Activity,
-  DollarSign,
-  Clock,
   CheckCircle,
   CheckCircle2,
+  Clock,
+  DollarSign,
+  Loader2,
+  Shield,
+  Users,
   XCircle,
-  Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
@@ -61,7 +61,8 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   const { telegramUser, getAdminAuth } = useTelegramAuth();
 
   const getUserId = () => {
-    return telegramUser?.id?.toString() || telegramData?.user?.id?.toString() || null;
+    return telegramUser?.id?.toString() || telegramData?.user?.id?.toString() ||
+      null;
   };
 
   const checkAdminAccess = useCallback(async () => {
@@ -78,22 +79,22 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
           .single<{ role: string | null }>();
 
         if (profileError) {
-          console.error('Profile fetch error:', profileError);
+          console.error("Profile fetch error:", profileError);
           return false;
         }
 
-        return profile?.role === 'admin';
+        return profile?.role === "admin";
       }
-      
+
       return false;
     } catch (error) {
-      console.error('Admin access check error:', error);
+      console.error("Admin access check error:", error);
       return false;
     }
   }, [telegramData, supabase]);
@@ -107,7 +108,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
     }
 
     setIsAdmin(true);
-    
+
     try {
       const auth = getAdminAuth();
       if (!auth) {
@@ -115,15 +116,17 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       }
 
       // Load admin stats
-      const { data: statsData, error: statsError } = await callEdgeFunction<AdminStats>('ANALYTICS_DATA', {
-        method: 'POST',
+      const { data: statsData, error: statsError } = await callEdgeFunction<
+        AdminStats
+      >("ANALYTICS_DATA", {
+        method: "POST",
         headers: {
-          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
         },
         body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
-          timeframe: "today"
-        }
+          timeframe: "today",
+        },
       });
 
       if (statsError) {
@@ -135,28 +138,28 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
       }
 
       // Load pending payments
-      const { data: paymentsData, error: paymentsError } = await callEdgeFunction('ADMIN_LIST_PENDING', {
-        method: 'POST',
-        headers: {
-          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
-        },
-        body: {
-          ...(auth.initData ? { initData: auth.initData } : {}),
-          limit: 20,
-          offset: 0
-        }
-      });
+      const { data: paymentsData, error: paymentsError } =
+        await callEdgeFunction("ADMIN_LIST_PENDING", {
+          method: "POST",
+          headers: {
+            ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
+          },
+          body: {
+            ...(auth.initData ? { initData: auth.initData } : {}),
+            limit: 20,
+            offset: 0,
+          },
+        });
 
       if (paymentsError) {
-      throw new Error(paymentsError.message);
+        throw new Error(paymentsError.message);
       }
 
       if (paymentsData) {
         setPendingPayments((paymentsData as any).items || []);
       }
-
     } catch (error) {
-      console.error('Failed to load admin data:', error);
+      console.error("Failed to load admin data:", error);
       toast({
         title: "Error",
         description: "Failed to load admin dashboard data",
@@ -170,34 +173,39 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   }, [loadAdminData, telegramData, supabase]);
 
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user && !telegramData) {
-        loadAdminData();
-      }
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session?.user && !telegramData) {
+          loadAdminData();
+        }
+      },
+    );
     return () => {
       listener.subscription.unsubscribe();
     };
   }, [loadAdminData, telegramData, supabase]);
 
-  const handlePaymentAction = async (paymentId: string, decision: 'approve' | 'reject') => {
+  const handlePaymentAction = async (
+    paymentId: string,
+    decision: "approve" | "reject",
+  ) => {
     try {
       const auth = getAdminAuth();
       if (!auth) {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction('ADMIN_ACT_ON_PAYMENT', {
-        method: 'POST',
+      const { data, error } = await callEdgeFunction("ADMIN_ACT_ON_PAYMENT", {
+        method: "POST",
         headers: {
-          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
         },
         body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           payment_id: paymentId,
           decision: decision,
-          message: `Payment ${decision}d by admin`
-        }
+          message: `Payment ${decision}d by admin`,
+        },
       });
 
       if (error) {
@@ -213,7 +221,9 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         // Refresh pending payments
         await loadAdminData();
       } else {
-        throw new Error((data as any)?.error || `Failed to ${decision} payment`);
+        throw new Error(
+          (data as any)?.error || `Failed to ${decision} payment`,
+        );
       }
     } catch (error) {
       console.error(`Failed to ${decision} payment:`, error);
@@ -246,9 +256,12 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
           <Shield className="h-8 w-8" />
         </div>
-        <h2 className="mt-6 text-2xl font-semibold text-foreground">Access denied</h2>
+        <h2 className="mt-6 text-2xl font-semibold text-foreground">
+          Access denied
+        </h2>
         <p className="mt-3 text-sm text-muted-foreground">
-          You don't have admin privileges to access this dashboard. Contact the Dynamic Capital team if you believe this is an error.
+          You don't have admin privileges to access this dashboard. Contact the
+          Dynamic Capital team if you believe this is an error.
         </p>
       </OnceContainer>
     );
@@ -260,39 +273,39 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
     : "Awaiting sync";
   const overviewItems = stats
     ? [
-        {
-          label: "Total users",
-          value: stats.total_users.toLocaleString(),
-          hint: `${stats.vip_users.toLocaleString()} VIP members`,
-          icon: Users,
-          accent: "text-primary",
-        },
-        {
-          label: "Revenue",
-          value: new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-            maximumFractionDigits: 0,
-          }).format(stats.total_revenue ?? 0),
-          hint: `${stats.completed_payments.toLocaleString()} payments settled`,
-          icon: DollarSign,
-          accent: "text-success",
-        },
-        {
-          label: "Pending reviews",
-          value: stats.pending_payments.toLocaleString(),
-          hint: "Awaiting manual decision",
-          icon: Clock,
-          accent: "text-warning",
-        },
-        {
-          label: "Daily activity",
-          value: stats.daily_interactions.toLocaleString(),
-          hint: `${stats.daily_sessions.toLocaleString()} sessions today`,
-          icon: Activity,
-          accent: "text-info",
-        },
-      ]
+      {
+        label: "Total users",
+        value: stats.total_users.toLocaleString(),
+        hint: `${stats.vip_users.toLocaleString()} VIP members`,
+        icon: Users,
+        accent: "text-primary",
+      },
+      {
+        label: "Revenue",
+        value: new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0,
+        }).format(stats.total_revenue ?? 0),
+        hint: `${stats.completed_payments.toLocaleString()} payments settled`,
+        icon: DollarSign,
+        accent: "text-success",
+      },
+      {
+        label: "Pending reviews",
+        value: stats.pending_payments.toLocaleString(),
+        hint: "Awaiting manual decision",
+        icon: Clock,
+        accent: "text-warning",
+      },
+      {
+        label: "Daily activity",
+        value: stats.daily_interactions.toLocaleString(),
+        hint: `${stats.daily_sessions.toLocaleString()} sessions today`,
+        icon: Activity,
+        accent: "text-info",
+      },
+    ]
     : [];
   const pendingCount = pendingPayments.length;
 
@@ -306,11 +319,15 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
               <div className="space-y-2 text-left">
                 <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                   <Shield className="h-4 w-4 text-primary" />
-                  Once UI admin cockpit
+                  Dynamic UI admin cockpit
                 </span>
-                <h1 className="text-3xl font-bold text-foreground sm:text-4xl">Dynamic Capital operations</h1>
+                <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
+                  Dynamic Capital operations
+                </h1>
                 <p className="text-sm text-muted-foreground">
-                  Welcome back, {adminName}. Review deposits, broadcast updates, and inspect bot health without leaving the Once UI workspace.
+                  Welcome back,{" "}
+                  {adminName}. Review deposits, broadcast updates, and inspect
+                  bot health without leaving the Dynamic UI workspace.
                 </p>
               </div>
               <div className="flex flex-col items-start gap-2 sm:items-end">
@@ -368,8 +385,14 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                 className="space-y-6 rounded-3xl border border-border/40 bg-card/70 p-6 shadow-inner"
               >
                 <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-                  <p>Monitor realtime metrics across the Dynamic Capital stack with Once UI automation.</p>
-                  <Badge variant="outline" className="border-border/60 bg-background/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <p>
+                    Monitor realtime metrics across the Dynamic Capital stack
+                    with Dynamic UI automation.
+                  </p>
+                  <Badge
+                    variant="outline"
+                    className="border-border/60 bg-background/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground"
+                  >
                     Synced {formattedLastUpdated}
                   </Badge>
                 </div>
@@ -383,14 +406,23 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                       >
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                            <Icon className={`h-5 w-5 ${item.accent}`} aria-hidden="true" />
+                            <Icon
+                              className={`h-5 w-5 ${item.accent}`}
+                              aria-hidden="true"
+                            />
                           </div>
                           <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                             {item.label}
                           </span>
                         </div>
-                        <div className={`text-2xl font-semibold ${item.accent}`}>{item.value}</div>
-                        <p className="text-xs text-muted-foreground">{item.hint}</p>
+                        <div
+                          className={`text-2xl font-semibold ${item.accent}`}
+                        >
+                          {item.value}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {item.hint}
+                        </p>
                       </div>
                     );
                   })}
@@ -403,65 +435,75 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground">Pending payments</h3>
+                    <h3 className="text-xl font-semibold text-foreground">
+                      Pending payments
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      Approve or reject submissions in-line. All actions are logged for compliance.
+                      Approve or reject submissions in-line. All actions are
+                      logged for compliance.
                     </p>
                   </div>
-                  <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary">
+                  <Badge
+                    variant="outline"
+                    className="border-primary/40 bg-primary/10 text-primary"
+                  >
                     {pendingCount} awaiting review
                   </Badge>
                 </div>
 
-                {pendingCount === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-border/40 bg-background/85 py-12 text-sm text-muted-foreground">
-                    <CheckCircle2 className="h-8 w-8 text-success" />
-                    All caught up! New submissions will appear here instantly.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {pendingPayments.map((payment) => (
-                      <div
-                        key={payment.id}
-                        className="flex flex-col gap-4 rounded-3xl border border-border/40 bg-background/85 p-5 shadow-sm md:flex-row md:items-center md:justify-between"
-                      >
-                        <div className="space-y-2">
-                          <p className="text-lg font-semibold text-foreground">
-                            ${payment.amount} {payment.currency}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                            <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
-                              User {payment.telegram_user_id}
-                            </span>
-                            <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
-                              {formatIsoDateTime(payment.created_at)}
-                            </span>
-                            <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
-                              Status: {payment.status}
-                            </span>
+                {pendingCount === 0
+                  ? (
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-border/40 bg-background/85 py-12 text-sm text-muted-foreground">
+                      <CheckCircle2 className="h-8 w-8 text-success" />
+                      All caught up! New submissions will appear here instantly.
+                    </div>
+                  )
+                  : (
+                    <div className="space-y-4">
+                      {pendingPayments.map((payment) => (
+                        <div
+                          key={payment.id}
+                          className="flex flex-col gap-4 rounded-3xl border border-border/40 bg-background/85 p-5 shadow-sm md:flex-row md:items-center md:justify-between"
+                        >
+                          <div className="space-y-2">
+                            <p className="text-lg font-semibold text-foreground">
+                              ${payment.amount} {payment.currency}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                              <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
+                                User {payment.telegram_user_id}
+                              </span>
+                              <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
+                                {formatIsoDateTime(payment.created_at)}
+                              </span>
+                              <span className="rounded-full border border-border/60 bg-card/60 px-3 py-1">
+                                Status: {payment.status}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2 sm:flex-row">
+                            <OnceButton
+                              size="small"
+                              onClick={() =>
+                                handlePaymentAction(payment.id, "approve")}
+                              className="bg-success text-success-foreground hover:bg-success/90"
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                            </OnceButton>
+                            <OnceButton
+                              size="small"
+                              variant="outline"
+                              onClick={() =>
+                                handlePaymentAction(payment.id, "reject")}
+                              className="border-destructive/60 text-destructive hover:bg-destructive/10"
+                            >
+                              <XCircle className="mr-2 h-4 w-4" /> Reject
+                            </OnceButton>
                           </div>
                         </div>
-                        <div className="flex flex-col gap-2 sm:flex-row">
-                          <OnceButton
-                            size="small"
-                            onClick={() => handlePaymentAction(payment.id, "approve")}
-                            className="bg-success text-success-foreground hover:bg-success/90"
-                          >
-                            <CheckCircle className="mr-2 h-4 w-4" /> Approve
-                          </OnceButton>
-                          <OnceButton
-                            size="small"
-                            variant="outline"
-                            onClick={() => handlePaymentAction(payment.id, "reject")}
-                            className="border-destructive/60 text-destructive hover:bg-destructive/10"
-                          >
-                            <XCircle className="mr-2 h-4 w-4" /> Reject
-                          </OnceButton>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
               </TabsContent>
 
               <TabsContent

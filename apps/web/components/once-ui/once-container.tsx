@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 
 import { cn } from "@/utils";
 import {
-  onceMotionVariants,
   type OnceMotionVariantKey,
+  onceMotionVariants,
 } from "@/lib/motion-variants";
 
 type MotionDivProps = React.ComponentPropsWithoutRef<typeof motion.div>;
@@ -17,7 +17,7 @@ export interface OnceContainerProps extends MotionDivProps {
    */
   variant?: OnceMotionVariantKey | null;
   /**
-   * Disable the reveal animation while preserving the Once UI layout styles.
+   * Disable the reveal animation while preserving the Dynamic UI layout styles.
    */
   animateIn?: boolean;
   /**
@@ -32,7 +32,10 @@ export interface OnceContainerProps extends MotionDivProps {
 
 const MotionDiv = motion.div;
 
-export const OnceContainer = React.forwardRef<HTMLDivElement, OnceContainerProps>(
+export const OnceContainer = React.forwardRef<
+  HTMLDivElement,
+  OnceContainerProps
+>(
   (
     {
       variant = "slideUp",
@@ -48,20 +51,21 @@ export const OnceContainer = React.forwardRef<HTMLDivElement, OnceContainerProps
       whileInView: whileInViewProp,
       ...rest
     },
-    ref
+    ref,
   ) => {
     const shouldApplyPreset = animateIn && animateProp === undefined;
-    const resolvedVariants =
-      variantsProp ?? (shouldApplyPreset && variant ? onceMotionVariants[variant] : undefined);
+    const resolvedVariants = variantsProp ??
+      (shouldApplyPreset && variant ? onceMotionVariants[variant] : undefined);
 
-    const initialValue =
-      shouldApplyPreset && resolvedVariants ? initialProp ?? "hidden" : initialProp;
-    const whileInViewValue =
-      shouldApplyPreset && resolvedVariants ? whileInViewProp ?? "visible" : whileInViewProp;
-    const resolvedViewport =
-      shouldApplyPreset && resolvedVariants
-        ? viewport ?? { once, amount: viewportAmount }
-        : viewport;
+    const initialValue = shouldApplyPreset && resolvedVariants
+      ? initialProp ?? "hidden"
+      : initialProp;
+    const whileInViewValue = shouldApplyPreset && resolvedVariants
+      ? whileInViewProp ?? "visible"
+      : whileInViewProp;
+    const resolvedViewport = shouldApplyPreset && resolvedVariants
+      ? viewport ?? { once, amount: viewportAmount }
+      : viewport;
 
     return (
       <MotionDiv
@@ -77,7 +81,7 @@ export const OnceContainer = React.forwardRef<HTMLDivElement, OnceContainerProps
         {children}
       </MotionDiv>
     );
-  }
+  },
 );
 
 OnceContainer.displayName = "OnceContainer";
