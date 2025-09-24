@@ -600,9 +600,9 @@ export function InteractiveAscii({
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>();
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
-  const maskCanvasRef = useRef<HTMLCanvasElement>();
+  const maskCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const maskCtxRef = useRef<CanvasRenderingContext2D | null>(null);
   const [image, setImage] = useState<HTMLImageElement>();
   const [cursorImage, setCursorImage] = useState<HTMLImageElement>();
