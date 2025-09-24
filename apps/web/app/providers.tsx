@@ -26,6 +26,7 @@ import { SupabaseProvider } from '@/context/SupabaseProvider';
 import { MotionConfigProvider } from '@/components/ui/motion-config';
 import { systemUI } from '@/resources';
 import { iconLibrary } from '@/resources/icons';
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from '@/config/supabase-runtime';
 
 const {
   basics: basicsConfig,
@@ -33,9 +34,6 @@ const {
 } = systemUI;
 const { style } = basicsConfig;
 const { dataStyle } = dataVizConfig;
-
-const SUPABASE_URL = "https://qeejuomcapbdlhnjqjcc.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZWp1b21jYXBiZGxobmpxamNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMDE4MTUsImV4cCI6MjA2OTc3NzgxNX0.GfK9Wwx0WX_GhDIz1sIQzNstyAQIF2Jd6p7t02G44zk";
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [supabaseClient] = useState(() =>

@@ -1,15 +1,15 @@
-import { getEnvVar } from "@/utils/env.ts";
+import {
+  SUPABASE_ANON_KEY,
+  SUPABASE_CONFIG_FROM_ENV,
+  SUPABASE_URL,
+} from "@/config/supabase-runtime";
 
-const SUPABASE_URL = getEnvVar("NEXT_PUBLIC_SUPABASE_URL", ["SUPABASE_URL"]) ??
-  "";
-const SUPABASE_ANON_KEY =
-  getEnvVar("NEXT_PUBLIC_SUPABASE_ANON_KEY", ["SUPABASE_ANON_KEY"]) ?? "";
+export const SUPABASE_ENV_ERROR = "";
 
-export let SUPABASE_ENV_ERROR = "";
-
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  SUPABASE_ENV_ERROR = "Missing required Supabase env vars";
-  console.warn("Configuration warning:", SUPABASE_ENV_ERROR);
+if (!SUPABASE_CONFIG_FROM_ENV) {
+  console.info(
+    "[Supabase] Using baked-in project credentials because env vars are not set.",
+  );
 }
 
 export const SUPABASE_CONFIG = {
