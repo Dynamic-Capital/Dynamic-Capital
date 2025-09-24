@@ -1,5 +1,14 @@
-import { Badge, Button, Column, Heading, RevealFx, Row, Schema, Text } from "@once-ui-system/core";
-import { home, about, person, baseURL, toAbsoluteUrl } from "@/resources";
+import {
+  Badge,
+  Button,
+  Column,
+  Heading,
+  RevealFx,
+  Row,
+  Schema,
+  Text,
+} from "@once-ui-system/core";
+import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
 import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
@@ -11,7 +20,7 @@ import { ComplianceCertificates } from "@/components/magic-portfolio/home/Compli
 import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
 import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
 
-export function MagicLandingPage() {
+export function DynamicCapitalLandingPage() {
   return (
     <Column maxWidth="m" gap="xl" paddingY="12" horizontal="center">
       <Schema
@@ -50,17 +59,37 @@ export function MagicLandingPage() {
               </Badge>
             </RevealFx>
           )}
-          <RevealFx translateY="4" fillWidth horizontal="center" paddingBottom="16">
+          <RevealFx
+            translateY="4"
+            fillWidth
+            horizontal="center"
+            paddingBottom="16"
+          >
             <Heading wrap="balance" variant="display-strong-l">
               {home.headline}
             </Heading>
           </RevealFx>
-          <RevealFx translateY="8" delay={0.2} fillWidth horizontal="center" paddingBottom="32">
-            <Text wrap="balance" onBackground="neutral-weak" variant="heading-default-xl">
+          <RevealFx
+            translateY="8"
+            delay={0.2}
+            fillWidth
+            horizontal="center"
+            paddingBottom="32"
+          >
+            <Text
+              wrap="balance"
+              onBackground="neutral-weak"
+              variant="heading-default-xl"
+            >
               {home.subline}
             </Text>
           </RevealFx>
-          <RevealFx paddingTop="12" delay={0.4} horizontal="center" paddingLeft="12">
+          <RevealFx
+            paddingTop="12"
+            delay={0.4}
+            horizontal="center"
+            paddingLeft="12"
+          >
             <Row gap="12" s={{ direction: "column" }}>
               <Button
                 id="about"
