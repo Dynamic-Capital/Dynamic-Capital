@@ -1,8 +1,13 @@
 import { Fragment } from "react";
 
-import { Column, Heading, Icon, Line, Row, Tag, Text, type Colors } from "@once-ui-system/core";
+import { Column, Heading, Icon, Line, Row, Tag, Text } from "@once-ui-system/core";
+import type { Colors } from "@once-ui-system/core";
 
 type ImpactLevel = "High" | "Medium" | "Low";
+
+type TagBackground = Colors | "page" | "surface" | "overlay" | "transparent";
+
+type ImpactStyle = { label: string; background: TagBackground; icon: string };
 
 type EconomicEvent = {
   id: string;
@@ -15,11 +20,11 @@ type EconomicEvent = {
   deskPlan: string[];
 };
 
-const IMPACT_STYLES: Record<ImpactLevel, { label: string; background: Colors; icon: string }> = {
+const IMPACT_STYLES = {
   High: { label: "High impact", background: "danger-alpha-weak", icon: "alert-triangle" },
   Medium: { label: "Medium impact", background: "brand-alpha-weak", icon: "activity" },
   Low: { label: "Low impact", background: "neutral-alpha-weak", icon: "info" },
-};
+} as const satisfies Record<ImpactLevel, ImpactStyle>;
 
 const ECONOMIC_EVENTS: EconomicEvent[] = [
   {
