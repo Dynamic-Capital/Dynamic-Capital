@@ -4,7 +4,7 @@ import "@once-ui-system/core/css/tokens.css";
 import "@once-ui-system/core/css/styles.css";
 import "./once-ui.css";
 import "./globals.css";
-import "../env";
+import { ensureRuntimeEnv } from "../env";
 
 import classNames from "classnames";
 import { Background, Column, Flex, RevealFx, opacity, SpacingToken } from "@once-ui-system/core";
@@ -13,6 +13,8 @@ import Providers from "./providers";
 import { getStaticLandingDocument } from "@/lib/staticLanding";
 import { Footer, Header, RouteGuard, ScrollToHash } from "@/components/magic-portfolio";
 import { systemUI } from "@/resources";
+
+ensureRuntimeEnv();
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
 const DEFAULT_THEME = "dark" as const;

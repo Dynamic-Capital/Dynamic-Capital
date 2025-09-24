@@ -39,6 +39,11 @@
     "do:sync-site": "node scripts/digitalocean/sync-site-config.mjs",
     "do:sync-cdn": "node scripts/digitalocean/sync-cdn-config.mjs",
     "doctl:sync-site": "node scripts/doctl/sync-site-config.mjs",
+    "env:validate": "tsx scripts/env/validate.ts",
+    "env:report": "tsx scripts/env/report.ts",
+    "env:sync": "tsx scripts/env/sync.ts",
+    "env:pull": "tsx scripts/env/pull.ts",
+    "env:health": "tsx scripts/env/health-check.ts",
     "checklists": "node scripts/run-checklists.js",
     "export": "node scripts/npm-safe.mjs run build",
     "output": "node scripts/npm-safe.mjs -w apps/web run copy-static",
@@ -54,6 +59,7 @@
     "chokidar-cli": "^3.0.0",
     "deno": "^2.5.0",
     "supabase": "^2.40.7",
+    "tsx": "^4.20.5",
     "yaml": "^2.8.1"
   },
   "dependencies": {

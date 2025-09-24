@@ -1,0 +1,31 @@
+name: go-live
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: 'Optional commit SHA expected on deployed apps'
+        required: false
+
+jobs:
+  health-checks:
+    runs-on: ubuntu-latest
+    env:
+      EXPECTED_COMMIT_SHA: ${{ inputs.expected_commit }}
+      MARKETING_HEALTH_URL: ${{ secrets.MARKETING_HEALTH_URL }}
+      USER_APP_HEALTH_URL: ${{ secrets.USER_APP_HEALTH_URL }}
+      ADMIN_APP_HEALTH_URL: ${{ secrets.ADMIN_APP_HEALTH_URL }}
+      SUPABASE_FUNCTION_HEALTH_URL: ${{ secrets.SUPABASE_FUNCTION_HEALTH_URL }}
+      BRIDGE_HEALTH_URL: ${{ secrets.BRIDGE_HEALTH_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Run health checks
+        run: npm run env:health
