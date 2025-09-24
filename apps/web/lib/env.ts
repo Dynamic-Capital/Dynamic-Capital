@@ -107,6 +107,14 @@ export class WebEnvError extends Error {
   }
 }
 
+const OPTIONAL_SERVER_WARN_KEY = '__dc_optional_server_env_warned__';
+
+const globalScope = globalThis as
+  | { [OPTIONAL_SERVER_WARN_KEY]?: boolean }
+  | Record<string, unknown>;
+
+let hasWarnedOptionalServerEnv = false;
+
 export function checkRuntimeEnv(mode: Mode = 'throw'): ValidationResult {
   const publicResult = validatePublicEnv();
   const serverResult = validateServerEnv();
@@ -116,10 +124,46 @@ export function checkRuntimeEnv(mode: Mode = 'throw'): ValidationResult {
     server: unique([...serverResult.missing.server]),
   };
 
-  const success = merged.public.length === 0 && merged.server.length === 0;
+  const toleratedServerMissing = new Set<keyof typeof serverSchema.shape>([
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'SUPABASE_SERVICE_ROLE',
+  ]);
+
+  const optionalServerMissing = merged.server.filter((key) =>
+    toleratedServerMissing.has(key as keyof typeof serverSchema.shape),
+  );
+
+  const fatalMissing: MissingMap = {
+    public: [...merged.public],
+    server: merged.server.filter(
+      (key) => !toleratedServerMissing.has(key as keyof typeof serverSchema.shape),
+    ),
+  };
+
+  const success = fatalMissing.public.length === 0 && fatalMissing.server.length === 0;
 
   if (!success && mode === 'throw') {
-    throw new WebEnvError(merged);
+    throw new WebEnvError(fatalMissing);
+  }
+
+  const globalWarned = Boolean(globalScope?.[OPTIONAL_SERVER_WARN_KEY]);
+
+  if (optionalServerMissing.length > 0 && !hasWarnedOptionalServerEnv && !globalWarned) {
+    const formatted = optionalServerMissing.join(', ');
+    const message =
+      `Missing optional server environment variables: ${formatted}. ` +
+      'Supabase service features will be disabled until they are provided.';
+    if (process.env.NODE_ENV !== 'production') {
+      if (mode === 'throw') {
+        console.warn(message);
+      } else {
+        console.info(message);
+      }
+    }
+    hasWarnedOptionalServerEnv = true;
+    if (globalScope && typeof globalScope === 'object') {
+      globalScope[OPTIONAL_SERVER_WARN_KEY] = true;
+    }
   }
 
   return { success, missing: merged };
