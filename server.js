@@ -34,6 +34,16 @@ function coerceHost(raw) {
   }
 }
 
+function coerceCommit(raw) {
+  if (!raw) return undefined;
+  const trimmed = `${raw}`.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.toLowerCase() === 'undefined' || trimmed.toLowerCase() === 'null') {
+    return undefined;
+  }
+  return trimmed;
+}
+
 const siteUrlSources = [
   ['SITE_URL', process.env.SITE_URL],
   ['NEXT_PUBLIC_SITE_URL', process.env.NEXT_PUBLIC_SITE_URL],
@@ -121,6 +131,35 @@ const CANONICAL_ORIGIN = SITE_URL;
 
 const defaultOrigin = SITE_URL;
 const rawAllowedOrigins = process.env.ALLOWED_ORIGINS;
+
+const commitSources = [
+  ['COMMIT_SHA', process.env.COMMIT_SHA],
+  ['GIT_COMMIT_SHA', process.env.GIT_COMMIT_SHA],
+  ['GIT_COMMIT', process.env.GIT_COMMIT],
+  ['VERCEL_GIT_COMMIT_SHA', process.env.VERCEL_GIT_COMMIT_SHA],
+  ['SOURCE_VERSION', process.env.SOURCE_VERSION],
+  ['DIGITALOCEAN_GIT_COMMIT_SHA', process.env.DIGITALOCEAN_GIT_COMMIT_SHA],
+  ['DIGITALOCEAN_DEPLOYMENT_ID', process.env.DIGITALOCEAN_DEPLOYMENT_ID],
+  ['DIGITALOCEAN_APP_DEPLOYMENT_SHA', process.env.DIGITALOCEAN_APP_DEPLOYMENT_SHA],
+  ['RENDER_GIT_COMMIT', process.env.RENDER_GIT_COMMIT],
+  ['HEROKU_SLUG_COMMIT', process.env.HEROKU_SLUG_COMMIT],
+];
+
+let COMMIT_SHA = 'unknown';
+for (const [source, value] of commitSources) {
+  const normalized = coerceCommit(value);
+  if (normalized) {
+    COMMIT_SHA = normalized;
+    if (!process.env.COMMIT_SHA) {
+      process.env.COMMIT_SHA = COMMIT_SHA;
+    }
+    break;
+  }
+}
+
+if (!process.env.COMMIT_SHA) {
+  process.env.COMMIT_SHA = COMMIT_SHA;
+}
 
 let allowedOrigins;
 if (rawAllowedOrigins === undefined) {
@@ -326,9 +365,20 @@ async function handler(req, res) {
   const { pathname } = url;
   console.log(`${req.method} ${pathname}`);
 
+  if (pathname === '/.well-known/health') {
+    res.writeHead(200, {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store',
+    });
+    return res.end(`ok ${COMMIT_SHA}`);
+  }
+
   if (pathname === '/healthz') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    return res.end('ok');
+    res.writeHead(200, {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store',
+    });
+    return res.end(`ok ${COMMIT_SHA}`);
   }
 
   if (await tryServeStatic(req, res, pathname)) {
