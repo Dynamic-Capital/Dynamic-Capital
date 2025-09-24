@@ -285,7 +285,7 @@ export async function handler(req: Request): Promise<Response> {
   console.log(`[miniapp] ${req.method} ${logPath}`);
   
   // Handle version endpoint for health checks and deployment verification
-  if (path === "/version" || path === "/miniapp/version") {
+  if (path === "/version") {
     return withSecurity(new Response(JSON.stringify({
       version: "1.0.0",
       timestamp: new Date().toISOString(),
@@ -301,7 +301,8 @@ export async function handler(req: Request): Promise<Response> {
     path === "/" ||
     (path.startsWith("/miniapp") &&
       !path.startsWith("/miniapp/api") &&
-      !path.startsWith("/miniapp/assets"))
+      !path.startsWith("/miniapp/assets") &&
+      !path.startsWith("/miniapp/version"))
   ) {
     try {
       const staticOpts: StaticOpts = {
