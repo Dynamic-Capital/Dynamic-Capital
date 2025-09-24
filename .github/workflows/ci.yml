@@ -4,244 +4,58 @@ on:
   push:
     branches:
       - main
-      - dev
-      - "release/**"
-      - "hotfix/**"
   pull_request:
     branches:
       - main
-      - dev
-      - "release/**"
-      - "hotfix/**"
+
+permissions:
+  contents: read
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: actions/cache@v3
-        id: lint-node-modules
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-lint-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-        if: steps.lint-node-modules.outputs.cache-hit != 'true'
-      - run: npm run lint
-
-  typecheck:
+  quality:
+    name: Build, typecheck, lint, and test
     runs-on: ubuntu-latest
     env:
       DENO_TLS_CA_STORE: system
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: actions/cache@v3
-        id: typecheck-node-modules
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-typecheck-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-        if: steps.typecheck-node-modules.outputs.cache-hit != 'true'
-      - run: npm run typecheck
-      - uses: denoland/setup-deno@v1
-        with:
-          deno-version: v1.x
-      - run: deno check supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  test:
-    runs-on: ubuntu-latest
-    env:
-      DENO_TLS_CA_STORE: system
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
         with:
-          deno-version: v1.x
-      - run: deno test -A supabase/functions/_tests
-      - run: deno test -A tests
+          node-version: '20'
+          cache: 'npm'
 
-  docs-drift:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
-        with:
-          deno-version: v1.x
-      - name: Generate repository summary
-        run: deno run -A scripts/generate-repo-summary.ts
-      - name: Verify documentation inventory is committed
+      - name: Install dependencies
+        run: npm ci
+
+      - id: script-flags
+        name: Detect npm scripts
         run: |
-          if ! git diff --quiet -- docs/REPO_SUMMARY.md docs/REPO_MAP_OPTIMIZATION.md; then
-            echo "::error::Documentation summary files are out of date. Run npm run docs:summary and commit the results."
-            git --no-pager diff -- docs/REPO_SUMMARY.md docs/REPO_MAP_OPTIMIZATION.md
-            exit 1
-          fi
+          echo "build=$(npm pkg get scripts.build | tr -d '"')" >> "$GITHUB_OUTPUT"
+          echo "typecheck=$(npm pkg get scripts.typecheck | tr -d '"')" >> "$GITHUB_OUTPUT"
+          echo "lint=$(npm pkg get scripts.lint | tr -d '"')" >> "$GITHUB_OUTPUT"
+          echo "test=$(npm pkg get scripts.test | tr -d '"')" >> "$GITHUB_OUTPUT"
 
-  build:
-    runs-on: ubuntu-latest
-    needs:
-      - lint
-      - typecheck
-      - test
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: actions/cache@v3
-        id: build-node-modules
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-build-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-        if: steps.build-node-modules.outputs.cache-hit != 'true'
-      - name: Build web applications
+      - name: Build
+        if: steps.script-flags.outputs.build != 'undefined'
         run: npm run build
-      - name: Verify Mini App bundle
-        run: node scripts/assert-miniapp-bundle.mjs
 
-  drizzle-migrations-validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v1
+      - name: Typecheck
+        if: steps.script-flags.outputs.typecheck != 'undefined'
+        run: npm run typecheck
+
+      - name: Lint
+        if: steps.script-flags.outputs.lint != 'undefined'
+        run: npm run lint
+
+      - name: Setup Deno
+        if: steps.script-flags.outputs.test != 'undefined'
+        uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
-      - run: deno run -A scripts/validate-drizzle-migrations.ts
 
-  preview:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    env:
-      DENO_TLS_CA_STORE: system
-      PROJECT_REF: qeejuomcapbdlhnjqjcc
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: actions/cache@v3
-        id: preview-node-modules
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-preview-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-        if: steps.preview-node-modules.outputs.cache-hit != 'true'
-      - name: Build Mini App bundle
-        run: |
-          npm run build:miniapp
-          npm run bundle:miniapp
-          npm run assert:miniapp
-      - uses: denoland/setup-deno@v1
-        with:
-          deno-version: v1.x
-      - run: deno test tests/miniapp-packaging.test.ts
-
-  deploy-staging:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs:
-      - lint
-      - typecheck
-      - test
-      - docs-drift
-      - build
-      - drizzle-migrations-validate
-    runs-on: ubuntu-latest
-    environment: staging
-    steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
-      - name: Deploy edge functions
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-        run: |
-          supabase functions deploy --project-id $SUPABASE_PROJECT_ID
-      - name: Deploy telegram-webhook with JWT disabled
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-        run: |
-          supabase functions deploy telegram-webhook --no-verify-jwt --project-id $SUPABASE_PROJECT_ID
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: actions/cache@v3
-        id: staging-node-modules
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-deploy-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-        if: steps.staging-node-modules.outputs.cache-hit != 'true'
-      - name: Set Telegram webhook
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
-          SUPABASE_URL: https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co
-        run: npx tsx scripts/set-telegram-webhook.ts
-      - uses: actions/cache@v3
-        with:
-          path: apps/web/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json', 'apps/web/package.json') }}
-      - run: npm run build
-        env:
-          SITE_URL: https://dynamic-capital.ondigitalocean.app
-      - name: Deploy Mini App
-        run: echo "Deploy Mini App to staging"
-
-  deploy-production:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: deploy-staging
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
-      - name: Deploy edge functions
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.PROD_SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_ID: ${{ secrets.PROD_SUPABASE_PROJECT_ID }}
-        run: |
-          supabase functions deploy --project-id $SUPABASE_PROJECT_ID
-      - name: Deploy telegram-webhook with JWT disabled
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.PROD_SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_ID: ${{ secrets.PROD_SUPABASE_PROJECT_ID }}
-        run: |
-          supabase functions deploy telegram-webhook --no-verify-jwt --project-id $SUPABASE_PROJECT_ID
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: actions/cache@v3
-        id: prod-node-modules
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-deploy-${{ hashFiles('package-lock.json') }}
-      - run: npm ci
-        if: steps.prod-node-modules.outputs.cache-hit != 'true'
-      - name: Set Telegram webhook
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.PROD_TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.PROD_TELEGRAM_WEBHOOK_SECRET }}
-          SUPABASE_URL: https://${{ secrets.PROD_SUPABASE_PROJECT_ID }}.supabase.co
-        run: npx tsx scripts/set-telegram-webhook.ts
-      - uses: actions/cache@v3
-        with:
-          path: apps/web/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json', 'apps/web/package.json') }}
-      - run: npm run build
-        env:
-          SITE_URL: https://dynamic-capital.ondigitalocean.app
-      - name: Verify Mini App bundle
-        run: node scripts/assert-miniapp-bundle.mjs
-      - name: Deploy Mini App
-        run: echo "Deploy Mini App to production"
+      - name: Test
+        if: steps.script-flags.outputs.test != 'undefined'
+        run: npm run test

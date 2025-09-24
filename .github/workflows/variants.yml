@@ -1,0 +1,53 @@
+name: Build Variants Comparison
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline, experiment-a, experiment-b, experiment-c]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply variant configuration
+        run: echo "Running build for ${{ matrix.variant }}"
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Report build output size
+        run: |
+          if [ -d .next ]; then
+            du -sh .next > size.txt
+          elif [ -d out ]; then
+            du -sh out > size.txt
+          else
+            echo "no build output produced" > size.txt
+          fi
+          cat size.txt
+          {
+            echo "### ${{ matrix.variant }}";
+            echo '```';
+            cat size.txt;
+            echo '```';
+          } >> "$GITHUB_STEP_SUMMARY"
