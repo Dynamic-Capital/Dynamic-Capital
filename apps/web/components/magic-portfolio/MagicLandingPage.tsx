@@ -8,6 +8,8 @@ import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/Men
 import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
 import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
 import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
+import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
+import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
 
 export function MagicLandingPage() {
   return (
@@ -89,21 +91,27 @@ export function MagicLandingPage() {
         <MarketWatchlist />
       </RevealFx>
       <RevealFx translateY="20" delay={0.7}>
-        <AboutShowcase />
+        <EconomicCalendarSection />
       </RevealFx>
       <RevealFx translateY="20" delay={0.75}>
-        <ComplianceCertificates />
+        <FundamentalAnalysisSection />
       </RevealFx>
       <RevealFx translateY="20" delay={0.8}>
-        <MentorshipProgramsSection />
+        <AboutShowcase />
       </RevealFx>
       <RevealFx translateY="20" delay={0.84}>
-        <PoolTradingSection />
+        <ComplianceCertificates />
       </RevealFx>
       <RevealFx translateY="20" delay={0.88}>
-        <VipPackagesSection />
+        <MentorshipProgramsSection />
       </RevealFx>
       <RevealFx translateY="20" delay={0.92}>
+        <PoolTradingSection />
+      </RevealFx>
+      <RevealFx translateY="20" delay={0.96}>
+        <VipPackagesSection />
+      </RevealFx>
+      <RevealFx translateY="20" delay={1}>
         <CheckoutCallout />
       </RevealFx>
       <Mailchimp />
