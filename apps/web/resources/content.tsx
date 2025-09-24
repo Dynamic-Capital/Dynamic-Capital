@@ -87,8 +87,8 @@ const about: About = {
     display: true,
   },
   calendar: {
-    display: true,
-    link: "https://cal.com/dynamiccapital/strategy",
+    display: false,
+    link: "",
   },
   intro: {
     display: true,

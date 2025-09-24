@@ -140,7 +140,7 @@ const effects: EffectsConfig = {
 };
 
 const mailchimp: MailchimpConfig = {
-  action: "https://dynamiccapital.us21.list-manage.com/subscribe/post?u=demo&id=desk",
+  action: "https://dynamiccapital.us21.list-manage.com/subscribe/post?u=c1a5a210340eb6c7bff33b2ba&id=0462d244aa",
   effects: {
     mask: {
       cursor: true,

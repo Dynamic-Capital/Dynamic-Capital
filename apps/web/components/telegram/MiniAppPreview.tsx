@@ -15,7 +15,7 @@ export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
   const [activeTab, setActiveTab] = useState("home");
   const [viewMode, setViewMode] = useState<"deployed" | "inline">("deployed");
 
-  const miniAppUrl = "https://chatty-telly-bot.lovable.app/miniapp/";
+  const miniAppUrl = "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/";
 
   const tabs = [
     { id: "home", label: "Home", icon: Star },
