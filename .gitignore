@@ -72,3 +72,4 @@ miniapp/
 *.local
 bun.lockb
 .codex-workflow-state.json
+.project-cache/
