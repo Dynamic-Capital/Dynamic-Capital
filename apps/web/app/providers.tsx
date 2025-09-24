@@ -1,9 +1,9 @@
 "use client";
 
-import { ReactNode, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactNode, useState } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import { SessionContextProvider } from "@supabase/auth-helpers-react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   BorderStyle,
   ChartMode,
@@ -20,18 +20,18 @@ import {
   ThemeProvider,
   ToastProvider as OnceToastProvider,
   TransitionStyle,
-} from '@once-ui-system/core';
-import { AuthProvider } from '@/hooks/useAuth';
-import { SupabaseProvider } from '@/context/SupabaseProvider';
-import { MotionConfigProvider } from '@/components/ui/motion-config';
-import { systemUI } from '@/resources';
-import { iconLibrary } from '@/resources/icons';
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from '@/config/supabase-runtime';
+} from "@once-ui-system/core";
+import { AuthProvider } from "@/hooks/useAuth";
+import { SupabaseProvider } from "@/context/SupabaseProvider";
+import { MotionConfigProvider } from "@/components/ui/motion-config";
+import { dyamicUI } from "@/resources";
+import { iconLibrary } from "@/resources/icons";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/config/supabase-runtime";
 
 const {
   basics: basicsConfig,
   dataViz: dataVizConfig,
-} = systemUI;
+} = dyamicUI;
 const { style } = basicsConfig;
 const { dataStyle } = dataVizConfig;
 
