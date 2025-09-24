@@ -1,2 +1,9 @@
 # Default owners for the repository
 * @dynamic-capital/maintainers
+
+# Content & marketing require owner review
+/content/**         @Dynamic-Capital
+/docs/**            @Dynamic-Capital
+/pages/**           @Dynamic-Capital
+/app/**/team/**     @Dynamic-Capital
+/app/**/about/**    @Dynamic-Capital

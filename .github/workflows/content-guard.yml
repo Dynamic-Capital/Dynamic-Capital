@@ -1,0 +1,38 @@
+name: Content Guard
+on:
+  pull_request:
+    types: [opened, synchronize, edited, reopened]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: List changed files
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+          git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD > changed.txt
+          cat changed.txt
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Run content guard
+        env:
+          CHANGED_LIST: changed.txt
+        run: node scripts/content_guard.mjs
+      - name: Ensure labels on failure
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X POST repos/${{ github.repository }}/labels -f name='content' -f color='0E8A16' -f description='Content changes' || true
+          gh api -X POST repos/${{ github.repository }}/labels -f name='needs-sources' -f color='B60205' -f description='Missing or unverifiable sources' || true
+          gh api -X POST repos/${{ github.repository }}/labels -f name='no-fakes' -f color='B60205' -f description='Contains placeholders/fakes' || true
+          gh api -X POST repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels -f labels='["content","needs-sources"]' || true
+      - name: Set output flag
+        id: flag
+        run: echo "content_changed=$(cat content_guard_flag.txt 2>/dev/null || echo false)" >> $GITHUB_OUTPUT
+    outputs:
+      content_changed: ${{ steps.flag.outputs.content_changed }}
