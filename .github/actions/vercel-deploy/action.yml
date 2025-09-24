@@ -1,0 +1,90 @@
+name: Vercel deploy
+inputs:
+  path:
+    description: Project directory to deploy
+    required: true
+  mode:
+    description: Deployment mode (preview or production)
+    required: true
+  build-command:
+    description: Optional build command to run before deploy
+    required: false
+    default: ''
+outputs:
+  url:
+    description: Deployed URL
+    value: ${{ steps.set-output.outputs.url }}
+runs:
+  using: composite
+  steps:
+    - id: guard
+      name: Ensure Vercel token is available
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -z "${VERCEL_TOKEN:-}" ]; then
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+          echo "url=" >> "$GITHUB_OUTPUT"
+          echo "VERCEL_TOKEN is not configured; skipping deploy."
+        fi
+    - name: Install Vercel CLI
+      if: steps.guard.outputs.skip != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        npm install -g vercel@latest
+    - name: Guard production deployments
+      if: steps.guard.outputs.skip != 'true' && inputs.mode == 'production'
+      shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+      run: |
+        set -euo pipefail
+        if [ "$EVENT_NAME" != "workflow_dispatch" ] && [ "$EVENT_NAME" != "schedule" ]; then
+          echo "Production deployments are only allowed from trusted events."
+          exit 1
+        fi
+    - name: Pull Vercel environment
+      if: steps.guard.outputs.skip != 'true'
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        set -euo pipefail
+        if [ "${{ inputs.mode }}" = "production" ]; then
+          vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+        else
+          vercel pull --yes --environment=preview --token "$VERCEL_TOKEN"
+        fi
+    - name: Build project
+      if: steps.guard.outputs.skip != 'true' && inputs.build-command != ''
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      env:
+        BUILD_COMMAND: ${{ inputs.build-command }}
+      run: |
+        set -euo pipefail
+        bash -lc "$BUILD_COMMAND"
+    - id: deploy
+      name: Deploy with Vercel
+      if: steps.guard.outputs.skip != 'true'
+      shell: bash
+      working-directory: ${{ inputs.path }}
+      run: |
+        set -euo pipefail
+        if [ "${{ inputs.mode }}" = "production" ]; then
+          url=$(vercel deploy --token "$VERCEL_TOKEN" --yes --prod)
+        else
+          url=$(vercel deploy --token "$VERCEL_TOKEN" --yes)
+        fi
+        url=$(echo "$url" | tail -n 1 | tr -d '\n')
+        echo "url=$url" >> "$GITHUB_OUTPUT"
+        echo "Preview available at $url"
+    - id: set-output
+      name: Finalize output
+      shell: bash
+      run: |
+        if [ "${{ steps.guard.outputs.skip }}" = "true" ]; then
+          echo "url=" >> "$GITHUB_OUTPUT"
+        else
+          echo "url=${{ steps.deploy.outputs.url }}" >> "$GITHUB_OUTPUT"
+        fi

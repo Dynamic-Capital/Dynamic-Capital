@@ -1,0 +1,50 @@
+name: Playwright screenshots
+inputs:
+  base-url:
+    description: Base URL for the preview deployment
+    required: true
+  routes:
+    description: JSON array or comma separated list of routes to capture
+    required: true
+  viewports:
+    description: Optional JSON array of viewports
+    required: false
+    default: ''
+  working-directory:
+    description: Working directory for running Playwright
+    required: false
+    default: '.'
+outputs:
+  artifact-url:
+    description: URL of the uploaded artifact
+    value: ${{ steps.upload.outputs.artifact-url }}
+runs:
+  using: composite
+  steps:
+    - uses: ../setup-node-pnpm
+      with:
+        working-directory: ${{ inputs.working-directory }}
+        setup-deno: 'false'
+    - name: Install Playwright browsers
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npx playwright install --with-deps
+    - id: capture
+      name: Capture screenshots
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        BASE_URL: ${{ inputs.base-url }}
+        ROUTES: ${{ inputs.routes }}
+        VIEWPORTS: ${{ inputs.viewports }}
+      run: |
+        set -euo pipefail
+        npx tsx scripts/screenshot-pages.ts
+    - id: upload
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-screenshots
+        path: ${{ inputs.working-directory }}/screenshots
+        if-no-files-found: warn
+        retention-days: 3

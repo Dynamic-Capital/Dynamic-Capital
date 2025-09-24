@@ -1,0 +1,57 @@
+name: Restart bridge service
+inputs:
+  host:
+    description: SSH host name
+    required: true
+  username:
+    description: SSH username
+    required: true
+  key:
+    description: SSH private key
+    required: true
+  port:
+    description: SSH port
+    required: false
+    default: '22'
+  restart-command:
+    description: Command to restart the service remotely
+    required: false
+    default: 'docker compose pull && docker compose up -d'
+  working-directory:
+    description: Remote working directory for commands
+    required: false
+    default: '/opt/app'
+  healthcheck-url:
+    description: Healthcheck URL to verify after restart
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Restart remote service
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ inputs.host }}
+        username: ${{ inputs.username }}
+        key: ${{ inputs.key }}
+        port: ${{ inputs.port }}
+        script: |
+          set -euo pipefail
+          cd "${{ inputs.working-directory }}"
+          git pull --ff-only
+          ${{ inputs.restart-command }}
+    - name: Verify healthcheck
+      if: inputs.healthcheck-url != ''
+      shell: bash
+      env:
+        HEALTHCHECK_URL: ${{ inputs.healthcheck-url }}
+      run: |
+        set -euo pipefail
+        for attempt in $(seq 1 10); do
+          if curl -fsS "$HEALTHCHECK_URL" >/dev/null; then
+            exit 0
+          fi
+          sleep 10
+        done
+        echo "Healthcheck did not pass in time"
+        exit 1

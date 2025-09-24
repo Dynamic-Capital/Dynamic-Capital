@@ -1,0 +1,68 @@
+name: DigitalOcean App Platform deploy
+inputs:
+  app-id:
+    description: DigitalOcean App Platform application ID
+    required: false
+    default: ''
+  app-name:
+    description: DigitalOcean App Platform application name (used when app-id is not provided)
+    required: false
+    default: ''
+  spec:
+    description: Optional path to spec file for update deployments
+    required: false
+    default: ''
+  wait:
+    description: Whether to wait for deployment completion
+    required: false
+    default: 'false'
+outputs:
+  deployment-id:
+    description: Triggered deployment identifier
+    value: ${{ steps.trigger.outputs.deployment_id }}
+runs:
+  using: composite
+  steps:
+    - name: Install doctl
+      shell: bash
+      run: |
+        set -euo pipefail
+        curl -sL https://github.com/digitalocean/doctl/releases/latest/download/doctl-$(uname | tr '[:upper:]' '[:lower:]')-amd64.tar.gz \
+          | tar -xz
+        sudo mv doctl /usr/local/bin/doctl
+    - name: Authenticate doctl
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -z "${DO_API_TOKEN:-}" ]; then
+          echo "DO_API_TOKEN is not configured; skipping deployment trigger."
+          echo "deployment_id=" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        doctl auth init -t "$DO_API_TOKEN"
+    - id: trigger
+      name: Trigger deployment
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -z "${DO_API_TOKEN:-}" ]; then
+          exit 0
+        fi
+        app_id="${{ inputs.app-id }}"
+        if [ -z "$app_id" ] && [ -n "${{ inputs.app-name }}" ]; then
+          app_id=$(doctl apps list --format ID,Spec.Name --no-header | awk '$2 == "${{ inputs.app-name }}" { print $1 }')
+        fi
+        if [ -z "$app_id" ]; then
+          echo "No app identifier resolved; skipping deployment trigger."
+          exit 0
+        fi
+        if [ -n "${{ inputs.spec }}" ]; then
+          deployment_id=$(doctl apps update "$app_id" --spec ${{ inputs.spec }} --format ID --no-header)
+        else
+          deployment_id=$(doctl apps create-deployment "$app_id" --format ID --no-header)
+        fi
+        echo "deployment_id=$deployment_id" >> "$GITHUB_OUTPUT"
+        echo "Triggered deployment $deployment_id"
+        if [ "${{ inputs.wait }}" = "true" ]; then
+          doctl apps wait "$app_id" --deployment $deployment_id
+        fi

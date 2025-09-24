@@ -1,0 +1,120 @@
+name: go-live
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-supabase:
+    name: deploy-supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.PROD_SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.PROD_SUPABASE_PROJECT_ID }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.PROD_SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/supabase-deploy
+
+  deploy-vercel:
+    name: deploy-vercel
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    needs: deploy-supabase
+    env:
+      VERCEL_TOKEN: ${{ secrets.PROD_VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/vercel-deploy
+        with:
+          path: apps/web
+          mode: production
+
+  deploy-vercel-admin:
+    name: deploy-vercel-admin
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    needs: deploy-vercel
+    env:
+      VERCEL_TOKEN: ${{ secrets.PROD_VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/vercel-deploy
+        with:
+          path: apps/landing
+          mode: production
+
+  deploy-do:
+    name: deploy-do
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    needs: deploy-vercel-admin
+    env:
+      DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/do-app-deploy
+        with:
+          app-name: ${{ secrets.DO_APP_NAME }}
+          wait: 'true'
+
+  restart-bridge:
+    name: restart-bridge
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    needs: deploy-do
+    steps:
+      - uses: ./.github/actions/bridge-restart
+        with:
+          host: ${{ secrets.BRIDGE_HOST }}
+          username: ${{ secrets.BRIDGE_USER }}
+          key: ${{ secrets.BRIDGE_SSH_KEY }}
+          healthcheck-url: ${{ secrets.BRIDGE_HEALTHCHECK_URL }}
+
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    needs:
+      - deploy-vercel
+      - deploy-vercel-admin
+      - deploy-do
+      - restart-bridge
+    steps:
+      - name: Wait for production healthcheck
+        shell: bash
+        env:
+          HEALTHCHECK_URL: ${{ secrets.PRODUCTION_HEALTHCHECK_URL }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HEALTHCHECK_URL:-}" ]; then
+            echo "No production healthcheck URL configured; skipping verification."
+            exit 0
+          fi
+          for attempt in $(seq 1 30); do
+            echo "Attempt ${attempt}/30"
+            response=$(curl -fsS "$HEALTHCHECK_URL" || true)
+            if [ -n "$response" ] && echo "$response" | grep -qi "$EXPECTED_SHA"; then
+              echo "Deployment verified with commit $EXPECTED_SHA"
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "Failed to verify deployment matches commit $EXPECTED_SHA"
+          exit 1

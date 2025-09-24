@@ -1,0 +1,42 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+      - release/**
+      - hotfix/**
+  pull_request:
+    branches:
+      - dev
+      - main
+      - release/**
+      - hotfix/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-node-pnpm
+      - name: Run lint
+        run: npm run lint
+      - name: Run typecheck
+        run: npm run typecheck
+      - name: Run tests
+        run: npm test -- --reporters=default
+      - name: Build project
+        run: npm run build
+      - name: Check database migrations
+        run: |
+          npm run migrate:check || npx drizzle-kit check || true

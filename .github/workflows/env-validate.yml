@@ -1,0 +1,19 @@
+name: env-validate
+
+on:
+  push: {}
+  pull_request: {}
+
+permissions:
+  contents: read
+
+jobs:
+  env-validate:
+    name: env-validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-node-pnpm
+      - name: Validate environment configuration
+        run: npm run env:validate

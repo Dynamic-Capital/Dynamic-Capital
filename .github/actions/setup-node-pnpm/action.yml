@@ -1,0 +1,71 @@
+name: Setup Node.js environment
+inputs:
+  node-version:
+    description: Node.js version to use
+    required: false
+    default: '20'
+  setup-deno:
+    description: Set to true to install Deno
+    required: false
+    default: 'true'
+  deno-version:
+    description: Deno version to install when setup-deno is true
+    required: false
+    default: 'v2.x'
+  working-directory:
+    description: Optional working directory for dependency installation
+    required: false
+    default: '.'
+runs:
+  using: composite
+  steps:
+    - id: detect-package-manager
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        if [ -f pnpm-lock.yaml ]; then
+          echo "manager=pnpm" >> "$GITHUB_OUTPUT"
+          echo "lock-file=pnpm-lock.yaml" >> "$GITHUB_OUTPUT"
+          echo "cache=pnpm" >> "$GITHUB_OUTPUT"
+        elif [ -f yarn.lock ]; then
+          echo "manager=yarn" >> "$GITHUB_OUTPUT"
+          echo "lock-file=yarn.lock" >> "$GITHUB_OUTPUT"
+          echo "cache=yarn" >> "$GITHUB_OUTPUT"
+        elif [ -f package-lock.json ]; then
+          echo "manager=npm" >> "$GITHUB_OUTPUT"
+          echo "lock-file=package-lock.json" >> "$GITHUB_OUTPUT"
+          echo "cache=npm" >> "$GITHUB_OUTPUT"
+        else
+          echo "manager=npm" >> "$GITHUB_OUTPUT"
+          echo "lock-file=package-lock.json" >> "$GITHUB_OUTPUT"
+          echo "cache=npm" >> "$GITHUB_OUTPUT"
+        fi
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs['node-version'] }}
+        check-latest: true
+        cache: ${{ steps.detect-package-manager.outputs.cache }}
+        cache-dependency-path: ${{ inputs.working-directory }}/${{ steps.detect-package-manager.outputs.lock-file }}
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        manager="${{ steps.detect-package-manager.outputs.manager }}"
+        if [ "$manager" = "pnpm" ]; then
+          pnpm install --frozen-lockfile
+        elif [ "$manager" = "yarn" ]; then
+          yarn install --frozen-lockfile
+        else
+          npm ci
+        fi
+    - name: Set up Deno
+      if: inputs.setup-deno == 'true'
+      uses: denoland/setup-deno@v1
+      with:
+        deno-version: ${{ inputs['deno-version'] }}
