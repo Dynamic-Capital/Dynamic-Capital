@@ -492,7 +492,8 @@ npm run codex:post-pull -- --no-shared-cache   # ignore shared install caches fo
 Available flags mirror the helper's usage (`--no-install`, `--no-sync`,
 `--no-env-check`, `--build-optional`, etc.). See
 `scripts/codex-workflow.js --help` for the full reference, and read
-`docs/codex_cli_workflow.md` for a deeper walkthrough of recommended flows.
+`docs/codex_cli_workflow.md` for a deeper walkthrough of recommended flows and
+the repository's auto-conflict resolution guardrails.
 
 Assigning an `--agent` name (or exporting `CODEX_AGENT_ID`) keeps failure
 history scoped to that agent while still sharing successes with the rest of the
