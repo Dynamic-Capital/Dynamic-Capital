@@ -56,6 +56,11 @@ supabase/functions/**/vendor/
 # Mini app build outputs
 apps/mini/dist/
 miniapp/
+# Allow Next.js mini app source under apps/web
+!apps/web/components/miniapp/
+!apps/web/components/miniapp/**
+!apps/web/app/(miniapp)/
+!apps/web/app/(miniapp)/**
 
 # Keep miniapp static assets (explicit allow)
 !supabase/functions/miniapp/
