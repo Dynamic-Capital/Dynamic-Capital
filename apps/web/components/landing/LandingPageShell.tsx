@@ -6,7 +6,7 @@ import { opacity, SpacingToken } from "@once-ui-system/core";
 import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
 import { dyamicUI } from "@/resources";
-import { MagicLandingPage } from "@/components/magic-portfolio/MagicLandingPage";
+import { DynamicCapitalLandingPage } from "@/components/magic-portfolio/DynamicCapitalLandingPage";
 import type {
   ChromaBackgroundProps,
   ChromaBackgroundStyle,
@@ -113,7 +113,7 @@ export function LandingPageShell({
         gap="32"
         horizontal="center"
       >
-        <MagicLandingPage />
+        <DynamicCapitalLandingPage />
       </Column>
       {showAssistant
         ? (
