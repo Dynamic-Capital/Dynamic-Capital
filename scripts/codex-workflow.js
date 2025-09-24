@@ -279,7 +279,33 @@ function runTasks(taskList, context) {
 }
 
 function printUsage() {
-  console.log(`Codex CLI workflow helper\n\nUsage: node scripts/codex-workflow.js [mode] [flags]\n\nModes:\n  post-pull (default)  Prepare the repo after pulling from Codex CLI.\n  dev                  Sync env and start Lovable dev server.\n  build         Run env checks and Next.js build.\n  verify               Run the verification suite.\n\nFlags:\n  --no-install         Skip \`npm install\` (post-pull).\n  --no-sync            Skip \`npm run sync-env\`.\n  --no-env-check       Skip env validation (not recommended).\n  --no-build           Skip `npm run build` (post-pull/build).\n  --build-optional     Treat Next.js build failures as warnings.\n  --verify             Run \`npm run verify\` after post-pull steps.\n  --no-verify          Skip verify step even if --verify provided.\n  --agent <id>         Track failures separately for a Codex agent.\n  --no-shared-cache    Disable shared success caching between agents.\n  --dry-run            Show planned steps without executing.\n  --reset-issues       Clear stored failure history for Codex workflow steps.\n  --help, -h           Show this message.\n`);
+  const lines = [
+    'Codex CLI workflow helper',
+    '',
+    'Usage: node scripts/codex-workflow.js [mode] [flags]',
+    '',
+    'Modes:',
+    '  post-pull (default)  Prepare the repo after pulling from Codex CLI.',
+    '  dev                  Sync env and start Lovable dev server.',
+    '  build                Run env checks and Next.js build.',
+    '  verify               Run the verification suite.',
+    '',
+    'Flags:',
+    '  --no-install         Skip `npm install` (post-pull).',
+    '  --no-sync            Skip `npm run sync-env`.',
+    '  --no-env-check       Skip env validation (not recommended).',
+    '  --no-build           Skip `npm run build` (post-pull/build).',
+    '  --build-optional     Treat Next.js build failures as warnings.',
+    '  --verify             Run `npm run verify` after post-pull steps.',
+    '  --no-verify          Skip verify step even if --verify provided.',
+    '  --agent <id>         Track failures separately for a Codex agent.',
+    '  --no-shared-cache    Disable shared success caching between agents.',
+    '  --dry-run            Show planned steps without executing.',
+    '  --reset-issues       Clear stored failure history for Codex workflow steps.',
+    '  --help, -h           Show this message.',
+  ];
+
+  console.log(lines.join('\n'));
 }
 
 function taskKey(task) {
