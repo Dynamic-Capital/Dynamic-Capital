@@ -1,0 +1,28 @@
+name: Close Stale Pull Requests
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has had no recent activity.
+            Please update or comment to keep it open.
+          close-pr-message: |
+            Closing this pull request due to prolonged inactivity. Feel free to reopen when ready.
+          days-before-pr-stale: 30
+          days-before-pr-close: 7
+          operations-per-run: 200
+          remove-stale-when-updated: true
+          exempt-pr-labels: 'automerge-candidate'
