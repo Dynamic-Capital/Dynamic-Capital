@@ -1,11 +1,17 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/utils';
-import { onceMotionVariants } from '@/lib/motion-variants';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useInView,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/utils";
+import { dynamicMotionVariants } from "@/lib/motion-variants";
 
 interface EnhancedScrollProps {
   children: React.ReactNode;
@@ -21,8 +27,8 @@ interface EnhancedScrollProps {
   glowEffect?: boolean;
 }
 
-export function EnhancedScrollContainer({ 
-  children, 
+export function EnhancedScrollContainer({
+  children,
   className,
   showArrows = true,
   itemWidth = "clamp(280px, 30vw, 350px)",
@@ -32,7 +38,7 @@ export function EnhancedScrollContainer({
   pauseOnHover = true,
   parallax = true,
   stagger = true,
-  glowEffect = true
+  glowEffect = true,
 }: EnhancedScrollProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -47,13 +53,13 @@ export function EnhancedScrollContainer({
 
   const checkScrollability = useCallback(() => {
     if (!scrollRef.current) return;
-    
+
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
     setCanScrollLeft(scrollLeft > 0);
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
 
     // Calculate active index based on scroll position
-    const itemWidthPx = parseFloat(itemWidth.replace(/[^\d.]/g, '')) || 300;
+    const itemWidthPx = parseFloat(itemWidth.replace(/[^\d.]/g, "")) || 300;
     const gapPx = parseFloat(gap) * 16 || 24; // Convert rem to px
     const newActiveIndex = Math.round(scrollLeft / (itemWidthPx + gapPx));
     setActiveIndex(newActiveIndex);
@@ -65,23 +71,27 @@ export function EnhancedScrollContainer({
 
     const startAutoScroll = () => {
       if (autoScrollRef.current) clearInterval(autoScrollRef.current);
-      
+
       autoScrollRef.current = setInterval(() => {
         if (!scrollRef.current || (pauseOnHover && isHovered)) return;
-        
+
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
         const isAtEnd = scrollLeft >= scrollWidth - clientWidth - 10;
-        
+
         if (isAtEnd) {
-          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+          scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
         } else {
           const firstItem = scrollRef.current.firstElementChild as HTMLElement;
           if (firstItem) {
             const itemWidth = firstItem.offsetWidth;
-            const gap = parseFloat(getComputedStyle(scrollRef.current).gap) || 24;
+            const gap = parseFloat(getComputedStyle(scrollRef.current).gap) ||
+              24;
             const scrollAmount = itemWidth + gap;
             const newScrollLeft = scrollLeft + scrollAmount;
-            scrollRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+            scrollRef.current.scrollTo({
+              left: newScrollLeft,
+              behavior: "smooth",
+            });
           }
         }
       }, autoScrollInterval);
@@ -97,67 +107,70 @@ export function EnhancedScrollContainer({
     checkScrollability();
     const scrollElement = scrollRef.current;
     if (scrollElement) {
-      scrollElement.addEventListener('scroll', checkScrollability);
-      window.addEventListener('resize', checkScrollability);
+      scrollElement.addEventListener("scroll", checkScrollability);
+      window.addEventListener("resize", checkScrollability);
       return () => {
-        scrollElement.removeEventListener('scroll', checkScrollability);
-        window.removeEventListener('resize', checkScrollability);
+        scrollElement.removeEventListener("scroll", checkScrollability);
+        window.removeEventListener("resize", checkScrollability);
       };
     }
   }, [children, checkScrollability]);
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
-    
+
     const firstItem = scrollRef.current.firstElementChild as HTMLElement;
     if (firstItem) {
       const itemWidth = firstItem.offsetWidth;
       const gap = parseFloat(getComputedStyle(scrollRef.current).gap) || 24;
       const scrollAmount = itemWidth + gap;
-      const newScrollLeft = scrollRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
-      
+      const newScrollLeft = scrollRef.current.scrollLeft +
+        (direction === "left" ? -scrollAmount : scrollAmount);
+
       scrollRef.current.scrollTo({
         left: newScrollLeft,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
 
   const scrollToIndex = (index: number) => {
     if (!scrollRef.current) return;
-    
+
     const firstItem = scrollRef.current.firstElementChild as HTMLElement;
     if (firstItem) {
       const itemWidth = firstItem.offsetWidth;
       const gap = parseFloat(getComputedStyle(scrollRef.current).gap) || 24;
       const scrollAmount = index * (itemWidth + gap);
-      
+
       scrollRef.current.scrollTo({
         left: scrollAmount,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="relative group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={parallax ? { opacity, scale } : undefined}
-      whileHover={glowEffect ? { 
-        boxShadow: "0 0 20px hsl(var(--primary) / 0.3)" 
-      } : undefined}
+      whileHover={glowEffect
+        ? {
+          boxShadow: "0 0 20px hsl(var(--primary) / 0.3)",
+        }
+        : undefined}
       transition={{ duration: 0.3 }}
     >
       {/* Enhanced gradient fades with glow */}
       <AnimatePresence>
         {showArrows && canScrollLeft && (
-          <motion.div 
+          <motion.div
             className={cn(
               "absolute left-0 top-0 bottom-0 w-12 z-10 pointer-events-none",
               "bg-gradient-to-r from-background via-background/80 to-transparent",
-              glowEffect && "shadow-[-10px_0_20px_hsl(var(--background))]"
+              glowEffect && "shadow-[-10px_0_20px_hsl(var(--background))]",
             )}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -166,14 +179,14 @@ export function EnhancedScrollContainer({
           />
         )}
       </AnimatePresence>
-      
+
       <AnimatePresence>
         {showArrows && canScrollRight && (
-          <motion.div 
+          <motion.div
             className={cn(
               "absolute right-0 top-0 bottom-0 w-12 z-10 pointer-events-none",
               "bg-gradient-to-l from-background via-background/80 to-transparent",
-              glowEffect && "shadow-[10px_0_20px_hsl(var(--background))]"
+              glowEffect && "shadow-[10px_0_20px_hsl(var(--background))]",
             )}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -198,7 +211,7 @@ export function EnhancedScrollContainer({
               variant="glass"
               size="icon"
               className="glass-card backdrop-blur-xl shadow-xl border-primary/20 hover:border-primary/40 transition-all duration-300"
-              onClick={() => scroll('left')}
+              onClick={() => scroll("left")}
               aria-label="Scroll left"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -221,7 +234,7 @@ export function EnhancedScrollContainer({
               variant="glass"
               size="icon"
               className="glass-card backdrop-blur-xl shadow-xl border-primary/20 hover:border-primary/40 transition-all duration-300"
-              onClick={() => scroll('right')}
+              onClick={() => scroll("right")}
               aria-label="Scroll right"
             >
               <ChevronRight className="h-4 w-4" />
@@ -237,10 +250,10 @@ export function EnhancedScrollContainer({
           "flex overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-3",
           "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-xl",
           "scroll-smooth",
-          className
+          className,
         )}
         style={{ gap }}
-        variants={stagger ? onceMotionVariants.staggerContainer : undefined}
+        variants={stagger ? dynamicMotionVariants.staggerContainer : undefined}
         initial={stagger ? "hidden" : undefined}
         animate={stagger ? "visible" : undefined}
       >
@@ -250,9 +263,11 @@ export function EnhancedScrollContainer({
             className="snap-center flex-none flex items-stretch"
             style={{
               width: itemWidth,
-              minHeight: 'fit-content'
+              minHeight: "fit-content",
             }}
-            variants={stagger ? onceMotionVariants.staggerItem : onceMotionVariants.card}
+            variants={stagger
+              ? dynamicMotionVariants.staggerItem
+              : dynamicMotionVariants.card}
             whileHover="hover"
             whileTap="tap"
             custom={index}
@@ -267,20 +282,23 @@ export function EnhancedScrollContainer({
 
       {/* Progress dots */}
       {React.Children.count(children) > 1 && (
-        <motion.div 
+        <motion.div
           className="flex justify-center gap-2 mt-4"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          {Array.from({ length: React.Children.count(children) }).map((_, index) => (
+          {Array.from({ length: React.Children.count(children) }).map((
+            _,
+            index,
+          ) => (
             <motion.button
               key={index}
               className={cn(
                 "w-2 h-2 rounded-full transition-all duration-300",
-                index === activeIndex 
-                  ? "bg-primary shadow-[0_0_10px_hsl(var(--primary))]" 
-                  : "bg-muted hover:bg-muted-foreground/50"
+                index === activeIndex
+                  ? "bg-primary shadow-[0_0_10px_hsl(var(--primary))]"
+                  : "bg-muted hover:bg-muted-foreground/50",
               )}
               onClick={() => scrollToIndex(index)}
               whileHover={{ scale: 1.2 }}
@@ -303,12 +321,14 @@ interface ParallaxScrollProps {
   offset?: number;
 }
 
-export function ParallaxScroll({ children, className, offset = 50 }: ParallaxScrollProps) {
+export function ParallaxScroll(
+  { children, className, offset = 50 }: ParallaxScrollProps,
+) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: false, margin: "-10%" });
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start end", "end start"]
+    offset: ["start end", "end start"],
   });
 
   const y = useTransform(scrollYProgress, [0, 1], [offset, -offset]);
@@ -320,7 +340,9 @@ export function ParallaxScroll({ children, className, offset = 50 }: ParallaxScr
       className={className}
       style={{ y, opacity }}
       initial={{ scale: 0.95, opacity: 0 }}
-      animate={isInView ? { scale: 1, opacity: 1 } : { scale: 0.95, opacity: 0 }}
+      animate={isInView
+        ? { scale: 1, opacity: 1 }
+        : { scale: 0.95, opacity: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
       {children}

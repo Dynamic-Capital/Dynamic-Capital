@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "@once-ui-system/core/css/tokens.css";
 import "@once-ui-system/core/css/styles.css";
-import "./once-ui.css";
+import "./dynamic-ui.css";
 import "./globals.css";
 import "@/lib/env";
 
