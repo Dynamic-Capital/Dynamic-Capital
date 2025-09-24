@@ -40,15 +40,15 @@ jobs:
 
       - name: Build
         if: steps.script-flags.outputs.build != 'undefined'
-        run: npm run build
+        run: npm run build 2>&1 | tee build.log
 
       - name: Typecheck
         if: steps.script-flags.outputs.typecheck != 'undefined'
-        run: npm run typecheck
+        run: npm run typecheck 2>&1 | tee typecheck.log
 
       - name: Lint
         if: steps.script-flags.outputs.lint != 'undefined'
-        run: npm run lint
+        run: npm run lint 2>&1 | tee lint.log
 
       - name: Setup Deno
         if: steps.script-flags.outputs.test != 'undefined'
@@ -58,4 +58,4 @@ jobs:
 
       - name: Test
         if: steps.script-flags.outputs.test != 'undefined'
-        run: npm run test
+        run: npm run test 2>&1 | tee test.log
