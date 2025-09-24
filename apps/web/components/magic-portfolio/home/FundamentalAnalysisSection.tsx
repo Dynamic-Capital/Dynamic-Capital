@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 
-import { Column, Heading, Icon, Line, Row, Tag, Text } from "@once-ui-system/core";
+import { Column, Heading, Icon, Line, Row, Tag, Text, type Colors } from "@once-ui-system/core";
 
 type Positioning = "Overweight" | "Market weight" | "Underweight";
 
@@ -15,7 +15,7 @@ type FundamentalInsight = {
   metrics: { label: string; value: string }[];
 };
 
-const POSITIONING_STYLES: Record<Positioning, { background: string; icon: string }> = {
+const POSITIONING_STYLES: Record<Positioning, { background: Colors; icon: string }> = {
   Overweight: { background: "brand-alpha-weak", icon: "trending-up" },
   "Market weight": { background: "neutral-alpha-weak", icon: "bar-chart" },
   Underweight: { background: "danger-alpha-weak", icon: "trending-down" },
