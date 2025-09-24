@@ -1,0 +1,76 @@
+name: Checklist Gate
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  checklist:
+    name: Enforce checklist progress
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Parse checklist status
+        id: checklist
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import re
+
+          checklist_path = Path('docs/dynamic-capital-checklist.md')
+          if not checklist_path.is_file():
+              raise SystemExit('Checklist file docs/dynamic-capital-checklist.md not found.')
+
+          content = checklist_path.read_text(encoding='utf-8')
+          checkboxes = re.findall(r"- \[[ xX]\]", content)
+          if not checkboxes:
+              raise SystemExit('No checklist items found to validate.')
+
+          all_unchecked = all(box.endswith('[ ]') for box in checkboxes)
+
+          with open(os.environ['GITHUB_OUTPUT'], 'w', encoding='utf-8') as fh:
+              fh.write(f"all_unchecked={'true' if all_unchecked else 'false'}\n")
+          PY
+
+      - name: Add awaiting-review label
+        if: steps.checklist.outputs.all_unchecked == 'true'
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: awaiting-review
+
+      - name: Post reminder comment
+        if: steps.checklist.outputs.all_unchecked == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const body = `👋 Thanks for the update! All items in docs/dynamic-capital-checklist.md are still unchecked.
+
+Please verify the checklist and check off the tasks you have completed before requesting review.`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body
+            });
+
+      - name: Fail the check when checklist is incomplete
+        if: steps.checklist.outputs.all_unchecked == 'true' && env.CHECKLIST_GATE_HARD_FAIL != 'false'
+        run: |
+          echo 'Checklist is incomplete. Update docs/dynamic-capital-checklist.md before requesting review.'
+          exit 1
+        env:
+          CHECKLIST_GATE_HARD_FAIL: ${{ vars.CHECKLIST_GATE_HARD_FAIL || 'true' }}
