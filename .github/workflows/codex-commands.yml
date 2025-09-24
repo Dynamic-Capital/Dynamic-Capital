@@ -17,6 +17,24 @@ jobs:
           body=$(jq -r '.comment.body' "$GITHUB_EVENT_PATH")
           if echo "$body" | grep -qi '^/codex summary'; then echo "cmd=summary" >> $GITHUB_OUTPUT; fi
           if echo "$body" | grep -qi '^/codex logs'; then echo "cmd=logs" >> $GITHUB_OUTPUT; fi
+      - name: Trigger Codex Feedback
+        if: steps.parse.outputs.cmd == 'summary'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.issue.number;
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'codex-feedback.yml',
+              ref: pr.head.ref,
+              inputs: { pr_number: String(prNumber) },
+            });
       - name: Respond - summary
         if: steps.parse.outputs.cmd == 'summary'
         uses: peter-evans/create-or-update-comment@v4

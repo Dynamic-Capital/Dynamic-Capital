@@ -3,6 +3,11 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to summarize
+        required: true
+        type: number
 permissions:
   contents: read
   pull-requests: write
@@ -13,10 +18,36 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
+      - name: Prepare PR context
+        id: context
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PATH: ${{ github.event_path }}
+          INPUT_PR: ${{ github.event.inputs.pr_number }}
+          REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ -z "$INPUT_PR" ]; then
+              echo "Manual runs require the pr_number input." >&2
+              exit 1
+            fi
+            gh api repos/"$REPOSITORY"/pulls/"$INPUT_PR" > pr.json
+            jq '{pull_request: .}' pr.json > event.json
+          else
+            jq '{pull_request: .pull_request}' "$EVENT_PATH" > event.json
+          fi
+          PR_NUMBER=$(jq -r '.pull_request.number' event.json)
+          echo "path=$PWD/event.json" >> "$GITHUB_OUTPUT"
+          echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
       - name: Determine verbosity from labels
         id: labels
+        env:
+          FILE: ${{ steps.context.outputs.path }}
         run: |
-          FILE="$GITHUB_EVENT_PATH"
           VERBOSE=$(jq -r '([.pull_request.labels[].name] // []) | index("codex:verbose") | if .==null then "false" else "true" end' "$FILE")
           QUIET=$(jq -r '([.pull_request.labels[].name] // []) | index("codex:quiet") | if .==null then "false" else "true" end' "$FILE")
           echo "verbose=$VERBOSE" >> $GITHUB_OUTPUT
@@ -55,7 +86,7 @@ jobs:
         env:
           VERBOSE: ${{ steps.labels.outputs.verbose }}
           QUIET: ${{ steps.labels.outputs.quiet }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ steps.context.outputs.pr-number }}
           REPO: ${{ github.repository }}
         run: node scripts/codex/summary.mjs
 
@@ -76,7 +107,7 @@ jobs:
       - name: Post/Update PR comment
         uses: peter-evans/create-or-update-comment@v4
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.context.outputs.pr-number }}
           body-file: pr-summary.md
           edit-mode: replace
 
@@ -90,7 +121,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          TEXT="PR #${{ github.event.pull_request.number }} — Codex summary posted for ${{ github.repository }}"
+          TEXT="PR #${{ steps.context.outputs.pr-number }} — Codex summary posted for ${{ github.repository }}"
           curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
             -d chat_id="$TELEGRAM_CHAT_ID" \
             -d text="$TEXT"
@@ -100,7 +131,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          jq -n --arg t "PR #${{ github.event.pull_request.number }} — Codex summary posted" '{text:$t}' \
+          jq -n --arg t "PR #${{ steps.context.outputs.pr-number }} — Codex summary posted" '{text:$t}' \
             | curl -s -X POST -H 'Content-type: application/json' --data @- "$SLACK_WEBHOOK_URL"
 
       - name: Ensure labels exist
