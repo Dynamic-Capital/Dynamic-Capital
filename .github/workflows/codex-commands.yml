@@ -1,0 +1,34 @@
+name: Codex Commands
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  commands:
+    if: ${{ github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse command
+        id: parse
+        run: |
+          body=$(jq -r '.comment.body' "$GITHUB_EVENT_PATH")
+          if echo "$body" | grep -qi '^/codex summary'; then echo "cmd=summary" >> $GITHUB_OUTPUT; fi
+          if echo "$body" | grep -qi '^/codex logs'; then echo "cmd=logs" >> $GITHUB_OUTPUT; fi
+      - name: Respond - summary
+        if: steps.parse.outputs.cmd == 'summary'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Fetching latest Codex summary…
+            _Tip: add label **codex:verbose** for more detail, or **codex:quiet** to reduce noise._
+      - name: Respond - logs
+        if: steps.parse.outputs.cmd == 'logs'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Logs are available in **Artifacts → codex-logs** from the latest **Codex Feedback** run.

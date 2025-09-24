@@ -1,0 +1,111 @@
+name: Codex Feedback
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  feedback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Determine verbosity from labels
+        id: labels
+        run: |
+          FILE="$GITHUB_EVENT_PATH"
+          VERBOSE=$(jq -r '([.pull_request.labels[].name] // []) | index("codex:verbose") | if .==null then "false" else "true" end' "$FILE")
+          QUIET=$(jq -r '([.pull_request.labels[].name] // []) | index("codex:quiet") | if .==null then "false" else "true" end' "$FILE")
+          echo "verbose=$VERBOSE" >> $GITHUB_OUTPUT
+          echo "quiet=$QUIET" >> $GITHUB_OUTPUT
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - name: Install (best-effort)
+        run: pnpm i --frozen-lockfile || echo "install skipped"
+
+      - name: Run non-failing checks & capture logs
+        run: |
+          set -o pipefail || true
+          (pnpm -w typecheck || echo "no typecheck") 2>&1 | tee typecheck.log || true
+          (pnpm -w lint || echo "no lint") 2>&1 | tee lint.log || true
+          (pnpm -w build || echo "no build") 2>&1 | tee build.log || true
+          (pnpm -w test --if-present || echo "no tests") 2>&1 | tee test.log || true
+          : > export.log
+          if jq -e '.scripts.export' package.json >/dev/null 2>&1; then
+            (pnpm -w export || echo "export failed") 2>&1 | tee export.log || true
+          fi
+
+      - name: Diff summary
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.sha }}
+        run: |
+          git diff --name-status "$BASE".."$HEAD" > changed.txt
+          git diff --stat "$BASE".."$HEAD" > diffstat.txt
+          cat diffstat.txt
+
+      - name: Compose PR summary
+        id: compose
+        env:
+          VERBOSE: ${{ steps.labels.outputs.verbose }}
+          QUIET: ${{ steps.labels.outputs.quiet }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: node scripts/codex/summary.mjs
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-logs
+          path: |
+            typecheck.log
+            lint.log
+            build.log
+            test.log
+            export.log
+            changed.txt
+            diffstat.txt
+            pr-summary.md
+
+      - name: Post/Update PR comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-file: pr-summary.md
+          edit-mode: replace
+
+      - name: Append to Job Summary
+        run: |
+          cat pr-summary.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify Telegram (optional)
+        if: ${{ secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHAT_ID != '' }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          TEXT="PR #${{ github.event.pull_request.number }} — Codex summary posted for ${{ github.repository }}"
+          curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+            -d chat_id="$TELEGRAM_CHAT_ID" \
+            -d text="$TEXT"
+
+      - name: Notify Slack (optional)
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          jq -n --arg t "PR #${{ github.event.pull_request.number }} — Codex summary posted" '{text:$t}' \
+            | curl -s -X POST -H 'Content-type: application/json' --data @- "$SLACK_WEBHOOK_URL"
+
+      - name: Ensure labels exist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X POST repos/${{ github.repository }}/labels -f name='codex:verbose' -f color='1D76DB' -f description='Verbose Codex summaries' || true
+          gh api -X POST repos/${{ github.repository }}/labels -f name='codex:quiet' -f color='BFD4F2' -f description='Minimal Codex summaries' || true
