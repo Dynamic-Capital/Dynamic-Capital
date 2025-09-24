@@ -7,12 +7,24 @@ import "./globals.css";
 import "@/lib/env";
 
 import classNames from "classnames";
-import { Background, Column, Flex, RevealFx, opacity, SpacingToken } from "@once-ui-system/core";
+import {
+  Background,
+  Column,
+  Flex,
+  opacity,
+  RevealFx,
+  SpacingToken,
+} from "@once-ui-system/core";
 
 import Providers from "./providers";
 import { getStaticLandingDocument } from "@/lib/staticLanding";
-import { Footer, Header, RouteGuard, ScrollToHash } from "@/components/magic-portfolio";
-import { systemUI } from "@/resources";
+import {
+  Footer,
+  Header,
+  RouteGuard,
+  ScrollToHash,
+} from "@/components/magic-portfolio";
+import { dyamicUI } from "@/resources";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
 const DEFAULT_THEME = "dark" as const;
@@ -22,7 +34,7 @@ const {
   basics: basicsConfig,
   dataViz: dataVizConfig,
   effects: effectsConfig,
-} = systemUI;
+} = dyamicUI;
 const { fonts, style } = basicsConfig;
 const { dataStyle } = dataVizConfig;
 const backgroundEffects = effectsConfig.background;
@@ -41,7 +53,9 @@ const htmlAttributeDefaults: Record<string, string> = {
 };
 
 const themeAttributeDefaults = Object.fromEntries(
-  Object.entries(htmlAttributeDefaults).map(([key, value]) => [key.replace(/^data-/, ""), value]),
+  Object.entries(htmlAttributeDefaults).map((
+    [key, value],
+  ) => [key.replace(/^data-/, ""), value]),
 );
 
 const onceThemeScript = `(function () {
@@ -138,8 +152,11 @@ const fontClassName = classNames(
   fonts.code.variable,
 );
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const isStaticSnapshot = globalThis?.process?.env?.["STATIC_SNAPSHOT"] === "true";
+export default async function RootLayout(
+  { children }: { children: ReactNode },
+) {
+  const isStaticSnapshot =
+    globalThis?.process?.env?.["STATIC_SNAPSHOT"] === "true";
 
   if (isStaticSnapshot) {
     const { head, body, lang } = await getStaticLandingDocument();
@@ -152,7 +169,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         data-theme={DEFAULT_THEME}
       >
         <head dangerouslySetInnerHTML={{ __html: ensureThemeScript(head) }} />
-        <body suppressHydrationWarning dangerouslySetInnerHTML={{ __html: body }} />
+        <body
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: body }}
+        />
       </html>
     );
   }
