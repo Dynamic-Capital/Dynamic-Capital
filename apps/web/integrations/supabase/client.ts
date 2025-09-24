@@ -4,20 +4,18 @@ import {
   type SupabaseClientOptions,
 } from '@supabase/supabase-js';
 import { getEnvVar } from '@/utils/env.ts';
+import {
+  SUPABASE_ANON_KEY,
+  SUPABASE_CONFIG_FROM_ENV,
+  SUPABASE_URL,
+} from '@/config/supabase-runtime';
 
-const PLACEHOLDER_URL = 'https://example.supabase.co';
-const PLACEHOLDER_ANON_KEY = 'anon-key-placeholder';
+export const SUPABASE_ENV_ERROR = '';
 
-export const SUPABASE_URL =
-  getEnvVar('NEXT_PUBLIC_SUPABASE_URL', ['SUPABASE_URL']) ?? PLACEHOLDER_URL;
-export const SUPABASE_ANON_KEY =
-  getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY', ['SUPABASE_ANON_KEY']) ??
-  PLACEHOLDER_ANON_KEY;
-export let SUPABASE_ENV_ERROR = '';
-
-if (SUPABASE_URL === PLACEHOLDER_URL || SUPABASE_ANON_KEY === PLACEHOLDER_ANON_KEY) {
-  SUPABASE_ENV_ERROR = 'Missing required Supabase env vars';
-  console.warn('Configuration warning:', SUPABASE_ENV_ERROR);
+if (!SUPABASE_CONFIG_FROM_ENV) {
+  console.info(
+    '[Supabase] Using baked-in project credentials because env vars are not set.',
+  );
 }
 
 const queryCounts: Record<string, number> = {};
@@ -80,3 +78,5 @@ export const supabase: SupabaseClient =
 export function getQueryCounts() {
   return { ...queryCounts };
 }
+
+export { SUPABASE_URL, SUPABASE_ANON_KEY };

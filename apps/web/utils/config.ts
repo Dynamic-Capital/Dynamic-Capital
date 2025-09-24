@@ -1,31 +1,21 @@
 // Utilities for accessing feature flag configuration via secure edge function
 
-import { getEnvVar } from "./env.ts";
 import { withRetry } from "./retry.ts";
+import {
+  SUPABASE_ANON_KEY,
+  SUPABASE_CONFIG_FROM_ENV,
+  SUPABASE_URL,
+} from "@/config/supabase-runtime";
 
 type FlagSnapshot = { ts: number; data: Record<string, boolean> };
-
-const PLACEHOLDER_URL = "https://stub.supabase.co";
-const PLACEHOLDER_KEY = "stub-anon-key";
-
-const SUPABASE_URL =
-  getEnvVar("SUPABASE_URL", ["NEXT_PUBLIC_SUPABASE_URL"]) ?? PLACEHOLDER_URL;
-const SUPABASE_KEY =
-  getEnvVar("SUPABASE_ANON_KEY", [
-    "SUPABASE_KEY",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  ]) ?? PLACEHOLDER_KEY;
-
-const SUPABASE_CONFIG_MISSING =
-  !SUPABASE_URL ||
-  SUPABASE_URL === PLACEHOLDER_URL ||
-  !SUPABASE_KEY ||
-  SUPABASE_KEY === PLACEHOLDER_KEY;
 
 const CONFIG_DISABLED_MESSAGE =
   "Supabase configuration is missing; remote config client is disabled.";
 
-if (SUPABASE_CONFIG_MISSING) {
+const HAS_REMOTE_CONFIG =
+  SUPABASE_CONFIG_FROM_ENV && Boolean(SUPABASE_URL) && Boolean(SUPABASE_ANON_KEY);
+
+if (!HAS_REMOTE_CONFIG) {
   console.warn("Configuration warning:", CONFIG_DISABLED_MESSAGE);
 }
 
@@ -36,9 +26,10 @@ async function call<T>(
   payload: Record<string, unknown> = {},
   timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<T> {
-  if (SUPABASE_CONFIG_MISSING) {
+  if (!HAS_REMOTE_CONFIG) {
     throw new Error(CONFIG_DISABLED_MESSAGE);
   }
+  const supabaseKey = SUPABASE_ANON_KEY;
   try {
     const res = await withRetry(
       async () => {
@@ -49,8 +40,8 @@ async function call<T>(
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              apikey: SUPABASE_KEY,
-              Authorization: `Bearer ${SUPABASE_KEY}`,
+              apikey: supabaseKey,
+              Authorization: `Bearer ${supabaseKey}`,
             },
             body: JSON.stringify({ action, ...payload }),
             signal: controller.signal,
@@ -121,9 +112,9 @@ const disabledConfigClient = {
   },
 };
 
-const configClient = SUPABASE_CONFIG_MISSING
-  ? disabledConfigClient
-  : activeConfigClient;
+const configClient = HAS_REMOTE_CONFIG
+  ? activeConfigClient
+  : disabledConfigClient;
 
 export const { getFlag, setFlag, preview, publish, rollback } = configClient;
 export { configClient };
