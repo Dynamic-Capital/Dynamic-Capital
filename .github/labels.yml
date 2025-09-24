@@ -1,0 +1,9 @@
+- name: content
+  color: 0E8A16
+  description: Content changes
+- name: needs-sources
+  color: B60205
+  description: Missing or unverifiable sources
+- name: no-fakes
+  color: B60205
+  description: Contains placeholders/fakes
