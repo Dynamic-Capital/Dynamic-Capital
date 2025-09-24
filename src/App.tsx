@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-// Removed Once UI system dependencies
+// Removed Dynamic UI dependencies
 import { MotionConfigProvider } from "@/components/ui/motion-config";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
