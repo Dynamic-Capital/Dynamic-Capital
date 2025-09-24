@@ -8,7 +8,8 @@
     "start": "NODE_ENV=production node .next/standalone/apps/web/server.js",
     "copy-static": "tsx ../../scripts/copy-static.ts --copy-only",
     "lint": "eslint .",
-    "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check"
+    "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.10.0",

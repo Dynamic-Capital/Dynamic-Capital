@@ -266,6 +266,10 @@ async function copyAssets() {
 
   await startServerAndCapture();
 
+  const wellKnownDir = join(destRoot, '.well-known');
+  await mkdir(wellKnownDir, { recursive: true });
+  await writeFile(join(wellKnownDir, 'health'), 'ok', 'utf8');
+
   console.log('✅ Exported landing snapshot to', destRoot);
 }
 

@@ -50,7 +50,7 @@ export function createClient(
 ) {
   const key =
     role === 'service'
-      ? getEnvVar('SUPABASE_SERVICE_ROLE_KEY')
+      ? getEnvVar('SUPABASE_SERVICE_ROLE_KEY', ['SUPABASE_SERVICE_ROLE'])
       : SUPABASE_ANON_KEY;
   if (!key) {
     throw new Error(
