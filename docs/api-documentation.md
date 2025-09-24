@@ -577,32 +577,45 @@ Auth: None.
 
 #### 26. Theme Get (`/theme-get`)
 
-Retrieve the current theme settings.
+Retrieve the persisted theme preference for the signed-in user. The edge
+function decodes the Supabase JWT, loads the `theme:<uid>` record from
+`bot_settings`, and falls back to `auto` (system) when no preference has been
+stored.
 
 ```http
 GET /functions/v1/theme-get
 Authorization: Bearer <token>
 
 Response:
-{ "theme": {} }
+{ "mode": "auto" }
 ```
+
+- **mode** – `"auto"`, `"light"`, or `"dark"`; the value is consumed by the
+  `useTheme` hook in `apps/web/hooks/useTheme.tsx` to align the dashboard and
+  Telegram Mini App shells.
 
 Auth: Bearer token required.
 
 #### 27. Theme Save (`/theme-save`)
 
-Save updated theme settings.
+Persist a new theme preference for the signed-in user. The handler uses the
+service role (if available) or anon key to upsert the `theme:<uid>` record in
+`bot_settings`. Invalid modes return `400`.
 
 ```http
 POST /functions/v1/theme-save
 Authorization: Bearer <token>
 Content-Type: application/json
 
-{ "theme": {} }
+{ "mode": "dark" }
 
 Response:
 { "ok": true }
 ```
+
+- **mode** – Required; must be `"auto"`, `"light"`, or `"dark"`.
+- The Mini App and dashboard call this endpoint after toggling the theme so the
+  next session rehydrates with the same appearance.
 
 Auth: Bearer token required.
 
