@@ -1,0 +1,52 @@
+:root {
+  /* Brand tokens – replace values to match marketing site */
+  --brand-bg: #0b0d12;
+  --brand-surface: #11141a;
+  --brand-text: #f7f9fc;
+  --brand-muted: #a6b0c3;
+  --brand-accent: #30C2F2; /* update to your brand */
+  --radius: 16px;
+  --shadow: 0 6px 24px rgba(0,0,0,.25);
+
+  /* Layout */
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-top: env(safe-area-inset-top);
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px; --space-6: 32px;
+  --tap: 44px; /* min target */
+
+  /* Telegram theme vars (set dynamically via TelegramProvider) */
+  --tg-bg: var(--brand-bg);
+  --tg-text: var(--brand-text);
+  --tg-muted: var(--brand-muted);
+  --tg-accent: var(--brand-accent);
+  --tg-button: var(--brand-accent);
+}
+
+html, body { height: 100%; background: var(--tg-bg); color: var(--tg-text); }
+* { box-sizing: border-box; }
+
+.app-shell {
+  min-height: 100dvh; display: grid; grid-template-rows: 1fr auto; background: var(--tg-bg);
+}
+
+.bottom-nav {
+  position: sticky; bottom: 0; left: 0; right: 0; height: calc(56px + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom); display: grid; grid-template-columns: repeat(3,1fr);
+  background: var(--brand-surface); box-shadow: var(--shadow); border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.bottom-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:6px 8px; font-size:12px; opacity:.9; text-decoration:none; color: inherit; }
+.bottom-btn.active { color: var(--tg-accent); opacity: 1; }
+
+.card { background: var(--brand-surface); border-radius: var(--radius); padding: var(--space-5); box-shadow: var(--shadow); }
+.btn { height: var(--tap); padding: 0 16px; border-radius: 999px; background: var(--tg-button); color:#030507; border:none; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:600; cursor:pointer; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.muted { color: var(--brand-muted); }
+
+.safe-area-pb { padding-bottom: var(--safe-bottom); }
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}

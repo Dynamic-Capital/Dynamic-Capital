@@ -50,6 +50,33 @@ Supabase access, authentication, and other server-side features.
 The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
 backed by Supabase.
 
+## Telegram Mini App — Next.js + React + Icons
+- Built with **Next.js (App Router)** + **React 18**
+- Uses **lucide-react** icons (swap to `react-icons` if preferred)
+- Telegram theme drives CSS vars (auto updates on theme change)
+- App shell with safe areas, bottom tabs, icons
+- MainButton/BackButton + haptics helpers in `lib/telegram.ts`
+
+### Install
+```bash
+pnpm add lucide-react # or: npm i lucide-react
+```
+
+### Swap icon library (optional)
+
+If you prefer `react-icons`, remove `lucide-react` imports and:
+
+```bash
+pnpm add react-icons
+```
+
+Then in `BottomNav.tsx`:
+
+```ts
+import { FiHome, FiActivity, FiUser } from 'react-icons/fi';
+// ...use <FiHome/>, <FiActivity/>, <FiUser/>
+```
+
 ## Features
 
 - Telegram webhook (200-fast), OCR on images only
