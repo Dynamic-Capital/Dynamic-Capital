@@ -31,6 +31,7 @@ Follow the numbered order below when coordinating large efforts. Each entry link
 | 10 | [`TradingView → MT5 Onboarding Checklist`](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md) | Cross-team onboarding for the TradingView webhook to MT5 flow | Coordinate roadmap execution across teams | — |
 | 11 | [`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md) | Merging Dynamic Codex into this monorepo | Completed — dashboard now lives at `/telegram` in the Next.js app | — |
 | 12 | [`Git Branch Organization Checklist`](./git-branch-organization-checklist.md) | Align Git branches with deployable services and domains | Rework branching strategy to support independent deployments | — |
+| 13 | [`Investing.com Candlestick Signal Integration`](./investing-com-candlestick-checklist.md) | Bringing Investing.com pattern data into Supabase, queue, and Mini App surfaces | Plan and track the signal ingestion + alert rollout | — |
 
 ## Project delivery (priorities 1–3)
 
@@ -53,6 +54,7 @@ Follow the numbered order below when coordinating large efforts. Each entry link
 - **[`TradingView → MT5 Onboarding Checklist`](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md)** – mirrors the onboarding roadmap so TradingView, webhook, Supabase, and MT5 teams can work in parallel with clear hand-offs.
 - **[`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md)** – archived after Dynamic Codex was merged into the main `/telegram` route; keep for historical context.
 - **[`Git Branch Organization Checklist`](./git-branch-organization-checklist.md)** – guides the restructuring of branches so each deployable service can map to its own domain and load-balanced release flow.
+- **[`Investing.com Candlestick Signal Integration`](./investing-com-candlestick-checklist.md)** – governs the new Investing.com signal ingestion pipeline, Telegram broadcasts, and Mini App surfacing workstream.
 
 ## Keep documentation in sync
 

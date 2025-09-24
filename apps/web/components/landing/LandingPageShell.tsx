@@ -1,3 +1,5 @@
+'use client';
+
 import dynamic from "next/dynamic";
 import { Background, Column, RevealFx } from "@once-ui-system/core";
 import { opacity, SpacingToken } from "@once-ui-system/core";
