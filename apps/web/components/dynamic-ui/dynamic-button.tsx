@@ -4,24 +4,27 @@ import * as React from "react";
 import { motion } from "framer-motion";
 
 import { cn } from "@/utils";
-import { onceMotionVariants } from "@/lib/motion-variants";
+import { dynamicMotionVariants } from "@/lib/motion-variants";
 
 type MotionButtonProps = React.ComponentPropsWithoutRef<typeof motion.button>;
 
-export interface OnceButtonProps extends MotionButtonProps {
+export interface DynamicButtonProps extends MotionButtonProps {
   /**
    * Applies the Dynamic UI button skin. Defaults to the solid primary button.
    */
   variant?: "primary" | "outline";
   /**
-   * Uses the compact padding defined in once-ui.css.
+   * Uses the compact padding defined in dynamic-ui.css.
    */
   size?: "default" | "small";
 }
 
 const MotionButton = motion.button;
 
-export const OnceButton = React.forwardRef<HTMLButtonElement, OnceButtonProps>(
+export const DynamicButton = React.forwardRef<
+  HTMLButtonElement,
+  DynamicButtonProps
+>(
   (
     {
       variant = "primary",
@@ -39,7 +42,7 @@ export const OnceButton = React.forwardRef<HTMLButtonElement, OnceButtonProps>(
     ref,
   ) => {
     const { type: buttonType, ...otherProps } = rest;
-    const motionVariants = variantsProp ?? onceMotionVariants.button;
+    const motionVariants = variantsProp ?? dynamicMotionVariants.button;
     const initialValue = initialProp ?? "initial";
     const animateValue = animateProp ?? (disabled ? "disabled" : "initial");
     const hoverValue = disabled ? undefined : whileHoverProp ?? "hover";
@@ -49,7 +52,7 @@ export const OnceButton = React.forwardRef<HTMLButtonElement, OnceButtonProps>(
       <MotionButton
         ref={ref}
         className={cn(
-          "once-btn",
+          "dynamic-btn",
           variant,
           size === "small" && "small",
           className,
@@ -69,4 +72,4 @@ export const OnceButton = React.forwardRef<HTMLButtonElement, OnceButtonProps>(
   },
 );
 
-OnceButton.displayName = "OnceButton";
+DynamicButton.displayName = "DynamicButton";

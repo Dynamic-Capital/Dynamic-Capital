@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/utils';
-import { onceMotionVariants } from '@/lib/motion-variants';
+import React, { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/utils";
+import { dynamicMotionVariants } from "@/lib/motion-variants";
 
 interface HorizontalSnapScrollProps {
   children: React.ReactNode;
@@ -18,15 +18,15 @@ interface HorizontalSnapScrollProps {
   pauseOnHover?: boolean;
 }
 
-export function HorizontalSnapScroll({ 
-  children, 
+export function HorizontalSnapScroll({
+  children,
   className,
   showArrows = true,
   itemWidth = "clamp(280px, 30vw, 350px)",
   gap = "1rem",
   autoScroll = false,
   autoScrollInterval = 3000,
-  pauseOnHover = true
+  pauseOnHover = true,
 }: HorizontalSnapScrollProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -36,7 +36,7 @@ export function HorizontalSnapScroll({
 
   const checkScrollability = () => {
     if (!scrollRef.current) return;
-    
+
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
     setCanScrollLeft(scrollLeft > 0);
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
@@ -48,25 +48,29 @@ export function HorizontalSnapScroll({
 
     const startAutoScroll = () => {
       if (autoScrollRef.current) clearInterval(autoScrollRef.current);
-      
+
       autoScrollRef.current = setInterval(() => {
         if (!scrollRef.current || (pauseOnHover && isHovered)) return;
-        
+
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
         const isAtEnd = scrollLeft >= scrollWidth - clientWidth - 10; // Small buffer
-        
+
         if (isAtEnd) {
           // Reset to beginning smoothly
-          scrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+          scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
         } else {
           // Calculate proper item width and scroll to next
           const firstItem = scrollRef.current.firstElementChild as HTMLElement;
           if (firstItem) {
             const itemWidth = firstItem.offsetWidth;
-            const gap = parseFloat(getComputedStyle(scrollRef.current).gap) || 16;
+            const gap = parseFloat(getComputedStyle(scrollRef.current).gap) ||
+              16;
             const scrollAmount = itemWidth + gap;
             const newScrollLeft = scrollLeft + scrollAmount;
-            scrollRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
+            scrollRef.current.scrollTo({
+              left: newScrollLeft,
+              behavior: "smooth",
+            });
           }
         }
       }, autoScrollInterval);
@@ -85,46 +89,49 @@ export function HorizontalSnapScroll({
     checkScrollability();
     const scrollElement = scrollRef.current;
     if (scrollElement) {
-      scrollElement.addEventListener('scroll', checkScrollability);
-      scrollElement.addEventListener('resize', checkScrollability);
+      scrollElement.addEventListener("scroll", checkScrollability);
+      scrollElement.addEventListener("resize", checkScrollability);
       return () => {
-        scrollElement.removeEventListener('scroll', checkScrollability);
-        scrollElement.removeEventListener('resize', checkScrollability);
+        scrollElement.removeEventListener("scroll", checkScrollability);
+        scrollElement.removeEventListener("resize", checkScrollability);
       };
     }
   }, [children]);
 
-  const scroll = (direction: 'left' | 'right') => {
+  const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
-    
+
     const containerWidth = scrollRef.current.clientWidth;
     // Calculate item width from CSS
-    const computedStyle = getComputedStyle(scrollRef.current.firstElementChild as Element);
+    const computedStyle = getComputedStyle(
+      scrollRef.current.firstElementChild as Element,
+    );
     const itemWidth = parseFloat(computedStyle.width) || 300;
     const gap = parseFloat(getComputedStyle(scrollRef.current).gap) || 16;
-    
+
     // Scroll by one item plus gap
     const scrollAmount = itemWidth + gap;
-    const newScrollLeft = scrollRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
-    
+    const newScrollLeft = scrollRef.current.scrollLeft +
+      (direction === "left" ? -scrollAmount : scrollAmount);
+
     scrollRef.current.scrollTo({
       left: newScrollLeft,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') {
+    if (e.key === "ArrowLeft") {
       e.preventDefault();
-      scroll('left');
-    } else if (e.key === 'ArrowRight') {
+      scroll("left");
+    } else if (e.key === "ArrowRight") {
       e.preventDefault();
-      scroll('right');
+      scroll("right");
     }
   };
 
   return (
-    <div 
+    <div
       className="relative group"
       onKeyDown={handleKeyDown}
       onMouseEnter={() => setIsHovered(true)}
@@ -137,7 +144,7 @@ export function HorizontalSnapScroll({
       {showArrows && canScrollLeft && (
         <div className="absolute left-0 top-0 bottom-0 w-8 md:w-12 gradient-fade-left z-10 pointer-events-none" />
       )}
-      
+
       {/* Right gradient fade */}
       {showArrows && canScrollRight && (
         <div className="absolute right-0 top-0 bottom-0 w-8 md:w-12 gradient-fade-right z-10 pointer-events-none" />
@@ -149,7 +156,7 @@ export function HorizontalSnapScroll({
           variant="outline"
           size="icon"
           className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-20 opacity-0 group-hover:opacity-100 md:group-hover:opacity-90 transition-all duration-300 shadow-lg hover:scale-110 focus:opacity-100"
-          onClick={() => scroll('left')}
+          onClick={() => scroll("left")}
           aria-label="Scroll left"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -162,7 +169,7 @@ export function HorizontalSnapScroll({
           variant="outline"
           size="icon"
           className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-20 opacity-0 group-hover:opacity-100 md:group-hover:opacity-90 transition-all duration-300 shadow-lg hover:scale-110 focus:opacity-100"
-          onClick={() => scroll('right')}
+          onClick={() => scroll("right")}
           aria-label="Scroll right"
         >
           <ChevronRight className="h-4 w-4" />
@@ -176,12 +183,12 @@ export function HorizontalSnapScroll({
           "flex overflow-x-auto scrollbar-hide snap-x snap-mandatory py-3 px-2",
           "focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-lg",
           "scroll-smooth", // Enable smooth scrolling
-          className
+          className,
         )}
-        style={{ 
+        style={{
           gap,
-          scrollPaddingLeft: '1rem',
-          scrollPaddingRight: '1rem'
+          scrollPaddingLeft: "1rem",
+          scrollPaddingRight: "1rem",
         }}
         tabIndex={-1}
       >
@@ -191,9 +198,9 @@ export function HorizontalSnapScroll({
             className="snap-center flex-none flex items-stretch"
             style={{
               width: itemWidth,
-              minHeight: 'fit-content'
+              minHeight: "fit-content",
             }}
-            variants={onceMotionVariants.card}
+            variants={dynamicMotionVariants.card}
             initial="hidden"
             animate="visible"
             whileHover="hover"
