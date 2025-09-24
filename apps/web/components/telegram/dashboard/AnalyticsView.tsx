@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatIsoDateTime } from "@/utils/isoFormat";
+import { formatPrice } from "@/utils/format-price";
+import { DEFAULT_LOCALE } from "@/config/localization";
 import type { AnalyticsData } from "./types";
 import { ViewHeader } from "./ViewHeader";
 
@@ -22,12 +24,15 @@ interface AnalyticsViewProps {
   onBack: () => void;
 }
 
-const formatCurrency = (value: number, currency: string) =>
-  new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: currency || "USD",
-    maximumFractionDigits: 2,
-  }).format(value);
+const DEFAULT_CURRENCY = "USD";
+
+const formatCurrency = (value: number, currency: string | null | undefined) =>
+  formatPrice(
+    value,
+    currency && currency.trim() ? currency : DEFAULT_CURRENCY,
+    DEFAULT_LOCALE,
+    { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+  );
 
 const timeframeOptions = [
   { value: "today", label: "Today" },
