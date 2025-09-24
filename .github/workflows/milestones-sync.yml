@@ -1,0 +1,38 @@
+name: Sync milestones
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ ".github/milestones.json" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure milestones (create/update)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ALL=$(gh api repos/${{ github.repository }}/milestones --paginate -q '.[] | {title,number}')
+          jq -c '.milestones[]' .github/milestones.json | while read -r m; do
+            title=$(jq -r '.title' <<<"$m")
+            desc=$(jq -r '.description' <<<"$m")
+            state=$(jq -r '.state' <<<"$m")
+            due=$(jq -r '.due_on' <<<"$m")
+            num=$(jq -r "select(.title==\"$title\") | .number" <<<"$ALL")
+            if [ -n "${num:-}" ]; then
+              gh api -X PATCH repos/${{ github.repository }}/milestones/$num \
+                -f title="$title" -f state="$state" -f description="$desc" -f due_on="$due"
+            else
+              gh api -X POST repos/${{ github.repository }}/milestones \
+                -f title="$title" -f state="$state" -f description="$desc" -f due_on="$due"
+            fi
+          done
+
