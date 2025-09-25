@@ -1,10 +1,18 @@
-import { createClient, createSupabaseClient, type SupabaseClient } from "./client.ts";
+import {
+  createClient,
+  createSupabaseClient,
+  type SupabaseClient,
+} from "./client.ts";
 import { getEnv } from "./env.ts";
 import { verifyInitDataAndGetUser } from "./telegram.ts";
 
 export type UserRole = "user" | "admin";
 export type CycleStatus = "active" | "pending_settlement" | "settled";
-export type DepositType = "external" | "reinvestment" | "carryover" | "adjustment";
+export type DepositType =
+  | "external"
+  | "reinvestment"
+  | "carryover"
+  | "adjustment";
 export type WithdrawalStatus = "pending" | "approved" | "denied" | "fulfilled";
 
 export interface Profile {
@@ -45,6 +53,11 @@ export interface InvestorDeposit {
   tx_hash: string | null;
   notes: string | null;
   created_at: string;
+  dct_amount: number | null;
+  entry_fx_rate: number | null;
+  valuation_usdt: number;
+  ton_event_id: string | null;
+  ton_tx_hash: string | null;
 }
 
 export interface InvestorWithdrawal {
@@ -59,6 +72,7 @@ export interface InvestorWithdrawal {
   notice_expires_at: string | null;
   fulfilled_at: string | null;
   admin_notes: string | null;
+  ton_tx_hash: string | null;
 }
 
 export interface InvestorShare {
@@ -109,6 +123,11 @@ export interface PrivatePoolStore {
     tx_hash?: string | null;
     notes?: string | null;
     created_at?: string;
+    dct_amount?: number | null;
+    entry_fx_rate?: number | null;
+    valuation_usdt?: number | null;
+    ton_event_id?: string | null;
+    ton_tx_hash?: string | null;
   }): Promise<InvestorDeposit>;
   listDepositsByCycle(cycleId: string): Promise<InvestorDeposit[]>;
   listWithdrawalsByCycle(
@@ -127,6 +146,7 @@ export interface PrivatePoolStore {
     notice_expires_at?: string | null;
     requested_at?: string;
     admin_notes?: string | null;
+    ton_tx_hash?: string | null;
   }): Promise<InvestorWithdrawal>;
   updateWithdrawal(
     id: string,
@@ -134,6 +154,32 @@ export interface PrivatePoolStore {
   ): Promise<InvestorWithdrawal | null>;
   findWithdrawalById(id: string): Promise<InvestorWithdrawal | null>;
   listInvestorContacts(investorIds: string[]): Promise<InvestorContact[]>;
+  claimTonEvent(
+    eventId: string,
+    consumedAt: string,
+  ): Promise<TonAllocatorEvent | null>;
+  getLatestPrice(symbol: string): Promise<PriceSnapshot | null>;
+}
+
+export interface TonAllocatorEvent {
+  id: string;
+  deposit_id: string;
+  investor_key: string;
+  ton_tx_hash: string;
+  usdt_amount: number;
+  dct_amount: number;
+  fx_rate: number;
+  valuation_usdt: number;
+  consumed_at: string | null;
+}
+
+export interface PriceSnapshot {
+  id: string;
+  symbol: string;
+  price_usd: number;
+  quote_currency: string;
+  signature: string;
+  signed_at: string;
 }
 
 function asNumber(value: unknown): number {
@@ -167,6 +213,11 @@ type InvestorDepositRow = {
   tx_hash: string | null;
   notes: string | null;
   created_at: string;
+  dct_amount: number | null;
+  entry_fx_rate: number | null;
+  valuation_usdt: number | null;
+  ton_event_id: string | null;
+  ton_tx_hash: string | null;
 };
 
 type InvestorWithdrawalRow = {
@@ -181,6 +232,7 @@ type InvestorWithdrawalRow = {
   notice_expires_at: string | null;
   fulfilled_at: string | null;
   admin_notes: string | null;
+  ton_tx_hash: string | null;
 };
 
 export class SupabasePrivatePoolStore implements PrivatePoolStore {
@@ -208,7 +260,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       .select("id, role, telegram_id, display_name")
       .eq("telegram_id", telegramId)
       .maybeSingle();
-    if (error) throw new Error(`findProfileByTelegramId failed: ${error.message}`);
+    if (error) {
+      throw new Error(`findProfileByTelegramId failed: ${error.message}`);
+    }
     if (!data) return null;
     return {
       id: data.id,
@@ -224,7 +278,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       .select("id, profile_id, status, joined_at")
       .eq("profile_id", profileId)
       .maybeSingle();
-    if (error) throw new Error(`getInvestorByProfileId failed: ${error.message}`);
+    if (error) {
+      throw new Error(`getInvestorByProfileId failed: ${error.message}`);
+    }
     if (!data) return null;
     return {
       id: data.id,
@@ -324,6 +380,11 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
     tx_hash?: string | null;
     notes?: string | null;
     created_at?: string;
+    dct_amount?: number | null;
+    entry_fx_rate?: number | null;
+    valuation_usdt?: number | null;
+    ton_event_id?: string | null;
+    ton_tx_hash?: string | null;
   }): Promise<InvestorDeposit> {
     const { data, error } = await this.client
       .from("investor_deposits")
@@ -335,8 +396,15 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
         tx_hash: entry.tx_hash ?? null,
         notes: entry.notes ?? null,
         created_at: entry.created_at,
+        dct_amount: entry.dct_amount ?? null,
+        entry_fx_rate: entry.entry_fx_rate ?? null,
+        valuation_usdt: entry.valuation_usdt ?? entry.amount_usdt,
+        ton_event_id: entry.ton_event_id ?? null,
+        ton_tx_hash: entry.ton_tx_hash ?? null,
       })
-      .select("id, investor_id, cycle_id, amount_usdt, deposit_type, tx_hash, notes, created_at")
+      .select(
+        "id, investor_id, cycle_id, amount_usdt, deposit_type, tx_hash, notes, created_at, dct_amount, entry_fx_rate, valuation_usdt, ton_event_id, ton_tx_hash",
+      )
       .single();
     if (error) throw new Error(`insertDeposit failed: ${error.message}`);
     return this.mapDeposit(data!);
@@ -345,7 +413,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
   async listDepositsByCycle(cycleId: string): Promise<InvestorDeposit[]> {
     const { data, error } = await this.client
       .from("investor_deposits")
-      .select("id, investor_id, cycle_id, amount_usdt, deposit_type, tx_hash, notes, created_at")
+      .select(
+        "id, investor_id, cycle_id, amount_usdt, deposit_type, tx_hash, notes, created_at, dct_amount, entry_fx_rate, valuation_usdt, ton_event_id, ton_tx_hash",
+      )
       .eq("cycle_id", cycleId);
     if (error) throw new Error(`listDepositsByCycle failed: ${error.message}`);
     return (data ?? []).map((row) => this.mapDeposit(row));
@@ -363,7 +433,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       .eq("cycle_id", cycleId);
     const builder = statuses.length > 0 ? query.in("status", statuses) : query;
     const { data, error } = await builder;
-    if (error) throw new Error(`listWithdrawalsByCycle failed: ${error.message}`);
+    if (error) {
+      throw new Error(`listWithdrawalsByCycle failed: ${error.message}`);
+    }
     return (data ?? []).map((row) => this.mapWithdrawal(row));
   }
 
@@ -383,7 +455,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
   async listShares(cycleId: string): Promise<InvestorShare[]> {
     const { data, error } = await this.client
       .from("investor_shares")
-      .select("investor_id, cycle_id, share_percentage, contribution_usdt, updated_at")
+      .select(
+        "investor_id, cycle_id, share_percentage, contribution_usdt, updated_at",
+      )
       .eq("cycle_id", cycleId);
     if (error) throw new Error(`listShares failed: ${error.message}`);
     return (data ?? []).map((row) => ({
@@ -405,6 +479,7 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
     notice_expires_at?: string | null;
     requested_at?: string;
     admin_notes?: string | null;
+    ton_tx_hash?: string | null;
   }): Promise<InvestorWithdrawal> {
     const { data, error } = await this.client
       .from("investor_withdrawals")
@@ -418,9 +493,10 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
         notice_expires_at: entry.notice_expires_at ?? null,
         requested_at: entry.requested_at,
         admin_notes: entry.admin_notes ?? null,
+        ton_tx_hash: entry.ton_tx_hash ?? null,
       })
       .select(
-        "id, investor_id, cycle_id, amount_usdt, net_amount_usdt, reinvested_amount_usdt, status, requested_at, notice_expires_at, fulfilled_at, admin_notes",
+        "id, investor_id, cycle_id, amount_usdt, net_amount_usdt, reinvested_amount_usdt, status, requested_at, notice_expires_at, fulfilled_at, admin_notes, ton_tx_hash",
       )
       .single();
     if (error) throw new Error(`createWithdrawal failed: ${error.message}`);
@@ -437,7 +513,7 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       .update(payload)
       .eq("id", id)
       .select(
-        "id, investor_id, cycle_id, amount_usdt, net_amount_usdt, reinvested_amount_usdt, status, requested_at, notice_expires_at, fulfilled_at, admin_notes",
+        "id, investor_id, cycle_id, amount_usdt, net_amount_usdt, reinvested_amount_usdt, status, requested_at, notice_expires_at, fulfilled_at, admin_notes, ton_tx_hash",
       )
       .maybeSingle();
     if (error) throw new Error(`updateWithdrawal failed: ${error.message}`);
@@ -456,7 +532,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
     return data ? this.mapWithdrawal(data) : null;
   }
 
-  async listInvestorContacts(investorIds: string[]): Promise<InvestorContact[]> {
+  async listInvestorContacts(
+    investorIds: string[],
+  ): Promise<InvestorContact[]> {
     if (investorIds.length === 0) return [];
     const { data, error } = await this.client
       .from("investors")
@@ -469,6 +547,54 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       telegram_id: row.profiles?.telegram_id ?? null,
       display_name: row.profiles?.display_name ?? null,
     }));
+  }
+
+  async claimTonEvent(
+    eventId: string,
+    consumedAt: string,
+  ): Promise<TonAllocatorEvent | null> {
+    const { data, error } = await this.client
+      .from("ton_pool_events")
+      .update({ consumed_at: consumedAt, updated_at: consumedAt })
+      .eq("id", eventId)
+      .is("consumed_at", null)
+      .select(
+        "id, deposit_id, investor_key, ton_tx_hash, usdt_amount, dct_amount, fx_rate, valuation_usdt, consumed_at",
+      )
+      .maybeSingle();
+    if (error) throw new Error(`claimTonEvent failed: ${error.message}`);
+    if (!data) return null;
+    return {
+      id: data.id,
+      deposit_id: data.deposit_id,
+      investor_key: data.investor_key,
+      ton_tx_hash: data.ton_tx_hash,
+      usdt_amount: Number(data.usdt_amount ?? 0),
+      dct_amount: Number(data.dct_amount ?? 0),
+      fx_rate: Number(data.fx_rate ?? 0),
+      valuation_usdt: Number(data.valuation_usdt ?? data.usdt_amount ?? 0),
+      consumed_at: data.consumed_at ?? consumedAt,
+    };
+  }
+
+  async getLatestPrice(symbol: string): Promise<PriceSnapshot | null> {
+    const { data, error } = await this.client
+      .from("price_snapshots")
+      .select("id, symbol, price_usd, quote_currency, signature, signed_at")
+      .eq("symbol", symbol)
+      .order("signed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(`getLatestPrice failed: ${error.message}`);
+    if (!data) return null;
+    return {
+      id: data.id,
+      symbol: data.symbol,
+      price_usd: Number(data.price_usd ?? 0),
+      quote_currency: data.quote_currency,
+      signature: data.signature,
+      signed_at: data.signed_at,
+    };
   }
 
   private mapFundCycle(row: FundCycleRow): FundCycle {
@@ -498,6 +624,15 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       tx_hash: row.tx_hash ?? null,
       notes: row.notes ?? null,
       created_at: row.created_at,
+      dct_amount: row.dct_amount != null ? Number(row.dct_amount) : null,
+      entry_fx_rate: row.entry_fx_rate != null
+        ? Number(row.entry_fx_rate)
+        : null,
+      valuation_usdt: row.valuation_usdt != null
+        ? Number(row.valuation_usdt)
+        : asNumber(row.amount_usdt),
+      ton_event_id: row.ton_event_id ?? null,
+      ton_tx_hash: row.ton_tx_hash ?? null,
     };
   }
 
@@ -507,10 +642,12 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       investor_id: row.investor_id,
       cycle_id: row.cycle_id,
       amount_usdt: asNumber(row.amount_usdt),
-      net_amount_usdt: row.net_amount_usdt !== null && row.net_amount_usdt !== undefined
-        ? asNumber(row.net_amount_usdt)
-        : null,
-      reinvested_amount_usdt: row.reinvested_amount_usdt !== null && row.reinvested_amount_usdt !== undefined
+      net_amount_usdt:
+        row.net_amount_usdt !== null && row.net_amount_usdt !== undefined
+          ? asNumber(row.net_amount_usdt)
+          : null,
+      reinvested_amount_usdt: row.reinvested_amount_usdt !== null &&
+          row.reinvested_amount_usdt !== undefined
         ? asNumber(row.reinvested_amount_usdt)
         : null,
       status: row.status,
@@ -518,6 +655,7 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       notice_expires_at: row.notice_expires_at ?? null,
       fulfilled_at: row.fulfilled_at ?? null,
       admin_notes: row.admin_notes ?? null,
+      ton_tx_hash: row.ton_tx_hash ?? null,
     };
   }
 }
@@ -531,11 +669,19 @@ export function roundCurrency(value: number, decimals = 2): number {
   return Math.round(value * factor) / factor;
 }
 
-export function getCycleMonthYear(date: Date): { cycle_month: number; cycle_year: number } {
-  return { cycle_month: date.getUTCMonth() + 1, cycle_year: date.getUTCFullYear() };
+export function getCycleMonthYear(
+  date: Date,
+): { cycle_month: number; cycle_year: number } {
+  return {
+    cycle_month: date.getUTCMonth() + 1,
+    cycle_year: date.getUTCFullYear(),
+  };
 }
 
-export function getNextCycle(month: number, year: number): { cycle_month: number; cycle_year: number } {
+export function getNextCycle(
+  month: number,
+  year: number,
+): { cycle_month: number; cycle_year: number } {
   if (month === 12) return { cycle_month: 1, cycle_year: year + 1 };
   return { cycle_month: month + 1, cycle_year: year };
 }
@@ -557,13 +703,21 @@ export async function ensureActiveCycle(
   const active = await store.getActiveCycle();
   if (active) return active;
   const { cycle_month, cycle_year } = getCycleMonthYear(now);
-  return await store.createCycle({ cycle_month, cycle_year, status: "active", opened_at: now.toISOString() });
+  return await store.createCycle({
+    cycle_month,
+    cycle_year,
+    status: "active",
+    opened_at: now.toISOString(),
+  });
 }
 
 export interface ShareComputationResult {
   totalContribution: number;
   contributions: Map<string, number>;
   records: InvestorShare[];
+  dctBalances: Map<string, number>;
+  markedValuations: Map<string, number>;
+  markPrice: number | null;
 }
 
 export async function recomputeShares(
@@ -572,29 +726,69 @@ export async function recomputeShares(
   now: Date,
 ): Promise<ShareComputationResult> {
   const deposits = await store.listDepositsByCycle(cycleId);
+  const price = await store.getLatestPrice("DCTUSDT");
+  const livePrice = price?.price_usd ?? null;
   const contributions = new Map<string, number>();
+  const dctBalances = new Map<string, number>();
+  const markedValuations = new Map<string, number>();
   for (const deposit of deposits) {
+    const valuation = deposit.valuation_usdt ?? deposit.amount_usdt;
     const prev = contributions.get(deposit.investor_id) ?? 0;
-    contributions.set(deposit.investor_id, prev + deposit.amount_usdt);
+    contributions.set(deposit.investor_id, prev + valuation);
+    const dct = deposit.dct_amount ?? 0;
+    if (dct > 0) {
+      const prevDct = dctBalances.get(deposit.investor_id) ?? 0;
+      dctBalances.set(deposit.investor_id, prevDct + dct);
+    }
+    const mark = livePrice != null && dct > 0
+      ? roundCurrency(dct * livePrice)
+      : valuation;
+    const prevMark = markedValuations.get(deposit.investor_id) ?? 0;
+    markedValuations.set(deposit.investor_id, prevMark + mark);
   }
-  const withdrawals = await store.listWithdrawalsByCycle(cycleId, ["approved", "fulfilled"]);
+  const withdrawals = await store.listWithdrawalsByCycle(cycleId, [
+    "approved",
+    "fulfilled",
+  ]);
   for (const withdrawal of withdrawals) {
     const net = withdrawal.net_amount_usdt ?? 0;
     if (net <= 0) continue;
     const prev = contributions.get(withdrawal.investor_id) ?? 0;
     const next = prev - net;
     contributions.set(withdrawal.investor_id, next > 0 ? next : 0);
+    const prevMarked = markedValuations.get(withdrawal.investor_id) ?? prev;
+    const nextMarked = prevMarked - net;
+    markedValuations.set(
+      withdrawal.investor_id,
+      nextMarked > 0 ? nextMarked : 0,
+    );
+    if (livePrice && livePrice > 0) {
+      const prevDct = dctBalances.get(withdrawal.investor_id) ?? 0;
+      if (prevDct > 0) {
+        const delta = Number((net / livePrice).toFixed(6));
+        const nextDct = prevDct - delta;
+        dctBalances.set(
+          withdrawal.investor_id,
+          nextDct > 0 ? Number(nextDct.toFixed(6)) : 0,
+        );
+      }
+    }
   }
   const existingShares = await store.listShares(cycleId);
   const allInvestorIds = new Set<string>([
     ...contributions.keys(),
     ...existingShares.map((s) => s.investor_id),
   ]);
-  const totalContribution = Array.from(contributions.values()).reduce((acc, val) => acc + val, 0);
+  const totalContribution = Array.from(contributions.values()).reduce(
+    (acc, val) => acc + val,
+    0,
+  );
   const records: InvestorShare[] = [];
   for (const investorId of allInvestorIds) {
     const contribution = contributions.get(investorId) ?? 0;
-    const share = totalContribution > 0 ? (contribution / totalContribution) * 100 : 0;
+    const share = totalContribution > 0
+      ? (contribution / totalContribution) * 100
+      : 0;
     records.push({
       investor_id: investorId,
       cycle_id: cycleId,
@@ -604,7 +798,14 @@ export async function recomputeShares(
     });
   }
   if (records.length > 0) await store.upsertShares(records);
-  return { totalContribution: roundCurrency(totalContribution), contributions, records };
+  return {
+    totalContribution: roundCurrency(totalContribution),
+    contributions,
+    records,
+    dctBalances,
+    markedValuations,
+    markPrice: livePrice ?? null,
+  };
 }
 
 export interface AuthContext {
@@ -621,7 +822,11 @@ export type ResolveProfileFn = (
 type AuthClient = {
   auth: {
     getUser: () => Promise<{
-      data: { user: { id: string; user_metadata?: { telegram_id?: string | null } } | null };
+      data: {
+        user:
+          | { id: string; user_metadata?: { telegram_id?: string | null } }
+          | null;
+      };
       error: { message?: string } | null;
     }>;
   };
@@ -646,10 +851,11 @@ export function createDefaultResolveProfileFn(
   options: ResolveProfileOptions = {},
 ): ResolveProfileFn {
   const getAuthClient = options.getAuthClient ?? defaultGetAuthClient;
-  const verifyInitData = options.verifyInitData ?? (async (initData: string) => {
-    const user = await verifyInitDataAndGetUser(initData);
-    return user ? { id: user.id } : null;
-  });
+  const verifyInitData = options.verifyInitData ??
+    (async (initData: string) => {
+      const user = await verifyInitDataAndGetUser(initData);
+      return user ? { id: user.id } : null;
+    });
   return async (req, body, store) => {
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
@@ -663,7 +869,8 @@ export function createDefaultResolveProfileFn(
           if (profile) {
             return {
               profileId: profile.id,
-              telegramId: profile.telegram_id ?? user.user_metadata?.telegram_id ?? null,
+              telegramId: profile.telegram_id ??
+                user.user_metadata?.telegram_id ?? null,
             };
           }
         }
@@ -671,17 +878,22 @@ export function createDefaultResolveProfileFn(
         console.error("resolveProfile auth error", err);
       }
     }
-    const initData =
-      typeof body === "object" && body !== null && "initData" in (body as Record<string, unknown>)
-        ? String((body as Record<string, unknown>).initData ?? "")
-        : null;
+    const initData = typeof body === "object" && body !== null &&
+        "initData" in (body as Record<string, unknown>)
+      ? String((body as Record<string, unknown>).initData ?? "")
+      : null;
     if (initData) {
       try {
         const telegramUser = await verifyInitData(initData);
         if (telegramUser) {
-          const profile = await store.findProfileByTelegramId(String(telegramUser.id));
+          const profile = await store.findProfileByTelegramId(
+            String(telegramUser.id),
+          );
           if (profile) {
-            return { profileId: profile.id, telegramId: profile.telegram_id ?? String(telegramUser.id) };
+            return {
+              profileId: profile.id,
+              telegramId: profile.telegram_id ?? String(telegramUser.id),
+            };
           }
         }
       } catch (err) {
@@ -692,7 +904,10 @@ export function createDefaultResolveProfileFn(
   };
 }
 
-export async function requireAdmin(store: PrivatePoolStore, profileId: string): Promise<boolean> {
+export async function requireAdmin(
+  store: PrivatePoolStore,
+  profileId: string,
+): Promise<boolean> {
   const profile = await store.findProfileById(profileId);
   return profile?.role === "admin";
 }

@@ -1,8 +1,18 @@
-import { createSupabasePoolStore, recomputeShares, requireAdmin, type PrivatePoolStore, type ResolveProfileFn, createDefaultResolveProfileFn, roundCurrency, getNextCycle, type InvestorShare } from "../_shared/private-pool.ts";
-import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
+import {
+  createDefaultResolveProfileFn,
+  createSupabasePoolStore,
+  getNextCycle,
+  type InvestorShare,
+  type PrivatePoolStore,
+  recomputeShares,
+  requireAdmin,
+  type ResolveProfileFn,
+  roundCurrency,
+} from "../_shared/private-pool.ts";
+import { bad, corsHeaders, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { version } from "../_shared/version.ts";
-import type { InvestorContact, FundCycle } from "../_shared/private-pool.ts";
+import type { FundCycle, InvestorContact } from "../_shared/private-pool.ts";
 
 interface SettleBody {
   profit?: number;
@@ -18,6 +28,9 @@ interface PayoutEntry {
   payout_usdt: number;
   reinvest_usdt: number;
   performance_fee_usdt: number;
+  live_valuation_usdt: number;
+  dct_balance: number;
+  allocator_tx_hash?: string | null;
 }
 
 interface SettlementTotals {
@@ -42,6 +55,7 @@ interface SettleHandlerDeps {
   resolveProfile: ResolveProfileFn;
   now: () => Date;
   notifyInvestors: (args: NotifyArgs) => Promise<void>;
+  allocatorBridge: AllocatorBridge;
 }
 
 const defaultDeps: SettleHandlerDeps = {
@@ -49,7 +63,27 @@ const defaultDeps: SettleHandlerDeps = {
   resolveProfile: createDefaultResolveProfileFn(),
   now: () => new Date(),
   notifyInvestors: defaultNotifyInvestors,
+  allocatorBridge: new NoopAllocatorBridge(),
 };
+
+interface AllocatorPayoutRequest {
+  investorId: string;
+  cycleId: string;
+  amountUsdt: number;
+  dctToSwap: number;
+}
+
+interface AllocatorBridge {
+  cashOutPayout(
+    request: AllocatorPayoutRequest,
+  ): Promise<{ tonTxHash?: string | null } | void>;
+}
+
+class NoopAllocatorBridge implements AllocatorBridge {
+  async cashOutPayout(): Promise<void> {
+    return;
+  }
+}
 
 function parseBody(raw: unknown): SettleBody {
   if (typeof raw !== "object" || raw === null) return {};
@@ -59,7 +93,10 @@ function parseBody(raw: unknown): SettleBody {
 export function createSettleHandler(
   overrides: Partial<SettleHandlerDeps> = {},
 ) {
-  const deps: SettleHandlerDeps = { ...defaultDeps, ...overrides } as SettleHandlerDeps;
+  const deps: SettleHandlerDeps = {
+    ...defaultDeps,
+    ...overrides,
+  } as SettleHandlerDeps;
   return async function handler(req: Request): Promise<Response> {
     if (req.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders(req) });
@@ -106,6 +143,31 @@ export function createSettleHandler(
         payoutTotal += payout;
         reinvestTotal += reinvest;
         feeTotal += fee;
+        const liveValuation =
+          shareData.markedValuations.get(record.investor_id) ??
+            record.contribution_usdt;
+        const dctBalance = shareData.dctBalances.get(record.investor_id) ?? 0;
+        let allocatorTx: string | null = null;
+        if (payout > 0 && shareData.markPrice && dctBalance > 0) {
+          const dctToSwap = shareData.markPrice > 0
+            ? Number((payout / shareData.markPrice).toFixed(6))
+            : 0;
+          if (dctToSwap > 0) {
+            try {
+              const result = await deps.allocatorBridge.cashOutPayout({
+                investorId: record.investor_id,
+                cycleId: activeCycle.id,
+                amountUsdt: payout,
+                dctToSwap,
+              });
+              if (result && "tonTxHash" in result) {
+                allocatorTx = result.tonTxHash ?? null;
+              }
+            } catch (bridgeErr) {
+              console.error("allocatorBridge.cashOutPayout error", bridgeErr);
+            }
+          }
+        }
         summary.push({
           investor_id: record.investor_id,
           share_percentage: record.share_percentage,
@@ -114,6 +176,9 @@ export function createSettleHandler(
           payout_usdt: payout,
           reinvest_usdt: reinvest,
           performance_fee_usdt: fee,
+          live_valuation_usdt: roundCurrency(liveValuation),
+          dct_balance: Number(dctBalance.toFixed(6)),
+          allocator_tx_hash: allocatorTx,
         });
       }
       await store.closeCycle(activeCycle.id, {
@@ -126,7 +191,10 @@ export function createSettleHandler(
         closed_at: now.toISOString(),
         notes: body.notes ?? null,
       });
-      const nextMeta = getNextCycle(activeCycle.cycle_month, activeCycle.cycle_year);
+      const nextMeta = getNextCycle(
+        activeCycle.cycle_month,
+        activeCycle.cycle_year,
+      );
       const nextCycle = await store.createCycle({
         cycle_month: nextMeta.cycle_month,
         cycle_year: nextMeta.cycle_year,
@@ -141,8 +209,10 @@ export function createSettleHandler(
             cycle_id: nextCycle.id,
             amount_usdt: roundCurrency(base),
             deposit_type: "carryover",
-            notes: `Carryover from ${activeCycle.cycle_month}/${activeCycle.cycle_year}`,
+            notes:
+              `Carryover from ${activeCycle.cycle_month}/${activeCycle.cycle_year}`,
             created_at: now.toISOString(),
+            valuation_usdt: roundCurrency(base),
           });
         }
         if (entry.reinvest_usdt > 0) {
@@ -151,13 +221,17 @@ export function createSettleHandler(
             cycle_id: nextCycle.id,
             amount_usdt: roundCurrency(entry.reinvest_usdt),
             deposit_type: "reinvestment",
-            notes: `Reinvestment from ${activeCycle.cycle_month}/${activeCycle.cycle_year} settlement`,
+            notes:
+              `Reinvestment from ${activeCycle.cycle_month}/${activeCycle.cycle_year} settlement`,
             created_at: now.toISOString(),
+            valuation_usdt: roundCurrency(entry.reinvest_usdt),
           });
         }
       }
       const newShares = await recomputeShares(store, nextCycle.id, now);
-      const contacts = await store.listInvestorContacts(summary.map((s) => s.investor_id));
+      const contacts = await store.listInvestorContacts(
+        summary.map((s) => s.investor_id),
+      );
       const totals: SettlementTotals = {
         profit_total: totalProfit,
         payout_total: roundCurrency(payoutTotal),
@@ -188,7 +262,11 @@ export function createSettleHandler(
       }, req);
     } catch (err) {
       console.error("private-pool-settle-cycle error", err);
-      return oops("Failed to settle cycle", err instanceof Error ? err.message : err, req);
+      return oops(
+        "Failed to settle cycle",
+        err instanceof Error ? err.message : err,
+        req,
+      );
     }
   };
 }
@@ -196,8 +274,12 @@ export function createSettleHandler(
 async function defaultNotifyInvestors(args: NotifyArgs): Promise<void> {
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
   if (!token) return;
-  const summaryMap = new Map(args.summary.map((s) => [s.investor_id, s] as const));
-  const shareMap = new Map(args.newShares.map((s) => [s.investor_id, s] as const));
+  const summaryMap = new Map(
+    args.summary.map((s) => [s.investor_id, s] as const),
+  );
+  const shareMap = new Map(
+    args.newShares.map((s) => [s.investor_id, s] as const),
+  );
   await Promise.allSettled(
     args.contacts
       .filter((contact) => contact.telegram_id)
