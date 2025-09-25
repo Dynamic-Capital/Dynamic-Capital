@@ -22,6 +22,7 @@ from algorithms.python.trade_logic import (
     FeaturePipeline,
     LabeledFeature,
     LorentzianKNNModel,
+    LorentzianKNNStrategy,
     MarketSnapshot,
     TradeDecision,
     TradeConfig,
@@ -84,6 +85,91 @@ def test_lorentzian_knn_model_predicts_direction():
     signal = model.predict((0.1, 0.1, 0.1, 0.1))
     assert signal is not None
     assert signal.direction == 1
+
+
+def test_lorentzian_strategy_handles_non_positive_pip_size():
+    now = datetime.now(timezone.utc)
+    strategy = LorentzianKNNStrategy(
+        neighbors=1,
+        max_rows=10,
+        label_lookahead=1,
+        neutral_zone_pips=0.5,
+    )
+    first = MarketSnapshot(
+        symbol="XAUUSD",
+        timestamp=now,
+        close=100.0,
+        rsi_fast=40.0,
+        adx_fast=20.0,
+        rsi_slow=42.0,
+        adx_slow=19.0,
+        pip_size=0.0,
+        pip_value=1.0,
+    )
+    second = MarketSnapshot(
+        symbol="XAUUSD",
+        timestamp=now + timedelta(minutes=5),
+        close=100.6,
+        rsi_fast=41.0,
+        adx_fast=21.0,
+        rsi_slow=43.0,
+        adx_slow=20.0,
+        pip_size=-0.1,
+        pip_value=1.0,
+    )
+
+    strategy.update(first)
+    signal = strategy.update(second)
+
+    assert signal is not None
+    samples = list(strategy.model.iter_samples())
+    assert len(samples) == 1
+    stored_sample = samples[0]
+    assert stored_sample.label == 1
+    assert stored_sample.raw_features is not None
+
+
+def test_lorentzian_strategy_rescales_samples_on_label():
+    now = datetime.now(timezone.utc)
+    strategy = LorentzianKNNStrategy(
+        neighbors=1,
+        max_rows=100,
+        label_lookahead=2,
+        neutral_zone_pips=0.0,
+    )
+    snapshots: list[MarketSnapshot] = []
+    base_close = 100.0
+    for idx in range(30):
+        close = base_close + idx * 0.3
+        snapshots.append(
+            MarketSnapshot(
+                symbol="XAUUSD",
+                timestamp=now + timedelta(minutes=idx * 5),
+                close=close,
+                rsi_fast=45.0 + idx,
+                adx_fast=20.0 + idx * 0.2,
+                rsi_slow=50.0 + (idx % 5),
+                adx_slow=18.0 + (idx % 3) * 0.5,
+                pip_size=0.1,
+                pip_value=1.0,
+            )
+        )
+
+    previous_count = 0
+    for snapshot in snapshots:
+        strategy.update(snapshot)
+        samples = list(strategy.model.iter_samples())
+        if len(samples) > previous_count:
+            for sample in samples[previous_count:]:
+                assert sample.raw_features is not None
+                expected = strategy.pipeline.transform(sample.raw_features, update=False)
+                assert sample.features == pytest.approx(expected)
+            previous_count = len(samples)
+
+    query_features = snapshots[-1].feature_vector()
+    transformed = strategy.pipeline.transform(query_features, update=False)
+    signal = strategy.model.predict(transformed)
+    assert signal is not None
 
 
 def test_backtester_generates_performance_metrics(tmp_path: Path):
