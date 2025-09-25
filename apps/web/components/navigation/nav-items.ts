@@ -1,10 +1,11 @@
 import {
-  Home,
-  TrendingUp,
+  CandlestickChart,
   GraduationCap,
+  Home,
+  type LucideIcon,
   MessageCircle,
   Shield,
-  type LucideIcon,
+  TrendingUp,
 } from "lucide-react";
 
 export interface NavItem {
@@ -23,6 +24,14 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Home,
     path: "/",
     ariaLabel: "Navigate to home page",
+    showOnMobile: true,
+  },
+  {
+    id: "market",
+    label: "Market",
+    icon: CandlestickChart,
+    path: "/market",
+    ariaLabel: "View live market dashboards",
     showOnMobile: true,
   },
   {

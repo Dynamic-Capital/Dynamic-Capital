@@ -19,6 +19,7 @@ const baseURL: string = "https://dynamic.capital";
 const routes: RoutesConfig = {
   "/": true,
   "/about": true,
+  "/market": true,
   "/plans": true,
   "/checkout": true,
   "/login": true,

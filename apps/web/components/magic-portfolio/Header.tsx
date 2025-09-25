@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { Button, Fade, Flex, Line, Row, ToggleButton } from "@once-ui-system/core";
 
-import { display, person, about, blog, work, gallery, isRouteEnabled } from "@/resources";
+import { display, person, about, blog, work, gallery, market, isRouteEnabled } from "@/resources";
 import type { IconName } from "@/resources/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "./ThemeToggle";
@@ -49,6 +49,7 @@ export const Header = () => {
   const { user, signOut } = useAuth();
 
   const homeEnabled = isRouteEnabled("/");
+  const marketEnabled = isRouteEnabled("/market");
   const plansEnabled = isRouteEnabled("/plans");
   const aboutEnabled = isRouteEnabled("/about");
   const workEnabled = isRouteEnabled("/work");
@@ -63,6 +64,15 @@ export const Header = () => {
           icon: "home" as IconName,
           href: "/",
           selected: pathname === "/",
+        }
+      : null,
+    marketEnabled
+      ? {
+          key: "market",
+          label: market.label,
+          icon: "globe" as IconName,
+          href: "/market",
+          selected: pathname.startsWith("/market"),
         }
       : null,
     plansEnabled

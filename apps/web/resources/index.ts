@@ -4,6 +4,7 @@ export {
   blog,
   gallery,
   home,
+  market,
   newsletter,
   person,
   social,

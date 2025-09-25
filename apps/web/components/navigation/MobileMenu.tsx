@@ -9,6 +9,7 @@ import { cn } from "@/utils";
 import {
   Menu,
   Home,
+  CandlestickChart,
   CreditCard,
   Settings,
   GraduationCap,
@@ -33,6 +34,13 @@ const navItems: NavItem[] = [
     icon: Home,
     path: "/",
     ariaLabel: "Navigate to home page"
+  },
+  {
+    id: "market",
+    label: "Market",
+    icon: CandlestickChart,
+    path: "/market",
+    ariaLabel: "View market dashboards"
   },
   {
     id: "plans",

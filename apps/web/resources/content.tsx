@@ -1,5 +1,6 @@
 import {
   About,
+  BasePageConfig,
   Blog,
   Gallery,
   Home,
@@ -91,6 +92,15 @@ const home: Home = {
       time.
     </>
   ),
+};
+
+const market: BasePageConfig = {
+  path: "/market",
+  label: "Market",
+  title: "Market Intelligence – Dynamic Capital",
+  description:
+    "Live forex dashboards curated from the FXCM institutional feed and annotated by the Dynamic Capital desk.",
+  image: supabaseAsset("images/og/home.jpg"),
 };
 
 const about: About = {
@@ -293,4 +303,4 @@ const gallery: Gallery = {
   ],
 };
 
-export { about, blog, gallery, home, newsletter, person, social, work };
+export { about, blog, gallery, home, market, newsletter, person, social, work };
