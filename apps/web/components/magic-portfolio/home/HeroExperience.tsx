@@ -1,13 +1,18 @@
 "use client";
 
-import type {
-  MouseEventHandler,
-  PointerEvent as ReactPointerEvent,
+import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   motion,
   useMotionValue,
+  useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
@@ -116,6 +121,12 @@ export function HeroExperience() {
   const pointerBounds = useRef<DOMRect | null>(null);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const activeStep = ONBOARDING_STEPS[activeStepIndex];
+  const stepButtonRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const componentId = useId();
+  const tablistId = `${componentId}-onboarding`;
+  const instructionsId = `${tablistId}-instructions`;
+  const detailActionsId = `${tablistId}-actions`;
+  const prefersReducedMotion = useReducedMotion();
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const springX = useSpring(pointerX, {
@@ -175,48 +186,59 @@ export function HeroExperience() {
   }, [activeCardIndex, cardCount]);
 
   const cardTransforms = useMemo(
-    () => [
-      {
-        style: {
-          x: primaryCardX,
-          y: primaryCardY,
-          rotateX: primaryRotateX,
-          rotateY: primaryRotateY,
+    () => {
+      if (prefersReducedMotion) {
+        return orderedCards.map((_, index) => ({
+          style: { x: 0, y: 0, rotateX: "0deg", rotateY: "0deg" },
+          zIndex: orderedCards.length - index,
+        }));
+      }
+
+      return [
+        {
+          style: {
+            x: primaryCardX,
+            y: primaryCardY,
+            rotateX: primaryRotateX,
+            rotateY: primaryRotateY,
+          },
+          zIndex: 3,
         },
-        zIndex: 3,
-      },
-      {
-        style: {
-          x: middleCardX,
-          y: middleCardY,
-          rotateX: middleRotateX,
-          rotateY: middleRotateY,
+        {
+          style: {
+            x: middleCardX,
+            y: middleCardY,
+            rotateX: middleRotateX,
+            rotateY: middleRotateY,
+          },
+          zIndex: 2,
         },
-        zIndex: 2,
-      },
-      {
-        style: {
-          x: backCardX,
-          y: backCardY,
-          rotateX: backRotateX,
-          rotateY: backRotateY,
+        {
+          style: {
+            x: backCardX,
+            y: backCardY,
+            rotateX: backRotateX,
+            rotateY: backRotateY,
+          },
+          zIndex: 1,
         },
-        zIndex: 1,
-      },
-    ],
+      ];
+    },
     [
-      primaryCardX,
-      primaryCardY,
-      primaryRotateX,
-      primaryRotateY,
-      middleCardX,
-      middleCardY,
-      middleRotateX,
-      middleRotateY,
       backCardX,
       backCardY,
       backRotateX,
       backRotateY,
+      middleCardX,
+      middleCardY,
+      middleRotateX,
+      middleRotateY,
+      orderedCards,
+      prefersReducedMotion,
+      primaryCardX,
+      primaryCardY,
+      primaryRotateX,
+      primaryRotateY,
     ],
   );
 
@@ -228,6 +250,10 @@ export function HeroExperience() {
 
   const handlePointerMove = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (prefersReducedMotion) {
+        return;
+      }
+
       if (!pointerBounds.current) {
         updatePointerBounds();
       }
@@ -244,7 +270,7 @@ export function HeroExperience() {
       pointerX.set(Number.isFinite(x) ? clampNormalizedPointer(x) : 0);
       pointerY.set(Number.isFinite(y) ? clampNormalizedPointer(y) : 0);
     },
-    [pointerX, pointerY, updatePointerBounds],
+    [pointerX, pointerY, prefersReducedMotion, updatePointerBounds],
   );
 
   const resetPointer = useCallback(() => {
@@ -275,18 +301,100 @@ export function HeroExperience() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleStepSelect = useCallback((index: number) => {
-    setActiveStepIndex((previousIndex) =>
-      previousIndex === index ? previousIndex : index
-    );
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      resetPointer();
+    }
+  }, [prefersReducedMotion, resetPointer]);
+
+  const focusStepButton = useCallback((index: number) => {
+    const focus = () => {
+      const button = stepButtonRefs.current[index];
+      button?.focus();
+    };
+
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(focus);
+      return;
+    }
+
+    focus();
   }, []);
 
-  const stepHandlers = useMemo<MouseEventHandler<HTMLButtonElement>[]>(
+  const updateActiveStep = useCallback(
+    (nextIndex: number, options?: { focus?: boolean }) => {
+      setActiveStepIndex((previousIndex) => {
+        if (previousIndex === nextIndex) {
+          return previousIndex;
+        }
+
+        return nextIndex;
+      });
+
+      if (options?.focus) {
+        focusStepButton(nextIndex);
+      }
+    },
+    [focusStepButton],
+  );
+
+  const stepHandlers = useMemo(
     () =>
-      ONBOARDING_STEPS.map((_, index) => (_event) => {
-        handleStepSelect(index);
+      ONBOARDING_STEPS.map((_, index) => () => {
+        updateActiveStep(index);
       }),
-    [handleStepSelect],
+    [updateActiveStep],
+  );
+
+  const handleStepKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+      const lastIndex = ONBOARDING_STEPS.length - 1;
+
+      switch (event.key) {
+        case "ArrowRight":
+        case "ArrowDown": {
+          event.preventDefault();
+          const nextIndex = index === lastIndex ? 0 : index + 1;
+          updateActiveStep(nextIndex, { focus: true });
+          break;
+        }
+        case "ArrowLeft":
+        case "ArrowUp": {
+          event.preventDefault();
+          const nextIndex = index === 0 ? lastIndex : index - 1;
+          updateActiveStep(nextIndex, { focus: true });
+          break;
+        }
+        case "Home": {
+          event.preventDefault();
+          updateActiveStep(0, { focus: true });
+          break;
+        }
+        case "End": {
+          event.preventDefault();
+          updateActiveStep(lastIndex, { focus: true });
+          break;
+        }
+        default:
+          break;
+      }
+    },
+    [updateActiveStep],
+  );
+
+  const stepTabIds = useMemo(
+    () =>
+      ONBOARDING_STEPS.map((step, index) =>
+        `${tablistId}-tab-${
+          step.title.replace(/\s+/g, "-").toLowerCase()
+        }-${index}`
+      ),
+    [tablistId],
+  );
+
+  const stepPanelIds = useMemo(
+    () => ONBOARDING_STEPS.map((_, index) => `${tablistId}-panel-${index}`),
+    [tablistId],
   );
 
   return (
@@ -499,7 +607,11 @@ export function HeroExperience() {
               >
                 Guided path
               </Badge>
-              <Text onBackground="neutral-weak" variant="label-default-m">
+              <Text
+                id={instructionsId}
+                onBackground="neutral-weak"
+                variant="label-default-m"
+              >
                 Tap a tile to preview the experience.
               </Text>
             </Row>
@@ -515,6 +627,10 @@ export function HeroExperience() {
               damping: 24,
             }}
             className={styles.stepsGrid}
+            role="tablist"
+            aria-orientation="horizontal"
+            aria-describedby={instructionsId}
+            id={tablistId}
           >
             {ONBOARDING_STEPS.map((step, index) => {
               const isActive = activeStepIndex === index;
@@ -523,10 +639,20 @@ export function HeroExperience() {
                 <motion.button
                   key={step.title}
                   type="button"
+                  ref={(node) => {
+                    stepButtonRefs.current[index] = node;
+                  }}
+                  id={stepTabIds[index]}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={stepPanelIds[index]}
+                  tabIndex={isActive ? 0 : -1}
                   onClick={stepHandlers[index]}
-                  aria-pressed={isActive}
-                  whileHover={{ y: -4, scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
+                  onKeyDown={(event) => handleStepKeyDown(event, index)}
+                  whileHover={prefersReducedMotion
+                    ? undefined
+                    : { y: -4, scale: 1.01 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
                   className={cn(
                     styles.stepButton,
                     isActive && styles.stepButtonActive,
@@ -577,6 +703,12 @@ export function HeroExperience() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 190, damping: 26 }}
             className={styles.stepDetail}
+            id={stepPanelIds[activeStepIndex]}
+            role="tabpanel"
+            aria-labelledby={stepTabIds[activeStepIndex]}
+            aria-live="polite"
+            aria-describedby={detailActionsId}
+            tabIndex={0}
             style={{
               border: `1px solid ${brandColor("--dc-secondary", 0.22)}`,
               background: brandColor("--dc-brand-dark", 0.4),
@@ -593,6 +725,7 @@ export function HeroExperience() {
                 gap: "10px",
                 marginTop: "16px",
               }}
+              id={detailActionsId}
             >
               {activeStep.actions.map((action) => (
                 <Badge
@@ -619,13 +752,15 @@ export function HeroExperience() {
               stiffness: 140,
               damping: 24,
             }}
-            style={{ width: "100%", y: floatY }}
+            style={{ width: "100%", y: prefersReducedMotion ? 0 : floatY }}
           >
             <motion.div
               ref={previewSurfaceRef}
               onPointerMove={handlePointerMove}
               onPointerLeave={resetPointer}
               className={styles.previewSurface}
+              role="group"
+              aria-describedby={`${tablistId}-preview`}
               style={{
                 background: `radial-gradient(circle at top, ${
                   brandColor("--dc-secondary", 0.25)
@@ -633,10 +768,11 @@ export function HeroExperience() {
               }}
             >
               <motion.div
+                aria-hidden="true"
                 animate={{ opacity: [0.45, 0.7, 0.45] }}
                 transition={{
-                  repeat: Infinity,
-                  duration: 6,
+                  repeat: prefersReducedMotion ? 0 : Infinity,
+                  duration: prefersReducedMotion ? 0 : 6,
                   ease: "easeInOut",
                 }}
                 className={styles.previewGlow}
@@ -647,6 +783,7 @@ export function HeroExperience() {
                 }}
               />
               <motion.div
+                aria-hidden="true"
                 className={styles.previewBorder}
                 style={{
                   border: `1px solid ${brandColor("--dc-secondary", 0.18)}`,
@@ -662,7 +799,7 @@ export function HeroExperience() {
                     style={{
                       zIndex: cardTransforms[index]?.zIndex ?? 1,
                       background: card.gradient,
-                      ...cardTransforms[index]?.style,
+                      ...(cardTransforms[index]?.style ?? {}),
                       marginTop: index === 0 ? 0 : undefined,
                     }}
                   >
@@ -694,6 +831,13 @@ export function HeroExperience() {
               </div>
             </motion.div>
           </motion.div>
+          <Text
+            id={`${tablistId}-preview`}
+            className="sr-only"
+            as="p"
+          >
+            Preview cards update to reflect the selected onboarding step.
+          </Text>
         </Column>
       </Row>
     </Column>
