@@ -10,6 +10,7 @@ import {
   Tag,
   Text,
 } from "@once-ui-system/core";
+import { schema } from "@/resources";
 
 type ValuePillar = {
   id: string;
@@ -91,6 +92,8 @@ const PROOF_POINTS: ProofPoint[] = [
 ];
 
 export function ValuePropositionSection() {
+  const organizationName = schema.name;
+
   return (
     <Column
       id="value-proposition"
@@ -104,7 +107,7 @@ export function ValuePropositionSection() {
     >
       <Column gap="12" maxWidth={32}>
         <Tag size="s" background="brand-alpha-weak" prefixIcon="shield">
-          Why traders choose Dynamic Capital
+          Why traders choose {organizationName}
         </Tag>
         <Heading variant="display-strong-xs">
           Signal clarity, execution guardrails, and human accountability in one
