@@ -24,11 +24,11 @@ import {
   RouteGuard,
   ScrollToHash,
 } from "@/components/magic-portfolio";
-import { dynamicUI } from "@/resources";
+import { dynamicBranding, dynamicUI } from "@/resources";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
-const DEFAULT_THEME = "dark" as const;
 const THEME_SCRIPT_ID = "theme-init";
+const BRANDING_STYLE_ELEMENT_ID = "dynamic-branding-tokens";
 
 const {
   basics: basicsConfig,
@@ -36,8 +36,16 @@ const {
   effects: effectsConfig,
 } = dynamicUI;
 const { fonts, style } = basicsConfig;
+const brandingMetadata = dynamicBranding.metadata;
+const brandingAssets = dynamicBranding.assets;
+const brandingTokens = dynamicBranding.tokens;
+const brandingPalette = dynamicBranding.palette;
 const { dataStyle } = dataVizConfig;
 const backgroundEffects = effectsConfig.background;
+
+const DEFAULT_THEME = style.theme === "light" || style.theme === "dark"
+  ? style.theme
+  : "dark";
 
 const htmlAttributeDefaults: Record<string, string> = {
   "data-neutral": style.neutral,
@@ -58,6 +66,9 @@ const themeAttributeDefaults = Object.fromEntries(
   ) => [key.replace(/^data-/, ""), value]),
 );
 
+const dynamicBrandingStyles = createBrandingStyles(brandingTokens);
+const dynamicBrandingStyleMarkup =
+  `<style id="${BRANDING_STYLE_ELEMENT_ID}">${dynamicBrandingStyles}</style>`;
 const dynamicThemeScript = `(function () {
   try {
     var root = document.documentElement;
@@ -94,17 +105,49 @@ const dynamicThemeScript = `(function () {
     document.documentElement.setAttribute('data-theme', '${DEFAULT_THEME}');
   }
 })();`;
+const dynamicThemeScriptMarkup =
+  `<script id="${THEME_SCRIPT_ID}">${dynamicThemeScript}</script>`;
 
-function ensureThemeScript(markup: string): string {
-  if (!markup) {
-    return `<script id="${THEME_SCRIPT_ID}">${dynamicThemeScript}</script>`;
+function ensureThemeAssets(markup: string): string {
+  const fragments: string[] = [];
+  const existingMarkup = markup ?? "";
+
+  if (existingMarkup) {
+    fragments.push(existingMarkup);
   }
 
-  if (markup.includes(`id="${THEME_SCRIPT_ID}"`)) {
-    return markup;
+  if (!existingMarkup.includes(`id="${BRANDING_STYLE_ELEMENT_ID}"`)) {
+    fragments.push(dynamicBrandingStyleMarkup);
   }
 
-  return `${markup}\n<script id="${THEME_SCRIPT_ID}">${dynamicThemeScript}</script>`;
+  if (!existingMarkup.includes(`id="${THEME_SCRIPT_ID}"`)) {
+    fragments.push(dynamicThemeScriptMarkup);
+  }
+
+  return fragments.join("\n");
+}
+
+function createBrandingStyles(tokens: typeof brandingTokens): string {
+  const lightTokens = serializeBrandingTokens(tokens.light);
+  const darkTokens = serializeBrandingTokens(tokens.dark);
+
+  return [
+    ':root, [data-theme="light"] {',
+    lightTokens,
+    "  color-scheme: light;",
+    "}",
+    "",
+    '[data-theme="dark"] {',
+    darkTokens,
+    "  color-scheme: dark;",
+    "}",
+  ].join("\n");
+}
+
+function serializeBrandingTokens(tokenSet: Record<string, string>): string {
+  return Object.entries(tokenSet)
+    .map(([key, value]) => `  ${key}: ${value};`)
+    .join("\n");
 }
 
 function resolveMetadataBase(url: string) {
@@ -116,15 +159,26 @@ function resolveMetadataBase(url: string) {
 }
 
 const resolvedMetadataBase = resolveMetadataBase(SITE_URL);
+const themeColorMeta = [
+  {
+    media: "(prefers-color-scheme: light)",
+    color: `hsl(${brandingPalette.brand.base})`,
+  },
+  {
+    media: "(prefers-color-scheme: dark)",
+    color: `hsl(${brandingPalette.brand.dark})`,
+  },
+];
 
 export const metadata: Metadata = {
   metadataBase: resolvedMetadataBase,
+  applicationName: brandingMetadata.name,
   title: {
-    default: "Dynamic Capital",
-    template: "%s | Dynamic Capital",
+    default: brandingMetadata.name,
+    template: `%s | ${brandingMetadata.name}`,
   },
-  description:
-    "Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.",
+  description: brandingMetadata.description,
+  keywords: brandingMetadata.keywords,
   alternates: {
     canonical: resolvedMetadataBase?.toString() ?? SITE_URL,
   },
@@ -132,17 +186,36 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: resolvedMetadataBase?.toString() ?? SITE_URL,
-    siteName: "Dynamic Capital",
-    title: "Dynamic Capital",
-    description:
-      "Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.",
+    siteName: brandingMetadata.name,
+    title: brandingMetadata.name,
+    description: brandingMetadata.description,
+    ...(brandingAssets.socialPreview
+      ? {
+        images: [
+          {
+            url: brandingAssets.socialPreview,
+            width: 1200,
+            height: 630,
+            alt: `${brandingMetadata.name} social preview`,
+          },
+        ],
+      }
+      : {}),
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dynamic Capital",
-    description:
-      "Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.",
+    title: brandingMetadata.name,
+    description: brandingMetadata.description,
+    ...(brandingAssets.socialPreview
+      ? { images: [brandingAssets.socialPreview] }
+      : {}),
   },
+  icons: {
+    icon: brandingAssets.favicon,
+    shortcut: brandingAssets.favicon,
+    apple: brandingAssets.appleTouchIcon,
+  },
+  themeColor: themeColorMeta,
 };
 
 const fontClassName = classNames(
@@ -168,7 +241,7 @@ export default async function RootLayout(
         {...htmlAttributeDefaults}
         data-theme={DEFAULT_THEME}
       >
-        <head dangerouslySetInnerHTML={{ __html: ensureThemeScript(head) }} />
+        <head dangerouslySetInnerHTML={{ __html: ensureThemeAssets(head) }} />
         <body
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: body }}
@@ -188,10 +261,28 @@ export default async function RootLayout(
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#000000" />
+        <meta
+          name="theme-color"
+          content={`hsl(${brandingPalette.brand.base})`}
+        />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <link rel="apple-touch-icon" href="/logo.png" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/logo.png" />
+        <meta
+          name="apple-mobile-web-app-title"
+          content={brandingMetadata.name}
+        />
+        <link rel="apple-touch-icon" href={brandingAssets.appleTouchIcon} />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href={brandingAssets.favicon}
+        />
+        <link rel="icon" href={brandingAssets.favicon} />
+        <style
+          id={BRANDING_STYLE_ELEMENT_ID}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: dynamicBrandingStyles }}
+        />
         <script
           id={THEME_SCRIPT_ID}
           suppressHydrationWarning
