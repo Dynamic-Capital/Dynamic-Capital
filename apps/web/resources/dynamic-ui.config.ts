@@ -23,16 +23,18 @@ const baseURL: string = brandingMetadata.primaryUrl;
 const routes: RoutesConfig = {
   "/": true,
   "/about": true,
-  "/plans": true,
-  "/checkout": true,
-  "/login": true,
   "/admin": true,
-  "/signal": true,
-  "/work": true,
-  "/blog": true,
+  "/blog": { enabled: true, includeChildren: true },
+  "/checkout": true,
   "/gallery": false,
+  "/login": true,
+  "/miniapp": { enabled: true, includeChildren: true },
+  "/plans": true,
+  "/styles": true,
   "/telegram": true,
   "/token": true,
+  "/ui/sandbox": true,
+  "/work": { enabled: true, includeChildren: true },
 };
 
 const display: DisplayConfig = {
