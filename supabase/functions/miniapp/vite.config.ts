@@ -1,6 +1,8 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
-import { resolve } from 'path'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import { resolve } from "path";
+
+const BUILD_TARGET = "es2020";
 
 export default defineConfig({
   plugins: [react()],
@@ -9,8 +11,21 @@ export default defineConfig({
       "@": resolve(__dirname, "./src"),
     },
   },
+  esbuild: {
+    target: BUILD_TARGET,
+    drop: ["console", "debugger"],
+    legalComments: "none",
+  },
+  optimizeDeps: {
+    include: ["react", "react-dom", "react-router-dom"],
+    esbuildOptions: {
+      target: BUILD_TARGET,
+    },
+  },
   build: {
-    outDir: './static',
+    target: BUILD_TARGET,
+    minify: "esbuild",
+    outDir: "./static",
     emptyOutDir: true,
     rollupOptions: {
       output: {
@@ -19,7 +34,7 @@ export default defineConfig({
     },
   },
   css: {
-    postcss: './postcss.config.js',
+    postcss: "./postcss.config.js",
   },
-  base: './',
-})
+  base: "./",
+});
