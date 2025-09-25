@@ -106,6 +106,42 @@ const MENTOR_FEATURES = [
   "Specialist cohorts for founders, funds, and operators",
 ];
 
+const DEPLOYMENT_CAPABILITIES = [
+  {
+    id: "parallel-builds",
+    icon: "grid" as const,
+    title: "Build multiple deployments simultaneously",
+    description:
+      "Fan out preview, staging, and production pipelines without serial bottlenecks so every branch can ship on its own cadence.",
+    highlights: [
+      "Never wait for a queued build; capacity scales automatically across dedicated runners.",
+      "Coordinated rollouts let product, data, and operations teams deploy in parallel without stepping on each other.",
+    ],
+  },
+  {
+    id: "accelerated-ci",
+    icon: "rocket" as const,
+    title: "Get faster builds",
+    description:
+      "Provision compute tuned for heavy dependency graphs, Storybook captures, or integration suites the moment a pipeline needs it.",
+    highlights: [
+      "Build on larger machines to crunch asset bundling, testing, and static exports in a fraction of the time.",
+      "Usage-aware autoscaling preheats runners with cached dependencies so cold starts fade away.",
+    ],
+  },
+  {
+    id: "version-safety",
+    icon: "shield" as const,
+    title: "Prevent frontend-backend mismatches",
+    description:
+      "Promote releases with contract checks that keep APIs, clients, and background workers aligned across every environment.",
+    highlights: [
+      "Automatically sync client and server versions to avoid deployment conflicts before traffic shifts.",
+      "Release gates validate schema changes, migrations, and feature flags so nothing ships out of order.",
+    ],
+  },
+] as const;
+
 const TRUST_MARKS = [
   {
     icon: "shield" as const,
@@ -243,19 +279,22 @@ export function DynamicCapitalLandingPage() {
       <Section revealDelay={0.4}>
         <ExperienceHighlightsSection />
       </Section>
-      <Section variant="wide" revealDelay={0.48}>
+      <Section revealDelay={0.48}>
+        <DeploymentVelocitySection />
+      </Section>
+      <Section variant="wide" revealDelay={0.56}>
         <MarketIntelligenceSection />
       </Section>
-      <Section revealDelay={0.56}>
+      <Section revealDelay={0.64}>
         <VipPlansPricingSection />
       </Section>
-      <Section revealDelay={0.64}>
+      <Section revealDelay={0.72}>
         <MentorAndTrustSection />
       </Section>
-      <Section revealDelay={0.72}>
+      <Section revealDelay={0.8}>
         <FundingReadinessSection />
       </Section>
-      <Section revealDelay={0.8}>
+      <Section revealDelay={0.88}>
         <CheckoutCallout />
       </Section>
       <Section reveal={false}>
@@ -556,6 +595,73 @@ function ExperienceHighlightsSection() {
             >
               {step.description}
             </Text>
+          </Column>
+        ))}
+      </div>
+    </Column>
+  );
+}
+
+function DeploymentVelocitySection() {
+  return (
+    <Column fillWidth gap="24" align="start">
+      <Column gap="12" align="start">
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="rocket">
+          Ship without bottlenecks
+        </Tag>
+        <Heading variant="display-strong-xs" wrap="balance">
+          Build pipelines engineered for simultaneous releases
+        </Heading>
+        <Text
+          variant="body-default-l"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Dynamic Capital keeps CI parallel, elastic, and version-aware so your
+          teams can launch features the moment they are reviewed.
+        </Text>
+      </Column>
+      <div className={styles.featureGrid}>
+        {DEPLOYMENT_CAPABILITIES.map((capability) => (
+          <Column
+            key={capability.id}
+            background="surface"
+            border="neutral-alpha-weak"
+            radius="l"
+            padding="xl"
+            gap="16"
+            className={styles.card}
+            align="start"
+          >
+            <Row gap="12" vertical="center">
+              <Icon name={capability.icon} onBackground="brand-medium" />
+              <Heading variant="heading-strong-m" wrap="balance">
+                {capability.title}
+              </Heading>
+            </Row>
+            <Text
+              variant="body-default-m"
+              onBackground="neutral-weak"
+              wrap="balance"
+            >
+              {capability.description}
+            </Text>
+            <Column as="ul" gap="12" align="start" className={styles.pillList}>
+              {capability.highlights.map((highlight) => (
+                <Row
+                  as="li"
+                  key={highlight}
+                  gap="8"
+                  vertical="start"
+                  align="start"
+                >
+                  <Icon name="check" onBackground="brand-medium" />
+                  <Text as="span" variant="body-default-m">
+                    {highlight}
+                  </Text>
+                </Row>
+              ))}
+            </Column>
           </Column>
         ))}
       </div>
