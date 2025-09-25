@@ -18,7 +18,7 @@ This project relies on a Next.js service and Supabase Edge Functions. Use the fo
 - Run `deno run -A scripts/configure-digitalocean-dns.ts --dry-run` to inspect the
   planned DNS state for `dynamic-capital.lovable.app`. Remove `--dry-run` once the
   plan looks correct to apply changes through `doctl`. The script keeps the
-  Lovable zone aligned with the shared Cloudflare front door by replaying the
+  Dynamic-managed zone aligned with the shared Cloudflare front door by replaying the
   records from [`dns/dynamic-capital.lovable.app.json`](../dns/dynamic-capital.lovable.app.json).
 
 ## Public static ingress IPs
@@ -55,13 +55,13 @@ Traffic routed through Cloudflare may arrive from public IPs such as `162.159.14
   publishes DigitalOcean-hosted links.
 - `supabase/config.toml` now sets `site_url`, `additional_redirect_urls`, and
   the Supabase Functions env block to the DigitalOcean origin while allowlisting
-  the Lovable and Vercel hosts for cross-domain API calls.
-- `vercel.json` and the Lovable scripts default to the DigitalOcean domain but
+  the Dynamic and Vercel hosts for cross-domain API calls.
+- `vercel.json` and the Dynamic scripts default to the DigitalOcean domain but
   expose the full allow list so alternate hosts continue to work without
   additional overrides.
 - `lovable-build.js` and `lovable-dev.js` hydrate `SITE_URL`,
   `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` before running
-  Lovable workflows so previews and builds share the production origin when
+  Dynamic workflows so previews and builds share the production origin when
   values are omitted, with `ALLOWED_ORIGINS` defaulting to the combined host
   list.
 

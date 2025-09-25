@@ -30,7 +30,7 @@ const {
 
 banner(
   "Codex CLI · Friendly Dev Mode",
-  "Configuring the Lovable workspace with emoji-powered feedback.",
+  "Configuring the Dynamic workspace with emoji-powered feedback.",
 );
 info(`Resolved origin preference: ${resolvedOrigin}`);
 
@@ -46,9 +46,13 @@ if (defaultedKeys.length > 0) {
 }
 
 if (lovableOriginDefaulted) {
-  note(`LOVABLE_ORIGIN defaulted to ${resolvedOrigin} for local previews.`);
+  note(
+    `LOVABLE_ORIGIN defaulted to ${resolvedOrigin} so Dynamic previews stay aligned.`,
+  );
 } else {
-  info(`LOVABLE_ORIGIN already configured as ${process.env.LOVABLE_ORIGIN}.`);
+  info(
+    `LOVABLE_ORIGIN already configured as ${process.env.LOVABLE_ORIGIN} for Dynamic previews.`,
+  );
 }
 
 if (supabaseFallbacks.length > 0) {

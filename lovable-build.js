@@ -31,7 +31,7 @@ const {
 
 banner(
   "Codex CLI · Friendly Build Mode",
-  "Running Lovable build tasks with cheerful updates.",
+  "Running Dynamic build tasks with cheerful updates.",
 );
 info(`Resolved origin preference: ${resolvedOrigin}`);
 
@@ -48,10 +48,12 @@ if (defaultedKeys.length > 0) {
 
 if (lovableOriginDefaulted) {
   note(
-    `LOVABLE_ORIGIN defaulted to ${resolvedOrigin} so previews match the build.`,
+    `LOVABLE_ORIGIN defaulted to ${resolvedOrigin} so Dynamic previews match the build.`,
   );
 } else {
-  info(`LOVABLE_ORIGIN already configured as ${process.env.LOVABLE_ORIGIN}.`);
+  info(
+    `LOVABLE_ORIGIN already configured as ${process.env.LOVABLE_ORIGIN} for Dynamic previews.`,
+  );
 }
 
 if (supabaseFallbacks.length > 0) {

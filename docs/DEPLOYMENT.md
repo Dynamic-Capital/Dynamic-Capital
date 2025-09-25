@@ -12,7 +12,7 @@ environment changes described in this document so the repository remains a
 single source of truth for deployments. The checked-in spec provisions a single
 Node.js service named `dynamic-capital`, configures
 `dynamic-capital.ondigitalocean.app` as the primary domain while registering the
-Vercel and Lovable hosts as aliases, and leaves ingress open so every hostname
+Vercel and Dynamic hosts as aliases, and leaves ingress open so every hostname
 continues to route traffic. The service runs `node scripts/digitalocean-build.mjs`
 from the repository root before starting the Next.js server via `npm run start:web`.
 Requests are served on port `8080`, and the runtime sets `SITE_URL`,
@@ -54,7 +54,7 @@ Use that file if you need to rehydrate the canonical host while keeping
 Cloudflare in front of the service. Production traffic now targets the
 DigitalOcean domain, with `dynamic-capital.vercel.app` and
 `dynamic-capital.lovable.app` staying active for load sharing. The helper
-`configure-digitalocean-dns.ts` script keeps the Lovable domain aligned with the
+`configure-digitalocean-dns.ts` script keeps the Dynamic domain aligned with the
 expected records:
 
 ```bash
@@ -228,7 +228,7 @@ build or runtime command changes.
 
 The `SITE_URL` variable must match your public domain, e.g.
 `https://dynamic-capital.ondigitalocean.app`, and `ALLOWED_ORIGINS` should
-include the Lovable and Vercel hosts if you continue to share load across them.
+include the Dynamic and Vercel hosts if you continue to share load across them.
 
 ## Deployment logs
 

@@ -139,7 +139,7 @@ const tasksByMode = {
       skip: skipSync,
       optional: true,
     }),
-    command('Start Lovable development server', 'node lovable-dev.js', {
+    command('Start Dynamic development server', 'node lovable-dev.js', {
       optional: false,
     }),
   ],
@@ -286,7 +286,7 @@ function printUsage() {
     '',
     'Modes:',
     '  post-pull (default)  Prepare the repo after pulling from Codex CLI.',
-    '  dev                  Sync env and start Lovable dev server.',
+    '  dev                  Sync env and start Dynamic dev server.',
     '  build                Run env checks and Next.js build.',
     '  verify               Run the verification suite.',
     '',

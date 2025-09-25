@@ -18,7 +18,7 @@ Use this checklist to stay aligned with the existing automation, docs, and workf
 - [ ] Duplicate `.env.example` to `.env` and `.env.local` (or the relevant workspace file).
 - [ ] Run `npm run sync-env` to populate required variables.
 - [ ] Start local dependencies as needed: `npm run supabase:start`, `supabase functions serve telegram-bot --no-verify-jwt`, or other commands from the workflow guide.
-- [ ] When prototyping with Lovable, launch `npm run dev:lovable` to backfill origins, validate env keys, and ping Supabase for early configuration issues.
+- [ ] When prototyping with Dynamic, launch `npm run dev:lovable` to backfill origins, validate env keys, and ping Supabase for early configuration issues.
 - [ ] Start any background watchers relevant to your work (for example, `npm run upload-assets:watch` when editing landing-page assets).
 
 ## 3. Plan Implementation & Tests

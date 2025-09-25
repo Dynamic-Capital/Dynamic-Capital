@@ -195,7 +195,7 @@ the data dependencies that must be honored when scaling features.
 | Telegram Bot Runtime   | `supabase/functions/telegram-*`, `queue/`, `broadcast/`                            | Bot Platform Team      | Backend Engineering    | Manage webhook health, cron schedules, and conversation flows; coordinate with Operations for incident response. |
 | Private Fund Pool      | `supabase/functions/private-pool-*`, migrations under `supabase/migrations/*fund*` | Trading Operations     | Finance & Compliance   | Enforce settlement rules, reconcile payouts, and update policies alongside regulatory guidance.                  |
 | Compliance & Audits    | `docs/compliance/*`, `supabase/functions/*-audit*`, `scripts/verify/*`             | Compliance Team        | Operations Engineering | Keep attestations current and automate verification scripts in CI.                                               |
-| Infrastructure & DevEx | `docker/`, `lovable-*.js`, `tools/`, `scripts/*`                                   | Platform Engineering   | Backend Engineering    | Own build pipelines, container images, Lovable integration, and developer tooling upgrades.                      |
+| Infrastructure & DevEx | `docker/`, `lovable-*.js`, `tools/`, `scripts/*`                                   | Platform Engineering   | Backend Engineering    | Own build pipelines, container images, Dynamic integration, and developer tooling upgrades.                      |
 
 ## 3. Optimization Opportunities & Tracker
 
