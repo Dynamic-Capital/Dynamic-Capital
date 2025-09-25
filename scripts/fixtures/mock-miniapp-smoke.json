@@ -1,0 +1,6 @@
+{
+  "HEAD /miniapp/": 200,
+  "GET /miniapp/version": 200,
+  "HEAD /functions/v1/miniapp/": 200,
+  "GET /functions/v1/miniapp/version": 200
+}
