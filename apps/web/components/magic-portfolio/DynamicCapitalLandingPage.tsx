@@ -1,22 +1,129 @@
-import { Column, RevealFx, Row, Schema } from "@/components/dynamic-ui-system";
-import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
+import { type ReactNode } from "react";
+
+import {
+  Column,
+  Heading,
+  Icon,
+  RevealFx,
+  Row,
+  Schema,
+  Tag,
+  Text,
+} from "@/components/dynamic-ui-system";
 import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
-import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
 import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
 import { FxMarketSnapshotSection } from "@/components/magic-portfolio/home/FxMarketSnapshotSection";
-import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
 import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
-import { PerformanceInsightsSection } from "@/components/magic-portfolio/home/PerformanceInsightsSection";
-import { ValuePropositionSection } from "@/components/magic-portfolio/home/ValuePropositionSection";
-import { CommodityStrengthSection } from "@/components/magic-portfolio/home/CommodityStrengthSection";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
-import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
-import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
-import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
-import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 import { cn } from "@/utils";
+import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 import styles from "./DynamicCapitalLandingPage.module.scss";
+
+const QUICK_METRICS = [
+  {
+    icon: "timer" as const,
+    value: "12 days",
+    label: "median time to unlock live signals",
+  },
+  {
+    icon: "target" as const,
+    value: "91%",
+    label: "playbook adherence once automation is active",
+  },
+  {
+    icon: "sparkles" as const,
+    value: "4.9/5",
+    label: "mentor satisfaction from active members",
+  },
+];
+
+const EXPERIENCE_HIGHLIGHTS = [
+  {
+    icon: "sparkles" as const,
+    title: "Automation that adapts",
+    description:
+      "A 45-second intake calibrates alerts, guardrails, and prep so every session opens ready to trade.",
+    bullets: [
+      "Dynamic agendas matched to your markets and timezone",
+      "Risk locks and journaling automations pre-armed",
+    ],
+  },
+  {
+    icon: "users" as const,
+    title: "Mentors on standby",
+    description:
+      "Desk leads review plans, run live drills, and answer questions without leaving the workspace.",
+    bullets: [
+      "Office hours and instant escalations inside the desk",
+      "Cohorts grouped by objective for faster feedback",
+    ],
+  },
+  {
+    icon: "shield" as const,
+    title: "Institutional guardrails",
+    description:
+      "Compliance-ready controls, SOC 2 aligned logging, and broker connectivity trusted by global teams.",
+    bullets: [
+      "Automated limits pause risk before breaches occur",
+      "Reporting that satisfies fund and prop requirements",
+    ],
+  },
+];
+
+const JOURNEY_STEPS = [
+  {
+    label: "Day 1",
+    title: "Calibrate your desk",
+    description:
+      "Intake syncs playbooks, alerts, and routines around your objective within minutes.",
+  },
+  {
+    label: "Day 3",
+    title: "Rehearse automation",
+    description:
+      "Mentor-led drills validate readiness scores while risk controls and journals auto-populate.",
+  },
+  {
+    label: "Day 7",
+    title: "Trade with guardrails",
+    description:
+      "Signals, reporting, and escalation paths activate once consistency targets are met.",
+  },
+];
+
+const MARKET_FEATURES = [
+  "Realtime watchlists annotated by analysts",
+  "FX posture and correlations refreshed every hour",
+  "Economic calendar synced to your trading windows",
+];
+
+const MENTOR_FEATURES = [
+  "Weekly performance reviews with actionable follow-ups",
+  "Direct chat escalation to mentors in under two minutes",
+  "Specialist cohorts for founders, funds, and operators",
+];
+
+const TRUST_MARKS = [
+  {
+    icon: "shield" as const,
+    title: "Compliance-first",
+    description:
+      "SOC 2 aligned logging, encrypted archives, and role-based access baked into every workflow.",
+  },
+  {
+    icon: "globe" as const,
+    title: "Global coverage",
+    description:
+      "London, Dubai, and Singapore desks keep sessions live across all major market opens.",
+  },
+  {
+    icon: "grid" as const,
+    title: "Tier-1 connectivity",
+    description:
+      "Direct integrations with regulated liquidity partners and broker APIs for institutional routing.",
+  },
+];
 
 export function DynamicCapitalLandingPage() {
   return (
@@ -40,110 +147,330 @@ export function DynamicCapitalLandingPage() {
           image: toAbsoluteUrl(baseURL, person.avatar),
         }}
       />
-      <div className={styles.section}>
+      <Section variant="wide" reveal={false}>
         <HeroExperience />
-      </div>
-      <RevealFx translateY="20" delay={0.6}>
-        <div className={styles.section}>
-          <ValuePropositionSection />
-        </div>
-      </RevealFx>
-      <RevealFx translateY="20" delay={0.64}>
-        <div className={styles.section}>
-          <PerformanceInsightsSection />
-        </div>
-      </RevealFx>
-      <div className={cn(styles.section, styles.sectionTight)}>
-        <Row
-          className={styles.splitRow}
-          fillWidth
-          gap="24"
-          wrap
-          s={{ direction: "column" }}
-          aria-label="Live market coverage"
+      </Section>
+      <Section revealDelay={0.4}>
+        <ExperienceHighlightsSection />
+      </Section>
+      <Section variant="wide" revealDelay={0.48}>
+        <MarketIntelligenceSection />
+      </Section>
+      <Section revealDelay={0.56}>
+        <MentorAndTrustSection />
+      </Section>
+      <Section revealDelay={0.64}>
+        <CheckoutCallout />
+      </Section>
+      <Section reveal={false}>
+        <Mailchimp className={styles.card} />
+      </Section>
+    </Column>
+  );
+}
+
+type SectionVariant = "compact" | "wide";
+
+interface SectionProps {
+  children: ReactNode;
+  className?: string;
+  reveal?: boolean;
+  revealDelay?: number;
+  variant?: SectionVariant;
+}
+
+function Section({
+  children,
+  className,
+  reveal = true,
+  revealDelay,
+  variant = "compact",
+}: SectionProps) {
+  const variantClassName = variant === "wide"
+    ? styles.sectionWide
+    : styles.sectionCompact;
+  const section = (
+    <div className={cn(styles.section, variantClassName, className)}>
+      {children}
+    </div>
+  );
+
+  if (!reveal) {
+    return section;
+  }
+
+  return (
+    <RevealFx translateY="16" delay={revealDelay}>
+      {section}
+    </RevealFx>
+  );
+}
+
+function ExperienceHighlightsSection() {
+  return (
+    <Column fillWidth gap="24" align="start">
+      <Column gap="12" align="start">
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
+          Built for disciplined, modern operators
+        </Tag>
+        <Heading variant="display-strong-xs" wrap="balance">
+          Everything you need to prep, rehearse, and execute in one streamlined
+          desk
+        </Heading>
+        <Text
+          variant="body-default-l"
+          onBackground="neutral-weak"
+          wrap="balance"
         >
-          <Column flex={1} minWidth={24} gap="16">
-            <RevealFx translateY="20" delay={0.68}>
-              <MarketWatchlist />
-            </RevealFx>
+          Dynamic Capital merges automation, coaching, and market context so you
+          can move from idea to live trade without juggling disconnected tools.
+        </Text>
+      </Column>
+      <div className={styles.statGrid}>
+        {QUICK_METRICS.map((metric) => (
+          <Column
+            key={metric.label}
+            background="surface"
+            border="neutral-alpha-weak"
+            radius="l"
+            padding="l"
+            gap="12"
+            className={styles.card}
+            align="start"
+          >
+            <Row gap="12" vertical="center">
+              <Icon name={metric.icon} onBackground="brand-medium" />
+              <Heading variant="display-strong-xs">{metric.value}</Heading>
+            </Row>
+            <Text variant="body-default-m" onBackground="neutral-weak">
+              {metric.label}
+            </Text>
           </Column>
-          <Column flex={1} minWidth={24} gap="16">
-            <Column gap="16">
-              <RevealFx translateY="20" delay={0.72}>
-                <FxMarketSnapshotSection />
-              </RevealFx>
-              <RevealFx translateY="20" delay={0.76}>
-                <EconomicCalendarSection />
-              </RevealFx>
+        ))}
+      </div>
+      <div className={styles.featureGrid}>
+        {EXPERIENCE_HIGHLIGHTS.map((highlight) => (
+          <Column
+            key={highlight.title}
+            background="surface"
+            border="neutral-alpha-weak"
+            radius="l"
+            padding="xl"
+            gap="16"
+            className={styles.card}
+            align="start"
+          >
+            <Row gap="12" vertical="center">
+              <Icon name={highlight.icon} onBackground="brand-medium" />
+              <Heading variant="heading-strong-m">{highlight.title}</Heading>
+            </Row>
+            <Text
+              variant="body-default-m"
+              onBackground="neutral-weak"
+              wrap="balance"
+            >
+              {highlight.description}
+            </Text>
+            <Column as="ul" gap="12" align="start" className={styles.pillList}>
+              {highlight.bullets.map((bullet) => (
+                <Row
+                  as="li"
+                  key={bullet}
+                  gap="8"
+                  vertical="start"
+                  align="start"
+                >
+                  <Icon name="check" onBackground="brand-medium" />
+                  <Text as="span" variant="body-default-m">
+                    {bullet}
+                  </Text>
+                </Row>
+              ))}
             </Column>
           </Column>
-        </Row>
+        ))}
       </div>
-      <RevealFx translateY="20" delay={0.76}>
-        <div className={styles.section}>
-          <CommodityStrengthSection />
-        </div>
-      </RevealFx>
-      <div className={cn(styles.section, styles.sectionTight)}>
-        <Row
-          className={styles.splitRow}
-          fillWidth
-          gap="24"
-          wrap
-          s={{ direction: "column" }}
-          aria-label="Trading insights"
-        >
-          <Column flex={1} minWidth={24} gap="16">
-            <RevealFx translateY="20" delay={0.78}>
-              <FundamentalAnalysisSection />
-            </RevealFx>
+      <div className={styles.journeyStrip}>
+        {JOURNEY_STEPS.map((step, index) => (
+          <Column
+            key={step.title}
+            background="brand-alpha-weak"
+            border="brand-alpha-medium"
+            radius="l"
+            padding="l"
+            gap="12"
+            className={styles.card}
+            align="start"
+          >
+            <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
+              Step {String(index + 1).padStart(2, "0")}
+            </Tag>
+            <Heading variant="heading-strong-m">{step.title}</Heading>
+            <Text variant="label-default-s" onBackground="brand-weak">
+              {step.label}
+            </Text>
+            <Text
+              variant="body-default-m"
+              onBackground="brand-weak"
+              wrap="balance"
+            >
+              {step.description}
+            </Text>
           </Column>
-          <Column flex={1} minWidth={24} gap="16">
-            <RevealFx translateY="20" delay={0.82}>
-              <PoolTradingSection />
-            </RevealFx>
-          </Column>
-        </Row>
-      </div>
-      <RevealFx translateY="20" delay={0.86}>
-        <div className={styles.section}>
-          <MentorshipProgramsSection />
-        </div>
-      </RevealFx>
-      <div className={cn(styles.section, styles.sectionTight)}>
-        <Row
-          className={styles.splitRow}
-          fillWidth
-          gap="24"
-          wrap
-          s={{ direction: "column" }}
-          aria-label="Brand trust"
-        >
-          <Column flex={1} minWidth={24} gap="16">
-            <RevealFx translateY="20" delay={0.9}>
-              <ComplianceCertificates />
-            </RevealFx>
-          </Column>
-          <Column flex={1} minWidth={24} gap="16">
-            <RevealFx translateY="20" delay={0.94}>
-              <AboutShowcase />
-            </RevealFx>
-          </Column>
-        </Row>
-      </div>
-      <RevealFx translateY="20" delay={0.98}>
-        <div className={styles.section}>
-          <VipPackagesSection />
-        </div>
-      </RevealFx>
-      <RevealFx translateY="20" delay={1.02}>
-        <div className={styles.section}>
-          <CheckoutCallout />
-        </div>
-      </RevealFx>
-      <div className={styles.section}>
-        <Mailchimp />
+        ))}
       </div>
     </Column>
+  );
+}
+
+function MarketIntelligenceSection() {
+  return (
+    <Column fillWidth gap="24" align="start">
+      <Column gap="12" align="start">
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
+          Live market intelligence
+        </Tag>
+        <Heading variant="display-strong-xs" wrap="balance">
+          Always-on coverage that keeps you calibrated to the next catalyst
+        </Heading>
+        <Text
+          variant="body-default-l"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          From curated watchlists to macro posture and event risk, the desk
+          surfaces what matters before you even ask.
+        </Text>
+      </Column>
+      <div className={styles.marketGrid}>
+        <Column
+          background="surface"
+          border="neutral-alpha-weak"
+          radius="l"
+          padding="xl"
+          gap="16"
+          className={styles.card}
+          align="start"
+        >
+          <Heading variant="heading-strong-m">
+            Coverage that moves with the market
+          </Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            wrap="balance"
+          >
+            Real-time intel is layered directly into your workspace so you can
+            stay in flow while the desk tracks the macro picture for you.
+          </Text>
+          <Column as="ul" gap="12" align="start">
+            {MARKET_FEATURES.map((feature) => (
+              <Row
+                as="li"
+                key={feature}
+                gap="8"
+                vertical="start"
+                align="start"
+              >
+                <Icon name="sparkles" onBackground="brand-medium" />
+                <Text as="span" variant="body-default-m">
+                  {feature}
+                </Text>
+              </Row>
+            ))}
+          </Column>
+        </Column>
+        <Column gap="16" className={styles.card}>
+          <MarketWatchlist />
+        </Column>
+        <Column gap="16" className={styles.card}>
+          <FxMarketSnapshotSection />
+          <EconomicCalendarSection />
+        </Column>
+      </div>
+    </Column>
+  );
+}
+
+function MentorAndTrustSection() {
+  return (
+    <div className={styles.splitGrid}>
+      <Column
+        background="surface"
+        border="neutral-alpha-weak"
+        radius="l"
+        padding="xl"
+        gap="16"
+        className={styles.card}
+        align="start"
+      >
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="users">
+          Human expertise, on demand
+        </Tag>
+        <Heading variant="display-strong-xs" wrap="balance">
+          Mentors, cohorts, and reviews built into your routine
+        </Heading>
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Stay accountable with people who trade the same playbooks you do.
+          Whether you need a teardown or a fast gut-check, support is a click
+          away.
+        </Text>
+        <Column as="ul" gap="12" align="start">
+          {MENTOR_FEATURES.map((item) => (
+            <Row as="li" key={item} gap="8" vertical="start" align="start">
+              <Icon name="check" onBackground="brand-medium" />
+              <Text as="span" variant="body-default-m">
+                {item}
+              </Text>
+            </Row>
+          ))}
+        </Column>
+      </Column>
+      <Column
+        background="surface"
+        border="neutral-alpha-weak"
+        radius="l"
+        padding="xl"
+        gap="16"
+        className={styles.card}
+        align="start"
+      >
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="shield">
+          Trust the infrastructure
+        </Tag>
+        <Heading variant="display-strong-xs" wrap="balance">
+          Enterprise-grade controls without the enterprise drag
+        </Heading>
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Dynamic Capital is engineered with compliance teams in mind so you can
+          scale without introducing operational friction.
+        </Text>
+        <Column gap="16" align="start">
+          {TRUST_MARKS.map((mark) => (
+            <Column key={mark.title} gap="8" align="start">
+              <Row gap="12" vertical="center">
+                <Icon name={mark.icon} onBackground="brand-medium" />
+                <Heading variant="heading-strong-s">{mark.title}</Heading>
+              </Row>
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                {mark.description}
+              </Text>
+            </Column>
+          ))}
+        </Column>
+      </Column>
+    </div>
   );
 }

@@ -4,34 +4,91 @@
   width: 100%;
   padding-block: clamp(2.5rem, 6vw, 4.5rem);
   padding-inline: clamp(1.25rem, 5vw, 3.5rem);
-  gap: clamp(3rem, 6vw, 4.25rem);
+  gap: clamp(2.25rem, 4vw, 3.5rem);
 }
 
 .section {
-  width: min(1100px, 100%);
+  --section-width: min(64rem, 100%);
+  --section-gap: clamp(1.75rem, 3.5vw, 2.5rem);
+
+  width: 100%;
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: clamp(2.5rem, 5vw, 3.5rem);
+  gap: var(--section-gap);
+  max-width: var(--section-width);
 }
 
-.sectionTight {
-  gap: clamp(2rem, 4vw, 3rem);
+.sectionWide {
+  --section-width: min(72rem, 100%);
+  --section-gap: clamp(2rem, 3.5vw, 3rem);
 }
 
-.splitRow {
-  width: min(1100px, 100%);
-  margin-inline: auto;
-  gap: clamp(1.75rem, 4vw, 2.5rem);
+.sectionCompact {
+  --section-width: min(64rem, 100%);
+}
+
+%gridBase {
+  display: grid;
+  width: 100%;
+  align-items: stretch;
+}
+
+.statGrid {
+  @extend %gridBase;
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.featureGrid {
+  @extend %gridBase;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+}
+
+.journeyStrip {
+  @extend %gridBase;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.marketGrid {
+  @extend %gridBase;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+}
+
+.splitGrid {
+  @extend %gridBase;
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr));
+}
+
+.card {
+  height: 100%;
+}
+
+.pillList {
+  width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 @media (max-width: breakpoints.$m) {
   .page {
     padding-inline: clamp(1rem, 4vw, 2.25rem);
+    gap: clamp(2rem, 5vw, 3rem);
   }
 
-  .splitRow {
-    flex-direction: column;
+  .section {
+    --section-gap: clamp(1.5rem, 5vw, 2.25rem);
+  }
+
+  .marketGrid,
+  .splitGrid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -41,12 +98,9 @@
     padding-block: clamp(2rem, 8vw, 3rem);
   }
 
-  .section {
-    width: 100%;
-    gap: clamp(2rem, 6vw, 2.5rem);
-  }
-
-  .sectionTight {
-    gap: clamp(1.75rem, 6vw, 2.25rem);
+  .statGrid,
+  .featureGrid,
+  .journeyStrip {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
