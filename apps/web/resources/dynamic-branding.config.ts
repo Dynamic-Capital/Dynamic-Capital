@@ -1,8 +1,11 @@
 import {
+  type BrandingCorePalette,
   type BrandingGradients,
   type BrandingMetadata,
   type BrandingMotion,
   type BrandingPalette,
+  type BrandingThemePalette,
+  type BrandingThemeTokens,
   type BrandingTokens,
   type DynamicBrandingConfig,
   type DynamicBrandingOverrides,
@@ -139,6 +142,135 @@ const motion: BrandingMotion = {
   },
 };
 
+type BrandingPrimitiveConfig = {
+  palette: BrandingPalette;
+  gradients: BrandingGradients;
+  motion: BrandingMotion;
+};
+
+const PALETTE_TOKEN_MAP: Record<
+  Exclude<keyof BrandingThemePalette, "charts">,
+  string
+> = {
+  background: "--background",
+  foreground: "--foreground",
+  card: "--card",
+  cardForeground: "--card-foreground",
+  popover: "--popover",
+  popoverForeground: "--popover-foreground",
+  primary: "--primary",
+  primaryForeground: "--primary-foreground",
+  secondary: "--secondary",
+  secondaryForeground: "--secondary-foreground",
+  muted: "--muted",
+  mutedForeground: "--muted-foreground",
+  elevated: "--elevated",
+  accent: "--accent",
+  accentForeground: "--accent-foreground",
+  destructive: "--destructive",
+  destructiveForeground: "--destructive-foreground",
+  border: "--border",
+  input: "--input",
+  ring: "--ring",
+  radius: "--radius",
+};
+
+function createBrandingTokens(
+  primitives: BrandingPrimitiveConfig,
+): BrandingTokens {
+  return {
+    light: createThemeTokens(primitives, primitives.palette.light, "light"),
+    dark: createThemeTokens(primitives, primitives.palette.dark, "dark"),
+  };
+}
+
+function createThemeTokens(
+  { palette, gradients, motion }: BrandingPrimitiveConfig,
+  themePalette: BrandingThemePalette,
+  mode: "light" | "dark",
+): BrandingThemeTokens {
+  const themeTokens: BrandingThemeTokens = {};
+
+  for (
+    const key of Object.keys(PALETTE_TOKEN_MAP) as Array<
+      Exclude<keyof BrandingThemePalette, "charts">
+    >
+  ) {
+    const cssVar = PALETTE_TOKEN_MAP[key];
+    themeTokens[cssVar] = themePalette[key];
+  }
+
+  themePalette.charts.forEach((value, index) => {
+    themeTokens[`--chart-${index + 1}`] = value;
+  });
+
+  applyBrandTokens(themeTokens, palette.brand);
+  applyGradientTokens(themeTokens, gradients, mode);
+  applyMotionTokens(themeTokens, motion);
+
+  return themeTokens;
+}
+
+function applyBrandTokens(
+  target: BrandingThemeTokens,
+  brand: BrandingCorePalette,
+) {
+  target["--dc-brand"] = brand.base;
+  target["--dc-brand-light"] = brand.light;
+  target["--dc-brand-dark"] = brand.dark;
+  target["--dc-secondary"] = brand.secondary;
+  target["--dc-accent"] = brand.accent;
+}
+
+function applyGradientTokens(
+  target: BrandingThemeTokens,
+  gradients: BrandingGradients,
+  mode: "light" | "dark",
+) {
+  target["--gradient-brand"] = gradients.brand;
+  target["--gradient-primary"] = gradients.primary;
+  target["--gradient-card"] = gradients.card;
+  target["--gradient-hero"] = gradients.hero;
+  target["--gradient-navigation"] = gradients.navigation;
+  target["--gradient-motion-primary"] = gradients.motion.primary;
+  target["--gradient-motion-card"] = gradients.motion.card;
+  target["--gradient-motion-bg"] = mode === "light"
+    ? gradients.motion.backgroundLight
+    : gradients.motion.backgroundDark;
+
+  target["--glass-motion-bg"] = mode === "light"
+    ? gradients.glass.motionBackground
+    : gradients.glass.motionBackgroundDark;
+  target["--glass-motion-border"] = mode === "light"
+    ? gradients.glass.motionBorder
+    : gradients.glass.motionBorderDark;
+  target["--glass-motion-shadow"] = mode === "light"
+    ? gradients.glass.motionShadow
+    : gradients.glass.motionShadowDark;
+  target["--glass-motion-blur"] = gradients.glass.motionBlur;
+}
+
+function applyMotionTokens(
+  target: BrandingThemeTokens,
+  motion: BrandingMotion,
+) {
+  target["--motion-duration-fast"] = motion.durations.fast;
+  target["--motion-duration-normal"] = motion.durations.normal;
+  target["--motion-duration-slow"] = motion.durations.slow;
+  target["--motion-ease-spring"] = motion.easings.spring;
+  target["--motion-ease-bounce"] = motion.easings.bounce;
+  target["--motion-ease-smooth"] = motion.easings.smooth;
+  target["--shadow-motion-sm"] = motion.shadows.sm;
+  target["--shadow-motion-md"] = motion.shadows.md;
+  target["--shadow-motion-lg"] = motion.shadows.lg;
+  target["--shadow-motion-xl"] = motion.shadows.xl;
+  target["--shadow-motion-glow"] = motion.shadows.glow;
+  target["--scale-motion-sm"] = motion.scales.sm;
+  target["--scale-motion-md"] = motion.scales.md;
+  target["--scale-motion-lg"] = motion.scales.lg;
+  target["--scale-motion-press"] = motion.scales.press;
+}
+
 const metadata: BrandingMetadata = {
   name: "Dynamic Capital",
   tagline: "Institutional trading intelligence for ambitious operators.",
@@ -156,128 +288,7 @@ const metadata: BrandingMetadata = {
   supportEmail: "support@dynamic.capital",
 };
 
-const tokens: BrandingTokens = {
-  light: {
-    "--background": "0 0% 100%",
-    "--foreground": "224 71.4% 4.1%",
-    "--card": "0 0% 100%",
-    "--card-foreground": "224 71.4% 4.1%",
-    "--popover": "0 0% 100%",
-    "--popover-foreground": "224 71.4% 4.1%",
-    "--primary": "0 84% 58%",
-    "--primary-foreground": "0 0% 100%",
-    "--secondary": "0 68% 95%",
-    "--secondary-foreground": "0 45% 20%",
-    "--muted": "0 5% 96%",
-    "--muted-foreground": "0 5% 45%",
-    "--elevated": "0 72% 10%",
-    "--accent": "350 88% 60%",
-    "--accent-foreground": "0 0% 100%",
-    "--destructive": "0 72% 50%",
-    "--destructive-foreground": "0 0% 98%",
-    "--border": "0 10% 89%",
-    "--input": "0 10% 89%",
-    "--ring": "0 84% 58%",
-    "--radius": "0.5rem",
-    "--chart-1": "14 100% 57%",
-    "--chart-2": "200 100% 50%",
-    "--chart-3": "28 87% 67%",
-    "--chart-4": "340 82% 62%",
-    "--chart-5": "320 65% 55%",
-    "--motion-duration-fast": "0.15s",
-    "--motion-duration-normal": "0.3s",
-    "--motion-duration-slow": "0.6s",
-    "--motion-ease-spring": "cubic-bezier(0.16, 1, 0.3, 1)",
-    "--motion-ease-bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
-    "--motion-ease-smooth": "cubic-bezier(0.4, 0, 0.2, 1)",
-    "--dc-brand": "0 84% 58%",
-    "--dc-brand-light": "0 92% 68%",
-    "--dc-brand-dark": "0 76% 48%",
-    "--dc-secondary": "200 96% 52%",
-    "--dc-accent": "350 88% 60%",
-    "--gradient-brand": gradients.brand,
-    "--gradient-primary": gradients.primary,
-    "--gradient-card": gradients.card,
-    "--gradient-hero": gradients.hero,
-    "--gradient-navigation": gradients.navigation,
-    "--gradient-motion-primary": gradients.motion.primary,
-    "--gradient-motion-card": gradients.motion.card,
-    "--gradient-motion-bg": gradients.motion.backgroundLight,
-    "--glass-motion-bg": gradients.glass.motionBackground,
-    "--glass-motion-border": gradients.glass.motionBorder,
-    "--glass-motion-shadow": gradients.glass.motionShadow,
-    "--glass-motion-blur": gradients.glass.motionBlur,
-    "--shadow-motion-sm": motion.shadows.sm,
-    "--shadow-motion-md": motion.shadows.md,
-    "--shadow-motion-lg": motion.shadows.lg,
-    "--shadow-motion-xl": motion.shadows.xl,
-    "--shadow-motion-glow": motion.shadows.glow,
-    "--scale-motion-sm": motion.scales.sm,
-    "--scale-motion-md": motion.scales.md,
-    "--scale-motion-lg": motion.scales.lg,
-    "--scale-motion-press": motion.scales.press,
-  },
-  dark: {
-    "--background": "0 5% 6%",
-    "--foreground": "0 5% 98%",
-    "--card": "0 8% 8%",
-    "--card-foreground": "0 5% 98%",
-    "--popover": "0 8% 8%",
-    "--popover-foreground": "0 5% 98%",
-    "--primary": "0 84% 58%",
-    "--primary-foreground": "0 0% 100%",
-    "--secondary": "0 10% 15%",
-    "--secondary-foreground": "0 5% 98%",
-    "--muted": "0 10% 15%",
-    "--muted-foreground": "0 5% 65%",
-    "--elevated": "0 5% 95%",
-    "--accent": "350 88% 60%",
-    "--accent-foreground": "0 0% 100%",
-    "--destructive": "0 68% 46%",
-    "--destructive-foreground": "0 5% 98%",
-    "--border": "0 15% 18%",
-    "--input": "0 15% 18%",
-    "--ring": "0 84% 58%",
-    "--radius": "0.5rem",
-    "--chart-1": "14 100% 57%",
-    "--chart-2": "200 100% 50%",
-    "--chart-3": "28 87% 67%",
-    "--chart-4": "340 82% 62%",
-    "--chart-5": "320 65% 55%",
-    "--motion-duration-fast": "0.15s",
-    "--motion-duration-normal": "0.3s",
-    "--motion-duration-slow": "0.6s",
-    "--motion-ease-spring": "cubic-bezier(0.16, 1, 0.3, 1)",
-    "--motion-ease-bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
-    "--motion-ease-smooth": "cubic-bezier(0.4, 0, 0.2, 1)",
-    "--dc-brand": "0 84% 58%",
-    "--dc-brand-light": "0 92% 68%",
-    "--dc-brand-dark": "0 76% 48%",
-    "--dc-secondary": "200 96% 52%",
-    "--dc-accent": "350 88% 60%",
-    "--gradient-brand": gradients.brand,
-    "--gradient-primary": gradients.primary,
-    "--gradient-card": gradients.card,
-    "--gradient-hero": gradients.hero,
-    "--gradient-navigation": gradients.navigation,
-    "--gradient-motion-primary": gradients.motion.primary,
-    "--gradient-motion-card": gradients.motion.card,
-    "--gradient-motion-bg": gradients.motion.backgroundDark,
-    "--glass-motion-bg": gradients.glass.motionBackgroundDark,
-    "--glass-motion-border": gradients.glass.motionBorderDark,
-    "--glass-motion-shadow": gradients.glass.motionShadowDark,
-    "--glass-motion-blur": gradients.glass.motionBlur,
-    "--shadow-motion-sm": motion.shadows.sm,
-    "--shadow-motion-md": motion.shadows.md,
-    "--shadow-motion-lg": motion.shadows.lg,
-    "--shadow-motion-xl": motion.shadows.xl,
-    "--shadow-motion-glow": motion.shadows.glow,
-    "--scale-motion-sm": motion.scales.sm,
-    "--scale-motion-md": motion.scales.md,
-    "--scale-motion-lg": motion.scales.lg,
-    "--scale-motion-press": motion.scales.press,
-  },
-};
+const tokens = createBrandingTokens({ palette, gradients, motion });
 
 const dynamicBranding: DynamicBrandingConfig = {
   palette,
@@ -337,7 +348,47 @@ export function importDynamicBranding(
   if (!isRecord(overrides)) {
     return exportDynamicBranding();
   }
-  return deepMerge(dynamicBranding, overrides);
+  const merged = deepMerge(dynamicBranding, overrides);
+  const generatedTokens = createBrandingTokens({
+    palette: merged.palette,
+    gradients: merged.gradients,
+    motion: merged.motion,
+  });
+
+  merged.tokens = applyTokenOverrides(generatedTokens, overrides.tokens);
+
+  return merged;
 }
 
 export { dynamicBranding };
+
+function applyTokenOverrides(
+  generated: BrandingTokens,
+  overrides: DynamicBrandingOverrides["tokens"],
+): BrandingTokens {
+  if (!isRecord(overrides)) {
+    return generated;
+  }
+
+  return {
+    light: mergeThemeTokens(generated.light, overrides.light),
+    dark: mergeThemeTokens(generated.dark, overrides.dark),
+  };
+}
+
+function mergeThemeTokens(
+  base: BrandingThemeTokens,
+  overrides: unknown,
+): BrandingThemeTokens {
+  if (!isRecord(overrides)) {
+    return base;
+  }
+
+  const merged: BrandingThemeTokens = { ...base };
+  for (const [token, value] of Object.entries(overrides)) {
+    if (typeof value === "string") {
+      merged[token] = value;
+    }
+  }
+  return merged;
+}

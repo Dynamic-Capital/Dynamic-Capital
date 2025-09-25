@@ -37,11 +37,6 @@ test("importDynamicBranding merges overrides without mutating base config", () =
     metadata: {
       tagline: "Test tagline",
     },
-    tokens: {
-      light: {
-        "--primary": "10 82% 52%",
-      },
-    },
   });
 
   assertEqual(merged.palette.light.primary, "10 82% 52%");
@@ -50,6 +45,19 @@ test("importDynamicBranding merges overrides without mutating base config", () =
 
   assertEqual(dynamicBranding.palette.light.primary, ORIGINAL_PRIMARY);
   assertEqual(dynamicBranding.metadata.tagline, ORIGINAL_TAGLINE);
+  assertEqual(dynamicBranding.tokens.light["--primary"], ORIGINAL_PRIMARY);
+});
+
+test("importDynamicBranding allows token overrides to opt-out of automation", () => {
+  const merged = importDynamicBranding({
+    tokens: {
+      light: {
+        "--primary": "120 50% 45%",
+      },
+    },
+  });
+
+  assertEqual(merged.tokens.light["--primary"], "120 50% 45%");
   assertEqual(dynamicBranding.tokens.light["--primary"], ORIGINAL_PRIMARY);
 });
 
