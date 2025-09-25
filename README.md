@@ -173,6 +173,17 @@ platform's configuration for each component.
 > `node scripts/npm-safe.mjs run dev`) to strip the deprecated proxy keys and
 > silence the warning while preserving HTTP/HTTPS proxy support.
 
+If you regularly invoke bare `npm` commands (such as `npm audit --omit=dev`)
+and want to clean your current shell once per session, run:
+
+```bash
+eval "$(node scripts/env/clean-legacy-npm-proxy.mjs)"
+```
+
+The helper prints `export`/`unset` commands that remap the legacy proxy
+variables to the supported `proxy`/`https-proxy` keys so subsequent npm calls
+run without the deprecation warning.
+
 ## Project Structure
 
 - **Functions** – Edge functions live under `supabase/functions` and any
