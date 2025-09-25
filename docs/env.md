@@ -105,8 +105,8 @@ You can confirm access with `doctl spaces list`.
 | `A_SUPABASE_URL`      | Supabase URL used by audit scripts.      | No       | `https://xyz.supabase.co` | `scripts/audit/read_meta.mjs`     |
 | `A_SUPABASE_KEY`      | Supabase key used by audit scripts.      | No       | `service-role-key`        | `scripts/audit/read_meta.mjs`     |
 | `HEALTH_URL`          | Base URL for mini app health checks.     | No       | `https://example.com`     | `scripts/miniapp-health-check.ts` |
-| `ALLOWED_ORIGINS`     | Comma-separated origins allowed for CORS (defaults to `SITE_URL` or `http://localhost:3000`). | No       | `https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app`     | `middleware.ts`, `supabase/functions/_shared/http.ts` |
-| `MINIAPP_ORIGIN`      | Origins allowed to call Telegram verification and mini-app APIs.              | No (required for production bots) | `https://dynamic-capital-qazf2.ondigitalocean.app` | `supabase/functions/verify-telegram/index.ts` |
+| `ALLOWED_ORIGINS`     | Comma-separated origins allowed for CORS (defaults to `SITE_URL` or `http://localhost:3000`). | No       | `https://dynamic-capital.ondigitalocean.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app`     | `middleware.ts`, `supabase/functions/_shared/http.ts` |
+| `MINIAPP_ORIGIN`      | Origins allowed to call Telegram verification and mini-app APIs.              | No (required for production bots) | `https://dynamic-capital.ondigitalocean.app` | `supabase/functions/verify-telegram/index.ts` |
 | `LOG_LEVEL`           | Minimum log level for server logs (`debug`, `info`, `warn`, `error`). | No       | `warn`                    | `utils/logger.ts` |
 | `FUNCTIONS_BASE_URL`   | Override Supabase functions host when provisioning database webhooks. | No       | `https://custom.functions.supabase.co` | `scripts/setup-db-webhooks.ts` |
 | `LOGTAIL_SOURCE_TOKEN` | Logtail source token used for Supabase log drain setup.              | No       | `gls_xxx`                    | `scripts/setup-log-drain.ts` |
