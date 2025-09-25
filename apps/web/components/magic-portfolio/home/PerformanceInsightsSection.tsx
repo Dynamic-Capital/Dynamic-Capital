@@ -11,7 +11,7 @@ import {
   Row,
   Tag,
   Text,
-} from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
 
 import { CountUp } from "@/components/ui/enhanced-typography";
 

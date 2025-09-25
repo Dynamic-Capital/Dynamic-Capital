@@ -8,7 +8,7 @@ import {
   SmartLink,
   Tag,
   Text,
-} from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
 import { person, social } from "@/resources";
 
 const TELEGRAM_LINK = social.find((item) => item.name === "Telegram")?.link ||

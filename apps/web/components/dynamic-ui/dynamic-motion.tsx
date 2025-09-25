@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Column, Flex, Row } from "@once-ui-system/core";
+import { Column, Flex, Row } from "@/components/dynamic-ui-system";
 
 import {
   type DynamicMotionVariantKey,

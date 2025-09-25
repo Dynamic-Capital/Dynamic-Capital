@@ -11,7 +11,7 @@ import {
   Spinner,
   Tag,
   Text,
-} from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
 
 import { callEdgeFunction } from "@/config/supabase";
 import { useToast } from "@/hooks/useToast";

@@ -9,8 +9,8 @@ import {
   Input,
   Row,
   Text,
-} from "@once-ui-system/core";
-import { opacity, SpacingToken } from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
+import { opacity, SpacingToken } from "@/components/dynamic-ui-system";
 import { useState } from "react";
 
 const {

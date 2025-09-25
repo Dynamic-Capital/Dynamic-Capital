@@ -1,4 +1,4 @@
-import { IconButton, Row, Text } from "@once-ui-system/core";
+import { IconButton, Row, Text } from "@/components/dynamic-ui-system";
 import { schema, social } from "@/resources";
 import styles from "./Footer.module.scss";
 

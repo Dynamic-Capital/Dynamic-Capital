@@ -11,8 +11,8 @@ import {
   Spinner,
   Tag,
   Text,
-} from "@once-ui-system/core";
-import type { SpacingToken } from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
+import type { SpacingToken } from "@/components/dynamic-ui-system";
 
 import { formatPrice } from "@/utils";
 import type { Plan } from "@/types/plan";

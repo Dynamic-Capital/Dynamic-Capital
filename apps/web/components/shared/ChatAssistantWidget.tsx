@@ -36,7 +36,7 @@ import {
   Row,
   Spinner,
   Text,
-} from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
 import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import { logChatMessage } from "@/integrations/supabase/queries";

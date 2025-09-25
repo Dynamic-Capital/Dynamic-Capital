@@ -17,7 +17,7 @@ import {
   Icon,
   Row,
   Text,
-} from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
 import { home } from "@/resources";
 import { cn } from "@/utils";
 import styles from "./HeroExperience.module.scss";

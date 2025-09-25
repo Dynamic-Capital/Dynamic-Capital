@@ -1,4 +1,4 @@
-import { Flex, Meta, Schema } from "@once-ui-system/core";
+import { Flex, Meta, Schema } from "@/components/dynamic-ui-system";
 import GalleryView from "@/components/magic-portfolio/gallery/GalleryView";
 import { baseURL, gallery, person, toAbsoluteUrl } from "@/resources";
 

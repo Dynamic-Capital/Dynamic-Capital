@@ -20,7 +20,7 @@ import {
   ThemeProvider,
   ToastProvider as DynamicToastProvider,
   TransitionStyle,
-} from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SupabaseProvider } from "@/context/SupabaseProvider";
 import { MotionConfigProvider } from "@/components/ui/motion-config";

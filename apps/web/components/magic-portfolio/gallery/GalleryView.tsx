@@ -1,6 +1,6 @@
 "use client";
 
-import { Media, MasonryGrid } from "@once-ui-system/core";
+import { Media, MasonryGrid } from "@/components/dynamic-ui-system";
 import { gallery } from "@/resources";
 
 export default function GalleryView() {

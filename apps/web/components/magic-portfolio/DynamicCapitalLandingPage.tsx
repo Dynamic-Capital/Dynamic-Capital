@@ -1,4 +1,4 @@
-import { Column, RevealFx, Row, Schema } from "@once-ui-system/core";
+import { Column, RevealFx, Row, Schema } from "@/components/dynamic-ui-system";
 import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
 import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
 import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
