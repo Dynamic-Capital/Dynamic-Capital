@@ -1,6 +1,7 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 import {
+  Button,
   Column,
   Heading,
   Icon,
@@ -125,6 +126,49 @@ const TRUST_MARKS = [
   },
 ];
 
+const SERVICES = [
+  {
+    id: "vip-mentorship",
+    icon: "users" as const,
+    name: "VIP Mentorship",
+    tagline: "Daily coaching, elite playbooks, instant feedback loops.",
+    description:
+      "Step into daily desk coaching with mentors who refine your plan, review your logs, and prep strategies before each session.",
+    ctaLabel: "Meet the mentors",
+    ctaHref: "#mentorship-programs",
+  },
+  {
+    id: "signal-channel",
+    icon: "radar" as const,
+    name: "Signal Channel",
+    tagline: "Premium market signals streamed in real time.",
+    description:
+      "Follow curated market structure, catalyst alerts, and execution zones so you can react with confidence when price moves.",
+    ctaLabel: "View live signals",
+    ctaHref: "#market-watchlist",
+  },
+  {
+    id: "private-fund-pool",
+    icon: "wallet" as const,
+    name: "Private Fund Pool",
+    tagline: "Pooled TON and DCT capital deployed with discipline.",
+    description:
+      "Access a private allocation desk that scales positions across TON and DCT with institutional risk controls and reporting.",
+    ctaLabel: "Explore pool trading",
+    ctaHref: "#pool-trading",
+  },
+  {
+    id: "dynamic-capital-token",
+    icon: "flame" as const,
+    name: "Dynamic Capital Token (DCT)",
+    tagline: "Deflationary supply with automated buyback and burn.",
+    description:
+      "Track utility unlocks, treasury flows, and scheduled burns that reinforce the token as the core access layer for the desk.",
+    ctaLabel: "Review token mechanics",
+    ctaHref: "#vip-packages",
+  },
+] as const;
+
 const FUNDING_METRICS = [
   {
     label: "Capital activated",
@@ -192,6 +236,9 @@ export function DynamicCapitalLandingPage() {
       <Section variant="wide" reveal={false}>
         <HeroExperience />
       </Section>
+      <Section revealDelay={0.32}>
+        <ServicesOverviewSection />
+      </Section>
       <Section revealDelay={0.4}>
         <ExperienceHighlightsSection />
       </Section>
@@ -248,6 +295,150 @@ function Section({
     <RevealFx translateY="16" delay={revealDelay}>
       {section}
     </RevealFx>
+  );
+}
+
+function ServicesOverviewSection() {
+  const [activeService, setActiveService] = useState<string | null>(null);
+
+  const activate = (serviceId: string) => {
+    setActiveService(serviceId);
+  };
+
+  const deactivate = (serviceId: string) => {
+    setActiveService((current) => (current === serviceId ? null : current));
+  };
+
+  const toggle = (serviceId: string) => {
+    setActiveService((current) => (current === serviceId ? null : serviceId));
+  };
+
+  return (
+    <Column fillWidth gap="24" align="start">
+      <Column gap="12" align="start">
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="compass">
+          Services overview
+        </Tag>
+        <Heading variant="display-strong-xs" wrap="balance">
+          Navigate every Dynamic Capital service from a single hub
+        </Heading>
+        <Text
+          variant="body-default-l"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Hover or focus each card to flip it, learn what the service unlocks,
+          and jump directly into the experience that fits your next move.
+        </Text>
+      </Column>
+      <div className={styles.servicesGrid}>
+        {SERVICES.map((service) => {
+          const isActive = activeService === service.id;
+
+          return (
+            <div
+              key={service.id}
+              className={cn(
+                styles.serviceCard,
+                isActive && styles.serviceCardActive,
+              )}
+              role="button"
+              tabIndex={0}
+              aria-expanded={isActive}
+              onPointerEnter={() => activate(service.id)}
+              onPointerLeave={() => deactivate(service.id)}
+              onFocusCapture={() => activate(service.id)}
+              onBlurCapture={(event) => {
+                const nextFocusTarget = event.relatedTarget as Node | null;
+
+                if (
+                  !nextFocusTarget ||
+                  !event.currentTarget.contains(nextFocusTarget)
+                ) {
+                  deactivate(service.id);
+                }
+              }}
+              onClick={(event) => {
+                const targetElement = (event.target as HTMLElement | null)
+                  ?.closest(
+                    "a,button",
+                  );
+
+                if (targetElement && targetElement !== event.currentTarget) {
+                  return;
+                }
+
+                event.preventDefault();
+                toggle(service.id);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  toggle(service.id);
+                }
+              }}
+            >
+              <div className={styles.serviceCardInner}>
+                <Column
+                  background="surface"
+                  border="neutral-alpha-weak"
+                  radius="l"
+                  padding="xl"
+                  gap="16"
+                  align="start"
+                  className={cn(styles.card, styles.cardFace, styles.cardFront)}
+                  aria-hidden={isActive}
+                >
+                  <Row gap="12" vertical="center">
+                    <Icon name={service.icon} onBackground="brand-medium" />
+                    <Heading variant="heading-strong-m">{service.name}</Heading>
+                  </Row>
+                  <Text
+                    variant="body-default-m"
+                    onBackground="neutral-weak"
+                    wrap="balance"
+                  >
+                    {service.tagline}
+                  </Text>
+                </Column>
+                <Column
+                  background="brand-alpha-weak"
+                  border="brand-alpha-medium"
+                  radius="l"
+                  padding="xl"
+                  gap="20"
+                  align="start"
+                  className={cn(styles.card, styles.cardFace, styles.cardBack)}
+                  aria-hidden={!isActive}
+                >
+                  <Column gap="12" align="start">
+                    <Heading variant="heading-strong-m" wrap="balance">
+                      {service.name}
+                    </Heading>
+                    <Text
+                      variant="body-default-m"
+                      onBackground="brand-weak"
+                      wrap="balance"
+                    >
+                      {service.description}
+                    </Text>
+                  </Column>
+                  <Button
+                    href={service.ctaHref}
+                    size="m"
+                    variant="secondary"
+                    data-border="rounded"
+                    arrowIcon
+                  >
+                    {service.ctaLabel}
+                  </Button>
+                </Column>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Column>
   );
 }
 
