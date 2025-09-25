@@ -37,11 +37,12 @@ key.
 | 8        | [`Vercel Production Checklist`](./VERCEL_PRODUCTION_CHECKLIST.md)                          | Well-architected review for hosted frontends                                    | Audit Vercel deployments for operational readiness                                    | —                     |
 | 9        | [`Automated Trading System Build Checklist`](./automated-trading-checklist.md)             | TradingView → Vercel → Supabase → MetaTrader 5 pipeline                         | Stand up or extend the automated trading stack                                        | —                     |
 | 10       | [`TradingView → MT5 Onboarding Checklist`](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md)      | Cross-team onboarding for the TradingView webhook to MT5 flow                   | Coordinate roadmap execution across teams                                             | —                     |
-| 11       | [`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md)          | Merging Dynamic Codex into this monorepo                                        | Completed — dashboard now lives at `/telegram` in the Next.js app                     | —                     |
-| 12       | [`Git Branch Organization Checklist`](./git-branch-organization-checklist.md)              | Align Git branches with deployable services and domains                         | Rework branching strategy to support independent deployments                          | —                     |
-| 13       | [`Investing.com Candlestick Signal Integration`](./investing-com-candlestick-checklist.md) | Bringing Investing.com pattern data into Supabase, queue, and Mini App surfaces | Plan and track the signal ingestion + alert rollout                                   | —                     |
-| 14       | [`Trading Algo Improvement Checklist`](./trading-algo-improvement-checklist.md)            | Tune Smart Money Concepts configuration & QA loops                              | Iterate on BOS/liquidity heuristics across config, analyzers, and delivery            | —                     |
-| 15       | [`ISO 9241 Environment Alignment Checklist`](./iso9241_environment_checklist.md)          | ISO 9241-110-aligned review of environments, branches, builds, and configuration | Audit deployment hygiene against usability principles                              | —                     |
+| 11       | [`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md)          | Merging Dynamic Codex into this monorepo                                        | Completed — dashboard now lives at `/telegram` in the Next.js app                  | —                     |
+| 12       | [`Grok-1 Integration Checklist`](./grok-1-integration-checklist.md)                        | Operationalizing Grok-1 across research, automation, and delivery pipelines     | Plan and track Grok-assisted workflows before exposing them to members                  | —                     |
+| 13       | [`Git Branch Organization Checklist`](./git-branch-organization-checklist.md)              | Align Git branches with deployable services and domains                         | Rework branching strategy to support independent deployments                  | —                     |
+| 14       | [`Investing.com Candlestick Signal Integration`](./investing-com-candlestick-checklist.md) | Bringing Investing.com pattern data into Supabase, queue, and Mini App surfaces | Plan and track the signal ingestion + alert rollout                  | —                     |
+| 15       | [`Trading Algo Improvement Checklist`](./trading-algo-improvement-checklist.md)            | Tune Smart Money Concepts configuration & QA loops                              | Iterate on BOS/liquidity heuristics across config, analyzers, and delivery            | —                     |
+| 16       | [`ISO 9241 Environment Alignment Checklist`](./iso9241_environment_checklist.md)          | ISO 9241-110-aligned review of environments, branches, builds, and configuration | Audit deployment hygiene against usability principles               | —                     |
 
 ## Project delivery (priorities 1–3)
 
@@ -91,6 +92,9 @@ key.
 - **[`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md)**
   – archived after Dynamic Codex was merged into the main `/telegram` route;
   keep for historical context.
+- **[`Grok-1 Integration Checklist`](./grok-1-integration-checklist.md)**
+  – coordinates research, automation, and delivery changes required to safely
+  roll Grok-assisted workflows across the stack.
 - **[`Git Branch Organization Checklist`](./git-branch-organization-checklist.md)**
   – guides the restructuring of branches so each deployable service can map to
   its own domain and load-balanced release flow.
