@@ -14,6 +14,7 @@ import {
   Button,
   Column,
   Heading,
+  Icon,
   Row,
   Text,
 } from "@once-ui-system/core";
@@ -70,6 +71,24 @@ const PREVIEW_CARDS = [
     description: "Daily guardrail locks if hit",
     gradient:
       "linear-gradient(135deg, rgba(252, 211, 77, 0.9) 0%, rgba(249, 115, 22, 0.85) 55%, rgba(88, 28, 135, 0.8) 100%)",
+  },
+] as const;
+
+const SOCIAL_PROOF = [
+  {
+    icon: "users",
+    value: "8,500+",
+    label: "members trade with the desk",
+  },
+  {
+    icon: "timer",
+    value: "14 days",
+    label: "median time to pass readiness",
+  },
+  {
+    icon: "shield",
+    value: "92%",
+    label: "renew for another quarter",
   },
 ] as const;
 
@@ -303,6 +322,41 @@ export function HeroExperience() {
           >
             Beginner friendly · Cancel anytime · Real humans on standby
           </Text>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            delay: 0.58,
+            type: "spring",
+            stiffness: 150,
+            damping: 26,
+          }}
+        >
+          <Row gap="16" wrap horizontal="center">
+            {SOCIAL_PROOF.map((stat) => (
+              <Column
+                key={stat.label}
+                gap="8"
+                background="surface"
+                border="neutral-alpha-weak"
+                radius="l"
+                paddingX="16"
+                paddingY="12"
+                minWidth={14}
+              >
+                <Row gap="12" vertical="center">
+                  <Icon name={stat.icon} onBackground="brand-medium" />
+                  <Column gap="4">
+                    <Text variant="heading-strong-m">{stat.value}</Text>
+                    <Text variant="label-default-s" onBackground="neutral-weak">
+                      {stat.label}
+                    </Text>
+                  </Column>
+                </Row>
+              </Column>
+            ))}
+          </Row>
         </motion.div>
       </Column>
 
