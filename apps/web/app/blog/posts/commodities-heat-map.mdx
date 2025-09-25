@@ -1,0 +1,52 @@
+---
+title: "Reading the commodities heat map in real time"
+summary: "How we translate raw futures data into an at-a-glance view of strength and weakness across multiple timeframes."
+publishedAt: "2025-09-25"
+tag: "Markets"
+image: "https://qeejuomcapbdlhnjqjcc.supabase.co/storage/v1/object/public/magic-portfolio/images/projects/liquidity-desk/cover-03.jpg"
+---
+
+Our desks lean on a live commodities heat map to surface momentum without combing through every individual chart. Each tile shows how a contract is behaving across stacked timeframes so we can size trades and hedges inside minutes instead of hours.
+
+## Live commodities heat map snapshot
+
+As of **25 September 2025 at 06:30 GMT+5**, the board highlighted strength in grains and metals while energy rotated lower:
+
+- **All timeframes trending higher:** CORNF, Copper, NGAS, SOYF, UKOil, USOil, WHEATF, XAG/USD, XAU/USD.
+- **Contracts under review:** We monitor anything that flips out of the strong cohort for two consecutive sessions to confirm whether the move is a rotation or noise.
+
+The grid updates every few seconds and keeps the latest values pinned at the top so execution teams can react without refreshing dashboards.
+
+## How to read the colors
+
+Each tile compares the current bar to the previous one on the selected timeframe. That context turns a simple uptick or downtick into a read on trend strength:
+
+1. **Dark green** – Price is above the prior bar’s high, signalling a decisive breakout.
+2. **Light green** – Price closed above the previous bar but remains inside its range; momentum is positive but still constrained.
+3. **Gray** – Price is flat versus the previous close; stand aside until the tape resolves.
+4. **Light red** – Price slipped below the prior close yet held the low, indicating early distribution.
+5. **Dark red** – Price pierced the prior low and is accelerating lower.
+
+Stacking multiple timeframes side-by-side prevents tunnel vision. When CORNF prints dark green on the hourly, four-hour, and daily views simultaneously, we label the bias as **strongly bullish**. If only the hourly flashes green while higher timeframes stay muted, we treat it as a range-bound bounce instead of a trend.
+
+## Bullish and bearish playbooks
+
+The heat map isn’t a trade signal by itself. It tells us when to zoom in on a chart and validate structure.
+
+### Bullish reads
+
+- **Strongly bullish #1:** Price breaks above the prior high on every tracked timeframe. We stage scale-in orders with defined risk and let automation trail stops under the most recent swing low.
+- **Strongly bullish #2:** A contract closes above the previous bar on higher timeframes while intraday prints dark green. This supports adding exposure via call spreads or rolling spot hedges.
+- **Bullish #1:** A fresh daily close above the prior close, even if intraday remains range-bound. We mark it for follow-up and watch for confirmation on the next session.
+- **Bullish #2:** Intraday timeframes flash light green while the daily is flat. We tighten risk and wait for the higher timeframe breakout before deploying capital.
+
+### Bearish reads
+
+- **Strongly bearish #1:** Each timeframe closes below the prior low. We rotate into protective puts or trim long beta immediately.
+- **Strongly bearish #2:** Higher timeframes sit below prior closes and intraday bars print dark red. Momentum desks lean into short continuations with predefined take-profit targets.
+- **Bearish #1:** Only intraday closes below the prior close; we treat it as a warning and cut position size.
+- **Bearish #2:** Price probes below the previous low but snaps back before the close. We log it as a potential liquidity grab and wait for confirmation.
+
+## Why it matters
+
+MarketMilk™ powers the visualization layer so analysts can translate raw futures data into a single glance. Combining the heat map with our playbooks keeps the team aligned on when price action reflects genuine trend continuation versus churn inside a consolidation.
