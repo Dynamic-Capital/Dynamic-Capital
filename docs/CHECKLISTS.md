@@ -40,6 +40,7 @@ key.
 | 11       | [`Dynamic Codex Integration Checklist`](./dynamic_codex_integration_checklist.md)          | Merging Dynamic Codex into this monorepo                                        | Completed — dashboard now lives at `/telegram` in the Next.js app                     | —                     |
 | 12       | [`Git Branch Organization Checklist`](./git-branch-organization-checklist.md)              | Align Git branches with deployable services and domains                         | Rework branching strategy to support independent deployments                          | —                     |
 | 13       | [`Investing.com Candlestick Signal Integration`](./investing-com-candlestick-checklist.md) | Bringing Investing.com pattern data into Supabase, queue, and Mini App surfaces | Plan and track the signal ingestion + alert rollout                                   | —                     |
+| 14       | [`Trading Algo Improvement Checklist`](./trading-algo-improvement-checklist.md)            | Tune Smart Money Concepts configuration & QA loops                              | Iterate on BOS/liquidity heuristics across config, analyzers, and delivery            | —                     |
 
 ## Project delivery (priorities 1–3)
 
