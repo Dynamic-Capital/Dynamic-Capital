@@ -1,8 +1,8 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Home, BarChart3, CreditCard, User, MessageCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { TouchFeedback } from '@/components/ui/mobile-gestures';
+import React from "react";
+import { motion } from "framer-motion";
+import { BarChart3, CreditCard, Home, MessageCircle, User } from "@/lib/lucide";
+import { cn } from "@/lib/utils";
+import { TouchFeedback } from "@/components/ui/mobile-gestures";
 
 interface MobileNavigationProps {
   activeTab: string;
@@ -10,14 +10,16 @@ interface MobileNavigationProps {
 }
 
 const tabs = [
-  { id: 'home', icon: Home, label: 'Home' },
-  { id: 'plans', icon: CreditCard, label: 'Plans' },
-  { id: 'analytics', icon: BarChart3, label: 'Stats' },
-  { id: 'support', icon: MessageCircle, label: 'Support' },
-  { id: 'profile', icon: User, label: 'Profile' },
+  { id: "home", icon: Home, label: "Home" },
+  { id: "plans", icon: CreditCard, label: "Plans" },
+  { id: "analytics", icon: BarChart3, label: "Stats" },
+  { id: "support", icon: MessageCircle, label: "Support" },
+  { id: "profile", icon: User, label: "Profile" },
 ];
 
-export const MobileNavigation: React.FC<MobileNavigationProps> = ({ activeTab, onTabChange }) => {
+export const MobileNavigation: React.FC<MobileNavigationProps> = (
+  { activeTab, onTabChange },
+) => {
   return (
     <motion.nav
       initial={{ y: 100, opacity: 0 }}
@@ -28,7 +30,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ activeTab, o
         {tabs.map((tab, index) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
-          
+
           return (
             <TouchFeedback
               key={tab.id}
@@ -38,7 +40,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ activeTab, o
               <motion.div
                 className={cn(
                   "relative flex flex-col items-center transition-colors duration-200",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  isActive ? "text-primary" : "text-muted-foreground",
                 )}
                 whileTap={{ scale: 0.9 }}
                 animate={isActive ? { scale: 1.1 } : { scale: 1 }}
@@ -53,7 +55,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ activeTab, o
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
                 )}
-                
+
                 {/* Icon with glow effect for active tab */}
                 <div className="relative">
                   <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
@@ -66,12 +68,12 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({ activeTab, o
                     />
                   )}
                 </div>
-                
+
                 {/* Label */}
                 <motion.span
                   className={cn(
                     "text-xs font-medium mt-1 transition-colors duration-200",
-                    isActive ? "text-primary" : "text-muted-foreground"
+                    isActive ? "text-primary" : "text-muted-foreground",
                   )}
                   animate={isActive ? { scale: 1 } : { scale: 0.9 }}
                 >

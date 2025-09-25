@@ -19,7 +19,7 @@ import {
   Shield,
   Smartphone,
   User,
-} from "lucide-react";
+} from "@/lib/lucide";
 import { callEdgeFunction } from "@/config/supabase";
 
 import { InteractiveSectionContainer } from "./InteractiveSectionContainer";

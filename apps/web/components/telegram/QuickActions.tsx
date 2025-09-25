@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Activity, Bot, FileText, Shield, Users } from "lucide-react";
+import { Activity, Bot, FileText, Shield, Users } from "@/lib/lucide";
 import { motion } from "framer-motion";
 import { dynamicMotionVariants } from "@/lib/motion-variants";
 

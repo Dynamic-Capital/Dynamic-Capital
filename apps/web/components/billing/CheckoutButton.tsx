@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { CreditCard, Shield, Zap } from "lucide-react";
+import { CreditCard, Shield, Zap } from "@/lib/lucide";
 
 interface CheckoutButtonProps {
   plan: string;
@@ -12,7 +12,9 @@ export const CheckoutButton = ({ plan }: CheckoutButtonProps) => {
   const router = useRouter();
 
   const handleCheckout = () => {
-    router.push(`/payment-status?status=success&plan=${encodeURIComponent(plan)}`);
+    router.push(
+      `/payment-status?status=success&plan=${encodeURIComponent(plan)}`,
+    );
   };
 
   return (

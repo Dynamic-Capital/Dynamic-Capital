@@ -12,7 +12,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/utils";
-import { Menu, X } from "lucide-react";
+import { Menu, X } from "@/lib/lucide";
 import NAV_ITEMS from "./nav-items";
 
 export const MobileMenu: React.FC = () => {

@@ -1,7 +1,18 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  HelpCircle,
+  MessageSquare,
+} from "@/lib/lucide";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 
 interface FAQItem {
@@ -12,28 +23,34 @@ interface FAQItem {
 const faqData: FAQItem[] = [
   {
     question: "How do I get VIP access after payment?",
-    answer: "After successful payment verification, you'll be automatically added to our VIP Telegram channels within 24 hours. You'll receive a confirmation message with access details."
+    answer:
+      "After successful payment verification, you'll be automatically added to our VIP Telegram channels within 24 hours. You'll receive a confirmation message with access details.",
   },
   {
     question: "What payment methods do you accept?",
-    answer: "We accept bank transfers (MVR/USD) and cryptocurrency (USDT TRC20). Bank transfers take 1-3 business days, while crypto payments are processed within 30 minutes."
+    answer:
+      "We accept bank transfers (MVR/USD) and cryptocurrency (USDT TRC20). Bank transfers take 1-3 business days, while crypto payments are processed within 30 minutes.",
   },
   {
     question: "Can I cancel my subscription?",
-    answer: "Yes, you can cancel anytime by contacting our support team. Refunds are available within 7 days of purchase for monthly plans, subject to our refund policy."
+    answer:
+      "Yes, you can cancel anytime by contacting our support team. Refunds are available within 7 days of purchase for monthly plans, subject to our refund policy.",
   },
   {
     question: "How accurate are your trading signals?",
-    answer: "Our VIP signals maintain an 85%+ success rate based on historical performance. However, all trading involves risk, and past performance doesn't guarantee future results."
+    answer:
+      "Our VIP signals maintain an 85%+ success rate based on historical performance. However, all trading involves risk, and past performance doesn't guarantee future results.",
   },
   {
     question: "Do you provide trading education?",
-    answer: "Yes! VIP members get access to educational content, webinars, and one-on-one mentoring sessions with our expert traders."
+    answer:
+      "Yes! VIP members get access to educational content, webinars, and one-on-one mentoring sessions with our expert traders.",
   },
   {
     question: "What's the difference between plans?",
-    answer: "Higher-tier plans include more signals per day, priority support, exclusive analysis, and access to additional trading tools and educational resources."
-  }
+    answer:
+      "Higher-tier plans include more signals per day, priority support, exclusive analysis, and access to additional trading tools and educational resources.",
+  },
 ];
 
 export function FAQSection() {
@@ -44,11 +61,12 @@ export function FAQSection() {
   };
 
   const handleContactSupport = () => {
-    const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+    const isInTelegram = typeof window !== "undefined" &&
+      window.Telegram?.WebApp;
     if (isInTelegram) {
-      window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
+      window.open("https://t.me/Dynamic_VIP_BOT", "_blank");
     } else {
-      window.open('https://t.me/DynamicCapital_Support', '_blank');
+      window.open("https://t.me/DynamicCapital_Support", "_blank");
     }
   };
 
@@ -71,14 +89,13 @@ export function FAQSection() {
                 <Button
                   variant="ghost"
                   className="w-full p-4 justify-between text-left hover:bg-muted/50"
-                  onClick={() => toggleExpanded(index)}
+                  onClick={() =>
+                    toggleExpanded(index)}
                 >
                   <span className="font-medium">{item.question}</span>
-                  {expandedIndex === index ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
+                  {expandedIndex === index
+                    ? <ChevronUp className="h-4 w-4" />
+                    : <ChevronDown className="h-4 w-4" />}
                 </Button>
                 {expandedIndex === index && (
                   <div className="px-4 pb-4 border-t bg-muted/20">

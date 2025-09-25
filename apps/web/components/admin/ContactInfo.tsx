@@ -24,7 +24,7 @@ import {
   Save,
   Trash2,
   X,
-} from "lucide-react";
+} from "@/lib/lucide";
 
 interface ContactLink {
   id: string;

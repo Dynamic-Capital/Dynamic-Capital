@@ -7,7 +7,7 @@ import {
   MotionScrollReveal,
   MotionStagger,
 } from "@/components/ui/motion-components";
-import { Shield, TrendingUp, Users } from "lucide-react";
+import { Shield, TrendingUp, Users } from "@/lib/lucide";
 import { callEdgeFunction } from "@/config/supabase";
 import { motion } from "framer-motion";
 

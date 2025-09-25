@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, TrendingUp } from "lucide-react";
+import { Sparkles, TrendingUp } from "@/lib/lucide";
 import { Skeleton } from "@/components/miniapp/Skeleton";
 import { Toast } from "@/components/miniapp/Toast";
 import { haptic } from "@/lib/telegram";
@@ -40,15 +40,17 @@ export default function HomeTab() {
     <>
       <section className="card" style={{ display: "grid", gap: 16 }}>
         <header style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 16,
-            display: "grid",
-            placeItems: "center",
-            background: "rgba(48, 194, 242, 0.12)",
-            color: "var(--tg-accent)",
-          }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 16,
+              display: "grid",
+              placeItems: "center",
+              background: "rgba(48, 194, 242, 0.12)",
+              color: "var(--tg-accent)",
+            }}
+          >
             <Sparkles size={20} />
           </div>
           <div>
@@ -97,7 +99,11 @@ export default function HomeTab() {
           <TrendingUp size={18} /> Refresh insights
         </button>
       </section>
-      <Toast text="Insights refreshed" show={showToast} onDismiss={() => setShowToast(false)} />
+      <Toast
+        text="Insights refreshed"
+        show={showToast}
+        onDismiss={() => setShowToast(false)}
+      />
     </>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BadgeCheck, CreditCard, Settings } from "lucide-react";
+import { BadgeCheck, CreditCard, Settings } from "@/lib/lucide";
 import { Sheet } from "@/components/miniapp/Sheet";
 import { haptic } from "@/lib/telegram";
 import { track } from "@/lib/metrics";
@@ -28,15 +28,19 @@ export default function AccountTab() {
           </div>
           <div>
             <h2 style={{ margin: 0 }}>Your VIP status</h2>
-            <p className="muted" style={{ margin: 0 }}>Active — renews automatically every 30 days.</p>
+            <p className="muted" style={{ margin: 0 }}>
+              Active — renews automatically every 30 days.
+            </p>
           </div>
         </header>
 
-        <div style={{
-          display: "grid",
-          gap: 12,
-          fontSize: 14,
-        }}>
+        <div
+          style={{
+            display: "grid",
+            gap: 12,
+            fontSize: 14,
+          }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span className="muted">Plan</span>
             <strong>VIP Momentum</strong>
@@ -64,7 +68,11 @@ export default function AccountTab() {
           </button>
           <button
             className="btn"
-            style={{ background: "transparent", color: "var(--brand-text)", border: "1px solid rgba(255,255,255,0.12)" }}
+            style={{
+              background: "transparent",
+              color: "var(--brand-text)",
+              border: "1px solid rgba(255,255,255,0.12)",
+            }}
             onClick={() => {
               haptic("light");
               void track("account_preferences");
@@ -82,7 +90,8 @@ export default function AccountTab() {
         title="Coming soon"
       >
         <p style={{ margin: 0 }}>
-          We're finalizing direct billing management inside Telegram. In the meantime, support can adjust your cycle instantly.
+          We're finalizing direct billing management inside Telegram. In the
+          meantime, support can adjust your cycle instantly.
         </p>
         <p style={{ margin: 0 }}>
           Tap the Main Button to ping concierge support for high-touch requests.

@@ -8,7 +8,7 @@ import { MotionCard } from "@/components/ui/motion-card";
 import { AutoSizingGrid } from "@/components/ui/auto-sizing";
 import { MotionScrollReveal } from "@/components/ui/motion-components";
 import { GradientText, TypewriterText } from "@/components/ui/animated-text";
-import { Star } from "lucide-react";
+import { Star } from "@/lib/lucide";
 import { callEdgeFunction } from "@/config/supabase";
 
 import { InteractiveSectionContainer } from "./InteractiveSectionContainer";

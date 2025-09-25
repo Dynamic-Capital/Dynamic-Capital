@@ -8,7 +8,7 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "@/lib/lucide";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils";
 import { dynamicMotionVariants } from "@/lib/motion-variants";

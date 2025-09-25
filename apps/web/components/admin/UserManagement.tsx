@@ -34,7 +34,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Package, Plus, Search, Users } from "lucide-react";
+import { Loader2, Package, Plus, Search, Users } from "@/lib/lucide";
 import { formatIsoDate } from "@/utils/isoFormat";
 
 interface Profile {
@@ -325,9 +325,7 @@ export function UserManagement() {
 
       toast({
         title: "Success",
-        description: `Payment ${
-          approve ? "completed" : "failed"
-        } successfully`,
+        description: `Payment ${approve ? "completed" : "failed"} successfully`,
       });
 
       loadData();

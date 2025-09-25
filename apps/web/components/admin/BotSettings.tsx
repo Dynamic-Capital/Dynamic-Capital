@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Save, Settings } from "lucide-react";
+import { Loader2, Save, Settings } from "@/lib/lucide";
 
 interface BotSetting {
   id: string;

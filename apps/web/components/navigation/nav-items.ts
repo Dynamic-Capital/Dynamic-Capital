@@ -5,7 +5,7 @@ import {
   type LucideIcon,
   Shield,
   TrendingUp,
-} from "lucide-react";
+} from "@/lib/lucide";
 
 export interface NavItem {
   id: string;

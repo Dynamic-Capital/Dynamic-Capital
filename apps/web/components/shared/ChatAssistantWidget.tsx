@@ -20,7 +20,7 @@ import {
   User,
   WifiOff,
   X,
-} from "lucide-react";
+} from "@/lib/lucide";
 
 import {
   DynamicButton,

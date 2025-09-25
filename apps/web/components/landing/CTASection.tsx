@@ -19,7 +19,7 @@ import {
   Sparkles,
   Stethoscope,
   Users,
-} from "lucide-react";
+} from "@/lib/lucide";
 import { cn } from "@/utils";
 
 import { InteractiveSectionContainer } from "./InteractiveSectionContainer";

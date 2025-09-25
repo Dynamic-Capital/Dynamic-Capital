@@ -13,7 +13,7 @@ import {
   Shield,
   Users,
   XCircle,
-} from "lucide-react";
+} from "@/lib/lucide";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { useSupabase } from "@/context/SupabaseProvider";

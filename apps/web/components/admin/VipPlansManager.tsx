@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/lib/lucide";
 
 interface Plan {
   id: string;

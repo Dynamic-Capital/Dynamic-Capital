@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Award, Shield, Star, Target, TrendingUp, Users } from "lucide-react";
+import { Award, Shield, Star, Target, TrendingUp, Users } from "@/lib/lucide";
 
 import { InteractiveSectionContainer } from "./InteractiveSectionContainer";
 
