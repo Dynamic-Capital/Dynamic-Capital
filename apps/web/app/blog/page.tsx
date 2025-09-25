@@ -1,6 +1,6 @@
 import { Column, Heading, Meta, Schema } from "@once-ui-system/core";
-import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
-import { Posts } from "@/components/magic-portfolio/blog/Posts";
+import { Mailchimp } from "@/components/dynamic-portfolio/Mailchimp";
+import { Posts } from "@/components/dynamic-portfolio/blog/Posts";
 import { baseURL, blog, person, toAbsoluteUrl } from "@/resources";
 
 export function generateMetadata() {

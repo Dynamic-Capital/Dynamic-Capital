@@ -23,7 +23,7 @@ import {
   Header,
   RouteGuard,
   ScrollToHash,
-} from "@/components/magic-portfolio";
+} from "@/components/dynamic-portfolio";
 import { dynamicUI } from "@/resources";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:8080";

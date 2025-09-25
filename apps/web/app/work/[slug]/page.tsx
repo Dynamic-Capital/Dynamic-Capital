@@ -1,23 +1,23 @@
 import { notFound } from "next/navigation";
-import { getPosts } from "@/utils/magic-portfolio/utils";
+import { getPosts } from "@/utils/dynamic-portfolio/utils";
 import {
-  Meta,
-  Schema,
   AvatarGroup,
   Column,
   Heading,
-  Media,
-  Text,
-  SmartLink,
-  Row,
   Line,
+  Media,
+  Meta,
+  Row,
+  Schema,
+  SmartLink,
+  Text,
 } from "@once-ui-system/core";
-import { baseURL, about, person, toAbsoluteUrl, work } from "@/resources";
-import { formatDate } from "@/utils/magic-portfolio/formatDate";
-import { ScrollToHash, CustomMDX } from "@/components/magic-portfolio";
+import { about, baseURL, person, toAbsoluteUrl, work } from "@/resources";
+import { formatDate } from "@/utils/dynamic-portfolio/formatDate";
+import { CustomMDX, ScrollToHash } from "@/components/dynamic-portfolio";
 import type { Metadata } from "next";
 import { cache } from "react";
-import { Projects } from "@/components/magic-portfolio/work/Projects";
+import { Projects } from "@/components/dynamic-portfolio/work/Projects";
 
 type MaybePromise<T> = T | Promise<T>;
 type WorkPageParams = { slug: string | string[] };
@@ -43,13 +43,16 @@ const resolveSlugFromParams = async (
   return slug || "";
 };
 
-const findWorkPost = (slug: string) => loadWorkPosts().find((post) => post.slug === slug);
+const findWorkPost = (slug: string) =>
+  loadWorkPosts().find((post) => post.slug === slug);
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   return loadWorkPosts().map((post) => ({ slug: post.slug }));
 }
 
-export async function generateMetadata({ params }: WorkPageProps): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: WorkPageProps,
+): Promise<Metadata> {
   const slugPath = await resolveSlugFromParams(params);
   const post = findWorkPost(slugPath);
 
@@ -59,7 +62,8 @@ export async function generateMetadata({ params }: WorkPageProps): Promise<Metad
     title: post.metadata.title,
     description: post.metadata.summary,
     baseURL: baseURL,
-    image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
+    image: post.metadata.image ||
+      `/api/og/generate?title=${post.metadata.title}`,
     path: `${work.path}/${post.slug}`,
   });
 }
@@ -72,10 +76,9 @@ export default async function Project({ params }: WorkPageProps) {
     notFound();
   }
 
-  const avatars =
-    post.metadata.team?.map((person) => ({
-      src: person.avatar,
-    })) || [];
+  const avatars = post.metadata.team?.map((person) => ({
+    src: person.avatar,
+  })) || [];
 
   return (
     <Column as="section" maxWidth="m" horizontal="center" gap="l">
@@ -87,9 +90,8 @@ export default async function Project({ params }: WorkPageProps) {
         description={post.metadata.summary}
         datePublished={post.metadata.publishedAt}
         dateModified={post.metadata.publishedAt}
-        image={
-          post.metadata.image || `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`
-        }
+        image={post.metadata.image ||
+          `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`}
         author={{
           name: person.name,
           url: `${baseURL}${about.path}`,
@@ -100,14 +102,20 @@ export default async function Project({ params }: WorkPageProps) {
         <SmartLink href="/work">
           <Text variant="label-strong-m">Projects</Text>
         </SmartLink>
-        <Text variant="body-default-xs" onBackground="neutral-weak" marginBottom="12">
+        <Text
+          variant="body-default-xs"
+          onBackground="neutral-weak"
+          marginBottom="12"
+        >
           {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
         </Text>
         <Heading variant="display-strong-m">{post.metadata.title}</Heading>
       </Column>
       <Row marginBottom="32" horizontal="center">
         <Row gap="16" vertical="center">
-          {post.metadata.team && <AvatarGroup reverse avatars={avatars} size="s" />}
+          {post.metadata.team && (
+            <AvatarGroup reverse avatars={avatars} size="s" />
+          )}
           <Text variant="label-default-m" onBackground="brand-weak">
             {post.metadata.team?.map((member, idx) => (
               <span key={idx}>
@@ -123,7 +131,13 @@ export default async function Project({ params }: WorkPageProps) {
         </Row>
       </Row>
       {post.metadata.images.length > 0 && (
-        <Media priority aspectRatio="16 / 9" radius="m" alt="image" src={post.metadata.images[0]} />
+        <Media
+          priority
+          aspectRatio="16 / 9"
+          radius="m"
+          alt="image"
+          src={post.metadata.images[0]}
+        />
       )}
       <Column style={{ margin: "auto" }} as="article" maxWidth="xs">
         <CustomMDX source={post.content} />
