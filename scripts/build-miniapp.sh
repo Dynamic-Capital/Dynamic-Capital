@@ -8,6 +8,10 @@ NPM_SAFE=(node "$ROOT_DIR/scripts/npm-safe.mjs")
 STAMP_FILE="node_modules/.npm-install.hash"
 LOCKFILE="package-lock.json"
 
+if ! node "$ROOT_DIR/scripts/sync-maldives-time.mjs" --strict; then
+  echo "⚠️  Proceeding with miniapp build despite timezone synchronization issues."
+fi
+
 compute_lock_hash() {
   node - "$1" <<'NODE'
 const fs = require('fs');

@@ -9,23 +9,28 @@ import {
   applyBrandingEnvDefaults,
   PRODUCTION_ORIGIN,
 } from "./utils/branding-env.mjs";
+import { syncMaldivesClock } from "./utils/time-sync.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const timeSyncOutcome = syncMaldivesClock({ logger: console });
+if (!timeSyncOutcome.ok) {
+  console.warn(
+    "⚠️  Proceeding with Next.js build despite timezone synchronization issues.",
+  );
+}
 
 process.env.NODE_ENV = "production";
 
 const LOCAL_DEV_ORIGIN = "http://localhost:8080";
 
-const isCI =
-  typeof process.env.CI === "string" &&
+const isCI = typeof process.env.CI === "string" &&
   process.env.CI.length > 0 &&
   process.env.CI !== "0" &&
   process.env.CI.toLowerCase() !== "false";
 
-const fallbackOrigin = isCI
-  ? PRODUCTION_ORIGIN
-  : LOCAL_DEV_ORIGIN;
+const fallbackOrigin = isCI ? PRODUCTION_ORIGIN : LOCAL_DEV_ORIGIN;
 
 const {
   defaultedKeys: defaultNotices,
