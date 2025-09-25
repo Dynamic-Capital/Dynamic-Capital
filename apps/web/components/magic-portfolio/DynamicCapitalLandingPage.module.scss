@@ -47,6 +47,12 @@
   grid-auto-rows: minmax(0, 1fr);
 }
 
+.learningGrid {
+  @extend %gridBase;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
 .journeyStrip {
   @extend %gridBase;
   gap: clamp(1.25rem, 3vw, 2rem);
@@ -89,11 +95,29 @@
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
 }
 
+.metricRow {
+  @extend %gridBase;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
 .stepList {
   width: 100%;
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+.ctaGrid {
+  @extend %gridBase;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr));
+}
+
+.ctaActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.5rem, 1.5vw, 0.75rem);
 }
 
 @media (max-width: breakpoints.$m) {

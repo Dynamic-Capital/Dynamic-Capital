@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 
 import {
+  Button,
   Column,
   Heading,
   Icon,
@@ -18,6 +19,7 @@ import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
 import { cn } from "@/utils";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
+import { TELEGRAM_CONFIG } from "@/config/supabase";
 import styles from "./DynamicCapitalLandingPage.module.scss";
 
 const QUICK_METRICS = [
@@ -167,6 +169,82 @@ const FUNDING_SUPPORT = [
   "Weekly portfolio reviews to unlock higher tiers without renegotiation",
 ];
 
+const BEGINNER_LAUNCHPAD = [
+  {
+    icon: "sparkles" as const,
+    title: "Orientation playlist",
+    description:
+      "Interactive walk-throughs introduce the desk, terminology, and core risk concepts so new traders know exactly where to start.",
+    outcomes: [
+      "Guided setup inside the first 10 minutes",
+      "Plain-language glossary for every signal",
+      "Hands-on checkpoints after each lesson",
+    ],
+  },
+  {
+    icon: "target" as const,
+    title: "Practice labs",
+    description:
+      "Simulated sessions mirror the live environment, letting beginners rehearse orders and journaling before capital is involved.",
+    outcomes: [
+      "Replayable drills with mentor commentary",
+      "Auto-graded readiness scorecards",
+      "Bookmarkable strategies for quick refreshers",
+    ],
+  },
+  {
+    icon: "users" as const,
+    title: "Ask-anything channel",
+    description:
+      "Desk mentors are on-call to answer questions, review your plan, or suggest the next module directly inside Telegram.",
+    outcomes: [
+      "Real humans guiding every checkpoint",
+      "Weekly office hours tailored to your level",
+      "Instant escalation to specialists when needed",
+    ],
+  },
+];
+
+const INVESTOR_METRICS = [
+  {
+    value: "+18.4%",
+    label: "Average 90-day ROI from active desks",
+  },
+  {
+    value: "12 hrs",
+    label: "Median time between vetted trade ideas",
+  },
+  {
+    value: "98.7%",
+    label: "Automation uptime across portfolio workflows",
+  },
+];
+
+const INTEGRATION_TOUCHPOINTS = {
+  bot: {
+    icon: "users" as const,
+    title: "Telegram Bot",
+    description:
+      "Receive market flashes, readiness nudges, and direct mentor replies in the channel where you already collaborate.",
+    actions: [
+      "Daily prep checklist delivered to your chat",
+      "Instant escalation when risk thresholds trigger",
+      "One-tap broadcast of new trade ideas to your team",
+    ],
+  },
+  miniApp: {
+    icon: "sparkles" as const,
+    title: "Dynamic Mini App",
+    description:
+      "Launch the glass-mode console for deposits, funding requests, and live dashboards backed by the same Supabase automations.",
+    actions: [
+      "Secure checkout and subscription management",
+      "ROI dashboards synced with the trading desk",
+      "On-demand access to your verified documentation",
+    ],
+  },
+};
+
 export function DynamicCapitalLandingPage() {
   return (
     <Column
@@ -192,6 +270,9 @@ export function DynamicCapitalLandingPage() {
       <Section variant="wide" reveal={false}>
         <HeroExperience />
       </Section>
+      <Section revealDelay={0.32}>
+        <BeginnerLaunchpadSection />
+      </Section>
       <Section revealDelay={0.4}>
         <ExperienceHighlightsSection />
       </Section>
@@ -206,6 +287,9 @@ export function DynamicCapitalLandingPage() {
       </Section>
       <Section revealDelay={0.72}>
         <CheckoutCallout />
+      </Section>
+      <Section revealDelay={0.8}>
+        <MiniAppIntegrationSection />
       </Section>
       <Section reveal={false}>
         <Mailchimp className={styles.card} />
@@ -368,6 +452,72 @@ function ExperienceHighlightsSection() {
   );
 }
 
+function BeginnerLaunchpadSection() {
+  return (
+    <Column fillWidth gap="24" align="start">
+      <Column gap="12" align="start">
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
+          New to Dynamic Capital
+        </Tag>
+        <Heading variant="display-strong-xs" wrap="balance">
+          A guided launchpad that helps beginners learn, rehearse, and explore
+        </Heading>
+        <Text
+          variant="body-default-l"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Navigate the first weeks with interactive lessons, mentor-led drills,
+          and a human support loop designed to build confidence before live
+          capital is at stake.
+        </Text>
+      </Column>
+      <div className={styles.learningGrid}>
+        {BEGINNER_LAUNCHPAD.map((item) => (
+          <Column
+            key={item.title}
+            background="surface"
+            border="neutral-alpha-weak"
+            radius="l"
+            padding="xl"
+            gap="16"
+            className={styles.card}
+            align="start"
+          >
+            <Row gap="12" vertical="center">
+              <Icon name={item.icon} onBackground="brand-medium" />
+              <Heading variant="heading-strong-m">{item.title}</Heading>
+            </Row>
+            <Text
+              variant="body-default-m"
+              onBackground="neutral-weak"
+              wrap="balance"
+            >
+              {item.description}
+            </Text>
+            <Column as="ul" gap="12" align="start" className={styles.pillList}>
+              {item.outcomes.map((outcome) => (
+                <Row
+                  as="li"
+                  key={outcome}
+                  gap="8"
+                  vertical="start"
+                  align="start"
+                >
+                  <Icon name="check" onBackground="brand-medium" />
+                  <Text as="span" variant="body-default-m">
+                    {outcome}
+                  </Text>
+                </Row>
+              ))}
+            </Column>
+          </Column>
+        ))}
+      </div>
+    </Column>
+  );
+}
+
 function MarketIntelligenceSection() {
   return (
     <Column fillWidth gap="24" align="start">
@@ -376,7 +526,8 @@ function MarketIntelligenceSection() {
           Live market intelligence
         </Tag>
         <Heading variant="display-strong-xs" wrap="balance">
-          Always-on coverage that keeps you calibrated to the next catalyst
+          Investor-grade coverage, ROI signals, and automation in one control
+          center
         </Heading>
         <Text
           variant="body-default-l"
@@ -384,9 +535,29 @@ function MarketIntelligenceSection() {
           wrap="balance"
         >
           From curated watchlists to macro posture and event risk, the desk
-          surfaces what matters before you even ask.
+          surfaces what matters before you even ask — complete with the
+          performance telemetry investors expect when allocating capital.
         </Text>
       </Column>
+      <div className={styles.metricRow}>
+        {INVESTOR_METRICS.map((metric) => (
+          <Column
+            key={metric.label}
+            background="surface"
+            border="brand-alpha-weak"
+            radius="l"
+            padding="l"
+            gap="8"
+            className={styles.card}
+            align="start"
+          >
+            <Heading variant="display-strong-xs">{metric.value}</Heading>
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              {metric.label}
+            </Text>
+          </Column>
+        ))}
+      </div>
       <div className={styles.marketGrid}>
         <Column
           background="surface"
@@ -635,6 +806,132 @@ function FundingReadinessSection() {
               </Column>
             ))}
           </Column>
+        </Column>
+      </div>
+    </Column>
+  );
+}
+
+function MiniAppIntegrationSection() {
+  const { BOT_URL, MINI_APP_URL } = TELEGRAM_CONFIG;
+
+  return (
+    <Column fillWidth gap="24" align="start">
+      <Column gap="12" align="start">
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
+          Stay connected everywhere
+        </Tag>
+        <Heading variant="display-strong-xs" wrap="balance">
+          Mini App and Telegram Bot work in lockstep to keep traders and
+          investors aligned
+        </Heading>
+        <Text
+          variant="body-default-l"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Trigger automations, review funding performance, and escalate to
+          mentors without leaving your preferred surface.
+        </Text>
+      </Column>
+      <div className={styles.ctaGrid}>
+        <Column
+          background="surface"
+          border="neutral-alpha-weak"
+          radius="l"
+          padding="xl"
+          gap="16"
+          className={styles.card}
+          align="start"
+        >
+          <Row gap="12" vertical="center">
+            <Icon
+              name={INTEGRATION_TOUCHPOINTS.bot.icon}
+              onBackground="brand-medium"
+            />
+            <Heading variant="heading-strong-m">
+              {INTEGRATION_TOUCHPOINTS.bot.title}
+            </Heading>
+          </Row>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            wrap="balance"
+          >
+            {INTEGRATION_TOUCHPOINTS.bot.description}
+          </Text>
+          <Column as="ul" gap="12" align="start" className={styles.pillList}>
+            {INTEGRATION_TOUCHPOINTS.bot.actions.map((action) => (
+              <Row as="li" key={action} gap="8" vertical="start" align="start">
+                <Icon name="check" onBackground="brand-medium" />
+                <Text as="span" variant="body-default-m">
+                  {action}
+                </Text>
+              </Row>
+            ))}
+          </Column>
+          <Row gap="12" className={styles.ctaActions}>
+            <Button
+              href={BOT_URL}
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              prefixIcon="telegram"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Message the Telegram bot
+            </Button>
+          </Row>
+        </Column>
+        <Column
+          background="surface"
+          border="neutral-alpha-weak"
+          radius="l"
+          padding="xl"
+          gap="16"
+          className={styles.card}
+          align="start"
+        >
+          <Row gap="12" vertical="center">
+            <Icon
+              name={INTEGRATION_TOUCHPOINTS.miniApp.icon}
+              onBackground="brand-medium"
+            />
+            <Heading variant="heading-strong-m">
+              {INTEGRATION_TOUCHPOINTS.miniApp.title}
+            </Heading>
+          </Row>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            wrap="balance"
+          >
+            {INTEGRATION_TOUCHPOINTS.miniApp.description}
+          </Text>
+          <Column as="ul" gap="12" align="start" className={styles.pillList}>
+            {INTEGRATION_TOUCHPOINTS.miniApp.actions.map((action) => (
+              <Row as="li" key={action} gap="8" vertical="start" align="start">
+                <Icon name="check" onBackground="brand-medium" />
+                <Text as="span" variant="body-default-m">
+                  {action}
+                </Text>
+              </Row>
+            ))}
+          </Column>
+          <Row gap="12" className={styles.ctaActions}>
+            <Button
+              href={MINI_APP_URL}
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              prefixIcon="sparkles"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Launch the Mini App
+            </Button>
+          </Row>
         </Column>
       </div>
     </Column>
