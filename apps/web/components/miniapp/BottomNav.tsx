@@ -28,24 +28,29 @@ export function BottomNav() {
 
   return (
     <nav className="bottom-nav" role="navigation" aria-label="Mini app primary">
-      {tabs.map(({ href, label, Icon, event }) => {
-        const active = pathname?.startsWith(href);
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={`bottom-btn ${active ? "active" : ""}`}
-            aria-current={active ? "page" : undefined}
-            onClick={() => {
-              haptic(active ? "light" : "medium");
-              void track(event);
-            }}
-          >
-            <Icon size={20} strokeWidth={active ? 2.4 : 2} />
-            <span>{label}</span>
-          </Link>
-        );
-      })}
+      <div className="bottom-nav-inner">
+        {tabs.map(({ href, label, Icon, event }) => {
+          const active = pathname?.startsWith(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`bottom-btn ${active ? "active" : ""}`}
+              aria-current={active ? "page" : undefined}
+              onClick={() => {
+                haptic(active ? "light" : "medium");
+                void track(event);
+              }}
+            >
+              <span className="bottom-btn-highlight" aria-hidden />
+              <span className="bottom-btn-icon">
+                <Icon size={20} strokeWidth={active ? 2.4 : 2} />
+              </span>
+              <span className="bottom-btn-label">{label}</span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }
