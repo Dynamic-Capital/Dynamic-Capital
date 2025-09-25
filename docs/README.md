@@ -67,6 +67,7 @@ documenting which assets were consulted.
 | 4.6 | [VERCEL_PROJECT_SETTINGS.md](./VERCEL_PROJECT_SETTINGS.md)                 | Recommended Vercel project settings matching the checked-in config.                    |
 | 4.7 | [VERCEL_PRODUCTION_CHECKLIST.md](./VERCEL_PRODUCTION_CHECKLIST.md)         | Well-architected review for Vercel deployments.                                        |
 | 4.8 | [postgres-upgrade.md](./postgres-upgrade.md)                               | Steps to upgrade PostgreSQL safely to the latest patched release.                      |
+| 4.9 | [ton-web3-guidelines.md](./ton-web3-guidelines.md)                         | TON DNS, storage, and site operations playbook linking contracts and Supabase assets.  |
 
 ## 5. Telegram & Mini App Delivery
 
