@@ -1,0 +1,51 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 120 120"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">EU–US Data Privacy Framework Mark</title>
+  <desc id="desc"
+  >Shield combining European Union stars and United States stripes.</desc>
+  <defs>
+    <linearGradient id="shieldTop" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0052b4" />
+      <stop offset="100%" stop-color="#003087" />
+    </linearGradient>
+    <linearGradient id="shieldBottom" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ef2b2d" />
+      <stop offset="100%" stop-color="#c1121f" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M60 6l40 16v34c0 23.2-15.4 45.2-40 58-24.6-12.8-40-34.8-40-58V22z"
+    fill="#ffffff"
+    stroke="#ccd6f6"
+    stroke-width="4"
+  />
+  <path d="M60 12l32 12v26H28V24z" fill="url(#shieldTop)" />
+  <path
+    d="M28 50h64v6H28zM28 62h64v6H28zM28 74h64v6H28zM28 86h64v6H28z"
+    fill="url(#shieldBottom)"
+  />
+  <g fill="#ffcc00">
+    <circle cx="40" cy="32" r="3" />
+    <circle cx="48" cy="28" r="3" />
+    <circle cx="56" cy="32" r="3" />
+    <circle cx="32" cy="32" r="3" />
+    <circle cx="44" cy="36" r="3" />
+    <circle cx="52" cy="36" r="3" />
+    <circle cx="36" cy="36" r="3" />
+    <circle cx="44" cy="28" r="3" />
+    <circle cx="36" cy="28" r="3" />
+  </g>
+  <text
+    x="50%"
+    y="106"
+    text-anchor="middle"
+    fill="#003087"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="15"
+    font-weight="700"
+  >EU–US DPF</text>
+</svg>

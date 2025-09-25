@@ -1,0 +1,49 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 120 120"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">ISO/IEC 27001 Certification Mark</title>
+  <desc id="desc"
+  >Circular ISO 27001 badge with white lettering on a blue globe.</desc>
+  <defs>
+    <linearGradient id="isoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f62fe" />
+      <stop offset="100%" stop-color="#0043ce" />
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="54" fill="url(#isoGradient)" />
+  <g fill="none" stroke="#ffffff" stroke-width="2.4">
+    <ellipse cx="60" cy="60" rx="38" ry="54" />
+    <ellipse cx="60" cy="60" rx="54" ry="38" />
+    <circle cx="60" cy="60" r="44" />
+  </g>
+  <text
+    x="50%"
+    y="48"
+    text-anchor="middle"
+    fill="#ffffff"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="22"
+    font-weight="700"
+  >ISO/IEC</text>
+  <text
+    x="50%"
+    y="72"
+    text-anchor="middle"
+    fill="#ffffff"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="28"
+    font-weight="700"
+  >27001</text>
+  <text
+    x="50%"
+    y="94"
+    text-anchor="middle"
+    fill="#d0e2ff"
+    font-family="'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+    font-size="14"
+    font-weight="600"
+  >INFORMATION SECURITY</text>
+</svg>
