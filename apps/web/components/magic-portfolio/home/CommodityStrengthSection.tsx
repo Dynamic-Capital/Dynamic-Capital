@@ -1,4 +1,11 @@
-import { Column, Heading, Line, Row, Tag, Text } from "@/components/dynamic-ui-system";
+import {
+  Column,
+  Heading,
+  Line,
+  Row,
+  Tag,
+  Text,
+} from "@/components/dynamic-ui-system";
 
 import type { Colors } from "@/components/dynamic-ui-system";
 
@@ -63,11 +70,60 @@ type MomentumEntry = {
 
 const COMMODITY_STRENGTH: CommodityStrengthEntry[] = [
   {
+    symbol: "XAG",
+    name: "XAG/USD",
+    score: 47,
+    dayChange: "-0.5%",
+    sentiment: "Bearish",
+  },
+  {
+    symbol: "NGAS",
+    name: "NGAS",
+    score: 58,
+    dayChange: "+2.3%",
+    sentiment: "Neutral",
+  },
+  {
+    symbol: "WHEATF",
+    name: "WHEATF",
+    score: 39,
+    dayChange: "-1.2%",
+    sentiment: "Bearish",
+  },
+  {
+    symbol: "UKOil",
+    name: "UKOil",
+    score: 63,
+    dayChange: "+1.1%",
+    sentiment: "Bullish",
+  },
+  {
+    symbol: "USOil",
+    name: "USOil",
+    score: 66,
+    dayChange: "+0.8%",
+    sentiment: "Bullish",
+  },
+  {
     symbol: "SOYF",
-    name: "Soybean futures",
+    name: "SOYF",
     score: 68,
     dayChange: "+1.4%",
     sentiment: "Bullish",
+  },
+  {
+    symbol: "XAU",
+    name: "XAU/USD",
+    score: 81,
+    dayChange: "+0.7%",
+    sentiment: "Bullish",
+  },
+  {
+    symbol: "CORNF",
+    name: "CORNF",
+    score: 52,
+    dayChange: "+0.6%",
+    sentiment: "Neutral",
   },
   {
     symbol: "Copper",
@@ -75,55 +131,6 @@ const COMMODITY_STRENGTH: CommodityStrengthEntry[] = [
     score: 76,
     dayChange: "+0.9%",
     sentiment: "Bullish",
-  },
-  {
-    symbol: "CORNF",
-    name: "Corn futures",
-    score: 52,
-    dayChange: "+0.6%",
-    sentiment: "Neutral",
-  },
-  {
-    symbol: "UKOil",
-    name: "UK Brent crude",
-    score: 63,
-    dayChange: "+1.1%",
-    sentiment: "Bullish",
-  },
-  {
-    symbol: "XAU/USD",
-    name: "Gold",
-    score: 81,
-    dayChange: "+0.7%",
-    sentiment: "Bullish",
-  },
-  {
-    symbol: "USOil",
-    name: "WTI crude",
-    score: 66,
-    dayChange: "+0.8%",
-    sentiment: "Bullish",
-  },
-  {
-    symbol: "XAG/USD",
-    name: "Silver",
-    score: 47,
-    dayChange: "-0.5%",
-    sentiment: "Bearish",
-  },
-  {
-    symbol: "NGAS",
-    name: "Natural gas",
-    score: 58,
-    dayChange: "+2.3%",
-    sentiment: "Neutral",
-  },
-  {
-    symbol: "WHEATF",
-    name: "Wheat futures",
-    score: 39,
-    dayChange: "-1.2%",
-    sentiment: "Bearish",
   },
 ];
 
@@ -243,8 +250,24 @@ const TREND_MOMENTUM: MomentumEntry[] = [
   { symbol: "UKOil", display: "UKOil", score: 73 },
   { symbol: "USOil", display: "USOil", score: 71 },
   { symbol: "WHEATF", display: "WHEATF", score: 38 },
-  { symbol: "XAGUSD", display: "XAG/USD", score: 55 },
-  { symbol: "XAUUSD", display: "XAU/USD", score: 84 },
+  { symbol: "XAG", display: "XAG/USD", score: 55 },
+  { symbol: "XAU", display: "XAU/USD", score: 84 },
+  { symbol: "USD", display: "USD", score: 62 },
+  { symbol: "BTC", display: "BTC", score: 74 },
+  { symbol: "ETH", display: "ETH", score: 68 },
+  { symbol: "CHN50", display: "CHN50", score: 54 },
+  { symbol: "AUS200", display: "AUS200", score: 57 },
+  { symbol: "UK100", display: "UK100", score: 52 },
+  { symbol: "FRA40", display: "FRA40", score: 51 },
+  { symbol: "EUSTX50", display: "EUSTX50", score: 50 },
+  { symbol: "JPN225", display: "JPN225", score: 59 },
+  { symbol: "HKG33", display: "HKG33", score: 45 },
+  { symbol: "ESP35", display: "ESP35", score: 53 },
+  { symbol: "US30", display: "US30", score: 61 },
+  { symbol: "GER30", display: "GER30", score: 58 },
+  { symbol: "NAS100", display: "NAS100", score: 65 },
+  { symbol: "SPX500", display: "SPX500", score: 63 },
+  { symbol: "US2000", display: "US2000", score: 49 },
 ];
 
 const SENTIMENT_STYLES: Record<
@@ -403,7 +426,7 @@ const MOMENTUM_STYLES: Record<
   },
 };
 
-const SENTIMENT_LABEL = "Commodity Strength Meter";
+const SENTIMENT_LABEL = "Market Snapshot";
 
 export function CommodityStrengthSection() {
   return (
@@ -419,11 +442,11 @@ export function CommodityStrengthSection() {
       aria-label={SENTIMENT_LABEL}
     >
       <Column gap="12" maxWidth={32}>
-        <Heading variant="display-strong-xs">Commodity strength meter</Heading>
+        <Heading variant="display-strong-xs">Market snapshot</Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          Monitor the strength of major commodities in real time. Quickly spot
-          which contracts are leading, cooling, or reversing so you can respond
-          with the right positioning.
+          A consolidated read on the desk&apos;s cross-asset coverage – from
+          commodity momentum to index leadership – so you can calibrate exposure
+          in seconds.
         </Text>
       </Column>
 
@@ -439,11 +462,11 @@ export function CommodityStrengthSection() {
         >
           <Column gap="8">
             <Heading as="h3" variant="heading-strong-s">
-              Commodity Strength Meter
+              Commodities Strength
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak">
-              What is the overall strength or weakness of individual commodities
-              today?
+              Quick view of contract-level momentum, sentiment, and intraday
+              bias to anchor your commodity playbook.
             </Text>
           </Column>
 
@@ -539,11 +562,11 @@ export function CommodityStrengthSection() {
         >
           <Column gap="8">
             <Heading as="h3" variant="heading-strong-s">
-              Commodity Strength Chart
+              Commodities Heat Map
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak">
-              Compare the relative strength of each contract across the last 30
-              days to see which trend is accelerating.
+              Relative momentum readings over the last month highlight which
+              contracts are heating up or losing steam.
             </Text>
           </Column>
           <div
@@ -669,11 +692,11 @@ export function CommodityStrengthSection() {
         >
           <Column gap="8">
             <Heading as="h3" variant="heading-strong-s">
-              Trend Strength Matrix
+              Commodities Volatility
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak">
-              Plot commodities by short-term versus long-term moving averages to
-              understand trend direction and conviction at a glance.
+              Short- versus long-term trend posture shows where volatility is
+              compressing or expanding across the complex.
             </Text>
           </Column>
           <Row gap="8" wrap>
@@ -906,16 +929,16 @@ export function CommodityStrengthSection() {
         >
           <Column gap="8">
             <Heading as="h3" variant="heading-strong-s">
-              Trend Momentum
+              Market Movers
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak">
-              Values above 50 indicate upward buying pressure while readings
-              under 50 highlight growing selling pressure.
+              Multi-asset momentum board covering currencies, crypto, and global
+              indices to spotlight leadership shifts.
             </Text>
           </Column>
           <Row horizontal="between" vertical="center" gap="12" wrap>
             <Text variant="label-default-s" onBackground="neutral-medium">
-              9 matches
+              {TREND_MOMENTUM.length} matches
             </Text>
             <Row gap="12" wrap>
               <Text variant="label-default-s" onBackground="neutral-medium">
