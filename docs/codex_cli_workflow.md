@@ -4,17 +4,49 @@ The Dynamic Codex CLI exports UI updates directly into this repository. The
 `scripts/codex-workflow.js` helper centralizes the post-export automation so you
 can reproduce Codex's build steps locally and keep your environment in sync.
 
+## Codex CLI general knowledge
+
+- **Location & entry points** – The CLI logic lives in
+  `scripts/codex-workflow.js` and is surfaced through the `npm run codex:*`
+  scripts (`post-pull`, `dev`, `build`, and `verify`). Each script simply passes
+  a mode flag to the helper, so you can invoke the same behavior directly with
+  `node scripts/codex-workflow.js <mode>` when debugging.
+- **Node-driven workflow** – Tasks execute with the Node version pinned in
+  `.nvmrc`. Stick to `npm install`/`npm run` (instead of `pnpm` or `yarn`) so
+  the shared dependency cache and lockfile hashing keep working across agents.
+- **Automation bridge** – The helper wraps the Codex-exported `lovable-dev.js`
+  and `lovable-build.js` pipelines. It also chains into repo-native automation
+  like `npm run sync-env`, `npx tsx scripts/check-env.ts`, and `npm run verify`,
+  giving you a single command that mirrors Codex's own build process.
+- **State & collaboration** – A `.codex-workflow-state.json` file in the repo
+  root records recent failures and shared install fingerprints. Scope the
+  reminders to yourself with `--agent <name>` or the `CODEX_AGENT_ID` env var so
+  simultaneous sessions do not overwrite each other's notes.
+- **Shared install cache** – Successful `npm install` runs are fingerprinted by
+  `package-lock.json` and shared automatically between agents. Disable this with
+  `--no-shared-cache` (or `CODEX_DISABLE_SHARED_CACHE=1`) if you suspect the
+  cache is stale or you are testing lockfile updates.
+- **When to reach for Codex CLI** – Use it right after a Dynamic export,
+  whenever you need the preview server locally, or before syncing changes back
+  to GitHub. The helper keeps the repo consistent with Codex's expectations,
+  which avoids "works in preview only" drift and prevents missing env vars or
+  scripts from slipping into PRs.
+- **Troubleshooting mindset** – The helper annotates common failure signatures
+  (missing npm scripts, `MODULE_NOT_FOUND`, `command not found`, etc.). Treat
+  those hints as first-line diagnostics, then rerun individual commands (e.g.,
+  `npm run build`) once the suspected fix is applied.
+
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
-| `npm run codex:post-pull` | Install dependencies, sync `.env`/`.env.local`, validate core environment variables, and execute the combined `lovable-build.js` pipeline. |
-| `npm run codex:dev` | Optionally sync `.env`/`.env.local` before delegating to `lovable-dev.js`, which runs preflight checks and launches the Next.js dev server. |
-| `npm run codex:build` | Run the Dynamic production build locally (Next.js dashboard + Telegram mini app). |
-| `npm run codex:verify` | Execute `scripts/verify/verify_all.sh` for the full repository verification sweep. |
+| Command                   | Purpose                                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run codex:post-pull` | Install dependencies, sync `.env`/`.env.local`, validate core environment variables, and execute the combined `lovable-build.js` pipeline.  |
+| `npm run codex:dev`       | Optionally sync `.env`/`.env.local` before delegating to `lovable-dev.js`, which runs preflight checks and launches the Next.js dev server. |
+| `npm run codex:build`     | Run the Dynamic production build locally (Next.js dashboard + Telegram mini app).                                                           |
+| `npm run codex:verify`    | Execute `scripts/verify/verify_all.sh` for the full repository verification sweep.                                                          |
 
-Each command is a thin wrapper around `scripts/codex-workflow.js MODE` so you can
-still pass additional flags via `npm run codex:<mode> -- --flag`.
+Each command is a thin wrapper around `scripts/codex-workflow.js MODE` so you
+can still pass additional flags via `npm run codex:<mode> -- --flag`.
 
 ## Flags
 
@@ -27,9 +59,12 @@ Common flags accepted by the helper:
 - `--build-optional` – treat build failures as warnings.
 - `--verify` – run `npm run verify` after the post-pull steps.
 - `--dry-run` – preview the steps without executing commands.
-- `--reset-issues` – clear the cached failure history before running tasks again.
-- `--agent <id>` – scope failure history and reminders to a specific Codex agent (also via `CODEX_AGENT_ID`).
-- `--no-shared-cache` – skip the shared dependency cache when coordinating with other agents.
+- `--reset-issues` – clear the cached failure history before running tasks
+  again.
+- `--agent <id>` – scope failure history and reminders to a specific Codex agent
+  (also via `CODEX_AGENT_ID`).
+- `--no-shared-cache` – skip the shared dependency cache when coordinating with
+  other agents.
 
 Run `scripts/codex-workflow.js --help` to see the full list of options.
 
@@ -73,6 +108,27 @@ npm run codex:build
 
 This workflow keeps the Dynamic environment, the local repo, and GitHub in lock
 step while providing a single entry point for Codex-specific automation.
+
+## Closing the loop with GitHub
+
+Codex exports land in GitHub, so finish each local session by validating the CLI
+output and syncing your branch:
+
+1. **Review the helper summary.** After a run completes, read the final status
+   block for cached failures, environment gaps, or skipped steps the helper
+   flagged for follow-up.
+2. **Rerun focused checks.** For code edits, execute the underlying commands
+   surfaced by the helper—`npm run build`, `npm run lint`, or
+   `npm run codex:verify`—until they succeed without warnings.
+3. **Inspect your working tree.** Use `git status` to confirm only the intended
+   files changed, then format (`npm run format`) and commit the updates with a
+   clear message.
+4. **Push and share context.** `git push` your branch, include any relevant
+   helper logs or troubleshooting notes in the PR, and rerun
+   `npm run codex:verify` if reviewers request new changes.
+
+Completing this loop keeps the Codex CLI state, the repository history, and the
+remote automation in sync so later exports can build on a predictable baseline.
 
 ## ISO 9241 alignment for deployment workflow
 
@@ -151,9 +207,10 @@ resolved branches stay safe and reproducible:
    - **Drizzle migrations** – if the same migration file diverges, stop and
      request human review rather than guessing.
 5. **Post-merge verification** – reinstall dependencies, run linting, type
-   checks, tests, database checks, and builds (`npm run lint`, `npm run
-   typecheck`, `npm test`, `npx drizzle-kit check`, `npm run build`) so the
-   merged branch stays green.
+   checks, tests, database checks, and builds (`npm run lint`,
+   `npm run
+   typecheck`, `npm test`, `npx drizzle-kit check`, `npm run build`)
+   so the merged branch stays green.
 6. **Auto-merge only when safe** – enable GitHub auto-merge (`--squash` by
    default) once required checks are passing and branch protections are
    satisfied. If approvals or failing checks block the merge, leave a PR comment
