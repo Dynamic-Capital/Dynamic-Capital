@@ -1,7 +1,7 @@
 import { RouteArchiveNotice } from "@/components/shared/RouteArchiveNotice";
 
-export const dynamic = "force-dynamic";
-
-export default function NotFound() {
+export function NotFoundPage() {
   return <RouteArchiveNotice />;
 }
+
+export default NotFoundPage;
