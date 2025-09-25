@@ -17,7 +17,13 @@ process.env.NODE_ENV = "production";
 
 const LOCAL_DEV_ORIGIN = "http://localhost:8080";
 
-const fallbackOrigin = process.env.CI === "1"
+const isCI =
+  typeof process.env.CI === "string" &&
+  process.env.CI.length > 0 &&
+  process.env.CI !== "0" &&
+  process.env.CI.toLowerCase() !== "false";
+
+const fallbackOrigin = isCI
   ? PRODUCTION_ORIGIN
   : LOCAL_DEV_ORIGIN;
 
