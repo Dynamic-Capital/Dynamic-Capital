@@ -1,7 +1,10 @@
 "use client";
 
-import type { PointerEvent as ReactPointerEvent } from "react";
-import { useMemo, useRef, useState } from "react";
+import type {
+  MouseEventHandler,
+  PointerEvent as ReactPointerEvent,
+} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   motion,
   useMotionValue,
@@ -49,6 +52,9 @@ const ONBOARDING_STEPS = [
 const brandColor = (token: string, alpha?: number) =>
   alpha === undefined ? `hsl(var(${token}))` : `hsl(var(${token}) / ${alpha})`;
 
+const clampNormalizedPointer = (value: number) =>
+  Math.max(-1, Math.min(1, value));
+
 const PREVIEW_CARDS = [
   {
     title: "Desk Signal Feed",
@@ -84,6 +90,8 @@ const PREVIEW_CARDS = [
   },
 ] as const;
 
+type PreviewCard = (typeof PREVIEW_CARDS)[number];
+
 const SOCIAL_PROOF = [
   {
     icon: "users",
@@ -104,6 +112,8 @@ const SOCIAL_PROOF = [
 
 export function HeroExperience() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
+  const previewSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const pointerBounds = useRef<DOMRect | null>(null);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const activeStep = ONBOARDING_STEPS[activeStepIndex];
   const pointerX = useMotionValue(0);
@@ -142,11 +152,27 @@ export function HeroExperience() {
   const backRotateX = useTransform(springY, (value) => `${value * -4}deg`);
   const backRotateY = useTransform(springX, (value) => `${value * 4}deg`);
 
-  const orderedCards = useMemo(() => {
-    const cards = PREVIEW_CARDS.slice();
-    const [active] = cards.splice(activeStepIndex, 1);
-    return active ? [active, ...cards] : cards;
-  }, [activeStepIndex]);
+  const cardCount = PREVIEW_CARDS.length;
+  const activeCardIndex = cardCount
+    ? activeStepIndex % cardCount
+    : activeStepIndex;
+
+  const orderedCards = useMemo<PreviewCard[]>(() => {
+    if (!cardCount) {
+      return [];
+    }
+
+    const primaryCard = PREVIEW_CARDS[activeCardIndex];
+
+    if (!primaryCard) {
+      return PREVIEW_CARDS.slice();
+    }
+
+    return [
+      primaryCard,
+      ...PREVIEW_CARDS.filter((_, index) => index !== activeCardIndex),
+    ];
+  }, [activeCardIndex, cardCount]);
 
   const cardTransforms = useMemo(
     () => [
@@ -194,18 +220,74 @@ export function HeroExperience() {
     ],
   );
 
-  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
-    const y = ((event.clientY - bounds.top) / bounds.height) * 2 - 1;
-    pointerX.set(Number.isFinite(x) ? x : 0);
-    pointerY.set(Number.isFinite(y) ? y : 0);
-  };
+  const updatePointerBounds = useCallback(() => {
+    pointerBounds.current = previewSurfaceRef.current
+      ? previewSurfaceRef.current.getBoundingClientRect()
+      : null;
+  }, []);
 
-  const resetPointer = () => {
+  const handlePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!pointerBounds.current) {
+        updatePointerBounds();
+      }
+
+      const bounds = pointerBounds.current;
+
+      if (!bounds) {
+        return;
+      }
+
+      const x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+      const y = ((event.clientY - bounds.top) / bounds.height) * 2 - 1;
+
+      pointerX.set(Number.isFinite(x) ? clampNormalizedPointer(x) : 0);
+      pointerY.set(Number.isFinite(y) ? clampNormalizedPointer(y) : 0);
+    },
+    [pointerX, pointerY, updatePointerBounds],
+  );
+
+  const resetPointer = useCallback(() => {
+    pointerBounds.current = null;
     pointerX.set(0);
     pointerY.set(0);
-  };
+  }, [pointerX, pointerY]);
+
+  useEffect(() => {
+    updatePointerBounds();
+  }, [updatePointerBounds]);
+
+  useEffect(() => {
+    window.addEventListener("resize", updatePointerBounds);
+    return () => window.removeEventListener("resize", updatePointerBounds);
+  }, [updatePointerBounds]);
+
+  useEffect(() => {
+    updatePointerBounds();
+  }, [activeStepIndex, updatePointerBounds]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      pointerBounds.current = null;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleStepSelect = useCallback((index: number) => {
+    setActiveStepIndex((previousIndex) =>
+      previousIndex === index ? previousIndex : index
+    );
+  }, []);
+
+  const stepHandlers = useMemo<MouseEventHandler<HTMLButtonElement>[]>(
+    () =>
+      ONBOARDING_STEPS.map((_, index) => (_event) => {
+        handleStepSelect(index);
+      }),
+    [handleStepSelect],
+  );
 
   return (
     <Column
@@ -441,7 +523,7 @@ export function HeroExperience() {
                 <motion.button
                   key={step.title}
                   type="button"
-                  onClick={() => setActiveStepIndex(index)}
+                  onClick={stepHandlers[index]}
                   aria-pressed={isActive}
                   whileHover={{ y: -4, scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
@@ -540,6 +622,7 @@ export function HeroExperience() {
             style={{ width: "100%", y: floatY }}
           >
             <motion.div
+              ref={previewSurfaceRef}
               onPointerMove={handlePointerMove}
               onPointerLeave={resetPointer}
               className={styles.previewSurface}
