@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import random
 import re
 import sys
@@ -184,6 +185,270 @@ class GrokAdvisor:
         return None
 
 
+@dataclass(slots=True)
+class DualLLMAdvisor:
+    """Trade advisor that ensembles Grok-1 guidance with DeepSeek-V3 risk checks."""
+
+    grok_client: CompletionClient
+    deepseek_client: CompletionClient
+    grok_temperature: float = 0.25
+    grok_nucleus_p: float = 0.9
+    grok_max_tokens: int = 256
+    deepseek_temperature: float = 0.15
+    deepseek_nucleus_p: float = 0.9
+    deepseek_max_tokens: int = 256
+    risk_floor: float = 0.25
+    risk_weight: float = 0.5
+    _grok: GrokAdvisor = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "_grok",
+            GrokAdvisor(
+                client=self.grok_client,
+                temperature=self.grok_temperature,
+                nucleus_p=self.grok_nucleus_p,
+                max_tokens=self.grok_max_tokens,
+            ),
+        )
+
+    def review(
+        self,
+        *,
+        snapshot: MarketSnapshot,
+        signal: TradeSignal,
+        context: Dict[str, Any],
+        open_positions: Sequence[ActivePosition],
+    ) -> Optional[AdvisorFeedback]:
+        grok_feedback = self._grok.review(
+            snapshot=snapshot,
+            signal=signal,
+            context=context,
+            open_positions=open_positions,
+        )
+
+        working_signal = signal
+        metadata: Dict[str, Any] = {"source": "dual_llm"}
+        raw_payloads: list[Dict[str, Any]] = []
+        combined_alerts: list[str] = []
+
+        if grok_feedback:
+            metadata["grok"] = dict(grok_feedback.metadata)
+            combined_alerts.extend(self._string_list(grok_feedback.metadata.get("alerts")))
+            if grok_feedback.raw_response:
+                raw_payloads.append({"model": "grok", "response": grok_feedback.raw_response})
+            if grok_feedback.adjusted_signal is not None:
+                working_signal = grok_feedback.adjusted_signal
+        else:
+            metadata["grok"] = {}
+
+        risk_prompt = self._build_risk_prompt(
+            snapshot=snapshot,
+            signal=working_signal,
+            context=context,
+            open_positions=open_positions,
+            grok_feedback=grok_feedback,
+        )
+
+        metadata["deepseek"] = {"prompt": risk_prompt}
+        deepseek_response = self.deepseek_client.complete(
+            risk_prompt,
+            temperature=self.deepseek_temperature,
+            max_tokens=self.deepseek_max_tokens,
+            nucleus_p=self.deepseek_nucleus_p,
+        )
+
+        if deepseek_response.strip():
+            raw_payloads.append({"model": "deepseek", "response": deepseek_response.strip()})
+
+        parsed = GrokAdvisor._parse_response(deepseek_response) or {}
+        metadata["deepseek"].update(parsed)
+
+        deepseek_alerts = self._string_list(parsed.get("alerts"))
+        if deepseek_alerts:
+            combined_alerts.extend(deepseek_alerts)
+
+        applied_confidence = working_signal.confidence
+        absolute_confidence = self._absolute_confidence(parsed)
+        modifier: Optional[float] = None
+
+        if absolute_confidence is not None:
+            applied_confidence = absolute_confidence
+            metadata["deepseek"]["applied_confidence"] = applied_confidence
+        else:
+            modifier = self._confidence_modifier(parsed)
+            if modifier is None:
+                modifier = self._risk_multiplier(parsed)
+            if modifier is not None:
+                applied_confidence = working_signal.confidence * modifier
+                metadata["deepseek"]["applied_modifier"] = modifier
+
+        applied_confidence = max(0.0, min(1.0, applied_confidence))
+
+        adjusted_signal: Optional[TradeSignal] = None
+        if not math.isclose(applied_confidence, working_signal.confidence, rel_tol=1e-6):
+            adjusted_signal = TradeSignal(
+                direction=working_signal.direction,
+                confidence=applied_confidence,
+                votes=working_signal.votes,
+                neighbors_considered=working_signal.neighbors_considered,
+            )
+        elif grok_feedback and grok_feedback.adjusted_signal is not None:
+            adjusted_signal = grok_feedback.adjusted_signal
+
+        if combined_alerts:
+            metadata["alerts"] = combined_alerts
+
+        raw_response: Optional[str] = None
+        if raw_payloads:
+            try:
+                raw_response = json.dumps(raw_payloads)
+            except (TypeError, ValueError):  # pragma: no cover - defensive fallback
+                raw_response = "\n\n".join(item.get("response", "") for item in raw_payloads)
+
+        return AdvisorFeedback(
+            adjusted_signal=adjusted_signal,
+            metadata=metadata,
+            raw_response=raw_response,
+        )
+
+    def _build_risk_prompt(
+        self,
+        *,
+        snapshot: MarketSnapshot,
+        signal: TradeSignal,
+        context: Dict[str, Any],
+        open_positions: Sequence[ActivePosition],
+        grok_feedback: Optional[AdvisorFeedback],
+    ) -> str:
+        snapshot_payload: Dict[str, Any] = {
+            "symbol": snapshot.symbol,
+            "timestamp": snapshot.timestamp.isoformat(),
+            "close": snapshot.close,
+            "rsi_fast": snapshot.rsi_fast,
+            "adx_fast": snapshot.adx_fast,
+            "rsi_slow": snapshot.rsi_slow,
+            "adx_slow": snapshot.adx_slow,
+            "seasonal_bias": snapshot.seasonal_bias,
+            "seasonal_confidence": snapshot.seasonal_confidence,
+            "pip_size": snapshot.pip_size,
+        }
+        if snapshot.correlation_scores:
+            snapshot_payload["correlation_scores"] = snapshot.correlation_scores
+
+        open_summary = [
+            {
+                "symbol": pos.symbol,
+                "direction": GrokAdvisor._direction(pos.direction),
+                "size": pos.size,
+                "entry_price": pos.entry_price,
+                "stop_loss": pos.stop_loss,
+                "take_profit": pos.take_profit,
+                "opened_at": pos.opened_at.isoformat() if pos.opened_at else None,
+            }
+            for pos in open_positions
+        ]
+
+        grok_summary: Dict[str, Any] = {}
+        if grok_feedback:
+            grok_summary.update(grok_feedback.metadata)
+            if grok_feedback.adjusted_signal is not None:
+                grok_summary.setdefault(
+                    "adjusted_confidence",
+                    grok_feedback.adjusted_signal.confidence,
+                )
+            if grok_feedback.raw_response:
+                grok_summary.setdefault("raw_response", grok_feedback.raw_response)
+
+        snapshot_json = json.dumps(snapshot_payload, indent=2, default=str, sort_keys=True)
+        context_json = json.dumps(context, indent=2, default=str, sort_keys=True)
+        grok_json = json.dumps(grok_summary, indent=2, default=str, sort_keys=True)
+        positions_json = json.dumps(open_summary, indent=2, default=str, sort_keys=True)
+
+        return textwrap.dedent(
+            f"""
+            You are DeepSeek-V3 acting as the chief risk officer for a systematic FX desk.
+            Review the proposed trade and Grok-1 commentary. Respond with a single JSON object containing:
+              - "confidence_modifier": optional multiplier between 0 and 1 to scale the input confidence.
+              - "adjusted_confidence": optional absolute confidence override between 0 and 1.
+              - "risk_score": optional aggregate risk score between 0 and 1 (higher means more risk).
+              - "alerts": optional array of short risk callouts.
+              - "rationale": optional concise explanation.
+            Ensure the response is minified machine-readable JSON with no extra prose.
+
+            Signal under review:
+              direction: {GrokAdvisor._direction(signal.direction)}
+              confidence: {signal.confidence:.4f}
+              votes: {signal.votes}
+              neighbours: {signal.neighbors_considered}
+
+            Market snapshot:
+            {snapshot_json}
+
+            Context modifiers:
+            {context_json}
+
+            Grok analysis:
+            {grok_json}
+
+            Open positions:
+            {positions_json}
+            """
+        ).strip()
+
+    @staticmethod
+    def _absolute_confidence(payload: Dict[str, Any]) -> Optional[float]:
+        value = DualLLMAdvisor._extract_float(payload, ("adjusted_confidence", "final_confidence"))
+        if value is None:
+            return None
+        return max(0.0, min(1.0, value))
+
+    @staticmethod
+    def _confidence_modifier(payload: Dict[str, Any]) -> Optional[float]:
+        value = DualLLMAdvisor._extract_float(
+            payload,
+            ("confidence_modifier", "confidence_scale", "scale", "multiplier"),
+        )
+        if value is None:
+            return None
+        return max(0.0, min(1.0, value))
+
+    def _risk_multiplier(self, payload: Dict[str, Any]) -> Optional[float]:
+        value = self._extract_float(
+            payload,
+            ("risk_score", "risk", "penalty", "confidence_penalty"),
+        )
+        if value is None:
+            return None
+        value = max(0.0, min(1.0, value))
+        modifier = 1.0 - value * self.risk_weight
+        modifier = max(self.risk_floor, min(1.0, modifier))
+        return modifier
+
+    @staticmethod
+    def _extract_float(payload: Dict[str, Any], keys: Sequence[str]) -> Optional[float]:
+        for key in keys:
+            if key not in payload:
+                continue
+            try:
+                value = float(payload[key])
+            except (TypeError, ValueError):
+                continue
+            if math.isnan(value) or math.isinf(value):  # pragma: no cover - defensive
+                continue
+            return value
+        return None
+
+    @staticmethod
+    def _string_list(value: Any) -> list[str]:
+        if value is None:
+            return []
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+            return [str(item) for item in value]
+        return [str(value)]
+
+
 @dataclass
 class LocalGrokClient:
     """Completion client that proxies the reference Grok runner."""
@@ -251,6 +516,7 @@ class LocalGrokClient:
 __all__ = [
     "AdvisorFeedback",
     "CompletionClient",
+    "DualLLMAdvisor",
     "GrokAdvisor",
     "LocalGrokClient",
     "TradeAdvisor",
