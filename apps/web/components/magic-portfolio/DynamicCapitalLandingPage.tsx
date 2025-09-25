@@ -16,6 +16,7 @@ import { FxMarketSnapshotSection } from "@/components/magic-portfolio/home/FxMar
 import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
+import { VipPlansPricingSection } from "@/components/magic-portfolio/home/VipPlansPricingSection";
 import { cn } from "@/utils";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 import styles from "./DynamicCapitalLandingPage.module.scss";
@@ -199,12 +200,15 @@ export function DynamicCapitalLandingPage() {
         <MarketIntelligenceSection />
       </Section>
       <Section revealDelay={0.56}>
-        <MentorAndTrustSection />
+        <VipPlansPricingSection />
       </Section>
       <Section revealDelay={0.64}>
-        <FundingReadinessSection />
+        <MentorAndTrustSection />
       </Section>
       <Section revealDelay={0.72}>
+        <FundingReadinessSection />
+      </Section>
+      <Section revealDelay={0.8}>
         <CheckoutCallout />
       </Section>
       <Section reveal={false}>
