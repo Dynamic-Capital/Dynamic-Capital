@@ -13,7 +13,13 @@ import {
 } from "./database-utils.ts";
 import { createClient } from "../_shared/client.ts";
 type SupabaseClient = ReturnType<typeof createClient>;
-import { envOrSetting, getContent, getContentBatch, getFlag } from "../_shared/config.ts";
+import {
+  envOrSetting,
+  getContent,
+  getContentBatch,
+  getCryptoDepositAddress,
+  getFlag,
+} from "../_shared/config.ts";
 import { buildMainMenu, type MenuSection } from "./menu.ts";
 import {
   buildAdminCommandHandlers,
@@ -1669,8 +1675,7 @@ async function handleCallback(update: TelegramUpdate): Promise<void> {
           payment_method: "crypto",
           status: "pending",
         });
-        const address = await getContent("crypto_usdt_trc20") ||
-          optionalEnv("CRYPTO_DEPOSIT_ADDRESS") ||
+        const address = (await getCryptoDepositAddress()) ||
           "Please contact support for the crypto address.";
         if (perr) {
           console.error("create crypto payment error", perr);

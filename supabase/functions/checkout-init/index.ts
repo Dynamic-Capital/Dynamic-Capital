@@ -5,7 +5,7 @@ import { bad, mna, oops, json } from "../_shared/http.ts";
 import { createSupabaseClient } from "../_shared/client.ts";
 import { version } from "../_shared/version.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
-import { getContent } from "../_shared/config.ts";
+import { getCryptoDepositAddress } from "../_shared/config.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -141,15 +141,10 @@ export async function handler(req: Request): Promise<Response> {
       .order("display_order");
     instructions = { type: "bank_transfer", banks: (banks as BankAccount[]) || [] };
   } else if (body.method === "crypto") {
-    // Get crypto address from bot_settings
-    const { data: cryptoSetting } = await supa
-      .from("bot_settings")
-      .select("setting_value")
-      .eq("setting_key", "crypto_usdt_trc20")
-      .eq("is_active", true)
-      .single();
-    
-    const cryptoAddress = cryptoSetting?.setting_value || "TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7";
+    const cryptoAddress = await getCryptoDepositAddress();
+    if (!cryptoAddress) {
+      return oops("Crypto deposit address is not configured");
+    }
     instructions = {
       type: "crypto",
       address: cryptoAddress,
