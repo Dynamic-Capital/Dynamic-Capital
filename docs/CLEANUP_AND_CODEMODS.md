@@ -12,6 +12,6 @@ This repository includes maintenance scripts for asset hygiene and code quality.
 - **utils.sh** &mdash; shared helpers for logging and managing the `.out` directory.
 
 ## Codemods (`scripts/codemods/`)
-- **wrap_ts_comments.mjs** &mdash; ensures any `@ts-ignore` or `@ts-expect-error` comment is preceded by `// deno-lint-ignore ban-ts-comment`.
+- **wrap_ts_comments.mjs** &mdash; scans all tracked TypeScript/JavaScript files and ensures any `@ts-ignore` or `@ts-expect-error` comment is preceded by `// deno-lint-ignore ban-ts-comment`.
 - **require_await_pad.mjs** &mdash; inserts a no-op `await Promise.resolve()` into async functions that lack an `await`, satisfying the `require-await` lint rule.
 

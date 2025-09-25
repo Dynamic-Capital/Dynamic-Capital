@@ -1,15 +1,30 @@
 import fs from "fs";
 import path from "path";
 
-const roots = ["src", "supabase/functions"];
+const roots = [process.cwd()];
 const exts = /\.(ts|tsx|js|jsx|mjs)$/;
+const ignoredDirectories = new Set([
+  ".git",
+  "node_modules",
+  ".next",
+  "dist",
+  "build",
+  "coverage",
+  ".turbo",
+  "tmp",
+  "out",
+  ".vercel",
+  "vendor",
+]);
 
 function* walk(dir) {
   if (!fs.existsSync(dir)) return;
-  for (const d of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, d.name);
-    if (d.isDirectory()) yield* walk(p);
-    else if (exts.test(d.name)) yield p;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (ignoredDirectories.has(entry.name)) continue;
+      yield* walk(entryPath);
+    } else if (exts.test(entry.name)) yield entryPath;
   }
 }
 
