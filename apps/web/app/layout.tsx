@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "@once-ui-system/core/css/tokens.css";
 import "@once-ui-system/core/css/styles.css";
@@ -215,6 +215,9 @@ export const metadata: Metadata = {
     shortcut: brandingAssets.favicon,
     apple: brandingAssets.appleTouchIcon,
   },
+};
+
+export const viewport: Viewport = {
   themeColor: themeColorMeta,
 };
 
