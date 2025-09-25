@@ -53,7 +53,13 @@ example value, and where it's referenced in the repository.
 
 | Key                | Purpose                                   | Required | Example                           | Used in                 |
 | ------------------ | ----------------------------------------- | -------- | --------------------------------- | ----------------------- |
-| `USDT_TRC20_ADDRESS` | TRC20 wallet address for USDT deposits. | Yes      | `TEX7N2YKZX2KJR8HXRZ5WQGK5JFCGR7` | `apps/web/config/supabase.ts` |
+| `USDT_TRC20_ADDRESS` | TRC20 wallet address for USDT deposits. | Yes      | `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` | `apps/web/config/supabase.ts` |
+
+Additional crypto keys:
+
+- `CRYPTO_DEPOSIT_ADDRESS` — Primary deposit address shown in checkout instructions.
+- `CRYPTO_SUPPORTED_CURRENCIES` — Comma-separated list of currencies surfaced in the Mini App checkout.
+- `CRYPTO_NETWORK` — Friendly label for the default payment network.
 
 ## AI / Feature toggles
 
