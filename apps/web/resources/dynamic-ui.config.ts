@@ -5,7 +5,6 @@ import {
   FontsConfig,
   MailchimpConfig,
   ProtectedRoutesConfig,
-  RoutesConfig,
   SameAsConfig,
   SchemaConfig,
   SocialSharingConfig,
@@ -14,25 +13,12 @@ import {
 } from "@/resources/types";
 import { dynamicBranding } from "./dynamic-branding.config";
 import { home } from "./content";
+import { routes } from "./routes.config.ts";
 
 const brandingMetadata = dynamicBranding.metadata;
 const brandingAssets = dynamicBranding.assets;
 
 const baseURL: string = brandingMetadata.primaryUrl;
-
-const routes: RoutesConfig = {
-  "/": true,
-  "/about": true,
-  "/plans": true,
-  "/checkout": true,
-  "/login": true,
-  "/admin": true,
-  "/signal": true,
-  "/work": true,
-  "/blog": true,
-  "/gallery": false,
-  "/telegram": true,
-};
 
 const display: DisplayConfig = {
   location: true,
