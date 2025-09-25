@@ -482,8 +482,8 @@ Full list and usage notes: [docs/env.md](docs/env.md).
 - MINI_APP_URL _(optional)_
 - AMOUNT_TOLERANCE _(optional)_
 - WINDOW_SECONDS _(optional)_
-- OPENAI_API_KEY _(optional)_
-- OPENAI_ENABLED _(optional)_
+- OPENAI_API_KEY _(required when AI flows are enabled)_
+- OPENAI_ENABLED _(optional, defaults to `false`)_
 - BENEFICIARY_TABLE _(optional)_
 - LOG_LEVEL _(optional)_
 

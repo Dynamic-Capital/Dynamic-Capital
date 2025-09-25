@@ -45,7 +45,7 @@ Read via `Deno.env.get` (functions) and feature-flag safely (fail soft).
 - `AMOUNT_TOLERANCE` (default: `0.02`) — ±2%
 - `WINDOW_SECONDS` (default: `180`)
 - `REQUIRE_PAY_CODE` (default: `false`)
-- `OPENAI_API_KEY`, `OPENAI_ENABLED` (default: `false`)
+- `OPENAI_API_KEY`, `OPENAI_ENABLED` (default: `false`; requires valid key when toggled on)
 - `MINI_APP_URL` (default: unset) — shows “Open Mini App” button when present
 
 **CI only:**
