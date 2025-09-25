@@ -1,4 +1,4 @@
-import { Column, Heading, Meta, Schema } from "@once-ui-system/core";
+import { Column, Heading, Meta, Schema } from "@/components/dynamic-ui-system";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { Posts } from "@/components/magic-portfolio/blog/Posts";
 import { baseURL, blog, person, toAbsoluteUrl } from "@/resources";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useTheme as useDynamicUiTheme } from "@once-ui-system/core";
+import { useTheme as useDynamicUiTheme } from "@/components/dynamic-ui-system";
 
 import { callEdgeFunction } from "@/config/supabase";
 import { supabase } from "@/integrations/supabase/client";

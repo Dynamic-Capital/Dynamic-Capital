@@ -12,7 +12,7 @@ import {
   Row,
   Text,
   ToggleButton,
-} from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
 
 import { display, isRouteEnabled, person } from "@/resources";
 import type { IconName } from "@/resources/icons";

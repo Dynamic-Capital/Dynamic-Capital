@@ -1,5 +1,5 @@
 import { about } from "@/resources";
-import { Button, Column, Heading, Icon, Line, Row, Text } from "@once-ui-system/core";
+import { Button, Column, Heading, Icon, Line, Row, Text } from "@/components/dynamic-ui-system";
 
 const METRICS = [
   { label: "Capital under management", value: "$42M" },

@@ -10,7 +10,7 @@ import {
   PasswordInput,
   Row,
   Text,
-} from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";

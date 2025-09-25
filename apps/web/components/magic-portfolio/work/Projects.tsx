@@ -1,5 +1,5 @@
 import { getPosts } from "@/utils/magic-portfolio/utils";
-import { Column } from "@once-ui-system/core";
+import { Column } from "@/components/dynamic-ui-system";
 import { ProjectCard } from "@/components/magic-portfolio";
 
 interface ProjectsProps {

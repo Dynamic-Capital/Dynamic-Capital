@@ -1,4 +1,4 @@
-import { Button, Column, Heading, Row, Text } from "@once-ui-system/core";
+import { Button, Column, Heading, Row, Text } from "@/components/dynamic-ui-system";
 
 export function CheckoutCallout() {
   return (

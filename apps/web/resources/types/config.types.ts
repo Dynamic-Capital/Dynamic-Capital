@@ -10,7 +10,7 @@ import {
   SurfaceStyle,
   Theme,
   TransitionStyle,
-} from "@once-ui-system/core";
+} from "@/components/dynamic-ui-system";
 import { NextFontWithVariable } from "next/dist/compiled/@next/font";
 
 /**

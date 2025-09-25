@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { isRouteEnabled, protectedRoutes } from "@/resources";
-import { Flex, Spinner, Button, Heading, Column, PasswordInput } from "@once-ui-system/core";
+import { Flex, Spinner, Button, Heading, Column, PasswordInput } from "@/components/dynamic-ui-system";
 import NotFound from "@/app/not-found";
 
 interface RouteGuardProps {

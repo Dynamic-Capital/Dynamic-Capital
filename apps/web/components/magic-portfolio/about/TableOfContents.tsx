@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Column, Flex, Text } from "@once-ui-system/core";
+import { Column, Flex, Text } from "@/components/dynamic-ui-system";
 import styles from "./about.module.scss";
 
 interface TableOfContentsProps {

@@ -8,7 +8,7 @@ import {
   Social,
   Work,
 } from "@/resources/types";
-import { Line, Row, Text } from "@once-ui-system/core";
+import { Line, Row, Text } from "@/components/dynamic-ui-system";
 
 import { supabaseAsset } from "./assets";
 import { ogDefaults } from "./og-defaults";

@@ -1,4 +1,4 @@
-import { Heading, Column, Text } from "@once-ui-system/core";
+import { Heading, Column, Text } from "@/components/dynamic-ui-system";
 
 import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
 import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";

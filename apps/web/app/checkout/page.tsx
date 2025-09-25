@@ -1,4 +1,4 @@
-import { Column, Heading, Text } from "@once-ui-system/core";
+import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 
 import { WebCheckout } from "@/components/checkout/WebCheckout";
 
