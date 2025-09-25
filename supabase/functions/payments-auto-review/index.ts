@@ -14,7 +14,7 @@ async function completePayment(
   paymentId: string,
   monthsOverride?: number,
 ) {
-  // Reuse Phase 4 admin flow by calling the endpoint (keeps logic in one place)
+  // Reuse Phase 04 admin flow by calling the endpoint (keeps logic in one place)
   const admin = need("ADMIN_API_SECRET");
   const url = functionUrl("admin-review-payment");
   if (!url) {

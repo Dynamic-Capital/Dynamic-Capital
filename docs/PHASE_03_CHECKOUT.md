@@ -1,4 +1,4 @@
-# Phase 3 Checkout Flow
+# Dynamic Capital Phase 03 Checkout Flow
 
 This phase wires basic payment handling for the Mini App.
 

@@ -1,4 +1,4 @@
-# Phase 4 — Admin approvals & VIP lifecycle
+# Dynamic Capital Phase 04 — Admin approvals & VIP lifecycle
 
 ## Endpoints
 

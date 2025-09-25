@@ -28,7 +28,7 @@ export const handler = registerHandler(async (req) => {
       return mna();
     }
 
-    // Admin header secret from Phase 4 (reuse)
+    // Admin header secret from Phase 04 (reuse)
     const hdr = req.headers.get("X-Admin-Secret") || "";
     if (hdr !== (Deno.env.get("ADMIN_API_SECRET") || "")) {
       return unauth();

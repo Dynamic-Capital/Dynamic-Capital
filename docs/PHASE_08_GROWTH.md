@@ -1,4 +1,4 @@
-# Phase 8 – Growth
+# Dynamic Capital Phase 08 – Growth
 
 ## Promo & Referral Flow
 - Users can validate a promo code via `/functions/v1/promo-validate`.

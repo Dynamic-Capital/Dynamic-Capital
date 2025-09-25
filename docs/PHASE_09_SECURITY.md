@@ -1,3 +1,5 @@
+# Dynamic Capital Phase 09 Security Hardening
+
 - RLS deny-all on sensitive tables (Edge-only access).
 - Banlist usage & Admin endpoint (/admin-bans with initData auth).
 - Retention cron (RETENTION_DAYS, defaults 90).
