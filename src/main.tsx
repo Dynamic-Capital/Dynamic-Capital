@@ -4,6 +4,9 @@ import "@once-ui-system/core/css/tokens.css";
 import "@once-ui-system/core/css/styles.css";
 import App from "./App.tsx";
 import "./index.css";
+import { applyDynamicBranding } from "./lib/dynamic-branding";
+
+applyDynamicBranding();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
