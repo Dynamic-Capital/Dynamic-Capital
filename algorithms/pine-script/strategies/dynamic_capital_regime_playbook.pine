@@ -170,7 +170,7 @@ if bosUp
     currentRegime := lastBosDirection == -1 ? Regime.Reversal : Regime.Breakout
     lastBosDirection := 1
     lastBosBar := bar_index
-    lastImpulseHigh := nzfloat(lastSwingHigh, high)
+    lastImpulseHigh := math.max(high, nzfloat(lastSwingHigh, high))
     lastImpulseLow := nzfloat(lastSwingLow, low)
 else if bosDown
     primaryTrend := -1
@@ -180,7 +180,7 @@ else if bosDown
     lastBosDirection := -1
     lastBosBar := bar_index
     lastImpulseHigh := nzfloat(lastSwingHigh, high)
-    lastImpulseLow := nzfloat(lastSwingLow, low)
+    lastImpulseLow := math.min(low, nzfloat(lastSwingLow, low))
 else
     if lastBosBar != na and bar_index - lastBosBar > 3 * (pivotLeft + pivotRight)
         currentRegime := primaryTrend == 0 ? Regime.Consolidation : Regime.Trending
