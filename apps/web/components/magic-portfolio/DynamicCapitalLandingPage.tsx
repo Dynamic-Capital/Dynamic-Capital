@@ -15,10 +15,18 @@ import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/Men
 import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
 import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
+import { cn } from "@/utils";
+import styles from "./DynamicCapitalLandingPage.module.scss";
 
 export function DynamicCapitalLandingPage() {
   return (
-    <Column maxWidth="m" gap="xl" paddingY="12" horizontal="center">
+    <Column
+      as="main"
+      fillWidth
+      gap="xl"
+      horizontal="center"
+      className={styles.page}
+    >
       <Schema
         as="webPage"
         baseURL={baseURL}
@@ -32,85 +40,110 @@ export function DynamicCapitalLandingPage() {
           image: toAbsoluteUrl(baseURL, person.avatar),
         }}
       />
-      <HeroExperience />
+      <div className={styles.section}>
+        <HeroExperience />
+      </div>
       <RevealFx translateY="20" delay={0.6}>
-        <ValuePropositionSection />
+        <div className={styles.section}>
+          <ValuePropositionSection />
+        </div>
       </RevealFx>
       <RevealFx translateY="20" delay={0.64}>
-        <PerformanceInsightsSection />
+        <div className={styles.section}>
+          <PerformanceInsightsSection />
+        </div>
       </RevealFx>
-      <Row
-        fillWidth
-        gap="24"
-        wrap
-        s={{ direction: "column" }}
-        aria-label="Live market coverage"
-      >
-        <Column flex={1} minWidth={24} gap="16">
-          <RevealFx translateY="20" delay={0.68}>
-            <MarketWatchlist />
-          </RevealFx>
-        </Column>
-        <Column flex={1} minWidth={24} gap="16">
-          <Column gap="16">
-            <RevealFx translateY="20" delay={0.72}>
-              <FxMarketSnapshotSection />
-            </RevealFx>
-            <RevealFx translateY="20" delay={0.76}>
-              <EconomicCalendarSection />
+      <div className={cn(styles.section, styles.sectionTight)}>
+        <Row
+          className={styles.splitRow}
+          fillWidth
+          gap="24"
+          wrap
+          s={{ direction: "column" }}
+          aria-label="Live market coverage"
+        >
+          <Column flex={1} minWidth={24} gap="16">
+            <RevealFx translateY="20" delay={0.68}>
+              <MarketWatchlist />
             </RevealFx>
           </Column>
-        </Column>
-      </Row>
+          <Column flex={1} minWidth={24} gap="16">
+            <Column gap="16">
+              <RevealFx translateY="20" delay={0.72}>
+                <FxMarketSnapshotSection />
+              </RevealFx>
+              <RevealFx translateY="20" delay={0.76}>
+                <EconomicCalendarSection />
+              </RevealFx>
+            </Column>
+          </Column>
+        </Row>
+      </div>
       <RevealFx translateY="20" delay={0.76}>
-        <CommodityStrengthSection />
+        <div className={styles.section}>
+          <CommodityStrengthSection />
+        </div>
       </RevealFx>
-      <Row
-        fillWidth
-        gap="24"
-        wrap
-        s={{ direction: "column" }}
-        aria-label="Trading insights"
-      >
-        <Column flex={1} minWidth={24} gap="16">
-          <RevealFx translateY="20" delay={0.78}>
-            <FundamentalAnalysisSection />
-          </RevealFx>
-        </Column>
-        <Column flex={1} minWidth={24} gap="16">
-          <RevealFx translateY="20" delay={0.82}>
-            <PoolTradingSection />
-          </RevealFx>
-        </Column>
-      </Row>
+      <div className={cn(styles.section, styles.sectionTight)}>
+        <Row
+          className={styles.splitRow}
+          fillWidth
+          gap="24"
+          wrap
+          s={{ direction: "column" }}
+          aria-label="Trading insights"
+        >
+          <Column flex={1} minWidth={24} gap="16">
+            <RevealFx translateY="20" delay={0.78}>
+              <FundamentalAnalysisSection />
+            </RevealFx>
+          </Column>
+          <Column flex={1} minWidth={24} gap="16">
+            <RevealFx translateY="20" delay={0.82}>
+              <PoolTradingSection />
+            </RevealFx>
+          </Column>
+        </Row>
+      </div>
       <RevealFx translateY="20" delay={0.86}>
-        <MentorshipProgramsSection />
+        <div className={styles.section}>
+          <MentorshipProgramsSection />
+        </div>
       </RevealFx>
-      <Row
-        fillWidth
-        gap="24"
-        wrap
-        s={{ direction: "column" }}
-        aria-label="Brand trust"
-      >
-        <Column flex={1} minWidth={24} gap="16">
-          <RevealFx translateY="20" delay={0.9}>
-            <ComplianceCertificates />
-          </RevealFx>
-        </Column>
-        <Column flex={1} minWidth={24} gap="16">
-          <RevealFx translateY="20" delay={0.94}>
-            <AboutShowcase />
-          </RevealFx>
-        </Column>
-      </Row>
+      <div className={cn(styles.section, styles.sectionTight)}>
+        <Row
+          className={styles.splitRow}
+          fillWidth
+          gap="24"
+          wrap
+          s={{ direction: "column" }}
+          aria-label="Brand trust"
+        >
+          <Column flex={1} minWidth={24} gap="16">
+            <RevealFx translateY="20" delay={0.9}>
+              <ComplianceCertificates />
+            </RevealFx>
+          </Column>
+          <Column flex={1} minWidth={24} gap="16">
+            <RevealFx translateY="20" delay={0.94}>
+              <AboutShowcase />
+            </RevealFx>
+          </Column>
+        </Row>
+      </div>
       <RevealFx translateY="20" delay={0.98}>
-        <VipPackagesSection />
+        <div className={styles.section}>
+          <VipPackagesSection />
+        </div>
       </RevealFx>
       <RevealFx translateY="20" delay={1.02}>
-        <CheckoutCallout />
+        <div className={styles.section}>
+          <CheckoutCallout />
+        </div>
       </RevealFx>
-      <Mailchimp />
+      <div className={styles.section}>
+        <Mailchimp />
+      </div>
     </Column>
   );
 }
