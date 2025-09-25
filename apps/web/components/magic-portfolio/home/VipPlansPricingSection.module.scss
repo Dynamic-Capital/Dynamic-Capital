@@ -1,0 +1,203 @@
+@use "../breakpoints.scss" as breakpoints;
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.toggleGroup {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0.5rem;
+  border-radius: 9999px;
+  background: hsl(var(--surface-strong));
+  border: 1px solid hsla(var(--brand-base), 0.25);
+  box-shadow: 0 12px 32px hsla(var(--brand-dark), 0.12);
+  gap: 0.5rem;
+  width: fit-content;
+}
+
+.toggleButton {
+  position: relative;
+  border: none;
+  background: transparent;
+  color: hsl(var(--neutral-weak));
+  border-radius: 9999px;
+  padding: 0.6rem 1.5rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  transition: color 0.2s ease;
+}
+
+.toggleButton[aria-pressed="true"] {
+  color: hsl(var(--brand-strong));
+}
+
+.toggleHighlight {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: linear-gradient(
+    135deg,
+    hsla(var(--brand-base), 0.18),
+    hsla(var(--accent-base), 0.2)
+  );
+  box-shadow: 0 10px 24px hsla(var(--brand-dark), 0.25);
+  z-index: 0;
+}
+
+.toggleLabel,
+.toggleDescription {
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
+}
+
+.toggleDescription {
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+  color: hsl(var(--neutral-weak));
+}
+
+.planGrid {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  grid-template-columns: repeat(auto-fit, minmax(18.5rem, 1fr));
+  width: 100%;
+}
+
+.planCard {
+  position: relative;
+  height: 100%;
+  border-radius: 1.5rem;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  background: hsl(var(--surface-strong));
+  border: 1px solid hsla(var(--neutral-strong), 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.1rem, 2.5vw, 1.6rem);
+  overflow: hidden;
+  box-shadow: 0 20px 50px hsla(var(--neutral-strong), 0.08);
+}
+
+.popularCard {
+  border: 1px solid hsla(var(--brand-base), 0.35);
+  box-shadow: 0 30px 60px hsla(var(--brand-dark), 0.18);
+}
+
+.popularGlow {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    hsla(var(--brand-base), 0.35),
+    hsla(var(--accent-base), 0.25)
+  );
+  opacity: 0.9;
+  z-index: 0;
+}
+
+.popularCardContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
+}
+
+.popularBadge {
+  align-self: center;
+  padding-inline: 0.85rem;
+  padding-block: 0.35rem;
+  border-radius: 9999px;
+  background: linear-gradient(
+    120deg,
+    hsl(var(--brand-base)),
+    hsl(var(--accent-base))
+  );
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 12px 32px hsla(var(--brand-dark), 0.35);
+}
+
+.popularBadgeIcon {
+  width: 1rem;
+  height: 1rem;
+  color: inherit;
+}
+
+.priceWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.priceLabel {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--neutral-weak));
+}
+
+.priceValue {
+  font-size: clamp(2.25rem, 4vw, 2.85rem);
+  font-weight: 800;
+  color: hsl(var(--brand-strong));
+  line-height: 1.1;
+}
+
+.priceSuffix {
+  font-size: 0.9rem;
+  color: hsl(var(--neutral-weak));
+  margin-left: 0.4rem;
+}
+
+.featureList {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.6rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: hsl(var(--neutral-weak));
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.featureIcon {
+  color: hsl(var(--brand-strong));
+  width: 1rem;
+  height: 1rem;
+}
+
+.footer {
+  margin-top: auto;
+}
+
+@media (max-width: breakpoints.$s) {
+  .toggleGroup {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toggleButton {
+    padding-inline: 1.25rem;
+  }
+}
