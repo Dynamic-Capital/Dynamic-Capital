@@ -2,6 +2,7 @@ import {
   Award,
   GraduationCap,
   Home,
+  LayoutDashboard,
   type LucideIcon,
   Shield,
   TrendingUp,
@@ -71,6 +72,17 @@ export const NAV_ITEMS: NavItem[] = [
     path: "/telegram",
     ariaLabel:
       "Step 5: Automation hub. Connect signals and manage the Telegram bot.",
+    showOnMobile: true,
+  },
+  {
+    id: "heatmap",
+    step: "Step 6",
+    label: "Heatmap tool",
+    description: "Explore the desk's cross-asset market heatmap.",
+    icon: LayoutDashboard,
+    path: "/tools/heatmap",
+    ariaLabel:
+      "Step 6: Heatmap tool. Explore the desk's cross-asset market heatmap.",
     showOnMobile: true,
   },
 ];
