@@ -44,11 +44,15 @@ in your PR/issue notes so reviewers can see the evidence.
       tests cover the latest changes. _All 51 checks passed, matching the CI
       suite._
 - [ ] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to
-      apply formatting and rerun Deno format/lint/type checks.
-- [ ] Run the aggregated verification suite (`npm run verify`) for the bundled
-      static, runtime, and integration safety checks. _Blocked in this
-      environment—the helper waits for long-running steps that require
-      production credentials._
+      apply formatting and rerun Deno format/lint/type checks. _Attempt on this
+      branch surfaced pre-existing Deno lint violations (for example unused
+      variables in `scripts/predeploy.js` and bare `https:` imports in the
+      Drizzle tooling) that require follow-up patches before the script can
+      succeed._
+- [x] Run the aggregated verification suite (`npm run verify`) for the bundled
+      static, runtime, and integration safety checks. _Ran successfully via the
+      `verify_all.sh` harness; the generated report is available at
+      `.out/verify_report.md` for review._
 - [x] Audit Supabase Edge function hosts
       (`deno run -A scripts/audit-edge-hosts.ts`) to detect environment drift
       between deployments. _Script executed successfully with no mismatched
@@ -59,10 +63,12 @@ in your PR/issue notes so reviewers can see the evidence.
       `TELEGRAM_BOT_TOKEN`)._
 - [ ] Verify the Telegram webhook configuration
       (`deno run -A scripts/check-webhook.ts`) so bot traffic hits the expected
-      endpoint. _Blocked until a valid `TELEGRAM_BOT_TOKEN` is available._
+      endpoint. _Still blocked—the script exits immediately without a
+      `TELEGRAM_BOT_TOKEN` secret in the environment._
 - [ ] _Optional:_ Run the mini app smoke test
       (`deno run -A scripts/smoke-miniapp.ts`) to mirror the go-live walkthrough
-      end-to-end.
+      end-to-end. _Requires `FUNCTIONS_BASE` to target a deployed Supabase Edge
+      host; not available in this environment._
 
 ## Setup Follow-Ups
 
