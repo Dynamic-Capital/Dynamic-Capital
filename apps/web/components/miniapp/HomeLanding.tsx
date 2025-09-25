@@ -1,20 +1,30 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
-import { Interactive3DCard, FloatingActionCard, LiquidCard } from "@/components/ui/interactive-cards";
+import {
+  FloatingActionCard,
+  Interactive3DCard,
+  LiquidCard,
+} from "@/components/ui/interactive-cards";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Star, 
-  TrendingUp, 
-  Shield, 
-  Clock, 
-  Users, 
-  Sparkles,
-  MessageSquare,
+import {
   Award,
+  Clock,
+  Gift,
+  MessageSquare,
+  Shield,
+  Sparkles,
+  Star,
   Target,
-  Gift
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
@@ -23,11 +33,19 @@ import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 import PromoCodeInput from "@/components/billing/PromoCodeInput";
 import AnimatedWelcomeMini from "./AnimatedWelcomeMini";
 import { AnimatedStatusDisplay } from "./AnimatedStatusDisplay";
-import { ThreeDEmoticon, TradingEmoticonSet } from "@/components/ui/three-d-emoticons";
-import { motion, AnimatePresence } from "framer-motion";
-import { parentVariants, childVariants, slowParentVariants } from "@/lib/motion-variants";
+import {
+  ThreeDEmoticon,
+  TradingEmoticonSet,
+} from "@/components/ui/three-d-emoticons";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  childVariants,
+  parentVariants,
+  slowParentVariants,
+} from "@/lib/motion-variants";
 import { callEdgeFunction } from "@/config/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Toast } from "./Toast";
 
 interface BotContent {
   content_key: string;
@@ -59,78 +77,129 @@ interface HomeLandingProps {
   telegramData: TelegramData;
 }
 
+interface PromoValidationInfo {
+  ok?: boolean;
+  valid?: boolean;
+  type?: "percentage" | "fixed";
+  discount_type?: "percentage" | "fixed";
+  value?: number;
+  discount_value?: number;
+  final_amount?: number;
+  reason?: string;
+}
+
 export default function HomeLanding({ telegramData }: HomeLandingProps) {
   const [aboutUs, setAboutUs] = useState<string>("Loading...");
   const [services, setServices] = useState<string>("Loading...");
-  const [announcements, setAnnouncements] = useState<string>("Stay tuned for updates!");
+  const [announcements, setAnnouncements] = useState<string>(
+    "Stay tuned for updates!",
+  );
   const [activePromos, setActivePromos] = useState<ActivePromo[]>([]);
   const [loading, setLoading] = useState(true);
   const [scrollY, setScrollY] = useState(0);
-  const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionStatus | null>(
+    null,
+  );
+  const [promoStatus, setPromoStatus] = useState<
+    { code: string; copied: boolean | null; discountText?: string } | null
+  >(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
-  const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+  const isInTelegram = typeof window !== "undefined" && window.Telegram?.WebApp;
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
     const fetchContent = async () => {
       try {
         // Fetch about us and services from bot_content
-        const { data: contentData, status: contentStatus } = await callEdgeFunction('CONTENT_BATCH', {
-          method: 'POST',
-          body: {
-            keys: ['about_us', 'our_services', 'announcements']
-          }
-        });
+        const { data: contentData, status: contentStatus } =
+          await callEdgeFunction("CONTENT_BATCH", {
+            method: "POST",
+            body: {
+              keys: ["about_us", "our_services", "announcements"],
+            },
+          });
 
-        if (contentStatus === 200 && (contentData as any)?.ok && (contentData as any).contents) {
+        if (
+          contentStatus === 200 && (contentData as any)?.ok &&
+          (contentData as any).contents
+        ) {
           const contents = (contentData as any).contents;
-            
-            const aboutContent = contents.find((c: BotContent) => c.content_key === 'about_us');
-            const servicesContent = contents.find((c: BotContent) => c.content_key === 'our_services');
-            const announcementsContent = contents.find((c: BotContent) => c.content_key === 'announcements');
-            
-            setAboutUs(aboutContent?.content_value || "Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.");
-            setServices(servicesContent?.content_value || "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support");
-            setAnnouncements(announcementsContent?.content_value || "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.");
-          }
+
+          const aboutContent = contents.find((c: BotContent) =>
+            c.content_key === "about_us"
+          );
+          const servicesContent = contents.find((c: BotContent) =>
+            c.content_key === "our_services"
+          );
+          const announcementsContent = contents.find((c: BotContent) =>
+            c.content_key === "announcements"
+          );
+
+          setAboutUs(
+            aboutContent?.content_value ||
+              "Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.",
+          );
+          setServices(
+            servicesContent?.content_value ||
+              "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support",
+          );
+          setAnnouncements(
+            announcementsContent?.content_value ||
+              "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.",
+          );
+        }
 
         // Fetch active promotions - Only if backend is available
         try {
-          const { callEdgeFunction } = await import('@/config/supabase');
-          const { data: promoData, status: promoStatus } = await callEdgeFunction('ACTIVE_PROMOS');
-          if (promoStatus === 200 && (promoData as any)?.ok && (promoData as any).promotions) {
+          const { callEdgeFunction } = await import("@/config/supabase");
+          const { data: promoData, status: promoStatus } =
+            await callEdgeFunction("ACTIVE_PROMOS");
+          if (
+            promoStatus === 200 && (promoData as any)?.ok &&
+            (promoData as any).promotions
+          ) {
             setActivePromos((promoData as any).promotions);
           }
         } catch (promoError) {
-          console.warn('Promo fetch failed - using defaults');
+          console.warn("Promo fetch failed - using defaults");
         }
 
         // Fetch subscription status if in Telegram
         if (isInTelegram && telegramData?.user?.id) {
-          const { data: subData, status: subStatus } = await callEdgeFunction('SUBSCRIPTION_STATUS', {
-            method: 'POST',
-            body: {
-              telegram_id: telegramData.user.id
-            }
-          });
+          const { data: subData, status: subStatus } = await callEdgeFunction(
+            "SUBSCRIPTION_STATUS",
+            {
+              method: "POST",
+              body: {
+                telegram_id: telegramData.user.id,
+              },
+            },
+          );
           if (subStatus === 200 && subData) {
             setSubscription(subData as SubscriptionStatus);
           } else {
-            console.warn('Subscription fetch failed:', subStatus);
+            console.warn("Subscription fetch failed:", subStatus);
           }
         }
-
       } catch (error) {
-        console.error('Failed to fetch content:', error);
+        console.error("Failed to fetch content:", error);
         // Fallback to default content if fetch fails
-        setAboutUs("Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.");
-        setServices("📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support");
-        setAnnouncements("🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.");
+        setAboutUs(
+          "Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.",
+        );
+        setServices(
+          "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support",
+        );
+        setAnnouncements(
+          "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.",
+        );
       } finally {
         setLoading(false);
       }
@@ -139,20 +208,84 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     fetchContent();
   }, [telegramData?.user?.id, isInTelegram]);
 
-  const formatDiscountText = (promo: ActivePromo) => {
-    return promo.discount_type === 'percentage' 
-      ? `${promo.discount_value}% OFF` 
-      : `$${promo.discount_value} OFF`;
-  };
+  const formatDiscountText = useCallback(
+    (promo: Partial<ActivePromo & PromoValidationInfo>) => {
+      const discountType = promo.discount_type || promo.type;
+      const discountValue = typeof promo.discount_value === "number"
+        ? promo.discount_value
+        : typeof promo.value === "number"
+        ? promo.value
+        : undefined;
 
-  const handlePromoClick = (promoCode: string) => {
-    // Navigate to plan tab with promo code
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', 'plan');
-    url.searchParams.set('promo', promoCode);
-    window.history.pushState({}, '', url.toString());
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  };
+      if (!discountType || typeof discountValue !== "number") {
+        return null;
+      }
+
+      return discountType === "percentage"
+        ? `${discountValue}% OFF`
+        : `$${discountValue} OFF`;
+    },
+    [],
+  );
+
+  const handlePromoApply = useCallback(
+    async (promoCode: string, validation?: PromoValidationInfo) => {
+      if (typeof window === "undefined") return;
+
+      const discountText = formatDiscountText(validation ?? {});
+      setPromoStatus({
+        code: promoCode,
+        copied: null,
+        discountText: discountText || undefined,
+      });
+
+      let copyResult: boolean | null = null;
+
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(promoCode);
+          copyResult = true;
+        } catch (error) {
+          console.warn("Failed to copy promo code", error);
+          copyResult = false;
+        }
+      }
+
+      setPromoStatus({
+        code: promoCode,
+        copied: copyResult,
+        discountText: discountText || undefined,
+      });
+
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", "plan");
+      url.searchParams.set("promo", promoCode);
+      window.history.pushState({}, "", url.toString());
+      window.dispatchEvent(new PopStateEvent("popstate"));
+
+      let message = `Promo code ${promoCode} applied`;
+      if (discountText) {
+        message += ` — enjoy ${discountText.toLowerCase()}`;
+      }
+      if (copyResult) {
+        message += ". Copied to your clipboard!";
+      } else if (copyResult === false) {
+        message += ". Copy it manually if you need it later.";
+      } else {
+        message += ".";
+      }
+
+      setToastMessage(message);
+      setShowToast(false);
+      window.setTimeout(() => setShowToast(true), 10);
+    },
+    [formatDiscountText],
+  );
+
+  const handleToastDismiss = useCallback(() => {
+    setShowToast(false);
+    setToastMessage(null);
+  }, []);
 
   const bgOpacity = Math.min(scrollY / 300, 0.8);
 
@@ -178,251 +311,357 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
             hsl(var(--telegram) / ${0.9 - bgOpacity * 0.3}), 
             hsl(var(--primary) / ${0.8 - bgOpacity * 0.2}), 
             hsl(var(--accent) / ${0.7 - bgOpacity * 0.2})), 
-            hsl(var(--background) / ${bgOpacity})`
+            hsl(var(--background) / ${bgOpacity})`,
         }}
       >
-      {/* Animated Hero Section */}
-      <motion.div variants={childVariants}>
-        <AnimatedWelcomeMini className="ui-rounded-lg ui-shadow" />
-      </motion.div>
-
-      {/* Animated Status Display */}
-      {isInTelegram && (
+        {/* Animated Hero Section */}
         <motion.div variants={childVariants}>
-          <AnimatedStatusDisplay
-            isVip={subscription?.is_vip}
-            planName={subscription?.plan_name || "Free"}
-            daysRemaining={subscription?.days_remaining}
-            paymentStatus={subscription?.payment_status}
-            showBackground={false}
-          />
+          <AnimatedWelcomeMini className="ui-rounded-lg ui-shadow" />
         </motion.div>
-      )}
 
-      {/* Have a Promo Code Section */}
-      <FadeInOnView delay={100} animation="slide-in-right">
-        <MotionCard variant="glass" hover={true} animate={true} delay={0.1} className="border-primary/20">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-subheading">
-              <Gift className="icon-sm text-primary animate-pulse-glow" />
-              Have a Promo Code?
-            </CardTitle>
-            <CardDescription className="text-body-sm">
-              Enter your promo code below to unlock exclusive discounts!
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PromoCodeInput 
-              planId="6e07f718-606e-489d-9626-2a5fa3e84eec"
-              onApplied={(code) => handlePromoClick(code)}
+        {/* Animated Status Display */}
+        {isInTelegram && (
+          <motion.div variants={childVariants}>
+            <AnimatedStatusDisplay
+              isVip={subscription?.is_vip}
+              planName={subscription?.plan_name || "Free"}
+              daysRemaining={subscription?.days_remaining}
+              paymentStatus={subscription?.payment_status}
+              showBackground={false}
             />
-          </CardContent>
-        </MotionCard>
-      </FadeInOnView>
+          </motion.div>
+        )}
 
-      {/* Announcements with 3D Emoticons */}
-      <FadeInOnView delay={150} animation="slide-in-right">
-        <MotionCard variant="glass" hover={true} animate={true} delay={0.2} className="ui-rounded-lg ui-shadow">
-          <div className="p-4 border-l-4 border-gradient-to-b from-primary to-accent">
-            <div className="flex items-center gap-2 mb-2">
-              <ThreeDEmoticon emoji="📢" size={20} intensity={0.3} />
-              <h3 className="text-subheading font-semibold">Latest Announcements</h3>
-              <TradingEmoticonSet variant="celebration" className="ml-auto" />
-            </div>
-            <FadeInOnView delay={200} animation="fade-in">
-              <p className="text-body-sm whitespace-pre-line leading-relaxed text-foreground">{announcements}</p>
-            </FadeInOnView>
-          </div>
-        </MotionCard>
-      </FadeInOnView>
+        {/* Have a Promo Code Section */}
+        <FadeInOnView delay={100} animation="slide-in-right">
+          <MotionCard
+            variant="glass"
+            hover={true}
+            animate={true}
+            delay={0.1}
+            className="border-primary/20"
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-subheading">
+                <Gift className="icon-sm text-primary animate-pulse-glow" />
+                Have a Promo Code?
+              </CardTitle>
+              <CardDescription className="text-body-sm">
+                Enter your promo code below to unlock exclusive discounts!
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PromoCodeInput
+                planId="6e07f718-606e-489d-9626-2a5fa3e84eec"
+                onApplied={(code, validation) =>
+                  handlePromoApply(code, validation)}
+              />
+            </CardContent>
+          </MotionCard>
+        </FadeInOnView>
 
-      {/* Limited Offers / Active Promos */}
-      <FadeInOnView delay={250} animation="bounce-in">
-        <Interactive3DCard
-          intensity={0.1}
-          scale={1.02}
-          glowEffect={activePromos.length > 0}
-          className="border-primary/20"
-        >
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-2">
-              <ThreeDEmoticon emoji="✨" size={24} intensity={0.4} animate={true} />
-              <h3 className="text-subheading font-semibold">Limited Offers</h3>
-              <TradingEmoticonSet variant="success" className="ml-auto" />
-            </div>
-            <p className="text-body-sm text-muted-foreground mb-4">
-              {activePromos.length > 0
-                ? "Use these promo codes when subscribing!"
-                : "Stay tuned for exclusive promo codes and special discounts!"}
-            </p>
-            {activePromos.length > 0 ? (
-              <HorizontalSnapScroll 
-                autoScroll={true}
-                autoScrollInterval={4000}
-                pauseOnHover={true}
-                itemWidth="clamp(240px, 80vw, 280px)"
-                gap="clamp(0.5rem, 2vw, 0.75rem)"
-                showArrows={activePromos.length > 1}
-                className="py-3 scroll-padding-mobile"
-              >
-                {activePromos.map((promo, index) => (
-                  <Interactive3DCard
-                    key={index}
-                    intensity={0.05}
-                    scale={1.02}
-                    onClick={() => handlePromoClick(promo.code)}
-                    className="cursor-pointer group min-w-0"
-                  >
-                    <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <Badge className="bg-green-500 text-white font-mono text-sm group-hover:scale-105 transition-transform">
-                          {promo.code}
-                        </Badge>
-                        <Badge 
-                          variant="outline" 
-                          className="text-green-600 group-hover:scale-105 transition-transform"
-                        >
-                          {formatDiscountText(promo)}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{promo.description}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          <span>Valid until: {new Date(promo.valid_until).toLocaleDateString()}</span>
-                        </div>
-                        <div className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                          Tap to apply →
-                        </div>
-                      </div>
-                    </div>
-                  </Interactive3DCard>
-                ))}
-              </HorizontalSnapScroll>
-            ) : (
-              <div className="text-center py-8 space-y-3">
-                <motion.div 
-                  className="w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center"
-                  whileHover={{ scale: 1.1, rotate: 10 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                >
-                  <ThreeDEmoticon emoji="🎁" size={32} intensity={0.5} />
-                </motion.div>
-                <p className="text-muted-foreground text-sm">
-                  No active promotions right now, but check back soon for amazing deals!
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('tab', 'plan');
-                    window.history.pushState({}, '', url.toString());
-                    window.dispatchEvent(new PopStateEvent('popstate'));
-                  }}
-                >
-                  View Plans
-                </Button>
+        {/* Announcements with 3D Emoticons */}
+        <FadeInOnView delay={150} animation="slide-in-right">
+          <MotionCard
+            variant="glass"
+            hover={true}
+            animate={true}
+            delay={0.2}
+            className="ui-rounded-lg ui-shadow"
+          >
+            <div className="p-4 border-l-4 border-gradient-to-b from-primary to-accent">
+              <div className="flex items-center gap-2 mb-2">
+                <ThreeDEmoticon emoji="📢" size={20} intensity={0.3} />
+                <h3 className="text-subheading font-semibold">
+                  Latest Announcements
+                </h3>
+                <TradingEmoticonSet variant="celebration" className="ml-auto" />
               </div>
-            )}
-          </div>
-        </Interactive3DCard>
-      </FadeInOnView>
+              <FadeInOnView delay={200} animation="fade-in">
+                <p className="text-body-sm whitespace-pre-line leading-relaxed text-foreground">
+                  {announcements}
+                </p>
+              </FadeInOnView>
+            </div>
+          </MotionCard>
+        </FadeInOnView>
 
-      {/* About Dynamic Capital */}
-      <FadeInOnView delay={300} animation="bounce-in">
-        <motion.div whileHover={{ scale: 1.02 }}>
-          <LiquidCard
-            className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01] ui-rounded-lg ui-shadow ui-border-glass"
-            color="hsl(var(--primary))"
+        {/* Limited Offers / Active Promos */}
+        <FadeInOnView delay={250} animation="bounce-in">
+          <Interactive3DCard
+            intensity={0.1}
+            scale={1.02}
+            glowEffect={activePromos.length > 0}
+            className="border-primary/20"
           >
             <div className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <ThreeDEmoticon emoji="🏆" size={24} intensity={0.4} animate={true} />
-                <h3 className="text-heading font-semibold">About Dynamic Capital</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <ThreeDEmoticon
+                  emoji="✨"
+                  size={24}
+                  intensity={0.4}
+                  animate={true}
+                />
+                <h3 className="text-subheading font-semibold">
+                  Limited Offers
+                </h3>
+                <TradingEmoticonSet variant="success" className="ml-auto" />
+              </div>
+              <p className="text-body-sm text-muted-foreground mb-4">
+                {activePromos.length > 0
+                  ? "Use these promo codes when subscribing!"
+                  : "Stay tuned for exclusive promo codes and special discounts!"}
+              </p>
+              {activePromos.length > 0
+                ? (
+                  <HorizontalSnapScroll
+                    autoScroll={true}
+                    autoScrollInterval={4000}
+                    pauseOnHover={true}
+                    itemWidth="clamp(240px, 80vw, 280px)"
+                    gap="clamp(0.5rem, 2vw, 0.75rem)"
+                    showArrows={activePromos.length > 1}
+                    className="py-3 scroll-padding-mobile"
+                  >
+                    {activePromos.map((promo, index) => {
+                      const isActive = promoStatus?.code === promo.code;
+                      const discountLabel = formatDiscountText(promo) ??
+                        "Limited time";
+                      const copyStatus = isActive ? promoStatus?.copied : null;
+                      const statusMessage = copyStatus === true
+                        ? "Copied to clipboard — ready to redeem."
+                        : copyStatus === false
+                        ? "Promo ready! Copy manually if you need it later."
+                        : "Promo ready for checkout.";
+
+                      return (
+                        <Interactive3DCard
+                          key={index}
+                          intensity={0.05}
+                          scale={1.02}
+                          onClick={() => handlePromoApply(promo.code)}
+                          className={`cursor-pointer group min-w-0 ${
+                            isActive
+                              ? "ring-2 ring-primary/60 shadow-lg shadow-primary/20"
+                              : ""
+                          }`}
+                        >
+                          <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                              <Badge className="bg-green-500 text-white font-mono text-sm group-hover:scale-105 transition-transform">
+                                {promo.code}
+                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant="outline"
+                                  className="text-green-600 group-hover:scale-105 transition-transform"
+                                >
+                                  {discountLabel}
+                                </Badge>
+                                {isActive && (
+                                  <Badge className="bg-primary/20 text-primary border-primary/30">
+                                    Applied
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {promo.description}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                <span>
+                                  Valid until: {new Date(promo.valid_until)
+                                    .toLocaleDateString()}
+                                </span>
+                              </div>
+                              <div className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                                Tap to apply →
+                              </div>
+                            </div>
+                            <AnimatePresence>
+                              {isActive && (
+                                <motion.div
+                                  className="mt-3 flex items-center gap-2 text-xs text-primary font-medium"
+                                  initial={{ opacity: 0, y: 6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: 6 }}
+                                >
+                                  <Sparkles className="h-3 w-3" />
+                                  <span>{statusMessage}</span>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </Interactive3DCard>
+                      );
+                    })}
+                  </HorizontalSnapScroll>
+                )
+                : (
+                  <div className="text-center py-8 space-y-3">
+                    <motion.div
+                      className="w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center"
+                      whileHover={{ scale: 1.1, rotate: 10 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 260,
+                        damping: 20,
+                      }}
+                    >
+                      <ThreeDEmoticon emoji="🎁" size={32} intensity={0.5} />
+                    </motion.div>
+                    <p className="text-muted-foreground text-sm">
+                      No active promotions right now, but check back soon for
+                      amazing deals!
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set("tab", "plan");
+                        window.history.pushState({}, "", url.toString());
+                        window.dispatchEvent(new PopStateEvent("popstate"));
+                      }}
+                    >
+                      View Plans
+                    </Button>
+                  </div>
+                )}
+            </div>
+          </Interactive3DCard>
+        </FadeInOnView>
+
+        {/* About Dynamic Capital */}
+        <FadeInOnView delay={300} animation="bounce-in">
+          <motion.div whileHover={{ scale: 1.02 }}>
+            <LiquidCard
+              className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01] ui-rounded-lg ui-shadow ui-border-glass"
+              color="hsl(var(--primary))"
+            >
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <ThreeDEmoticon
+                    emoji="🏆"
+                    size={24}
+                    intensity={0.4}
+                    animate={true}
+                  />
+                  <h3 className="text-heading font-semibold">
+                    About Dynamic Capital
+                  </h3>
+                  <TradingEmoticonSet variant="vip" className="ml-auto" />
+                </div>
+                <p className="text-subheading text-foreground/90 whitespace-pre-line leading-relaxed">
+                  {aboutUs}
+                </p>
+              </div>
+            </LiquidCard>
+          </motion.div>
+        </FadeInOnView>
+
+        {/* Our Services - Stack Carousel */}
+        <FadeInOnView delay={320} animation="fade-in-up">
+          <ServiceStackCarousel services={services} />
+        </FadeInOnView>
+
+        {/* VIP Packages - Enhanced */}
+        <FadeInOnView delay={350} animation="fade-in-up">
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <ThreeDEmoticon
+                  emoji="💎"
+                  size={24}
+                  intensity={0.4}
+                  animate={true}
+                />
+                <h3 className="text-heading font-semibold">
+                  VIP Subscription Plans
+                </h3>
                 <TradingEmoticonSet variant="vip" className="ml-auto" />
               </div>
-              <p className="text-subheading text-foreground/90 whitespace-pre-line leading-relaxed">
-                {aboutUs}
+              <p className="text-body-sm text-muted-foreground">
+                Unlock premium trading insights and exclusive benefits
               </p>
             </div>
-          </LiquidCard>
-        </motion.div>
-      </FadeInOnView>
 
-      {/* Our Services - Stack Carousel */}
-      <FadeInOnView delay={320} animation="fade-in-up">
-        <ServiceStackCarousel services={services} />
-      </FadeInOnView>
-
-      {/* VIP Packages - Enhanced */}
-      <FadeInOnView delay={350} animation="fade-in-up">
-        <div className="space-y-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <ThreeDEmoticon emoji="💎" size={24} intensity={0.4} animate={true} />
-              <h3 className="text-heading font-semibold">VIP Subscription Plans</h3>
-              <TradingEmoticonSet variant="vip" className="ml-auto" />
-            </div>
-            <p className="text-body-sm text-muted-foreground">
-              Unlock premium trading insights and exclusive benefits
-            </p>
+            <LivePlansSection
+              showPromo={!!isInTelegram}
+              telegramData={telegramData}
+              showHeader={false}
+              onPlanSelect={(planId) => {
+                // Switch to plan tab
+                const url = new URL(window.location.href);
+                url.searchParams.set("tab", "plan");
+                window.history.pushState({}, "", url.toString());
+                window.dispatchEvent(new PopStateEvent("popstate"));
+              }}
+            />
           </div>
-          
-          <LivePlansSection
-            showPromo={!!isInTelegram}
-            telegramData={telegramData}
-            showHeader={false}
-            onPlanSelect={(planId) => {
-              // Switch to plan tab
-              const url = new URL(window.location.href);
-              url.searchParams.set('tab', 'plan');
-              window.history.pushState({}, '', url.toString());
-              window.dispatchEvent(new PopStateEvent('popstate'));
-            }}
-          />
-        </div>
-      </FadeInOnView>
+        </FadeInOnView>
 
-       {/* Call to Action */}
-       <MotionCard variant="glow" hover={true} animate={true} delay={0.6} className="bg-gradient-to-r from-primary/10 to-dc-brand-light/10 border-primary/20 ui-rounded-lg ui-shadow">
-         <CardContent className="p-6 text-center">
-           <div className="flex justify-center items-center gap-2 mb-3">
-             <ThreeDEmoticon emoji="🚀" size={24} intensity={0.4} animate={true} />
-             <Sparkles className="h-6 w-6 text-primary" />
-             <TradingEmoticonSet variant="success" />
-           </div>
-           <h3 className="text-heading font-semibold mb-2">Ready to Start Trading Like a Pro?</h3>
-           <p className="text-body-sm text-muted-foreground mb-4">
-             Join thousands of successful traders who trust Dynamic Capital for their trading journey.
-           </p>
-           <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-             <Button 
-               className="min-h-[44px] font-semibold"
-               onClick={() => {
-                 const url = new URL(window.location.href);
-                 url.searchParams.set('tab', 'plan');
-                 window.history.pushState({}, '', url.toString());
-                 window.dispatchEvent(new PopStateEvent('popstate'));
-               }}
-             >
-               View Plans
-             </Button>
-             <button 
-               className="text-subheading underline text-muted-foreground hover:text-foreground transition-colors"
-               onClick={() => {
-                 const url = new URL(window.location.href);
-                 url.searchParams.set('tab', 'help');
-                 window.history.pushState({}, '', url.toString());
-                 window.dispatchEvent(new PopStateEvent('popstate'));
-               }}
-             >
-               How it works
-             </button>
-           </div>
-         </CardContent>
-       </MotionCard>
+        {/* Call to Action */}
+        <MotionCard
+          variant="glow"
+          hover={true}
+          animate={true}
+          delay={0.6}
+          className="bg-gradient-to-r from-primary/10 to-dc-brand-light/10 border-primary/20 ui-rounded-lg ui-shadow"
+        >
+          <CardContent className="p-6 text-center">
+            <div className="flex justify-center items-center gap-2 mb-3">
+              <ThreeDEmoticon
+                emoji="🚀"
+                size={24}
+                intensity={0.4}
+                animate={true}
+              />
+              <Sparkles className="h-6 w-6 text-primary" />
+              <TradingEmoticonSet variant="success" />
+            </div>
+            <h3 className="text-heading font-semibold mb-2">
+              Ready to Start Trading Like a Pro?
+            </h3>
+            <p className="text-body-sm text-muted-foreground mb-4">
+              Join thousands of successful traders who trust Dynamic Capital for
+              their trading journey.
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+              <Button
+                className="min-h-[44px] font-semibold"
+                onClick={() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("tab", "plan");
+                  window.history.pushState({}, "", url.toString());
+                  window.dispatchEvent(new PopStateEvent("popstate"));
+                }}
+              >
+                View Plans
+              </Button>
+              <button
+                className="text-subheading underline text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set("tab", "help");
+                  window.history.pushState({}, "", url.toString());
+                  window.dispatchEvent(new PopStateEvent("popstate"));
+                }}
+              >
+                How it works
+              </button>
+            </div>
+          </CardContent>
+        </MotionCard>
       </motion.div>
+
+      <Toast
+        text={toastMessage ?? ""}
+        show={Boolean(toastMessage) && showToast}
+        onDismiss={handleToastDismiss}
+      />
     </div>
   );
 }
