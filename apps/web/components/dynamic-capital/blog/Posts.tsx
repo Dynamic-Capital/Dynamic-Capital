@@ -1,4 +1,4 @@
-import { getPosts } from "@/utils/magic-portfolio/utils";
+import { getPosts } from "@/utils/dynamic-capital/utils";
 import { Grid } from "@once-ui-system/core";
 import Post from "./Post";
 

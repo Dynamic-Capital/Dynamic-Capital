@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { CustomMDX, ScrollToHash } from "@/components/magic-portfolio";
+import { CustomMDX, ScrollToHash } from "@/components/dynamic-capital";
 import {
   Meta,
   Schema,
@@ -15,12 +15,12 @@ import {
   Line,
 } from "@once-ui-system/core";
 import { baseURL, about, blog, person, toAbsoluteUrl } from "@/resources";
-import { formatDate } from "@/utils/magic-portfolio/formatDate";
-import { getPosts } from "@/utils/magic-portfolio/utils";
+import { formatDate } from "@/utils/dynamic-capital/formatDate";
+import { getPosts } from "@/utils/dynamic-capital/utils";
 import type { Metadata } from "next";
 import { cache } from "react";
-import { Posts } from "@/components/magic-portfolio/blog/Posts";
-import { ShareSection } from "@/components/magic-portfolio/blog/ShareSection";
+import { Posts } from "@/components/dynamic-capital/blog/Posts";
+import { ShareSection } from "@/components/dynamic-capital/blog/ShareSection";
 
 type MaybePromise<T> = T | Promise<T>;
 type BlogPageParams = { slug: string | string[] };

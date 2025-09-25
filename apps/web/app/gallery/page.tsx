@@ -1,5 +1,5 @@
 import { Flex, Meta, Schema } from "@once-ui-system/core";
-import GalleryView from "@/components/magic-portfolio/gallery/GalleryView";
+import GalleryView from "@/components/dynamic-capital/gallery/GalleryView";
 import { baseURL, gallery, person, toAbsoluteUrl } from "@/resources";
 
 export async function generateMetadata() {

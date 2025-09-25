@@ -1,6 +1,6 @@
 import { Column, Heading, Meta, Schema } from "@once-ui-system/core";
 import { baseURL, about, person, toAbsoluteUrl, work } from "@/resources";
-import { Projects } from "@/components/magic-portfolio/work/Projects";
+import { Projects } from "@/components/dynamic-capital/work/Projects";
 
 export async function generateMetadata() {
   return Meta.generate({

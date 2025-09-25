@@ -1,18 +1,18 @@
 import { Column, RevealFx, Row, Schema } from "@once-ui-system/core";
-import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
-import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
-import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
-import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
-import { FxMarketSnapshotSection } from "@/components/magic-portfolio/home/FxMarketSnapshotSection";
-import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
-import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
-import { PerformanceInsightsSection } from "@/components/magic-portfolio/home/PerformanceInsightsSection";
-import { ValuePropositionSection } from "@/components/magic-portfolio/home/ValuePropositionSection";
-import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
-import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
-import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
-import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
-import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
+import { AboutShowcase } from "@/components/dynamic-capital/home/AboutShowcase";
+import { CheckoutCallout } from "@/components/dynamic-capital/home/CheckoutCallout";
+import { ComplianceCertificates } from "@/components/dynamic-capital/home/ComplianceCertificates";
+import { EconomicCalendarSection } from "@/components/dynamic-capital/home/EconomicCalendarSection";
+import { FxMarketSnapshotSection } from "@/components/dynamic-capital/home/FxMarketSnapshotSection";
+import { FundamentalAnalysisSection } from "@/components/dynamic-capital/home/FundamentalAnalysisSection";
+import { HeroExperience } from "@/components/dynamic-capital/home/HeroExperience";
+import { PerformanceInsightsSection } from "@/components/dynamic-capital/home/PerformanceInsightsSection";
+import { ValuePropositionSection } from "@/components/dynamic-capital/home/ValuePropositionSection";
+import { Mailchimp } from "@/components/dynamic-capital/Mailchimp";
+import { MarketWatchlist } from "@/components/dynamic-capital/home/MarketWatchlist";
+import { MentorshipProgramsSection } from "@/components/dynamic-capital/home/MentorshipProgramsSection";
+import { PoolTradingSection } from "@/components/dynamic-capital/home/PoolTradingSection";
+import { VipPackagesSection } from "@/components/dynamic-capital/home/VipPackagesSection";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 
 export function DynamicCapitalLandingPage() {
