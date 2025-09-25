@@ -64,8 +64,8 @@
     "drizzle-orm": "^0.44.5",
     "embla-carousel-react": "^8.3.0",
     "framer-motion": "^12.23.16",
-    "gray-matter": "^4.0.3",
     "grammy": "^1.38.2",
+    "gray-matter": "^4.0.3",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
     "mime-types": "^3.0.1",
@@ -88,10 +88,10 @@
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "transliteration": "^2.3.5",
     "tesseract.js": "^5.0.0",
-    "tzdata": "^1.0.1",
     "three": "^0.165.0",
+    "transliteration": "^2.3.5",
+    "tzdata": "^1.0.1",
     "vaul": "^1.1.2",
     "zod": "^3.23.8"
   },
@@ -125,7 +125,16 @@
   },
   "overrides": {
     "@esbuild-kit/core-utils": {
-      "esbuild": "^0.25.9"
+      "esbuild": "npm:esbuild@0.25.10"
+    },
+    "@esbuild-kit/core-utils@3.3.2": {
+      "esbuild": "npm:esbuild@0.25.10"
+    },
+    "@esbuild-kit/esm-loader": {
+      "esbuild": "npm:esbuild@0.25.10"
+    },
+    "@esbuild-kit/esm-loader@2.6.5": {
+      "esbuild": "npm:esbuild@0.25.10"
     }
   }
 }
