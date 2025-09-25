@@ -1,4 +1,4 @@
-import { Column, RevealFx, Schema } from "@once-ui-system/core";
+import { Column, RevealFx, Row, Schema } from "@once-ui-system/core";
 import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
 import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
 import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
@@ -33,31 +33,67 @@ export function DynamicCapitalLandingPage() {
       <RevealFx translateY="20" delay={0.6}>
         <ValuePropositionSection />
       </RevealFx>
-      <RevealFx translateY="20" delay={0.65}>
-        <MarketWatchlist />
-      </RevealFx>
-      <RevealFx translateY="20" delay={0.7}>
-        <EconomicCalendarSection />
-      </RevealFx>
-      <RevealFx translateY="20" delay={0.75}>
-        <FundamentalAnalysisSection />
-      </RevealFx>
-      <RevealFx translateY="20" delay={0.8}>
-        <AboutShowcase />
-      </RevealFx>
-      <RevealFx translateY="20" delay={0.84}>
-        <ComplianceCertificates />
-      </RevealFx>
-      <RevealFx translateY="20" delay={0.88}>
+      <Row
+        fillWidth
+        gap="24"
+        wrap
+        s={{ direction: "column" }}
+        aria-label="Live market coverage"
+      >
+        <Column flex={1} minWidth={24} gap="16">
+          <RevealFx translateY="20" delay={0.68}>
+            <MarketWatchlist />
+          </RevealFx>
+        </Column>
+        <Column flex={1} minWidth={24} gap="16">
+          <RevealFx translateY="20" delay={0.72}>
+            <EconomicCalendarSection />
+          </RevealFx>
+        </Column>
+      </Row>
+      <Row
+        fillWidth
+        gap="24"
+        wrap
+        s={{ direction: "column" }}
+        aria-label="Trading insights"
+      >
+        <Column flex={1} minWidth={24} gap="16">
+          <RevealFx translateY="20" delay={0.78}>
+            <FundamentalAnalysisSection />
+          </RevealFx>
+        </Column>
+        <Column flex={1} minWidth={24} gap="16">
+          <RevealFx translateY="20" delay={0.82}>
+            <PoolTradingSection />
+          </RevealFx>
+        </Column>
+      </Row>
+      <RevealFx translateY="20" delay={0.86}>
         <MentorshipProgramsSection />
       </RevealFx>
-      <RevealFx translateY="20" delay={0.92}>
-        <PoolTradingSection />
-      </RevealFx>
-      <RevealFx translateY="20" delay={0.96}>
+      <Row
+        fillWidth
+        gap="24"
+        wrap
+        s={{ direction: "column" }}
+        aria-label="Brand trust"
+      >
+        <Column flex={1} minWidth={24} gap="16">
+          <RevealFx translateY="20" delay={0.9}>
+            <ComplianceCertificates />
+          </RevealFx>
+        </Column>
+        <Column flex={1} minWidth={24} gap="16">
+          <RevealFx translateY="20" delay={0.94}>
+            <AboutShowcase />
+          </RevealFx>
+        </Column>
+      </Row>
+      <RevealFx translateY="20" delay={0.98}>
         <VipPackagesSection />
       </RevealFx>
-      <RevealFx translateY="20" delay={1}>
+      <RevealFx translateY="20" delay={1.02}>
         <CheckoutCallout />
       </RevealFx>
       <Mailchimp />
