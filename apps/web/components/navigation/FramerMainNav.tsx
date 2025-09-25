@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import MainComponent, { type MainNavItem } from "./framer/MainComponent";
 import NAV_ITEMS from "./nav-items";
@@ -29,7 +29,14 @@ const ICON_NODES: Record<string, Array<[string, Record<string, string>]>> = {
     ["path", { d: "M22 10v6" }],
     ["path", { d: "M6 12.5V16a6 3 0 0 0 12 0v-3.5" }],
   ],
-  contact: [["path", { d: "M7.9 20A9 9 0 1 0 4 16.1L2 22Z" }]],
+  success: [
+    [
+      "path",
+      {
+        d: "M12 3.5 14.09 8.26 19.2 8.96 15.55 12.44 16.58 17.5 12 15 7.42 17.5 8.45 12.44 4.8 8.96 9.91 8.26 12 3.5z",
+      },
+    ],
+  ],
   dashboard: [
     [
       "path",
@@ -70,7 +77,9 @@ const buildNavItems = (
     const color = NAV_COLORS[index] ?? NAV_COLORS[0];
     const iconNode = ICON_NODES[item.id] ?? ICON_NODES.home;
     const icon = iconNodeToSvg(iconNode);
-    const isActive = pathname === item.path;
+    const isActive = item.path === "/"
+      ? pathname === "/"
+      : pathname.startsWith(item.path);
 
     return {
       id: item.id,
@@ -96,7 +105,10 @@ const FramerMainNav = () => {
     [pathname, router],
   );
 
-  const items = useMemo(() => buildNavItems(pathname, navigate), [pathname, navigate]);
+  const items = useMemo(() => buildNavItems(pathname, navigate), [
+    pathname,
+    navigate,
+  ]);
 
   return <MainComponent items={items} />;
 };

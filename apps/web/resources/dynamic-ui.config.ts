@@ -24,8 +24,8 @@ const routes: RoutesConfig = {
   "/login": true,
   "/admin": true,
   "/signal": true,
-  "/work": false,
-  "/blog": false,
+  "/work": true,
+  "/blog": true,
   "/gallery": false,
   "/telegram": true,
 };
