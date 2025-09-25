@@ -24,7 +24,7 @@ import {
   RouteGuard,
   ScrollToHash,
 } from "@/components/magic-portfolio";
-import { dyamicUI } from "@/resources";
+import { dynamicUI } from "@/resources";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
 const DEFAULT_THEME = "dark" as const;
@@ -34,7 +34,7 @@ const {
   basics: basicsConfig,
   dataViz: dataVizConfig,
   effects: effectsConfig,
-} = dyamicUI;
+} = dynamicUI;
 const { fonts, style } = basicsConfig;
 const { dataStyle } = dataVizConfig;
 const backgroundEffects = effectsConfig.background;
@@ -58,7 +58,7 @@ const themeAttributeDefaults = Object.fromEntries(
   ) => [key.replace(/^data-/, ""), value]),
 );
 
-const onceThemeScript = `(function () {
+const dynamicThemeScript = `(function () {
   try {
     var root = document.documentElement;
     var defaultTheme = '${style.theme}';
@@ -97,14 +97,14 @@ const onceThemeScript = `(function () {
 
 function ensureThemeScript(markup: string): string {
   if (!markup) {
-    return `<script id="${THEME_SCRIPT_ID}">${onceThemeScript}</script>`;
+    return `<script id="${THEME_SCRIPT_ID}">${dynamicThemeScript}</script>`;
   }
 
   if (markup.includes(`id="${THEME_SCRIPT_ID}"`)) {
     return markup;
   }
 
-  return `${markup}\n<script id="${THEME_SCRIPT_ID}">${onceThemeScript}</script>`;
+  return `${markup}\n<script id="${THEME_SCRIPT_ID}">${dynamicThemeScript}</script>`;
 }
 
 function resolveMetadataBase(url: string) {
@@ -195,7 +195,7 @@ export default async function RootLayout(
         <script
           id={THEME_SCRIPT_ID}
           suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: onceThemeScript }}
+          dangerouslySetInnerHTML={{ __html: dynamicThemeScript }}
         />
       </head>
       <body>

@@ -5,7 +5,7 @@ import { Background, Column, RevealFx } from "@once-ui-system/core";
 import { opacity, SpacingToken } from "@once-ui-system/core";
 import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
-import { dyamicUI } from "@/resources";
+import { dynamicUI } from "@/resources";
 import { DynamicCapitalLandingPage } from "@/components/magic-portfolio/DynamicCapitalLandingPage";
 import type {
   ChromaBackgroundProps,
@@ -42,7 +42,7 @@ export function LandingPageShell({
   assistantClassName,
   chromaBackgroundVariant = null,
 }: LandingPageShellProps) {
-  const backgroundEffects = dyamicUI.effects.background;
+  const backgroundEffects = dynamicUI.effects.background;
 
   return (
     <Column

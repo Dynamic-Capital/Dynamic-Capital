@@ -1,6 +1,6 @@
 "use client";
 
-import { dyamicUI, newsletter } from "@/resources";
+import { dynamicUI, newsletter } from "@/resources";
 import {
   Background,
   Button,
@@ -16,7 +16,7 @@ import { useState } from "react";
 const {
   formControls: { newsletter: newsletterFormConfig },
   effects: { newsletter: newsletterEffects },
-} = dyamicUI;
+} = dynamicUI;
 
 function debounce<T extends (...args: any[]) => void>(
   func: T,

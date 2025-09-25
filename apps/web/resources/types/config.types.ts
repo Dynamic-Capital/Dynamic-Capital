@@ -259,9 +259,9 @@ export type SystemUIConfig = {
 };
 
 /**
- * Top-level config types for once-ui.config.js
+ * Top-level config types for dynamic-ui.config.ts
  */
-export type OnceUIConfig = {
+export type DynamicUIConfig = {
   display: DisplayConfig;
   mailchimp: MailchimpConfig;
   routes: RoutesConfig;
