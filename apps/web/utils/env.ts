@@ -4,6 +4,8 @@ declare const process:
   | undefined;
 declare const Deno: { env: { get(key: string): string | undefined } } | undefined;
 
+type ImportMetaWithEnv = { env?: Record<string, unknown> };
+
 function sanitize(v: string | undefined): string | undefined {
   if (!v) return undefined;
   const val = v.trim();
@@ -25,6 +27,21 @@ function readEnv(key: string): string | undefined {
     } catch {
       // ignore permission errors
     }
+  }
+  try {
+    if (typeof import.meta !== "undefined") {
+      const meta = import.meta as unknown as ImportMetaWithEnv;
+      const raw = meta.env?.[key];
+      if (typeof raw === "string") {
+        const v = sanitize(raw);
+        if (v !== undefined) return v;
+      } else if (typeof raw === "number" || typeof raw === "boolean") {
+        const v = sanitize(String(raw));
+        if (v !== undefined) return v;
+      }
+    }
+  } catch {
+    // import.meta may not be available in all runtimes
   }
   return undefined;
 }

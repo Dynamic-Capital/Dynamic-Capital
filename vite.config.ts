@@ -54,5 +54,6 @@ export default defineConfig(({ mode }) => ({
         'src/stubs/next-font-google.ts',
       ),
     }
-  }
+  },
+  envPrefix: ['VITE_', 'NEXT_PUBLIC_']
 }))
