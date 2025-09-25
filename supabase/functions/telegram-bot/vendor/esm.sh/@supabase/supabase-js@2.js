@@ -1,105 +1,304 @@
+const UNIQUE_KEYS = [
+  "id",
+  "setting_key",
+  "content_key",
+  "telegram_user_id",
+  "plan_id",
+  "channel_name",
+  "alert_id",
+];
+
+function cloneRow(row) {
+  if (typeof structuredClone === "function") {
+    try {
+      return structuredClone(row);
+    } catch {
+      // Fall back to JSON cloning if structuredClone fails
+    }
+  }
+  return JSON.parse(JSON.stringify(row));
+}
+
+function ensureArray(values) {
+  if (Array.isArray(values)) return values;
+  if (values === undefined || values === null) return [];
+  return [values];
+}
+
+function valuesEqual(a, b) {
+  if (a === b) return true;
+  if (a === null || a === undefined || b === null || b === undefined) {
+    return a === b;
+  }
+  if (typeof a === "number" || typeof b === "number") {
+    return Number(a) === Number(b);
+  }
+  return String(a) === String(b);
+}
+
+function compareValues(a, b, ascending) {
+  if (valuesEqual(a, b)) return 0;
+  if (a === undefined || a === null) return ascending ? 1 : -1;
+  if (b === undefined || b === null) return ascending ? -1 : 1;
+  if (typeof a === "number" && typeof b === "number") {
+    return ascending ? a - b : b - a;
+  }
+  return ascending
+    ? String(a).localeCompare(String(b))
+    : String(b).localeCompare(String(a));
+}
+
+function createQueryApi(rows) {
+  const filters = [];
+  const orderBys = [];
+  let limitCount = null;
+  let rangeBounds = null;
+  let mutation = null;
+  let updatePayload = {};
+  let insertedRows = [];
+
+  function matches(row) {
+    return filters.every((fn) => fn(row));
+  }
+
+  function resetState() {
+    filters.length = 0;
+    orderBys.length = 0;
+    limitCount = null;
+    rangeBounds = null;
+    mutation = null;
+    updatePayload = {};
+    insertedRows = [];
+  }
+
+  function applyOrdering(result) {
+    if (orderBys.length === 0) return result.slice();
+    return result.slice().sort((a, b) => {
+      for (const { column, ascending } of orderBys) {
+        const cmp = compareValues(a?.[column], b?.[column], ascending);
+        if (cmp !== 0) return cmp;
+      }
+      return 0;
+    });
+  }
+
+  function applyRange(result) {
+    if (!rangeBounds) return result;
+    const [from, to] = rangeBounds;
+    if (
+      typeof from !== "number" ||
+      typeof to !== "number" ||
+      from < 0 ||
+      to < from
+    ) {
+      return [];
+    }
+    return result.slice(from, to + 1);
+  }
+
+  function applyLimit(result) {
+    if (typeof limitCount !== "number" || limitCount < 0) return result;
+    return result.slice(0, limitCount);
+  }
+
+  function selectRows() {
+    const filtered = filters.length > 0
+      ? rows.filter((row) => matches(row))
+      : rows.slice();
+    const ordered = applyOrdering(filtered);
+    const ranged = applyRange(ordered);
+    const limited = applyLimit(ranged);
+    return limited.map((row) => cloneRow(row));
+  }
+
+  function setEqFilter(column, value) {
+    filters.push((row) => valuesEqual(row?.[column], value));
+  }
+
+  function setInFilter(column, values) {
+    const arr = ensureArray(values);
+    const normalized = arr.map((val) => {
+      if (val === null || val === undefined) return val;
+      return typeof val === "number" ? Number(val) : String(val);
+    });
+    const set = new Set(normalized);
+    filters.push((row) => {
+      const raw = row?.[column];
+      if (raw === null || raw === undefined) return set.has(raw);
+      return set.has(typeof raw === "number" ? Number(raw) : String(raw));
+    });
+  }
+
+  function resolveUpsert(values) {
+    const arr = ensureArray(values);
+    const results = [];
+    for (const entry of arr) {
+      if (entry === null || entry === undefined) continue;
+      const payload = typeof entry === "object" ? entry : { value: entry };
+      const keyInfo = UNIQUE_KEYS
+        .map((key) =>
+          payload[key] === undefined ? null : { key, value: payload[key] }
+        )
+        .find(Boolean);
+      let existing = null;
+      if (keyInfo) {
+        existing = rows.find((row) => valuesEqual(row?.[keyInfo.key], keyInfo.value));
+      }
+      if (existing) {
+        Object.assign(existing, payload);
+        results.push(existing);
+      } else {
+        const record = cloneRow(payload);
+        rows.push(record);
+        results.push(record);
+      }
+    }
+    return results.map((row) => cloneRow(row));
+  }
+
+  async function resolve() {
+    if (mutation === "insert") {
+      const data = insertedRows.map((row) => cloneRow(row));
+      resetState();
+      return { data, error: null };
+    }
+
+    if (mutation === "update") {
+      const updated = [];
+      for (const row of rows) {
+        if (matches(row)) {
+          Object.assign(row, updatePayload);
+          updated.push(cloneRow(row));
+        }
+      }
+      resetState();
+      return { data: updated, error: null };
+    }
+
+    if (mutation === "delete") {
+      const deleted = [];
+      for (let i = rows.length - 1; i >= 0; i--) {
+        const row = rows[i];
+        if (matches(row)) {
+          deleted.unshift(row);
+          rows.splice(i, 1);
+        }
+      }
+      resetState();
+      return { data: deleted.map((row) => cloneRow(row)), error: null };
+    }
+
+    const data = selectRows();
+    resetState();
+    return { data, error: null };
+  }
+
+  const api = {
+    error: null,
+    data: null,
+    select(_columns) {
+      return api;
+    },
+    insert(values, _opts) {
+      mutation = "insert";
+      insertedRows = [];
+      const arr = ensureArray(values);
+      for (const entry of arr) {
+        if (entry === null || entry === undefined) continue;
+        const record = cloneRow(entry);
+        rows.push(record);
+        insertedRows.push(record);
+      }
+      return api;
+    },
+    update(values, _opts) {
+      mutation = "update";
+      updatePayload = values ?? {};
+      return api;
+    },
+    upsert(values, _opts) {
+      const data = resolveUpsert(values);
+      return Promise.resolve({ data, error: null });
+    },
+    delete(_opts) {
+      mutation = "delete";
+      return api;
+    },
+    eq(column, value) {
+      setEqFilter(column, value);
+      return api;
+    },
+    like(_column, _value) {
+      return api;
+    },
+    gt(_column, _value) {
+      return api;
+    },
+    gte(_column, _value) {
+      return api;
+    },
+    lt(_column, _value) {
+      return api;
+    },
+    lte(_column, _value) {
+      return api;
+    },
+    or(_filters) {
+      return api;
+    },
+    in(column, values) {
+      setInFilter(column, values);
+      return api;
+    },
+    order(column, options = {}) {
+      const ascending = options?.ascending !== false;
+      orderBys.push({ column, ascending });
+      return api;
+    },
+    limit(count) {
+      limitCount = typeof count === "number" ? count : null;
+      return api;
+    },
+    range(from, to) {
+      if (typeof from === "number" && typeof to === "number") {
+        rangeBounds = [from, to];
+      }
+      return api;
+    },
+    single: async () => {
+      const { data, error } = await resolve();
+      if (error) return { data: null, error };
+      if (!data || data.length === 0) {
+        return { data: null, error: { message: "no rows" } };
+      }
+      if (data.length > 1) {
+        return { data: null, error: { message: "multiple rows" } };
+      }
+      return { data: data[0], error: null };
+    },
+    maybeSingle: async () => {
+      const { data, error } = await resolve();
+      if (error) return { data: null, error };
+      return { data: data[0] ?? null, error: null };
+    },
+    then(onfulfilled, onrejected) {
+      return resolve().then(onfulfilled, onrejected);
+    },
+  };
+
+  return api;
+}
+
 export class SupabaseClient {}
 
 export function createClient(..._args) {
   const state = globalThis.__SUPA_MOCK__ || { tables: {} };
   return {
     from(table) {
-      const rows = state.tables[table] || [];
-      let col = null;
-      let val = null;
-      let op = null;
-      let payload = null;
-      let lastInsert = null;
-      /** @type {any} */
-      const api = {
-        error: null,
-        data: null,
-        select(..._args) {
-          return api;
-        },
-        insert(vals, _opts) {
-          op = "insert";
-          const arr = Array.isArray(vals) ? vals : [vals];
-          arr.forEach((v) => rows.push(v));
-          lastInsert = arr[0];
-          return api;
-        },
-        update(vals, _opts) {
-          op = "update";
-          payload = vals;
-          return api;
-        },
-        upsert(vals, _opts) {
-          const arr = Array.isArray(vals) ? vals : [vals];
-          arr.forEach((v) => {
-            const idx = rows.findIndex((r) =>
-              String(r.telegram_user_id) === String(v.telegram_user_id)
-            );
-            if (idx >= 0) rows[idx] = { ...rows[idx], ...v };
-            else rows.push(v);
-          });
-          return Promise.resolve({ data: arr, error: null });
-        },
-        delete(..._args) {
-          op = "delete";
-          return api;
-        },
-        eq(c, v) {
-          col = c;
-          val = v;
-          return api;
-        },
-        like(..._args) {
-          return api;
-        },
-        gt(..._args) {
-          return api;
-        },
-        gte(..._args) {
-          return api;
-        },
-        lt(..._args) {
-          return api;
-        },
-        lte(..._args) {
-          return api;
-        },
-        or(..._args) {
-          return api;
-        },
-        order(..._args) {
-          return api;
-        },
-        limit(..._args) {
-          return api;
-        },
-        single: async () => {
-          if (op === "insert") return { data: lastInsert, error: null };
-          if (op === "update") {
-            const r = rows.find((r) =>
-              col ? String(r[col]) === String(val) : true
-            );
-            if (r) Object.assign(r, payload);
-            return { data: r || null, error: null };
-          }
-          if (op === "delete") {
-            const idx = rows.findIndex((r) =>
-              col ? String(r[col]) === String(val) : false
-            );
-            const r = idx >= 0 ? rows.splice(idx, 1)[0] : null;
-            return { data: r, error: null };
-          }
-          const r = rows.find((r) =>
-            col ? String(r[col]) === String(val) : true
-          );
-          return { data: r, error: null };
-        },
-        maybeSingle: async () => {
-          const res = await api.single();
-          return { data: res.data ?? null, error: res.error };
-        },
-      };
-      return api;
+      if (!Array.isArray(state.tables[table])) {
+        state.tables[table] = [];
+      }
+      return createQueryApi(state.tables[table]);
     },
     storage: {
       from(_bucket) {
@@ -124,7 +323,10 @@ export function createClient(..._args) {
     },
     auth: {
       async getUser() {
-        return { data: { user: { id: "", user_metadata: { telegram_id: "" } } }, error: null };
+        return {
+          data: { user: { id: "", user_metadata: { telegram_id: "" } } },
+          error: null,
+        };
       },
       async signJWT(_payload, _opts) {
         return { access_token: "token" };
