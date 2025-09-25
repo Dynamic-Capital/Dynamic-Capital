@@ -74,6 +74,57 @@ npm run codex:build
 This workflow keeps the Dynamic environment, the local repo, and GitHub in lock
 step while providing a single entry point for Codex-specific automation.
 
+## ISO 9241 alignment for deployment workflow
+
+Codex exports now reference the ISO 9241-110 dialogue principles so operational
+steps remain understandable, controllable, and supportive of the task at hand.
+
+### Environments
+
+- **Suitability for the task** – Keep distinct development, staging, and
+  production spaces (plus optional preview sandboxes) so each team can validate
+  changes at the appropriate fidelity before promoting them.
+- **Self-descriptiveness** – Name environments with conventional labels (dev,
+  staging, prod) and document the expected data sets so contributors instantly
+  recognize the purpose of each surface.
+- **Controllability** – Gate high-impact actions (database migrations, feature
+  flag flips) behind the staging and production paths to prevent surprises in
+  the live environment.
+
+### Branches
+
+- **Consistency & standards** – Map `main` to production, `develop` (or an
+  equivalent stabilization branch) to staging, and keep feature/hotfix work in
+  short-lived branches. This keeps Git flows predictable across Codex exports
+  and manual edits.
+- **Error tolerance** – Require merge reviews or pull-request checks before code
+  reaches `main`, and use hotfix branches for urgent remediation so recovery
+  steps stay isolated.
+- **Suitability for learning** – Document the branch-to-environment mapping in
+  onboarding materials so new agents ramp quickly without branching mistakes.
+
+### Builds
+
+- **Suitability for individualization** – Trigger dev, staging, and production
+  builds with configuration profiles that match the target environment. Preview
+  builds per pull request or feature branch give stakeholders task-focused URLs
+  without blocking shared staging resources.
+- **User guidance** – Label build outputs clearly (e.g., preview vs. production)
+  inside deployment dashboards so reviewers understand the expected stability
+  and logging levels.
+
+### Environment configuration
+
+- **Self-descriptiveness** – Store configuration in environment-specific files
+  such as `.env.development`, `.env.staging`, and `.env.production`, or the
+  equivalent secret manager entries, so the active context is always obvious.
+- **Conformity with user expectations** – Separate public (`NEXT_PUBLIC_*`) and
+  private secrets to align with established security practices and prevent
+  accidental exposure through Codex-generated UIs.
+- **Controllability** – Limit write access to production secrets, rotate keys on
+  promotion, and record configuration ownership so responsible teams can adjust
+  values safely.
+
 ## Auto-conflict resolution & merge guardrails
 
 Codex now acts as the repository's auto-conflict resolver and auto-merge
