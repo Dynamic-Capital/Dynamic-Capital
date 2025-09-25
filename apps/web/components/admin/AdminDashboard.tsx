@@ -25,6 +25,7 @@ import { BotDiagnostics } from "./BotDiagnostics";
 import { callEdgeFunction } from "@/config/supabase";
 import { formatIsoDateTime } from "@/utils/isoFormat";
 import { DynamicButton, DynamicContainer } from "@/components/dynamic-ui";
+import { brand } from "@/config/brand";
 
 interface AdminStats {
   total_users: number;
@@ -261,7 +262,8 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         </h2>
         <p className="mt-3 text-sm text-muted-foreground">
           You don't have admin privileges to access this dashboard. Contact the
-          Dynamic Capital team if you believe this is an error.
+          {" "}
+          {brand.identity.name} team if you believe this is an error.
         </p>
       </DynamicContainer>
     );
@@ -322,7 +324,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                   Dynamic UI admin cockpit
                 </span>
                 <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
-                  Dynamic Capital operations
+                  {brand.identity.name} operations
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   Welcome back,{" "}
@@ -386,8 +388,9 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
               >
                 <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
                   <p>
-                    Monitor realtime metrics across the Dynamic Capital stack
-                    with Dynamic UI automation.
+                    Monitor realtime metrics across the {brand.identity.name}
+                    {" "}
+                    stack with Dynamic UI automation.
                   </p>
                   <Badge
                     variant="outline"

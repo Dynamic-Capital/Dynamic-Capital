@@ -25,6 +25,7 @@ import {
   ScrollToHash,
 } from "@/components/magic-portfolio";
 import { dyamicUI } from "@/resources";
+import { brand } from "@/config/brand";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
 const DEFAULT_THEME = "dark" as const;
@@ -38,6 +39,7 @@ const {
 const { fonts, style } = basicsConfig;
 const { dataStyle } = dataVizConfig;
 const backgroundEffects = effectsConfig.background;
+const { identity: brandIdentity, metadata: brandMetadata } = brand;
 
 const htmlAttributeDefaults: Record<string, string> = {
   "data-neutral": style.neutral,
@@ -120,11 +122,10 @@ const resolvedMetadataBase = resolveMetadataBase(SITE_URL);
 export const metadata: Metadata = {
   metadataBase: resolvedMetadataBase,
   title: {
-    default: "Dynamic Capital",
-    template: "%s | Dynamic Capital",
+    default: brandMetadata.defaultTitle,
+    template: brandMetadata.titleTemplate,
   },
-  description:
-    "Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.",
+  description: brandMetadata.description,
   alternates: {
     canonical: resolvedMetadataBase?.toString() ?? SITE_URL,
   },
@@ -132,16 +133,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: resolvedMetadataBase?.toString() ?? SITE_URL,
-    siteName: "Dynamic Capital",
-    title: "Dynamic Capital",
-    description:
-      "Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.",
+    siteName: brandIdentity.name,
+    title: brandMetadata.defaultTitle,
+    description: brandMetadata.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dynamic Capital",
-    description:
-      "Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.",
+    title: brandMetadata.defaultTitle,
+    description: brandMetadata.description,
   },
 };
 

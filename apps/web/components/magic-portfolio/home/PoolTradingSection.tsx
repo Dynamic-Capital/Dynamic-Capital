@@ -1,5 +1,13 @@
 import { about } from "@/resources";
-import { Button, Column, Heading, Icon, Line, Row, Text } from "@once-ui-system/core";
+import {
+  Button,
+  Column,
+  Heading,
+  Icon,
+  Line,
+  Row,
+  Text,
+} from "@once-ui-system/core";
 
 const METRICS = [
   { label: "Capital under management", value: "$42M" },
@@ -32,9 +40,12 @@ export function PoolTradingSection() {
       shadow="l"
     >
       <Column gap="12" maxWidth={32}>
-        <Heading variant="display-strong-xs">Pool trading with institutional controls</Heading>
+        <Heading variant="display-strong-xs">
+          Pool trading with institutional controls
+        </Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          Allocate into managed pools that blend automation and mentor oversight so capital compounds with discipline.
+          Allocate into managed pools that blend automation and mentor oversight
+          so capital compounds with discipline.
         </Text>
       </Column>
       <Row gap="16" wrap>
@@ -71,7 +82,9 @@ export function PoolTradingSection() {
           </Column>
         </Column>
         <Column gap="12">
-          <Heading variant="heading-strong-m">Risk guardrails always on</Heading>
+          <Heading variant="heading-strong-m">
+            Risk guardrails always on
+          </Heading>
           <Column as="ul" gap="8">
             {SAFEGUARDS.map((item, index) => (
               <Row key={index} gap="8" vertical="center">
@@ -95,17 +108,19 @@ export function PoolTradingSection() {
         >
           Start allocation checkout
         </Button>
-        {about.calendar.display && about.calendar.link ? (
-          <Button
-            size="m"
-            variant="secondary"
-            data-border="rounded"
-            prefixIcon="calendar"
-            href={about.calendar.link}
-          >
-            Schedule a pool strategy call
-          </Button>
-        ) : null}
+        {about.calendar.display && about.calendar.link
+          ? (
+            <Button
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              prefixIcon="calendar"
+              href={about.calendar.link}
+            >
+              Schedule a pool strategy call
+            </Button>
+          )
+          : null}
       </Row>
     </Column>
   );

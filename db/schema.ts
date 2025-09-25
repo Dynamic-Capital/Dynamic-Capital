@@ -1,4 +1,12 @@
-import { pgTable, uuid, text, timestamp, boolean, integer, jsonb } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 export const botUsers = pgTable("bot_users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -8,13 +16,17 @@ export const botUsers = pgTable("bot_users", {
   username: text("username"),
   notes: text("notes"),
   currentPlanId: uuid("current_plan_id"),
-  subscriptionExpiresAt: timestamp("subscription_expires_at", { withTimezone: true }),
+  subscriptionExpiresAt: timestamp("subscription_expires_at", {
+    withTimezone: true,
+  }),
   followUpCount: integer("follow_up_count"),
   lastFollowUp: timestamp("last_follow_up", { withTimezone: true }),
   isVip: boolean("is_vip").notNull().default(false),
   isAdmin: boolean("is_admin"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
 });
 
 export type BotUser = typeof botUsers.$inferSelect;
@@ -25,9 +37,12 @@ export const features = pgTable("features", {
   key: text("key").notNull().unique(),
   description: text("description"),
   enabled: boolean("enabled").notNull().default(false),
-  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({} as Record<string, unknown>),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull()
+    .default({} as Record<string, unknown>),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
 });
 
 export type Feature = typeof features.$inferSelect;
@@ -40,9 +55,12 @@ export const plugins = pgTable("plugins", {
   version: text("version").notNull(),
   description: text("description"),
   enabled: boolean("enabled").notNull().default(false),
-  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({} as Record<string, unknown>),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull()
+    .default({} as Record<string, unknown>),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
 });
 
 export type Plugin = typeof plugins.$inferSelect;
@@ -54,11 +72,15 @@ export const paymentGatewayEvents = pgTable("payment_gateway_events", {
   reference: text("reference"),
   status: text("status").notNull().default("received"),
   payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
-  headers: jsonb("headers").$type<Record<string, unknown>>().notNull().default({} as Record<string, unknown>),
+  headers: jsonb("headers").$type<Record<string, unknown>>().notNull().default(
+    {} as Record<string, unknown>,
+  ),
   signature: text("signature"),
   error: text("error"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
   processedAt: timestamp("processed_at", { withTimezone: true }),
 });
 

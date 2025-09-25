@@ -1,10 +1,10 @@
 import {
-  Home,
-  TrendingUp,
   GraduationCap,
+  Home,
+  type LucideIcon,
   MessageCircle,
   Shield,
-  type LucideIcon,
+  TrendingUp,
 } from "lucide-react";
 
 export interface NavItem {

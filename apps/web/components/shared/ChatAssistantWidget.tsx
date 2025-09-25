@@ -42,6 +42,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { logChatMessage } from "@/integrations/supabase/queries";
 import { DYNAMIC_MOTION_SPRINGS } from "@/lib/motion-variants";
 import { cn } from "@/utils";
+import { brand } from "@/config/brand";
 
 export interface TelegramAuthData {
   id: number;
@@ -71,7 +72,7 @@ interface ChatRequestMessage {
 type SyncStatus = "idle" | "syncing" | "connected" | "error";
 
 const SYSTEM_PROMPT =
-  `You are the Dynamic Capital desk assistant. Answer like an elite trading desk lead: confident, structured, and concise. Use short paragraphs or bullet points when useful, keep replies under 180 words, and highlight VIP access, execution support, automation templates, and 24/7 desk coverage when relevant. Always include a short risk disclaimer and finish with: "💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!"`;
+  `You are the ${brand.identity.name} desk assistant. Answer like an elite trading desk lead: confident, structured, and concise. Use short paragraphs or bullet points when useful, keep replies under 180 words, and highlight VIP access, execution support, automation templates, and 24/7 desk coverage when relevant. Always include a short risk disclaimer ('${brand.disclaimers.risk}') and finish with: "💡 Need more help? Contact ${brand.support.telegramHandle} or check our VIP plans!"`;
 
 type StatusBadgeProps = Partial<ComponentPropsWithoutRef<typeof Badge>>;
 
@@ -315,7 +316,7 @@ export function ChatAssistantWidget(
         "• VIP onboarding: choose a membership, complete checkout, and unlock bots instantly",
         "• Benefits: 24/7 desk coverage, live playbooks, automation templates",
         "• Risk management: sizing calculators, journaling frameworks, daily debriefs",
-        "Need a human? Message @DynamicCapital_Support",
+        `Need a human? Message ${brand.support.telegramHandle}`,
       ].join("\n\n");
       appendMessages({ role: "assistant", content: fallbackMessage });
       setSyncStatus("error");

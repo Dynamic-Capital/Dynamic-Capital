@@ -17,7 +17,9 @@ export function CheckoutCallout() {
         Ready to activate the desk?
       </Heading>
       <Text variant="body-default-l" onBackground="brand-weak" wrap="balance">
-        Move through checkout in under two minutes and gain access to the real-time signal desk, vault of trading systems, and live mentorship calendar.
+        Move through checkout in under two minutes and gain access to the
+        real-time signal desk, vault of trading systems, and live mentorship
+        calendar.
       </Text>
       <Row gap="12" s={{ direction: "column" }}>
         <Button

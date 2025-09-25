@@ -1,8 +1,18 @@
-import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/resources/types";
+import {
+  About,
+  Blog,
+  Gallery,
+  Home,
+  Newsletter,
+  Person,
+  Social,
+  Work,
+} from "@/resources/types";
 import { Line, Row, Text } from "@once-ui-system/core";
 
 import { supabaseAsset } from "./assets";
 import { ogDefaults } from "./og-defaults";
+import { brand } from "@/config/brand";
 
 const person: Person = {
   firstName: "Noah",
@@ -18,7 +28,12 @@ const person: Person = {
 const newsletter: Newsletter = {
   display: true,
   title: <>Signal Room Dispatch</>,
-  description: <>Weekly desk notes covering macro catalysts, automation tweaks, and mentorship recaps.</>,
+  description: (
+    <>
+      Weekly desk notes covering macro catalysts, automation tweaks, and
+      mentorship recaps.
+    </>
+  ),
 };
 
 const social: Social = [
@@ -50,12 +65,17 @@ const home: Home = {
   label: "Home",
   title: ogDefaults.title,
   description: ogDefaults.description,
-  headline: <>Trade with confidence, even if you&apos;re just getting started.</>,
+  headline: (
+    <>Trade with confidence, even if you&apos;re just getting started.</>
+  ),
   featured: {
     display: true,
     title: (
       <Row gap="12" vertical="center">
-        <Text onBackground="brand-strong" className="ml-4 font-semibold tracking-tight">
+        <Text
+          onBackground="brand-strong"
+          className="ml-4 font-semibold tracking-tight"
+        >
           New: Guided onboarding workspace
         </Text>
         <Line background="brand-alpha-strong" vert height="20" />
@@ -68,8 +88,10 @@ const home: Home = {
   },
   subline: (
     <>
-      Dynamic Capital blends clear education, human mentorship, and automation so you always know the next step. Learn inside a
-      safe practice workspace, then graduate to live markets with expert guardrails.
+      {brand.identity.name}{" "}
+      blends clear education, human mentorship, and automation so you always
+      know the next step. Learn inside a safe practice workspace, then graduate
+      to live markets with expert guardrails.
     </>
   ),
 };
@@ -77,8 +99,8 @@ const home: Home = {
 const about: About = {
   path: "/about",
   label: "About",
-  title: "About – Dynamic Capital",
-  description: `Meet ${person.name}, ${person.role} at Dynamic Capital`,
+  title: `About – ${brand.identity.name}`,
+  description: `Meet ${person.name}, ${person.role} at ${brand.identity.name}`,
   tableOfContent: {
     display: true,
     subItems: true,
@@ -95,9 +117,11 @@ const about: About = {
     title: "Why we exist",
     description: (
       <>
-        Noah leads Dynamic Capital's institutional desk, pairing fundamental research with automation so traders can scale
-        responsibly. After a decade building quant workflows for prop firms, he now mentors founders, funds, and operators
-        looking to professionalise their execution.
+        Noah leads{" "}
+        {brand.identity.name}'s institutional desk, pairing fundamental research
+        with automation so traders can scale responsibly. After a decade
+        building quant workflows for prop firms, he now mentors founders, funds,
+        and operators looking to professionalise their execution.
       </>
     ),
   },
@@ -106,17 +130,23 @@ const about: About = {
     title: "Desk leadership",
     experiences: [
       {
-        company: "Dynamic Capital",
+        company: brand.identity.name,
         timeframe: "2021 – Present",
         role: "Chief Investment Officer",
         achievements: [
-          <>Built the VIP signal desk that now serves 8,500 members with 24/7 macro and crypto coverage.</>,
-          <>Scaled managed pools to $42M AUM with automated drawdown controls and transparent allocation reporting.</>,
+          <>
+            Built the VIP signal desk that now serves 8,500 members with 24/7
+            macro and crypto coverage.
+          </>,
+          <>
+            Scaled managed pools to $42M AUM with automated drawdown controls
+            and transparent allocation reporting.
+          </>,
         ],
         images: [
           {
             src: supabaseAsset("images/projects/liquidity-desk/cover-01.jpg"),
-            alt: "Dynamic Capital desks",
+            alt: `${brand.identity.name} desks`,
             width: 16,
             height: 9,
           },
@@ -127,8 +157,14 @@ const about: About = {
         timeframe: "2016 – 2021",
         role: "Director of Quantitative Strategy",
         achievements: [
-          <>Deployed cross-exchange market making infrastructure overseeing $1.2B in monthly volume.</>,
-          <>Launched mentorship cohorts for portfolio founders to harden risk frameworks and trade review rituals.</>,
+          <>
+            Deployed cross-exchange market making infrastructure overseeing
+            $1.2B in monthly volume.
+          </>,
+          <>
+            Launched mentorship cohorts for portfolio founders to harden risk
+            frameworks and trade review rituals.
+          </>,
         ],
         images: [
           {
@@ -147,11 +183,20 @@ const about: About = {
     institutions: [
       {
         name: "London School of Economics",
-        description: <>MSc in Financial Mathematics focused on systematic macro strategies.</>,
+        description: (
+          <>
+            MSc in Financial Mathematics focused on systematic macro strategies.
+          </>
+        ),
       },
       {
         name: "CMT Association",
-        description: <>Chartered Market Technician — applied discretionary pattern work to automation.</>,
+        description: (
+          <>
+            Chartered Market Technician — applied discretionary pattern work to
+            automation.
+          </>
+        ),
       },
     ],
   },
@@ -161,7 +206,12 @@ const about: About = {
     skills: [
       {
         title: "Execution stack engineering",
-        description: <>Architecting exchange connectivity, risk throttles, and automation for multi-venue trading.</>,
+        description: (
+          <>
+            Architecting exchange connectivity, risk throttles, and automation
+            for multi-venue trading.
+          </>
+        ),
         tags: [
           { name: "Python" },
           { name: "Supabase", icon: "supabase" },
@@ -177,7 +227,12 @@ const about: About = {
       },
       {
         title: "Macro research",
-        description: <>Structuring playbooks that blend discretionary reads with quantitative confirmation.</>,
+        description: (
+          <>
+            Structuring playbooks that blend discretionary reads with
+            quantitative confirmation.
+          </>
+        ),
         tags: [
           { name: "Quant" },
           { name: "FX" },
@@ -194,7 +249,12 @@ const about: About = {
       },
       {
         title: "Mentorship frameworks",
-        description: <>Designing accountability cadences and review rituals for scaling traders and funds.</>,
+        description: (
+          <>
+            Designing accountability cadences and review rituals for scaling
+            traders and funds.
+          </>
+        ),
         tags: [
           { name: "Coaching" },
           { name: "Risk" },
@@ -216,21 +276,24 @@ const blog: Blog = {
   path: "/blog",
   label: "Blog",
   title: "Desk insights & execution playbooks",
-  description: "Trading psychology, macro structure, and automation updates from the Dynamic Capital desk.",
+  description:
+    `Trading psychology, macro structure, and automation updates from the ${brand.identity.name} desk.`,
 };
 
 const work: Work = {
   path: "/work",
   label: "Work",
   title: "Desk projects",
-  description: "Signal, automation, and mentorship programs launched by Dynamic Capital.",
+  description:
+    `Signal, automation, and mentorship programs launched by ${brand.identity.name}.`,
 };
 
 const gallery: Gallery = {
   path: "/gallery",
   label: "Gallery",
   title: "Inside the desk",
-  description: "Scenes from Dynamic Capital's research, execution, and mentorship sessions.",
+  description:
+    `Scenes from ${brand.identity.name}'s research, execution, and mentorship sessions.`,
   images: [
     {
       src: supabaseAsset("images/gallery/horizontal-1.jpg"),
@@ -275,4 +338,4 @@ const gallery: Gallery = {
   ],
 };
 
-export { person, social, newsletter, home, about, blog, work, gallery };
+export { about, blog, gallery, home, newsletter, person, social, work };

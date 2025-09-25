@@ -11,52 +11,52 @@ import type {
   SubscriptionPlan,
 } from "../../../../apps/web/types/telegram-bot.ts";
 
-import { supabaseAdmin, sendMessage } from "./common.ts";
+import { sendMessage, supabaseAdmin } from "./common.ts";
 export { sendMessage } from "./common.ts";
 export {
+  handleAddNewContent,
   handleContentManagement,
   handleEditContent,
-  handleAddNewContent,
   handlePreviewAllContent,
 } from "./bot-content.ts";
 export {
-  handleBotSettingsManagement,
-  handleConfigSessionSettings,
-  handleConfigFollowupSettings,
-  handleToggleMaintenanceMode,
-  handleConfigAutoFeatures,
-  handleConfigNotifications,
-  handleConfigPerformance,
   handleAddNewSetting,
   handleBackupBotSettings,
+  handleBotSettingsManagement,
+  handleConfigAutoFeatures,
+  handleConfigFollowupSettings,
+  handleConfigNotifications,
+  handleConfigPerformance,
+  handleConfigSessionSettings,
+  handleToggleMaintenanceMode,
 } from "./bot-settings.ts";
 export { handleAutoReplyTemplatesManagement } from "./auto-reply.ts";
 export {
-  handleContactLinksManagement,
   handleAddContactLink,
-  handleEditContactLink,
-  handleToggleContactLink,
+  handleContactLinksManagement,
   handleDeleteContactLink,
+  handleEditContactLink,
   handleReorderContactLinks,
+  handleToggleContactLink,
   processContactLinkOperation,
 } from "./contact-management.ts";
 export {
-  handleVipSyncManagement,
-  handleVipFullSync,
   handleVipAssignLifetime,
   handleVipAssignLifetimeConfirm,
-  handleVipSyncSingle,
-  processVipSyncSingle,
-  handleVipViewStatus,
   handleVipConfigureChannels,
+  handleVipFullSync,
+  handleVipSyncManagement,
+  handleVipSyncSingle,
+  handleVipViewStatus,
+  processVipSyncSingle,
 } from "./vip-management.ts";
 export {
-  handleGitHubCleanup,
   handleGitHubAnalyze,
-  handleGitHubStatus,
-  handleGitHubStructure,
+  handleGitHubCleanup,
   handleGitHubCleanupConfirm,
   handleGitHubCleanupExecute,
+  handleGitHubStatus,
+  handleGitHubStructure,
 } from "./github-management.ts";
 
 // Import utility functions
@@ -129,10 +129,12 @@ async function publishFlags(chatId: number, userId: string): Promise<void> {
       data: {},
     };
 
-    const { error: rollbackErr } = await supabaseAdmin.from("kv_config").upsert({
-      key: "features:rollback",
-      value: current,
-    });
+    const { error: rollbackErr } = await supabaseAdmin.from("kv_config").upsert(
+      {
+        key: "features:rollback",
+        value: current,
+      },
+    );
     if (rollbackErr) throw rollbackErr;
 
     const { error: publishErr } = await supabaseAdmin.from("kv_config").upsert({
@@ -158,7 +160,7 @@ async function publishFlags(chatId: number, userId: string): Promise<void> {
 }
 
 async function rollbackFlags(chatId: number, userId: string): Promise<void> {
-    try {
+  try {
     const now = Date.now();
     const { data: publishedRow, error: publishedErr } = await supabaseAdmin
       .from("kv_config")
@@ -166,8 +168,8 @@ async function rollbackFlags(chatId: number, userId: string): Promise<void> {
       .eq("key", "features:published")
       .maybeSingle();
     if (publishedErr) throw publishedErr;
-    const published =
-      (publishedRow?.value as { ts: number; data: FlagMap }) ?? {
+    const published = (publishedRow?.value as { ts: number; data: FlagMap }) ??
+      {
         ts: now,
         data: {},
       };
@@ -178,11 +180,10 @@ async function rollbackFlags(chatId: number, userId: string): Promise<void> {
       .eq("key", "features:rollback")
       .maybeSingle();
     if (rollbackErr) throw rollbackErr;
-    const previous =
-      (rollbackRow?.value as { ts: number; data: FlagMap }) ?? {
-        ts: now,
-        data: {},
-      };
+    const previous = (rollbackRow?.value as { ts: number; data: FlagMap }) ?? {
+      ts: now,
+      data: {},
+    };
 
     const { error: setPubErr } = await supabaseAdmin.from("kv_config").upsert({
       key: "features:published",
@@ -190,10 +191,11 @@ async function rollbackFlags(chatId: number, userId: string): Promise<void> {
     });
     if (setPubErr) throw setPubErr;
 
-    const { error: setRollbackErr } = await supabaseAdmin.from("kv_config").upsert({
-      key: "features:rollback",
-      value: published,
-    });
+    const { error: setRollbackErr } = await supabaseAdmin.from("kv_config")
+      .upsert({
+        key: "features:rollback",
+        value: published,
+      });
     if (setRollbackErr) throw setRollbackErr;
 
     // sync bot_settings with rolled-back snapshot
@@ -400,7 +402,7 @@ View, Create, Edit, Delete, Export data for any table.`;
       ],
       [
         {
-          text: "🚫 Abuse Bans", 
+          text: "🚫 Abuse Bans",
           callback_data: "manage_table_abuse_bans",
         },
         { text: "📊 Quick Stats", callback_data: "table_stats_overview" },
@@ -435,20 +437,23 @@ export async function handleKvConfigManagement(
       return;
     }
 
-    const configMessage = buildMessage("⚙️ *Key-Value Configuration Management*", [
-      {
-        title: `🔧 *Current Configs (${configs?.length || 0}):*`,
-        items: configs?.map((config: any) => {
-          const valuePreview = typeof config.value === "object" 
-            ? JSON.stringify(config.value).substring(0, 100) + "..."
-            : String(config.value || "null");
-          return `**${config.key}**\n📝 Value: ${valuePreview}\n🕒 Updated: ${
-            new Date(config.updated_at).toLocaleDateString()
-          }`;
-        }) || [],
-        numbered: true,
-      },
-    ]);
+    const configMessage = buildMessage(
+      "⚙️ *Key-Value Configuration Management*",
+      [
+        {
+          title: `🔧 *Current Configs (${configs?.length || 0}):*`,
+          items: configs?.map((config: any) => {
+            const valuePreview = typeof config.value === "object"
+              ? JSON.stringify(config.value).substring(0, 100) + "..."
+              : String(config.value || "null");
+            return `**${config.key}**\n📝 Value: ${valuePreview}\n🕒 Updated: ${
+              new Date(config.updated_at).toLocaleDateString()
+            }`;
+          }) || [],
+          numbered: true,
+        },
+      ],
+    );
 
     const configKeyboard = {
       inline_keyboard: [
@@ -512,13 +517,15 @@ export async function handleAbuseBansManagement(
       {
         title: `🚫 *Recent Bans (Last 10):*`,
         items: bans?.map((ban: any) => {
-          const status = ban.expires_at && new Date(ban.expires_at) < new Date() 
-            ? "⏰ Expired" 
+          const status = ban.expires_at && new Date(ban.expires_at) < new Date()
+            ? "⏰ Expired"
             : "🔴 Active";
-          const expiryText = ban.expires_at 
+          const expiryText = ban.expires_at
             ? `Expires: ${new Date(ban.expires_at).toLocaleDateString()}`
             : "Permanent";
-          return `${status} ID: ${ban.telegram_id}\n📝 Reason: ${ban.reason || "No reason"}\n⏰ ${expiryText}\n👤 By: ${ban.created_by || "System"}`;
+          return `${status} ID: ${ban.telegram_id}\n📝 Reason: ${
+            ban.reason || "No reason"
+          }\n⏰ ${expiryText}\n👤 By: ${ban.created_by || "System"}`;
         }) || [],
         numbered: true,
       },
@@ -1222,8 +1229,7 @@ export async function handleReplacePlanFeatures(
       return;
     }
 
-    const replaceMessage =
-      `🔄 *Replace Features for ${plan.name}*\\n\\n` +
+    const replaceMessage = `🔄 *Replace Features for ${plan.name}*\\n\\n` +
       "Send a comma-separated list of features:\\n" +
       "Example: Feature 1, Feature 2, Feature 3";
 
@@ -1604,18 +1610,21 @@ export async function handleEducationPackagesManagement(
         pkg: EducationPackage & { category?: { name?: string } },
         index: number,
       ) => {
-      const status = pkg.is_active ? "✅" : "❌";
-      const featured = pkg.is_featured ? "⭐" : "";
-      packageMessage += `${index + 1}. ${status}${featured} **${pkg.name}**\n`;
-      packageMessage +=
-        `   💰 ${pkg.currency} ${pkg.price} (${pkg.duration_weeks} weeks)\n`;
-      packageMessage += `   👥 Students: ${pkg.current_students}/${
-        pkg.max_students || "∞"
-      }\n`;
-      packageMessage += `   📅 Created: ${
-        new Date(pkg.created_at).toLocaleDateString()
-      }\n\n`;
-    });
+        const status = pkg.is_active ? "✅" : "❌";
+        const featured = pkg.is_featured ? "⭐" : "";
+        packageMessage += `${
+          index + 1
+        }. ${status}${featured} **${pkg.name}**\n`;
+        packageMessage +=
+          `   💰 ${pkg.currency} ${pkg.price} (${pkg.duration_weeks} weeks)\n`;
+        packageMessage += `   👥 Students: ${pkg.current_students}/${
+          pkg.max_students || "∞"
+        }\n`;
+        packageMessage += `   📅 Created: ${
+          new Date(pkg.created_at).toLocaleDateString()
+        }\n\n`;
+      },
+    );
 
     const packageKeyboard = {
       inline_keyboard: [
@@ -1736,8 +1745,6 @@ export async function handlePromotionsManagement(
     );
   }
 }
-
-
 
 // ===========================================================================
 // Additional table management handlers
@@ -1922,9 +1929,9 @@ export async function handlePaymentsManagement(
         },
         idx: number,
       ) => {
-        msg += `${idx + 1}. ${p.currency || ""} ${p.amount || 0} — ${
-          p.status
-        }\n`;
+        msg += `${idx + 1}. ${p.currency || ""} ${
+          p.amount || 0
+        } — ${p.status}\n`;
         msg += `   User: ${p.user_id} · ${
           new Date(p.created_at ?? "").toLocaleString()
         }\n`;
@@ -1995,13 +2002,11 @@ export async function handleBroadcastMessagesManagement(
         },
         idx: number,
       ) => {
-        msg += `${idx + 1}. ${b.title || "(no title)"} — ${
-          b.delivery_status
-        }\n`;
+        msg += `${idx + 1}. ${
+          b.title || "(no title)"
+        } — ${b.delivery_status}\n`;
         if (b.scheduled_at) {
-          msg += `   Scheduled: ${
-            new Date(b.scheduled_at).toLocaleString()
-          }\n`;
+          msg += `   Scheduled: ${new Date(b.scheduled_at).toLocaleString()}\n`;
         }
       },
     );
@@ -2112,7 +2117,6 @@ export async function handleBankAccountsManagement(
   }
 }
 
-
 // Quick stats overview for all tables
 export async function handleTableStatsOverview(
   chatId: number,
@@ -2132,7 +2136,7 @@ export async function handleTableStatsOverview(
       "daily_analytics",
       "user_interactions",
       "channel_memberships",
-      "media_files", 
+      "media_files",
       "admin_logs",
     ];
 
@@ -2223,11 +2227,16 @@ export async function handleUserInteractionsManagement(
     if (interactions && interactions.length > 0) {
       interactionsMessage += `📋 *Recent Interactions:*\n`;
       interactions.forEach((interaction: any, index: number) => {
-        interactionsMessage += `${index + 1}. **Type:** ${interaction.interaction_type}`;
+        interactionsMessage += `${
+          index + 1
+        }. **Type:** ${interaction.interaction_type}`;
         interactionsMessage += `\n   **User:** ${interaction.telegram_user_id}`;
-        interactionsMessage += `\n   **Date:** ${new Date(interaction.created_at).toLocaleDateString()}`;
+        interactionsMessage += `\n   **Date:** ${
+          new Date(interaction.created_at).toLocaleDateString()
+        }`;
         if (interaction.page_context) {
-          interactionsMessage += `\n   **Context:** ${interaction.page_context}`;
+          interactionsMessage +=
+            `\n   **Context:** ${interaction.page_context}`;
         }
         interactionsMessage += `\n\n`;
       });
@@ -2274,10 +2283,16 @@ export async function handleChannelMembershipsManagement(
     if (memberships && memberships.length > 0) {
       membershipsMessage += `📋 *Recent Memberships:*\n`;
       memberships.forEach((membership: any, index: number) => {
-        membershipsMessage += `${index + 1}. **Channel:** ${membership.channel_name || membership.channel_id}`;
+        membershipsMessage += `${index + 1}. **Channel:** ${
+          membership.channel_name || membership.channel_id
+        }`;
         membershipsMessage += `\n   **User:** ${membership.telegram_user_id}`;
-        membershipsMessage += `\n   **Status:** ${membership.is_active ? '✅ Active' : '❌ Inactive'}`;
-        membershipsMessage += `\n   **Added:** ${new Date(membership.created_at).toLocaleDateString()}`;
+        membershipsMessage += `\n   **Status:** ${
+          membership.is_active ? "✅ Active" : "❌ Inactive"
+        }`;
+        membershipsMessage += `\n   **Added:** ${
+          new Date(membership.created_at).toLocaleDateString()
+        }`;
         membershipsMessage += `\n\n`;
       });
     } else {
@@ -2326,9 +2341,13 @@ export async function handleMediaFilesManagement(
         filesMessage += `${index + 1}. **File:** ${file.filename}`;
         filesMessage += `\n   **Type:** ${file.file_type}`;
         if (file.file_size) {
-          filesMessage += `\n   **Size:** ${Math.round(file.file_size / 1024)} KB`;
+          filesMessage += `\n   **Size:** ${
+            Math.round(file.file_size / 1024)
+          } KB`;
         }
-        filesMessage += `\n   **Uploaded:** ${new Date(file.created_at).toLocaleDateString()}`;
+        filesMessage += `\n   **Uploaded:** ${
+          new Date(file.created_at).toLocaleDateString()
+        }`;
         if (file.uploaded_by) {
           filesMessage += `\n   **By:** ${file.uploaded_by}`;
         }
@@ -2380,7 +2399,9 @@ export async function handleAdminLogsManagement(
         logsMessage += `${index + 1}. **Action:** ${log.action_type}`;
         logsMessage += `\n   **Admin:** ${log.admin_telegram_id}`;
         logsMessage += `\n   **Description:** ${log.action_description}`;
-        logsMessage += `\n   **Date:** ${new Date(log.created_at).toLocaleDateString()}`;
+        logsMessage += `\n   **Date:** ${
+          new Date(log.created_at).toLocaleDateString()
+        }`;
         if (log.affected_table) {
           logsMessage += `\n   **Table:** ${log.affected_table}`;
         }
@@ -2440,7 +2461,7 @@ export async function handleExportAllTables(
       "bank_accounts",
       "auto_reply_templates",
       "user_interactions",
-      "channel_memberships", 
+      "channel_memberships",
       "media_files",
       "admin_logs",
     ];

@@ -1,6 +1,6 @@
-import { getEnvVar } from '@/utils/env.ts';
+import { getEnvVar } from "@/utils/env.ts";
 
-export const OPENAI_API_URL = 'https://api.openai.com/v1';
+export const OPENAI_API_URL = "https://api.openai.com/v1";
 
 export interface OpenAIClientOptions {
   apiKey?: string;
@@ -8,7 +8,7 @@ export interface OpenAIClientOptions {
 }
 
 export interface ChatCompletionMessage {
-  role: 'system' | 'user' | 'assistant' | 'tool';
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
   name?: string;
 }
@@ -18,7 +18,9 @@ export interface ChatCompletionRequest {
   messages: ChatCompletionMessage[];
   temperature?: number;
   max_tokens?: number;
-  response_format?: { type: 'json_schema'; json_schema: unknown } | { type: 'text' };
+  response_format?: { type: "json_schema"; json_schema: unknown } | {
+    type: "text";
+  };
 }
 
 export interface ChatCompletionChoice {
@@ -40,20 +42,20 @@ export class OpenAIClient {
   readonly baseUrl: string;
 
   constructor(options: OpenAIClientOptions = {}) {
-    const apiKey = options.apiKey ?? getEnvVar('OPENAI_API_KEY');
+    const apiKey = options.apiKey ?? getEnvVar("OPENAI_API_KEY");
     if (!apiKey) {
-      throw new Error('Missing OPENAI_API_KEY');
+      throw new Error("Missing OPENAI_API_KEY");
     }
     this.apiKey = apiKey;
     const base = options.apiBaseUrl ?? OPENAI_API_URL;
-    this.baseUrl = base.replace(/\/$/, '');
+    this.baseUrl = base.replace(/\/$/, "");
   }
 
   private async request<T>(path: string, payload: unknown): Promise<T> {
     const res = await fetch(`${this.baseUrl}${path}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'content-type': 'application/json',
+        "content-type": "application/json",
         authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(payload ?? {}),
@@ -65,7 +67,9 @@ export class OpenAIClient {
     return (await res.json()) as T;
   }
 
-  createChatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
-    return this.request<ChatCompletionResponse>('/chat/completions', request);
+  createChatCompletion(
+    request: ChatCompletionRequest,
+  ): Promise<ChatCompletionResponse> {
+    return this.request<ChatCompletionResponse>("/chat/completions", request);
   }
 }

@@ -22,4 +22,3 @@ ReactDOM.createRoot(root).render(
     </HashRouter>
   </React.StrictMode>,
 );
-

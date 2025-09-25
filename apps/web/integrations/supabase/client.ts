@@ -2,19 +2,19 @@
 import {
   createClient as createBrowserClient,
   type SupabaseClientOptions,
-} from '@supabase/supabase-js';
-import { getEnvVar } from '@/utils/env.ts';
+} from "@supabase/supabase-js";
+import { getEnvVar } from "@/utils/env.ts";
 import {
   SUPABASE_ANON_KEY,
   SUPABASE_CONFIG_FROM_ENV,
   SUPABASE_URL,
-} from '@/config/supabase-runtime';
+} from "@/config/supabase-runtime";
 
-export const SUPABASE_ENV_ERROR = '';
+export const SUPABASE_ENV_ERROR = "";
 
 if (!SUPABASE_CONFIG_FROM_ENV) {
   console.info(
-    '[Supabase] Using baked-in project credentials because env vars are not set.',
+    "[Supabase] Using baked-in project credentials because env vars are not set.",
   );
 }
 
@@ -26,7 +26,7 @@ const loggingFetch: typeof fetch = async (input, init) => {
   const end = Date.now();
   try {
     let url: string;
-    if (typeof input === 'string') {
+    if (typeof input === "string") {
       url = input;
     } else if (input instanceof Request) {
       url = input.url;
@@ -42,21 +42,20 @@ const loggingFetch: typeof fetch = async (input, init) => {
   return res;
 };
 
-export type SupabaseCreateOptions = SupabaseClientOptions<'public'>;
+export type SupabaseCreateOptions = SupabaseClientOptions<"public">;
 
 export function createClient(
-  role: 'anon' | 'service' = 'anon',
+  role: "anon" | "service" = "anon",
   options: SupabaseCreateOptions = {},
 ) {
-  const key =
-    role === 'service'
-      ? getEnvVar('SUPABASE_SERVICE_ROLE_KEY', ['SUPABASE_SERVICE_ROLE'])
-      : SUPABASE_ANON_KEY;
+  const key = role === "service"
+    ? getEnvVar("SUPABASE_SERVICE_ROLE_KEY", ["SUPABASE_SERVICE_ROLE"])
+    : SUPABASE_ANON_KEY;
   if (!key) {
     throw new Error(
-      role === 'service'
-        ? 'Missing Supabase service role key'
-        : SUPABASE_ENV_ERROR || 'Missing Supabase anon key',
+      role === "service"
+        ? "Missing Supabase service role key"
+        : SUPABASE_ENV_ERROR || "Missing Supabase anon key",
     );
   }
   const mergedGlobal = {
@@ -72,11 +71,12 @@ export function createClient(
 
 export type SupabaseClient = ReturnType<typeof createClient>;
 
-export const supabase: SupabaseClient =
-  typeof window !== 'undefined' ? createClient() : ({} as SupabaseClient);
+export const supabase: SupabaseClient = typeof window !== "undefined"
+  ? createClient()
+  : ({} as SupabaseClient);
 
 export function getQueryCounts() {
   return { ...queryCounts };
 }
 
-export { SUPABASE_URL, SUPABASE_ANON_KEY };
+export { SUPABASE_ANON_KEY, SUPABASE_URL };

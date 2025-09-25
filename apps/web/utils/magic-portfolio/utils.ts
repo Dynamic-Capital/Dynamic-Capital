@@ -47,7 +47,10 @@ function normalizeTeam(team: unknown): Team[] {
 
       const candidate = member as Partial<Team>;
 
-      if (typeof candidate.name !== "string" || typeof candidate.linkedIn !== "string") {
+      if (
+        typeof candidate.name !== "string" ||
+        typeof candidate.linkedIn !== "string"
+      ) {
         return null;
       }
 
@@ -84,11 +87,17 @@ function readMDXFile(filePath: string) {
         ? data.publishedAt
         : "1970-01-01",
     summary: typeof data.summary === "string" ? data.summary : "",
-    image: typeof data.image === "string" && data.image.length > 0 ? data.image : undefined,
+    image: typeof data.image === "string" && data.image.length > 0
+      ? data.image
+      : undefined,
     images: normalizeImages(data.images, data.image),
-    tag: typeof data.tag === "string" && data.tag.length > 0 ? data.tag : undefined,
+    tag: typeof data.tag === "string" && data.tag.length > 0
+      ? data.tag
+      : undefined,
     team: normalizeTeam(data.team),
-    link: typeof data.link === "string" && data.link.length > 0 ? data.link : undefined,
+    link: typeof data.link === "string" && data.link.length > 0
+      ? data.link
+      : undefined,
   };
 
   return { metadata, content };

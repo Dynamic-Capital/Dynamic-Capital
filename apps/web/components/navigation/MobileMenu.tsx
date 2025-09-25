@@ -4,18 +4,24 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/utils";
 import {
-  Menu,
-  Home,
   CreditCard,
-  Settings,
   GraduationCap,
-  User,
+  Home,
   LogIn,
-  X,
   type LucideIcon,
+  Menu,
+  Settings,
+  User,
+  X,
 } from "lucide-react";
 
 interface NavItem {
@@ -32,29 +38,29 @@ const navItems: NavItem[] = [
     label: "Home",
     icon: Home,
     path: "/",
-    ariaLabel: "Navigate to home page"
+    ariaLabel: "Navigate to home page",
   },
   {
     id: "plans",
     label: "Plans",
     icon: CreditCard,
     path: "/plans",
-    ariaLabel: "View subscription plans"
+    ariaLabel: "View subscription plans",
   },
   {
     id: "settings",
     label: "Settings",
     icon: Settings,
     path: "/#settings",
-    ariaLabel: "Adjust user settings"
+    ariaLabel: "Adjust user settings",
   },
   {
     id: "education",
     label: "Education",
     icon: GraduationCap,
     path: "/education",
-    ariaLabel: "Explore educational content"
-  }
+    ariaLabel: "Explore educational content",
+  },
 ];
 
 export const MobileMenu: React.FC = () => {
@@ -84,7 +90,9 @@ export const MobileMenu: React.FC = () => {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
                   "transition-colors hover:bg-accent hover:text-accent-foreground",
-                  isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  isActive
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground",
                 )}
               >
                 <Icon className="h-4 w-4" />

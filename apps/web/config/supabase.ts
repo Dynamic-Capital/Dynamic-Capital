@@ -53,16 +53,16 @@ export const SUPABASE_CONFIG = {
 } as const;
 
 export const CRYPTO_CONFIG = {
-  SUPPORTED_CURRENCIES: ['BTC', 'ETH', 'USDT', 'LTC'],
+  SUPPORTED_CURRENCIES: ["BTC", "ETH", "USDT", "LTC"],
   DEPOSIT_ADDRESS: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
   USDT_TRC20_ADDRESS: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-  NETWORK: "mainnet"
+  NETWORK: "mainnet",
 } as const;
 
 export const TELEGRAM_CONFIG = {
   BOT_URL: "https://t.me/your_bot",
   MINI_APP_URL: "https://your-miniapp.supabase.co",
-  WEBHOOK_SECRET: ""
+  WEBHOOK_SECRET: "",
 } as const;
 
 export const buildFunctionUrl = (
@@ -84,7 +84,9 @@ export const callEdgeFunction = async <T>(
     headers?: Record<string, string>;
     token?: string;
   } = {},
-): Promise<{ data?: T; error?: { status: number; message: string }; status?: number }> => {
+): Promise<
+  { data?: T; error?: { status: number; message: string }; status?: number }
+> => {
   const { method = "GET", body, headers = {}, token } = options;
 
   const requestHeaders: Record<string, string> = {

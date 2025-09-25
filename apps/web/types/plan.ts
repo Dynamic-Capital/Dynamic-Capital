@@ -7,4 +7,3 @@ export interface Plan {
   is_lifetime: boolean;
   features: string[];
 }
-

@@ -1,12 +1,13 @@
 import { registerHandler } from "../_shared/serve.ts";
 import { createSupabaseClient } from "../_shared/client.ts";
+import { brand } from "../../../config/brand.ts";
 
 const DEPOSIT_FORM_HTML = `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dynamic Capital</title>
+  <title>${brand.identity.name}</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -97,7 +98,7 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
           </svg>
         </div>
-        <h1 class="text-3xl font-bold gradient-text mb-2">Dynamic Capital</h1>
+        <h1 class="text-3xl font-bold gradient-text mb-2">${brand.identity.name}</h1>
         <p class="text-tg-hint text-sm">VIP Trading Platform</p>
         <div class="mt-3 flex justify-center">
           <div class="flex space-x-1">
@@ -223,7 +224,7 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
     <!-- Footer -->
     <footer class="px-6 py-4 text-center text-tg-hint/60 text-xs border-t border-white/5 relative z-10">
       <div class="flex items-center justify-center space-x-4">
-        <span>Powered by Dynamic Capital</span>
+        <span>Powered by ${brand.identity.name}</span>
         <div class="w-1 h-1 bg-tg-hint/40 rounded-full"></div>
         <span>Secured & Encrypted</span>
       </div>
@@ -241,7 +242,7 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
     }
     
     const initData = tg?.initData || '';
-    console.log('Dynamic Capital Mini App loaded, initData:', initData);
+    console.log("${brand.identity.name} Mini App loaded, initData:", initData);
     
     const form = document.getElementById('deposit');
     const status = document.getElementById('status');
@@ -385,52 +386,59 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
 </html>`;
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 export const handler = registerHandler(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
     const supabase = createSupabaseClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: { persistSession: false },
     });
 
     // Upload the HTML file to storage
     const { data, error } = await supabase.storage
-      .from('miniapp')
-      .upload('index.html', new Blob([DEPOSIT_FORM_HTML], { type: 'text/html' }), {
-        upsert: true,
-        contentType: 'text/html'
-      });
+      .from("miniapp")
+      .upload(
+        "index.html",
+        new Blob([DEPOSIT_FORM_HTML], { type: "text/html" }),
+        {
+          upsert: true,
+          contentType: "text/html",
+        },
+      );
 
     if (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      message: 'HTML uploaded successfully',
-      path: data.path 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "HTML uploaded successfully",
+        path: data.path,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
-    console.error('Error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error("Error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

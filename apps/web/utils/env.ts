@@ -2,12 +2,17 @@
 declare const process:
   | { env: Record<string, string | undefined> }
   | undefined;
-declare const Deno: { env: { get(key: string): string | undefined } } | undefined;
+declare const Deno:
+  | { env: { get(key: string): string | undefined } }
+  | undefined;
 
 function sanitize(v: string | undefined): string | undefined {
   if (!v) return undefined;
   const val = v.trim();
-  if (val === "" || val.toLowerCase() === "undefined" || val.toLowerCase() === "null") {
+  if (
+    val === "" || val.toLowerCase() === "undefined" ||
+    val.toLowerCase() === "null"
+  ) {
     return undefined;
   }
   return val;

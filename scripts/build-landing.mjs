@@ -1,17 +1,17 @@
 #!/usr/bin/env node
-import { spawn } from 'node:child_process';
-import { cp, mkdir, rm, access, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { createSanitizedNpmEnv } from './utils/npm-env.mjs';
+import { spawn } from "node:child_process";
+import { access, cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { createSanitizedNpmEnv } from "./utils/npm-env.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const repoRoot = join(__dirname, '..');
-const webWorkspace = join(repoRoot, 'apps', 'web');
-const staticDir = join(repoRoot, '_static');
-const backupDir = join(repoRoot, '_static.backup');
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+const repoRoot = join(__dirname, "..");
+const webWorkspace = join(repoRoot, "apps", "web");
+const staticDir = join(repoRoot, "_static");
+const backupDir = join(repoRoot, "_static.backup");
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
 
 async function pathExists(path) {
   try {
@@ -27,12 +27,12 @@ function runCommand(command, args, options = {}) {
   const env = createSanitizedNpmEnv(envOverrides ?? {});
   return new Promise((resolve) => {
     const child = spawn(command, args, {
-      stdio: 'inherit',
+      stdio: "inherit",
       ...rest,
       env,
     });
 
-    child.on('close', (code, signal) => {
+    child.on("close", (code, signal) => {
       if (signal) {
         resolve(1);
         return;
@@ -40,7 +40,7 @@ function runCommand(command, args, options = {}) {
       resolve(code ?? 0);
     });
 
-    child.on('error', () => {
+    child.on("error", () => {
       resolve(1);
     });
   });
@@ -70,9 +70,9 @@ async function restoreBackup() {
 }
 
 async function writeFallbackHtml() {
-  const title = 'Dynamic Capital – Snapshot unavailable';
+  const title = "Dynamic Capital – Snapshot unavailable";
   const message =
-    'We\'re temporarily unable to refresh the landing snapshot because the web build did not succeed. The previous export will remain in place until the build is fixed.';
+    "We're temporarily unable to refresh the landing snapshot because the web build did not succeed. The previous export will remain in place until the build is fixed.";
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -162,26 +162,26 @@ async function writeFallbackHtml() {
 
   await rm(staticDir, { recursive: true, force: true });
   await mkdir(staticDir, { recursive: true });
-  await writeFile(join(staticDir, 'index.html'), html, 'utf8');
-  await writeFile(join(staticDir, '404.html'), notFound, 'utf8');
+  await writeFile(join(staticDir, "index.html"), html, "utf8");
+  await writeFile(join(staticDir, "404.html"), notFound, "utf8");
 }
 
 async function runCopyStatic({ copyOnly, extraEnv = {} }) {
   if (copyOnly) {
-    return runCommand(npmCommand, ['run', 'copy-static'], {
+    return runCommand(npmCommand, ["run", "copy-static"], {
       cwd: webWorkspace,
       env: extraEnv,
     });
   }
 
-  return runCommand(npxCommand, ['tsx', '../../scripts/copy-static.ts'], {
+  return runCommand(npxCommand, ["tsx", "../../scripts/copy-static.ts"], {
     cwd: webWorkspace,
     env: extraEnv,
   });
 }
 
 async function landingSnapshotExists() {
-  return pathExists(join(staticDir, 'index.html'));
+  return pathExists(join(staticDir, "index.html"));
 }
 
 async function main() {
@@ -190,12 +190,14 @@ async function main() {
   let status = await runCopyStatic({
     copyOnly: true,
     extraEnv: {
-      SKIP_NEXT_BUILD: '1',
+      SKIP_NEXT_BUILD: "1",
     },
   });
 
   if (status !== 0) {
-    console.warn('⚠️  Copy-only snapshot refresh failed. Attempting full rebuild via Next.js…');
+    console.warn(
+      "⚠️  Copy-only snapshot refresh failed. Attempting full rebuild via Next.js…",
+    );
     status = await runCopyStatic({ copyOnly: false });
   }
 
@@ -203,17 +205,21 @@ async function main() {
 
   if (status === 0 && snapshotPresent) {
     await rm(backupDir, { recursive: true, force: true });
-    console.log('✅ Landing snapshot refreshed from Next.js build.');
+    console.log("✅ Landing snapshot refreshed from Next.js build.");
     return;
   }
 
-  console.warn('⚠️  Unable to refresh landing snapshot from the Next.js app. Preserving the last good export.');
+  console.warn(
+    "⚠️  Unable to refresh landing snapshot from the Next.js app. Preserving the last good export.",
+  );
 
   if (hadBackup && (await restoreBackup())) {
-    console.warn('ℹ️  Restored previous `_static/` snapshot from backup.');
+    console.warn("ℹ️  Restored previous `_static/` snapshot from backup.");
   } else {
     await writeFallbackHtml();
-    console.warn('ℹ️  Generated a minimal placeholder snapshot so the build can continue.');
+    console.warn(
+      "ℹ️  Generated a minimal placeholder snapshot so the build can continue.",
+    );
   }
 
   await rm(backupDir, { recursive: true, force: true });
@@ -221,6 +227,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('❌ Unexpected error while building landing snapshot:', err);
+  console.error("❌ Unexpected error while building landing snapshot:", err);
   process.exit(1);
 });

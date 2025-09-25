@@ -1,17 +1,13 @@
-import {
-  jsonResponse,
-  methodNotAllowed,
-  corsHeaders,
-} from '@/utils/http.ts';
+import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
 interface HelloResponse {
   message: string;
 }
 
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 
 export async function GET(req: Request) {
-  const body: HelloResponse = { message: 'Hello from the API' };
+  const body: HelloResponse = { message: "Hello from the API" };
   return jsonResponse(body, {}, req);
 }
 

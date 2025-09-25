@@ -1,4 +1,5 @@
 import { Column, Heading, Icon, Row, Tag, Text } from "@once-ui-system/core";
+import { brand } from "@/config/brand";
 
 interface Certificate {
   name: string;
@@ -63,9 +64,10 @@ export function ComplianceCertificates() {
           Independent security &amp; privacy certifications
         </Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          Dynamic Capital operates under audited controls for security, privacy,
-          and data residency. Each certificate below is issued by an independent
-          assessor and mapped to our evidence library for rapid vendor reviews.
+          {brand.identity.name}{" "}
+          operates under audited controls for security, privacy, and data
+          residency. Each certificate below is issued by an independent assessor
+          and mapped to our evidence library for rapid vendor reviews.
         </Text>
       </Column>
       <Row gap="16" wrap>

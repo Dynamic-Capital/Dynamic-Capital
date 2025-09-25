@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
 import { createClient } from "../_shared/client.ts";
+import { brand } from "../../../config/brand.ts";
 
 const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
 const supabase = createClient("service");
@@ -88,7 +89,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const systemPrompt =
-      `You are a knowledgeable trading assistant for Dynamic Capital, a premium trading signals and education service.
+      `You are a knowledgeable trading assistant for ${brand.identity.name}, a premium trading signals and education service.
 
 IMPORTANT GUIDELINES:
 - Provide helpful, educational trading information
@@ -96,7 +97,7 @@ IMPORTANT GUIDELINES:
 - Keep responses concise but informative (max 300 words)
 - Include relevant emojis for better engagement
 - Focus on education, not financial advice
-- Mention Dynamic Capital's services when relevant
+- Mention ${brand.identity.name}'s services when relevant
 - Always include a disclaimer about risk
 
 DYNAMIC CAPITAL SERVICES:
@@ -104,7 +105,7 @@ DYNAMIC CAPITAL SERVICES:
 - VIP community access with live analysis
 - Educational resources and mentorship
 - Bank transfer and crypto payment options
-- 24/7 support via @DynamicCapital_Support
+- 24/7 support via ${brand.support.telegramHandle}
 
 COMMON TOPICS:
 - Trading basics and terminology
@@ -115,7 +116,7 @@ COMMON TOPICS:
 - Payment methods and subscription plans
 - Platform usage and features
 
-Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!"`;
+Always end responses with: "💡 Need more help? Contact ${brand.support.telegramHandle} or check our VIP plans!"`;
 
     const questionEmbedding = await getEmbedding(question);
 
@@ -174,11 +175,13 @@ Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support
 
     const answer = data.choices[0].message.content as string;
 
-    const { error: insertError } = await supabase.from("faq_embeddings").insert({
-      question,
-      answer,
-      embedding: questionEmbedding,
-    });
+    const { error: insertError } = await supabase.from("faq_embeddings").insert(
+      {
+        question,
+        answer,
+        embedding: questionEmbedding,
+      },
+    );
     if (insertError) console.error("insert faq_embeddings", insertError);
 
     return new Response(JSON.stringify({ answer }), {

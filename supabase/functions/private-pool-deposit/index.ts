@@ -1,5 +1,14 @@
-import { createSupabasePoolStore, ensureActiveCycle, ensureInvestor, recomputeShares, type PrivatePoolStore, type ResolveProfileFn, createDefaultResolveProfileFn, roundCurrency } from "../_shared/private-pool.ts";
-import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
+import {
+  createDefaultResolveProfileFn,
+  createSupabasePoolStore,
+  ensureActiveCycle,
+  ensureInvestor,
+  type PrivatePoolStore,
+  recomputeShares,
+  type ResolveProfileFn,
+  roundCurrency,
+} from "../_shared/private-pool.ts";
+import { bad, corsHeaders, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { version } from "../_shared/version.ts";
 
@@ -68,7 +77,9 @@ export function createDepositHandler(
         created_at: now.toISOString(),
       });
       const shareResult = await recomputeShares(store, cycle.id, now);
-      const share = shareResult.records.find((r) => r.investor_id === investor.id);
+      const share = shareResult.records.find((r) =>
+        r.investor_id === investor.id
+      );
       return ok({
         ok: true,
         depositId: deposit.id,
@@ -79,7 +90,11 @@ export function createDepositHandler(
       }, req);
     } catch (err) {
       console.error("private-pool-deposit error", err);
-      return oops("Failed to record deposit", err instanceof Error ? err.message : err, req);
+      return oops(
+        "Failed to record deposit",
+        err instanceof Error ? err.message : err,
+        req,
+      );
     }
   };
 }

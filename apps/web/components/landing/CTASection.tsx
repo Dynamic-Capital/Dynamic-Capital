@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MotionFadeIn } from "@/components/ui/motion-components";
 import { callEdgeFunction } from "@/config/supabase";
+import { brand } from "@/config/brand";
 import {
   ArrowRight,
   BadgeCheck,
   Clock3,
-  Crown,
   CreditCard,
+  Crown,
   Globe2,
   Mail,
   Shield,
@@ -67,8 +68,7 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
     () => ({
       badge: "Limited Time Offer",
       title: "Ready to Transform Your Trading?",
-      description:
-        "Join thousands of successful traders who trust Dynamic Capital for premium signals and proven strategies.",
+      description: brand.marketing.ctaDescription,
       highlight: "Start your VIP journey today!",
       primaryButton: "Get VIP Access Now",
       secondaryButton: "Start Free Trial",
@@ -82,7 +82,7 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
         "Certificate of GDPR",
         "Certificate of DPF",
       ],
-      newsletterTitle: "Stay in sync with Dynamic Capital",
+      newsletterTitle: brand.marketing.newsletterTitle,
       newsletterDescription:
         "Desk notes, feature releases, and booking windows delivered a few times each month.",
       newsletterPlaceholder: "Email address",
@@ -137,7 +137,8 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
 
           const trustSignals = TRUST_SIGNAL_KEYS.map(
             ([numericKey, wordKey], index) =>
-              lookup[numericKey] ?? lookup[wordKey] ?? defaultContent.trustSignals[index],
+              lookup[numericKey] ?? lookup[wordKey] ??
+                defaultContent.trustSignals[index],
           ).filter((signal): signal is string => Boolean(signal));
 
           setContent({
@@ -145,26 +146,24 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
             title: lookup.cta_title ?? defaultContent.title,
             description: lookup.cta_description ?? defaultContent.description,
             highlight: lookup.cta_highlight ?? defaultContent.highlight,
-            primaryButton:
-              lookup.cta_primary_button ?? defaultContent.primaryButton,
-            secondaryButton:
-              lookup.cta_secondary_button ?? defaultContent.secondaryButton,
-            responseTime:
-              lookup.cta_response_time ?? defaultContent.responseTime,
+            primaryButton: lookup.cta_primary_button ??
+              defaultContent.primaryButton,
+            secondaryButton: lookup.cta_secondary_button ??
+              defaultContent.secondaryButton,
+            responseTime: lookup.cta_response_time ??
+              defaultContent.responseTime,
             capacity: lookup.cta_capacity ?? defaultContent.capacity,
             trustSignals,
-            newsletterTitle:
-              lookup.cta_newsletter_title ?? defaultContent.newsletterTitle,
-            newsletterDescription:
-              lookup.cta_newsletter_description ??
+            newsletterTitle: lookup.cta_newsletter_title ??
+              defaultContent.newsletterTitle,
+            newsletterDescription: lookup.cta_newsletter_description ??
               defaultContent.newsletterDescription,
-            newsletterPlaceholder:
-              lookup.cta_newsletter_placeholder ??
+            newsletterPlaceholder: lookup.cta_newsletter_placeholder ??
               defaultContent.newsletterPlaceholder,
-            newsletterButton:
-              lookup.cta_newsletter_button ?? defaultContent.newsletterButton,
-            newsletterPrivacy:
-              lookup.cta_newsletter_privacy ?? defaultContent.newsletterPrivacy,
+            newsletterButton: lookup.cta_newsletter_button ??
+              defaultContent.newsletterButton,
+            newsletterPrivacy: lookup.cta_newsletter_privacy ??
+              defaultContent.newsletterPrivacy,
           });
         } else if (error) {
           console.error("Failed to fetch CTA content:", error.message);
@@ -283,11 +282,13 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
                         key={`${detail}-${index}`}
                         className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-[hsl(var(--accent-light))] backdrop-blur-sm"
                       >
-                        {index === 0 ? (
-                          <Clock3 className="h-5 w-5 text-[hsl(var(--accent-light))]" />
-                        ) : (
-                          <Users className="h-5 w-5 text-[hsl(var(--accent-light))]" />
-                        )}
+                        {index === 0
+                          ? (
+                            <Clock3 className="h-5 w-5 text-[hsl(var(--accent-light))]" />
+                          )
+                          : (
+                            <Users className="h-5 w-5 text-[hsl(var(--accent-light))]" />
+                          )}
                         <span>{detail}</span>
                       </div>
                     ))}
@@ -365,7 +366,8 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
                       }
                     }}
                     placeholder={content.newsletterPlaceholder}
-                    aria-label={content.newsletterPlaceholder || "Email address"}
+                    aria-label={content.newsletterPlaceholder ||
+                      "Email address"}
                     className="h-12 rounded-2xl border-border/60 bg-background/90 pl-12 text-base shadow-sm transition focus-visible:border-primary"
                     autoComplete="email"
                     required

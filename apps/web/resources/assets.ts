@@ -56,7 +56,10 @@ export function supabaseAsset(path: string): string {
   return `${SUPABASE_BUCKET_BASE}${normalizedPath}`;
 }
 
-export function toAbsoluteUrl(baseUrl: string | undefined, candidate: string): string {
+export function toAbsoluteUrl(
+  baseUrl: string | undefined,
+  candidate: string,
+): string {
   if (!candidate) {
     return candidate;
   }

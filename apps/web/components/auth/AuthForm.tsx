@@ -11,6 +11,7 @@ import {
   Row,
   Text,
 } from "@once-ui-system/core";
+import { brand } from "@/config/brand";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
@@ -63,12 +64,17 @@ export function AuthForm() {
     }
 
     try {
-      const { error: signInError } = await signIn(formData.email, formData.password);
+      const { error: signInError } = await signIn(
+        formData.email,
+        formData.password,
+      );
       if (signInError) {
         if (signInError.message.includes("Invalid login credentials")) {
           setError("Invalid email or password. Please try again.");
         } else if (signInError.message.includes("Email not confirmed")) {
-          setError("Check your inbox and confirm your email before signing in.");
+          setError(
+            "Check your inbox and confirm your email before signing in.",
+          );
         } else {
           setError(signInError.message);
         }
@@ -119,14 +125,17 @@ export function AuthForm() {
 
       if (signUpError) {
         if (signUpError.message.includes("User already registered")) {
-          setError("An account with this email already exists. Please sign in instead.");
+          setError(
+            "An account with this email already exists. Please sign in instead.",
+          );
         } else {
           setError(signUpError.message);
         }
       } else {
         toast({
           title: "Account created",
-          description: "Check your email to confirm your account and unlock access.",
+          description:
+            "Check your email to confirm your account and unlock access.",
         });
         resetForm();
         setMode("signin");
@@ -161,9 +170,14 @@ export function AuthForm() {
         shadow="xl"
       >
         <Column gap="12" align="center">
-          <Heading variant="display-strong-xs">Dynamic Capital</Heading>
-          <Text variant="body-default-m" onBackground="neutral-weak" align="center">
-            Access your trading dashboard, manage VIP membership, and review your automation settings.
+          <Heading variant="display-strong-xs">{brand.identity.name}</Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            align="center"
+          >
+            Access your trading dashboard, manage VIP membership, and review
+            your automation settings.
           </Text>
         </Column>
         <Row gap="12" horizontal="center" wrap>
@@ -194,37 +208,39 @@ export function AuthForm() {
         </Row>
         <form onSubmit={onSubmit}>
           <Column gap="16">
-            {mode === "signup" ? (
-              <Row gap="12" wrap>
-                <Column flex={1} minWidth={12} gap="4">
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    First name
-                  </Text>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    placeholder="Noah"
-                    aria-label="First name"
-                    required
-                  />
-                </Column>
-                <Column flex={1} minWidth={12} gap="4">
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    Last name
-                  </Text>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    placeholder="Sterling"
-                    aria-label="Last name"
-                  />
-                </Column>
-              </Row>
-            ) : null}
+            {mode === "signup"
+              ? (
+                <Row gap="12" wrap>
+                  <Column flex={1} minWidth={12} gap="4">
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      First name
+                    </Text>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      placeholder="Noah"
+                      aria-label="First name"
+                      required
+                    />
+                  </Column>
+                  <Column flex={1} minWidth={12} gap="4">
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      Last name
+                    </Text>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      placeholder="Sterling"
+                      aria-label="Last name"
+                    />
+                  </Column>
+                </Row>
+              )
+              : null}
             <Column gap="4">
               <Text variant="body-default-s" onBackground="neutral-weak">
                 Email
@@ -248,21 +264,25 @@ export function AuthForm() {
               onChange={handleInputChange}
               required
             />
-            {mode === "signup" ? (
-              <PasswordInput
-                id="confirmPassword"
-                name="confirmPassword"
-                label="Confirm password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required
-              />
-            ) : null}
-            {error ? (
-              <Text variant="body-default-s" onBackground="brand-weak">
-                {error}
-              </Text>
-            ) : null}
+            {mode === "signup"
+              ? (
+                <PasswordInput
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  label="Confirm password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  required
+                />
+              )
+              : null}
+            {error
+              ? (
+                <Text variant="body-default-s" onBackground="brand-weak">
+                  {error}
+                </Text>
+              )
+              : null}
             <Button
               type="submit"
               size="m"
@@ -270,13 +290,22 @@ export function AuthForm() {
               data-border="rounded"
               disabled={loading}
             >
-              {loading ? "Processing…" : mode === "signin" ? "Sign in" : "Create account"}
+              {loading
+                ? "Processing…"
+                : mode === "signin"
+                ? "Sign in"
+                : "Create account"}
             </Button>
           </Column>
         </form>
         <Column gap="8" align="center">
-          <Text variant="body-default-s" onBackground="neutral-weak" align="center">
-            By continuing you agree to desk security policies and trading disclaimers.
+          <Text
+            variant="body-default-s"
+            onBackground="neutral-weak"
+            align="center"
+          >
+            By continuing you agree to desk security policies and trading
+            disclaimers.
           </Text>
         </Column>
       </Column>

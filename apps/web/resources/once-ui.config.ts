@@ -13,8 +13,9 @@ import {
   SystemUIConfig,
 } from "@/resources/types";
 import { home } from "./content";
+import { brand } from "@/config/brand";
 
-const baseURL: string = "https://dynamic.capital";
+const baseURL: string = brand.urls.base;
 
 const routes: RoutesConfig = {
   "/": true,
@@ -187,15 +188,15 @@ const mailchimp: MailchimpConfig = {
 const schema: SchemaConfig = {
   logo: "/logo.png",
   type: "Organization",
-  name: "Dynamic Capital",
+  name: brand.identity.name,
   description: home.description,
-  email: "support@dynamic.capital",
+  email: brand.support.email,
 };
 
 const sameAs: SameAsConfig = {
-  telegram: "https://t.me/Dynamic_VIP_BOT",
-  linkedin: "https://www.linkedin.com/company/dynamic-capital-ai/",
-  x: "https://x.com/dynamiccapitalhq",
+  telegram: brand.socials.telegramBot.url,
+  linkedin: brand.socials.linkedin.url,
+  x: brand.socials.x.url,
 };
 
 const socialSharing: SocialSharingConfig = {

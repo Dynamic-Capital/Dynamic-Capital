@@ -11,7 +11,9 @@ import {
   showBackButton,
 } from "@/lib/telegram";
 
-export default function MiniAppProviders({ children }: { children: ReactNode }) {
+export default function MiniAppProviders(
+  { children }: { children: ReactNode },
+) {
   const pathname = usePathname();
   const router = useRouter();
 

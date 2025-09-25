@@ -1,11 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, Users, TrendingUp, Star, Smartphone, CheckCircle, Clock, AlertCircle, ExternalLink, Monitor } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  CreditCard,
+  ExternalLink,
+  Monitor,
+  Smartphone,
+  Star,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import { brand } from "@/config/brand";
 
 interface MiniAppPreviewProps {
   className?: string;
@@ -15,7 +33,8 @@ export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
   const [activeTab, setActiveTab] = useState("home");
   const [viewMode, setViewMode] = useState<"deployed" | "inline">("deployed");
 
-  const miniAppUrl = "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/";
+  const miniAppUrl =
+    "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/";
 
   const tabs = [
     { id: "home", label: "Home", icon: Star },
@@ -27,7 +46,11 @@ export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
   return (
     <div className={`max-w-sm mx-auto ${className}`}>
       {/* View Mode Selector */}
-      <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "deployed" | "inline")} className="mb-4">
+      <Tabs
+        value={viewMode}
+        onValueChange={(value) => setViewMode(value as "deployed" | "inline")}
+        className="mb-4"
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="deployed" className="flex items-center gap-2">
             <ExternalLink className="h-4 w-4" />
@@ -56,70 +79,92 @@ export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
         <div className="bg-gradient-telegram px-4 py-3 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Smartphone className="h-5 w-5 text-primary-foreground" />
-            <h2 className="text-lg font-bold text-primary-foreground">Dynamic Capital</h2>
+            <h2 className="text-lg font-bold text-primary-foreground">
+              {brand.identity.name}
+            </h2>
           </div>
           <p className="text-xs text-primary-foreground/80">Mini App Preview</p>
         </div>
 
         {/* Content Area */}
         <div className="min-h-[400px] bg-gradient-to-br from-muted/20 to-muted/40">
-          {viewMode === "deployed" ? (
-            <div className="p-4 h-[400px]">
-              <iframe
-                src={miniAppUrl}
-                className="w-full h-full rounded-lg border border-border"
-                title="Dynamic Capital Mini App"
-              />
-            </div>
-          ) : (
-            <div className="p-4 space-y-4">
-              <div className="text-center mb-6">
-                <h3 className="text-lg font-bold text-foreground mb-2">Dynamic Capital</h3>
-                <p className="text-xs text-muted-foreground">Mini App - Simple View</p>
+          {viewMode === "deployed"
+            ? (
+              <div className="p-4 h-[400px]">
+                <iframe
+                  src={miniAppUrl}
+                  className="w-full h-full rounded-lg border border-border"
+                  title={`${brand.identity.name} Mini App`}
+                />
               </div>
-              
-              <Card className="bot-card p-3">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 bg-gradient-telegram rounded-full flex items-center justify-center">
-                    <Smartphone className="h-4 w-4 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">Welcome to VIP Bot</h4>
-                    <p className="text-xs text-muted-foreground">Interactive testing interface</p>
-                  </div>
+            )
+            : (
+              <div className="p-4 space-y-4">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-bold text-foreground mb-2">
+                    {brand.identity.name}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Mini App - Simple View
+                  </p>
                 </div>
-                
-                <div className="space-y-2">
-                  <Button size="sm" className="w-full justify-start">
-                    <Star className="h-3 w-3 mr-2" />
-                    Check Version
-                  </Button>
-                  <Button size="sm" variant="outline" className="w-full justify-start">
-                    <CheckCircle className="h-3 w-3 mr-2" />
-                    Verify InitData
-                  </Button>
-                </div>
-              </Card>
 
-              <Card className="bot-card p-3 bg-gradient-telegram/10 border-telegram/30">
-                <h4 className="font-semibold text-sm mb-2 text-telegram">Status</h4>
-                <div className="text-xs space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">WebApp user:</span>
-                    <span>@demo_user</span>
+                <Card className="bot-card p-3">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-gradient-telegram rounded-full flex items-center justify-center">
+                      <Smartphone className="h-4 w-4 text-primary-foreground" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm">
+                        Welcome to VIP Bot
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        Interactive testing interface
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Theme:</span>
-                    <span>light</span>
+
+                  <div className="space-y-2">
+                    <Button size="sm" className="w-full justify-start">
+                      <Star className="h-3 w-3 mr-2" />
+                      Check Version
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <CheckCircle className="h-3 w-3 mr-2" />
+                      Verify InitData
+                    </Button>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Status:</span>
-                    <Badge variant="outline" className="text-xs h-5">Connected</Badge>
+                </Card>
+
+                <Card className="bot-card p-3 bg-gradient-telegram/10 border-telegram/30">
+                  <h4 className="font-semibold text-sm mb-2 text-telegram">
+                    Status
+                  </h4>
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        WebApp user:
+                      </span>
+                      <span>@demo_user</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Theme:</span>
+                      <span>light</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Status:</span>
+                      <Badge variant="outline" className="text-xs h-5">
+                        Connected
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            </div>
-          )}
+                </Card>
+              </div>
+            )}
         </div>
 
         {/* Bottom Navigation */}

@@ -6,15 +6,15 @@ can reproduce Codex's build steps locally and keep your environment in sync.
 
 ## Commands
 
-| Command | Purpose |
-| --- | --- |
-| `npm run codex:post-pull` | Install dependencies, sync `.env`/`.env.local`, validate core environment variables, and execute the combined `lovable-build.js` pipeline. |
-| `npm run codex:dev` | Optionally sync `.env`/`.env.local` before delegating to `lovable-dev.js`, which runs preflight checks and launches the Next.js dev server. |
-| `npm run codex:build` | Run the Lovable production build locally (Next.js dashboard + Telegram mini app). |
-| `npm run codex:verify` | Execute `scripts/verify/verify_all.sh` for the full repository verification sweep. |
+| Command                   | Purpose                                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run codex:post-pull` | Install dependencies, sync `.env`/`.env.local`, validate core environment variables, and execute the combined `lovable-build.js` pipeline.  |
+| `npm run codex:dev`       | Optionally sync `.env`/`.env.local` before delegating to `lovable-dev.js`, which runs preflight checks and launches the Next.js dev server. |
+| `npm run codex:build`     | Run the Lovable production build locally (Next.js dashboard + Telegram mini app).                                                           |
+| `npm run codex:verify`    | Execute `scripts/verify/verify_all.sh` for the full repository verification sweep.                                                          |
 
-Each command is a thin wrapper around `scripts/codex-workflow.js MODE` so you can
-still pass additional flags via `npm run codex:<mode> -- --flag`.
+Each command is a thin wrapper around `scripts/codex-workflow.js MODE` so you
+can still pass additional flags via `npm run codex:<mode> -- --flag`.
 
 ## Flags
 
@@ -27,9 +27,12 @@ Common flags accepted by the helper:
 - `--build-optional` – treat build failures as warnings.
 - `--verify` – run `npm run verify` after the post-pull steps.
 - `--dry-run` – preview the steps without executing commands.
-- `--reset-issues` – clear the cached failure history before running tasks again.
-- `--agent <id>` – scope failure history and reminders to a specific Codex agent (also via `CODEX_AGENT_ID`).
-- `--no-shared-cache` – skip the shared dependency cache when coordinating with other agents.
+- `--reset-issues` – clear the cached failure history before running tasks
+  again.
+- `--agent <id>` – scope failure history and reminders to a specific Codex agent
+  (also via `CODEX_AGENT_ID`).
+- `--no-shared-cache` – skip the shared dependency cache when coordinating with
+  other agents.
 
 Run `scripts/codex-workflow.js --help` to see the full list of options.
 
@@ -100,9 +103,10 @@ resolved branches stay safe and reproducible:
    - **Drizzle migrations** – if the same migration file diverges, stop and
      request human review rather than guessing.
 5. **Post-merge verification** – reinstall dependencies, run linting, type
-   checks, tests, database checks, and builds (`npm run lint`, `npm run
-   typecheck`, `npm test`, `npx drizzle-kit check`, `npm run build`) so the
-   merged branch stays green.
+   checks, tests, database checks, and builds (`npm run lint`,
+   `npm run
+   typecheck`, `npm test`, `npx drizzle-kit check`, `npm run build`)
+   so the merged branch stays green.
 6. **Auto-merge only when safe** – enable GitHub auto-merge (`--squash` by
    default) once required checks are passing and branch protections are
    satisfied. If approvals or failing checks block the merge, leave a PR comment

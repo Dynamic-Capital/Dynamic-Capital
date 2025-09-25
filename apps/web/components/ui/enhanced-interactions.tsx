@@ -1,8 +1,8 @@
 "use client";
 
-import React from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { cn } from '@/utils';
+import React from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { cn } from "@/utils";
 
 interface MagneticButtonProps {
   children: React.ReactNode;
@@ -17,7 +17,7 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
   className = "",
   strength = 0.4,
   onClick,
-  disabled = false
+  disabled = false,
 }) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -28,11 +28,11 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
 
   const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled) return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    
+
     x.set((e.clientX - centerX) * strength);
     y.set((e.clientY - centerY) * strength);
   };
@@ -47,7 +47,7 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
       className={cn(
         "relative overflow-hidden transition-all duration-300",
         disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
-        className
+        className,
       )}
       style={{ x: springX, y: springY }}
       onMouseMove={handleMouseMove}
@@ -71,7 +71,7 @@ interface PulseRingProps {
 export const PulseRing: React.FC<PulseRingProps> = ({
   color = "hsl(var(--primary))",
   size = 100,
-  className = ""
+  className = "",
 }) => {
   return (
     <div className={cn("relative", className)}>
@@ -83,20 +83,20 @@ export const PulseRing: React.FC<PulseRingProps> = ({
             borderColor: color,
             width: size,
             height: size,
-            left: '50%',
-            top: '50%',
-            x: '-50%',
-            y: '-50%'
+            left: "50%",
+            top: "50%",
+            x: "-50%",
+            y: "-50%",
           }}
           animate={{
             scale: [1, 2, 1],
-            opacity: [0.3, 0, 0.3]
+            opacity: [0.3, 0, 0.3],
           }}
           transition={{
             duration: 2,
             repeat: Infinity,
             delay: i * 0.6,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
         />
       ))}
@@ -113,10 +113,15 @@ interface FloatingElementsProps {
 export const FloatingElements: React.FC<FloatingElementsProps> = ({
   count = 5,
   className = "",
-  children
+  children,
 }) => {
   return (
-    <div className={cn("absolute inset-0 pointer-events-none overflow-hidden", className)}>
+    <div
+      className={cn(
+        "absolute inset-0 pointer-events-none overflow-hidden",
+        className,
+      )}
+    >
       {Array.from({ length: count }).map((_, i) => (
         <motion.div
           key={i}
@@ -129,13 +134,13 @@ export const FloatingElements: React.FC<FloatingElementsProps> = ({
             y: [0, -20, 0],
             x: [0, Math.random() * 20 - 10, 0],
             opacity: [0.2, 0.8, 0.2],
-            scale: [1, 1.5, 1]
+            scale: [1, 1.5, 1],
           }}
           transition={{
             duration: Math.random() * 3 + 2,
             repeat: Infinity,
             delay: Math.random() * 2,
-            ease: "easeInOut"
+            ease: "easeInOut",
           }}
         />
       ))}
@@ -155,13 +160,15 @@ export const HoverGlow: React.FC<HoverGlowProps> = ({
   children,
   color = "hsl(var(--primary))",
   intensity = 0.3,
-  className = ""
+  className = "",
 }) => {
   return (
     <motion.div
       className={cn("relative", className)}
       whileHover={{
-        boxShadow: `0 0 20px ${color}${Math.floor(intensity * 255).toString(16)}`
+        boxShadow: `0 0 20px ${color}${
+          Math.floor(intensity * 255).toString(16)
+        }`,
       }}
       transition={{ duration: 0.3 }}
     >
@@ -179,7 +186,7 @@ interface MorphingShapeProps {
 export const MorphingShape: React.FC<MorphingShapeProps> = ({
   className = "",
   color = "hsl(var(--primary))",
-  speed = 4
+  speed = 4,
 }) => {
   return (
     <motion.div
@@ -188,19 +195,19 @@ export const MorphingShape: React.FC<MorphingShapeProps> = ({
         borderRadius: [
           "60% 40% 30% 70%/60% 30% 70% 40%",
           "30% 60% 70% 40%/50% 60% 30% 60%",
-          "60% 40% 30% 70%/60% 30% 70% 40%"
+          "60% 40% 30% 70%/60% 30% 70% 40%",
         ],
-        rotate: [0, 360]
+        rotate: [0, 360],
       }}
       transition={{
         duration: speed,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "easeInOut",
       }}
       style={{
         background: `linear-gradient(45deg, ${color}, transparent)`,
-        width: '100%',
-        height: '100%'
+        width: "100%",
+        height: "100%",
       }}
     />
   );
@@ -215,7 +222,7 @@ interface SuccessRippleProps {
 export const SuccessRipple: React.FC<SuccessRippleProps> = ({
   trigger,
   onComplete,
-  color = "hsl(var(--success))"
+  color = "hsl(var(--success))",
 }) => {
   React.useEffect(() => {
     if (trigger && onComplete) {
@@ -247,5 +254,5 @@ export default {
   FloatingElements,
   HoverGlow,
   MorphingShape,
-  SuccessRipple
+  SuccessRipple,
 };

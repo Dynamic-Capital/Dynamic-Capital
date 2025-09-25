@@ -1,5 +1,6 @@
 // Database utility functions for the Telegram bot
 import { createClient } from "../_shared/client.ts";
+import { brand } from "../../../config/brand.ts";
 
 let supabaseAdmin: ReturnType<typeof createClient>;
 try {
@@ -55,13 +56,13 @@ async function createDefaultContent(
   contentKey: string,
 ): Promise<string | null> {
   const defaultContents: Record<string, string> = {
-    "welcome_message": `🎯 Welcome to Dynamic Capital Bot!
+    "welcome_message": `🎯 Welcome to ${brand.identity.name} Bot!
 
 📈 Get premium trading signals & education
 💎 Join our VIP community
 
 Use the buttons below or try commands like /packages, /promo, /account, /support, /help, /faq, /education, /ask or /shouldibuy to get started.`,
-    "welcome_back_message": `👋 Welcome back to Dynamic Capital Bot!
+    "welcome_back_message": `👋 Welcome back to ${brand.identity.name} Bot!
 
 🔥 VIP Packages:
 • 1 Month – access to premium signals
@@ -81,7 +82,7 @@ Available commands:
 /ask - Ask our AI assistant
 /shouldibuy - Get educational trade analysis
 /about - About us`,
-    "about_us": `🏢 About Dynamic Capital
+    "about_us": `🏢 About ${brand.identity.name}
 
 We are a leading trading education and signals provider with years of experience in financial markets.
 
@@ -90,12 +91,12 @@ Our mission is to help traders succeed through:
 • Educational resources
 • Community support
 • Expert guidance`,
-"support_message": `🛟 *Need Help?*
+    "support_message": `🛟 *Need Help?*
 
 Our support team is here for you!
 
 📧 Email: support@dynamiccapital.com
-💬 Telegram: @DynamicCapital_Support
+💬 Telegram: ${brand.support.telegramHandle}
 🕐 Support Hours: 24/7
 
 We typically respond within 2-4 hours.`,
@@ -125,7 +126,7 @@ Available commands:
 /shouldibuy SYMBOL - Get educational trade analysis
 /about - About us
 
-Need assistance? Contact @DynamicCapital_Support`,
+Need assistance? Contact ${brand.support.telegramHandle}`,
     "faq_general": `❓ **Frequently Asked Questions**
 
 🔷 **Q: How do I join VIP?**

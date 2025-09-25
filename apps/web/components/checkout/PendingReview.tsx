@@ -14,15 +14,22 @@ export const PendingReview: React.FC<PendingReviewProps> = ({ paymentId }) => (
     <Alert>
       <Clock className="h-4 w-4" />
       <AlertDescription>
-        <strong>Payment Submitted!</strong><br />
-        Your receipt is being reviewed. You'll receive a Telegram notification once approved.
+        <strong>Payment Submitted!</strong>
+        <br />
+        Your receipt is being reviewed. You'll receive a Telegram notification
+        once approved.
       </AlertDescription>
     </Alert>
 
     <div className="text-center space-y-2">
-      <div className="text-sm text-muted-foreground">Payment ID: {paymentId}</div>
+      <div className="text-sm text-muted-foreground">
+        Payment ID: {paymentId}
+      </div>
       <Button variant="outline" size="sm" asChild>
-        <a href={`/payment-status?payment_id=${paymentId}`} className="flex items-center gap-2">
+        <a
+          href={`/payment-status?payment_id=${paymentId}`}
+          className="flex items-center gap-2"
+        >
           <FileText className="h-4 w-4" />
           Check Status
         </a>

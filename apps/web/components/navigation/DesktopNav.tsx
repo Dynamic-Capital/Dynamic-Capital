@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { CreditCard, User, LogIn, Zap } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { CreditCard, LogIn, User, Zap } from "lucide-react";
 import NAV_ITEMS from "./nav-items";
 
 const navItems = NAV_ITEMS;
@@ -47,7 +47,7 @@ export const DesktopNav: React.FC = () => {
                 "flex items-center gap-2 px-4 py-2 rounded-md",
                 active
                   ? "bg-primary text-primary-foreground"
-                  : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                  : "text-foreground hover:bg-accent hover:text-accent-foreground",
               )}
             >
               <Icon className="h-4 w-4" />

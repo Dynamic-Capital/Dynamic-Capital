@@ -25,6 +25,7 @@ import {
   Save,
   Sparkles,
 } from "lucide-react";
+import { brand } from "@/config/brand";
 
 interface WelcomeContent {
   id: string;
@@ -38,6 +39,7 @@ interface WelcomeContent {
 }
 
 export const WelcomeMessageEditor = () => {
+  const botName = `${brand.identity.name} Bot`;
   const [welcomeMessage, setWelcomeMessage] = useState<WelcomeContent | null>(
     null,
   );
@@ -78,7 +80,8 @@ export const WelcomeMessageEditor = () => {
       logger.log("Welcome message loaded successfully:", data);
       setWelcomeMessage({
         ...data,
-        content_type: (data.content_type as "text" | "html" | "markdown") || "text"
+        content_type: (data.content_type as "text" | "html" | "markdown") ||
+          "text",
       });
       setEditedMessage(data.content_value);
     } catch (error) {
@@ -99,7 +102,7 @@ export const WelcomeMessageEditor = () => {
   }, []);
 
   const createDefaultWelcomeMessage = async () => {
-    const defaultMessage = `🎯 Welcome to Dynamic Capital Bot!
+    const defaultMessage = `🎯 Welcome to ${botName}!
 
 📈 Get premium trading signals & education
 💎 Join our VIP community
@@ -128,7 +131,8 @@ export const WelcomeMessageEditor = () => {
       logger.log("Default welcome message created:", data);
       setWelcomeMessage({
         ...data,
-        content_type: (data.content_type as "text" | "html" | "markdown") || "text"
+        content_type: (data.content_type as "text" | "html" | "markdown") ||
+          "text",
       });
       setEditedMessage(data.content_value);
 
@@ -170,10 +174,10 @@ export const WelcomeMessageEditor = () => {
       setWelcomeMessage((prev) =>
         prev
           ? {
-              ...prev,
-              content_value: editedMessage,
-              last_modified_by: "admin",
-            }
+            ...prev,
+            content_value: editedMessage,
+            last_modified_by: "admin",
+          }
           : null
       );
 
@@ -214,7 +218,7 @@ export const WelcomeMessageEditor = () => {
   const templates = [
     {
       name: "Professional",
-      content: `🏢 Welcome to Dynamic Capital!
+      content: `🏢 Welcome to ${brand.identity.name}!
 
 📊 Professional trading signals & analysis
 💎 Join our exclusive VIP community
@@ -224,7 +228,7 @@ export const WelcomeMessageEditor = () => {
     },
     {
       name: "Friendly",
-      content: `👋 Hey there! Welcome to Dynamic Capital!
+      content: `👋 Hey there! Welcome to ${brand.identity.name}!
 
 🚀 Ready to level up your trading game?
 💰 Get premium signals & expert guidance
@@ -234,7 +238,7 @@ What would you like to do? 👇`,
     },
     {
       name: "Simple",
-      content: `🎯 Welcome to Dynamic Capital Bot!
+      content: `🎯 Welcome to ${botName}!
 
 📈 Premium trading signals
 💎 VIP community access
@@ -347,9 +351,7 @@ Choose an option below:`,
                       <div className="w-8 h-8 bg-telegram rounded-full flex items-center justify-center text-white text-sm">
                         🤖
                       </div>
-                      <span className="font-medium">
-                        Dynamic Capital Bot
-                      </span>
+                      <span className="font-medium">{botName}</span>
                     </div>
                     <div className="whitespace-pre-wrap text-sm bg-background text-foreground rounded-lg p-3 shadow-sm">
                       {editedMessage || "Enter a message to see preview..."}

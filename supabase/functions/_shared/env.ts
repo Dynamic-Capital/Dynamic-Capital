@@ -55,7 +55,9 @@ type TestEnv = Partial<Record<EnvKey, string>>;
 function sanitize(value: string | undefined | null): string | null {
   if (!value) return null;
   const v = value.trim();
-  if (v === "" || v.toLowerCase() === "undefined" || v.toLowerCase() === "null") {
+  if (
+    v === "" || v.toLowerCase() === "undefined" || v.toLowerCase() === "null"
+  ) {
     return null;
   }
   return v;

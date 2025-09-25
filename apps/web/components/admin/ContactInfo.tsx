@@ -25,6 +25,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { brand } from "@/config/brand";
 
 interface ContactLink {
   id: string;
@@ -292,7 +293,7 @@ export const ContactInfo = () => {
               <div>
                 <label className="text-sm font-medium">Display Name</label>
                 <Input
-                  placeholder="e.g., Dynamic Capital Instagram"
+                  placeholder={`e.g., ${brand.identity.name} Instagram`}
                   value={formData.display_name}
                   onChange={(e) =>
                     setFormData({ ...formData, display_name: e.target.value })}

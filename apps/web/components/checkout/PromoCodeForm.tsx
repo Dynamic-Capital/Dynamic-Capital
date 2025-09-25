@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
@@ -15,7 +15,15 @@ interface PromoCodeFormProps {
   promoValidation: any;
 }
 
-export const PromoCodeForm: React.FC<PromoCodeFormProps> = ({ promoCode, setPromoCode, validatePromoCode, validatingPromo, promoValidation }) => (
+export const PromoCodeForm: React.FC<PromoCodeFormProps> = (
+  {
+    promoCode,
+    setPromoCode,
+    validatePromoCode,
+    validatingPromo,
+    promoValidation,
+  },
+) => (
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2 text-lg">
@@ -36,7 +44,9 @@ export const PromoCodeForm: React.FC<PromoCodeFormProps> = ({ promoCode, setProm
           disabled={!promoCode.trim() || validatingPromo}
           size="sm"
         >
-          {validatingPromo ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+          {validatingPromo
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : "Apply"}
         </Button>
       </div>
       {promoValidation && (
@@ -45,11 +55,15 @@ export const PromoCodeForm: React.FC<PromoCodeFormProps> = ({ promoCode, setProm
             "text-xs p-2 rounded",
             promoValidation.valid
               ? "bg-green-500/10 text-green-600 border border-green-500/20"
-              : "bg-dc-brand/10 text-dc-brand-dark border border-dc-brand/20"
+              : "bg-dc-brand/10 text-dc-brand-dark border border-dc-brand/20",
           )}
         >
           {promoValidation.valid
-            ? `${promoValidation.discount_type === 'percentage' ? promoValidation.discount_value + '%' : '$' + promoValidation.discount_value} discount applied!`
+            ? `${
+              promoValidation.discount_type === "percentage"
+                ? promoValidation.discount_value + "%"
+                : "$" + promoValidation.discount_value
+            } discount applied!`
             : promoValidation.reason}
         </div>
       )}

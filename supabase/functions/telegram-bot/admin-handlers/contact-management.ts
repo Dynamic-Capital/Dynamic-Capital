@@ -1,5 +1,5 @@
 // Contact Links Management for Telegram Admin
-import { supabaseAdmin, sendMessage } from "./common.ts";
+import { sendMessage, supabaseAdmin } from "./common.ts";
 import { logAdminAction } from "../database-utils.ts";
 
 interface ContactLink {
@@ -59,7 +59,9 @@ export async function handleContactLinksManagement(
         contactMessage += `
 ${index + 1}. ${status} ${emoji} **${contact.display_name}**
    📱 Platform: ${contact.platform}
-   🔗 URL: ${contact.url.substring(0, 50)}${contact.url.length > 50 ? "..." : ""}
+   🔗 URL: ${contact.url.substring(0, 50)}${
+          contact.url.length > 50 ? "..." : ""
+        }
    📊 Order: ${contact.display_order}`;
       });
     } else {
@@ -152,16 +154,18 @@ Select a contact link to edit:
     contacts.forEach((contact, index) => {
       const status = contact.is_active ? "✅" : "❌";
       const emoji = contact.icon_emoji || "🔗";
-      message += `${index + 1}. ${status} ${emoji} ${contact.display_name} (${contact.platform})\n`;
-      
+      message += `${
+        index + 1
+      }. ${status} ${emoji} ${contact.display_name} (${contact.platform})\n`;
+
       keyboard.inline_keyboard.push([{
         text: `${index + 1}. ${contact.display_name}`,
-        callback_data: `edit_contact_${contact.id}`
+        callback_data: `edit_contact_${contact.id}`,
       }]);
     });
 
     keyboard.inline_keyboard.push([
-      { text: "🔙 Back", callback_data: "manage_table_contact_links" }
+      { text: "🔙 Back", callback_data: "manage_table_contact_links" },
     ]);
 
     await sendMessage(chatId, message, keyboard);
@@ -201,21 +205,24 @@ Select a contact link to toggle:
       const status = contact.is_active ? "✅ Active" : "❌ Inactive";
       const emoji = contact.icon_emoji || "🔗";
       message += `${index + 1}. ${status} ${emoji} ${contact.display_name}\n`;
-      
+
       keyboard.inline_keyboard.push([{
         text: `${index + 1}. ${contact.display_name} (${status})`,
-        callback_data: `toggle_contact_${contact.id}`
+        callback_data: `toggle_contact_${contact.id}`,
       }]);
     });
 
     keyboard.inline_keyboard.push([
-      { text: "🔙 Back", callback_data: "manage_table_contact_links" }
+      { text: "🔙 Back", callback_data: "manage_table_contact_links" },
     ]);
 
     await sendMessage(chatId, message, keyboard);
   } catch (error) {
     console.error("Error toggling contact link:", error);
-    await sendMessage(chatId, "❌ Error retrieving contact links for toggling.");
+    await sendMessage(
+      chatId,
+      "❌ Error retrieving contact links for toggling.",
+    );
   }
 }
 
@@ -250,22 +257,27 @@ Select a contact link to delete:
     contacts.forEach((contact, index) => {
       const status = contact.is_active ? "✅" : "❌";
       const emoji = contact.icon_emoji || "🔗";
-      message += `${index + 1}. ${status} ${emoji} ${contact.display_name} (${contact.platform})\n`;
-      
+      message += `${
+        index + 1
+      }. ${status} ${emoji} ${contact.display_name} (${contact.platform})\n`;
+
       keyboard.inline_keyboard.push([{
         text: `🗑️ ${index + 1}. ${contact.display_name}`,
-        callback_data: `delete_contact_${contact.id}`
+        callback_data: `delete_contact_${contact.id}`,
       }]);
     });
 
     keyboard.inline_keyboard.push([
-      { text: "🔙 Back", callback_data: "manage_table_contact_links" }
+      { text: "🔙 Back", callback_data: "manage_table_contact_links" },
     ]);
 
     await sendMessage(chatId, message, keyboard);
   } catch (error) {
     console.error("Error deleting contact link:", error);
-    await sendMessage(chatId, "❌ Error retrieving contact links for deletion.");
+    await sendMessage(
+      chatId,
+      "❌ Error retrieving contact links for deletion.",
+    );
   }
 }
 
@@ -324,11 +336,14 @@ export async function processContactLinkOperation(
           "toggle_contact_link",
           `Toggled contact link: ${contact.display_name}`,
           "contact_links",
-          contactId
+          contactId,
         );
 
         const newStatus = !contact.is_active ? "activated" : "deactivated";
-        await sendMessage(chatId, `✅ Contact link "${contact.display_name}" has been ${newStatus}.`);
+        await sendMessage(
+          chatId,
+          `✅ Contact link "${contact.display_name}" has been ${newStatus}.`,
+        );
         break;
       }
 
@@ -351,10 +366,13 @@ export async function processContactLinkOperation(
           "delete_contact_link",
           `Deleted contact link: ${deleteContact.display_name}`,
           "contact_links",
-          contactId
+          contactId,
         );
 
-        await sendMessage(chatId, `✅ Contact link "${deleteContact.display_name}" has been deleted.`);
+        await sendMessage(
+          chatId,
+          `✅ Contact link "${deleteContact.display_name}" has been deleted.`,
+        );
         break;
       }
 

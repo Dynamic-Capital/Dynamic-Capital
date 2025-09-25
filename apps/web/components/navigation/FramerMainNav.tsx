@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import MainComponent, { type MainNavItem } from "./framer/MainComponent";
 import NAV_ITEMS from "./nav-items";
@@ -96,7 +96,10 @@ const FramerMainNav = () => {
     [pathname, router],
   );
 
-  const items = useMemo(() => buildNavItems(pathname, navigate), [pathname, navigate]);
+  const items = useMemo(() => buildNavItems(pathname, navigate), [
+    pathname,
+    navigate,
+  ]);
 
   return <MainComponent items={items} />;
 };

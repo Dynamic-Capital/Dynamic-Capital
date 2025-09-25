@@ -1,6 +1,6 @@
 "use client";
 
-import { Row, Text, Button, useToast } from "@once-ui-system/core";
+import { Button, Row, Text, useToast } from "@once-ui-system/core";
 import { socialSharing } from "@/resources";
 
 interface ShareSectionProps {
@@ -21,56 +21,68 @@ const socialPlatforms = {
     icon: "twitter",
     label: "X",
     generateUrl: (title, url) =>
-      `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${
+        encodeURIComponent(url)
+      }`,
   },
   linkedin: {
     name: "linkedin",
     icon: "linkedin",
     label: "LinkedIn",
-    generateUrl: (title, url) => 
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+    generateUrl: (title, url) =>
+      `https://www.linkedin.com/sharing/share-offsite/?url=${
+        encodeURIComponent(url)
+      }`,
   },
   facebook: {
     name: "facebook",
     icon: "facebook",
     label: "Facebook",
-    generateUrl: (title, url) => 
+    generateUrl: (title, url) =>
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
   },
   pinterest: {
     name: "pinterest",
     icon: "pinterest",
     label: "Pinterest",
-    generateUrl: (title, url) => 
-      `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(title)}`,
+    generateUrl: (title, url) =>
+      `https://pinterest.com/pin/create/button/?url=${
+        encodeURIComponent(url)
+      }&description=${encodeURIComponent(title)}`,
   },
   whatsapp: {
     name: "whatsapp",
     icon: "whatsapp",
     label: "WhatsApp",
-    generateUrl: (title, url) => 
+    generateUrl: (title, url) =>
       `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
   },
   reddit: {
     name: "reddit",
     icon: "reddit",
     label: "Reddit",
-    generateUrl: (title, url) => 
-      `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
+    generateUrl: (title, url) =>
+      `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${
+        encodeURIComponent(title)
+      }`,
   },
   telegram: {
     name: "telegram",
     icon: "telegram",
     label: "Telegram",
-    generateUrl: (title, url) => 
-      `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+    generateUrl: (title, url) =>
+      `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${
+        encodeURIComponent(title)
+      }`,
   },
   email: {
     name: "email",
     icon: "email",
     label: "Email",
     generateUrl: (title, url) =>
-      `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(`Check out this post: ${url}`)}`,
+      `mailto:?subject=${encodeURIComponent(title)}&body=${
+        encodeURIComponent(`Check out this post: ${url}`)
+      }`,
   },
 } satisfies Record<string, SocialPlatform>;
 
@@ -107,22 +119,28 @@ export function ShareSection({ title, url }: ShareSectionProps) {
 
   const enabledPlatforms = (
     Object.entries(socialSharing.platforms) as Array<[PlatformKey, boolean]>
-  ).reduce<Array<SocialPlatform & { key: PlatformKey }>>((acc, [platformKey, enabled]) => {
-    if (!enabled || platformKey === "copyLink") {
-      return acc;
-    }
-
-    if (!(platformKey in socialPlatforms)) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn(`Share platform "${platformKey}" is enabled but has no configuration.`);
+  ).reduce<Array<SocialPlatform & { key: PlatformKey }>>(
+    (acc, [platformKey, enabled]) => {
+      if (!enabled || platformKey === "copyLink") {
+        return acc;
       }
-      return acc;
-    }
 
-    const platform = socialPlatforms[platformKey as keyof typeof socialPlatforms];
-    acc.push({ key: platformKey, ...platform });
-    return acc;
-  }, []);
+      if (!(platformKey in socialPlatforms)) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            `Share platform "${platformKey}" is enabled but has no configuration.`,
+          );
+        }
+        return acc;
+      }
+
+      const platform =
+        socialPlatforms[platformKey as keyof typeof socialPlatforms];
+      acc.push({ key: platformKey, ...platform });
+      return acc;
+    },
+    [],
+  );
 
   return (
     <Row fillWidth center gap="16" marginTop="32" marginBottom="16">

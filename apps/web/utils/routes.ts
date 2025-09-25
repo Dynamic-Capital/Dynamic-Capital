@@ -1,4 +1,4 @@
-'server-only';
+"server-only";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -92,7 +92,9 @@ function collectAppRoutes(
     }
 
     const route = formatRoute(segments);
-    const relative = toPosixPath(path.relative(rootDir, path.join(dir, entryName)) || entryName);
+    const relative = toPosixPath(
+      path.relative(rootDir, path.join(dir, entryName)) || entryName,
+    );
     const key = `${route}::${relative}`;
     if (!seen.has(key)) {
       results.push({ route, file: relative });
@@ -152,7 +154,9 @@ function collectPageRoutes(
       ? segments
       : [...segments, parsed.name];
     const route = formatRoute(routeSegments);
-    const relative = toPosixPath(path.relative(rootDir, path.join(dir, entryName)) || entryName);
+    const relative = toPosixPath(
+      path.relative(rootDir, path.join(dir, entryName)) || entryName,
+    );
     const key = `${route}::${relative}`;
     if (!seen.has(key)) {
       results.push({ route, file: relative });

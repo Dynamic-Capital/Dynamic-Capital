@@ -1,6 +1,6 @@
-export const ogDefaults = {
-  title: 'Dynamic Capital — Institutional trading intelligence',
-  description:
-    'Dynamic Capital delivers institutional-grade trading signals, mentorship, and automation for ambitious operators.',
-};
+import { brand } from "@/config/brand";
 
+export const ogDefaults = {
+  title: `${brand.identity.name} — Institutional trading intelligence`,
+  description: brand.metadata.description,
+};

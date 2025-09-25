@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireEnv } from "../_shared/env.ts";
 import { json, mna } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
+import { brand } from "../../../config/brand.ts";
 
 const { OPENAI_API_KEY } = requireEnv(["OPENAI_API_KEY"] as const);
 
@@ -26,7 +27,11 @@ export async function handler(req: Request): Promise<Response> {
       .catch(() => ({}));
 
     if (test) {
-      return json({ success: true, message: "trade-helper OK" }, 200, corsHeaders);
+      return json(
+        { success: true, message: "trade-helper OK" },
+        200,
+        corsHeaders,
+      );
     }
 
     if (!instrument) {
@@ -34,11 +39,11 @@ export async function handler(req: Request): Promise<Response> {
     }
 
     const systemPrompt =
-      `You are a professional trading analyst providing educational market analysis for Dynamic Capital.
+      `You are a professional trading analyst providing educational market analysis for ${brand.identity.name}.
 
 CRITICAL DISCLAIMERS:
 - This is EDUCATIONAL content only, NOT financial advice
-- Trading involves significant risk of loss
+- ${brand.disclaimers.risk}
 - Past performance doesn't guarantee future results
 - Users should do their own research and risk management
 

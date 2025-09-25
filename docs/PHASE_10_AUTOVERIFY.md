@@ -5,8 +5,8 @@
 - **/receipt-ocr** — input `{ payment_id }`, analyzes the stored receipt image
   with OpenAI and writes results to `payments.webhook_data.ocr`.
 - **/payments-auto-review** — scans recent pending payments and auto-approves
-  when rules pass; logs `admin_logs` and reuses Phase 4 approver endpoint.
-  until signature verification is implemented.
+  when rules pass; logs `admin_logs` and reuses Phase 4 approver endpoint. until
+  signature verification is implemented.
 
 ## Verification Rules
 
@@ -21,4 +21,3 @@ A payment is approved when:
 2. Amount within tolerance
 3. Currency matches
 4. Receipt date within time window
-

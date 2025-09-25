@@ -1,5 +1,5 @@
 // GitHub Cleanup Management for Telegram Admin
-import { supabaseAdmin, sendMessage } from "./common.ts";
+import { sendMessage, supabaseAdmin } from "./common.ts";
 import { logAdminAction } from "../database-utils.ts";
 
 // Handle GitHub Cleanup Management
@@ -44,13 +44,19 @@ export async function handleGitHubAnalyze(
   userId: string,
 ): Promise<void> {
   try {
-    await sendMessage(chatId, "🔍 Analyzing repository for duplicate and unused files...");
+    await sendMessage(
+      chatId,
+      "🔍 Analyzing repository for duplicate and unused files...",
+    );
 
-    const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/github-cleanup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'cleanup_duplicate_files' })
-    });
+    const response = await fetch(
+      "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/github-cleanup",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cleanup_duplicate_files" }),
+      },
+    );
 
     const result = await response.json();
 
@@ -59,7 +65,7 @@ export async function handleGitHubAnalyze(
         userId,
         "github_analyze",
         "Started GitHub repository analysis",
-        "kv_config"
+        "kv_config",
       );
 
       const message = `✅ *Repository Analysis Started*
@@ -85,9 +91,8 @@ The system is identifying:
 
       await sendMessage(chatId, message, keyboard);
     } else {
-      throw new Error(result.error || 'Analysis failed');
+      throw new Error(result.error || "Analysis failed");
     }
-
   } catch (error) {
     console.error("GitHub analysis error:", error);
     const msg = error instanceof Error ? error.message : String(error);
@@ -101,16 +106,19 @@ export async function handleGitHubStatus(
   userId: string,
 ): Promise<void> {
   try {
-    const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/github-cleanup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'get_cleanup_status' })
-    });
+    const response = await fetch(
+      "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/github-cleanup",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_cleanup_status" }),
+      },
+    );
 
     const result = await response.json();
 
     if (result.ok) {
-      if (result.status === 'not_started') {
+      if (result.status === "not_started") {
         const message = `📋 *Cleanup Status*
 
 🔍 No analysis has been run yet.
@@ -146,7 +154,10 @@ Start an analysis to identify duplicate and unused files.`;
         inline_keyboard: [
           [
             { text: "📁 View File List", callback_data: "github_file_list" },
-            { text: "🗑️ Proceed with Cleanup", callback_data: "github_cleanup_confirm" },
+            {
+              text: "🗑️ Proceed with Cleanup",
+              callback_data: "github_cleanup_confirm",
+            },
           ],
           [
             { text: "🔄 Re-analyze", callback_data: "github_analyze" },
@@ -157,9 +168,8 @@ Start an analysis to identify duplicate and unused files.`;
 
       await sendMessage(chatId, message, keyboard);
     } else {
-      throw new Error(result.error || 'Failed to fetch status');
+      throw new Error(result.error || "Failed to fetch status");
     }
-
   } catch (error) {
     console.error("GitHub status error:", error);
     const msg = error instanceof Error ? error.message : String(error);
@@ -252,7 +262,10 @@ Are you absolutely sure you want to proceed?`;
   const keyboard = {
     inline_keyboard: [
       [
-        { text: "⚠️ Yes, Proceed with Cleanup", callback_data: "github_cleanup_execute" },
+        {
+          text: "⚠️ Yes, Proceed with Cleanup",
+          callback_data: "github_cleanup_execute",
+        },
       ],
       [
         { text: "❌ Cancel", callback_data: "github_cleanup" },
@@ -308,7 +321,7 @@ git push origin backup-before-cleanup
     userId,
     "github_cleanup_manual",
     "Provided manual cleanup instructions",
-    "admin_logs"
+    "admin_logs",
   );
 
   const keyboard = {

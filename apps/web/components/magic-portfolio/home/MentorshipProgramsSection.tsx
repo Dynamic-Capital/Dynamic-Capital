@@ -29,7 +29,8 @@ const PROGRAMS: MentorshipProgram[] = [
     id: "performance-sprint",
     name: "Performance Sprint",
     cadence: "4-week intensive",
-    description: "Weekly accountability designed for traders who need sharper execution and risk discipline.",
+    description:
+      "Weekly accountability designed for traders who need sharper execution and risk discipline.",
     focus:
       "Pair live desk signals with one-on-one reviews so you ship more trades that respect the playbook you wrote.",
     features: [
@@ -45,7 +46,8 @@ const PROGRAMS: MentorshipProgram[] = [
     id: "founders-circle",
     name: "Founders Circle",
     cadence: "12-week residency",
-    description: "For fund leads and trading teams scaling managed capital with institutional oversight.",
+    description:
+      "For fund leads and trading teams scaling managed capital with institutional oversight.",
     focus:
       "Blend mentorship, automation, and reporting so every operator on your desk executes against the same guardrails.",
     features: [
@@ -72,9 +74,12 @@ export function MentorshipProgramsSection() {
       shadow="l"
     >
       <Column gap="12" maxWidth={32}>
-        <Heading variant="display-strong-xs">Mentorship built around execution</Heading>
+        <Heading variant="display-strong-xs">
+          Mentorship built around execution
+        </Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          Cohorts pair live trading signals with accountability cadences so you build the habits that drive performance.
+          Cohorts pair live trading signals with accountability cadences so you
+          build the habits that drive performance.
         </Text>
       </Column>
       <Column gap="24">
@@ -87,7 +92,12 @@ export function MentorshipProgramsSection() {
               padding="l"
               gap="20"
             >
-              <Row horizontal="between" vertical="center" gap="12" s={{ direction: "column", align: "start" }}>
+              <Row
+                horizontal="between"
+                vertical="center"
+                gap="12"
+                s={{ direction: "column", align: "start" }}
+              >
                 <Column gap="8">
                   <Heading variant="heading-strong-m">{program.name}</Heading>
                   <Text variant="body-default-m" onBackground="neutral-weak">
@@ -119,20 +129,24 @@ export function MentorshipProgramsSection() {
                 >
                   {program.primaryCtaLabel}
                 </Button>
-                {about.calendar.display && about.calendar.link ? (
-                  <Button
-                    size="m"
-                    variant="secondary"
-                    data-border="rounded"
-                    prefixIcon="calendar"
-                    href={about.calendar.link}
-                  >
-                    {program.secondaryCtaLabel}
-                  </Button>
-                ) : null}
+                {about.calendar.display && about.calendar.link
+                  ? (
+                    <Button
+                      size="m"
+                      variant="secondary"
+                      data-border="rounded"
+                      prefixIcon="calendar"
+                      href={about.calendar.link}
+                    >
+                      {program.secondaryCtaLabel}
+                    </Button>
+                  )
+                  : null}
               </Row>
             </Column>
-            {index < PROGRAMS.length - 1 ? <Line background="neutral-alpha-weak" /> : null}
+            {index < PROGRAMS.length - 1
+              ? <Line background="neutral-alpha-weak" />
+              : null}
           </Fragment>
         ))}
       </Column>

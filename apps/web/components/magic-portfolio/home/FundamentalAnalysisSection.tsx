@@ -1,6 +1,15 @@
 import { Fragment } from "react";
 
-import { Column, Heading, Icon, Line, Row, Tag, Text, type Colors } from "@once-ui-system/core";
+import {
+  type Colors,
+  Column,
+  Heading,
+  Icon,
+  Line,
+  Row,
+  Tag,
+  Text,
+} from "@once-ui-system/core";
 
 type Positioning = "Overweight" | "Market weight" | "Underweight";
 
@@ -15,7 +24,10 @@ type FundamentalInsight = {
   metrics: { label: string; value: string }[];
 };
 
-const POSITIONING_STYLES: Record<Positioning, { background: Colors; icon: string }> = {
+const POSITIONING_STYLES: Record<
+  Positioning,
+  { background: Colors; icon: string }
+> = {
   Overweight: { background: "brand-alpha-weak", icon: "trending-up" },
   "Market weight": { background: "neutral-alpha-weak", icon: "bar-chart" },
   Underweight: { background: "danger-alpha-weak", icon: "trending-down" },
@@ -94,9 +106,13 @@ export function FundamentalAnalysisSection() {
       shadow="l"
     >
       <Column gap="12" maxWidth={32}>
-        <Heading variant="display-strong-xs">Fundamental positioning highlights</Heading>
+        <Heading variant="display-strong-xs">
+          Fundamental positioning highlights
+        </Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          Snapshot of the desk's highest conviction fundamental calls this week, including catalysts on the radar and the risk controls backing each stance.
+          Snapshot of the desk's highest conviction fundamental calls this week,
+          including catalysts on the radar and the risk controls backing each
+          stance.
         </Text>
       </Column>
       <Column gap="24">
@@ -112,16 +128,28 @@ export function FundamentalAnalysisSection() {
                 padding="l"
                 gap="20"
               >
-                <Row horizontal="between" vertical="center" gap="12" s={{ direction: "column", align: "start" }}>
+                <Row
+                  horizontal="between"
+                  vertical="center"
+                  gap="12"
+                  s={{ direction: "column", align: "start" }}
+                >
                   <Column gap="4">
                     <Heading variant="heading-strong-m">
                       {insight.asset}
                     </Heading>
-                    <Text variant="body-default-s" onBackground="neutral-medium">
+                    <Text
+                      variant="body-default-s"
+                      onBackground="neutral-medium"
+                    >
                       {insight.sector}
                     </Text>
                   </Column>
-                  <Tag size="s" background={positioningStyles.background} prefixIcon={positioningStyles.icon}>
+                  <Tag
+                    size="s"
+                    background={positioningStyles.background}
+                    prefixIcon={positioningStyles.icon}
+                  >
                     {insight.positioning}
                   </Tag>
                 </Row>
@@ -129,7 +157,11 @@ export function FundamentalAnalysisSection() {
                   {insight.summary}
                 </Text>
                 <Column gap="12">
-                  <Heading as="h3" variant="label-default-m" onBackground="neutral-medium">
+                  <Heading
+                    as="h3"
+                    variant="label-default-m"
+                    onBackground="neutral-medium"
+                  >
                     Key catalysts
                   </Heading>
                   <Column as="ul" gap="8">
@@ -144,20 +176,30 @@ export function FundamentalAnalysisSection() {
                   </Column>
                 </Column>
                 <Column gap="12">
-                  <Heading as="h3" variant="label-default-m" onBackground="neutral-medium">
+                  <Heading
+                    as="h3"
+                    variant="label-default-m"
+                    onBackground="neutral-medium"
+                  >
                     Risk controls
                   </Heading>
                   <Text variant="body-default-m">{insight.riskControls}</Text>
                 </Column>
                 <Row gap="8" wrap>
                   {insight.metrics.map((metric) => (
-                    <Tag key={metric.label} size="s" background="neutral-alpha-weak">
+                    <Tag
+                      key={metric.label}
+                      size="s"
+                      background="neutral-alpha-weak"
+                    >
                       {metric.label}: {metric.value}
                     </Tag>
                   ))}
                 </Row>
               </Column>
-              {index < FUNDAMENTAL_INSIGHTS.length - 1 ? <Line background="neutral-alpha-weak" /> : null}
+              {index < FUNDAMENTAL_INSIGHTS.length - 1
+                ? <Line background="neutral-alpha-weak" />
+                : null}
             </Fragment>
           );
         })}

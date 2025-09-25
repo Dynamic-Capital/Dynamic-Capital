@@ -1,8 +1,19 @@
-import { createSupabasePoolStore, recomputeShares, requireAdmin, type PrivatePoolStore, type ResolveProfileFn, createDefaultResolveProfileFn, roundCurrency, getNextCycle, type InvestorShare } from "../_shared/private-pool.ts";
-import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
+import {
+  createDefaultResolveProfileFn,
+  createSupabasePoolStore,
+  getNextCycle,
+  type InvestorShare,
+  type PrivatePoolStore,
+  recomputeShares,
+  requireAdmin,
+  type ResolveProfileFn,
+  roundCurrency,
+} from "../_shared/private-pool.ts";
+import { bad, corsHeaders, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { version } from "../_shared/version.ts";
-import type { InvestorContact, FundCycle } from "../_shared/private-pool.ts";
+import type { FundCycle, InvestorContact } from "../_shared/private-pool.ts";
+import { brand } from "../../../config/brand.ts";
 
 interface SettleBody {
   profit?: number;
@@ -59,7 +70,10 @@ function parseBody(raw: unknown): SettleBody {
 export function createSettleHandler(
   overrides: Partial<SettleHandlerDeps> = {},
 ) {
-  const deps: SettleHandlerDeps = { ...defaultDeps, ...overrides } as SettleHandlerDeps;
+  const deps: SettleHandlerDeps = {
+    ...defaultDeps,
+    ...overrides,
+  } as SettleHandlerDeps;
   return async function handler(req: Request): Promise<Response> {
     if (req.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders(req) });
@@ -126,7 +140,10 @@ export function createSettleHandler(
         closed_at: now.toISOString(),
         notes: body.notes ?? null,
       });
-      const nextMeta = getNextCycle(activeCycle.cycle_month, activeCycle.cycle_year);
+      const nextMeta = getNextCycle(
+        activeCycle.cycle_month,
+        activeCycle.cycle_year,
+      );
       const nextCycle = await store.createCycle({
         cycle_month: nextMeta.cycle_month,
         cycle_year: nextMeta.cycle_year,
@@ -141,7 +158,8 @@ export function createSettleHandler(
             cycle_id: nextCycle.id,
             amount_usdt: roundCurrency(base),
             deposit_type: "carryover",
-            notes: `Carryover from ${activeCycle.cycle_month}/${activeCycle.cycle_year}`,
+            notes:
+              `Carryover from ${activeCycle.cycle_month}/${activeCycle.cycle_year}`,
             created_at: now.toISOString(),
           });
         }
@@ -151,13 +169,16 @@ export function createSettleHandler(
             cycle_id: nextCycle.id,
             amount_usdt: roundCurrency(entry.reinvest_usdt),
             deposit_type: "reinvestment",
-            notes: `Reinvestment from ${activeCycle.cycle_month}/${activeCycle.cycle_year} settlement`,
+            notes:
+              `Reinvestment from ${activeCycle.cycle_month}/${activeCycle.cycle_year} settlement`,
             created_at: now.toISOString(),
           });
         }
       }
       const newShares = await recomputeShares(store, nextCycle.id, now);
-      const contacts = await store.listInvestorContacts(summary.map((s) => s.investor_id));
+      const contacts = await store.listInvestorContacts(
+        summary.map((s) => s.investor_id),
+      );
       const totals: SettlementTotals = {
         profit_total: totalProfit,
         payout_total: roundCurrency(payoutTotal),
@@ -188,7 +209,11 @@ export function createSettleHandler(
       }, req);
     } catch (err) {
       console.error("private-pool-settle-cycle error", err);
-      return oops("Failed to settle cycle", err instanceof Error ? err.message : err, req);
+      return oops(
+        "Failed to settle cycle",
+        err instanceof Error ? err.message : err,
+        req,
+      );
     }
   };
 }
@@ -196,8 +221,12 @@ export function createSettleHandler(
 async function defaultNotifyInvestors(args: NotifyArgs): Promise<void> {
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
   if (!token) return;
-  const summaryMap = new Map(args.summary.map((s) => [s.investor_id, s] as const));
-  const shareMap = new Map(args.newShares.map((s) => [s.investor_id, s] as const));
+  const summaryMap = new Map(
+    args.summary.map((s) => [s.investor_id, s] as const),
+  );
+  const shareMap = new Map(
+    args.newShares.map((s) => [s.investor_id, s] as const),
+  );
   await Promise.allSettled(
     args.contacts
       .filter((contact) => contact.telegram_id)
@@ -206,7 +235,7 @@ async function defaultNotifyInvestors(args: NotifyArgs): Promise<void> {
         const share = shareMap.get(contact.investor_id);
         if (!entry || !share) return;
         const lines = [
-          `Dynamic Capital – Private Fund Pool`,
+          `${brand.identity.name} – Private Fund Pool`,
           `Cycle ${args.cycle.cycle_month}/${args.cycle.cycle_year} settled.`,
           `Profit share: ${entry.payout_usdt.toFixed(2)} USDT`,
           `Reinvested: ${entry.reinvest_usdt.toFixed(2)} USDT`,

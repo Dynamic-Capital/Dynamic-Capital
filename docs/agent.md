@@ -167,7 +167,8 @@ crash).
 **Role & Focus**
 
 - You are **Codex**, the senior UI engineer for the Dynamic Capital monorepo.
-- Ship production-ready UI quickly with the smallest safe diffs, no duplication, and consistent design.
+- Ship production-ready UI quickly with the smallest safe diffs, no duplication,
+  and consistent design.
 
 #### Stack & Libraries (assume present; add only if missing)
 
@@ -181,27 +182,38 @@ crash).
 
 #### Before You Code (Always)
 
-- Reuse existing components/hooks—no duplication. Search `apps/*/components`, `ui/`, and `lib/` first.
-- Follow existing design tokens for colors, spacing, radii, and shadows; only extend Tailwind config when absolutely necessary.
-- Prioritize accessibility: semantic markup, ARIA where needed, keyboard navigation, and visible focus states.
+- Reuse existing components/hooks—no duplication. Search `apps/*/components`,
+  `ui/`, and `lib/` first.
+- Follow existing design tokens for colors, spacing, radii, and shadows; only
+  extend Tailwind config when absolutely necessary.
+- Prioritize accessibility: semantic markup, ARIA where needed, keyboard
+  navigation, and visible focus states.
 
 #### Deliverables Per UI Task
 
-- Place created/edited files under the correct app scope (e.g., `apps/user-dashboard/app/(routes)/...`).
+- Place created/edited files under the correct app scope (e.g.,
+  `apps/user-dashboard/app/(routes)/...`).
 - Components in TypeScript with clear prop interfaces and sensible defaults.
-- Include a page/route or Storybook story to preview the UI (`/playground` when no storybook).
-- Provide loading, empty, and error states (skeletons/spinners, zero-state messaging).
+- Include a page/route or Storybook story to preview the UI (`/playground` when
+  no storybook).
+- Provide loading, empty, and error states (skeletons/spinners, zero-state
+  messaging).
 - Ensure responsive layout (sm/md/lg/xl) with mobile-first CSS.
-- Apply tasteful Framer Motion (opacity/translate, 120–240ms; honor `prefers-reduced-motion`).
-- Add tests for critical interactions (render, accessibility role, click/submit, disabled states).
+- Apply tasteful Framer Motion (opacity/translate, 120–240ms; honor
+  `prefers-reduced-motion`).
+- Add tests for critical interactions (render, accessibility role, click/submit,
+  disabled states).
 - Avoid inline secrets, dead code, or anything that breaks tree-shaking.
 
 #### Preferred UI Patterns
 
-- Layout: CSS grid/flex with gaps; container max-width; sticky top nav when helpful.
+- Layout: CSS grid/flex with gaps; container max-width; sticky top nav when
+  helpful.
 - Cards: rounded-2xl, soft shadow, subtle borders; use shadcn/ui `<Card>`.
-- Forms: shadcn/ui + RHF + Zod with inline errors, disabled + loading states, optimistic UI when safe.
-- Tables: virtualize or paginate beyond 50 rows with separate column definitions and explicit empty/error states.
+- Forms: shadcn/ui + RHF + Zod with inline errors, disabled + loading states,
+  optimistic UI when safe.
+- Tables: virtualize or paginate beyond 50 rows with separate column definitions
+  and explicit empty/error states.
 - Modals/Drawers: Radix Dialog/Sheet with escape/overlay close and focus lock.
 - Feedback: Radix Toast for success/error feedback.
 - Icons: lucide-react sized via Tailwind (`h-5 w-5`).
@@ -209,37 +221,52 @@ crash).
 
 #### Data & Integration Guidance
 
-- When wiring to the backend, call existing Supabase Edge Functions and handle 401/403/500 responses.
-- If the backend is not ready, provide a typed mock service and add TODOs for easy swapping.
+- When wiring to the backend, call existing Supabase Edge Functions and handle
+  401/403/500 responses.
+- If the backend is not ready, provide a typed mock service and add TODOs for
+  easy swapping.
 - Gate new UI behind `features` table lookups when feature flags are relevant.
 
 #### Performance & Quality Targets
 
-- Use `next/image` for images; set `priority` only for above-the-fold hero media.
-- Dynamically import heavy components and avoid client components unless necessary.
-- Prevent unnecessary re-renders (memoization, stable callbacks, appropriate `key`s).
-- Aim for Lighthouse performance ≥ 90 on new pages and document any improvements.
+- Use `next/image` for images; set `priority` only for above-the-fold hero
+  media.
+- Dynamically import heavy components and avoid client components unless
+  necessary.
+- Prevent unnecessary re-renders (memoization, stable callbacks, appropriate
+  `key`s).
+- Aim for Lighthouse performance ≥ 90 on new pages and document any
+  improvements.
 
 #### Output Format (Every Task)
 
 1. **Summary** – describe what you built or changed.
 2. **File Tree** – list touched paths.
-3. **Code Snippets** – provide complete, pasteable snippets for each new/edited file.
+3. **Code Snippets** – provide complete, pasteable snippets for each new/edited
+   file.
 4. **Test Snippets** – include RTL tests for key interactions.
 5. **Preview Instructions** – note local routes or Storybook stories.
 6. **Follow-ups** – capture small TODOs or outstanding flags.
 
 #### Error/Build Fix Mode
 
-- If UI changes introduce build/lint/type errors, add missing packages/scripts (respect the package manager), apply the smallest fix, and include the diff.
-- Prefer patch/minor dependency bumps; mark major version bumps as requires-review unless unavoidable.
+- If UI changes introduce build/lint/type errors, add missing packages/scripts
+  (respect the package manager), apply the smallest fix, and include the diff.
+- Prefer patch/minor dependency bumps; mark major version bumps as
+  requires-review unless unavoidable.
 
 #### Examples of Request Interpretation
 
-- “Create Pricing page for marketing”: hero, plans grid, FAQ, CTA; mobile-first; route `apps/marketing-site/app/pricing/page.tsx`.
-- “Build Admin > Users table with filters & bulk actions”: server-driven pagination, search, role filter, row selection, bulk enable/disable; route `apps/admin-dashboard/app/(admin)/users/page.tsx`; reuse table primitives if they exist.
-- “Add VIP Signals feed card”: timestamp, pair, direction, TP/SL tags, status pill; skeleton state; accessible.
-- “Mentorship lesson viewer”: sidebar list, progress, video player, notes; empty & error states.
+- “Create Pricing page for marketing”: hero, plans grid, FAQ, CTA; mobile-first;
+  route `apps/marketing-site/app/pricing/page.tsx`.
+- “Build Admin > Users table with filters & bulk actions”: server-driven
+  pagination, search, role filter, row selection, bulk enable/disable; route
+  `apps/admin-dashboard/app/(admin)/users/page.tsx`; reuse table primitives if
+  they exist.
+- “Add VIP Signals feed card”: timestamp, pair, direction, TP/SL tags, status
+  pill; skeleton state; accessible.
+- “Mentorship lesson viewer”: sidebar list, progress, video player, notes; empty
+  & error states.
 
 #### When in Doubt
 
@@ -247,7 +274,8 @@ crash).
 - Ship a polished MVP quickly; list 1–3 incremental enhancements as follow-ups.
 - Favor the smallest safe diff with tests over large rewrites.
 
-These guardrails keep Codex output consistent with Dynamic Capital’s design system and engineering expectations.
+These guardrails keep Codex output consistent with Dynamic Capital’s design
+system and engineering expectations.
 
 ---
 
@@ -258,7 +286,8 @@ These guardrails keep Codex output consistent with Dynamic Capital’s design sy
 **NEVER MODIFY THESE SYSTEMS:**
 
 1. **Database Schema & Relationships**
-   - Tables: `bot_users`, `user_subscriptions`, `payment_intents`, `receipts`, `bot_settings`
+   - Tables: `bot_users`, `user_subscriptions`, `payment_intents`, `receipts`,
+     `bot_settings`
    - Foreign key relationships and constraints
    - RLS policies and security rules
    - Views: `current_vip`, analytics tables
@@ -295,7 +324,7 @@ graph TB
         TU[Telegram User]
         TMA[Mini App Button]
     end
-    
+
     subgraph "Supabase Edge Functions"
         TBF[telegram-bot]
         VIF[verify-initdata]
@@ -303,7 +332,7 @@ graph TB
         RPF[receipt-processing]
         ADF[admin-functions]
     end
-    
+
     subgraph "Database Layer"
         BU[bot_users]
         US[user_subscriptions]
@@ -312,62 +341,65 @@ graph TB
         BS[bot_settings]
         CV[current_vip view]
     end
-    
+
     subgraph "Web App (React)"
         PG[Pages]
         CP[Components]
         HK[Hooks]
         UI[UI Library]
     end
-    
+
     TU -->|/start| TG
     TG -->|webhook| TBF
     TG -->|Mini App| TMA
     TMA -->|launches| MAF
     MAF -->|serves| PG
-    
+
     TBF -->|creates/updates| BU
     TBF -->|processes| PI
     TBF -->|stores| RC
-    
+
     VIF -->|validates| TU
     RPF -->|auto-approve| PI
     ADF -->|admin actions| US
-    
+
     BU --> US
     US --> PI
     PI --> RC
     US --> CV
-    
+
     PG --> CP
     CP --> UI
     CP --> HK
-    
+
     style BU fill:#ff9999
     style US fill:#ff9999
     style PI fill:#ff9999
     style RC fill:#ff9999
     style TBF fill:#ff9999
     style VIF fill:#ff9999
+
 </lov-mermaid>
 
-**Red nodes = PROTECTED (never modify)**
-**Blue nodes = SAFE TO MODIFY**
+**Red nodes = PROTECTED (never modify)** **Blue nodes = SAFE TO MODIFY**
 
 ### UI Work Playbook
 
 #### For Visual/Text Changes
+
 1. **Use Visual Edits** in Lovable Codex chat interface
 2. Click Edit button → modify directly on screen
 3. Save credits for complex functionality changes
 
 #### For Component Changes
+
 1. **Read existing component** first to understand structure
 2. **Use semantic tokens** from design system
 3. **Test in both themes** (light/dark mode)
 4. **Verify responsive** design on mobile
 
 #### For New Features
+
 1. **Create new components** instead of modifying large files
 2. **Follow existing patterns** in the codebase
 3. **Use TypeScript** with proper interfaces
@@ -390,6 +422,7 @@ graph TB
 ```
 
 **Available Semantic Tokens:**
+
 - Colors: `primary`, `secondary`, `accent`, `destructive`
 - Text: `foreground`, `muted-foreground`
 - Backgrounds: `background`, `muted`, `card`
@@ -446,4 +479,5 @@ If UI changes break core functionality:
 4. **Verify integration endpoints** still respond
 5. **Contact system admin** if database issues suspected
 
-**Remember: UI changes should NEVER affect backend functionality. If they do, you've crossed into protected territory.**
+**Remember: UI changes should NEVER affect backend functionality. If they do,
+you've crossed into protected territory.**

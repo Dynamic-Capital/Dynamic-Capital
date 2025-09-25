@@ -1,5 +1,5 @@
 // Enhanced VIP Sync Management for Telegram Admin
-import { supabaseAdmin, sendMessage } from "./common.ts";
+import { sendMessage, supabaseAdmin } from "./common.ts";
 import { logAdminAction } from "../database-utils.ts";
 
 // Handle VIP Sync Management
@@ -33,7 +33,10 @@ export async function handleVipSyncManagement(
         { text: "📊 View VIP Status", callback_data: "vip_view_status" },
       ],
       [
-        { text: "⚙️ Configure Channels", callback_data: "vip_configure_channels" },
+        {
+          text: "⚙️ Configure Channels",
+          callback_data: "vip_configure_channels",
+        },
         { text: "📈 Sync Logs", callback_data: "vip_sync_logs" },
       ],
       [
@@ -54,22 +57,25 @@ export async function handleVipFullSync(
     await sendMessage(chatId, "🔄 Starting full VIP member sync...");
 
     // Call the enhanced VIP sync function
-    const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/vip-sync-enhanced', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'sync_vip_members' })
-    });
+    const response = await fetch(
+      "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/vip-sync-enhanced",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "sync_vip_members" }),
+      },
+    );
 
     const result = await response.json();
 
     if (result.ok) {
       const { synced_members, updated_members, channels_processed } = result;
-      
+
       await logAdminAction(
         userId,
         "vip_full_sync",
         `Full VIP sync: ${synced_members} checked, ${updated_members} updated across ${channels_processed} channels`,
-        "channel_memberships"
+        "channel_memberships",
       );
 
       const successMessage = `✅ *Full VIP Sync Completed*
@@ -83,9 +89,8 @@ export async function handleVipFullSync(
 
       await sendMessage(chatId, successMessage);
     } else {
-      throw new Error(result.error || 'Sync failed');
+      throw new Error(result.error || "Sync failed");
     }
-
   } catch (error) {
     console.error("VIP full sync error:", error);
     const msg = error instanceof Error ? error.message : String(error);
@@ -115,7 +120,10 @@ Are you sure you want to proceed?`;
   const keyboard = {
     inline_keyboard: [
       [
-        { text: "✅ Yes, Assign Lifetime", callback_data: "vip_assign_lifetime_confirm" },
+        {
+          text: "✅ Yes, Assign Lifetime",
+          callback_data: "vip_assign_lifetime_confirm",
+        },
         { text: "❌ Cancel", callback_data: "vip_sync_management" },
       ],
     ],
@@ -130,24 +138,30 @@ export async function handleVipAssignLifetimeConfirm(
   userId: string,
 ): Promise<void> {
   try {
-    await sendMessage(chatId, "🎁 Assigning lifetime memberships to current VIP members...");
+    await sendMessage(
+      chatId,
+      "🎁 Assigning lifetime memberships to current VIP members...",
+    );
 
-    const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/vip-sync-enhanced', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'assign_lifetime' })
-    });
+    const response = await fetch(
+      "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/vip-sync-enhanced",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "assign_lifetime" }),
+      },
+    );
 
     const result = await response.json();
 
     if (result.ok) {
       const { total_members, assigned_count, lifetime_plan_id } = result;
-      
+
       await logAdminAction(
         userId,
         "vip_assign_lifetime",
         `Assigned lifetime membership to ${assigned_count} out of ${total_members} VIP members`,
-        "user_subscriptions"
+        "user_subscriptions",
       );
 
       const successMessage = `🎉 *Lifetime Assignment Complete*
@@ -161,9 +175,8 @@ export async function handleVipAssignLifetimeConfirm(
 
       await sendMessage(chatId, successMessage);
     } else {
-      throw new Error(result.error || 'Assignment failed');
+      throw new Error(result.error || "Assignment failed");
     }
-
   } catch (error) {
     console.error("VIP lifetime assignment error:", error);
     const msg = error instanceof Error ? error.message : String(error);
@@ -198,57 +211,71 @@ export async function processVipSyncSingle(
   input: string,
 ): Promise<void> {
   try {
-    const parts = input.trim().split(' ');
+    const parts = input.trim().split(" ");
     const targetUserId = parts[0];
-    const assignLifetime = parts.includes('lifetime');
+    const assignLifetime = parts.includes("lifetime");
 
     if (!targetUserId || !/^\d+$/.test(targetUserId)) {
-      await sendMessage(chatId, "❌ Invalid user ID. Please provide a numeric Telegram User ID.");
+      await sendMessage(
+        chatId,
+        "❌ Invalid user ID. Please provide a numeric Telegram User ID.",
+      );
       return;
     }
 
-    await sendMessage(chatId, `🔄 Syncing user ${targetUserId}${assignLifetime ? ' with lifetime assignment' : ''}...`);
+    await sendMessage(
+      chatId,
+      `🔄 Syncing user ${targetUserId}${
+        assignLifetime ? " with lifetime assignment" : ""
+      }...`,
+    );
 
-    const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/vip-sync-enhanced', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        action: 'sync_single_user',
-        telegram_user_id: targetUserId,
-        assign_lifetime: assignLifetime
-      })
-    });
+    const response = await fetch(
+      "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/vip-sync-enhanced",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "sync_single_user",
+          telegram_user_id: targetUserId,
+          assign_lifetime: assignLifetime,
+        }),
+      },
+    );
 
     const result = await response.json();
 
     if (result.ok) {
       const { user_id, is_vip, channels, lifetime_assigned } = result;
-      
+
       await logAdminAction(
         userId,
         "vip_sync_single",
-        `Synced user ${user_id}: VIP=${is_vip}, Lifetime=${lifetime_assigned || false}`,
-        "channel_memberships"
+        `Synced user ${user_id}: VIP=${is_vip}, Lifetime=${
+          lifetime_assigned || false
+        }`,
+        "channel_memberships",
       );
 
       let message = `✅ *User Sync Complete*
 
 👤 User ID: ${user_id}
-🎯 VIP Status: ${is_vip ? '✅ VIP' : '❌ Not VIP'}
-${lifetime_assigned ? '🎁 Lifetime membership assigned!' : ''}
+🎯 VIP Status: ${is_vip ? "✅ VIP" : "❌ Not VIP"}
+${lifetime_assigned ? "🎁 Lifetime membership assigned!" : ""}
 
 📊 *Channel Status:*`;
 
       channels.forEach((channel: any) => {
-        const status = channel.is_active ? '✅' : '❌';
-        message += `\n• ${channel.channel_id}: ${status} ${channel.status || 'unknown'}`;
+        const status = channel.is_active ? "✅" : "❌";
+        message += `\n• ${channel.channel_id}: ${status} ${
+          channel.status || "unknown"
+        }`;
       });
 
       await sendMessage(chatId, message);
     } else {
-      throw new Error(result.error || 'User sync failed');
+      throw new Error(result.error || "User sync failed");
     }
-
   } catch (error) {
     console.error("Single user sync error:", error);
     const msg = error instanceof Error ? error.message : String(error);
@@ -262,15 +289,18 @@ export async function handleVipViewStatus(
   userId: string,
 ): Promise<void> {
   try {
-    const response = await fetch('https://qeejuomcapbdlhnjqjcc.functions.supabase.co/vip-sync-enhanced', {
-      method: 'GET'
-    });
+    const response = await fetch(
+      "https://qeejuomcapbdlhnjqjcc.functions.supabase.co/vip-sync-enhanced",
+      {
+        method: "GET",
+      },
+    );
 
     const result = await response.json();
 
     if (result.ok) {
       const { total_vip_members, members } = result;
-      
+
       let message = `📊 *VIP Members Status*
 
 👥 Total Active VIP Members: ${total_vip_members}
@@ -278,14 +308,16 @@ export async function handleVipViewStatus(
 🔝 *Recent VIP Members:*`;
 
       const displayMembers = members.slice(0, 10); // Show first 10
-      
+
       displayMembers.forEach((member: any, index: number) => {
         const userInfo = member.user_info;
-        const name = userInfo?.first_name || userInfo?.username || 'Unknown';
-        const vipStatus = userInfo?.is_vip ? '✅' : '❌';
+        const name = userInfo?.first_name || userInfo?.username || "Unknown";
+        const vipStatus = userInfo?.is_vip ? "✅" : "❌";
         const channelsCount = member.channels.length;
-        
-        message += `\n${index + 1}. ${vipStatus} ${name} (${member.telegram_user_id})`;
+
+        message += `\n${
+          index + 1
+        }. ${vipStatus} ${name} (${member.telegram_user_id})`;
         message += `\n   📺 Active in ${channelsCount} channel(s)`;
       });
 
@@ -307,9 +339,8 @@ export async function handleVipViewStatus(
 
       await sendMessage(chatId, message, keyboard);
     } else {
-      throw new Error(result.error || 'Failed to fetch VIP status');
+      throw new Error(result.error || "Failed to fetch VIP status");
     }
-
   } catch (error) {
     console.error("VIP status view error:", error);
     const msg = error instanceof Error ? error.message : String(error);
@@ -342,10 +373,12 @@ export async function handleVipConfigureChannels(
     const message = `⚙️ *VIP Channels Configuration*
 
 📺 *Current VIP Channels:*
-${currentChannels.length > 0 
-  ? currentChannels.map((ch: string, i: number) => `${i + 1}. ${ch}`).join('\n')
-  : 'No VIP channels configured'
-}
+${
+      currentChannels.length > 0
+        ? currentChannels.map((ch: string, i: number) => `${i + 1}. ${ch}`)
+          .join("\n")
+        : "No VIP channels configured"
+    }
 
 To add a channel, send: \`add_channel @channelname\`
 To remove a channel, send: \`remove_channel @channelname\`
@@ -356,6 +389,9 @@ Use /cancel to abort.`;
   } catch (error) {
     console.error("VIP configure channels error:", error);
     const msg = error instanceof Error ? error.message : String(error);
-    await sendMessage(chatId, `❌ Error fetching channel configuration: ${msg}`);
+    await sendMessage(
+      chatId,
+      `❌ Error fetching channel configuration: ${msg}`,
+    );
   }
 }

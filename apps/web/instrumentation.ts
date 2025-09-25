@@ -1,10 +1,10 @@
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { isProduction } from '@/config/node-env';
+import { registerInstrumentations } from "@opentelemetry/instrumentation";
+import { isProduction } from "@/config/node-env";
 
 export async function register() {
   // Ensure Next.js' OpenTelemetry context is registered first to avoid null context errors
   try {
-    const { registerOTel } = await import('@vercel/otel');
+    const { registerOTel } = await import("@vercel/otel");
     registerOTel();
   } catch {
     // Optional dependency not installed; continue without OpenTelemetry registration
@@ -13,7 +13,7 @@ export async function register() {
   registerInstrumentations({ instrumentations: [] });
 
   // Only enable Sentry when explicitly requested and not during production build
-  if (isProduction || process.env.ENABLE_SENTRY !== 'true') {
+  if (isProduction || process.env.ENABLE_SENTRY !== "true") {
     return;
   }
 
@@ -22,14 +22,13 @@ export async function register() {
     // optional peer dependencies (which contain dynamic `require` calls)
     // are not bundled during compilation. This suppresses "Critical
     // dependency" warnings emitted by webpack when building the app.
-    const Sentry =
-      typeof window === 'undefined'
-        ? await import(
-            /* webpackIgnore: true */ '@sentry/nextjs'
-          )
-        : await import(
-            /* webpackIgnore: true */ '@sentry/browser'
-          );
+    const Sentry = typeof window === "undefined"
+      ? await import(
+        /* webpackIgnore: true */ "@sentry/nextjs"
+      )
+      : await import(
+        /* webpackIgnore: true */ "@sentry/browser"
+      );
     Sentry.init({
       dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
       tracesSampleRate: 1.0,

@@ -1,8 +1,8 @@
 "use client";
 
-import React from 'react';
-import { motion, useInView, useAnimation } from 'framer-motion';
-import { cn } from '@/utils';
+import React from "react";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { cn } from "@/utils";
 
 interface MagneticButtonProps {
   children: React.ReactNode;
@@ -13,7 +13,7 @@ interface MagneticButtonProps {
 export const MagneticButton: React.FC<MagneticButtonProps> = ({
   children,
   className,
-  intensity = 0.3
+  intensity = 0.3,
 }) => {
   const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = React.useState(false);
@@ -22,7 +22,7 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
     const rect = e.currentTarget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    
+
     setMousePosition({
       x: (e.clientX - centerX) * intensity,
       y: (e.clientY - centerY) * intensity,
@@ -64,7 +64,7 @@ interface ParallaxContainerProps {
 export const ParallaxContainer: React.FC<ParallaxContainerProps> = ({
   children,
   className,
-  speed = 0.5
+  speed = 0.5,
 }) => {
   const ref = React.useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: false });
@@ -99,7 +99,7 @@ export const TextReveal: React.FC<TextRevealProps> = ({
   className,
   delay = 0,
   duration = 0.8,
-  staggerChildren = 0.05
+  staggerChildren = 0.05,
 }) => {
   const controls = useAnimation();
   const ref = React.useRef<HTMLDivElement>(null);
@@ -148,14 +148,14 @@ export const TextReveal: React.FC<TextRevealProps> = ({
       initial="hidden"
       animate={controls}
     >
-      {text.split('').map((char, index) => (
+      {text.split("").map((char, index) => (
         <motion.span
           key={index}
           variants={childVariants}
           className="inline-block"
           style={{ transformOrigin: "bottom center" }}
         >
-          {char === ' ' ? '\u00A0' : char}
+          {char === " " ? "\u00A0" : char}
         </motion.span>
       ))}
     </motion.div>
@@ -173,14 +173,14 @@ export const FloatingElement: React.FC<FloatingElementProps> = ({
   children,
   className,
   intensity = 10,
-  duration = 4
+  duration = 4,
 }) => {
   return (
     <motion.div
       className={className}
       animate={{
         y: [-intensity, intensity, -intensity],
-        x: [-intensity/2, intensity/2, -intensity/2],
+        x: [-intensity / 2, intensity / 2, -intensity / 2],
         rotate: [-2, 2, -2],
       }}
       transition={{
@@ -202,8 +202,8 @@ interface MorphingShapeProps {
 
 export const MorphingShape: React.FC<MorphingShapeProps> = ({
   className,
-  colors = ['#8B5CF6', '#06B6D4', '#EC4899'],
-  duration = 8
+  colors = ["#8B5CF6", "#06B6D4", "#EC4899"],
+  duration = 8,
 }) => {
   return (
     <motion.div
@@ -228,5 +228,5 @@ export default {
   ParallaxContainer,
   TextReveal,
   FloatingElement,
-  MorphingShape
+  MorphingShape,
 };

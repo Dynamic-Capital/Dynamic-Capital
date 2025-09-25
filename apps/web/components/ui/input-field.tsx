@@ -49,11 +49,12 @@ const inputVariants = cva(
       hasStartIcon: false,
       hasEndIcon: false,
     },
-  }
+  },
 );
 
 export interface InputFieldProps
-  extends Omit<React.ComponentProps<typeof Input>, "className" | "size">,
+  extends
+    Omit<React.ComponentProps<typeof Input>, "className" | "size">,
     VariantProps<typeof inputFieldVariants> {
   label?: string;
   description?: string;
@@ -90,9 +91,15 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
     const [showPassword, setShowPassword] = React.useState(false);
     const [currentLength, setCurrentLength] = React.useState(0);
 
-    const state = error ? "error" : success ? "success" : propState || "default";
+    const state = error
+      ? "error"
+      : success
+      ? "success"
+      : propState || "default";
     const type = showPasswordToggle && showPassword ? "text" : propType;
-    const actualEndIcon = showPasswordToggle ? (showPassword ? "EyeOff" : "Eye") : endIcon;
+    const actualEndIcon = showPasswordToggle
+      ? (showPassword ? "EyeOff" : "Eye")
+      : endIcon;
 
     React.useEffect(() => {
       if (typeof value === "string") {
@@ -118,7 +125,7 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
             {label}
           </Label>
         )}
-        
+
         <div className="relative">
           {startIcon && (
             <Icon
@@ -126,7 +133,7 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
               className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             />
           )}
-          
+
           <Input
             ref={ref}
             type={type}
@@ -138,12 +145,12 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
                 hasStartIcon: !!startIcon,
                 hasEndIcon: !!actualEndIcon,
               }),
-              inputClassName
+              inputClassName,
             )}
             onChange={handleChange}
             {...props}
           />
-          
+
           {actualEndIcon && (
             <button
               type="button"
@@ -158,14 +165,14 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
         {description && !error && !success && (
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         )}
-        
+
         {error && (
           <p className="mt-1 text-sm text-destructive flex items-center gap-1">
             <Icon name="Triangle" className="h-3 w-3" />
             {error}
           </p>
         )}
-        
+
         {success && (
           <p className="mt-1 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
             <Icon name="Check" className="h-3 w-3" />
@@ -180,7 +187,7 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 InputField.displayName = "InputField";

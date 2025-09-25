@@ -1,6 +1,14 @@
 import { Fragment } from "react";
 
-import { Column, Heading, Icon, Line, Row, Tag, Text } from "@once-ui-system/core";
+import {
+  Column,
+  Heading,
+  Icon,
+  Line,
+  Row,
+  Tag,
+  Text,
+} from "@once-ui-system/core";
 import type { Colors } from "@once-ui-system/core";
 
 type ImpactLevel = "High" | "Medium" | "Low";
@@ -21,8 +29,16 @@ type EconomicEvent = {
 };
 
 const IMPACT_STYLES = {
-  High: { label: "High impact", background: "danger-alpha-weak", icon: "alert-triangle" },
-  Medium: { label: "Medium impact", background: "brand-alpha-weak", icon: "activity" },
+  High: {
+    label: "High impact",
+    background: "danger-alpha-weak",
+    icon: "alert-triangle",
+  },
+  Medium: {
+    label: "Medium impact",
+    background: "brand-alpha-weak",
+    icon: "activity",
+  },
   Low: { label: "Low impact", background: "neutral-alpha-weak", icon: "info" },
 } as const satisfies Record<ImpactLevel, ImpactStyle>;
 
@@ -98,9 +114,13 @@ export function EconomicCalendarSection() {
       shadow="l"
     >
       <Column gap="12" maxWidth={32}>
-        <Heading variant="display-strong-xs">Upcoming economic catalysts</Heading>
+        <Heading variant="display-strong-xs">
+          Upcoming economic catalysts
+        </Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          The desk tracks macro releases that can reprice risk within minutes. Each listing includes the positioning gameplan so you know how we manage exposure into and out of the data.
+          The desk tracks macro releases that can reprice risk within minutes.
+          Each listing includes the positioning gameplan so you know how we
+          manage exposure into and out of the data.
         </Text>
       </Column>
       <Column gap="24">
@@ -116,19 +136,36 @@ export function EconomicCalendarSection() {
                 padding="l"
                 gap="16"
               >
-                <Row horizontal="between" vertical="center" gap="16" s={{ direction: "column", align: "start" }}>
+                <Row
+                  horizontal="between"
+                  vertical="center"
+                  gap="16"
+                  s={{ direction: "column", align: "start" }}
+                >
                   <Column gap="8">
                     <Row gap="8" wrap>
-                      <Tag size="s" background="neutral-alpha-weak" prefixIcon="calendar">
+                      <Tag
+                        size="s"
+                        background="neutral-alpha-weak"
+                        prefixIcon="calendar"
+                      >
                         {event.day}
                       </Tag>
-                      <Tag size="s" background="neutral-alpha-weak" prefixIcon="clock">
+                      <Tag
+                        size="s"
+                        background="neutral-alpha-weak"
+                        prefixIcon="clock"
+                      >
                         {event.time}
                       </Tag>
                     </Row>
                     <Heading variant="heading-strong-m">{event.title}</Heading>
                   </Column>
-                  <Tag size="s" background={impactDetails.background} prefixIcon={impactDetails.icon}>
+                  <Tag
+                    size="s"
+                    background={impactDetails.background}
+                    prefixIcon={impactDetails.icon}
+                  >
                     {impactDetails.label}
                   </Tag>
                 </Row>
@@ -137,7 +174,12 @@ export function EconomicCalendarSection() {
                 </Text>
                 <Row gap="8" wrap>
                   {event.marketFocus.map((focus) => (
-                    <Tag key={focus} size="s" background="brand-alpha-weak" prefixIcon="target">
+                    <Tag
+                      key={focus}
+                      size="s"
+                      background="brand-alpha-weak"
+                      prefixIcon="target"
+                    >
                       {focus}
                     </Tag>
                   ))}
@@ -153,7 +195,9 @@ export function EconomicCalendarSection() {
                   ))}
                 </Column>
               </Column>
-              {index < ECONOMIC_EVENTS.length - 1 ? <Line background="neutral-alpha-weak" /> : null}
+              {index < ECONOMIC_EVENTS.length - 1
+                ? <Line background="neutral-alpha-weak" />
+                : null}
             </Fragment>
           );
         })}

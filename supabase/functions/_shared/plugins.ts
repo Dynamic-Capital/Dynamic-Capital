@@ -1,6 +1,6 @@
-import { createClient } from './client.ts';
+import { createClient } from "./client.ts";
 
-const PLUGINS_TABLE = 'plugins';
+const PLUGINS_TABLE = "plugins";
 
 type PluginRow = {
   key: string;
@@ -20,9 +20,11 @@ export interface PluginRegistration {
   metadata?: Record<string, unknown>;
 }
 
-export async function registerPlugin(registration: PluginRegistration): Promise<void> {
+export async function registerPlugin(
+  registration: PluginRegistration,
+): Promise<void> {
   try {
-    const supabase = createClient('service');
+    const supabase = createClient("service");
     const { error } = await supabase
       .from(PLUGINS_TABLE)
       .upsert(
@@ -34,23 +36,26 @@ export async function registerPlugin(registration: PluginRegistration): Promise<
           enabled: registration.enabled ?? false,
           metadata: registration.metadata ?? {},
         },
-        { onConflict: 'key' },
+        { onConflict: "key" },
       );
     if (error) {
       console.error(`[plugins] Failed to register ${registration.key}:`, error);
     }
   } catch (error) {
-    console.error(`[plugins] Unexpected error registering ${registration.key}:`, error);
+    console.error(
+      `[plugins] Unexpected error registering ${registration.key}:`,
+      error,
+    );
   }
 }
 
 export async function ensurePluginEnabled(key: string): Promise<void> {
   try {
-    const supabase = createClient('service');
+    const supabase = createClient("service");
     const { error } = await supabase
       .from<PluginRow>(PLUGINS_TABLE)
       .update({ enabled: true })
-      .eq('key', key);
+      .eq("key", key);
     if (error) {
       console.error(`[plugins] Failed to enable ${key}:`, error);
     }

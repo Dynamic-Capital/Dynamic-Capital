@@ -1,22 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { cn } from '@/utils';
+import { useEffect, useRef, useState } from "react";
+import { cn } from "@/utils";
 
 interface FadeInOnViewProps {
   children: React.ReactNode;
   className?: string;
   delay?: number;
   threshold?: number;
-  animation?: 'fade-in-up' | 'slide-in-right' | 'bounce-in' | 'fade-in';
+  animation?: "fade-in-up" | "slide-in-right" | "bounce-in" | "fade-in";
 }
 
-export function FadeInOnView({ 
-  children, 
+export function FadeInOnView({
+  children,
   className,
   delay = 0,
   threshold = 0.1,
-  animation = 'fade-in-up'
+  animation = "fade-in-up",
 }: FadeInOnViewProps) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -31,7 +31,7 @@ export function FadeInOnView({
           observer.disconnect();
         }
       },
-      { threshold }
+      { threshold },
     );
 
     if (ref.current) {
@@ -45,13 +45,13 @@ export function FadeInOnView({
     <div
       ref={ref}
       className={cn(
-        'opacity-0 transition-all duration-700 ease-out',
-        isVisible && 'opacity-100',
-        isVisible && animation === 'fade-in-up' && 'animate-fade-in-up',
-        isVisible && animation === 'slide-in-right' && 'animate-slide-in-right',
-        isVisible && animation === 'bounce-in' && 'animate-bounce-in',
-        isVisible && animation === 'fade-in' && 'animate-fade-in',
-        className
+        "opacity-0 transition-all duration-700 ease-out",
+        isVisible && "opacity-100",
+        isVisible && animation === "fade-in-up" && "animate-fade-in-up",
+        isVisible && animation === "slide-in-right" && "animate-slide-in-right",
+        isVisible && animation === "bounce-in" && "animate-bounce-in",
+        isVisible && animation === "fade-in" && "animate-fade-in",
+        className,
       )}
     >
       {children}

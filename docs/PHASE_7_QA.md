@@ -8,7 +8,8 @@ deno test -A supabase/functions/_tests
 
 ## How to enable integration smoke in CI
 
-Set the `MINI_APP_URL` secret (optional). `FUNCTIONS_BASE` is already configured in the workflow.
+Set the `MINI_APP_URL` secret (optional). `FUNCTIONS_BASE` is already configured
+in the workflow.
 
 ## What's covered
 

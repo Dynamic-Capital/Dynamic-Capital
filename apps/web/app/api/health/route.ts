@@ -1,7 +1,7 @@
-import { corsHeaders, jsonResponse, methodNotAllowed } from '@/utils/http.ts';
-import { healthPayload } from '@/utils/commit.ts';
+import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
+import { healthPayload } from "@/utils/commit.ts";
 
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 
 const payload = healthPayload();
 
@@ -16,7 +16,7 @@ export function HEAD() {
 export function OPTIONS(req: Request) {
   return new Response(null, {
     status: 204,
-    headers: corsHeaders(req, 'GET'),
+    headers: corsHeaders(req, "GET"),
   });
 }
 

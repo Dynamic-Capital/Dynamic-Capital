@@ -1,5 +1,14 @@
 import { about, person } from "@/resources";
-import { Avatar, Button, Column, Heading, Line, Row, Tag, Text } from "@once-ui-system/core";
+import {
+  Avatar,
+  Button,
+  Column,
+  Heading,
+  Line,
+  Row,
+  Tag,
+  Text,
+} from "@once-ui-system/core";
 
 const experiences = about.work.experiences ?? [];
 const highlightExperience = experiences[0];
@@ -57,7 +66,9 @@ export function AboutShowcase() {
               padding="m"
               gap="12"
             >
-              <Text variant="heading-strong-s">{highlightExperience.company}</Text>
+              <Text variant="heading-strong-s">
+                {highlightExperience.company}
+              </Text>
               <Text variant="body-default-m" onBackground="neutral-weak">
                 {highlightExperience.role} · {highlightExperience.timeframe}
               </Text>
@@ -69,21 +80,33 @@ export function AboutShowcase() {
                 ))}
               </Column>
             </Column>
-            {secondaryExperience ? (
-              <Column border="neutral-alpha-weak" radius="l" padding="m" gap="12">
-                <Text variant="heading-strong-s">{secondaryExperience.company}</Text>
-                <Text variant="body-default-m" onBackground="neutral-weak">
-                  {secondaryExperience.role} · {secondaryExperience.timeframe}
-                </Text>
-                <Column as="ul" gap="8">
-                  {secondaryExperience.achievements.map((achievement, index) => (
-                    <Text as="li" key={index} variant="body-default-m">
-                      {achievement}
-                    </Text>
-                  ))}
+            {secondaryExperience
+              ? (
+                <Column
+                  border="neutral-alpha-weak"
+                  radius="l"
+                  padding="m"
+                  gap="12"
+                >
+                  <Text variant="heading-strong-s">
+                    {secondaryExperience.company}
+                  </Text>
+                  <Text variant="body-default-m" onBackground="neutral-weak">
+                    {secondaryExperience.role} · {secondaryExperience.timeframe}
+                  </Text>
+                  <Column as="ul" gap="8">
+                    {secondaryExperience.achievements.map((
+                      achievement,
+                      index,
+                    ) => (
+                      <Text as="li" key={index} variant="body-default-m">
+                        {achievement}
+                      </Text>
+                    ))}
+                  </Column>
                 </Column>
-              </Column>
-            ) : null}
+              )
+              : null}
           </Column>
         </Column>
       </Row>
@@ -98,17 +121,19 @@ export function AboutShowcase() {
         >
           Dive into the full story
         </Button>
-        {about.calendar.display ? (
-          <Button
-            href={about.calendar.link}
-            variant="secondary"
-            size="m"
-            data-border="rounded"
-            prefixIcon="calendar"
-          >
-            Book a desk consult
-          </Button>
-        ) : null}
+        {about.calendar.display
+          ? (
+            <Button
+              href={about.calendar.link}
+              variant="secondary"
+              size="m"
+              data-border="rounded"
+              prefixIcon="calendar"
+            >
+              Book a desk consult
+            </Button>
+          )
+          : null}
       </Row>
     </Column>
   );

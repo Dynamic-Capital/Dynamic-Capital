@@ -30,7 +30,9 @@ console.log("Webhook URL:", info.url || "(none)");
 console.log("Has custom cert:", !!info.has_custom_certificate);
 console.log("Pending updates:", info.pending_update_count ?? 0);
 if (info.last_error_message) {
-  const ts = info.last_error_date ? new Date(info.last_error_date * 1000).toISOString() : "";
+  const ts = info.last_error_date
+    ? new Date(info.last_error_date * 1000).toISOString()
+    : "";
   console.log("Last error:", info.last_error_message, ts ? `@ ${ts}` : "");
 } else {
   console.log("No recent webhook errors recorded.");

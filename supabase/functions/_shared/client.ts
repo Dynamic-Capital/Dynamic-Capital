@@ -7,7 +7,9 @@ import {
 declare const process:
   | { env: Record<string, string | undefined> }
   | undefined;
-declare const Deno: { env: { get(key: string): string | undefined } } | undefined;
+declare const Deno:
+  | { env: { get(key: string): string | undefined } }
+  | undefined;
 
 type ResolvedValue = {
   value: string;
@@ -94,10 +96,9 @@ export function createClient(
   role: "anon" | "service" = "anon",
   options?: SupabaseClientOptions<"public">,
 ): SupabaseClient {
-  const key =
-    role === "service"
-      ? SUPABASE_SERVICE_ROLE_KEY
-      : SUPABASE_ANON_KEY;
+  const key = role === "service"
+    ? SUPABASE_SERVICE_ROLE_KEY
+    : SUPABASE_ANON_KEY;
 
   if (!SUPABASE_URL) {
     throw new Error("Missing Supabase URL");

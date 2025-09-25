@@ -1,29 +1,31 @@
 import { createSupabaseClient } from "../_shared/client.ts";
+import { brand } from "../../../config/brand.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 export async function handler(req: Request): Promise<Response> {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), { 
-      status: 405, 
-      headers: { ...corsHeaders, "Content-Type": "application/json" } 
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
   try {
     // Get environment variables
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
     if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Missing Supabase environment variables');
+      throw new Error("Missing Supabase environment variables");
     }
 
     const supabase = createSupabaseClient(supabaseUrl, supabaseServiceKey);
@@ -36,7 +38,7 @@ export async function handler(req: Request): Promise<Response> {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Dynamic Capital Mini App - Coming Soon</title>
+  <title>${brand.identity.name} Mini App - Coming Soon</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -67,7 +69,7 @@ export async function handler(req: Request): Promise<Response> {
 <body>
   <div id="app">
     <div class="card coming-soon">
-      <h1>Dynamic Capital</h1>
+      <h1>${brand.identity.name}</h1>
       <p class="muted">Our mini app is coming soon. Stay tuned!</p>
     </div>
   </div>
@@ -80,13 +82,13 @@ export async function handler(req: Request): Promise<Response> {
 
     // Upload the HTML to storage
     const { error: uploadError } = await supabase.storage
-      .from('miniapp')
+      .from("miniapp")
       .upload(
-        'index.html',
-        new Blob([comingSoonHTML], { type: 'text/html; charset=utf-8' }),
+        "index.html",
+        new Blob([comingSoonHTML], { type: "text/html; charset=utf-8" }),
         {
           upsert: true,
-          contentType: 'text/html; charset=utf-8',
+          contentType: "text/html; charset=utf-8",
         },
       );
 
@@ -95,38 +97,43 @@ export async function handler(req: Request): Promise<Response> {
     }
 
     console.log("Coming soon page deployed successfully");
-    
-    return new Response(JSON.stringify({ 
-      success: true, 
-      message: "Coming soon page deployed successfully",
-      buildOutput: "✅ Coming soon HTML generated",
-      syncOutput: "✅ Uploaded to miniapp storage bucket"
-    }), {
-      headers: { 
-        ...corsHeaders,
-        "Content-Type": "application/json"
-      }
-    });
-    
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Coming soon page deployed successfully",
+        buildOutput: "✅ Coming soon HTML generated",
+        syncOutput: "✅ Uploaded to miniapp storage bucket",
+      }),
+      {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      },
+    );
   } catch (error) {
     console.error("Deploy process error:", error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: error.message 
-    }), {
-      status: 500,
-      headers: { 
-        ...corsHeaders,
-        "Content-Type": "application/json" 
-      }
-    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message,
+      }),
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      },
+    );
   }
 }
 
 // Handle CORS preflight requests
 if (import.meta.main) {
   Deno.serve((req) => {
-    if (req.method === 'OPTIONS') {
+    if (req.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders });
     }
     return handler(req);

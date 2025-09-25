@@ -1,4 +1,7 @@
-import type { NormalizedRouteDefinition, RouteConfigValue } from "@/resources/types";
+import type {
+  NormalizedRouteDefinition,
+  RouteConfigValue,
+} from "@/resources/types";
 import { routes } from "./once-ui.config";
 
 const normalizeRoutePath = (path: string): `/${string}` => {
@@ -29,18 +32,19 @@ const normalizeRouteConfig = (value: RouteConfigValue) => {
   };
 };
 
-const routeDefinitions: NormalizedRouteDefinition[] = Object.entries(routes).map(
-  ([path, value]) => {
-    const normalizedPath = normalizeRoutePath(path);
-    const { enabled, includeChildren } = normalizeRouteConfig(value);
+const routeDefinitions: NormalizedRouteDefinition[] = Object.entries(routes)
+  .map(
+    ([path, value]) => {
+      const normalizedPath = normalizeRoutePath(path);
+      const { enabled, includeChildren } = normalizeRouteConfig(value);
 
-    return {
-      path: normalizedPath,
-      enabled,
-      includeChildren,
-    } satisfies NormalizedRouteDefinition;
-  },
-);
+      return {
+        path: normalizedPath,
+        enabled,
+        includeChildren,
+      } satisfies NormalizedRouteDefinition;
+    },
+  );
 
 const routePrefix = (path: `/${string}`) => {
   if (path === "/") {
@@ -50,7 +54,10 @@ const routePrefix = (path: `/${string}`) => {
   return `${path}/` as const;
 };
 
-const matchesRoute = (target: `/${string}`, route: NormalizedRouteDefinition) => {
+const matchesRoute = (
+  target: `/${string}`,
+  route: NormalizedRouteDefinition,
+) => {
   if (!route.enabled) {
     return false;
   }
@@ -70,10 +77,13 @@ const matchesRoute = (target: `/${string}`, route: NormalizedRouteDefinition) =>
   return target.startsWith(routePrefix(route.path));
 };
 
-export const getRouteDefinitions = (): NormalizedRouteDefinition[] => [...routeDefinitions];
+export const getRouteDefinitions =
+  (): NormalizedRouteDefinition[] => [...routeDefinitions];
 
 export const isRouteEnabled = (path: string): boolean => {
   const normalized = normalizeRoutePath(path);
 
-  return routeDefinitions.some((definition) => matchesRoute(normalized, definition));
+  return routeDefinitions.some((definition) =>
+    matchesRoute(normalized, definition)
+  );
 };

@@ -1,20 +1,24 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MotionStagger, MotionScrollReveal, MotionHoverCard } from "@/components/ui/motion-components";
 import {
-  MessageCircle,
-  User,
-  Shield,
-  ExternalLink,
-  Bot,
-  HelpCircle,
+  MotionHoverCard,
+  MotionScrollReveal,
+  MotionStagger,
+} from "@/components/ui/motion-components";
+import {
   ArrowRight,
-  Smartphone,
+  Bot,
+  ExternalLink,
   Globe,
+  HelpCircle,
+  MessageCircle,
+  Shield,
+  Smartphone,
+  User,
 } from "lucide-react";
 import { callEdgeFunction } from "@/config/supabase";
 
@@ -24,7 +28,9 @@ interface IntegrationSectionProps {
   onContactSupport?: () => void;
 }
 
-const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }: IntegrationSectionProps) => {
+const IntegrationSection = (
+  { onOpenTelegram, onViewAccount, onContactSupport }: IntegrationSectionProps,
+) => {
   const defaultContent = useMemo(
     () => ({
       badge: "Platform Integration",
@@ -34,7 +40,8 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
       integrations: [
         {
           title: "Telegram Bot",
-          description: "Access premium signals and commands through our official bot",
+          description:
+            "Access premium signals and commands through our official bot",
           icon: Bot,
           link: "@Dynamic_VIP_BOT",
           color: "from-[hsl(var(--telegram))] to-[hsl(var(--telegram-dark))]",
@@ -86,7 +93,7 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
         },
       ],
     }),
-    [onOpenTelegram, onViewAccount, onContactSupport]
+    [onOpenTelegram, onViewAccount, onContactSupport],
   );
 
   const [content, setContent] = useState(defaultContent);
@@ -94,31 +101,31 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const { data, error } = await callEdgeFunction('CONTENT_BATCH', {
-          method: 'POST',
+        const { data, error } = await callEdgeFunction("CONTENT_BATCH", {
+          method: "POST",
           body: {
             keys: [
-              'integration_badge',
-              'integration_title',
-              'integration_description',
-              'integration_card1_title',
-              'integration_card1_description',
-              'integration_card2_title',
-              'integration_card2_description',
-              'integration_card3_title',
-              'integration_card3_description',
-              'integration_bot_title',
-              'integration_bot_description',
-              'integration_bot_primary_button',
-              'integration_bot_secondary_button',
-              'integration_features_title',
-              'integration_features_description',
-              'integration_feature1_title',
-              'integration_feature1_description',
-              'integration_feature2_title',
-              'integration_feature2_description',
-              'integration_feature3_title',
-              'integration_feature3_description',
+              "integration_badge",
+              "integration_title",
+              "integration_description",
+              "integration_card1_title",
+              "integration_card1_description",
+              "integration_card2_title",
+              "integration_card2_description",
+              "integration_card3_title",
+              "integration_card3_description",
+              "integration_bot_title",
+              "integration_bot_description",
+              "integration_bot_primary_button",
+              "integration_bot_secondary_button",
+              "integration_features_title",
+              "integration_features_description",
+              "integration_feature1_title",
+              "integration_feature1_description",
+              "integration_feature2_title",
+              "integration_feature2_description",
+              "integration_feature3_title",
+              "integration_feature3_description",
             ],
           },
         });
@@ -133,53 +140,71 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
           setContent({
             badge: lookup.integration_badge ?? defaultContent.badge,
             title: lookup.integration_title ?? defaultContent.title,
-            description: lookup.integration_description ?? defaultContent.description,
+            description: lookup.integration_description ??
+              defaultContent.description,
             integrations: [
               {
                 ...defaultContent.integrations[0],
-                title: lookup.integration_card1_title ?? defaultContent.integrations[0].title,
-                description: lookup.integration_card1_description ?? defaultContent.integrations[0].description,
+                title: lookup.integration_card1_title ??
+                  defaultContent.integrations[0].title,
+                description: lookup.integration_card1_description ??
+                  defaultContent.integrations[0].description,
               },
               {
                 ...defaultContent.integrations[1],
-                title: lookup.integration_card2_title ?? defaultContent.integrations[1].title,
-                description: lookup.integration_card2_description ?? defaultContent.integrations[1].description,
+                title: lookup.integration_card2_title ??
+                  defaultContent.integrations[1].title,
+                description: lookup.integration_card2_description ??
+                  defaultContent.integrations[1].description,
               },
               {
                 ...defaultContent.integrations[2],
-                title: lookup.integration_card3_title ?? defaultContent.integrations[2].title,
-                description: lookup.integration_card3_description ?? defaultContent.integrations[2].description,
+                title: lookup.integration_card3_title ??
+                  defaultContent.integrations[2].title,
+                description: lookup.integration_card3_description ??
+                  defaultContent.integrations[2].description,
               },
             ],
             botTitle: lookup.integration_bot_title ?? defaultContent.botTitle,
-            botDescription: lookup.integration_bot_description ?? defaultContent.botDescription,
-            botPrimaryButton: lookup.integration_bot_primary_button ?? defaultContent.botPrimaryButton,
-            botSecondaryButton: lookup.integration_bot_secondary_button ?? defaultContent.botSecondaryButton,
-            featuresTitle: lookup.integration_features_title ?? defaultContent.featuresTitle,
-            featuresDescription: lookup.integration_features_description ?? defaultContent.featuresDescription,
+            botDescription: lookup.integration_bot_description ??
+              defaultContent.botDescription,
+            botPrimaryButton: lookup.integration_bot_primary_button ??
+              defaultContent.botPrimaryButton,
+            botSecondaryButton: lookup.integration_bot_secondary_button ??
+              defaultContent.botSecondaryButton,
+            featuresTitle: lookup.integration_features_title ??
+              defaultContent.featuresTitle,
+            featuresDescription: lookup.integration_features_description ??
+              defaultContent.featuresDescription,
             features: [
               {
                 ...defaultContent.features[0],
-                title: lookup.integration_feature1_title ?? defaultContent.features[0].title,
-                description: lookup.integration_feature1_description ?? defaultContent.features[0].description,
+                title: lookup.integration_feature1_title ??
+                  defaultContent.features[0].title,
+                description: lookup.integration_feature1_description ??
+                  defaultContent.features[0].description,
               },
               {
                 ...defaultContent.features[1],
-                title: lookup.integration_feature2_title ?? defaultContent.features[1].title,
-                description: lookup.integration_feature2_description ?? defaultContent.features[1].description,
+                title: lookup.integration_feature2_title ??
+                  defaultContent.features[1].title,
+                description: lookup.integration_feature2_description ??
+                  defaultContent.features[1].description,
               },
               {
                 ...defaultContent.features[2],
-                title: lookup.integration_feature3_title ?? defaultContent.features[2].title,
-                description: lookup.integration_feature3_description ?? defaultContent.features[2].description,
+                title: lookup.integration_feature3_title ??
+                  defaultContent.features[2].title,
+                description: lookup.integration_feature3_description ??
+                  defaultContent.features[2].description,
               },
             ],
           });
         } else if (error) {
-          console.error('Failed to fetch integration content:', error.message);
+          console.error("Failed to fetch integration content:", error.message);
         }
       } catch (err) {
-        console.error('Failed to fetch integration content:', err);
+        console.error("Failed to fetch integration content:", err);
       }
     };
 
@@ -191,7 +216,10 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-[hsl(var(--telegram)/0.1)] to-[hsl(var(--dc-accent)/0.1)] rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-r from-[hsl(var(--primary)/0.1)] to-[hsl(var(--dc-secondary)/0.1)] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div
+          className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-r from-[hsl(var(--primary)/0.1)] to-[hsl(var(--dc-secondary)/0.1)] rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 relative">
@@ -211,11 +239,20 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
         </MotionScrollReveal>
 
         {/* Main Integration Cards */}
-        <MotionStagger staggerDelay={0.2} className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 mb-16">
+        <MotionStagger
+          staggerDelay={0.2}
+          className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 mb-16"
+        >
           {content.integrations.map((integration, index) => (
-            <MotionHoverCard key={integration.title} hoverScale={integration.primary ? 1.08 : 1.05} hoverY={-12}>
+            <MotionHoverCard
+              key={integration.title}
+              hoverScale={integration.primary ? 1.08 : 1.05}
+              hoverY={-12}
+            >
               <Card
-                className={`relative overflow-hidden ${integration.primary ? 'ring-2 ring-telegram scale-105' : ''} hover:shadow-2xl transition-all duration-500 cursor-pointer`}
+                className={`relative overflow-hidden ${
+                  integration.primary ? "ring-2 ring-telegram scale-105" : ""
+                } hover:shadow-2xl transition-all duration-500 cursor-pointer`}
                 onClick={integration.action}
               >
                 {integration.primary && (
@@ -224,24 +261,40 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
                   </div>
                 )}
 
-                <CardHeader className={`text-center ${integration.primary ? 'pt-12' : 'pt-8'}`}>
-                  <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-br ${integration.color} rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}>
+                <CardHeader
+                  className={`text-center ${
+                    integration.primary ? "pt-12" : "pt-8"
+                  }`}
+                >
+                  <div
+                    className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-br ${integration.color} rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300`}
+                  >
                     <integration.icon className="w-8 h-8 text-white" />
                   </div>
-                  <CardTitle className="text-xl font-bold font-poppins">{integration.title}</CardTitle>
-                  <p className="text-muted-foreground font-inter text-sm">{integration.description}</p>
+                  <CardTitle className="text-xl font-bold font-poppins">
+                    {integration.title}
+                  </CardTitle>
+                  <p className="text-muted-foreground font-inter text-sm">
+                    {integration.description}
+                  </p>
                 </CardHeader>
 
                 <CardContent className="text-center">
                   <div className="mb-4">
-                    <span className="text-sm font-medium text-primary">{integration.link}</span>
+                    <span className="text-sm font-medium text-primary">
+                      {integration.link}
+                    </span>
                   </div>
 
                   <Button
-                    className={`w-full ${integration.primary ? 'bg-telegram hover:bg-telegram/90' : 'bg-muted hover:bg-muted/80'} font-semibold`}
+                    className={`w-full ${
+                      integration.primary
+                        ? "bg-telegram hover:bg-telegram/90"
+                        : "bg-muted hover:bg-muted/80"
+                    } font-semibold`}
                     onClick={integration.action}
                   >
-                    {integration.primary ? content.botPrimaryButton : 'Access'}
+                    {integration.primary ? content.botPrimaryButton : "Access"}
                     <ExternalLink className="w-4 h-4 ml-2" />
                   </Button>
                 </CardContent>
@@ -280,7 +333,8 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
                     size="lg"
                     variant="outline"
                     className="w-full sm:w-auto border-telegram text-telegram hover:bg-telegram/10"
-                    onClick={() => window.open('https://t.me/Dynamic_VIP_BOT', '_blank')}
+                    onClick={() =>
+                      window.open("https://t.me/Dynamic_VIP_BOT", "_blank")}
                   >
                     {content.botSecondaryButton}
                     <ExternalLink className="w-4 h-4 ml-2" />
@@ -303,7 +357,10 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
           </div>
         </MotionScrollReveal>
 
-        <MotionStagger staggerDelay={0.3} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <MotionStagger
+          staggerDelay={0.3}
+          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
           {content.features.map((feature, index) => (
             <MotionHoverCard key={feature.title} hoverScale={1.05} hoverY={-8}>
               <Card className="bot-card group hover:shadow-xl transition-all duration-300 text-center">
@@ -314,7 +371,9 @@ const IntegrationSection = ({ onOpenTelegram, onViewAccount, onContactSupport }:
                   <h4 className="text-lg font-semibold mb-3 group-hover:text-primary transition-colors font-poppins">
                     {feature.title}
                   </h4>
-                  <p className="text-muted-foreground font-inter text-sm sm:text-base">{feature.description}</p>
+                  <p className="text-muted-foreground font-inter text-sm sm:text-base">
+                    {feature.description}
+                  </p>
                 </CardContent>
               </Card>
             </MotionHoverCard>
