@@ -65,10 +65,10 @@ Additional crypto keys:
 
 | Key                       | Purpose                                                    | Required            | Example           | Used in                                                                                                 |
 | ------------------------- | ---------------------------------------------------------- | ------------------- | ----------------- | ------------------------------------------------------------------------------------------------------- |
-| `OPENAI_API_KEY`          | API key for AI features like FAQ or OCR.                   | No                  | `sk-...`          | `supabase/functions/ai-faq-assistant/index.ts`, `supabase/functions/receipt-ocr/index.ts`               |
-| `OPENAI_ENABLED`          | Enables OpenAI-powered responses.                          | No                  | `true`            | `supabase/functions/telegram-bot/index.ts`                                                              |
-| `OPENAI_WEBHOOK_SECRET`   | HMAC secret to verify OpenAI webhook payloads.             | No                  | `supersecret` | `supabase/functions/openai-webhook/index.ts`                                               |
-| `FAQ_ENABLED`             | Enables FAQ command handling.                              | No                  | `true`            | `supabase/functions/telegram-bot/index.ts`                                                              |
+| `OPENAI_API_KEY`          | API key for AI features like FAQ or OCR.                   | No (required when AI flows run)      | `sk-...`
+    | `supabase/functions/ai-faq-assistant/index.ts`, `supabase/functions/receipt-ocr/index.ts`               |
+| `OPENAI_ENABLED`          | Enables OpenAI-powered responses.                          | No (defaults to `false`)      | `true`
+    | `supabase/functions/telegram-bot/index.ts`                                                              |
 | `AMOUNT_TOLERANCE`        | Allowed payment variance (fractional).                     | No                  | `0.02`            | `supabase/functions/telegram-bot/index.ts`                                                              |
 | `WINDOW_SECONDS`          | Time window for receipt timestamps.                        | No                  | `180`             | `supabase/functions/telegram-bot/index.ts`                                                              |
 | `RATE_LIMIT_PER_MINUTE`   | Per-user rate limit for Telegram commands.                 | No                  | `20`              | `supabase/functions/telegram-bot/index.ts`                                                              |
