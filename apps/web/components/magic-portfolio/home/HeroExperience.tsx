@@ -44,18 +44,8 @@ const ONBOARDING_STEPS = [
   },
 ] as const;
 
-const BRAND_RGB = {
-  deepNavy: "8, 0, 47",
-  navy: "18, 24, 63",
-  midnight: "20, 31, 88",
-  blue: "80, 113, 204",
-  sky: "111, 148, 241",
-  aqua: "18, 163, 215",
-  teal: "13, 148, 136",
-  mist: "178, 212, 255",
-} as const;
-
-const rgba = (rgb: string, alpha: number) => `rgba(${rgb}, ${alpha})`;
+const brandColor = (token: string, alpha?: number) =>
+  alpha === undefined ? `hsl(var(${token}))` : `hsl(var(${token}) / ${alpha})`;
 
 const PREVIEW_CARDS = [
   {
@@ -64,9 +54,9 @@ const PREVIEW_CARDS = [
     metricLabel: "Target",
     metricValue: "+1.6%",
     description: "Entry 1.2450 · Risk 0.35%",
-    gradient: `linear-gradient(135deg, ${rgba(BRAND_RGB.blue, 0.95)} 0%, ${
-      rgba(BRAND_RGB.sky, 0.85)
-    } 48%, ${rgba(BRAND_RGB.deepNavy, 0.85)} 100%)`,
+    gradient: `linear-gradient(135deg, ${brandColor("--dc-brand", 0.95)} 0%, ${
+      brandColor("--dc-secondary", 0.85)
+    } 48%, ${brandColor("--dc-brand-dark", 0.85)} 100%)`,
   },
   {
     title: "Mentor Check-in",
@@ -74,9 +64,11 @@ const PREVIEW_CARDS = [
     metricLabel: "Confidence",
     metricValue: "High",
     description: "Bring your trade journal · Submit questions",
-    gradient: `linear-gradient(135deg, ${rgba(BRAND_RGB.aqua, 0.9)} 0%, ${
-      rgba(BRAND_RGB.sky, 0.78)
-    } 60%, ${rgba(BRAND_RGB.navy, 0.82)} 100%)`,
+    gradient: `linear-gradient(135deg, ${
+      brandColor("--dc-secondary", 0.9)
+    } 0%, ${brandColor("--dc-accent", 0.78)} 60%, ${
+      brandColor("--dc-brand-dark", 0.82)
+    } 100%)`,
   },
   {
     title: "Risk Controls",
@@ -84,9 +76,9 @@ const PREVIEW_CARDS = [
     metricLabel: "Max loss",
     metricValue: "0.5%",
     description: "Daily guardrail locks if hit",
-    gradient: `linear-gradient(135deg, ${rgba(BRAND_RGB.teal, 0.88)} 0%, ${
-      rgba(BRAND_RGB.aqua, 0.8)
-    } 55%, ${rgba(BRAND_RGB.deepNavy, 0.85)} 100%)`,
+    gradient: `linear-gradient(135deg, ${brandColor("--dc-accent", 0.88)} 0%, ${
+      brandColor("--dc-secondary", 0.8)
+    } 55%, ${brandColor("--dc-brand-dark", 0.85)} 100%)`,
   },
 ] as const;
 
@@ -447,17 +439,17 @@ export function HeroExperience() {
                     borderRadius: "24px",
                     border: `1px solid ${
                       isActive
-                        ? rgba(BRAND_RGB.sky, 0.45)
-                        : rgba(BRAND_RGB.mist, 0.25)
+                        ? brandColor("--dc-secondary", 0.45)
+                        : brandColor("--muted", 0.35)
                     }`,
                     background: isActive
                       ? `linear-gradient(135deg, ${
-                        rgba(BRAND_RGB.sky, 0.22)
-                      }, ${rgba(BRAND_RGB.aqua, 0.12)})`
-                      : rgba(BRAND_RGB.deepNavy, 0.35),
+                        brandColor("--dc-secondary", 0.22)
+                      }, ${brandColor("--dc-accent", 0.12)})`
+                      : brandColor("--dc-brand-dark", 0.35),
                     boxShadow: isActive
-                      ? `0 22px 60px ${rgba(BRAND_RGB.deepNavy, 0.45)}`
-                      : `0 14px 40px ${rgba(BRAND_RGB.navy, 0.28)}`,
+                      ? `0 22px 60px ${brandColor("--dc-brand-dark", 0.45)}`
+                      : `0 14px 40px ${brandColor("--dc-brand-dark", 0.28)}`,
                     color: "inherit",
                     cursor: "pointer",
                     textAlign: "left",
@@ -499,9 +491,9 @@ export function HeroExperience() {
               width: "100%",
               borderRadius: "24px",
               padding: "24px",
-              border: `1px solid ${rgba(BRAND_RGB.sky, 0.22)}`,
-              background: rgba(BRAND_RGB.deepNavy, 0.4),
-              boxShadow: `0 18px 45px ${rgba(BRAND_RGB.deepNavy, 0.35)}`,
+              border: `1px solid ${brandColor("--dc-secondary", 0.22)}`,
+              background: brandColor("--dc-brand-dark", 0.4),
+              boxShadow: `0 18px 45px ${brandColor("--dc-brand-dark", 0.35)}`,
               backdropFilter: "blur(16px)",
             }}
           >
@@ -552,7 +544,7 @@ export function HeroExperience() {
                 padding: "32px",
                 borderRadius: "32px",
                 background: `radial-gradient(circle at top, ${
-                  rgba(BRAND_RGB.sky, 0.25)
+                  brandColor("--dc-secondary", 0.25)
                 }, transparent 65%)`,
                 overflow: "hidden",
                 perspective: 1400,
@@ -570,7 +562,7 @@ export function HeroExperience() {
                   inset: "12%",
                   borderRadius: "999px",
                   background: `radial-gradient(circle, ${
-                    rgba(BRAND_RGB.blue, 0.5)
+                    brandColor("--dc-brand", 0.5)
                   }, transparent 70%)`,
                   filter: "blur(60px)",
                   pointerEvents: "none",
@@ -581,7 +573,7 @@ export function HeroExperience() {
                   position: "absolute",
                   inset: 0,
                   borderRadius: "32px",
-                  border: `1px solid ${rgba(BRAND_RGB.sky, 0.18)}`,
+                  border: `1px solid ${brandColor("--dc-secondary", 0.18)}`,
                   pointerEvents: "none",
                   opacity: floatOpacity,
                 }}
@@ -597,7 +589,9 @@ export function HeroExperience() {
                     padding: "24px",
                     background: card.gradient,
                     color: "white",
-                    boxShadow: `0 30px 80px ${rgba(BRAND_RGB.deepNavy, 0.35)}`,
+                    boxShadow: `0 30px 80px ${
+                      brandColor("--dc-brand-dark", 0.35)
+                    }`,
                     transformStyle: "preserve-3d",
                     ...cardTransforms[index]?.style,
                     marginTop: index === 0 ? 0 : -80,
