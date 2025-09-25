@@ -19,6 +19,8 @@ import {
   Text,
 } from "@once-ui-system/core";
 import { home } from "@/resources";
+import { cn } from "@/utils";
+import styles from "./HeroExperience.module.scss";
 
 const ONBOARDING_STEPS = [
   {
@@ -213,8 +215,14 @@ export function HeroExperience() {
       gap="32"
       horizontal="center"
       align="center"
+      className={styles.hero}
     >
-      <Column maxWidth="m" gap="24" align="center">
+      <Column
+        maxWidth="m"
+        gap="24"
+        align="center"
+        className={styles.heroIntro}
+      >
         {home.featured.display
           ? (
             <motion.div
@@ -289,7 +297,11 @@ export function HeroExperience() {
             damping: 24,
           }}
         >
-          <Row gap="12" s={{ direction: "column" }}>
+          <Row
+            gap="12"
+            s={{ direction: "column" }}
+            className={styles.actionRow}
+          >
             <Button
               id="begin"
               data-border="rounded"
@@ -298,6 +310,7 @@ export function HeroExperience() {
               size="l"
               weight="strong"
               prefixIcon="sparkles"
+              className={styles.ctaButton}
             >
               Create my trading plan
             </Button>
@@ -308,6 +321,7 @@ export function HeroExperience() {
               size="l"
               weight="default"
               arrowIcon
+              className={styles.ctaButton}
             >
               Explore VIP options
             </Button>
@@ -341,7 +355,12 @@ export function HeroExperience() {
             damping: 26,
           }}
         >
-          <Row gap="16" wrap horizontal="center">
+          <Row
+            gap="16"
+            wrap
+            horizontal="center"
+            className={styles.socialProof}
+          >
             {SOCIAL_PROOF.map((stat) => (
               <Column
                 key={stat.label}
@@ -374,6 +393,7 @@ export function HeroExperience() {
         align="start"
         fillWidth
         maxWidth="xl"
+        className={styles.heroLayout}
       >
         <Column flex={3} gap="20">
           <motion.div
@@ -412,12 +432,7 @@ export function HeroExperience() {
               stiffness: 180,
               damping: 24,
             }}
-            style={{
-              display: "grid",
-              gap: "12px",
-              width: "100%",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            }}
+            className={styles.stepsGrid}
           >
             {ONBOARDING_STEPS.map((step, index) => {
               const isActive = activeStepIndex === index;
@@ -430,13 +445,11 @@ export function HeroExperience() {
                   aria-pressed={isActive}
                   whileHover={{ y: -4, scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
+                  className={cn(
+                    styles.stepButton,
+                    isActive && styles.stepButtonActive,
+                  )}
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    gap: "10px",
-                    padding: "20px 24px",
-                    borderRadius: "24px",
                     border: `1px solid ${
                       isActive
                         ? brandColor("--dc-secondary", 0.45)
@@ -450,12 +463,6 @@ export function HeroExperience() {
                     boxShadow: isActive
                       ? `0 22px 60px ${brandColor("--dc-brand-dark", 0.45)}`
                       : `0 14px 40px ${brandColor("--dc-brand-dark", 0.28)}`,
-                    color: "inherit",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    backdropFilter: "blur(14px)",
-                    transition:
-                      "border 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
                   }}
                 >
                   <Row gap="12" vertical="center">
@@ -487,14 +494,11 @@ export function HeroExperience() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 190, damping: 26 }}
+            className={styles.stepDetail}
             style={{
-              width: "100%",
-              borderRadius: "24px",
-              padding: "24px",
               border: `1px solid ${brandColor("--dc-secondary", 0.22)}`,
               background: brandColor("--dc-brand-dark", 0.4),
               boxShadow: `0 18px 45px ${brandColor("--dc-brand-dark", 0.35)}`,
-              backdropFilter: "blur(16px)",
             }}
           >
             <Text variant="body-default-m" onBackground="neutral-weak">
@@ -538,16 +542,11 @@ export function HeroExperience() {
             <motion.div
               onPointerMove={handlePointerMove}
               onPointerLeave={resetPointer}
+              className={styles.previewSurface}
               style={{
-                position: "relative",
-                width: "100%",
-                padding: "32px",
-                borderRadius: "32px",
                 background: `radial-gradient(circle at top, ${
                   brandColor("--dc-secondary", 0.25)
                 }, transparent 65%)`,
-                overflow: "hidden",
-                perspective: 1400,
               }}
             >
               <motion.div
@@ -557,69 +556,59 @@ export function HeroExperience() {
                   duration: 6,
                   ease: "easeInOut",
                 }}
+                className={styles.previewGlow}
                 style={{
-                  position: "absolute",
-                  inset: "12%",
-                  borderRadius: "999px",
                   background: `radial-gradient(circle, ${
                     brandColor("--dc-brand", 0.5)
                   }, transparent 70%)`,
-                  filter: "blur(60px)",
-                  pointerEvents: "none",
                 }}
               />
               <motion.div
+                className={styles.previewBorder}
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: "32px",
                   border: `1px solid ${brandColor("--dc-secondary", 0.18)}`,
-                  pointerEvents: "none",
                   opacity: floatOpacity,
                 }}
               />
 
-              {orderedCards.map((card, index) => (
-                <motion.div
-                  key={card.title}
-                  style={{
-                    position: "relative",
-                    zIndex: cardTransforms[index]?.zIndex ?? 1,
-                    borderRadius: "28px",
-                    padding: "24px",
-                    background: card.gradient,
-                    color: "white",
-                    boxShadow: `0 30px 80px ${
-                      brandColor("--dc-brand-dark", 0.35)
-                    }`,
-                    transformStyle: "preserve-3d",
-                    ...cardTransforms[index]?.style,
-                    marginTop: index === 0 ? 0 : -80,
-                  }}
-                >
-                  <Column gap="12">
-                    <Text variant="label-default-m" onBackground="brand-weak">
-                      {card.subtitle}
-                    </Text>
-                    <Heading variant="display-strong-xs" as="h3">
-                      {card.title}
-                    </Heading>
-                    <Row gap="12" vertical="center">
-                      <Badge
-                        background="neutral-alpha-weak"
-                        onBackground="neutral-strong"
-                        paddingX="12"
-                        paddingY="2"
-                        textVariant="label-default-s"
-                      >
-                        {card.metricLabel}
-                      </Badge>
-                      <Text variant="heading-strong-m">{card.metricValue}</Text>
-                    </Row>
-                    <Text variant="body-default-m">{card.description}</Text>
-                  </Column>
-                </motion.div>
-              ))}
+              <div className={styles.previewCardStack}>
+                {orderedCards.map((card, index) => (
+                  <motion.div
+                    key={card.title}
+                    className={styles.previewCard}
+                    style={{
+                      zIndex: cardTransforms[index]?.zIndex ?? 1,
+                      background: card.gradient,
+                      ...cardTransforms[index]?.style,
+                      marginTop: index === 0 ? 0 : undefined,
+                    }}
+                  >
+                    <Column gap="12">
+                      <Text variant="label-default-m" onBackground="brand-weak">
+                        {card.subtitle}
+                      </Text>
+                      <Heading variant="display-strong-xs" as="h3">
+                        {card.title}
+                      </Heading>
+                      <Row gap="12" vertical="center">
+                        <Badge
+                          background="neutral-alpha-weak"
+                          onBackground="neutral-strong"
+                          paddingX="12"
+                          paddingY="2"
+                          textVariant="label-default-s"
+                        >
+                          {card.metricLabel}
+                        </Badge>
+                        <Text variant="heading-strong-m">
+                          {card.metricValue}
+                        </Text>
+                      </Row>
+                      <Text variant="body-default-m">{card.description}</Text>
+                    </Column>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           </motion.div>
         </Column>

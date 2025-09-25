@@ -1,0 +1,185 @@
+@use "../breakpoints.scss" as breakpoints;
+
+.hero {
+  width: 100%;
+  gap: clamp(2.5rem, 6vw, 3.5rem);
+}
+
+.heroIntro {
+  width: min(800px, 100%);
+  text-align: center;
+  gap: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.actionRow {
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: clamp(0.75rem, 2vw, 1rem);
+}
+
+.ctaButton {
+  min-width: clamp(12rem, 40vw, 16rem);
+}
+
+.socialProof {
+  width: 100%;
+  justify-content: center;
+  gap: clamp(1rem, 3vw, 1.5rem);
+}
+
+.heroLayout {
+  width: 100%;
+  gap: clamp(2rem, 5vw, 2.75rem);
+}
+
+.stepsGrid {
+  display: grid;
+  width: 100%;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.stepButton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: clamp(1.25rem, 3vw, 1.5rem) clamp(1.5rem, 3.5vw, 1.75rem);
+  border-radius: 24px;
+  border: 1px solid transparent;
+  background: hsl(var(--dc-brand-dark) / 0.35);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  backdrop-filter: blur(14px);
+  transition: border 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.stepButton:focus-visible {
+  outline: 2px solid hsl(var(--dc-secondary));
+  outline-offset: 2px;
+}
+
+.stepButtonActive {
+  box-shadow: 0 22px 60px hsl(var(--dc-brand-dark) / 0.45);
+}
+
+.stepDetail {
+  width: 100%;
+  border-radius: 24px;
+  padding: clamp(1.5rem, 3vw, 1.75rem);
+  border: 1px solid hsl(var(--dc-secondary) / 0.22);
+  background: hsl(var(--dc-brand-dark) / 0.4);
+  box-shadow: 0 18px 45px hsl(var(--dc-brand-dark) / 0.35);
+  backdrop-filter: blur(16px);
+}
+
+.previewSurface {
+  position: relative;
+  width: 100%;
+  border-radius: 32px;
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  overflow: hidden;
+  perspective: 1400px;
+}
+
+.previewGlow {
+  position: absolute;
+  inset: 12%;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(60px);
+}
+
+.previewBorder {
+  position: absolute;
+  inset: 0;
+  border-radius: 32px;
+  pointer-events: none;
+}
+
+.previewCardStack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.previewCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 28px;
+  padding: clamp(1.5rem, 3.5vw, 2rem);
+  color: white;
+  box-shadow: 0 30px 80px hsl(var(--dc-brand-dark) / 0.35);
+  transform-style: preserve-3d;
+}
+
+.previewCard + .previewCard {
+  margin-top: clamp(-3.5rem, -6vw, -2.75rem);
+}
+
+@media (max-width: breakpoints.$l) {
+  .heroIntro {
+    width: min(900px, 100%);
+  }
+}
+
+@media (max-width: breakpoints.$m) {
+  .heroLayout {
+    flex-direction: column;
+  }
+
+  .stepsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .previewSurface,
+  .previewBorder {
+    border-radius: 28px;
+  }
+}
+
+@media (max-width: breakpoints.$s) {
+  .actionRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ctaButton {
+    width: 100%;
+  }
+
+  .socialProof {
+    justify-content: stretch;
+  }
+
+  .stepsGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .stepDetail {
+    border-radius: 20px;
+  }
+
+  .previewSurface {
+    padding: 1.5rem;
+    border-radius: 24px;
+  }
+
+  .previewBorder {
+    border-radius: 24px;
+  }
+
+  .previewCard {
+    padding: 1.35rem;
+    border-radius: 22px;
+  }
+
+  .previewCard + .previewCard {
+    margin-top: -2.5rem;
+  }
+}
