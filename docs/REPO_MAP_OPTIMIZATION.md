@@ -42,36 +42,48 @@ _Last updated: 2025-09-17._
 
 ### 1.5 Site Map (Next.js & Supporting Endpoints)
 
-| Route         | Audience / Access       | Description & Key Hooks                                                                                                                                                      |
-| ------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`           | Public                  | Marketing landing experience rendered via the `OnceLandingPage` composition with CTA handlers deep-linking to the Telegram bot for onboarding, plan selection, and payments. |
-| `/:locale`    | Public                  | Locale-aware alias that reuses the homepage component and layout providers while injecting locale content, keeping routing logic centralized.                                |
-| `/telegram`   | Authenticated ops staff | Rich dashboard for monitoring the Telegram bot, reviewing analytics, managing promos, and launching the embedded admin console.                                              |
-| `/signal`     | Public CDN              | Serves the pre-rendered `_static/index.html` snapshot to host the marketing page without requiring runtime secrets.                                                          |
-| `/healthz`    | Ops & monitoring        | JSON health probe exposing status, timestamp, and environment metadata for uptime checks.                                                                                    |
-| `/api`        | Programmatic            | Baseline API heartbeat returning a simple payload with CORS headers for service-level probes.                                                                                |
-| `/api/hello`  | Programmatic            | Demo JSON response plus preflight handler for smoke tests and sample integrations.                                                                                           |
-| `/api/auth/*` | Authenticated           | NextAuth handler wired to the Supabase adapter and GitHub OAuth for secure console sign-in.                                                                                  |
+| Route         | Audience / Access       | Description & Key Hooks                                                                                                      |
+| ------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `/`           | Public                  | Marketing landing experience rendered via the `OnceLandingPage` composition with CTA handlers deep-linking to the Telegram bot for onboarding, plan selection, and payments. Brand gradients and the animated `BrandLogo` establish the Dynamic Capital look immediately. |
+| `/:locale`    | Public                  | Locale-aware alias that reuses the homepage component and layout providers while injecting locale content, keeping routing logic centralized. Locale shells inherit the same brand tokens so translated routes still surface the signature gradients. |
+| `/telegram`   | Authenticated ops staff | Rich dashboard for monitoring the Telegram bot, reviewing analytics, managing promos, and launching the embedded admin console. The dashboard bootstraps brand-aware providers so charts, alerts, and badges reuse the `dc-brand` palette. |
+| `/signal`     | Public CDN              | Serves the pre-rendered `_static/index.html` snapshot to host the marketing page without requiring runtime secrets. The static artifact bakes in the same gradient overlays and typography so the CDN host mirrors live branding. |
+| `/healthz`    | Ops & monitoring        | JSON health probe exposing status, timestamp, and environment metadata for uptime checks. Branding metadata (app name, environment tags) keeps monitoring dashboards aligned with Dynamic Capital terminology. |
+| `/api`        | Programmatic            | Baseline API heartbeat returning a simple payload with CORS headers for service-level probes. Responses include the branded service identifier so upstream monitors display the correct Dynamic Capital label. |
+| `/api/hello`  | Programmatic            | Demo JSON response plus preflight handler for smoke tests and sample integrations. Payload text references Dynamic Capital to validate that partner sandboxes surface the right branding. |
+| `/api/auth/*` | Authenticated           | NextAuth handler wired to the Supabase adapter and GitHub OAuth for secure console sign-in. Metadata passed to identity providers keeps OAuth consent screens consistent with Dynamic Capital’s brand naming. |
+
+**Brand Alignment Notes**
+
+- Gradient overlays and `BrandLogo` variants are shared between SSR and static hosts so animations, typography, and color ramps stay synchronized across entry points.
+- Supabase-powered content pulls (hero KPIs, testimonials) are wrapped with brand-aware typography tokens so marketing copy preserves the Dynamic Capital tone.
+- CTA links encode `dynamic.capital` deep links that open the Telegram bot in a branded context, avoiding mismatched hostnames.
 
 ### 1.6 Page Map (Landing `/` Experience)
 
 1. **Hero & Primary CTAs** – Animated headline, value proposition, KPI stats,
    and dual CTAs (“Join the VIP desk”, “Explore how it works”) wired into
-   Telegram deep links passed from the page shell.
+   Telegram deep links passed from the page shell. The hero overlays the
+   `gradient-brand` background and animated `BrandLogo` to anchor the palette.
 2. **Why Dynamic Capital Section** – Three-card feature grid highlighting bank
-   verification, crypto routing, and the admin cockpit, each with iconography
-   and motion variants to reinforce differentiators.
+   verification, crypto routing, and the admin cockpit, each with iconography,
+   Once UI motion variants, and `brand-alpha` backgrounds that telegraph the
+   Dynamic Capital accent hues.
 3. **Plan Selector & Payment Guides** – Split layout pairing plan explainer copy
    with quick-start buttons for bank/crypto flows and pricing cards featuring
-   benefits plus “Choose plan” actions.
+   benefits plus “Choose plan” actions. Buttons reuse the `dc-brand` color scale
+   so upgrade paths are visually tied to the rest of the funnel.
 4. **Workflow Timeline** – Four-step progression from proof submission to funds
-   release, emphasizing automation metrics per phase.
+   release, emphasizing automation metrics per phase. Each timeline badge uses
+   brand-contrast tokens so status chips feel native to the palette.
 5. **Social Proof & Final CTA** – Testimonials grid with roles/metrics
    culminating in closing CTAs that launch the Telegram workspace or reach
-   support.
+   support. Quote cards lean on `brand-alpha-weak` surfaces to keep the social
+   section on-brand while maintaining readability.
 6. **Chat Assistant Widget** – Floating assistant managing open/minimized state,
    persisting message history, logging to Supabase, and offering fallbacks when
-   AI responses fail.
+   AI responses fail. The widget enforces brand-accent borders/backgrounds so AI
+   replies never feel detached from the Dynamic Capital shell.
 
 ### 1.7 App Map (Telegram Operations Console)
 
@@ -104,7 +116,9 @@ _Last updated: 2025-09-17._
   - **Operational cockpit** – Once authorized, renders a Dynamic UI–styled shell
     with overview metrics, last-sync badges, and tabbed navigation for payments,
     logs, bans, broadcast manager, and bot diagnostics, including inline
-    approve/reject actions on queued payments.
+    approve/reject actions on queued payments. The shell injects
+    `dc-brand`/`dc-brand-light` tokens into cards, alerts, and tabs so the
+    console mirrors the marketing experience.
 
 ### 1.8 App Router Route Inventory
 
@@ -163,6 +177,15 @@ the data dependencies that must be honored when scaling features.
   Vitest/Playwright smoke tests (mirroring Section 3’s checklist) so rollback
   safety grows alongside the route map.
 
+### 1.10 GitHub Map (Dynamic Branding Automation)
+
+| Asset                                | Purpose                                                                | Branding Touchpoints                                                                                                  |
+| ------------------------------------ | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`           | Runs linting, testing, and documentation drift checks on every commit. | `npm run docs:summary` enforces updates to the site, page, and app maps so brand narratives stay synchronized.        |
+| `.github/workflows/assets_audit.yml` | Generates duplicate/orphan asset reports for maintainers to review.    | Protects logo files, gradients, and other branded media by flagging unused assets before they drift out of alignment. |
+| `.github/pull_request_template.md`   | Captures risk assessment and sourcing requirements for contributors.   | Requires authors to cite sources for claim-heavy marketing copy, preventing off-brand or unsanctioned positioning.    |
+| `.github/labels.yml`                 | Defines triage labels for repository hygiene.                          | Dedicated content/sourcing labels spotlight storytelling work, making it easy to route brand updates for review.      |
+
 ## 2. Responsibility Map
 
 | Domain                 | Critical Assets                                                                    | Primary Owner          | Backup Owner           | Notes                                                                                                            |
@@ -210,6 +233,9 @@ the data dependencies that must be honored when scaling features.
 - [x] App Router route inventory covering UI and server handlers with
       scalability guardrails (Section&nbsp;1.8).
       【F:docs/REPO_MAP_OPTIMIZATION.md†L141-L205】
+- [x] GitHub map documents the automation surfaces that safeguard Dynamic
+      Capital branding (Section&nbsp;1.10).
+      【F:docs/REPO_MAP_OPTIMIZATION.md†L206-L217】
 - [x] Landing build parity checklist captured in the generated repository
       summary so `_static/` stays in sync with marketing routes.
       【F:scripts/generate-repo-summary.ts†L138-L152】
