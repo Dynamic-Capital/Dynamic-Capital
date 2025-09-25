@@ -275,3 +275,17 @@ export type DynamicUIConfig = {
   effects: EffectsConfig;
   dataStyle: DataStyleConfig;
 };
+
+export type {
+  BrandingCorePalette,
+  BrandingGradients,
+  BrandingMetadata,
+  BrandingMotion,
+  BrandingPalette,
+  BrandingThemePalette,
+  BrandingThemeTokens,
+  BrandingTokens,
+  DeepPartial,
+  DynamicBrandingConfig,
+  DynamicBrandingOverrides,
+} from "./branding.types";
