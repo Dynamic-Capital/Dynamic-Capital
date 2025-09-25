@@ -75,10 +75,19 @@ def insert_slice(memory: Memory, slice, length, i):
 
 
 def pad_to_size(x, size):
+    """Left-truncate and right-pad a 1D array to ``size`` efficiently."""
+
     if x.shape[0] > size:
         # Left truncate if the context is too long.
         x = x[-size:]
-    return np.pad(x, [0, size - x.shape[0]], mode="constant", constant_values=0)
+
+    pad_width = size - x.shape[0]
+    if pad_width <= 0:
+        return x
+
+    padded = np.zeros((size,), dtype=x.dtype)
+    padded[: x.shape[0]] = x
+    return padded
 
 
 def top_p_filter(logits: jax.Array, top_p: jax.Array) -> jax.Array:
@@ -452,7 +461,7 @@ class InferenceRunner:
             settings = SampleSettings(
                 temperature=np.zeros((batch_size,), dtype=np.float32),
                 nucleus_p=np.zeros((batch_size,), dtype=np.float32),
-                mask=np.ones((batch_size, self.vocab_size), dtype=np.int32),
+                mask=np.ones((batch_size, self.vocab_size), dtype=bool),
                 active=np.zeros((batch_size), dtype=np.int32),
             )
             last_output = SampleOutput(
@@ -467,7 +476,7 @@ class InferenceRunner:
             new_settings = SampleSettings(
                 temperature=np.float32(1),
                 nucleus_p=np.float32(1),
-                mask=np.ones((self.vocab_size,), dtype=np.int32),
+                mask=np.ones((self.vocab_size,), dtype=bool),
                 active=np.zeros((), dtype=np.int32),
             )
             rng_seed = np.uint64(1)
@@ -497,7 +506,8 @@ class InferenceRunner:
             )
             logger.info("Done compiling.")
 
-        all_tokens = []
+        eos_token = runner.model.eos_token
+        token_buffers = [[] for _ in range(batch_size)]
         free_slots = list(range(batch_size))
         requests = [None] * batch_size
         first_output = [None] * batch_size
@@ -520,7 +530,7 @@ class InferenceRunner:
                     prompt_len = len(prompt)
                     prompt = pad_to_size(prompt, self.get_pad_bucket(prompt.shape[0]))
                     # All tokens are allowed.
-                    mask = np.ones((self.vocab_size,), dtype=np.int32)
+                    mask = np.ones((self.vocab_size,), dtype=bool)
 
                     new_settings = SampleSettings(
                         temperature=np.float32(temperature),
@@ -529,6 +539,7 @@ class InferenceRunner:
                         active=np.ones((), dtype=np.int32),
                     )
                     rng_seed = np.uint64(rng_seed)
+                    token_buffers[i] = []
                     rngs, last_output, memory, settings = self.prefill_memory(
                         params,
                         rngs,
@@ -557,18 +568,25 @@ class InferenceRunner:
                     if requests[i] is not None:
                         if first_output[i] is not None:
                             first_output_i = jax.tree_map(np.array, first_output[i])
-                            all_tokens.append(int(first_output_i.token_id[i][0]))
+                            next_token = int(first_output_i.token_id[i][0])
                             first_output[i] = None
-                            continue
+                        else:
+                            next_token = int(prev_token.token_id[i][0])
 
-                        all_tokens.append(int(prev_token.token_id[i][0]))
-                        cont = len(all_tokens) < requests[i].max_len
+                        token_buffers[i].append(next_token)
 
-                        if not cont:
-                            output_str = self.tokenizer.decode(all_tokens)
+                        reached_max = len(token_buffers[i]) >= requests[i].max_len
+                        saw_eos = next_token == eos_token
+
+                        if reached_max or saw_eos:
+                            to_decode = token_buffers[i]
+                            if saw_eos and to_decode and to_decode[-1] == eos_token:
+                                to_decode = to_decode[:-1]
+
+                            output_str = self.tokenizer.decode(to_decode) if to_decode else ""
                             requests[i] = None
                             free_slots.append(i)
-                            all_tokens = []
+                            token_buffers[i] = []
                             settings = settings._replace(active=settings.active.at[i].set(0))
                             yield output_str
 
