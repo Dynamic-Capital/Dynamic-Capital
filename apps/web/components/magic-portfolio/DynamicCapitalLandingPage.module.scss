@@ -65,11 +65,31 @@
   grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr));
 }
 
+.fundingGrid {
+  @extend %gridBase;
+  gap: clamp(1.25rem, 3vw, 2.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr));
+}
+
 .card {
   height: 100%;
 }
 
 .pillList {
+  width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.metricStack {
+  display: grid;
+  width: 100%;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.stepList {
   width: 100%;
   list-style: none;
   padding: 0;
@@ -87,7 +107,8 @@
   }
 
   .marketGrid,
-  .splitGrid {
+  .splitGrid,
+  .fundingGrid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
