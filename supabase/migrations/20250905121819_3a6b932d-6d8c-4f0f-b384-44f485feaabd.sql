@@ -42,7 +42,7 @@ Ready to continue your trading success? 🚀',
   'contact_message',
   '💬 Contact Dynamic Capital Support
 
-📧 Email: support@dynamiccapital.com
+📧 Email: dynamiccapitalapp@gmail.com
 💬 Telegram: @DynamicCapital_Support
 
 🕐 Support Hours: 24/7
@@ -58,7 +58,7 @@ How can we help you today?',
 
 -- Insert default contact links (without ON CONFLICT since we don't have unique constraints on these fields)
 INSERT INTO public.contact_links (platform, display_name, url, icon_emoji, is_active, display_order) VALUES
-('email', 'Email', 'support@dynamiccapital.com', '📧', true, 1),
+('email', 'Email', 'dynamiccapitalapp@gmail.com', '📧', true, 1),
 ('telegram', 'Telegram Support', '@DynamicCapital_Support', '💬', true, 2),
 ('website', 'Website', 'https://dynamiccapital.com', '🌐', true, 3);
 
