@@ -21,6 +21,7 @@ export function AboutShowcase() {
 
   return (
     <Column
+      id="about-desk"
       fillWidth
       background="surface"
       border="neutral-alpha-medium"
