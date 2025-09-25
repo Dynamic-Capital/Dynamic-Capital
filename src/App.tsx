@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { LandingPageShell } from "@/components/landing/LandingPageShell";
 import CheckoutPage from "./pages/CheckoutPage";
-import { Footer } from "@/components/magic-portfolio/Footer";
+import { Footer } from "@/components/dynamic-capital/Footer";
 
 const queryClient = new QueryClient();
 

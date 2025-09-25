@@ -1,6 +1,6 @@
-import { getPosts } from "@/utils/magic-portfolio/utils";
+import { getPosts } from "@/utils/dynamic-capital/utils";
 import { Column } from "@once-ui-system/core";
-import { ProjectCard } from "@/components/magic-portfolio";
+import { ProjectCard } from "@/components/dynamic-capital";
 
 interface ProjectsProps {
   range?: [number, number?];

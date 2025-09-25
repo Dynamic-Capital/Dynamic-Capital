@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getPosts } from "@/utils/magic-portfolio/utils";
+import { getPosts } from "@/utils/dynamic-capital/utils";
 import {
   Meta,
   Schema,
@@ -13,11 +13,11 @@ import {
   Line,
 } from "@once-ui-system/core";
 import { baseURL, about, person, toAbsoluteUrl, work } from "@/resources";
-import { formatDate } from "@/utils/magic-portfolio/formatDate";
-import { ScrollToHash, CustomMDX } from "@/components/magic-portfolio";
+import { formatDate } from "@/utils/dynamic-capital/formatDate";
+import { ScrollToHash, CustomMDX } from "@/components/dynamic-capital";
 import type { Metadata } from "next";
 import { cache } from "react";
-import { Projects } from "@/components/magic-portfolio/work/Projects";
+import { Projects } from "@/components/dynamic-capital/work/Projects";
 
 type MaybePromise<T> = T | Promise<T>;
 type WorkPageParams = { slug: string | string[] };
