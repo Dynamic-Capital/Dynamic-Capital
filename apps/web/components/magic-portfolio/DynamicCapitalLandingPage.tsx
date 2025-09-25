@@ -5,6 +5,7 @@ import { ComplianceCertificates } from "@/components/magic-portfolio/home/Compli
 import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
 import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
 import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
+import { PerformanceInsightsSection } from "@/components/magic-portfolio/home/PerformanceInsightsSection";
 import { ValuePropositionSection } from "@/components/magic-portfolio/home/ValuePropositionSection";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
@@ -32,6 +33,9 @@ export function DynamicCapitalLandingPage() {
       <HeroExperience />
       <RevealFx translateY="20" delay={0.6}>
         <ValuePropositionSection />
+      </RevealFx>
+      <RevealFx translateY="20" delay={0.64}>
+        <PerformanceInsightsSection />
       </RevealFx>
       <Row
         fillWidth
