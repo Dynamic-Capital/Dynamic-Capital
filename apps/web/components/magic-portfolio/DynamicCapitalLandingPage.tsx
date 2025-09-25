@@ -117,38 +117,65 @@ const MENTOR_FEATURES = [
   "Specialist cohorts for founders, funds, and operators",
 ];
 
-const DEPLOYMENT_CAPABILITIES = [
+const AUTOMATION_METRICS = [
   {
-    id: "parallel-builds",
-    icon: "grid" as const,
-    title: "Build Multiple Deployments Simultaneously",
-    description:
-      "Run preview, staging, and production builds in parallel so every branch can ship on its own cadence.",
-    highlights: [
-      "Never wait for a queued build.",
-    ],
+    label: "Automations active",
+    value: "47",
+    description: "covering prep, execution, and post-trade routines",
   },
   {
-    id: "accelerated-ci",
-    icon: "rocket" as const,
-    title: "Get Faster Builds",
-    description:
-      "Scale compute instantly for heavy dependency graphs, Storybook captures, or integration suites.",
-    highlights: [
-      "Build on larger machines.",
-    ],
+    label: "Sync cadence",
+    value: "12m",
+    description: "data refresh interval across brokers and journals",
   },
   {
-    id: "version-safety",
+    label: "Manual imports",
+    value: "0",
+    description: "your workspace stays current without spreadsheets",
+  },
+];
+
+const AUTOMATION_GUARDRAILS = [
+  {
+    icon: "sparkles" as const,
+    title: "Calibration that adapts",
+    description:
+      "Intake answers update playbooks, agendas, and risk presets automatically so every session starts aligned with your objective.",
+  },
+  {
     icon: "shield" as const,
-    title: "Prevent Frontend-Backend Mismatches",
+    title: "Risk locks on autopilot",
     description:
-      "Keep APIs, clients, and background workers aligned across every environment before releases roll out.",
-    highlights: [
-      "Automatically sync client and server versions to avoid deployment conflicts.",
-    ],
+      "Position limits, drawdown governors, and break alerts trip before mistakes compound, with mentors looped in instantly.",
   },
-] as const;
+  {
+    icon: "timer" as const,
+    title: "Reviews on schedule",
+    description:
+      "Automation posts end-of-day recaps, pulls journal highlights, and queues mentor reviews without you prompting it.",
+  },
+];
+
+const AUTOMATION_RHYTHM = [
+  {
+    time: "06:00",
+    label: "Session warm-up",
+    description:
+      "Catalysts, risk posture, and focus tasks publish before London open so you can review in minutes.",
+  },
+  {
+    time: "12:30",
+    label: "Midday pulse",
+    description:
+      "Automation validates adherence scores, nudges overdue checklists, and opens mentor threads when something slips.",
+  },
+  {
+    time: "18:45",
+    label: "Close-out sync",
+    description:
+      "Trade logs, screenshots, and journal notes consolidate into a single package ready for funding or compliance review.",
+  },
+];
 
 const TRUST_MARKS = [
   {
@@ -173,44 +200,44 @@ const TRUST_MARKS = [
 
 const SERVICES = [
   {
-    id: "vip-mentorship",
-    icon: "users" as const,
-    name: "VIP Mentorship",
-    tagline: "Daily coaching, elite playbooks, instant feedback loops.",
+    id: "desk-intake",
+    icon: "sparkles" as const,
+    name: "Desk Intake",
+    tagline: "Calibrate your 90-day desk roadmap in minutes.",
     description:
-      "Step into daily desk coaching with mentors who refine your plan, review your logs, and prep strategies before each session.",
+      "Complete a guided intake to map objectives, accounts, and risk rules. The desk returns a documented plan before your next session.",
+    ctaLabel: "Start the intake",
+    ctaHref: "#begin",
+  },
+  {
+    id: "automation-ops",
+    icon: "radar" as const,
+    name: "Automation Ops",
+    tagline: "Guardrails that keep preparation and review on rails.",
+    description:
+      "Daily automations sync journals, risk locks, and alerts so your workflow runs itself. Inspect or adjust every routine from one place.",
+    ctaLabel: "Review automations",
+    ctaHref: "#automation-workflows",
+  },
+  {
+    id: "mentor-bridge",
+    icon: "users" as const,
+    name: "Mentor Bridge",
+    tagline: "Specialists on call for drills, teardowns, and approvals.",
+    description:
+      "Escalate questions, join office hours, or request a plan teardown without leaving the workspace. Mentors answer with annotated playbooks.",
     ctaLabel: "Meet the mentors",
     ctaHref: "#mentorship-programs",
   },
   {
-    id: "signal-channel",
-    icon: "radar" as const,
-    name: "Signal Channel",
-    tagline: "Premium market signals streamed in real time.",
+    id: "capital-bridge",
+    icon: "rocket" as const,
+    name: "Capital Bridge",
+    tagline: "Trade live once readiness is verified by the desk.",
     description:
-      "Follow curated market structure, catalyst alerts, and execution zones so you can react with confidence when price moves.",
-    ctaLabel: "View live signals",
-    ctaHref: "#market-watchlist",
-  },
-  {
-    id: "private-fund-pool",
-    icon: "wallet" as const,
-    name: "Private Fund Pool",
-    tagline: "Pooled TON and DCT capital deployed with discipline.",
-    description:
-      "Access a private allocation desk that scales positions across TON and DCT with institutional risk controls and reporting.",
-    ctaLabel: "Explore pool trading",
-    ctaHref: "#pool-trading",
-  },
-  {
-    id: "dynamic-capital-token",
-    icon: "flame" as const,
-    name: "Dynamic Capital Token (DCT)",
-    tagline: "Deflationary supply with automated buyback and burn.",
-    description:
-      "Track utility unlocks, treasury flows, and scheduled burns that reinforce the token as the core access layer for the desk.",
-    ctaLabel: "Review token mechanics",
-    ctaHref: "#vip-packages",
+      "When automation scores clear the threshold, we route you to vetted funding partners and manage the handoff into production accounts.",
+    ctaLabel: "Prepare for funding",
+    ctaHref: "#funding-readiness",
   },
 ] as const;
 
@@ -294,7 +321,7 @@ export function DynamicCapitalLandingPage() {
         <PerformanceInsightsSection />
       </Section>
       <Section revealDelay={0.56}>
-        <DeploymentVelocitySection />
+        <AutomationWorkflowSection />
       </Section>
       <Section variant="wide" revealDelay={0.64}>
         <MarketIntelligenceSection />
@@ -637,68 +664,136 @@ function ExperienceHighlightsSection() {
   );
 }
 
-function DeploymentVelocitySection() {
+function AutomationWorkflowSection() {
   return (
-    <Column fillWidth gap="24" align="start">
+    <Column id="automation-workflows" fillWidth gap="24" align="start">
       <Column gap="12" align="start">
-        <Tag size="s" background="brand-alpha-weak" prefixIcon="rocket">
-          Ship without bottlenecks
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
+          Automation guardrails
         </Tag>
         <Heading variant="display-strong-xs" wrap="balance">
-          Build pipelines engineered for simultaneous releases
+          Stay focused on decisions while the desk runs the routine
         </Heading>
         <Text
           variant="body-default-l"
           onBackground="neutral-weak"
           wrap="balance"
         >
-          Dynamic Capital keeps CI parallel, elastic, and version-aware so your
-          teams can launch features the moment they are reviewed.
+          Automations keep prep, execution, and review synchronized. You handle
+          the trade decisions; the desk makes sure everything around them is
+          ready.
         </Text>
       </Column>
       <div className={styles.featureGrid}>
-        {DEPLOYMENT_CAPABILITIES.map((capability) => (
-          <Column
-            key={capability.id}
-            background="surface"
-            border="neutral-alpha-weak"
-            radius="l"
-            padding="xl"
-            gap="16"
-            className={styles.card}
-            align="start"
+        <Column
+          background="surface"
+          border="neutral-alpha-weak"
+          radius="l"
+          padding="xl"
+          gap="16"
+          className={styles.card}
+          align="start"
+        >
+          <Heading variant="heading-strong-m">What stays on autopilot</Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            wrap="balance"
           >
-            <Row gap="12" vertical="center">
-              <Icon name={capability.icon} onBackground="brand-medium" />
-              <Heading variant="heading-strong-m" wrap="balance">
-                {capability.title}
-              </Heading>
-            </Row>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-            >
-              {capability.description}
-            </Text>
-            <Column as="ul" gap="12" align="start" className={styles.pillList}>
-              {capability.highlights.map((highlight) => (
-                <Row
-                  as="li"
-                  key={highlight}
-                  gap="8"
-                  vertical="start"
-                  align="start"
+            Metrics refresh continuously so you never wonder whether data or
+            guardrails are current.
+          </Text>
+          <div className={styles.metricStack}>
+            {AUTOMATION_METRICS.map((metric) => (
+              <Column key={metric.label} gap="4" align="start">
+                <Heading variant="display-strong-xs">{metric.value}</Heading>
+                <Text variant="label-default-s" onBackground="neutral-weak">
+                  {metric.label}
+                </Text>
+                <Text
+                  variant="body-default-s"
+                  onBackground="neutral-weak"
+                  wrap="balance"
                 >
-                  <Icon name="check" onBackground="brand-medium" />
-                  <Text as="span" variant="body-default-m">
-                    {highlight}
-                  </Text>
+                  {metric.description}
+                </Text>
+              </Column>
+            ))}
+          </div>
+        </Column>
+        <Column
+          background="surface"
+          border="neutral-alpha-weak"
+          radius="l"
+          padding="xl"
+          gap="16"
+          className={styles.card}
+          align="start"
+        >
+          <Heading variant="heading-strong-m" wrap="balance">
+            Guardrails that adapt with you
+          </Heading>
+          <Column gap="16" align="start">
+            {AUTOMATION_GUARDRAILS.map((guardrail) => (
+              <Column key={guardrail.title} gap="8" align="start">
+                <Row gap="12" vertical="center">
+                  <Icon name={guardrail.icon} onBackground="brand-medium" />
+                  <Heading variant="heading-strong-s" wrap="balance">
+                    {guardrail.title}
+                  </Heading>
                 </Row>
-              ))}
-            </Column>
+                <Text
+                  variant="body-default-m"
+                  onBackground="neutral-weak"
+                  wrap="balance"
+                >
+                  {guardrail.description}
+                </Text>
+              </Column>
+            ))}
           </Column>
-        ))}
+        </Column>
+        <Column
+          background="surface"
+          border="neutral-alpha-weak"
+          radius="l"
+          padding="xl"
+          gap="16"
+          className={styles.card}
+          align="start"
+        >
+          <Heading variant="heading-strong-m" wrap="balance">
+            Daily rhythm inside the desk
+          </Heading>
+          <Column as="ol" gap="12" align="start" className={styles.stepList}>
+            {AUTOMATION_RHYTHM.map((step, index) => (
+              <Column
+                as="li"
+                key={step.label}
+                background="brand-alpha-weak"
+                border="brand-alpha-medium"
+                radius="l"
+                padding="l"
+                gap="8"
+                align="start"
+              >
+                <Row gap="8" vertical="center">
+                  <Tag size="s" background="brand-alpha-weak">
+                    {String(index + 1).padStart(2, "0")} · {step.time}
+                  </Tag>
+                  <Heading variant="heading-strong-s">{step.label}</Heading>
+                </Row>
+                <Text
+                  variant="body-default-m"
+                  onBackground="brand-weak"
+                  wrap="balance"
+                >
+                  {step.description}
+                </Text>
+              </Column>
+            ))}
+          </Column>
+        </Column>
       </div>
     </Column>
   );
@@ -858,7 +953,7 @@ function MentorAndTrustSection() {
 
 function FundingReadinessSection() {
   return (
-    <Column fillWidth gap="24" align="start">
+    <Column id="funding-readiness" fillWidth gap="24" align="start">
       <Column gap="12" align="start">
         <Tag size="s" background="brand-alpha-weak" prefixIcon="rocket">
           Funding that matches your discipline
