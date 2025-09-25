@@ -3,6 +3,7 @@ import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
 import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
 import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
 import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
+import { FxMarketSnapshotSection } from "@/components/magic-portfolio/home/FxMarketSnapshotSection";
 import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
 import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
 import { PerformanceInsightsSection } from "@/components/magic-portfolio/home/PerformanceInsightsSection";
@@ -50,9 +51,14 @@ export function DynamicCapitalLandingPage() {
           </RevealFx>
         </Column>
         <Column flex={1} minWidth={24} gap="16">
-          <RevealFx translateY="20" delay={0.72}>
-            <EconomicCalendarSection />
-          </RevealFx>
+          <Column gap="16">
+            <RevealFx translateY="20" delay={0.72}>
+              <FxMarketSnapshotSection />
+            </RevealFx>
+            <RevealFx translateY="20" delay={0.76}>
+              <EconomicCalendarSection />
+            </RevealFx>
+          </Column>
         </Column>
       </Row>
       <Row
