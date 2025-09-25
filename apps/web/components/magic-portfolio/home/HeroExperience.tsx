@@ -24,25 +24,25 @@ import styles from "./HeroExperience.module.scss";
 
 const ONBOARDING_STEPS = [
   {
-    title: "Pick your path",
-    subtitle: "60-second quiz tunes the workspace",
+    title: "Profile your objective",
+    subtitle: "45-second intake calibrates the workspace",
     description:
-      "Answer five prompts and we pre-load a trading lane that matches your schedule, asset focus, and risk dial.",
-    actions: ["Risk dial", "Asset focus", "Session length"],
+      "Tell us your markets, schedule, and risk ceiling so we pre-load playbooks, alerts, and guardrails around your target.",
+    actions: ["Markets & style", "Risk ceiling", "Session blocks"],
   },
   {
-    title: "Run guided drills",
-    subtitle: "Practice inside the simulator",
+    title: "Rehearse with live cues",
+    subtitle: "Coach-led drills align your routine",
     description:
-      "Follow interactive checklists, timers, and mentor cues while you practice in a zero-capital sandbox.",
-    actions: ["Drill timers", "Video cues", "Instant resets"],
+      "Interactive timers, video prompts, and readiness scorecards walk you through every motion before capital is live.",
+    actions: ["Mentor prompts", "Automation previews", "Readiness score"],
   },
   {
-    title: "Go live with guardrails",
-    subtitle: "Unlock signals once you pass readiness",
+    title: "Trade with guardrails",
+    subtitle: "Unlock the desk once you prove consistency",
     description:
-      "Flip on live alerts, auto-journaling, and human support the moment your readiness score crosses the line.",
-    actions: ["Risk locks", "Mentor ping", "Auto journal"],
+      "Desk signals, auto-journaling, and escalation to humans activate the moment your readiness score clears the threshold.",
+    actions: ["Signal unlock", "Risk throttles", "Mentor escalation"],
   },
 ] as const;
 
@@ -51,21 +51,21 @@ const brandColor = (token: string, alpha?: number) =>
 
 const PREVIEW_CARDS = [
   {
-    title: "Signal Room",
-    subtitle: "Next setup in 2h 14m",
-    metricLabel: "Target",
-    metricValue: "+1.6%",
-    description: "Entry 1.2450 · Risk 0.35%",
+    title: "Desk Signal Feed",
+    subtitle: "Next catalyst in 1h 42m",
+    metricLabel: "Playbook edge",
+    metricValue: "+1.9%",
+    description: "EUR/USD breakout · Risk 0.4% · Targets stacked",
     gradient: `linear-gradient(135deg, ${brandColor("--dc-brand", 0.95)} 0%, ${
       brandColor("--dc-secondary", 0.85)
     } 48%, ${brandColor("--dc-brand-dark", 0.85)} 100%)`,
   },
   {
-    title: "Mentor Check-in",
-    subtitle: "Tonight · 20:00 GMT",
-    metricLabel: "Confidence",
-    metricValue: "High",
-    description: "Bring your trade journal · Submit questions",
+    title: "Mentor Office Hours",
+    subtitle: "Today · 18:30 GMT",
+    metricLabel: "Seats left",
+    metricValue: "5",
+    description: "Submit your plan for live teardown and adjustments",
     gradient: `linear-gradient(135deg, ${
       brandColor("--dc-secondary", 0.9)
     } 0%, ${brandColor("--dc-accent", 0.78)} 60%, ${
@@ -73,11 +73,11 @@ const PREVIEW_CARDS = [
     } 100%)`,
   },
   {
-    title: "Risk Controls",
-    subtitle: "Auto warm-up enabled",
-    metricLabel: "Max loss",
-    metricValue: "0.5%",
-    description: "Daily guardrail locks if hit",
+    title: "Risk Automation",
+    subtitle: "Dynamic guardrails armed",
+    metricLabel: "Max draw",
+    metricValue: "0.6%",
+    description: "Auto-pauses trigger if the threshold is breached",
     gradient: `linear-gradient(135deg, ${brandColor("--dc-accent", 0.88)} 0%, ${
       brandColor("--dc-secondary", 0.8)
     } 55%, ${brandColor("--dc-brand-dark", 0.85)} 100%)`,
@@ -87,18 +87,18 @@ const PREVIEW_CARDS = [
 const SOCIAL_PROOF = [
   {
     icon: "users",
-    value: "8,500+",
-    label: "members trade with the desk",
+    value: "9,200+",
+    label: "traders onboarded to the desk",
   },
   {
     icon: "timer",
-    value: "14 days",
-    label: "median time to pass readiness",
+    value: "12 days",
+    label: "median time to unlock live signals",
   },
   {
-    icon: "shield",
-    value: "92%",
-    label: "renew for another quarter",
+    icon: "sparkles",
+    value: "4.9/5",
+    label: "mentor satisfaction score",
   },
 ] as const;
 

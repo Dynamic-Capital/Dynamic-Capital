@@ -66,9 +66,9 @@ export function VipPackagesSection() {
       <Column gap="12" maxWidth={32}>
         <Heading variant="display-strong-xs">VIP membership packages</Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          Choose the desk access that matches your trading cadence. Every
-          package includes live signals, trade accountability, and automation
-          templates.
+          Pick the access level that fits your growth lane. All memberships
+          bundle live desk signals, automation guardrails, and mentor
+          accountability.
         </Text>
         {error
           ? (
@@ -101,8 +101,8 @@ export function VipPackagesSection() {
         ? (
           <Column gap="12" paddingY="24">
             <Text variant="body-default-m" onBackground="neutral-weak">
-              VIP packages will appear once they are published in Supabase.
-              Check back soon for live pricing.
+              VIP packages publish here as soon as pricing is live in Supabase.
+              Check back shortly or ping the desk for a concierge walkthrough.
             </Text>
             <Row gap="12" s={{ direction: "column" }}>
               <Button

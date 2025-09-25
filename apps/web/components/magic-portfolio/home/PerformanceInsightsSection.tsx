@@ -18,81 +18,82 @@ import { CountUp } from "@/components/ui/enhanced-typography";
 const PERFORMANCE_SERIES = [
   {
     label: "Week 1",
-    value: 12,
-    focus: "Orientation drills",
-    insight: "Quick wins from guided checklists build momentum and vocabulary.",
+    value: 14,
+    focus: "Intake complete",
+    insight:
+      "Members finish the calibration quiz and log first simulator reps with mentor feedback.",
   },
   {
     label: "Week 2",
-    value: 28,
-    focus: "Playbook applied",
-    insight: "Members submit their first automation recipe with mentor review.",
+    value: 32,
+    focus: "Routine dialed in",
+    insight:
+      "Daily drills and checklists align to a documented playbook with readiness scoring.",
   },
   {
     label: "Week 3",
-    value: 44,
-    focus: "Journaling cadence",
+    value: 51,
+    focus: "Automation rehearsed",
     insight:
-      "Structured recaps tighten execution and highlight repeatable edges.",
+      "Risk rules, alerts, and journaling automations run in sandbox before capital is unlocked.",
   },
   {
     label: "Week 4",
-    value: 63,
-    focus: "Risk alignment",
-    insight: "Capital is scaled methodically once readiness score clears 60.",
+    value: 69,
+    focus: "Live prep cadence",
+    insight:
+      "Members receive desk signals and submit trade plans for review ahead of live deployment.",
   },
   {
     label: "Week 5",
-    value: 78,
-    focus: "Automation unlocked",
-    insight: "Live alerts layer on as traders demonstrate consistency.",
+    value: 84,
+    focus: "Desk fully activated",
+    insight:
+      "Automation, mentor cues, and reporting now operate on production accounts.",
   },
 ];
 
 const PROGRESSION_STATS = [
   {
-    label: "Playbook completions",
-    value: 1482,
+    label: "Personalized playbooks",
+    value: 1824,
     suffix: "+",
-    description:
-      "members who finished the first readiness sprint in the last 90 days.",
+    description: "traders calibrated their workspace in the last 90 days.",
     icon: "check" as const,
   },
   {
-    label: "Confidence uplift",
-    value: 27,
+    label: "Readiness uplift",
+    value: 31,
     suffix: "%",
-    description:
-      "average increase in simulated win rate after following the journaling cadence.",
+    description: "average score increase after automation rehearsals.",
     icon: "rocket" as const,
   },
   {
-    label: "Automation recipes",
-    value: 64,
+    label: "Mentor touchpoints",
+    value: 740,
     suffix: "+",
-    description:
-      "mentor-authored flows uploaded this month for members to remix.",
-    icon: "book" as const,
+    description: "one-on-one reviews delivered this quarter.",
+    icon: "users" as const,
   },
 ];
 
 const LEARNING_PILLARS = [
   {
-    title: "Visual frameworks",
+    title: "Visual operating system",
     description:
-      "Heat maps, flow charts, and annotated trade plans translate complex ideas into repeatable playbooks.",
+      "Dashboards highlight catalysts, risk posture, and next steps so the plan is obvious at a glance.",
     icon: "grid" as const,
   },
   {
-    title: "Mentor commentary",
+    title: "Live desk commentary",
     description:
-      "Every module ships with context from live desk operators so you understand why a tactic matters right now.",
+      "Analysts annotate every module with current market context so the playbook stays relevant.",
     icon: "sparkles" as const,
   },
   {
     title: "Practice to production",
     description:
-      "Simulated reps automatically sync into your live checklist once your readiness score clears the threshold.",
+      "Simulator reps and mentor notes sync automatically once readiness thresholds are met.",
     icon: "repeat" as const,
   },
 ];
@@ -174,12 +175,12 @@ export function PerformanceInsightsSection() {
         <Column flex={3} gap="24">
           <Column gap="12" maxWidth={32}>
             <Heading variant="display-strong-xs">
-              Learning curve with real traction
+              See how readiness compounds week after week
             </Heading>
             <Text variant="body-default-l" onBackground="neutral-weak">
-              Watch how members layer knowledge and unlock automation over their
-              first five weeks. Every milestone is paired with guided drills and
-              mentor reviews so you know exactly what to do next.
+              From intake to automation to live deployment, every milestone is
+              paired with guided drills and mentor reviews so the next action is
+              never in doubt.
             </Text>
           </Column>
           <Column
