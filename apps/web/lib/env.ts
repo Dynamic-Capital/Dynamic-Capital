@@ -24,6 +24,8 @@ export const publicSchema = z.object({
   NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_HOST: z.string().optional(),
+  NEXT_PUBLIC_ECONOMIC_CALENDAR_URL: z.string().url().optional(),
+  NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY: z.string().optional(),
 });
 
 export const serverSchema = z.object({
@@ -68,6 +70,8 @@ function validatePublicEnv(): ValidationResult {
     NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET: optionalEnvVar('NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET', ['TELEGRAM_WEBHOOK_SECRET']),
     NEXT_PUBLIC_POSTHOG_KEY: optionalEnvVar('NEXT_PUBLIC_POSTHOG_KEY'),
     NEXT_PUBLIC_POSTHOG_HOST: optionalEnvVar('NEXT_PUBLIC_POSTHOG_HOST'),
+    NEXT_PUBLIC_ECONOMIC_CALENDAR_URL: optionalEnvVar('NEXT_PUBLIC_ECONOMIC_CALENDAR_URL', ['ECONOMIC_CALENDAR_URL']),
+    NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY: optionalEnvVar('NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY', ['ECONOMIC_CALENDAR_API_KEY']),
   } satisfies Record<string, string | undefined>;
 
   const result = publicSchema.safeParse(raw);
