@@ -1,0 +1,132 @@
+:root {
+  --background: 228 100% 98%;
+  --foreground: 229 49% 15%;
+  --card: 227 100% 99%;
+  --card-foreground: 229 49% 15%;
+  --popover: 227 100% 99%;
+  --popover-foreground: 229 49% 15%;
+  --primary: 225 52% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 223 83% 69%;
+  --secondary-foreground: 226 56% 20%;
+  --muted: 224 75% 95%;
+  --muted-foreground: 227 32% 42%;
+  --accent: 196 85% 46%;
+  --accent-foreground: 0 0% 100%;
+  --elevated: 229 49% 20%;
+  --destructive: 2 71% 45%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 225 60% 86%;
+  --input: 225 60% 86%;
+  --ring: 225 52% 45%;
+  --radius: 0.5rem;
+  --chart-1: 225 52% 45%;
+  --chart-2: 196 85% 46%;
+  --chart-3: 223 83% 69%;
+  --chart-4: 174 84% 32%;
+  --chart-5: 201 100% 72%;
+
+  --dc-brand: 225 52% 45%;
+  --dc-brand-light: 223 83% 69%;
+  --dc-brand-dark: 229 49% 15%;
+  --dc-secondary: 196 85% 46%;
+  --dc-accent: 174 84% 32%;
+
+  --gradient-motion-primary: linear-gradient(
+    135deg,
+    hsl(var(--primary)) 0%,
+    hsl(var(--dc-secondary)) 48%,
+    hsl(var(--accent)) 100%
+  );
+  --gradient-motion-card: linear-gradient(
+    135deg,
+    hsl(var(--card)) 0%,
+    hsl(var(--primary) / 0.08) 55%,
+    hsl(var(--primary) / 0.03) 100%
+  );
+  --gradient-motion-bg:
+    radial-gradient(
+      ellipse at top,
+      hsl(var(--primary) / 0.12) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at bottom,
+      hsl(var(--dc-secondary) / 0.12) 0%,
+      transparent 60%
+    ),
+    linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
+
+  --glass-motion-bg: hsl(var(--primary) / 0.12);
+  --glass-motion-border: hsl(var(--dc-secondary) / 0.3);
+  --glass-motion-shadow: 0 12px 40px hsl(var(--dc-brand-dark) / 0.35);
+  --glass-motion-blur: blur(24px) saturate(1.8) brightness(1.08);
+
+  --shadow-motion-sm: 0 2px 8px rgba(12, 18, 52, 0.08);
+  --shadow-motion-md: 0 4px 20px rgba(12, 18, 52, 0.12);
+  --shadow-motion-lg: 0 12px 36px rgba(12, 18, 52, 0.16);
+  --shadow-motion-xl: 0 20px 64px rgba(8, 12, 35, 0.2);
+  --shadow-motion-glow: 0 0 42px hsl(var(--primary) / 0.45);
+
+  --motion-duration-fast: 0.15s;
+  --motion-duration-normal: 0.3s;
+  --motion-duration-slow: 0.6s;
+  --motion-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --motion-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --scale-motion-sm: 1.02;
+  --scale-motion-md: 1.05;
+  --scale-motion-lg: 1.08;
+  --scale-motion-press: 0.96;
+
+  color-scheme: light;
+}
+
+.dark,
+[data-theme="dark"] {
+  --background: 226 72% 7%;
+  --foreground: 214 60% 96%;
+  --card: 226 60% 9%;
+  --card-foreground: 214 60% 96%;
+  --popover: 226 60% 9%;
+  --popover-foreground: 214 60% 96%;
+  --primary: 225 52% 58%;
+  --primary-foreground: 210 100% 98%;
+  --secondary: 224 70% 28%;
+  --secondary-foreground: 214 64% 92%;
+  --muted: 226 52% 16%;
+  --muted-foreground: 214 32% 72%;
+  --accent: 196 85% 46%;
+  --accent-foreground: 210 100% 98%;
+  --elevated: 214 60% 96%;
+  --destructive: 2 70% 52%;
+  --destructive-foreground: 210 100% 98%;
+  --border: 224 38% 26%;
+  --input: 224 38% 26%;
+  --ring: 225 52% 58%;
+
+  --gradient-motion-bg:
+    radial-gradient(
+      ellipse at top,
+      hsl(var(--primary) / 0.25) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at bottom,
+      hsl(var(--dc-secondary) / 0.2) 0%,
+      transparent 60%
+    ),
+    linear-gradient(to bottom, hsl(var(--background)), hsl(var(--background)));
+
+  --glass-motion-bg: hsl(var(--primary) / 0.2);
+  --glass-motion-border: hsl(var(--dc-secondary) / 0.22);
+  --glass-motion-shadow: 0 16px 48px hsl(var(--dc-brand-dark) / 0.55);
+  --glass-motion-blur: blur(26px) saturate(1.9) brightness(0.95);
+
+  --glass-bg: hsl(var(--primary) / 0.18);
+  --glass-border: hsl(var(--dc-secondary) / 0.28);
+  --glass-shadow: 0 18px 52px hsl(var(--dc-brand-dark) / 0.65);
+
+  color-scheme: dark;
+}

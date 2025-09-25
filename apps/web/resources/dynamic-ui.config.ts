@@ -74,8 +74,8 @@ const fonts: FontsConfig = {
 const style: StyleConfig = {
   theme: "system",
   neutral: "gray",
-  brand: "red",
-  accent: "magenta",
+  brand: "blue",
+  accent: "cyan",
   solid: "contrast",
   solidStyle: "flat",
   border: "playful",
@@ -113,7 +113,7 @@ const effects: EffectsConfig = {
     width: 100,
     height: 48,
     tilt: -8,
-    colorStart: "accent-background-strong",
+    colorStart: "brand-background-strong",
     colorEnd: "page-background",
   },
   dots: {
@@ -157,7 +157,7 @@ const mailchimp: MailchimpConfig = {
       width: 50,
       height: 50,
       tilt: -6,
-      colorStart: "accent-background-strong",
+      colorStart: "brand-background-strong",
       colorEnd: "static-transparent",
     },
     dots: {
