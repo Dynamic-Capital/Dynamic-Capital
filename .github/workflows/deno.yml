@@ -11,8 +11,24 @@ name: Deno
 on:
   push:
     branches: ["main"]
+    paths:
+      - 'supabase/**'
+      - 'tests/**'
+      - 'deno.json'
+      - 'deno.lock'
+      - '.github/workflows/deno.yml'
   pull_request:
     branches: ["main"]
+    paths:
+      - 'supabase/**'
+      - 'tests/**'
+      - 'deno.json'
+      - 'deno.lock'
+      - '.github/workflows/deno.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -29,6 +45,16 @@ jobs:
         uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
+
+      - name: Cache Deno dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/deno
+            ~/.deno
+          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-
 
       # Uncomment this step to verify the use of 'deno fmt' on each commit.
       - name: Verify formatting
