@@ -9,7 +9,7 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-import { person, social } from "@/resources";
+import { home, person, social } from "@/resources";
 
 const TELEGRAM_LINK = social.find((item) => item.name === "Telegram")?.link ||
   "https://t.me/Dynamic_VIP_BOT";
@@ -82,7 +82,7 @@ export function RouteArchiveNotice() {
                 variant="body-default-m"
                 onBackground="brand-strong"
               >
-                Jump back to the <SmartLink href="/">home hub</SmartLink>{" "}
+                Jump back to the <SmartLink href={home.path}>home hub</SmartLink>{" "}
                 for real-time playbooks, trading desk updates, and resource
                 quick links.
               </Text>
@@ -119,7 +119,12 @@ export function RouteArchiveNotice() {
             Choose your next step
           </Text>
           <Row gap="12" wrap horizontal="center">
-            <Button size="m" variant="primary" data-border="rounded" href="/">
+            <Button
+              size="m"
+              variant="primary"
+              data-border="rounded"
+              href={home.path}
+            >
               Back to home
             </Button>
             <Button
@@ -174,8 +179,9 @@ export function RouteArchiveNotice() {
           align="center"
           wrap="balance"
         >
-          Last updated: April 2024. Bookmark the home hub for the latest
-          rollouts and desk experiments.
+          Last updated: April 2024. Bookmark the{" "}
+          <SmartLink href={home.path}>home hub</SmartLink>{" "}
+          for the latest rollouts and desk experiments.
         </Text>
       </Column>
     </Column>
