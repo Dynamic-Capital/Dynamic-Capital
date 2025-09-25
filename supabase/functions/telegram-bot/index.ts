@@ -1032,7 +1032,12 @@ async function fetchActiveContactLinks(): Promise<string> {
       .order("display_order");
 
     if (!links || links.length === 0) {
-      return "📧 Email: dynamiccapitalapp@gmail.com\n💬 Telegram: @DynamicCapital_Support";
+      return [
+        "📱 Instagram: https://www.instagram.com/dynamic.capital/",
+        "📱 Facebook: https://www.facebook.com/dynamic.capital.fb/",
+        "📊 TradingView: https://www.tradingview.com/u/DynamicCapital-FX/",
+        "📱 TikTok: https://www.tiktok.com/@dynamic.capital.mv/",
+      ].join("\n");
     }
 
     return links
@@ -1045,7 +1050,12 @@ async function fetchActiveContactLinks(): Promise<string> {
       .join("\n");
   } catch (error) {
     console.error("Error fetching contact links:", error);
-    return "📧 Email: dynamiccapitalapp@gmail.com\n💬 Telegram: @DynamicCapital_Support";
+    return [
+      "📱 Instagram: https://www.instagram.com/dynamic.capital/",
+      "📱 Facebook: https://www.facebook.com/dynamic.capital.fb/",
+      "📊 TradingView: https://www.tradingview.com/u/DynamicCapital-FX/",
+      "📱 TikTok: https://www.tiktok.com/@dynamic.capital.mv/",
+    ].join("\n");
   }
 }
 
