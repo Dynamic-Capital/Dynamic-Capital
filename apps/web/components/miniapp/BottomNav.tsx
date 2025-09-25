@@ -2,14 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Home, User } from "lucide-react";
+import { Activity, Home, PieChart, User } from "lucide-react";
 import { haptic } from "@/lib/telegram";
 import { track } from "@/lib/metrics";
 
 const tabs = [
   { href: "/miniapp/home", label: "Home", Icon: Home, event: "nav_home" },
-  { href: "/miniapp/signals", label: "Signals", Icon: Activity, event: "nav_signals" },
-  { href: "/miniapp/account", label: "Account", Icon: User, event: "nav_account" },
+  { href: "/miniapp/fund", label: "Fund", Icon: PieChart, event: "nav_fund" },
+  {
+    href: "/miniapp/signals",
+    label: "Signals",
+    Icon: Activity,
+    event: "nav_signals",
+  },
+  {
+    href: "/miniapp/account",
+    label: "Account",
+    Icon: User,
+    event: "nav_account",
+  },
 ] as const;
 
 export function BottomNav() {
