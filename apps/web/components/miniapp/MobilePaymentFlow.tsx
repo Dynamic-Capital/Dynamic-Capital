@@ -4,12 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  CreditCard, 
-  Smartphone, 
-  Building2, 
-  Coins, 
-  Shield, 
+import {
+  Coins,
+  Shield,
   Clock,
   CheckCircle2,
   ArrowRight,
@@ -19,14 +16,19 @@ import {
   ExternalLink,
   ArrowLeft,
   Upload,
-  QrCode
+  QrCode,
+  Wallet,
+  Flame
 } from "lucide-react";
 import { TouchFeedback } from "@/components/ui/mobile-gestures";
 import { ThreeDEmoticon } from "@/components/ui/three-d-emoticons";
 import { cn } from "@/lib/utils";
+import type { CryptoInstructions } from "@/components/checkout/types";
 
-interface PaymentMethod {
-  id: string;
+type MiniMethodId = 'ton' | 'usdt_trc20' | 'dct';
+
+interface MiniPaymentMethod {
+  id: MiniMethodId;
   name: string;
   icon: React.ElementType;
   description: string;
@@ -52,58 +54,53 @@ interface MobilePaymentFlowProps {
   onComplete?: () => void;
 }
 
-const paymentMethods: PaymentMethod[] = [
+const paymentMethods: MiniPaymentMethod[] = [
   {
-    id: 'bank_transfer',
-    name: 'Bank Transfer',
-    icon: Building2,
-    description: 'Direct bank transfer (MVR/USD)',
-    processing_time: '2-24 hours',
+    id: 'ton',
+    name: 'TON Wallet',
+    icon: Wallet,
+    description: 'Pay directly from a TON wallet to trigger auto-invest routing.',
+    processing_time: '≈1 minute',
     available: true,
     recommended: true,
-    fees: 'No fees'
+    fees: 'Network fees apply'
   },
   {
-    id: 'mobile_banking',
-    name: 'Mobile Banking',
-    icon: Smartphone,
-    description: 'BML Mobile, Ooredoo Money',
-    processing_time: 'Instant',
-    available: true,
-    fees: 'No fees'
-  },
-  {
-    id: 'crypto',
+    id: 'usdt_trc20',
     name: 'USDT (TRC20)',
     icon: Coins,
-    description: 'Cryptocurrency payment',
+    description: 'Bridge USDT on Tron; the contract swaps into TON automatically.',
     processing_time: '10-30 minutes',
     available: true,
     fees: 'Network fees apply'
   },
   {
-    id: 'card',
-    name: 'Credit/Debit Card',
-    icon: CreditCard,
-    description: 'Visa, Mastercard (Coming Soon)',
-    processing_time: 'Instant',
-    available: false,
-    fees: '2.9% + $0.30'
+    id: 'dct',
+    name: 'Dynamic Capital Token (DCT)',
+    icon: Flame,
+    description: 'Stake DCT to extend VIP access and accrue governance weight.',
+    processing_time: '≈1 minute',
+    available: true,
+    fees: 'No protocol fee'
   }
 ];
 
-export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({ 
-  selectedPlan, 
+export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
+  selectedPlan,
   onBack,
   onComplete
 }) => {
-  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<MiniMethodId | null>(null);
   const [loading, setLoading] = useState(false);
-  const [paymentInstructions, setPaymentInstructions] = useState<any>(null);
+  const [paymentInstructions, setPaymentInstructions] = useState<CryptoInstructions | null>(null);
   const [step, setStep] = useState<'method' | 'instructions' | 'confirmation'>('method');
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
+
+  const selectedMethodMeta = selectedMethod
+    ? paymentMethods.find((method) => method.id === selectedMethod)
+    : null;
 
   const handleMethodSelect = (methodId: string) => {
     const method = paymentMethods.find(m => m.id === methodId);
@@ -356,67 +353,63 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
             exit={{ opacity: 0, x: -20 }}
             className="space-y-4"
           >
-            {paymentInstructions.type === "bank_transfer" && paymentInstructions.banks && (
-              <div className="space-y-3">
-                {paymentInstructions.banks.map((bank: any, index: number) => (
-                  <Card key={index} className="border-l-4 border-l-primary">
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold mb-2 text-sm">{bank.bank_name}</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-muted-foreground">Account:</span>
-                          <div className="flex items-center space-x-1">
-                            <span className="font-mono text-xs">{bank.account_name}</span>
-                            <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bank.account_name)}>
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-muted-foreground">Number:</span>
-                          <div className="flex items-center space-x-1">
-                            <span className="font-mono text-xs">{bank.account_number}</span>
-                            <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bank.account_number)}>
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center pt-1 border-t">
-                          <span className="text-xs text-muted-foreground">Amount:</span>
-                          <span className="font-bold text-primary text-sm">${selectedPlan.price}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-
-            {selectedMethod === 'crypto' && paymentInstructions.address && (
-              <Card className="border-l-4 border-l-orange-500">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold mb-2 text-sm">USDT (TRC20)</h4>
-                  <div className="space-y-2">
-                    <div className="p-3 bg-muted rounded font-mono text-xs break-all">
-                      {paymentInstructions.address}
-                    </div>
-                    <Button 
-                      variant="outline"
-                      onClick={() => copyToClipboard(paymentInstructions.address)}
-                      className="w-full"
-                      size="sm"
-                    >
-                      <Copy className="h-3 w-3 mr-2" />
-                      Copy Address
-                    </Button>
-                    <div className="flex justify-between items-center pt-1 border-t">
-                      <span className="text-xs text-muted-foreground">Amount:</span>
-                      <span className="font-bold text-primary text-sm">${selectedPlan.price} USDT</span>
+            <Card className="border-l-4 border-l-primary">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  {selectedMethodMeta?.icon && (
+                    <selectedMethodMeta.icon className="h-4 w-4" />
+                  )}
+                  <div>
+                    <h4 className="font-semibold text-sm">
+                      {selectedMethodMeta?.name ?? paymentInstructions.type.toUpperCase()}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Network: {paymentInstructions.network}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-3 bg-muted rounded font-mono text-xs break-all">
+                  {paymentInstructions.address}
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => copyToClipboard(paymentInstructions.address)}
+                  className="w-full"
+                  size="sm"
+                >
+                  <Copy className="h-3 w-3 mr-2" />
+                  Copy address
+                </Button>
+                {paymentInstructions.memo ? (
+                  <p className="text-xs text-muted-foreground">
+                    Memo: <span className="font-semibold">{paymentInstructions.memo}</span>
+                  </p>
+                ) : null}
+                {paymentInstructions.note ? (
+                  <p className="text-xs text-muted-foreground">
+                    {paymentInstructions.note}
+                  </p>
+                ) : null}
+                {(paymentInstructions.autoInvestSplit != null || paymentInstructions.burnSplit != null) && (
+                  <div className="text-[0.65rem] text-muted-foreground">
+                    {paymentInstructions.autoInvestSplit != null && (
+                      <p>{paymentInstructions.autoInvestSplit}% routes to the auto-invest pool.</p>
+                    )}
+                    {paymentInstructions.burnSplit != null && (
+                      <p>{paymentInstructions.burnSplit}% is burned to enhance DCT scarcity.</p>
+                    )}
+                  </div>
+                )}
+                {paymentInstructions.stakingContract && (
+                  <div className="space-y-1 text-xs">
+                    <p className="font-medium">Staking contract</p>
+                    <div className="p-2 bg-muted rounded font-mono break-all">
+                      {paymentInstructions.stakingContract}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
 
             <Card className="bg-blue-500/10 border-blue-500/20">
               <CardContent className="p-4">
@@ -425,10 +418,9 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
                   <div className="space-y-1 text-xs">
                     <p className="font-medium text-blue-900">Next Steps:</p>
                     <ol className="list-decimal list-inside space-y-0.5 text-blue-700">
-                      <li>Transfer the exact amount</li>
-                      <li>Screenshot your receipt</li>
-                      <li>Upload via Telegram bot</li>
-                      <li>Wait for approval (~24h)</li>
+                      <li>Complete the transfer using the above details.</li>
+                      <li>Upload your transaction receipt or TON explorer link.</li>
+                      <li>Desk automation will verify on-chain and unlock access.</li>
                     </ol>
                   </div>
                 </div>

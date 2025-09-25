@@ -1,131 +1,286 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getProfile } from "@/integrations/supabase/queries";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { type ConnectedWallet, TonConnectUI } from "@tonconnect/ui";
+import { callEdgeFunction } from "@/config/supabase";
+
+interface WalletSession {
+  address: string;
+  chain: string;
+  walletAppName?: string;
+  walletAppIcon?: string;
+  raw: ConnectedWallet;
+}
+
+interface SubscriptionSnapshot {
+  isActive: boolean;
+  plan?: string | null;
+  tonPaid?: number | null;
+  txHash?: string | null;
+  lockUntil?: string | null;
+  stakedDct?: number | null;
+  weight?: number | null;
+  daysRemaining?: number | null;
+}
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  wallet: WalletSession | null;
+  tonProof: string | null;
+  telegramInitData: string | null;
+  subscription: SubscriptionSnapshot | null;
   loading: boolean;
-  signUp: (
-    email: string,
-    password: string,
-    firstName?: string,
-    lastName?: string,
-  ) => Promise<{ error: Error | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signOut: () => Promise<void>;
+  connecting: boolean;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+  refreshSubscription: () => Promise<void>;
   isAdmin: boolean;
 }
 
+type WalletStatusResponse = {
+  wallet_address?: string | null;
+  plan_name?: string | null;
+  is_vip?: boolean;
+  next_unlock_at?: string | null;
+  dct_staked?: number | null;
+  stake_weight?: number | null;
+  latest_tx_hash?: string | null;
+  latest_ton_paid?: number | null;
+  days_remaining?: number | null;
+  admin_wallet?: boolean;
+};
+
+type TonConnectWindow = typeof window & {
+  tonConnectUI?: TonConnectUI;
+  TonConnectUI?: TonConnectUI;
+  openTonConnectModal?: () => void;
+  tonconnect?: TonConnectUI;
+};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+function normalizeAddress(value?: string | null): string {
+  if (!value) return "";
+  return value.trim().toLowerCase();
+}
+
+function parseAdminWallets(): string[] {
+  if (typeof process === "undefined") {
+    return [];
+  }
+  const raw = process.env.NEXT_PUBLIC_ADMIN_WALLETS ||
+    process.env.ADMIN_WALLETS || "";
+  return raw
+    .split(",")
+    .map((token) => normalizeAddress(token))
+    .filter((token) => token.length > 0);
+}
+
+const ADMIN_WALLETS = new Set(parseAdminWallets());
+
+function deriveManifestUrl(): string | undefined {
+  if (typeof window === "undefined") {
+    return process.env.NEXT_PUBLIC_TONCONNECT_MANIFEST_URL;
+  }
+  const explicit = process.env.NEXT_PUBLIC_TONCONNECT_MANIFEST_URL;
+  if (explicit && explicit.trim().length > 0) {
+    return explicit.trim();
+  }
+  return `${window.location.origin}/tonconnect-manifest.json`;
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const tonConnectRef = useRef<TonConnectUI | null>(null);
+  const [wallet, setWallet] = useState<WalletSession | null>(null);
+  const [tonProof, setTonProof] = useState<string | null>(null);
+  const [telegramInitData, setTelegramInitData] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionSnapshot | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const queryClient = useQueryClient();
+  const [connecting, setConnecting] = useState(false);
 
-  const { data: profile } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: () => user ? getProfile(user.id) : Promise.resolve(null),
-    enabled: !!user?.id,
-  });
+  const fetchSubscription = useCallback(
+    async (address: string) => {
+      try {
+        const { data, error } = await callEdgeFunction<WalletStatusResponse>(
+          "SUBSCRIPTION_STATUS",
+          {
+            method: "POST",
+            body: { wallet_address: address },
+          },
+        );
+
+        if (error) {
+          console.error("Failed to resolve subscription status", error.message);
+          setSubscription(null);
+          return;
+        }
+
+        if (!data) {
+          setSubscription(null);
+          return;
+        }
+
+        const snapshot: SubscriptionSnapshot = {
+          isActive: Boolean(data.is_vip),
+          plan: data.plan_name ?? null,
+          tonPaid: data.latest_ton_paid ?? null,
+          txHash: data.latest_tx_hash ?? null,
+          lockUntil: data.next_unlock_at ?? null,
+          stakedDct: data.dct_staked ?? null,
+          weight: data.stake_weight ?? null,
+          daysRemaining: data.days_remaining ?? null,
+        };
+        setSubscription(snapshot);
+      } catch (error) {
+        console.error("Subscription lookup failed", error);
+        setSubscription(null);
+      }
+    },
+    [],
+  );
+
+  const resetSession = useCallback(() => {
+    setWallet(null);
+    setTonProof(null);
+    setSubscription(null);
+  }, []);
 
   useEffect(() => {
-    setIsAdmin(profile?.role === 'admin');
-  }, [profile]);
+    if (typeof window === "undefined") {
+      return;
+    }
 
-  useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    const globalWindow = window as TonConnectWindow;
+    if (globalWindow.Telegram?.WebApp?.initData) {
+      setTelegramInitData(globalWindow.Telegram.WebApp.initData);
+    }
 
+    if (tonConnectRef.current) {
+      setLoading(false);
+      return;
+    }
+
+    const manifestUrl = deriveManifestUrl();
+    const tonConnect = new TonConnectUI({ manifestUrl });
+    tonConnectRef.current = tonConnect;
+
+    globalWindow.tonConnectUI = tonConnect;
+    globalWindow.TonConnectUI = tonConnect;
+    globalWindow.tonconnect = tonConnect;
+    globalWindow.openTonConnectModal = () => {
+      void tonConnect.openModal();
+    };
+
+    const unsubscribe = tonConnect.onStatusChange((nextWallet) => {
+      if (!nextWallet) {
+        resetSession();
         setLoading(false);
-      },
-    );
+        return;
+      }
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+      const session: WalletSession = {
+        address: nextWallet.account.address,
+        chain: nextWallet.account.chain,
+        walletAppName: nextWallet.device?.appName,
+        raw: nextWallet,
+      };
+
+      setWallet(session);
+
+      if (nextWallet.connectItems?.tonProof) {
+        try {
+          setTonProof(JSON.stringify(nextWallet.connectItems.tonProof));
+        } catch {
+          setTonProof(null);
+        }
+      } else {
+        setTonProof(null);
+      }
+
+      void fetchSubscription(session.address);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    tonConnect.connectionRestored
+      .catch((error) => {
+        console.warn("TON connection restore failed", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    return () => {
+      unsubscribe();
+      tonConnectRef.current = null;
+      delete globalWindow.tonConnectUI;
+      delete globalWindow.TonConnectUI;
+      delete globalWindow.openTonConnectModal;
+      delete globalWindow.tonconnect;
+    };
+  }, [fetchSubscription, resetSession]);
+
+  const connect = useCallback(async () => {
+    const tonConnect = tonConnectRef.current;
+    if (!tonConnect) {
+      return;
+    }
+    setConnecting(true);
+    try {
+      await tonConnect.openModal();
+    } catch (error) {
+      console.error("Failed to open TON connect modal", error);
+    } finally {
+      setConnecting(false);
+    }
   }, []);
 
-  const signUp = async (
-    email: string,
-    password: string,
-    firstName?: string,
-    lastName?: string,
-  ) => {
-    const getRedirectUrl = () => {
-      if (typeof window !== 'undefined') {
-        return `${window.location.origin}/`;
-      }
-      return process.env.NEXT_PUBLIC_SITE_URL || undefined;
-    };
-    const redirectUrl = getRedirectUrl();
-    if (!redirectUrl) {
-      console.warn(
-        'NEXT_PUBLIC_SITE_URL is not set; auth emails may contain an invalid redirect URL.'
-      );
+  const disconnect = useCallback(async () => {
+    const tonConnect = tonConnectRef.current;
+    if (!tonConnect) {
+      resetSession();
+      return;
     }
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-        },
-      },
-    });
-
-    return { error };
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    return { error };
-  };
-
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
     try {
-      localStorage.removeItem("selectedPlanId");
-      localStorage.removeItem("paymentId");
-      localStorage.removeItem("pending_payment_id");
-      queryClient.removeQueries({ queryKey: ['profile'] });
-    } catch {
-      /* ignore */
+      await tonConnect.disconnect();
+    } catch (error) {
+      console.error("Failed to disconnect wallet", error);
+    } finally {
+      resetSession();
     }
-    if (error) {
-      console.error("Error signing out:", error);
-    }
-  };
+  }, [resetSession]);
 
-  const value = {
-    user,
-    session,
+  const refreshSubscription = useCallback(async () => {
+    if (!wallet) {
+      return;
+    }
+    await fetchSubscription(wallet.address);
+  }, [fetchSubscription, wallet]);
+
+  const isAdmin = useMemo(() => {
+    if (!wallet) return false;
+    return ADMIN_WALLETS.has(normalizeAddress(wallet.address));
+  }, [wallet]);
+
+  const value: AuthContextType = {
+    wallet,
+    tonProof,
+    telegramInitData,
+    subscription,
     loading,
-    signUp,
-    signIn,
-    signOut,
+    connecting,
+    connect,
+    disconnect,
+    refreshSubscription,
     isAdmin,
   };
 

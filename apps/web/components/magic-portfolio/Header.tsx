@@ -50,7 +50,7 @@ export default TimeDisplay;
 
 export const Header = () => {
   const pathname = usePathname() ?? "";
-  const { user, signOut } = useAuth();
+  const { wallet, connect, disconnect, loading, connecting } = useAuth();
   const [hash, setHash] = useState<string>("");
 
   useEffect(() => {
@@ -163,15 +163,25 @@ export const Header = () => {
             <Flex s={{ hide: true }}>
               {display.time && <TimeDisplay timeZone={person.location} />}
             </Flex>
-            {user
+            {wallet
               ? (
-                <Button size="s" variant="secondary" onClick={() => signOut()}>
-                  Logout
+                <Button
+                  size="s"
+                  variant="secondary"
+                  disabled={connecting}
+                  onClick={() => void disconnect()}
+                >
+                  Disconnect
                 </Button>
               )
               : (
-                <Button size="s" variant="secondary" href="/login">
-                  Login
+                <Button
+                  size="s"
+                  variant="secondary"
+                  disabled={loading || connecting}
+                  onClick={() => void connect()}
+                >
+                  Connect wallet
                 </Button>
               )}
           </Flex>

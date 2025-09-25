@@ -1,144 +1,79 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
 
 import {
   Button,
   Column,
   Heading,
-  Input,
-  PasswordInput,
   Row,
+  Spinner,
+  Tag,
   Text,
 } from "@/components/dynamic-ui-system";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/useToast";
+import { useWalletConnect } from "@/hooks/useWalletConnect";
 
-interface AuthFormState {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  confirmPassword: string;
+function formatAddress(address?: string | null): string {
+  if (!address) return "Not connected";
+  if (address.length <= 12) return address;
+  return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
-type AuthMode = "signin" | "signup";
-
-const INITIAL_STATE: AuthFormState = {
-  email: "",
-  password: "",
-  firstName: "",
-  lastName: "",
-  confirmPassword: "",
-};
+function formatLockUntil(lockUntil?: string | null): string | null {
+  if (!lockUntil) return null;
+  try {
+    const date = new Date(lockUntil);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+    return date.toLocaleString();
+  } catch {
+    return null;
+  }
+}
 
 export function AuthForm() {
-  const { signIn, signUp } = useAuth();
-  const { toast } = useToast();
-  const [mode, setMode] = useState<AuthMode>("signin");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<AuthFormState>(INITIAL_STATE);
+  const {
+    wallet,
+    tonProof,
+    telegramInitData,
+    subscription,
+    loading,
+    connecting,
+    connect,
+    disconnect,
+    refreshSubscription,
+  } = useAuth();
+  const openWalletModal = useWalletConnect();
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setFormData((previous) => ({ ...previous, [name]: value }));
-    setError(null);
-  };
+  const lockUntil = useMemo(
+    () => formatLockUntil(subscription?.lockUntil),
+    [subscription?.lockUntil],
+  );
 
-  const resetForm = () => {
-    setFormData(INITIAL_STATE);
-  };
-
-  const handleSignIn = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    if (!formData.email || !formData.password) {
-      setError("Please enter your email and password");
-      setLoading(false);
-      return;
-    }
-
+  const showTonProof = useMemo(() => {
+    if (!tonProof) return null;
     try {
-      const { error: signInError } = await signIn(formData.email, formData.password);
-      if (signInError) {
-        if (signInError.message.includes("Invalid login credentials")) {
-          setError("Invalid email or password. Please try again.");
-        } else if (signInError.message.includes("Email not confirmed")) {
-          setError("Check your inbox and confirm your email before signing in.");
-        } else {
-          setError(signInError.message);
-        }
-      } else {
-        resetForm();
-        toast({
-          title: "Welcome back",
-          description: "You’re signed in. Head to the dashboard to continue.",
-        });
+      const parsed = JSON.parse(tonProof) as Record<string, unknown>;
+      if (parsed && typeof parsed === "object") {
+        return JSON.stringify(parsed, null, 2);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unexpected error");
-    } finally {
-      setLoading(false);
+    } catch {
+      return tonProof;
+    }
+    return tonProof;
+  }, [tonProof]);
+
+  const handleConnect = () => {
+    if (wallet) return;
+    if (openWalletModal) {
+      openWalletModal();
+    } else {
+      void connect();
     }
   };
-
-  const handleSignUp = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    if (!formData.email || !formData.password || !formData.firstName) {
-      setError("Please fill in all required fields");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { error: signUpError } = await signUp(
-        formData.email,
-        formData.password,
-        formData.firstName,
-        formData.lastName,
-      );
-
-      if (signUpError) {
-        if (signUpError.message.includes("User already registered")) {
-          setError("An account with this email already exists. Please sign in instead.");
-        } else {
-          setError(signUpError.message);
-        }
-      } else {
-        toast({
-          title: "Account created",
-          description: "Check your email to confirm your account and unlock access.",
-        });
-        resetForm();
-        setMode("signin");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unexpected error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onSubmit = mode === "signin" ? handleSignIn : handleSignUp;
 
   return (
     <Column
@@ -151,7 +86,7 @@ export function AuthForm() {
       style={{ minHeight: "100vh" }}
     >
       <Column
-        maxWidth={28}
+        maxWidth={32}
         fillWidth
         background="surface"
         border="neutral-alpha-medium"
@@ -161,123 +96,198 @@ export function AuthForm() {
         shadow="xl"
       >
         <Column gap="12" align="center">
-          <Heading variant="display-strong-xs">Dynamic Capital</Heading>
-          <Text variant="body-default-m" onBackground="neutral-weak" align="center">
-            Access your trading dashboard, manage VIP membership, and review your automation settings.
+          <Heading variant="display-strong-xs">Wallet login</Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            align="center"
+          >
+            Connect a TON wallet to prove membership, unlock staking tiers, and
+            manage your Dynamic Capital subscriptions.
           </Text>
         </Column>
-        <Row gap="12" horizontal="center" wrap>
-          <Button
-            size="s"
-            variant="secondary"
-            data-border="rounded"
-            onClick={() => {
-              setMode("signin");
-              setError(null);
-            }}
-            disabled={mode === "signin"}
-          >
-            Sign in
-          </Button>
-          <Button
-            size="s"
-            variant="secondary"
-            data-border="rounded"
-            onClick={() => {
-              setMode("signup");
-              setError(null);
-            }}
-            disabled={mode === "signup"}
-          >
-            Create account
-          </Button>
-        </Row>
-        <form onSubmit={onSubmit}>
-          <Column gap="16">
-            {mode === "signup" ? (
-              <Row gap="12" wrap>
-                <Column flex={1} minWidth={12} gap="4">
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    First name
-                  </Text>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    placeholder="Noah"
-                    aria-label="First name"
-                    required
-                  />
-                </Column>
-                <Column flex={1} minWidth={12} gap="4">
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    Last name
-                  </Text>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    placeholder="Sterling"
-                    aria-label="Last name"
-                  />
-                </Column>
-              </Row>
-            ) : null}
-            <Column gap="4">
-              <Text variant="body-default-s" onBackground="neutral-weak">
-                Email
+
+        <Column gap="20">
+          <Column gap="8">
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              Wallet status
+            </Text>
+            <Row horizontal="between" vertical="center">
+              <Text variant="body-default-m" weight="strong">
+                {formatAddress(wallet?.address)}
               </Text>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="you@dynamic.capital"
-                aria-label="Email"
-                required
-              />
-            </Column>
-            <PasswordInput
-              id="password"
-              name="password"
-              label="Password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-            />
-            {mode === "signup" ? (
-              <PasswordInput
-                id="confirmPassword"
-                name="confirmPassword"
-                label="Confirm password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required
-              />
-            ) : null}
-            {error ? (
-              <Text variant="body-default-s" onBackground="brand-weak">
-                {error}
-              </Text>
-            ) : null}
-            <Button
-              type="submit"
-              size="m"
-              variant="secondary"
-              data-border="rounded"
-              disabled={loading}
-            >
-              {loading ? "Processing…" : mode === "signin" ? "Sign in" : "Create account"}
-            </Button>
+              {loading
+                ? <Spinner size="s" />
+                : wallet
+                ? (
+                  <Tag size="s" variant="positive">
+                    Connected
+                  </Tag>
+                )
+                : (
+                  <Tag size="s" variant="neutral">
+                    Awaiting connection
+                  </Tag>
+                )}
+            </Row>
+            {wallet
+              ? (
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {wallet.walletAppName
+                    ? `Connected via ${wallet.walletAppName}`
+                    : `Chain: ${wallet.chain}`}
+                </Text>
+              )
+              : null}
           </Column>
-        </form>
-        <Column gap="8" align="center">
-          <Text variant="body-default-s" onBackground="neutral-weak" align="center">
-            By continuing you agree to desk security policies and trading disclaimers.
-          </Text>
+
+          <Column gap="12">
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              Membership
+            </Text>
+            {subscription?.isActive
+              ? (
+                <Column
+                  gap="8"
+                  background="page"
+                  border="brand-weak"
+                  radius="m"
+                  padding="m"
+                >
+                  <Text variant="body-default-m" weight="strong">
+                    {subscription.plan ?? "Active stake"}
+                  </Text>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    {subscription.stakedDct
+                      ? `${subscription.stakedDct.toLocaleString()} DCT staked`
+                      : "Stake detected"}
+                  </Text>
+                  {lockUntil
+                    ? (
+                      <Text
+                        variant="body-default-s"
+                        onBackground="neutral-weak"
+                      >
+                        Locked until {lockUntil}
+                      </Text>
+                    )
+                    : null}
+                  {subscription.daysRemaining != null
+                    ? (
+                      <Text
+                        variant="body-default-s"
+                        onBackground="neutral-weak"
+                      >
+                        {subscription.daysRemaining > 0
+                          ? `${subscription.daysRemaining} days remaining`
+                          : "Unlock window available"}
+                      </Text>
+                    )
+                    : null}
+                </Column>
+              )
+              : (
+                <Column
+                  gap="8"
+                  background="page"
+                  border="neutral-alpha-medium"
+                  radius="m"
+                  padding="m"
+                >
+                  <Text variant="body-default-m" weight="strong">
+                    No active stake detected
+                  </Text>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    Connect your wallet and complete a TON subscription to
+                    enable VIP access and staking rewards.
+                  </Text>
+                </Column>
+              )}
+          </Column>
+
+          <Column gap="12">
+            <Row gap="12" wrap>
+              <Button
+                size="m"
+                variant="secondary"
+                data-border="rounded"
+                disabled={Boolean(wallet) || connecting}
+                onClick={handleConnect}
+              >
+                {connecting ? "Opening wallet…" : "Connect TON wallet"}
+              </Button>
+              {wallet
+                ? (
+                  <>
+                    <Button
+                      size="m"
+                      variant="secondary"
+                      data-border="rounded"
+                      onClick={() => void refreshSubscription()}
+                      disabled={loading}
+                    >
+                      Refresh status
+                    </Button>
+                    <Button
+                      size="m"
+                      variant="primary"
+                      data-border="rounded"
+                      onClick={() => void disconnect()}
+                    >
+                      Disconnect
+                    </Button>
+                  </>
+                )
+                : null}
+            </Row>
+          </Column>
+
+          <Column gap="12">
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              Session details
+            </Text>
+            {showTonProof
+              ? (
+                <Column
+                  gap="8"
+                  background="page"
+                  border="neutral-alpha-medium"
+                  radius="m"
+                  padding="m"
+                  style={{ maxHeight: 200, overflowY: "auto" }}
+                >
+                  <Text variant="body-default-xs" onBackground="neutral-weak">
+                    TON proof payload
+                  </Text>
+                  <Text
+                    as="pre"
+                    variant="body-default-xs"
+                    onBackground="neutral-weak"
+                    style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+                  >
+                    {showTonProof}
+                  </Text>
+                </Column>
+              )
+              : (
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  Connect a wallet that shares TON proof to mint a verifiable
+                  login session.
+                </Text>
+              )}
+            {telegramInitData
+              ? (
+                <Tag size="s" variant="brand">
+                  Telegram init data detected
+                </Tag>
+              )
+              : (
+                <Text variant="body-default-xs" onBackground="neutral-weak">
+                  Optional: launch from the Telegram Mini App to link chat
+                  identity with your wallet session automatically.
+                </Text>
+              )}
+          </Column>
         </Column>
       </Column>
     </Column>

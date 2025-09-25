@@ -5,6 +5,11 @@ import {
   TonConnectUIProvider,
   useTonConnectUI,
 } from "@tonconnect/ui-react";
+import type {
+  SendTransactionRequest,
+  SendTransactionResponse,
+} from "@tonconnect/ui-react";
+import { Cell, toNano } from "@ton/core";
 import { useEffect, useMemo, useState } from "react";
 
 type Plan = "vip_bronze" | "vip_silver" | "vip_gold" | "mentorship";
@@ -24,7 +29,7 @@ type TelegramWebApp = {
 type PlanOption = {
   id: Plan;
   name: string;
-  price: string;
+  priceTon: number;
   cadence: string;
   description: string;
   highlights: string[];
@@ -59,7 +64,7 @@ const PLAN_OPTIONS: PlanOption[] = [
   {
     id: "vip_bronze",
     name: "VIP Bronze",
-    price: "120 TON",
+    priceTon: 120,
     cadence: "3 month horizon",
     description:
       "Entry tier that mirrors the desk's base auto-invest strategy.",
@@ -72,7 +77,7 @@ const PLAN_OPTIONS: PlanOption[] = [
   {
     id: "vip_silver",
     name: "VIP Silver",
-    price: "220 TON",
+    priceTon: 220,
     cadence: "6 month horizon",
     description:
       "Expanded allocation with leverage-managed exposure and mid-cycle rotations.",
@@ -85,7 +90,7 @@ const PLAN_OPTIONS: PlanOption[] = [
   {
     id: "vip_gold",
     name: "VIP Gold",
-    price: "380 TON",
+    priceTon: 380,
     cadence: "12 month horizon",
     description:
       "Flagship seat with treasury hedging, OTC access, and shared execution stack.",
@@ -98,7 +103,7 @@ const PLAN_OPTIONS: PlanOption[] = [
   {
     id: "mentorship",
     name: "Mentorship",
-    price: "550 TON",
+    priceTon: 550,
     cadence: "5 week sprint",
     description:
       "One-on-one mentorship alongside live trading to accelerate your playbook.",
@@ -172,6 +177,9 @@ const SUPPORT_OPTIONS: SupportOption[] = [
     action: "Launch status page",
   },
 ];
+
+const OPERATIONS_TREASURY_ADDRESS =
+  process.env.NEXT_PUBLIC_TON_OPERATIONS_WALLET ?? "";
 
 function useTelegramId(): string {
   if (typeof window === "undefined") {
@@ -291,20 +299,51 @@ function HomeInner() {
       return;
     }
 
+    if (!selectedPlan) {
+      setStatusMessage("Select a plan to continue.");
+      return;
+    }
+
+    if (!OPERATIONS_TREASURY_ADDRESS) {
+      setStatusMessage(
+        "Desk intake wallet is not configured. Reach support before retrying.",
+      );
+      return;
+    }
+
+    const amountNano = toNano(selectedPlan.priceTon.toString());
+    const transaction: SendTransactionRequest = {
+      validUntil: Math.round(Date.now() / 1000) + 600,
+      messages: [
+        {
+          address: OPERATIONS_TREASURY_ADDRESS,
+          amount: amountNano.toString(),
+        },
+      ],
+    };
+
     setIsProcessing(true);
     setStatusMessage(null);
-
-    const fakeHash = `FAKE_TX_HASH_${Date.now()}`;
-    setTxHash(fakeHash);
+    setTxHash("");
 
     try {
+      const result = await tonConnectUI.sendTransaction(transaction);
+      const { boc } = result as SendTransactionResponse;
+      if (!boc) {
+        throw new Error("Wallet did not return transaction payload");
+      }
+
+      const cell = Cell.fromBase64(boc);
+      const normalizedHash = cell.hash().toString("hex").toUpperCase();
+      setTxHash(normalizedHash);
+
       const response = await fetch("/api/process-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           telegram_id: telegramId,
           plan,
-          tx_hash: fakeHash,
+          tx_hash: normalizedHash,
         }),
       });
 
@@ -313,15 +352,21 @@ function HomeInner() {
       }
 
       setStatusMessage(
-        `Subscription for ${
-          selectedPlan?.name ?? "your plan"
-        } submitted. Desk will confirm shortly.`,
+        `TON transaction submitted. Desk will finalize your ${selectedPlan.name} access after on-chain confirmation.`,
       );
     } catch (error) {
       console.error(error);
-      setStatusMessage(
-        "We couldn't start the subscription. Give it another try after checking your connection.",
-      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message.toLowerCase()
+          : String(error);
+      if (errorMessage.includes("user rejected")) {
+        setStatusMessage("Transaction rejected. Please approve the TON transfer to continue.");
+      } else {
+        setStatusMessage(
+          "We couldn't start the subscription. Give it another try after checking your connection.",
+        );
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -427,7 +472,7 @@ function HomeInner() {
                 >
                   <div className="plan-card-header">
                     <span className="plan-name">{option.name}</span>
-                    <span className="plan-price">{option.price}</span>
+                    <span className="plan-price">{option.priceTon} TON</span>
                   </div>
                   <p className="plan-description">{option.description}</p>
                   <ul className="plan-highlights">
@@ -449,7 +494,7 @@ function HomeInner() {
               {isProcessing ? "Submitting…" : "Start auto-invest"}
             </button>
             {txHash && (
-              <p className="plan-hash">Latest transaction request: {txHash}</p>
+              <p className="plan-hash">Latest transaction hash: {txHash}</p>
             )}
           </div>
         </section>

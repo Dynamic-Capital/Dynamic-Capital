@@ -8,6 +8,7 @@ Create a `.env.local` file with the following values:
 
 ```bash
 NEXT_PUBLIC_APP_URL=https://dynamic-capital-qazf2.ondigitalocean.app
+NEXT_PUBLIC_TON_OPERATIONS_WALLET=EQOpsTreasuryXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 SUPABASE_FN_URL=https://<project>.functions.supabase.co
 ```
 

@@ -42,8 +42,20 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 type SupabaseClient = typeof supabase;
 
 type VerifyTonPaymentResult =
-  | { ok: true; amountTON: number; payerAddress?: string }
+  | {
+      ok: true;
+      amountTON: number;
+      payerAddress?: string;
+      blockTime?: string;
+    }
   | { ok: false; error: string };
+
+type DexSwapResult = {
+  dctAmount: number;
+  tonSpent: number;
+  swapTxHash: string;
+  routerSwapId: string;
+};
 
 const PLAN_PRICES_TON: Record<Plan, number> = {
   vip_bronze: 120,
@@ -56,6 +68,10 @@ function normalizeAddress(value: string): string {
   return value.trim().toLowerCase();
 }
 
+function roundTon(value: number): number {
+  return Number(value.toFixed(9));
+}
+
 async function verifyTonPayment(
   txHash: string,
   expectedWallet: string,
@@ -64,7 +80,7 @@ async function verifyTonPayment(
 ): Promise<VerifyTonPaymentResult> {
   const indexerUrl = Deno.env.get("TON_INDEXER_URL");
   if (!indexerUrl) {
-    return { ok: true, amountTON: expectedAmount };
+    return { ok: false, error: "TON indexer URL is not configured" };
   }
 
   const response = await fetchFn(
@@ -113,21 +129,107 @@ async function verifyTonPayment(
   const payerAddress = typeof payerCandidate === "string"
     ? payerCandidate
     : undefined;
+  const blockTime: string | undefined = typeof payload.timestamp === "string"
+    ? payload.timestamp
+    : payload.utime
+    ? new Date(Number(payload.utime) * 1000).toISOString()
+    : undefined;
 
-  return { ok: true, amountTON: amountTon, payerAddress };
+  return { ok: true, amountTON: amountTon, payerAddress, blockTime };
+}
+
+function resolveRouterEndpoint(routerCandidate: string): string {
+  const trimmed = routerCandidate.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed.replace(/\/$/, "");
+  }
+
+  const fallback = Deno.env.get("DEX_ROUTER_URL");
+  if (fallback && (fallback.startsWith("http://") || fallback.startsWith("https://"))) {
+    return fallback.replace(/\/$/, "");
+  }
+
+  throw new Error("DEX router endpoint is not configured");
 }
 
 async function dexBuyDCT(
-  _routerAddr: string,
+  routerEndpoint: string,
   tonAmount: number,
-): Promise<{ dctAmount: number }> {
-  console.log("dexBuyDCT placeholder", tonAmount);
-  return { dctAmount: tonAmount * 100 };
+  tag: "auto-invest" | "buyback-burn",
+  fetchFn: typeof fetch,
+): Promise<DexSwapResult> {
+  if (tonAmount <= 0) {
+    return { dctAmount: 0, tonSpent: 0, swapTxHash: "", routerSwapId: "" };
+  }
+
+  const response = await fetchFn(`${routerEndpoint}/swap`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fromToken: "TON",
+      toToken: "DCT",
+      amountTon: tonAmount,
+      tag,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`DEX router error ${response.status}`);
+  }
+
+  const payload = await response.json();
+  const dctAmount = Number(payload.dctAmount ?? payload.amount ?? 0);
+  if (!Number.isFinite(dctAmount) || dctAmount < 0) {
+    throw new Error("Router returned invalid DCT amount");
+  }
+
+  const tonSpent = Number(payload.tonSpent ?? payload.amountTon ?? tonAmount);
+  if (!Number.isFinite(tonSpent) || tonSpent < 0) {
+    throw new Error("Router returned invalid TON spend amount");
+  }
+
+  const swapTxHash = String(payload.swapTxHash ?? payload.txHash ?? "");
+  if (!swapTxHash) {
+    throw new Error("Router response missing swapTxHash");
+  }
+
+  const routerSwapId = String(
+    payload.swapId ?? payload.id ?? swapTxHash || crypto.randomUUID(),
+  );
+
+  return { dctAmount, tonSpent, swapTxHash, routerSwapId };
 }
 
-async function burnDCT(_dctMaster: string, amount: number) {
-  console.log("burnDCT placeholder", amount);
-  return true;
+async function burnDCT(
+  dctMaster: string,
+  amount: number,
+  tonTxHash: string,
+  fetchFn: typeof fetch,
+): Promise<string | null> {
+  if (amount <= 0) {
+    return null;
+  }
+
+  const burnWebhook = Deno.env.get("BURN_WEBHOOK_URL");
+  if (!burnWebhook) {
+    throw new Error("Burn webhook URL is not configured");
+  }
+
+  const response = await fetchFn(burnWebhook, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ amount, dctMaster, tonTxHash }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Burn webhook error ${response.status}`);
+  }
+
+  const payload = await response.json().catch(
+    () => ({} as Record<string, unknown>),
+  );
+  const burnHash = payload.burnTxHash ?? payload.txHash ?? null;
+  return burnHash ? String(burnHash) : null;
 }
 
 async function notifyUser(fetchFn: typeof fetch, text: string) {
@@ -240,18 +342,29 @@ export async function handler(
       return new Response(verify.error, { status: 400 });
     }
 
-    const tonPaid = verify.amountTON;
-    const opsTON = (tonPaid * config.operations_pct) / 100;
-    const buyTON = (tonPaid * config.autoinvest_pct) / 100;
-    const burnTON = (tonPaid * config.buyback_burn_pct) / 100;
+    const tonPaid = roundTon(verify.amountTON);
+    const opsTON = roundTon((tonPaid * config.operations_pct) / 100);
+    const autoInvestBase = (tonPaid * config.autoinvest_pct) / 100;
+    const burnBase = tonPaid - opsTON - autoInvestBase;
+    const buyTON = roundTon(autoInvestBase);
+    const burnTON = roundTon(Math.max(burnBase, 0));
 
-    const [{ dctAmount: dctForUser }, { dctAmount: dctForBurn }] = await Promise
-      .all([
-        dexBuyDCT(config.dex_router, buyTON),
-        dexBuyDCT(config.dex_router, burnTON),
-      ]);
+    const routerEndpoint = resolveRouterEndpoint(config.dex_router);
 
-    await burnDCT(config.dct_master, dctForBurn);
+    const [autoInvestSwap, burnSwap] = await Promise.all([
+      dexBuyDCT(routerEndpoint, buyTON, "auto-invest", deps.fetch),
+      dexBuyDCT(routerEndpoint, burnTON, "buyback-burn", deps.fetch),
+    ]);
+
+    const burnTxHash = await burnDCT(
+      config.dct_master,
+      burnSwap.dctAmount,
+      tx_hash,
+      deps.fetch,
+    );
+
+    const dctForUser = autoInvestSwap.dctAmount;
+    const dctForBurn = burnSwap.dctAmount;
 
     const { data: userRow, error: userError } = await deps.supabase
       .from("users")
@@ -306,25 +419,45 @@ export async function handler(
         kind: "ops_transfer",
         ref_id: subscriptionId,
         amount: opsTON,
-        meta: { to: config.ops_treasury, unit: "TON" },
+        meta: {
+          to: config.ops_treasury,
+          unit: "TON",
+          tonTxHash: tx_hash,
+          payer: verify.payerAddress ?? null,
+          blockTime: verify.blockTime ?? null,
+        },
       },
       {
         kind: "buyback",
         ref_id: subscriptionId,
         amount: buyTON,
-        meta: { unit: "TON", dctOut: dctForUser },
+        meta: {
+          unit: "TON",
+          dctOut: dctForUser,
+          tonTxHash: tx_hash,
+          swapTxHash: autoInvestSwap.swapTxHash,
+          routerSwapId: autoInvestSwap.routerSwapId,
+          tonSpent: autoInvestSwap.tonSpent,
+        },
       },
       {
         kind: "burn",
         ref_id: subscriptionId,
         amount: dctForBurn,
-        meta: { unit: "DCT" },
+        meta: {
+          unit: "DCT",
+          tonTxHash: tx_hash,
+          swapTxHash: burnSwap.swapTxHash,
+          routerSwapId: burnSwap.routerSwapId,
+          burnTxHash,
+          tonSpent: burnSwap.tonSpent,
+        },
       },
       {
         kind: "stake_credit",
         ref_id: subscriptionId,
         amount: dctForUser,
-        meta: { unit: "DCT", weight },
+        meta: { unit: "DCT", weight, tonTxHash: tx_hash },
       },
     ]);
 
@@ -334,7 +467,7 @@ export async function handler(
 
     await notifyUser(
       deps.fetch,
-      `✅ *Subscription processed*\n\n• Plan: *${plan}*\n• Paid: *${tonPaid} TON*\n• Auto-invest: *${dctForUser} DCT*\n• Burned: *${dctForBurn} DCT*\n\n👉 Open Mini App: ${appUrl}`,
+      `✅ *Subscription processed*\n\n• Plan: *${plan}*\n• Paid: *${tonPaid} TON*\n• Auto-invest: *${dctForUser} DCT* (swap: ${autoInvestSwap.swapTxHash})\n• Burned: *${dctForBurn} DCT*${burnTxHash ? ` (burn: ${burnTxHash})` : ""}\n\n👉 Open Mini App: ${appUrl}`,
     );
 
     return new Response(JSON.stringify({ ok: true }), {
