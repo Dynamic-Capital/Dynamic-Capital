@@ -2,152 +2,98 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Column, Heading, Line, Row, Tag, Text } from "@/components/dynamic-ui-system";
-import type { IconName } from "@/resources/icons";
+import {
+  Column,
+  Heading,
+  Line,
+  Row,
+  Tag,
+  Text,
+} from "@/components/dynamic-ui-system";
 import { formatIsoTime } from "@/utils/isoFormat";
-
-interface MarketWatchlistItem {
-  symbol: string;
-  displaySymbol: string;
-  name: string;
-  category: InstrumentCategory;
-  session: string;
-  focus: string;
-  beginnerTip: string;
-  bias: "Long" | "Short" | "Monitoring";
-  dataKey: string;
-  format: Intl.NumberFormatOptions;
-}
-
-type InstrumentCategory = "Crypto" | "FX" | "Metals" | "Indices";
-
-type MarketQuote = {
-  last: number;
-  changePercent: number;
-  high: number;
-  low: number;
-};
-
-type BiasVisual = {
-  label: string;
-  background: `${"brand" | "danger" | "neutral"}-alpha-${"weak" | "medium"}`;
-  onBackground: `${"brand" | "danger" | "neutral"}-${
-    | "weak"
-    | "medium"
-    | "strong"}`;
-};
-
-type CategoryVisual = {
-  icon: IconName;
-  label: string;
-};
-
-type MarketApiQuote = {
-  bid?: string;
-  pctChange?: string;
-  high?: string;
-  low?: string;
-  create_date?: string;
-};
-
-type MarketApiResponse = Record<string, MarketApiQuote>;
 
 const REFRESH_INTERVAL_MS = 60_000;
 
-const CATEGORY_DETAILS: Record<InstrumentCategory, CategoryVisual> = {
-  Crypto: { icon: "sparkles", label: "Crypto" },
-  FX: { icon: "globe", label: "FX majors" },
-  Metals: { icon: "sparkles", label: "Metals" },
-  Indices: { icon: "grid", label: "Indices" },
+const AWESOME_CODES = ["XAU-USD", "EUR-USD", "BTC-USD"] as const;
+
+const AWESOME_ENDPOINT = `https://economia.awesomeapi.com.br/last/${
+  AWESOME_CODES.join(",")
+}`;
+
+const CATEGORIES = ["Forex", "Crypto", "Commodities"] as const;
+
+type MarketCategory = (typeof CATEGORIES)[number];
+
+type MarketAsset = {
+  id: string;
+  name: string;
+  displaySymbol: string;
+  tickerLabel: string;
+  category: MarketCategory;
+  source: "awesome" | "yahoo";
+  awesomeCode?: (typeof AWESOME_CODES)[number];
+  awesomeKey?: string;
+  yahooSymbol?: string;
+  format: Intl.NumberFormatOptions;
 };
 
-const BIAS_DETAILS: Record<MarketWatchlistItem["bias"], BiasVisual> = {
-  Long: {
-    label: "Long bias",
-    background: "brand-alpha-weak",
-    onBackground: "brand-strong",
-  },
-  Short: {
-    label: "Short bias",
-    background: "danger-alpha-weak",
-    onBackground: "danger-strong",
-  },
-  Monitoring: {
-    label: "Monitoring",
-    background: "neutral-alpha-weak",
-    onBackground: "neutral-strong",
-  },
+type AwesomeQuoteResponse = {
+  bid?: string;
+  pctChange?: string;
+  create_date?: string;
 };
 
-const WATCHLIST: MarketWatchlistItem[] = [
+type AwesomeResponse = Record<string, AwesomeQuoteResponse>;
+
+type AwesomeHistoryEntry = {
+  bid?: string;
+  timestamp?: string;
+  create_date?: string;
+};
+
+type YahooChartResponse = {
+  chart?: {
+    result?: Array<{
+      meta?: {
+        regularMarketPrice?: number;
+        previousClose?: number;
+        chartPreviousClose?: number;
+        regularMarketTime?: number;
+      };
+      timestamp?: number[];
+      indicators?: {
+        quote?: Array<{
+          close?: Array<number | null>;
+        }>;
+      };
+    }>;
+  };
+};
+
+type AssetQuote = {
+  price: number | null;
+  changePercent: number | null;
+  sparkline: number[];
+  lastUpdated: Date | null;
+};
+
+type QuoteMap = Record<string, AssetQuote>;
+
+type MarketLoadResult = {
+  quotes: QuoteMap;
+  lastUpdated: Date | null;
+};
+
+const ASSETS: MarketAsset[] = [
   {
-    symbol: "XAUUSD",
-    displaySymbol: "XAU/USD",
-    name: "Spot gold",
-    category: "Metals",
-    session: "Asia accumulation",
-    focus:
-      "Risk-off flows keep gold bid; running partial hedge overlay with alerts for a break of $2,400 support to flip defensive.",
-    beginnerTip:
-      "Gold is the safety trade. We stay cautious if price slips under $2,400 and look for steadier moves before adding risk.",
-    bias: "Monitoring",
-    dataKey: "XAUUSD",
-    format: {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
-  },
-  {
-    symbol: "DXY",
-    displaySymbol: "DXY",
-    name: "US Dollar Index",
-    category: "Indices",
-    session: "Global dollar flows",
-    focus:
-      "Watching rate expectations and Treasury auctions for momentum cues. Dollar strength keeps risk desks defensive on global beta.",
-    beginnerTip:
-      "When the dollar index rises, other currencies and risk assets usually cool off. Strong DXY means scale position sizes down.",
-    bias: "Long",
-    dataKey: "DXY",
-    format: {
-      style: "decimal",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
-  },
-  {
-    symbol: "USDJPY",
-    displaySymbol: "USD/JPY",
-    name: "US dollar vs Japanese yen",
-    category: "FX",
-    session: "Tokyo carry unwind",
-    focus:
-      "Tracking MoF rhetoric and US yields for timing on fresh shorts. Alerted automation for spikes sub 147.00 as risk trigger.",
-    beginnerTip:
-      "A falling USD/JPY means the yen is getting stronger. Quick drops toward 147 are our cue to slow down and reassess entries.",
-    bias: "Monitoring",
-    dataKey: "USDJPY",
-    format: {
-      style: "currency",
-      currency: "JPY",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
-  },
-  {
-    symbol: "GBPUSD",
-    displaySymbol: "GBP/USD",
-    name: "British pound vs US dollar",
-    category: "FX",
-    session: "London spot flow",
-    focus:
-      "Watching BoE commentary and US data for continuation shorts while price is capped below key weekly supply near 1.36.",
-    beginnerTip:
-      "Sellers stay in control while GBP/USD holds below 1.36. Keep any long ideas small and respect the broader downtrend.",
-    bias: "Short",
-    dataKey: "GBPUSD",
+    id: "EURUSD",
+    name: "Euro vs US dollar",
+    displaySymbol: "EUR/USD",
+    tickerLabel: "EUR/USD",
+    category: "Forex",
+    source: "awesome",
+    awesomeCode: "EUR-USD",
+    awesomeKey: "EURUSD",
     format: {
       style: "currency",
       currency: "USD",
@@ -156,17 +102,14 @@ const WATCHLIST: MarketWatchlistItem[] = [
     },
   },
   {
-    symbol: "BTCUSD",
+    id: "BTCUSD",
+    name: "Bitcoin",
     displaySymbol: "BTC/USD",
-    name: "Bitcoin spot",
+    tickerLabel: "BTC",
     category: "Crypto",
-    session: "London momentum",
-    focus:
-      "Scaling automation on the $64k breakout shelf while funding stays balanced. Monitoring for exhaustion near $66k liquidity.",
-    beginnerTip:
-      "Bitcoin pushing above $64k keeps bullish momentum alive, but we plan exits near $66k in case buyers tire out.",
-    bias: "Long",
-    dataKey: "BTCUSD",
+    source: "awesome",
+    awesomeCode: "BTC-USD",
+    awesomeKey: "BTCUSD",
     format: {
       style: "currency",
       currency: "USD",
@@ -175,66 +118,38 @@ const WATCHLIST: MarketWatchlistItem[] = [
     },
   },
   {
-    symbol: "ETHUSD",
-    displaySymbol: "ETH/USD",
-    name: "Ether spot",
-    category: "Crypto",
-    session: "US overlap",
-    focus:
-      "Looking for acceptance above $3.1k to continue the weekly trend. Mentors tightening invalidation beneath $2.95k swing lows.",
-    beginnerTip:
-      "Ether needs to hold above $3.1k to confirm the uptrend. Below $2.95k we step aside and wait for clarity.",
-    bias: "Long",
-    dataKey: "ETHUSD",
+    id: "XAUUSD",
+    name: "Gold",
+    displaySymbol: "XAU/USD",
+    tickerLabel: "Gold",
+    category: "Commodities",
+    source: "awesome",
+    awesomeCode: "XAU-USD",
+    awesomeKey: "XAUUSD",
     format: {
       style: "currency",
       currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+  },
+  {
+    id: "ES_F",
+    name: "S&P 500 index",
+    displaySymbol: "S&P 500",
+    tickerLabel: "S&P 500",
+    category: "Commodities",
+    source: "yahoo",
+    yahooSymbol: "ES=F",
+    format: {
+      style: "decimal",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     },
   },
 ];
 
-const MARKET_CODES = [
-  "XAU-USD",
-  "GBP-USD",
-  "USD-JPY",
-  "EUR-USD",
-  "USD-CAD",
-  "USD-SEK",
-  "USD-CHF",
-  "BTC-USD",
-  "ETH-USD",
-];
-
-const DXY_COMPOSITION: Array<{ key: string; exponent: number }> = [
-  { key: "EURUSD", exponent: -0.576 },
-  { key: "USDJPY", exponent: 0.136 },
-  { key: "GBPUSD", exponent: -0.119 },
-  { key: "USDCAD", exponent: 0.091 },
-  { key: "USDSEK", exponent: 0.042 },
-  { key: "USDCHF", exponent: 0.036 },
-];
-
-const MARKET_ENDPOINT = `https://economia.awesomeapi.com.br/last/${
-  MARKET_CODES.join(",")
-}`;
-
 const NUMBER_FORMATTER_CACHE = new Map<string, Intl.NumberFormat>();
-
-const formatChangePercent = (value?: number) => {
-  if (value === undefined || Number.isNaN(value)) {
-    return "—";
-  }
-  const absolute = Math.abs(value).toFixed(2);
-  if (value > 0) {
-    return `+${absolute}%`;
-  }
-  if (value < 0) {
-    return `-${absolute}%`;
-  }
-  return `${absolute}%`;
-};
 
 const getFormatter = (options: Intl.NumberFormatOptions) => {
   const key = JSON.stringify(options);
@@ -248,152 +163,269 @@ const getFormatter = (options: Intl.NumberFormatOptions) => {
 };
 
 const formatNumber = (
-  value: number | undefined,
+  value: number | null,
   options: Intl.NumberFormatOptions,
 ) => {
-  if (value === undefined || Number.isNaN(value)) {
+  if (value === null || Number.isNaN(value)) {
     return "—";
   }
   return getFormatter(options).format(value);
 };
 
-const formatRange = (
-  quote: MarketQuote | undefined,
-  options: Intl.NumberFormatOptions,
-) => {
-  if (!quote) {
+const formatChangePercent = (value: number | null) => {
+  if (value === null || Number.isNaN(value)) {
     return "—";
   }
-  if (!Number.isFinite(quote.low) || !Number.isFinite(quote.high)) {
-    return "—";
+  const absolute = Math.abs(value).toFixed(2);
+  if (value > 0) {
+    return `+${absolute}%`;
   }
-  const low = formatNumber(quote.low, options);
-  const high = formatNumber(quote.high, options);
-  if (low === "—" || high === "—") {
-    return "—";
+  if (value < 0) {
+    return `-${absolute}%`;
   }
-  return `${low} – ${high}`;
+  return `${absolute}%`;
 };
 
-const parseNumber = (value?: string): number | undefined => {
-  if (!value) {
-    return undefined;
+const parseNumber = (value?: string | number | null): number | null => {
+  if (value === undefined || value === null || value === "") {
+    return null;
   }
-  const parsed = Number.parseFloat(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
+  const parsed = typeof value === "number"
+    ? value
+    : Number.parseFloat(value as string);
+  return Number.isFinite(parsed) ? parsed : null;
 };
 
-const parseTimestamp = (value?: string): number | undefined => {
-  if (!value) {
+const parseTimestamp = (value?: string | number | null): number | undefined => {
+  if (value === undefined || value === null) {
     return undefined;
+  }
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value * 1000 : undefined;
   }
   const normalized = `${value.replace(" ", "T")}Z`;
   const parsed = Date.parse(normalized);
   return Number.isNaN(parsed) ? undefined : parsed;
 };
 
-const computeDxyQuote = (
-  quotes: Record<string, MarketQuote>,
-): MarketQuote | undefined => {
-  const base = 50.14348112;
-  let last = base;
-  let high = base;
-  let low = base;
-  let changeDecimal = 0;
-
-  for (const { key, exponent } of DXY_COMPOSITION) {
-    const quote = quotes[key];
-    if (!quote) {
-      return undefined;
-    }
-
-    const rate = quote.last;
-    const highRate = exponent >= 0 ? quote.high : quote.low;
-    const lowRate = exponent >= 0 ? quote.low : quote.high;
-
-    if (
-      rate === undefined ||
-      highRate === undefined ||
-      lowRate === undefined ||
-      !Number.isFinite(rate) ||
-      !Number.isFinite(highRate) ||
-      !Number.isFinite(lowRate)
-    ) {
-      return undefined;
-    }
-
-    last *= Math.pow(rate, exponent);
-    high *= Math.pow(highRate, exponent);
-    low *= Math.pow(lowRate, exponent);
-    changeDecimal += exponent * (quote.changePercent / 100);
+const buildSparklinePath = (
+  values: number[],
+  width: number,
+  height: number,
+) => {
+  if (values.length === 0) {
+    return { path: "", lastPoint: null } as const;
   }
 
-  const computedHigh = Math.max(high, low);
-  const computedLow = Math.min(high, low);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const step = values.length > 1 ? width / (values.length - 1) : width;
 
-  if (
-    !Number.isFinite(last) || !Number.isFinite(computedHigh) ||
-    !Number.isFinite(computedLow)
-  ) {
-    return undefined;
-  }
+  let path = "";
+  values.forEach((value, index) => {
+    const x = index * step;
+    const normalized = (value - min) / range;
+    const y = height - normalized * height;
+    path += `${index === 0 ? "M" : "L"}${x},${y}`;
+  });
 
-  return {
-    last,
-    high: computedHigh,
-    low: computedLow,
-    changePercent: changeDecimal * 100,
-  };
+  const lastValue = values[values.length - 1];
+  const lastNormalized = (lastValue - min) / range;
+  const lastY = height - lastNormalized * height;
+  const lastX = (values.length - 1) * step;
+
+  return { path, lastPoint: { x: lastX, y: lastY } } as const;
 };
 
 const loadMarketQuotes = async (
   signal?: AbortSignal,
-): Promise<
-  { quotes: Record<string, MarketQuote>; lastUpdated: Date | null }
-> => {
-  const response = await fetch(MARKET_ENDPOINT, { cache: "no-store", signal });
+): Promise<MarketLoadResult> => {
+  const quotes: QuoteMap = Object.fromEntries(
+    ASSETS.map((asset) => [
+      asset.id,
+      {
+        price: null,
+        changePercent: null,
+        sparkline: [],
+        lastUpdated: null,
+      },
+    ]),
+  );
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch market data (${response.status})`);
-  }
-
-  const payload = (await response.json()) as MarketApiResponse;
-  const quotes: Record<string, MarketQuote> = {};
   let latestTimestamp: number | undefined;
 
-  for (const [key, value] of Object.entries(payload)) {
-    const last = parseNumber(value.bid);
-    const changePercent = parseNumber(value.pctChange);
-    const high = parseNumber(value.high);
-    const low = parseNumber(value.low);
+  const awesomeAssets = ASSETS.filter((asset) => asset.source === "awesome");
 
-    if (
-      last === undefined ||
-      changePercent === undefined ||
-      high === undefined ||
-      low === undefined
-    ) {
-      continue;
+  if (awesomeAssets.length > 0) {
+    const response = await fetch(AWESOME_ENDPOINT, {
+      cache: "no-store",
+      signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch market data (${response.status})`);
     }
 
-    quotes[key] = {
-      last,
-      changePercent,
-      high,
-      low,
-    };
+    const payload = (await response.json()) as AwesomeResponse;
 
-    const timestamp = parseTimestamp(value.create_date);
-    if (timestamp !== undefined) {
-      latestTimestamp = latestTimestamp
-        ? Math.max(latestTimestamp, timestamp)
-        : timestamp;
+    const historyEntries = await Promise.all(
+      awesomeAssets.map(async (asset) => {
+        if (!asset.awesomeCode) {
+          return {
+            id: asset.id,
+            series: [] as number[],
+            latest: undefined as number | undefined,
+          };
+        }
+
+        const historyResponse = await fetch(
+          `https://economia.awesomeapi.com.br/${asset.awesomeCode}/30`,
+          {
+            cache: "no-store",
+            signal,
+          },
+        );
+
+        if (!historyResponse.ok) {
+          return {
+            id: asset.id,
+            series: [] as number[],
+            latest: undefined as number | undefined,
+          };
+        }
+
+        const historyPayload =
+          (await historyResponse.json()) as AwesomeHistoryEntry[];
+        const points = historyPayload
+          .map((entry) => {
+            const value = parseNumber(entry.bid);
+            const timestampSeconds = parseNumber(entry.timestamp);
+            const timestamp = timestampSeconds !== null
+              ? timestampSeconds * 1000
+              : parseTimestamp(entry.create_date);
+            if (value === null || timestamp === undefined) {
+              return null;
+            }
+            return { timestamp, value };
+          })
+          .filter((entry): entry is { timestamp: number; value: number } =>
+            Boolean(entry)
+          )
+          .sort((a, b) => a.timestamp - b.timestamp);
+
+        const series = points.map((point) => point.value);
+        const latest = points.length
+          ? points[points.length - 1].timestamp
+          : undefined;
+        return { id: asset.id, series, latest };
+      }),
+    );
+
+    const historyMap = new Map(
+      historyEntries.map((entry) => [entry.id, entry]),
+    );
+
+    for (const asset of awesomeAssets) {
+      if (!asset.awesomeKey) {
+        continue;
+      }
+      const quote = payload[asset.awesomeKey];
+      const state = quotes[asset.id];
+      if (!quote || !state) {
+        continue;
+      }
+      const price = parseNumber(quote.bid);
+      const changePercent = parseNumber(quote.pctChange);
+      const updated = parseTimestamp(quote.create_date);
+      const history = historyMap.get(asset.id);
+
+      state.price = price;
+      state.changePercent = changePercent;
+      state.sparkline = history?.series ?? [];
+      state.lastUpdated = updated
+        ? new Date(updated)
+        : history?.latest
+        ? new Date(history.latest)
+        : null;
+
+      if (updated && (!latestTimestamp || updated > latestTimestamp)) {
+        latestTimestamp = updated;
+      } else if (
+        !updated && history?.latest &&
+        (!latestTimestamp || history.latest > latestTimestamp)
+      ) {
+        latestTimestamp = history.latest;
+      }
     }
   }
 
-  const dxy = computeDxyQuote(quotes);
-  if (dxy) {
-    quotes.DXY = dxy;
+  const yahooAsset = ASSETS.find((asset) => asset.source === "yahoo");
+  if (yahooAsset) {
+    const symbol = encodeURIComponent(yahooAsset.yahooSymbol ?? "ES=F");
+    const endpoint =
+      `https://query2.finance.yahoo.com/v8/finance/chart/${symbol}?range=1d&interval=15m`;
+    const response = await fetch(endpoint, { cache: "no-store", signal });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch S&P 500 data (${response.status})`);
+    }
+    const payload = (await response.json()) as YahooChartResponse;
+    const result = payload.chart?.result?.[0];
+    const quote = quotes[yahooAsset.id];
+
+    if (result && quote) {
+      const price = parseNumber(result.meta?.regularMarketPrice ?? null);
+      const previous = parseNumber(result.meta?.previousClose ?? null) ??
+        parseNumber(result.meta?.chartPreviousClose ?? null);
+      const timestamp = result.meta?.regularMarketTime
+        ? result.meta.regularMarketTime * 1000
+        : undefined;
+      const closes = result.indicators?.quote?.[0]?.close ?? [];
+      const times = result.timestamp ?? [];
+
+      const points = closes
+        .map((value, index) => {
+          if (
+            value === null || value === undefined || !Number.isFinite(value)
+          ) {
+            return null;
+          }
+          const time = times[index];
+          if (time === undefined) {
+            return null;
+          }
+          return { timestamp: time * 1000, value };
+        })
+        .filter((entry): entry is { timestamp: number; value: number } =>
+          Boolean(entry)
+        )
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+      const latestPoint = points.length
+        ? points[points.length - 1].timestamp
+        : undefined;
+      quote.price = price;
+      quote.sparkline = points.map((point) => point.value);
+      quote.lastUpdated = timestamp
+        ? new Date(timestamp)
+        : latestPoint
+        ? new Date(latestPoint)
+        : quote.lastUpdated;
+
+      quote.changePercent =
+        price !== null && previous !== null && previous !== 0
+          ? ((price - previous) / previous) * 100
+          : null;
+
+      if (timestamp && (!latestTimestamp || timestamp > latestTimestamp)) {
+        latestTimestamp = timestamp;
+      } else if (
+        !timestamp && latestPoint &&
+        (!latestTimestamp || latestPoint > latestTimestamp)
+      ) {
+        latestTimestamp = latestPoint;
+      }
+    }
   }
 
   return {
@@ -415,11 +447,72 @@ const getStatusLabel = (updatedAt: Date | null, isFetching: boolean) => {
   return "Waiting for live feed…";
 };
 
+const Sparkline = ({
+  data,
+  positive,
+}: {
+  data: number[];
+  positive: boolean | null;
+}) => {
+  const width = 120;
+  const height = 40;
+  const { path, lastPoint } = useMemo(
+    () => buildSparklinePath(data, width, height),
+    [data],
+  );
+
+  const strokeColor = positive === null
+    ? "var(--color-neutral-strong, #71717a)"
+    : positive
+    ? "var(--color-brand-strong, #2563eb)"
+    : "var(--color-danger-strong, #ef4444)";
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      width="100%"
+      height={height}
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      <path
+        d={path}
+        fill="none"
+        stroke={strokeColor}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {lastPoint && (
+        <circle
+          cx={lastPoint.x}
+          cy={lastPoint.y}
+          r={3}
+          fill={strokeColor}
+        />
+      )}
+    </svg>
+  );
+};
+
 export function MarketWatchlist() {
-  const [quotes, setQuotes] = useState<Record<string, MarketQuote>>({});
+  const [quotes, setQuotes] = useState<QuoteMap>(() =>
+    Object.fromEntries(
+      ASSETS.map((asset) => [
+        asset.id,
+        {
+          price: null,
+          changePercent: null,
+          sparkline: [],
+          lastUpdated: null,
+        },
+      ]),
+    )
+  );
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [activeCategory, setActiveCategory] = useState<MarketCategory>("Forex");
   const [isInViewport, setIsInViewport] = useState(false);
   const [hasViewportEntry, setHasViewportEntry] = useState(false);
   const [isDocumentVisible, setIsDocumentVisible] = useState(() =>
@@ -459,7 +552,7 @@ export function MarketWatchlist() {
           setHasViewportEntry(true);
         }
       },
-      { threshold: 0.25 },
+      { threshold: 0.2 },
     );
 
     observer.observe(node);
@@ -570,6 +663,26 @@ export function MarketWatchlist() {
     isFetching,
   ]);
 
+  const tickerItems = useMemo(() => {
+    const items = [
+      { id: "BTCUSD", label: "BTC" },
+      { id: "XAUUSD", label: "Gold" },
+      { id: "EURUSD", label: "EUR/USD" },
+    ];
+    return items.map(({ id, label }) => {
+      const quote = quotes[id];
+      const change = quote?.changePercent ?? null;
+      const text = formatChangePercent(change);
+      const positive = change === null ? null : change >= 0;
+      return { id, label, text, positive };
+    });
+  }, [quotes]);
+
+  const visibleAssets = useMemo(
+    () => ASSETS.filter((asset) => asset.category === activeCategory),
+    [activeCategory],
+  );
+
   return (
     <Column
       ref={sectionRef}
@@ -582,13 +695,31 @@ export function MarketWatchlist() {
       gap="32"
       shadow="l"
     >
+      <div className="ticker" role="marquee" aria-label="Live market ticker">
+        <div className="ticker-track">
+          {[...tickerItems, ...tickerItems].map((item, index) => (
+            <span
+              key={`${item.id}-${index}`}
+              className="ticker-item"
+              data-trend={item.positive === null
+                ? "neutral"
+                : item.positive
+                ? "positive"
+                : "negative"}
+            >
+              <span className="ticker-label">{item.label}</span>
+              <span className="ticker-change">{item.text}</span>
+            </span>
+          ))}
+        </div>
+      </div>
       <Column gap="16" maxWidth={32}>
         <Heading variant="display-strong-xs">Live market watchlist</Heading>
         <Column gap="8">
           <Text variant="body-default-l" onBackground="neutral-weak">
-            New to the markets? Start with the quick takeaways in each card. We
-            refresh prices automatically so you always see the latest levels the
-            desk is working with.
+            Follow spot levels, day change and intraday rhythm for the desks we
+            track the most. Switch between asset classes to focus the live feed
+            and lean on the sparklines for a quick read on momentum.
           </Text>
           <Row gap="8" wrap>
             <Tag size="s" prefixIcon="clock">Maldives Time (MVT)</Tag>
@@ -606,144 +737,190 @@ export function MarketWatchlist() {
             : null}
         </Row>
       </Column>
-      <div
-        style={{
-          display: "grid",
-          gridAutoFlow: "column",
-          gap: "16px",
-          overflowX: "auto",
-          paddingBottom: "8px",
-          scrollSnapType: "x mandatory",
-          WebkitOverflowScrolling: "touch",
-        }}
-      >
-        {WATCHLIST.map((item) => {
-          const category = CATEGORY_DETAILS[item.category];
-          const bias = BIAS_DETAILS[item.bias];
-          const quote = quotes[item.dataKey];
-          const changeValue = quote?.changePercent;
-          const changePositive = changeValue !== undefined
-            ? changeValue >= 0
-            : undefined;
-          const changeBackground = changePositive === undefined
-            ? "neutral-alpha-weak"
-            : changePositive
-            ? "brand-alpha-weak"
-            : "danger-alpha-weak";
-          const changeForeground = changePositive === undefined
-            ? "neutral-strong"
-            : changePositive
-            ? "brand-strong"
-            : "danger-strong";
-
-          return (
-            <Column
-              key={item.symbol}
-              background="page"
-              border="neutral-alpha-weak"
-              radius="l"
-              padding="l"
-              gap="16"
-              style={{ minWidth: "280px", scrollSnapAlign: "start" }}
+      <Column gap="16">
+        <Row gap="8" wrap>
+          {CATEGORIES.map((category) => (
+            <button
+              key={category}
+              type="button"
+              className="watchlist-tab"
+              data-active={category === activeCategory}
+              onClick={() => setActiveCategory(category)}
             >
-              <Row
-                horizontal="between"
-                vertical="center"
-                gap="12"
-                s={{ direction: "column", align: "start" }}
-              >
-                <Column gap="8">
-                  <Row gap="8" vertical="center" wrap>
+              {category}
+            </button>
+          ))}
+        </Row>
+        <Line background="neutral-alpha-weak" />
+        <div className="asset-grid">
+          {visibleAssets.map((asset) => {
+            const quote = quotes[asset.id];
+            const change = quote?.changePercent ?? null;
+            const positive = change === null ? null : change >= 0;
+            return (
+              <div key={asset.id} className="asset-card">
+                <div className="asset-header">
+                  <div className="asset-title">
                     <Heading variant="heading-strong-m">
-                      {item.displaySymbol}
+                      {asset.displaySymbol}
                     </Heading>
-                    <Tag size="s" prefixIcon={category.icon}>
-                      {category.label}
-                    </Tag>
-                    <Tag
-                      size="s"
-                      background={bias.background}
-                      onBackground={bias.onBackground}
-                    >
-                      {bias.label}
-                    </Tag>
-                  </Row>
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    {item.name}
-                  </Text>
-                </Column>
-                <Column gap="8" horizontal="end" align="end">
-                  <Row gap="12" vertical="center">
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      {asset.name}
+                    </Text>
+                  </div>
+                  <div className="asset-price">
                     <Text variant="heading-strong-m" align="right">
-                      {formatNumber(quote?.last, item.format)}
+                      {formatNumber(quote?.price ?? null, asset.format)}
                     </Text>
                     <Tag
                       size="s"
-                      background={changeBackground}
-                      onBackground={changeForeground}
+                      background={positive === null
+                        ? "neutral-alpha-weak"
+                        : positive
+                        ? "brand-alpha-weak"
+                        : "danger-alpha-weak"}
+                      onBackground={positive === null
+                        ? "neutral-strong"
+                        : positive
+                        ? "brand-strong"
+                        : "danger-strong"}
                     >
-                      {formatChangePercent(changeValue)}
+                      {formatChangePercent(change)}
                     </Tag>
-                  </Row>
-                  <Text
-                    variant="body-default-s"
-                    onBackground="neutral-weak"
-                    align="right"
-                  >
-                    24h change
-                  </Text>
-                </Column>
-              </Row>
-              <Line background="neutral-alpha-weak" />
-              <Row gap="16" wrap>
-                <Column minWidth={16} gap="8">
-                  <Text variant="label-default-s" onBackground="neutral-weak">
-                    Session focus
-                  </Text>
-                  <Tag size="s" prefixIcon="sparkles">
-                    {item.session}
-                  </Tag>
-                </Column>
-                <Column minWidth={16} gap="8">
-                  <Text variant="label-default-s" onBackground="neutral-weak">
-                    Intraday range
-                  </Text>
-                  <Text variant="body-default-m">
-                    {formatRange(quote, item.format)}
-                  </Text>
-                </Column>
-                <Column
-                  flex={1}
-                  minWidth={24}
-                  gap="8"
-                  background="brand-alpha-weak"
-                  padding="m"
-                  radius="m"
-                >
-                  <Text variant="label-default-s" onBackground="brand-strong">
-                    Quick takeaway
-                  </Text>
-                  <Text variant="body-default-s" onBackground="brand-strong">
-                    {item.beginnerTip}
-                  </Text>
-                </Column>
-                <Column flex={1} minWidth={24} gap="8">
-                  <Text variant="label-default-s" onBackground="neutral-weak">
-                    Strategy focus
-                  </Text>
-                  <Text variant="body-default-m">{item.focus}</Text>
-                </Column>
-              </Row>
-            </Column>
-          );
-        })}
-      </div>
+                  </div>
+                </div>
+                <div className="sparkline">
+                  <Sparkline
+                    data={quote?.sparkline ?? []}
+                    positive={positive}
+                  />
+                </div>
+                <Text variant="label-default-s" onBackground="neutral-weak">
+                  {quote?.lastUpdated
+                    ? `Last update ${formatIsoTime(quote.lastUpdated)}`
+                    : "Waiting for live price"}
+                </Text>
+              </div>
+            );
+          })}
+        </div>
+      </Column>
       <Text variant="body-default-s" onBackground="neutral-weak">
-        Quotes stream from AwesomeAPI and refresh every 60 seconds while you
-        keep this dashboard open. Guidance updates alongside each global session
-        so execution, automation triggers, and risk adjustments stay aligned
-        with the desk.
+        Quotes stream from AwesomeAPI for FX, crypto and metals plus Yahoo
+        Finance for S&P futures. Data refreshes every minute while this widget
+        stays visible.
       </Text>
+      <style jsx>
+        {`
+        .ticker {
+          position: relative;
+          width: 100%;
+          overflow: hidden;
+          border-radius: 12px;
+          background: rgba(37, 99, 235, 0.08);
+          border: 1px solid rgba(37, 99, 235, 0.16);
+        }
+        .ticker-track {
+          display: inline-flex;
+          align-items: center;
+          gap: 32px;
+          padding: 8px 16px;
+          white-space: nowrap;
+          animation: ticker-scroll 18s linear infinite;
+        }
+        .ticker-item {
+          display: inline-flex;
+          align-items: baseline;
+          gap: 8px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #1f2937;
+        }
+        .ticker-item[data-trend="positive"] {
+          color: #166534;
+        }
+        .ticker-item[data-trend="negative"] {
+          color: #b91c1c;
+        }
+        .ticker-label {
+          letter-spacing: 0.02em;
+          text-transform: uppercase;
+        }
+        .watchlist-tab {
+          border: none;
+          cursor: pointer;
+          padding: 8px 16px;
+          border-radius: 999px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          background: rgba(30, 41, 59, 0.1);
+          color: #1e293b;
+          transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+        .watchlist-tab[data-active="true"] {
+          background: rgba(37, 99, 235, 0.2);
+          color: #1d4ed8;
+          transform: translateY(-1px);
+        }
+        .watchlist-tab:focus-visible {
+          outline: 2px solid rgba(37, 99, 235, 0.4);
+          outline-offset: 2px;
+        }
+        .asset-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 16px;
+          width: 100%;
+        }
+        .asset-card {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          padding: 20px;
+          background: rgba(255, 255, 255, 0.92);
+          border-radius: 18px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+        }
+        .asset-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+        }
+        .asset-title {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .asset-price {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          align-items: flex-end;
+        }
+        .sparkline {
+          width: 100%;
+          height: 40px;
+        }
+        @keyframes ticker-scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        @media (max-width: 768px) {
+          .ticker-track {
+            animation-duration: 22s;
+          }
+          .asset-card {
+            padding: 16px;
+          }
+        }
+      `}
+      </style>
     </Column>
   );
 }
