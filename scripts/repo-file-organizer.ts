@@ -159,7 +159,7 @@ const entryMeta: Record<string, EntryMeta> = {
   "src": {
     category: "applications",
     description:
-      "Lovable/Vite development harness and stubs that proxy into the Next.js app during local development.",
+      "Dynamic/Vite development harness and stubs that proxy into the Next.js app during local development.",
   },
   "env": {
     category: "configuration",
@@ -203,11 +203,11 @@ const entryMeta: Record<string, EntryMeta> = {
   "lovable-build.js": {
     category: "tooling",
     description:
-      "Lovable automation helper that orchestrates production builds across app surfaces.",
+      "Dynamic automation helper that orchestrates production builds across app surfaces.",
   },
   "lovable-dev.js": {
     category: "tooling",
-    description: "Lovable development bootstrapper for local preview flows.",
+    description: "Dynamic development bootstrapper for local preview flows.",
   },
   "scripts": {
     category: "tooling",
@@ -284,7 +284,7 @@ const entryMeta: Record<string, EntryMeta> = {
   },
   "project.toml": {
     category: "configuration",
-    description: "Lovable project manifest describing workspace metadata.",
+    description: "Dynamic project manifest describing workspace metadata.",
   },
   "tsconfig.json": {
     category: "configuration",
@@ -302,7 +302,7 @@ const entryMeta: Record<string, EntryMeta> = {
   "vite.config.ts": {
     category: "configuration",
     description:
-      "Vite proxy configuration used during Lovable-driven development.",
+      "Vite proxy configuration used during Dynamic-driven development.",
   },
   ".env.example": {
     category: "configuration",
@@ -325,7 +325,7 @@ const entryMeta: Record<string, EntryMeta> = {
   "codex.json": {
     category: "configuration",
     description:
-      "Lovable Codex metadata that wires automated workspace curation for branding-centric builds.",
+      "Dynamic Codex metadata that wires automated workspace curation for branding-centric builds.",
   },
   ".denoignore": {
     category: "configuration",
@@ -338,12 +338,12 @@ const entryMeta: Record<string, EntryMeta> = {
   "tag-ruleset.json": {
     category: "configuration",
     description:
-      "Lovable tagging automation rules that route dynamic branding initiatives to the correct workspace reviewers.",
+      "Dynamic tagging automation rules that route dynamic branding initiatives to the correct workspace reviewers.",
   },
   "index.html": {
     category: "applications",
     description:
-      "Static shell used by the Lovable/Vite harness to proxy into the Next.js application.",
+      "Static shell used by the Dynamic/Vite harness to proxy into the Next.js application.",
   },
   "node_modules": {
     category: "generated",

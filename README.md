@@ -41,7 +41,7 @@ gh api 'repos/Dynamic-Capital/Dynamic-Capital/commits?author=Dynamic-Capital' -q
 ## What this is
 
 Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
-OCR + crypto TXID). Built with **Lovable Codex** for enhanced development
+OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development
 experience.
 
 A single Next.js application powers both the marketing landing page and the
@@ -89,7 +89,7 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 - Crypto TXID submissions (no image approvals)
 - Optional Mini App (glass theme, 1:1 assets)
 - Admin commands for maintenance
-- **Lovable Codex Integration** for AI-powered development
+- **Dynamic Codex Integration** for AI-powered development
 
 ## Dynamic Theme System
 
@@ -266,13 +266,13 @@ above to refresh the snapshot.
 
 | Tool                   | What It Does                                                            | How You Use It                                                                                              |
 | ---------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Lovable (Platform)** | Hosts your web app, manages deployment, and provides a Supabase backend | Use the Lovable dashboard to configure environment variables and monitor deployments                        |
-| **Lovable (AI)**       | Generates initial project scaffolding and high-level feature guidance   | Use the chat interface during setup and when auto-generating components                                     |
-| **Telegram/BotFather** | Manages the bot and links it to your web app                            | Run BotFather commands like `/setmenubutton` or `/mybots` to connect the bot to your Lovable deployment URL |
+| **Dynamic (Platform)** | Hosts your web app, manages deployment, and provides a Supabase backend | Use the Dynamic console to configure environment variables and monitor deployments                          |
+| **Dynamic (AI)**       | Generates initial project scaffolding and high-level feature guidance   | Use the chat interface during setup and when auto-generating components                                     |
+| **Telegram/BotFather** | Manages the bot and links it to your web app                            | Run BotFather commands like `/setmenubutton` or `/mybots` to connect the bot to your Dynamic deployment URL |
 | **Codex CLI**          | Assists with granular, code-level tasks on your local machine           | Use terminal commands for UI refinements, refactoring, and adding features                                  |
-| **GitHub**             | Version control and deployment trigger                                  | Push local changes to GitHub to trigger Lovable to rebuild and redeploy your web app                        |
+| **GitHub**             | Version control and deployment trigger                                  | Push local changes to GitHub to trigger Dynamic to rebuild and redeploy your web app                        |
 
-## 🎨 UI Development with Lovable Codex
+## 🎨 UI Development with Dynamic Codex
 
 ### Quick UI Guidelines
 
@@ -280,7 +280,7 @@ above to refresh the snapshot.
   Always use semantic tokens from `index.css` and `tailwind.config.ts`
 - **Component Structure**: Create focused, reusable components instead of
   modifying large files
-- **Visual Edits**: Use Lovable's Visual Edit button for quick text/color
+- **Visual Edits**: Use Dynamic's Visual Edit button for quick text/color
   changes (saves credits)
 - **Real-time Preview**: See changes immediately in the live preview window
 
@@ -488,14 +488,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 # NEXT_PUBLIC_API_URL=https://example.com/api
 ```
 
-Set the required Supabase values in your hosting provider (e.g., Lovable.dev
-project settings). If either value is missing, the app will render a
+Set the required Supabase values in your hosting provider (e.g., Dynamic
+workspace settings). If either value is missing, the app will render a
 configuration error screen instead of loading. You can optionally set
 `NEXT_PUBLIC_API_URL` to point at a custom API; otherwise the client uses the
 relative `/api` path. The client also accepts `SUPABASE_URL`/`SUPABASE_ANON_KEY`
 as fallbacks if the `NEXT_PUBLIC_` values are not provided.
 
-Values are set in Supabase function secrets, GitHub Environments, or Lovable
+Values are set in Supabase function secrets, GitHub Environments, or Dynamic
 Codex project settings. Do not commit them.
 
 To troubleshoot `401 Unauthorized` from admin endpoints, generate a known-good
@@ -551,11 +551,11 @@ success, or error states based on the fetch result.
 - `tests/app/api-demo/page.test.tsx` renders the demo page with a mocked `fetch`
   and verifies that the message appears.
 
-## Quick start with Lovable Codex
+## Quick start with Dynamic Codex
 
-### Using Lovable Codex (Recommended)
+### Using Dynamic Codex (Recommended)
 
-1. Open the project in Lovable Codex
+1. Open the project in Dynamic Codex
 2. Use the chat interface to describe desired changes
 3. Use Visual Edits for quick UI modifications
 4. Monitor the live preview for real-time feedback
@@ -588,10 +588,10 @@ The Codex CLI pulls these changes into your local checkout. Run the helper
 scripts to reproduce Codex's post-export steps and keep everything in sync:
 
 - `npm run codex:post-pull` – install dependencies, sync environment files,
-  validate required variables, and run the combined Lovable build.
+  validate required variables, and run the combined Dynamic build.
 - `npm run codex:dev` – ensure the environment is synced before launching
   `lovable-dev.js` (Next.js dev server with Codex preflight checks).
-- `npm run codex:build` – run the Lovable production build locally (same as
+- `npm run codex:build` – run the Dynamic production build locally (same as
   Codex deploys).
 - `npm run codex:verify` – execute the repository verification suite.
 
@@ -599,7 +599,7 @@ Pass extra flags after `--` to tweak the workflow:
 
 ```bash
 npm run codex:post-pull -- --verify            # run verification after syncing
-npm run codex:post-pull -- --no-build          # skip the Lovable build step
+npm run codex:post-pull -- --no-build          # skip the Dynamic build step
 npm run codex:dev -- --no-sync                 # keep existing env values
 npm run codex:post-pull -- --dry-run           # list steps without executing
 npm run codex:post-pull -- --reset-issues      # clear cached failure history & tips
@@ -782,7 +782,7 @@ in README.
 
 ## GitHub Integration
 
-This project features **bidirectional GitHub sync** through Lovable Codex:
+This project features **bidirectional GitHub sync** through Dynamic Codex:
 
 - Changes in Codex automatically push to GitHub
 - GitHub changes sync back to Codex in real-time
@@ -794,9 +794,9 @@ This project features **bidirectional GitHub sync** through Lovable Codex:
 ## Hybrid Development Workflow
 
 For a combined approach that keeps production on DigitalOcean while iterating
-with Lovable and local tooling, see
+with Dynamic and local tooling, see
 [docs/HYBRID_DEVELOPMENT_WORKFLOW.md](docs/HYBRID_DEVELOPMENT_WORKFLOW.md). It
-covers prototyping in Lovable, exporting via the Codex CLI, local testing, and
+covers prototyping in Dynamic, exporting via the Codex CLI, local testing, and
 syncing changes through GitHub to maintain a seamless deployment pipeline.
 
 ## License / contributions
@@ -812,5 +812,5 @@ PRs/issues are closed by default.
 Repo keeps source only. No caches (.cas), dist/, or node_modules/ are committed.
 
 Future changes may encrypt code and increase env usage; see
-[docs/agent.md](docs/agent.md) for behavior spec and Lovable Codex integration
+[docs/agent.md](docs/agent.md) for behavior spec and Dynamic Codex integration
 details.

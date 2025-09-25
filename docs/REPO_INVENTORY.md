@@ -34,7 +34,7 @@ _Last updated: 2025-09-15 (UTC)._
   DigitalOcean automation config (`dynamic-capital.lovable.app.json`) used to
   reproduce external records.【a93f31†L1-L2】
 - **`apps/web/app/telegram/`** – Next.js route for the Telegram operations dashboard, replacing the standalone Dynamic Codex Vite workspace so bot tooling ships from the unified build.【F:apps/web/app/telegram/page.tsx†L1-L11】【F:README.md†L96-L117】
-- **`lovable-build.js` / `lovable-dev.js`** – Helper scripts that bootstrap environment variables and orchestrate combined Next.js + miniapp builds when running on Lovable’s deployment platform.【e53642†L1-L36】
+- **`lovable-build.js` / `lovable-dev.js`** – Helper scripts that bootstrap environment variables and orchestrate combined Next.js + miniapp builds when running on Dynamic’s deployment platform.【e53642†L1-L36】
 
 ## 5. Tooling, documentation & testing
 

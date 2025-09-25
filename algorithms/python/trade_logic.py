@@ -8,7 +8,7 @@ Functions, or bespoke automation services.
 
 The implementation attempts to reuse the feature engineering utilities and
 kernel helpers published in the jdehorty Hugging Face repositories.  The modules
-can be referenced with the shorthand path syntax used by Lovable Codex, e.g.
+can be referenced with the shorthand path syntax used by Dynamic Codex, e.g.
 ``"jdehorty/MLExtensions/2"``.  When those dependencies are not available the
 trade logic gracefully falls back to built-in implementations so the strategy
 remains operational in air-gapped environments.
@@ -41,7 +41,7 @@ def _load_remote_module(module_spec: str) -> ModuleType | SimpleNamespace:
     """Load a module that may live in a remote Hugging Face repository.
 
     The Dynamic Capital research environment references a handful of reusable
-    utilities that are distributed via Hugging Face Spaces.  Lovable Codex uses
+    utilities that are distributed via Hugging Face Spaces.  Dynamic Codex uses
     a slash-delimited syntax (``owner/repo/revision``) to reference those
     resources.  This helper understands the shorthand and will attempt to
     download the repository snapshot when the package is not already available

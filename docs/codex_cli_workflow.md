@@ -1,6 +1,6 @@
 # Codex CLI Workflow Helper
 
-The Lovable Codex CLI exports UI updates directly into this repository. The
+The Dynamic Codex CLI exports UI updates directly into this repository. The
 `scripts/codex-workflow.js` helper centralizes the post-export automation so you
 can reproduce Codex's build steps locally and keep your environment in sync.
 
@@ -10,7 +10,7 @@ can reproduce Codex's build steps locally and keep your environment in sync.
 | --- | --- |
 | `npm run codex:post-pull` | Install dependencies, sync `.env`/`.env.local`, validate core environment variables, and execute the combined `lovable-build.js` pipeline. |
 | `npm run codex:dev` | Optionally sync `.env`/`.env.local` before delegating to `lovable-dev.js`, which runs preflight checks and launches the Next.js dev server. |
-| `npm run codex:build` | Run the Lovable production build locally (Next.js dashboard + Telegram mini app). |
+| `npm run codex:build` | Run the Dynamic production build locally (Next.js dashboard + Telegram mini app). |
 | `npm run codex:verify` | Execute `scripts/verify/verify_all.sh` for the full repository verification sweep. |
 
 Each command is a thin wrapper around `scripts/codex-workflow.js MODE` so you can
@@ -23,7 +23,7 @@ Common flags accepted by the helper:
 - `--no-install` – skip `npm install` when you already have dependencies.
 - `--no-sync` – prevent the helper from running `npm run sync-env`.
 - `--no-env-check` – skip the `scripts/check-env.ts` guard (not recommended).
-- `--no-build` – omit the Lovable build step.
+- `--no-build` – omit the Dynamic build step.
 - `--build-optional` – treat build failures as warnings.
 - `--verify` – run `npm run verify` after the post-pull steps.
 - `--dry-run` – preview the steps without executing commands.
@@ -71,7 +71,7 @@ npm run codex:dev -- --no-sync
 npm run codex:build
 ```
 
-This workflow keeps the Lovable environment, the local repo, and GitHub in lock
+This workflow keeps the Dynamic environment, the local repo, and GitHub in lock
 step while providing a single entry point for Codex-specific automation.
 
 ## Auto-conflict resolution & merge guardrails

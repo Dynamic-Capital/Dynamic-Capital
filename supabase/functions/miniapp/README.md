@@ -1,23 +1,23 @@
 # Dynamic Capital Mini App
 
-Telegram Mini App implementing a glassmorphism UI for simple deposit flows. Built with **Lovable Codex** integration for enhanced development experience.
+Telegram Mini App implementing a glassmorphism UI for simple deposit flows. Built with **Dynamic Codex** integration for enhanced development experience.
 
 ## Development Process Overview
 
 | Tool | What It Does | How You Use It |
 | ---- | ------------ | -------------- |
-| **Lovable (Platform)** | Hosts the web app and provides a Supabase backend | Manage environment variables and monitor deployments via the Lovable dashboard |
-| **Lovable (AI)** | Generates scaffolding and high-level feature guidance | Use the chat interface to bootstrap components and features |
-| **Telegram/BotFather** | Configures the bot and links it to the mini app | Use commands like `/setmenubutton` to point the bot at the Lovable deployment URL |
+| **Dynamic (Platform)** | Hosts the web app and provides a Supabase backend | Manage environment variables and monitor deployments via the Dynamic console |
+| **Dynamic (AI)** | Generates scaffolding and high-level feature guidance | Use the chat interface to bootstrap components and features |
+| **Telegram/BotFather** | Configures the bot and links it to the mini app | Use commands like `/setmenubutton` to point the bot at the Dynamic deployment URL |
 | **Codex CLI** | Helps with local code-level tasks | Run terminal commands for UI tweaks, refactors, and feature additions |
-| **GitHub** | Version control and deployment trigger | Push changes to GitHub to have Lovable rebuild and redeploy |
+| **GitHub** | Version control and deployment trigger | Push changes to GitHub to have Dynamic rebuild and redeploy |
 
-## Lovable Codex Integration
+## Dynamic Codex Integration
 
-This Mini App is developed using **Lovable Codex** for AI-powered development:
+This Mini App is developed using **Dynamic Codex** for AI-powered development:
 
 ### Development Features
-- **Visual Edits**: Click the Edit button in Lovable's interface for instant UI changes
+- **Visual Edits**: Click the Edit button in Dynamic's interface for instant UI changes
 - **Chat-driven Development**: Describe features in natural language
 - **Real-time Preview**: See changes immediately in the live preview
 - **Component Architecture**: Modular, reusable components throughout
@@ -60,7 +60,7 @@ QR frame; replace them with production assets as needed.
 - **Dark/Light mode** support with automatic switching
 
 ### Component Library
-Components are built with Lovable Codex's component architecture:
+Components are built with Dynamic Codex's component architecture:
 - `PrimaryButton` - Main action buttons
 - `SecondaryButton` - Secondary actions
 - `ApproveButton` - Approval workflows
@@ -129,7 +129,7 @@ The edge function needs the following secrets:
 
 ## GitHub Integration
 
-This Mini App features **bidirectional GitHub sync** through Lovable Codex:
+This Mini App features **bidirectional GitHub sync** through Dynamic Codex:
 - Changes in Codex automatically sync to GitHub
 - Real-time collaboration with version control
 - Built-in rollback capabilities
@@ -137,7 +137,7 @@ This Mini App features **bidirectional GitHub sync** through Lovable Codex:
 
 ## Debugging & Monitoring
 
-With Lovable Codex integration:
+With Dynamic Codex integration:
 - **Console Access**: Real-time console log monitoring
 - **Network Inspection**: API call monitoring and debugging
 - **Error Detection**: Automatic error identification and suggested fixes

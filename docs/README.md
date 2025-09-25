@@ -38,7 +38,7 @@ documenting which assets were consulted.
 | --- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
 | 2.1 | [BEST_PRACTICES.md](./BEST_PRACTICES.md)                           | Coding conventions, review expectations, and shared quality bars.                       |
 | 2.2 | [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)               | Local development flow, tooling setup, and day-to-day commands.                         |
-| 2.3 | [HYBRID_DEVELOPMENT_WORKFLOW.md](./HYBRID_DEVELOPMENT_WORKFLOW.md) | Guidance for working across Lovable, Supabase, and local Next.js surfaces concurrently. |
+| 2.3 | [HYBRID_DEVELOPMENT_WORKFLOW.md](./HYBRID_DEVELOPMENT_WORKFLOW.md) | Guidance for working across Dynamic, Supabase, and local Next.js surfaces concurrently. |
 | 2.4 | [code-structure.md](./code-structure.md)                           | High-level overview of monorepo structure and module boundaries.                        |
 | 2.5 | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Notes for collaborating with the Codex CLI agents on scoped tasks.                      |
 | 2.6 | [CLEANUP_AND_CODEMODS.md](./CLEANUP_AND_CODEMODS.md)               | Strategy for running codemods and debt cleanups safely.                                 |

@@ -160,7 +160,7 @@ crash).
 
 ---
 
-## 12) Lovable Codex Integration
+## 12) Dynamic Codex Integration
 
 ### UI Agent Prompt (Latest)
 
@@ -387,7 +387,7 @@ graph TB
 
 #### For Visual/Text Changes
 
-1. **Use Visual Edits** in Lovable Codex chat interface
+1. **Use Visual Edits** in Dynamic Codex chat interface
 2. Click Edit button → modify directly on screen
 3. Save credits for complex functionality changes
 
@@ -473,7 +473,7 @@ deno run -A scripts/make-initdata.ts --id=YOUR_TELEGRAM_ID
 
 If UI changes break core functionality:
 
-1. **Use Lovable's built-in version history**
+1. **Use Dynamic's built-in version history**
 2. **Rollback to last known good state**
 3. **Check console logs** for error details
 4. **Verify integration endpoints** still respond

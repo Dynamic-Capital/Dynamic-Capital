@@ -41,18 +41,18 @@ export const handler = registerHandler(async (req) => {
     const lovableMiniAppUrl = Deno.env.get("MINI_APP_URL") ??
       fallbackMiniAppUrl;
 
-    console.log("Setting up Lovable Mini App with URL:", lovableMiniAppUrl);
+    console.log("Setting up Dynamic Mini App with URL:", lovableMiniAppUrl);
 
     // Initialize Supabase client
     const supabase = createSupabaseClient(supabaseUrl, supabaseServiceKey);
 
-    // Store the Lovable URL as a bot setting
+    // Store the Dynamic URL as a bot setting
     const { error: settingError } = await supabase
       .from("bot_settings")
       .upsert({
         setting_key: "MINI_APP_URL",
         setting_value: lovableMiniAppUrl,
-        description: "Lovable Mini App URL for Telegram integration",
+        description: "Dynamic Mini App URL for Telegram integration",
         is_active: true,
         updated_at: new Date().toISOString(),
       });
@@ -62,7 +62,7 @@ export const handler = registerHandler(async (req) => {
       throw new Error(`Failed to store bot setting: ${settingError.message}`);
     }
 
-    // Set the chat menu button to open the Lovable mini app
+    // Set the chat menu button to open the Dynamic mini app
     const menuButtonResponse = await fetch(
       `https://api.telegram.org/bot${botToken}/setChatMenuButton`,
       {
@@ -137,7 +137,7 @@ export const handler = registerHandler(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Lovable Mini App setup completed successfully",
+        message: "Dynamic Mini App setup completed successfully",
         botInfo: {
           username: botInfo.result?.username,
           first_name: botInfo.result?.first_name,
@@ -153,7 +153,7 @@ export const handler = registerHandler(async (req) => {
       },
     );
   } catch (error) {
-    console.error("Lovable Mini App setup error:", error);
+    console.error("Dynamic Mini App setup error:", error);
     return new Response(
       JSON.stringify({
         success: false,

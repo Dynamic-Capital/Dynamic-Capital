@@ -20,10 +20,10 @@ and exported landing snapshot._
 | `apps/`       | Directory | Next.js monorepo powering the marketing landing page and Telegram operations console.                    |
 | `broadcast/`  | Directory | Standalone broadcast planner used for scheduled outbound Telegram messages.                              |
 | `go-service/` | Directory | Minimal Go HTTP service exposing `/healthz` for uptime monitoring.                                       |
-| `index.html`  | File      | Static shell used by the Lovable/Vite harness to proxy into the Next.js application.                     |
+| `index.html`  | File      | Static shell used by the Dynamic/Vite harness to proxy into the Next.js application.                     |
 | `queue/`      | Directory | Background worker harness that processes queued jobs outside the webhook request lifecycle.              |
 | `server.js`   | File      | Hardened Node server that serves the `_static` snapshot with security headers and health checks.         |
-| `src/`        | Directory | Lovable/Vite development harness and stubs that proxy into the Next.js app during local development.     |
+| `src/`        | Directory | Dynamic/Vite development harness and stubs that proxy into the Next.js app during local development.     |
 
 ## Data Layer & Platform Services
 
@@ -57,8 +57,8 @@ ergonomics._
 | Path               | Type      | Summary                                                                                        |
 | ------------------ | --------- | ---------------------------------------------------------------------------------------------- |
 | `.github/`         | Directory | GitHub Actions workflows and repository configuration.                                         |
-| `lovable-build.js` | File      | Lovable automation helper that orchestrates production builds across app surfaces.             |
-| `lovable-dev.js`   | File      | Lovable development bootstrapper for local preview flows.                                      |
+| `lovable-build.js` | File      | Dynamic automation helper that orchestrates production builds across app surfaces.             |
+| `lovable-dev.js`   | File      | Dynamic development bootstrapper for local preview flows.                                      |
 | `scripts/`         | Directory | Operational scripts for builds, environment sync, Telegram automation, and verification tasks. |
 | `tools/`           | Directory | Developer utilities such as the AlgoKit-inspired scaffolding CLI.                              |
 
@@ -97,7 +97,7 @@ files._
 | `.env.example`       | File      | Sample environment variables for local development and onboarding.                                           |
 | `.gitignore`         | File      | Git ignore rules for generated or local-only files.                                                          |
 | `.nvmrc`             | File      | Node.js version pin for contributors using `nvm`.                                                            |
-| `codex.json`         | File      | Lovable Codex metadata that wires automated workspace curation for branding-centric builds.                  |
+| `codex.json`         | File      | Dynamic Codex metadata that wires automated workspace curation for branding-centric builds.                  |
 | `deno.json`          | File      | Deno configuration and task runner definitions.                                                              |
 | `deno.lock`          | File      | Deno module lockfile capturing remote dependencies.                                                          |
 | `env/`               | Directory | Derived environment mapping artifacts shared across workspaces to align branding-aware runtime settings.     |
@@ -105,11 +105,11 @@ files._
 | `package-lock.json`  | File      | Lockfile for npm dependencies to ensure reproducible installs.                                               |
 | `package.json`       | File      | npm workspace manifest defining scripts and dependencies.                                                    |
 | `postcss.config.js`  | File      | PostCSS pipeline configuration.                                                                              |
-| `project.toml`       | File      | Lovable project manifest describing workspace metadata.                                                      |
-| `tag-ruleset.json`   | File      | Lovable tagging automation rules that route dynamic branding initiatives to the correct workspace reviewers. |
+| `project.toml`       | File      | Dynamic project manifest describing workspace metadata.                                                      |
+| `tag-ruleset.json`   | File      | Dynamic tagging automation rules that route dynamic branding initiatives to the correct workspace reviewers. |
 | `tailwind.config.ts` | File      | Tailwind CSS configuration for the Next.js surfaces.                                                         |
 | `tsconfig.json`      | File      | TypeScript compiler configuration shared across the monorepo.                                                |
-| `vite.config.ts`     | File      | Vite proxy configuration used during Lovable-driven development.                                             |
+| `vite.config.ts`     | File      | Vite proxy configuration used during Dynamic-driven development.                                             |
 
 ## Generated Artifacts
 
