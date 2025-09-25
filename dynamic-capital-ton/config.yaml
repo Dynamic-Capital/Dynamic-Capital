@@ -1,0 +1,28 @@
+token:
+  name: Dynamic Capital Token
+  symbol: DCT
+  decimals: 9
+  maxSupply: 100000000
+
+splits:
+  operationsPct: 60
+  autoInvestPct: 30
+  buybackBurnPct: 10
+  bounds:
+    operationsPct: [40, 75]
+    autoInvestPct: [15, 45]
+    buybackBurnPct: [5, 20]
+
+locks:
+  bronzeMonths: 3
+  silverMonths: 6
+  goldMonths: 12
+  multipliers: [1.2, 1.5, 2.0]
+
+emissions:
+  epochDays: 7
+  epochCap: 240000
+
+governance:
+  multisig: "EQxxxxxxxx"
+  timelockHours: 48
