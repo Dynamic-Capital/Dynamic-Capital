@@ -32,6 +32,7 @@ const routes: RoutesConfig = {
   "/blog": true,
   "/gallery": false,
   "/telegram": true,
+  "/token": true,
 };
 
 const display: DisplayConfig = {

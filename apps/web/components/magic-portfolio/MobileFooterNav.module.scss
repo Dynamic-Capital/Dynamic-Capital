@@ -1,0 +1,56 @@
+@use "./breakpoints.scss" as breakpoints;
+
+.container {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: none;
+}
+
+@media (max-width: breakpoints.$s) {
+  .container {
+    display: block;
+    background: hsl(var(--card));
+    border-top: 1px solid hsl(var(--border));
+    box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.35);
+    padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .navList {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .navItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    text-decoration: none;
+    color: hsl(var(--muted-foreground));
+    font-size: var(--text-xs);
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.75rem;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+
+  .navItemActive {
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.08);
+  }
+
+  .emoji {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .label {
+    line-height: 1.2;
+  }
+}
