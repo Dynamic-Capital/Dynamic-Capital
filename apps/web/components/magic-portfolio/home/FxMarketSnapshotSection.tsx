@@ -1,5 +1,13 @@
-import { Column, Heading, Line, Row, Tag, Text } from "@/components/dynamic-ui-system";
+import {
+  Column,
+  Heading,
+  Line,
+  Row,
+  Tag,
+  Text,
+} from "@/components/dynamic-ui-system";
 import type { Colors } from "@/components/dynamic-ui-system";
+import type { ComponentProps, ReactNode } from "react";
 
 type CurrencyStrength = {
   code: string;
@@ -30,6 +38,31 @@ type VolatilityPair = {
 };
 
 type TagBackground = Colors | "page" | "surface" | "overlay" | "transparent";
+
+type MoversSection = {
+  title: string;
+  data: TopMover[];
+  tone: TagBackground;
+};
+
+type VolatilityBucket = {
+  title: string;
+  data: VolatilityPair[];
+  background: TagBackground;
+};
+
+type InsightCardTag = {
+  label: string;
+  icon?: ComponentProps<typeof Tag>["prefixIcon"];
+  tone?: TagBackground;
+};
+
+type InsightCardProps = {
+  title: string;
+  description?: string;
+  tag?: InsightCardTag;
+  children: ReactNode;
+};
 
 const LAST_UPDATED = "25 September 2025 · 06:28 GMT+5";
 
@@ -318,226 +351,251 @@ export function FxMarketSnapshotSection() {
         </Text>
       </Column>
 
-      <Column gap="20">
-        <Column gap="12">
-          <Heading as="h3" variant="heading-strong-m">
-            Currency strength meter
-          </Heading>
-          <Text variant="body-default-m" onBackground="neutral-weak">
-            Ordered by intraday performance, highlighting which majors are
-            driving price action right now.
-          </Text>
-        </Column>
-        <Row gap="16" wrap>
-          {CURRENCY_STRENGTH_METER.map((currency) => (
-            <Column
-              key={currency.code}
-              background="page"
-              border="neutral-alpha-weak"
-              radius="l"
-              padding="l"
-              gap="12"
-              minWidth={20}
-              flex={1}
-            >
-              <Row horizontal="between" vertical="center" gap="8">
-                <Row gap="8" vertical="center">
+      <Row gap="24" wrap>
+        <Column flex={1} minWidth={32} gap="24">
+          <InsightCard
+            title="Currency strength meter"
+            description="Ordered by intraday performance, highlighting which majors are driving price action right now."
+            tag={{
+              label: "Currency leadership",
+              icon: "flag",
+              tone: "brand-alpha-weak",
+            }}
+          >
+            <Row gap="16" wrap>
+              {CURRENCY_STRENGTH_METER.map((currency) => (
+                <Column
+                  key={currency.code}
+                  background="page"
+                  border="neutral-alpha-weak"
+                  radius="l"
+                  padding="l"
+                  gap="12"
+                  minWidth={20}
+                  flex={1}
+                >
+                  <Row horizontal="between" vertical="center" gap="8">
+                    <Row gap="8" vertical="center">
+                      <Tag size="s" background="neutral-alpha-weak">
+                        #{currency.rank}
+                      </Tag>
+                      <Heading as="h4" variant="heading-strong-s">
+                        {currency.code}
+                      </Heading>
+                    </Row>
+                    <Tag size="s" background={toneTagBackground[currency.tone]}>
+                      {toneLabel[currency.tone]}
+                    </Tag>
+                  </Row>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    {currency.summary}
+                  </Text>
+                </Column>
+              ))}
+            </Row>
+          </InsightCard>
+
+          <InsightCard
+            title="Currency volatility meter"
+            description="Which currencies are producing the widest realized ranges during the current session."
+            tag={{
+              label: "Realized volatility",
+              icon: "activity",
+              tone: "neutral-alpha-weak",
+            }}
+          >
+            <Column gap="12">
+              {CURRENCY_VOLATILITY_METER.map((currency) => (
+                <Row key={currency.code} gap="12" vertical="start">
                   <Tag size="s" background="neutral-alpha-weak">
                     #{currency.rank}
                   </Tag>
-                  <Heading as="h4" variant="heading-strong-s">
-                    {currency.code}
-                  </Heading>
+                  <Column gap="4">
+                    <Text variant="body-strong-s">{currency.code}</Text>
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      {currency.summary}
+                    </Text>
+                  </Column>
                 </Row>
-                <Tag size="s" background={toneTagBackground[currency.tone]}>
-                  {toneLabel[currency.tone]}
-                </Tag>
+              ))}
+            </Column>
+          </InsightCard>
+        </Column>
+
+        <Column flex={1} minWidth={32} gap="24">
+          <InsightCard
+            title="Top movers"
+            description="Change and last price snapshots for the session."
+            tag={{
+              label: "Session movers",
+              icon: "trending-up",
+              tone: "brand-alpha-weak",
+            }}
+          >
+            <Column gap="16">
+              {MOVERS_SECTIONS.map((section) => (
+                <MoversTable key={section.title} {...section} />
+              ))}
+            </Column>
+          </InsightCard>
+
+          <InsightCard
+            title="Volatility radar"
+            description="Cross-check the day’s most active currencies and the pairs delivering the widest and tightest trading bands."
+            tag={{
+              label: "Trading ranges",
+              icon: "target",
+              tone: "neutral-alpha-weak",
+            }}
+          >
+            <Row gap="16" wrap>
+              {VOLATILITY_BUCKETS.map((bucket) => (
+                <VolatilityBucketPanel key={bucket.title} {...bucket} />
+              ))}
+            </Row>
+          </InsightCard>
+        </Column>
+      </Row>
+    </Column>
+  );
+}
+
+function InsightCard({ title, description, tag, children }: InsightCardProps) {
+  return (
+    <Column
+      background="page"
+      border="neutral-alpha-weak"
+      radius="l"
+      padding="l"
+      gap="16"
+      align="start"
+    >
+      <Column gap="8" align="start">
+        {tag
+          ? (
+            <Tag
+              size="s"
+              background={tag.tone ?? "neutral-alpha-weak"}
+              prefixIcon={tag.icon}
+            >
+              {tag.label}
+            </Tag>
+          )
+          : null}
+        <Heading as="h3" variant="heading-strong-m">
+          {title}
+        </Heading>
+        {description
+          ? (
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              {description}
+            </Text>
+          )
+          : null}
+      </Column>
+      {children}
+    </Column>
+  );
+}
+
+function MoversTable({ title, data, tone }: MoversSection) {
+  return (
+    <Column gap="12" align="start">
+      <Tag
+        size="s"
+        background={tone}
+        prefixIcon={title === "Top gainers" ? "trending-up" : "trending-down"}
+      >
+        {title}
+      </Tag>
+      <Column
+        background="surface"
+        border="neutral-alpha-weak"
+        radius="l"
+        padding="l"
+        gap="12"
+        fillWidth
+      >
+        <Row horizontal="between" vertical="center">
+          <Text variant="label-default-s" onBackground="neutral-weak">
+            Pair
+          </Text>
+          <Row gap="16" vertical="center">
+            <Text variant="label-default-s" onBackground="neutral-weak">
+              Change %
+            </Text>
+            <Text variant="label-default-s" onBackground="neutral-weak">
+              Change
+            </Text>
+            <Text variant="label-default-s" onBackground="neutral-weak">
+              Pips
+            </Text>
+            <Text variant="label-default-s" onBackground="neutral-weak">
+              Last
+            </Text>
+          </Row>
+        </Row>
+        <Line background="neutral-alpha-weak" />
+        <Column gap="12">
+          {data.map((item) => (
+            <Row key={item.symbol} horizontal="between" vertical="center">
+              <Column gap="4">
+                <Text variant="body-strong-s">{item.pair}</Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {item.symbol}
+                </Text>
+              </Column>
+              <Row gap="16" vertical="center">
+                <Text variant="body-strong-s">
+                  {formatPercent(item.changePercent)}
+                </Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {formatChange(item.change)}
+                </Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {formatPips(item.pips)}
+                </Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {formatPrice(item.lastPrice)}
+                </Text>
               </Row>
+            </Row>
+          ))}
+        </Column>
+      </Column>
+    </Column>
+  );
+}
+
+function VolatilityBucketPanel({ title, data, background }: VolatilityBucket) {
+  return (
+    <Column
+      flex={1}
+      minWidth={24}
+      gap="12"
+      background="surface"
+      border="neutral-alpha-weak"
+      radius="l"
+      padding="l"
+      align="start"
+    >
+      <Tag size="s" background={background} prefixIcon="activity">
+        {title}
+      </Tag>
+      <Column gap="12" fillWidth>
+        {data.map((item) => (
+          <Row key={item.symbol} horizontal="between" vertical="center">
+            <Column gap="4">
+              <Text variant="body-strong-s">{item.pair}</Text>
               <Text variant="body-default-s" onBackground="neutral-weak">
-                {currency.summary}
+                {item.symbol}
               </Text>
             </Column>
-          ))}
-        </Row>
-      </Column>
-
-      <Column gap="24">
-        <Heading as="h3" variant="heading-strong-m">
-          Top movers
-        </Heading>
-        <Row gap="24" wrap>
-          {MOVERS_SECTIONS.map(({ title, data, tone }) => (
-            <Column key={title} flex={1} minWidth={24} gap="16">
-              <Column gap="8">
-                <Row gap="8" vertical="center">
-                  <Tag
-                    size="s"
-                    background={tone}
-                    prefixIcon={title === "Top gainers"
-                      ? "trending-up"
-                      : "trending-down"}
-                  >
-                    {title}
-                  </Tag>
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    Change and last price snapshots for the session.
-                  </Text>
-                </Row>
-              </Column>
-              <Column
-                background="page"
-                border="neutral-alpha-weak"
-                radius="l"
-                padding="l"
-                gap="12"
-              >
-                <Row horizontal="between" vertical="center">
-                  <Text variant="label-default-s" onBackground="neutral-weak">
-                    Pair
-                  </Text>
-                  <Row gap="16" vertical="center">
-                    <Text variant="label-default-s" onBackground="neutral-weak">
-                      Change %
-                    </Text>
-                    <Text variant="label-default-s" onBackground="neutral-weak">
-                      Change
-                    </Text>
-                    <Text variant="label-default-s" onBackground="neutral-weak">
-                      Pips
-                    </Text>
-                    <Text variant="label-default-s" onBackground="neutral-weak">
-                      Last
-                    </Text>
-                  </Row>
-                </Row>
-                <Line background="neutral-alpha-weak" />
-                <Column gap="12">
-                  {data.map((item) => (
-                    <Row
-                      key={item.symbol}
-                      horizontal="between"
-                      vertical="center"
-                    >
-                      <Column gap="4">
-                        <Text variant="body-strong-s">{item.pair}</Text>
-                        <Text
-                          variant="body-default-s"
-                          onBackground="neutral-weak"
-                        >
-                          {item.symbol}
-                        </Text>
-                      </Column>
-                      <Row gap="16" vertical="center">
-                        <Text variant="body-strong-s">
-                          {formatPercent(item.changePercent)}
-                        </Text>
-                        <Text
-                          variant="body-default-s"
-                          onBackground="neutral-weak"
-                        >
-                          {formatChange(item.change)}
-                        </Text>
-                        <Text
-                          variant="body-default-s"
-                          onBackground="neutral-weak"
-                        >
-                          {formatPips(item.pips)}
-                        </Text>
-                        <Text
-                          variant="body-default-s"
-                          onBackground="neutral-weak"
-                        >
-                          {formatPrice(item.lastPrice)}
-                        </Text>
-                      </Row>
-                    </Row>
-                  ))}
-                </Column>
-              </Column>
-            </Column>
-          ))}
-        </Row>
-      </Column>
-
-      <Column gap="24">
-        <Heading as="h3" variant="heading-strong-m">
-          Volatility radar
-        </Heading>
-        <Text variant="body-default-m" onBackground="neutral-weak">
-          Cross-check the day’s most active currencies and the pairs delivering
-          the widest and tightest trading bands.
-        </Text>
-        <Row gap="24" wrap>
-          <Column flex={1} minWidth={24} gap="16">
-            <Column
-              background="page"
-              border="neutral-alpha-weak"
-              radius="l"
-              padding="l"
-              gap="12"
-            >
-              <Heading as="h4" variant="heading-strong-s">
-                Currency volatility meter
-              </Heading>
-              <Column gap="12">
-                {CURRENCY_VOLATILITY_METER.map((currency) => (
-                  <Row key={currency.code} gap="12" vertical="start">
-                    <Tag size="s" background="neutral-alpha-weak">
-                      #{currency.rank}
-                    </Tag>
-                    <Column gap="4">
-                      <Text variant="body-strong-s">{currency.code}</Text>
-                      <Text
-                        variant="body-default-s"
-                        onBackground="neutral-weak"
-                      >
-                        {currency.summary}
-                      </Text>
-                    </Column>
-                  </Row>
-                ))}
-              </Column>
-            </Column>
-          </Column>
-          <Column flex={1} minWidth={24} gap="16">
-            {VOLATILITY_BUCKETS.map(({ title, data, background }) => (
-              <Column
-                key={title}
-                background="page"
-                border="neutral-alpha-weak"
-                radius="l"
-                padding="l"
-                gap="12"
-              >
-                <Tag size="s" background={background} prefixIcon="activity">
-                  {title}
-                </Tag>
-                <Column gap="12">
-                  {data.map((item) => (
-                    <Row
-                      key={item.symbol}
-                      horizontal="between"
-                      vertical="center"
-                    >
-                      <Column gap="4">
-                        <Text variant="body-strong-s">{item.pair}</Text>
-                        <Text
-                          variant="body-default-s"
-                          onBackground="neutral-weak"
-                        >
-                          {item.symbol}
-                        </Text>
-                      </Column>
-                      <Text variant="body-strong-s">
-                        {item.rangePercent.toFixed(2)}%
-                      </Text>
-                    </Row>
-                  ))}
-                </Column>
-              </Column>
-            ))}
-          </Column>
-        </Row>
+            <Text variant="body-strong-s">
+              {item.rangePercent.toFixed(2)}%
+            </Text>
+          </Row>
+        ))}
       </Column>
     </Column>
   );
