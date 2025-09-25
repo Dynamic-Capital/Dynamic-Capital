@@ -24,6 +24,8 @@ const routes: RoutesConfig = {
   "/login": true,
   "/admin": true,
   "/signal": true,
+  "/tools": { enabled: true, includeChildren: true },
+  "/tools/commodity-volatility-meter": true,
   "/work": false,
   "/blog": false,
   "/gallery": false,
