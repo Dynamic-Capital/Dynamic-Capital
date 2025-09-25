@@ -1,4 +1,4 @@
-import { getPosts } from "@/utils/magic-portfolio/utils";
+import { brandProjectTitle, getPosts } from "@/utils/magic-portfolio/utils";
 import { Column } from "@/components/dynamic-ui-system";
 import { ProjectCard } from "@/components/magic-portfolio";
 
@@ -16,7 +16,8 @@ export function Projects({ range, exclude }: ProjectsProps) {
   }
 
   const sortedProjects = allProjects.sort((a, b) => {
-    return new Date(b.metadata.publishedAt).getTime() - new Date(a.metadata.publishedAt).getTime();
+    return new Date(b.metadata.publishedAt).getTime() -
+      new Date(a.metadata.publishedAt).getTime();
   });
 
   const displayedProjects = range
@@ -31,10 +32,12 @@ export function Projects({ range, exclude }: ProjectsProps) {
           key={post.slug}
           href={`/work/${post.slug}`}
           images={post.metadata.images}
-          title={post.metadata.title}
+          title={brandProjectTitle(post.metadata.title, post.metadata.link)}
           description={post.metadata.summary}
           content={post.content}
-          avatars={post.metadata.team?.map((member) => ({ src: member.avatar })) || []}
+          avatars={post.metadata.team?.map((member) => ({
+            src: member.avatar,
+          })) || []}
           link={post.metadata.link || ""}
         />
       ))}

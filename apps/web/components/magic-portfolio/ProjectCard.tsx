@@ -9,6 +9,7 @@ import {
   SmartLink,
   Text,
 } from "@/components/dynamic-ui-system";
+import { Badge } from "@/components/ui/badge";
 
 interface ProjectCardProps {
   href: string;
@@ -32,6 +33,12 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   return (
     <Column fillWidth gap="m">
+      <Badge
+        variant="outline"
+        className="self-start border-dc-brand/30 bg-dc-brand/10 text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-dc-brand-dark"
+      >
+        Dynamic Capital • ISO 27001
+      </Badge>
       <Carousel
         sizes="(max-width: 960px) 100vw, 960px"
         items={images.map((image) => ({
