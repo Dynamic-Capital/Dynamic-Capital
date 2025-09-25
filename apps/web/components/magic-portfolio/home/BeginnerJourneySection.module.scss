@@ -1,0 +1,58 @@
+.flowGrid {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.flowCard {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.flowAccent {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    75% 75% at 50% 20%,
+    hsl(var(--dc-brand) / 0.2),
+    transparent 70%
+  );
+  transition: opacity 200ms ease;
+}
+
+.flowCard:hover .flowAccent,
+.flowCard:focus-within .flowAccent {
+  opacity: 1;
+}
+
+.resources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.timeline::before {
+  content: "";
+  display: block;
+  width: 2rem;
+  height: 2px;
+  background: hsl(var(--dc-brand) / 0.25);
+}
+
+@media (max-width: 48rem) {
+  .flowGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

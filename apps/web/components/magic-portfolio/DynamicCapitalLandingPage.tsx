@@ -14,8 +14,10 @@ import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallo
 import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
 import { FxMarketSnapshotSection } from "@/components/magic-portfolio/home/FxMarketSnapshotSection";
 import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
+import { LiveMarketWidgets } from "@/components/magic-portfolio/home/LiveMarketWidgets";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
+import { BeginnerJourneySection } from "@/components/magic-portfolio/home/BeginnerJourneySection";
 import { cn } from "@/utils";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 import styles from "./DynamicCapitalLandingPage.module.scss";
@@ -195,16 +197,22 @@ export function DynamicCapitalLandingPage() {
       <Section revealDelay={0.4}>
         <ExperienceHighlightsSection />
       </Section>
-      <Section variant="wide" revealDelay={0.48}>
+      <Section revealDelay={0.48}>
+        <BeginnerJourneySection />
+      </Section>
+      <Section variant="wide" revealDelay={0.56}>
         <MarketIntelligenceSection />
       </Section>
-      <Section revealDelay={0.56}>
-        <MentorAndTrustSection />
-      </Section>
-      <Section revealDelay={0.64}>
-        <FundingReadinessSection />
+      <Section variant="wide" revealDelay={0.64}>
+        <LiveMarketWidgets />
       </Section>
       <Section revealDelay={0.72}>
+        <MentorAndTrustSection />
+      </Section>
+      <Section revealDelay={0.8}>
+        <FundingReadinessSection />
+      </Section>
+      <Section revealDelay={0.88}>
         <CheckoutCallout />
       </Section>
       <Section reveal={false}>

@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Background, Column, RevealFx } from "@/components/dynamic-ui-system";
 import { opacity, SpacingToken } from "@/components/dynamic-ui-system";
 import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
+import { StickyWalletCTA } from "@/components/shared/StickyWalletCTA";
 import { cn } from "@/utils";
 import { dynamicUI } from "@/resources";
 import { DynamicCapitalLandingPage } from "@/components/magic-portfolio/DynamicCapitalLandingPage";
@@ -122,6 +123,7 @@ export function LandingPageShell({
           </Column>
         )
         : null}
+      <StickyWalletCTA />
     </Column>
   );
 }
