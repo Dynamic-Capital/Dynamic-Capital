@@ -43,6 +43,7 @@ documenting which assets were consulted.
 | 2.5 | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Commands, flags, general knowledge, and GitHub handoff loop for the Codex CLI helper.   |
 | 2.6 | [CLEANUP_AND_CODEMODS.md](./CLEANUP_AND_CODEMODS.md)               | Strategy for running codemods and debt cleanups safely.                                 |
 | 2.7 | [NEXTJS_BUILD_CACHE_TASK.md](./NEXTJS_BUILD_CACHE_TASK.md)         | Instructions for the Next.js build cache maintenance task.                              |
+| 2.8 | [ton-ide-plugins.md](./ton-ide-plugins.md)                         | Official TON IDE plugins for JetBrains, VS Code, and the Web IDE with install checklists. |
 
 ## 3. Environment & Configuration
 
