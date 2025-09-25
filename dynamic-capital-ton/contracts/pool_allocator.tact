@@ -14,6 +14,11 @@ struct TimelockAction {
   addressValue: Address;
 }
 
+struct PauseAction {
+  executeAfter: Int;
+  targetPaused: Bool;
+}
+
 struct DepositEvent {
   depositId: Int;
   investorKey: Slice;
@@ -31,7 +36,7 @@ contract TonPoolAllocator {
   dctMaster: Address;
   paused: Bool;
   timelockSeconds: Int;
-  pendingPause?: TimelockAction;
+  pendingPause?: PauseAction;
   pendingRouter?: TimelockAction;
   pendingTreasury?: TimelockAction;
 
@@ -68,16 +73,15 @@ contract TonPoolAllocator {
 
     if (op == OP_SCHEDULE_PAUSE) {
       Bool target = body.loadBit();
-      self.pendingPause = TimelockAction{
+      self.pendingPause = PauseAction{
         executeAfter: now() + self.timelockSeconds,
-        addressValue: target ? self.admin : null(),
+        targetPaused: target,
       };
       return;
     }
 
     if (op == OP_EXECUTE_PAUSE) {
-      self.requirePending(self.pendingPause);
-      self.paused = self.pendingPause?.addressValue != null();
+      self.paused = self.requirePause(self.pendingPause);
       self.pendingPause = null();
       return;
     }
@@ -115,6 +119,10 @@ contract TonPoolAllocator {
 
   fun handleJettonTransfer(msg: InternalMessage) {
     require(!self.paused, "allocator paused");
+    if (msg.info.src != self.usdtJetton) {
+      self.reject(msg, "allocator: unauthorized jetton");
+      return;
+    }
     slice body = msg.body.beginParse();
     body.loadUint(32); // op
     body.loadUint(64); // query id
@@ -171,6 +179,12 @@ contract TonPoolAllocator {
     require(now() >= pending?.executeAfter, "allocator: timelock");
     require(pending?.addressValue != null(), "allocator: invalid address");
     return pending?.addressValue as Address;
+  }
+
+  fun requirePause(pending?: PauseAction): Bool {
+    require(pending != null(), "allocator: nothing scheduled");
+    require(now() >= pending?.executeAfter, "allocator: timelock");
+    return pending?.targetPaused as Bool;
   }
 
   fun reject(msg: InternalMessage, err: String) {
