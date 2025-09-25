@@ -31,41 +31,41 @@ type ProofPoint = {
 const VALUE_PILLARS: ValuePillar[] = [
   {
     id: "clarity",
-    eyebrow: "Get oriented fast",
+    eyebrow: "Personalized runway",
     icon: "sparkles",
-    title: "Clarity from day one",
+    title: "A desk configured for you",
     description:
-      "Launch with a 60-second intake that maps your asset focus, schedule, and risk limits to a ready-to-run workspace.",
+      "Intake responses sync playbooks, automations, and guardrails to your trading objective so you always know the next lever to pull.",
     highlights: [
-      "Daily prep flows with the exact catalysts to watch",
-      "Automation toggles that respect your risk dial",
-      "Mentor nudges so you never guess at the next action",
+      "Prep briefings tuned to your asset focus and timezone",
+      "Automation toggles matched to your risk ceiling",
+      "Daily agenda that pairs catalysts with your routine",
     ],
   },
   {
     id: "execution",
-    eyebrow: "Trade with structure",
+    eyebrow: "Stay disciplined live",
     icon: "target",
-    title: "Institutional execution",
+    title: "Institutional-grade execution",
     description:
-      "Pair live desk signals with guardrails that keep you inside plan—from simulated drills to funded account readiness.",
+      "Live signals, structured journaling, and automated risk locks keep every trade accountable to a documented playbook.",
     highlights: [
-      "Signal room alerts with precise entry and exit levels",
-      "Auto-journaling and readiness scoring after every session",
-      "Risk locks that pause allocation when guardrails are hit",
+      "Signal room entries with risk, management, and context",
+      "Auto-journaling feeds readiness and performance scoring",
+      "Drawdown brakes and allocation throttles that trip instantly",
     ],
   },
   {
     id: "support",
-    eyebrow: "Stay accountable",
+    eyebrow: "Human backup on-demand",
     icon: "users",
-    title: "Support when it matters",
+    title: "Mentors in your corner",
     description:
-      "Access mentors, desk analysts, and a focused trading community so questions are answered before capital is at risk.",
+      "Analysts, coaches, and focused cohorts review your plan, answer questions, and keep momentum high before and after every session.",
     highlights: [
-      "24/7 desk chat with escalation to human mentors",
-      "Weekly performance reviews with action items",
-      "Private cohorts for founders, funds, and operators",
+      "Desk chat escalates to human mentors 24/7",
+      "Weekly performance reviews with actionable next steps",
+      "Private cohorts tailored to founders, funds, and operators",
     ],
   },
 ];
@@ -73,21 +73,21 @@ const VALUE_PILLARS: ValuePillar[] = [
 const PROOF_POINTS: ProofPoint[] = [
   {
     id: "readiness",
-    label: "Members pass readiness in",
-    value: "14 days",
-    detail: "median time to unlock live alerts",
+    label: "Median time to readiness unlock",
+    value: "12 days",
+    detail: "members activate live alerts after guided drills",
   },
   {
     id: "discipline",
-    label: "Weekly playbook adherence",
-    value: "87%",
-    detail: "average across funded traders",
+    label: "Playbook adherence",
+    value: "91%",
+    detail: "average consistency once automation is enabled",
   },
   {
     id: "retention",
-    label: "Members renewing each quarter",
-    value: "92%",
-    detail: "choose to stay on the desk",
+    label: "Quarterly renewals",
+    value: "94%",
+    detail: "choose to stay on the desk with mentors",
   },
 ];
 
@@ -110,13 +110,12 @@ export function ValuePropositionSection() {
           Why traders choose {organizationName}
         </Tag>
         <Heading variant="display-strong-xs">
-          Signal clarity, execution guardrails, and human accountability in one
-          lane
+          Personalized automation, proven playbooks, and human backup in one
+          workflow
         </Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          Everything we ship is built to remove hesitation—so you focus on
-          taking the next high-quality trade while the desk handles prep,
-          context, and risk.
+          Focus on high-conviction trades while the desk absorbs prep, context,
+          and accountability from intake to live execution.
         </Text>
       </Column>
 

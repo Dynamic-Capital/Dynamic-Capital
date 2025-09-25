@@ -63,9 +63,7 @@ const home: Home = {
   label: "Home",
   title: ogDefaults.title,
   description: ogDefaults.description,
-  headline: (
-    <>Trade with confidence, even if you&apos;re just getting started.</>
-  ),
+  headline: <>Run a professional trading desk without hiring a team.</>,
   featured: {
     display: true,
     title: (
@@ -74,11 +72,11 @@ const home: Home = {
           onBackground="brand-strong"
           className="ml-4 font-semibold tracking-tight"
         >
-          New: Guided onboarding workspace
+          Launch update: Adaptive desk automations
         </Text>
         <Line background="brand-alpha-strong" vert height="20" />
         <Text marginRight="4" onBackground="brand-medium">
-          Build your first trading plan in minutes
+          Spin up a done-for-you routine in minutes
         </Text>
       </Row>
     ),
@@ -86,9 +84,8 @@ const home: Home = {
   },
   subline: (
     <>
-      Answer five prompts, run drills in a guided simulator, and switch on live
-      signals once you&apos;re ready—no jargon, just a clear next step every
-      time.
+      Personalized onboarding, live mentor cues, and automation guardrails align
+      every session around a documented edge.
     </>
   ),
 };

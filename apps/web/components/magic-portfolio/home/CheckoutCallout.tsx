@@ -14,10 +14,11 @@ export function CheckoutCallout() {
       style={{ textAlign: "center" }}
     >
       <Heading variant="display-strong-xs" wrap="balance">
-        Ready to activate the desk?
+        Activate your Dynamic desk in minutes
       </Heading>
       <Text variant="body-default-l" onBackground="brand-weak" wrap="balance">
-        Move through checkout in under two minutes and gain access to the real-time signal desk, vault of trading systems, and live mentorship calendar.
+        Finish checkout in under two minutes and step into live signals,
+        automation recipes, and the mentor calendar.
       </Text>
       <Row gap="12" s={{ direction: "column" }}>
         <Button
@@ -27,7 +28,7 @@ export function CheckoutCallout() {
           data-border="rounded"
           prefixIcon="rocket"
         >
-          Go to secure checkout
+          Complete secure checkout
         </Button>
         <Button
           href="#pool-trading"
