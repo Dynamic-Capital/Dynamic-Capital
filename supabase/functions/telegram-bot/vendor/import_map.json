@@ -8,6 +8,7 @@
     "mime-types": "./esm.sh/mime-types@3.0.1.js",
     "@/": "../../../../apps/web/",
     "@supabase/ssr": "../../../../tests/supabase-ssr-stub.ts",
+    "server-only": "../../../../tests/deno-stubs/server-only.ts",
     "std/": "https://deno.land/std@0.224.0/"
   },
   "scopes": {
