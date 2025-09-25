@@ -51,7 +51,10 @@ def main():
         pad_sizes=(1024,),
         runner=ModelRunner(
             model=grok_1_model,
-            bs_per_device=0.125,
+            # ``bs_per_device`` can be fractional in large distributed runs, but use an
+            # integer-friendly default here so single-device machines keep producing
+            # tokens even when the environment truncates batch sizes aggressively.
+            bs_per_device=1.0,
             checkpoint_path=CKPT_PATH,
         ),
         name="local",

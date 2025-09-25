@@ -5,9 +5,12 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Callable, List, Optional, Protocol, Sequence
+from typing import Callable, List, Optional, Protocol, Sequence, TYPE_CHECKING
 
 from .trade_logic import ActivePosition, MarketSnapshot, TradeDecision, TradeLogic
+
+if TYPE_CHECKING:  # pragma: no cover - typing helper
+    from .grok_advisor import TradeAdvisor
 
 logger = logging.getLogger(__name__)
 
@@ -59,11 +62,13 @@ class RealtimeExecutor:
         *,
         state_store: Optional[StateStore] = None,
         health_monitor: Optional[HealthMonitor] = None,
+        advisor: "TradeAdvisor" | None = None,
     ) -> None:
         self.logic = logic
         self.broker = broker
         self.state_store = state_store or InMemoryStateStore()
         self.health_monitor = health_monitor or NullHealthMonitor()
+        self.advisor = advisor
         self._fallback_positions: List[ActivePosition] = list(self.state_store.load())
 
     def process_snapshot(
@@ -77,7 +82,12 @@ class RealtimeExecutor:
         except Exception as exc:  # pragma: no cover - broker outages
             logger.warning("Falling back to cached positions after broker error: %s", exc)
             open_positions = list(self._fallback_positions)
-        decisions = self.logic.on_bar(snapshot, open_positions=open_positions, account_equity=account_equity)
+        decisions = self.logic.on_bar(
+            snapshot,
+            open_positions=open_positions,
+            account_equity=account_equity,
+            advisor=self.advisor,
+        )
         execution_errors: List[str] = []
         for decision in decisions:
             try:

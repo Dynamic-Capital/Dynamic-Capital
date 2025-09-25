@@ -21,15 +21,20 @@ import logging
 import math
 import pickle
 import sys
+from copy import deepcopy
 from heapq import nsmallest
 from collections import deque
 from dataclasses import asdict, dataclass, field, fields
 from datetime import UTC, date, datetime
 from types import ModuleType, SimpleNamespace
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Literal, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator, List, Literal, Optional, Sequence, Tuple
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
+
+
+if TYPE_CHECKING:  # pragma: no cover - import cycles avoided at runtime
+    from .grok_advisor import AdvisorFeedback, TradeAdvisor
 
 
 # ---------------------------------------------------------------------------
@@ -1225,6 +1230,7 @@ class TradeLogic:
         *,
         open_positions: Sequence[ActivePosition] | None = None,
         account_equity: Optional[float] = None,
+        advisor: "TradeAdvisor" | None = None,
     ) -> List[TradeDecision]:
         open_positions = list(open_positions or [])
 
@@ -1264,6 +1270,28 @@ class TradeLogic:
             signal=signal,
             open_positions=open_positions,
         )
+        advisor_feedback: "AdvisorFeedback" | None = None
+        if advisor is not None:
+            advisor_context = deepcopy(context)
+            try:
+                advisor_feedback = advisor.review(
+                    snapshot=snapshot,
+                    signal=signal,
+                    context=advisor_context,
+                    open_positions=open_positions,
+                )
+            except Exception:  # pragma: no cover - advisor failures should not halt trading
+                logger.exception("Grok advisor review failed for %s", snapshot.symbol)
+            else:
+                if advisor_feedback:
+                    if advisor_feedback.adjusted_signal is not None:
+                        signal = advisor_feedback.adjusted_signal
+                        context["final_confidence"] = signal.confidence
+                    advisor_meta = dict(advisor_feedback.metadata)
+                    if advisor_feedback.raw_response and "raw_response" not in advisor_meta:
+                        advisor_meta["raw_response"] = advisor_feedback.raw_response
+                    if advisor_meta:
+                        context["advisor"] = advisor_meta
         if signal.confidence < self.config.min_confidence:
             self.risk.notify(
                 "signal_skipped",

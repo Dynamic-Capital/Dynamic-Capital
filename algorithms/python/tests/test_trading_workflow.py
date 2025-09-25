@@ -14,6 +14,7 @@ import pytest
 from algorithms.python.backtesting import Backtester
 from algorithms.python.data_pipeline import InstrumentMeta, MarketDataIngestionJob, RawBar
 from algorithms.python.model_artifacts import load_artifacts, save_artifacts
+from algorithms.python.grok_advisor import AdvisorFeedback
 from algorithms.python.offline_labeler import LabelingConfig, OfflineLabeler
 from algorithms.python.realtime import InMemoryStateStore, RealtimeExecutor
 from algorithms.python.trade_logic import (
@@ -139,7 +140,7 @@ def test_realtime_executor_reports_broker_failures():
     )
 
     class StaticLogic:
-        def on_bar(self, snapshot, *, open_positions, account_equity=None):
+        def on_bar(self, snapshot, *, open_positions, account_equity=None, advisor=None):
             return [
                 TradeDecision(
                     action="open",
@@ -362,6 +363,69 @@ def test_trade_logic_layers_smc_context():
     assert smc_context["structure"]["bos"] == "bullish"
     assert "PDH" in smc_context["liquidity"]["penalised_levels"]
     assert "smc" in decision.reason
+
+
+def test_trade_logic_applies_grok_advice():
+    config = TradeConfig(
+        neighbors=1,
+        label_lookahead=0,
+        min_confidence=0.0,
+        use_adr=False,
+        use_smc_context=False,
+    )
+    logic = TradeLogic(config=config)
+
+    class StaticStrategy:
+        def __init__(self, signal: TradeSignal) -> None:
+            self._signal = signal
+
+        def update(self, snapshot: MarketSnapshot) -> TradeSignal:
+            return self._signal
+
+    base_signal = TradeSignal(direction=1, confidence=0.6, votes=4, neighbors_considered=6)
+    logic.strategy = StaticStrategy(base_signal)
+
+    class StubAdvisor:
+        def __init__(self) -> None:
+            self.invocations: list[TradeSignal] = []
+
+        def review(self, *, snapshot, signal, context, open_positions):
+            self.invocations.append(signal)
+            updated = TradeSignal(
+                direction=signal.direction,
+                confidence=0.42,
+                votes=signal.votes,
+                neighbors_considered=signal.neighbors_considered,
+            )
+            return AdvisorFeedback(
+                adjusted_signal=updated,
+                metadata={"source": "stub", "rationale": "context review"},
+                raw_response="{\"adjusted_confidence\": 0.42}",
+            )
+
+    advisor = StubAdvisor()
+
+    snapshot = MarketSnapshot(
+        symbol="EURUSD",
+        timestamp=datetime.now(timezone.utc),
+        close=1.1025,
+        rsi_fast=55.0,
+        adx_fast=20.0,
+        rsi_slow=52.0,
+        adx_slow=18.0,
+        pip_size=0.0001,
+        pip_value=10.0,
+    )
+
+    decisions = logic.on_bar(snapshot, open_positions=[], advisor=advisor)
+    decision = next(dec for dec in decisions if dec.action == "open")
+
+    assert advisor.invocations, "expected Grok advisor to be invoked"
+    assert decision.signal is not None
+    assert decision.signal.confidence == pytest.approx(0.42)
+    assert decision.context["final_confidence"] == pytest.approx(0.42)
+    assert decision.context["advisor"]["source"] == "stub"
+    assert "rationale" in decision.context["advisor"]
 
 
 def test_trade_logic_manages_break_even_and_trailing_stops():

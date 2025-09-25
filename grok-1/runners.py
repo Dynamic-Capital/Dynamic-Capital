@@ -175,12 +175,20 @@ class ModelRunner:
         self.model.initialize()
         self.model.fprop_dtype = jnp.bfloat16
         num_local_gpus = len(jax.local_devices())
+        if num_local_gpus == 0:
+            raise RuntimeError("ModelRunner.initialize() requires at least one JAX device")
 
-        # Calculate the global batch size from the local batch size.
-        self.batch_size = int(self.bs_per_device * num_local_gpus * num_replicas)
+        # Calculate the global batch size from the local batch size and clamp to 1 so we
+        # never end up with an empty generator on single-device hosts.
+        raw_batch = self.bs_per_device * num_local_gpus * num_replicas
+        self.batch_size = max(1, math.ceil(raw_batch))
 
-        # Calculate the batch size per host from the global batch size.
-        self.local_batch_size = self.batch_size // jax.process_count()
+        process_count = max(1, jax.process_count())
+        raw_local_batch = self.batch_size / process_count
+        self.local_batch_size = max(1, math.ceil(raw_local_batch))
+        # Keep ``batch_size`` consistent with the derived ``local_batch_size`` so that any
+        # downstream assumptions about divisibility still hold.
+        self.batch_size = max(self.batch_size, self.local_batch_size * process_count)
 
         self.local_mesh_config = local_mesh_config
         self.between_hosts_config = between_hosts_config
