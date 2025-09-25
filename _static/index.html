@@ -1,43 +1,662 @@
-<!DOCTYPE html><html lang="en" class="__variable_188709 __variable_188709 __variable_188709 __variable_9a8899" data-neutral="gray" data-brand="cyan" data-accent="magenta" data-solid="contrast" data-solid-style="flat" data-border="playful" data-surface="translucent" data-transition="all" data-scaling="100" data-viz-style="gradient" data-theme="dark"><head><meta charSet="utf-8"/><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/css/0408aee54346ecd0.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/css/48bd69ce008ded7e.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/css/8b2ddd62f7eef03a.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/css/69c43b9e23996d77.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/css/5ebce103381cdb16.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/css/61f3fb5d73ef665e.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/css/804277d479b8b999.css" data-precedence="next"/><link rel="stylesheet" href="/_next/static/css/f5fb1a0aad0dfc3e.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-26e50ab547c4ff6e.js"/><script src="/_next/static/chunks/87c73c54-09e1ba5c70e60a51.js" async=""></script><script src="/_next/static/chunks/90018-97d4359ee02b1103.js" async=""></script><script src="/_next/static/chunks/main-app-98a5977ea957dc8f.js" async=""></script><script src="/_next/static/chunks/f245bf5a-e6d91aaec9599fb6.js" async=""></script><script src="/_next/static/chunks/a9f06191-94e6181aff8def9c.js" async=""></script><script src="/_next/static/chunks/7dccf9e0-d52330666f7e3748.js" async=""></script><script src="/_next/static/chunks/9d78c252-098000356fa48e54.js" async=""></script><script src="/_next/static/chunks/50517dc5-64ac19f4e8ee3ec9.js" async=""></script><script src="/_next/static/chunks/80336-b308defdfbe4ddaa.js" async=""></script><script src="/_next/static/chunks/19664-d094633ef883f304.js" async=""></script><script src="/_next/static/chunks/12657-0914c057fbcbf0b5.js" async=""></script><script src="/_next/static/chunks/77945-c699f12dd2c78b58.js" async=""></script><script src="/_next/static/chunks/91859-81f55dfadc516d02.js" async=""></script><script src="/_next/static/chunks/1802-00bd4d99e9303089.js" async=""></script><script src="/_next/static/chunks/63142-1222383f59d91917.js" async=""></script><script src="/_next/static/chunks/84499-3421928add8771c0.js" async=""></script><script src="/_next/static/chunks/49616-0b3144d5434fe956.js" async=""></script><script src="/_next/static/chunks/app/page-8dcd12b9440a7195.js" async=""></script><script src="/_next/static/chunks/app/global-error-59d73f1655f5ee66.js" async=""></script><script src="/_next/static/chunks/51af2d27-2a1c9b062c721001.js" async=""></script><script src="/_next/static/chunks/b6ff252e-4b002e7f6066ba2a.js" async=""></script><script src="/_next/static/chunks/dccfb526-394237b87cd5fca6.js" async=""></script><script src="/_next/static/chunks/36801-19ce51ebf5be628d.js" async=""></script><script src="/_next/static/chunks/app/layout-98a6a1aa43f1e60a.js" async=""></script><script src="/_next/static/chunks/app/error-fbdd906a891ae08b.js" async=""></script><meta name="next-size-adjust" content=""/><meta name="theme-color" content="#000000"/><meta name="apple-mobile-web-app-capable" content="yes"/><link rel="apple-touch-icon" href="/logo.png"/><link rel="icon" type="image/png" sizes="192x192" href="/logo.png"/><script id="theme-init">(function () {
-  try {
-    var root = document.documentElement;
-    var defaultTheme = 'system';
-    var attributes = {"neutral":"gray","brand":"cyan","accent":"magenta","solid":"contrast","solid-style":"flat","border":"playful","surface":"translucent","transition":"all","scaling":"100","viz-style":"gradient"};
-
-    Object.entries(attributes).forEach(function ([key, value]) {
-      var attribute = 'data-' + key;
-      if (!root.hasAttribute(attribute)) {
-        root.setAttribute(attribute, value);
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dynamic Capital | Investing made simple for everyone</title>
+    <meta
+      name="description"
+      content="Dynamic Capital turns intimidating markets into step-by-step opportunities. Learn, practice, and invest with friendly guidance built for beginners."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --page-bg: #050812;
+        --page-bg-secondary: #0a0e1c;
+        --surface: rgba(12, 18, 34, 0.65);
+        --surface-strong: rgba(17, 24, 44, 0.85);
+        --text-primary: #f8fbff;
+        --text-secondary: rgba(241, 245, 255, 0.75);
+        --accent: #58d5ff;
+        --accent-strong: #3fb1ff;
+        --success: #4ade80;
+        --warning: #facc15;
+        --border: rgba(255, 255, 255, 0.08);
+        --radius-xl: 28px;
+        --radius-lg: 20px;
+        --radius-md: 16px;
+        --shadow-lg: 0 40px 140px rgba(26, 78, 255, 0.15);
+        --shadow-sm: 0 18px 60px rgba(15, 23, 42, 0.4);
+        background-color: var(--page-bg);
       }
-    });
 
-    var resolveTheme = function (themeValue) {
-      if (!themeValue || themeValue === 'system') {
-        var prefersDark = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        return prefersDark ? 'dark' : 'light';
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
       }
-      return themeValue;
-    };
 
-    var storedTheme = localStorage.getItem('data-theme');
-    var resolvedTheme = resolveTheme(storedTheme || defaultTheme);
-    root.setAttribute('data-theme', resolvedTheme);
-
-    Object.keys(attributes).forEach(function (key) {
-      var storageKey = 'data-' + key;
-      var storedValue = localStorage.getItem(storageKey);
-      if (storedValue) {
-        root.setAttribute(storageKey, storedValue);
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: radial-gradient(circle at 12% 18%, rgba(19, 70, 255, 0.38), transparent 45%),
+          radial-gradient(circle at 88% 12%, rgba(39, 210, 255, 0.4), transparent 46%),
+          linear-gradient(160deg, rgba(17, 25, 40, 0.95), rgba(5, 8, 18, 0.98));
+        color: var(--text-primary);
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
       }
-    });
-  } catch (error) {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  }
-})();</script><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body><div hidden=""><!--$?--><template id="B:0"></template><!--/$--></div><div class="display-flex position-relative p-0 m-0 page-background flex-column align-center min-width-0 fill-width" style="min-height:100vh"><div class="display-flex position-absolute fill min-width-0 min-height-0 min-width-0 fill-width RevealFx_revealFx__z_adu RevealFx_hidden__xGwVw " style="transition-duration:2s;transform:translateY(undefined)"><div class="display-flex position-relative overflow-hidden fill min-height-0 min-width-0"><div class="display-flex position-absolute top-0 left-0 overflow-hidden fill min-height-0 min-width-0 Mask_mask__m7EgG" style="--mask-position-x:55%;--mask-position-y:5%;--mask-radius:120vh"><div class="display-flex position-absolute pointer-events-none opacity-70 Background_gradient__f12wI" style="--gradient-position-x:48.75%;--gradient-position-y:52.5%;--gradient-width:25%;--gradient-height:12%;--gradient-tilt:-8deg;--gradient-color-start:var(--accent-background-strong);--gradient-color-end:var(--page-background)"></div><div class="display-flex position-absolute top-0 left-0 pointer-events-none opacity-35 fill min-height-0 min-width-0 Background_dots__ap1AV" style="--dots-color:var(--brand-background-strong);--dots-size:var(--static-space-2)"></div><div class="display-flex position-absolute top-0 left-0 pointer-events-none opacity-40 fill min-height-0 min-width-0 Background_lines__1KLFA" style="--lines-angle:30deg;--lines-color:var(--neutral-alpha-weak);--lines-thickness:1px;--lines-spacing:var(--static-space-20);background:repeating-linear-gradient(
-                  var(--lines-angle),
-                  var(--static-transparent),
-                  var(--static-transparent) calc(var(--lines-spacing) - var(--lines-thickness)),
-                  var(--lines-color) calc(var(--lines-spacing) - var(--lines-thickness)),
-                  var(--lines-color) var(--lines-spacing)
-                )"></div></div></div></div><div class="display-flex position-relative s-flex-hide min-width-0 fill-width" style="min-height:var(--static-space-16)"></div><div class="display-flex position-fixed s-flex-hide min-width-0 fill-width z-index-9 Fade_mask__0U8YC" style="height:var(--static-space-80);--base-color:var(--page-background);--gradient-direction:180deg"></div><header class="display-flex position-sticky s-position-fixed p-8 top-0 justify-center fit-height min-width-0 fill-width z-index-9 Header_position__M4L0f" data-border="rounded"><div class="display-flex position-relative pl-12 align-center min-width-0 fill-width font-body font-default font-s"><div class="display-flex position-relative s-flex-hide">Europe/London</div></div><div class="display-flex position-relative justify-center min-width-0 fill-width"><div class="display-flex position-relative p-4 page-background neutral-border-alpha-weak border-solid border-1 radius-m-4 justify-center shadow-l z-index-1"><div class="display-flex position-relative g-4 align-center font-body font-default font-s"><a class="ToggleButton_button__5UYXn ToggleButton_ghost__T456K ToggleButton_m__mhbjV ToggleButton_selected__vsTrR radius-m text-decoration-none button cursor-interactive fit-width justify-center" href="/"><span class="display-inline-flex position-relative fit color-inherit Icon_xs__UD9Nr" aria-hidden="true"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,120v96H152V152H104v64H40V120a8,8,0,0,1,2.34-5.66l80-80a8,8,0,0,1,11.32,0l80,80A8,8,0,0,1,216,120Z" opacity="0.2"></path><path d="M219.31,108.68l-80-80a16,16,0,0,0-22.62,0l-80,80A15.87,15.87,0,0,0,32,120v96a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V160h32v56a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V120A15.87,15.87,0,0,0,219.31,108.68ZM208,208H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48V120l80-80,80,80Z"></path></svg></span></a><div class="display-flex position-relative neutral-background-alpha-medium flex-column min-height-0 fill-height" style="min-width:var(--static-space-1);max-height:var(--static-space-24);width:var(--static-space-1)"></div><div class="display-flex position-relative s-flex-hide"><a class="ToggleButton_button__5UYXn ToggleButton_ghost__T456K ToggleButton_m__mhbjV radius-m text-decoration-none button cursor-interactive fit-width justify-center" href="/about"><span class="display-inline-flex position-relative fit color-inherit Icon_xs__UD9Nr" aria-hidden="true"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M224,128a95.76,95.76,0,0,1-31.8,71.37A72,72,0,0,0,128,160a40,40,0,1,0-40-40,40,40,0,0,0,40,40,72,72,0,0,0-64.2,39.37h0A96,96,0,1,1,224,128Z" opacity="0.2"></path><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.76,66.41a79.66,79.66,0,0,0-36.06-28.75,48,48,0,1,0-59.4,0,79.66,79.66,0,0,0-36.06,28.75,88,88,0,1,1,131.52,0Z"></path></svg></span><div class="display-flex position-static px-4 justify-center font-label font-s font-default">About</div></a></div><div class="display-flex position-relative s-flex-hide"><a class="ToggleButton_button__5UYXn ToggleButton_ghost__T456K ToggleButton_m__mhbjV radius-m text-decoration-none button cursor-interactive fit-width justify-center" href="/work"><span class="display-inline-flex position-relative fit color-inherit Icon_xs__UD9Nr" aria-hidden="true"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M208,56V200a8,8,0,0,1-8,8H56a8,8,0,0,1-8-8V56a8,8,0,0,1,8-8H200A8,8,0,0,1,208,56Z" opacity="0.2"></path><path d="M200,40H56A16,16,0,0,0,40,56V200a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V56A16,16,0,0,0,200,40Zm0,80H136V56h64ZM120,56v64H56V56ZM56,136h64v64H56Zm144,64H136V136h64v64Z"></path></svg></span><div class="display-flex position-static px-4 justify-center font-label font-s font-default">Work</div></a></div><div class="display-flex position-relative s-flex-hide"><a class="ToggleButton_button__5UYXn ToggleButton_ghost__T456K ToggleButton_m__mhbjV radius-m text-decoration-none button cursor-interactive fit-width justify-center" href="/blog"><span class="display-inline-flex position-relative fit color-inherit Icon_xs__UD9Nr" aria-hidden="true"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M208,32V192H72a24,24,0,0,0-24,24V56A24,24,0,0,1,72,32h40v96l32-24,32,24V32Z" opacity="0.2"></path><path d="M208,24H72A32,32,0,0,0,40,56V224a8,8,0,0,0,8,8H192a8,8,0,0,0,0-16H56a16,16,0,0,1,16-16H208a8,8,0,0,0,8-8V32A8,8,0,0,0,208,24ZM120,40h48v72L148.79,97.6a8,8,0,0,0-9.6,0L120,112Zm80,144H72a31.82,31.82,0,0,0-16,4.29V56A16,16,0,0,1,72,40h32v88a8,8,0,0,0,12.8,6.4L144,114l27.21,20.4A8,8,0,0,0,176,136a8.1,8.1,0,0,0,3.58-.84A8,8,0,0,0,184,128V40h16Z"></path></svg></span><div class="display-flex position-static px-4 justify-center font-label font-s font-default">Blog</div></a></div><div class="display-flex position-relative s-flex-hide"><a class="ToggleButton_button__5UYXn ToggleButton_ghost__T456K ToggleButton_m__mhbjV radius-m text-decoration-none button cursor-interactive fit-width justify-center" href="/gallery"><span class="display-inline-flex position-relative fit color-inherit Icon_xs__UD9Nr" aria-hidden="true"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M224,56V178.06l-39.72-39.72a8,8,0,0,0-11.31,0L147.31,164,97.66,114.34a8,8,0,0,0-11.32,0L32,168.69V56a8,8,0,0,1,8-8H216A8,8,0,0,1,224,56Z" opacity="0.2"></path><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"></path></svg></span><div class="display-flex position-static px-4 justify-center font-label font-s font-default">Gallery</div></a></div><div class="display-flex position-relative neutral-background-alpha-medium flex-column min-height-0 fill-height" style="min-width:var(--static-space-1);max-height:var(--static-space-24);width:var(--static-space-1)"></div><button class="ToggleButton_button__5UYXn ToggleButton_ghost__T456K ToggleButton_m__mhbjV radius-m text-decoration-none button cursor-interactive fit-width justify-center" aria-label="Switch to dark mode"><span class="display-inline-flex position-relative fit color-inherit Icon_xs__UD9Nr" aria-hidden="true"><svg stroke="currentColor" fill="none" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"></path></svg></span></button></div></div></div><div class="display-flex position-relative justify-end align-center min-width-0 fill-width"><div class="display-flex position-relative pr-12 g-20 justify-end align-center font-body font-default font-s"><div class="display-flex position-relative s-flex-hide"></div><a class="Button_button__HAQyB Button_secondary__OfXfm Button_s__uSuPK radius-m text-decoration-none button cursor-interactive fit-width justify-center" href="/login"><div class="display-flex position-relative px-4 py-0 font-label font-s font-strong">Login</div></a></div></div></header><div class="display-flex position-relative p-l flex-1 justify-center min-width-0 fill-width"><div class="display-flex position-relative justify-center min-width-0 fill-width" style="min-height:var(--static-space-0)"><div class="display-flex position-relative py-128 justify-center min-width-0 fill-width"><div class="display-flex position-relative center"><div class="display-flex position-relative center Spinner_m__cspw0" role="status" aria-label="Loading"><div class="display-flex position-relative fill min-height-0 min-width-0"><div class="display-flex position-absolute neutral-border-alpha-medium border-1 border-solid radius-full fill min-height-0 min-width-0 Spinner_size__RDmOX"></div><div class="display-flex position-relative border-solid radius-full fill min-height-0 min-width-0 Spinner_spinner__Vt1aC Spinner_size__RDmOX"></div></div></div></div></div></div></div><footer class="display-flex position-relative p-8 s-flex-column justify-center min-width-0 fill-width"><div class="display-flex position-relative px-16 py-8 g-16 s-flex-column justify-between align-center s-align-center fill-width Footer_mobile__RxN4z" style="max-width:var(--responsive-width-m)"><span class="font-body font-default font-s neutral-on-background-strong"><span class="neutral-on-background-weak">© <!-- -->2025<!-- --> /</span><span class="px-4">Dynamic Capital</span></span><div class="display-flex position-relative g-16"><a href="https://t.me/Dynamic_VIP_BOT" target="_blank" rel="noreferrer" class="Button_button__HAQyB Button_ghost__A73LJ IconButton_s__dzvMN radius-m text-decoration-none button cursor-interactive" aria-label="Telegram"><div class="display-flex position-relative center fill min-height-0 min-width-0"><span class="display-inline-flex position-relative fit color-inherit Icon_s__TSboJ" aria-hidden="true"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 496 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M248,8C111.033,8,0,119.033,0,256S111.033,504,248,504,496,392.967,496,256,384.967,8,248,8ZM362.952,176.66c-3.732,39.215-19.881,134.378-28.1,178.3-3.476,18.584-10.322,24.816-16.948,25.425-14.4,1.326-25.338-9.517-39.287-18.661-21.827-14.308-34.158-23.215-55.346-37.177-24.485-16.135-8.612-25,5.342-39.5,3.652-3.793,67.107-61.51,68.335-66.746.153-.655.3-3.1-1.154-4.384s-3.59-.849-5.135-.5q-3.283.746-104.608,69.142-14.845,10.194-26.894,9.934c-8.855-.191-25.888-5.006-38.551-9.123-15.531-5.048-27.875-7.717-26.8-16.291q.84-6.7,18.45-13.7,108.446-47.248,144.628-62.3c68.872-28.647,83.183-33.623,92.511-33.789,2.052-.034,6.639.474,9.61,2.885a10.452,10.452,0,0,1,3.53,6.716A43.765,43.765,0,0,1,362.952,176.66Z"></path></svg></span></div></a><a href="https://www.linkedin.com/company/dynamic-capital-ai/" target="_blank" rel="noreferrer" class="Button_button__HAQyB Button_ghost__A73LJ IconButton_s__dzvMN radius-m text-decoration-none button cursor-interactive" aria-label="LinkedIn"><div class="display-flex position-relative center fill min-height-0 min-width-0"><span class="display-inline-flex position-relative fit color-inherit Icon_s__TSboJ" aria-hidden="true"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"></path></svg></span></div></a><a href="https://x.com/dynamiccapitalhq" target="_blank" rel="noreferrer" class="Button_button__HAQyB Button_ghost__A73LJ IconButton_s__dzvMN radius-m text-decoration-none button cursor-interactive" aria-label="X"><div class="display-flex position-relative center fill min-height-0 min-width-0"><span class="display-inline-flex position-relative fit color-inherit Icon_s__TSboJ" aria-hidden="true"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 384 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M376.6 84.5c11.3-13.6 9.5-33.8-4.1-45.1s-33.8-9.5-45.1 4.1L192 206 56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4S-3.9 70.9 7.4 84.5L150.3 256 7.4 427.5c-11.3 13.6-9.5 33.8 4.1 45.1s33.8 9.5 45.1-4.1L192 306 327.4 468.5c11.3 13.6 31.5 15.4 45.1 4.1s15.4-31.5 4.1-45.1L233.7 256 376.6 84.5z"></path></svg></span></div></a><a class="Button_button__HAQyB Button_ghost__A73LJ IconButton_s__dzvMN radius-m text-decoration-none button cursor-interactive" aria-label="Email" href="mailto:noah@dynamic.capital"><div class="display-flex position-relative center fill min-height-0 min-width-0"><span class="display-inline-flex position-relative fit color-inherit Icon_s__TSboJ" aria-hidden="true"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67Z"></path><path d="M22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z"></path></svg></span></div></a></div></div></footer></div><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script src="/_next/static/chunks/webpack-26e50ab547c4ff6e.js" id="_R_" async=""></script><title>Dynamic Capital</title><meta name="description" content="Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators."/><link rel="canonical" href="http://localhost:8080"/><meta property="og:title" content="Dynamic Capital"/><meta property="og:description" content="Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators."/><meta property="og:url" content="http://localhost:8080"/><meta property="og:site_name" content="Dynamic Capital"/><meta property="og:locale" content="en_US"/><meta property="og:type" content="website"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content="Dynamic Capital"/><meta name="twitter:description" content="Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators."/><div hidden id="S:0"></div><script>$RB=[];$RV=function(a){$RT=performance.now();for(var b=0;b<a.length;b+=2){var c=a[b],e=a[b+1];null!==e.parentNode&&e.parentNode.removeChild(e);var f=c.parentNode;if(f){var g=c.previousSibling,h=0;do{if(c&&8===c.nodeType){var d=c.data;if("/$"===d||"/&"===d)if(0===h)break;else h--;else"$"!==d&&"$?"!==d&&"$~"!==d&&"$!"!==d&&"&"!==d||h++}d=c.nextSibling;f.removeChild(c);c=d}while(c);for(;e.firstChild;)f.insertBefore(e.firstChild,c);g.data="$";g._reactRetry&&requestAnimationFrame(g._reactRetry)}}a.length=0};
-$RC=function(a,b){if(b=document.getElementById(b))(a=document.getElementById(a))?(a.previousSibling.data="$~",$RB.push(a,b),2===$RB.length&&("number"!==typeof $RT?requestAnimationFrame($RV.bind(null,$RB)):(a=performance.now(),setTimeout($RV.bind(null,$RB),2300>a&&2E3<a?2300-a:$RT+300-a)))):b.parentNode.removeChild(b)};$RC("B:0","S:0")</script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n"])</script><script>self.__next_f.push([1,"3:I[79948,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"Column\"]\n"])</script><script>self.__next_f.push([1,"4:I[45165,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"\"]\n"])</script><script>self.__next_f.push([1,"5:I[50937,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"RevealFx\"]\n"])</script><script>self.__next_f.push([1,"6:I[9905,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"Badge\"]\n"])</script><script>self.__next_f.push([1,"7:I[19962,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"Row\"]\n"])</script><script>self.__next_f.push([1,"10:I[56065,[\"34219\",\"static/chunks/app/global-error-59d73f1655f5ee66.js\"],\"default\"]\n"])</script><script>self.__next_f.push([1,"11:I[5098,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"Button\"]\n"])</script><script>self.__next_f.push([1,"12:I[90611,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"Avatar\"]\n"])</script><script>self.__next_f.push([1,"15:I[70605,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"Mailchimp\"]\n"])</script><script>self.__next_f.push([1,"16:I[14528,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"ChatAssistantWidget\"]\n"])</script><script>self.__next_f.push([1,"17:I[15104,[],\"OutletBoundary\"]\n19:I[94777,[],\"AsyncMetadataOutlet\"]\n1b:I[15104,[],\"ViewportBoundary\"]\n1d:I[15104,[],\"MetadataBoundary\"]\n1e:\"$Sreact.suspense\"\n"])</script><script>self.__next_f.push([1,"21:I[76361,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"80691\",\"static/chunks/51af2d27-2a1c9b062c721001.js\",\"89599\",\"static/chunks/b6ff252e-4b002e7f6066ba2a.js\",\"21928\",\"static/chunks/dccfb526-394237b87cd5fca6.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"36801\",\"static/chunks/36801-19ce51ebf5be628d.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"7177\",\"static/chunks/app/layout-98a6a1aa43f1e60a.js\"],\"default\"]\n"])</script><script>self.__next_f.push([1,"22:I[50965,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"ScrollToHash\"]\n"])</script><script>self.__next_f.push([1,"23:I[51002,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"Background\"]\n"])</script><script>self.__next_f.push([1,"24:I[40022,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"ClientFlex\"]\n"])</script><script>self.__next_f.push([1,"25:I[59134,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"Header\"]\n"])</script><script>self.__next_f.push([1,"26:I[43126,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"RouteGuard\"]\n"])</script><script>self.__next_f.push([1,"27:I[85341,[],\"\"]\n28:I[81869,[\"18039\",\"static/chunks/app/error-fbdd906a891ae08b.js\"],\"default\"]\n29:I[90025,[],\"\"]\n"])</script><script>self.__next_f.push([1,"2d:I[19664,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"\"]\n"])</script><script>self.__next_f.push([1,"2e:I[26599,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"SmartLink\"]\n"])</script><script>self.__next_f.push([1,"2f:I[59511,[\"24904\",\"static/chunks/f245bf5a-e6d91aaec9599fb6.js\",\"72734\",\"static/chunks/a9f06191-94e6181aff8def9c.js\",\"65720\",\"static/chunks/7dccf9e0-d52330666f7e3748.js\",\"66295\",\"static/chunks/9d78c252-098000356fa48e54.js\",\"2099\",\"static/chunks/50517dc5-64ac19f4e8ee3ec9.js\",\"80336\",\"static/chunks/80336-b308defdfbe4ddaa.js\",\"19664\",\"static/chunks/19664-d094633ef883f304.js\",\"12657\",\"static/chunks/12657-0914c057fbcbf0b5.js\",\"77945\",\"static/chunks/77945-c699f12dd2c78b58.js\",\"91859\",\"static/chunks/91859-81f55dfadc516d02.js\",\"1802\",\"static/chunks/1802-00bd4d99e9303089.js\",\"63142\",\"static/chunks/63142-1222383f59d91917.js\",\"84499\",\"static/chunks/84499-3421928add8771c0.js\",\"49616\",\"static/chunks/49616-0b3144d5434fe956.js\",\"58974\",\"static/chunks/app/page-8dcd12b9440a7195.js\"],\"IconButton\"]\n"])</script><script>self.__next_f.push([1,":HL[\"/_next/static/media/4cf2300e9c8272f7-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/media/93f479601ee12b01-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/css/0408aee54346ecd0.css\",\"style\"]\n:HL[\"/_next/static/css/48bd69ce008ded7e.css\",\"style\"]\n:HL[\"/_next/static/css/8b2ddd62f7eef03a.css\",\"style\"]\n:HL[\"/_next/static/css/69c43b9e23996d77.css\",\"style\"]\n:HL[\"/_next/static/css/5ebce103381cdb16.css\",\"style\"]\n:HL[\"/_next/static/css/61f3fb5d73ef665e.css\",\"style\"]\n:HL[\"/_next/static/css/804277d479b8b999.css\",\"style\"]\n:HL[\"/_next/static/css/f5fb1a0aad0dfc3e.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"b\":\"kBtnjyUma1-ugtB9be3s1\",\"p\":\"\",\"c\":[\"\",\"\"],\"i\":false,\"f\":[[[\"\",{\"children\":[\"__PAGE__\",{}]},\"$undefined\",\"$undefined\",true],[\"\",[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/0408aee54346ecd0.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"1\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/48bd69ce008ded7e.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"2\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/8b2ddd62f7eef03a.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"3\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/69c43b9e23996d77.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"4\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/5ebce103381cdb16.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"5\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/61f3fb5d73ef665e.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"6\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/804277d479b8b999.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"link\",\"7\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/f5fb1a0aad0dfc3e.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],\"$L2\"]}],{\"children\":[\"__PAGE__\",[\"$\",\"$1\",\"c\",{\"children\":[[\"$\",\"div\",null,{\"className\":\"min-h-screen space-y-16 bg-gradient-to-br from-background via-card/10 to-background pb-24\",\"children\":[[\"$\",\"$L3\",null,{\"maxWidth\":\"m\",\"gap\":\"xl\",\"paddingY\":\"12\",\"horizontal\":\"center\",\"children\":[[\"$\",\"$L4\",null,{\"id\":\"schema-webPage-/\",\"type\":\"application/ld+json\",\"dangerouslySetInnerHTML\":{\"__html\":\"{\\\"@context\\\":\\\"https://schema.org\\\",\\\"@type\\\":\\\"WebPage\\\",\\\"url\\\":\\\"https://dynamic.capital/\\\",\\\"sameAs\\\":[],\\\"headline\\\":\\\"Dynamic Capital — Institutional trading intelligence\\\",\\\"description\\\":\\\"Dynamic Capital delivers institutional-grade trading signals, mentorship, and automation for ambitious operators.\\\",\\\"image\\\":\\\"https://dynamic.capital/api/og/generate?title=Dynamic%20Capital%20%E2%80%94%20Institutional%20trading%20intelligence\\\",\\\"author\\\":{\\\"@type\\\":\\\"Person\\\",\\\"name\\\":\\\"Noah Sterling\\\",\\\"url\\\":\\\"https://dynamic.capital/about\\\",\\\"image\\\":{\\\"@type\\\":\\\"ImageObject\\\",\\\"url\\\":\\\"https://stub.supabase.co/storage/v1/object/public/magic-portfolio/images/avatar.jpg\\\"}}}\"}}],[\"$\",\"$L3\",null,{\"fillWidth\":true,\"horizontal\":\"center\",\"gap\":\"m\",\"children\":[\"$\",\"$L3\",null,{\"maxWidth\":\"s\",\"horizontal\":\"center\",\"align\":\"center\",\"children\":[[\"$\",\"$L5\",null,{\"fillWidth\":true,\"horizontal\":\"center\",\"paddingTop\":\"16\",\"paddingBottom\":\"32\",\"paddingLeft\":\"12\",\"children\":[\"$\",\"$L6\",null,{\"background\":\"brand-alpha-weak\",\"paddingX\":\"12\",\"paddingY\":\"4\",\"onBackground\":\"neutral-strong\",\"textVariant\":\"label-default-s\",\"arrow\":false,\"href\":\"/work/liquidity-signal-desk\",\"children\":[\"$\",\"$L7\",null,{\"paddingY\":\"2\",\"children\":[\"$\",\"$L7\",null,{\"gap\":\"12\",\"vertical\":\"center\",\"children\":[[\"$\",\"span\",null,{\"className\":\"brand-on-background-strong ml-4 font-semibold tracking-tight\",\"style\":{\"textAlign\":\"$undefined\",\"textWrap\":\"$undefined\"},\"children\":\"VIP signal desk now accepting members\"}],[\"$\",\"div\",null,{\"ref\":\"$undefined\",\"className\":\"display-flex position-relative brand-background-alpha-strong flex-column min-height-0 fill-height\",\"style\":{\"maxWidth\":\"$undefined\",\"minWidth\":\"var(--static-space-1)\",\"minHeight\":\"$undefined\",\"maxHeight\":\"$undefined\",\"width\":\"var(--static-space-1)\",\"height\":\"var(--static-space-20)\",\"aspectRatio\":\"$undefined\",\"textAlign\":\"$undefined\",\"cursor\":\"$undefined\"},\"children\":\"$undefined\"}],[\"$\",\"span\",null,{\"className\":\"brand-on-background-medium mr-4\",\"style\":{\"textAlign\":\"$undefined\",\"textWrap\":\"$undefined\"},\"children\":\"Reserve a strategy consult\"}]]}]}]}]}],[\"$\",\"$L5\",null,{\"translateY\":\"4\",\"fillWidth\":true,\"horizontal\":\"center\",\"paddingBottom\":\"16\",\"children\":[\"$\",\"h1\",null,{\"className\":\"font-display font-strong font-l neutral-on-background-strong\",\"style\":{\"textAlign\":\"$undefined\",\"textWrap\":\"balance\"},\"children\":\"Trade with institutional precision, without building the desk yourself.\"}]}],[\"$\",\"$L5\",null,{\"translateY\":\"8\",\"delay\":0.2,\"fillWidth\":true,\"horizontal\":\"center\",\"paddingBottom\":\"32\",\"children\":[\"$\",\"span\",null,{\"className\":\"font-heading font-default font-xl neutral-on-background-weak\",\"style\":{\"textAlign\":\"$undefined\",\"textWrap\":\"balance\"},\"children\":[\"Dynamic Capital combines quantitative research, human mentorship, and automation to guide every position.\",[\"$\",\"br\",null,{}],\"Join a desk built for macro, crypto, and commodities traders who need disciplined execution.\"]}]}],\"$L8\"]}]}],\"$L9\",\"$La\",\"$Lb\",\"$Lc\"]}],\"$Ld\"]}],null,\"$Le\"]}],{},null,false]},null,false],\"$Lf\",false]],\"m\":\"$undefined\",\"G\":[\"$10\",[]],\"s\":false,\"S\":false}\n"])</script><script>self.__next_f.push([1,"8:[\"$\",\"$L5\",null,{\"paddingTop\":\"12\",\"delay\":0.4,\"horizontal\":\"center\",\"paddingLeft\":\"12\",\"children\":[\"$\",\"$L11\",null,{\"id\":\"about\",\"data-border\":\"rounded\",\"href\":\"https://t.me/Dynamic_VIP_BOT\",\"variant\":\"secondary\",\"size\":\"m\",\"weight\":\"default\",\"arrowIcon\":true,\"children\":[\"$\",\"$L7\",null,{\"gap\":\"8\",\"vertical\":\"center\",\"paddingRight\":\"4\",\"children\":[[\"$\",\"$L12\",null,{\"marginRight\":\"8\",\"style\":{\"marginLeft\":\"-0.75rem\"},\"src\":\"https://stub.supabase.co/storage/v1/object/public/magic-portfolio/images/avatar.jpg\",\"size\":\"m\"}],\"Join the desk\"]}]}]}]\n9:[\"$\",\"$L5\",null,{\"translateY\":\"16\",\"delay\":0.6,\"children\":\"$L13\"}]\n"])</script><script>self.__next_f.push([1,"a:[\"$\",\"$L3\",null,{\"fillWidth\":true,\"gap\":\"24\",\"marginBottom\":\"l\",\"children\":[[\"$\",\"$L7\",null,{\"fillWidth\":true,\"paddingRight\":\"64\",\"children\":[\"$\",\"div\",null,{\"ref\":\"$undefined\",\"className\":\"display-flex position-relative neutral-background-strong flex-row min-width-0 fill-width\",\"style\":{\"maxWidth\":\"48rem\",\"minWidth\":\"$undefined\",\"minHeight\":\"var(--static-space-1)\",\"maxHeight\":\"$undefined\",\"width\":\"$undefined\",\"height\":\"var(--static-space-1)\",\"aspectRatio\":\"$undefined\",\"textAlign\":\"$undefined\",\"cursor\":\"$undefined\"},\"children\":\"$undefined\"}]}],[\"$\",\"$L7\",null,{\"fillWidth\":true,\"gap\":\"24\",\"marginTop\":\"40\",\"s\":{\"direction\":\"column\"},\"children\":[[\"$\",\"$L7\",null,{\"flex\":1,\"paddingLeft\":\"l\",\"paddingTop\":\"24\",\"children\":[\"$\",\"h2\",null,{\"className\":\"font-display font-strong font-xs neutral-on-background-strong\",\"style\":{\"textAlign\":\"$undefined\",\"textWrap\":\"balance\"},\"children\":\"Latest from the desk\"}]}],[\"$\",\"$L7\",null,{\"flex\":3,\"paddingX\":\"20\",\"children\":\"$L14\"}]]}],[\"$\",\"$L7\",null,{\"fillWidth\":true,\"paddingLeft\":\"64\",\"horizontal\":\"end\",\"children\":[\"$\",\"div\",null,{\"ref\":\"$undefined\",\"className\":\"display-flex position-relative neutral-background-strong flex-row min-width-0 fill-width\",\"style\":{\"maxWidth\":\"48rem\",\"minWidth\":\"$undefined\",\"minHeight\":\"var(--static-space-1)\",\"maxHeight\":\"$undefined\",\"width\":\"$undefined\",\"height\":\"var(--static-space-1)\",\"aspectRatio\":\"$undefined\",\"textAlign\":\"$undefined\",\"cursor\":\"$undefined\"},\"children\":\"$undefined\"}]}]]}]\n"])</script><script>self.__next_f.push([1,"c:[\"$\",\"$L15\",null,{}]\nd:[\"$\",\"$L16\",null,{\"className\":\"$undefined\"}]\ne:[\"$\",\"$L17\",null,{\"children\":[\"$L18\",[\"$\",\"$L19\",null,{\"promise\":\"$@1a\"}]]}]\nf:[\"$\",\"$1\",\"h\",{\"children\":[null,[[\"$\",\"$L1b\",null,{\"children\":\"$L1c\"}],[\"$\",\"meta\",null,{\"name\":\"next-size-adjust\",\"content\":\"\"}]],[\"$\",\"$L1d\",null,{\"children\":[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$1e\",null,{\"fallback\":null,\"children\":\"$L1f\"}]}]}]]}]\n20:T546,"])</script><script>self.__next_f.push([1,"(function () {\n  try {\n    var root = document.documentElement;\n    var defaultTheme = 'system';\n    var attributes = {\"neutral\":\"gray\",\"brand\":\"cyan\",\"accent\":\"magenta\",\"solid\":\"contrast\",\"solid-style\":\"flat\",\"border\":\"playful\",\"surface\":\"translucent\",\"transition\":\"all\",\"scaling\":\"100\",\"viz-style\":\"gradient\"};\n\n    Object.entries(attributes).forEach(function ([key, value]) {\n      var attribute = 'data-' + key;\n      if (!root.hasAttribute(attribute)) {\n        root.setAttribute(attribute, value);\n      }\n    });\n\n    var resolveTheme = function (themeValue) {\n      if (!themeValue || themeValue === 'system') {\n        var prefersDark = typeof window.matchMedia === 'function' \u0026\u0026 window.matchMedia('(prefers-color-scheme: dark)').matches;\n        return prefersDark ? 'dark' : 'light';\n      }\n      return themeValue;\n    };\n\n    var storedTheme = localStorage.getItem('data-theme');\n    var resolvedTheme = resolveTheme(storedTheme || defaultTheme);\n    root.setAttribute('data-theme', resolvedTheme);\n\n    Object.keys(attributes).forEach(function (key) {\n      var storageKey = 'data-' + key;\n      var storedValue = localStorage.getItem(storageKey);\n      if (storedValue) {\n        root.setAttribute(storageKey, storedValue);\n      }\n    });\n  } catch (error) {\n    document.documentElement.setAttribute('data-theme', 'dark');\n  }\n})();"])</script><script>self.__next_f.push([1,"2:[\"$\",\"html\",null,{\"lang\":\"en\",\"suppressHydrationWarning\":true,\"className\":\"__variable_188709 __variable_188709 __variable_188709 __variable_9a8899\",\"data-neutral\":\"gray\",\"data-brand\":\"cyan\",\"data-accent\":\"magenta\",\"data-solid\":\"contrast\",\"data-solid-style\":\"flat\",\"data-border\":\"playful\",\"data-surface\":\"translucent\",\"data-transition\":\"all\",\"data-scaling\":\"100\",\"data-viz-style\":\"gradient\",\"data-theme\":\"dark\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"meta\",null,{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",null,{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}],[\"$\",\"meta\",null,{\"name\":\"theme-color\",\"content\":\"#000000\"}],[\"$\",\"meta\",null,{\"name\":\"apple-mobile-web-app-capable\",\"content\":\"yes\"}],[\"$\",\"link\",null,{\"rel\":\"apple-touch-icon\",\"href\":\"/logo.png\"}],[\"$\",\"link\",null,{\"rel\":\"icon\",\"type\":\"image/png\",\"sizes\":\"192x192\",\"href\":\"/logo.png\"}],[\"$\",\"script\",null,{\"id\":\"theme-init\",\"suppressHydrationWarning\":true,\"dangerouslySetInnerHTML\":{\"__html\":\"$20\"}}]]}],[\"$\",\"body\",null,{\"children\":[\"$\",\"$L21\",null,{\"children\":[[\"$\",\"$L22\",null,{}],[\"$\",\"$L3\",null,{\"as\":\"div\",\"background\":\"page\",\"fillWidth\":true,\"style\":{\"minHeight\":\"100vh\"},\"margin\":\"0\",\"padding\":\"0\",\"horizontal\":\"center\",\"children\":[[\"$\",\"$L5\",null,{\"fill\":true,\"position\":\"absolute\",\"children\":[\"$\",\"$L23\",null,{\"mask\":{\"x\":55,\"y\":5,\"radius\":120,\"cursor\":false},\"gradient\":{\"display\":true,\"opacity\":70,\"x\":45,\"y\":60,\"width\":100,\"height\":48,\"tilt\":-8,\"colorStart\":\"accent-background-strong\",\"colorEnd\":\"page-background\"},\"dots\":{\"display\":true,\"opacity\":35,\"size\":\"2\",\"color\":\"brand-background-strong\"},\"grid\":{\"display\":false,\"opacity\":100,\"color\":\"neutral-alpha-medium\",\"width\":\"0.25rem\",\"height\":\"0.25rem\"},\"lines\":{\"display\":true,\"opacity\":40,\"size\":\"20\",\"thickness\":1,\"angle\":30,\"color\":\"neutral-alpha-weak\"}}]}],[\"$\",\"$L24\",null,{\"ref\":\"$undefined\",\"cursor\":\"$undefined\",\"xl\":\"$undefined\",\"l\":\"$undefined\",\"m\":\"$undefined\",\"s\":{\"hide\":true},\"xs\":\"$undefined\",\"style\":\"$undefined\",\"hide\":\"$undefined\",\"fillWidth\":true,\"minHeight\":\"16\"}],[\"$\",\"$L25\",null,{}],[\"$\",\"div\",null,{\"ref\":\"$undefined\",\"className\":\"display-flex position-relative p-l flex-1 justify-center min-width-0 fill-width\",\"style\":{\"maxWidth\":\"$undefined\",\"minWidth\":\"$undefined\",\"minHeight\":\"$undefined\",\"maxHeight\":\"$undefined\",\"width\":\"$undefined\",\"height\":\"$undefined\",\"aspectRatio\":\"$undefined\",\"textAlign\":\"$undefined\",\"cursor\":\"$undefined\"},\"children\":[\"$\",\"div\",null,{\"ref\":\"$undefined\",\"className\":\"display-flex position-relative justify-center min-width-0 fill-width\",\"style\":{\"maxWidth\":\"$undefined\",\"minWidth\":\"$undefined\",\"minHeight\":\"var(--static-space-0)\",\"maxHeight\":\"$undefined\",\"width\":\"$undefined\",\"height\":\"$undefined\",\"aspectRatio\":\"$undefined\",\"textAlign\":\"$undefined\",\"cursor\":\"$undefined\"},\"children\":[\"$\",\"$L26\",null,{\"children\":[\"$\",\"$L27\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$28\",\"errorStyles\":[],\"errorScripts\":[],\"template\":[\"$\",\"$L29\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"div\",null,{\"className\":\"min-h-screen flex flex-col items-center justify-center p-4 text-center\",\"children\":[[\"$\",\"h1\",null,{\"className\":\"mb-2 text-4xl font-bold\",\"children\":\"404 - Page Not Found\"}],\"$L2a\",\"$L2b\"]}],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]}]}],\"$L2c\"]}]]}]}]]}]\n"])</script><script>self.__next_f.push([1,"2a:[\"$\",\"p\",null,{\"className\":\"text-lg text-muted-foreground\",\"children\":\"The page you're looking for does not exist.\"}]\n2b:[\"$\",\"$L2d\",null,{\"href\":\"/\",\"className\":\"mt-4 text-blue-500 underline\",\"children\":\"Return home\"}]\n"])</script><script>self.__next_f.push([1,"2c:[\"$\",\"$L7\",null,{\"as\":\"footer\",\"fillWidth\":true,\"padding\":\"8\",\"horizontal\":\"center\",\"s\":{\"direction\":\"column\"},\"children\":[[\"$\",\"$L7\",null,{\"className\":\"Footer_mobile__RxN4z\",\"maxWidth\":\"m\",\"paddingY\":\"8\",\"paddingX\":\"16\",\"gap\":\"16\",\"horizontal\":\"between\",\"vertical\":\"center\",\"s\":{\"direction\":\"column\",\"horizontal\":\"center\",\"align\":\"center\"},\"children\":[[\"$\",\"span\",null,{\"className\":\"font-body font-default font-s neutral-on-background-strong\",\"style\":{\"textAlign\":\"$undefined\",\"textWrap\":\"$undefined\"},\"children\":[[\"$\",\"span\",null,{\"className\":\"neutral-on-background-weak\",\"style\":{\"textAlign\":\"$undefined\",\"textWrap\":\"$undefined\"},\"children\":[\"© \",2025,\" /\"]}],[\"$\",\"span\",null,{\"className\":\"px-4\",\"style\":{\"textAlign\":\"$undefined\",\"textWrap\":\"$undefined\"},\"children\":\"Dynamic Capital\"}],[\"$\",\"span\",null,{\"className\":\"neutral-on-background-weak\",\"style\":{\"textAlign\":\"$undefined\",\"textWrap\":\"$undefined\"},\"children\":[\"Institutional trading intelligence engineered by \",\"Noah Sterling\",\". Powered by\",\" \",[\"$\",\"$L2e\",null,{\"href\":\"https://once-ui.com/products/magic-portfolio\",\"children\":\"Once UI\"}]]}]]}],[\"$\",\"$L7\",null,{\"gap\":\"16\",\"children\":[[\"$\",\"$L2f\",\"Telegram\",{\"href\":\"https://t.me/Dynamic_VIP_BOT\",\"icon\":\"telegram\",\"tooltip\":\"Telegram\",\"size\":\"s\",\"variant\":\"ghost\"}],[\"$\",\"$L2f\",\"LinkedIn\",{\"href\":\"https://www.linkedin.com/company/dynamic-capital-ai/\",\"icon\":\"linkedin\",\"tooltip\":\"LinkedIn\",\"size\":\"s\",\"variant\":\"ghost\"}],[\"$\",\"$L2f\",\"X\",{\"href\":\"https://x.com/dynamiccapitalhq\",\"icon\":\"x\",\"tooltip\":\"X\",\"size\":\"s\",\"variant\":\"ghost\"}],[\"$\",\"$L2f\",\"Email\",{\"href\":\"mailto:noah@dynamic.capital\",\"icon\":\"email\",\"tooltip\":\"Email\",\"size\":\"s\",\"variant\":\"ghost\"}]]}]]}],[\"$\",\"$L7\",null,{\"height\":\"80\",\"hide\":true,\"s\":{\"hide\":false}}]]}]\n"])</script><script>self.__next_f.push([1,"1c:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\n18:null\n"])</script><script>self.__next_f.push([1,"1a:{\"metadata\":[[\"$\",\"title\",\"0\",{\"children\":\"Dynamic Capital\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.\"}],[\"$\",\"link\",\"2\",{\"rel\":\"canonical\",\"href\":\"http://localhost:8080\"}],[\"$\",\"meta\",\"3\",{\"property\":\"og:title\",\"content\":\"Dynamic Capital\"}],[\"$\",\"meta\",\"4\",{\"property\":\"og:description\",\"content\":\"Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.\"}],[\"$\",\"meta\",\"5\",{\"property\":\"og:url\",\"content\":\"http://localhost:8080\"}],[\"$\",\"meta\",\"6\",{\"property\":\"og:site_name\",\"content\":\"Dynamic Capital\"}],[\"$\",\"meta\",\"7\",{\"property\":\"og:locale\",\"content\":\"en_US\"}],[\"$\",\"meta\",\"8\",{\"property\":\"og:type\",\"content\":\"website\"}],[\"$\",\"meta\",\"9\",{\"name\":\"twitter:card\",\"content\":\"summary_large_image\"}],[\"$\",\"meta\",\"10\",{\"name\":\"twitter:title\",\"content\":\"Dynamic Capital\"}],[\"$\",\"meta\",\"11\",{\"name\":\"twitter:description\",\"content\":\"Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.\"}]],\"error\":null,\"digest\":\"$undefined\"}\n"])</script><script>self.__next_f.push([1,"1f:\"$1a:metadata\"\n13:E{\"digest\":\"NEXT_HTTP_ERROR_FALLBACK;404\"}\n14:E{\"digest\":\"NEXT_HTTP_ERROR_FALLBACK;404\"}\nb:E{\"digest\":\"NEXT_HTTP_ERROR_FALLBACK;404\"}\n"])</script></body></html>
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .page {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        backdrop-filter: blur(40px);
+      }
+
+      .page::before,
+      .page::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at 20% 85%, rgba(63, 191, 255, 0.22), transparent 52%),
+          radial-gradient(circle at 78% 72%, rgba(16, 185, 129, 0.18), transparent 48%);
+        opacity: 0.4;
+        mix-blend-mode: screen;
+      }
+
+      .page::after {
+        background: radial-gradient(circle at 10% -10%, rgba(250, 204, 21, 0.28), transparent 55%),
+          radial-gradient(circle at 90% 10%, rgba(59, 130, 246, 0.23), transparent 55%);
+        opacity: 0.35;
+        filter: blur(25px);
+      }
+
+      .content {
+        position: relative;
+        z-index: 2;
+        width: min(1120px, 92vw);
+        margin: 0 auto;
+        padding: 32px 0 120px;
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 32px 0 12px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .brand-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(88, 213, 255, 0.18);
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .cta-button,
+      .secondary-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 16px 28px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 16px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.3s ease, background 0.3s ease;
+      }
+
+      .cta-button {
+        background: linear-gradient(120deg, #3fb1ff, #5a8bff 48%, #5b76ff 100%);
+        color: #050510;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .cta-button:hover,
+      .cta-button:focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 28px 90px rgba(63, 177, 255, 0.38);
+      }
+
+      .secondary-button {
+        background: transparent;
+        border-color: rgba(143, 155, 179, 0.35);
+        color: var(--text-primary);
+      }
+
+      .secondary-button:hover,
+      .secondary-button:focus-visible {
+        transform: translateY(-2px);
+        border-color: rgba(88, 213, 255, 0.6);
+        color: var(--accent);
+      }
+
+      .hero {
+        display: grid;
+        gap: 32px;
+        align-items: center;
+        padding: 48px 0 72px;
+      }
+
+      .hero-copy {
+        text-align: center;
+        display: grid;
+        gap: 24px;
+        justify-items: center;
+      }
+
+      .hero-copy h1 {
+        margin: 0;
+        font-size: clamp(2.5rem, 5vw, 4.2rem);
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        background: linear-gradient(120deg, #e0f5ff 0%, #58d5ff 45%, #c4deff 100%);
+        -webkit-background-clip: text;
+        color: transparent;
+      }
+
+      .hero-copy p {
+        margin: 0;
+        max-width: 640px;
+        font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+      }
+
+      .hero-card {
+        backdrop-filter: blur(28px);
+        background: var(--surface);
+        border-radius: var(--radius-xl);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .hero-card h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+
+      .hero-card p {
+        margin: 0;
+        color: var(--text-secondary);
+        max-width: 380px;
+        font-size: 0.95rem;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 18px;
+      }
+
+      .stat-card {
+        background: var(--surface-strong);
+        border-radius: var(--radius-lg);
+        padding: 20px 22px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .stat-card h3 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      .stat-card span {
+        display: block;
+        margin-top: 6px;
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+      }
+
+      .section {
+        margin-top: 96px;
+        display: grid;
+        gap: 28px;
+      }
+
+      .section-heading {
+        text-align: center;
+        display: grid;
+        gap: 12px;
+        justify-items: center;
+      }
+
+      .section-heading h2 {
+        margin: 0;
+        font-size: clamp(2rem, 3vw, 2.8rem);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+
+      .section-heading p {
+        margin: 0;
+        max-width: 580px;
+        color: var(--text-secondary);
+        line-height: 1.65;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 22px;
+      }
+
+      .feature-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 26px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: transform 0.3s ease, border 0.3s ease, background 0.3s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(88, 213, 255, 0.45);
+        background: rgba(17, 24, 44, 0.75);
+      }
+
+      .feature-card strong {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(88, 213, 255, 0.18);
+        color: var(--accent);
+        font-size: 1.1rem;
+        margin-bottom: 16px;
+      }
+
+      .feature-card h3 {
+        margin: 0 0 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .feature-card p {
+        margin: 0;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        font-size: 0.95rem;
+      }
+
+      .steps-grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+
+      .step-card {
+        background: linear-gradient(160deg, rgba(37, 99, 235, 0.22), rgba(59, 130, 246, 0.12));
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        border: 1px solid rgba(88, 213, 255, 0.25);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .step-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.18), transparent 60%);
+        mix-blend-mode: screen;
+        opacity: 0.6;
+      }
+
+      .step-card h3 {
+        margin: 0 0 12px;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .step-card strong {
+        display: block;
+        font-size: 1.4rem;
+        margin-bottom: 12px;
+        color: #f7fbff;
+      }
+
+      .step-card p {
+        margin: 0;
+        color: rgba(226, 232, 255, 0.8);
+        line-height: 1.55;
+        font-size: 0.98rem;
+      }
+
+      .quote-card {
+        background: var(--surface);
+        border-radius: var(--radius-xl);
+        padding: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        display: grid;
+        gap: 18px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .quote-card::before {
+        content: "\201C";
+        font-size: 140px;
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0.08;
+      }
+
+      .quote-card p {
+        margin: 0;
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: var(--text-secondary);
+      }
+
+      .quote-card strong {
+        font-size: 1rem;
+        letter-spacing: 0.06em;
+        color: rgba(255, 255, 255, 0.78);
+      }
+
+      .resources {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+      }
+
+      .resource-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        display: grid;
+        gap: 12px;
+      }
+
+      .resource-card span {
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(226, 232, 255, 0.62);
+      }
+
+      .resource-card h3 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+
+      .resource-card p {
+        margin: 0;
+        color: rgba(226, 232, 255, 0.75);
+        line-height: 1.55;
+        font-size: 0.95rem;
+      }
+
+      footer {
+        margin-top: 96px;
+        padding: 32px 0 48px;
+        text-align: center;
+        color: rgba(182, 196, 221, 0.6);
+        font-size: 0.85rem;
+      }
+
+      .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 18px;
+        margin-top: 12px;
+      }
+
+      .footer-links a {
+        color: rgba(226, 232, 255, 0.65);
+        font-weight: 500;
+        font-size: 0.85rem;
+      }
+
+      @media (max-width: 720px) {
+        .content {
+          padding-bottom: 96px;
+        }
+
+        nav {
+          flex-direction: column;
+          justify-content: center;
+          text-align: center;
+          gap: 20px;
+        }
+
+        .hero-card {
+          text-align: center;
+        }
+
+        .hero-card p {
+          max-width: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="content">
+        <nav>
+          <div class="brand">
+            <span class="brand-badge">Trusted by 5,000+ new investors</span>
+          </div>
+          <div class="hero-actions">
+            <a class="secondary-button" href="#learn">Explore lessons</a>
+            <a class="cta-button" href="#join">Join the VIP community</a>
+          </div>
+        </nav>
+
+        <header class="hero" id="top">
+          <div class="hero-copy">
+            <span class="brand-badge">Start with confidence</span>
+            <h1>Investing made simple, even if you're just getting started.</h1>
+            <p>
+              Dynamic Capital translates market noise into daily, actionable steps. Learn the basics, practice in a safe space, and move into real portfolios with coaches who celebrate your wins.
+            </p>
+            <div class="hero-actions">
+              <a class="cta-button" href="#join">Get my beginner playbook</a>
+              <a class="secondary-button" href="#tour">See how it works</a>
+            </div>
+          </div>
+          <div class="hero-card">
+            <div>
+              <h2>"Finally, an investing platform that speaks my language."</h2>
+              <p>
+                Bite-sized lessons, live walkthroughs, and automated alerts keep you moving from your first deposit to your first confident trade.
+              </p>
+            </div>
+            <div class="stats">
+              <div class="stat-card">
+                <h3>92%</h3>
+                <span>Members hitting their monthly goals</span>
+              </div>
+              <div class="stat-card">
+                <h3>24/7</h3>
+                <span>Friendly mentors ready on chat</span>
+              </div>
+              <div class="stat-card">
+                <h3>3 hrs</h3>
+                <span>Average time to your first confident plan</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section class="section" id="learn">
+          <div class="section-heading">
+            <h2>Your journey, one simple path</h2>
+            <p>We trimmed the complexity so you can focus on steady progress. Each pillar builds confidence without overwhelming jargon.</p>
+          </div>
+          <div class="feature-grid">
+            <article class="feature-card">
+              <strong>01</strong>
+              <h3>Guided learning tracks</h3>
+              <p>Choose a track that matches your goals and time. Follow short videos, quizzes, and ready-made checklists curated by professional traders.</p>
+            </article>
+            <article class="feature-card">
+              <strong>02</strong>
+              <h3>Practice without pressure</h3>
+              <p>Use our sandbox portfolio to test strategies with real-time data—zero risk, instant feedback, and weekly group reviews.</p>
+            </article>
+            <article class="feature-card">
+              <strong>03</strong>
+              <h3>Automation that supports</h3>
+              <p>Personalized alerts, smart watchlists, and beginner-friendly breakdowns guide you through every decision with clarity.</p>
+            </article>
+            <article class="feature-card">
+              <strong>04</strong>
+              <h3>Community-powered answers</h3>
+              <p>Ask questions any time and get responses from certified coaches and peers who remember exactly how starting out feels.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="tour">
+          <div class="section-heading">
+            <h2>How Dynamic Capital sets you up to win</h2>
+            <p>Each stage focuses on momentum. You'll always know what to do next and why it matters.</p>
+          </div>
+          <div class="steps-grid">
+            <article class="step-card">
+              <h3>Step 1</h3>
+              <strong>Kickoff clarity call</strong>
+              <p>Meet a coach, set realistic goals, and map the milestones we’ll celebrate together. No prep work required—just bring your curiosity.</p>
+            </article>
+            <article class="step-card">
+              <h3>Step 2</h3>
+              <strong>Follow the daily checklist</strong>
+              <p>Short tasks, smart reminders, and plain-language summaries keep you moving forward, even on your busiest days.</p>
+            </article>
+            <article class="step-card">
+              <h3>Step 3</h3>
+              <strong>Graduate with confidence</strong>
+              <p>Switch to real capital with mentor oversight, automated guardrails, and community accountability. We stay with you beyond the first win.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="quote-card">
+            <p>
+              “I used to think investing was a club I wasn’t invited to. Dynamic Capital explained every step, celebrated the small wins, and now I manage a portfolio I’m proud of.”
+            </p>
+            <strong>— Maya L., VIP member since 2023</strong>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-heading">
+            <h2>Tools that keep things friendly</h2>
+            <p>Stay on track with resources crafted for new investors who want clarity without the overwhelm.</p>
+          </div>
+          <div class="resources">
+            <article class="resource-card">
+              <span>Weekly</span>
+              <h3>Live walkthrough workshops</h3>
+              <p>Follow along as mentors analyze the market in real-time and translate the "why" behind each move.</p>
+            </article>
+            <article class="resource-card">
+              <span>On demand</span>
+              <h3>Beginner-friendly library</h3>
+              <p>Access an organized vault of templates, definitions, and cheat sheets you can revisit anytime.</p>
+            </article>
+            <article class="resource-card">
+              <span>Community</span>
+              <h3>Supportive chat spaces</h3>
+              <p>Celebrate milestones, ask for quick feedback, and get encouragement from members who just crossed the same bridge.</p>
+            </article>
+            <article class="resource-card">
+              <span>Bonus</span>
+              <h3>Safety-first automations</h3>
+              <p>Smart guardrails, trailing stops, and auto-rebalancing help keep your plan on track while you learn.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="join">
+          <div class="quote-card" style="text-align: left; align-items: flex-start; gap: 24px;">
+            <h2 style="margin: 0; font-size: clamp(2rem, 3vw, 2.8rem); background: linear-gradient(120deg, #f8fbff, #58d5ff); -webkit-background-clip: text; color: transparent;">
+              Ready to become the confident investor everyone asks for advice?
+            </h2>
+            <p>
+              Join Dynamic Capital VIP and get your first 14 days of guided investing free. We’ll walk you through every screen, answer every “is this normal?” question, and make sure you leave each session smiling.
+            </p>
+            <div class="hero-actions">
+              <a class="cta-button" href="mailto:hello@dynamiccapital.com?subject=I%20want%20to%20start%20investing">Start my free trial</a>
+              <a class="secondary-button" href="https://cal.com" target="_blank" rel="noreferrer">Book a friendly walkthrough</a>
+            </div>
+          </div>
+        </section>
+
+        <footer>
+          <p>© <span id="year">2024</span> Dynamic Capital. All rights reserved.</p>
+          <div class="footer-links">
+            <a href="https://dynamiccapital.com/terms" target="_blank" rel="noreferrer">Terms</a>
+            <a href="https://dynamiccapital.com/privacy" target="_blank" rel="noreferrer">Privacy</a>
+            <a href="mailto:hello@dynamiccapital.com">Contact support</a>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
