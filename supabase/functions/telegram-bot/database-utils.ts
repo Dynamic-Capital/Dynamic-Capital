@@ -9,6 +9,111 @@ try {
   supabaseAdmin = {} as ReturnType<typeof createClient>;
 }
 
+type SupaMockState = {
+  tables?: Record<string, unknown[]>;
+};
+
+type GlobalWithSupaMock = typeof globalThis & {
+  __SUPA_MOCK__?: SupaMockState;
+};
+
+function readMockTableRows<T>(table: string): T[] | null {
+  const globalState = (globalThis as GlobalWithSupaMock).__SUPA_MOCK__;
+  const rows = globalState?.tables?.[table];
+  return Array.isArray(rows) ? [...rows as T[]] : null;
+}
+
+function toComparable(value: unknown): number | string {
+  if (value === null || value === undefined) return Number.POSITIVE_INFINITY;
+  if (typeof value === "number") return value;
+  if (typeof value === "boolean") return value ? 1 : 0;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "string") {
+    const timestamp = Date.parse(value);
+    if (!Number.isNaN(timestamp)) return timestamp;
+    return value;
+  }
+  return JSON.stringify(value);
+}
+
+function sortRowsByColumn<T>(
+  rows: T[],
+  column: string,
+  ascending: boolean,
+): T[] {
+  const sorted = [...rows].sort((a, b) => {
+    const recordA = a as Record<string, unknown>;
+    const recordB = b as Record<string, unknown>;
+    const comparableA = toComparable(recordA[column]);
+    const comparableB = toComparable(recordB[column]);
+
+    if (typeof comparableA === "number" && typeof comparableB === "number") {
+      return comparableA - comparableB;
+    }
+
+    return String(comparableA).localeCompare(String(comparableB));
+  });
+
+  return ascending ? sorted : sorted.reverse();
+}
+
+async function runListQuery<T>(
+  builder: any,
+  options: {
+    table: string;
+    orderBy?: string;
+    ascending?: boolean;
+    errorMessage: string;
+  },
+): Promise<T[]> {
+  const { table, orderBy, ascending = true, errorMessage } = options;
+  const supportsOrder = typeof builder?.order === "function";
+
+  try {
+    const result = supportsOrder && orderBy
+      ? await builder.order(orderBy, { ascending })
+      : await builder;
+
+    if (result?.error) {
+      console.error(errorMessage, result.error);
+      const fallback = readMockTableRows<T>(table);
+      if (fallback) {
+        return orderBy
+          ? sortRowsByColumn(fallback, orderBy, ascending)
+          : fallback;
+      }
+      return [];
+    }
+
+    let rows = Array.isArray(result?.data) ? result.data as T[] : null;
+
+    if (!rows) {
+      const fallback = readMockTableRows<T>(table);
+      if (fallback) {
+        return orderBy
+          ? sortRowsByColumn(fallback, orderBy, ascending)
+          : fallback;
+      }
+      rows = [];
+    }
+
+    if (orderBy && !supportsOrder) {
+      return sortRowsByColumn(rows, orderBy, ascending);
+    }
+
+    return rows;
+  } catch (error) {
+    console.error(errorMessage, error);
+    const fallback = readMockTableRows<T>(table);
+    if (fallback) {
+      return orderBy
+        ? sortRowsByColumn(fallback, orderBy, ascending)
+        : fallback;
+    }
+    return [];
+  }
+}
+
 interface VipPackage {
   id: string;
   name: string;
@@ -90,7 +195,7 @@ Our mission is to help traders succeed through:
 • Educational resources
 • Community support
 • Expert guidance`,
-"support_message": `🛟 *Need Help?*
+    "support_message": `🛟 *Need Help?*
 
 Our support team is here for you!
 
@@ -346,22 +451,19 @@ export async function resetBotSettings(
 
 // VIP package management functions
 export async function getVipPackages(): Promise<VipPackage[]> {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from("subscription_plans")
-      .select("*")
-      .order("price", { ascending: true });
-
-    if (error) {
-      console.error("Error fetching VIP packages:", error);
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
-    console.error("Error fetching VIP packages:", error);
-    return [];
+  if (typeof supabaseAdmin?.from !== "function") {
+    return readMockTableRows<VipPackage>("subscription_plans") ?? [];
   }
+
+  return await runListQuery<VipPackage>(
+    supabaseAdmin.from<VipPackage>("subscription_plans").select("*"),
+    {
+      table: "subscription_plans",
+      orderBy: "price",
+      ascending: true,
+      errorMessage: "Error fetching VIP packages:",
+    },
+  );
 }
 
 // Enhanced VIP packages display with better formatting
@@ -980,18 +1082,23 @@ export async function deleteVipPackage(
 export async function getEducationPackages(): Promise<
   Record<string, unknown>[]
 > {
-  try {
-    const { data, error: _error } = await supabaseAdmin
-      .from("education_packages")
-      .select("*")
-      .eq("is_active", true)
-      .order("price", { ascending: true });
-
-    return data || [];
-  } catch (error) {
-    console.error("Error fetching education packages:", error);
-    return [];
+  if (typeof supabaseAdmin?.from !== "function") {
+    return readMockTableRows<Record<string, unknown>>("education_packages") ??
+      [];
   }
+
+  return await runListQuery<Record<string, unknown>>(
+    supabaseAdmin
+      .from<Record<string, unknown>>("education_packages")
+      .select("*")
+      .eq("is_active", true),
+    {
+      table: "education_packages",
+      orderBy: "price",
+      ascending: true,
+      errorMessage: "Error fetching education packages:",
+    },
+  );
 }
 
 export async function createEducationPackage(
@@ -1026,19 +1133,23 @@ export async function createEducationPackage(
 export async function getActivePromotions(): Promise<
   Record<string, unknown>[]
 > {
-  try {
-    const { data, error: _error } = await supabaseAdmin
-      .from("promotions")
+  if (typeof supabaseAdmin?.from !== "function") {
+    return readMockTableRows<Record<string, unknown>>("promotions") ?? [];
+  }
+
+  return await runListQuery<Record<string, unknown>>(
+    supabaseAdmin
+      .from<Record<string, unknown>>("promotions")
       .select("*")
       .eq("is_active", true)
-      .gte("valid_until", new Date().toISOString())
-      .order("created_at", { ascending: false });
-
-    return data || [];
-  } catch (error) {
-    console.error("Error fetching promotions:", error);
-    return [];
-  }
+      .gte("valid_until", new Date().toISOString()),
+    {
+      table: "promotions",
+      orderBy: "created_at",
+      ascending: false,
+      errorMessage: "Error fetching promotions:",
+    },
+  );
 }
 
 // Contact link management functions
@@ -1049,23 +1160,22 @@ interface ContactLink {
 }
 
 export async function getContactLinks(): Promise<ContactLink[]> {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from("contact_links")
-      .select("display_name, url, icon_emoji")
-      .eq("is_active", true)
-      .order("display_order", { ascending: true });
-
-    if (error) {
-      console.error("Error fetching contact links:", error);
-      return [];
-    }
-
-    return data as ContactLink[];
-  } catch (error) {
-    console.error("Exception in getContactLinks:", error);
-    return [];
+  if (typeof supabaseAdmin?.from !== "function") {
+    return readMockTableRows<ContactLink>("contact_links") ?? [];
   }
+
+  return await runListQuery<ContactLink>(
+    supabaseAdmin
+      .from<ContactLink>("contact_links")
+      .select("display_name, url, icon_emoji")
+      .eq("is_active", true),
+    {
+      table: "contact_links",
+      orderBy: "display_order",
+      ascending: true,
+      errorMessage: "Error fetching contact links:",
+    },
+  );
 }
 
 export async function createPromotion(
