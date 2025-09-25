@@ -420,7 +420,7 @@ def test_trade_logic_applies_grok_advice():
     decisions = logic.on_bar(snapshot, open_positions=[], advisor=advisor)
     decision = next(dec for dec in decisions if dec.action == "open")
 
-    assert advisor.invocations, "expected Grok advisor to be invoked"
+    assert advisor.invocations, "expected trade advisor to be invoked"
     assert decision.signal is not None
     assert decision.signal.confidence == pytest.approx(0.42)
     assert decision.context["final_confidence"] == pytest.approx(0.42)
