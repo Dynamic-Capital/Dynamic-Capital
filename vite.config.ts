@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => ({
       '@': path.resolve(__dirname, 'apps/web'),
       '@dynamic-ui-system/core/css': path.resolve(
         __dirname,
-        'node_modules/@dynamic-ui-system/core/dist/css',
+        'node_modules/@dynamic-ui-system/core/css',
       ),
       '@dynamic-ui-system/core': path.resolve(
         __dirname,
