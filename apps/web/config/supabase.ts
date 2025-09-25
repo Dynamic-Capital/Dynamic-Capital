@@ -3,6 +3,7 @@ import {
   SUPABASE_CONFIG_FROM_ENV,
   SUPABASE_URL,
 } from "@/config/supabase-runtime";
+import { getEnvVar } from "@/utils/env";
 
 export const SUPABASE_ENV_ERROR = "";
 
@@ -52,18 +53,74 @@ export const SUPABASE_CONFIG = {
   },
 } as const;
 
-export const CRYPTO_CONFIG = {
-  SUPPORTED_CURRENCIES: ['BTC', 'ETH', 'USDT', 'LTC'],
-  DEPOSIT_ADDRESS: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-  USDT_TRC20_ADDRESS: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-  NETWORK: "mainnet"
-} as const;
+const DEFAULT_CRYPTO_SUPPORTED_CURRENCIES = [
+  "BTC",
+  "ETH",
+  "USDT",
+  "LTC",
+] as const;
+const DEFAULT_CRYPTO_DEPOSIT_ADDRESS = "TQn9Y2khEsLMWD1N4wZ7Eh6V8c8aL5Q1R4";
+const DEFAULT_CRYPTO_USDT_TRC20_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+const DEFAULT_CRYPTO_NETWORK = "mainnet";
 
-export const TELEGRAM_CONFIG = {
-  BOT_URL: "https://t.me/your_bot",
-  MINI_APP_URL: "https://your-miniapp.supabase.co",
-  WEBHOOK_SECRET: ""
-} as const;
+type CryptoConfig = {
+  SUPPORTED_CURRENCIES: readonly string[];
+  DEPOSIT_ADDRESS: string;
+  USDT_TRC20_ADDRESS: string;
+  NETWORK: string;
+};
+
+function resolveString(
+  key: string,
+  fallback: string,
+  aliases: string[] = [],
+): string {
+  const value = getEnvVar(key, aliases);
+  return value ?? fallback;
+}
+
+function resolveSupportedCurrencies(): readonly string[] {
+  const raw = getEnvVar("CRYPTO_SUPPORTED_CURRENCIES");
+  if (!raw) return DEFAULT_CRYPTO_SUPPORTED_CURRENCIES;
+  const parsed = raw
+    .split(",")
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0)
+    .map((token) => token.toUpperCase());
+  return parsed.length > 0 ? parsed : DEFAULT_CRYPTO_SUPPORTED_CURRENCIES;
+}
+
+export const CRYPTO_CONFIG: CryptoConfig = {
+  SUPPORTED_CURRENCIES: resolveSupportedCurrencies(),
+  DEPOSIT_ADDRESS: resolveString(
+    "CRYPTO_DEPOSIT_ADDRESS",
+    DEFAULT_CRYPTO_DEPOSIT_ADDRESS,
+  ),
+  USDT_TRC20_ADDRESS: resolveString(
+    "USDT_TRC20_ADDRESS",
+    DEFAULT_CRYPTO_USDT_TRC20_ADDRESS,
+  ),
+  NETWORK: resolveString("CRYPTO_NETWORK", DEFAULT_CRYPTO_NETWORK),
+};
+
+type TelegramConfig = {
+  BOT_URL: string;
+  MINI_APP_URL: string;
+  WEBHOOK_SECRET: string;
+};
+
+export const TELEGRAM_CONFIG: TelegramConfig = {
+  BOT_URL: resolveString("TELEGRAM_BOT_URL", "https://t.me/your_bot"),
+  MINI_APP_URL: resolveString(
+    "MINI_APP_URL",
+    "https://your-miniapp.supabase.co",
+    ["NEXT_PUBLIC_MINI_APP_URL"],
+  ),
+  WEBHOOK_SECRET: resolveString(
+    "NEXT_PUBLIC_TELEGRAM_WEBHOOK_SECRET",
+    "",
+  ),
+};
 
 export const buildFunctionUrl = (
   functionName: keyof typeof SUPABASE_CONFIG.FUNCTIONS,
@@ -84,7 +141,9 @@ export const callEdgeFunction = async <T>(
     headers?: Record<string, string>;
     token?: string;
   } = {},
-): Promise<{ data?: T; error?: { status: number; message: string }; status?: number }> => {
+): Promise<
+  { data?: T; error?: { status: number; message: string }; status?: number }
+> => {
   const { method = "GET", body, headers = {}, token } = options;
 
   const requestHeaders: Record<string, string> = {
