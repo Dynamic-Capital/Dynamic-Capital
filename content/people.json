@@ -1,9 +1,9 @@
 [
   {
-    "id": "mumin",
-    "name": "Abdul Mumin Ibun Aflhal",
-    "title": "Founder",
-    "sources": ["https://dynamiccapital.example/profile"],
+    "id": "dynamic-capital",
+    "name": "Dynamic Capital",
+    "title": "Trading Desk",
+    "sources": ["https://dynamic.capital/"],
     "verified_by": "Dynamic-Capital",
     "verified_at": "2025-09-25"
   }

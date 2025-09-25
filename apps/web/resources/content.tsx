@@ -14,13 +14,13 @@ import { supabaseAsset } from "./assets";
 import { ogDefaults } from "./og-defaults";
 
 const person: Person = {
-  firstName: "Abdul Mumin",
-  lastName: "Ibun Aflhal",
-  name: "Abdul Mumin Ibun Aflhal",
-  role: "Founder",
-  avatar: supabaseAsset("images/avatar.jpg"),
-  email: "hello@dynamic.capital",
-  location: "Africa/Accra",
+  firstName: "Dynamic",
+  lastName: "Capital",
+  name: "Dynamic Capital",
+  role: "Trading Desk Operations",
+  avatar: "/logo.png",
+  email: "support@dynamic.capital",
+  location: "Etc/UTC",
 };
 
 const newsletter: Newsletter = {
@@ -97,7 +97,8 @@ const about: About = {
   path: "/about",
   label: "About",
   title: "About – Dynamic Capital",
-  description: `Meet ${person.name}, ${person.role} at Dynamic Capital`,
+  description:
+    `Explore how ${person.name} orchestrates the Dynamic Capital trading desk`,
   tableOfContent: {
     display: true,
     subItems: true,
@@ -114,10 +115,10 @@ const about: About = {
     title: "Why we exist",
     description: (
       <>
-        Abdul Mumin Ibun Aflhal leads Dynamic Capital's trading desk, keeping
+        Dynamic Capital runs an institutional-grade trading desk that keeps
         member strategies grounded in documented research and disciplined risk
-        controls. He focuses on helping operators adopt automation responsibly
-        so every signal has an auditable process behind it.
+        controls. The team focuses on helping operators adopt automation
+        responsibly so every signal has an auditable process behind it.
       </>
     ),
   },
@@ -128,11 +129,11 @@ const about: About = {
       {
         company: "Dynamic Capital",
         timeframe: "Present",
-        role: "Founder & Portfolio Lead",
+        role: "Trading Desk Operations",
         achievements: [
           <>
-            Chairs the investment committee that reviews every trading playbook
-            before it reaches the desk.
+            Maintains the investment committee that reviews every trading
+            playbook before it reaches the desk.
           </>,
           <>
             Built the automation stack that keeps allocations, risk parameters,
