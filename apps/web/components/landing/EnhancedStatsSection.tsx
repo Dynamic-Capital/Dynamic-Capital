@@ -3,7 +3,9 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Users, Shield, Star, Target, Award } from "lucide-react";
+import { Award, Shield, Star, Target, TrendingUp, Users } from "lucide-react";
+
+import { InteractiveSectionContainer } from "./InteractiveSectionContainer";
 
 const EnhancedStatsSection = () => {
   const stats = [
@@ -13,7 +15,7 @@ const EnhancedStatsSection = () => {
       label: "Success Rate",
       description: "Average signal accuracy",
       color: "accent-green",
-      gradient: "from-green-500 to-emerald-600"
+      gradient: "from-green-500 to-emerald-600",
     },
     {
       icon: Users,
@@ -21,7 +23,7 @@ const EnhancedStatsSection = () => {
       label: "VIP Members",
       description: "Active traders worldwide",
       color: "dc-accent",
-      gradient: "from-purple-500 to-pink-600"
+      gradient: "from-purple-500 to-pink-600",
     },
     {
       icon: Shield,
@@ -29,7 +31,7 @@ const EnhancedStatsSection = () => {
       label: "Support",
       description: "Expert assistance",
       color: "accent-teal",
-      gradient: "from-cyan-500 to-blue-600"
+      gradient: "from-cyan-500 to-blue-600",
     },
     {
       icon: Star,
@@ -37,7 +39,7 @@ const EnhancedStatsSection = () => {
       label: "Rating",
       description: "Member satisfaction",
       color: "accent-gold",
-      gradient: "from-yellow-400 to-orange-500"
+      gradient: "from-yellow-400 to-orange-500",
     },
     {
       icon: Target,
@@ -45,7 +47,7 @@ const EnhancedStatsSection = () => {
       label: "Profits",
       description: "Generated for members",
       color: "primary",
-      gradient: "from-red-500 to-orange-600"
+      gradient: "from-red-500 to-orange-600",
     },
     {
       icon: Award,
@@ -53,8 +55,8 @@ const EnhancedStatsSection = () => {
       label: "Years",
       description: "Proven track record",
       color: "dc-secondary",
-      gradient: "from-blue-500 to-indigo-600"
-    }
+      gradient: "from-blue-500 to-indigo-600",
+    },
   ];
 
   return (
@@ -62,11 +64,17 @@ const EnhancedStatsSection = () => {
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-10 w-72 h-72 bg-gradient-to-r from-primary/10 via-dc-accent/5 to-transparent rounded-full blur-3xl animate-pulse opacity-60" />
-        <div className="absolute bottom-1/4 right-10 w-80 h-80 bg-gradient-to-l from-dc-accent/10 via-primary/5 to-transparent rounded-full blur-3xl animate-pulse opacity-60" style={{ animationDelay: '2s' }} />
+        <div
+          className="absolute bottom-1/4 right-10 w-80 h-80 bg-gradient-to-l from-dc-accent/10 via-primary/5 to-transparent rounded-full blur-3xl animate-pulse opacity-60"
+          style={{ animationDelay: "2s" }}
+        />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 relative z-10">
-        <motion.div 
+      <InteractiveSectionContainer
+        className="relative z-10"
+        glowColor="rgba(250, 204, 21, 0.16)"
+      >
+        <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -77,7 +85,8 @@ const EnhancedStatsSection = () => {
             Proven Results That Speak
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-light">
-            Join thousands of successful traders who trust Dynamic Capital for their trading success
+            Join thousands of successful traders who trust Dynamic Capital for
+            their trading success
           </p>
         </motion.div>
 
@@ -87,12 +96,12 @@ const EnhancedStatsSection = () => {
               key={index}
               initial={{ opacity: 0, y: 30, scale: 0.9 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ 
-                duration: 0.6, 
+              transition={{
+                duration: 0.6,
                 delay: index * 0.1,
                 type: "spring",
                 stiffness: 300,
-                damping: 25
+                damping: 25,
               }}
               viewport={{ once: true }}
               whileHover={{ y: -8, scale: 1.02 }}
@@ -100,11 +109,13 @@ const EnhancedStatsSection = () => {
             >
               <Card className="relative overflow-hidden bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-sm border border-border/30 hover:border-primary/40 transition-all duration-500 shadow-lg hover:shadow-xl">
                 {/* Glow Effect */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-                
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}
+                />
+
                 {/* Animated Border */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
+
                 <CardContent className="relative p-5 sm:p-6 text-center">
                   <motion.div
                     className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg mb-4 group-hover:shadow-xl`}
@@ -113,38 +124,38 @@ const EnhancedStatsSection = () => {
                   >
                     <stat.icon className="w-6 h-6 text-white" />
                   </motion.div>
-                  
-                  <motion.div 
+
+                  <motion.div
                     className={`text-2xl md:text-3xl font-black text-[hsl(var(--${stat.color}))] mb-2 group-hover:scale-110 transition-transform font-mono`}
                     initial={{ scale: 0 }}
                     whileInView={{ scale: 1 }}
-                    transition={{ 
+                    transition={{
                       type: "spring",
                       stiffness: 400,
                       damping: 10,
-                      delay: index * 0.1 + 0.3
+                      delay: index * 0.1 + 0.3,
                     }}
                     viewport={{ once: true }}
                   >
                     {stat.value}
                   </motion.div>
-                  
+
                   <h4 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
                     {stat.label}
                   </h4>
-                  
+
                   <p className="text-xs text-muted-foreground group-hover:text-foreground/70 transition-colors">
                     {stat.description}
                   </p>
-                  
+
                   {/* Achievement Badge */}
-                  {stat.value.includes('%') && (
+                  {stat.value.includes("%") && (
                     <Badge className="absolute top-2 right-2 bg-accent-green/20 text-accent-green text-xs">
                       High
                     </Badge>
                   )}
-                  
-                  {stat.value.includes('+') && (
+
+                  {stat.value.includes("+") && (
                     <Badge className="absolute top-2 right-2 bg-primary/20 text-primary text-xs">
                       Growing
                     </Badge>
@@ -180,7 +191,7 @@ const EnhancedStatsSection = () => {
             </button>
           </motion.div>
         </motion.div>
-      </div>
+      </InteractiveSectionContainer>
     </section>
   );
 };

@@ -7,6 +7,8 @@ import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { formatPrice } from "@/utils";
 import type { Plan } from "@/types/plan";
 
+import { InteractiveSectionContainer } from "./InteractiveSectionContainer";
+
 const getPlanLabel = (plan: Plan) => {
   if (plan.is_lifetime) {
     return "Lifetime";
@@ -64,7 +66,10 @@ const VipPriceSwitcher = () => {
       return;
     }
 
-    if (!selectedPlanId || !orderedPlans.some((plan) => plan.id === selectedPlanId)) {
+    if (
+      !selectedPlanId ||
+      !orderedPlans.some((plan) => plan.id === selectedPlanId)
+    ) {
       setSelectedPlanId(orderedPlans[0].id);
     }
   }, [orderedPlans, selectedPlanId]);
@@ -75,7 +80,10 @@ const VipPriceSwitcher = () => {
   );
 
   const monthlyPlan = useMemo(
-    () => orderedPlans.find((plan) => !plan.is_lifetime && plan.duration_months === 1) ?? null,
+    () =>
+      orderedPlans.find((plan) =>
+        !plan.is_lifetime && plan.duration_months === 1
+      ) ?? null,
     [orderedPlans],
   );
 
@@ -88,8 +96,11 @@ const VipPriceSwitcher = () => {
     const monthlyEquivalent = selectedPlan.price / selectedPlan.duration_months;
     if (monthlyEquivalent >= monthlyPlan.price) return null;
 
-    const percent = Math.round((1 - monthlyEquivalent / monthlyPlan.price) * 100);
-    const amountSaved = monthlyPlan.price * selectedPlan.duration_months - selectedPlan.price;
+    const percent = Math.round(
+      (1 - monthlyEquivalent / monthlyPlan.price) * 100,
+    );
+    const amountSaved = monthlyPlan.price * selectedPlan.duration_months -
+      selectedPlan.price;
     return { percent, amountSaved };
   }, [selectedPlan, monthlyPlan]);
 
@@ -104,7 +115,9 @@ const VipPriceSwitcher = () => {
           transition={{ duration: 0.3 }}
           className="text-center"
         >
-          <div className="text-lg text-muted-foreground">Loading live pricing…</div>
+          <div className="text-lg text-muted-foreground">
+            Loading live pricing…
+          </div>
         </motion.div>
       );
     }
@@ -119,7 +132,9 @@ const VipPriceSwitcher = () => {
           transition={{ duration: 0.3 }}
           className="text-center space-y-4"
         >
-          <div className="text-lg text-muted-foreground">Unable to load live pricing right now.</div>
+          <div className="text-lg text-muted-foreground">
+            Unable to load live pricing right now.
+          </div>
           <Button variant="outline" onClick={() => refresh(true)}>
             Retry loading plans
           </Button>
@@ -138,7 +153,8 @@ const VipPriceSwitcher = () => {
           className="text-center"
         >
           <div className="text-lg text-muted-foreground">
-            VIP plans will appear here as soon as they are published in Supabase.
+            VIP plans will appear here as soon as they are published in
+            Supabase.
           </div>
         </motion.div>
       );
@@ -162,22 +178,29 @@ const VipPriceSwitcher = () => {
         <div className="text-lg sm:text-xl text-muted-foreground font-medium">
           {describePlanFrequency(selectedPlan)}
         </div>
-        {savings ? (
-          <div className="text-sm text-accent-green font-semibold mt-2">
-            Save {savings.percent}% ({formatPrice(savings.amountSaved, selectedPlan.currency)}) compared to monthly billing
-          </div>
-        ) : selectedPlan.is_lifetime ? (
-          <div className="text-sm text-primary font-semibold mt-2">
-            One payment. Permanent VIP desk access.
-          </div>
-        ) : null}
+        {savings
+          ? (
+            <div className="text-sm text-accent-green font-semibold mt-2">
+              Save {savings.percent}% ({formatPrice(
+                savings.amountSaved,
+                selectedPlan.currency,
+              )}) compared to monthly billing
+            </div>
+          )
+          : selectedPlan.is_lifetime
+          ? (
+            <div className="text-sm text-primary font-semibold mt-2">
+              One payment. Permanent VIP desk access.
+            </div>
+          )
+          : null}
       </motion.div>
     );
   };
 
   return (
     <section className="py-16 bg-gradient-to-b from-transparent via-card/10 to-transparent">
-      <div className="container mx-auto px-4 sm:px-6">
+      <InteractiveSectionContainer glowColor="rgba(129, 140, 248, 0.22)">
         <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
@@ -189,27 +212,30 @@ const VipPriceSwitcher = () => {
             VIP Membership Plans
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Choose the perfect plan for your trading journey. Pricing updates automatically from the Supabase subscription plans table shared with the Telegram bot.
+            Choose the perfect plan for your trading journey. Pricing updates
+            automatically from the Supabase subscription plans table shared with
+            the Telegram bot.
           </p>
         </motion.div>
 
-        {!error && (loading || orderedPlans.length > 0) ? (
-          <motion.div
-            className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-8"
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-2 shadow-lg">
-              <div className="flex flex-col sm:flex-row gap-2">
-                {orderedPlans.length === 0
-                  ? (
-                    <div className="px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-muted-foreground">
-                      Loading options…
-                    </div>
-                  )
-                  : orderedPlans.map((plan) => {
+        {!error && (loading || orderedPlans.length > 0)
+          ? (
+            <motion.div
+              className="flex flex-col items-center justify-center gap-4 sm:flex-row mb-8"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-2 shadow-lg">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {orderedPlans.length === 0
+                    ? (
+                      <div className="px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-muted-foreground">
+                        Loading options…
+                      </div>
+                    )
+                    : orderedPlans.map((plan) => {
                       const isActive = plan.id === selectedPlanId;
                       return (
                         <motion.button
@@ -228,7 +254,11 @@ const VipPriceSwitcher = () => {
                             <motion.div
                               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                               animate={{ x: ["-100%", "100%"] }}
-                              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                              transition={{
+                                duration: 1.5,
+                                repeat: Infinity,
+                                ease: "linear",
+                              }}
                             />
                           )}
                           <span className="relative z-10">
@@ -237,10 +267,11 @@ const VipPriceSwitcher = () => {
                         </motion.button>
                       );
                     })}
+                </div>
               </div>
-            </div>
-          </motion.div>
-        ) : null}
+            </motion.div>
+          )
+          : null}
 
         <motion.div
           className="text-center"
@@ -250,20 +281,29 @@ const VipPriceSwitcher = () => {
           viewport={{ once: true }}
         >
           <div className="relative">
-            <AnimatePresence mode="wait">{renderPricingContent()}</AnimatePresence>
+            <AnimatePresence mode="wait">
+              {renderPricingContent()}
+            </AnimatePresence>
           </div>
         </motion.div>
 
-        {hasData ? (
-          <div className="mt-10 flex justify-center">
-            <Button variant="ghost" size="lg" className="rounded-full" asChild>
-              <a href="#vip-packages" className="flex items-center gap-2">
-                View detailed VIP packages
-              </a>
-            </Button>
-          </div>
-        ) : null}
-      </div>
+        {hasData
+          ? (
+            <div className="mt-10 flex justify-center">
+              <Button
+                variant="ghost"
+                size="lg"
+                className="rounded-full"
+                asChild
+              >
+                <a href="#vip-packages" className="flex items-center gap-2">
+                  View detailed VIP packages
+                </a>
+              </Button>
+            </div>
+          )
+          : null}
+      </InteractiveSectionContainer>
     </section>
   );
 };
