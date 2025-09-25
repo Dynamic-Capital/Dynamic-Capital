@@ -246,6 +246,60 @@ async function streamFile(req, res, filePath, status = 200) {
   }
 }
 
+function extractRequestPath(rawTarget) {
+  if (!rawTarget) return '/';
+  let end = rawTarget.length;
+  const queryIndex = rawTarget.indexOf('?');
+  if (queryIndex !== -1) {
+    end = Math.min(end, queryIndex);
+  }
+  const hashIndex = rawTarget.indexOf('#');
+  if (hashIndex !== -1) {
+    end = Math.min(end, hashIndex);
+  }
+  const path = rawTarget.slice(0, end);
+  return path || '/';
+}
+
+function containsTraversalAttempt(rawPath) {
+  if (!rawPath) return false;
+  let candidate = rawPath;
+  for (let i = 0; i < 4; i++) {
+    const lower = candidate.toLowerCase();
+    if (lower.includes('../') || lower.includes('..\\')) {
+      return true;
+    }
+    const segments = lower.split(/[/\\]+/);
+    if (segments.some((segment) => segment === '..')) {
+      return true;
+    }
+    if (!lower.includes('%')) {
+      break;
+    }
+    try {
+      const decoded = decodeURIComponent(candidate);
+      if (decoded === candidate) {
+        break;
+      }
+      candidate = decoded;
+    } catch {
+      break;
+    }
+  }
+  return false;
+}
+
+async function respondNotFound(req, res) {
+  const notFound = join(staticRoot, '404.html');
+  try {
+    await stat(notFound);
+    await streamFile(req, res, notFound, 404);
+  } catch {
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('404 Not Found');
+  }
+}
+
 function resolveStaticCandidates(pathname) {
   let target = pathname;
   if (target.startsWith('/_static')) {
@@ -369,7 +423,15 @@ async function handler(req, res) {
     return res.end();
   }
 
-  const url = new URL(req.url || '/', 'http://localhost');
+  const requestTarget = req.url || '/';
+  const rawPath = extractRequestPath(requestTarget);
+  if (containsTraversalAttempt(rawPath)) {
+    console.warn(`Blocked path traversal attempt: ${rawPath}`);
+    await respondNotFound(req, res);
+    return;
+  }
+
+  const url = new URL(requestTarget, 'http://localhost');
   const { pathname } = url;
   console.log(`${req.method} ${pathname}`);
 
@@ -393,14 +455,7 @@ async function handler(req, res) {
     return;
   }
 
-  const notFound = join(staticRoot, '404.html');
-  try {
-    await stat(notFound);
-    return await streamFile(req, res, notFound, 404);
-  } catch {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('404 Not Found');
-  }
+  await respondNotFound(req, res);
 }
 
 let server;
