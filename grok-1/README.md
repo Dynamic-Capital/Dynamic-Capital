@@ -20,6 +20,50 @@ The script loads the checkpoint and samples from the model on a test input.
 Due to the large size of the model (314B parameters), a machine with enough GPU memory is required to test the model with the example code.
 The implementation of the MoE layer in this repository is not efficient. The implementation was chosen to avoid the need for custom kernels to validate the correctness of the model.
 
+# Utility helpers
+
+Two deterministic helpers emulate Grok-guided business planning so the repository remains testable without the 314B parameter weights:
+
+## VIP pricing generator (`vip_pricing.py`)
+
+The VIP generator accepts market demand and loyalty signals and emits a ladder of VIP bundles, each with tier names, perk bundles, price recommendations, and promo codes. See `tests/test_vip_pricing.py` for concrete expectations.
+
+## Founders Circle allocator (`founders_circle.py`)
+
+``generate_founders_circle_plan`` synthesises a token-aligned allocation plan for the “Founders Circle” programme. The helper:
+
+- Loads the canonical token supply and treasury split defaults from `dynamic-capital-ton/config.yaml` unless callers inject custom values.
+- Accepts membership counts for the VIP channel, VIP group, mentorship channel, mentorship group, and trading pool channel.
+- Weights each cohort with engagement multipliers and guard rails to ensure every group receives a baseline share of the allocation pool.
+- Returns a `FoundersCirclePlan` object containing the total pool size, per-channel allocation, per-member award, and suggested eligibility notes.
+
+Example usage:
+
+```python
+from founders_circle import generate_founders_circle_plan, summarize_plan
+
+plan = generate_founders_circle_plan(
+    vip_channel_members=120,
+    vip_group_members=95,
+    mentorship_channel_members=60,
+    mentorship_group_members=75,
+    trading_pool_members=40,
+)
+
+print(summarize_plan(plan))
+```
+
+Example output:
+
+```
+Founders Circle Pool: 6,000,000.00 DCT (6.00% of supply)
+- VIP Channel: 1,716,393.44 DCT (120 members, multiplier 1.20) → 14,303.28 per member. Invite-only: charter members with ≥500 DCT staked and quarterly reviews.
+- VIP Group: 1,234,426.23 DCT (95 members, multiplier 1.00) → 12,993.96 per member. Invite-only: charter members with ≥500 DCT staked and quarterly reviews.
+- Mentorship Channel: 1,067,213.11 DCT (60 members, multiplier 1.30) → 17,786.89 per member. Invite-only: charter members with ≥500 DCT staked and quarterly reviews.
+- Mentorship Group: 1,111,475.41 DCT (75 members, multiplier 1.10) → 14,819.67 per member. Invite-only: charter members with ≥500 DCT staked and quarterly reviews.
+- Trading Pool: 870,491.80 DCT (40 members, multiplier 1.45) → 21,762.30 per member. Invite-only: charter members with ≥500 DCT staked and quarterly reviews.
+```
+
 # Model Specifications
 
 Grok-1 is currently designed with the following specifications:
