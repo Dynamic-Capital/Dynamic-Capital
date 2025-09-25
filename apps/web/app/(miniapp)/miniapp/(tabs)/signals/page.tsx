@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUpRight, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/miniapp/Skeleton";
 import { Toast } from "@/components/miniapp/Toast";
-import {
-  haptic,
-  hideMainButton,
-  setMainButton,
-} from "@/lib/telegram";
+import { haptic, hideMainButton, setMainButton } from "@/lib/telegram";
 import { track } from "@/lib/metrics";
 
 const placeholders = new Array(3).fill({
@@ -40,11 +36,30 @@ export default function SignalsTab() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
+  const refreshTimeoutRef = useRef<number | null>(null);
+
+  const clearRefreshTimeout = useCallback(() => {
+    if (refreshTimeoutRef.current) {
+      window.clearTimeout(refreshTimeoutRef.current);
+      refreshTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleLoadingComplete = useCallback(
+    (delay: number) => {
+      clearRefreshTimeout();
+      refreshTimeoutRef.current = window.setTimeout(() => {
+        setLoading(false);
+        refreshTimeoutRef.current = null;
+      }, delay);
+    },
+    [clearRefreshTimeout],
+  );
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => setLoading(false), 600);
-    return () => window.clearTimeout(timeout);
-  }, []);
+    scheduleLoadingComplete(600);
+    return () => clearRefreshTimeout();
+  }, [clearRefreshTimeout, scheduleLoadingComplete]);
 
   useEffect(() => {
     setMainButton("Open VIP", () => {
@@ -60,20 +75,32 @@ export default function SignalsTab() {
   return (
     <>
       <section className="card" style={{ display: "grid", gap: 16 }}>
-        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <header
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <div>
             <h2 style={{ margin: 0 }}>Signals</h2>
-            <p className="muted" style={{ margin: 0 }}>Live insights synced from the trading desk.</p>
+            <p className="muted" style={{ margin: 0 }}>
+              Live insights synced from the trading desk.
+            </p>
           </div>
           <button
             className="btn"
-            style={{ background: "transparent", color: "var(--brand-text)", border: "1px solid rgba(255,255,255,0.12)" }}
+            style={{
+              background: "transparent",
+              color: "var(--brand-text)",
+              border: "1px solid rgba(255,255,255,0.12)",
+            }}
             onClick={() => {
               haptic("light");
               void track("signals_refresh");
               setLoading(true);
               setShowToast(true);
-              window.setTimeout(() => setLoading(false), 560);
+              scheduleLoadingComplete(560);
             }}
           >
             <RefreshCw size={16} />
@@ -94,10 +121,20 @@ export default function SignalsTab() {
                 gap: 8,
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong>{loading ? <Skeleton h={16} w={80} /> : signal.pair}</strong>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <strong>
+                  {loading ? <Skeleton h={16} w={80} /> : signal.pair}
+                </strong>
                 <span className="muted" style={{ fontSize: 12 }}>
-                  {loading ? <Skeleton h={12} w={56} /> : `Confidence: ${signal.confidence}`}
+                  {loading
+                    ? <Skeleton h={12} w={56} />
+                    : `Confidence: ${signal.confidence}`}
                 </span>
               </div>
               <p style={{ margin: 0, color: "var(--brand-text)" }}>
@@ -119,7 +156,11 @@ export default function SignalsTab() {
           Upgrade to VIP
         </button>
       </section>
-      <Toast text="Signals updated" show={showToast} onDismiss={() => setShowToast(false)} />
+      <Toast
+        text="Signals updated"
+        show={showToast}
+        onDismiss={() => setShowToast(false)}
+      />
     </>
   );
 }

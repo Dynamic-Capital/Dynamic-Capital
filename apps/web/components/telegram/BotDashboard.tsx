@@ -25,6 +25,7 @@ const BotDashboard = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats>(DEFAULT_STATS);
+  const [statsError, setStatsError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,6 +36,7 @@ const BotDashboard = () => {
   const fetchBotStats = async () => {
     try {
       setLoading(true);
+      setStatsError(null);
       const { data, error } = await supabase.functions.invoke(
         "analytics-data",
         { body: { timeframe: "month" } },
@@ -51,6 +53,9 @@ const BotDashboard = () => {
       });
     } catch (error) {
       console.error("Error fetching bot stats:", error);
+      setStatsError(
+        "We couldn't load analytics right now. Please try refreshing.",
+      );
     } finally {
       setLoading(false);
     }
@@ -61,8 +66,7 @@ const BotDashboard = () => {
       const { data, error } = await supabase.functions.invoke(
         "bot-status-check",
       );
-      const connected =
-        !error &&
+      const connected = !error &&
         Boolean(data?.ok) &&
         Boolean(data?.bot_info?.success) &&
         Boolean(data?.webhook_info?.data?.url);
@@ -88,8 +92,7 @@ const BotDashboard = () => {
           <PromosView
             onBack={() => setCurrentView("welcome")}
             onCopyPromo={(code) =>
-              toast({ description: `Promo code ${code} copied` })
-            }
+              toast({ description: `Promo code ${code} copied` })}
           />
         );
       case "admin":
@@ -101,6 +104,7 @@ const BotDashboard = () => {
             stats={stats}
             loading={loading}
             isConnected={isConnected}
+            error={statsError}
             onNavigate={setCurrentView}
             onRefreshStats={fetchBotStats}
             onCheckStatus={checkBotStatus}
