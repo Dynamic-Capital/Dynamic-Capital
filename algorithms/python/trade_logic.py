@@ -187,7 +187,7 @@ class TradeSignal:
 class TradeDecision:
     """Action emitted by the trade engine."""
 
-    action: Literal["open", "close"]
+    action: Literal["open", "close", "modify"]
     symbol: str
     direction: Optional[int] = None
     size: Optional[float] = None
@@ -222,6 +222,9 @@ class TradeConfig:
     neutral_zone_pips: float = 2.0
     manual_stop_loss_pips: float = 30.0
     manual_take_profit_pips: float = 60.0
+    break_even_pips: float = 10.0
+    trail_start_pips: float = 25.0
+    trail_step_pips: float = 15.0
     use_adr: bool = True
     adr_period: int = 14
     adr_stop_loss_factor: float = 0.5
@@ -1236,10 +1239,17 @@ class TradeLogic:
                 pip_size=snapshot.pip_size,
             )
 
+        management_decisions, managed_positions = self._manage_open_positions(
+            snapshot=snapshot,
+            open_positions=open_positions,
+        )
+        decisions: List[TradeDecision] = list(management_decisions)
+        open_positions = managed_positions
+
         exit_decisions, filtered_positions = self._generate_exit_decisions(
             snapshot, open_positions
         )
-        decisions: List[TradeDecision] = list(exit_decisions)
+        decisions.extend(exit_decisions)
         open_positions = filtered_positions
 
         signal = self.strategy.update(snapshot)
@@ -1345,6 +1355,119 @@ class TradeLogic:
 
         return self._finalise_decisions(decisions, snapshot)
 
+    def _manage_open_positions(
+        self,
+        *,
+        snapshot: MarketSnapshot,
+        open_positions: Sequence[ActivePosition],
+    ) -> tuple[List[TradeDecision], List[ActivePosition]]:
+        pip_size = snapshot.pip_size if snapshot.pip_size > 0 else 1.0
+        tolerance = abs(pip_size) * 1e-4 or 1e-6
+        break_even_pips = max(0.0, self.config.break_even_pips)
+        trail_start_pips = max(0.0, self.config.trail_start_pips)
+        trail_step_pips = max(0.0, self.config.trail_step_pips)
+        price = snapshot.close
+
+        decisions: List[TradeDecision] = []
+        managed: List[ActivePosition] = []
+
+        for pos in open_positions:
+            if pos.symbol != snapshot.symbol or pos.direction == 0:
+                managed.append(
+                    ActivePosition(
+                        symbol=pos.symbol,
+                        direction=pos.direction,
+                        size=pos.size,
+                        entry_price=pos.entry_price,
+                        stop_loss=self._normalise_stop_value(pos.stop_loss, pip_size),
+                        take_profit=pos.take_profit,
+                        opened_at=pos.opened_at,
+                    )
+                )
+                continue
+
+            previous_stop = self._normalise_stop_value(pos.stop_loss, pip_size)
+            new_stop = previous_stop
+            changed = False
+            components: List[str] = []
+
+            profit_pips = (price - pos.entry_price) / pip_size * pos.direction
+
+            if break_even_pips > 0 and profit_pips >= break_even_pips:
+                target_stop = pos.entry_price
+                if pos.direction > 0:
+                    if new_stop is None or new_stop < target_stop - tolerance:
+                        new_stop = target_stop
+                        changed = True
+                        components.append("breakeven")
+                else:
+                    if new_stop is None or new_stop > target_stop + tolerance:
+                        new_stop = target_stop
+                        changed = True
+                        components.append("breakeven")
+
+            if trail_start_pips > 0 and trail_step_pips > 0:
+                if pos.direction > 0:
+                    trigger_price = pos.entry_price + trail_start_pips * pip_size
+                    if price > trigger_price:
+                        desired_stop = price - trail_step_pips * pip_size
+                        if new_stop is None or desired_stop > new_stop + tolerance:
+                            new_stop = desired_stop
+                            changed = True
+                            if "trailing" not in components:
+                                components.append("trailing")
+                else:
+                    trigger_price = pos.entry_price - trail_start_pips * pip_size
+                    if price < trigger_price:
+                        desired_stop = price + trail_step_pips * pip_size
+                        if new_stop is None or desired_stop < new_stop - tolerance:
+                            new_stop = desired_stop
+                            changed = True
+                            if "trailing" not in components:
+                                components.append("trailing")
+
+            updated_pos = ActivePosition(
+                symbol=pos.symbol,
+                direction=pos.direction,
+                size=pos.size,
+                entry_price=pos.entry_price,
+                stop_loss=new_stop,
+                take_profit=pos.take_profit,
+                opened_at=pos.opened_at,
+            )
+            managed.append(updated_pos)
+
+            if changed and (
+                previous_stop is None
+                or new_stop is None
+                or not math.isclose(previous_stop, new_stop, rel_tol=0.0, abs_tol=tolerance)
+            ):
+                reason = self._format_management_reason(new_stop, components, pip_size)
+                decisions.append(
+                    TradeDecision(
+                        action="modify",
+                        symbol=pos.symbol,
+                        direction=pos.direction,
+                        size=pos.size,
+                        entry=pos.entry_price,
+                        stop_loss=new_stop,
+                        take_profit=pos.take_profit,
+                        reason=reason,
+                        context={
+                            "components": list(components),
+                            "previous_stop_loss": previous_stop,
+                            "new_stop_loss": new_stop,
+                            "break_even_pips": break_even_pips,
+                            "trail_start_pips": trail_start_pips,
+                            "trail_step_pips": trail_step_pips,
+                            "profit_pips": profit_pips,
+                            "price": price,
+                        },
+                    )
+                )
+
+        return decisions, managed
+
     def _generate_exit_decisions(
         self,
         snapshot: MarketSnapshot,
@@ -1413,6 +1536,48 @@ class TradeLogic:
             else:
                 remaining.append(pos)
         return decisions, remaining
+
+    @staticmethod
+    def _price_decimals(pip_size: float) -> int:
+        if pip_size <= 0:
+            return 5
+        text = f"{pip_size:.8f}".rstrip("0").rstrip(".")
+        if "." in text:
+            return min(8, len(text.split(".")[1]))
+        return 0
+
+    @staticmethod
+    def _normalise_stop_value(
+        value: Optional[float], pip_size: float
+    ) -> Optional[float]:
+        if value is None:
+            return None
+        if not math.isfinite(value):
+            return None
+        threshold = max(abs(pip_size) * 0.1, 1e-8)
+        if math.isclose(value, 0.0, abs_tol=threshold):
+            return None
+        return value
+
+    def _format_management_reason(
+        self,
+        stop_loss: Optional[float],
+        components: Sequence[str],
+        pip_size: float,
+    ) -> str:
+        labels = {
+            "breakeven": "breakeven",
+            "trailing": "trailing stop",
+        }
+        component_text = ", ".join(labels.get(component, component) for component in components)
+        if stop_loss is None:
+            base = "Adjusted position"
+        else:
+            decimals = self._price_decimals(pip_size)
+            base = f"Adjusted stop loss to {stop_loss:.{decimals}f}"
+        if component_text:
+            return f"{base} ({component_text})"
+        return base
 
     def _apply_contextual_adjustments(
         self,
@@ -1562,7 +1727,12 @@ class TradeLogic:
         self, decisions: Sequence[TradeDecision], snapshot: MarketSnapshot
     ) -> None:
         for decision in decisions:
-            event_type = "trade_open" if decision.action == "open" else "trade_close"
+            if decision.action == "open":
+                event_type = "trade_open"
+            elif decision.action == "close":
+                event_type = "trade_close"
+            else:
+                event_type = "trade_modify"
             self.risk.notify(event_type, {"decision": decision, "snapshot": snapshot})
 
     def _determine_sl_tp(self, snapshot: MarketSnapshot) -> tuple[float, float]:

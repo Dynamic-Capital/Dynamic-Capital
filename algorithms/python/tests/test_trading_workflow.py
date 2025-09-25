@@ -362,3 +362,117 @@ def test_trade_logic_layers_smc_context():
     assert smc_context["structure"]["bos"] == "bullish"
     assert "PDH" in smc_context["liquidity"]["penalised_levels"]
     assert "smc" in decision.reason
+
+
+def test_trade_logic_manages_break_even_and_trailing_stops():
+    config = TradeConfig(
+        neighbors=1,
+        label_lookahead=0,
+        min_confidence=1.0,
+        use_adr=False,
+        break_even_pips=5.0,
+        trail_start_pips=10.0,
+        trail_step_pips=5.0,
+    )
+    logic = TradeLogic(config=config)
+
+    class NeutralStrategy:
+        def update(self, snapshot: MarketSnapshot) -> TradeSignal:
+            return TradeSignal(direction=0, confidence=0.0, votes=0, neighbors_considered=0)
+
+    logic.strategy = NeutralStrategy()
+
+    opened_at = datetime.now(timezone.utc)
+    open_positions = [
+        ActivePosition(
+            symbol="EURUSD",
+            direction=1,
+            size=0.1,
+            entry_price=1.1000,
+            stop_loss=1.0950,
+            take_profit=1.1200,
+            opened_at=opened_at,
+        )
+    ]
+
+    snapshot = MarketSnapshot(
+        symbol="EURUSD",
+        timestamp=datetime.now(timezone.utc),
+        close=1.1020,
+        rsi_fast=55.0,
+        adx_fast=20.0,
+        rsi_slow=52.0,
+        adx_slow=18.0,
+        pip_size=0.0001,
+        pip_value=10.0,
+    )
+
+    decisions = logic.on_bar(snapshot, open_positions=open_positions)
+
+    modify_decisions = [decision for decision in decisions if decision.action == "modify"]
+    assert modify_decisions, "expected stop management decision"
+    decision = modify_decisions[0]
+    expected_stop = pytest.approx(1.1015, rel=1e-6)
+    assert decision.stop_loss == expected_stop
+    assert "breakeven" in decision.reason.lower()
+    assert "trailing" in decision.reason.lower()
+    assert "breakeven" in decision.context["components"]
+    assert "trailing" in decision.context["components"]
+    assert decision.context["previous_stop_loss"] == 1.0950
+
+
+def test_trade_logic_handles_zero_stop_loss_inputs():
+    config = TradeConfig(
+        neighbors=1,
+        label_lookahead=0,
+        min_confidence=1.0,
+        use_adr=False,
+        break_even_pips=5.0,
+        trail_start_pips=10.0,
+        trail_step_pips=5.0,
+    )
+    logic = TradeLogic(config=config)
+
+    class NeutralStrategy:
+        def update(self, snapshot: MarketSnapshot) -> TradeSignal:
+            return TradeSignal(direction=0, confidence=0.0, votes=0, neighbors_considered=0)
+
+    logic.strategy = NeutralStrategy()
+
+    opened_at = datetime.now(timezone.utc)
+    open_positions = [
+        ActivePosition(
+            symbol="EURUSD",
+            direction=-1,
+            size=0.1,
+            entry_price=1.1000,
+            stop_loss=0.0,
+            take_profit=1.0800,
+            opened_at=opened_at,
+        )
+    ]
+
+    snapshot = MarketSnapshot(
+        symbol="EURUSD",
+        timestamp=datetime.now(timezone.utc),
+        close=1.0980,
+        rsi_fast=55.0,
+        adx_fast=20.0,
+        rsi_slow=52.0,
+        adx_slow=18.0,
+        pip_size=0.0001,
+        pip_value=10.0,
+    )
+
+    decisions = logic.on_bar(snapshot, open_positions=open_positions)
+
+    modify_decisions = [decision for decision in decisions if decision.action == "modify"]
+    assert modify_decisions, "expected stop management decision for zero stop loss"
+    decision = modify_decisions[0]
+    expected_stop = pytest.approx(1.0985, rel=1e-6)
+    assert decision.stop_loss == expected_stop
+    assert "breakeven" in decision.reason.lower()
+    assert "trailing" in decision.reason.lower()
+    assert "breakeven" in decision.context["components"]
+    assert "trailing" in decision.context["components"]
+    assert decision.context["previous_stop_loss"] is None
