@@ -9,7 +9,7 @@ import sys
 import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol, Sequence
+from typing import Any, Dict, Match, Optional, Protocol, Sequence
 
 from .trade_logic import ActivePosition, MarketSnapshot, TradeSignal
 
@@ -49,12 +49,13 @@ class TradeAdvisor(Protocol):  # pragma: no cover - interface definition
 
 @dataclass(slots=True)
 class GrokAdvisor:
-    """High-level adapter that prompts Grok for risk/context adjustments."""
+    """High-level adapter that prompts an LLM for risk/context adjustments."""
 
     client: CompletionClient
     temperature: float = 0.25
     nucleus_p: float = 0.9
     max_tokens: int = 256
+    source: str = "grok"
 
     def review(
         self,
@@ -71,8 +72,9 @@ class GrokAdvisor:
             max_tokens=self.max_tokens,
             nucleus_p=self.nucleus_p,
         )
+        metadata = self._base_metadata(prompt)
         feedback = AdvisorFeedback(
-            metadata={"source": "grok", "prompt": prompt},
+            metadata=metadata,
             raw_response=response.strip() or None,
         )
         parsed = self._parse_response(response)
@@ -103,17 +105,7 @@ class GrokAdvisor:
         ]
         if not open_lines:
             open_lines = ["- none"]
-        summary = textwrap.dedent(
-            f"""
-            You are reviewing a foreign-exchange trading signal. Return a single JSON object
-            with the fields:
-              - "adjusted_confidence": number between 0 and 1 when you recommend overriding the
-                supplied confidence (omit the field to keep the value unchanged)
-              - "rationale": short human-readable explanation (string)
-              - "alerts": optional array of strings highlighting material risks or TODOs
-            Keep commentary concise and grounded in the provided telemetry.
-            """
-        ).strip()
+        summary = self._prompt_summary()
         context_json = json.dumps(context, indent=2, default=str, sort_keys=True)
         prompt = textwrap.dedent(
             f"""
@@ -153,24 +145,86 @@ class GrokAdvisor:
             return "short"
         return "flat"
 
-    @staticmethod
-    def _parse_response(response: str) -> Optional[Dict[str, Any]]:
+    def _prompt_summary(self) -> str:
+        return textwrap.dedent(
+            """
+            You are reviewing a foreign-exchange trading signal. Return a single JSON object
+            with the fields:
+              - "adjusted_confidence": number between 0 and 1 when you recommend overriding the
+                supplied confidence (omit the field to keep the value unchanged)
+              - "rationale": short human-readable explanation (string)
+              - "alerts": optional array of strings highlighting material risks or TODOs
+            Keep commentary concise and grounded in the provided telemetry.
+            """
+        ).strip()
+
+    def _base_metadata(self, prompt: str) -> Dict[str, Any]:
+        return {"source": self.source, "prompt": prompt}
+
+    def _parse_response(self, response: str) -> Optional[Dict[str, Any]]:
         text = response.strip()
         if not text:
             return None
+        cleaned, reasoning = self._strip_reasoning_markers(text)
+        data = self._extract_json_payload(cleaned)
+        if isinstance(data, dict):
+            payload = self._normalise_payload(data)
+            if reasoning and "analysis" not in payload:
+                payload["analysis"] = reasoning
+            return payload
+        result: Dict[str, Any] = {"rationale": cleaned or text}
+        if reasoning:
+            result["analysis"] = reasoning
+        return result
+
+    @staticmethod
+    def _strip_reasoning_markers(text: str) -> tuple[str, Optional[str]]:
+        """Remove <think> blocks while preserving their content separately."""
+
+        analysis_parts: list[str] = []
+        think_pattern = re.compile(r"<think>(.*?)</think>", flags=re.DOTALL | re.IGNORECASE)
+
+        def _collect(match: Match[str]) -> str:
+            inner = match.group(1).strip()
+            if inner:
+                analysis_parts.append(inner)
+            return ""
+
+        stripped = think_pattern.sub(_collect, text)
+        stripped = re.sub(r"</?think>", "", stripped, flags=re.IGNORECASE).strip()
+        analysis = "\n\n".join(analysis_parts) if analysis_parts else None
+        return stripped, analysis
+
+    @staticmethod
+    def _extract_json_payload(text: str) -> Dict[str, Any] | str:
         try:
-            data = json.loads(text)
+            return json.loads(text)
         except json.JSONDecodeError:
             match = re.search(r"\{.*\}", text, flags=re.DOTALL)
             if not match:
-                return {"rationale": text}
+                return text
             try:
-                data = json.loads(match.group(0))
+                return json.loads(match.group(0))
             except json.JSONDecodeError:
-                return {"rationale": text}
-        if isinstance(data, dict):
-            return data
-        return {"rationale": text}
+                return text
+
+    @staticmethod
+    def _normalise_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+        if "final" in payload and isinstance(payload["final"], dict):
+            final = dict(payload["final"])
+            analysis = payload.get("analysis") or payload.get("thoughts")
+            if analysis and "analysis" not in final:
+                final["analysis"] = analysis
+            if "alerts" in payload and "alerts" not in final:
+                final["alerts"] = payload["alerts"]
+            return final
+        if "result" in payload and isinstance(payload["result"], dict):
+            result = dict(payload["result"])
+            for key in ("analysis", "thoughts"):
+                if key in payload and key not in result:
+                    result[key] = payload[key]
+            return result
+        return payload
 
     @staticmethod
     def _extract_confidence(payload: Dict[str, Any]) -> Optional[float]:

@@ -57,6 +57,8 @@ def test_grok_advisor_parses_confidence_adjustment() -> None:
     assert feedback.adjusted_signal is not None
     assert feedback.adjusted_signal.confidence == pytest.approx(0.45)
     assert feedback.metadata["rationale"] == "Macro headwinds"
+    assert feedback.metadata["source"] == "grok"
+    assert "prompt" in feedback.metadata
     assert client.calls and "GBPUSD" in client.calls[0]["prompt"]
 
 
@@ -76,3 +78,4 @@ def test_grok_advisor_handles_text_response() -> None:
     assert feedback.adjusted_signal is None
     assert "Maintain current plan" in feedback.metadata["rationale"]
     assert feedback.raw_response.startswith("Maintain")
+    assert feedback.metadata["source"] == "grok"
