@@ -6,9 +6,10 @@ import { ChevronDown, Play, Settings2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MotionPlayButton } from "@/components/ui/motion-play-button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,6 +64,7 @@ export default function UISandbox() {
               <TabsTrigger value="a">Async demo</TabsTrigger>
               <TabsTrigger value="b">Command center</TabsTrigger>
               <TabsTrigger value="c">Quick actions</TabsTrigger>
+              <TabsTrigger value="motion">Motion CTA</TabsTrigger>
             </TabsList>
             <TabsContent value="a" className="space-y-3">
               <div className="flex flex-wrap items-center gap-3">
@@ -153,6 +155,15 @@ export default function UISandbox() {
                 <Button variant="ghost" size="icon">
                   <Play className="h-4 w-4" />
                 </Button>
+              </div>
+            </TabsContent>
+            <TabsContent value="motion">
+              <div className="flex flex-col items-center justify-center gap-6 rounded-2xl border border-white/10 bg-slate-950/60 p-6 text-center shadow-[0_12px_40px_rgba(15,23,42,0.55)]">
+                <div className="max-w-sm text-sm text-muted-foreground">
+                  High-fidelity call-to-action with layered motion, pointer
+                  tracking, and spring physics powered by Framer Motion.
+                </div>
+                <MotionPlayButton aria-label="Preview motion call to action" />
               </div>
             </TabsContent>
           </Tabs>
