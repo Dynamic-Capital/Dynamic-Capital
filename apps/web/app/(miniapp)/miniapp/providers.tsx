@@ -11,7 +11,9 @@ import {
   showBackButton,
 } from "@/lib/telegram";
 
-export default function MiniAppProviders({ children }: { children: ReactNode }) {
+export default function MiniAppProviders(
+  { children }: { children: ReactNode },
+) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -32,10 +34,17 @@ export default function MiniAppProviders({ children }: { children: ReactNode }) 
     } else {
       cleanupBack = showBackButton(() => router.back());
     }
-    hideMainButton();
+
+    const allowMainButton = pathname === "/miniapp/account" ||
+      pathname === "/miniapp/signals";
+    if (!allowMainButton) {
+      hideMainButton();
+    }
+
     return () => {
       cleanupBack?.();
       hideBackButton();
+      hideMainButton();
     };
   }, [pathname, router]);
 

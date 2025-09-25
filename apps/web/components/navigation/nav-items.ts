@@ -64,14 +64,14 @@ export const NAV_ITEMS: NavItem[] = [
     showOnMobile: true,
   },
   {
-    id: "dashboard",
+    id: "support",
     step: "Step 5",
-    label: "Automation hub",
-    description: "Connect signals and manage the Telegram bot.",
+    label: "Support desk",
+    description: "Chat with concierge and find quick-start resources.",
     icon: Shield,
-    path: "/telegram",
+    path: "/support",
     ariaLabel:
-      "Step 5: Automation hub. Connect signals and manage the Telegram bot.",
+      "Step 5: Support desk. Chat with concierge and find quick-start resources.",
     showOnMobile: true,
   },
   {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Sparkles, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/miniapp/Skeleton";
 import { Toast } from "@/components/miniapp/Toast";
@@ -28,11 +28,30 @@ const readyData: Insight[] = [
 export default function HomeTab() {
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
+  const refreshTimeoutRef = useRef<number | null>(null);
+
+  const clearRefreshTimeout = useCallback(() => {
+    if (refreshTimeoutRef.current) {
+      window.clearTimeout(refreshTimeoutRef.current);
+      refreshTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleLoadingComplete = useCallback(
+    (delay: number) => {
+      clearRefreshTimeout();
+      refreshTimeoutRef.current = window.setTimeout(() => {
+        setLoading(false);
+        refreshTimeoutRef.current = null;
+      }, delay);
+    },
+    [clearRefreshTimeout],
+  );
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => setLoading(false), 900);
-    return () => window.clearTimeout(timeout);
-  }, []);
+    scheduleLoadingComplete(900);
+    return () => clearRefreshTimeout();
+  }, [clearRefreshTimeout, scheduleLoadingComplete]);
 
   const data = loading ? placeholders : readyData;
 
@@ -40,15 +59,17 @@ export default function HomeTab() {
     <>
       <section className="card" style={{ display: "grid", gap: 16 }}>
         <header style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 16,
-            display: "grid",
-            placeItems: "center",
-            background: "rgba(48, 194, 242, 0.12)",
-            color: "var(--tg-accent)",
-          }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 16,
+              display: "grid",
+              placeItems: "center",
+              background: "rgba(48, 194, 242, 0.12)",
+              color: "var(--tg-accent)",
+            }}
+          >
             <Sparkles size={20} />
           </div>
           <div>
@@ -91,13 +112,17 @@ export default function HomeTab() {
             void track("home_refresh");
             setShowToast(true);
             setLoading(true);
-            window.setTimeout(() => setLoading(false), 750);
+            scheduleLoadingComplete(750);
           }}
         >
           <TrendingUp size={18} /> Refresh insights
         </button>
       </section>
-      <Toast text="Insights refreshed" show={showToast} onDismiss={() => setShowToast(false)} />
+      <Toast
+        text="Insights refreshed"
+        show={showToast}
+        onDismiss={() => setShowToast(false)}
+      />
     </>
   );
 }
