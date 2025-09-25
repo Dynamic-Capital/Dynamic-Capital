@@ -110,34 +110,31 @@ const DEPLOYMENT_CAPABILITIES = [
   {
     id: "parallel-builds",
     icon: "grid" as const,
-    title: "Build multiple deployments simultaneously",
+    title: "Build Multiple Deployments Simultaneously",
     description:
-      "Fan out preview, staging, and production pipelines without serial bottlenecks so every branch can ship on its own cadence.",
+      "Run preview, staging, and production builds in parallel so every branch can ship on its own cadence.",
     highlights: [
-      "Never wait for a queued build; capacity scales automatically across dedicated runners.",
-      "Coordinated rollouts let product, data, and operations teams deploy in parallel without stepping on each other.",
+      "Never wait for a queued build.",
     ],
   },
   {
     id: "accelerated-ci",
     icon: "rocket" as const,
-    title: "Get faster builds",
+    title: "Get Faster Builds",
     description:
-      "Provision compute tuned for heavy dependency graphs, Storybook captures, or integration suites the moment a pipeline needs it.",
+      "Scale compute instantly for heavy dependency graphs, Storybook captures, or integration suites.",
     highlights: [
-      "Build on larger machines to crunch asset bundling, testing, and static exports in a fraction of the time.",
-      "Usage-aware autoscaling preheats runners with cached dependencies so cold starts fade away.",
+      "Build on larger machines.",
     ],
   },
   {
     id: "version-safety",
     icon: "shield" as const,
-    title: "Prevent frontend-backend mismatches",
+    title: "Prevent Frontend-Backend Mismatches",
     description:
-      "Promote releases with contract checks that keep APIs, clients, and background workers aligned across every environment.",
+      "Keep APIs, clients, and background workers aligned across every environment before releases roll out.",
     highlights: [
-      "Automatically sync client and server versions to avoid deployment conflicts before traffic shifts.",
-      "Release gates validate schema changes, migrations, and feature flags so nothing ships out of order.",
+      "Automatically sync client and server versions to avoid deployment conflicts.",
     ],
   },
 ] as const;
