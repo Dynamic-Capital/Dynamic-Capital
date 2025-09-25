@@ -9,6 +9,7 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
+import tradingDeskPlan from "@/data/trading-desk-plan.json";
 import type { Colors } from "@/components/dynamic-ui-system";
 
 type ImpactLevel = "High" | "Medium" | "Low";
@@ -27,6 +28,31 @@ type EconomicEvent = {
   commentary: string;
   deskPlan: string[];
 };
+
+type TradingDeskPlanSnapshot = {
+  symbol: string;
+  direction: "long" | "short" | "flat";
+  entry: number | null;
+  stopLoss: number | null;
+  takeProfit: number | null;
+  originalConfidence: number | null;
+  finalConfidence: number | null;
+  reason: string;
+  plan: string[];
+};
+
+const TRADING_DESK_PLAN = tradingDeskPlan as Record<
+  string,
+  TradingDeskPlanSnapshot
+>;
+
+function getDeskPlan(eventId: string): string[] {
+  const snapshot = TRADING_DESK_PLAN[eventId];
+  if (snapshot && Array.isArray(snapshot.plan) && snapshot.plan.length > 0) {
+    return snapshot.plan;
+  }
+  return [];
+}
 
 const IMPACT_STYLES = {
   High: {
@@ -52,10 +78,7 @@ const ECONOMIC_EVENTS: EconomicEvent[] = [
     marketFocus: ["USD", "Rates", "US Indices"],
     commentary:
       "We expect the statement to keep optionality for mid-year cuts while Powell leans against premature easing. Volatility will spike across USD pairs and equity index futures.",
-    deskPlan: [
-      "Pause USD scalps 30 minutes before the statement and re-open only after the press conference tone is clear.",
-      "Automation primed to fade S&P strength if dot plot shifts hawkish and 5,200 fails to hold on retests.",
-    ],
+    deskPlan: getDeskPlan("fomc"),
   },
   {
     id: "uk-cpi",
@@ -66,10 +89,7 @@ const ECONOMIC_EVENTS: EconomicEvent[] = [
     marketFocus: ["GBP", "UK Rates"],
     commentary:
       "Sticky services inflation keeps the Bank of England boxed in. Consensus looks too light on core readings after energy base effects faded.",
-    deskPlan: [
-      "Short bias stays in place for GBP/USD below 1.28 with automation trimming risk if core prints under 5.0%.",
-      "Gilts desk watching 2Y yields for a break above 4.50% to add to short-duration hedges.",
-    ],
+    deskPlan: getDeskPlan("uk-cpi"),
   },
   {
     id: "ecb-speeches",
@@ -80,10 +100,7 @@ const ECONOMIC_EVENTS: EconomicEvent[] = [
     marketFocus: ["EUR", "European Banks"],
     commentary:
       "Lagarde, Villeroy, and Schnabel hit the wires across the session. Guidance around June easing path will steer EUR crosses.",
-    deskPlan: [
-      "Maintain light EUR/USD short starter with adds only if commentary dismisses back-to-back cuts.",
-      "Financials desk monitoring EuroStoxx banks for continuation above 130 to keep overweight exposure on.",
-    ],
+    deskPlan: getDeskPlan("ecb-speeches"),
   },
   {
     id: "us-pmi",
@@ -94,10 +111,7 @@ const ECONOMIC_EVENTS: EconomicEvent[] = [
     marketFocus: ["USD", "Commodities"],
     commentary:
       "Manufacturing prints are the swing factor for cyclical trades. A beat keeps the soft-landing narrative alive and supports metals demand.",
-    deskPlan: [
-      "Gold overlay hedges stay live while manufacturing PMI holds above 50; unwind if the composite slips under 49.5.",
-      "Energy team watching WTI for acceptance above $80 to re-enter trend longs on solid services demand signals.",
-    ],
+    deskPlan: getDeskPlan("us-pmi"),
   },
 ];
 
