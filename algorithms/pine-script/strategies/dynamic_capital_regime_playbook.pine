@@ -383,8 +383,8 @@ trendShortSetup = enableTrendPlay and allowShorts and sessionFilter and isTrendR
 rangeLongSetup = enableRangePlay and allowLongs and sessionFilter and isRangeRegime and rangeLongReentry and rangeSweepLongOk and rangeConfirmLong and strongRejectionLong
 rangeShortSetup = enableRangePlay and allowShorts and sessionFilter and isRangeRegime and rangeShortReentry and rangeSweepShortOk and rangeConfirmShort and strongRejectionShort
 
-reversalLongSetup = enableReversalPlay and allowLongs and sessionFilter and isReversalRegime and pullbackLongZone and reversalSweepLongOk and reversalConfirmLong and strongRejectionLong and reversalReadyLong
-reversalShortSetup = enableReversalPlay and allowShorts and sessionFilter and isReversalRegime and pullbackShortZone and reversalSweepShortOk and reversalConfirmShort and strongRejectionShort and reversalReadyShort
+reversalLongSetup = enableReversalPlay and sessionFilter and isReversalRegime and pullbackLongZone and reversalSweepLongOk and reversalConfirmLong and strongRejectionLong and reversalReadyLong
+reversalShortSetup = enableReversalPlay and sessionFilter and isReversalRegime and pullbackShortZone and reversalSweepShortOk and reversalConfirmShort and strongRejectionShort and reversalReadyShort
 
 if requireDxyAlignment
     trendLongSetup := trendLongSetup and dxyBearish
