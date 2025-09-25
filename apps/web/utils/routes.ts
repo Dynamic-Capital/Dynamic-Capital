@@ -1,4 +1,4 @@
-'server-only';
+"server-only";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -92,7 +92,9 @@ function collectAppRoutes(
     }
 
     const route = formatRoute(segments);
-    const relative = toPosixPath(path.relative(rootDir, path.join(dir, entryName)) || entryName);
+    const relative = toPosixPath(
+      path.relative(rootDir, path.join(dir, entryName)) || entryName,
+    );
     const key = `${route}::${relative}`;
     if (!seen.has(key)) {
       results.push({ route, file: relative });
@@ -152,7 +154,9 @@ function collectPageRoutes(
       ? segments
       : [...segments, parsed.name];
     const route = formatRoute(routeSegments);
-    const relative = toPosixPath(path.relative(rootDir, path.join(dir, entryName)) || entryName);
+    const relative = toPosixPath(
+      path.relative(rootDir, path.join(dir, entryName)) || entryName,
+    );
     const key = `${route}::${relative}`;
     if (!seen.has(key)) {
       results.push({ route, file: relative });
@@ -170,6 +174,22 @@ function sortRoutes(routes: RouteRecord[]): RouteRecord[] {
       }
       return a.route.localeCompare(b.route);
     });
+}
+
+function dedupeRoutes(routes: RouteRecord[]): RouteRecord[] {
+  const seen = new Set<string>();
+  const unique: RouteRecord[] = [];
+
+  for (const route of routes) {
+    const key = `${route.route}::${route.file}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    unique.push(route);
+  }
+
+  return unique;
 }
 
 export function getAppRoutes(
@@ -204,4 +224,32 @@ export function getPageRoutes(
   const results: RouteRecord[] = [];
   collectPageRoutes(pagesDir, [], results, pagesDir, new Set());
   return sortRoutes(results);
+}
+
+export type GetRoutesOptions = {
+  appDir?: string;
+  pagesDir?: string;
+  includeApp?: boolean;
+  includePages?: boolean;
+};
+
+export function getRoutes(options: GetRoutesOptions = {}): RouteRecord[] {
+  const {
+    appDir,
+    pagesDir,
+    includeApp = true,
+    includePages = true,
+  } = options;
+
+  const combined: RouteRecord[] = [];
+
+  if (includeApp) {
+    combined.push(...getAppRoutes(appDir));
+  }
+
+  if (includePages) {
+    combined.push(...getPageRoutes(pagesDir));
+  }
+
+  return sortRoutes(dedupeRoutes(combined));
 }
