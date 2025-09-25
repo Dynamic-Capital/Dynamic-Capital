@@ -2,9 +2,32 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Column, Heading, Line, Row, Tag, Text } from "@/components/dynamic-ui-system";
+import {
+  Column,
+  Heading,
+  Line,
+  Row,
+  Tag,
+  Text,
+} from "@/components/dynamic-ui-system";
 import type { IconName } from "@/resources/icons";
 import { formatIsoTime } from "@/utils/isoFormat";
+
+interface StrategyPlaybook {
+  automation: string;
+  support?: number;
+  resistance?: number;
+  flipLevel?: number;
+  momentum?: {
+    bullish: number;
+    bearish: number;
+  };
+  plan: {
+    default: string;
+    bullish: string;
+    bearish: string;
+  };
+}
 
 interface MarketWatchlistItem {
   symbol: string;
@@ -17,6 +40,7 @@ interface MarketWatchlistItem {
   bias: "Long" | "Short" | "Monitoring";
   dataKey: string;
   format: Intl.NumberFormatOptions;
+  playbook?: StrategyPlaybook;
 }
 
 type InstrumentCategory = "Crypto" | "FX" | "Metals" | "Indices";
@@ -98,6 +122,22 @@ const WATCHLIST: MarketWatchlistItem[] = [
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     },
+    playbook: {
+      automation:
+        "Metals algo sync trims exposure if $2,400 gives way and scales back in on reclaim.",
+      support: 2400,
+      resistance: 2445,
+      flipLevel: 2400,
+      momentum: { bullish: 0.6, bearish: 0.5 },
+      plan: {
+        default:
+          "Keep partial hedge overlay running while gold oscillates between $2,400 support and the $2,445 supply shelf; automation monitors the ladder for rebalance signals.",
+        bullish:
+          "If momentum stays positive above $2,445 the trend leg adds risk in measured clips while the hedge automation trails the move.",
+        bearish:
+          "A clean break under $2,400 hands control to the hedge overlay automation until flows stabilize.",
+      },
+    },
   },
   {
     symbol: "DXY",
@@ -115,6 +155,21 @@ const WATCHLIST: MarketWatchlistItem[] = [
       style: "decimal",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
+    },
+    playbook: {
+      automation:
+        "Macro hedge algo scales defensive overlays as the dollar momentum firmed up.",
+      support: 105.1,
+      resistance: 105.9,
+      momentum: { bullish: 0.4, bearish: 0.4 },
+      plan: {
+        default:
+          "Stay defensive on global beta while the dollar holds between the 105.10 pivot and 105.90 supply, keeping macro automation in sync.",
+        bullish:
+          "Above 105.90 we let the dollar-strength algo tighten risk on equities and EM FX.",
+        bearish:
+          "If the index slips beneath 105.10 we relax hedges and let automation reopen carry trades methodically.",
+      },
     },
   },
   {
@@ -135,6 +190,22 @@ const WATCHLIST: MarketWatchlistItem[] = [
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     },
+    playbook: {
+      automation:
+        "Asia FX algo arms fresh shorts on spikes sub 147.00 and reloads into orderly pullbacks.",
+      support: 147,
+      resistance: 149.5,
+      flipLevel: 147,
+      momentum: { bullish: 0.5, bearish: 0.5 },
+      plan: {
+        default:
+          "We fade rallies while price is capped below 149.50 and watch MoF rhetoric for catalysts as automation stages entries.",
+        bullish:
+          "If USD/JPY squeezes above 149.50 the automation stands down and we trail risk using options.",
+        bearish:
+          "Momentum under 147.00 re-engages the short program with tight automated risk controls.",
+      },
+    },
   },
   {
     symbol: "GBPUSD",
@@ -153,6 +224,22 @@ const WATCHLIST: MarketWatchlistItem[] = [
       currency: "USD",
       minimumFractionDigits: 4,
       maximumFractionDigits: 4,
+    },
+    playbook: {
+      automation:
+        "Cable short algo scales clips while price stays below weekly supply near 1.3600.",
+      support: 1.342,
+      resistance: 1.36,
+      flipLevel: 1.36,
+      momentum: { bullish: 0.35, bearish: 0.35 },
+      plan: {
+        default:
+          "Respect the broader downtrend and lean on rallies into 1.3600 for fresh supply while automation scales clips.",
+        bullish:
+          "A sustained push above 1.3600 forces us to cover shorts and shift to neutral while the algo pauses.",
+        bearish:
+          "Weakness toward 1.3400 keeps the short program automation active with staggered profit targets.",
+      },
     },
   },
   {
@@ -173,6 +260,21 @@ const WATCHLIST: MarketWatchlistItem[] = [
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     },
+    playbook: {
+      automation:
+        "Digital assets algo scales in above the $64k shelf and trims into $66k liquidity.",
+      support: 64000,
+      resistance: 66000,
+      momentum: { bullish: 0.8, bearish: 0.6 },
+      plan: {
+        default:
+          "Maintain breakout exposure while price respects the $64k base and funding stays balanced with automation pacing adds.",
+        bullish:
+          "If momentum rips beyond $66k we let the trend bot press longs and slide stops higher.",
+        bearish:
+          "Losing $64k hands control to risk-off protocols and we reduce to core holdings via automation.",
+      },
+    },
   },
   {
     symbol: "ETHUSD",
@@ -191,6 +293,22 @@ const WATCHLIST: MarketWatchlistItem[] = [
       currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
+    },
+    playbook: {
+      automation:
+        "ETH momentum algo tightens invalidation beneath $2.95k and adds back above $3.10k.",
+      support: 2950,
+      resistance: 3100,
+      flipLevel: 2950,
+      momentum: { bullish: 0.7, bearish: 0.6 },
+      plan: {
+        default:
+          "Keep swing core intact while Ether respects the $2.95k higher-low and $3.10k breakout level with automation policing invalidation.",
+        bullish:
+          "Strength through $3.10k lets automation stack exposure while rolling stops behind the move.",
+        bearish:
+          "Breaks under $2.95k shift us to capital preservation until the structure rebuilds under automation supervision.",
+      },
     },
   },
 ];
@@ -273,6 +391,154 @@ const formatRange = (
     return "—";
   }
   return `${low} – ${high}`;
+};
+
+const describeLevelProximity = (
+  price: number,
+  level: number,
+  type: "support" | "resistance",
+  options: Intl.NumberFormatOptions,
+) => {
+  const levelLabel = formatNumber(level, options);
+  if (levelLabel === "—") {
+    return "";
+  }
+
+  const deltaPercent = Math.abs((price - level) / level) * 100;
+  if (deltaPercent < 0.15) {
+    return `Sitting on ${type} ${levelLabel}.`;
+  }
+  if (deltaPercent < 0.4) {
+    const direction = price > level ? "testing" : "pressing";
+    return `${direction} ${type} ${levelLabel}.`;
+  }
+
+  if (type === "support") {
+    return price > level
+      ? `Holding above support ${levelLabel}.`
+      : `Below support ${levelLabel}.`;
+  }
+
+  return price < level
+    ? `Holding below resistance ${levelLabel}.`
+    : `Through resistance ${levelLabel}.`;
+};
+
+const buildQuickTakeaway = (
+  item: MarketWatchlistItem,
+  quote: MarketQuote | undefined,
+) => {
+  const price = quote?.last;
+  const { playbook } = item;
+
+  if (
+    price === undefined ||
+    !Number.isFinite(price) ||
+    !playbook
+  ) {
+    return item.beginnerTip;
+  }
+
+  const { support, resistance, automation } = playbook;
+  const formattedPrice = formatNumber(price, item.format);
+
+  if (formattedPrice === "—") {
+    return item.beginnerTip;
+  }
+
+  const guidance: string[] = [`Last trade ${formattedPrice}.`];
+
+  if (support !== undefined) {
+    const supportInsight = describeLevelProximity(
+      price,
+      support,
+      "support",
+      item.format,
+    );
+    if (supportInsight) {
+      guidance.push(supportInsight);
+    }
+  }
+
+  if (resistance !== undefined) {
+    const resistanceInsight = describeLevelProximity(
+      price,
+      resistance,
+      "resistance",
+      item.format,
+    );
+    if (resistanceInsight) {
+      guidance.push(resistanceInsight);
+    }
+  }
+
+  const changeLabel = formatChangePercent(quote?.changePercent);
+  if (changeLabel !== "—") {
+    guidance.push(`Session move ${changeLabel}.`);
+  }
+
+  if (automation) {
+    guidance.push(automation);
+  }
+
+  return guidance.join(" ");
+};
+
+const selectPlanMessage = (
+  playbook: StrategyPlaybook,
+  changePercent: number | undefined,
+) => {
+  if (changePercent === undefined || Number.isNaN(changePercent)) {
+    return playbook.plan.default;
+  }
+
+  const bullishTrigger = playbook.momentum?.bullish ?? 0.6;
+  const bearishTrigger = playbook.momentum?.bearish ?? 0.6;
+
+  if (changePercent >= bullishTrigger) {
+    return playbook.plan.bullish;
+  }
+  if (changePercent <= -bearishTrigger) {
+    return playbook.plan.bearish;
+  }
+
+  return playbook.plan.default;
+};
+
+const buildStrategyFocus = (
+  item: MarketWatchlistItem,
+  quote: MarketQuote | undefined,
+) => {
+  const { playbook } = item;
+  if (!playbook) {
+    return item.focus;
+  }
+
+  const changeLabel = formatChangePercent(quote?.changePercent);
+  const rangeLabel = formatRange(quote, item.format);
+  const planMessage = selectPlanMessage(playbook, quote?.changePercent);
+
+  const segments: string[] = [];
+
+  if (changeLabel !== "—") {
+    segments.push(`Momentum ${changeLabel}.`);
+  }
+  if (rangeLabel !== "—") {
+    segments.push(`Intraday range ${rangeLabel}.`);
+  }
+
+  segments.push(planMessage);
+
+  if (playbook.flipLevel !== undefined) {
+    const flipLabel = formatNumber(playbook.flipLevel, item.format);
+    if (flipLabel !== "—") {
+      segments.push(`Flip level ${flipLabel}.`);
+    }
+  }
+
+  segments.push(`Automation note: ${playbook.automation}`);
+
+  return segments.join(" ");
 };
 
 const parseNumber = (value?: string): number | undefined => {
@@ -625,6 +891,8 @@ export function MarketWatchlist() {
           const changePositive = changeValue !== undefined
             ? changeValue >= 0
             : undefined;
+          const quickTakeaway = buildQuickTakeaway(item, quote);
+          const strategyFocus = buildStrategyFocus(item, quote);
           const changeBackground = changePositive === undefined
             ? "neutral-alpha-weak"
             : changePositive
@@ -724,14 +992,14 @@ export function MarketWatchlist() {
                     Quick takeaway
                   </Text>
                   <Text variant="body-default-s" onBackground="brand-strong">
-                    {item.beginnerTip}
+                    {quickTakeaway}
                   </Text>
                 </Column>
                 <Column flex={1} minWidth={24} gap="8">
                   <Text variant="label-default-s" onBackground="neutral-weak">
                     Strategy focus
                   </Text>
-                  <Text variant="body-default-m">{item.focus}</Text>
+                  <Text variant="body-default-m">{strategyFocus}</Text>
                 </Column>
               </Row>
             </Column>
