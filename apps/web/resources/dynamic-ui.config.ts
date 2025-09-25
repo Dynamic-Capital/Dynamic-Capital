@@ -213,7 +213,7 @@ const socialSharing: SocialSharingConfig = {
   },
 };
 
-const dyamicUI = {
+const dynamicUI = {
   basics: {
     baseURL,
     display,
@@ -251,7 +251,7 @@ export {
   baseURL,
   dataStyle,
   display,
-  dyamicUI,
+  dynamicUI,
   effects,
   fonts,
   mailchimp,

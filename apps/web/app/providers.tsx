@@ -24,14 +24,14 @@ import {
 import { AuthProvider } from "@/hooks/useAuth";
 import { SupabaseProvider } from "@/context/SupabaseProvider";
 import { MotionConfigProvider } from "@/components/ui/motion-config";
-import { dyamicUI } from "@/resources";
+import { dynamicUI } from "@/resources";
 import { iconLibrary } from "@/resources/icons";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/config/supabase-runtime";
 
 const {
   basics: basicsConfig,
   dataViz: dataVizConfig,
-} = dyamicUI;
+} = dynamicUI;
 const { style } = basicsConfig;
 const { dataStyle } = dataVizConfig;
 

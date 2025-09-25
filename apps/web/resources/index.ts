@@ -14,7 +14,7 @@ export {
   baseURL,
   dataStyle,
   display,
-  dyamicUI,
+  dynamicUI,
   effects,
   fonts,
   mailchimp,
@@ -24,7 +24,7 @@ export {
   schema,
   socialSharing,
   style,
-} from "./once-ui.config";
+} from "./dynamic-ui.config";
 
 export {
   magicPortfolioBucketBaseUrl,
