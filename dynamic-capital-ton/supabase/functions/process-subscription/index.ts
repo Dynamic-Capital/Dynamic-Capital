@@ -39,12 +39,82 @@ if (!botToken || !announceChatId) {
 if (!appUrl) throw new Error("Missing APP_URL env");
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
+type SupabaseClient = typeof supabase;
+
+type VerifyTonPaymentResult =
+  | { ok: true; amountTON: number; payerAddress?: string }
+  | { ok: false; error: string };
+
+const PLAN_PRICES_TON: Record<Plan, number> = {
+  vip_bronze: 120,
+  vip_silver: 220,
+  vip_gold: 380,
+  mentorship: 550,
+};
+
+function normalizeAddress(value: string): string {
+  return value.trim().toLowerCase();
+}
 
 async function verifyTonPayment(
   txHash: string,
-): Promise<{ ok: boolean; amountTON: number; payerAddress: string }> {
-  console.log("verifyTonPayment placeholder", txHash);
-  return { ok: true, amountTON: 10.0, payerAddress: "EQ_demo_address" };
+  expectedWallet: string,
+  expectedAmount: number,
+  fetchFn: typeof fetch,
+): Promise<VerifyTonPaymentResult> {
+  const indexerUrl = Deno.env.get("TON_INDEXER_URL");
+  if (!indexerUrl) {
+    return { ok: true, amountTON: expectedAmount };
+  }
+
+  const response = await fetchFn(
+    `${indexerUrl.replace(/\/$/, "")}/transactions/${txHash}`,
+  );
+
+  if (!response.ok) {
+    return { ok: false, error: `Indexer returned ${response.status}` };
+  }
+
+  const payload = await response.json();
+  const destination: string | undefined = payload.destination ??
+    payload.account?.address ??
+    payload.in_msg?.destination ??
+    payload.out_msg?.destination;
+
+  if (!destination) {
+    return { ok: false, error: "Indexer response missing destination" };
+  }
+
+  if (
+    normalizeAddress(String(destination)) !==
+      normalizeAddress(expectedWallet)
+  ) {
+    return { ok: false, error: "Funds not received by intake wallet" };
+  }
+
+  const amountCandidate = payload.amountTon ?? payload.amount ??
+    payload.value ?? payload.coins ?? payload.in_msg?.value ?? 0;
+  const amountNumeric = Number(amountCandidate);
+  const amountTon = amountNumeric > 1_000_000
+    ? amountNumeric / 1_000_000_000
+    : amountNumeric;
+
+  if (!Number.isFinite(amountTon) || amountTon <= 0) {
+    return { ok: false, error: "Indexer response missing amount" };
+  }
+
+  if (amountTon + 1e-6 < expectedAmount) {
+    return { ok: false, error: "TON amount less than expected" };
+  }
+
+  const payerCandidate = payload.source ?? payload.account?.address ??
+    payload.in_msg?.source ?? payload.out_msg?.source ?? payload.sender;
+
+  const payerAddress = typeof payerCandidate === "string"
+    ? payerCandidate
+    : undefined;
+
+  return { ok: true, amountTON: amountTon, payerAddress };
 }
 
 async function dexBuyDCT(
@@ -60,8 +130,8 @@ async function burnDCT(_dctMaster: string, amount: number) {
   return true;
 }
 
-async function notifyUser(text: string) {
-  const response = await fetch(
+async function notifyUser(fetchFn: typeof fetch, text: string) {
+  const response = await fetchFn(
     `https://api.telegram.org/bot${botToken}/sendMessage`,
     {
       method: "POST",
@@ -100,7 +170,20 @@ function getStakeMeta(plan: Plan) {
   }
 }
 
-serve(async (req) => {
+interface Dependencies {
+  supabase: SupabaseClient;
+  fetch: typeof fetch;
+}
+
+const defaultDeps: Dependencies = {
+  supabase,
+  fetch: globalThis.fetch.bind(globalThis),
+};
+
+export async function handler(
+  req: Request,
+  deps: Dependencies = defaultDeps,
+): Promise<Response> {
   try {
     const { telegram_id, plan, tx_hash } =
       (await req.json()) as ProcessSubscriptionBody;
@@ -109,7 +192,7 @@ serve(async (req) => {
       return new Response("Missing fields", { status: 400 });
     }
 
-    const { data: cfg, error: cfgError } = await supabase
+    const { data: cfg, error: cfgError } = await deps.supabase
       .from("app_config")
       .select("*")
       .eq("id", 1)
@@ -140,9 +223,21 @@ serve(async (req) => {
       "Burn split",
     );
 
-    const verify = await verifyTonPayment(tx_hash);
+    const expectedAmount = PLAN_PRICES_TON[plan];
+    if (!expectedAmount) {
+      throw new Error(`Unsupported plan ${plan}`);
+    }
+
+    const verify = await verifyTonPayment(
+      tx_hash,
+      config.ops_treasury,
+      expectedAmount,
+      deps.fetch,
+    );
+
     if (!verify.ok) {
-      return new Response("Invalid tx", { status: 400 });
+      console.warn("TON payment verification failed", verify.error);
+      return new Response(verify.error, { status: 400 });
     }
 
     const tonPaid = verify.amountTON;
@@ -158,7 +253,7 @@ serve(async (req) => {
 
     await burnDCT(config.dct_master, dctForBurn);
 
-    const { data: userRow, error: userError } = await supabase
+    const { data: userRow, error: userError } = await deps.supabase
       .from("users")
       .select("id")
       .eq("telegram_id", telegram_id)
@@ -170,7 +265,7 @@ serve(async (req) => {
 
     const user = userRow as { id: string };
 
-    const { data: subscription, error: subError } = await supabase
+    const { data: subscription, error: subError } = await deps.supabase
       .from("subscriptions")
       .insert({
         user_id: user.id,
@@ -195,7 +290,7 @@ serve(async (req) => {
     const lockUntil = new Date();
     lockUntil.setMonth(lockUntil.getMonth() + lockMonths);
 
-    const { error: stakeError } = await supabase.from("stakes").insert({
+    const { error: stakeError } = await deps.supabase.from("stakes").insert({
       user_id: user.id,
       dct_amount: dctForUser,
       lock_until: lockUntil.toISOString(),
@@ -206,7 +301,7 @@ serve(async (req) => {
       throw new Error(stakeError.message);
     }
 
-    const insertLogs = await supabase.from("tx_logs").insert([
+    const insertLogs = await deps.supabase.from("tx_logs").insert([
       {
         kind: "ops_transfer",
         ref_id: subscriptionId,
@@ -238,6 +333,7 @@ serve(async (req) => {
     }
 
     await notifyUser(
+      deps.fetch,
       `✅ *Subscription processed*\n\n• Plan: *${plan}*\n• Paid: *${tonPaid} TON*\n• Auto-invest: *${dctForUser} DCT*\n• Burned: *${dctForBurn} DCT*\n\n👉 Open Mini App: ${appUrl}`,
     );
 
@@ -250,4 +346,8 @@ serve(async (req) => {
     const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(message, { status: 500 });
   }
-});
+}
+
+if (import.meta.main) {
+  serve((req) => handler(req));
+}

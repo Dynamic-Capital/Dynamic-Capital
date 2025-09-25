@@ -14,6 +14,9 @@ create table if not exists wallets (
   created_at timestamptz default now()
 );
 
+alter table if not exists wallets
+  add constraint wallets_user_id_key unique (user_id);
+
 -- Subscriptions
 create table if not exists subscriptions (
   id uuid default gen_random_uuid() primary key,
