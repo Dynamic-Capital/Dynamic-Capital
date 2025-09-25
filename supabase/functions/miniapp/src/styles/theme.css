@@ -5,19 +5,23 @@
 @layer base {
   :root {
     /* Dynamic Capital Brand */
-    --dc-brand: #2fd2c5;
-    --dc-ink: #0b3d3a;
-    --dc-bg: #0b0e11;
-    --dc-text: #e9f3f4;
-    --dc-text-dim: #c8d6d8;
+    --dc-color-brand: hsl(var(--dc-brand, 0 84% 58%));
+    --dc-color-brand-light: hsl(var(--dc-brand-light, 0 92% 68%));
+    --dc-color-brand-dark: hsl(var(--dc-brand-dark, 0 76% 48%));
+    --dc-color-secondary: hsl(var(--dc-secondary, 200 96% 52%));
+    --dc-color-accent: hsl(var(--dc-accent, 350 88% 60%));
+    --dc-color-ink: hsl(var(--foreground, 0 5% 98%));
+    --dc-color-bg: hsl(var(--background, 0 5% 6%));
+    --dc-color-text: hsl(var(--foreground, 0 5% 98%));
+    --dc-color-text-dim: hsl(var(--muted-foreground, 0 5% 65%));
     --dc-glass: rgba(255, 255, 255, 0.08);
     --dc-glass-stroke: rgba(255, 255, 255, 0.18);
     --dc-blur: 16px;
     --dc-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-    --dc-good: #10d07a;
-    --dc-warn: #ffd166;
-    --dc-bad: #ff6b6b;
-    --dc-info: #9aa8ff;
+    --dc-color-good: hsl(var(--dc-good, 153 86% 44%));
+    --dc-color-warn: hsl(var(--dc-warn, 42 100% 70%));
+    --dc-color-bad: hsl(var(--dc-bad, 0 100% 71%));
+    --dc-color-info: hsl(var(--dc-info, 232 100% 80%));
     --r-sm: 10px;
     --r-md: 16px;
     --r-lg: 22px;
@@ -28,48 +32,48 @@
     --sp-5: 32px;
 
     /* Tailwind CSS Variables */
-    --background: 215 28% 9%;
-    --foreground: 210 40% 94%;
-    --primary: 170 95% 51%;
-    --primary-foreground: 170 95% 15%;
-    --secondary: 215 25% 16%;
-    --secondary-foreground: 210 40% 94%;
-    --muted: 215 25% 16%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 215 25% 16%;
-    --accent-foreground: 210 40% 94%;
-    --destructive: 0 76% 70%;
-    --destructive-foreground: 215 20% 17%;
-    --border: 215 25% 27%;
-    --input: 215 25% 27%;
-    --ring: 170 95% 51%;
-    --card: 215 28% 9%;
-    --card-foreground: 210 40% 94%;
-    --popover: 215 28% 9%;
-    --popover-foreground: 210 40% 94%;
+    --background: 0 5% 6%;
+    --foreground: 0 5% 98%;
+    --primary: 0 84% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 10% 15%;
+    --secondary-foreground: 0 5% 98%;
+    --muted: 0 10% 15%;
+    --muted-foreground: 0 5% 65%;
+    --accent: 350 88% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 68% 46%;
+    --destructive-foreground: 0 5% 98%;
+    --border: 0 15% 18%;
+    --input: 0 15% 18%;
+    --ring: 0 84% 58%;
+    --card: 0 8% 8%;
+    --card-foreground: 0 5% 98%;
+    --popover: 0 8% 8%;
+    --popover-foreground: 0 5% 98%;
     --radius: 0.5rem;
   }
 
   [data-theme="light"] {
-    --background: 220 13% 98%;
-    --foreground: 215 20% 17%;
-    --primary: 170 95% 51%;
-    --primary-foreground: 170 95% 15%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 215 25% 27%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 215 25% 27%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 170 95% 51%;
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+    --primary: 0 84% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 68% 95%;
+    --secondary-foreground: 0 45% 20%;
+    --muted: 0 5% 96%;
+    --muted-foreground: 0 5% 45%;
+    --accent: 350 88% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 10% 89%;
+    --input: 0 10% 89%;
+    --ring: 0 84% 58%;
     --card: 0 0% 100%;
-    --card-foreground: 215 20% 17%;
+    --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 20% 17%;
+    --popover-foreground: 224 71.4% 4.1%;
   }
 
   * {
@@ -82,8 +86,8 @@
 }
 
 .dc-screen {
-  background: var(--dc-bg);
-  color: var(--dc-text);
+  background: var(--dc-color-bg);
+  color: var(--dc-color-text);
   padding: var(--sp-4);
   min-height: 100vh;
 }
@@ -128,45 +132,45 @@
 }
 
 .dc-btn--primary {
-  background: var(--dc-brand);
-  color: var(--dc-ink);
+  background: var(--dc-color-brand);
+  color: var(--dc-color-ink);
 }
 
 .dc-btn--glass {
   background: var(--dc-glass);
-  color: var(--dc-text);
+  color: var(--dc-color-text);
   backdrop-filter: blur(var(--dc-blur));
   border: 1px solid var(--dc-glass-stroke);
 }
 
 .dc-btn--approve {
-  background: var(--dc-good);
-  color: var(--dc-ink);
+  background: var(--dc-color-good);
+  color: var(--dc-color-ink);
 }
 
 .dc-btn--reject {
-  background: var(--dc-bad);
-  color: var(--dc-ink);
+  background: var(--dc-color-bad);
+  color: var(--dc-color-ink);
 }
 
 .dc-pill--awaiting {
-  background: var(--dc-warn);
-  color: var(--dc-ink);
+  background: var(--dc-color-warn);
+  color: var(--dc-color-ink);
 }
 
 .dc-pill--verified {
-  background: var(--dc-good);
-  color: var(--dc-ink);
+  background: var(--dc-color-good);
+  color: var(--dc-color-ink);
 }
 
 .dc-pill--rejected {
-  background: var(--dc-bad);
-  color: var(--dc-ink);
+  background: var(--dc-color-bad);
+  color: var(--dc-color-ink);
 }
 
 .dc-pill--review {
-  background: var(--dc-info);
-  color: var(--dc-ink);
+  background: var(--dc-color-info);
+  color: var(--dc-color-ink);
 }
 
 .dc-input {
@@ -174,6 +178,6 @@
   border: 1px solid var(--dc-glass-stroke);
   border-radius: var(--r-md);
   padding: var(--sp-3);
-  color: var(--dc-text);
+  color: var(--dc-color-text);
   width: 100%;
 }
