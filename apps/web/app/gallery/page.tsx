@@ -1,5 +1,5 @@
 import { Flex, Meta, Schema } from "@/components/dynamic-ui-system";
-import GalleryView from "@/components/magic-portfolio/gallery/GalleryView";
+import GalleryView from "@/components/dynamic-capital/gallery/GalleryView";
 import { baseURL, gallery, person, toAbsoluteUrl } from "@/resources";
 
 export async function generateMetadata() {

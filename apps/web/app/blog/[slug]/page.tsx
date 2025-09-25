@@ -1,26 +1,26 @@
 import { notFound } from "next/navigation";
-import { CustomMDX, ScrollToHash } from "@/components/magic-portfolio";
+import { CustomMDX, ScrollToHash } from "@/components/dynamic-capital";
 import {
-  Meta,
-  Schema,
+  Avatar,
   Column,
   Heading,
   HeadingNav,
   Icon,
-  Row,
-  Text,
-  SmartLink,
-  Avatar,
-  Media,
   Line,
+  Media,
+  Meta,
+  Row,
+  Schema,
+  SmartLink,
+  Text,
 } from "@/components/dynamic-ui-system";
-import { baseURL, about, blog, person, toAbsoluteUrl } from "@/resources";
-import { formatDate } from "@/utils/magic-portfolio/formatDate";
-import { getPosts } from "@/utils/magic-portfolio/utils";
+import { about, baseURL, blog, person, toAbsoluteUrl } from "@/resources";
+import { formatDate } from "@/utils/dynamic-capital/formatDate";
+import { getPosts } from "@/utils/dynamic-capital/utils";
 import type { Metadata } from "next";
 import { cache } from "react";
-import { Posts } from "@/components/magic-portfolio/blog/Posts";
-import { ShareSection } from "@/components/magic-portfolio/blog/ShareSection";
+import { Posts } from "@/components/dynamic-capital/blog/Posts";
+import { ShareSection } from "@/components/dynamic-capital/blog/ShareSection";
 
 type MaybePromise<T> = T | Promise<T>;
 type BlogPageParams = { slug: string | string[] };
@@ -46,13 +46,16 @@ const resolveSlugFromParams = async (
   return slug || "";
 };
 
-const findBlogPost = (slug: string) => loadBlogPosts().find((post) => post.slug === slug);
+const findBlogPost = (slug: string) =>
+  loadBlogPosts().find((post) => post.slug === slug);
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   return loadBlogPosts().map((post) => ({ slug: post.slug }));
 }
 
-export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: BlogPageProps,
+): Promise<Metadata> {
   const slugPath = await resolveSlugFromParams(params);
   const post = findBlogPost(slugPath);
 
@@ -62,7 +65,8 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
     title: post.metadata.title,
     description: post.metadata.summary,
     baseURL: baseURL,
-    image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
+    image: post.metadata.image ||
+      `/api/og/generate?title=${post.metadata.title}`,
     path: `${blog.path}/${post.slug}`,
   });
 }
@@ -75,16 +79,21 @@ export default async function Blog({ params }: BlogPageProps) {
     notFound();
   }
 
-  const avatars =
-    post.metadata.team?.map((person) => ({
-      src: person.avatar,
-    })) || [];
+  const avatars = post.metadata.team?.map((person) => ({
+    src: person.avatar,
+  })) || [];
 
   return (
     <Row fillWidth>
       <Row maxWidth={12} m={{ hide: true }} />
       <Row fillWidth horizontal="center">
-        <Column as="section" maxWidth="m" horizontal="center" gap="l" paddingTop="24">
+        <Column
+          as="section"
+          maxWidth="m"
+          horizontal="center"
+          gap="l"
+          paddingTop="24"
+        >
           <Schema
             as="blogPosting"
             baseURL={baseURL}
@@ -93,10 +102,10 @@ export default async function Blog({ params }: BlogPageProps) {
             description={post.metadata.summary}
             datePublished={post.metadata.publishedAt}
             dateModified={post.metadata.publishedAt}
-            image={
-              post.metadata.image ||
-              `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`
-            }
+            image={post.metadata.image ||
+              `/api/og/generate?title=${
+                encodeURIComponent(post.metadata.title)
+              }`}
             author={{
               name: person.name,
               url: `${baseURL}${about.path}`,
@@ -107,8 +116,13 @@ export default async function Blog({ params }: BlogPageProps) {
             <SmartLink href="/blog">
               <Text variant="label-strong-m">Blog</Text>
             </SmartLink>
-            <Text variant="body-default-xs" onBackground="neutral-weak" marginBottom="12">
-              {post.metadata.publishedAt && formatDate(post.metadata.publishedAt)}
+            <Text
+              variant="body-default-xs"
+              onBackground="neutral-weak"
+              marginBottom="12"
+            >
+              {post.metadata.publishedAt &&
+                formatDate(post.metadata.publishedAt)}
             </Text>
             <Heading variant="display-strong-m">{post.metadata.title}</Heading>
           </Column>
@@ -136,10 +150,10 @@ export default async function Blog({ params }: BlogPageProps) {
           <Column as="article" maxWidth="s">
             <CustomMDX source={post.content} />
           </Column>
-          
-          <ShareSection 
-            title={post.metadata.title} 
-            url={`${baseURL}${blog.path}/${post.slug}`} 
+
+          <ShareSection
+            title={post.metadata.title}
+            url={`${baseURL}${blog.path}/${post.slug}`}
           />
 
           <Column fillWidth gap="40" horizontal="center" marginTop="40">
@@ -147,7 +161,13 @@ export default async function Blog({ params }: BlogPageProps) {
             <Heading as="h2" variant="heading-strong-xl" marginBottom="24">
               Recent posts
             </Heading>
-            <Posts exclude={[post.slug]} range={[1, 2]} columns="2" thumbnail direction="column" />
+            <Posts
+              exclude={[post.slug]}
+              range={[1, 2]}
+              columns="2"
+              thumbnail
+              direction="column"
+            />
           </Column>
           <ScrollToHash />
         </Column>

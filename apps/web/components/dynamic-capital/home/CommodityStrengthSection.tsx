@@ -1,4 +1,11 @@
-import { Column, Heading, Line, Row, Tag, Text } from "@/components/dynamic-ui-system";
+import {
+  Column,
+  Heading,
+  Line,
+  Row,
+  Tag,
+  Text,
+} from "@/components/dynamic-ui-system";
 
 import type { Colors } from "@/components/dynamic-ui-system";
 

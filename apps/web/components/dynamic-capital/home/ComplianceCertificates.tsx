@@ -1,4 +1,11 @@
-import { Column, Heading, Icon, Row, Tag, Text } from "@/components/dynamic-ui-system";
+import {
+  Column,
+  Heading,
+  Icon,
+  Row,
+  Tag,
+  Text,
+} from "@/components/dynamic-ui-system";
 import { schema } from "@/resources";
 
 interface Certificate {

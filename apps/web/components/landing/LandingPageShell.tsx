@@ -6,7 +6,7 @@ import { opacity, SpacingToken } from "@/components/dynamic-ui-system";
 import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
 import { dynamicUI } from "@/resources";
-import { DynamicCapitalLandingPage } from "@/components/magic-portfolio/DynamicCapitalLandingPage";
+import { DynamicCapitalLandingPage } from "@/components/dynamic-capital/DynamicCapitalLandingPage";
 import type {
   ChromaBackgroundProps,
   ChromaBackgroundStyle,

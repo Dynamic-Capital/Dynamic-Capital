@@ -13,22 +13,22 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
-import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
-import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
-import { CommodityStrengthSection } from "@/components/magic-portfolio/home/CommodityStrengthSection";
-import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
-import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
-import { FxMarketSnapshotSection } from "@/components/magic-portfolio/home/FxMarketSnapshotSection";
-import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
-import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
-import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
-import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
-import { PerformanceInsightsSection } from "@/components/magic-portfolio/home/PerformanceInsightsSection";
-import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
-import { ValuePropositionSection } from "@/components/magic-portfolio/home/ValuePropositionSection";
-import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
-import { VipPlansPricingSection } from "@/components/magic-portfolio/home/VipPlansPricingSection";
+import { AboutShowcase } from "@/components/dynamic-capital/home/AboutShowcase";
+import { CheckoutCallout } from "@/components/dynamic-capital/home/CheckoutCallout";
+import { ComplianceCertificates } from "@/components/dynamic-capital/home/ComplianceCertificates";
+import { CommodityStrengthSection } from "@/components/dynamic-capital/home/CommodityStrengthSection";
+import { EconomicCalendarSection } from "@/components/dynamic-capital/home/EconomicCalendarSection";
+import { FundamentalAnalysisSection } from "@/components/dynamic-capital/home/FundamentalAnalysisSection";
+import { FxMarketSnapshotSection } from "@/components/dynamic-capital/home/FxMarketSnapshotSection";
+import { HeroExperience } from "@/components/dynamic-capital/home/HeroExperience";
+import { MentorshipProgramsSection } from "@/components/dynamic-capital/home/MentorshipProgramsSection";
+import { Mailchimp } from "@/components/dynamic-capital/Mailchimp";
+import { MarketWatchlist } from "@/components/dynamic-capital/home/MarketWatchlist";
+import { PerformanceInsightsSection } from "@/components/dynamic-capital/home/PerformanceInsightsSection";
+import { PoolTradingSection } from "@/components/dynamic-capital/home/PoolTradingSection";
+import { ValuePropositionSection } from "@/components/dynamic-capital/home/ValuePropositionSection";
+import { VipPackagesSection } from "@/components/dynamic-capital/home/VipPackagesSection";
+import { VipPlansPricingSection } from "@/components/dynamic-capital/home/VipPlansPricingSection";
 import { cn } from "@/utils";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 import styles from "./DynamicCapitalLandingPage.module.scss";

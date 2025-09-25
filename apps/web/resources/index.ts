@@ -33,8 +33,8 @@ export {
 } from "./dynamic-branding.config";
 
 export {
-  magicPortfolioBucketBaseUrl,
-  magicPortfolioBucketName,
+  dynamicCapitalBucketBaseUrl,
+  dynamicCapitalBucketName,
   supabaseAsset,
   toAbsoluteUrl,
 } from "./assets";
