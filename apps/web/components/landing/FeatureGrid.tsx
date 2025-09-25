@@ -1,17 +1,235 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
+import { Shield, TrendingUp, Users } from "lucide-react";
+
 import { Card, CardContent } from "@/components/ui/card";
 import {
   MotionHoverCard,
   MotionScrollReveal,
   MotionStagger,
 } from "@/components/ui/motion-components";
-import { Shield, TrendingUp, Users } from "lucide-react";
 import { callEdgeFunction } from "@/config/supabase";
-import { motion } from "framer-motion";
 
 import { InteractiveSectionContainer } from "./InteractiveSectionContainer";
+
+type FeatureVisualType = "chart" | "shield" | "network";
+
+interface FeatureItem {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  color: string;
+  accent: string;
+  visual: FeatureVisualType;
+  highlights: string[];
+}
+
+const shortenCopy = (text: string, limit = 140) => {
+  if (!text) return text;
+  if (text.length <= limit) return text;
+
+  const truncated = text.slice(0, limit);
+  const lastSpace = truncated.lastIndexOf(" ");
+
+  if (lastSpace === -1) {
+    return `${truncated}…`;
+  }
+
+  return `${truncated.slice(0, lastSpace)}…`;
+};
+
+interface FeatureVisualProps {
+  type: FeatureVisualType;
+  accent: string;
+}
+
+const FeatureVisual = ({ type, accent }: FeatureVisualProps) => {
+  const accentColor = `hsl(var(--${accent}))`;
+  const accentTransparent = `hsl(var(--${accent}) / 0.18)`;
+  const accentSoft = `hsl(var(--${accent}) / 0.08)`;
+
+  if (type === "chart") {
+    const bars = [30, 52, 44, 68, 56, 84];
+
+    return (
+      <motion.div
+        className="relative flex h-24 w-full items-end overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-background/60 via-background/40 to-background/20 p-3"
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <div
+          className="absolute inset-0 opacity-60"
+          style={{
+            background:
+              `linear-gradient(135deg, ${accentTransparent} 0%, transparent 85%)`,
+          }}
+        />
+        <div className="relative flex h-full w-full items-end gap-2">
+          {bars.map((height, index) => (
+            <motion.div
+              key={index}
+              className="relative flex flex-1 items-end justify-center overflow-hidden rounded-full"
+              initial={{ scaleY: 0.6 }}
+              whileInView={{ scaleY: 1 }}
+              viewport={{ once: true }}
+              transition={{
+                delay: index * 0.08,
+                type: "spring",
+                stiffness: 220,
+                damping: 24,
+              }}
+              style={{ transformOrigin: "bottom" }}
+            >
+              <span
+                className="absolute bottom-0 w-full rounded-full"
+                style={{
+                  height: `${height}%`,
+                  background:
+                    `linear-gradient(180deg, ${accentColor} 0%, ${accentTransparent} 100%)`,
+                }}
+              />
+              <span
+                className="absolute -top-2 h-2 w-2 rounded-full"
+                style={{
+                  background: accentColor,
+                  boxShadow: `0 0 18px ${accentTransparent}`,
+                }}
+              />
+            </motion.div>
+          ))}
+        </div>
+        <motion.div
+          className="pointer-events-none absolute -right-6 bottom-1 h-20 w-20 rounded-full blur-xl"
+          animate={{ opacity: [0.2, 0.5, 0.2], scale: [0.9, 1.1, 0.9] }}
+          transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
+          style={{ background: accentTransparent }}
+        />
+      </motion.div>
+    );
+  }
+
+  if (type === "shield") {
+    return (
+      <motion.div
+        className="relative flex h-24 w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-background/60 via-background/30 to-background/20"
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              `radial-gradient(circle at 50% 40%, ${accentSoft} 0%, transparent 70%)`,
+          }}
+        />
+        <motion.div
+          className="relative h-16 w-12 rounded-xl border-2"
+          style={{
+            borderColor: accentTransparent,
+            boxShadow: `0 0 24px ${accentTransparent}`,
+          }}
+          animate={{ rotateX: [0, 8, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div
+            className="absolute inset-[3px] rounded-lg"
+            style={{
+              background:
+                `linear-gradient(135deg, ${accentTransparent} 0%, transparent 80%)`,
+            }}
+          />
+          <motion.div
+            className="absolute inset-x-3 top-3 h-8 rounded-b-full"
+            style={{
+              background:
+                `linear-gradient(180deg, ${accentColor} 0%, transparent 100%)`,
+            }}
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.2,
+            }}
+          />
+          <motion.div
+            className="absolute inset-x-4 bottom-3 h-2 rounded-full"
+            style={{ background: accentTransparent }}
+            animate={{ scaleX: [0.8, 1, 0.8] }}
+            transition={{
+              duration: 2.8,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 0.4,
+            }}
+          />
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      className="relative flex h-24 w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-background/60 via-background/30 to-background/20"
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            `radial-gradient(circle at 20% 20%, ${accentSoft} 0%, transparent 70%)`,
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            `radial-gradient(circle at 80% 80%, ${accentSoft} 0%, transparent 70%)`,
+        }}
+      />
+      <motion.div
+        className="absolute h-20 w-20 rounded-full border"
+        style={{ borderColor: accentTransparent }}
+        animate={{ rotate: [0, 8, -8, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {[[-28, -10], [18, 10], [-6, 22], [24, -22]].map(([x, y], index) => (
+        <motion.div
+          key={index}
+          className="absolute h-4 w-4 rounded-full"
+          style={{
+            background: accentColor,
+            boxShadow: `0 0 18px ${accentTransparent}`,
+            transform: `translate(${x}px, ${y}px)`,
+          }}
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{
+            duration: 3 + index,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: index * 0.3,
+          }}
+        />
+      ))}
+      <motion.div
+        className="absolute bg-gradient-to-b from-transparent via-white/40 to-transparent"
+        style={{ height: "60%", width: "2px" }}
+        animate={{ rotate: [0, 360] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
+      />
+    </motion.div>
+  );
+};
 
 const FeatureGrid = () => {
   const defaultContent = useMemo(
@@ -24,25 +242,34 @@ const FeatureGrid = () => {
           icon: TrendingUp,
           title: "Premium Signals",
           description:
-            "Receive high-accuracy trading signals with detailed entry, exit, and stop-loss levels. Our signals have a proven 92% success rate.",
+            "High-accuracy entries with pre-set targets that keep your focus on execution.",
           color:
             "from-[hsl(var(--accent-green-light))] to-[hsl(var(--accent-green))]",
+          accent: "accent-green",
+          visual: "chart" as const,
+          highlights: ["92% win rate", "Auto stop-loss"],
         },
         {
           icon: Shield,
           title: "Risk Management",
           description:
-            "Professional risk management strategies to protect your capital and maximize profits with expert guidance every step of the way.",
+            "Guard your capital with guided risk controls and instant portfolio health alerts.",
           color: "from-[hsl(var(--dc-secondary))] to-[hsl(var(--accent-teal))]",
+          accent: "accent-teal",
+          visual: "shield" as const,
+          highlights: ["Capital guardrails", "Live alerts"],
         },
         {
           icon: Users,
           title: "VIP Community",
           description:
-            "Join an exclusive community of successful traders and learn from the best. Network, share strategies, and grow together.",
+            "Join elite traders in live rooms, share strategies, and grow together every day.",
           color: "from-[hsl(var(--dc-accent))] to-[hsl(var(--accent-pink))]",
+          accent: "accent-pink",
+          visual: "network" as const,
+          highlights: ["Live mentorship", "24/7 rooms"],
         },
-      ],
+      ] satisfies FeatureItem[],
     }),
     [],
   );
@@ -75,32 +302,23 @@ const FeatureGrid = () => {
             lookup[c.content_key] = c.content_value;
           });
 
+          const updatedFeatures: FeatureItem[] = defaultContent.features.map(
+            (feature, index) => {
+              const titleKey = `feature${index + 1}_title`;
+              const descriptionKey = `feature${index + 1}_description`;
+
+              return {
+                ...feature,
+                title: lookup[titleKey] ?? feature.title,
+                description: lookup[descriptionKey] ?? feature.description,
+              };
+            },
+          );
+
           setContent({
             heading: lookup.features_heading ?? defaultContent.heading,
             subheading: lookup.features_subheading ?? defaultContent.subheading,
-            features: [
-              {
-                ...defaultContent.features[0],
-                title: lookup.feature1_title ??
-                  defaultContent.features[0].title,
-                description: lookup.feature1_description ??
-                  defaultContent.features[0].description,
-              },
-              {
-                ...defaultContent.features[1],
-                title: lookup.feature2_title ??
-                  defaultContent.features[1].title,
-                description: lookup.feature2_description ??
-                  defaultContent.features[1].description,
-              },
-              {
-                ...defaultContent.features[2],
-                title: lookup.feature3_title ??
-                  defaultContent.features[2].title,
-                description: lookup.feature3_description ??
-                  defaultContent.features[2].description,
-              },
-            ],
+            features: updatedFeatures,
           });
         } else if (error) {
           console.error("Failed to fetch feature content:", error.message);
@@ -163,7 +381,7 @@ const FeatureGrid = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              {content.subheading}
+              {shortenCopy(content.subheading, 150)}
             </motion.p>
           </div>
         </MotionScrollReveal>
@@ -180,36 +398,67 @@ const FeatureGrid = () => {
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
               >
                 <Card className="relative overflow-hidden bg-gradient-to-br from-card/80 via-card/60 to-card/40 backdrop-blur-xl border border-border/30 shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:border-primary/40">
-                  {/* Hover Effect Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-dc-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                  <CardContent className="relative p-8 sm:p-10 text-center">
-                    <motion.div
-                      className={`bot-icon-wrapper w-20 h-20 mx-auto mb-6 sm:mb-8 bg-gradient-to-br ${feature.color} shadow-lg group-hover:shadow-xl`}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 17,
-                      }}
-                    >
-                      <feature.icon className="w-10 h-10 text-white" />
-                    </motion.div>
+                  <CardContent className="relative grid gap-6 p-8 text-left sm:p-10">
+                    <div className="flex items-start justify-between gap-4">
+                      <motion.div
+                        className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${feature.color} shadow-lg`}
+                        whileHover={{ scale: 1.05, rotate: 3 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
+                      >
+                        <feature.icon className="h-8 w-8 text-white" />
+                      </motion.div>
+                      <div className="hidden w-32 sm:block">
+                        <FeatureVisual
+                          type={feature.visual}
+                          accent={feature.accent}
+                        />
+                      </div>
+                    </div>
 
-                    <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-5 group-hover:text-primary transition-colors font-poppins tracking-tight">
-                      {feature.title}
-                    </h3>
+                    <div className="space-y-3">
+                      <h3 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                        {feature.title}
+                      </h3>
+                      <p
+                        className="text-base text-muted-foreground sm:text-lg"
+                        style={{ lineHeight: 1.6 }}
+                      >
+                        {shortenCopy(feature.description, 120)}
+                      </p>
+                    </div>
 
-                    <p className="text-muted-foreground leading-relaxed font-inter text-base sm:text-lg group-hover:text-foreground/80 transition-colors">
-                      {feature.description}
-                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {feature.highlights.map((highlight) => (
+                        <span
+                          key={highlight}
+                          className="rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+                          style={{
+                            color: `hsl(var(--${feature.accent}))`,
+                            borderColor: `hsl(var(--${feature.accent}) / 0.25)`,
+                            backgroundColor:
+                              `hsl(var(--${feature.accent}) / 0.08)`,
+                          }}
+                        >
+                          {highlight}
+                        </span>
+                      ))}
+                    </div>
 
-                    {/* Decorative Element */}
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent group-hover:via-primary transition-all duration-500" />
+                    <div className="block sm:hidden">
+                      <FeatureVisual
+                        type={feature.visual}
+                        accent={feature.accent}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
 
-                {/* Glow Effect */}
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500 -z-10`}
                 />
