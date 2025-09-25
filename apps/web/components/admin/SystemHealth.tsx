@@ -264,7 +264,8 @@ export const SystemHealth = () => {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">System Health</h2>
         <p className="text-muted-foreground">
-          Monitor synchronization between Lovable → GitHub → Supabase → Telegram
+          Monitor synchronization across the Dynamic Capital stack—from GitHub
+          to Supabase and Telegram touchpoints.
         </p>
       </div>
 
