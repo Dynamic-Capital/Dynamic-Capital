@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { AnimatePresence, LayoutGroup } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import {
   Bot,
   CheckCircle2,
@@ -17,15 +17,12 @@ import {
   Minimize2,
   RotateCcw,
   Sparkles,
-  User,
   WifiOff,
   X,
 } from "lucide-react";
 
 import {
-  DynamicButton,
   DynamicContainer,
-  DynamicMotionRow,
   DynamicMotionStackItem,
 } from "@/components/dynamic-ui";
 import {
@@ -40,7 +37,6 @@ import {
 import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import { logChatMessage } from "@/integrations/supabase/queries";
-import { DYNAMIC_MOTION_SPRINGS } from "@/lib/motion-variants";
 import { cn } from "@/utils";
 
 export interface TelegramAuthData {
@@ -109,6 +105,7 @@ export function ChatAssistantWidget(
       return [];
     }
   });
+  const [hasUnread, setHasUnread] = useState(false);
   const [sessionId] = useState(() => {
     if (typeof window === "undefined") {
       return "";
@@ -123,15 +120,20 @@ export function ChatAssistantWidget(
   const { toast } = useToast();
   const messageContainerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const previousAssistantCountRef = useRef(0);
 
   const quickSuggestions = useMemo(
     () => [
-      "How do I start?",
-      "VIP benefits?",
-      "Trading tips?",
-      "Risk management?",
+      "What’s VIP Mentorship?",
+      "How does DCT token work?",
+      "Show me subscription plans.",
     ],
     [],
+  );
+
+  const assistantMessageCount = useMemo(
+    () => messages.filter((message) => message.role === "assistant").length,
+    [messages],
   );
 
   useEffect(() => {
@@ -140,6 +142,23 @@ export function ChatAssistantWidget(
     }
     localStorage.setItem("chat-assistant-history", JSON.stringify(messages));
   }, [messages]);
+
+  useEffect(() => {
+    if (
+      assistantMessageCount > previousAssistantCountRef.current &&
+      (!isOpen || isMinimized)
+    ) {
+      setHasUnread(true);
+    }
+
+    previousAssistantCountRef.current = assistantMessageCount;
+  }, [assistantMessageCount, isOpen, isMinimized]);
+
+  useEffect(() => {
+    if (isOpen && !isMinimized && hasUnread) {
+      setHasUnread(false);
+    }
+  }, [hasUnread, isMinimized, isOpen]);
 
   useEffect(() => {
     if (!sessionId) {
@@ -357,61 +376,67 @@ export function ChatAssistantWidget(
     switch (syncStatus) {
       case "syncing":
         return {
-          badge: "Syncing",
+          badge: "⚡ Instant replies",
           badgeProps: {
             ...baseBadgeProps,
             background: "brand-alpha-weak",
             border: "brand-alpha-medium",
             onBackground: "brand-strong",
           },
-          label: "Syncing with ChatGPT",
+          label: "Writing your reply in real time",
           description:
-            "Crafting a desk-style answer using your latest messages.",
+            "Hang tight — the assistant is pulling desk intel for you.",
           icon: <Loader2 className="h-4 w-4 animate-spin text-primary" />,
         };
       case "connected":
         return {
-          badge: "Live",
+          badge: "🟢 Online",
           badgeProps: {
             ...baseBadgeProps,
             background: "success-alpha-weak",
             border: "success-alpha-medium",
             onBackground: "success-strong",
           },
-          label: "Connected to ChatGPT",
-          description: "Follow-up questions stay in the same AI conversation.",
+          label: "Desk assistant ready for follow-ups",
+          description: "Ask about VIP plans, tokens, or trading basics.",
           icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
         };
       case "error":
         return {
-          badge: "Retrying",
+          badge: "⚠️ Reconnecting",
           badgeProps: {
             ...baseBadgeProps,
             background: "danger-alpha-weak",
             border: "danger-alpha-medium",
             onBackground: "danger-strong",
           },
-          label: "Fallback playbook active",
-          description: "We saved the chat and will resync automatically.",
+          label: "Loaded the fallback desk playbook",
+          description: "We saved your message and will reconnect shortly.",
           icon: <WifiOff className="h-4 w-4 text-rose-500" />,
         };
       default:
         return {
-          badge: "Ready",
+          badge: "🟢 Online",
           badgeProps: {
             ...baseBadgeProps,
             background: "neutral-alpha-weak",
             border: "neutral-alpha-medium",
             onBackground: "brand-strong",
           },
-          label: "ChatGPT sync ready",
-          description: "Ask about VIP onboarding, execution, or automation.",
+          label: "Dynamic Capital AI assistant",
+          description: "Ask about VIP onboarding, tokens, or trading basics.",
           icon: <Sparkles className="h-4 w-4 text-primary" />,
         };
     }
   }, [syncStatus]);
 
-  const containerPositionClass = cn("fixed bottom-20 left-4 z-40", className);
+  const containerPositionClass = cn(
+    "fixed z-40",
+    isOpen ? "bottom-28 right-6" : "bottom-6 right-6",
+    className,
+  );
+
+  const hasMessages = messages.length > 0;
 
   return (
     <LayoutGroup>
@@ -424,10 +449,10 @@ export function ChatAssistantWidget(
               variant={null}
               animateIn={false}
               className={containerPositionClass}
-              style={{ width: "min(25rem, 92vw)" }}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              style={{ width: "min(24rem, 92vw)" }}
+              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 260, damping: 26 }}
             >
               <Column
@@ -445,23 +470,26 @@ export function ChatAssistantWidget(
                 />
                 {isMinimized
                   ? (
-                    <Row
-                      horizontal="between"
-                      vertical="center"
-                      className="relative z-[1]"
-                    >
+                    <Column gap="16" align="start" className="relative z-[1]">
                       <Row gap="12" vertical="center">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
                           <Bot className="h-5 w-5" />
                         </div>
-                        <Column>
-                          <Text variant="heading-strong-s">Desk assistant</Text>
-                          <Text
-                            variant="body-default-xs"
-                            onBackground="neutral-weak"
-                          >
-                            {statusMeta.label}
+                        <Column align="start" gap="8">
+                          <Text variant="heading-strong-s">
+                            Dynamic Capital AI Assistant
                           </Text>
+                          <Row gap="8" vertical="center" wrap>
+                            <Badge {...statusMeta.badgeProps}>
+                              {statusMeta.badge}
+                            </Badge>
+                            <Text
+                              variant="body-default-xs"
+                              onBackground="neutral-weak"
+                            >
+                              {statusMeta.label}
+                            </Text>
+                          </Row>
                         </Column>
                       </Row>
                       <Row gap="8">
@@ -472,38 +500,58 @@ export function ChatAssistantWidget(
                           data-border="rounded"
                           onClick={() => setIsMinimized(false)}
                         >
-                          Reopen
+                          Reopen chat
                         </Button>
                         <Button
                           type="button"
                           size="s"
                           variant="secondary"
                           data-border="rounded"
-                          onClick={() => setIsOpen(false)}
+                          onClick={() => {
+                            setIsOpen(false);
+                            setIsMinimized(false);
+                          }}
                         >
                           Close
                         </Button>
                       </Row>
-                    </Row>
+                    </Column>
                   )
                   : (
-                    <Column gap="16" className="relative z-[1]">
-                      <Row horizontal="between" vertical="center">
-                        <Row gap="12" vertical="center">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                            <Bot className="h-5 w-5" />
+                    <Column
+                      gap="16"
+                      align="start"
+                      className="relative z-[1]"
+                      style={{ minHeight: "24rem" }}
+                    >
+                      <Row horizontal="between" vertical="start" align="start">
+                        <Row gap="12" vertical="start" align="start">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
+                            🤖
                           </div>
-                          <Column>
+                          <Column align="start" gap="8">
                             <Text variant="heading-strong-s">
-                              Desk assistant
+                              Dynamic Capital AI Assistant
                             </Text>
-                            <Text
-                              variant="body-default-s"
-                              onBackground="neutral-weak"
-                            >
-                              Live chat powered by ChatGPT and the Dynamic
-                              Capital playbook.
-                            </Text>
+                            <Row gap="8" vertical="center" wrap>
+                              <Badge {...statusMeta.badgeProps}>
+                                {statusMeta.badge}
+                              </Badge>
+                              <Row
+                                gap="8"
+                                vertical="center"
+                                className="text-muted-foreground"
+                              >
+                                {statusMeta.icon}
+                                <Text
+                                  as="span"
+                                  variant="body-default-xs"
+                                  onBackground="neutral-weak"
+                                >
+                                  {statusMeta.description}
+                                </Text>
+                              </Row>
+                            </Row>
                           </Column>
                         </Row>
                         <Row gap="8">
@@ -533,192 +581,141 @@ export function ChatAssistantWidget(
                             size="s"
                             variant="secondary"
                             data-border="rounded"
-                            onClick={() => setIsOpen(false)}
+                            onClick={() => {
+                              setIsOpen(false);
+                              setIsMinimized(false);
+                            }}
                             aria-label="Close chat"
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         </Row>
                       </Row>
-
-                      <DynamicMotionRow
-                        layout
-                        variant="slideUp"
-                        initial="hidden"
-                        animate="visible"
-                        transition={{
-                          ...DYNAMIC_MOTION_SPRINGS.soft,
-                          delay: 0.1,
-                        }}
-                        gap="12"
-                        vertical="center"
-                        background="surface"
-                        border="neutral-alpha-medium"
-                        radius="l"
-                        paddingX="12"
-                        paddingY="12"
-                        className="items-start"
+                      <Text
+                        variant="body-default-s"
+                        onBackground="neutral-weak"
                       >
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-                          {statusMeta.icon}
-                        </div>
-                        <Column gap="4" className="flex-1">
-                          <Text variant="body-default-m">
-                            {statusMeta.label}
-                          </Text>
-                          <Text
-                            variant="body-default-xs"
-                            onBackground="neutral-weak"
-                          >
-                            {statusMeta.description}
-                          </Text>
-                        </Column>
-                        <Badge {...statusMeta.badgeProps}>
-                          {statusMeta.badge}
-                        </Badge>
-                      </DynamicMotionRow>
-
-                      <DynamicMotionRow
-                        layout
-                        variant="stackItemSoft"
-                        initial="hidden"
-                        animate="visible"
-                        transition={{
-                          ...DYNAMIC_MOTION_SPRINGS.soft,
-                          stiffness: 280,
-                          damping: 24,
-                          delay: 0.15,
-                        }}
-                        wrap
-                        gap="8"
-                      >
-                        {quickSuggestions.map((suggestion) => (
-                          <Button
-                            key={suggestion}
-                            type="button"
-                            size="s"
-                            variant="secondary"
-                            data-border="rounded"
-                            onClick={() => handleSuggestion(suggestion)}
-                            disabled={isLoading}
-                          >
-                            {suggestion}
-                          </Button>
-                        ))}
-                      </DynamicMotionRow>
-
+                        {statusMeta.label}
+                      </Text>
                       <div
                         ref={messageContainerRef}
-                        role="log"
-                        aria-live="polite"
-                        aria-busy={isLoading}
-                        className="flex max-h-72 flex-col gap-3 overflow-y-auto pr-1"
+                        className="flex max-h-72 w-full flex-1 flex-col gap-3 overflow-y-auto pr-1"
                       >
                         <AnimatePresence initial={false}>
-                          {messages.length === 0
+                          {!hasMessages
                             ? (
                               <DynamicMotionStackItem
-                                key="empty-state"
-                                density="soft"
-                                variant="messageBubble"
-                                initial="hidden"
-                                animate="visible"
-                                exit="exit"
-                                transition={{
-                                  ...DYNAMIC_MOTION_SPRINGS.soft,
-                                  damping: 24,
-                                }}
-                                radius="l"
-                                padding="m"
-                                gap="8"
-                                className="border border-dashed border-border/60 bg-background/90 text-left"
+                                key="assistant-greeting"
+                                layout
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -12 }}
+                                transition={{ duration: 0.28, ease: "easeOut" }}
                               >
-                                <Text variant="body-default-m">
-                                  Welcome! Ask how to join the VIP desk, what’s
-                                  inside the admin dashboard, or how to automate
-                                  risk.
-                                </Text>
-                                <Text
-                                  variant="body-default-s"
-                                  onBackground="neutral-weak"
-                                >
-                                  Responses stay synced with ChatGPT so you can
-                                  ask follow-up questions in the same thread.
-                                </Text>
+                                <div className="flex justify-start">
+                                  <div className="max-w-[85%] rounded-2xl bg-white/90 px-4 py-3 text-sm text-foreground shadow-sm ring-1 ring-neutral-200">
+                                    <p className="whitespace-pre-wrap">
+                                      {"👋 Hi! I’m your Dynamic Capital AI assistant. Ask me anything about VIP Plans, tokens, or trading basics."}
+                                    </p>
+                                  </div>
+                                </div>
                               </DynamicMotionStackItem>
                             )
-                            : (
-                              messages.map((message, index) => (
-                                <DynamicMotionStackItem
-                                  key={`${message.role}-${index}`}
-                                  layout
-                                  density="soft"
-                                  variant="messageBubble"
-                                  initial="hidden"
-                                  animate="visible"
-                                  exit="exit"
-                                  transition={{
-                                    ...DYNAMIC_MOTION_SPRINGS.soft,
-                                    damping: 24,
-                                  }}
-                                  radius="l"
-                                  padding="m"
-                                  gap="8"
+                            : null}
+                          {messages.map((message, index) => {
+                            const isAssistant = message.role === "assistant";
+                            return (
+                              <DynamicMotionStackItem
+                                key={`${message.role}-${index}-${message.content.length}`}
+                                layout
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -12 }}
+                                transition={{ duration: 0.28, ease: "easeOut" }}
+                              >
+                                <div
                                   className={cn(
-                                    "relative overflow-hidden border text-left shadow-[0_20px_40px_-28px_rgba(15,23,42,0.55)]",
-                                    message.role === "assistant"
-                                      ? "border-primary/40 bg-gradient-to-br from-primary/15 via-background/85 to-background/95"
-                                      : "border-border/60 bg-background/90",
+                                    "flex w-full",
+                                    isAssistant
+                                      ? "justify-start"
+                                      : "justify-end",
                                   )}
                                 >
-                                  {message.role === "assistant"
-                                    ? (
-                                      <div
-                                        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-dc-accent/10"
-                                        aria-hidden="true"
-                                      />
-                                    )
-                                    : null}
-                                  <Row
-                                    gap="8"
-                                    vertical="center"
-                                    className="relative z-[1] text-muted-foreground"
+                                  <div
+                                    className={cn(
+                                      "relative max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm",
+                                      isAssistant
+                                        ? "bg-white/95 text-foreground ring-1 ring-neutral-200"
+                                        : "bg-primary text-primary-foreground",
+                                    )}
                                   >
-                                    <div
-                                      className={cn(
-                                        "flex h-7 w-7 items-center justify-center rounded-full",
-                                        message.role === "assistant"
-                                          ? "bg-primary/15 text-primary"
-                                          : "bg-muted/40 text-muted-foreground",
+                                    {isAssistant
+                                      ? (
+                                        <span className="absolute -left-2 top-1 h-3 w-3 rotate-45 rounded-sm bg-white/95 ring-1 ring-neutral-200" />
+                                      )
+                                      : (
+                                        <span className="absolute -right-2 top-1 h-3 w-3 rotate-45 rounded-sm bg-primary" />
                                       )}
-                                    >
-                                      {message.role === "assistant"
-                                        ? <Bot className="h-4 w-4" />
-                                        : <User className="h-4 w-4" />}
-                                    </div>
                                     <Text
+                                      as="span"
                                       variant="body-default-s"
-                                      onBackground="neutral-weak"
+                                      style={{ whiteSpace: "pre-wrap" }}
+                                      className="block"
                                     >
-                                      {message.role === "assistant"
-                                        ? "Desk"
-                                        : "You"}
+                                      {message.content}
                                     </Text>
-                                  </Row>
-                                  <Text
-                                    variant="body-default-m"
-                                    style={{ whiteSpace: "pre-wrap" }}
-                                    className="relative z-[1] text-foreground"
-                                  >
-                                    {message.content}
-                                  </Text>
-                                </DynamicMotionStackItem>
-                              ))
-                            )}
+                                  </div>
+                                </div>
+                              </DynamicMotionStackItem>
+                            );
+                          })}
+                          {isLoading
+                            ? (
+                              <DynamicMotionStackItem
+                                key="assistant-typing"
+                                layout
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -12 }}
+                                transition={{ duration: 0.28, ease: "easeOut" }}
+                              >
+                                <div className="flex justify-start">
+                                  <div className="flex items-center gap-3 rounded-2xl bg-white/90 px-4 py-3 text-sm text-neutral-600 shadow-sm ring-1 ring-neutral-200">
+                                    <Spinner />
+                                    <span>Assistant is typing…</span>
+                                  </div>
+                                </div>
+                              </DynamicMotionStackItem>
+                            )
+                            : null}
                         </AnimatePresence>
                       </div>
-
-                      <form onSubmit={handleSubmit} className="space-y-3">
+                      <Column gap="8" align="start" className="w-full">
+                        <Text
+                          variant="label-default-s"
+                          onBackground="neutral-weak"
+                        >
+                          Quick replies
+                        </Text>
+                        <Row gap="8" wrap>
+                          {quickSuggestions.map((suggestion) => (
+                            <Button
+                              key={suggestion}
+                              type="button"
+                              size="s"
+                              variant="secondary"
+                              data-border="rounded"
+                              onClick={() => handleSuggestion(suggestion)}
+                            >
+                              {suggestion}
+                            </Button>
+                          ))}
+                        </Row>
+                      </Column>
+                      <form
+                        onSubmit={handleSubmit}
+                        className="w-full space-y-3"
+                      >
                         <Column gap="12">
                           <Input
                             ref={inputRef}
@@ -726,31 +723,17 @@ export function ChatAssistantWidget(
                             value={question}
                             onChange={(event) =>
                               setQuestion(event.target.value)}
-                            placeholder="Ask about pricing, onboarding, or platform access"
+                            placeholder="Ask about VIP Plans, Tokens, or Trading Basics…"
                             disabled={isLoading}
                           />
                           <Button
                             type="submit"
                             size="m"
-                            variant="secondary"
+                            variant="primary"
                             data-border="rounded"
                             disabled={isLoading || !question.trim()}
                           >
-                            {isLoading
-                              ? (
-                                <Row gap="8" vertical="center">
-                                  <Spinner />
-                                  <Text variant="body-default-s">
-                                    Syncing with ChatGPT…
-                                  </Text>
-                                </Row>
-                              )
-                              : (
-                                <Row gap="8" vertical="center">
-                                  <Sparkles className="h-4 w-4" />
-                                  Ask the desk
-                                </Row>
-                              )}
+                            {isLoading ? "Sending…" : "Send"}
                           </Button>
                         </Column>
                       </form>
@@ -766,26 +749,45 @@ export function ChatAssistantWidget(
               variant={null}
               animateIn={false}
               className={containerPositionClass}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, y: 24, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 24, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 260, damping: 26 }}
             >
-              <DynamicButton
-                variant="primary"
-                size="default"
-                className="rounded-full shadow-primary"
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setIsOpen(true);
                   setIsMinimized(false);
+                  setHasUnread(false);
                   setTimeout(() => focusInput(), 220);
                 }}
+                className="relative flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                aria-label="Open Dynamic Capital assistant"
               >
-                <Row gap="8" vertical="center">
-                  <Sparkles className="h-5 w-5" />
-                  Chat with the desk
-                </Row>
-              </DynamicButton>
+                {hasUnread
+                  ? (
+                    <motion.span
+                      aria-hidden="true"
+                      className="absolute inset-0 rounded-full bg-primary/40 blur-xl"
+                      initial={{ opacity: 0.4, scale: 1 }}
+                      animate={{
+                        opacity: [0.3, 0.7, 0.3],
+                        scale: [1, 1.15, 1],
+                      }}
+                      transition={{
+                        duration: 1.6,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  )
+                  : null}
+                <Bot className="h-6 w-6" />
+                <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-400 ring-2 ring-primary" />
+              </motion.button>
             </DynamicContainer>
           )}
       </AnimatePresence>
