@@ -35,6 +35,8 @@ _Last updated: 2025-09-15 (UTC)._
   reproduce external records.【a93f31†L1-L2】
 - **`apps/web/app/telegram/`** – Next.js route for the Telegram operations dashboard, replacing the standalone Dynamic Codex Vite workspace so bot tooling ships from the unified build.【F:apps/web/app/telegram/page.tsx†L1-L11】【F:README.md†L96-L117】
 - **`lovable-build.js` / `lovable-dev.js`** – Helper scripts that bootstrap environment variables and orchestrate combined Next.js + miniapp builds when running on Dynamic’s deployment platform.【e53642†L1-L36】
+- **`content/prompts/grok-1/`** – Canonical Grok-1 prompt templates, attachment maps, and token governance docs aligned with the integration checklist.【F:content/prompts/grok-1/smc-ideation.md†L1-L36】【F:content/prompts/grok-1/attachments-map.md†L1-L23】
+- **Artifact cache** – Grok model weights and tokenizer bundles synced to `./.cache/grok-1` with checksums tracked in `content/prompts/grok-1/history/index.json`; production mirrors live in `s3://dynamic-capital-grok/attachments/` for operators.
 
 ## 5. Tooling, documentation & testing
 

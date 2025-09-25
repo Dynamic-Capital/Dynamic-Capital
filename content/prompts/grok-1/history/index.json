@@ -1,0 +1,5 @@
+{
+  "artifacts": [],
+  "lastSynced": null,
+  "notes": "Populate this manifest with {\"objectKey\", \"checksum\", \"source\"} entries after each Grok attachment upload."
+}

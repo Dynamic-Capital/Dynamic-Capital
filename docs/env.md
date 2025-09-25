@@ -78,6 +78,11 @@ Additional crypto keys:
 | `FOLLOW_UP_DELAY_MINUTES` | Minutes of inactivity before sending follow-up messages.   | No                  | `10`              | `supabase/functions/cleanup-old-sessions/index.ts`                                                      |
 | `MAX_FOLLOW_UPS`          | Maximum number of follow-up messages to send per user.     | No                  | `3`               | `supabase/functions/cleanup-old-sessions/index.ts`                                                      |
 | `ADMIN_API_SECRET`        | Shared secret for privileged admin endpoints.              | Yes for admin tasks | `hexstring`      | `supabase/functions/admin-session/index.ts`, `supabase/functions/rotate-admin-secret/index.ts`, `supabase/functions/rotate-webhook-secret/index.ts`, `supabase/functions/admin-review-payment/index.ts` |
+| `GROK_API_KEY`            | API key or service token for Grok-1 hosted inference.      | No                  | `gsk_live_...` | `utils/llm/grok.ts` (planned), `queue/grok-jobs.ts` (future automation) |
+| `GROK_MODEL_CACHE_DIR`    | Local cache storing Grok model weights and tokenizer assets. | Yes (self-hosted) | `./.cache/grok-1` | `scripts/grok/sync-assets.ts`, `queue/grok-jobs.ts` |
+| `GROK_ATTACHMENT_BUCKET`  | Artifact store bucket for prompt attachments and logs.     | Yes (automation)    | `s3://dynamic-capital-grok/attachments` | `content/prompts/grok-1/attachments-map.md`, `utils/llm/grok.ts` |
+| `GROK_ATTACHMENT_MANIFEST`| Checksum manifest tracking uploaded Grok attachments.      | Yes (automation)    | `content/prompts/grok-1/history/index.json` | `content/prompts/grok-1/attachments-map.md`, `scripts/grok/sync-assets.ts` |
+
 ## CDN
 
 These variables configure uploads to DigitalOcean Spaces. Set them in

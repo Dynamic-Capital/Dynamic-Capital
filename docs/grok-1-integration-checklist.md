@@ -13,28 +13,28 @@ existing guardrails.
 a vetted organization account and review the license obligations.
 - [ ] Capture model weights, tokenizer assets, and required build tooling in a
 controlled artifact store (e.g., private bucket + checksum manifest).
-- [ ] Align environment variable naming with `docs/env.md`; document any new
+- [x] Align environment variable naming with `docs/env.md`; document any new
 secrets in `.env.example` and Supabase/Vercel vaults without committing real
 values.
-- [ ] Update `docs/REPO_INVENTORY.md` (or equivalent) with the local cache
+- [x] Update `docs/REPO_INVENTORY.md` (or equivalent) with the local cache
 location, synchronization cadence, and retention policy for Grok assets.
 
 ## 2. Prompting & Context Design
 
-- [ ] Establish canonical prompt templates for SMC ideation, execution guardrail
+- [x] Establish canonical prompt templates for SMC ideation, execution guardrail
 reviews, and UI copywriting; store them under `content/prompts/grok-1/`.
-- [ ] Map repository artifacts (TradeConfig logs, analyzer traces, glossary
+- [x] Map repository artifacts (TradeConfig logs, analyzer traces, glossary
 entries) to prompt attachments so responses stay grounded in current logic.
-- [ ] Define token budgets, truncation rules, and paraphrase safeguards before
+- [x] Define token budgets, truncation rules, and paraphrase safeguards before
 exposing prompts to automated jobs.
-- [ ] Record evaluation prompts and expected outputs in `tests/llm-scenarios/`
+- [x] Record evaluation prompts and expected outputs in `tests/llm-scenarios/`
 for regression testing.
 
 ## 3. Trading Strategy & Analyzer Enhancements
 
 - [ ] Integrate Grok-assisted idea reviews into the `algorithms/` workflow
 (e.g., PR template checkbox, reviewer step, or IDE helper notes).
-- [ ] Codify how Grok suggestions translate into Pine Script or TypeScript
+- [x] Codify how Grok suggestions translate into Pine Script or TypeScript
 changes; update `algorithms/README.md` with the acceptance criteria.
 - [ ] Gate analyzer modifications on new or updated tests in
 `tests/trading-*`—include Grok-generated heuristics in test fixtures for
