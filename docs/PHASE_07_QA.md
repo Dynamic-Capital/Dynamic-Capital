@@ -1,4 +1,4 @@
-# Phase 7 QA
+# Dynamic Capital Phase 07 QA
 
 ## How to run tests locally
 

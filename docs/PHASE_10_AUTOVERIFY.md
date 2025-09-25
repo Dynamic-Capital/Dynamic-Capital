@@ -1,11 +1,11 @@
-# Phase 10: Auto-Verify Payments
+# Dynamic Capital Phase 10 – Auto-Verify Payments
 
 ## Edge Functions
 
 - **/receipt-ocr** — input `{ payment_id }`, analyzes the stored receipt image
   with OpenAI and writes results to `payments.webhook_data.ocr`.
 - **/payments-auto-review** — scans recent pending payments and auto-approves
-  when rules pass; logs `admin_logs` and reuses Phase 4 approver endpoint.
+  when rules pass; logs `admin_logs` and reuses Phase 04 approver endpoint.
   until signature verification is implemented.
 
 ## Verification Rules

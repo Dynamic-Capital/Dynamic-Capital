@@ -1,4 +1,4 @@
-# Phase 5 – Admin UI
+# Dynamic Capital Phase 05 – Admin UI
 
 - Admin auth = Telegram initData + allowlist.
 - No secrets in client.

@@ -1,4 +1,4 @@
-# Phase 6 Ops
+# Dynamic Capital Phase 06 Ops
 
 ## Logging & Rate Limits
 
