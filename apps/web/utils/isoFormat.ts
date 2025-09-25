@@ -1,7 +1,7 @@
+import { DESK_TIME_ZONE, getDeskTimeSuffix } from "@/utils/deskTime";
+
 export type IsoDateInput = string | number | Date;
 
-const MALDIVES_TIME_ZONE = "Indian/Maldives";
-const MALDIVES_TIME_SUFFIX = "MVT";
 const LOCALE = "en-GB";
 
 function toDate(value: IsoDateInput): Date | null {
@@ -15,7 +15,7 @@ function toDate(value: IsoDateInput): Date | null {
 
 function formatWithPrecision(date: Date, includeMilliseconds: boolean): string {
   const formatter = new Intl.DateTimeFormat(LOCALE, {
-    timeZone: MALDIVES_TIME_ZONE,
+    timeZone: DESK_TIME_ZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -44,7 +44,7 @@ function formatWithPrecision(date: Date, includeMilliseconds: boolean): string {
     ? `.${String(date.getMilliseconds()).padStart(3, "0")}`
     : "";
 
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}${milliseconds} (${MALDIVES_TIME_SUFFIX})`;
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}${milliseconds} (${getDeskTimeSuffix({ locale: LOCALE, date })})`;
 }
 
 export function formatIsoDateTime(
