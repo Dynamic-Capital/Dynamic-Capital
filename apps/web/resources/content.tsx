@@ -1,24 +1,37 @@
-import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/resources/types";
+import {
+  About,
+  Blog,
+  Gallery,
+  Home,
+  Newsletter,
+  Person,
+  Social,
+  Work,
+} from "@/resources/types";
 import { Line, Row, Text } from "@once-ui-system/core";
 
 import { supabaseAsset } from "./assets";
 import { ogDefaults } from "./og-defaults";
 
 const person: Person = {
-  firstName: "Noah",
-  lastName: "Sterling",
-  name: "Noah Sterling",
-  role: "Chief Investment Officer",
+  firstName: "Abdul Mumin",
+  lastName: "Ibun Aflhal",
+  name: "Abdul Mumin Ibun Aflhal",
+  role: "Founder",
   avatar: supabaseAsset("images/avatar.jpg"),
-  email: "noah@dynamic.capital",
-  location: "Europe/London",
-  languages: ["English"],
+  email: "hello@dynamic.capital",
+  location: "Africa/Accra",
 };
 
 const newsletter: Newsletter = {
   display: true,
   title: <>Signal Room Dispatch</>,
-  description: <>Weekly desk notes covering macro catalysts, automation tweaks, and mentorship recaps.</>,
+  description: (
+    <>
+      Weekly desk notes covering macro catalysts, automation tweaks, and
+      mentorship recaps.
+    </>
+  ),
 };
 
 const social: Social = [
@@ -50,12 +63,17 @@ const home: Home = {
   label: "Home",
   title: ogDefaults.title,
   description: ogDefaults.description,
-  headline: <>Trade with confidence, even if you&apos;re just getting started.</>,
+  headline: (
+    <>Trade with confidence, even if you&apos;re just getting started.</>
+  ),
   featured: {
     display: true,
     title: (
       <Row gap="12" vertical="center">
-        <Text onBackground="brand-strong" className="ml-4 font-semibold tracking-tight">
+        <Text
+          onBackground="brand-strong"
+          className="ml-4 font-semibold tracking-tight"
+        >
           New: Guided onboarding workspace
         </Text>
         <Line background="brand-alpha-strong" vert height="20" />
@@ -68,8 +86,9 @@ const home: Home = {
   },
   subline: (
     <>
-      Answer five prompts, run drills in a guided simulator, and switch on live signals once you&apos;re ready—no jargon, just a
-      clear next step every time.
+      Answer five prompts, run drills in a guided simulator, and switch on live
+      signals once you&apos;re ready—no jargon, just a clear next step every
+      time.
     </>
   ),
 };
@@ -95,9 +114,10 @@ const about: About = {
     title: "Why we exist",
     description: (
       <>
-        Noah leads Dynamic Capital's institutional desk, pairing fundamental research with automation so traders can scale
-        responsibly. After a decade building quant workflows for prop firms, he now mentors founders, funds, and operators
-        looking to professionalise their execution.
+        Abdul Mumin Ibun Aflhal leads Dynamic Capital's trading desk, keeping
+        member strategies grounded in documented research and disciplined risk
+        controls. He focuses on helping operators adopt automation responsibly
+        so every signal has an auditable process behind it.
       </>
     ),
   },
@@ -107,11 +127,17 @@ const about: About = {
     experiences: [
       {
         company: "Dynamic Capital",
-        timeframe: "2021 – Present",
-        role: "Chief Investment Officer",
+        timeframe: "Present",
+        role: "Founder & Portfolio Lead",
         achievements: [
-          <>Built the VIP signal desk that now serves 8,500 members with 24/7 macro and crypto coverage.</>,
-          <>Scaled managed pools to $42M AUM with automated drawdown controls and transparent allocation reporting.</>,
+          <>
+            Chairs the investment committee that reviews every trading playbook
+            before it reaches the desk.
+          </>,
+          <>
+            Built the automation stack that keeps allocations, risk parameters,
+            and reporting aligned for members.
+          </>,
         ],
         images: [
           {
@@ -122,38 +148,12 @@ const about: About = {
           },
         ],
       },
-      {
-        company: "Helios Partners",
-        timeframe: "2016 – 2021",
-        role: "Director of Quantitative Strategy",
-        achievements: [
-          <>Deployed cross-exchange market making infrastructure overseeing $1.2B in monthly volume.</>,
-          <>Launched mentorship cohorts for portfolio founders to harden risk frameworks and trade review rituals.</>,
-        ],
-        images: [
-          {
-            src: supabaseAsset("images/projects/alpha-lab/cover-01.jpg"),
-            alt: "Helios execution terminals",
-            width: 16,
-            height: 9,
-          },
-        ],
-      },
     ],
   },
   studies: {
-    display: true,
+    display: false,
     title: "Studies",
-    institutions: [
-      {
-        name: "London School of Economics",
-        description: <>MSc in Financial Mathematics focused on systematic macro strategies.</>,
-      },
-      {
-        name: "CMT Association",
-        description: <>Chartered Market Technician — applied discretionary pattern work to automation.</>,
-      },
-    ],
+    institutions: [],
   },
   technical: {
     display: true,
@@ -161,7 +161,12 @@ const about: About = {
     skills: [
       {
         title: "Execution stack engineering",
-        description: <>Architecting exchange connectivity, risk throttles, and automation for multi-venue trading.</>,
+        description: (
+          <>
+            Architecting exchange connectivity, risk throttles, and automation
+            for multi-venue trading.
+          </>
+        ),
         tags: [
           { name: "Python" },
           { name: "Supabase", icon: "supabase" },
@@ -177,7 +182,12 @@ const about: About = {
       },
       {
         title: "Macro research",
-        description: <>Structuring playbooks that blend discretionary reads with quantitative confirmation.</>,
+        description: (
+          <>
+            Structuring playbooks that blend discretionary reads with
+            quantitative confirmation.
+          </>
+        ),
         tags: [
           { name: "Quant" },
           { name: "FX" },
@@ -194,7 +204,12 @@ const about: About = {
       },
       {
         title: "Mentorship frameworks",
-        description: <>Designing accountability cadences and review rituals for scaling traders and funds.</>,
+        description: (
+          <>
+            Designing accountability cadences and review rituals for scaling
+            traders and funds.
+          </>
+        ),
         tags: [
           { name: "Coaching" },
           { name: "Risk" },
@@ -216,21 +231,24 @@ const blog: Blog = {
   path: "/blog",
   label: "Blog",
   title: "Desk insights & execution playbooks",
-  description: "Trading psychology, macro structure, and automation updates from the Dynamic Capital desk.",
+  description:
+    "Trading psychology, macro structure, and automation updates from the Dynamic Capital desk.",
 };
 
 const work: Work = {
   path: "/work",
   label: "Work",
   title: "Desk projects",
-  description: "Signal, automation, and mentorship programs launched by Dynamic Capital.",
+  description:
+    "Signal, automation, and mentorship programs launched by Dynamic Capital.",
 };
 
 const gallery: Gallery = {
   path: "/gallery",
   label: "Gallery",
   title: "Inside the desk",
-  description: "Scenes from Dynamic Capital's research, execution, and mentorship sessions.",
+  description:
+    "Scenes from Dynamic Capital's research, execution, and mentorship sessions.",
   images: [
     {
       src: supabaseAsset("images/gallery/horizontal-1.jpg"),
@@ -275,4 +293,4 @@ const gallery: Gallery = {
   ],
 };
 
-export { person, social, newsletter, home, about, blog, work, gallery };
+export { about, blog, gallery, home, newsletter, person, social, work };
