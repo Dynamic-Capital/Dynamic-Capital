@@ -37,9 +37,9 @@ interface EntryMeta {
 
 const root = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(root, "..");
-const projectName =
-  relative(dirname(repoRoot), repoRoot) || repoRoot.split("/").pop() ||
-    "repository";
+const projectName = relative(dirname(repoRoot), repoRoot) ||
+  repoRoot.split("/").pop() ||
+  "repository";
 
 function formatDate(date: Date): string {
   return date.toUTCString();
@@ -118,7 +118,8 @@ const categoriesById = new Map<CategoryId, CategoryBucket>(
 const entryMeta: Record<string, EntryMeta> = {
   "_static": {
     category: "applications",
-    description: "Pre-rendered landing snapshot served by `server.js` for CDN delivery.",
+    description:
+      "Pre-rendered landing snapshot served by `server.js` for CDN delivery.",
   },
   "algorithms": {
     category: "applications",
@@ -134,6 +135,11 @@ const entryMeta: Record<string, EntryMeta> = {
     category: "applications",
     description:
       "Standalone broadcast planner used for scheduled outbound Telegram messages.",
+  },
+  "content": {
+    category: "data",
+    description:
+      "Structured marketing content (bios, quotes) that keeps dynamic branding assets consistent across surfaces.",
   },
   "go-service": {
     category: "applications",
@@ -154,6 +160,11 @@ const entryMeta: Record<string, EntryMeta> = {
     category: "applications",
     description:
       "Lovable/Vite development harness and stubs that proxy into the Next.js app during local development.",
+  },
+  "env": {
+    category: "configuration",
+    description:
+      "Derived environment mapping artifacts shared across workspaces to align branding-aware runtime settings.",
   },
   "supabase": {
     category: "data",
@@ -181,15 +192,18 @@ const entryMeta: Record<string, EntryMeta> = {
   },
   "Procfile": {
     category: "infrastructure",
-    description: "Process definition for platform-as-a-service deployments of the Node server.",
+    description:
+      "Process definition for platform-as-a-service deployments of the Node server.",
   },
   "vercel.json": {
     category: "infrastructure",
-    description: "Vercel project configuration toggling headers and rewrites for the Next.js app.",
+    description:
+      "Vercel project configuration toggling headers and rewrites for the Next.js app.",
   },
   "lovable-build.js": {
     category: "tooling",
-    description: "Lovable automation helper that orchestrates production builds across app surfaces.",
+    description:
+      "Lovable automation helper that orchestrates production builds across app surfaces.",
   },
   "lovable-dev.js": {
     category: "tooling",
@@ -202,7 +216,8 @@ const entryMeta: Record<string, EntryMeta> = {
   },
   "tools": {
     category: "tooling",
-    description: "Developer utilities such as the AlgoKit-inspired scaffolding CLI.",
+    description:
+      "Developer utilities such as the AlgoKit-inspired scaffolding CLI.",
   },
   ".github": {
     category: "tooling",
@@ -219,11 +234,23 @@ const entryMeta: Record<string, EntryMeta> = {
   },
   "docs": {
     category: "documentation",
-    description: "Knowledge base containing runbooks, checklists, and compliance artefacts.",
+    description:
+      "Knowledge base containing runbooks, checklists, and compliance artefacts.",
+  },
+  "AGENTS.md": {
+    category: "documentation",
+    description:
+      "Repo-wide agent guidelines outlining formatting, testing, and branding expectations.",
+  },
+  "CODEOWNERS": {
+    category: "documentation",
+    description:
+      "Ownership matrix ensuring brand-critical surfaces always have reviewers from the right teams.",
   },
   "README.md": {
     category: "documentation",
-    description: "Project overview, setup instructions, and architecture summary.",
+    description:
+      "Project overview, setup instructions, and architecture summary.",
   },
   "SECURITY.md": {
     category: "documentation",
@@ -239,7 +266,8 @@ const entryMeta: Record<string, EntryMeta> = {
   },
   "package-lock.json": {
     category: "configuration",
-    description: "Lockfile for npm dependencies to ensure reproducible installs.",
+    description:
+      "Lockfile for npm dependencies to ensure reproducible installs.",
   },
   "deno.json": {
     category: "configuration",
@@ -251,7 +279,8 @@ const entryMeta: Record<string, EntryMeta> = {
   },
   "go.work": {
     category: "configuration",
-    description: "Go workspace file linking Go-based services and shared modules.",
+    description:
+      "Go workspace file linking Go-based services and shared modules.",
   },
   "project.toml": {
     category: "configuration",
@@ -259,7 +288,8 @@ const entryMeta: Record<string, EntryMeta> = {
   },
   "tsconfig.json": {
     category: "configuration",
-    description: "TypeScript compiler configuration shared across the monorepo.",
+    description:
+      "TypeScript compiler configuration shared across the monorepo.",
   },
   "tailwind.config.ts": {
     category: "configuration",
@@ -271,15 +301,18 @@ const entryMeta: Record<string, EntryMeta> = {
   },
   "vite.config.ts": {
     category: "configuration",
-    description: "Vite proxy configuration used during Lovable-driven development.",
+    description:
+      "Vite proxy configuration used during Lovable-driven development.",
   },
   ".env.example": {
     category: "configuration",
-    description: "Sample environment variables for local development and onboarding.",
+    description:
+      "Sample environment variables for local development and onboarding.",
   },
   ".editorconfig": {
     category: "configuration",
-    description: "Editor configuration enforcing shared formatting conventions.",
+    description:
+      "Editor configuration enforcing shared formatting conventions.",
   },
   ".gitignore": {
     category: "configuration",
@@ -289,6 +322,11 @@ const entryMeta: Record<string, EntryMeta> = {
     category: "configuration",
     description: "Docker build context exclusions aligned with `.gitignore`.",
   },
+  "codex.json": {
+    category: "configuration",
+    description:
+      "Lovable Codex metadata that wires automated workspace curation for branding-centric builds.",
+  },
   ".denoignore": {
     category: "configuration",
     description: "Deno task exclusions for generated or irrelevant paths.",
@@ -297,6 +335,11 @@ const entryMeta: Record<string, EntryMeta> = {
     category: "configuration",
     description: "Node.js version pin for contributors using `nvm`.",
   },
+  "tag-ruleset.json": {
+    category: "configuration",
+    description:
+      "Lovable tagging automation rules that route dynamic branding initiatives to the correct workspace reviewers.",
+  },
   "index.html": {
     category: "applications",
     description:
@@ -304,7 +347,8 @@ const entryMeta: Record<string, EntryMeta> = {
   },
   "node_modules": {
     category: "generated",
-    description: "Installed npm dependencies (excluded from version control in practice).",
+    description:
+      "Installed npm dependencies (excluded from version control in practice).",
   },
 };
 
@@ -385,7 +429,9 @@ for (const category of categories) {
   lines.push("| Path | Type | Summary |");
   lines.push("| --- | --- | --- |");
   for (const item of category.items) {
-    lines.push(`| \`${item.displayName}\` | ${item.type} | ${item.description} |`);
+    lines.push(
+      `| \`${item.displayName}\` | ${item.type} | ${item.description} |`,
+    );
   }
   lines.push("");
 }
