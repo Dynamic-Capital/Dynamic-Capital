@@ -160,6 +160,10 @@ the data dependencies that must be honored when scaling features.
 - **Co-locate observability.** Standardize on a lightweight `logRouteRequest`
   helper imported by new `route.ts` files to push metrics into Supabase or
   Logflare. This keeps monitoring coverage consistent as the API surface grows.
+- **Honor the global theme contract.** Use the shared `ThemeToggle` and
+  `useTheme` hook when introducing new layout segments so `data-theme` and
+  Telegram-driven palette updates remain synchronized across marketing and app
+  shells.
 - **Guard dynamic imports.** When a route adds heavy client components (charts,
   editors), wrap them in `next/dynamic` with SSR disabled and provide skeleton
   fallbacks so the landing experience stays fast on marketing CDNs.

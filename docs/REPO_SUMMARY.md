@@ -23,6 +23,19 @@
 - tests/
 - tools/
 
+### Dynamic Theme Touchpoints
+
+- `apps/web/app/layout.tsx` — Injects the boot-time theme resolver and sets the
+  default `data-theme` attribute to prevent flashes during hydration.
+- `apps/web/hooks/useTheme.tsx` — Central hook that coordinates `next-themes`,
+  Telegram `themeParams`, and CSS variables while storing preferences in
+  `localStorage`.
+- `apps/web/components/ui/theme-toggle.tsx` — Shared toggle surfaced in both the
+  marketing shell and authenticated dashboard for switching modes.
+- `supabase/functions/theme-get/index.ts` & `supabase/functions/theme-save/index.ts`
+  — Edge functions that read/write the `theme:<uid>` setting in `bot_settings`
+  so the preference travels with the user.
+
 ## Edge Functions Inventory
 
 | Function | Entry file | Default export |

@@ -91,6 +91,28 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 - Admin commands for maintenance
 - **Lovable Codex Integration** for AI-powered development
 
+## Dynamic Theme System
+
+The web console and Mini App share a synchronized theming pipeline so traders
+see consistent branding across every surface:
+
+- **Instant boot theme** – `apps/web/app/layout.tsx` injects a no-flash script
+  that resolves the preferred theme (`system`, `light`, or `dark`) before React
+  hydration so the UI renders with the correct palette on first paint.
+- **Runtime coordination** – `apps/web/hooks/useTheme.tsx` bridges
+  `next-themes`, Telegram `themeParams`, and the Dynamic UI design tokens. It
+  stores the active mode in `localStorage`, toggles the appropriate
+  `data-theme`/`color-scheme` attributes, and listens for Telegram theme change
+  events to keep the Mini App shell in sync.
+- **Persisted preferences** – The Supabase edge functions
+  `supabase/functions/theme-get/index.ts` and
+  `supabase/functions/theme-save/index.ts` read and store user-specific theme
+  settings so the dashboard remembers the preferred mode across devices.
+
+When adding new routes or components, rely on the shared `useTheme` hook and the
+`ThemeToggle` UI so appearance updates propagate everywhere without duplicating
+logic.
+
 ## Security Features
 
 - Optional HTTPS server enforces TLS 1.2+ (prefers TLS 1.3) when SSL

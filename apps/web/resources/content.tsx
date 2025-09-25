@@ -68,8 +68,8 @@ const home: Home = {
   },
   subline: (
     <>
-      Dynamic Capital blends clear education, human mentorship, and automation so you always know the next step. Learn inside a
-      safe practice workspace, then graduate to live markets with expert guardrails.
+      Answer five prompts, run drills in a guided simulator, and switch on live signals once you&apos;re ready—no jargon, just a
+      clear next step every time.
     </>
   ),
 };
