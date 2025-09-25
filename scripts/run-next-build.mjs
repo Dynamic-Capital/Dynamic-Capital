@@ -5,7 +5,10 @@ import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import process from "node:process";
-import { applyBrandingEnvDefaults } from "./utils/branding-env.mjs";
+import {
+  applyBrandingEnvDefaults,
+  PRODUCTION_ORIGIN,
+} from "./utils/branding-env.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +20,7 @@ const {
   resolvedOrigin,
 } = applyBrandingEnvDefaults({
   allowedOrigins: ({ env, resolvedOrigin: origin }) => env.SITE_URL ?? origin,
-  fallbackOrigin: "http://localhost:8080",
+  fallbackOrigin: PRODUCTION_ORIGIN,
   includeSupabasePlaceholders: false,
 });
 
