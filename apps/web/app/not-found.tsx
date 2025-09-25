@@ -42,10 +42,10 @@ export default function NotFound() {
         horizontal="center"
       >
         <Tag size="s" background="brand-alpha-weak" prefixIcon="repeat">
-          Dynamic surface update
+          Route archive notice
         </Tag>
         <Heading variant="display-strong-s" align="center">
-          This route hasn&apos;t caught up with the new branding.
+          This surface moved during the brand refresh.
         </Heading>
         <Text
           variant="body-default-l"
@@ -53,9 +53,9 @@ export default function NotFound() {
           align="center"
           wrap="balance"
         >
-          Dynamic Capital keeps the surface area lean so traders land on
-          battle-tested flows. The page you opened was retired or renamed during
-          the latest identity refresh.
+          We slimmed down the surface area so operators land on the latest
+          battle-tested flows. The link you hit now points to a retired screen
+          from the identity update.
         </Text>
         <Line background="neutral-alpha-weak" />
         <Column as="ul" gap="16" align="start" maxWidth="s">
@@ -66,9 +66,8 @@ export default function NotFound() {
               variant="body-default-m"
               onBackground="neutral-weak"
             >
-              Return to the{" "}
-              <SmartLink href="/">main landing experience</SmartLink>{" "}
-              for the current playbooks, plans, and desk context.
+              Jump back to the <SmartLink href="/">home hub</SmartLink>{" "}
+              for current playbooks, plans, and desk context.
             </Text>
           </Row>
           <Row as="li" gap="12" vertical="start">
@@ -78,10 +77,9 @@ export default function NotFound() {
               variant="body-default-m"
               onBackground="neutral-weak"
             >
-              Explore the <SmartLink href="/work">project library</SmartLink>
+              Browse the <SmartLink href="/work">project library</SmartLink>
               {" "}
-              to see how the desk is evolving and where branding shifts
-              originated.
+              to track how the desk is evolving and where brand shifts started.
             </Text>
           </Row>
           <Row as="li" gap="12" vertical="start">
