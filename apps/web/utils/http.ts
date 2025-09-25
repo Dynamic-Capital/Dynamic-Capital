@@ -4,18 +4,27 @@ const nodeProcess = (globalThis as any).process as
   | { env?: Record<string, string | undefined> }
   | undefined;
 
-const rawAllowedOrigins =
-  'Deno' in globalThis
-    ? (globalThis as any).Deno.env.get('ALLOWED_ORIGINS')
-    : nodeProcess?.env?.ALLOWED_ORIGINS;
+const getEnv = (key: string): string | undefined => {
+  if ('Deno' in globalThis) {
+    const denoEnv = (globalThis as any).Deno?.env;
+    const value = denoEnv?.get?.(key);
+    if (value !== undefined) {
+      return value;
+    }
+  }
 
-const defaultOrigin = nodeProcess?.env?.SITE_URL || 'http://localhost:3000';
+  return nodeProcess?.env?.[key];
+};
+
+const rawAllowedOrigins = getEnv('ALLOWED_ORIGINS');
+
+const defaultOrigin = getEnv('SITE_URL') || 'http://localhost:3000';
 
 let allowedOrigins: string[];
 
 if (rawAllowedOrigins === undefined) {
   allowedOrigins = [defaultOrigin];
-  if (!nodeProcess?.env?.SITE_URL) {
+  if (!getEnv('SITE_URL')) {
     console.warn(
       `[CORS] ALLOWED_ORIGINS is missing; defaulting to ${defaultOrigin}`,
     );
