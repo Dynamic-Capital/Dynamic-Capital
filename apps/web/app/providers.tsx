@@ -22,6 +22,7 @@ import {
   TransitionStyle,
 } from "@/components/dynamic-ui-system";
 import { AuthProvider } from "@/hooks/useAuth";
+import { TelegramAuthProvider } from "@/hooks/useTelegramAuth";
 import { SupabaseProvider } from "@/context/SupabaseProvider";
 import { MotionConfigProvider } from "@/components/ui/motion-config";
 import { dynamicUI } from "@/resources";
@@ -74,7 +75,9 @@ export default function Providers({ children }: { children: ReactNode }) {
                   <QueryClientProvider client={queryClient}>
                     <AuthProvider>
                       <SupabaseProvider>
-                        {children}
+                        <TelegramAuthProvider>
+                          {children}
+                        </TelegramAuthProvider>
                       </SupabaseProvider>
                     </AuthProvider>
                   </QueryClientProvider>
