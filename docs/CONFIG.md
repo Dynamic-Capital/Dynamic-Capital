@@ -34,5 +34,5 @@ Either `MINI_APP_URL` or `MINI_APP_SHORT_NAME` must be set for the `/start`
 command to show an **Open Mini App** button. If neither is configured, the bot
 logs a warning and omits the button. `MINI_APP_URL` should point to the deployed
 Telegram Mini App (for example,
-`https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/`) and will
+`https://your-project-ref.functions.supabase.co/miniapp/`) and will
 automatically append a trailing slash if missing to avoid redirect issues.

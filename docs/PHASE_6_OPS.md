@@ -17,7 +17,7 @@
 
 ## Health Check
 
-- `https://qeejuomcapbdlhnjqjcc.functions.supabase.co/ops-health`
+- `https://your-project-ref.functions.supabase.co/ops-health`
 - Returns JSON with `ok` flag and per-check results
 
 ## Optional Indexes

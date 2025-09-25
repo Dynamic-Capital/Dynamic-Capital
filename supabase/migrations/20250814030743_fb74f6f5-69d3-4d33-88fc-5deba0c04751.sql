@@ -9,7 +9,7 @@ ON CONFLICT (setting_key) DO UPDATE SET
 
 -- Also add the mini app URL setting
 INSERT INTO bot_settings (setting_key, setting_value, is_active) 
-VALUES ('MINI_APP_URL', 'https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/', true)
+VALUES ('MINI_APP_URL', 'https://your-project.functions.supabase.co/miniapp/', true)
 ON CONFLICT (setting_key) DO UPDATE SET 
   setting_value = EXCLUDED.setting_value,
   is_active = true,

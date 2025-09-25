@@ -16,7 +16,7 @@ deno run -A scripts/check-webhook.ts
 ```
 export TELEGRAM_WEBHOOK_SECRET=... # prod secret
 export TELEGRAM_WEBHOOK_URL=... # if not set, we derive from SUPABASE_PROJECT_ID
-# or: export SUPABASE_PROJECT_ID=qeejuomcapbdlhnjqjcc
+# or: export SUPABASE_PROJECT_ID=your-project-ref
 
 deno run -A scripts/ping-webhook.ts
 ```
