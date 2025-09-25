@@ -91,10 +91,16 @@
   "overrides": {
     "esbuild": "^0.25.10",
     "@esbuild-kit/core-utils": {
-      "esbuild": "^0.25.10"
+      "esbuild": "npm:esbuild@0.25.10"
+    },
+    "@esbuild-kit/core-utils@3.3.2": {
+      "esbuild": "npm:esbuild@0.25.10"
     },
     "@esbuild-kit/esm-loader": {
-      "esbuild": "^0.25.10"
+      "esbuild": "npm:esbuild@0.25.10"
+    },
+    "@esbuild-kit/esm-loader@2.6.5": {
+      "esbuild": "npm:esbuild@0.25.10"
     }
   }
 }
