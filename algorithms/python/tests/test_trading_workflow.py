@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
 import sys
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -14,9 +15,10 @@ import pytest
 from algorithms.python.backtesting import Backtester
 from algorithms.python.data_pipeline import InstrumentMeta, MarketDataIngestionJob, RawBar
 from algorithms.python.model_artifacts import load_artifacts, save_artifacts
+from algorithms.python.deepseek_advisor import DeepSeekAdvisor
 from algorithms.python.grok_advisor import AdvisorFeedback
 from algorithms.python.offline_labeler import LabelingConfig, OfflineLabeler
-from algorithms.python.realtime import InMemoryStateStore, RealtimeExecutor
+from algorithms.python.realtime import InMemoryStateStore, RealtimeExecutor, build_realtime_executor
 from algorithms.python.trade_logic import (
     ActivePosition,
     FeaturePipeline,
@@ -184,6 +186,39 @@ def test_realtime_executor_reports_broker_failures():
     assert details["decisions"] == 1
     assert details["failed_decisions"] == 1
     assert any("broker outage" in message for message in details["errors"])
+
+
+def test_build_realtime_executor_configures_deepseek(monkeypatch: pytest.MonkeyPatch) -> None:
+    config = TradeConfig(neighbors=1, label_lookahead=0, min_confidence=0.0)
+    logic = TradeLogic(config=config)
+
+    class DummyBroker:
+        def fetch_open_positions(self):
+            return []
+
+        def execute(self, decision):  # pragma: no cover - not exercised in the test
+            raise AssertionError("execute should not be called")
+
+    class DummyAdvisor:
+        def review(self, **kwargs):  # pragma: no cover - no direct invocation
+            return None
+
+    stub_advisor = DummyAdvisor()
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "placeholder")
+    monkeypatch.setattr(
+        "algorithms.python.deepseek_advisor.advisor_from_environment",
+        lambda: stub_advisor,
+    )
+
+    executor = build_realtime_executor(
+        logic,
+        DummyBroker(),
+        state_store=InMemoryStateStore(),
+        advisor_provider="deepseek",
+    )
+
+    assert isinstance(executor, RealtimeExecutor)
+    assert executor.advisor is stub_advisor
 
 
 def test_trade_logic_applies_correlation_and_seasonal_context():
@@ -426,6 +461,68 @@ def test_trade_logic_applies_grok_advice():
     assert decision.context["final_confidence"] == pytest.approx(0.42)
     assert decision.context["advisor"]["source"] == "stub"
     assert "rationale" in decision.context["advisor"]
+
+
+def test_trade_logic_applies_deepseek_advice():
+    config = TradeConfig(
+        neighbors=1,
+        label_lookahead=0,
+        min_confidence=0.0,
+        use_adr=False,
+        use_smc_context=False,
+    )
+    logic = TradeLogic(config=config)
+
+    class StaticStrategy:
+        def __init__(self, signal: TradeSignal) -> None:
+            self._signal = signal
+
+        def update(self, snapshot: MarketSnapshot) -> TradeSignal:
+            return self._signal
+
+    base_signal = TradeSignal(direction=1, confidence=0.6, votes=4, neighbors_considered=6)
+    logic.strategy = StaticStrategy(base_signal)
+
+    class StubDeepSeekClient:
+        def __init__(self, response: str) -> None:
+            self._response = response
+            self.calls: list[dict[str, Any]] = []
+
+        def complete(self, prompt: str, *, temperature: float, max_tokens: int, nucleus_p: float) -> str:
+            self.calls.append(
+                {
+                    "prompt": prompt,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                    "nucleus_p": nucleus_p,
+                }
+            )
+            return self._response
+
+    client = StubDeepSeekClient('{"adjusted_confidence": 0.47, "rationale": "Policy support"}')
+    advisor = DeepSeekAdvisor(client=client, temperature=0.2, nucleus_p=0.88, max_tokens=160)
+
+    snapshot = MarketSnapshot(
+        symbol="EURUSD",
+        timestamp=datetime.now(timezone.utc),
+        close=1.1025,
+        rsi_fast=55.0,
+        adx_fast=20.0,
+        rsi_slow=52.0,
+        adx_slow=18.0,
+        pip_size=0.0001,
+        pip_value=10.0,
+    )
+
+    decisions = logic.on_bar(snapshot, open_positions=[], advisor=advisor)
+    decision = next(dec for dec in decisions if dec.action == "open")
+
+    assert client.calls, "expected DeepSeek advisor to be invoked"
+    assert decision.signal is not None
+    assert decision.signal.confidence == pytest.approx(0.47)
+    assert decision.context["final_confidence"] == pytest.approx(0.47)
+    assert decision.context["advisor"]["source"] == "deepseek"
+    assert decision.context["advisor"]["rationale"] == "Policy support"
 
 
 def test_trade_logic_manages_break_even_and_trailing_stops():
