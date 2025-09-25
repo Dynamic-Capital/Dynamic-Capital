@@ -1,6 +1,6 @@
 [project]
-id = "dynamic-chatty-bot"
-name = "Dynamic Chatty Bot"
+id = "dynamic-capital"
+name = "Dynamic Capital"
 version = "0.0.0"
 
 [build]

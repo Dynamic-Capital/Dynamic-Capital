@@ -1,5 +1,5 @@
 {
-  "name": "dynamic-chatty-bot",
+  "name": "dynamic-capital",
   "private": true,
   "workspaces": [
     "apps/*"
