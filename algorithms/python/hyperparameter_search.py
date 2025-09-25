@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import itertools
+import copy
 from dataclasses import asdict
 from typing import Callable, Dict, Iterable, List, Tuple
 
@@ -21,12 +22,14 @@ class HyperparameterSearch:
         base_config: TradeConfig | None = None,
         scoring: Callable[[BacktestResult], float] | None = None,
         initial_equity: float = 10_000.0,
+        pipeline_state: Dict[str, object] | None = None,
     ) -> None:
         self.snapshots = list(snapshots)
         self.search_space = search_space
         self.base_config = base_config or TradeConfig()
         self.scoring = scoring or (lambda result: result.performance.profit_factor)
         self.initial_equity = initial_equity
+        self.pipeline_state = copy.deepcopy(pipeline_state) if pipeline_state else None
 
     def run(self) -> Tuple[TradeConfig, BacktestResult, List[Tuple[TradeConfig, BacktestResult]]]:
         keys = list(self.search_space.keys())
@@ -40,6 +43,8 @@ class HyperparameterSearch:
             config_dict.update(dict(zip(keys, combination)))
             config = TradeConfig(**config_dict)
             logic = TradeLogic(config=config)
+            if self.pipeline_state is not None:
+                logic.strategy.pipeline.load_state_dict(copy.deepcopy(self.pipeline_state))
             backtester = Backtester(logic, initial_equity=self.initial_equity)
             result = backtester.run(self.snapshots)
             score = self.scoring(result)
