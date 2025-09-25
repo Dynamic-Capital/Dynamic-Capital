@@ -1,12 +1,16 @@
 import { type ReactNode } from "react";
 
 import {
+  AccordionGroup,
+  Button,
   Column,
   Heading,
   Icon,
+  Media,
   RevealFx,
   Row,
   Schema,
+  SmartLink,
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
@@ -19,6 +23,7 @@ import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchli
 import { cn } from "@/utils";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 import styles from "./DynamicCapitalLandingPage.module.scss";
+import type { AccordionItem } from "@/components/dynamic-ui-system";
 
 const QUICK_METRICS = [
   {
@@ -167,6 +172,87 @@ const FUNDING_SUPPORT = [
   "Weekly portfolio reviews to unlock higher tiers without renegotiation",
 ];
 
+const EDUCATION_FAQ_ITEMS: AccordionItem[] = [
+  {
+    title: "What is Forex?",
+    content: (
+      <Column gap="12" align="start">
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Forex, or foreign exchange, is the 24-hour marketplace where banks,
+          institutions, and traders exchange global currencies. Prices are
+          quoted in pairs, so learning how majors like EUR/USD move and how pip
+          values translate into risk is the foundation of every trade idea.
+        </Text>
+        <Text
+          variant="body-default-s"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Focus on session overlaps, economic catalysts, and position sizing so
+          that every entry aligns with your playbook rather than noise.
+        </Text>
+      </Column>
+    ),
+  },
+  {
+    title: "How does staking work?",
+    content: (
+      <Column gap="12" align="start">
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Staking lets you commit tokens to a validator so the network can
+          process transactions securely. In return you earn rewards that accrue
+          block by block, and you can compound or withdraw them once the bonding
+          period ends.
+        </Text>
+        <Text
+          variant="body-default-s"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Dynamic Capital automates restaking windows and monitors validator
+          performance so your capital keeps working without manual intervention.
+        </Text>
+      </Column>
+    ),
+  },
+  {
+    title: "Why TON blockchain?",
+    content: (
+      <Column gap="12" align="start">
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          TON delivers sub-5 second finality, ultra-low fees, and native
+          integrations with Telegram. That combination lets us ship trading
+          automation, staking payouts, and account provisioning that feel
+          instant for members worldwide.
+        </Text>
+        <Text
+          variant="body-default-s"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Explore the latest releases on the{" "}
+          <SmartLink href="https://ton.org/" target="_blank" rel="noreferrer">
+            official TON hub
+          </SmartLink>{" "}
+          and see how the ecosystem keeps growing alongside our desk.
+        </Text>
+      </Column>
+    ),
+  },
+];
+
 export function DynamicCapitalLandingPage() {
   return (
     <Column
@@ -198,13 +284,16 @@ export function DynamicCapitalLandingPage() {
       <Section variant="wide" revealDelay={0.48}>
         <MarketIntelligenceSection />
       </Section>
-      <Section revealDelay={0.56}>
-        <MentorAndTrustSection />
+      <Section variant="wide" revealDelay={0.56}>
+        <EducationHubSection />
       </Section>
       <Section revealDelay={0.64}>
-        <FundingReadinessSection />
+        <MentorAndTrustSection />
       </Section>
       <Section revealDelay={0.72}>
+        <FundingReadinessSection />
+      </Section>
+      <Section revealDelay={0.8}>
         <CheckoutCallout />
       </Section>
       <Section reveal={false}>
@@ -431,6 +520,127 @@ function MarketIntelligenceSection() {
         <Column gap="16" className={styles.card}>
           <FxMarketSnapshotSection />
           <EconomicCalendarSection />
+        </Column>
+      </div>
+    </Column>
+  );
+}
+
+function EducationHubSection() {
+  return (
+    <Column fillWidth gap="24" align="start">
+      <Column gap="12" align="start">
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="info">
+          Education Hub · Beginners' Corner
+        </Tag>
+        <Heading variant="display-strong-xs" wrap="balance">
+          Build confidence with friendly explainers before you fund your desk
+        </Heading>
+        <Text
+          variant="body-default-l"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          Walk through the fundamentals of forex, staking, and TON in plain
+          language. Each module pairs concise FAQs with rich media so your first
+          trade feels intentional.
+        </Text>
+      </Column>
+      <div className={styles.educationGrid}>
+        <Column
+          background="surface"
+          border="neutral-alpha-weak"
+          radius="l"
+          padding="xl"
+          gap="20"
+          className={styles.card}
+          align="start"
+        >
+          <Heading variant="heading-strong-m">Interactive FAQ</Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            wrap="balance"
+          >
+            Expand each topic to unpack terminology, risk concepts, and the way
+            automation supports your learning curve.
+          </Text>
+          <AccordionGroup items={EDUCATION_FAQ_ITEMS} size="m" autoCollapse />
+          <Row>
+            <Button
+              size="m"
+              variant="primary"
+              data-border="rounded"
+              href="/checkout"
+            >
+              Start Your First Trade →
+            </Button>
+          </Row>
+        </Column>
+        <Column gap="20">
+          <Column
+            background="surface"
+            border="neutral-alpha-weak"
+            radius="l"
+            padding="xl"
+            gap="16"
+            className={styles.card}
+            align="start"
+          >
+            <Tag size="s" background="brand-alpha-weak" prefixIcon="play">
+              Watch
+            </Tag>
+            <Heading variant="heading-strong-m" wrap="balance">
+              Forex fundamentals in under five minutes
+            </Heading>
+            <Text
+              variant="body-default-s"
+              onBackground="neutral-weak"
+              wrap="balance"
+            >
+              A quick primer on how currency pairs, pips, and leverage interact
+              so you can practice risk-aware setups.
+            </Text>
+            <div className={styles.educationVideo}>
+              <iframe
+                src="https://www.youtube.com/embed/l1EssrLxt7E"
+                title="Forex trading basics video"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </Column>
+          <Column
+            background="surface"
+            border="neutral-alpha-weak"
+            radius="l"
+            padding="xl"
+            gap="16"
+            className={styles.card}
+            align="start"
+          >
+            <Tag size="s" background="brand-alpha-weak" prefixIcon="world">
+              Infographic
+            </Tag>
+            <Heading variant="heading-strong-m" wrap="balance">
+              TON ecosystem at a glance
+            </Heading>
+            <Text
+              variant="body-default-s"
+              onBackground="neutral-weak"
+              wrap="balance"
+            >
+              Visualize why TON underpins our automation stack—speed, costs, and
+              interoperability engineered for modern desks.
+            </Text>
+            <Media
+              src="/education/ton-infographic.svg"
+              alt="Infographic summarizing the benefits of the TON blockchain"
+              aspectRatio="4 / 3"
+              fillWidth
+            />
+          </Column>
         </Column>
       </div>
     </Column>

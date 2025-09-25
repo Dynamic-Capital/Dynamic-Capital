@@ -1,0 +1,193 @@
+<svg
+  width="720"
+  height="540"
+  viewBox="0 0 720 540"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <linearGradient id="tonGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2E8BFD" />
+      <stop offset="1" stop-color="#00E8C7" />
+    </linearGradient>
+    <linearGradient id="cardGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="rgba(46, 139, 253, 0.08)" />
+      <stop offset="1" stop-color="rgba(0, 232, 199, 0.12)" />
+    </linearGradient>
+    <filter
+      id="cardShadow"
+      x="-10%"
+      y="-10%"
+      width="120%"
+      height="120%"
+      color-interpolation-filters="sRGB"
+    >
+      <feDropShadow
+        dx="0"
+        dy="16"
+        stdDeviation="24"
+        flood-color="rgba(9, 20, 37, 0.12)"
+      />
+    </filter>
+  </defs>
+  <rect width="720" height="540" rx="32" fill="#030712" />
+  <rect
+    x="24"
+    y="24"
+    width="672"
+    height="492"
+    rx="28"
+    fill="url(#cardGradient)"
+    stroke="rgba(255, 255, 255, 0.08)"
+  />
+  <g filter="url(#cardShadow)">
+    <rect
+      x="72"
+      y="88"
+      width="576"
+      height="364"
+      rx="24"
+      fill="rgba(7, 15, 28, 0.86)"
+      stroke="rgba(255, 255, 255, 0.06)"
+    />
+    <rect
+      x="72"
+      y="88"
+      width="576"
+      height="364"
+      rx="24"
+      fill="url(#cardGradient)"
+    />
+    <rect
+      x="72"
+      y="88"
+      width="576"
+      height="364"
+      rx="24"
+      stroke="rgba(255, 255, 255, 0.08)"
+      stroke-width="2"
+    />
+  </g>
+  <circle cx="156" cy="168" r="48" fill="url(#tonGradient)" />
+  <path
+    d="M156 138L176 176L156 216L136 176L156 138Z"
+    fill="white"
+    fill-opacity="0.92"
+  />
+  <text
+    x="236"
+    y="165"
+    fill="#FFFFFF"
+    font-family="'Inter', 'Segoe UI', sans-serif"
+    font-size="28"
+    font-weight="700"
+    letter-spacing="0.02em"
+  >TON blockchain</text>
+  <text
+    x="236"
+    y="203"
+    fill="rgba(202, 214, 255, 0.9)"
+    font-family="'Inter', 'Segoe UI', sans-serif"
+    font-size="18"
+    letter-spacing="0.02em"
+  >Built for high-throughput financial automation</text>
+  <g>
+    <rect
+      x="120"
+      y="244"
+      width="192"
+      height="116"
+      rx="20"
+      fill="rgba(12, 21, 40, 0.85)"
+      stroke="rgba(255, 255, 255, 0.06)"
+    />
+    <text
+      x="144"
+      y="285"
+      fill="#77F2E0"
+      font-family="'Inter', 'Segoe UI', sans-serif"
+      font-size="16"
+      font-weight="700"
+    >Fast finality</text>
+    <text
+      x="144"
+      y="312"
+      fill="rgba(202, 214, 255, 0.85)"
+      font-family="'Inter', 'Segoe UI', sans-serif"
+      font-size="14"
+    >Sub-5s confirmations keep</text>
+    <text
+      x="144"
+      y="334"
+      fill="rgba(202, 214, 255, 0.85)"
+      font-family="'Inter', 'Segoe UI', sans-serif"
+      font-size="14"
+    >orders in sync with live markets.</text>
+  </g>
+  <g>
+    <rect
+      x="264"
+      y="356"
+      width="192"
+      height="116"
+      rx="20"
+      fill="rgba(12, 21, 40, 0.85)"
+      stroke="rgba(255, 255, 255, 0.06)"
+    />
+    <text
+      x="288"
+      y="397"
+      fill="#77F2E0"
+      font-family="'Inter', 'Segoe UI', sans-serif"
+      font-size="16"
+      font-weight="700"
+    >Ultra-low fees</text>
+    <text
+      x="288"
+      y="424"
+      fill="rgba(202, 214, 255, 0.85)"
+      font-family="'Inter', 'Segoe UI', sans-serif"
+      font-size="14"
+    >Microcent settlement keeps</text>
+    <text
+      x="288"
+      y="446"
+      fill="rgba(202, 214, 255, 0.85)"
+      font-family="'Inter', 'Segoe UI', sans-serif"
+      font-size="14"
+    >scalping and staking profitable.</text>
+  </g>
+  <g>
+    <rect
+      x="408"
+      y="244"
+      width="192"
+      height="116"
+      rx="20"
+      fill="rgba(12, 21, 40, 0.85)"
+      stroke="rgba(255, 255, 255, 0.06)"
+    />
+    <text
+      x="432"
+      y="285"
+      fill="#77F2E0"
+      font-family="'Inter', 'Segoe UI', sans-serif"
+      font-size="16"
+      font-weight="700"
+    >Interoperable</text>
+    <text
+      x="432"
+      y="312"
+      fill="rgba(202, 214, 255, 0.85)"
+      font-family="'Inter', 'Segoe UI', sans-serif"
+      font-size="14"
+    >Bridges and TON wallets plug</text>
+    <text
+      x="432"
+      y="334"
+      fill="rgba(202, 214, 255, 0.85)"
+      font-family="'Inter', 'Segoe UI', sans-serif"
+      font-size="14"
+    >directly into our automation stack.</text>
+  </g>
+</svg>
