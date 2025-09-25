@@ -12,6 +12,7 @@ import {
   Text,
 } from "@/components/dynamic-ui-system";
 import { home, person, social } from "@/resources";
+import { DESK_TIME_ZONE, formatWithDeskTimezone } from "@/utils/deskTime";
 import { useEffect, useState } from "react";
 
 const TELEGRAM_LINK = social.find((item) => item.name === "Telegram")?.link ||
@@ -89,10 +90,7 @@ const ONBOARDING_STEPS = [
   },
 ];
 
-const DESK_TIME_ZONE = person.location ?? "UTC";
-
 const DESK_TIME_FORMAT: Intl.DateTimeFormatOptions = {
-  timeZone: DESK_TIME_ZONE,
   hour: "2-digit",
   minute: "2-digit",
   hour12: true,
@@ -100,7 +98,6 @@ const DESK_TIME_FORMAT: Intl.DateTimeFormatOptions = {
 };
 
 const DESK_DATE_FORMAT: Intl.DateTimeFormatOptions = {
-  timeZone: DESK_TIME_ZONE,
   weekday: "long",
   month: "long",
   day: "2-digit",
@@ -110,8 +107,8 @@ function getDeskSnapshot() {
   const now = new Date();
 
   return {
-    time: new Intl.DateTimeFormat("en-US", DESK_TIME_FORMAT).format(now),
-    date: new Intl.DateTimeFormat("en-US", DESK_DATE_FORMAT).format(now),
+    time: formatWithDeskTimezone(now, DESK_TIME_FORMAT, "en-US"),
+    date: formatWithDeskTimezone(now, DESK_DATE_FORMAT, "en-US"),
   };
 }
 
