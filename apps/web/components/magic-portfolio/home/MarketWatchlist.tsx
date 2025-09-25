@@ -31,7 +31,10 @@ type MarketQuote = {
 type BiasVisual = {
   label: string;
   background: `${"brand" | "danger" | "neutral"}-alpha-${"weak" | "medium"}`;
-  onBackground: `${"brand" | "danger" | "neutral"}-${"weak" | "medium" | "strong"}`;
+  onBackground: `${"brand" | "danger" | "neutral"}-${
+    | "weak"
+    | "medium"
+    | "strong"}`;
 };
 
 type CategoryVisual = {
@@ -213,7 +216,9 @@ const DXY_COMPOSITION: Array<{ key: string; exponent: number }> = [
   { key: "USDCHF", exponent: 0.036 },
 ];
 
-const MARKET_ENDPOINT = `https://economia.awesomeapi.com.br/last/${MARKET_CODES.join(",")}`;
+const MARKET_ENDPOINT = `https://economia.awesomeapi.com.br/last/${
+  MARKET_CODES.join(",")
+}`;
 
 const NUMBER_FORMATTER_CACHE = new Map<string, Intl.NumberFormat>();
 
@@ -242,14 +247,20 @@ const getFormatter = (options: Intl.NumberFormatOptions) => {
   return formatter;
 };
 
-const formatNumber = (value: number | undefined, options: Intl.NumberFormatOptions) => {
+const formatNumber = (
+  value: number | undefined,
+  options: Intl.NumberFormatOptions,
+) => {
   if (value === undefined || Number.isNaN(value)) {
     return "—";
   }
   return getFormatter(options).format(value);
 };
 
-const formatRange = (quote: MarketQuote | undefined, options: Intl.NumberFormatOptions) => {
+const formatRange = (
+  quote: MarketQuote | undefined,
+  options: Intl.NumberFormatOptions,
+) => {
   if (!quote) {
     return "—";
   }
@@ -281,7 +292,9 @@ const parseTimestamp = (value?: string): number | undefined => {
   return Number.isNaN(parsed) ? undefined : parsed;
 };
 
-const computeDxyQuote = (quotes: Record<string, MarketQuote>): MarketQuote | undefined => {
+const computeDxyQuote = (
+  quotes: Record<string, MarketQuote>,
+): MarketQuote | undefined => {
   const base = 50.14348112;
   let last = base;
   let high = base;
@@ -318,7 +331,10 @@ const computeDxyQuote = (quotes: Record<string, MarketQuote>): MarketQuote | und
   const computedHigh = Math.max(high, low);
   const computedLow = Math.min(high, low);
 
-  if (!Number.isFinite(last) || !Number.isFinite(computedHigh) || !Number.isFinite(computedLow)) {
+  if (
+    !Number.isFinite(last) || !Number.isFinite(computedHigh) ||
+    !Number.isFinite(computedLow)
+  ) {
     return undefined;
   }
 
@@ -330,8 +346,12 @@ const computeDxyQuote = (quotes: Record<string, MarketQuote>): MarketQuote | und
   };
 };
 
-const loadMarketQuotes = async (): Promise<{ quotes: Record<string, MarketQuote>; lastUpdated: Date | null }> => {
-  const response = await fetch(MARKET_ENDPOINT, { cache: "no-store" });
+const loadMarketQuotes = async (
+  signal?: AbortSignal,
+): Promise<
+  { quotes: Record<string, MarketQuote>; lastUpdated: Date | null }
+> => {
+  const response = await fetch(MARKET_ENDPOINT, { cache: "no-store", signal });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch market data (${response.status})`);
@@ -365,7 +385,9 @@ const loadMarketQuotes = async (): Promise<{ quotes: Record<string, MarketQuote>
 
     const timestamp = parseTimestamp(value.create_date);
     if (timestamp !== undefined) {
-      latestTimestamp = latestTimestamp ? Math.max(latestTimestamp, timestamp) : timestamp;
+      latestTimestamp = latestTimestamp
+        ? Math.max(latestTimestamp, timestamp)
+        : timestamp;
     }
   }
 
@@ -398,16 +420,73 @@ export function MarketWatchlist() {
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [isInViewport, setIsInViewport] = useState(false);
+  const [hasViewportEntry, setHasViewportEntry] = useState(false);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(() =>
+    typeof document === "undefined" ? true : !document.hidden
+  );
 
   const isMountedRef = useRef(true);
   const inFlightRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const sectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(
     () => () => {
       isMountedRef.current = false;
+      abortControllerRef.current?.abort();
     },
     [],
   );
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node) {
+      return;
+    }
+
+    if (typeof IntersectionObserver === "undefined") {
+      setIsInViewport(true);
+      setHasViewportEntry(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry) {
+          setIsInViewport(entry.isIntersecting);
+          setHasViewportEntry(true);
+        }
+      },
+      { threshold: 0.25 },
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const handleVisibilityChange = () => {
+      setIsDocumentVisible(!document.hidden);
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  const shouldPollViewport = hasViewportEntry ? isInViewport : true;
+  const isActive = shouldPollViewport && isDocumentVisible;
 
   const refreshQuotes = useCallback(async () => {
     if (inFlightRef.current) {
@@ -415,12 +494,17 @@ export function MarketWatchlist() {
     }
 
     inFlightRef.current = true;
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     if (isMountedRef.current) {
       setIsFetching(true);
     }
 
     try {
-      const { quotes: latestQuotes, lastUpdated } = await loadMarketQuotes();
+      const { quotes: latestQuotes, lastUpdated } = await loadMarketQuotes(
+        controller.signal,
+      );
       if (!isMountedRef.current) {
         return;
       }
@@ -428,11 +512,19 @@ export function MarketWatchlist() {
       setUpdatedAt(lastUpdated ?? new Date());
       setError(null);
     } catch (fetchError) {
+      if (
+        fetchError instanceof DOMException && fetchError.name === "AbortError"
+      ) {
+        return;
+      }
       if (isMountedRef.current) {
-        setError("Unable to sync live prices right now. We will retry automatically.");
+        setError(
+          "Unable to sync live prices right now. We will retry automatically.",
+        );
       }
     } finally {
       inFlightRef.current = false;
+      abortControllerRef.current = null;
       if (isMountedRef.current) {
         setIsFetching(false);
       }
@@ -440,19 +532,47 @@ export function MarketWatchlist() {
   }, []);
 
   useEffect(() => {
+    if (isActive) {
+      return;
+    }
+
+    abortControllerRef.current?.abort();
+  }, [isActive]);
+
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
     void refreshQuotes();
     const intervalId = setInterval(() => {
       void refreshQuotes();
     }, REFRESH_INTERVAL_MS);
+
     return () => {
       clearInterval(intervalId);
     };
-  }, [refreshQuotes]);
+  }, [isActive, refreshQuotes]);
 
-  const statusLabel = useMemo(() => getStatusLabel(updatedAt, isFetching), [updatedAt, isFetching]);
+  const statusLabel = useMemo(() => {
+    if (!isDocumentVisible) {
+      return "Updates paused (tab inactive)";
+    }
+    if (hasViewportEntry && !isInViewport) {
+      return "Scroll to load live prices";
+    }
+    return getStatusLabel(updatedAt, isFetching);
+  }, [
+    hasViewportEntry,
+    isInViewport,
+    isDocumentVisible,
+    updatedAt,
+    isFetching,
+  ]);
 
   return (
     <Column
+      ref={sectionRef}
       id="market-watchlist"
       fillWidth
       background="surface"
@@ -466,8 +586,9 @@ export function MarketWatchlist() {
         <Heading variant="display-strong-xs">Live market watchlist</Heading>
         <Column gap="8">
           <Text variant="body-default-l" onBackground="neutral-weak">
-            New to the markets? Start with the quick takeaways in each card. We refresh prices automatically so you always see
-            the latest levels the desk is working with.
+            New to the markets? Start with the quick takeaways in each card. We
+            refresh prices automatically so you always see the latest levels the
+            desk is working with.
           </Text>
           <Row gap="8" wrap>
             <Tag size="s" prefixIcon="clock">Maldives Time (MVT)</Tag>
@@ -476,11 +597,13 @@ export function MarketWatchlist() {
         </Column>
         <Row gap="8" vertical="center" wrap>
           <Tag size="s">{statusLabel}</Tag>
-          {error ? (
-            <Text variant="label-default-s" onBackground="danger-strong">
-              {error}
-            </Text>
-          ) : null}
+          {error
+            ? (
+              <Text variant="label-default-s" onBackground="danger-strong">
+                {error}
+              </Text>
+            )
+            : null}
         </Row>
       </Column>
       <div
@@ -499,17 +622,19 @@ export function MarketWatchlist() {
           const bias = BIAS_DETAILS[item.bias];
           const quote = quotes[item.dataKey];
           const changeValue = quote?.changePercent;
-          const changePositive = changeValue !== undefined ? changeValue >= 0 : undefined;
+          const changePositive = changeValue !== undefined
+            ? changeValue >= 0
+            : undefined;
           const changeBackground = changePositive === undefined
             ? "neutral-alpha-weak"
             : changePositive
-              ? "brand-alpha-weak"
-              : "danger-alpha-weak";
+            ? "brand-alpha-weak"
+            : "danger-alpha-weak";
           const changeForeground = changePositive === undefined
             ? "neutral-strong"
             : changePositive
-              ? "brand-strong"
-              : "danger-strong";
+            ? "brand-strong"
+            : "danger-strong";
 
           return (
             <Column
@@ -521,14 +646,25 @@ export function MarketWatchlist() {
               gap="16"
               style={{ minWidth: "280px", scrollSnapAlign: "start" }}
             >
-              <Row horizontal="between" vertical="center" gap="12" s={{ direction: "column", align: "start" }}>
+              <Row
+                horizontal="between"
+                vertical="center"
+                gap="12"
+                s={{ direction: "column", align: "start" }}
+              >
                 <Column gap="8">
                   <Row gap="8" vertical="center" wrap>
-                    <Heading variant="heading-strong-m">{item.displaySymbol}</Heading>
+                    <Heading variant="heading-strong-m">
+                      {item.displaySymbol}
+                    </Heading>
                     <Tag size="s" prefixIcon={category.icon}>
                       {category.label}
                     </Tag>
-                    <Tag size="s" background={bias.background} onBackground={bias.onBackground}>
+                    <Tag
+                      size="s"
+                      background={bias.background}
+                      onBackground={bias.onBackground}
+                    >
                       {bias.label}
                     </Tag>
                   </Row>
@@ -541,11 +677,19 @@ export function MarketWatchlist() {
                     <Text variant="heading-strong-m" align="right">
                       {formatNumber(quote?.last, item.format)}
                     </Text>
-                    <Tag size="s" background={changeBackground} onBackground={changeForeground}>
+                    <Tag
+                      size="s"
+                      background={changeBackground}
+                      onBackground={changeForeground}
+                    >
                       {formatChangePercent(changeValue)}
                     </Tag>
                   </Row>
-                  <Text variant="body-default-s" onBackground="neutral-weak" align="right">
+                  <Text
+                    variant="body-default-s"
+                    onBackground="neutral-weak"
+                    align="right"
+                  >
                     24h change
                   </Text>
                 </Column>
@@ -564,9 +708,18 @@ export function MarketWatchlist() {
                   <Text variant="label-default-s" onBackground="neutral-weak">
                     Intraday range
                   </Text>
-                  <Text variant="body-default-m">{formatRange(quote, item.format)}</Text>
+                  <Text variant="body-default-m">
+                    {formatRange(quote, item.format)}
+                  </Text>
                 </Column>
-                <Column flex={1} minWidth={24} gap="8" background="brand-alpha-weak" padding="m" radius="m">
+                <Column
+                  flex={1}
+                  minWidth={24}
+                  gap="8"
+                  background="brand-alpha-weak"
+                  padding="m"
+                  radius="m"
+                >
                   <Text variant="label-default-s" onBackground="brand-strong">
                     Quick takeaway
                   </Text>
@@ -586,8 +739,10 @@ export function MarketWatchlist() {
         })}
       </div>
       <Text variant="body-default-s" onBackground="neutral-weak">
-        Quotes stream from AwesomeAPI and refresh every 60 seconds while you keep this dashboard open. Guidance updates alongside
-        each global session so execution, automation triggers, and risk adjustments stay aligned with the desk.
+        Quotes stream from AwesomeAPI and refresh every 60 seconds while you
+        keep this dashboard open. Guidance updates alongside each global session
+        so execution, automation triggers, and risk adjustments stay aligned
+        with the desk.
       </Text>
     </Column>
   );
