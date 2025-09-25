@@ -94,7 +94,7 @@ Our mission is to help traders succeed through:
 
 Our support team is here for you!
 
-📧 Email: support@dynamiccapital.com
+📧 Email: dynamiccapitalapp@gmail.com
 💬 Telegram: @DynamicCapital_Support
 🕐 Support Hours: 24/7
 

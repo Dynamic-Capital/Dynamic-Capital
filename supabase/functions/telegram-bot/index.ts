@@ -1032,7 +1032,7 @@ async function fetchActiveContactLinks(): Promise<string> {
       .order("display_order");
 
     if (!links || links.length === 0) {
-      return "📧 Email: support@dynamiccapital.com\n💬 Telegram: @DynamicCapital_Support";
+      return "📧 Email: dynamiccapitalapp@gmail.com\n💬 Telegram: @DynamicCapital_Support";
     }
 
     return links
@@ -1045,7 +1045,7 @@ async function fetchActiveContactLinks(): Promise<string> {
       .join("\n");
   } catch (error) {
     console.error("Error fetching contact links:", error);
-    return "📧 Email: support@dynamiccapital.com\n💬 Telegram: @DynamicCapital_Support";
+    return "📧 Email: dynamiccapitalapp@gmail.com\n💬 Telegram: @DynamicCapital_Support";
   }
 }
 
