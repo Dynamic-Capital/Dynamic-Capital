@@ -1,0 +1,66 @@
+{
+  "ecb-speeches": {
+    "direction": "long",
+    "entry": 1.0936,
+    "finalConfidence": 0.4984,
+    "originalConfidence": 0.65,
+    "plan": [
+      "Lorentzian stack long EURUSD at 1.0936 (size 0.38).",
+      "Risk plan: stop 1.0910, target 1.0988 (26 pips risk, \u22482.00R).",
+      "Confidence adjusted 65% \u2192 50% via correlation 0.73x from EURJPY long (27% trim) and seasonal 1.06x (bias +0.28 @ 58% conviction).",
+      "SMC context: Liquidity zones PDH below within 12 pips; Round number 1.0920 below (16.0 pips)."
+    ],
+    "reason": "Lorentzian k-NN signal (correlation 0.73x, seasonal 1.06x)",
+    "stopLoss": 1.091,
+    "symbol": "EURUSD",
+    "takeProfit": 1.0988
+  },
+  "fomc": {
+    "direction": "short",
+    "entry": 5120.5,
+    "finalConfidence": 0.516,
+    "originalConfidence": 0.78,
+    "plan": [
+      "Lorentzian stack short US500 at 5120.50 (size 0.66).",
+      "Risk plan: stop 5128.00, target 5105.50 (30 pips risk, \u22482.00R).",
+      "Confidence adjusted 78% \u2192 52% via correlation 0.60x from US100 short (40% trim) and seasonal 1.10x (bias -0.38 @ 60% conviction).",
+      "SMC context: Liquidity zones RN below within 18 pips; Round number 5118.75 below (7.0 pips)."
+    ],
+    "reason": "Lorentzian k-NN signal (correlation 0.60x, seasonal 1.10x)",
+    "stopLoss": 5128.0,
+    "symbol": "US500",
+    "takeProfit": 5105.5
+  },
+  "uk-cpi": {
+    "direction": "short",
+    "entry": 1.2732,
+    "finalConfidence": 0.7559,
+    "originalConfidence": 0.69,
+    "plan": [
+      "Lorentzian stack short GBPUSD at 1.2732 (size 0.35).",
+      "Risk plan: stop 1.2760, target 1.2676 (28 pips risk, \u22482.00R).",
+      "Confidence adjusted 69% \u2192 76% via correlation 1.02x from DXY long (32% trim) and seasonal 1.08x (bias -0.32 @ 62% conviction).",
+      "SMC context: Round number 1.2750 above (18.0 pips)."
+    ],
+    "reason": "Lorentzian k-NN signal (correlation 1.02x, seasonal 1.08x)",
+    "stopLoss": 1.276,
+    "symbol": "GBPUSD",
+    "takeProfit": 1.2676
+  },
+  "us-pmi": {
+    "direction": "long",
+    "entry": 2371.2,
+    "finalConfidence": 0.5704,
+    "originalConfidence": 0.71,
+    "plan": [
+      "Lorentzian stack long XAUUSD at 2371.2 (size 4.16).",
+      "Risk plan: stop 2368.8, target 2376.0 (24 pips risk, \u22482.00R).",
+      "Confidence adjusted 71% \u2192 57% via correlation 0.74x from WTICOUSD long (26% trim) and seasonal 1.09x (bias +0.34 @ 64% conviction).",
+      "SMC context: Liquidity zones RN above within 15 pips; Round number 2372.0 above (8.0 pips)."
+    ],
+    "reason": "Lorentzian k-NN signal (correlation 0.74x, seasonal 1.09x)",
+    "stopLoss": 2368.8,
+    "symbol": "XAUUSD",
+    "takeProfit": 2376.0
+  }
+}
