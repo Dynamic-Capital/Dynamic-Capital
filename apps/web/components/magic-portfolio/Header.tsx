@@ -1,24 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import classNames from "classnames";
 import { usePathname } from "next/navigation";
 
-import {
-  Button,
-  Column,
-  Fade,
-  Flex,
-  Line,
-  Row,
-  Text,
-  ToggleButton,
-} from "@/components/dynamic-ui-system";
+import { Button, Fade, Flex, Row, Text } from "@/components/dynamic-ui-system";
 
 import { display, isRouteEnabled, person } from "@/resources";
-import type { IconName } from "@/resources/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Header.module.scss";
+import { resolvePrimaryNavItems } from "./navigation";
 
 type TimeDisplayProps = {
   timeZone: string;
@@ -58,72 +51,34 @@ export default TimeDisplay;
 export const Header = () => {
   const pathname = usePathname() ?? "";
   const { user, signOut } = useAuth();
+  const [hash, setHash] = useState<string>("");
 
-  const navBlueprint = [
-    {
-      key: "start",
-      route: "/",
-      step: "Step 1",
-      label: "Start here",
-      description: "Follow the guided tour and set your first goal.",
-      icon: "sparkles" as IconName,
-      href: "/",
-      isActive: (currentPath: string) => currentPath === "/",
-    },
-    {
-      key: "learn",
-      route: "/blog",
-      step: "Step 2",
-      label: "Learn the basics",
-      description: "Browse beginner-friendly lessons from the desk.",
-      icon: "book" as IconName,
-      href: "/blog",
-      isActive: (currentPath: string) => currentPath.startsWith("/blog"),
-    },
-    {
-      key: "plans",
-      route: "/plans",
-      step: "Step 3",
-      label: "Choose a plan",
-      description: "Compare membership paths when you're ready to join.",
-      icon: "crown" as IconName,
-      href: "/plans",
-      isActive: (currentPath: string) => currentPath.startsWith("/plans"),
-    },
-    {
-      key: "results",
-      route: "/work",
-      step: "Step 4",
-      label: "See real results",
-      description: "Review live desk projects and member wins.",
-      icon: "grid" as IconName,
-      href: "/work",
-      isActive: (currentPath: string) => currentPath.startsWith("/work"),
-    },
-    {
-      key: "automation",
-      route: "/telegram",
-      step: "Step 5",
-      label: "Automation hub",
-      description: "Connect signals and manage the Telegram bot.",
-      icon: "telegram" as IconName,
-      href: "/telegram",
-      isActive: (currentPath: string) => currentPath.startsWith("/telegram"),
-    },
-  ] as const;
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
 
-  const navItems = navBlueprint
-    .filter((item) => isRouteEnabled(item.route))
-    .map((item) => ({
-      key: item.key,
-      label: item.label,
-      icon: item.icon,
-      href: item.href,
-      step: item.step,
-      description: item.description,
-      ariaLabel: `${item.step}: ${item.label}. ${item.description}`,
-      selected: item.isActive(pathname),
-    }));
+    const handleHashChange = () => {
+      setHash(window.location.hash);
+    };
+
+    handleHashChange();
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setHash(window.location.hash);
+    }
+  }, [pathname]);
+
+  const navItems = resolvePrimaryNavItems(
+    pathname,
+    hash,
+    (item) => isRouteEnabled(item.route) || item.route === "/",
+  );
 
   return (
     <>
@@ -168,88 +123,34 @@ export const Header = () => {
         </Row>
         <Row fillWidth horizontal="center">
           <Row
-            background="page"
-            border="neutral-alpha-weak"
-            radius="m-4"
-            shadow="l"
-            padding="4"
-            horizontal="center"
-            zIndex={1}
+            as="nav"
+            aria-label="Primary navigation"
+            className={styles.navLinks}
+            suppressHydrationWarning
           >
-            <Row
-              gap="4"
-              vertical="center"
-              textVariant="body-default-s"
-              suppressHydrationWarning
-            >
-              {navItems.flatMap((item, index) => {
-                const toggle = (
-                  <React.Fragment key={item.key}>
-                    <Column
-                      key={`${item.key}-desktop`}
-                      s={{ hide: true }}
-                      gap="4"
-                      horizontal="center"
-                      align="center"
-                    >
-                      <Text
-                        variant="label-strong-xs"
-                        align="center"
-                        onBackground={item.selected
-                          ? "brand-strong"
-                          : "neutral-weak"}
-                      >
-                        {item.step}
-                      </Text>
-                      <ToggleButton
-                        prefixIcon={item.icon}
-                        href={item.href}
-                        label={item.label}
-                        selected={item.selected}
-                        aria-label={item.ariaLabel}
-                      />
-                      <Text
-                        variant="body-default-xs"
-                        align="center"
-                        onBackground="neutral-weak"
-                        style={{ maxWidth: "14rem" }}
-                      >
-                        {item.description}
-                      </Text>
-                    </Column>
-                    <Row hide s={{ hide: false }}>
-                      <ToggleButton
-                        prefixIcon={item.icon}
-                        href={item.href}
-                        selected={item.selected}
-                        aria-label={item.ariaLabel}
-                      />
-                    </Row>
-                  </React.Fragment>
-                );
-
-                if (index === 0) {
-                  return [toggle];
-                }
-
-                return [
-                  <Line
-                    key={`divider-${item.key}`}
-                    background="neutral-alpha-medium"
-                    vert
-                    maxHeight="24"
-                  />,
-                  toggle,
-                ];
-              })}
-              {display.themeSwitcher && (
-                <>
-                  <Line background="neutral-alpha-medium" vert maxHeight="24" />
-                  <ThemeToggle />
-                </>
-              )}
-            </Row>
+            {navItems.map((item, index) => (
+              <React.Fragment key={item.key}>
+                {index > 0 && (
+                  <span aria-hidden className={styles.divider}>
+                    |
+                  </span>
+                )}
+                <Link
+                  href={item.href}
+                  className={classNames(styles.navLink, {
+                    [styles.navLinkActive]: item.selected,
+                  })}
+                >
+                  {item.label}
+                </Link>
+              </React.Fragment>
+            ))}
           </Row>
+          {display.themeSwitcher && (
+            <Row className={styles.themeToggle}>
+              <ThemeToggle />
+            </Row>
+          )}
         </Row>
         <Flex fillWidth horizontal="end" vertical="center">
           <Flex
