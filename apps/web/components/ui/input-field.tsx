@@ -49,11 +49,12 @@ const inputVariants = cva(
       hasStartIcon: false,
       hasEndIcon: false,
     },
-  }
+  },
 );
 
 export interface InputFieldProps
-  extends Omit<React.ComponentProps<typeof Input>, "className" | "size">,
+  extends
+    Omit<React.ComponentProps<typeof Input>, "className" | "size">,
     VariantProps<typeof inputFieldVariants> {
   label?: string;
   description?: string;
@@ -85,14 +86,35 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
     inputClassName,
     type: propType,
     value,
+    id: providedId,
     ...props
   }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false);
     const [currentLength, setCurrentLength] = React.useState(0);
 
-    const state = error ? "error" : success ? "success" : propState || "default";
+    const state = error
+      ? "error"
+      : success
+      ? "success"
+      : propState || "default";
     const type = showPasswordToggle && showPassword ? "text" : propType;
-    const actualEndIcon = showPasswordToggle ? (showPassword ? "EyeOff" : "Eye") : endIcon;
+    const actualEndIcon = showPasswordToggle
+      ? (showPassword ? "EyeOff" : "Eye")
+      : endIcon;
+    const generatedId = React.useId();
+    const fieldId = providedId ?? generatedId;
+
+    const descriptionId = description && !error && !success
+      ? `${fieldId}-description`
+      : undefined;
+    const errorId = error ? `${fieldId}-error` : undefined;
+    const successId = success ? `${fieldId}-success` : undefined;
+    const counterId = showCounter && maxLength
+      ? `${fieldId}-counter`
+      : undefined;
+    const describedBy = [descriptionId, errorId, successId, counterId]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
     React.useEffect(() => {
       if (typeof value === "string") {
@@ -114,73 +136,103 @@ const InputField = React.forwardRef<HTMLInputElement, InputFieldProps>(
     return (
       <div className={cn(inputFieldVariants({ size, state }), className)}>
         {label && (
-          <Label htmlFor={props.id} className="mb-2 block">
+          <Label htmlFor={fieldId} className="mb-2 block">
             {label}
           </Label>
         )}
-        
+
         <div className="relative">
           {startIcon && (
             <Icon
               name={startIcon}
               className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
             />
           )}
-          
+
           <Input
             ref={ref}
             type={type}
             value={value}
             maxLength={maxLength}
+            id={fieldId}
+            aria-invalid={state === "error"}
+            aria-describedby={describedBy}
             className={cn(
               inputVariants({
                 state,
                 hasStartIcon: !!startIcon,
                 hasEndIcon: !!actualEndIcon,
               }),
-              inputClassName
+              inputClassName,
             )}
             onChange={handleChange}
             {...props}
           />
-          
+
           {actualEndIcon && (
             <button
               type="button"
               onClick={handleEndIconClick}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={showPasswordToggle
+                ? showPassword ? "Hide password" : "Show password"
+                : undefined}
+              aria-pressed={showPasswordToggle ? showPassword : undefined}
+              title={showPasswordToggle
+                ? showPassword ? "Hide password" : "Show password"
+                : undefined}
             >
-              <Icon name={actualEndIcon} className="h-4 w-4" />
+              <Icon
+                name={actualEndIcon}
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
             </button>
           )}
         </div>
 
         {description && !error && !success && (
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p id={descriptionId} className="mt-1 text-sm text-muted-foreground">
+            {description}
+          </p>
         )}
-        
+
         {error && (
-          <p className="mt-1 text-sm text-destructive flex items-center gap-1">
-            <Icon name="Triangle" className="h-3 w-3" />
+          <p
+            id={errorId}
+            className="mt-1 text-sm text-destructive flex items-center gap-1"
+            role="alert"
+            aria-live="assertive"
+          >
+            <Icon name="Triangle" className="h-3 w-3" aria-hidden="true" />
             {error}
           </p>
         )}
-        
+
         {success && (
-          <p className="mt-1 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
-            <Icon name="Check" className="h-3 w-3" />
+          <p
+            id={successId}
+            className="mt-1 text-sm text-green-600 dark:text-green-400 flex items-center gap-1"
+            aria-live="polite"
+          >
+            <Icon name="Check" className="h-3 w-3" aria-hidden="true" />
             {success}
           </p>
         )}
 
         {showCounter && maxLength && (
-          <p className="mt-1 text-xs text-muted-foreground text-right">
+          <p
+            id={counterId}
+            className="mt-1 text-xs text-muted-foreground text-right"
+            aria-live="polite"
+          >
             {currentLength}/{maxLength}
           </p>
         )}
       </div>
     );
-  }
+  },
 );
 
 InputField.displayName = "InputField";
