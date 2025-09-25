@@ -20,7 +20,7 @@ const person: Person = {
   role: "Founder",
   avatar: supabaseAsset("images/avatar.jpg"),
   email: "hello@dynamic.capital",
-  location: "Africa/Accra",
+  location: "Indian/Maldives",
 };
 
 const newsletter: Newsletter = {
