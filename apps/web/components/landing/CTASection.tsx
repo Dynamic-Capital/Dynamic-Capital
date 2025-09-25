@@ -10,8 +10,8 @@ import {
   ArrowRight,
   BadgeCheck,
   Clock3,
-  Crown,
   CreditCard,
+  Crown,
   Globe2,
   Mail,
   Shield,
@@ -21,6 +21,8 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/utils";
+
+import { InteractiveSectionContainer } from "./InteractiveSectionContainer";
 
 interface CTASectionProps {
   onJoinNow: () => void;
@@ -137,7 +139,8 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
 
           const trustSignals = TRUST_SIGNAL_KEYS.map(
             ([numericKey, wordKey], index) =>
-              lookup[numericKey] ?? lookup[wordKey] ?? defaultContent.trustSignals[index],
+              lookup[numericKey] ?? lookup[wordKey] ??
+                defaultContent.trustSignals[index],
           ).filter((signal): signal is string => Boolean(signal));
 
           setContent({
@@ -145,26 +148,24 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
             title: lookup.cta_title ?? defaultContent.title,
             description: lookup.cta_description ?? defaultContent.description,
             highlight: lookup.cta_highlight ?? defaultContent.highlight,
-            primaryButton:
-              lookup.cta_primary_button ?? defaultContent.primaryButton,
-            secondaryButton:
-              lookup.cta_secondary_button ?? defaultContent.secondaryButton,
-            responseTime:
-              lookup.cta_response_time ?? defaultContent.responseTime,
+            primaryButton: lookup.cta_primary_button ??
+              defaultContent.primaryButton,
+            secondaryButton: lookup.cta_secondary_button ??
+              defaultContent.secondaryButton,
+            responseTime: lookup.cta_response_time ??
+              defaultContent.responseTime,
             capacity: lookup.cta_capacity ?? defaultContent.capacity,
             trustSignals,
-            newsletterTitle:
-              lookup.cta_newsletter_title ?? defaultContent.newsletterTitle,
-            newsletterDescription:
-              lookup.cta_newsletter_description ??
+            newsletterTitle: lookup.cta_newsletter_title ??
+              defaultContent.newsletterTitle,
+            newsletterDescription: lookup.cta_newsletter_description ??
               defaultContent.newsletterDescription,
-            newsletterPlaceholder:
-              lookup.cta_newsletter_placeholder ??
+            newsletterPlaceholder: lookup.cta_newsletter_placeholder ??
               defaultContent.newsletterPlaceholder,
-            newsletterButton:
-              lookup.cta_newsletter_button ?? defaultContent.newsletterButton,
-            newsletterPrivacy:
-              lookup.cta_newsletter_privacy ?? defaultContent.newsletterPrivacy,
+            newsletterButton: lookup.cta_newsletter_button ??
+              defaultContent.newsletterButton,
+            newsletterPrivacy: lookup.cta_newsletter_privacy ??
+              defaultContent.newsletterPrivacy,
           });
         } else if (error) {
           console.error("Failed to fetch CTA content:", error.message);
@@ -250,7 +251,10 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
         <div className="absolute right-[-10%] top-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,_hsl(var(--primary)/0.35),_transparent_65%)] blur-3xl opacity-50" />
       </div>
 
-      <div className="container relative mx-auto px-4 sm:px-6">
+      <InteractiveSectionContainer
+        className="relative"
+        glowColor="rgba(255, 214, 102, 0.22)"
+      >
         <MotionFadeIn className="space-y-12" scale>
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
             <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-[hsl(var(--telegram)/0.38)] via-[hsl(var(--dc-accent)/0.35)] to-[hsl(var(--primary)/0.4)] p-8 sm:p-12 text-left text-[hsl(var(--accent-light))] shadow-2xl">
@@ -283,11 +287,13 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
                         key={`${detail}-${index}`}
                         className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-[hsl(var(--accent-light))] backdrop-blur-sm"
                       >
-                        {index === 0 ? (
-                          <Clock3 className="h-5 w-5 text-[hsl(var(--accent-light))]" />
-                        ) : (
-                          <Users className="h-5 w-5 text-[hsl(var(--accent-light))]" />
-                        )}
+                        {index === 0
+                          ? (
+                            <Clock3 className="h-5 w-5 text-[hsl(var(--accent-light))]" />
+                          )
+                          : (
+                            <Users className="h-5 w-5 text-[hsl(var(--accent-light))]" />
+                          )}
                         <span>{detail}</span>
                       </div>
                     ))}
@@ -365,7 +371,8 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
                       }
                     }}
                     placeholder={content.newsletterPlaceholder}
-                    aria-label={content.newsletterPlaceholder || "Email address"}
+                    aria-label={content.newsletterPlaceholder ||
+                      "Email address"}
                     className="h-12 rounded-2xl border-border/60 bg-background/90 pl-12 text-base shadow-sm transition focus-visible:border-primary"
                     autoComplete="email"
                     required
@@ -386,7 +393,7 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
             </div>
           </div>
         </MotionFadeIn>
-      </div>
+      </InteractiveSectionContainer>
     </section>
   );
 };
