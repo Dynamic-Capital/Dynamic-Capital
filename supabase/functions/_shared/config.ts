@@ -137,6 +137,29 @@ async function envOrSetting<T = string>(
   return await getSetting<T>(settingKey);
 }
 
+function sanitizeConfigString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  const lower = trimmed.toLowerCase();
+  if (lower === "null" || lower === "undefined") return null;
+  return trimmed;
+}
+
+export async function getCryptoDepositAddress(): Promise<string | null> {
+  const fromSetting = sanitizeConfigString(
+    await envOrSetting<string>("CRYPTO_DEPOSIT_ADDRESS", "crypto_usdt_trc20"),
+  );
+  if (fromSetting) return fromSetting;
+
+  const fromContent = sanitizeConfigString(
+    await getContent<string>("crypto_usdt_trc20"),
+  );
+  if (fromContent) return fromContent;
+
+  return null;
+}
+
 export let getContent = async <T = string>(
   key: string,
 ): Promise<T | null> => {

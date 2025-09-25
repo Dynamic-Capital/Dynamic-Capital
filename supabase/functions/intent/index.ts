@@ -1,7 +1,7 @@
 import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
 import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
-import { getContent } from "../_shared/config.ts";
+import { getContent, getCryptoDepositAddress } from "../_shared/config.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
@@ -81,8 +81,10 @@ export const handler = registerHandler(async (req) => {
   }
 
   if (body.type === "crypto") {
-    const deposit_address = await getContent<string>("crypto_usdt_trc20")
-      || "DEMO-ADDRESS";
+    const deposit_address = await getCryptoDepositAddress();
+    if (!deposit_address) {
+      return oops("Crypto deposit address is not configured");
+    }
 
     // Get default crypto amount from config or use a reasonable default
     const defaultAmount = parseFloat(
