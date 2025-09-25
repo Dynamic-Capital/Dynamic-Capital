@@ -1,4 +1,4 @@
-const DEFAULT_SUPABASE_URL = "https://qeejuomcapbdlhnjqjcc.supabase.co";
+const DEFAULT_SUPABASE_URL = "https://stub.supabase.co";
 const MAGIC_PORTFOLIO_BUCKET = "magic-portfolio";
 
 const ABSOLUTE_URL_PATTERN = /^[a-z][a-z0-9+.-]*:\/\//i;
@@ -56,7 +56,10 @@ export function supabaseAsset(path: string): string {
   return `${SUPABASE_BUCKET_BASE}${normalizedPath}`;
 }
 
-export function toAbsoluteUrl(baseUrl: string | undefined, candidate: string): string {
+export function toAbsoluteUrl(
+  baseUrl: string | undefined,
+  candidate: string,
+): string {
   if (!candidate) {
     return candidate;
   }

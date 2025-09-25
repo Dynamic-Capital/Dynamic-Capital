@@ -1,12 +1,12 @@
-# Mini App on Supabase (Project qeejuomcapbdlhnjqjcc)
+# Mini App on Supabase (Project your-project-ref)
 
 ## Build & Deploy (functions host)
 
 ```bash
 deno task miniapp:deploy
 npx supabase login
-npx supabase link --project-ref qeejuomcapbdlhnjqjcc
-npx supabase secrets set MINI_APP_URL=https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/
+npx supabase link --project-ref your-project-ref
+npx supabase secrets set MINI_APP_URL=https://your-project-ref.functions.supabase.co/miniapp/
 npx supabase functions deploy telegram-bot
 deno task miniapp:check
 ```

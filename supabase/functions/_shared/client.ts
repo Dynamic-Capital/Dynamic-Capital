@@ -7,7 +7,9 @@ import {
 declare const process:
   | { env: Record<string, string | undefined> }
   | undefined;
-declare const Deno: { env: { get(key: string): string | undefined } } | undefined;
+declare const Deno:
+  | { env: { get(key: string): string | undefined } }
+  | undefined;
 
 type ResolvedValue = {
   value: string;
@@ -63,9 +65,8 @@ function resolveValue(
   return { value: fallback, fromEnv: false };
 }
 
-const DEFAULT_SUPABASE_URL = "https://qeejuomcapbdlhnjqjcc.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZWp1b21jYXBiZGxobmpxamNjIiwicm9sZSI6ImFub24iLCJpYXRpIjoxNzU0MjAxODE1LCJleHAiOjIwNjk3Nzc4MTV9.GfK9Wwx0WX_GhDIz1sIQzNstyAQIF2Jd6p7t02G44zk";
+const DEFAULT_SUPABASE_URL = "https://stub.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY = "stub-anon-key";
 
 const SUPABASE_URL_RESOLUTION = resolveValue(
   "SUPABASE_URL",
@@ -94,10 +95,9 @@ export function createClient(
   role: "anon" | "service" = "anon",
   options?: SupabaseClientOptions<"public">,
 ): SupabaseClient {
-  const key =
-    role === "service"
-      ? SUPABASE_SERVICE_ROLE_KEY
-      : SUPABASE_ANON_KEY;
+  const key = role === "service"
+    ? SUPABASE_SERVICE_ROLE_KEY
+    : SUPABASE_ANON_KEY;
 
   if (!SUPABASE_URL) {
     throw new Error("Missing Supabase URL");

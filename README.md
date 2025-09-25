@@ -377,16 +377,16 @@ Before making changes, verify these connections work:
 
 ```bash
 # 1. Bot webhook responds
-curl -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/telegram-bot \
+curl -X POST https://your-project-ref.functions.supabase.co/telegram-bot \
   -H "content-type: application/json" \
   -H "X-Telegram-Bot-Api-Secret-Token: SECRET" \
   -d '{"test":"ping"}'
 
 # 2. Mini App loads
-curl -s https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/
+curl -s https://your-project-ref.functions.supabase.co/miniapp/
 
 # 3. Auth endpoint works
-curl -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/verify-initdata \
+curl -X POST https://your-project-ref.functions.supabase.co/verify-initdata \
   -H "content-type: application/json" \
   -d '{"initData":"VALID_INIT_DATA"}'
 ```
@@ -738,9 +738,9 @@ docker run --rm -p 8080:8080 go-service
 ## Smoke checks
 
 ```bash
-curl -s https://qeejuomcapbdlhnjqjcc.functions.supabase.co/miniapp/version
-curl -s https://qeejuomcapbdlhnjqjcc.functions.supabase.co/telegram-bot/version
-curl -s -X POST https://qeejuomcapbdlhnjqjcc.functions.supabase.co/telegram-bot \
+curl -s https://your-project-ref.functions.supabase.co/miniapp/version
+curl -s https://your-project-ref.functions.supabase.co/telegram-bot/version
+curl -s -X POST https://your-project-ref.functions.supabase.co/telegram-bot \
   -H 'x-telegram-bot-api-secret-token: <TELEGRAM_WEBHOOK_SECRET>' \
   -H 'content-type: application/json' -d '{"test":"ping"}'
 ```

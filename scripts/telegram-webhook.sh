@@ -10,8 +10,8 @@ Environment variables required:
   TELEGRAM_WEBHOOK_SECRET     # Secret token for X-Telegram-Bot-Api-Secret-Token (only for 'set')
 
 Optional (one of):
-  PROJECT_REF                 # Supabase project ref (e.g. qeejuomcapbdlhnjqjcc)
-  SUPABASE_URL                # e.g. https://qeejuomcapbdlhnjqjcc.supabase.co
+  PROJECT_REF                 # Supabase project ref (e.g. your-project-ref)
+  SUPABASE_URL                # e.g. https://your-project-ref.supabase.co
 
 Examples:
   ./scripts/telegram-webhook.sh delete

@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
-import { ok, mna, oops } from "../_shared/http.ts";
+import { mna, ok, oops } from "../_shared/http.ts";
 import { envOrSetting } from "../_shared/config.ts";
+import { functionUrl } from "../_shared/edge.ts";
 
 const need = (k: string) =>
   Deno.env.get(k) || (() => {
@@ -15,8 +16,10 @@ async function completePayment(
 ) {
   // Reuse Phase 4 admin flow by calling the endpoint (keeps logic in one place)
   const admin = need("ADMIN_API_SECRET");
-  const ref = new URL(need("SUPABASE_URL")).hostname.split(".")[0];
-  const url = `https://${ref}.functions.supabase.co/admin-review-payment`;
+  const url = functionUrl("admin-review-payment");
+  if (!url) {
+    throw new Error("Unable to resolve admin-review-payment function URL");
+  }
   const r = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json", "X-Admin-Secret": admin },
@@ -81,12 +84,14 @@ export async function handler(req: Request): Promise<Response> {
 
       // If bank_transfer and has receipt but no OCR yet, trigger OCR once and skip for now
       if (p.payment_method === "bank_transfer" && hasReceipt && !ocr) {
-        const ref = new URL(need("SUPABASE_URL")).hostname.split(".")[0];
-        await fetch(`https://${ref}.functions.supabase.co/receipt-ocr`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ payment_id: p.id }),
-        }).catch(() => {});
+        const receiptUrl = functionUrl("receipt-ocr");
+        if (receiptUrl) {
+          await fetch(receiptUrl, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ payment_id: p.id }),
+          }).catch(() => {});
+        }
         results.push({ id: p.id, action: "queued_ocr" });
         await notify(p.user_id, "📷 Receipt received. Processing...");
         continue;
@@ -118,7 +123,9 @@ export async function handler(req: Request): Promise<Response> {
           timeOK = Math.abs(rcpt.getTime() - created.getTime()) <= win * 1000;
         }
 
-        pass = Boolean((ocr.confidence ?? 0) >= 0.7 && within && curOK && timeOK);
+        pass = Boolean(
+          (ocr.confidence ?? 0) >= 0.7 && within && curOK && timeOK,
+        );
         reason = pass
           ? "rules_ok"
           : `fail(conf=${ocr.confidence},within=${within},cur=${curOK},time=${timeOK})`;
@@ -143,16 +150,22 @@ export async function handler(req: Request): Promise<Response> {
         results.push({ id: p.id, action: "completed", ok: okr.ok });
         await notify(p.user_id, "✅ Payment confirmed. Thank you!");
       } else {
-        await supa.from("payments").update({ status: "pending_review" }).eq("id", p.id);
+        await supa.from("payments").update({ status: "pending_review" }).eq(
+          "id",
+          p.id,
+        );
         await supa.from("admin_logs").insert({
           admin_telegram_id: "system",
           action_type: "manual_review_required",
-          action_description: `Payment ${p.id} requires manual review (${reason})`,
+          action_description:
+            `Payment ${p.id} requires manual review (${reason})`,
           affected_table: "payments",
           affected_record_id: p.id,
         });
 
-        const { data: admins } = await supa.from("bot_users").select("telegram_id").eq("is_admin", true);
+        const { data: admins } = await supa.from("bot_users").select(
+          "telegram_id",
+        ).eq("is_admin", true);
         for (const a of admins || []) {
           if (a.telegram_id && token) {
             await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

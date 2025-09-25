@@ -21,7 +21,7 @@ deno task make:initdata --id=225513686 --username=DynamicCapital_Support \
 If `/verify-initdata` is deployed:
 
 ```bash
-curl -s https://qeejuomcapbdlhnjqjcc.functions.supabase.co/verify-initdata \
+curl -s https://your-project-ref.functions.supabase.co/verify-initdata \
   -H 'content-type: application/json' \
   -d "{\"initData\":\"$(deno task make:initdata)\"}"
 # → {"ok":true,...}
