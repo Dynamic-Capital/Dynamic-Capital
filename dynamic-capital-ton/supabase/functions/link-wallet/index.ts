@@ -15,15 +15,25 @@ if (!supabaseUrl || !supabaseServiceKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
+type SupabaseClient = typeof supabase;
 
-serve(async (req) => {
+interface Dependencies {
+  supabase: SupabaseClient;
+}
+
+const defaultDeps: Dependencies = { supabase };
+
+export async function handler(
+  req: Request,
+  deps: Dependencies = defaultDeps,
+) {
   try {
     const body = (await req.json()) as LinkWalletBody;
     if (!body.telegram_id || !body.address) {
       return new Response("Bad Request", { status: 400 });
     }
 
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await deps.supabase
       .from("users")
       .upsert({ telegram_id: body.telegram_id }, { onConflict: "telegram_id" })
       .select()
@@ -34,18 +44,66 @@ serve(async (req) => {
       throw new Error("Failed to upsert user");
     }
 
-    const { error: walletError } = await supabase.from("wallets").upsert(
-      {
-        user_id: user.id,
-        address: body.address,
-        public_key: body.publicKey,
-      },
-      { onConflict: "address" },
-    );
+    const {
+      data: addressOwner,
+      error: addressLookupError,
+    } = await deps.supabase
+      .from("wallets")
+      .select("id,user_id")
+      .eq("address", body.address)
+      .maybeSingle();
 
-    if (walletError) {
-      console.error(walletError);
-      throw new Error("Failed to upsert wallet");
+    if (addressLookupError) {
+      console.error(addressLookupError);
+      throw new Error("Failed to verify wallet ownership");
+    }
+
+    if (
+      addressOwner && addressOwner.user_id && addressOwner.user_id !== user.id
+    ) {
+      return new Response("Address already linked to another user", {
+        status: 409,
+      });
+    }
+
+    const { data: existingWallet, error: existingWalletError } = await deps
+      .supabase
+      .from("wallets")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (existingWalletError) {
+      console.error(existingWalletError);
+      throw new Error("Failed to load existing wallet");
+    }
+
+    if (existingWallet && existingWallet.id) {
+      const { error: updateError } = await deps.supabase
+        .from("wallets")
+        .update({
+          address: body.address,
+          public_key: body.publicKey,
+        })
+        .eq("id", existingWallet.id);
+
+      if (updateError) {
+        console.error(updateError);
+        throw new Error("Failed to update wallet");
+      }
+    } else {
+      const { error: insertError } = await deps.supabase.from("wallets").insert(
+        {
+          user_id: user.id,
+          address: body.address,
+          public_key: body.publicKey,
+        },
+      );
+
+      if (insertError) {
+        console.error(insertError);
+        throw new Error("Failed to create wallet");
+      }
     }
 
     return new Response(JSON.stringify({ ok: true }), {
@@ -57,4 +115,8 @@ serve(async (req) => {
     const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(message, { status: 500 });
   }
-});
+}
+
+if (import.meta.main) {
+  serve((req) => handler(req));
+}
