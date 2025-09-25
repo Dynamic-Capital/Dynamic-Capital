@@ -9,6 +9,6 @@
     },
     "types": ["vite/client"]
   },
-  "include": ["src", "apps/web"],
+  "include": ["src", "apps/web", "shared"],
   "exclude": ["node_modules"]
 }

@@ -11,6 +11,11 @@ export default defineConfig({
       "@": resolve(__dirname, "./src"),
     },
   },
+  server: {
+    fs: {
+      allow: [resolve(__dirname, "."), resolve(__dirname, "../../..")],
+    },
+  },
   esbuild: {
     target: BUILD_TARGET,
     drop: ["console", "debugger"],

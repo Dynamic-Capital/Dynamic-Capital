@@ -1,9 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { HashRouter } from "react-router-dom";
+import { applyDynamicBranding } from "../../../../shared/branding/applyDynamicBranding";
 import AppRouter from "./router";
 import "./styles/index.css";
 import { useTelegram } from "./hooks/useTelegram";
+
+applyDynamicBranding();
 
 function App() {
   useTelegram();
@@ -22,4 +25,3 @@ ReactDOM.createRoot(root).render(
     </HashRouter>
   </React.StrictMode>,
 );
-
