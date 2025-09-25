@@ -125,6 +125,48 @@ const TRUST_MARKS = [
   },
 ];
 
+const FUNDING_METRICS = [
+  {
+    label: "Capital activated",
+    value: "$250K",
+    description: "pooled across our prop, fund, and broker partners",
+  },
+  {
+    label: "Readiness threshold",
+    value: "85%",
+    description: "automation score required to unlock live funding",
+  },
+  {
+    label: "Turnaround",
+    value: "72 hrs",
+    description: "median time from review to account go-live",
+  },
+];
+
+const FUNDING_STEPS = [
+  {
+    title: "Submit your trading dossier",
+    description:
+      "Upload journal exports or connect your broker so the desk ingests risk metrics instantly.",
+  },
+  {
+    title: "Automated readiness review",
+    description:
+      "Risk, psychology, and execution scores combine into a single readiness index mentors can validate in real time.",
+  },
+  {
+    title: "Capital deployment & scaling",
+    description:
+      "Start with capital aligned to your limits, then scale as dashboards prove consistency each week.",
+  },
+];
+
+const FUNDING_SUPPORT = [
+  "Structured drawdown protections to preserve capital during scale up",
+  "Mentor escalation paths with direct slack to partner risk teams",
+  "Weekly portfolio reviews to unlock higher tiers without renegotiation",
+];
+
 export function DynamicCapitalLandingPage() {
   return (
     <Column
@@ -160,6 +202,9 @@ export function DynamicCapitalLandingPage() {
         <MentorAndTrustSection />
       </Section>
       <Section revealDelay={0.64}>
+        <FundingReadinessSection />
+      </Section>
+      <Section revealDelay={0.72}>
         <CheckoutCallout />
       </Section>
       <Section reveal={false}>
@@ -472,5 +517,126 @@ function MentorAndTrustSection() {
         </Column>
       </Column>
     </div>
+  );
+}
+
+function FundingReadinessSection() {
+  return (
+    <Column fillWidth gap="24" align="start">
+      <Column gap="12" align="start">
+        <Tag size="s" background="brand-alpha-weak" prefixIcon="rocket">
+          Funding that matches your discipline
+        </Tag>
+        <Heading variant="display-strong-xs" wrap="balance">
+          Unlock institutional capital once the desk verifies you are ready
+        </Heading>
+        <Text
+          variant="body-default-l"
+          onBackground="neutral-weak"
+          wrap="balance"
+        >
+          When your automation score crosses the readiness threshold, Dynamic
+          Capital connects you to vetted funding partners without leaving the
+          workspace.
+        </Text>
+      </Column>
+      <div className={styles.fundingGrid}>
+        <Column
+          background="surface"
+          border="neutral-alpha-weak"
+          radius="l"
+          padding="xl"
+          gap="16"
+          className={styles.card}
+          align="start"
+        >
+          <Heading variant="heading-strong-m">
+            Proof-backed capital within days
+          </Heading>
+          <Text
+            variant="body-default-m"
+            onBackground="neutral-weak"
+            wrap="balance"
+          >
+            Funding allocations scale with the same risk signals that keep your
+            desk in flow. The moment mentors clear you, capital routes directly
+            to the connected broker.
+          </Text>
+          <div className={styles.metricStack}>
+            {FUNDING_METRICS.map((metric) => (
+              <Column key={metric.label} gap="4" align="start">
+                <Heading variant="display-strong-xs">{metric.value}</Heading>
+                <Text variant="label-default-s" onBackground="neutral-weak">
+                  {metric.label}
+                </Text>
+                <Text
+                  variant="body-default-s"
+                  onBackground="neutral-weak"
+                  wrap="balance"
+                >
+                  {metric.description}
+                </Text>
+              </Column>
+            ))}
+          </div>
+          <Column as="ul" gap="12" align="start" className={styles.pillList}>
+            {FUNDING_SUPPORT.map((item) => (
+              <Row as="li" key={item} gap="8" vertical="start" align="start">
+                <Icon name="check" onBackground="brand-medium" />
+                <Text as="span" variant="body-default-m">
+                  {item}
+                </Text>
+              </Row>
+            ))}
+          </Column>
+        </Column>
+        <Column gap="16" align="start" className={styles.card}>
+          <Column gap="12" align="start">
+            <Tag size="s" background="brand-alpha-weak" prefixIcon="timer">
+              Streamlined readiness review
+            </Tag>
+            <Heading variant="heading-strong-m" wrap="balance">
+              Three verified steps between you and live trading capital
+            </Heading>
+            <Text
+              variant="body-default-m"
+              onBackground="neutral-weak"
+              wrap="balance"
+            >
+              Every milestone is tracked, timestamped, and shareable so you can
+              document your progression to investors and partners in minutes.
+            </Text>
+          </Column>
+          <Column as="ol" gap="12" align="start" className={styles.stepList}>
+            {FUNDING_STEPS.map((step, index) => (
+              <Column
+                as="li"
+                key={step.title}
+                background="surface"
+                border="brand-alpha-weak"
+                radius="l"
+                padding="l"
+                gap="8"
+                align="start"
+              >
+                <Row gap="8" vertical="center">
+                  <Tag size="s" background="brand-alpha-weak">
+                    {String(index + 1).padStart(2, "0")}
+                  </Tag>
+                  <Heading variant="heading-strong-s">{step.title}</Heading>
+                </Row>
+                <Text
+                  variant="body-default-m"
+                  onBackground="neutral-weak"
+                  wrap="balance"
+                >
+                  {step.description}
+                </Text>
+              </Column>
+            ))}
+          </Column>
+        </Column>
+      </div>
+    </Column>
   );
 }
