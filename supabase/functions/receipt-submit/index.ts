@@ -1,22 +1,26 @@
 import { createClient, createSupabaseClient } from "../_shared/client.ts";
-import { json, bad, unauth, oops } from "../_shared/http.ts";
+import { bad, json, oops, unauth } from "../_shared/http.ts";
 import { getEnv } from "../_shared/env.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { hashBlob } from "../_shared/hash.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 export const handler = registerHandler(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405, headers: corsHeaders });
+    return new Response("Method not allowed", {
+      status: 405,
+      headers: corsHeaders,
+    });
   }
 
   // Attempt to identify user via Supabase session
@@ -27,7 +31,10 @@ export const handler = registerHandler(async (req) => {
       const supaAuth = createSupabaseClient(
         getEnv("SUPABASE_URL"),
         getEnv("SUPABASE_ANON_KEY"),
-        { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
+        {
+          global: { headers: { Authorization: authHeader } },
+          auth: { persistSession: false },
+        },
       );
       const { data: { user } } = await supaAuth.auth.getUser();
       if (user) {
@@ -73,7 +80,12 @@ export const handler = registerHandler(async (req) => {
     return bad("Missing required fields");
   }
 
-  console.log("Receipt submission:", { telegramId, payment_id, file_path, bucket });
+  console.log("Receipt submission:", {
+    telegramId,
+    payment_id,
+    file_path,
+    bucket,
+  });
 
   const supa = createClient("service");
 
@@ -117,15 +129,21 @@ export const handler = registerHandler(async (req) => {
     }
 
     if (existing) {
-      await supa.storage.from(storageBucket).remove([file_path]).catch((err) => {
-        console.warn("Failed to remove duplicate receipt upload", err);
-      });
-      return json({
-        ok: false,
-        error: "duplicate_receipt",
-        message:
-          "This receipt was already submitted. Please upload a new image.",
-      }, 409, corsHeaders);
+      await supa.storage.from(storageBucket).remove([file_path]).catch(
+        (err) => {
+          console.warn("Failed to remove duplicate receipt upload", err);
+        },
+      );
+      return json(
+        {
+          ok: false,
+          error: "duplicate_receipt",
+          message:
+            "This receipt was already submitted. Please upload a new image.",
+        },
+        409,
+        corsHeaders,
+      );
     }
 
     const baseWebhookData =
@@ -166,7 +184,10 @@ export const handler = registerHandler(async (req) => {
         .eq("telegram_user_id", telegramId);
 
       if (subscriptionError) {
-        console.log("Subscription update error (non-critical):", subscriptionError);
+        console.log(
+          "Subscription update error (non-critical):",
+          subscriptionError,
+        );
       }
     }
 
@@ -184,12 +205,16 @@ export const handler = registerHandler(async (req) => {
 
     console.log("Receipt submitted successfully for payment:", payment_id);
 
-    return json({
-      ok: true,
-      success: true,
-      message: "Receipt submitted successfully",
-      payment_id,
-    }, 200, corsHeaders);
+    return json(
+      {
+        ok: true,
+        success: true,
+        message: "Receipt submitted successfully",
+        payment_id,
+      },
+      200,
+      corsHeaders,
+    );
   } catch (error) {
     console.error("Receipt submission error:", error);
     return oops("Internal server error");

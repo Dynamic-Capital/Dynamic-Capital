@@ -44,7 +44,9 @@ function formatWithPrecision(date: Date, includeMilliseconds: boolean): string {
     ? `.${String(date.getMilliseconds()).padStart(3, "0")}`
     : "";
 
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}${milliseconds} (${getDeskTimeSuffix({ locale: LOCALE, date })})`;
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}${milliseconds} (${
+    getDeskTimeSuffix({ locale: LOCALE, date })
+  })`;
 }
 
 export function formatIsoDateTime(

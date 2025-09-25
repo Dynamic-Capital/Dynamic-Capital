@@ -1,5 +1,15 @@
-import { createSupabasePoolStore, ensureActiveCycle, ensureInvestor, recomputeShares, requireAdmin, type PrivatePoolStore, type ResolveProfileFn, createDefaultResolveProfileFn, roundCurrency } from "../_shared/private-pool.ts";
-import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
+import {
+  createDefaultResolveProfileFn,
+  createSupabasePoolStore,
+  ensureActiveCycle,
+  ensureInvestor,
+  type PrivatePoolStore,
+  recomputeShares,
+  requireAdmin,
+  type ResolveProfileFn,
+  roundCurrency,
+} from "../_shared/private-pool.ts";
+import { bad, corsHeaders, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 import { version } from "../_shared/version.ts";
 
@@ -96,8 +106,14 @@ export function createWithdrawHandler(
           reinvested_amount_usdt: reinvestment,
           admin_notes: body.adminNotes ?? withdrawal.admin_notes ?? null,
         });
-        const shareResult = await recomputeShares(store, withdrawal.cycle_id, now);
-        const share = shareResult.records.find((r) => r.investor_id === withdrawal.investor_id);
+        const shareResult = await recomputeShares(
+          store,
+          withdrawal.cycle_id,
+          now,
+        );
+        const share = shareResult.records.find((r) =>
+          r.investor_id === withdrawal.investor_id
+        );
         return ok({
           ok: true,
           status: updated?.status ?? "approved",
@@ -121,7 +137,11 @@ export function createWithdrawHandler(
         return bad("No active balance", undefined, req);
       }
       if (amount > available) {
-        return bad("Requested amount exceeds available balance", undefined, req);
+        return bad(
+          "Requested amount exceeds available balance",
+          undefined,
+          req,
+        );
       }
       const withdrawal = await store.createWithdrawal({
         investor_id: investor.id,
@@ -141,7 +161,11 @@ export function createWithdrawHandler(
       }, req);
     } catch (err) {
       console.error("private-pool-withdraw error", err);
-      return oops("Failed to process withdrawal", err instanceof Error ? err.message : err, req);
+      return oops(
+        "Failed to process withdrawal",
+        err instanceof Error ? err.message : err,
+        req,
+      );
     }
   };
 }

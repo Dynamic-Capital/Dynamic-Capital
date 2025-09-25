@@ -1,4 +1,17 @@
-import { roundCurrency, type PrivatePoolStore, type Profile, type Investor, type FundCycle, type InvestorDeposit, type InvestorWithdrawal, type InvestorShare, type InvestorContact, type CycleStatus, type WithdrawalStatus, type DepositType } from "../_shared/private-pool.ts";
+import {
+  type CycleStatus,
+  type DepositType,
+  type FundCycle,
+  type Investor,
+  type InvestorContact,
+  type InvestorDeposit,
+  type InvestorShare,
+  type InvestorWithdrawal,
+  type PrivatePoolStore,
+  type Profile,
+  roundCurrency,
+  type WithdrawalStatus,
+} from "../_shared/private-pool.ts";
 
 export class MockPrivatePoolStore implements PrivatePoolStore {
   profiles = new Map<string, Profile>();
@@ -16,9 +29,15 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
     withdrawals?: InvestorWithdrawal[];
     shares?: InvestorShare[];
   }) {
-    for (const profile of init?.profiles ?? []) this.profiles.set(profile.id, profile);
-    for (const investor of init?.investors ?? []) this.investors.set(investor.id, investor);
-    for (const cycle of init?.fundCycles ?? []) this.fundCycles.set(cycle.id, cycle);
+    for (const profile of init?.profiles ?? []) {
+      this.profiles.set(profile.id, profile);
+    }
+    for (const investor of init?.investors ?? []) {
+      this.investors.set(investor.id, investor);
+    }
+    for (const cycle of init?.fundCycles ?? []) {
+      this.fundCycles.set(cycle.id, cycle);
+    }
     this.deposits = [...(init?.deposits ?? [])];
     this.withdrawals = [...(init?.withdrawals ?? [])];
     for (const share of init?.shares ?? []) {
@@ -149,7 +168,9 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
   ): Promise<InvestorWithdrawal[]> {
     const allowed = new Set(statuses);
     return Promise.resolve(
-      this.withdrawals.filter((w) => w.cycle_id === cycleId && (allowed.size === 0 || allowed.has(w.status))),
+      this.withdrawals.filter((w) =>
+        w.cycle_id === cycleId && (allowed.size === 0 || allowed.has(w.status))
+      ),
     );
   }
 

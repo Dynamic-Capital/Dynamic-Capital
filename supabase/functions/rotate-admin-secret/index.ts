@@ -1,6 +1,6 @@
 import { createClient } from "../_shared/client.ts";
 import { getEnv } from "../_shared/env.ts";
-import { ok, mna, unauth, oops } from "../_shared/http.ts";
+import { mna, ok, oops, unauth } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 function genHex(n = 24) {

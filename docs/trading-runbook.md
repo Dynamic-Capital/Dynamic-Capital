@@ -1,11 +1,12 @@
 # Trading Operations Runbook
 
-This runbook describes the end-to-end operational lifecycle for the Lorentzian k-NN
-strategy that powers Dynamic Capital's discretionary trading stack.
+This runbook describes the end-to-end operational lifecycle for the Lorentzian
+k-NN strategy that powers Dynamic Capital's discretionary trading stack.
 
 ## 1. Daily Data Refresh
 
-1. Export the previous trading day's OHLC candles from the broker or data vendor.
+1. Export the previous trading day's OHLC candles from the broker or data
+   vendor.
 2. Run the historical ingestion job:
    ```python
    from pathlib import Path
@@ -49,8 +50,8 @@ strategy that powers Dynamic Capital's discretionary trading stack.
    ```
 3. Review the resulting `BacktestResult` metrics (hit rate, profit factor,
    drawdown) and promote the best configuration into the staging registry.
-4. Freeze the trained artefacts via `model_artifacts.save_artifacts`, storing the
-   scaler state, neighbour set, and configuration document.
+4. Freeze the trained artefacts via `model_artifacts.save_artifacts`, storing
+   the scaler state, neighbour set, and configuration document.
 
 ## 4. Pre-Deployment Validation
 
@@ -84,4 +85,3 @@ strategy that powers Dynamic Capital's discretionary trading stack.
 4. Trigger the rollback procedure (redeploy the previous artefact version) if
    production performance deviates materially from backtest expectations or if
    risk limits are breached.
-

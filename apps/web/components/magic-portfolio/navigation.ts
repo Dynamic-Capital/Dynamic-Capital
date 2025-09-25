@@ -12,7 +12,8 @@ export type PrimaryNavItem = {
   match: (pathname: string, hash: string) => boolean;
 };
 
-const normalizeHash = (hash: string): string => hash?.trim().toLowerCase() ?? "";
+const normalizeHash = (hash: string): string =>
+  hash?.trim().toLowerCase() ?? "";
 
 export const PRIMARY_NAV_ITEMS: PrimaryNavItem[] = [
   {
@@ -98,7 +99,9 @@ export const resolvePrimaryNavItems = (
   hash: string,
   filter?: (item: PrimaryNavItem) => boolean,
 ): PrimaryNavItemState[] =>
-  PRIMARY_NAV_ITEMS.filter((item) => (filter ? filter(item) : true)).map((item) => ({
+  PRIMARY_NAV_ITEMS.filter((item) => (filter ? filter(item) : true)).map((
+    item,
+  ) => ({
     ...item,
     selected: Boolean(item.match(pathname, hash)),
   }));

@@ -60,8 +60,8 @@ function normalizePlan(plan: RawPlan | null | undefined): Plan | null {
 
   const features = Array.isArray(plan.features)
     ? plan.features.filter((feature): feature is string =>
-        typeof feature === "string" && feature.trim().length > 0,
-      )
+      typeof feature === "string" && feature.trim().length > 0
+    )
     : [];
 
   return {
@@ -104,7 +104,9 @@ async function fetchPlansFromSupabase(): Promise<Plan[]> {
   return normalizePlans(data as RawPlan[] | null);
 }
 
-export async function fetchSubscriptionPlans(options: { force?: boolean } = {}): Promise<Plan[]> {
+export async function fetchSubscriptionPlans(
+  options: { force?: boolean } = {},
+): Promise<Plan[]> {
   const { force = false } = options;
 
   if (force) {

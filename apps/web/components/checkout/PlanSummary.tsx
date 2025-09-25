@@ -1,8 +1,14 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Shield, Clock, Users, Check, CreditCard } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Check, Clock, CreditCard, Shield, Users } from "lucide-react";
 import type { Plan } from "@/types/plan";
 
 interface PlanSummaryProps {
@@ -11,7 +17,9 @@ interface PlanSummaryProps {
   promoValidation: any;
 }
 
-export const PlanSummary: React.FC<PlanSummaryProps> = ({ plan, finalPrice, promoValidation }) => (
+export const PlanSummary: React.FC<PlanSummaryProps> = (
+  { plan, finalPrice, promoValidation },
+) => (
   <div className="space-y-4">
     <Card>
       <CardHeader>
@@ -20,7 +28,9 @@ export const PlanSummary: React.FC<PlanSummaryProps> = ({ plan, finalPrice, prom
           {plan.name}
         </CardTitle>
         <CardDescription>
-          {plan.is_lifetime ? "Lifetime access" : `${plan.duration_months} month subscription`}
+          {plan.is_lifetime
+            ? "Lifetime access"
+            : `${plan.duration_months} month subscription`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

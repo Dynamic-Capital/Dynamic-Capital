@@ -5,9 +5,10 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/utils";
-import { Eye, EyeOff, Search, Check, X, AlertCircle } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, Search, X } from "lucide-react";
 
-interface EnhancedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface EnhancedInputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   description?: string;
   error?: string;
@@ -20,52 +21,61 @@ interface EnhancedInputProps extends React.InputHTMLAttributes<HTMLInputElement>
   containerClassName?: string;
 }
 
-export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputProps>(
-  ({ 
-    className, 
-    label, 
-    description, 
-    error, 
-    success, 
-    icon, 
-    endIcon, 
+export const EnhancedInput = React.forwardRef<
+  HTMLInputElement,
+  EnhancedInputProps
+>(
+  ({
+    className,
+    label,
+    description,
+    error,
+    success,
+    icon,
+    endIcon,
     variant = "default",
     state = "default",
     showToggle = false,
     containerClassName,
     type,
-    ...props 
+    ...props
   }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false);
     const [isFocused, setIsFocused] = React.useState(false);
-    
+
     const isPassword = type === "password";
     const inputType = isPassword && showPassword ? "text" : type;
 
     const variantStyles = {
       default: "border-input bg-background",
       glass: "bg-white/10 backdrop-blur-md border-white/20",
-      minimal: "border-0 border-b-2 rounded-none bg-transparent"
+      minimal: "border-0 border-b-2 rounded-none bg-transparent",
     };
 
     const stateStyles = {
       default: "",
       error: "border-destructive focus:border-destructive",
       success: "border-success focus:border-success",
-      loading: "animate-pulse"
+      loading: "animate-pulse",
     };
 
     const getStateIcon = () => {
       switch (state) {
-        case "error": return <AlertCircle className="h-4 w-4 text-destructive" />;
-        case "success": return <Check className="h-4 w-4 text-success" />;
-        case "loading": return <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />;
-        default: return endIcon;
+        case "error":
+          return <AlertCircle className="h-4 w-4 text-destructive" />;
+        case "success":
+          return <Check className="h-4 w-4 text-success" />;
+        case "loading":
+          return (
+            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          );
+        default:
+          return endIcon;
       }
     };
 
     return (
-      <motion.div 
+      <motion.div
         className={cn("space-y-2", containerClassName)}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -73,11 +83,15 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
       >
         {label && (
           <motion.div
-            animate={{ 
+            animate={{
               scale: isFocused ? 1.02 : 1,
-              color: state === "error" ? "hsl(var(--destructive))" :
-                    state === "success" ? "hsl(var(--success))" :
-                    isFocused ? "hsl(var(--primary))" : "hsl(var(--foreground))"
+              color: state === "error"
+                ? "hsl(var(--destructive))"
+                : state === "success"
+                ? "hsl(var(--success))"
+                : isFocused
+                ? "hsl(var(--primary))"
+                : "hsl(var(--foreground))",
             }}
             transition={{ duration: 0.2 }}
           >
@@ -86,24 +100,28 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
             </Label>
           </motion.div>
         )}
-        
+
         <div className="relative">
           <div className="relative flex items-center">
             {icon && (
-              <motion.div 
+              <motion.div
                 className="absolute left-3 z-10"
-                animate={{ 
+                animate={{
                   scale: isFocused ? 1.1 : 1,
-                  color: state === "error" ? "hsl(var(--destructive))" :
-                        state === "success" ? "hsl(var(--success))" :
-                        isFocused ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"
+                  color: state === "error"
+                    ? "hsl(var(--destructive))"
+                    : state === "success"
+                    ? "hsl(var(--success))"
+                    : isFocused
+                    ? "hsl(var(--primary))"
+                    : "hsl(var(--muted-foreground))",
                 }}
                 transition={{ duration: 0.2 }}
               >
                 {icon}
               </motion.div>
             )}
-            
+
             <Input
               ref={ref}
               type={inputType}
@@ -115,7 +133,7 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
                 stateStyles[state],
                 icon && "pl-10",
                 (getStateIcon() || isPassword) && "pr-10",
-                className
+                className,
               )}
               onFocus={(e) => {
                 setIsFocused(true);
@@ -127,10 +145,10 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
               }}
               {...props}
             />
-            
+
             <div className="absolute right-3 flex items-center gap-2">
               {getStateIcon()}
-              
+
               {isPassword && showToggle && (
                 <motion.button
                   type="button"
@@ -139,10 +157,9 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
-                  {showPassword ? 
-                    <EyeOff className="h-4 w-4 text-muted-foreground" /> : 
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  }
+                  {showPassword
+                    ? <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    : <Eye className="h-4 w-4 text-muted-foreground" />}
                 </motion.button>
               )}
             </div>
@@ -160,7 +177,7 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
               <p className="text-xs text-muted-foreground">{description}</p>
             )}
             {error && (
-              <motion.p 
+              <motion.p
                 className="text-xs text-destructive flex items-center gap-1"
                 initial={{ x: -5 }}
                 animate={{ x: 0 }}
@@ -183,7 +200,7 @@ export const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputPro
         )}
       </motion.div>
     );
-  }
+  },
 );
 
 EnhancedInput.displayName = "EnhancedInput";

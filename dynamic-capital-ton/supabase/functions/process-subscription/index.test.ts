@@ -56,6 +56,8 @@ Deno.test("rejects subscription when TON transfer goes to different wallet", asy
         telegram_id: "1234",
         plan: "vip_bronze",
         tx_hash: "0xdeadbeef",
+        ton_amount: 120,
+        wallet_address: "EQUSER",
       }),
       headers: { "Content-Type": "application/json" },
     },
@@ -110,4 +112,144 @@ Deno.test("rejects subscription when TON transfer goes to different wallet", asy
   const body = await response.text();
   assertStringIncludes(body, "Funds not received");
   assertEquals(fetchCalls.length, 1);
+});
+
+Deno.test("fails when router responds with an error", async () => {
+  const request = new Request(
+    "https://example/functions/process-subscription",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        telegram_id: "5678",
+        plan: "vip_bronze",
+        tx_hash: "0xbeef",
+        ton_amount: 120,
+        wallet_address: "EQUSER",
+      }),
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+
+  const supabaseStub = createSupabaseStub({
+    operations_pct: 60,
+    autoinvest_pct: 30,
+    buyback_burn_pct: 10,
+    min_ops_pct: 40,
+    max_ops_pct: 75,
+    min_invest_pct: 15,
+    max_invest_pct: 45,
+    min_burn_pct: 5,
+    max_burn_pct: 20,
+    ops_treasury: "EQOPS",
+    dct_master: "EQMASTER",
+    dex_router: "https://router.example",
+  });
+
+  const fetchStub: typeof fetch = async (input, init) => {
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+    if (url.includes("/transactions/")) {
+      return new Response(
+        JSON.stringify({
+          destination: "EQOPS",
+          amountTon: 120,
+        }),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes("router.example")) {
+      return new Response("router down", { status: 502 });
+    }
+
+    throw new Error(`Unexpected fetch call: ${url}`);
+  };
+
+  const response = await handler(request, {
+    supabase: supabaseStub as HandlerDependencies["supabase"],
+    fetch: fetchStub,
+  });
+
+  assertEquals(response.status, 500);
+  const text = await response.text();
+  assertStringIncludes(text, "DEX router error");
+});
+
+Deno.test("fails when burn webhook returns an error", async () => {
+  Deno.env.set("BURN_WEBHOOK_URL", "https://burn.example");
+
+  const request = new Request(
+    "https://example/functions/process-subscription",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        telegram_id: "9012",
+        plan: "vip_bronze",
+        tx_hash: "0xca11ab1e",
+        ton_amount: 120,
+        wallet_address: "EQUSER",
+      }),
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+
+  const supabaseStub = createSupabaseStub({
+    operations_pct: 60,
+    autoinvest_pct: 30,
+    buyback_burn_pct: 10,
+    min_ops_pct: 40,
+    max_ops_pct: 75,
+    min_invest_pct: 15,
+    max_invest_pct: 45,
+    min_burn_pct: 5,
+    max_burn_pct: 20,
+    ops_treasury: "EQOPS",
+    dct_master: "EQMASTER",
+    dex_router: "https://router.example",
+  });
+
+  const fetchStub: typeof fetch = async (input, init) => {
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+    if (url.includes("/transactions/")) {
+      return new Response(
+        JSON.stringify({
+          destination: "EQOPS",
+          amountTon: 120,
+          source: "EQUSER",
+        }),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes("router.example")) {
+      return new Response(
+        JSON.stringify({ dctAmount: 12000, swapTxHash: "0xswap", swapId: "abc" }),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes("burn.example")) {
+      return new Response("burn failed", { status: 500 });
+    }
+
+    throw new Error(`Unexpected fetch call: ${url}`);
+  };
+
+  const response = await handler(request, {
+    supabase: supabaseStub as HandlerDependencies["supabase"],
+    fetch: fetchStub,
+  });
+
+  assertEquals(response.status, 500);
+  const text = await response.text();
+  assertStringIncludes(text, "Burn webhook error");
 });

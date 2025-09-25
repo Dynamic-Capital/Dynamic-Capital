@@ -1,8 +1,8 @@
 "use client";
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Upload, Crown } from "lucide-react";
+import { CreditCard, Crown, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export const VipQuickActions = () => {

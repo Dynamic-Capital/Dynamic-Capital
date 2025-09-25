@@ -25,6 +25,7 @@ type PlanOption = {
   id: Plan;
   name: string;
   price: string;
+  tonValue: number;
   cadence: string;
   description: string;
   highlights: string[];
@@ -60,6 +61,7 @@ const PLAN_OPTIONS: PlanOption[] = [
     id: "vip_bronze",
     name: "VIP Bronze",
     price: "120 TON",
+    tonValue: 120,
     cadence: "3 month horizon",
     description:
       "Entry tier that mirrors the desk's base auto-invest strategy.",
@@ -73,6 +75,7 @@ const PLAN_OPTIONS: PlanOption[] = [
     id: "vip_silver",
     name: "VIP Silver",
     price: "220 TON",
+    tonValue: 220,
     cadence: "6 month horizon",
     description:
       "Expanded allocation with leverage-managed exposure and mid-cycle rotations.",
@@ -86,6 +89,7 @@ const PLAN_OPTIONS: PlanOption[] = [
     id: "vip_gold",
     name: "VIP Gold",
     price: "380 TON",
+    tonValue: 380,
     cadence: "12 month horizon",
     description:
       "Flagship seat with treasury hedging, OTC access, and shared execution stack.",
@@ -99,6 +103,7 @@ const PLAN_OPTIONS: PlanOption[] = [
     id: "mentorship",
     name: "Mentorship",
     price: "550 TON",
+    tonValue: 550,
     cadence: "5 week sprint",
     description:
       "One-on-one mentorship alongside live trading to accelerate your playbook.",
@@ -182,6 +187,9 @@ function useTelegramId(): string {
   return telegramId ? String(telegramId) : "demo";
 }
 
+const TON_INTAKE_WALLET =
+  process.env.NEXT_PUBLIC_TON_INTAKE_WALLET?.trim() ?? "";
+
 function formatWalletAddress(address?: string | null): string {
   if (!address) {
     return "No wallet connected";
@@ -190,6 +198,31 @@ function formatWalletAddress(address?: string | null): string {
     return address;
   }
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
+}
+
+async function hashBoc(boc: string): Promise<string> {
+  if (typeof boc !== "string" || boc.trim().length === 0) {
+    return "";
+  }
+
+  if (typeof window === "undefined" || !("crypto" in window)) {
+    return boc;
+  }
+
+  const binary = atob(boc);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  const digest = await window.crypto.subtle.digest("SHA-256", bytes);
+  const hashArray = Array.from(new Uint8Array(digest));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function tonToNano(tonAmount: number): bigint {
+  const scaled = Math.round(tonAmount * 1_000_000_000);
+  return BigInt(scaled);
 }
 
 function HomeInner() {
@@ -291,37 +324,104 @@ function HomeInner() {
       return;
     }
 
-    setIsProcessing(true);
-    setStatusMessage(null);
+    if (!TON_INTAKE_WALLET) {
+      setStatusMessage("Desk intake wallet is not configured. Please contact support.");
+      return;
+    }
 
-    const fakeHash = `FAKE_TX_HASH_${Date.now()}`;
-    setTxHash(fakeHash);
+    setIsProcessing(true);
+    setStatusMessage("Confirm the TON transfer in your wallet…");
 
     try {
+      const planTonAmount = selectedPlan?.tonValue ?? PLAN_OPTIONS[0].tonValue;
+      const validUntil = Math.floor(Date.now() / 1000) + 600;
+      const result = await tonConnectUI.sendTransaction({
+        validUntil,
+        messages: [
+          {
+            address: TON_INTAKE_WALLET,
+            amount: tonToNano(planTonAmount).toString(),
+          },
+        ],
+      });
+
+      const walletTxHash =
+        // @ts-ignore TonConnect UI SDKs return hash on some wallets
+        (result?.transaction?.hash as string | undefined) ??
+        (result as { hash?: string })?.hash ??
+        null;
+      const boc =
+        // @ts-ignore transaction.boc is provided by some wallets
+        (result?.transaction?.boc as string | undefined) ??
+        (result as { boc?: string })?.boc ??
+        null;
+
+      const resolvedHash = walletTxHash ?? (boc ? await hashBoc(boc) : "");
+
+      if (!resolvedHash) {
+        throw new Error("Wallet did not return a transaction reference");
+      }
+
+      setTxHash(resolvedHash);
+      setStatusMessage("Transaction submitted. Finalizing subscription with the desk…");
+
       const response = await fetch("/api/process-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           telegram_id: telegramId,
           plan,
-          tx_hash: fakeHash,
+          tx_hash: resolvedHash,
+          tx_boc: boc,
+          wallet_address: currentWallet.address,
+          ton_amount: planTonAmount,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Unexpected status ${response.status}`);
+      const raw = await response.text();
+      let payload: unknown;
+      try {
+        payload = raw ? JSON.parse(raw) : null;
+      } catch {
+        payload = null;
       }
 
+      if (!response.ok) {
+        const message =
+          (payload as { error?: string } | null)?.error ??
+            raw ??
+            "Subscription processing failed";
+        throw new Error(message);
+      }
+
+      const data = (payload as { data?: unknown } | null)?.data as
+        | {
+          swaps?: {
+            autoInvest?: { dctAmount?: number; swapTxHash?: string | null };
+            burn?: { dctAmount?: number; burnTxHash?: string | null };
+          };
+        }
+        | undefined;
+
+      const autoInvestDct = data?.swaps?.autoInvest?.dctAmount ?? null;
+      const burnDct = data?.swaps?.burn?.dctAmount ?? null;
+      const burnHash = data?.swaps?.burn?.burnTxHash ?? null;
+
       setStatusMessage(
-        `Subscription for ${
-          selectedPlan?.name ?? "your plan"
-        } submitted. Desk will confirm shortly.`,
+        `Subscription for ${selectedPlan?.name ?? plan} confirmed. ` +
+          `Auto-invest credit: ${autoInvestDct ?? "—"} DCT, ` +
+          `burned: ${burnDct ?? "—"} DCT${burnHash ? ` (burn tx: ${burnHash})` : ""}.`,
       );
     } catch (error) {
       console.error(error);
-      setStatusMessage(
-        "We couldn't start the subscription. Give it another try after checking your connection.",
-      );
+      const message = error instanceof Error
+        ? error.message
+        : "We couldn't start the subscription. Give it another try after checking your connection.";
+      if (message.toLowerCase().includes("reject")) {
+        setStatusMessage("Transaction was cancelled in the wallet.");
+      } else {
+        setStatusMessage(message);
+      }
     } finally {
       setIsProcessing(false);
     }

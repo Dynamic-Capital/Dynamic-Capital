@@ -1,52 +1,47 @@
 import { IconType } from "react-icons";
 
 import {
-  HiArrowUpRight,
-  HiOutlineLink,
-  HiArrowTopRightOnSquare,
-  HiEnvelope,
-  HiCalendarDays,
+  HiArrowPath,
   HiArrowRight,
+  HiArrowTopRightOnSquare,
+  HiArrowUpRight,
+  HiCalendarDays,
+  HiCheckCircle,
+  HiEnvelope,
+  HiMapPin,
+  HiOutlineDocument,
   HiOutlineEye,
   HiOutlineEyeSlash,
-  HiOutlineDocument,
   HiOutlineGlobeAsiaAustralia,
+  HiOutlineLink,
   HiOutlineRocketLaunch,
-  HiArrowPath,
-  HiMapPin,
-  HiCheckCircle,
   HiSparkles,
 } from "react-icons/hi2";
 
 import {
-  PiHouseDuotone,
-  PiUserCircleDuotone,
-  PiGridFourDuotone,
   PiBookBookmarkDuotone,
-  PiImageDuotone,
   PiCrownSimpleDuotone,
+  PiGridFourDuotone,
+  PiHouseDuotone,
+  PiImageDuotone,
+  PiUserCircleDuotone,
 } from "react-icons/pi";
 
-import {
-  SiJavascript,
-  SiNextdotjs,
-  SiFigma,
-  SiSupabase,
-} from "react-icons/si";
+import { SiFigma, SiJavascript, SiNextdotjs, SiSupabase } from "react-icons/si";
 
 import {
   FaDiscord,
-  FaGithub,
-  FaLinkedin,
-  FaX,
-  FaThreads,
-  FaXTwitter,
   FaFacebook,
+  FaGithub,
+  FaInfinity,
+  FaLinkedin,
   FaPinterest,
-  FaWhatsapp,
   FaReddit,
   FaTelegram,
-  FaInfinity,
+  FaThreads,
+  FaWhatsapp,
+  FaX,
+  FaXTwitter,
 } from "react-icons/fa6";
 
 export const iconLibrary: Record<string, IconType> = {

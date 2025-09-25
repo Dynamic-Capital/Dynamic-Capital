@@ -1,5 +1,5 @@
 import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { setTestEnv, clearTestEnv } from "./env-mock.ts";
+import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
 async function importBot() {
   // Bust module cache to allow different env per test
@@ -33,7 +33,7 @@ Deno.test("start command includes Mini App button when env present", async () =>
 
   const sendCalls = calls.filter((c) => c.input.includes("/sendMessage"));
   const hasButton = sendCalls.some((c) =>
-    c.body.includes("\"web_app\"") || c.body.includes("\"url\"")
+    c.body.includes('"web_app"') || c.body.includes('"url"')
   );
   assert(hasButton);
 
@@ -70,7 +70,7 @@ Deno.test("start command includes Mini App button when env missing", async () =>
 
   const sendCalls = calls.filter((c) => c.input.includes("/sendMessage"));
   const hasButton = sendCalls.some((c) =>
-    c.body.includes("\"web_app\"") || c.body.includes("\"url\"")
+    c.body.includes('"web_app"') || c.body.includes('"url"')
   );
   assert(hasButton);
 
@@ -79,4 +79,3 @@ Deno.test("start command includes Mini App button when env missing", async () =>
   Deno.env.delete("TELEGRAM_BOT_TOKEN");
   Deno.env.delete("TELEGRAM_BOT_USERNAME");
 });
-

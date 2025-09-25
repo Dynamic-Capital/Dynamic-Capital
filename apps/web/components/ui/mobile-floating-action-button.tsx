@@ -1,8 +1,8 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils";
-import { Plus, MessageCircle, ChevronUp, Phone, Mail } from "lucide-react";
+import { ChevronUp, Mail, MessageCircle, Phone, Plus } from "lucide-react";
 
 interface MobileFloatingActionButtonProps {
   variant?: "add" | "contact" | "chat" | "scroll-top";
@@ -17,27 +17,33 @@ interface MobileFloatingActionButtonProps {
 
 const getDefaultIcon = (variant: string) => {
   switch (variant) {
-    case "add": return <Plus className="h-5 w-5" />;
-    case "contact": return <Phone className="h-5 w-5" />;
-    case "chat": return <MessageCircle className="h-5 w-5" />;
-    case "scroll-top": return <ChevronUp className="h-5 w-5" />;
-    default: return <Plus className="h-5 w-5" />;
+    case "add":
+      return <Plus className="h-5 w-5" />;
+    case "contact":
+      return <Phone className="h-5 w-5" />;
+    case "chat":
+      return <MessageCircle className="h-5 w-5" />;
+    case "scroll-top":
+      return <ChevronUp className="h-5 w-5" />;
+    default:
+      return <Plus className="h-5 w-5" />;
   }
 };
 
 const positionClasses = {
   "bottom-right": "fixed bottom-4 right-4 safe-area-bottom safe-area-right",
-  "bottom-left": "fixed bottom-4 left-4 safe-area-bottom safe-area-left", 
-  "bottom-center": "fixed bottom-4 left-1/2 transform -translate-x-1/2 safe-area-bottom"
+  "bottom-left": "fixed bottom-4 left-4 safe-area-bottom safe-area-left",
+  "bottom-center":
+    "fixed bottom-4 left-1/2 transform -translate-x-1/2 safe-area-bottom",
 };
 
 const sizeClasses = {
   sm: "h-12 w-12",
   default: "h-14 w-14",
-  lg: "h-16 w-16"
+  lg: "h-16 w-16",
 };
 
-export function MobileFloatingActionButton({ 
+export function MobileFloatingActionButton({
   variant = "add",
   position = "bottom-right",
   onClick,
@@ -45,7 +51,7 @@ export function MobileFloatingActionButton({
   children,
   icon,
   pulse = false,
-  size = "default"
+  size = "default",
 }: MobileFloatingActionButtonProps) {
   return (
     <AnimatePresence>
@@ -53,17 +59,17 @@ export function MobileFloatingActionButton({
         className={cn(
           positionClasses[position],
           "z-50 touch-target",
-          className
+          className,
         )}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0, opacity: 0 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        transition={{ 
-          type: "spring", 
-          stiffness: 260, 
-          damping: 20 
+        transition={{
+          type: "spring",
+          stiffness: 260,
+          damping: 20,
         }}
       >
         <Button
@@ -74,7 +80,7 @@ export function MobileFloatingActionButton({
             "bg-primary/90 hover:bg-primary border border-primary/20",
             "text-primary-foreground transition-all duration-300",
             pulse && "animate-pulse",
-            "touch-manipulation"
+            "touch-manipulation",
           )}
           size="icon"
         >
@@ -85,7 +91,7 @@ export function MobileFloatingActionButton({
             {children || icon || getDefaultIcon(variant)}
           </motion.div>
         </Button>
-        
+
         {/* Ripple effect */}
         <motion.div
           className="absolute inset-0 rounded-full bg-primary/20"

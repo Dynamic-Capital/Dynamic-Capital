@@ -7,6 +7,9 @@ interface ProcessSubscriptionBody {
   telegram_id: string;
   plan: Plan;
   tx_hash: string;
+  tx_boc?: string | null;
+  wallet_address: string;
+  ton_amount: number;
 }
 
 interface AppConfigRow {
@@ -23,6 +26,16 @@ interface AppConfigRow {
   dct_master: string;
   dex_router: string;
 }
+
+interface SwapResult {
+  dctAmount: number;
+  swapTxHash: string | null;
+  routerSwapId: string | null;
+}
+
+type VerifyTonPaymentResult =
+  | { ok: true; amountTON: number; payerAddress?: string; blockTime?: string }
+  | { ok: false; error: string };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_KEY");
@@ -41,10 +54,6 @@ if (!appUrl) throw new Error("Missing APP_URL env");
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 type SupabaseClient = typeof supabase;
 
-type VerifyTonPaymentResult =
-  | { ok: true; amountTON: number; payerAddress?: string }
-  | { ok: false; error: string };
-
 const PLAN_PRICES_TON: Record<Plan, number> = {
   vip_bronze: 120,
   vip_silver: 220,
@@ -56,19 +65,19 @@ function normalizeAddress(value: string): string {
   return value.trim().toLowerCase();
 }
 
+function sanitizeRouterUrl(router: string): string {
+  return router.replace(/\/$/, "");
+}
+
 async function verifyTonPayment(
   txHash: string,
   expectedWallet: string,
   expectedAmount: number,
   fetchFn: typeof fetch,
+  indexerUrl: string,
 ): Promise<VerifyTonPaymentResult> {
-  const indexerUrl = Deno.env.get("TON_INDEXER_URL");
-  if (!indexerUrl) {
-    return { ok: true, amountTON: expectedAmount };
-  }
-
   const response = await fetchFn(
-    `${indexerUrl.replace(/\/$/, "")}/transactions/${txHash}`,
+    `${sanitizeRouterUrl(indexerUrl)}/transactions/${txHash}`,
   );
 
   if (!response.ok) {
@@ -114,20 +123,91 @@ async function verifyTonPayment(
     ? payerCandidate
     : undefined;
 
-  return { ok: true, amountTON: amountTon, payerAddress };
+  const blockTime: string | undefined = typeof payload.timestamp === "string"
+    ? payload.timestamp
+    : payload.utime
+    ? new Date(Number(payload.utime) * 1000).toISOString()
+    : undefined;
+
+  return { ok: true, amountTON: amountTon, payerAddress, blockTime };
 }
 
 async function dexBuyDCT(
-  _routerAddr: string,
+  fetchFn: typeof fetch,
+  routerUrl: string,
   tonAmount: number,
-): Promise<{ dctAmount: number }> {
-  console.log("dexBuyDCT placeholder", tonAmount);
-  return { dctAmount: tonAmount * 100 };
+  tag: "auto-invest" | "buyback-burn",
+): Promise<SwapResult> {
+  if (tonAmount <= 0) {
+    return { dctAmount: 0, swapTxHash: null, routerSwapId: null };
+  }
+
+  const response = await fetchFn(`${sanitizeRouterUrl(routerUrl)}/swap`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      fromToken: "TON",
+      toToken: "DCT",
+      amountTon: tonAmount,
+      tag,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`DEX router error ${response.status}`);
+  }
+
+  const payload = await response.json().catch(() => ({} as Record<string, unknown>));
+  const dctAmount = Number(payload.dctAmount ?? payload.amount ?? 0);
+  if (!Number.isFinite(dctAmount) || dctAmount < 0) {
+    throw new Error("Router returned invalid DCT amount");
+  }
+
+  const swapTxHash = typeof payload.swapTxHash === "string"
+    ? payload.swapTxHash
+    : typeof payload.txHash === "string"
+    ? payload.txHash
+    : null;
+
+  const routerSwapId = typeof payload.swapId === "string"
+    ? payload.swapId
+    : typeof payload.id === "string"
+    ? payload.id
+    : swapTxHash;
+
+  return { dctAmount, swapTxHash, routerSwapId: routerSwapId ?? null };
 }
 
-async function burnDCT(_dctMaster: string, amount: number) {
-  console.log("burnDCT placeholder", amount);
-  return true;
+async function burnDCT(
+  fetchFn: typeof fetch,
+  amount: number,
+  context: { dctMaster: string; tonTxHash: string; swapTxHash?: string | null },
+): Promise<string | null> {
+  if (amount <= 0) return null;
+
+  const webhook = Deno.env.get("BURN_WEBHOOK_URL");
+  if (!webhook) return null;
+
+  const response = await fetchFn(webhook, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      amount,
+      dctMaster: context.dctMaster,
+      tonTxHash: context.tonTxHash,
+      swapTxHash: context.swapTxHash ?? null,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Burn webhook error ${response.status}`);
+  }
+
+  const payload = await response.json().catch(() => ({} as Record<string, unknown>));
+  const burnHash = payload.burnTxHash ?? payload.txHash ?? null;
+  return typeof burnHash === "string" && burnHash.trim().length > 0
+    ? burnHash
+    : null;
 }
 
 async function notifyUser(fetchFn: typeof fetch, text: string) {
@@ -185,11 +265,21 @@ export async function handler(
   deps: Dependencies = defaultDeps,
 ): Promise<Response> {
   try {
-    const { telegram_id, plan, tx_hash } =
-      (await req.json()) as ProcessSubscriptionBody;
+    const {
+      telegram_id,
+      plan,
+      tx_hash,
+      tx_boc,
+      wallet_address,
+      ton_amount,
+    } = (await req.json()) as ProcessSubscriptionBody;
 
-    if (!telegram_id || !plan || !tx_hash) {
+    if (!telegram_id || !plan || !tx_hash || !wallet_address) {
       return new Response("Missing fields", { status: 400 });
+    }
+
+    if (typeof ton_amount !== "number" || !Number.isFinite(ton_amount) || ton_amount <= 0) {
+      return new Response("Invalid TON amount", { status: 400 });
     }
 
     const { data: cfg, error: cfgError } = await deps.supabase
@@ -228,11 +318,22 @@ export async function handler(
       throw new Error(`Unsupported plan ${plan}`);
     }
 
+    if (ton_amount + 1e-6 < expectedAmount) {
+      return new Response("TON amount below plan price", { status: 400 });
+    }
+
+    const indexerUrl = Deno.env.get("TON_INDEXER_URL");
+    if (!indexerUrl) {
+      console.error("TON_INDEXER_URL is not configured");
+      return new Response("TON indexer unavailable", { status: 500 });
+    }
+
     const verify = await verifyTonPayment(
       tx_hash,
       config.ops_treasury,
       expectedAmount,
       deps.fetch,
+      indexerUrl,
     );
 
     if (!verify.ok) {
@@ -241,17 +342,26 @@ export async function handler(
     }
 
     const tonPaid = verify.amountTON;
+    if (tonPaid + 1e-6 < ton_amount) {
+      return new Response("Verified TON amount below declared value", {
+        status: 400,
+      });
+    }
+
     const opsTON = (tonPaid * config.operations_pct) / 100;
     const buyTON = (tonPaid * config.autoinvest_pct) / 100;
     const burnTON = (tonPaid * config.buyback_burn_pct) / 100;
 
-    const [{ dctAmount: dctForUser }, { dctAmount: dctForBurn }] = await Promise
-      .all([
-        dexBuyDCT(config.dex_router, buyTON),
-        dexBuyDCT(config.dex_router, burnTON),
-      ]);
+    const [autoSwap, burnSwap] = await Promise.all([
+      dexBuyDCT(deps.fetch, config.dex_router, buyTON, "auto-invest"),
+      dexBuyDCT(deps.fetch, config.dex_router, burnTON, "buyback-burn"),
+    ]);
 
-    await burnDCT(config.dct_master, dctForBurn);
+    const burnTxHash = await burnDCT(deps.fetch, burnSwap.dctAmount, {
+      dctMaster: config.dct_master,
+      tonTxHash: tx_hash,
+      swapTxHash: burnSwap.swapTxHash,
+    });
 
     const { data: userRow, error: userError } = await deps.supabase
       .from("users")
@@ -272,8 +382,8 @@ export async function handler(
         plan,
         ton_paid: tonPaid,
         tx_hash,
-        dct_bought: dctForUser,
-        dct_burned: dctForBurn,
+        dct_bought: autoSwap.dctAmount + burnSwap.dctAmount,
+        dct_burned: burnSwap.dctAmount,
         ops_ton: opsTON,
         status: "completed",
       })
@@ -292,7 +402,7 @@ export async function handler(
 
     const { error: stakeError } = await deps.supabase.from("stakes").insert({
       user_id: user.id,
-      dct_amount: dctForUser,
+      dct_amount: autoSwap.dctAmount,
       lock_until: lockUntil.toISOString(),
       weight,
     });
@@ -306,24 +416,39 @@ export async function handler(
         kind: "ops_transfer",
         ref_id: subscriptionId,
         amount: opsTON,
-        meta: { to: config.ops_treasury, unit: "TON" },
+        meta: {
+          to: config.ops_treasury,
+          unit: "TON",
+          payer: verify.payerAddress ?? wallet_address,
+          tonTxHash: tx_hash,
+        },
       },
       {
         kind: "buyback",
         ref_id: subscriptionId,
         amount: buyTON,
-        meta: { unit: "TON", dctOut: dctForUser },
+        meta: {
+          unit: "TON",
+          dctOut: autoSwap.dctAmount,
+          swapTxHash: autoSwap.swapTxHash,
+          routerSwapId: autoSwap.routerSwapId,
+        },
       },
       {
         kind: "burn",
         ref_id: subscriptionId,
-        amount: dctForBurn,
-        meta: { unit: "DCT" },
+        amount: burnSwap.dctAmount,
+        meta: {
+          unit: "DCT",
+          swapTxHash: burnSwap.swapTxHash,
+          routerSwapId: burnSwap.routerSwapId,
+          burnTxHash,
+        },
       },
       {
         kind: "stake_credit",
         ref_id: subscriptionId,
-        amount: dctForUser,
+        amount: autoSwap.dctAmount,
         meta: { unit: "DCT", weight },
       },
     ]);
@@ -334,13 +459,32 @@ export async function handler(
 
     await notifyUser(
       deps.fetch,
-      `✅ *Subscription processed*\n\n• Plan: *${plan}*\n• Paid: *${tonPaid} TON*\n• Auto-invest: *${dctForUser} DCT*\n• Burned: *${dctForBurn} DCT*\n\n👉 Open Mini App: ${appUrl}`,
+      `✅ *Subscription processed*\n\n• Plan: *${plan}*\n• Paid: *${tonPaid} TON*\n• Auto-invest: *${autoSwap.dctAmount} DCT*\n• Burned: *${burnSwap.dctAmount} DCT*\n\n👉 Open Mini App: ${appUrl}`,
     );
 
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        data: {
+          subscriptionId,
+          tonPaid,
+          tonDeclared: ton_amount,
+          payerWallet: verify.payerAddress ?? wallet_address,
+          swaps: {
+            autoInvest: autoSwap,
+            burn: { ...burnSwap, burnTxHash },
+          },
+          burnTxHash,
+          verifiedAt: verify.blockTime ?? new Date().toISOString(),
+          receivedAt: new Date().toISOString(),
+          txBoc: tx_boc ?? null,
+        },
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error(error);
     const message = error instanceof Error ? error.message : "Unknown error";

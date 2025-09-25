@@ -43,7 +43,8 @@ export function WelcomeView({
         <Alert className="border-orange-200 bg-orange-50">
           <AlertTriangle className="h-4 w-4 text-orange-600" />
           <AlertDescription>
-            Bot appears to be offline. Please ensure TELEGRAM_WEBHOOK_SECRET is configured in your Supabase secrets.
+            Bot appears to be offline. Please ensure TELEGRAM_WEBHOOK_SECRET is
+            configured in your Supabase secrets.
           </AlertDescription>
         </Alert>
       )}
@@ -60,7 +61,8 @@ export function WelcomeView({
             Dynamic Capital Bot
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto leading-relaxed">
-            Your premium Telegram bot for subscription management, payments, and customer support with AI-powered assistance
+            Your premium Telegram bot for subscription management, payments, and
+            customer support with AI-powered assistance
           </p>
         </div>
       </div>
@@ -76,22 +78,26 @@ export function WelcomeView({
                 Bot Status
               </p>
               <div className="mt-2">
-                {loading ? (
-                  <Badge
-                    variant="outline"
-                    className="border-muted-foreground/20 text-muted-foreground animate-pulse"
-                  >
-                    Loading...
-                  </Badge>
-                ) : isConnected ? (
-                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 animate-fade-in">
-                    ✅ Online
-                  </Badge>
-                ) : (
-                  <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100 animate-fade-in">
-                    ⚠️ Offline
-                  </Badge>
-                )}
+                {loading
+                  ? (
+                    <Badge
+                      variant="outline"
+                      className="border-muted-foreground/20 text-muted-foreground animate-pulse"
+                    >
+                      Loading...
+                    </Badge>
+                  )
+                  : isConnected
+                  ? (
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 animate-fade-in">
+                      ✅ Online
+                    </Badge>
+                  )
+                  : (
+                    <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100 animate-fade-in">
+                      ⚠️ Offline
+                    </Badge>
+                  )}
               </div>
             </div>
           </div>
@@ -107,11 +113,13 @@ export function WelcomeView({
                 Total Users
               </p>
               <p className="text-3xl font-bold text-foreground mt-1">
-                {loading ? (
-                  <span className="animate-pulse">...</span>
-                ) : (
-                  <span className="animate-fade-in">{stats.totalUsers.toLocaleString()}</span>
-                )}
+                {loading
+                  ? <span className="animate-pulse">...</span>
+                  : (
+                    <span className="animate-fade-in">
+                      {stats.totalUsers.toLocaleString()}
+                    </span>
+                  )}
               </p>
             </div>
           </div>
@@ -127,11 +135,13 @@ export function WelcomeView({
                 VIP Members
               </p>
               <p className="text-3xl font-bold text-foreground mt-1">
-                {loading ? (
-                  <span className="animate-pulse">...</span>
-                ) : (
-                  <span className="animate-fade-in">{stats.vipMembers.toLocaleString()}</span>
-                )}
+                {loading
+                  ? <span className="animate-pulse">...</span>
+                  : (
+                    <span className="animate-fade-in">
+                      {stats.vipMembers.toLocaleString()}
+                    </span>
+                  )}
               </p>
             </div>
           </div>
@@ -147,11 +157,13 @@ export function WelcomeView({
                 Total Revenue
               </p>
               <p className="text-3xl font-bold text-foreground mt-1">
-                {loading ? (
-                  <span className="animate-pulse">...</span>
-                ) : (
-                  <span className="animate-fade-in">${stats.totalRevenue.toLocaleString()}</span>
-                )}
+                {loading
+                  ? <span className="animate-pulse">...</span>
+                  : (
+                    <span className="animate-fade-in">
+                      ${stats.totalRevenue.toLocaleString()}
+                    </span>
+                  )}
               </p>
             </div>
           </div>
@@ -175,7 +187,8 @@ export function WelcomeView({
                 Subscription Packages
               </h3>
               <p className="text-muted-foreground leading-relaxed">
-                Manage VIP subscription plans, pricing, and features for your users with advanced analytics
+                Manage VIP subscription plans, pricing, and features for your
+                users with advanced analytics
               </p>
             </div>
           </div>
@@ -224,7 +237,9 @@ export function WelcomeView({
               <BarChart3 className="w-8 h-8 text-red-500" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold mb-2">Analytics & Reports</h3>
+              <h3 className="text-xl font-semibold mb-2">
+                Analytics & Reports
+              </h3>
               <p className="text-muted-foreground">
                 View detailed statistics, user engagement, and revenue reports
               </p>
@@ -284,15 +299,30 @@ export function WelcomeView({
       <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
         <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => window.open("/admin", "_blank")}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => window.open("/admin", "_blank")}
+          >
             <FileText className="w-4 h-4" />
             View Admin Panel
           </Button>
-          <Button variant="outline" size="sm" className="gap-2" onClick={onCheckStatus}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={onCheckStatus}
+          >
             <Shield className="w-4 h-4" />
             Check Bot Status
           </Button>
-          <Button variant="outline" size="sm" className="gap-2" onClick={onRefreshStats}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={onRefreshStats}
+          >
             <Activity className="w-4 h-4" />
             Refresh Stats
           </Button>

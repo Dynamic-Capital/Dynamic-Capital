@@ -1,4 +1,4 @@
-declare module '@sentry/nextjs' {
+declare module "@sentry/nextjs" {
   export interface InitOptions {
     [key: string]: unknown;
   }

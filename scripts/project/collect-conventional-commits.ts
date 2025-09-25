@@ -1,6 +1,6 @@
-import { execSync } from 'node:child_process';
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { execSync } from "node:child_process";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 interface CommitRecord {
   hash: string;
@@ -28,9 +28,9 @@ interface OutputPayload {
 }
 
 function runGit(args: string[]): string {
-  return execSync(`git ${args.join(' ')}`, {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
+  return execSync(`git ${args.join(" ")}`, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
   }).trim();
 }
 
@@ -46,8 +46,8 @@ function parseArgs(argv: string[]): Record<string, string | boolean> {
   const result: Record<string, string | boolean> = {};
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (!arg.startsWith('--')) continue;
-    const [key, value] = arg.slice(2).split('=');
+    if (!arg.startsWith("--")) continue;
+    const [key, value] = arg.slice(2).split("=");
     if (value === undefined) {
       result[key] = true;
     } else {
@@ -65,7 +65,7 @@ function extractMetadata(summary: string): {
   issues: number[];
 } {
   const match = summary.match(/^(\w+)(?:\(([^)]+)\))?(!)?:\s*(.+)$/);
-  let type = 'chore';
+  let type = "chore";
   let scope: string | undefined;
   let breaking = false;
   let cleanSummary = summary;
@@ -76,7 +76,9 @@ function extractMetadata(summary: string): {
     cleanSummary = match[4];
   }
 
-  const issues = Array.from(cleanSummary.matchAll(/#(\d+)/g)).map((value) => Number.parseInt(value[1], 10));
+  const issues = Array.from(cleanSummary.matchAll(/#(\d+)/g)).map((value) =>
+    Number.parseInt(value[1], 10)
+  );
   const prMatch = cleanSummary.match(/\(#(\d+)\)/);
   const prNumber = prMatch ? Number.parseInt(prMatch[1], 10) : undefined;
 
@@ -86,19 +88,28 @@ function extractMetadata(summary: string): {
 async function main(): Promise<void> {
   const args = parseArgs(process.argv);
   const cwd = process.cwd();
-  const cacheDir = join(cwd, '.project-cache');
+  const cacheDir = join(cwd, ".project-cache");
   if (!existsSync(cacheDir)) {
     mkdirSync(cacheDir, { recursive: true });
   }
 
-  const explicitFrom = typeof args.from === 'string' ? (args.from as string) : undefined;
-  const explicitTo = typeof args.to === 'string' ? (args.to as string) : undefined;
+  const explicitFrom = typeof args.from === "string"
+    ? (args.from as string)
+    : undefined;
+  const explicitTo = typeof args.to === "string"
+    ? (args.to as string)
+    : undefined;
 
-  const lastTag = explicitFrom ?? safeGit(['describe', '--tags', '--abbrev=0']);
-  const toRef = explicitTo ?? 'HEAD';
+  const lastTag = explicitFrom ?? safeGit(["describe", "--tags", "--abbrev=0"]);
+  const toRef = explicitTo ?? "HEAD";
   const range = lastTag ? `${lastTag}..${toRef}` : toRef;
 
-  const rawLog = safeGit(['log', range, '--pretty=format:%H%x1f%an%x1f%ad%x1f%s%x1e', '--date=short']);
+  const rawLog = safeGit([
+    "log",
+    range,
+    "--pretty=format:%H%x1f%an%x1f%ad%x1f%s%x1e",
+    "--date=short",
+  ]);
   if (!rawLog) {
     const emptyPayload: OutputPayload = {
       fromTag: lastTag,
@@ -107,17 +118,20 @@ async function main(): Promise<void> {
       groups: [],
       commits: [],
     };
-    writeFileSync(join(cacheDir, 'commits.json'), JSON.stringify(emptyPayload, null, 2));
+    writeFileSync(
+      join(cacheDir, "commits.json"),
+      JSON.stringify(emptyPayload, null, 2),
+    );
     return;
   }
 
   const entries = rawLog
-    .split('\u001e')
+    .split("\u001e")
     .map((line) => line.trim())
     .filter(Boolean);
 
   const commits: CommitRecord[] = entries.map((entry) => {
-    const [hash, author, date, summary] = entry.split('\u001f');
+    const [hash, author, date, summary] = entry.split("\u001f");
     const metadata = extractMetadata(summary);
     return {
       hash,
@@ -150,11 +164,14 @@ async function main(): Promise<void> {
     commits,
   };
 
-  writeFileSync(join(cacheDir, 'commits.json'), JSON.stringify(payload, null, 2));
+  writeFileSync(
+    join(cacheDir, "commits.json"),
+    JSON.stringify(payload, null, 2),
+  );
 }
 
 main().catch((error) => {
-  console.error('[collect-conventional-commits] Failed to collect commits');
+  console.error("[collect-conventional-commits] Failed to collect commits");
   console.error(error);
   process.exitCode = 1;
 });

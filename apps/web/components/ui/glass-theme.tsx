@@ -11,9 +11,9 @@ interface GlassElementProps {
 
 const blurVariants = {
   sm: "backdrop-blur-sm",
-  md: "backdrop-blur-md", 
+  md: "backdrop-blur-md",
   lg: "backdrop-blur-lg",
-  xl: "backdrop-blur-xl"
+  xl: "backdrop-blur-xl",
 };
 
 const opacityVariants = {
@@ -29,22 +29,22 @@ const borderVariants = {
   accent: "border-accent/20",
 };
 
-export function GlassCard({ 
-  children, 
-  className, 
+export function GlassCard({
+  children,
+  className,
   variant = "light",
   blur = "md",
-  opacity = "medium" 
+  opacity = "medium",
 }: GlassElementProps) {
   return (
-    <div 
+    <div
       className={cn(
         "rounded-xl border transition-all duration-300",
         blurVariants[blur],
         opacityVariants[opacity],
         borderVariants[variant],
         "shadow-lg hover:shadow-xl",
-        className
+        className,
       )}
     >
       {children}
@@ -52,16 +52,16 @@ export function GlassCard({
   );
 }
 
-export function GlassButton({ 
-  children, 
-  className, 
+export function GlassButton({
+  children,
+  className,
   variant = "light",
   blur = "md",
   opacity = "medium",
-  ...props 
+  ...props
 }: GlassElementProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button 
+    <button
       className={cn(
         "px-4 py-2 rounded-lg border transition-all duration-300",
         "hover:scale-105 active:scale-95",
@@ -70,7 +70,7 @@ export function GlassButton({
         opacityVariants[opacity],
         borderVariants[variant],
         "shadow-sm hover:shadow-md",
-        className
+        className,
       )}
       {...props}
     >
@@ -79,21 +79,21 @@ export function GlassButton({
   );
 }
 
-export function GlassNav({ 
-  children, 
-  className, 
+export function GlassNav({
+  children,
+  className,
   variant = "light",
   blur = "xl",
-  opacity = "medium" 
+  opacity = "medium",
 }: GlassElementProps) {
   return (
-    <nav 
+    <nav
       className={cn(
         "sticky top-0 z-50 border-b transition-all duration-300",
         blurVariants[blur],
         opacityVariants[opacity],
         borderVariants[variant],
-        className
+        className,
       )}
     >
       {children}

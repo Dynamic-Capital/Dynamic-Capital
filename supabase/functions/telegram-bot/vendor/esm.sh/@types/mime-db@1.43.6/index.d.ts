@@ -1,35 +1,35 @@
 declare namespace database {
+  /**
+   * @see {@link https://github.com/jshttp/mime-db#data-structure}
+   */
+  interface MimeEntry {
     /**
-     * @see {@link https://github.com/jshttp/mime-db#data-structure}
+     * Where the mime type is defined.
+     * If not set, it's probably a custom media type.
      */
-    interface MimeEntry {
-        /**
-         * Where the mime type is defined.
-         * If not set, it's probably a custom media type.
-         */
-        readonly source?: MimeSource | undefined;
-        /** Known extensions associated with this mime type. */
-        readonly extensions?: readonly string[] | undefined;
-        /** Whether a file of this type can be gzipped. */
-        readonly compressible?: boolean | undefined;
-        /** The default charset associated with this type, if any. */
-        readonly charset?: string | undefined;
-    }
+    readonly source?: MimeSource | undefined;
+    /** Known extensions associated with this mime type. */
+    readonly extensions?: readonly string[] | undefined;
+    /** Whether a file of this type can be gzipped. */
+    readonly compressible?: boolean | undefined;
+    /** The default charset associated with this type, if any. */
+    readonly charset?: string | undefined;
+  }
 
-    /**
-     * @see {@link https://github.com/jshttp/mime-db#data-structure}
-     */
-    interface MimeDatabase {
-        readonly [type: string]: MimeEntry;
-    }
+  /**
+   * @see {@link https://github.com/jshttp/mime-db#data-structure}
+   */
+  interface MimeDatabase {
+    readonly [type: string]: MimeEntry;
+  }
 
-    /**
-     * Sources:
-     * http://www.iana.org/assignments/media-types/media-types.xhtml
-     * http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
-     * http://hg.nginx.org/nginx/raw-file/default/conf/mime.types
-     */
-    type MimeSource = "iana" | "apache" | "nginx";
+  /**
+   * Sources:
+   * http://www.iana.org/assignments/media-types/media-types.xhtml
+   * http://svn.apache.org/repos/asf/httpd/httpd/trunk/docs/conf/mime.types
+   * http://hg.nginx.org/nginx/raw-file/default/conf/mime.types
+   */
+  type MimeSource = "iana" | "apache" | "nginx";
 }
 
 declare const database: database.MimeDatabase;

@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import React from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 
 interface ThreeDEmoticonProps {
   emoji: string;
@@ -18,13 +18,17 @@ export const ThreeDEmoticon: React.FC<ThreeDEmoticonProps> = ({
   intensity = 0.3,
   className = "",
   onClick,
-  animate = true
+  animate = true,
 }) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(y, [-100, 100], [intensity * 30, -intensity * 30]));
-  const rotateY = useSpring(useTransform(x, [-100, 100], [-intensity * 30, intensity * 30]));
+  const rotateX = useSpring(
+    useTransform(y, [-100, 100], [intensity * 30, -intensity * 30]),
+  );
+  const rotateY = useSpring(
+    useTransform(x, [-100, 100], [-intensity * 30, intensity * 30]),
+  );
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -46,32 +50,34 @@ export const ThreeDEmoticon: React.FC<ThreeDEmoticonProps> = ({
         fontSize: `${size}px`,
         rotateX,
         rotateY,
-        transformStyle: "preserve-3d"
+        transformStyle: "preserve-3d",
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
       whileHover={{ scale: 1.1, z: 50 }}
       whileTap={{ scale: 0.95 }}
-      animate={animate ? {
-        rotateY: [0, 10, -10, 0],
-        rotateX: [0, 5, -5, 0]
-      } : undefined}
+      animate={animate
+        ? {
+          rotateY: [0, 10, -10, 0],
+          rotateX: [0, 5, -5, 0],
+        }
+        : undefined}
       transition={{
         duration: 4,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "easeInOut",
       }}
     >
       <motion.div
         initial={{
-          filter: "drop-shadow(0 5px 10px rgba(0,0,0,0.1))"
+          filter: "drop-shadow(0 5px 10px rgba(0,0,0,0.1))",
         }}
         style={{
-          filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.2))"
+          filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.2))",
         }}
         whileHover={{
-          filter: "drop-shadow(0 15px 30px rgba(0,0,0,0.3))"
+          filter: "drop-shadow(0 15px 30px rgba(0,0,0,0.3))",
         }}
         transition={{ duration: 0.3 }}
       >
@@ -92,31 +98,31 @@ export const FloatingEmoticon: React.FC<FloatingEmoticonProps> = ({
   emoji,
   delay = 0,
   duration = 6,
-  className = ""
+  className = "",
 }) => {
   return (
     <motion.div
       className={`absolute pointer-events-none select-none ${className}`}
       initial={{ opacity: 0, scale: 0, y: 100 }}
-      animate={{ 
+      animate={{
         opacity: [0, 1, 1, 0],
         scale: [0, 1.2, 1, 0],
         y: [-100, -200, -300, -400],
         x: [0, 20, -20, 0],
-        rotate: [0, 180, 360]
+        rotate: [0, 180, 360],
       }}
       transition={{
         duration,
         delay,
         ease: "easeOut",
         repeat: Infinity,
-        repeatDelay: Math.random() * 5 + 3
+        repeatDelay: Math.random() * 5 + 3,
       }}
       style={{
-        fontSize: '24px',
+        fontSize: "24px",
         left: `${Math.random() * 100}%`,
-        bottom: '0%',
-        zIndex: 1
+        bottom: "0%",
+        zIndex: 1,
       }}
     >
       {emoji}
@@ -133,7 +139,7 @@ interface EmoticonRainProps {
 export const EmoticonRain: React.FC<EmoticonRainProps> = ({
   emojis,
   count = 10,
-  active = true
+  active = true,
 }) => {
   if (!active) return null;
 
@@ -152,20 +158,20 @@ export const EmoticonRain: React.FC<EmoticonRainProps> = ({
 };
 
 interface TradingEmoticonSetProps {
-  variant: 'success' | 'profit' | 'celebration' | 'focus' | 'vip';
+  variant: "success" | "profit" | "celebration" | "focus" | "vip";
   className?: string;
 }
 
 export const TradingEmoticonSet: React.FC<TradingEmoticonSetProps> = ({
   variant,
-  className = ""
+  className = "",
 }) => {
   const emojiSets = {
-    success: ['📈', '💰', '🚀', '⭐', '🏆'],
-    profit: ['💎', '💵', '📊', '🔥', '⚡'],
-    celebration: ['🎉', '🥳', '🍾', '🎊', '🎁'],
-    focus: ['🎯', '🧠', '⚡', '🔍', '💡'],
-    vip: ['👑', '💎', '⭐', '🏆', '🌟']
+    success: ["📈", "💰", "🚀", "⭐", "🏆"],
+    profit: ["💎", "💵", "📊", "🔥", "⚡"],
+    celebration: ["🎉", "🥳", "🍾", "🎊", "🎁"],
+    focus: ["🎯", "🧠", "⚡", "🔍", "💡"],
+    vip: ["👑", "💎", "⭐", "🏆", "🌟"],
   };
 
   const emojis = emojiSets[variant];

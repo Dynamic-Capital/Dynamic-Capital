@@ -16,4 +16,3 @@ export async function askChatGPT(prompt: string): Promise<string | null> {
     return null;
   }
 }
-

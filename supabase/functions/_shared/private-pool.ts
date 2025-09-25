@@ -1,10 +1,18 @@
-import { createClient, createSupabaseClient, type SupabaseClient } from "./client.ts";
+import {
+  createClient,
+  createSupabaseClient,
+  type SupabaseClient,
+} from "./client.ts";
 import { getEnv } from "./env.ts";
 import { verifyInitDataAndGetUser } from "./telegram.ts";
 
 export type UserRole = "user" | "admin";
 export type CycleStatus = "active" | "pending_settlement" | "settled";
-export type DepositType = "external" | "reinvestment" | "carryover" | "adjustment";
+export type DepositType =
+  | "external"
+  | "reinvestment"
+  | "carryover"
+  | "adjustment";
 export type WithdrawalStatus = "pending" | "approved" | "denied" | "fulfilled";
 
 export interface Profile {
@@ -208,7 +216,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       .select("id, role, telegram_id, display_name")
       .eq("telegram_id", telegramId)
       .maybeSingle();
-    if (error) throw new Error(`findProfileByTelegramId failed: ${error.message}`);
+    if (error) {
+      throw new Error(`findProfileByTelegramId failed: ${error.message}`);
+    }
     if (!data) return null;
     return {
       id: data.id,
@@ -224,7 +234,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       .select("id, profile_id, status, joined_at")
       .eq("profile_id", profileId)
       .maybeSingle();
-    if (error) throw new Error(`getInvestorByProfileId failed: ${error.message}`);
+    if (error) {
+      throw new Error(`getInvestorByProfileId failed: ${error.message}`);
+    }
     if (!data) return null;
     return {
       id: data.id,
@@ -336,7 +348,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
         notes: entry.notes ?? null,
         created_at: entry.created_at,
       })
-      .select("id, investor_id, cycle_id, amount_usdt, deposit_type, tx_hash, notes, created_at")
+      .select(
+        "id, investor_id, cycle_id, amount_usdt, deposit_type, tx_hash, notes, created_at",
+      )
       .single();
     if (error) throw new Error(`insertDeposit failed: ${error.message}`);
     return this.mapDeposit(data!);
@@ -345,7 +359,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
   async listDepositsByCycle(cycleId: string): Promise<InvestorDeposit[]> {
     const { data, error } = await this.client
       .from("investor_deposits")
-      .select("id, investor_id, cycle_id, amount_usdt, deposit_type, tx_hash, notes, created_at")
+      .select(
+        "id, investor_id, cycle_id, amount_usdt, deposit_type, tx_hash, notes, created_at",
+      )
       .eq("cycle_id", cycleId);
     if (error) throw new Error(`listDepositsByCycle failed: ${error.message}`);
     return (data ?? []).map((row) => this.mapDeposit(row));
@@ -363,7 +379,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       .eq("cycle_id", cycleId);
     const builder = statuses.length > 0 ? query.in("status", statuses) : query;
     const { data, error } = await builder;
-    if (error) throw new Error(`listWithdrawalsByCycle failed: ${error.message}`);
+    if (error) {
+      throw new Error(`listWithdrawalsByCycle failed: ${error.message}`);
+    }
     return (data ?? []).map((row) => this.mapWithdrawal(row));
   }
 
@@ -383,7 +401,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
   async listShares(cycleId: string): Promise<InvestorShare[]> {
     const { data, error } = await this.client
       .from("investor_shares")
-      .select("investor_id, cycle_id, share_percentage, contribution_usdt, updated_at")
+      .select(
+        "investor_id, cycle_id, share_percentage, contribution_usdt, updated_at",
+      )
       .eq("cycle_id", cycleId);
     if (error) throw new Error(`listShares failed: ${error.message}`);
     return (data ?? []).map((row) => ({
@@ -456,7 +476,9 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
     return data ? this.mapWithdrawal(data) : null;
   }
 
-  async listInvestorContacts(investorIds: string[]): Promise<InvestorContact[]> {
+  async listInvestorContacts(
+    investorIds: string[],
+  ): Promise<InvestorContact[]> {
     if (investorIds.length === 0) return [];
     const { data, error } = await this.client
       .from("investors")
@@ -507,10 +529,12 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
       investor_id: row.investor_id,
       cycle_id: row.cycle_id,
       amount_usdt: asNumber(row.amount_usdt),
-      net_amount_usdt: row.net_amount_usdt !== null && row.net_amount_usdt !== undefined
-        ? asNumber(row.net_amount_usdt)
-        : null,
-      reinvested_amount_usdt: row.reinvested_amount_usdt !== null && row.reinvested_amount_usdt !== undefined
+      net_amount_usdt:
+        row.net_amount_usdt !== null && row.net_amount_usdt !== undefined
+          ? asNumber(row.net_amount_usdt)
+          : null,
+      reinvested_amount_usdt: row.reinvested_amount_usdt !== null &&
+          row.reinvested_amount_usdt !== undefined
         ? asNumber(row.reinvested_amount_usdt)
         : null,
       status: row.status,
@@ -531,11 +555,19 @@ export function roundCurrency(value: number, decimals = 2): number {
   return Math.round(value * factor) / factor;
 }
 
-export function getCycleMonthYear(date: Date): { cycle_month: number; cycle_year: number } {
-  return { cycle_month: date.getUTCMonth() + 1, cycle_year: date.getUTCFullYear() };
+export function getCycleMonthYear(
+  date: Date,
+): { cycle_month: number; cycle_year: number } {
+  return {
+    cycle_month: date.getUTCMonth() + 1,
+    cycle_year: date.getUTCFullYear(),
+  };
 }
 
-export function getNextCycle(month: number, year: number): { cycle_month: number; cycle_year: number } {
+export function getNextCycle(
+  month: number,
+  year: number,
+): { cycle_month: number; cycle_year: number } {
   if (month === 12) return { cycle_month: 1, cycle_year: year + 1 };
   return { cycle_month: month + 1, cycle_year: year };
 }
@@ -557,7 +589,12 @@ export async function ensureActiveCycle(
   const active = await store.getActiveCycle();
   if (active) return active;
   const { cycle_month, cycle_year } = getCycleMonthYear(now);
-  return await store.createCycle({ cycle_month, cycle_year, status: "active", opened_at: now.toISOString() });
+  return await store.createCycle({
+    cycle_month,
+    cycle_year,
+    status: "active",
+    opened_at: now.toISOString(),
+  });
 }
 
 export interface ShareComputationResult {
@@ -577,7 +614,10 @@ export async function recomputeShares(
     const prev = contributions.get(deposit.investor_id) ?? 0;
     contributions.set(deposit.investor_id, prev + deposit.amount_usdt);
   }
-  const withdrawals = await store.listWithdrawalsByCycle(cycleId, ["approved", "fulfilled"]);
+  const withdrawals = await store.listWithdrawalsByCycle(cycleId, [
+    "approved",
+    "fulfilled",
+  ]);
   for (const withdrawal of withdrawals) {
     const net = withdrawal.net_amount_usdt ?? 0;
     if (net <= 0) continue;
@@ -590,11 +630,16 @@ export async function recomputeShares(
     ...contributions.keys(),
     ...existingShares.map((s) => s.investor_id),
   ]);
-  const totalContribution = Array.from(contributions.values()).reduce((acc, val) => acc + val, 0);
+  const totalContribution = Array.from(contributions.values()).reduce(
+    (acc, val) => acc + val,
+    0,
+  );
   const records: InvestorShare[] = [];
   for (const investorId of allInvestorIds) {
     const contribution = contributions.get(investorId) ?? 0;
-    const share = totalContribution > 0 ? (contribution / totalContribution) * 100 : 0;
+    const share = totalContribution > 0
+      ? (contribution / totalContribution) * 100
+      : 0;
     records.push({
       investor_id: investorId,
       cycle_id: cycleId,
@@ -604,7 +649,11 @@ export async function recomputeShares(
     });
   }
   if (records.length > 0) await store.upsertShares(records);
-  return { totalContribution: roundCurrency(totalContribution), contributions, records };
+  return {
+    totalContribution: roundCurrency(totalContribution),
+    contributions,
+    records,
+  };
 }
 
 export interface AuthContext {
@@ -621,7 +670,11 @@ export type ResolveProfileFn = (
 type AuthClient = {
   auth: {
     getUser: () => Promise<{
-      data: { user: { id: string; user_metadata?: { telegram_id?: string | null } } | null };
+      data: {
+        user:
+          | { id: string; user_metadata?: { telegram_id?: string | null } }
+          | null;
+      };
       error: { message?: string } | null;
     }>;
   };
@@ -646,10 +699,11 @@ export function createDefaultResolveProfileFn(
   options: ResolveProfileOptions = {},
 ): ResolveProfileFn {
   const getAuthClient = options.getAuthClient ?? defaultGetAuthClient;
-  const verifyInitData = options.verifyInitData ?? (async (initData: string) => {
-    const user = await verifyInitDataAndGetUser(initData);
-    return user ? { id: user.id } : null;
-  });
+  const verifyInitData = options.verifyInitData ??
+    (async (initData: string) => {
+      const user = await verifyInitDataAndGetUser(initData);
+      return user ? { id: user.id } : null;
+    });
   return async (req, body, store) => {
     const authHeader = req.headers.get("Authorization");
     if (authHeader) {
@@ -663,7 +717,8 @@ export function createDefaultResolveProfileFn(
           if (profile) {
             return {
               profileId: profile.id,
-              telegramId: profile.telegram_id ?? user.user_metadata?.telegram_id ?? null,
+              telegramId: profile.telegram_id ??
+                user.user_metadata?.telegram_id ?? null,
             };
           }
         }
@@ -671,17 +726,22 @@ export function createDefaultResolveProfileFn(
         console.error("resolveProfile auth error", err);
       }
     }
-    const initData =
-      typeof body === "object" && body !== null && "initData" in (body as Record<string, unknown>)
-        ? String((body as Record<string, unknown>).initData ?? "")
-        : null;
+    const initData = typeof body === "object" && body !== null &&
+        "initData" in (body as Record<string, unknown>)
+      ? String((body as Record<string, unknown>).initData ?? "")
+      : null;
     if (initData) {
       try {
         const telegramUser = await verifyInitData(initData);
         if (telegramUser) {
-          const profile = await store.findProfileByTelegramId(String(telegramUser.id));
+          const profile = await store.findProfileByTelegramId(
+            String(telegramUser.id),
+          );
           if (profile) {
-            return { profileId: profile.id, telegramId: profile.telegram_id ?? String(telegramUser.id) };
+            return {
+              profileId: profile.id,
+              telegramId: profile.telegram_id ?? String(telegramUser.id),
+            };
           }
         }
       } catch (err) {
@@ -692,7 +752,10 @@ export function createDefaultResolveProfileFn(
   };
 }
 
-export async function requireAdmin(store: PrivatePoolStore, profileId: string): Promise<boolean> {
+export async function requireAdmin(
+  store: PrivatePoolStore,
+  profileId: string,
+): Promise<boolean> {
   const profile = await store.findProfileById(profileId);
   return profile?.role === "admin";
 }

@@ -6,7 +6,12 @@ import { registerHandler } from "../_shared/serve.ts";
 export const handler = registerHandler(async (req) => {
   if (req.method !== "POST") return mna();
 
-  let body: { initData?: string; txid?: string; amount?: number; currency?: string };
+  let body: {
+    initData?: string;
+    txid?: string;
+    amount?: number;
+    currency?: string;
+  };
   try {
     body = await req.json();
   } catch {

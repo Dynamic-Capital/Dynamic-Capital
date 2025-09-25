@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 
 interface ScrollRevealProps {
@@ -10,11 +10,11 @@ interface ScrollRevealProps {
   className?: string;
 }
 
-export function ScrollReveal({ 
-  children, 
-  direction = "up", 
+export function ScrollReveal({
+  children,
+  direction = "up",
   delay = 0,
-  className 
+  className,
 }: ScrollRevealProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -24,7 +24,7 @@ export function ScrollReveal({
     up: { y: 40 },
     down: { y: -40 },
     left: { x: 40 },
-    right: { x: -40 }
+    right: { x: -40 },
   };
 
   if (shouldReduceMotion) {
@@ -34,19 +34,21 @@ export function ScrollReveal({
   return (
     <motion.div
       ref={ref}
-      initial={{ 
-        opacity: 0, 
-        ...directionOffsets[direction]
+      initial={{
+        opacity: 0,
+        ...directionOffsets[direction],
       }}
-      animate={isInView ? {
-        opacity: 1,
-        x: 0,
-        y: 0
-      } : {}}
+      animate={isInView
+        ? {
+          opacity: 1,
+          x: 0,
+          y: 0,
+        }
+        : {}}
       transition={{
         duration: 0.6,
         delay,
-        ease: [0.21, 1.11, 0.81, 0.99]
+        ease: [0.21, 1.11, 0.81, 0.99],
       }}
       className={className}
     >
@@ -61,10 +63,10 @@ interface StaggerChildrenProps {
   className?: string;
 }
 
-export function StaggerChildren({ 
-  children, 
+export function StaggerChildren({
+  children,
   stagger = 0.1,
-  className 
+  className,
 }: StaggerChildrenProps) {
   const shouldReduceMotion = useReducedMotion();
 
@@ -80,9 +82,9 @@ export function StaggerChildren({
       variants={{
         visible: {
           transition: {
-            staggerChildren: stagger
-          }
-        }
+            staggerChildren: stagger,
+          },
+        },
       }}
       className={className}
     >
@@ -90,7 +92,7 @@ export function StaggerChildren({
         <motion.div
           variants={{
             hidden: { opacity: 0, y: 20 },
-            visible: { opacity: 1, y: 0 }
+            visible: { opacity: 1, y: 0 },
           }}
           transition={{ duration: 0.5 }}
         >
@@ -107,10 +109,10 @@ interface ParallaxBackgroundProps {
   className?: string;
 }
 
-export function ParallaxBackground({ 
-  children, 
+export function ParallaxBackground({
+  children,
   offset = 50,
-  className 
+  className,
 }: ParallaxBackgroundProps) {
   const ref = useRef(null);
   const shouldReduceMotion = useReducedMotion();
@@ -127,8 +129,8 @@ export function ParallaxBackground({
       (element as HTMLElement).style.transform = `translate3d(0, ${rate}px, 0)`;
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [shouldReduceMotion]);
 
   return (

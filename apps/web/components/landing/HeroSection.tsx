@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, TrendingUp, Shield, Users } from "lucide-react";
+import { Shield, Sparkles, TrendingUp, Users } from "lucide-react";
 
 import BrandLogo from "@/components/BrandLogo";
 import { Badge } from "@/components/ui/badge";
@@ -17,12 +17,19 @@ interface HeroSectionProps {
 }
 
 const stats = [
-  { icon: TrendingUp, value: "92%", label: "Success Rate", color: "accent-green" },
+  {
+    icon: TrendingUp,
+    value: "92%",
+    label: "Success Rate",
+    color: "accent-green",
+  },
   { icon: Users, value: "5000+", label: "VIP Members", color: "dc-accent" },
   { icon: Shield, value: "24/7", label: "Support", color: "accent-teal" },
 ];
 
-export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps) {
+export default function HeroSection(
+  { onJoinVIP, onLearnMore }: HeroSectionProps,
+) {
   const defaultContent = useMemo(
     () => ({
       badge: "Premium Trading Platform",
@@ -33,7 +40,7 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
       joinButton: "Join VIP Now",
       learnButton: "Learn More",
     }),
-    []
+    [],
   );
   const [content, setContent] = useState(defaultContent);
 
@@ -62,7 +69,8 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
           });
           setContent({
             badge: lookup.hero_badge ?? defaultContent.badge,
-            badgeHighlight: lookup.hero_badge_highlight ?? defaultContent.badgeHighlight,
+            badgeHighlight: lookup.hero_badge_highlight ??
+              defaultContent.badgeHighlight,
             title: lookup.hero_title ?? defaultContent.title,
             description: lookup.hero_description ?? defaultContent.description,
             joinButton: lookup.hero_join_button ?? defaultContent.joinButton,
@@ -162,9 +170,17 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-70" />
               <div className="relative flex flex-col items-center gap-2">
-                <stat.icon className={`h-6 w-6 text-[hsl(var(--${stat.color}))]`} />
-                <span className={`text-3xl font-bold text-[hsl(var(--${stat.color}))] font-mono`}>{stat.value}</span>
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                <stat.icon
+                  className={`h-6 w-6 text-[hsl(var(--${stat.color}))]`}
+                />
+                <span
+                  className={`text-3xl font-bold text-[hsl(var(--${stat.color}))] font-mono`}
+                >
+                  {stat.value}
+                </span>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {stat.label}
+                </p>
               </div>
             </motion.div>
           ))}
@@ -201,4 +217,3 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
     </section>
   );
 }
-

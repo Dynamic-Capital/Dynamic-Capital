@@ -16,45 +16,28 @@ import {
 import { Coins, PieChart as PieChartIcon, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/miniapp/Skeleton";
 
-const supplyAllocation: { name: string; value: number }[] = [
-  { name: "Users", value: 6_200_000 },
-  { name: "Treasury", value: 2_800_000 },
-  { name: "Burn", value: 1_000_000 },
-];
-
-const roiHistory: { epoch: string; roi: number }[] = [
-  { epoch: "E1", roi: 4.3 },
-  { epoch: "E2", roi: 4.9 },
-  { epoch: "E3", roi: 5.6 },
-  { epoch: "E4", roi: 6.1 },
-  { epoch: "E5", roi: 6.6 },
-  { epoch: "E6", roi: 6.9 },
-  { epoch: "E7", roi: 7.4 },
-  { epoch: "E8", roi: 7.8 },
-];
-
-const stats = [
-  {
-    label: "Circulating Supply",
-    value: "6.2M DCAP",
-    helper: "+2.4% vs last epoch",
-  },
-  {
-    label: "Total Burned",
-    value: "1.0M DCAP",
-    helper: "16% of max supply removed",
-  },
-  {
-    label: "Active Investors",
-    value: "18,450 wallets",
-    helper: "Growth +640 this week",
-  },
-  {
-    label: "Current Epoch Rewards",
-    value: "82,500 USDC",
-    helper: "Streaming over 7 days",
-  },
-] as const;
+type FundMetrics = {
+  supplyAllocation: { name: string; value: number }[];
+  roiHistory: { epoch: string; roi: number }[];
+  totals: {
+    circulatingSupply: number;
+    treasuryHoldings: number;
+    totalBurned: number;
+    activeInvestors: number;
+    activeWallets: number;
+    currentEpochRewards: number;
+    operationsTon: number;
+    autoInvestTon: number;
+    burnTon: number;
+    tonPaid: number;
+  };
+  changes: {
+    circulatingPct: number | null;
+    burnSharePct: number | null;
+    investorParticipationPct: number | null;
+    rewardsRoi: number | null;
+  };
+};
 
 const chartColors = [
   "hsl(var(--chart-1))",
@@ -66,18 +49,132 @@ const numberFormatter = new Intl.NumberFormat("en-US", {
   notation: "compact",
   maximumFractionDigits: 1,
 });
+const integerFormatter = new Intl.NumberFormat("en-US");
+
+function formatSignedPercent(value: number | null | undefined): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "—";
+  }
+  const sign = value > 0 ? "+" : value < 0 ? "" : "";
+  return `${sign}${value.toFixed(1)}%`;
+}
+
+function formatCompact(value: number | null | undefined, suffix: string) {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return "—";
+  }
+  return `${numberFormatter.format(value)} ${suffix}`;
+}
 
 export default function FundTransparencyTab() {
   const [mounted, setMounted] = useState(false);
+  const [metrics, setMetrics] = useState<FundMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const totalSupply = useMemo(
-    () => supplyAllocation.reduce((acc, entry) => acc + entry.value, 0),
-    [],
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadMetrics() {
+      setLoading(true);
+      try {
+        const response = await fetch("/api/fund-metrics");
+        const text = await response.text();
+        let payload: unknown;
+        try {
+          payload = text ? JSON.parse(text) : null;
+        } catch {
+          payload = null;
+        }
+
+        if (!response.ok) {
+          const message = (payload as { error?: string } | null)?.error ??
+            text ??
+            "Unable to load fund metrics";
+          throw new Error(message);
+        }
+
+        if (cancelled) return;
+
+        const data = (payload as { data?: FundMetrics } | null)?.data ?? null;
+        setMetrics(data);
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setMetrics(null);
+        setError(
+          err instanceof Error ? err.message : "Unable to load fund metrics",
+        );
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadMetrics();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const stats = useMemo(() => {
+    if (!metrics) {
+      return [] as Array<{ label: string; value: string; helper: string }>;
+    }
+
+    const { totals, changes } = metrics;
+    return [
+      {
+        label: "Circulating Supply",
+        value: formatCompact(totals.circulatingSupply, "DCT"),
+        helper: changes.circulatingPct !== null
+          ? `${formatSignedPercent(changes.circulatingPct)} vs prior cycle`
+          : "Awaiting first cycle",
+      },
+      {
+        label: "Total Burned",
+        value: formatCompact(totals.totalBurned, "DCT"),
+        helper: changes.burnSharePct !== null
+          ? `${changes.burnSharePct.toFixed(1)}% of purchased supply burned`
+          : "Burn hook idle",
+      },
+      {
+        label: "Active Investors",
+        value: Number.isFinite(totals.activeInvestors)
+          ? `${integerFormatter.format(totals.activeInvestors)} wallets`
+          : "—",
+        helper: totals.activeWallets > 0
+          ? `${integerFormatter.format(totals.activeWallets)} connected wallets`
+          : "Connect a wallet to join",
+      },
+      {
+        label: "Current Epoch Rewards",
+        value: formatCompact(totals.currentEpochRewards, "DCT"),
+        helper: changes.rewardsRoi !== null
+          ? `Avg ROI ${changes.rewardsRoi.toFixed(2)}%`
+          : "Awaiting distribution",
+      },
+    ];
+  }, [metrics]);
+
+  const supplyData = useMemo(
+    () => metrics?.supplyAllocation ?? [],
+    [metrics],
   );
+  const totalSupply = useMemo(
+    () => supplyData.reduce((acc, entry) => acc + entry.value, 0),
+    [supplyData],
+  );
+  const hasSupplyData = supplyData.some((entry) => entry.value > 0);
+
+  const roiData = useMemo(() => metrics?.roiHistory ?? [], [metrics]);
+  const hasRoiData = roiData.some((entry) => Number.isFinite(entry.roi));
 
   return (
     <>
@@ -104,6 +201,16 @@ export default function FundTransparencyTab() {
           </div>
         </header>
 
+        {error && !loading && (
+          <p
+            role="status"
+            className="muted"
+            style={{ margin: 0, fontSize: 12 }}
+          >
+            {error}
+          </p>
+        )}
+
         <div
           style={{
             display: "grid",
@@ -111,27 +218,41 @@ export default function FundTransparencyTab() {
             gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
           }}
         >
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              style={{
-                padding: "12px 14px",
-                borderRadius: 14,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.05)",
-                display: "grid",
-                gap: 6,
-              }}
-            >
-              <span className="muted" style={{ fontSize: 12 }}>
-                {stat.label}
-              </span>
-              <strong style={{ fontSize: 18 }}>{stat.value}</strong>
-              <span className="muted" style={{ fontSize: 12 }}>
-                {stat.helper}
-              </span>
-            </div>
-          ))}
+          {loading && !metrics
+            ? Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={`stat-skeleton-${index}`}
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                }}
+              >
+                <Skeleton h={48} />
+              </div>
+            ))
+            : stats.map((stat) => (
+              <div
+                key={stat.label}
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                  display: "grid",
+                  gap: 6,
+                }}
+              >
+                <span className="muted" style={{ fontSize: 12 }}>
+                  {stat.label}
+                </span>
+                <strong style={{ fontSize: 18 }}>{stat.value}</strong>
+                <span className="muted" style={{ fontSize: 12 }}>
+                  {stat.helper}
+                </span>
+              </div>
+            ))}
         </div>
       </section>
 
@@ -160,12 +281,14 @@ export default function FundTransparencyTab() {
 
         <div style={{ display: "grid", gap: 16 }}>
           <div style={{ width: "100%", height: 220 }}>
-            {mounted
+            {!mounted || (loading && !metrics)
+              ? <Skeleton h={220} />
+              : hasSupplyData
               ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <RePieChart>
                     <Pie
-                      data={supplyAllocation}
+                      data={supplyData}
                       dataKey="value"
                       nameKey="name"
                       innerRadius={60}
@@ -173,7 +296,7 @@ export default function FundTransparencyTab() {
                       stroke="none"
                       paddingAngle={4}
                     >
-                      {supplyAllocation.map((entry, index) => (
+                      {supplyData.map((entry, index) => (
                         <Cell
                           key={entry.name}
                           fill={chartColors[index % chartColors.length]}
@@ -190,20 +313,33 @@ export default function FundTransparencyTab() {
                         boxShadow: "0 12px 32px rgba(0,0,0,0.35)",
                       }}
                       formatter={(value: number, _name, entry) => [
-                        `${numberFormatter.format(value)} DCAP`,
+                        `${numberFormatter.format(value)} DCT`,
                         entry?.name ?? "",
                       ]}
                     />
                   </RePieChart>
                 </ResponsiveContainer>
               )
-              : <Skeleton h={220} />}
+              : (
+                <div
+                  style={{
+                    height: "100%",
+                    display: "grid",
+                    placeItems: "center",
+                    color: "var(--muted-fg)",
+                    fontSize: 13,
+                  }}
+                >
+                  No supply allocation data yet.
+                </div>
+              )}
           </div>
 
           <div style={{ display: "grid", gap: 12 }}>
-            {supplyAllocation.map((entry, index) => {
-              const percent = Math.round((entry.value / totalSupply) * 1000) /
-                10;
+            {supplyData.map((entry, index) => {
+              const percent = totalSupply > 0
+                ? ((entry.value / totalSupply) * 100).toFixed(1)
+                : null;
               return (
                 <div
                   key={entry.name}
@@ -229,7 +365,8 @@ export default function FundTransparencyTab() {
                     <div>
                       <strong>{entry.name}</strong>
                       <p className="muted" style={{ margin: 0, fontSize: 12 }}>
-                        {numberFormatter.format(entry.value)} ({percent}%)
+                        {formatCompact(entry.value, "DCT")}{" "}
+                        {percent !== null ? `(${percent}%)` : ""}
                       </p>
                     </div>
                   </div>
@@ -264,11 +401,13 @@ export default function FundTransparencyTab() {
         </header>
 
         <div style={{ width: "100%", height: 240 }}>
-          {mounted
+          {!mounted || (loading && !metrics)
+            ? <Skeleton h={240} />
+            : hasRoiData
             ? (
               <ResponsiveContainer width="100%" height="100%">
                 <ReLineChart
-                  data={roiHistory}
+                  data={roiData}
                   margin={{ top: 8, right: 16, left: -12, bottom: 0 }}
                 >
                   <defs>
@@ -337,7 +476,19 @@ export default function FundTransparencyTab() {
                 </ReLineChart>
               </ResponsiveContainer>
             )
-            : <Skeleton h={240} />}
+            : (
+              <div
+                style={{
+                  height: "100%",
+                  display: "grid",
+                  placeItems: "center",
+                  color: "var(--muted-fg)",
+                  fontSize: 13,
+                }}
+              >
+                ROI history will appear after the first epoch closes.
+              </div>
+            )}
         </div>
 
         <p className="muted" style={{ margin: 0, fontSize: 12 }}>

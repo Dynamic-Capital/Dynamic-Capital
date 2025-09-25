@@ -57,7 +57,9 @@ export function useApi() {
 
   const getReceipts = async (limit: number) => {
     const initData = encodeURIComponent(getInitData());
-    const res = await fetch(`/api/receipts?limit=${limit}&initData=${initData}`);
+    const res = await fetch(
+      `/api/receipts?limit=${limit}&initData=${initData}`,
+    );
     if (!res.ok) return handleError(res);
     return res.json();
   };
@@ -101,7 +103,7 @@ export function useApi() {
     const initData = getInitData();
     // Extract telegram user ID from initData (basic parsing)
     const telegram_user_id = extractTelegramUserId(initData);
-    
+
     const res = await fetch("/api/admin-check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -114,7 +116,7 @@ export function useApi() {
   const getSubscriptionStatus = async () => {
     const initData = getInitData();
     const telegram_user_id = extractTelegramUserId(initData);
-    
+
     const res = await fetch("/api/subscription-status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -127,8 +129,10 @@ export function useApi() {
   const getVipDashboard = async () => {
     const initData = getInitData();
     const telegram_user_id = extractTelegramUserId(initData);
-    
-    const res = await fetch(`/api/vip-dashboard?telegram_user_id=${telegram_user_id}`);
+
+    const res = await fetch(
+      `/api/vip-dashboard?telegram_user_id=${telegram_user_id}`,
+    );
     if (!res.ok) return handleError(res);
     return res.json();
   };

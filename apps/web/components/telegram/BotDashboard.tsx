@@ -61,8 +61,7 @@ const BotDashboard = () => {
       const { data, error } = await supabase.functions.invoke(
         "bot-status-check",
       );
-      const connected =
-        !error &&
+      const connected = !error &&
         Boolean(data?.ok) &&
         Boolean(data?.bot_info?.success) &&
         Boolean(data?.webhook_info?.data?.url);
@@ -88,8 +87,7 @@ const BotDashboard = () => {
           <PromosView
             onBack={() => setCurrentView("welcome")}
             onCopyPromo={(code) =>
-              toast({ description: `Promo code ${code} copied` })
-            }
+              toast({ description: `Promo code ${code} copied` })}
           />
         );
       case "admin":

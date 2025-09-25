@@ -1,4 +1,4 @@
-import { ok, mna } from "./http.ts";
+import { mna, ok } from "./http.ts";
 
 export function version(req: Request, name: string): Response | null {
   const url = new URL(req.url);
