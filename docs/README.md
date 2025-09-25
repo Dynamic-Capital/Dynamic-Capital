@@ -40,7 +40,7 @@ documenting which assets were consulted.
 | 2.2 | [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)               | Local development flow, tooling setup, and day-to-day commands.                         |
 | 2.3 | [HYBRID_DEVELOPMENT_WORKFLOW.md](./HYBRID_DEVELOPMENT_WORKFLOW.md) | Guidance for working across Dynamic, Supabase, and local Next.js surfaces concurrently. |
 | 2.4 | [code-structure.md](./code-structure.md)                           | High-level overview of monorepo structure and module boundaries.                        |
-| 2.5 | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Notes for collaborating with the Codex CLI agents on scoped tasks.                      |
+| 2.5 | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Commands, flags, general knowledge, and GitHub handoff loop for the Codex CLI helper.   |
 | 2.6 | [CLEANUP_AND_CODEMODS.md](./CLEANUP_AND_CODEMODS.md)               | Strategy for running codemods and debt cleanups safely.                                 |
 | 2.7 | [NEXTJS_BUILD_CACHE_TASK.md](./NEXTJS_BUILD_CACHE_TASK.md)         | Instructions for the Next.js build cache maintenance task.                              |
 
@@ -103,13 +103,13 @@ documenting which assets were consulted.
 | 7.1  | [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md)                       | Pre-launch smoke tests for Telegram webhook flows and Mini App readiness. |
 | 7.2  | [LAUNCH_CHECKLIST.md](./LAUNCH_CHECKLIST.md)                         | Secrets, keeper setup, and production readiness tasks before launch.      |
 | 7.3  | [RUNBOOK_start-not-responding.md](./RUNBOOK_start-not-responding.md) | Incident response for the Telegram `/start` command failing.              |
-| 7.4  | [PHASE_03_CHECKOUT.md](./PHASE_03_CHECKOUT.md)                         | Launch program phase covering checkout automation and payment flows.      |
-| 7.5  | [PHASE_04_ADMIN.md](./PHASE_04_ADMIN.md)                               | Phase plan for admin tooling rollout.                                     |
-| 7.6  | [PHASE_05_ADMIN_UI.md](./PHASE_05_ADMIN_UI.md)                         | UI hardening tasks for the admin console.                                 |
-| 7.7  | [PHASE_06_OPS.md](./PHASE_06_OPS.md)                                   | Operational readiness workstream for post-launch support.                 |
-| 7.8  | [PHASE_07_QA.md](./PHASE_07_QA.md)                                     | QA strategy including automation coverage and manual validation.          |
-| 7.9  | [PHASE_08_GROWTH.md](./PHASE_08_GROWTH.md)                             | Growth experiments and marketing activation plan.                         |
-| 7.10 | [PHASE_09_SECURITY.md](./PHASE_09_SECURITY.md)                         | Security hardening checklist for the launch program.                      |
+| 7.4  | [PHASE_03_CHECKOUT.md](./PHASE_03_CHECKOUT.md)                       | Launch program phase covering checkout automation and payment flows.      |
+| 7.5  | [PHASE_04_ADMIN.md](./PHASE_04_ADMIN.md)                             | Phase plan for admin tooling rollout.                                     |
+| 7.6  | [PHASE_05_ADMIN_UI.md](./PHASE_05_ADMIN_UI.md)                       | UI hardening tasks for the admin console.                                 |
+| 7.7  | [PHASE_06_OPS.md](./PHASE_06_OPS.md)                                 | Operational readiness workstream for post-launch support.                 |
+| 7.8  | [PHASE_07_QA.md](./PHASE_07_QA.md)                                   | QA strategy including automation coverage and manual validation.          |
+| 7.9  | [PHASE_08_GROWTH.md](./PHASE_08_GROWTH.md)                           | Growth experiments and marketing activation plan.                         |
+| 7.10 | [PHASE_09_SECURITY.md](./PHASE_09_SECURITY.md)                       | Security hardening checklist for the launch program.                      |
 | 7.11 | [PHASE_10_AUTOVERIFY.md](./PHASE_10_AUTOVERIFY.md)                   | Automated verification tasks to keep the stack healthy post-launch.       |
 
 ## 8. Security, Compliance & Legal
