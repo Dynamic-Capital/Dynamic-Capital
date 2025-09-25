@@ -23,9 +23,18 @@ Deno.test('blocks path traversal in _static', async () => {
   const child = command.spawn();
   try {
     await waitForServer('http://localhost:8123/healthz');
-    const res = await fetch('http://localhost:8123/_static/../server.js');
-    assertEquals(res.status, 404);
-    await res.arrayBuffer(); // drain body to avoid leaks
+    const attempts = [
+      '/_static/../server.js',
+      '/_static/%2e%2e/server.js',
+      '/_static/%2e%2e%2fserver.js',
+      '/_static/%2e%2e%5cserver.js',
+      '/_static/%252e%252e%252fserver.js',
+    ];
+    for (const path of attempts) {
+      const res = await fetch(`http://localhost:8123${path}`);
+      assertEquals(res.status, 404);
+      await res.arrayBuffer(); // drain body to avoid leaks
+    }
   } finally {
     child.kill('SIGTERM');
     await child.status;
