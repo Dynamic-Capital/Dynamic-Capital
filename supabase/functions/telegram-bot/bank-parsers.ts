@@ -100,7 +100,33 @@ export function parseBankSlip(ocrText: string): ParsedSlip {
       }
     }
   } else if (bank === "MIB") {
-    if (/Successful|Sucessful/i.test(joined)) status = "SUCCESS";
+    const statusMatchers: Array<{ regex: RegExp; value: typeof status }> = [
+      {
+        regex: /Status\s*:?\s*(Successful|Sucessful|Completed)/i,
+        value: "SUCCESS",
+      },
+      { regex: /Successful|Sucessful|Completed/i, value: "SUCCESS" },
+      {
+        regex: /Status\s*:?\s*(Failed|Unsuccessful|Declined)/i,
+        value: "FAILED",
+      },
+      { regex: /Failed|Unsuccessful|Declined/i, value: "FAILED" },
+      {
+        regex: /Status\s*:?\s*(Pending|Processing|In\s+Progress)/i,
+        value: "PENDING",
+      },
+      {
+        regex: /Pending|Processing|In\s+Progress|Awaiting/i,
+        value: "PENDING",
+      },
+    ];
+
+    for (const matcher of statusMatchers) {
+      if (matcher.regex.test(joined)) {
+        status = matcher.value;
+        break;
+      }
+    }
 
     const refMatch = joined.match(/Reference\s*#?\s*([A-Z0-9-]{6,24})/i);
     if (refMatch) reference = refMatch[1];

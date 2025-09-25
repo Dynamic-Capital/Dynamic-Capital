@@ -1,5 +1,5 @@
-import { optionalEnv, checkEnv } from "../_shared/env.ts";
-import { requireMiniAppEnv, readMiniAppEnv } from "../_shared/miniapp.ts";
+import { checkEnv, optionalEnv } from "../_shared/env.ts";
+import { readMiniAppEnv, requireMiniAppEnv } from "../_shared/miniapp.ts";
 import { alertAdmins } from "../_shared/alerts.ts";
 import { json, mna, ok, oops } from "../_shared/http.ts";
 import { validateTelegramHeader } from "../_shared/telegram_secret.ts";
@@ -28,12 +28,24 @@ import {
 } from "./admin-command-handlers.ts";
 import { setCallbackMessageId } from "./admin-handlers/common.ts";
 import { recomputeVipForUser } from "../_shared/vip_sync.ts";
-import { getVipChannels, isMemberLike, recomputeVipFlag } from "../_shared/telegram_membership.ts";
+import {
+  getVipChannels,
+  isMemberLike,
+  recomputeVipFlag,
+} from "../_shared/telegram_membership.ts";
 import { askChatGPT } from "./helpers/chatgpt.ts";
 import { escapeHtml } from "./helpers/escape.ts";
 import { Bot } from "https://deno.land/x/grammy@v1.18.1/mod.ts";
-import { conversations, createConversation } from "https://deno.land/x/grammy_conversations@v1.2.0/mod.ts";
+import {
+  conversations,
+  createConversation,
+} from "https://deno.land/x/grammy_conversations@v1.2.0/mod.ts";
 import { createThrottler } from "./vendor/grammy_transformer_throttler.ts";
+import { ocrTextFromBlob as defaultOcrTextFromBlob } from "./ocr.ts";
+import {
+  parseBankSlip as defaultParseBankSlip,
+  type ParsedSlip,
+} from "./bank-parsers.ts";
 // Type definition moved inline to avoid import issues
 interface Promotion {
   code: string;
@@ -43,7 +55,12 @@ interface Promotion {
 
 interface TelegramMessage {
   chat: { id: number; type?: string };
-  from?: { id?: number; username?: string; first_name?: string; last_name?: string };
+  from?: {
+    id?: number;
+    username?: string;
+    first_name?: string;
+    last_name?: string;
+  };
   message_id?: number;
   text?: string;
   caption?: string;
@@ -103,8 +120,13 @@ const botUsername = (await envOrSetting<string>("TELEGRAM_BOT_USERNAME")) || "";
 
 const bot = BOT_TOKEN
   ? new Bot(BOT_TOKEN, {
-      botInfo: { id: 0, is_bot: true, first_name: "stub", username: botUsername || "stub" } as any,
-    })
+    botInfo: {
+      id: 0,
+      is_bot: true,
+      first_name: "stub",
+      username: botUsername || "stub",
+    } as any,
+  })
   : null;
 if (bot) {
   // Throttler lacks full typings in our vendored stub; cast to satisfy type checks
@@ -144,7 +166,30 @@ const corsHeaders = {
 
 const DEFAULT_PARSE_MODE = "HTML";
 
-async function telegramFetch(method: string, payload: unknown): Promise<Response> {
+let ocrTextFromBlobImpl = defaultOcrTextFromBlob;
+let parseBankSlipImpl = defaultParseBankSlip;
+
+export function __setReceiptParsingOverrides(overrides: {
+  ocrTextFromBlob?: typeof defaultOcrTextFromBlob;
+  parseBankSlip?: typeof defaultParseBankSlip;
+}): void {
+  if (overrides.ocrTextFromBlob) {
+    ocrTextFromBlobImpl = overrides.ocrTextFromBlob;
+  }
+  if (overrides.parseBankSlip) {
+    parseBankSlipImpl = overrides.parseBankSlip;
+  }
+}
+
+export function __resetReceiptParsingOverrides(): void {
+  ocrTextFromBlobImpl = defaultOcrTextFromBlob;
+  parseBankSlipImpl = defaultParseBankSlip;
+}
+
+async function telegramFetch(
+  method: string,
+  payload: unknown,
+): Promise<Response> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);
   try {
@@ -159,7 +204,11 @@ async function telegramFetch(method: string, payload: unknown): Promise<Response
     );
     if (!res.ok) {
       const text = await res.text();
-      console.error(`telegramFetch ${method} failed`, res.status, text.slice(0, 200));
+      console.error(
+        `telegramFetch ${method} failed`,
+        res.status,
+        text.slice(0, 200),
+      );
       throw new Error(`Telegram API ${method} error`);
     }
     return res;
@@ -375,48 +424,51 @@ export async function handleDashboardHelp(
 async function handleFaqCommand(chatId: number): Promise<void> {
   const faqContent = await getContent("faq_general");
   const { url: miniAppUrl } = await readMiniAppEnv();
-  
+
   // Enhanced FAQ with structured content
   const faqText = `<b>❓ Frequently Asked Questions</b>
 
-${faqContent ?? `<b>Common Questions:</b>
+${
+    faqContent ?? `<b>Common Questions:</b>
 
 • What is VIP? Premium trading community
 • How to join? Choose a plan below  
 • Payment methods? Bank transfer or crypto
 • Support? Contact us anytime!
 
-💡 Need help? Ask anything!`}`;
+💡 Need help? Ask anything!`
+  }`;
 
   // Create interactive buttons
   const keyboard = [];
-  
+
   // First row: Ask AI and Support
   keyboard.push([
     { text: "🤖 Ask AI", callback_data: "cmd:ask" },
-    { text: "💬 Support", callback_data: "nav:support" }
+    { text: "💬 Support", callback_data: "nav:support" },
   ]);
-  
-  // Second row: Education and Plans  
+
+  // Second row: Education and Plans
   keyboard.push([
     { text: "📚 Education", callback_data: "cmd:education" },
-    { text: "💳 Plans", callback_data: "nav:plans" }
+    { text: "💳 Plans", callback_data: "nav:plans" },
   ]);
-  
+
   // Third row: Back to Dashboard
   keyboard.push([
-    { text: "🏠 Back to Dashboard", callback_data: "nav:dashboard" }
+    { text: "🏠 Back to Dashboard", callback_data: "nav:dashboard" },
   ]);
-  
+
   // Add Mini App button if available
   if (miniAppUrl) {
-    const miniAppText = await getContent("miniapp_button_text") ?? "🚀 Open VIP Mini App";
+    const miniAppText = await getContent("miniapp_button_text") ??
+      "🚀 Open VIP Mini App";
     keyboard.push([{ text: miniAppText, web_app: { url: miniAppUrl } }]);
   }
 
   await notifyUser(chatId, faqText, {
     parse_mode: "HTML",
-    reply_markup: { inline_keyboard: keyboard }
+    reply_markup: { inline_keyboard: keyboard },
   });
 }
 
@@ -728,15 +780,18 @@ function getDynamicCallbackHandler(
   }
   if (data.startsWith("edit_contact_")) {
     const id = data.slice("edit_contact_".length);
-    return (chatId, userId) => handlers.processContactLinkOperation(chatId, userId, "edit", id);
+    return (chatId, userId) =>
+      handlers.processContactLinkOperation(chatId, userId, "edit", id);
   }
   if (data.startsWith("toggle_contact_")) {
     const id = data.slice("toggle_contact_".length);
-    return (chatId, userId) => handlers.processContactLinkOperation(chatId, userId, "toggle", id);
+    return (chatId, userId) =>
+      handlers.processContactLinkOperation(chatId, userId, "toggle", id);
   }
   if (data.startsWith("delete_contact_")) {
     const id = data.slice("delete_contact_".length);
-    return (chatId, userId) => handlers.processContactLinkOperation(chatId, userId, "delete", id);
+    return (chatId, userId) =>
+      handlers.processContactLinkOperation(chatId, userId, "delete", id);
   }
   return null;
 }
@@ -773,9 +828,9 @@ We typically respond within 2-4 hours.`;
 
     return {
       text: supportMessage,
-      extra: { 
+      extra: {
         reply_markup: await buildMainMenu(section),
-        parse_mode: "HTML" 
+        parse_mode: "HTML",
       },
     };
   }
@@ -1104,7 +1159,7 @@ export const commandHandlers: Record<string, CommandHandler> = {
     const firstName = msg?.from?.first_name;
     const lastName = msg?.from?.last_name;
     const username = msg?.from?.username;
-    
+
     // Ensure user exists
     let isNewUser = false;
     try {
@@ -1118,9 +1173,9 @@ export const commandHandlers: Record<string, CommandHandler> = {
     } catch (error) {
       console.error("ensureBotUserExists error", error);
     }
-    
+
     // Get welcome message with improved default
-    const welcomeMessage = await getContent("welcome_message") ?? 
+    const welcomeMessage = await getContent("welcome_message") ??
       `👋 <b>Welcome to Dynamic Capital!</b>
 
 🚀 Premium signals &amp; expert guidance
@@ -1131,49 +1186,54 @@ export const commandHandlers: Record<string, CommandHandler> = {
 
     // Get current Mini App configuration
     const { url } = await readMiniAppEnv();
-    const continueText = await getContent("continue_in_bot_button") ?? "Continue in Bot";
-    const miniText = await getContent("miniapp_button_text") ?? "🚀 Open VIP Mini App";
-    
+    const continueText = await getContent("continue_in_bot_button") ??
+      "Continue in Bot";
+    const miniText = await getContent("miniapp_button_text") ??
+      "🚀 Open VIP Mini App";
+
     // Build enhanced keyboard
     const keyboard: {
       text: string;
       callback_data?: string;
       web_app?: { url: string };
     }[][] = [
-      [{ text: continueText, callback_data: "nav:dashboard" }]
+      [{ text: continueText, callback_data: "nav:dashboard" }],
     ];
-    
+
     // Always add Mini App button since readMiniAppEnv now auto-derives URL
     if (url) {
       keyboard[0].push({ text: miniText, web_app: { url } });
     }
-    
+
     // Add popular actions
     keyboard.push([
       { text: "💳 Plans", callback_data: "nav:plans" },
-      { text: "📦 Packages", callback_data: "cmd:education" }
+      { text: "📦 Packages", callback_data: "cmd:education" },
     ]);
-    
+
     // Add utility actions
     keyboard.push([
       { text: "🎁 Promo", callback_data: "cmd:promo" },
       { text: "👤 Account", callback_data: "nav:dashboard" },
-      { text: "❓ FAQ", callback_data: "cmd:faq" }
+      { text: "❓ FAQ", callback_data: "cmd:faq" },
     ]);
-    
+
     // Add advanced actions
     keyboard.push([
       { text: "📚 Education", callback_data: "cmd:education" },
       { text: "🤔 Should I Buy?", callback_data: "cmd:shouldibuy" },
-      { text: "💬 Support", callback_data: "nav:support" }
+      { text: "💬 Support", callback_data: "nav:support" },
     ]);
 
     await sendMessage(chatId, welcomeMessage, {
       reply_markup: { inline_keyboard: keyboard },
-      parse_mode: "HTML"
+      parse_mode: "HTML",
     });
-    
-    await logInteraction(isNewUser ? "new_user_start" : "returning_user_start", telegramUserId);
+
+    await logInteraction(
+      isNewUser ? "new_user_start" : "returning_user_start",
+      telegramUserId,
+    );
   },
   "/app": async ({ chatId }) => {
     await showMainMenu(chatId, "dashboard");
@@ -1205,9 +1265,9 @@ How can we help you today?`;
     await sendMessage(chatId, contactMessage, {
       reply_markup: {
         inline_keyboard: [
-          [{ text: "🏠 Back to Dashboard", callback_data: "nav:dashboard" }]
-        ]
-      }
+          [{ text: "🏠 Back to Dashboard", callback_data: "nav:dashboard" }],
+        ],
+      },
     });
   },
   "/help": async ({ chatId }) => {
@@ -1272,7 +1332,10 @@ async function handleCommand(update: TelegramUpdate): Promise<void> {
   }
 }
 
-async function handleAddAdminUser(chatId: number, userId: string): Promise<void> {
+async function handleAddAdminUser(
+  chatId: number,
+  userId: string,
+): Promise<void> {
   try {
     const supabase = getSupabase();
     await supabase.from("user_sessions").upsert({
@@ -1281,7 +1344,10 @@ async function handleAddAdminUser(chatId: number, userId: string): Promise<void>
       is_active: true,
       last_activity: new Date().toISOString(),
     });
-    await notifyUser(chatId, "👤 **Add Admin User**\n\nSend the Telegram User ID to make admin:");
+    await notifyUser(
+      chatId,
+      "👤 **Add Admin User**\n\nSend the Telegram User ID to make admin:",
+    );
   } catch (error) {
     console.error("Error in handleAddAdminUser:", error);
     await notifyUser(chatId, "❌ Error setting up admin user addition.");
@@ -1297,14 +1363,20 @@ async function handleSearchUser(chatId: number, userId: string): Promise<void> {
       is_active: true,
       last_activity: new Date().toISOString(),
     });
-    await notifyUser(chatId, "🔍 **Search User**\n\nSend username, user ID, or name to search:");
+    await notifyUser(
+      chatId,
+      "🔍 **Search User**\n\nSend username, user ID, or name to search:",
+    );
   } catch (error) {
     console.error("Error in handleSearchUser:", error);
     await notifyUser(chatId, "❌ Error setting up user search.");
   }
 }
 
-async function handleManageVipUsers(chatId: number, userId: string): Promise<void> {
+async function handleManageVipUsers(
+  chatId: number,
+  userId: string,
+): Promise<void> {
   try {
     const supabase = getSupabase();
     const { data: vipUsers } = await supabase
@@ -1345,7 +1417,10 @@ async function handleManageVipUsers(chatId: number, userId: string): Promise<voi
   }
 }
 
-async function handleExportUsers(chatId: number, userId: string): Promise<void> {
+async function handleExportUsers(
+  chatId: number,
+  userId: string,
+): Promise<void> {
   try {
     const supabase = getSupabase();
     const { data: users } = await supabase
@@ -1370,9 +1445,11 @@ async function handleExportUsers(chatId: number, userId: string): Promise<void> 
     let exportText = `📊 **User Export Summary**\n\n`;
     exportText += `Total Users: ${users.length}\n`;
     exportText += `VIP Users: ${users.filter((u: any) => u.is_vip).length}\n`;
-    exportText += `Admin Users: ${users.filter((u: any) => u.is_admin).length}\n\n`;
+    exportText += `Admin Users: ${
+      users.filter((u: any) => u.is_admin).length
+    }\n\n`;
     exportText += `Recent Users:\n`;
-    
+
     users.slice(0, 10).forEach((user: any, index: number) => {
       const name = user.first_name || user.username || "Unknown";
       const status = user.is_vip ? "💎" : user.is_admin ? "👑" : "👤";
@@ -1793,6 +1870,15 @@ export async function startReceiptPipeline(
     const blob = await fetch(
       `https://api.telegram.org/file/bot${BOT_TOKEN}/${path}`,
     ).then((r) => r.blob());
+
+    let parsedSlip: ParsedSlip | null = null;
+    try {
+      const ocrText = await ocrTextFromBlobImpl(blob);
+      parsedSlip = parseBankSlipImpl(ocrText);
+    } catch (error) {
+      console.error("Failed to OCR/parse bank slip", error);
+    }
+
     const hash = await hashBlob(blob);
     const storagePath = `receipts/${chatId}/${hash}`;
     try {
@@ -1804,13 +1890,13 @@ export async function startReceiptPipeline(
       await notifyUser(chatId, msg);
       return;
     }
-    
+
     // Get plan details for proper amount
     const { data: plan } = await supa.from("subscription_plans")
       .select("price, currency")
       .eq("id", planId)
       .maybeSingle();
-    
+
     const { data: pay } = await supa.from("payments")
       .insert({
         user_id: user.id,
@@ -1839,6 +1925,7 @@ export async function startReceiptPipeline(
         payment_id: pay.id,
         file_path: storagePath,
         bucket: "payment-receipts",
+        ...(parsedSlip ? { parsed_slip: parsedSlip } : {}),
       }),
     }).then((r) => r.json()).catch(() => null);
     if (!rs?.ok) {
@@ -2009,7 +2096,7 @@ export async function serveWebhook(req: Request): Promise<Response> {
   }
 }
 
-export { sendMessage, editMessage, answerCallbackQuery };
+export { answerCallbackQuery, editMessage, sendMessage };
 export default serveWebhook;
 if (import.meta.main) {
   Deno.serve(serveWebhook);
