@@ -17,3 +17,18 @@ engineers, and QA can collaborate without stepping on each other's toes.
 Refer to the README in each sub-folder for layout details, build commands, and
 handoff expectations between teams. Supabase database migrations and functions
 remain in the top-level `supabase/` directory.
+
+## Grok advisory workflow
+
+- `python/grok_advisor.py` – prompt builder and completion helpers that relay
+  live trade context to Grok-1.
+- `python/trade_logic.py` – accepts an optional Grok advisor during
+  `TradeLogic.on_bar` so Grok can suggest confidence adjustments before trades
+  are finalised.
+- `python/realtime.py` – wire Grok into `RealtimeExecutor` by supplying an
+  advisor instance; decisions surface the returned rationale under the
+  `context["advisor"]` key for downstream audit trails.
+
+To enable Grok feedback in a live service, instantiate a completion client
+(e.g. wrapping the local `grok-1` `InferenceRunner`) and pass a configured
+`GrokAdvisor` instance into `RealtimeExecutor`.

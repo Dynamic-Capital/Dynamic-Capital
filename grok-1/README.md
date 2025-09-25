@@ -11,7 +11,9 @@ pip install -r requirements.txt
 python run.py
 ```
 
-to test the code.
+to test the code. On developer workstations that only expose a single GPU, keep
+`bs_per_device` at `1` or higher in `run.py` (or rely on the built-in clamp in
+`ModelRunner`) so the sampler retains a non-zero batch size.
 
 The script loads the checkpoint and samples from the model on a test input.
 

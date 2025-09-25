@@ -4,8 +4,8 @@ Use this checklist to operationalize Grok-1 inside the Dynamic Capital
 automation stack—from research workflows to Telegram delivery—without breaking
 existing guardrails.
 
-> **Status:** Planned. Complete each section before inviting broader team usage
-> or shipping Grok-powered outputs to members.
+> **Status:** In progress. Complete each section before inviting broader team
+> usage or shipping Grok-powered outputs to members.
 
 ## 1. Repository & Access Preparation
 
@@ -32,8 +32,10 @@ for regression testing.
 
 ## 3. Trading Strategy & Analyzer Enhancements
 
-- [ ] Integrate Grok-assisted idea reviews into the `algorithms/` workflow
-(e.g., PR template checkbox, reviewer step, or IDE helper notes).
+- [x] Integrate Grok-assisted idea reviews into the `algorithms/` workflow
+  (e.g., PR template checkbox, reviewer step, or IDE helper notes). See
+  `algorithms/python/grok_advisor.py` and the `TradeLogic` advisor hook for the
+  live prompt pipeline.
 - [ ] Codify how Grok suggestions translate into Pine Script or TypeScript
 changes; update `algorithms/README.md` with the acceptance criteria.
 - [ ] Gate analyzer modifications on new or updated tests in
