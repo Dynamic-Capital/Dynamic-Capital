@@ -51,6 +51,11 @@ interface Promotion {
   code: string;
   discount_type: "percentage" | "fixed";
   discount_value: number;
+  auto_created?: boolean;
+  generated_via?: string | null;
+  description?: string | null;
+  valid_until?: string | null;
+  is_active?: boolean | null;
 }
 
 interface TelegramMessage {
@@ -742,6 +747,9 @@ function getDynamicCallbackHandler(
     const id = data.slice("edit_plan_features_".length);
     return (chatId, userId) =>
       handlers.handleEditPlanFeatures(chatId, userId, id);
+  }
+  if (data === "auto_generate_promo") {
+    return (chatId, userId) => handlers.handleAutoGeneratePromo(chatId, userId);
   }
   if (data.startsWith("toggle_plan_lifetime_")) {
     const id = data.slice("toggle_plan_lifetime_".length);

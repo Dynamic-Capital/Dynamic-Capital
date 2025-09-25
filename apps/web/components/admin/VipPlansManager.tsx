@@ -25,6 +25,8 @@ interface Plan {
   price: number;
   duration_months: number;
   is_lifetime: boolean;
+  dynamic_price_usdt: number | null;
+  last_priced_at: string | null;
 }
 
 export function VipPlansManager() {
@@ -36,7 +38,9 @@ export function VipPlansManager() {
       setLoading(true);
       const { data, error } = await supabase
         .from("subscription_plans")
-        .select("id, name, price, duration_months, is_lifetime")
+        .select(
+          "id, name, price, duration_months, is_lifetime, dynamic_price_usdt, last_priced_at",
+        )
         .order("price");
       if (!error && data) {
         setPlans(data);
@@ -70,7 +74,9 @@ export function VipPlansManager() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Price (USDT)</TableHead>
+                  <TableHead>Base Price</TableHead>
+                  <TableHead>Dynamic Price</TableHead>
+                  <TableHead>Last Priced</TableHead>
                   <TableHead>Duration</TableHead>
                 </TableRow>
               </TableHeader>
@@ -78,7 +84,17 @@ export function VipPlansManager() {
                 {plans.map((plan) => (
                   <TableRow key={plan.id}>
                     <TableCell>{plan.name}</TableCell>
-                    <TableCell>{plan.price}</TableCell>
+                    <TableCell>${plan.price.toFixed(2)}</TableCell>
+                    <TableCell>
+                      {plan.dynamic_price_usdt
+                        ? `$${plan.dynamic_price_usdt.toFixed(2)}`
+                        : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {plan.last_priced_at
+                        ? new Date(plan.last_priced_at).toLocaleString()
+                        : "Never"}
+                    </TableCell>
                     <TableCell>
                       {plan.is_lifetime
                         ? "Lifetime"
