@@ -21,7 +21,7 @@ import logging
 import math
 import pickle
 import sys
-from heapq import nsmallest
+from heapq import heappop, heappush
 from collections import deque
 from dataclasses import asdict, dataclass, field, fields
 from datetime import UTC, date, datetime
@@ -814,21 +814,34 @@ class LorentzianKNNModel:
         yield from self._samples
 
     def predict(self, features: Sequence[float]) -> Optional[TradeSignal]:
-        labelled_rows = [row for row in self._samples if row.label is not None]
-        if len(labelled_rows) < self.neighbors:
+        if len(self._samples) < self.neighbors:
             return None
 
-        distances: list[tuple[float, int]] = []
-        for row in labelled_rows:
-            distance = self.distance_fn(row.features, features)
-            distances.append((distance, int(row.label)))
+        # Maintain a fixed-size max-heap of the closest neighbours to avoid
+        # storing the full distance list for every prediction.  For large
+        # sample buffers this reduces both the extra sort step otherwise
+        # required to identify the nearest neighbours and the associated
+        # temporary memory allocations.
+        neighbors = self.neighbors
+        distance_fn = self.distance_fn
+        heap: list[tuple[float, int]] = []  # stores (-distance, label)
+        vote_sum = 0
 
-        winners = nsmallest(self.neighbors, distances, key=lambda item: item[0])
-        limit = len(winners)
+        for row in self._samples:
+            label = int(row.label)
+            distance = distance_fn(row.features, features)
+            entry = (-distance, label)
+            heappush(heap, entry)
+            vote_sum += label
+            if len(heap) > neighbors:
+                removed = heappop(heap)
+                vote_sum -= removed[1]
+
+        limit = len(heap)
         if limit == 0:
             return None
 
-        vote = sum(label for _, label in winners)
+        vote = vote_sum
         if vote > 0:
             direction = 1
         elif vote < 0:
