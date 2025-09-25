@@ -1,4 +1,4 @@
-import { Column, Heading, Icon, Row, Tag, Text } from "@once-ui-system/core";
+import { Column, Heading, Icon, Row, Tag, Text } from "@dynamic-ui-system/core";
 import { schema } from "@/resources";
 
 interface Certificate {

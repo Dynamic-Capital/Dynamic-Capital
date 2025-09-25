@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Column, Media, Row, Avatar, Text } from "@once-ui-system/core";
+import { Card, Column, Media, Row, Avatar, Text } from "@dynamic-ui-system/core";
 import { formatDate } from "@/utils/magic-portfolio/formatDate";
 import { person } from "@/resources";
 

@@ -2,7 +2,8 @@
   "name": "dynamic-chatty-bot",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "engines": {
     "node": "^20"
@@ -73,7 +74,7 @@
     "@aws-sdk/client-s3": "^3.600.0",
     "@headlessui/react": "^2.2.8",
     "@heroicons/react": "^2.2.0",
-    "@once-ui-system/core": "^1.4.31",
+    "@dynamic-ui-system/core": "file:packages/dynamic-ui-system/core",
     "@supabase/auth-helpers-react": "^0.5.0",
     "@supabase/ssr": "^0.7.0",
     "@tailwindcss/postcss": "^4.1.13",

@@ -25,7 +25,7 @@ import {
   List,
   ListItem,
   Line,
-} from "@once-ui-system/core";
+} from "@dynamic-ui-system/core";
 
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   href: string;

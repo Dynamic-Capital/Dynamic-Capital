@@ -1,5 +1,5 @@
 import { about, person } from "@/resources";
-import { Avatar, Button, Column, Heading, Line, Row, Tag, Text } from "@once-ui-system/core";
+import { Avatar, Button, Column, Heading, Line, Row, Tag, Text } from "@dynamic-ui-system/core";
 
 const experiences = about.work.experiences ?? [];
 const highlightExperience = experiences[0];

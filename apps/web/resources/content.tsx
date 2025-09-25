@@ -1,5 +1,5 @@
 import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/resources/types";
-import { Line, Row, Text } from "@once-ui-system/core";
+import { Line, Row, Text } from "@dynamic-ui-system/core";
 
 import { supabaseAsset } from "./assets";
 import { ogDefaults } from "./og-defaults";

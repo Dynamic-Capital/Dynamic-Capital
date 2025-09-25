@@ -8,7 +8,7 @@ import {
   Heading,
   SmartLink,
   Text,
-} from "@once-ui-system/core";
+} from "@dynamic-ui-system/core";
 
 interface ProjectCardProps {
   href: string;

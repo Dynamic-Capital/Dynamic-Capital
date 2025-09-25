@@ -11,7 +11,7 @@ import {
   SmartLink,
   Row,
   Line,
-} from "@once-ui-system/core";
+} from "@dynamic-ui-system/core";
 import { baseURL, about, person, toAbsoluteUrl, work } from "@/resources";
 import { formatDate } from "@/utils/magic-portfolio/formatDate";
 import { ScrollToHash, CustomMDX } from "@/components/magic-portfolio";

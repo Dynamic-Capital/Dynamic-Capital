@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
-import { Button, Fade, Flex, Line, Row, ToggleButton } from "@once-ui-system/core";
+import { Button, Fade, Flex, Line, Row, ToggleButton } from "@dynamic-ui-system/core";
 
 import { display, person, about, blog, work, gallery, isRouteEnabled } from "@/resources";
 import type { IconName } from "@/resources/icons";

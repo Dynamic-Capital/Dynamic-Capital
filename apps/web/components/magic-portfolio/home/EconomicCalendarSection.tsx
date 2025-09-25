@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 
-import { Column, Heading, Icon, Line, Row, Tag, Text } from "@once-ui-system/core";
-import type { Colors } from "@once-ui-system/core";
+import { Column, Heading, Icon, Line, Row, Tag, Text } from "@dynamic-ui-system/core";
+import type { Colors } from "@dynamic-ui-system/core";
 
 type ImpactLevel = "High" | "Medium" | "Low";
 

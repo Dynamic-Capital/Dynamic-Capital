@@ -10,7 +10,7 @@ import {
   Row,
   Tag,
   Text,
-} from "@once-ui-system/core";
+} from "@dynamic-ui-system/core";
 
 type MentorshipProgram = {
   id: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Row, Text, Button, useToast } from "@once-ui-system/core";
+import { Row, Text, Button, useToast } from "@dynamic-ui-system/core";
 import { socialSharing } from "@/resources";
 
 interface ShareSectionProps {

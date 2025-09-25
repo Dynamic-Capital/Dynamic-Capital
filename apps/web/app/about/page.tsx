@@ -11,7 +11,7 @@ import {
   Meta,
   Schema,
   Row,
-} from "@once-ui-system/core";
+} from "@dynamic-ui-system/core";
 import { baseURL, about, person, social, toAbsoluteUrl } from "@/resources";
 import TableOfContents from "@/components/magic-portfolio/about/TableOfContents";
 import styles from "@/components/magic-portfolio/about/about.module.scss";

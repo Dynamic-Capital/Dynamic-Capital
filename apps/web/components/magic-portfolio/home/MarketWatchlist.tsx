@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Column, Heading, Line, Row, Tag, Text } from "@once-ui-system/core";
+import { Column, Heading, Line, Row, Tag, Text } from "@dynamic-ui-system/core";
 import type { IconName } from "@/resources/icons";
 import { formatIsoTime } from "@/utils/isoFormat";
 

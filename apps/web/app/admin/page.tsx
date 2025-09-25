@@ -1,4 +1,4 @@
-import { Column, Heading, Text } from "@once-ui-system/core";
+import { Column, Heading, Text } from "@dynamic-ui-system/core";
 
 import { AdminGate } from "@/components/admin/AdminGate";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";

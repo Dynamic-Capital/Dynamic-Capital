@@ -1,5 +1,5 @@
 import { getPosts } from "@/utils/magic-portfolio/utils";
-import { Grid } from "@once-ui-system/core";
+import { Grid } from "@dynamic-ui-system/core";
 import Post from "./Post";
 
 interface PostsProps {

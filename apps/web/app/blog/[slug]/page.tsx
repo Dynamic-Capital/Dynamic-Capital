@@ -13,7 +13,7 @@ import {
   Avatar,
   Media,
   Line,
-} from "@once-ui-system/core";
+} from "@dynamic-ui-system/core";
 import { baseURL, about, blog, person, toAbsoluteUrl } from "@/resources";
 import { formatDate } from "@/utils/magic-portfolio/formatDate";
 import { getPosts } from "@/utils/magic-portfolio/utils";

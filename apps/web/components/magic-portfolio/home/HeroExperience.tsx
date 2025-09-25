@@ -17,7 +17,7 @@ import {
   Icon,
   Row,
   Text,
-} from "@once-ui-system/core";
+} from "@dynamic-ui-system/core";
 import { home } from "@/resources";
 
 const ONBOARDING_STEPS = [

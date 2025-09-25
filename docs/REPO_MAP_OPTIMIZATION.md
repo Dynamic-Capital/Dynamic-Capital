@@ -67,7 +67,7 @@ _Last updated: 2025-09-17._
    `gradient-brand` background and animated `BrandLogo` to anchor the palette.
 2. **Why Dynamic Capital Section** – Three-card feature grid highlighting bank
    verification, crypto routing, and the admin cockpit, each with iconography,
-   Once UI motion variants, and `brand-alpha` backgrounds that telegraph the
+   Dynamic UI motion variants, and `brand-alpha` backgrounds that telegraph the
    Dynamic Capital accent hues.
 3. **Plan Selector & Payment Guides** – Split layout pairing plan explainer copy
    with quick-start buttons for bank/crypto flows and pricing cards featuring

@@ -1,8 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Background, Column, RevealFx } from "@once-ui-system/core";
-import { opacity, SpacingToken } from "@once-ui-system/core";
+import { Background, Column, RevealFx } from "@dynamic-ui-system/core";
+import { opacity, SpacingToken } from "@dynamic-ui-system/core";
 import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
 import { dynamicUI } from "@/resources";

@@ -9,7 +9,7 @@ import {
   Row,
   Tag,
   Text,
-} from "@once-ui-system/core";
+} from "@dynamic-ui-system/core";
 import { schema } from "@/resources";
 
 type ValuePillar = {

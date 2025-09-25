@@ -1,0 +1,22 @@
+{
+  "name": "@dynamic-ui-system/core",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "sideEffects": [
+    "./css/styles.css",
+    "./css/tokens.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "default": "./index.js"
+    },
+    "./css/styles.css": "./css/styles.css",
+    "./css/tokens.css": "./css/tokens.css"
+  },
+  "dependencies": {
+    "@once-ui-system/core": "^1.4.31"
+  }
+}

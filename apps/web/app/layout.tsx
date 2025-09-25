@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import "@once-ui-system/core/css/tokens.css";
-import "@once-ui-system/core/css/styles.css";
+import "@dynamic-ui-system/core/css/tokens.css";
+import "@dynamic-ui-system/core/css/styles.css";
 import "./dynamic-ui.css";
 import "./globals.css";
 import "@/lib/env";
@@ -14,7 +14,7 @@ import {
   opacity,
   RevealFx,
   SpacingToken,
-} from "@once-ui-system/core";
+} from "@dynamic-ui-system/core";
 
 import Providers from "./providers";
 import { getStaticLandingDocument } from "@/lib/staticLanding";

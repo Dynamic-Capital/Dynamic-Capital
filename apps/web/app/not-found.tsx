@@ -8,7 +8,7 @@ import {
   SmartLink,
   Tag,
   Text,
-} from "@once-ui-system/core";
+} from "@dynamic-ui-system/core";
 import { person, social } from "@/resources";
 
 export const dynamic = "force-dynamic";
