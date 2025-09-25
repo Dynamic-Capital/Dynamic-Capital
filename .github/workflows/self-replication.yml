@@ -1,0 +1,93 @@
+name: Self Replication
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*", "release-*"]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Optional branch or tag to replicate"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-package:
+    name: Build replica artifact
+    runs-on: ubuntu-latest
+    env:
+      DENO_TLS_CA_STORE: system
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout requested ref
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref != '' }}
+        run: |
+          git fetch origin "${{ github.event.inputs.ref }}" --tags --prune
+          git checkout "${{ github.event.inputs.ref }}"
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build workspace
+        run: npm run build
+
+      - name: Install Deno 2.x
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+
+      - id: replicate
+        name: Generate self-replication artifact
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts out
+          ARCHIVE="artifacts/dynamic-capital-self-replica.tar.gz"
+          deno run -A scripts/self-replication.ts \
+            --repo . \
+            --dest ./out/self-replica \
+            --archive "$ARCHIVE" \
+            --template \
+            --initGit
+          echo "archive_path=$ARCHIVE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamic-capital-self-replica
+          path: ${{ steps.replicate.outputs.archive_path }}
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-release:
+    name: Publish release asset
+    needs: build-and-package
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dynamic-capital-self-replica
+          path: ./artifact
+
+      - name: Publish GitHub release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifact/dynamic-capital-self-replica.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
