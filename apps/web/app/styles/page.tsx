@@ -17,6 +17,7 @@ type CatalogItem = {
   name: string;
   count: number;
   unit?: CatalogUnit;
+  description?: string;
 };
 
 type CatalogGroup = {
@@ -91,7 +92,12 @@ const marketingCatalog: CatalogCategory = {
         { name: "Pricing Sections", count: 12 },
         { name: "Header Sections", count: 8 },
         { name: "Newsletter Sections", count: 6 },
-        { name: "Stats", count: 8 },
+        {
+          name: "Stats",
+          count: 8,
+          description:
+            "Use these Tailwind CSS stats components to include data insights, such as analytics, metrics, or financial information, in your interface. These components are designed and built by the Tailwind CSS team, and include a variety of different styles and layouts.",
+        },
         { name: "Testimonials", count: 8 },
         { name: "Blog Sections", count: 7 },
         { name: "Contact Sections", count: 7 },
@@ -188,7 +194,12 @@ const applicationCatalog: CatalogCategory = {
         "Insight panels engineered for snapshots, trends, and investor-ready reporting.",
       items: [
         { name: "Description Lists", count: 6 },
-        { name: "Stats", count: 5 },
+        {
+          name: "Stats",
+          count: 5,
+          description:
+            "Use these Tailwind CSS stats components to include data insights, such as analytics, metrics, or financial information, in your interface. These components are designed and built by the Tailwind CSS team, and include a variety of different styles and layouts.",
+        },
         { name: "Calendars", count: 8 },
       ],
     },
@@ -593,7 +604,8 @@ export default function TailwindStylesPage() {
                                       </span>
                                     </div>
                                     <p className="text-sm leading-relaxed text-muted-foreground">
-                                      {category.branding.itemDescription}
+                                      {item.description ??
+                                        category.branding.itemDescription}
                                     </p>
                                     <div className="flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
                                       <span className="inline-flex items-center gap-1">
