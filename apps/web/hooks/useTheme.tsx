@@ -23,6 +23,15 @@ export function useTheme() {
     useDynamicUiTheme();
   const preference = (dynamicUiTheme ?? "system") as Theme;
   const [session, setSession] = useState<Session | null>(null);
+  const getTimeBasedTheme = useCallback(() => {
+    if (typeof window === "undefined") return "light";
+
+    const now = new Date();
+    const hour = now.getHours();
+    const isNight = hour >= 19 || hour < 6;
+
+    return isNight ? "dark" : "light";
+  }, []);
   const [systemTheme, setSystemTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
 
@@ -31,9 +40,7 @@ export function useTheme() {
       return tg.colorScheme;
     }
 
-    return globalThis.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+    return getTimeBasedTheme();
   });
 
   const appliedTheme = resolvedTheme ??
@@ -165,18 +172,50 @@ export function useTheme() {
       return;
     }
 
-    const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
+    let timeout: number | undefined;
 
-    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
-      setSystemTheme(e.matches ? "dark" : "light");
+    const applyTimeBasedTheme = () => {
+      setSystemTheme(getTimeBasedTheme());
     };
 
-    setSystemTheme(mediaQuery.matches ? "dark" : "light");
-    mediaQuery.addEventListener("change", handleSystemThemeChange);
+    const getMillisecondsUntilNextTransition = () => {
+      const now = new Date();
+      const next = new Date(now);
+      const isCurrentlyNight = getTimeBasedTheme() === "dark";
 
-    return () =>
-      mediaQuery.removeEventListener("change", handleSystemThemeChange);
-  }, []);
+      if (isCurrentlyNight) {
+        next.setHours(6, 0, 0, 0);
+        if (next <= now) {
+          next.setDate(next.getDate() + 1);
+        }
+      } else {
+        next.setHours(19, 0, 0, 0);
+        if (next <= now) {
+          next.setDate(next.getDate() + 1);
+        }
+      }
+
+      return Math.max(1, next.getTime() - now.getTime());
+    };
+
+    const scheduleNextUpdate = () => {
+      const delay = getMillisecondsUntilNextTransition();
+
+      timeout = window.setTimeout(() => {
+        applyTimeBasedTheme();
+        scheduleNextUpdate();
+      }, delay);
+    };
+
+    applyTimeBasedTheme();
+    scheduleNextUpdate();
+
+    return () => {
+      if (timeout !== undefined) {
+        window.clearTimeout(timeout);
+      }
+    };
+  }, [getTimeBasedTheme]);
 
   const setThemeMode = useCallback(
     async (newTheme: Theme) => {
