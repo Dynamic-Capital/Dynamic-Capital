@@ -23,6 +23,7 @@ const routes: RoutesConfig = {
   "/checkout": true,
   "/login": true,
   "/admin": true,
+  "/signal": true,
   "/work": false,
   "/blog": false,
   "/gallery": false,
