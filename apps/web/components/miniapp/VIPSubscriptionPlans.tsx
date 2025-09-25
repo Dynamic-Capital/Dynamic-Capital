@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Interactive3DCard } from '@/components/ui/interactive-cards';
-import { FadeInOnView } from '@/components/ui/fade-in-on-view';
-import { 
-  Crown, 
-  Star, 
-  TrendingUp, 
-  Shield, 
-  Zap, 
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Interactive3DCard } from "@/components/ui/interactive-cards";
+import { FadeInOnView } from "@/components/ui/fade-in-on-view";
+import {
   Award,
   CheckCircle,
+  Crown,
   Gift,
-  Sparkles
-} from 'lucide-react';
-import { ThreeDEmoticon } from '@/components/ui/three-d-emoticons';
-import { cn } from '@/lib/utils';
+  Shield,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
+import { ThreeDEmoticon } from "@/components/ui/three-d-emoticons";
+import { cn } from "@/lib/utils";
 
 interface Plan {
   id: string;
@@ -29,6 +29,10 @@ interface Plan {
   features: string[];
   popular?: boolean;
   savings?: string;
+  base_price?: number;
+  dctAmount?: number;
+  tonAmount?: number | null;
+  lastPricedAt?: string | null;
 }
 
 interface VIPSubscriptionPlansProps {
@@ -36,7 +40,9 @@ interface VIPSubscriptionPlansProps {
   compact?: boolean;
 }
 
-export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubscriptionPlansProps) {
+export function VIPSubscriptionPlans(
+  { onSelectPlan, compact = false }: VIPSubscriptionPlansProps,
+) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,38 +53,59 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
   const fetchPlans = async () => {
     try {
       setLoading(true);
-      
+
       // Import supabase client
-      const { supabase } = await import('@/integrations/supabase/client');
-      
+      const { supabase } = await import("@/integrations/supabase/client");
+
       // Try fetching from the plans edge function first
-      const { data: edgeData, error: edgeError } = await supabase.functions.invoke("plans");
-      
+      const { data: edgeData, error: edgeError } = await supabase.functions
+        .invoke("plans");
+
       if (!edgeError && edgeData?.plans) {
-        const mappedPlans = edgeData.plans.map((plan: any, index: number) => ({
-          id: plan.id,
-          name: plan.name,
-          price: plan.price,
-          duration_months: plan.duration_months,
-          is_lifetime: plan.is_lifetime || false,
-          currency: plan.currency || 'USD',
-          features: plan.features || [],
-          popular: index === 1, // Make second plan popular
-          savings: plan.duration_months >= 6 ? '25% OFF' : plan.duration_months >= 3 ? '15% OFF' : undefined
-        }));
+        const mappedPlans = edgeData.plans.map((plan: any, index: number) => {
+          const basePrice = typeof plan.base_price === "number"
+            ? plan.base_price
+            : plan.price;
+          const dctAmount = typeof plan.dct_amount === "number"
+            ? plan.dct_amount
+            : plan.price;
+          const tonAmount = typeof plan.ton_amount === "number"
+            ? plan.ton_amount
+            : null;
+
+          return {
+            id: plan.id,
+            name: plan.name,
+            price: plan.price,
+            duration_months: plan.duration_months,
+            is_lifetime: plan.is_lifetime || false,
+            currency: plan.currency || "USD",
+            features: plan.features || [],
+            popular: index === 1, // Make second plan popular
+            savings: plan.duration_months >= 6
+              ? "25% OFF"
+              : plan.duration_months >= 3
+              ? "15% OFF"
+              : undefined,
+            base_price: basePrice,
+            dctAmount,
+            tonAmount,
+            lastPricedAt: plan.last_priced_at || null,
+          };
+        });
         setPlans(mappedPlans);
         setLoading(false);
         return;
       }
-      
+
       // Fallback to direct Supabase query
       const { data: plans, error } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .order('price', { ascending: true });
+        .from("subscription_plans")
+        .select("*")
+        .order("price", { ascending: true });
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error("Supabase error:", error);
         throw error;
       }
 
@@ -87,12 +114,25 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
         const enhancedPlans = plans.map((plan: any, index: number) => ({
           ...plan,
           popular: index === 1, // Make second plan popular
-          savings: plan.duration_months >= 6 ? '25% OFF' : plan.duration_months >= 3 ? '15% OFF' : undefined
+          savings: plan.duration_months >= 6
+            ? "25% OFF"
+            : plan.duration_months >= 3
+            ? "15% OFF"
+            : undefined,
+          dctAmount: typeof plan.dct_amount === "number"
+            ? plan.dct_amount
+            : plan.price,
+          tonAmount: typeof plan.ton_amount === "number"
+            ? plan.ton_amount
+            : null,
+          base_price: typeof plan.base_price === "number"
+            ? plan.base_price
+            : plan.price,
         }));
         setPlans(enhancedPlans);
       }
     } catch (error) {
-      console.error('Failed to fetch plans:', error);
+      console.error("Failed to fetch plans:", error);
     } finally {
       setLoading(false);
     }
@@ -104,29 +144,37 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
     } else {
       // Default navigation
       const url = new URL(window.location.href);
-      url.searchParams.set('tab', 'plan');
-      url.searchParams.set('selected', planId);
-      window.history.pushState({}, '', url.toString());
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      url.searchParams.set("tab", "plan");
+      url.searchParams.set("selected", planId);
+      window.history.pushState({}, "", url.toString());
+      window.dispatchEvent(new PopStateEvent("popstate"));
     }
   };
 
   const getPlanIcon = (index: number) => {
     switch (index) {
-      case 0: return <Star className="h-6 w-6" />;
-      case 1: return <Crown className="h-6 w-6" />;
-      case 2: return <Award className="h-6 w-6" />;
-      default: return <TrendingUp className="h-6 w-6" />;
+      case 0:
+        return <Star className="h-6 w-6" />;
+      case 1:
+        return <Crown className="h-6 w-6" />;
+      case 2:
+        return <Award className="h-6 w-6" />;
+      default:
+        return <TrendingUp className="h-6 w-6" />;
     }
   };
 
   const getPlanColor = (index: number, popular: boolean) => {
-    if (popular) return 'from-dc-brand to-dc-brand-dark';
+    if (popular) return "from-dc-brand to-dc-brand-dark";
     switch (index) {
-      case 0: return 'from-blue-500 to-blue-600';
-      case 1: return 'from-dc-brand to-dc-brand-dark';
-      case 2: return 'from-red-500 to-red-600';
-      default: return 'from-gray-500 to-gray-600';
+      case 0:
+        return "from-blue-500 to-blue-600";
+      case 1:
+        return "from-dc-brand to-dc-brand-dark";
+      case 2:
+        return "from-red-500 to-red-600";
+      default:
+        return "from-gray-500 to-gray-600";
     }
   };
 
@@ -169,23 +217,42 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                 </div>
               )}
               <CardHeader className={cn("text-center", plan.popular && "pt-8")}>
-                <div className={`w-12 h-12 mx-auto rounded-full bg-gradient-to-r ${getPlanColor(index, plan.popular)} flex items-center justify-center text-white mb-2`}>
+                <div
+                  className={`w-12 h-12 mx-auto rounded-full bg-gradient-to-r ${
+                    getPlanColor(index, plan.popular)
+                  } flex items-center justify-center text-white mb-2`}
+                >
                   {getPlanIcon(index)}
                 </div>
                 <CardTitle className="text-lg">{plan.name}</CardTitle>
                 <div className="space-y-1">
-                  <div className="text-2xl font-bold text-dc-brand">${plan.price}</div>
+                  <div className="text-2xl font-bold text-dc-brand">
+                    ${plan.price}
+                  </div>
                   <div className="text-sm text-muted-foreground">
-                    {plan.is_lifetime ? 'One-time payment' : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`}
+                    ≈ {(plan.dctAmount ?? plan.price).toFixed(2)} DCT
+                    {typeof plan.tonAmount === "number" && plan.tonAmount > 0 &&
+                      (
+                        <span className="ml-1">
+                          / {plan.tonAmount.toFixed(3)} TON
+                        </span>
+                      )}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {plan.is_lifetime
+                      ? "One-time payment"
+                      : `${plan.duration_months} month${
+                        plan.duration_months > 1 ? "s" : ""
+                      }`}
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button 
+                <Button
                   onClick={() => handleSelectPlan(plan.id)}
                   className={cn(
                     "w-full",
-                    plan.popular && "bg-dc-brand hover:bg-dc-brand-dark"
+                    plan.popular && "bg-dc-brand hover:bg-dc-brand-dark",
                   )}
                 >
                   Choose Plan
@@ -204,11 +271,21 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <ThreeDEmoticon emoji="👑" size={32} intensity={0.4} animate={true} />
+            <ThreeDEmoticon
+              emoji="👑"
+              size={32}
+              intensity={0.4}
+              animate={true}
+            />
             <h2 className="text-2xl font-bold bg-gradient-to-r from-dc-brand to-dc-brand-dark bg-clip-text text-transparent">
               VIP Subscription Plans
             </h2>
-            <ThreeDEmoticon emoji="✨" size={28} intensity={0.3} animate={true} />
+            <ThreeDEmoticon
+              emoji="✨"
+              size={28}
+              intensity={0.3}
+              animate={true}
+            />
           </div>
           <p className="text-muted-foreground">
             Choose the perfect plan to elevate your trading journey
@@ -231,10 +308,14 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                   glowEffect={plan.popular}
                   className="relative overflow-hidden group"
                 >
-                  <Card className={cn(
-                    "h-full border-2 transition-all duration-300",
-                    plan.popular ? "border-dc-brand shadow-lg shadow-dc-brand/20" : "border-border hover:border-dc-brand-light"
-                  )}>
+                  <Card
+                    className={cn(
+                      "h-full border-2 transition-all duration-300",
+                      plan.popular
+                        ? "border-dc-brand shadow-lg shadow-dc-brand/20"
+                        : "border-border hover:border-dc-brand-light",
+                    )}
+                  >
                     {/* Popular Badge */}
                     {plan.popular && (
                       <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-dc-brand to-dc-brand-dark text-white text-center py-2 font-medium">
@@ -256,21 +337,31 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                       </div>
                     )}
 
-                    <CardHeader className={cn(
-                      "text-center relative",
-                      plan.popular && "pt-12"
-                    )}>
+                    <CardHeader
+                      className={cn(
+                        "text-center relative",
+                        plan.popular && "pt-12",
+                      )}
+                    >
                       {/* Plan Icon */}
-                      <motion.div 
-                        className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-r ${getPlanColor(index, plan.popular)} flex items-center justify-center text-white mb-4 shadow-lg`}
+                      <motion.div
+                        className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-r ${
+                          getPlanColor(index, plan.popular)
+                        } flex items-center justify-center text-white mb-4 shadow-lg`}
                         whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 260,
+                          damping: 20,
+                        }}
                       >
                         {getPlanIcon(index)}
                       </motion.div>
 
-                      <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
-                      
+                      <CardTitle className="text-xl font-bold">
+                        {plan.name}
+                      </CardTitle>
+
                       {/* Pricing */}
                       <div className="space-y-1">
                         <div className="text-3xl font-bold text-dc-brand">
@@ -280,10 +371,20 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                           </span>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {plan.is_lifetime 
-                            ? 'Lifetime Access' 
-                            : `${plan.duration_months} month${plan.duration_months > 1 ? 's' : ''}`
-                          }
+                          ≈ {(plan.dctAmount ?? plan.price).toFixed(2)} DCT
+                          {typeof plan.tonAmount === "number" &&
+                            plan.tonAmount > 0 && (
+                            <span className="ml-1">
+                              / {plan.tonAmount.toFixed(3)} TON
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {plan.is_lifetime
+                            ? "Lifetime Access"
+                            : `${plan.duration_months} month${
+                              plan.duration_months > 1 ? "s" : ""
+                            }`}
                         </div>
                       </div>
                     </CardHeader>
@@ -296,7 +397,9 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                             key={fIndex}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: (index * 0.1) + (fIndex * 0.05) }}
+                            transition={{
+                              delay: (index * 0.1) + (fIndex * 0.05),
+                            }}
                             className="flex items-center gap-2 text-sm"
                           >
                             <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
@@ -306,28 +409,30 @@ export function VIPSubscriptionPlans({ onSelectPlan, compact = false }: VIPSubsc
                       </div>
 
                       {/* CTA Button */}
-                      <Button 
+                      <Button
                         onClick={() => handleSelectPlan(plan.id)}
                         className={cn(
                           "w-full font-semibold transition-all duration-300 group-hover:shadow-lg",
-                          plan.popular 
+                          plan.popular
                             ? "bg-dc-brand hover:bg-dc-brand-dark shadow-dc-brand/20"
-                            : "hover:bg-dc-brand hover:text-white"
+                            : "hover:bg-dc-brand hover:text-white",
                         )}
                         size="lg"
                       >
-                        {plan.popular ? (
-                          <motion.div 
-                            className="flex items-center gap-2"
-                            whileHover={{ scale: 1.05 }}
-                          >
-                            <Crown className="h-4 w-4" />
-                            Choose This Plan
-                            <Zap className="h-4 w-4" />
-                          </motion.div>
-                        ) : (
-                          "Select Plan"
-                        )}
+                        {plan.popular
+                          ? (
+                            <motion.div
+                              className="flex items-center gap-2"
+                              whileHover={{ scale: 1.05 }}
+                            >
+                              <Crown className="h-4 w-4" />
+                              Choose This Plan
+                              <Zap className="h-4 w-4" />
+                            </motion.div>
+                          )
+                          : (
+                            "Select Plan"
+                          )}
                       </Button>
                     </CardContent>
                   </Card>

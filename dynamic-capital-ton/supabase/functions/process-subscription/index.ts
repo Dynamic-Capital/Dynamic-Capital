@@ -1,5 +1,11 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  calculateDctAmount,
+  calculateTonAmount,
+  fetchTonUsdRate,
+  resolveDisplayPrice,
+} from "../../../../supabase/functions/_shared/pricing.ts";
 
 type Plan = "vip_bronze" | "vip_silver" | "vip_gold" | "mentorship";
 
@@ -45,12 +51,82 @@ type VerifyTonPaymentResult =
   | { ok: true; amountTON: number; payerAddress?: string }
   | { ok: false; error: string };
 
-const PLAN_PRICES_TON: Record<Plan, number> = {
-  vip_bronze: 120,
-  vip_silver: 220,
-  vip_gold: 380,
-  mentorship: 550,
-};
+interface PlanPricing {
+  basePrice: number;
+  dynamicPrice: number | null;
+  displayPrice: number;
+  currency: string;
+  tonAmount: number | null;
+  dctAmount: number;
+  pricingFormula: string | null;
+  lastPricedAt: string | null;
+  performanceSnapshot: Record<string, unknown> | null;
+}
+
+function parseNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+async function fetchPlanPricing(
+  supabase: SupabaseClient,
+  planId: string,
+  tonRate: number | null,
+): Promise<PlanPricing> {
+  const planFields = [
+    "id",
+    "price",
+    "currency",
+    "dynamic_price_usdt",
+    "pricing_formula",
+    "last_priced_at",
+    "performance_snapshot",
+  ].join(",");
+
+  const { data, error } = await supabase
+    .from("subscription_plans")
+    .select(planFields)
+    .eq("id", planId)
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? "Subscription plan not found");
+  }
+
+  const basePrice = Number(data.price ?? 0);
+  const dynamicPrice = parseNumber(data.dynamic_price_usdt);
+  const { price: displayPrice } = resolveDisplayPrice(
+    basePrice,
+    dynamicPrice ?? null,
+  );
+  const snapshot = (data.performance_snapshot ?? null) as
+    | Record<string, unknown>
+    | null;
+  const snapshotTon = snapshot && typeof snapshot.ton_amount === "number"
+    ? snapshot.ton_amount
+    : null;
+  const snapshotDct = snapshot && typeof snapshot.dct_amount === "number"
+    ? snapshot.dct_amount
+    : null;
+  const tonAmount = snapshotTon ?? calculateTonAmount(displayPrice, tonRate);
+  const dctAmount = snapshotDct ?? calculateDctAmount(displayPrice);
+
+  return {
+    basePrice,
+    dynamicPrice: dynamicPrice ?? null,
+    displayPrice,
+    currency: data.currency ?? "USD",
+    tonAmount,
+    dctAmount,
+    pricingFormula: data.pricing_formula ?? null,
+    lastPricedAt: data.last_priced_at ?? null,
+    performanceSnapshot: snapshot,
+  };
+}
 
 function normalizeAddress(value: string): string {
   return value.trim().toLowerCase();
@@ -223,15 +299,27 @@ export async function handler(
       "Burn split",
     );
 
-    const expectedAmount = PLAN_PRICES_TON[plan];
-    if (!expectedAmount) {
-      throw new Error(`Unsupported plan ${plan}`);
+    const tonRate = await fetchTonUsdRate(deps.fetch);
+    const planPricing = await fetchPlanPricing(
+      deps.supabase,
+      plan,
+      tonRate.rate,
+    );
+
+    if (planPricing.currency !== "USD" && planPricing.currency !== "USDT") {
+      throw new Error(`Unsupported currency ${planPricing.currency}`);
+    }
+
+    const expectedTonAmount = planPricing.tonAmount ?? planPricing.displayPrice;
+
+    if (!Number.isFinite(expectedTonAmount) || expectedTonAmount <= 0) {
+      throw new Error("Unable to determine TON price for plan");
     }
 
     const verify = await verifyTonPayment(
       tx_hash,
       config.ops_treasury,
-      expectedAmount,
+      expectedTonAmount,
       deps.fetch,
     );
 
@@ -334,13 +422,30 @@ export async function handler(
 
     await notifyUser(
       deps.fetch,
-      `✅ *Subscription processed*\n\n• Plan: *${plan}*\n• Paid: *${tonPaid} TON*\n• Auto-invest: *${dctForUser} DCT*\n• Burned: *${dctForBurn} DCT*\n\n👉 Open Mini App: ${appUrl}`,
+      `✅ *Subscription processed*\n\n• Plan: *${plan}*\n• Paid: *${
+        tonPaid.toFixed(3)
+      } TON* (~$${planPricing.displayPrice.toFixed(2)})\n• Auto-invest: *${
+        dctForUser.toFixed(2)
+      } DCT*\n• Burned: *${
+        dctForBurn.toFixed(2)
+      } DCT*\n\n👉 Open Mini App: ${appUrl}`,
     );
 
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        price_usd: planPricing.displayPrice,
+        ton_expected: expectedTonAmount,
+        ton_paid: tonPaid,
+        dct_auto_invest: dctForUser,
+        dct_burned: dctForBurn,
+        ton_rate: tonRate,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error(error);
     const message = error instanceof Error ? error.message : "Unknown error";

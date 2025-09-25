@@ -12,11 +12,18 @@ type RawPlan = {
   id?: string | null;
   name?: string | null;
   price?: number | string | null;
+  base_price?: number | string | null;
+  dynamic_price_usdt?: number | string | null;
   currency?: string | null;
   duration_months?: number | string | null;
   is_lifetime?: boolean | null;
   features?: unknown;
   created_at?: string | null;
+  pricing_formula?: string | null;
+  last_priced_at?: string | null;
+  performance_snapshot?: Record<string, unknown> | null;
+  ton_amount?: number | string | null;
+  dct_amount?: number | string | null;
 };
 
 let cachedPlans: Plan[] | null = null;
@@ -50,8 +57,11 @@ function normalizePlan(plan: RawPlan | null | undefined): Plan | null {
     return null;
   }
 
-  const price = coerceNumber(plan.price);
-  if (price === null) {
+  const basePrice = coerceNumber(plan.base_price ?? plan.price);
+  const displayPrice = coerceNumber(plan.price) ?? basePrice;
+  const dynamicPrice = coerceNumber(plan.dynamic_price_usdt);
+
+  if (displayPrice === null || basePrice === null) {
     return null;
   }
 
@@ -60,14 +70,14 @@ function normalizePlan(plan: RawPlan | null | undefined): Plan | null {
 
   const features = Array.isArray(plan.features)
     ? plan.features.filter((feature): feature is string =>
-        typeof feature === "string" && feature.trim().length > 0,
-      )
+      typeof feature === "string" && feature.trim().length > 0
+    )
     : [];
 
   return {
     id: plan.id,
     name: plan.name,
-    price,
+    price: displayPrice,
     currency:
       typeof plan.currency === "string" && plan.currency.trim().length > 0
         ? plan.currency
@@ -75,6 +85,23 @@ function normalizePlan(plan: RawPlan | null | undefined): Plan | null {
     duration_months: isLifetime ? 0 : duration ?? 0,
     is_lifetime: isLifetime,
     features,
+    base_price: basePrice,
+    dynamic_price_usdt: dynamicPrice,
+    pricing_formula: plan.pricing_formula ?? null,
+    last_priced_at: plan.last_priced_at ?? null,
+    performance_snapshot: plan.performance_snapshot ?? null,
+    ton_amount: coerceNumber(plan.ton_amount),
+    dct_amount: coerceNumber(plan.dct_amount) ?? displayPrice,
+    pricing: {
+      basePrice,
+      displayPrice,
+      dynamicPrice,
+      lastPricedAt: plan.last_priced_at ?? null,
+      formula: plan.pricing_formula ?? null,
+      tonAmount: coerceNumber(plan.ton_amount),
+      dctAmount: coerceNumber(plan.dct_amount) ?? displayPrice,
+      performanceSnapshot: plan.performance_snapshot ?? null,
+    },
   };
 }
 
@@ -90,11 +117,24 @@ function normalizePlans(plans: PlansResponse["plans"]): Plan[] {
 
 async function fetchPlansFromSupabase(): Promise<Plan[]> {
   const client = getFallbackClient();
+  const planFields = [
+    "id",
+    "name",
+    "price",
+    "currency",
+    "duration_months",
+    "is_lifetime",
+    "features",
+    "created_at",
+    "dynamic_price_usdt",
+    "pricing_formula",
+    "last_priced_at",
+    "performance_snapshot",
+  ].join(",");
+
   const { data, error } = await client
     .from("subscription_plans")
-    .select(
-      "id,name,price,currency,duration_months,is_lifetime,features,created_at",
-    )
+    .select(planFields)
     .order("price", { ascending: true });
 
   if (error) {
@@ -104,7 +144,9 @@ async function fetchPlansFromSupabase(): Promise<Plan[]> {
   return normalizePlans(data as RawPlan[] | null);
 }
 
-export async function fetchSubscriptionPlans(options: { force?: boolean } = {}): Promise<Plan[]> {
+export async function fetchSubscriptionPlans(
+  options: { force?: boolean } = {},
+): Promise<Plan[]> {
   const { force = false } = options;
 
   if (force) {

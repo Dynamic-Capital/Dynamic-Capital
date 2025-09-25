@@ -47,7 +47,13 @@ export type EnvKey =
   | "MT5_BRIDGE_WORKER_ID"
   | "BRIDGE_HOST"
   | "BRIDGE_USER"
-  | "BRIDGE_SSH_KEY";
+  | "BRIDGE_SSH_KEY"
+  | "TON_USD_OVERRIDE"
+  | "VIP_PRICING_SECRET"
+  | "PROMO_AUTOGEN_SECRET"
+  | "VIP_PRICING_LOOKBACK_DAYS"
+  | "PROMO_AUTOGEN_MIN_USERS"
+  | "PROMO_AUTOGEN_MIN_REVENUE";
 
 /** Test-only env injection type */
 type TestEnv = Partial<Record<EnvKey, string>>;
@@ -55,7 +61,9 @@ type TestEnv = Partial<Record<EnvKey, string>>;
 function sanitize(value: string | undefined | null): string | null {
   if (!value) return null;
   const v = value.trim();
-  if (v === "" || v.toLowerCase() === "undefined" || v.toLowerCase() === "null") {
+  if (
+    v === "" || v.toLowerCase() === "undefined" || v.toLowerCase() === "null"
+  ) {
     return null;
   }
   return v;
