@@ -30,7 +30,7 @@ const {
 });
 
 banner(
-  "Codex CLI · Friendly Build Mode",
+  "Dynamic Build Suite · Friendly Build Mode",
   "Running Dynamic build tasks with cheerful updates.",
 );
 info(`Resolved origin preference: ${resolvedOrigin}`);
@@ -105,7 +105,7 @@ for (const { cmd, label } of tasks) {
 }
 
 if (exitCode === 0) {
-  celebrate("All Codex CLI build tasks finished with a smile!");
+  celebrate("All Dynamic Build Suite tasks finished with a smile!");
 } else {
   warn("Some build tasks did not finish successfully. Review the logs above.");
 }

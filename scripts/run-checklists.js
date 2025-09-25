@@ -93,7 +93,7 @@ const TASK_LIBRARY = {
       'docs/dynamic-capital-checklist.md',
     ],
     notes: [
-      'Runs scripts/build-miniapp.sh to compile the Telegram mini app assets.',
+      'Runs scripts/build-miniapp.mjs to compile the Telegram mini app assets.',
     ],
   },
   'check-webhook': {
