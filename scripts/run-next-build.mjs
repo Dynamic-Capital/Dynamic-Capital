@@ -15,12 +15,18 @@ const __dirname = path.dirname(__filename);
 
 process.env.NODE_ENV = "production";
 
+const LOCAL_DEV_ORIGIN = "http://localhost:8080";
+
+const fallbackOrigin = process.env.CI === "1"
+  ? PRODUCTION_ORIGIN
+  : LOCAL_DEV_ORIGIN;
+
 const {
   defaultedKeys: defaultNotices,
   resolvedOrigin,
 } = applyBrandingEnvDefaults({
   allowedOrigins: ({ env, resolvedOrigin: origin }) => env.SITE_URL ?? origin,
-  fallbackOrigin: PRODUCTION_ORIGIN,
+  fallbackOrigin,
   includeSupabasePlaceholders: false,
 });
 
