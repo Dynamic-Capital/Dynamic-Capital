@@ -12,9 +12,13 @@ import {
   StyleConfig,
   SystemUIConfig,
 } from "@/resources/types";
+import { dynamicBranding } from "./dynamic-branding.config";
 import { home } from "./content";
 
-const baseURL: string = "https://dynamic.capital";
+const brandingMetadata = dynamicBranding.metadata;
+const brandingAssets = dynamicBranding.assets;
+
+const baseURL: string = brandingMetadata.primaryUrl;
 
 const routes: RoutesConfig = {
   "/": true,
@@ -186,11 +190,11 @@ const mailchimp: MailchimpConfig = {
 };
 
 const schema: SchemaConfig = {
-  logo: "/logo.png",
+  logo: brandingAssets.logo,
   type: "Organization",
-  name: "Dynamic Capital",
+  name: brandingMetadata.name,
   description: home.description,
-  email: "support@dynamic.capital",
+  email: brandingMetadata.supportEmail,
 };
 
 const sameAs: SameAsConfig = {
