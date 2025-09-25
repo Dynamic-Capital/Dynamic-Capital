@@ -42,7 +42,7 @@ const projectName = relative(dirname(repoRoot), repoRoot) ||
   "repository";
 
 function formatDate(date: Date): string {
-  return date.toUTCString();
+  return date.toISOString();
 }
 
 const categories: CategoryBucket[] = [

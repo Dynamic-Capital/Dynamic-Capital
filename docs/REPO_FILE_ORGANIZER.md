@@ -1,6 +1,6 @@
 # Repository File Organizer — Dynamic-Capital
 
-**Generated:** Thu, 25 Sep 2025 00:38:52 GMT **Repo root:** Dynamic-Capital
+**Generated:** 2025-09-25T15:17:45.765Z **Repo root:** Dynamic-Capital
 
 This organizer groups top-level files and directories into logical domains so
 contributors can quickly locate the right surface when shipping changes.
