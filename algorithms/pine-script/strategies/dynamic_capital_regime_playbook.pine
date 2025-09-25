@@ -1,0 +1,512 @@
+//@version=6
+// Dynamic Capital regime-aware playbook strategy skeleton
+// Implements top-down HTF bias, structure-driven regime tagging, liquidity and imbalance filters,
+// and configurable execution templates for trending, breakout, and reversal conditions.
+strategy("Dynamic Capital Regime Playbook", overlay=true, max_bars_back=5000, calc_on_every_tick=false, commission_type=strategy.commission.percent, commission_value=0.0, initial_capital=100000)
+
+// === Enumerations ===
+enum Regime { Trending, Consolidation, Breakout, Reversal }
+enum BiasDirection { Bullish, Bearish, Neutral }
+enum PlaybookType { None, Trend, Range, Reversal }
+
+// === Utility helpers ===
+float nzfloat(float value, float replacement) => na(value) ? replacement : value
+
+// === Inputs ===
+// General controls
+var string grpGeneral = "General"
+warmupBars = input.int(200, "Warmup Bars", minval=0, maxval=10000, group=grpGeneral)
+
+// Structure
+var string grpStructure = "Structure"
+pivotLeft      = input.int(4, "Pivot Left", minval=1, maxval=10, group=grpStructure)
+pivotRight     = input.int(4, "Pivot Right", minval=1, maxval=10, group=grpStructure)
+minSwingPctATR = input.float(1.0, "Min Swing x ATR", minval=0.1, maxval=5.0, step=0.05, group=grpStructure)
+bosConfirmBars = input.int(2, "BOS Confirm Bars", minval=1, maxval=5, group=grpStructure)
+
+htfGrp             = "HTF Bias"
+htfPivotLeft       = input.int(3, "HTF Pivot Left", minval=1, maxval=8, group=htfGrp)
+htfPivotRight      = input.int(3, "HTF Pivot Right", minval=1, maxval=8, group=htfGrp)
+htfATRMultiplier   = input.float(1.2, "HTF Min Swing x ATR", minval=0.1, maxval=5.0, step=0.1, group=htfGrp)
+
+// Pullback depth
+var string grpPullback = "Pullback Depth"
+fibSetOption = input.string("38/50/61", "Fib Cluster", options=["38/50/61", "75/78.6/88.6"], group=grpPullback)
+entryTouchTolerance = input.float(0.0, "Entry Touch Tolerance (pts)", minval=0.0, step=0.1, group=grpPullback)
+
+// Liquidity
+var string grpLiquidity = "Liquidity"
+requireSweep = input.bool(true, "Require Sweep Before Entry", group=grpLiquidity)
+sweepThresholdPct = input.float(0.25, "Sweep Threshold x ATR", minval=0.05, maxval=1.0, step=0.05, group=grpLiquidity)
+
+// FVG / Order Block
+var string grpFvg = "FVG / OB"
+minFvgSizePctAtr = input.float(0.25, "Min FVG Size x ATR", minval=0.05, maxval=1.0, step=0.05, group=grpFvg)
+obBodyRatioMin   = input.float(0.6, "OB Body Ratio Min", minval=0.1, maxval=1.0, step=0.05, group=grpFvg)
+obMaxWickRatio   = input.float(0.8, "OB Max Wick Ratio", minval=0.1, maxval=2.0, step=0.05, group=grpFvg)
+
+// Timing filters
+var string grpTiming = "Timing"
+sessionTimezone = input.timezone("Asia/Maldives", "Session Timezone", group=grpTiming)
+enableAsian     = input.bool(true, "Enable Asian Session", group=grpTiming)
+asianStartMin   = input.int(0, "Asian Start Minute", minval=0, maxval=1439, group=grpTiming)
+asianEndMin     = input.int(360, "Asian End Minute", minval=1, maxval=1440, group=grpTiming)
+enableLondon    = input.bool(true, "Enable London Session", group=grpTiming)
+londonStartMin  = input.int(420, "London Start Minute", minval=0, maxval=1439, group=grpTiming)
+londonEndMin    = input.int(780, "London End Minute", minval=1, maxval=1440, group=grpTiming)
+enableNewYork   = input.bool(true, "Enable New York Session", group=grpTiming)
+newYorkStartMin = input.int(780, "New York Start Minute", minval=0, maxval=1439, group=grpTiming)
+newYorkEndMin   = input.int(1140, "New York End Minute", minval=1, maxval=1440, group=grpTiming)
+
+requireDxyAlignment = input.bool(false, "Require DXY Alignment", group=grpTiming)
+dxyTicker           = input.string("TVC:DXY", "DXY Symbol", group=grpTiming)
+
+// Exits & Risk
+var string grpExits = "Exits"
+tpEqualLegOption = input.string("1.0", "TP Equal Leg Mult", options=["0.5", "1.0", "1.5"], group=grpExits)
+tpEqualLegMult   = str.tonumber(tpEqualLegOption)
+slAtrMult        = input.float(1.3, "SL ATR Mult", minval=0.2, maxval=5.0, step=0.1, group=grpExits)
+trailOnBos       = input.bool(true, "Trail Stop on BOS", group=grpExits)
+timeoutBars      = input.int(60, "Timeout Bars", minval=1, maxval=500, group=grpExits)
+minRR            = input.float(1.5, "Minimum RR", minval=0.5, maxval=5.0, step=0.1, group=grpExits)
+riskPct          = input.float(0.75, "Risk % Per Trade", minval=0.1, maxval=2.0, step=0.05, group=grpExits)
+
+// Playbook toggles
+var string grpPlaybooks = "Playbooks"
+enableTrendPlay    = input.bool(true, "Enable Trending Play", group=grpPlaybooks)
+enableRangePlay    = input.bool(true, "Enable Range Play", group=grpPlaybooks)
+enableReversalPlay = input.bool(true, "Enable Reversal Play", group=grpPlaybooks)
+
+// Trending play configuration
+var string grpTrend = "Trending Playbook"
+trendRequireRecentBos = input.bool(true, "Require Recent BOS", group=grpTrend)
+trendMaxBarsSinceBos  = input.int(25, "Max Bars Since BOS", minval=1, maxval=500, group=grpTrend)
+
+// Range play configuration
+var string grpRange = "Range Playbook"
+rangeMinWidthAtrMult  = input.float(0.4, "Min Range Width x ATR", minval=0.1, maxval=5.0, step=0.05, group=grpRange)
+rangeMaxWidthAtrMult  = input.float(1.8, "Max Range Width x ATR", minval=0.2, maxval=10.0, step=0.1, group=grpRange)
+rangeEntryBandPct     = input.float(0.25, "Entry Band % of Range", minval=0.05, maxval=0.45, step=0.05, group=grpRange)
+rangeTargetPct        = input.float(0.5, "Target % of Range", minval=0.3, maxval=0.7, step=0.05, group=grpRange)
+rangeRequireSweep     = input.bool(true, "Require Sweep of Range Edge", group=grpRange)
+rangeRequireFvgOrOb   = input.bool(false, "Require FVG/OB Confirmation", group=grpRange)
+rangeMinBarsSinceBos  = input.int(20, "Min Bars Since BOS", minval=0, maxval=500, group=grpRange)
+
+// Reversal play configuration
+var string grpReversal = "Reversal Playbook"
+reversalMaxBarsSinceBos = input.int(20, "Max Bars Since Confirming BOS", minval=1, maxval=500, group=grpReversal)
+reversalRequireSweep    = input.bool(true, "Require Sweep After Flip", group=grpReversal)
+reversalRequireFvgOrOb  = input.bool(true, "Require FVG/OB Confirmation", group=grpReversal)
+
+// === Core Calculations ===
+atrLength = 14
+atr = ta.atr(atrLength)
+
+getMinuteOfDay(string tz) =>
+    hourLocal = hour(time, tz)
+    minuteLocal = minute(time, tz)
+    hourLocal * 60 + minuteLocal
+
+minuteToday = getMinuteOfDay(sessionTimezone)
+
+inSessionRange(enable, startMin, endMin) =>
+    enable and (startMin <= endMin ? (minuteToday >= startMin and minuteToday < endMin) : (minuteToday >= startMin or minuteToday < endMin))
+
+sessionActive = inSessionRange(enableAsian, asianStartMin, asianEndMin) or inSessionRange(enableLondon, londonStartMin, londonEndMin) or inSessionRange(enableNewYork, newYorkStartMin, newYorkEndMin)
+readyForTrades = bar_index >= warmupBars
+sessionFilter = readyForTrades and sessionActive
+
+// === Pivot Detection ===
+bullSwingPivot = ta.pivotlow(low, pivotLeft, pivotRight)
+bearSwingPivot = ta.pivothigh(high, pivotLeft, pivotRight)
+
+var float lastSwingLow = na
+var int   lastSwingLowBar = na
+var float priorSwingLow = na
+if not na(bullSwingPivot)
+    swingLowRange = ta.highest(high, pivotLeft + pivotRight + 1)[pivotRight] - bullSwingPivot
+    isValid = swingLowRange >= atr * minSwingPctATR
+    if isValid
+        priorSwingLow := lastSwingLow
+        lastSwingLow := bullSwingPivot
+        lastSwingLowBar := bar_index - pivotRight
+
+var float lastSwingHigh = na
+var int   lastSwingHighBar = na
+var float priorSwingHigh = na
+if not na(bearSwingPivot)
+    swingHighRange = bearSwingPivot - ta.lowest(low, pivotLeft + pivotRight + 1)[pivotRight]
+    isValid = swingHighRange >= atr * minSwingPctATR
+    if isValid
+        priorSwingHigh := lastSwingHigh
+        lastSwingHigh := bearSwingPivot
+        lastSwingHighBar := bar_index - pivotRight
+
+breakBuffer = atr * minSwingPctATR
+
+bosUpRaw = not na(lastSwingHigh) and close > lastSwingHigh + breakBuffer
+bosDownRaw = not na(lastSwingLow) and close < lastSwingLow - breakBuffer
+
+bosUp = bosUpRaw and ta.lowest(close, bosConfirmBars) > lastSwingHigh + breakBuffer
+bosDown = bosDownRaw and ta.highest(close, bosConfirmBars) < lastSwingLow - breakBuffer
+
+var int primaryTrend = 0
+var int secondaryTrend = 0
+var int tertiaryTrend = 0
+var int lastBosDirection = 0
+var int lastBosBar = na
+var Regime currentRegime = Regime.Consolidation
+var float lastImpulseHigh = na
+var float lastImpulseLow = na
+var PlaybookType activePlaybook = PlaybookType.None
+var float activeRangeHigh = na
+var float activeRangeLow = na
+var float activeImpulseRange = na
+
+if bosUp
+    primaryTrend := 1
+    secondaryTrend := 1
+    tertiaryTrend := 1
+    currentRegime := lastBosDirection == -1 ? Regime.Reversal : Regime.Breakout
+    lastBosDirection := 1
+    lastBosBar := bar_index
+    lastImpulseHigh := nzfloat(lastSwingHigh, high)
+    lastImpulseLow := nzfloat(lastSwingLow, low)
+else if bosDown
+    primaryTrend := -1
+    secondaryTrend := -1
+    tertiaryTrend := -1
+    currentRegime := lastBosDirection == 1 ? Regime.Reversal : Regime.Breakout
+    lastBosDirection := -1
+    lastBosBar := bar_index
+    lastImpulseHigh := nzfloat(lastSwingHigh, high)
+    lastImpulseLow := nzfloat(lastSwingLow, low)
+else
+    if lastBosBar != na and bar_index - lastBosBar > 3 * (pivotLeft + pivotRight)
+        currentRegime := primaryTrend == 0 ? Regime.Consolidation : Regime.Trending
+    else if lastBosBar == na
+        currentRegime := Regime.Consolidation
+
+barsSinceBos = lastBosBar != na ? bar_index - lastBosBar : na
+
+rangeHighCandidate = not na(lastSwingHigh) and not na(priorSwingHigh) ? math.max(lastSwingHigh, priorSwingHigh) : na
+rangeLowCandidate = not na(lastSwingLow) and not na(priorSwingLow) ? math.min(lastSwingLow, priorSwingLow) : na
+rangeWidth = not na(rangeHighCandidate) and not na(rangeLowCandidate) ? rangeHighCandidate - rangeLowCandidate : na
+rangeWidthOk = not na(rangeWidth) and rangeWidth >= atr * rangeMinWidthAtrMult and rangeWidth <= atr * rangeMaxWidthAtrMult
+rangeTimingOk = barsSinceBos == na or barsSinceBos >= rangeMinBarsSinceBos
+rangeValid = rangeWidthOk and rangeTimingOk
+rangeEntryBand = rangeValid ? rangeWidth * rangeEntryBandPct : na
+rangeLongReentry = rangeValid and not na(rangeEntryBand) and close > rangeLowCandidate and close <= rangeLowCandidate + rangeEntryBand
+rangeShortReentry = rangeValid and not na(rangeEntryBand) and close < rangeHighCandidate and close >= rangeHighCandidate - rangeEntryBand
+
+// === Higher Timeframe Bias ===
+htfAtrLength = 14
+
+getHTFSwingHigh(tf, left, right) => request.security(syminfo.tickerid, tf, ta.pivothigh(high, left, right), lookahead=barmerge.lookahead_off)
+getHTFSwingLow(tf, left, right) => request.security(syminfo.tickerid, tf, ta.pivotlow(low, left, right), lookahead=barmerge.lookahead_off)
+getHTFAtr(tf, length) => request.security(syminfo.tickerid, tf, ta.atr(length), lookahead=barmerge.lookahead_off)
+getHTFClose(tf) => request.security(syminfo.tickerid, tf, close, lookahead=barmerge.lookahead_off)
+
+calcHTFBias(tf) =>
+    swingHigh = getHTFSwingHigh(tf, htfPivotLeft, htfPivotRight)
+    swingLow = getHTFSwingLow(tf, htfPivotLeft, htfPivotRight)
+    atrHtf = getHTFAtr(tf, htfAtrLength)
+    lastSwingHighHtf = ta.valuewhen(not na(swingHigh), swingHigh, 0)
+    lastSwingLowHtf = ta.valuewhen(not na(swingLow), swingLow, 0)
+    buffer = atrHtf * htfATRMultiplier
+    htfClose = getHTFClose(tf)
+    bullish = not na(lastSwingHighHtf) and htfClose > lastSwingHighHtf + buffer
+    bearish = not na(lastSwingLowHtf) and htfClose < lastSwingLowHtf - buffer
+    bullish ? BiasDirection.Bullish : bearish ? BiasDirection.Bearish : BiasDirection.Neutral
+
+monthlyBias = calcHTFBias("M")
+weeklyBias  = calcHTFBias("W")
+dailyBias   = calcHTFBias("D")
+
+getDirectionalBias() =>
+    bias = BiasDirection.Neutral
+    if monthlyBias != BiasDirection.Neutral
+        bias := monthlyBias
+    else if weeklyBias != BiasDirection.Neutral
+        bias := weeklyBias
+    else
+        bias := dailyBias
+    bias
+
+htfBias = getDirectionalBias()
+allowLongs = htfBias == BiasDirection.Bullish
+allowShorts = htfBias == BiasDirection.Bearish
+
+// === Liquidity Sweep Detection ===
+sweepThreshold = atr * sweepThresholdPct
+liquiditySweepLong = not na(priorSwingLow) and priorSwingLow - low >= sweepThreshold
+liquiditySweepShort = not na(priorSwingHigh) and high - priorSwingHigh >= sweepThreshold
+
+// === FVG Detection ===
+bullishFvg = low[1] > high[2]
+bearishFvg = high[1] < low[2]
+
+var float activeBullFvgLow = na
+var float activeBullFvgHigh = na
+var float activeBearFvgLow = na
+var float activeBearFvgHigh = na
+
+if bullishFvg
+    gapLow = high[2]
+    gapHigh = low[1]
+    if gapHigh - gapLow >= atr * minFvgSizePctAtr
+        activeBullFvgLow := gapLow
+        activeBullFvgHigh := gapHigh
+
+if bearishFvg
+    gapHigh = low[2]
+    gapLow = high[1]
+    if gapHigh - gapLow >= atr * minFvgSizePctAtr
+        activeBearFvgHigh := gapHigh
+        activeBearFvgLow := gapLow
+
+if not na(activeBullFvgLow) and low <= activeBullFvgLow
+    activeBullFvgLow := na
+    activeBullFvgHigh := na
+
+if not na(activeBearFvgHigh) and high >= activeBearFvgHigh
+    activeBearFvgHigh := na
+    activeBearFvgLow := na
+
+validBullFvg = not na(activeBullFvgLow) and not na(activeBullFvgHigh)
+validBearFvg = not na(activeBearFvgLow) and not na(activeBearFvgHigh)
+
+// === Order Block Detection ===
+calcBodyRatio(openValue, closeValue, highValue, lowValue) =>
+    body = math.abs(closeValue - openValue)
+    range = highValue - lowValue
+    range == 0.0 ? 0.0 : body / range
+
+calcUpperWickRatio(openValue, closeValue, highValue) =>
+    bodyHigh = math.max(openValue, closeValue)
+    upperWick = highValue - bodyHigh
+    body = math.abs(closeValue - openValue)
+    body == 0.0 ? 0.0 : upperWick / body
+
+calcLowerWickRatio(openValue, closeValue, lowValue) =>
+    bodyLow = math.min(openValue, closeValue)
+    lowerWick = bodyLow - lowValue
+    body = math.abs(closeValue - openValue)
+    body == 0.0 ? 0.0 : lowerWick / body
+
+bullishOB = close[1] < open[1] and close > high[1]
+bearishOB = close[1] > open[1] and close < low[1]
+
+var float bullishObLow = na
+var float bullishObHigh = na
+var float bearishObLow = na
+var float bearishObHigh = na
+
+if bullishOB
+    bodyRatio = calcBodyRatio(open[1], close[1], high[1], low[1])
+    wickRatio = calcLowerWickRatio(open[1], close[1], low[1])
+    if bodyRatio >= obBodyRatioMin and wickRatio <= obMaxWickRatio
+        bullishObLow := math.min(open[1], close[1])
+        bullishObHigh := high[1]
+
+if bearishOB
+    bodyRatio = calcBodyRatio(open[1], close[1], high[1], low[1])
+    wickRatio = calcUpperWickRatio(open[1], close[1], high[1])
+    if bodyRatio >= obBodyRatioMin and wickRatio <= obMaxWickRatio
+        bearishObHigh := math.max(open[1], close[1])
+        bearishObLow := low[1]
+
+// === Pullback Levels ===
+fibLongLower = na
+fibLongUpper = na
+fibShortLower = na
+fibShortUpper = na
+if not na(lastImpulseHigh) and not na(lastImpulseLow)
+    fibLongLower := fibSetOption == "38/50/61" ? lastImpulseHigh - (lastImpulseHigh - lastImpulseLow) * 0.618 : lastImpulseHigh - (lastImpulseHigh - lastImpulseLow) * 0.886
+    fibLongUpper := fibSetOption == "38/50/61" ? lastImpulseHigh - (lastImpulseHigh - lastImpulseLow) * 0.382 : lastImpulseHigh - (lastImpulseHigh - lastImpulseLow) * 0.75
+    fibShortUpper := fibSetOption == "38/50/61" ? lastImpulseLow + (lastImpulseHigh - lastImpulseLow) * 0.618 : lastImpulseLow + (lastImpulseHigh - lastImpulseLow) * 0.886
+    fibShortLower := fibSetOption == "38/50/61" ? lastImpulseLow + (lastImpulseHigh - lastImpulseLow) * 0.382 : lastImpulseLow + (lastImpulseHigh - lastImpulseLow) * 0.75
+
+// === Candlestick Confirmation ===
+strongRejectionLong = close > open and (low <= nzfloat(priorSwingLow, low))
+strongRejectionShort = close < open and (high >= nzfloat(priorSwingHigh, high))
+
+// === DXY Filter ===
+dxyClose = request.security(dxyTicker, timeframe.period, close, lookahead=barmerge.lookahead_off)
+dxyPrevHigh = request.security(dxyTicker, timeframe.period, ta.highest(high, 5), lookahead=barmerge.lookahead_off)
+dxyPrevLow = request.security(dxyTicker, timeframe.period, ta.lowest(low, 5), lookahead=barmerge.lookahead_off)
+dxyBearish = dxyClose < dxyPrevLow
+dxyBullish = dxyClose > dxyPrevHigh
+
+// === Entry Logic ===
+pullbackLongZone = not na(fibLongLower) and not na(fibLongUpper) and low <= fibLongUpper + entryTouchTolerance and high >= fibLongLower - entryTouchTolerance
+pullbackShortZone = not na(fibShortLower) and not na(fibShortUpper) and high >= fibShortLower - entryTouchTolerance and low <= fibShortUpper + entryTouchTolerance
+
+fvgConfirmLong = validBullFvg and close >= activeBullFvgLow and close <= activeBullFvgHigh
+fvgConfirmShort = validBearFvg and close <= activeBearFvgHigh and close >= activeBearFvgLow
+
+obConfirmLong = not na(bullishObLow) and close >= bullishObLow and close <= bullishObHigh
+obConfirmShort = not na(bearishObLow) and close <= bearishObHigh and close >= bearishObLow
+
+confirmLong = fvgConfirmLong or obConfirmLong
+confirmShort = fvgConfirmShort or obConfirmShort
+
+sweepSatisfied(hasSweep, extraRequirement) => (requireSweep or extraRequirement) ? hasSweep : true
+
+isTrendRegime = currentRegime == Regime.Trending or currentRegime == Regime.Breakout
+isReversalRegime = currentRegime == Regime.Reversal
+isRangeRegime = currentRegime == Regime.Consolidation
+
+trendFreshBos = not na(barsSinceBos) and barsSinceBos <= trendMaxBarsSinceBos
+trendBosReadyLong = lastBosDirection == 1 and ((not trendRequireRecentBos) or trendFreshBos)
+trendBosReadyShort = lastBosDirection == -1 and ((not trendRequireRecentBos) or trendFreshBos)
+
+reversalRecentBos = not na(barsSinceBos) and barsSinceBos <= reversalMaxBarsSinceBos
+reversalReadyLong = lastBosDirection == 1 and reversalRecentBos
+reversalReadyShort = lastBosDirection == -1 and reversalRecentBos
+
+rangeSweepLongOk = sweepSatisfied(liquiditySweepLong, rangeRequireSweep)
+rangeSweepShortOk = sweepSatisfied(liquiditySweepShort, rangeRequireSweep)
+trendSweepLongOk = sweepSatisfied(liquiditySweepLong, false)
+trendSweepShortOk = sweepSatisfied(liquiditySweepShort, false)
+reversalSweepLongOk = sweepSatisfied(liquiditySweepLong, reversalRequireSweep)
+reversalSweepShortOk = sweepSatisfied(liquiditySweepShort, reversalRequireSweep)
+
+rangeConfirmLong = (not rangeRequireFvgOrOb or confirmLong)
+rangeConfirmShort = (not rangeRequireFvgOrOb or confirmShort)
+reversalConfirmLong = (not reversalRequireFvgOrOb or confirmLong)
+reversalConfirmShort = (not reversalRequireFvgOrOb or confirmShort)
+
+trendLongSetup = enableTrendPlay and allowLongs and sessionFilter and isTrendRegime and pullbackLongZone and confirmLong and strongRejectionLong and trendSweepLongOk and trendBosReadyLong
+trendShortSetup = enableTrendPlay and allowShorts and sessionFilter and isTrendRegime and pullbackShortZone and confirmShort and strongRejectionShort and trendSweepShortOk and trendBosReadyShort
+
+rangeLongSetup = enableRangePlay and allowLongs and sessionFilter and isRangeRegime and rangeLongReentry and rangeSweepLongOk and rangeConfirmLong and strongRejectionLong
+rangeShortSetup = enableRangePlay and allowShorts and sessionFilter and isRangeRegime and rangeShortReentry and rangeSweepShortOk and rangeConfirmShort and strongRejectionShort
+
+reversalLongSetup = enableReversalPlay and allowLongs and sessionFilter and isReversalRegime and pullbackLongZone and reversalSweepLongOk and reversalConfirmLong and strongRejectionLong and reversalReadyLong
+reversalShortSetup = enableReversalPlay and allowShorts and sessionFilter and isReversalRegime and pullbackShortZone and reversalSweepShortOk and reversalConfirmShort and strongRejectionShort and reversalReadyShort
+
+if requireDxyAlignment
+    trendLongSetup := trendLongSetup and dxyBearish
+    rangeLongSetup := rangeLongSetup and dxyBearish
+    reversalLongSetup := reversalLongSetup and dxyBearish
+    trendShortSetup := trendShortSetup and dxyBullish
+    rangeShortSetup := rangeShortSetup and dxyBullish
+    reversalShortSetup := reversalShortSetup and dxyBullish
+
+longPlaybook = PlaybookType.None
+shortPlaybook = PlaybookType.None
+longRangeHighForEntry = na
+longRangeLowForEntry = na
+shortRangeHighForEntry = na
+shortRangeLowForEntry = na
+longImpulseRangeForEntry = na
+shortImpulseRangeForEntry = na
+
+if trendLongSetup
+    longPlaybook := PlaybookType.Trend
+    longImpulseRangeForEntry := not na(lastImpulseHigh) and not na(lastImpulseLow) ? math.abs(lastImpulseHigh - lastImpulseLow) : atr
+else if reversalLongSetup
+    longPlaybook := PlaybookType.Reversal
+    longImpulseRangeForEntry := not na(lastImpulseHigh) and not na(lastImpulseLow) ? math.abs(lastImpulseHigh - lastImpulseLow) : atr
+else if rangeLongSetup
+    longPlaybook := PlaybookType.Range
+    longRangeHighForEntry := rangeHighCandidate
+    longRangeLowForEntry := rangeLowCandidate
+
+if trendShortSetup
+    shortPlaybook := PlaybookType.Trend
+    shortImpulseRangeForEntry := not na(lastImpulseHigh) and not na(lastImpulseLow) ? math.abs(lastImpulseHigh - lastImpulseLow) : atr
+else if reversalShortSetup
+    shortPlaybook := PlaybookType.Reversal
+    shortImpulseRangeForEntry := not na(lastImpulseHigh) and not na(lastImpulseLow) ? math.abs(lastImpulseHigh - lastImpulseLow) : atr
+else if rangeShortSetup
+    shortPlaybook := PlaybookType.Range
+    shortRangeHighForEntry := rangeHighCandidate
+    shortRangeLowForEntry := rangeLowCandidate
+
+// === Orders ===
+var int longEntryBar = na
+var int shortEntryBar = na
+
+if longPlaybook != PlaybookType.None and strategy.position_size <= 0
+    strategy.entry("Long", strategy.long, qty_percent=riskPct)
+    longEntryBar := bar_index
+    shortEntryBar := na
+    activePlaybook := longPlaybook
+    activeRangeHigh := longPlaybook == PlaybookType.Range ? longRangeHighForEntry : na
+    activeRangeLow := longPlaybook == PlaybookType.Range ? longRangeLowForEntry : na
+    activeImpulseRange := longPlaybook == PlaybookType.Range ? na : longImpulseRangeForEntry
+else if shortPlaybook != PlaybookType.None and strategy.position_size >= 0
+    strategy.entry("Short", strategy.short, qty_percent=riskPct)
+    shortEntryBar := bar_index
+    longEntryBar := na
+    activePlaybook := shortPlaybook
+    activeRangeHigh := shortPlaybook == PlaybookType.Range ? shortRangeHighForEntry : na
+    activeRangeLow := shortPlaybook == PlaybookType.Range ? shortRangeLowForEntry : na
+    activeImpulseRange := shortPlaybook == PlaybookType.Range ? na : shortImpulseRangeForEntry
+
+// Update exits post-entry
+if strategy.position_size > 0
+    entryPrice = strategy.position_avg_price
+    stopPrice = entryPrice - atr * slAtrMult
+    if trailOnBos and not na(lastSwingLow)
+        stopPrice := math.max(stopPrice, lastSwingLow)
+    impulseRange = not na(activeImpulseRange) ? activeImpulseRange : (not na(lastImpulseHigh) and not na(lastImpulseLow) ? math.abs(lastImpulseHigh - lastImpulseLow) : atr)
+    rangeTargetPrice = na
+    if activePlaybook == PlaybookType.Range and not na(activeRangeHigh) and not na(activeRangeLow)
+        rangeWidthActive = activeRangeHigh - activeRangeLow
+        rangeTargetPrice := activeRangeLow + rangeWidthActive * rangeTargetPct
+    takeProfit = not na(rangeTargetPrice) ? rangeTargetPrice : entryPrice + impulseRange * tpEqualLegMult
+    rrDenom = math.max(entryPrice - stopPrice, syminfo.mintick)
+    rrValue = (takeProfit - entryPrice) / rrDenom
+    finalTakeProfit = rrValue >= minRR ? takeProfit : na
+    strategy.exit("Long Exit", "Long", stop=stopPrice, limit=finalTakeProfit)
+
+    if timeoutBars > 0 and not na(longEntryBar) and bar_index - longEntryBar >= timeoutBars
+        strategy.close("Long")
+
+if strategy.position_size < 0
+    entryPrice = strategy.position_avg_price
+    stopPrice = entryPrice + atr * slAtrMult
+    if trailOnBos and not na(lastSwingHigh)
+        stopPrice := math.min(stopPrice, lastSwingHigh)
+    impulseRange = not na(activeImpulseRange) ? activeImpulseRange : (not na(lastImpulseHigh) and not na(lastImpulseLow) ? math.abs(lastImpulseHigh - lastImpulseLow) : atr)
+    rangeTargetPrice = na
+    if activePlaybook == PlaybookType.Range and not na(activeRangeHigh) and not na(activeRangeLow)
+        rangeWidthActive = activeRangeHigh - activeRangeLow
+        rangeTargetPrice := activeRangeHigh - rangeWidthActive * rangeTargetPct
+    takeProfit = not na(rangeTargetPrice) ? rangeTargetPrice : entryPrice - impulseRange * tpEqualLegMult
+    rrDenom = math.max(stopPrice - entryPrice, syminfo.mintick)
+    rrValue = (entryPrice - takeProfit) / rrDenom
+    finalTakeProfit = rrValue >= minRR ? takeProfit : na
+    strategy.exit("Short Exit", "Short", stop=stopPrice, limit=finalTakeProfit)
+
+    if timeoutBars > 0 and not na(shortEntryBar) and bar_index - shortEntryBar >= timeoutBars
+        strategy.close("Short")
+
+if strategy.position_size <= 0
+    longEntryBar := na
+if strategy.position_size >= 0
+    shortEntryBar := na
+if strategy.position_size == 0
+    activePlaybook := PlaybookType.None
+    activeRangeHigh := na
+    activeRangeLow := na
+    activeImpulseRange := na
+
+// === Plotting ===
+plotshape(bosUp, title="BOS Up", color=color.new(color.lime, 0), style=shape.triangleup, location=location.belowbar, text="BOS↑")
+plotshape(bosDown, title="BOS Down", color=color.new(color.red, 0), style=shape.triangledown, location=location.abovebar, text="BOS↓")
+plotshape(liquiditySweepLong, title="Liquidity Sweep Long", color=color.new(color.blue, 0), style=shape.xcross, location=location.belowbar)
+plotshape(liquiditySweepShort, title="Liquidity Sweep Short", color=color.new(color.orange, 0), style=shape.xcross, location=location.abovebar)
+
+bgcolor(currentRegime == Regime.Trending ? color.new(color.green, 90) : currentRegime == Regime.Breakout ? color.new(color.yellow, 85) : currentRegime == Regime.Reversal ? color.new(color.red, 85) : color.new(color.gray, 90))
+
+var label regimeLabel = na
+if barstate.islastconfirmedhistory
+    label.delete(regimeLabel)
+    regimeText = currentRegime == Regime.Trending ? "Trending" : currentRegime == Regime.Breakout ? "Breakout" : currentRegime == Regime.Reversal ? "Reversal" : "Consolidation"
+    biasText = htfBias == BiasDirection.Bullish ? "Bullish" : htfBias == BiasDirection.Bearish ? "Bearish" : "Neutral"
+    playbookText = activePlaybook == PlaybookType.Trend ? "Trend" : activePlaybook == PlaybookType.Range ? "Range" : activePlaybook == PlaybookType.Reversal ? "Reversal" : "None"
+    regimeLabel := label.new(bar_index, high, str.format("Regime: {0}\nBias: {1}\nPlaybook: {2}", regimeText, biasText, playbookText), color=color.new(color.black, 0), textcolor=color.white, style=label.style_label_left)
