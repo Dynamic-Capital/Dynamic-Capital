@@ -3,9 +3,18 @@
 import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
-import { Button, Fade, Flex, Line, Row, ToggleButton } from "@once-ui-system/core";
+import {
+  Button,
+  Column,
+  Fade,
+  Flex,
+  Line,
+  Row,
+  Text,
+  ToggleButton,
+} from "@once-ui-system/core";
 
-import { display, person, about, blog, work, gallery, isRouteEnabled } from "@/resources";
+import { display, isRouteEnabled, person } from "@/resources";
 import type { IconName } from "@/resources/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "./ThemeToggle";
@@ -16,7 +25,9 @@ type TimeDisplayProps = {
   locale?: string; // Optionally allow locale, defaulting to 'en-GB'
 };
 
-const TimeDisplay: React.FC<TimeDisplayProps> = ({ timeZone, locale = "en-GB" }) => {
+const TimeDisplay: React.FC<TimeDisplayProps> = (
+  { timeZone, locale = "en-GB" },
+) => {
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
@@ -48,79 +59,81 @@ export const Header = () => {
   const pathname = usePathname() ?? "";
   const { user, signOut } = useAuth();
 
-  const homeEnabled = isRouteEnabled("/");
-  const plansEnabled = isRouteEnabled("/plans");
-  const aboutEnabled = isRouteEnabled("/about");
-  const workEnabled = isRouteEnabled("/work");
-  const blogEnabled = isRouteEnabled("/blog");
-  const galleryEnabled = isRouteEnabled("/gallery");
+  const navBlueprint = [
+    {
+      key: "start",
+      route: "/",
+      step: "Step 1",
+      label: "Start here",
+      description: "Follow the guided tour and set your first goal.",
+      icon: "sparkles" as IconName,
+      href: "/",
+      isActive: (currentPath: string) => currentPath === "/",
+    },
+    {
+      key: "learn",
+      route: "/blog",
+      step: "Step 2",
+      label: "Learn the basics",
+      description: "Browse beginner-friendly lessons from the desk.",
+      icon: "book" as IconName,
+      href: "/blog",
+      isActive: (currentPath: string) => currentPath.startsWith("/blog"),
+    },
+    {
+      key: "plans",
+      route: "/plans",
+      step: "Step 3",
+      label: "Choose a plan",
+      description: "Compare membership paths when you're ready to join.",
+      icon: "crown" as IconName,
+      href: "/plans",
+      isActive: (currentPath: string) => currentPath.startsWith("/plans"),
+    },
+    {
+      key: "results",
+      route: "/work",
+      step: "Step 4",
+      label: "See real results",
+      description: "Review live desk projects and member wins.",
+      icon: "grid" as IconName,
+      href: "/work",
+      isActive: (currentPath: string) => currentPath.startsWith("/work"),
+    },
+    {
+      key: "automation",
+      route: "/telegram",
+      step: "Step 5",
+      label: "Automation hub",
+      description: "Connect signals and manage the Telegram bot.",
+      icon: "telegram" as IconName,
+      href: "/telegram",
+      isActive: (currentPath: string) => currentPath.startsWith("/telegram"),
+    },
+  ] as const;
 
-  const navItems = [
-    homeEnabled
-      ? {
-          key: "home",
-          label: "Home",
-          icon: "home" as IconName,
-          href: "/",
-          selected: pathname === "/",
-        }
-      : null,
-    plansEnabled
-      ? {
-          key: "plans",
-          label: "VIP Plans",
-          icon: "crown" as IconName,
-          href: "/plans",
-          selected: pathname.startsWith("/plans"),
-        }
-      : null,
-    aboutEnabled
-      ? {
-          key: "about",
-          label: about.label,
-          icon: "person" as IconName,
-          href: "/about",
-          selected: pathname === "/about",
-        }
-      : null,
-    workEnabled
-      ? {
-          key: "work",
-          label: work.label,
-          icon: "grid" as IconName,
-          href: "/work",
-          selected: pathname.startsWith("/work"),
-        }
-      : null,
-    blogEnabled
-      ? {
-          key: "blog",
-          label: blog.label,
-          icon: "book" as IconName,
-          href: "/blog",
-          selected: pathname.startsWith("/blog"),
-        }
-      : null,
-    galleryEnabled
-      ? {
-          key: "gallery",
-          label: gallery.label,
-          icon: "gallery" as IconName,
-          href: "/gallery",
-          selected: pathname.startsWith("/gallery"),
-        }
-      : null,
-  ].filter((item): item is {
-    key: string;
-    label: string;
-    icon: IconName;
-    href: string;
-    selected: boolean;
-  } => Boolean(item));
+  const navItems = navBlueprint
+    .filter((item) => isRouteEnabled(item.route))
+    .map((item) => ({
+      key: item.key,
+      label: item.label,
+      icon: item.icon,
+      href: item.href,
+      step: item.step,
+      description: item.description,
+      ariaLabel: `${item.step}: ${item.label}. ${item.description}`,
+      selected: item.isActive(pathname),
+    }));
 
   return (
     <>
-      <Fade s={{ hide: true }} fillWidth position="fixed" height="80" zIndex={9} />
+      <Fade
+        s={{ hide: true }}
+        fillWidth
+        position="fixed"
+        height="80"
+        zIndex={9}
+      />
       <Fade
         hide
         s={{ hide: false }}
@@ -145,7 +158,12 @@ export const Header = () => {
           position: "fixed",
         }}
       >
-        <Row paddingLeft="12" fillWidth vertical="center" textVariant="body-default-s">
+        <Row
+          paddingLeft="12"
+          fillWidth
+          vertical="center"
+          textVariant="body-default-s"
+        >
           {display.location && <Row s={{ hide: true }}>{person.location}</Row>}
         </Row>
         <Row fillWidth horizontal="center">
@@ -158,23 +176,53 @@ export const Header = () => {
             horizontal="center"
             zIndex={1}
           >
-            <Row gap="4" vertical="center" textVariant="body-default-s" suppressHydrationWarning>
+            <Row
+              gap="4"
+              vertical="center"
+              textVariant="body-default-s"
+              suppressHydrationWarning
+            >
               {navItems.flatMap((item, index) => {
                 const toggle = (
                   <React.Fragment key={item.key}>
-                    <Row s={{ hide: true }}>
+                    <Column
+                      key={`${item.key}-desktop`}
+                      s={{ hide: true }}
+                      gap="4"
+                      horizontal="center"
+                      align="center"
+                    >
+                      <Text
+                        variant="label-strong-xs"
+                        align="center"
+                        onBackground={item.selected
+                          ? "brand-strong"
+                          : "neutral-weak"}
+                      >
+                        {item.step}
+                      </Text>
                       <ToggleButton
                         prefixIcon={item.icon}
                         href={item.href}
                         label={item.label}
                         selected={item.selected}
+                        aria-label={item.ariaLabel}
                       />
-                    </Row>
+                      <Text
+                        variant="body-default-xs"
+                        align="center"
+                        onBackground="neutral-weak"
+                        style={{ maxWidth: "14rem" }}
+                      >
+                        {item.description}
+                      </Text>
+                    </Column>
                     <Row hide s={{ hide: false }}>
                       <ToggleButton
                         prefixIcon={item.icon}
                         href={item.href}
                         selected={item.selected}
+                        aria-label={item.ariaLabel}
                       />
                     </Row>
                   </React.Fragment>
@@ -214,15 +262,17 @@ export const Header = () => {
             <Flex s={{ hide: true }}>
               {display.time && <TimeDisplay timeZone={person.location} />}
             </Flex>
-            {user ? (
-              <Button size="s" variant="secondary" onClick={() => signOut()}>
-                Logout
-              </Button>
-            ) : (
-              <Button size="s" variant="secondary" href="/login">
-                Login
-              </Button>
-            )}
+            {user
+              ? (
+                <Button size="s" variant="secondary" onClick={() => signOut()}>
+                  Logout
+                </Button>
+              )
+              : (
+                <Button size="s" variant="secondary" href="/login">
+                  Login
+                </Button>
+              )}
           </Flex>
         </Flex>
       </Row>
