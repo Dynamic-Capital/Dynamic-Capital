@@ -13,12 +13,21 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
+import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
 import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
+import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
+import { CommodityStrengthSection } from "@/components/magic-portfolio/home/CommodityStrengthSection";
 import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
+import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
 import { FxMarketSnapshotSection } from "@/components/magic-portfolio/home/FxMarketSnapshotSection";
 import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
+import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
+import { PerformanceInsightsSection } from "@/components/magic-portfolio/home/PerformanceInsightsSection";
+import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
+import { ValuePropositionSection } from "@/components/magic-portfolio/home/ValuePropositionSection";
+import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
 import { VipPlansPricingSection } from "@/components/magic-portfolio/home/VipPlansPricingSection";
 import { cn } from "@/utils";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
@@ -272,6 +281,9 @@ export function DynamicCapitalLandingPage() {
       <Section variant="wide" reveal={false}>
         <HeroExperience />
       </Section>
+      <Section revealDelay={0.24}>
+        <ValuePropositionSection />
+      </Section>
       <Section revealDelay={0.32}>
         <ServicesOverviewSection />
       </Section>
@@ -279,22 +291,46 @@ export function DynamicCapitalLandingPage() {
         <ExperienceHighlightsSection />
       </Section>
       <Section revealDelay={0.48}>
+        <PerformanceInsightsSection />
+      </Section>
+      <Section revealDelay={0.56}>
         <DeploymentVelocitySection />
       </Section>
-      <Section variant="wide" revealDelay={0.56}>
+      <Section variant="wide" revealDelay={0.64}>
         <MarketIntelligenceSection />
       </Section>
-      <Section revealDelay={0.64}>
-        <VipPlansPricingSection />
-      </Section>
-      <Section revealDelay={0.72}>
-        <MentorAndTrustSection />
+      <Section variant="wide" revealDelay={0.72}>
+        <CommodityStrengthSection />
       </Section>
       <Section revealDelay={0.8}>
-        <FundingReadinessSection />
+        <FundamentalAnalysisSection />
       </Section>
       <Section revealDelay={0.88}>
+        <MentorshipProgramsSection />
+      </Section>
+      <Section revealDelay={0.96}>
+        <VipPlansPricingSection />
+      </Section>
+      <Section revealDelay={1.04}>
+        <VipPackagesSection />
+      </Section>
+      <Section revealDelay={1.12}>
+        <MentorAndTrustSection />
+      </Section>
+      <Section revealDelay={1.2}>
+        <PoolTradingSection />
+      </Section>
+      <Section revealDelay={1.28}>
+        <ComplianceCertificates />
+      </Section>
+      <Section revealDelay={1.36}>
+        <FundingReadinessSection />
+      </Section>
+      <Section revealDelay={1.44}>
         <CheckoutCallout />
+      </Section>
+      <Section revealDelay={1.52}>
+        <AboutShowcase />
       </Section>
       <Section reveal={false}>
         <Mailchimp className={styles.card} />
