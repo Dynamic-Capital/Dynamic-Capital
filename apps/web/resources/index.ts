@@ -27,6 +27,12 @@ export {
 } from "./dynamic-ui.config";
 
 export {
+  dynamicBranding,
+  exportDynamicBranding,
+  importDynamicBranding,
+} from "./dynamic-branding.config";
+
+export {
   magicPortfolioBucketBaseUrl,
   magicPortfolioBucketName,
   supabaseAsset,
