@@ -9,6 +9,8 @@ import { getCacheControl, getContentType } from './scripts/utils/static-assets.j
 const port = process.env.PORT || 3000;
 const root = process.cwd();
 const staticRoot = join(root, '_static');
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
+const LOOPBACK_PATTERNS = [/^127\./, /^::1$/, /^::ffff:127\./];
 
 function coerceSiteUrl(raw) {
   if (!raw) return undefined;
@@ -315,7 +317,13 @@ async function handler(req, res) {
     } catch {}
   }
 
-  if (requestHost && requestHost !== CANONICAL_HOST) {
+  const isLoopbackHost = Boolean(
+    requestHost &&
+      (LOOPBACK_HOSTS.has(requestHost) ||
+        LOOPBACK_PATTERNS.some((pattern) => pattern.test(requestHost))),
+  );
+
+  if (requestHost && requestHost !== CANONICAL_HOST && !isLoopbackHost) {
     let requestPath = req.url || '/';
     if (!requestPath.startsWith('/')) {
       try {
