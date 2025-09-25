@@ -123,6 +123,14 @@ class RealtimeExecutor:
                 if pos.symbol == decision.symbol and pos.direction == decision.direction:
                     del positions[idx]
                     break
+        elif decision.action == "modify":
+            for pos in positions:
+                if pos.symbol == decision.symbol and pos.direction == (decision.direction or pos.direction):
+                    if decision.stop_loss is not None:
+                        pos.stop_loss = decision.stop_loss
+                    if decision.take_profit is not None:
+                        pos.take_profit = decision.take_profit
+                    break
 
 
 __all__ = [

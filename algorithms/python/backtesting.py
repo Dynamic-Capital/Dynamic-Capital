@@ -50,6 +50,8 @@ class Backtester:
                         self.logic.risk.record_closed_trade(trade)
                 elif decision.action == "open":
                     self._open_position(decision, snapshot, open_positions)
+                elif decision.action == "modify":
+                    self._modify_position(decision, open_positions)
             last_snapshot = snapshot
         if last_snapshot is not None and open_positions:
             for pos in list(open_positions):
@@ -121,6 +123,17 @@ class Backtester:
             pips=pips,
             metadata={"forced_exit": True},
         )
+
+    def _modify_position(
+        self, decision: TradeDecision, open_positions: List[ActivePosition]
+    ) -> None:
+        for pos in open_positions:
+            if pos.symbol == decision.symbol and pos.direction == (decision.direction or pos.direction):
+                if decision.stop_loss is not None:
+                    pos.stop_loss = decision.stop_loss
+                if decision.take_profit is not None:
+                    pos.take_profit = decision.take_profit
+                break
 
 
 __all__ = ["Backtester", "BacktestResult"]
