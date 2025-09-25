@@ -15,6 +15,7 @@ import { version } from "../_shared/version.ts";
 
 interface DepositBody {
   amount?: number;
+  tonEventId?: string;
   txHash?: string;
   initData?: string;
   notes?: string;
@@ -67,10 +68,6 @@ export function createDepositHandler(
       return bad("Bad JSON", undefined, req);
     }
     const body = parseBody(bodyRaw);
-    const amount = Number(body.amount);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      return bad("Invalid amount", undefined, req);
-    }
     const store = deps.createStore();
     const profile = await deps.resolveProfile(req, body, store);
     if (!profile) {
@@ -78,14 +75,47 @@ export function createDepositHandler(
     }
     try {
       const now = deps.now();
+      let amount = Number(body.amount);
+      let dctAmount: number | null = null;
+      let fxRate: number | null = null;
+      let valuation = Number.isFinite(amount) ? roundCurrency(amount) : null;
+      let tonEventId: string | null = null;
+      let tonTxHash: string | null = null;
+      if (body.tonEventId) {
+        tonEventId = body.tonEventId;
+        const claimed = await store.claimTonEvent(
+          body.tonEventId,
+          now.toISOString(),
+        );
+        if (!claimed) {
+          return bad(
+            "Allocator event already consumed or missing",
+            undefined,
+            req,
+          );
+        }
+        dctAmount = claimed.dct_amount;
+        fxRate = claimed.fx_rate;
+        valuation = roundCurrency(claimed.valuation_usdt);
+        amount = roundCurrency(claimed.usdt_amount);
+        tonTxHash = claimed.ton_tx_hash;
+      }
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return bad("Invalid amount", undefined, req);
+      }
       const investor = await ensureInvestor(store, profile.profileId, now);
       const cycle = await ensureActiveCycle(store, now);
       const deposit = await store.insertDeposit({
         investor_id: investor.id,
         cycle_id: cycle.id,
         amount_usdt: roundCurrency(amount),
-        tx_hash: body.txHash ?? null,
-        notes: body.notes ?? null,
+        tx_hash: body.txHash ?? tonTxHash ?? null,
+        notes: body.notes ?? (tonEventId ? `TON swap ${tonEventId}` : null),
+        dct_amount: dctAmount,
+        entry_fx_rate: fxRate,
+        valuation_usdt: valuation ?? roundCurrency(amount),
+        ton_event_id: tonEventId,
+        ton_tx_hash: tonTxHash,
         deposit_type: "external",
         created_at: now.toISOString(),
       });
@@ -101,7 +131,7 @@ export function createDepositHandler(
       }
       const sharePercentage = share?.share_percentage ?? 0;
       const contributionUsdt = share?.contribution_usdt ??
-        roundCurrency(amount);
+        roundCurrency(valuation ?? amount);
       try {
         await deps.notifyDeposit({
           telegramId: profile.telegramId ?? profileRecord?.telegram_id ?? null,

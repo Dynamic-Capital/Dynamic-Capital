@@ -43,6 +43,9 @@ interface SwapResult {
   dctAmount: number;
   swapTxHash: string;
   routerSwapId: string;
+  priceSnapshotId: string | null;
+  oraclePrice: number | null;
+  usdNotional: number;
 }
 
 interface StakeConfig {
@@ -70,6 +73,38 @@ const LOCK_CONFIG: Record<string, StakeConfig> = {
 };
 
 const EARLY_EXIT_PENALTY_BPS = 200;
+
+const ORACLE_SYMBOL = "DCTUSDT";
+
+async function fetchOraclePrice() {
+  const supabase = createClient("service");
+  const { data, error } = await supabase
+    .from("price_snapshots")
+    .select("id, price_usd, signed_at")
+    .eq("symbol", ORACLE_SYMBOL)
+    .order("signed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Oracle lookup failed: ${error.message}`);
+  }
+  if (!data) {
+    throw new Error("Oracle price unavailable");
+  }
+  const price = Number(data.price_usd);
+  if (!Number.isFinite(price) || price <= 0) {
+    throw new Error("Oracle price invalid");
+  }
+  const signedAt = Date.parse(data.signed_at);
+  if (!Number.isFinite(signedAt)) {
+    throw new Error("Oracle snapshot missing timestamp");
+  }
+  const ageMs = Date.now() - signedAt;
+  if (ageMs > 10 * 60 * 1000) {
+    throw new Error("Oracle price stale");
+  }
+  return { price, snapshotId: data.id as string | null };
+}
 
 function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
@@ -178,7 +213,20 @@ async function executeSwap(
   tag: SwapTag,
 ): Promise<SwapResult> {
   if (tonAmount <= 0) {
-    return { dctAmount: 0, swapTxHash: "", routerSwapId: "" };
+    return {
+      dctAmount: 0,
+      swapTxHash: "",
+      routerSwapId: "",
+      priceSnapshotId: null,
+      oraclePrice: null,
+      usdNotional: 0,
+    };
+  }
+
+  const tonUsdOverride = optionalEnv("TON_USD_PRICE");
+  const tonUsd = tonUsdOverride ? Number(tonUsdOverride) : 1;
+  if (!Number.isFinite(tonUsd) || tonUsd <= 0) {
+    throw new Error("Invalid TON_USD_PRICE value");
   }
 
   const priceOverrideRaw = optionalEnv("DCT_PRICE_OVERRIDE");
@@ -187,48 +235,28 @@ async function executeSwap(
     if (!Number.isFinite(price) || price <= 0) {
       throw new Error("Invalid DCT_PRICE_OVERRIDE value");
     }
-    const dctAmount = roundTon(tonAmount * price);
+    const usdNotional = roundTon(tonAmount * tonUsd);
+    const dctAmount = roundTon(usdNotional / price);
     return {
       dctAmount,
       swapTxHash: `simulated-${tag}`,
       routerSwapId: `sim-${crypto.randomUUID()}`,
+      priceSnapshotId: null,
+      oraclePrice: price,
+      usdNotional,
     };
   }
 
-  const routerUrl = optionalEnv("DEX_ROUTER_URL");
-  if (!routerUrl) {
-    throw new Error("DEX router URL missing and no price override provided");
-  }
-
-  const response = await fetch(`${routerUrl.replace(/\/$/, "")}/swap`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      fromToken: "TON",
-      toToken: "DCT",
-      amountTon: tonAmount,
-      tag,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`DEX router error ${response.status}`);
-  }
-
-  const payload = await response.json();
-  const dctAmount = Number(payload.dctAmount ?? payload.amount ?? 0);
-  if (!Number.isFinite(dctAmount) || dctAmount < 0) {
-    throw new Error("Router returned invalid DCT amount");
-  }
-  const swapTxHash = String(payload.swapTxHash ?? payload.txHash ?? "");
-  const routerSwapId = String(
-    payload.swapId ?? payload.id ?? swapTxHash || crypto.randomUUID(),
-  );
-
+  const oracle = await fetchOraclePrice();
+  const usdNotional = roundTon(tonAmount * tonUsd);
+  const dctAmount = roundTon(usdNotional / oracle.price);
   return {
     dctAmount,
-    swapTxHash,
-    routerSwapId,
+    swapTxHash: `allocator-${tag}-${crypto.randomUUID()}`,
+    routerSwapId: oracle.snapshotId ?? "",
+    priceSnapshotId: oracle.snapshotId ?? null,
+    oraclePrice: oracle.price,
+    usdNotional,
   };
 }
 
@@ -342,8 +370,18 @@ export const handler = registerHandler(async (req) => {
     dctAmount: 0,
     swapTxHash: "",
     routerSwapId: "",
+    priceSnapshotId: null,
+    oraclePrice: null,
+    usdNotional: 0,
   };
-  let burnSwap: SwapResult = { dctAmount: 0, swapTxHash: "", routerSwapId: "" };
+  let burnSwap: SwapResult = {
+    dctAmount: 0,
+    swapTxHash: "",
+    routerSwapId: "",
+    priceSnapshotId: null,
+    oraclePrice: null,
+    usdNotional: 0,
+  };
 
   try {
     autoInvestSwap = await executeSwap(autoInvestTon, "auto-invest");
@@ -416,6 +454,13 @@ export const handler = registerHandler(async (req) => {
       swaps: {
         autoInvest: autoInvestSwap,
         burn: burnSwap,
+      },
+      valuations: {
+        autoInvestUsd: autoInvestSwap.usdNotional,
+        burnUsd: burnSwap.usdNotional,
+        oraclePrice: autoInvestSwap.oraclePrice ?? burnSwap.oraclePrice,
+        priceSnapshotId: autoInvestSwap.priceSnapshotId ??
+          burnSwap.priceSnapshotId ?? null,
       },
     },
   };

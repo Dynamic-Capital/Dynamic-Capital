@@ -92,7 +92,8 @@
   "test": {
     "include": [
       "tests/**/*.test.ts",
-      "tests/**/*.test.tsx"
+      "tests/**/*.test.tsx",
+      "dynamic-capital-ton/apps/tests/**/*.test.ts"
     ]
   },
   "deploy": {
