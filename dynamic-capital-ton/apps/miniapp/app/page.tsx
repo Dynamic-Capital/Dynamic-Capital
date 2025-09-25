@@ -502,20 +502,37 @@ function HomeInner() {
         {statusMessage && <div className="status-banner">{statusMessage}</div>}
       </main>
 
-      <nav className="bottom-nav" aria-label="Primary">
-        {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-          const isActive = activeSection === id;
-          return (
-            <button
-              key={id}
-              className={`nav-button${isActive ? " nav-button--active" : ""}`}
-              onClick={() => scrollToSection(id)}
-            >
-              <Icon active={isActive} />
-              <span>{label}</span>
-            </button>
-          );
-        })}
+      <nav
+        aria-label="Breadcrumb"
+        className="fixed bottom-8 left-1/2 z-50 flex w-full max-w-xl -translate-x-1/2 justify-center px-4"
+      >
+        <div className="flex w-full items-center justify-center rounded-full border border-slate-500/50 bg-slate-900/80 px-4 py-3 text-[0.78rem] font-medium text-slate-300 shadow-[0_18px_46px_rgba(7,12,24,0.45)] backdrop-blur">
+          <ol className="flex w-full items-center gap-1">
+            {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+              const isActive = activeSection === id;
+              return (
+                <li
+                  key={id}
+                  className="flex min-w-0 flex-1 items-center after:mx-1 after:text-slate-600/70 after:content-['/'] last:after:hidden"
+                >
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection(id)}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`group flex w-full items-center gap-2 rounded-full px-3 py-2 transition-colors duration-150 ${
+                      isActive
+                        ? "bg-sky-500/20 text-sky-100"
+                        : "text-slate-300/70 hover:bg-white/5 hover:text-sky-100"
+                    }`}
+                  >
+                    <Icon active={isActive} />
+                    <span className="truncate">{label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
       </nav>
     </div>
   );
@@ -524,7 +541,9 @@ function HomeInner() {
 function HomeIcon({ active }: { active: boolean }) {
   return (
     <svg
-      className="nav-icon"
+      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
+        active ? "text-sky-100" : "text-slate-400"
+      }`}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -543,7 +562,9 @@ function HomeIcon({ active }: { active: boolean }) {
 function SparkIcon({ active }: { active: boolean }) {
   return (
     <svg
-      className="nav-icon"
+      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
+        active ? "text-sky-100" : "text-slate-400"
+      }`}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -562,7 +583,9 @@ function SparkIcon({ active }: { active: boolean }) {
 function ActivityIcon({ active }: { active: boolean }) {
   return (
     <svg
-      className="nav-icon"
+      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
+        active ? "text-sky-100" : "text-slate-400"
+      }`}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
@@ -583,7 +606,9 @@ function ActivityIcon({ active }: { active: boolean }) {
 function LifebuoyIcon({ active }: { active: boolean }) {
   return (
     <svg
-      className="nav-icon"
+      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
+        active ? "text-sky-100" : "text-slate-400"
+      }`}
       viewBox="0 0 24 24"
       role="presentation"
       aria-hidden
