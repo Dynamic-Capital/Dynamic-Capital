@@ -1,0 +1,507 @@
+import { registerHandler } from "../_shared/serve.ts";
+import { bad, corsHeaders, json, methodNotAllowed } from "../_shared/http.ts";
+import { createClient } from "../_shared/client.ts";
+import { need, optionalEnv } from "../_shared/env.ts";
+
+interface SubscriptionRequest {
+  initData?: string;
+  paymentId?: string;
+  tonAmount: number;
+  tonTxHash: string;
+  plan: string;
+  telegramId?: number;
+  walletAddress: string;
+  tonDomain?: string;
+  splits?: Partial<SplitConfig>;
+  nextRenewalAt?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface SplitConfig {
+  operationsPct: number;
+  autoInvestPct: number;
+  buybackBurnPct: number;
+}
+
+interface SplitBounds {
+  min: number;
+  max: number;
+}
+
+type SwapTag = "auto-invest" | "buyback-burn";
+
+type VerifiedTonPayment = {
+  ok: true;
+  amountTon: number;
+  blockTime?: string;
+} | {
+  ok: false;
+  error: string;
+};
+
+interface SwapResult {
+  dctAmount: number;
+  swapTxHash: string;
+  routerSwapId: string;
+}
+
+interface StakeConfig {
+  months: number | null;
+  multiplier: number;
+}
+
+const DEFAULT_SPLITS: SplitConfig = {
+  operationsPct: 60,
+  autoInvestPct: 30,
+  buybackBurnPct: 10,
+};
+
+const SPLIT_BOUNDS: Record<keyof SplitConfig, SplitBounds> = {
+  operationsPct: { min: 40, max: 75 },
+  autoInvestPct: { min: 15, max: 45 },
+  buybackBurnPct: { min: 5, max: 20 },
+};
+
+const LOCK_CONFIG: Record<string, StakeConfig> = {
+  "vip_bronze": { months: 3, multiplier: 1.2 },
+  "vip_silver": { months: 6, multiplier: 1.5 },
+  "vip_gold": { months: 12, multiplier: 2.0 },
+  "mentorship": { months: 6, multiplier: 1.35 },
+};
+
+const EARLY_EXIT_PENALTY_BPS = 200;
+
+function isNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function normalizeAddress(addr: string): string {
+  return addr.trim().toLowerCase();
+}
+
+function validateSplits(
+  partial: Partial<SplitConfig> | undefined,
+): SplitConfig {
+  const merged: SplitConfig = {
+    operationsPct: partial?.operationsPct ?? DEFAULT_SPLITS.operationsPct,
+    autoInvestPct: partial?.autoInvestPct ?? DEFAULT_SPLITS.autoInvestPct,
+    buybackBurnPct: partial?.buybackBurnPct ?? DEFAULT_SPLITS.buybackBurnPct,
+  };
+
+  const sum = merged.operationsPct + merged.autoInvestPct +
+    merged.buybackBurnPct;
+  if (sum !== 100) {
+    throw new Error("Split percentages must sum to 100");
+  }
+
+  for (
+    const [key, bounds] of Object.entries(SPLIT_BOUNDS) as [
+      keyof SplitConfig,
+      SplitBounds,
+    ][]
+  ) {
+    const value = merged[key];
+    if (value < bounds.min || value > bounds.max) {
+      throw new Error(`${key} must be between ${bounds.min} and ${bounds.max}`);
+    }
+  }
+
+  return merged;
+}
+
+function roundTon(value: number): number {
+  return Number(value.toFixed(9));
+}
+
+function addMonths(date: Date, months: number): Date {
+  const copy = new Date(date.getTime());
+  copy.setUTCMonth(copy.getUTCMonth() + months);
+  return copy;
+}
+
+async function verifyTonPayment(
+  txHash: string,
+  expectedWallet: string,
+  expectedAmount: number,
+): Promise<VerifiedTonPayment> {
+  const indexerUrl = optionalEnv("TON_INDEXER_URL");
+  if (!indexerUrl) {
+    return { ok: true, amountTon: expectedAmount };
+  }
+
+  const response = await fetch(
+    `${indexerUrl.replace(/\/$/, "")}/transactions/${txHash}`,
+  );
+  if (!response.ok) {
+    return { ok: false, error: `Indexer returned ${response.status}` };
+  }
+
+  const payload = await response.json();
+  const destination: string | undefined = payload.destination ??
+    payload.account?.address ??
+    payload.in_msg?.destination ??
+    payload.out_msg?.destination;
+  if (!destination) {
+    return { ok: false, error: "Indexer response missing destination" };
+  }
+
+  const normalizedDestination = normalizeAddress(String(destination));
+  if (normalizedDestination !== normalizeAddress(expectedWallet)) {
+    return { ok: false, error: "Funds not received by intake wallet" };
+  }
+
+  const amountCandidate = payload.amountTon ?? payload.amount ??
+    payload.value ?? payload.coins ?? payload.in_msg?.value ?? 0;
+  const amountNumeric = Number(amountCandidate);
+  const amountTon = amountNumeric > 1_000_000
+    ? amountNumeric / 1_000_000_000
+    : amountNumeric;
+  if (!Number.isFinite(amountTon) || amountTon <= 0) {
+    return { ok: false, error: "Indexer response missing amount" };
+  }
+
+  if (amountTon + 1e-6 < expectedAmount) {
+    return { ok: false, error: "TON amount less than expected" };
+  }
+
+  const blockTime: string | undefined = typeof payload.timestamp === "string"
+    ? payload.timestamp
+    : payload.utime
+    ? new Date(Number(payload.utime) * 1000).toISOString()
+    : undefined;
+
+  return { ok: true, amountTon, blockTime };
+}
+
+async function executeSwap(
+  tonAmount: number,
+  tag: SwapTag,
+): Promise<SwapResult> {
+  if (tonAmount <= 0) {
+    return { dctAmount: 0, swapTxHash: "", routerSwapId: "" };
+  }
+
+  const priceOverrideRaw = optionalEnv("DCT_PRICE_OVERRIDE");
+  if (priceOverrideRaw) {
+    const price = Number(priceOverrideRaw);
+    if (!Number.isFinite(price) || price <= 0) {
+      throw new Error("Invalid DCT_PRICE_OVERRIDE value");
+    }
+    const dctAmount = roundTon(tonAmount * price);
+    return {
+      dctAmount,
+      swapTxHash: `simulated-${tag}`,
+      routerSwapId: `sim-${crypto.randomUUID()}`,
+    };
+  }
+
+  const routerUrl = optionalEnv("DEX_ROUTER_URL");
+  if (!routerUrl) {
+    throw new Error("DEX router URL missing and no price override provided");
+  }
+
+  const response = await fetch(`${routerUrl.replace(/\/$/, "")}/swap`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      fromToken: "TON",
+      toToken: "DCT",
+      amountTon: tonAmount,
+      tag,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`DEX router error ${response.status}`);
+  }
+
+  const payload = await response.json();
+  const dctAmount = Number(payload.dctAmount ?? payload.amount ?? 0);
+  if (!Number.isFinite(dctAmount) || dctAmount < 0) {
+    throw new Error("Router returned invalid DCT amount");
+  }
+  const swapTxHash = String(payload.swapTxHash ?? payload.txHash ?? "");
+  const routerSwapId = String(
+    payload.swapId ?? payload.id ?? swapTxHash || crypto.randomUUID(),
+  );
+
+  return {
+    dctAmount,
+    swapTxHash,
+    routerSwapId,
+  };
+}
+
+async function triggerBurn(
+  amountDct: number,
+  context: Record<string, unknown>,
+): Promise<string | null> {
+  if (amountDct <= 0) return null;
+  const burnHook = optionalEnv("BURN_WEBHOOK_URL");
+  if (!burnHook) return null;
+
+  const response = await fetch(burnHook, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      amount: amountDct,
+      ...context,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Burn webhook error ${response.status}`);
+  }
+
+  const payload = await response.json().catch(
+    () => ({} as Record<string, unknown>),
+  );
+  const burnTxHash = payload.txHash ?? payload.burnTxHash ?? null;
+  return burnTxHash ? String(burnTxHash) : null;
+}
+
+async function notifyBot(message: Record<string, unknown>): Promise<void> {
+  const botWebhook = optionalEnv("BOT_WEBHOOK_URL");
+  if (!botWebhook) return;
+
+  await fetch(botWebhook, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(message),
+  });
+}
+
+function resolveStakeConfig(plan: string): StakeConfig {
+  return LOCK_CONFIG[plan] ?? { months: null, multiplier: 1.0 };
+}
+
+export const handler = registerHandler(async (req) => {
+  const baseCors = corsHeaders(req);
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: baseCors });
+  }
+
+  if (req.method !== "POST") {
+    return methodNotAllowed(req);
+  }
+
+  let body: SubscriptionRequest;
+  try {
+    body = await req.json();
+  } catch {
+    return bad("Invalid JSON payload", undefined, req);
+  }
+
+  if (!isNumber(body.tonAmount) || body.tonAmount <= 0) {
+    return bad("tonAmount must be a positive number", undefined, req);
+  }
+
+  if (!body.tonTxHash || typeof body.tonTxHash !== "string") {
+    return bad("tonTxHash is required", undefined, req);
+  }
+
+  if (!body.walletAddress || typeof body.walletAddress !== "string") {
+    return bad("walletAddress is required", undefined, req);
+  }
+
+  if (!body.plan) {
+    return bad("plan is required", undefined, req);
+  }
+
+  let splits: SplitConfig;
+  try {
+    splits = validateSplits(body.splits);
+  } catch (error) {
+    return bad(
+      error instanceof Error ? error.message : "Invalid splits",
+      undefined,
+      req,
+    );
+  }
+
+  const intakeWallet = need("INTAKE_WALLET");
+  const operationsWallet = need("OPERATIONS_TREASURY_WALLET");
+  const dctMaster = need("DCT_JETTON_MASTER");
+
+  const verification = await verifyTonPayment(
+    body.tonTxHash,
+    intakeWallet,
+    body.tonAmount,
+  );
+
+  if (!verification.ok) {
+    return bad(verification.error, undefined, req);
+  }
+
+  const tonAmount = roundTon(body.tonAmount);
+  const operationsTon = roundTon((tonAmount * splits.operationsPct) / 100);
+  const autoInvestTon = roundTon((tonAmount * splits.autoInvestPct) / 100);
+  const burnTon = roundTon(tonAmount - operationsTon - autoInvestTon);
+
+  let autoInvestSwap: SwapResult = {
+    dctAmount: 0,
+    swapTxHash: "",
+    routerSwapId: "",
+  };
+  let burnSwap: SwapResult = { dctAmount: 0, swapTxHash: "", routerSwapId: "" };
+
+  try {
+    autoInvestSwap = await executeSwap(autoInvestTon, "auto-invest");
+    burnSwap = await executeSwap(burnTon, "buyback-burn");
+  } catch (error) {
+    return bad(
+      error instanceof Error ? error.message : "Swap failed",
+      undefined,
+      req,
+    );
+  }
+
+  let burnTxHash: string | null = null;
+  try {
+    burnTxHash = await triggerBurn(burnSwap.dctAmount, {
+      tonTxHash: body.tonTxHash,
+      dctMaster,
+    });
+  } catch (error) {
+    return bad(
+      error instanceof Error ? error.message : "Burn hook failed",
+      undefined,
+      req,
+    );
+  }
+
+  const supabase = createClient("service");
+
+  const userPayload = {
+    telegram_id: body.telegramId ?? null,
+    wallet_address: body.walletAddress,
+    ton_domain: body.tonDomain ?? null,
+    metadata: body.metadata ?? null,
+  } as Record<string, unknown>;
+
+  const { data: user, error: userError } = await supabase
+    .from("dct_users")
+    .upsert(userPayload, { onConflict: "wallet_address" })
+    .select()
+    .single();
+
+  if (userError) {
+    return bad(`Failed to upsert user: ${userError.message}`, undefined, req);
+  }
+
+  const subscriptionId = crypto.randomUUID();
+  const subscriptionRecord = {
+    id: subscriptionId,
+    user_id: user.id,
+    plan: body.plan,
+    ton_paid: tonAmount,
+    operations_ton: operationsTon,
+    auto_invest_ton: autoInvestTon,
+    burn_ton: burnTon,
+    dct_bought: roundTon(autoInvestSwap.dctAmount + burnSwap.dctAmount),
+    dct_auto_invest: roundTon(autoInvestSwap.dctAmount),
+    dct_burned: roundTon(burnSwap.dctAmount),
+    tx_hash: body.tonTxHash,
+    router_swap_id: autoInvestSwap.routerSwapId || burnSwap.routerSwapId ||
+      null,
+    burn_tx_hash: burnTxHash,
+    split_operations_pct: splits.operationsPct,
+    split_auto_invest_pct: splits.autoInvestPct,
+    split_burn_pct: splits.buybackBurnPct,
+    next_renewal_at: body.nextRenewalAt ?? null,
+    notes: {
+      source: "dct-auto-invest",
+      paymentId: body.paymentId ?? null,
+      verification,
+      swaps: {
+        autoInvest: autoInvestSwap,
+        burn: burnSwap,
+      },
+    },
+  };
+
+  const { error: subscriptionError } = await supabase
+    .from("dct_subscriptions")
+    .insert(subscriptionRecord);
+
+  if (subscriptionError) {
+    return bad(
+      `Failed to record subscription: ${subscriptionError.message}`,
+      undefined,
+      req,
+    );
+  }
+
+  const stakeConfig = resolveStakeConfig(body.plan);
+  let stakeId: string | null = null;
+  if (autoInvestSwap.dctAmount > 0) {
+    const weight = roundTon(autoInvestSwap.dctAmount * stakeConfig.multiplier);
+    const lockUntil = stakeConfig.months
+      ? addMonths(new Date(), stakeConfig.months)
+      : null;
+    stakeId = crypto.randomUUID();
+    const { error: stakeError } = await supabase
+      .from("dct_stakes")
+      .insert({
+        id: stakeId,
+        user_id: user.id,
+        subscription_id: subscriptionId,
+        dct_amount: roundTon(autoInvestSwap.dctAmount),
+        multiplier: stakeConfig.multiplier,
+        weight,
+        lock_months: stakeConfig.months,
+        lock_until: lockUntil ? lockUntil.toISOString() : null,
+        early_exit_penalty_bps: EARLY_EXIT_PENALTY_BPS,
+        status: "active",
+        notes: {
+          plan: body.plan,
+          tonTxHash: body.tonTxHash,
+        },
+      });
+
+    if (stakeError) {
+      return bad(
+        `Failed to create stake: ${stakeError.message}`,
+        undefined,
+        req,
+      );
+    }
+  }
+
+  const responsePayload = {
+    ok: true,
+    data: {
+      userId: user.id,
+      subscriptionId,
+      stakeId,
+      tonAmount,
+      splits,
+      autoInvest: {
+        ton: autoInvestTon,
+        dct: roundTon(autoInvestSwap.dctAmount),
+        swapTxHash: autoInvestSwap.swapTxHash,
+      },
+      burn: {
+        ton: burnTon,
+        dct: roundTon(burnSwap.dctAmount),
+        swapTxHash: burnSwap.swapTxHash,
+        burnTxHash,
+      },
+      operations: {
+        ton: operationsTon,
+        wallet: operationsWallet,
+      },
+      nextRenewalAt: body.nextRenewalAt ?? null,
+      processedAt: new Date().toISOString(),
+    },
+  };
+
+  await notifyBot({
+    type: "dct.subscription.processed",
+    payload: responsePayload.data,
+  }).catch(() => undefined);
+
+  return json(responsePayload, 200, {}, req);
+});
+
+export default handler;
