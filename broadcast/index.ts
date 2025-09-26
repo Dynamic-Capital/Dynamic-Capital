@@ -46,7 +46,7 @@ export async function planBroadcast(opts: PlanBroadcastOptions) {
   }
   for (let i = 0; i < targets.length; i += chunkSize) {
     const chunk = targets.slice(i, i + chunkSize);
-    enqueue("broadcast:sendBatch", { userIds: chunk, text, media }, {
+    await enqueue("broadcast:sendBatch", { userIds: chunk, text, media }, {
       maxAttempts: 5,
       backoff: "exp",
     });

@@ -2,6 +2,10 @@ import { registerHandler } from "../_shared/serve.ts";
 import { bad, corsHeaders, json, methodNotAllowed } from "../_shared/http.ts";
 import { createClient } from "../_shared/client.ts";
 import { need, optionalEnv } from "../_shared/env.ts";
+import {
+  publishBurnExecutedEvent,
+  publishPaymentRecordedEvent,
+} from "./events.ts";
 
 interface SubscriptionRequest {
   initData?: string;
@@ -510,6 +514,68 @@ export const handler = registerHandler(async (req) => {
         undefined,
         req,
       );
+    }
+  }
+
+  const recordedAt = new Date().toISOString();
+  try {
+    await publishPaymentRecordedEvent({
+      subscriptionId,
+      userId: user.id,
+      plan: body.plan,
+      tonTxHash: body.tonTxHash,
+      tonAmount,
+      operationsTon,
+      autoInvestTon,
+      burnTon,
+      walletAddress: body.walletAddress,
+      paymentId: body.paymentId ?? null,
+      initData: body.initData ?? null,
+      splits,
+      autoInvestSwap: {
+        dctAmount: roundTon(autoInvestSwap.dctAmount),
+        swapTxHash: autoInvestSwap.swapTxHash,
+        routerSwapId: autoInvestSwap.routerSwapId,
+        priceSnapshotId: autoInvestSwap.priceSnapshotId,
+        oraclePrice: autoInvestSwap.oraclePrice,
+        usdNotional: autoInvestSwap.usdNotional,
+      },
+      burnSwap: {
+        dctAmount: roundTon(burnSwap.dctAmount),
+        swapTxHash: burnSwap.swapTxHash,
+        routerSwapId: burnSwap.routerSwapId,
+        priceSnapshotId: burnSwap.priceSnapshotId,
+        oraclePrice: burnSwap.oraclePrice,
+        usdNotional: burnSwap.usdNotional,
+      },
+      burnTxHash,
+      metadata: body.metadata ?? null,
+      stakeId,
+      recordedAt,
+    });
+  } catch (error) {
+    console.error("Failed to enqueue payment.recorded", error);
+  }
+
+  if (burnSwap.dctAmount > 0) {
+    const routerSwapId = burnSwap.routerSwapId ||
+      autoInvestSwap.routerSwapId ||
+      null;
+    try {
+      await publishBurnExecutedEvent({
+        subscriptionId,
+        userId: user.id,
+        plan: body.plan,
+        tonTxHash: body.tonTxHash,
+        burnTon,
+        dctAmount: roundTon(burnSwap.dctAmount),
+        burnTxHash,
+        routerSwapId,
+        paymentId: body.paymentId ?? null,
+        recordedAt,
+      });
+    } catch (error) {
+      console.error("Failed to enqueue burn.executed", error);
     }
   }
 
