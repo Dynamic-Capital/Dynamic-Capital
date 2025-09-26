@@ -6,9 +6,9 @@ import json
 import statistics
 import textwrap
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence
 
-from .grok_advisor import CompletionClient
+from .multi_llm import CompletionClient, LLMConfig, collect_strings, parse_json_response, serialise_runs
 from .trade_logic import ActivePosition, MarketSnapshot
 
 
@@ -59,42 +59,42 @@ class TradingDataProcessor:
         payload, optimisation_meta = self._prepare_payload(request)
 
         grok_prompt = self._build_grok_prompt(payload, optimisation_meta)
-        grok_response = self.grok_client.complete(
-            grok_prompt,
+        grok_run = LLMConfig(
+            name="grok-1",
+            client=self.grok_client,
             temperature=self.grok_temperature,
-            max_tokens=self.grok_max_tokens,
             nucleus_p=self.grok_nucleus_p,
-        )
-        grok_payload = self._parse_payload(grok_response)
+            max_tokens=self.grok_max_tokens,
+        ).run(grok_prompt)
+        grok_payload = parse_json_response(grok_run.response, fallback_key="narrative") or {}
 
         deepseek_prompt = self._build_deepseek_prompt(payload, grok_payload, optimisation_meta)
-        deepseek_response = self.deepseek_client.complete(
-            deepseek_prompt,
+        deepseek_run = LLMConfig(
+            name="deepseek-v3",
+            client=self.deepseek_client,
             temperature=self.deepseek_temperature,
-            max_tokens=self.deepseek_max_tokens,
             nucleus_p=self.deepseek_nucleus_p,
-        )
-        deepseek_payload = self._parse_payload(deepseek_response)
+            max_tokens=self.deepseek_max_tokens,
+        ).run(deepseek_prompt)
+        deepseek_payload = parse_json_response(deepseek_run.response, fallback_key="narrative") or {}
 
-        alerts = self._collect_strings(
-            grok_payload.get("alerts") if isinstance(grok_payload, Mapping) else None,
-            deepseek_payload.get("alerts") if isinstance(deepseek_payload, Mapping) else None,
+        alerts = collect_strings(
+            grok_payload.get("alerts"),
+            deepseek_payload.get("alerts"),
         )
 
-        insights = self._collect_strings(
-            (grok_payload or {}).get("insights") if isinstance(grok_payload, Mapping) else None,
-            (grok_payload or {}).get("highlight") if isinstance(grok_payload, Mapping) else None,
-            (grok_payload or {}).get("narrative") if isinstance(grok_payload, Mapping) else None,
-            grok_response if not grok_payload else None,
+        insights = collect_strings(
+            grok_payload.get("insights"),
+            grok_payload.get("highlight"),
+            grok_payload.get("narrative"),
+            grok_run.response if not grok_payload else None,
         )
-        risks = self._collect_strings(
-            (grok_payload or {}).get("risks") if isinstance(grok_payload, Mapping) else None,
-            (deepseek_payload or {}).get("risks") if isinstance(deepseek_payload, Mapping) else None,
-            (deepseek_payload or {}).get("risk_mitigations")
-            if isinstance(deepseek_payload, Mapping)
-            else None,
-            (deepseek_payload or {}).get("narrative") if isinstance(deepseek_payload, Mapping) else None,
-            deepseek_response if not deepseek_payload else None,
+        risks = collect_strings(
+            grok_payload.get("risks"),
+            deepseek_payload.get("risks"),
+            deepseek_payload.get("risk_mitigations"),
+            deepseek_payload.get("narrative"),
+            deepseek_run.response if not deepseek_payload else None,
         )
 
         confidence = self._resolve_confidence(grok_payload, deepseek_payload)
@@ -105,10 +105,7 @@ class TradingDataProcessor:
             "prompt_optimisation": optimisation_meta,
         }
 
-        raw_response = self._serialise_raw(
-            {"model": "grok-1", "response": grok_response},
-            {"model": "deepseek-v3", "response": deepseek_response},
-        )
+        raw_response = serialise_runs((grok_run, deepseek_run))
 
         feature_summary = payload["feature_summary"]
         normalized_features: Dict[str, float] = {}
@@ -340,23 +337,6 @@ class TradingDataProcessor:
     # Helper utilities
     # ------------------------------------------------------------------
 
-    def _collect_strings(self, *candidates: Optional[Iterable[str] | str]) -> list[str]:
-        collected: list[str] = []
-        for candidate in candidates:
-            if candidate is None:
-                continue
-            if isinstance(candidate, str):
-                text = candidate.strip()
-                if text:
-                    collected.append(text)
-                continue
-            for item in candidate:
-                if isinstance(item, str):
-                    text = item.strip()
-                    if text:
-                        collected.append(text)
-        return collected
-
     def _resolve_confidence(
         self,
         grok_payload: Mapping[str, Any] | None,
@@ -401,32 +381,6 @@ class TradingDataProcessor:
             except (TypeError, ValueError):
                 continue
         return numeric
-
-    def _parse_payload(self, response: str) -> Mapping[str, Any] | None:
-        text = (response or "").strip()
-        if not text:
-            return None
-        try:
-            parsed = json.loads(text)
-        except json.JSONDecodeError:
-            start = text.find("{")
-            end = text.rfind("}")
-            if start != -1 and end != -1 and end > start:
-                snippet = text[start : end + 1]
-                try:
-                    parsed = json.loads(snippet)
-                except json.JSONDecodeError:
-                    return {"narrative": text}
-            else:
-                return {"narrative": text}
-        if isinstance(parsed, MutableMapping):
-            return dict(parsed)
-        return {"narrative": text}
-
-    def _serialise_raw(self, *entries: Mapping[str, Any]) -> str:
-        parts = [json.dumps(entry, indent=2, default=str, sort_keys=True) for entry in entries]
-        return "\n\n".join(parts)
-
 
 __all__ = [
     "TradingDataProcessor",

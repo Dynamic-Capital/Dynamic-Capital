@@ -5,26 +5,14 @@ from __future__ import annotations
 import json
 import math
 import random
-import re
 import sys
 import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Optional, Protocol, Sequence
 
+from .multi_llm import CompletionClient, LLMConfig, LLMRun, collect_strings, parse_json_response, serialise_runs
 from .trade_logic import ActivePosition, MarketSnapshot, TradeSignal
-
-
-class CompletionClient(Protocol):  # pragma: no cover - interface definition
-    def complete(
-        self,
-        prompt: str,
-        *,
-        temperature: float,
-        max_tokens: int,
-        nucleus_p: float,
-    ) -> str:
-        """Return a completion for the supplied prompt."""
 
 
 @dataclass(slots=True)
@@ -156,22 +144,7 @@ class GrokAdvisor:
 
     @staticmethod
     def _parse_response(response: str) -> Optional[Dict[str, Any]]:
-        text = response.strip()
-        if not text:
-            return None
-        try:
-            data = json.loads(text)
-        except json.JSONDecodeError:
-            match = re.search(r"\{.*\}", text, flags=re.DOTALL)
-            if not match:
-                return {"rationale": text}
-            try:
-                data = json.loads(match.group(0))
-            except json.JSONDecodeError:
-                return {"rationale": text}
-        if isinstance(data, dict):
-            return data
-        return {"rationale": text}
+        return parse_json_response(response, fallback_key="rationale")
 
     @staticmethod
     def _extract_confidence(payload: Dict[str, Any]) -> Optional[float]:
@@ -230,14 +203,25 @@ class DualLLMAdvisor:
 
         working_signal = signal
         metadata: Dict[str, Any] = {"source": "dual_llm"}
-        raw_payloads: list[Dict[str, Any]] = []
+        runs: list[LLMRun] = []
         combined_alerts: list[str] = []
 
         if grok_feedback:
             metadata["grok"] = dict(grok_feedback.metadata)
-            combined_alerts.extend(self._string_list(grok_feedback.metadata.get("alerts")))
+            combined_alerts = collect_strings(grok_feedback.metadata.get("alerts"))
             if grok_feedback.raw_response:
-                raw_payloads.append({"model": "grok", "response": grok_feedback.raw_response})
+                runs.append(
+                    LLMRun(
+                        name="grok",
+                        prompt=grok_feedback.metadata.get("prompt", ""),
+                        response=grok_feedback.raw_response,
+                        parameters={
+                            "temperature": self.grok_temperature,
+                            "max_tokens": self.grok_max_tokens,
+                            "nucleus_p": self.grok_nucleus_p,
+                        },
+                    )
+                )
             if grok_feedback.adjusted_signal is not None:
                 working_signal = grok_feedback.adjusted_signal
         else:
@@ -252,22 +236,23 @@ class DualLLMAdvisor:
         )
 
         metadata["deepseek"] = {"prompt": risk_prompt}
-        deepseek_response = self.deepseek_client.complete(
-            risk_prompt,
+        deepseek_run = LLMConfig(
+            name="deepseek",
+            client=self.deepseek_client,
             temperature=self.deepseek_temperature,
-            max_tokens=self.deepseek_max_tokens,
             nucleus_p=self.deepseek_nucleus_p,
-        )
-
-        if deepseek_response.strip():
-            raw_payloads.append({"model": "deepseek", "response": deepseek_response.strip()})
+            max_tokens=self.deepseek_max_tokens,
+        ).run(risk_prompt)
+        deepseek_response = deepseek_run.response
+        if deepseek_run.response:
+            runs.append(deepseek_run)
 
         parsed = GrokAdvisor._parse_response(deepseek_response) or {}
         metadata["deepseek"].update(parsed)
 
-        deepseek_alerts = self._string_list(parsed.get("alerts"))
+        deepseek_alerts = collect_strings(parsed.get("alerts"))
         if deepseek_alerts:
-            combined_alerts.extend(deepseek_alerts)
+            combined_alerts = collect_strings(combined_alerts, deepseek_alerts)
 
         applied_confidence = working_signal.confidence
         absolute_confidence = self._absolute_confidence(parsed)
@@ -300,12 +285,7 @@ class DualLLMAdvisor:
         if combined_alerts:
             metadata["alerts"] = combined_alerts
 
-        raw_response: Optional[str] = None
-        if raw_payloads:
-            try:
-                raw_response = json.dumps(raw_payloads)
-            except (TypeError, ValueError):  # pragma: no cover - defensive fallback
-                raw_response = "\n\n".join(item.get("response", "") for item in raw_payloads)
+        raw_response = serialise_runs(runs)
 
         return AdvisorFeedback(
             adjusted_signal=adjusted_signal,
@@ -439,15 +419,6 @@ class DualLLMAdvisor:
                 continue
             return value
         return None
-
-    @staticmethod
-    def _string_list(value: Any) -> list[str]:
-        if value is None:
-            return []
-        if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
-            return [str(item) for item in value]
-        return [str(value)]
-
 
 @dataclass
 class LocalGrokClient:

@@ -9,7 +9,8 @@ from collections.abc import Mapping as MappingCollection, Sequence as SequenceCo
 from dataclasses import dataclass, field
 from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
-from .grok_advisor import CompletionClient, GrokAdvisor
+from .grok_advisor import GrokAdvisor
+from .multi_llm import CompletionClient, LLMConfig, collect_strings, parse_json_response, serialise_runs
 from .trade_logic import ActivePosition, MarketSnapshot
 
 
@@ -63,42 +64,44 @@ class MarketIntelligenceEngine:
         prompt_payload, prompt_meta = self._prepare_prompt_payload(request)
 
         grok_prompt = self._build_grok_prompt(prompt_payload, prompt_meta)
-        grok_response = self.grok_client.complete(
-            grok_prompt,
+        grok_run = LLMConfig(
+            name="grok-1",
+            client=self.grok_client,
             temperature=self.grok_temperature,
-            max_tokens=self.grok_max_tokens,
             nucleus_p=self.grok_nucleus_p,
-        )
-        grok_payload = self._parse_payload(grok_response)
+            max_tokens=self.grok_max_tokens,
+        ).run(grok_prompt)
+        grok_payload = parse_json_response(grok_run.response, fallback_key="narrative") or {}
 
         deepseek_prompt = self._build_deepseek_prompt(
             prompt_payload,
             grok_payload,
             prompt_meta,
         )
-        deepseek_response = self.deepseek_client.complete(
-            deepseek_prompt,
+        deepseek_run = LLMConfig(
+            name="deepseek-v3",
+            client=self.deepseek_client,
             temperature=self.deepseek_temperature,
-            max_tokens=self.deepseek_max_tokens,
             nucleus_p=self.deepseek_nucleus_p,
-        )
-        deepseek_payload = self._parse_payload(deepseek_response)
+            max_tokens=self.deepseek_max_tokens,
+        ).run(deepseek_prompt)
+        deepseek_payload = parse_json_response(deepseek_run.response, fallback_key="rationale") or {}
 
-        alerts = self._collect_strings(
+        alerts = collect_strings(
             grok_payload.get("alerts"),
             deepseek_payload.get("alerts"),
         )
 
-        opportunities = self._collect_strings(
+        opportunities = collect_strings(
             grok_payload.get("opportunities"),
             grok_payload.get("opportunity_summary"),
         )
-        risks = self._collect_strings(
+        risks = collect_strings(
             grok_payload.get("risks"),
             deepseek_payload.get("risks"),
             deepseek_payload.get("risk_notes"),
         )
-        actions = self._collect_strings(
+        actions = collect_strings(
             grok_payload.get("actions"),
             grok_payload.get("strategy_actions"),
             deepseek_payload.get("recommended_actions"),
@@ -113,10 +116,7 @@ class MarketIntelligenceEngine:
             "prompt_optimisation": prompt_meta,
         }
 
-        raw_response = self._serialise_raw(
-            {"model": "grok-1", "response": grok_response},
-            {"model": "deepseek-v3", "response": deepseek_response},
-        )
+        raw_response = serialise_runs((grok_run, deepseek_run))
 
         return MarketIntelligenceReport(
             narrative=narrative,
@@ -459,33 +459,6 @@ class MarketIntelligenceEngine:
         return f"Context trimmed to top signals; omitted {joined}."
 
     @staticmethod
-    def _parse_payload(response: str) -> Dict[str, Any]:
-        parsed = GrokAdvisor._parse_response(response) or {}
-        if not isinstance(parsed, dict):  # pragma: no cover - defensive fallback
-            return {"response": response}
-        return parsed
-
-    @staticmethod
-    def _collect_strings(*values: Any) -> list[str]:
-        items: list[str] = []
-        for value in values:
-            if value is None:
-                continue
-            if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
-                items.extend(str(item) for item in value)
-            else:
-                items.append(str(value))
-        # Deduplicate while preserving order
-        seen: set[str] = set()
-        unique: list[str] = []
-        for item in items:
-            if item in seen:
-                continue
-            seen.add(item)
-            unique.append(item)
-        return unique
-
-    @staticmethod
     def _resolve_narrative(
         grok_payload: Mapping[str, Any],
         deepseek_payload: Mapping[str, Any],
@@ -545,17 +518,6 @@ class MarketIntelligenceEngine:
     @staticmethod
     def _clamp(value: float) -> float:
         return max(0.0, min(1.0, value))
-
-    @staticmethod
-    def _serialise_raw(*entries: Mapping[str, Any]) -> Optional[str]:
-        try:
-            return json.dumps(list(entries))
-        except (TypeError, ValueError):  # pragma: no cover - defensive fallback
-            joined = []
-            for entry in entries:
-                joined.append(str(entry))
-            return "\n".join(joined) if joined else None
-
 
 __all__ = [
     "MarketIntelligenceEngine",
