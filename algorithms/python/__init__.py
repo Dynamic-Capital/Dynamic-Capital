@@ -52,6 +52,15 @@ from .desk_token_hub import (
     TokenHubDevelopmentOrchestrator,
     TokenHubSyncReport,
 )
+from .treasury_infrastructure import (
+    AllocationAction,
+    OracleIntegrationPlan,
+    TreasuryInfrastructureBuilder,
+    TreasuryInfrastructurePlan,
+    TreasuryPolicy,
+    TreasuryStatus,
+    TreasuryWalletPlan,
+)
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
@@ -98,6 +107,13 @@ __all__ = _trade_exports + [
     "VipMembershipSnapshot",
     "VipTokenGrant",
     "VipTokenisationStrategy",
+    "AllocationAction",
+    "OracleIntegrationPlan",
+    "TreasuryInfrastructureBuilder",
+    "TreasuryInfrastructurePlan",
+    "TreasuryPolicy",
+    "TreasuryStatus",
+    "TreasuryWalletPlan",
 ]
 
 globals().update({name: getattr(_trade_logic, name) for name in _trade_exports})
@@ -145,5 +161,12 @@ globals().update(
         "VipMembershipSnapshot": VipMembershipSnapshot,
         "VipTokenGrant": VipTokenGrant,
         "VipTokenisationStrategy": VipTokenisationStrategy,
+        "AllocationAction": AllocationAction,
+        "OracleIntegrationPlan": OracleIntegrationPlan,
+        "TreasuryInfrastructureBuilder": TreasuryInfrastructureBuilder,
+        "TreasuryInfrastructurePlan": TreasuryInfrastructurePlan,
+        "TreasuryPolicy": TreasuryPolicy,
+        "TreasuryStatus": TreasuryStatus,
+        "TreasuryWalletPlan": TreasuryWalletPlan,
     }
 )
