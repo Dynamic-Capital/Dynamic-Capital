@@ -13,8 +13,16 @@ import type {
   LiveTimelineEntry,
 } from "../data/live-intel";
 import { DEFAULT_REFRESH_SECONDS } from "../data/live-intel";
+import { getSupabaseClient } from "../lib/supabase-client";
 
-type Plan = "vip_bronze" | "vip_silver" | "vip_gold" | "mentorship";
+const PLAN_IDS = [
+  "vip_bronze",
+  "vip_silver",
+  "vip_gold",
+  "mentorship",
+] as const;
+
+type Plan = (typeof PLAN_IDS)[number];
 
 type SectionId = "overview" | "plans" | "intel" | "activity" | "support";
 
@@ -35,6 +43,28 @@ type PlanOption = {
   cadence: string;
   description: string;
   highlights: string[];
+  meta: {
+    currency: string;
+    amount: number | null;
+    tonAmount: number | null;
+    dctAmount: number | null;
+    updatedAt: string | null;
+  };
+};
+
+type RawPlan = {
+  id?: string | null;
+  name?: string | null;
+  price?: number | string | null;
+  base_price?: number | string | null;
+  dynamic_price_usdt?: number | string | null;
+  currency?: string | null;
+  duration_months?: number | string | null;
+  is_lifetime?: boolean | null;
+  features?: unknown;
+  last_priced_at?: string | null;
+  ton_amount?: number | string | null;
+  dct_amount?: number | string | null;
 };
 
 type ActivityItem = LiveTimelineEntry;
@@ -59,6 +89,209 @@ type LiveIntelState = {
   isSyncing: boolean;
   error?: string;
 };
+
+const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
+  {
+    id: "vip_bronze",
+    name: "VIP Bronze",
+    price: "120 TON",
+    cadence: "3 month horizon",
+    description:
+      "Entry tier that mirrors the desk's base auto-invest strategy.",
+    highlights: [
+      "Desk monitored entries",
+      "Weekly strategy calls",
+      "Capital preservation guardrails",
+    ],
+    meta: {
+      currency: "TON",
+      amount: 120,
+      tonAmount: 120,
+      dctAmount: null,
+      updatedAt: null,
+    },
+  },
+  {
+    id: "vip_silver",
+    name: "VIP Silver",
+    price: "220 TON",
+    cadence: "6 month horizon",
+    description:
+      "Expanded allocation with leverage-managed exposure and mid-cycle rotations.",
+    highlights: [
+      "Dual momentum + carry blend",
+      "Priority support window",
+      "Quarterly performance briefing",
+    ],
+    meta: {
+      currency: "TON",
+      amount: 220,
+      tonAmount: 220,
+      dctAmount: null,
+      updatedAt: null,
+    },
+  },
+  {
+    id: "vip_gold",
+    name: "VIP Gold",
+    price: "420 TON",
+    cadence: "12 month horizon",
+    description:
+      "Full desk collaboration with access to structured products and vault strategies.",
+    highlights: [
+      "Structured product desk",
+      "Liquidity provisioning slots",
+      "Desk escalation on demand",
+    ],
+    meta: {
+      currency: "TON",
+      amount: 420,
+      tonAmount: 420,
+      dctAmount: null,
+      updatedAt: null,
+    },
+  },
+  {
+    id: "mentorship",
+    name: "Mentorship Circle",
+    price: "650 TON",
+    cadence: "12 month horizon",
+    description:
+      "One-on-one mentorship with the desk's senior PMs and quarterly onsite reviews.",
+    highlights: [
+      "Dedicated mentor queue",
+      "Quarterly onsite review",
+      "Capital introduction pathway",
+    ],
+    meta: {
+      currency: "TON",
+      amount: 650,
+      tonAmount: 650,
+      dctAmount: null,
+      updatedAt: null,
+    },
+  },
+];
+
+const FALLBACK_PLAN_LOOKUP: Record<Plan, PlanOption> = Object.fromEntries(
+  FALLBACK_PLAN_OPTIONS.map((option) => [option.id, option]),
+) as Record<Plan, PlanOption>;
+
+function isSupportedPlan(value: string | null | undefined): value is Plan {
+  if (!value) return false;
+  return PLAN_IDS.includes(value as Plan);
+}
+
+function coerceNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim() !== "") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function formatPlanLabel(
+  currency: string,
+  amount: number,
+  isLifetime: boolean,
+  durationMonths: number,
+): string {
+  const formatter = new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
+  });
+  const formatted = formatter.format(amount);
+  if (isLifetime) {
+    return `${formatted} lifetime`;
+  }
+  if (durationMonths <= 1) {
+    return `${formatted} / month`;
+  }
+  if (durationMonths >= 12 && durationMonths % 12 === 0) {
+    const years = durationMonths / 12;
+    return `${formatted} / ${years} yr${years > 1 ? "s" : ""}`;
+  }
+  return `${formatted} / ${durationMonths} mo`;
+}
+
+function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
+  const nextOptions: PlanOption[] = [];
+
+  for (const raw of plans) {
+    if (!raw || !isSupportedPlan(raw.id ?? undefined)) {
+      continue;
+    }
+
+    const fallback = FALLBACK_PLAN_LOOKUP[raw.id];
+    const name = typeof raw.name === "string" && raw.name.trim().length > 0
+      ? raw.name
+      : fallback.name;
+    const currency =
+      typeof raw.currency === "string" && raw.currency.trim().length > 0
+        ? raw.currency.toUpperCase()
+        : fallback.meta.currency ?? "USD";
+    const amount = coerceNumber(raw.price) ??
+      coerceNumber(raw.base_price) ??
+      coerceNumber(raw.dynamic_price_usdt);
+    const isLifetime = raw.is_lifetime === true;
+    const duration = coerceNumber(raw.duration_months) ?? 0;
+    const priceLabel = amount !== null
+      ? formatPlanLabel(currency, amount, isLifetime, duration)
+      : fallback.price;
+    const highlights = Array.isArray(raw.features)
+      ? raw.features.filter((feature): feature is string =>
+        typeof feature === "string" && feature.trim().length > 0
+      )
+      : fallback.highlights;
+
+    const tonAmount = coerceNumber(raw.ton_amount);
+    const dctAmount = coerceNumber(raw.dct_amount);
+    const cadence = isLifetime
+      ? "Lifetime access"
+      : duration >= 12 && duration % 12 === 0
+      ? `${duration / 12} year${duration / 12 > 1 ? "s" : ""} runway`
+      : duration > 1
+      ? `${duration} month${duration > 1 ? "s" : ""} runway`
+      : fallback.cadence;
+
+    nextOptions.push({
+      id: raw.id,
+      name,
+      price: priceLabel,
+      cadence,
+      description: fallback.description,
+      highlights: highlights.length > 0 ? highlights : fallback.highlights,
+      meta: {
+        currency,
+        amount,
+        tonAmount,
+        dctAmount,
+        updatedAt: raw.last_priced_at ?? fallback.meta.updatedAt,
+      },
+    });
+  }
+
+  return nextOptions.length > 0 ? nextOptions : [...FALLBACK_PLAN_OPTIONS];
+}
+
+function resolvePlanUpdatedAt(options: PlanOption[]): string | undefined {
+  let latest: Date | undefined;
+  for (const option of options) {
+    const timestamp = option.meta.updatedAt;
+    if (!timestamp) continue;
+    const parsed = new Date(timestamp);
+    if (Number.isNaN(parsed.getTime())) continue;
+    if (!latest || parsed > latest) {
+      latest = parsed;
+    }
+  }
+
+  return latest?.toISOString();
+}
 
 declare global {
   interface Window {
@@ -173,8 +406,8 @@ function useLiveIntel(
         status: "ready",
         report: payload.report,
         updatedAt: payload.generatedAt,
-        nextRefreshSeconds:
-          payload.nextUpdateInSeconds ?? Math.floor(pollMs / 1000),
+        nextRefreshSeconds: payload.nextUpdateInSeconds ??
+          Math.floor(pollMs / 1000),
         isSyncing: false,
         error: undefined,
       });
@@ -182,8 +415,9 @@ function useLiveIntel(
       if (isUnmounted.current) {
         return;
       }
-      const message =
-        error instanceof Error ? error.message : "Unknown sync error";
+      const message = error instanceof Error
+        ? error.message
+        : "Unknown sync error";
       setState((previous) => ({
         ...previous,
         status: previous.report ? "ready" : "error",
@@ -211,61 +445,6 @@ function useLiveIntel(
     refresh: fetchIntel,
   };
 }
-
-const PLAN_OPTIONS: PlanOption[] = [
-  {
-    id: "vip_bronze",
-    name: "VIP Bronze",
-    price: "120 TON",
-    cadence: "3 month horizon",
-    description:
-      "Entry tier that mirrors the desk's base auto-invest strategy.",
-    highlights: [
-      "Desk monitored entries",
-      "Weekly strategy calls",
-      "Capital preservation guardrails",
-    ],
-  },
-  {
-    id: "vip_silver",
-    name: "VIP Silver",
-    price: "220 TON",
-    cadence: "6 month horizon",
-    description:
-      "Expanded allocation with leverage-managed exposure and mid-cycle rotations.",
-    highlights: [
-      "Dual momentum + carry blend",
-      "Priority support window",
-      "Quarterly performance briefing",
-    ],
-  },
-  {
-    id: "vip_gold",
-    name: "VIP Gold",
-    price: "380 TON",
-    cadence: "12 month horizon",
-    description:
-      "Flagship seat with treasury hedging, OTC access, and shared execution stack.",
-    highlights: [
-      "Desk co-trading channel",
-      "Deep-dive portfolio reviews",
-      "Strategic withdrawals with no slippage",
-    ],
-  },
-  {
-    id: "mentorship",
-    name: "Mentorship",
-    price: "550 TON",
-    cadence: "5 week sprint",
-    description:
-      "One-on-one mentorship alongside live trading to accelerate your playbook.",
-    highlights: [
-      "Personal deal screening",
-      "Signal decoding workshops",
-      "Exclusive masterclass archives",
-    ],
-  },
-];
 
 const OVERVIEW_FEATURES = [
   {
@@ -351,7 +530,15 @@ function formatWalletAddress(address?: string | null): string {
 
 function HomeInner() {
   const [tonConnectUI] = useTonConnectUI();
-  const [plan, setPlan] = useState<Plan>("vip_bronze");
+  const [planOptions, setPlanOptions] = useState<PlanOption[]>(
+    () => [...FALLBACK_PLAN_OPTIONS],
+  );
+  const [plan, setPlan] = useState<Plan>(FALLBACK_PLAN_OPTIONS[0].id);
+  const [planSyncStatus, setPlanSyncStatus] = useState<{
+    isLoading: boolean;
+    updatedAt?: string;
+    error?: string | null;
+  }>({ isLoading: true, updatedAt: undefined, error: null });
   const [txHash, setTxHash] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<SectionId>("overview");
@@ -362,8 +549,8 @@ function HomeInner() {
   const [countdown, setCountdown] = useState<number | null>(null);
 
   const selectedPlan = useMemo(
-    () => PLAN_OPTIONS.find((option) => option.id === plan),
-    [plan],
+    () => planOptions.find((option) => option.id === plan),
+    [plan, planOptions],
   );
   const wallet = tonConnectUI?.account;
   const walletAddress = wallet?.address;
@@ -401,6 +588,90 @@ function HomeInner() {
     });
 
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPlans = async () => {
+      setPlanSyncStatus((previous) => ({
+        ...previous,
+        isLoading: true,
+      }));
+
+      try {
+        const response = await fetch("/api/plans", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Unexpected status ${response.status}`);
+        }
+
+        const payload = await response.json() as { plans?: RawPlan[] | null };
+        if (!isMounted) {
+          return;
+        }
+
+        const normalized = Array.isArray(payload?.plans)
+          ? normalisePlanOptions(payload.plans as RawPlan[])
+          : [...FALLBACK_PLAN_OPTIONS];
+
+        setPlanOptions(normalized);
+        setPlan((current) =>
+          normalized.some((option) => option.id === current)
+            ? current
+            : normalized[0]?.id ?? current
+        );
+        setPlanSyncStatus({
+          isLoading: false,
+          updatedAt: resolvePlanUpdatedAt(normalized),
+          error: null,
+        });
+      } catch (error) {
+        console.error("[miniapp] Failed to load plans", error);
+        if (!isMounted) {
+          return;
+        }
+
+        setPlanOptions([...FALLBACK_PLAN_OPTIONS]);
+        setPlanSyncStatus((previous) => ({
+          isLoading: false,
+          updatedAt: previous.updatedAt,
+          error: error instanceof Error
+            ? error.message
+            : "Unable to load plans",
+        }));
+      }
+    };
+
+    void loadPlans();
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setPlanSyncStatus((previous) => ({
+        isLoading: false,
+        updatedAt: previous.updatedAt,
+        error: previous.error ??
+          "Realtime sync unavailable (missing Supabase env)",
+      }));
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const channel = supabase
+      .channel("miniapp-subscription-plans")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "subscription_plans" },
+        () => {
+          void loadPlans();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -584,8 +855,7 @@ function HomeInner() {
                           ? "▼"
                           : metric.trend === "up"
                           ? "▲"
-                          : "•"}{" "}
-                        {metric.change}
+                          : "•"} {metric.change}
                       </span>
                     )}
                   </span>
@@ -617,6 +887,22 @@ function HomeInner() {
               <p className="status-value">{telegramId}</p>
             </div>
             <div>
+              <p className="status-label">Plans</p>
+              <p
+                className={`status-value${
+                  planSyncStatus.error ? " status-value--error" : ""
+                }`}
+              >
+                {planSyncStatus.error
+                  ? "Needs attention"
+                  : planSyncStatus.isLoading
+                  ? "Syncing…"
+                  : planSyncStatus.updatedAt
+                  ? formatRelativeTime(planSyncStatus.updatedAt)
+                  : "Live"}
+              </p>
+            </div>
+            <div>
               <p className="status-label">Live feed</p>
               <p className="status-value">
                 {liveIntel.isSyncing
@@ -627,7 +913,12 @@ function HomeInner() {
             {selectedPlan && (
               <div>
                 <p className="status-label">Selected plan</p>
-                <p className="status-value">{selectedPlan.name}</p>
+                <p className="status-value">
+                  {selectedPlan.name}
+                  {selectedPlan.meta.amount !== null
+                    ? ` • ${selectedPlan.price}`
+                    : ""}
+                </p>
               </div>
             )}
           </div>
@@ -648,8 +939,32 @@ function HomeInner() {
             )}
           </div>
 
+          <div className="plan-sync-row" role="status">
+            <span
+              className={`plan-sync-indicator${
+                planSyncStatus.isLoading ? " plan-sync-indicator--pulse" : ""
+              }`}
+              aria-hidden
+            />
+            <span className="plan-sync-text">
+              {planSyncStatus.error
+                ? "Live pricing offline – showing cached tiers"
+                : planSyncStatus.updatedAt
+                ? `Synced ${formatRelativeTime(planSyncStatus.updatedAt)}`
+                : planSyncStatus.isLoading
+                ? "Syncing latest pricing…"
+                : "Live pricing ready"}
+            </span>
+          </div>
+
+          {planSyncStatus.error && (
+            <div className="plan-sync-alert" role="alert">
+              {planSyncStatus.error}
+            </div>
+          )}
+
           <div className="plan-grid">
-            {PLAN_OPTIONS.map((option) => {
+            {planOptions.map((option) => {
               const isActive = option.id === plan;
               return (
                 <button
@@ -659,7 +974,21 @@ function HomeInner() {
                 >
                   <div className="plan-card-header">
                     <span className="plan-name">{option.name}</span>
-                    <span className="plan-price">{option.price}</span>
+                    <div className="plan-price-block">
+                      <span className="plan-price">{option.price}</span>
+                      {typeof option.meta.tonAmount === "number" &&
+                        option.meta.tonAmount > 0 && (
+                        <span className="plan-secondary-meta">
+                          ≈ {option.meta.tonAmount.toFixed(2)} TON
+                        </span>
+                      )}
+                      {typeof option.meta.dctAmount === "number" &&
+                        option.meta.dctAmount > 0 && (
+                        <span className="plan-secondary-meta">
+                          ≈ {option.meta.dctAmount.toFixed(0)} DCT
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <p className="plan-description">{option.description}</p>
                   <ul className="plan-highlights">
@@ -852,72 +1181,77 @@ function LiveIntelligenceSection({
               <span className="confidence-chip">{confidenceLabel}</span>
             )}
           </div>
-          {hasIntel ? (
-            <>
-              <p className="intel-narrative">{intel?.narrative}</p>
-              {alerts.length > 0 ? (
-                <ul className="alert-list">
-                  {alerts.map((alert) => (
-                    <li key={alert} className="alert-pill">
-                      <span aria-hidden>⚠️</span>
-                      {alert}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="intel-muted">
-                  No blocking alerts flagged by DeepSeek-V2 sentinel.
-                </p>
-              )}
-            </>
-          ) : (
-            <div className="skeleton-group">
-              <div className="skeleton skeleton--text skeleton--wide" />
-              <div className="skeleton skeleton--text skeleton--wide" />
-              <div className="skeleton skeleton--text skeleton--medium" />
-            </div>
-          )}
+          {hasIntel
+            ? (
+              <>
+                <p className="intel-narrative">{intel?.narrative}</p>
+                {alerts.length > 0
+                  ? (
+                    <ul className="alert-list">
+                      {alerts.map((alert) => (
+                        <li key={alert} className="alert-pill">
+                          <span aria-hidden>⚠️</span>
+                          {alert}
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                  : (
+                    <p className="intel-muted">
+                      No blocking alerts flagged by DeepSeek-V2 sentinel.
+                    </p>
+                  )}
+              </>
+            )
+            : (
+              <div className="skeleton-group">
+                <div className="skeleton skeleton--text skeleton--wide" />
+                <div className="skeleton skeleton--text skeleton--wide" />
+                <div className="skeleton skeleton--text skeleton--medium" />
+              </div>
+            )}
         </div>
 
         <div className="intel-card">
           <h3>Opportunities</h3>
-          {hasIntel ? (
-            <ul className="intel-list">
-              {opportunities.map((item) => (
-                <li key={item}>
-                  <span
-                    className="intel-bullet intel-bullet--opportunity"
-                    aria-hidden
-                  />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <IntelListSkeleton />
-          )}
+          {hasIntel
+            ? (
+              <ul className="intel-list">
+                {opportunities.map((item) => (
+                  <li key={item}>
+                    <span
+                      className="intel-bullet intel-bullet--opportunity"
+                      aria-hidden
+                    />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )
+            : <IntelListSkeleton />}
         </div>
 
         <div className="intel-card">
           <h3>Risks</h3>
-          {hasIntel ? (
-            <ul className="intel-list">
-              {risks.map((item) => (
-                <li key={item}>
-                  <span className="intel-bullet intel-bullet--risk" aria-hidden />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <IntelListSkeleton />
-          )}
+          {hasIntel
+            ? (
+              <ul className="intel-list">
+                {risks.map((item) => (
+                  <li key={item}>
+                    <span
+                      className="intel-bullet intel-bullet--risk"
+                      aria-hidden
+                    />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )
+            : <IntelListSkeleton />}
         </div>
       </div>
 
-      {intel ? (
-        <ModelBreakdown intel={intel} />
-      ) : (
+      {intel ? <ModelBreakdown intel={intel} /> : (
         <div className="model-grid">
           <div className="model-card">
             <div className="skeleton skeleton--text skeleton--medium" />
@@ -958,13 +1292,13 @@ function IntelListSkeleton({ count = 3 }: { count?: number }) {
 function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
   const grok = intel.models.grok;
   const deepseek = intel.models.deepseek;
-  const riskScore =
-    typeof deepseek.riskScore === "number"
-      ? Math.min(Math.max(deepseek.riskScore, 0), 1)
-      : null;
+  const riskScore = typeof deepseek.riskScore === "number"
+    ? Math.min(Math.max(deepseek.riskScore, 0), 1)
+    : null;
   const riskLevel = riskSeverity(riskScore ?? undefined);
-  const riskLabel =
-    riskScore === null ? "Risk scan" : `${Math.round(riskScore * 100)}% risk`;
+  const riskLabel = riskScore === null
+    ? "Risk scan"
+    : `${Math.round(riskScore * 100)}% risk`;
 
   return (
     <div className="model-grid">
@@ -975,9 +1309,7 @@ function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
         </div>
         <p className="model-summary">{grok.summary}</p>
         <ul className="model-highlights">
-          {grok.highlights.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
+          {grok.highlights.map((item) => <li key={item}>{item}</li>)}
         </ul>
       </div>
       <div className="model-card">
@@ -989,9 +1321,7 @@ function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
         </div>
         <p className="model-summary">{deepseek.summary}</p>
         <ul className="model-highlights">
-          {deepseek.highlights.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
+          {deepseek.highlights.map((item) => <li key={item}>{item}</li>)}
         </ul>
       </div>
     </div>

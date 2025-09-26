@@ -7,6 +7,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.3",
     "@tonconnect/ui-react": "^2.5.4",
     "next": "^13.5.0",
     "react": "^18.2.0",
