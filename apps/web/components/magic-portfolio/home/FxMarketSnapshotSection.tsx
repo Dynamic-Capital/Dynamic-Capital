@@ -3,12 +3,20 @@
 import {
   Column,
   Heading,
-  Line,
   Row,
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
 import type { Colors } from "@/components/dynamic-ui-system";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { formatIsoTime } from "@/utils/isoFormat";
 import {
   type ComponentProps,
@@ -922,7 +930,9 @@ export function FxMarketSnapshotSection() {
 
   return (
     <Column
+      as="section"
       id="fx-market-snapshot"
+      aria-labelledby="fx-market-snapshot-heading"
       fillWidth
       background="surface"
       border="neutral-alpha-medium"
@@ -933,8 +943,20 @@ export function FxMarketSnapshotSection() {
     >
       <Column gap="12" maxWidth={32}>
         <Row gap="12" vertical="center">
-          <Heading variant="display-strong-xs">Dynamic market snapshot</Heading>
-          <Tag size="s" background={statusTone} prefixIcon="clock">
+          <Heading
+            id="fx-market-snapshot-heading"
+            variant="display-strong-xs"
+          >
+            Dynamic market snapshot
+          </Heading>
+          <Tag
+            size="s"
+            background={statusTone}
+            prefixIcon="clock"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {statusLabel}
           </Tag>
         </Row>
@@ -1092,6 +1114,8 @@ function InsightCard({ title, description, tag, children }: InsightCardProps) {
 }
 
 function MoversTable({ title, data, tone }: MoversSection) {
+  const tableLabel = `${title} currency movers`;
+
   return (
     <Column gap="12" align="start">
       <Tag
@@ -1106,61 +1130,74 @@ function MoversTable({ title, data, tone }: MoversSection) {
         border="neutral-alpha-weak"
         radius="l"
         padding="l"
-        gap="12"
         fillWidth
       >
-        <Row horizontal="between" vertical="center">
-          <Text variant="label-default-s" onBackground="neutral-weak">
-            Pair
-          </Text>
-          <Row gap="16" vertical="center">
-            <Text variant="label-default-s" onBackground="neutral-weak">
-              Change %
-            </Text>
-            <Text variant="label-default-s" onBackground="neutral-weak">
-              Change
-            </Text>
-            <Text variant="label-default-s" onBackground="neutral-weak">
-              Pips
-            </Text>
-            <Text variant="label-default-s" onBackground="neutral-weak">
-              Last
-            </Text>
-          </Row>
-        </Row>
-        <Line background="neutral-alpha-weak" />
-        <Column gap="12">
-          {data.map((item) => (
-            <Row key={item.symbol} horizontal="between" vertical="center">
-              <Column gap="4">
-                <Text variant="body-strong-s">{item.pair}</Text>
-                <Text variant="body-default-s" onBackground="neutral-weak">
-                  {item.symbol}
-                </Text>
-              </Column>
-              <Row gap="16" vertical="center">
-                <Text variant="body-strong-s">
-                  {formatPercent(item.changePercent)}
-                </Text>
-                <Text variant="body-default-s" onBackground="neutral-weak">
-                  {formatChange(item.change)}
-                </Text>
-                <Text variant="body-default-s" onBackground="neutral-weak">
-                  {formatPips(item.pips)}
-                </Text>
-                <Text variant="body-default-s" onBackground="neutral-weak">
-                  {formatPrice(item.lastPrice)}
-                </Text>
-              </Row>
-            </Row>
-          ))}
-        </Column>
+        <Table aria-label={tableLabel}>
+          <TableCaption className="sr-only">
+            {`${title} with percentage change, price change, pips, and last price data.`}
+          </TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead scope="col">Pair</TableHead>
+              <TableHead scope="col" className="text-right">
+                Change %
+              </TableHead>
+              <TableHead scope="col" className="text-right">
+                Change
+              </TableHead>
+              <TableHead scope="col" className="text-right">
+                Pips
+              </TableHead>
+              <TableHead scope="col" className="text-right">
+                Last
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((item) => (
+              <TableRow key={item.symbol}>
+                <TableCell>
+                  <Column gap="4" align="start">
+                    <Text variant="body-strong-s">{item.pair}</Text>
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      {item.symbol}
+                    </Text>
+                  </Column>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Text variant="body-strong-s">
+                    {formatPercent(item.changePercent)}
+                  </Text>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    {formatChange(item.change)}
+                  </Text>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    {formatPips(item.pips)}
+                  </Text>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    {formatPrice(item.lastPrice)}
+                  </Text>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </Column>
     </Column>
   );
 }
 
 function VolatilityBucketPanel({ title, data, background }: VolatilityBucket) {
+  const headingId = `${
+    title.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+  }-bucket-label`;
+
   return (
     <Column
       flex={1}
@@ -1172,12 +1209,22 @@ function VolatilityBucketPanel({ title, data, background }: VolatilityBucket) {
       padding="l"
       align="start"
     >
-      <Tag size="s" background={background} prefixIcon="activity">
+      <Tag
+        id={headingId}
+        size="s"
+        background={background}
+        prefixIcon="activity"
+      >
         {title}
       </Tag>
-      <Column gap="12" fillWidth>
+      <Column as="ul" gap="12" fillWidth aria-labelledby={headingId}>
         {data.map((item) => (
-          <Row key={item.symbol} horizontal="between" vertical="center">
+          <Row
+            key={item.symbol}
+            as="li"
+            horizontal="between"
+            vertical="center"
+          >
             <Column gap="4">
               <Text variant="body-strong-s">{item.pair}</Text>
               <Text variant="body-default-s" onBackground="neutral-weak">
