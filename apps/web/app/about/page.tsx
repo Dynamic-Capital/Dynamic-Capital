@@ -6,13 +6,13 @@ import {
   Icon,
   IconButton,
   Media,
+  Meta,
+  Row,
+  Schema,
   Tag,
   Text,
-  Meta,
-  Schema,
-  Row,
 } from "@/components/dynamic-ui-system";
-import { baseURL, about, person, social, toAbsoluteUrl } from "@/resources";
+import { about, baseURL, person, social, toAbsoluteUrl } from "@/resources";
 import TableOfContents from "@/components/magic-portfolio/about/TableOfContents";
 import styles from "@/components/magic-portfolio/about/about.module.scss";
 import React from "react";
@@ -77,7 +77,7 @@ export default function About() {
           <TableOfContents structure={structure} about={about} />
         </Column>
       )}
-      <Row fillWidth s={{ direction: "column"}} horizontal="center">
+      <Row fillWidth s={{ direction: "column" }} horizontal="center">
         {about.avatar.display && (
           <Column
             className={styles.avatar}
@@ -132,7 +132,11 @@ export default function About() {
                   backdropFilter: "blur(var(--static-space-1))",
                 }}
               >
-                <Icon paddingLeft="12" name="calendar" onBackground="brand-weak" />
+                <Icon
+                  paddingLeft="12"
+                  name="calendar"
+                  onBackground="brand-weak"
+                />
                 <Row paddingX="8">Schedule a call</Row>
                 <IconButton
                   href={about.calendar.link}
@@ -195,37 +199,65 @@ export default function About() {
           </Column>
 
           {about.intro.display && (
-            <Column textVariant="body-default-l" fillWidth gap="m" marginBottom="xl">
+            <Column
+              textVariant="body-default-l"
+              fillWidth
+              gap="m"
+              marginBottom="xl"
+            >
               {about.intro.description}
             </Column>
           )}
 
           {about.work.display && (
-            <>
-              <Heading as="h2" id={about.work.title} variant="display-strong-s" marginBottom="m">
+            <Column as="section" gap="m">
+              <Heading
+                as="h2"
+                id={about.work.title}
+                variant="display-strong-s"
+                marginBottom="m"
+              >
                 {about.work.title}
               </Heading>
               <Column fillWidth gap="l" marginBottom="40">
                 {about.work.experiences.map((experience, index) => (
-                  <Column key={`${experience.company}-${experience.role}-${index}`} fillWidth>
-                    <Row fillWidth horizontal="between" vertical="end" marginBottom="4">
+                  <Column
+                    key={`${experience.company}-${experience.role}-${index}`}
+                    fillWidth
+                  >
+                    <Row
+                      fillWidth
+                      horizontal="between"
+                      vertical="end"
+                      marginBottom="4"
+                    >
                       <Text id={experience.company} variant="heading-strong-l">
                         {experience.company}
                       </Text>
-                      <Text variant="heading-default-xs" onBackground="neutral-weak">
+                      <Text
+                        variant="heading-default-xs"
+                        onBackground="neutral-weak"
+                      >
                         {experience.timeframe}
                       </Text>
                     </Row>
-                    <Text variant="body-default-s" onBackground="brand-weak" marginBottom="m">
+                    <Text
+                      variant="body-default-s"
+                      onBackground="brand-weak"
+                      marginBottom="m"
+                    >
                       {experience.role}
                     </Text>
                     <Column as="ul" gap="16">
                       {experience.achievements.map(
-                        (achievement: React.ReactNode, index: number) => (
+                        (
+                          achievement: React.ReactNode,
+                          achievementIndex: number,
+                        ) => (
                           <Text
                             as="li"
                             variant="body-default-m"
-                            key={`${experience.company}-${index}`}
+                            key={`${experience.company}-${achievementIndex}`}
                           >
                             {achievement}
                           </Text>
@@ -233,10 +265,16 @@ export default function About() {
                       )}
                     </Column>
                     {experience.images && experience.images.length > 0 && (
-                      <Row fillWidth paddingTop="m" paddingLeft="40" gap="12" wrap>
-                        {experience.images.map((image, index) => (
+                      <Row
+                        fillWidth
+                        paddingTop="m"
+                        paddingLeft="40"
+                        gap="12"
+                        wrap
+                      >
+                        {experience.images.map((image, imageIndex) => (
                           <Row
-                            key={index}
+                            key={imageIndex}
                             border="neutral-medium"
                             radius="m"
                             minWidth={image.width}
@@ -256,31 +294,43 @@ export default function About() {
                   </Column>
                 ))}
               </Column>
-            </>
+            </Column>
           )}
 
           {about.studies.display && (
-            <>
-              <Heading as="h2" id={about.studies.title} variant="display-strong-s" marginBottom="m">
+            <Column as="section" gap="m">
+              <Heading
+                as="h2"
+                id={about.studies.title}
+                variant="display-strong-s"
+                marginBottom="m"
+              >
                 {about.studies.title}
               </Heading>
               <Column fillWidth gap="l" marginBottom="40">
                 {about.studies.institutions.map((institution, index) => (
-                  <Column key={`${institution.name}-${index}`} fillWidth gap="4">
+                  <Column
+                    key={`${institution.name}-${index}`}
+                    fillWidth
+                    gap="4"
+                  >
                     <Text id={institution.name} variant="heading-strong-l">
                       {institution.name}
                     </Text>
-                    <Text variant="heading-default-xs" onBackground="neutral-weak">
+                    <Text
+                      variant="heading-default-xs"
+                      onBackground="neutral-weak"
+                    >
                       {institution.description}
                     </Text>
                   </Column>
                 ))}
               </Column>
-            </>
+            </Column>
           )}
 
           {about.technical.display && (
-            <>
+            <Column as="section" gap="m">
               <Heading
                 as="h2"
                 id={about.technical.title}
@@ -301,7 +351,11 @@ export default function About() {
                     {skill.tags && skill.tags.length > 0 && (
                       <Row wrap gap="8" paddingTop="8">
                         {skill.tags.map((tag, tagIndex) => (
-                          <Tag key={`${skill.title}-${tagIndex}`} size="l" prefixIcon={tag.icon}>
+                          <Tag
+                            key={`${skill.title}-${tagIndex}`}
+                            size="l"
+                            prefixIcon={tag.icon}
+                          >
                             {tag.name}
                           </Tag>
                         ))}
@@ -309,9 +363,9 @@ export default function About() {
                     )}
                     {skill.images && skill.images.length > 0 && (
                       <Row fillWidth paddingTop="m" gap="12" wrap>
-                        {skill.images.map((image, index) => (
+                        {skill.images.map((image, imageIndex) => (
                           <Row
-                            key={index}
+                            key={imageIndex}
                             border="neutral-medium"
                             radius="m"
                             minWidth={image.width}
@@ -331,7 +385,7 @@ export default function About() {
                   </Column>
                 ))}
               </Column>
-            </>
+            </Column>
           )}
         </Column>
       </Row>
