@@ -77,6 +77,11 @@ async function ensureMeterProvider() {
     return;
   }
 
+  if (!isNodeRuntime) {
+    telemetryState.meterProvider = metrics.getMeterProvider() as unknown as MeterProvider;
+    return;
+  }
+
   try {
     const { registerOTel } = await import("@vercel/otel");
     registerOTel();

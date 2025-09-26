@@ -22,6 +22,11 @@ from .loss_recovery_programme import (
     RecoveryPlan,
     RecoveryStep,
 )
+from .market_advisory import (
+    MarketAdvisoryEngine,
+    MarketAdvisoryReport,
+    MarketAdvisoryRequest,
+)
 from .dct_token_sync import (
     DCTAllocationEngine,
     DCTAllocationResult,
@@ -52,6 +57,21 @@ from .desk_token_hub import (
     TokenHubDevelopmentOrchestrator,
     TokenHubSyncReport,
 )
+from .project_faq_generator import (
+    FAQEntry,
+    FAQRequest,
+    FAQSource,
+    ProjectFAQGenerator,
+    ProjectFAQPackage,
+)
+from .executive_playbooks import (
+    CEO_PLAYBOOK,
+    CFO_PLAYBOOK,
+    COO_PLAYBOOK,
+    EXECUTIVE_PLAYBOOKS,
+    build_executive_playbooks,
+    build_executive_sync_algorithm,
+)
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
@@ -74,6 +94,9 @@ __all__ = _trade_exports + [
     "LossRecoveryProgramme",
     "RecoveryPlan",
     "RecoveryStep",
+    "MarketAdvisoryEngine",
+    "MarketAdvisoryReport",
+    "MarketAdvisoryRequest",
     "DCTAllocationEngine",
     "DCTAllocationResult",
     "DCTAllocationRule",
@@ -92,6 +115,17 @@ __all__ = _trade_exports + [
     "TokenHubDevelopmentContext",
     "TokenHubDevelopmentOrchestrator",
     "TokenHubSyncReport",
+    "FAQEntry",
+    "FAQRequest",
+    "FAQSource",
+    "ProjectFAQGenerator",
+    "ProjectFAQPackage",
+    "CEO_PLAYBOOK",
+    "CFO_PLAYBOOK",
+    "COO_PLAYBOOK",
+    "EXECUTIVE_PLAYBOOKS",
+    "build_executive_playbooks",
+    "build_executive_sync_algorithm",
     "VipAutoSyncJob",
     "VipAutoSyncReport",
     "VipMembershipProvider",
@@ -121,6 +155,9 @@ globals().update(
         "LossRecoveryProgramme": LossRecoveryProgramme,
         "RecoveryPlan": RecoveryPlan,
         "RecoveryStep": RecoveryStep,
+        "MarketAdvisoryEngine": MarketAdvisoryEngine,
+        "MarketAdvisoryReport": MarketAdvisoryReport,
+        "MarketAdvisoryRequest": MarketAdvisoryRequest,
         "DCTAllocationEngine": DCTAllocationEngine,
         "DCTAllocationResult": DCTAllocationResult,
         "DCTAllocationRule": DCTAllocationRule,
@@ -145,5 +182,16 @@ globals().update(
         "VipMembershipSnapshot": VipMembershipSnapshot,
         "VipTokenGrant": VipTokenGrant,
         "VipTokenisationStrategy": VipTokenisationStrategy,
+        "FAQEntry": FAQEntry,
+        "FAQRequest": FAQRequest,
+        "FAQSource": FAQSource,
+        "ProjectFAQGenerator": ProjectFAQGenerator,
+        "ProjectFAQPackage": ProjectFAQPackage,
+        "CEO_PLAYBOOK": CEO_PLAYBOOK,
+        "CFO_PLAYBOOK": CFO_PLAYBOOK,
+        "COO_PLAYBOOK": COO_PLAYBOOK,
+        "EXECUTIVE_PLAYBOOKS": EXECUTIVE_PLAYBOOKS,
+        "build_executive_playbooks": build_executive_playbooks,
+        "build_executive_sync_algorithm": build_executive_sync_algorithm,
     }
 )
