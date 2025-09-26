@@ -20,6 +20,7 @@ class MarketIntelligenceRequest:
 
     snapshot: MarketSnapshot
     context: Dict[str, Any] = field(default_factory=dict)
+    strategy_context: Dict[str, Any] = field(default_factory=dict)
     macro_events: Sequence[str] = field(default_factory=tuple)
     watchlist: Sequence[str] = field(default_factory=tuple)
     open_positions: Sequence[ActivePosition] = field(default_factory=tuple)
@@ -189,6 +190,12 @@ class MarketIntelligenceEngine:
             default=str,
             sort_keys=True,
         )
+        strategy_context_json = json.dumps(
+            payload.get("strategy_context", {}),
+            indent=2,
+            default=str,
+            sort_keys=True,
+        )
         optimisation_note = self._format_context_note(prompt_meta)
 
         return textwrap.dedent(
@@ -219,6 +226,9 @@ class MarketIntelligenceEngine:
 
             Quantitative analytics:
             {analytics_json}
+
+            Strategy context:
+            {strategy_context_json}
             """
         ).strip()
 
@@ -226,25 +236,35 @@ class MarketIntelligenceEngine:
         self, request: MarketIntelligenceRequest
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         snapshot_payload, snapshot_meta = self._snapshot_payload(request.snapshot)
-        context_payload = self._compact_mapping(request.context)
-        macro_events, macro_omitted = self._normalise_sequence(
+        context_payload, context_pruned_keys = self._compact_mapping(request.context)
+        (
+            strategy_context_payload,
+            strategy_context_pruned_keys,
+        ) = self._compact_mapping(request.strategy_context)
+        macro_events, macro_omitted_items = self._normalise_sequence(
             request.macro_events,
             self.max_macro_events,
         )
-        watchlist, watchlist_omitted = self._normalise_sequence(
+        watchlist, watchlist_omitted_items = self._normalise_sequence(
             request.watchlist,
             self.max_watchlist,
         )
         positions_summary, positions_omitted = self._summarise_positions(
             request.open_positions
         )
-        analytics_summary, analytics_omitted = self._prepare_analytics(
+        (
+            analytics_summary,
+            analytics_omitted_keys,
+            analytics_pruned_keys,
+        ) = self._prepare_analytics(
             request.analytics
         )
 
         payload: Dict[str, Any] = {"snapshot": snapshot_payload}
         if context_payload:
             payload["context"] = context_payload
+        if strategy_context_payload:
+            payload["strategy_context"] = strategy_context_payload
         if macro_events:
             payload["macro_events"] = macro_events
         if watchlist:
@@ -256,15 +276,24 @@ class MarketIntelligenceEngine:
 
         optimisation_meta: Dict[str, Any] = {
             "macro_events_retained": len(macro_events),
-            "macro_events_omitted": macro_omitted,
+            "macro_events_omitted": len(macro_omitted_items),
+            "macro_events_omitted_items": macro_omitted_items,
             "watchlist_retained": len(watchlist),
-            "watchlist_omitted": watchlist_omitted,
+            "watchlist_omitted": len(watchlist_omitted_items),
+            "watchlist_omitted_items": watchlist_omitted_items,
             "open_positions_retained": len(positions_summary),
-            "open_positions_omitted": positions_omitted,
+            "open_positions_omitted": len(positions_omitted),
+            "open_positions_omitted_details": positions_omitted,
             "analytics_retained": len(analytics_summary),
-            "analytics_omitted": analytics_omitted,
+            "analytics_omitted": len(analytics_omitted_keys),
+            "analytics_omitted_keys": analytics_omitted_keys,
+            "analytics_pruned_keys": analytics_pruned_keys,
             "context_retained": len(context_payload),
-            "context_pruned": max(0, len(request.context) - len(context_payload)),
+            "context_pruned": len(context_pruned_keys),
+            "context_pruned_keys": context_pruned_keys,
+            "strategy_context_retained": len(strategy_context_payload),
+            "strategy_context_pruned": len(strategy_context_pruned_keys),
+            "strategy_context_pruned_keys": strategy_context_pruned_keys,
         }
         optimisation_meta.update(snapshot_meta)
 
@@ -322,63 +351,75 @@ class MarketIntelligenceEngine:
 
     def _summarise_positions(
         self, positions: Sequence[ActivePosition]
-    ) -> Tuple[list[Dict[str, Any]], int]:
-        if self.max_positions <= 0:
-            return [], len(positions)
+    ) -> Tuple[list[Dict[str, Any]], list[Dict[str, Any]]]:
+        if not positions:
+            return [], []
 
-        summary: list[Dict[str, Any]] = []
-        for position in positions[: self.max_positions]:
-            entry: Dict[str, Any] = {
+        def _position_snapshot(position: ActivePosition) -> Dict[str, Any]:
+            snapshot: Dict[str, Any] = {
                 "symbol": position.symbol,
                 "direction": GrokAdvisor._direction(position.direction),
                 "size": position.size,
                 "entry_price": position.entry_price,
             }
             if position.stop_loss is not None:
-                entry["stop_loss"] = position.stop_loss
+                snapshot["stop_loss"] = position.stop_loss
             if position.take_profit is not None:
-                entry["take_profit"] = position.take_profit
+                snapshot["take_profit"] = position.take_profit
             if position.opened_at is not None:
-                entry["opened_at"] = position.opened_at.isoformat()
-            summary.append(entry)
+                snapshot["opened_at"] = position.opened_at.isoformat()
+            return snapshot
 
-        omitted = max(0, len(positions) - len(summary))
-        return summary, omitted
+        if self.max_positions <= 0:
+            return [], [_position_snapshot(position) for position in positions]
+
+        summary = [_position_snapshot(position) for position in positions[: self.max_positions]]
+        omitted_details = [_position_snapshot(position) for position in positions[self.max_positions :]]
+        return summary, omitted_details
 
     def _prepare_analytics(
         self, analytics: Mapping[str, Any]
-    ) -> Tuple[Dict[str, Any], int]:
-        compact = self._compact_mapping(analytics)
-        if not compact or self.analytics_top_k <= 0:
-            return ({}, len(compact)) if compact else ({}, 0)
+    ) -> Tuple[Dict[str, Any], list[str], list[str]]:
+        compact, pruned_keys = self._compact_mapping(analytics)
+        if not compact:
+            return {}, [], pruned_keys
+
+        if self.analytics_top_k <= 0:
+            omitted_keys = list(compact.keys())
+            return {}, omitted_keys, pruned_keys
 
         prioritised = self._prioritise_metrics(compact, self.analytics_top_k)
-        omitted = max(0, len(compact) - len(prioritised))
-        return prioritised, omitted
+        omitted_keys = [key for key in compact.keys() if key not in prioritised]
+        return prioritised, omitted_keys, pruned_keys
 
     @staticmethod
-    def _compact_mapping(mapping: Mapping[str, Any]) -> Dict[str, Any]:
+    def _compact_mapping(mapping: Mapping[str, Any]) -> Tuple[Dict[str, Any], list[str]]:
         compact: Dict[str, Any] = {}
+        pruned_keys: list[str] = []
         for key, value in mapping.items():
             if value is None:
+                pruned_keys.append(key)
                 continue
             if isinstance(value, str):
                 if not value.strip():
+                    pruned_keys.append(key)
                     continue
             elif isinstance(value, MappingCollection):
                 if not value:
+                    pruned_keys.append(key)
                     continue
             elif isinstance(value, SequenceCollection) and not isinstance(value, (str, bytes)):
                 if not list(value):
+                    pruned_keys.append(key)
                     continue
             compact[key] = value
-        return compact
+        return compact, pruned_keys
 
     def _normalise_sequence(
         self,
         values: Sequence[Any],
         limit: int,
-    ) -> Tuple[list[str], int]:
+    ) -> Tuple[list[str], list[str]]:
         cleaned: list[str] = []
         seen: set[str] = set()
         for value in values:
@@ -389,11 +430,11 @@ class MarketIntelligenceEngine:
             cleaned.append(text)
 
         if limit <= 0:
-            return cleaned, 0
+            return cleaned, []
 
         limited = cleaned[:limit]
-        omitted = max(0, len(cleaned) - len(limited))
-        return limited, omitted
+        omitted_items = cleaned[limit:]
+        return limited, omitted_items
 
     def _prioritise_metrics(
         self,
