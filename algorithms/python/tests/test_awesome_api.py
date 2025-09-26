@@ -72,6 +72,7 @@ def test_client_fetch_bars_parses_payload(monkeypatch: pytest.MonkeyPatch) -> No
     bars = client.fetch_bars("EUR-USD", limit=4)
     assert len(bars) == 4
     assert bars[0].timestamp < bars[-1].timestamp
+    assert bars[0].timestamp.tzinfo == module.DESK_TIME_ZONE
     assert pytest.approx(bars[1].open) == bars[0].close
 
 
