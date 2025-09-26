@@ -24,23 +24,31 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
   const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
     const timer = setTimeout(() => {
       let currentIndex = 0;
-      const interval = setInterval(() => {
+      intervalId = setInterval(() => {
         if (currentIndex <= text.length) {
           setDisplayText(text.slice(0, currentIndex));
           currentIndex++;
         } else {
-          clearInterval(interval);
+          if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+          }
           setIsComplete(true);
           onComplete?.();
         }
       }, speed);
-
-      return () => clearInterval(interval);
     }, delay);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
   }, [text, delay, speed, onComplete]);
 
   return (

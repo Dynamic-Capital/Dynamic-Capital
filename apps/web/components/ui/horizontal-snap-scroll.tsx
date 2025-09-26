@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,13 +34,13 @@ export function HorizontalSnapScroll({
   const [isHovered, setIsHovered] = useState(false);
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
 
-  const checkScrollability = () => {
+  const checkScrollability = useCallback(() => {
     if (!scrollRef.current) return;
 
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
     setCanScrollLeft(scrollLeft > 0);
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
-  };
+  }, []);
 
   // Auto-scroll functionality
   useEffect(() => {
@@ -88,15 +88,39 @@ export function HorizontalSnapScroll({
   useEffect(() => {
     checkScrollability();
     const scrollElement = scrollRef.current;
-    if (scrollElement) {
-      scrollElement.addEventListener("scroll", checkScrollability);
-      scrollElement.addEventListener("resize", checkScrollability);
-      return () => {
-        scrollElement.removeEventListener("scroll", checkScrollability);
-        scrollElement.removeEventListener("resize", checkScrollability);
+    if (!scrollElement) {
+      return;
+    }
+
+    const handleScroll = () => checkScrollability();
+    scrollElement.addEventListener("scroll", handleScroll);
+
+    let resizeObserver: ResizeObserver | null = null;
+    let cleanupWindowResize: (() => void) | null = null;
+
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        checkScrollability();
+      });
+      resizeObserver.observe(scrollElement);
+    } else {
+      const handleResize = () => checkScrollability();
+      window.addEventListener("resize", handleResize);
+      cleanupWindowResize = () => {
+        window.removeEventListener("resize", handleResize);
       };
     }
-  }, [children]);
+
+    return () => {
+      scrollElement.removeEventListener("scroll", handleScroll);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      if (cleanupWindowResize) {
+        cleanupWindowResize();
+      }
+    };
+  }, [checkScrollability, children]);
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
