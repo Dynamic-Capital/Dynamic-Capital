@@ -77,6 +77,13 @@ from .project_faq_generator import (
     ProjectFAQGenerator,
     ProjectFAQPackage,
 )
+from .position_size_calculator import (
+    DynamicPositionSizeCalculator,
+    PositionSizeLLMOrchestrator,
+    PositionSizingPlan,
+    PositionSizingRequest,
+    PositionSizingResult,
+)
 from .executive_playbooks import (
     CEO_PLAYBOOK,
     CFO_PLAYBOOK,
@@ -142,6 +149,11 @@ __all__ = _trade_exports + [
     "FAQSource",
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
+    "DynamicPositionSizeCalculator",
+    "PositionSizeLLMOrchestrator",
+    "PositionSizingPlan",
+    "PositionSizingRequest",
+    "PositionSizingResult",
     "CEO_PLAYBOOK",
     "CFO_PLAYBOOK",
     "COO_PLAYBOOK",
@@ -218,6 +230,11 @@ globals().update(
         "FAQSource": FAQSource,
         "ProjectFAQGenerator": ProjectFAQGenerator,
         "ProjectFAQPackage": ProjectFAQPackage,
+        "DynamicPositionSizeCalculator": DynamicPositionSizeCalculator,
+        "PositionSizeLLMOrchestrator": PositionSizeLLMOrchestrator,
+        "PositionSizingPlan": PositionSizingPlan,
+        "PositionSizingRequest": PositionSizingRequest,
+        "PositionSizingResult": PositionSizingResult,
         "CEO_PLAYBOOK": CEO_PLAYBOOK,
         "CFO_PLAYBOOK": CFO_PLAYBOOK,
         "COO_PLAYBOOK": COO_PLAYBOOK,
