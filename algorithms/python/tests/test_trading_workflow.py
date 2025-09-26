@@ -22,6 +22,7 @@ from algorithms.python.trade_logic import (
     FeaturePipeline,
     LabeledFeature,
     LorentzianKNNModel,
+    LorentzianKNNStrategy,
     MarketSnapshot,
     TradeDecision,
     TradeConfig,
@@ -56,7 +57,7 @@ def _build_snapshots() -> list[MarketSnapshot]:
 
 def test_feature_pipeline_persistence_round_trip():
     pipeline = FeaturePipeline()
-    vector = (10.0, 20.0, 30.0, 40.0)
+    vector = (10.0, 20.0, 30.0, 40.0, 0.5, 0.1, -0.05, 0.2, 0.15, 0.3)
     transformed = pipeline.transform(vector, update=True)
     state = pipeline.state_dict()
     restored = FeaturePipeline()
@@ -184,6 +185,95 @@ def test_lorentzian_knn_model_applies_advisor_feedback():
     assert signal is not None
     assert signal.direction == -1
     assert feedbacks and feedbacks[0].metadata["source"] == "dual_llm"
+
+
+def test_lorentzian_strategy_respects_mechanical_bias() -> None:
+    timestamp = datetime.now(timezone.utc)
+    strategy = LorentzianKNNStrategy(
+        neighbors=1,
+        max_rows=64,
+        label_lookahead=0,
+        neutral_zone_pips=0.1,
+        recency_halflife_minutes=None,
+    )
+
+    bullish_snapshot = MarketSnapshot(
+        symbol="XAUUSD",
+        timestamp=timestamp,
+        close=1800.0,
+        rsi_fast=55.0,
+        adx_fast=22.0,
+        rsi_slow=52.0,
+        adx_slow=19.0,
+        pip_size=0.1,
+        pip_value=1.0,
+        mechanical_velocity=0.8,
+        mechanical_acceleration=0.4,
+        mechanical_jerk=0.2,
+        mechanical_energy=0.7,
+        mechanical_stress_ratio=0.3,
+        mechanical_state="Bullish",
+    )
+
+    base_features = bullish_snapshot.feature_vector()
+    strategy.pipeline.push(base_features)
+    strategy.model.add_sample(
+        LabeledFeature(
+            features=strategy.pipeline.transform(base_features, update=False),
+            label=1,
+            close=bullish_snapshot.close,
+            timestamp=timestamp,
+        )
+    )
+
+    bullish_signal = strategy.update(bullish_snapshot)
+    assert bullish_signal is not None
+    assert bullish_signal.direction == 1
+
+    bearish_snapshot = MarketSnapshot(
+        symbol="XAUUSD",
+        timestamp=timestamp + timedelta(minutes=5),
+        close=1799.5,
+        rsi_fast=55.0,
+        adx_fast=22.0,
+        rsi_slow=52.0,
+        adx_slow=19.0,
+        pip_size=0.1,
+        pip_value=1.0,
+        mechanical_velocity=-0.9,
+        mechanical_acceleration=-0.5,
+        mechanical_jerk=-0.3,
+        mechanical_energy=0.8,
+        mechanical_stress_ratio=0.3,
+        mechanical_state="Bearish",
+    )
+
+    conflicting_signal = strategy.update(bearish_snapshot)
+    assert conflicting_signal is not None
+    assert conflicting_signal.direction == 0
+
+    supportive_snapshot = MarketSnapshot(
+        symbol="XAUUSD",
+        timestamp=timestamp + timedelta(minutes=10),
+        close=1801.0,
+        rsi_fast=55.0,
+        adx_fast=22.0,
+        rsi_slow=52.0,
+        adx_slow=19.0,
+        pip_size=0.1,
+        pip_value=1.0,
+        mechanical_velocity=1.2,
+        mechanical_acceleration=0.7,
+        mechanical_jerk=0.4,
+        mechanical_energy=1.0,
+        mechanical_stress_ratio=0.2,
+        mechanical_state="Bullish",
+    )
+
+    supportive_signal = strategy.update(supportive_snapshot)
+    assert supportive_signal is not None
+    assert supportive_signal.direction == 1
+    assert supportive_signal.confidence >= 0.8
 
 
 def test_lorentzian_knn_model_prefers_recent_samples():

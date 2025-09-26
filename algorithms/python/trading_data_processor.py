@@ -258,6 +258,16 @@ class TradingDataProcessor:
         adx_fast_values = [snap.adx_fast for snap in snapshots]
         rsi_slow_values = [snap.rsi_slow for snap in snapshots]
         adx_slow_values = [snap.adx_slow for snap in snapshots]
+        velocity_values = [snap.mechanical_velocity for snap in snapshots if snap.mechanical_velocity is not None]
+        acceleration_values = [
+            snap.mechanical_acceleration for snap in snapshots if snap.mechanical_acceleration is not None
+        ]
+        jerk_values = [snap.mechanical_jerk for snap in snapshots if snap.mechanical_jerk is not None]
+        energy_values = [snap.mechanical_energy for snap in snapshots if snap.mechanical_energy is not None]
+        stress_values = [
+            snap.mechanical_stress_ratio for snap in snapshots if snap.mechanical_stress_ratio is not None
+        ]
+        bias_values = [snap.mechanical_bias() for snap in snapshots]
 
         close_first = closes[0]
         close_last = closes[-1]
@@ -303,6 +313,12 @@ class TradingDataProcessor:
             "rsi_slow_trend": float(rsi_slow_trend),
             "adx_slow_mean": _safe_mean(adx_slow_values),
             "adx_slow_trend": float(adx_slow_trend),
+            "mechanical_velocity_mean": _safe_mean(velocity_values),
+            "mechanical_acceleration_mean": _safe_mean(acceleration_values),
+            "mechanical_jerk_mean": _safe_mean(jerk_values),
+            "mechanical_energy_mean": _safe_mean(energy_values),
+            "mechanical_stress_mean": _safe_mean(stress_values),
+            "mechanical_bias_mean": _safe_mean(bias_values),
         }
 
     def _select_top_k_analytics(self, analytics: Mapping[str, float]) -> Dict[str, float]:

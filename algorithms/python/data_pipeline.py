@@ -6,9 +6,12 @@ import math
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Sequence, Tuple
 
 from .trade_logic import MarketSnapshot
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from .mechanical_analysis import MechanicalAnalysisCalculator, MechanicalMetrics
 
 
 @dataclass(slots=True)
@@ -152,11 +155,18 @@ class MarketDataIngestionJob:
         rsi_slow: int = 14,
         adx_fast: int = 9,
         adx_slow: int = 14,
+        mechanical_calculator: Optional["MechanicalAnalysisCalculator"] = None,
     ) -> None:
         self.rsi_fast = rsi_fast
         self.rsi_slow = rsi_slow
         self.adx_fast = adx_fast
         self.adx_slow = adx_slow
+        if mechanical_calculator is None:
+            from .mechanical_analysis import MechanicalAnalysisCalculator
+
+            self.mechanical_calculator = MechanicalAnalysisCalculator()
+        else:
+            self.mechanical_calculator = mechanical_calculator
 
     def run(self, bars: Iterable[RawBar], instrument: InstrumentMeta) -> List[MarketSnapshot]:
         rows = sorted(list(bars), key=lambda bar: bar.timestamp)
@@ -168,6 +178,13 @@ class MarketDataIngestionJob:
         rsi_slow_values = _compute_rsi(closes, self.rsi_slow)
         adx_fast_values = _compute_adx(highs, lows, closes, self.adx_fast)
         adx_slow_values = _compute_adx(highs, lows, closes, self.adx_slow)
+
+        mechanical_map: dict[datetime, "MechanicalMetrics"] = {}
+        if len(rows) >= 4:
+            series = self.mechanical_calculator.compute_series(
+                instrument.symbol, bars=rows
+            )
+            mechanical_map = {timestamp: metrics for timestamp, metrics in series}
 
         snapshots: List[MarketSnapshot] = []
         daily_high: Optional[float] = None
@@ -213,6 +230,7 @@ class MarketDataIngestionJob:
             adx_slow = adx_slow_values[idx]
             if None in (rsi_fast, rsi_slow, adx_fast, adx_slow):
                 continue
+            mechanical = mechanical_map.get(bar.timestamp)
             snapshots.append(
                 MarketSnapshot(
                     symbol=instrument.symbol,
@@ -235,6 +253,16 @@ class MarketDataIngestionJob:
                     weekly_low=weekly_low,
                     previous_week_high=previous_week_high,
                     previous_week_low=previous_week_low,
+                    mechanical_velocity=mechanical.velocity if mechanical else None,
+                    mechanical_acceleration=(
+                        mechanical.acceleration if mechanical else None
+                    ),
+                    mechanical_jerk=mechanical.jerk if mechanical else None,
+                    mechanical_energy=mechanical.energy if mechanical else None,
+                    mechanical_stress_ratio=(
+                        mechanical.stress_ratio if mechanical else None
+                    ),
+                    mechanical_state=mechanical.state if mechanical else None,
                 )
             )
         return snapshots

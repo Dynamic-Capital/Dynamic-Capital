@@ -85,6 +85,7 @@ def test_processor_combines_llm_outputs() -> None:
     assert isinstance(result, TradingDataResult)
     assert result.feature_summary["samples"] == pytest.approx(3.0)
     assert result.normalized_features == {"momentum_score": 0.7, "liquidity_score": 0.4}
+    assert "mechanical_velocity_mean" in result.feature_summary
     assert result.insights == ["Momentum improving across majors."]
     assert any("US data drop" in risk for risk in result.risks)
     assert sorted(result.alerts) == ["Monitor DXY options flow", "Watch NY session supply"]
@@ -125,6 +126,7 @@ def test_feature_summary_captures_momentum_and_range() -> None:
     momentum = (1.0800 - 1.0750) / 1.0750
     assert result.feature_summary["momentum_pct"] == pytest.approx(momentum)
     assert result.feature_summary["range_high"] >= result.feature_summary["range_low"]
+    assert "mechanical_bias_mean" in result.feature_summary
     assert result.metadata["prompt_optimisation"]["snapshots_retained"] == 2
     assert "Optimisation stats" in grok_client.calls[0]["prompt"]
 

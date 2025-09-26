@@ -173,9 +173,67 @@ class MarketSnapshot:
     correlation_scores: Optional[Dict[str, float]] = None
     seasonal_bias: Optional[float] = None
     seasonal_confidence: Optional[float] = None
+    mechanical_velocity: Optional[float] = None
+    mechanical_acceleration: Optional[float] = None
+    mechanical_jerk: Optional[float] = None
+    mechanical_energy: Optional[float] = None
+    mechanical_stress_ratio: Optional[float] = None
+    mechanical_state: Optional[str] = None
 
-    def feature_vector(self) -> tuple[float, float, float, float]:
-        return (self.rsi_fast, self.adx_fast, self.rsi_slow, self.adx_slow)
+    def feature_vector(self) -> tuple[float, ...]:
+        mechanical_features = (
+            float(self.mechanical_velocity) if self.mechanical_velocity is not None else 0.0,
+            float(self.mechanical_acceleration) if self.mechanical_acceleration is not None else 0.0,
+            float(self.mechanical_jerk) if self.mechanical_jerk is not None else 0.0,
+            float(self.mechanical_energy) if self.mechanical_energy is not None else 0.0,
+            float(self.mechanical_stress_ratio) if self.mechanical_stress_ratio is not None else 0.0,
+            self.mechanical_state_score(),
+        )
+        return (
+            self.rsi_fast,
+            self.adx_fast,
+            self.rsi_slow,
+            self.adx_slow,
+            *mechanical_features,
+        )
+
+    def mechanical_state_score(self) -> float:
+        mapping = {
+            "Bullish": 1.0,
+            "Bearish": -1.0,
+            "Turbulent": 0.3,
+        }
+        if self.mechanical_state is None:
+            return 0.0
+        return mapping.get(self.mechanical_state, 0.0)
+
+    def mechanical_bias(self) -> float:
+        """Return a directional bias derived from mechanical analytics."""
+
+        def _sign(value: Optional[float], threshold: float = 1e-6) -> float:
+            if value is None:
+                return 0.0
+            if value > threshold:
+                return 1.0
+            if value < -threshold:
+                return -1.0
+            return 0.0
+
+        bias = self.mechanical_state_score()
+        bias += 0.6 * _sign(self.mechanical_velocity)
+        bias += 0.3 * _sign(self.mechanical_acceleration)
+        bias += 0.1 * _sign(self.mechanical_jerk)
+
+        energy = float(self.mechanical_energy) if self.mechanical_energy else 0.0
+        stress = float(self.mechanical_stress_ratio) if self.mechanical_stress_ratio else 0.0
+
+        # Normalise energy to a 0-1 factor and dampen when stress is elevated.
+        energy_factor = min(max(energy, 0.0), 5.0) / 5.0
+        stress_penalty = max(0.0, min(stress, 5.0)) / 5.0
+        amplifier = 0.5 + 0.5 * energy_factor
+        damping = 1.0 - 0.5 * stress_penalty
+
+        return max(-2.0, min(2.0, bias * amplifier * damping))
 
 
 @dataclass(slots=True)
@@ -1121,7 +1179,33 @@ class LorentzianKNNStrategy:
                 self.model.add_sample(labelled)
                 label_row.persisted = True
 
-        return self._evaluate(transformed, snapshot.timestamp)
+        signal = self._evaluate(transformed, snapshot.timestamp)
+        if signal is None or signal.direction == 0:
+            return signal
+
+        bias = snapshot.mechanical_bias()
+        if bias == 0.0:
+            return signal
+
+        if signal.direction * bias < 0:
+            return TradeSignal(
+                direction=0,
+                confidence=0.0,
+                votes=signal.votes,
+                neighbors_considered=signal.neighbors_considered,
+            )
+
+        bias_strength = min(0.35, abs(bias) * 0.2)
+        boosted_confidence = min(1.0, signal.confidence * (1.0 + bias_strength))
+        if boosted_confidence == signal.confidence:
+            return signal
+
+        return TradeSignal(
+            direction=signal.direction,
+            confidence=boosted_confidence,
+            votes=signal.votes,
+            neighbors_considered=signal.neighbors_considered,
+        )
 
     def _evaluate(
         self, features: Sequence[float], timestamp: datetime
