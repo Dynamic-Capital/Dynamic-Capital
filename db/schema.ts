@@ -159,6 +159,26 @@ export const marketMovers = pgTable("market_movers", {
 export type MarketMover = typeof marketMovers.$inferSelect;
 export type NewMarketMover = typeof marketMovers.$inferInsert;
 
+export const economicCatalysts = pgTable("economic_catalysts", {
+  pair: text("pair").primaryKey(),
+  observedAt: timestamp("observed_at", { withTimezone: true }).notNull(),
+  headline: text("headline").notNull(),
+  impact: text("impact").notNull(),
+  marketFocus: jsonb("market_focus").$type<string[]>().notNull()
+    .default([] as string[]),
+  commentary: text("commentary"),
+  metrics: jsonb("metrics").$type<Record<string, number>>().notNull()
+    .default({} as Record<string, number>),
+  source: text("source").notNull().default("awesomeapi"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+});
+
+export type EconomicCatalystRow = typeof economicCatalysts.$inferSelect;
+export type NewEconomicCatalystRow = typeof economicCatalysts.$inferInsert;
+
 type FundamentalMetric = {
   label: string;
   value: string;

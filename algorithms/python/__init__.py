@@ -8,6 +8,11 @@ from .awesome_api import (
     AwesomeAPIError,
     AwesomeAPISnapshotBuilder,
 )
+from .economic_catalysts import (
+    EconomicCatalyst,
+    EconomicCatalystGenerator,
+    EconomicCatalystSyncJob,
+)
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
@@ -17,6 +22,9 @@ __all__ = _trade_exports + [
     "AwesomeAPIClient",
     "AwesomeAPIError",
     "AwesomeAPISnapshotBuilder",
+    "EconomicCatalyst",
+    "EconomicCatalystGenerator",
+    "EconomicCatalystSyncJob",
 ]
 
 globals().update({name: getattr(_trade_logic, name) for name in _trade_exports})
@@ -27,5 +35,8 @@ globals().update(
         "AwesomeAPIClient": AwesomeAPIClient,
         "AwesomeAPIError": AwesomeAPIError,
         "AwesomeAPISnapshotBuilder": AwesomeAPISnapshotBuilder,
+        "EconomicCatalyst": EconomicCatalyst,
+        "EconomicCatalystGenerator": EconomicCatalystGenerator,
+        "EconomicCatalystSyncJob": EconomicCatalystSyncJob,
     }
 )
