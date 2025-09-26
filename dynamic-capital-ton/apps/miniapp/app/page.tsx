@@ -572,16 +572,13 @@ function formatWalletAddress(address?: string | null): string {
 }
 
 function resolveThemeSwatches(theme: MiniAppThemeOption): string[] {
-  const background =
-    theme.cssVariables["--tg-bg"] ??
+  const background = theme.cssVariables["--tg-bg"] ??
     theme.cssVariables["--surface"] ??
     "#0b1120";
-  const accent =
-    theme.cssVariables["--tg-accent"] ??
+  const accent = theme.cssVariables["--tg-accent"] ??
     theme.cssVariables["--accent"] ??
     "#38bdf8";
-  const text =
-    theme.cssVariables["--tg-text"] ??
+  const text = theme.cssVariables["--tg-text"] ??
     theme.cssVariables["--text-primary"] ??
     "#f8fafc";
   return [background, accent, text];
@@ -595,9 +592,15 @@ function HomeInner() {
   const [plan, setPlan] = useState<Plan>(FALLBACK_PLAN_OPTIONS[0].id);
   const [planSyncStatus, setPlanSyncStatus] = useState<{
     isLoading: boolean;
+    isRealtimeSyncing: boolean;
     updatedAt?: string;
     error?: string | null;
-  }>({ isLoading: true, updatedAt: undefined, error: null });
+  }>({
+    isLoading: true,
+    isRealtimeSyncing: false,
+    updatedAt: undefined,
+    error: null,
+  });
   const [txHash, setTxHash] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<SectionId>("overview");
@@ -637,7 +640,12 @@ function HomeInner() {
       return "No Theme NFTs detected yet. Refresh after minting.";
     }
     return null;
-  }, [themeOptions.length, themeState.isApplying, themeState.isLoading, walletConnected]);
+  }, [
+    themeOptions.length,
+    themeState.isApplying,
+    themeState.isLoading,
+    walletConnected,
+  ]);
 
   const handleThemeSelect = useCallback(
     (theme: MiniAppThemeOption) => {
@@ -692,21 +700,38 @@ function HomeInner() {
 
   useEffect(() => {
     let isMounted = true;
+    let pendingController: AbortController | null = null;
+    let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    const loadPlans = async () => {
+    const loadPlans = async (options: { showSpinner: boolean }) => {
+      if (!isMounted) {
+        return;
+      }
+
+      if (pendingController) {
+        pendingController.abort();
+      }
+
+      const controller = new AbortController();
+      pendingController = controller;
+
       setPlanSyncStatus((previous) => ({
         ...previous,
-        isLoading: true,
+        isLoading: options.showSpinner,
+        isRealtimeSyncing: !options.showSpinner,
       }));
 
       try {
-        const response = await fetch("/api/plans", { cache: "no-store" });
+        const response = await fetch("/api/plans", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
         if (!response.ok) {
           throw new Error(`Unexpected status ${response.status}`);
         }
 
         const payload = await response.json() as { plans?: RawPlan[] | null };
-        if (!isMounted) {
+        if (!isMounted || controller.signal.aborted) {
           return;
         }
 
@@ -722,40 +747,75 @@ function HomeInner() {
         );
         setPlanSyncStatus({
           isLoading: false,
+          isRealtimeSyncing: false,
           updatedAt: resolvePlanUpdatedAt(normalized),
           error: null,
         });
       } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
         console.error("[miniapp] Failed to load plans", error);
         if (!isMounted) {
           return;
         }
 
-        setPlanOptions([...FALLBACK_PLAN_OPTIONS]);
+        setPlanOptions((previous) =>
+          previous.length ? previous : [...FALLBACK_PLAN_OPTIONS]
+        );
         setPlanSyncStatus((previous) => ({
           isLoading: false,
+          isRealtimeSyncing: false,
           updatedAt: previous.updatedAt,
           error: error instanceof Error
             ? error.message
             : "Unable to load plans",
         }));
+      } finally {
+        if (pendingController === controller) {
+          pendingController = null;
+        }
       }
     };
 
-    void loadPlans();
+    void loadPlans({ showSpinner: true });
 
     const supabase = getSupabaseClient();
     if (!supabase) {
       setPlanSyncStatus((previous) => ({
+        ...previous,
         isLoading: false,
-        updatedAt: previous.updatedAt,
+        isRealtimeSyncing: false,
         error: previous.error ??
           "Realtime sync unavailable (missing Supabase env)",
       }));
       return () => {
         isMounted = false;
+        if (pendingController) {
+          pendingController.abort();
+        }
+        if (refreshTimeout) {
+          clearTimeout(refreshTimeout);
+        }
       };
     }
+
+    const scheduleRealtimeRefresh = () => {
+      setPlanSyncStatus((previous) => ({
+        ...previous,
+        isRealtimeSyncing: true,
+      }));
+
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
+      }
+
+      refreshTimeout = setTimeout(() => {
+        refreshTimeout = null;
+        void loadPlans({ showSpinner: false });
+      }, 250);
+    };
 
     const channel = supabase
       .channel("miniapp-subscription-plans")
@@ -763,13 +823,22 @@ function HomeInner() {
         "postgres_changes",
         { event: "*", schema: "public", table: "subscription_plans" },
         () => {
-          void loadPlans();
+          if (!isMounted) {
+            return;
+          }
+          scheduleRealtimeRefresh();
         },
       )
       .subscribe();
 
     return () => {
       isMounted = false;
+      if (pendingController) {
+        pendingController.abort();
+      }
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
+      }
       supabase.removeChannel(channel);
     };
   }, []);
@@ -997,6 +1066,8 @@ function HomeInner() {
                   ? "Needs attention"
                   : planSyncStatus.isLoading
                   ? "Syncing…"
+                  : planSyncStatus.isRealtimeSyncing
+                  ? "Refreshing…"
                   : planSyncStatus.updatedAt
                   ? formatRelativeTime(planSyncStatus.updatedAt)
                   : "Live"}
@@ -1042,17 +1113,21 @@ function HomeInner() {
           <div className="plan-sync-row" role="status">
             <span
               className={`plan-sync-indicator${
-                planSyncStatus.isLoading ? " plan-sync-indicator--pulse" : ""
+                planSyncStatus.isLoading || planSyncStatus.isRealtimeSyncing
+                  ? " plan-sync-indicator--pulse"
+                  : ""
               }`}
               aria-hidden
             />
             <span className="plan-sync-text">
               {planSyncStatus.error
                 ? "Live pricing offline – showing cached tiers"
-                : planSyncStatus.updatedAt
-                ? `Synced ${formatRelativeTime(planSyncStatus.updatedAt)}`
                 : planSyncStatus.isLoading
                 ? "Syncing latest pricing…"
+                : planSyncStatus.isRealtimeSyncing
+                ? "Refreshing live pricing…"
+                : planSyncStatus.updatedAt
+                ? `Synced ${formatRelativeTime(planSyncStatus.updatedAt)}`
                 : "Live pricing ready"}
             </span>
           </div>
@@ -1151,11 +1226,16 @@ function HomeInner() {
             <div>
               <h2 className="section-title">Appearance</h2>
               <p className="section-description">
-                Personalise the desk with partner palettes unlocked by your Theme NFTs.
+                Personalise the desk with partner palettes unlocked by your
+                Theme NFTs.
               </p>
             </div>
             {isThemeBusy && (
-              <span className="theme-sync-pill" role="status" aria-live="polite">
+              <span
+                className="theme-sync-pill"
+                role="status"
+                aria-live="polite"
+              >
                 Syncing…
               </span>
             )}
@@ -1182,7 +1262,9 @@ function HomeInner() {
                   key={theme.id}
                   type="button"
                   role="listitem"
-                  className={`theme-option${isActive ? " theme-option--active" : ""}`}
+                  className={`theme-option${
+                    isActive ? " theme-option--active" : ""
+                  }`}
                   onClick={() => {
                     if (!isActive) {
                       handleThemeSelect(theme);
@@ -1192,24 +1274,28 @@ function HomeInner() {
                   aria-pressed={isActive}
                 >
                   <div className="theme-option__preview" aria-hidden>
-                    {theme.previewImage ? (
-                      <img src={theme.previewImage} alt="" loading="lazy" />
-                    ) : (
-                      swatches.map((color, index) => (
-                        <span
-                          key={`${theme.id}-swatch-${index}`}
-                          style={{ background: color }}
-                        />
-                      ))
-                    )}
+                    {theme.previewImage
+                      ? <img src={theme.previewImage} alt="" loading="lazy" />
+                      : (
+                        swatches.map((color, index) => (
+                          <span
+                            key={`${theme.id}-swatch-${index}`}
+                            style={{ background: color }}
+                          />
+                        ))
+                      )}
                   </div>
                   <div className="theme-option__meta">
                     <div className="theme-option__headline">
                       <span className="theme-option__name">{theme.label}</span>
-                      {isActive && <span className="theme-option__badge">Active</span>}
+                      {isActive && (
+                        <span className="theme-option__badge">Active</span>
+                      )}
                     </div>
                     {theme.description && (
-                      <p className="theme-option__description">{theme.description}</p>
+                      <p className="theme-option__description">
+                        {theme.description}
+                      </p>
                     )}
                     {theme.updatedAt && (
                       <span className="theme-option__updated">
