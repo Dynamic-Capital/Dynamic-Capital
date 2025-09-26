@@ -32,13 +32,14 @@ protocol participants.
 
 DCT tokenomics are meticulously designed to balance protocol liquidity with
 long-run alignment between traders, contributors, and the treasury. The supply
-is capped at 1,000,000,000 DCT minted at TGE under a time-locked multi-signature
+is hard capped at 100,000,000 DCT under a time-locked multi-signature
 controller; any future adjustments require an on-chain governance vote with
-delayed execution safeguards.
+delayed execution safeguards. This mirrors the deployment configuration for the
+jetton, anchoring monetary policy in auditable on-chain parameters.
 
-At launch, circulating supply is constrained to the Public Sale allocation and a
-thin liquidity buffer sourced from the Community & Liquidity bucket.
-Contributor, partner, treasury, and grant allocations are escrowed in TON
+At launch, circulating supply is constrained to programmatic emissions from the
+Community & Rewards stream alongside the dedicated Liquidity & Market Making
+buffer. Treasury, team, advisor, and grant allocations are escrowed in TON
 vesting contracts with transparent cliffs and drip schedules that mirror the
 table below. Unlock schedules are published ahead of time, and governance can
 pause or re-sequence emissions if security or market stability concerns arise.
@@ -114,15 +115,13 @@ when volatility triggers are breached, subject to post-event ratification.
 
 ## Token Supply & Emissions
 
-| Metric                | Allocation        | Vesting / Unlock Schedule                                          |
-| --------------------- | ----------------- | ------------------------------------------------------------------ |
-| Genesis Supply        | 1,000,000,000 DCT | Minted at TGE                                                      |
-| Community & Liquidity | 35%               | Programmatic emissions over 48 months with halving every 12 months |
-| Core Contributors     | 20%               | Linear vesting across 36 months after 6-month cliff                |
-| Strategic Partners    | 15%               | Quarterly unlocks over 24 months                                   |
-| Treasury Reserve      | 15%               | Governance-gated deployments                                       |
-| Ecosystem Grants      | 10%               | Milestone-based release subject to governance approval             |
-| Public Sale           | 5%                | Unlocks at TGE                                                     |
+| Allocation                | Amount (DCT) | Percent of Supply | Vesting / Unlock Schedule                               |
+| ------------------------- | ------------ | ----------------- | -------------------------------------------------------- |
+| Community & Rewards       | 50,000,000   | 50%               | 48-month emissions with halving every 12 months          |
+| Treasury / Operations     | 20,000,000   | 20%               | Governance-gated deployments; quarterly reporting        |
+| Team & Advisors (Vested)  | 15,000,000   | 15%               | 12-month cliff followed by 36-month linear vesting       |
+| Liquidity & Market Making | 10,000,000   | 10%               | STON.fi & DeDust pools managed by multisig rebalancing   |
+| Ecosystem Grants          | 5,000,000    | 5%                | Milestone-based releases with governance approval        |
 
 Emission events are orchestrated via audited TON smart contracts.
 Treasury-controlled mint functions are time-locked and require multi-signature
