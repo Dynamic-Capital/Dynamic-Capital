@@ -8,8 +8,11 @@
 ## What's New
 
 <!-- WHATS_NEW:START -->
+### February 2025
 
-Project highlights will appear here after the first automated release.
+- **Supabase data integrity refresh** – Linked dangling tables to `bot_users`, backfilled missing references, and shipped the `current_vip` view so VIP checks stay consistent across the bot and dashboard ([docs/setup summary](docs/SETUP_SUMMARY.md)).
+- **Hardened CI + Deno quality gates** – Added offline-friendly unit tests, new `deno` tasks (`typecheck`, `test`, `audit`), and a `test-and-pr` workflow so pull requests verify without touching production secrets.
+- **Documentation sweep** – Expanded the contributor agenda with CI usage, Supabase edge secret handling, and local development steps. Generated fresh repo inventories (`REPO_SUMMARY.md`, `INVENTORY.csv`) to keep system diagrams and environment keys in sync.
 
 <!-- WHATS_NEW:END -->
 
