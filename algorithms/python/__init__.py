@@ -52,6 +52,13 @@ from .desk_token_hub import (
     TokenHubDevelopmentOrchestrator,
     TokenHubSyncReport,
 )
+from .project_faq_generator import (
+    FAQEntry,
+    FAQRequest,
+    FAQSource,
+    ProjectFAQGenerator,
+    ProjectFAQPackage,
+)
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
@@ -92,6 +99,11 @@ __all__ = _trade_exports + [
     "TokenHubDevelopmentContext",
     "TokenHubDevelopmentOrchestrator",
     "TokenHubSyncReport",
+    "FAQEntry",
+    "FAQRequest",
+    "FAQSource",
+    "ProjectFAQGenerator",
+    "ProjectFAQPackage",
     "VipAutoSyncJob",
     "VipAutoSyncReport",
     "VipMembershipProvider",
@@ -145,5 +157,10 @@ globals().update(
         "VipMembershipSnapshot": VipMembershipSnapshot,
         "VipTokenGrant": VipTokenGrant,
         "VipTokenisationStrategy": VipTokenisationStrategy,
+        "FAQEntry": FAQEntry,
+        "FAQRequest": FAQRequest,
+        "FAQSource": FAQSource,
+        "ProjectFAQGenerator": ProjectFAQGenerator,
+        "ProjectFAQPackage": ProjectFAQPackage,
     }
 )
