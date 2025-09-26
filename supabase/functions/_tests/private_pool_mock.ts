@@ -1,4 +1,21 @@
-import { roundCurrency, type PrivatePoolStore, type Profile, type Investor, type FundCycle, type InvestorDeposit, type InvestorWithdrawal, type InvestorShare, type InvestorContact, type CycleStatus, type WithdrawalStatus, type DepositType } from "../_shared/private-pool.ts";
+import {
+  type ClaimTonEventResult,
+  type CycleStatus,
+  type DepositType,
+  type FundCycle,
+  type Investor,
+  type InvestorContact,
+  type InvestorDeposit,
+  type InvestorShare,
+  type InvestorWithdrawal,
+  normalizeAllocatorInvestorKey,
+  type PriceSnapshot,
+  type PrivatePoolStore,
+  type Profile,
+  roundCurrency,
+  type TonAllocatorEvent,
+  type WithdrawalStatus,
+} from "../_shared/private-pool.ts";
 
 export class MockPrivatePoolStore implements PrivatePoolStore {
   profiles = new Map<string, Profile>();
@@ -7,6 +24,7 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
   deposits: InvestorDeposit[] = [];
   withdrawals: InvestorWithdrawal[] = [];
   shares = new Map<string, InvestorShare>();
+  tonEvents = new Map<string, TonAllocatorEvent>();
 
   constructor(init?: {
     profiles?: Profile[];
@@ -15,14 +33,24 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
     deposits?: InvestorDeposit[];
     withdrawals?: InvestorWithdrawal[];
     shares?: InvestorShare[];
+    tonEvents?: TonAllocatorEvent[];
   }) {
-    for (const profile of init?.profiles ?? []) this.profiles.set(profile.id, profile);
-    for (const investor of init?.investors ?? []) this.investors.set(investor.id, investor);
-    for (const cycle of init?.fundCycles ?? []) this.fundCycles.set(cycle.id, cycle);
+    for (const profile of init?.profiles ?? []) {
+      this.profiles.set(profile.id, profile);
+    }
+    for (const investor of init?.investors ?? []) {
+      this.investors.set(investor.id, investor);
+    }
+    for (const cycle of init?.fundCycles ?? []) {
+      this.fundCycles.set(cycle.id, cycle);
+    }
     this.deposits = [...(init?.deposits ?? [])];
     this.withdrawals = [...(init?.withdrawals ?? [])];
     for (const share of init?.shares ?? []) {
       this.shares.set(this.shareKey(share.cycle_id, share.investor_id), share);
+    }
+    for (const event of init?.tonEvents ?? []) {
+      this.tonEvents.set(event.id, { ...event });
     }
   }
 
@@ -124,6 +152,11 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
     tx_hash?: string | null;
     notes?: string | null;
     created_at?: string;
+    dct_amount?: number | null;
+    entry_fx_rate?: number | null;
+    valuation_usdt?: number | null;
+    ton_event_id?: string | null;
+    ton_tx_hash?: string | null;
   }): Promise<InvestorDeposit> {
     const deposit: InvestorDeposit = {
       id: crypto.randomUUID(),
@@ -134,6 +167,11 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
       tx_hash: entry.tx_hash ?? null,
       notes: entry.notes ?? null,
       created_at: entry.created_at ?? new Date().toISOString(),
+      dct_amount: entry.dct_amount ?? null,
+      entry_fx_rate: entry.entry_fx_rate ?? null,
+      valuation_usdt: roundCurrency(entry.valuation_usdt ?? entry.amount_usdt),
+      ton_event_id: entry.ton_event_id ?? null,
+      ton_tx_hash: entry.ton_tx_hash ?? null,
     };
     this.deposits.push(deposit);
     return Promise.resolve(deposit);
@@ -149,7 +187,9 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
   ): Promise<InvestorWithdrawal[]> {
     const allowed = new Set(statuses);
     return Promise.resolve(
-      this.withdrawals.filter((w) => w.cycle_id === cycleId && (allowed.size === 0 || allowed.has(w.status))),
+      this.withdrawals.filter((w) =>
+        w.cycle_id === cycleId && (allowed.size === 0 || allowed.has(w.status))
+      ),
     );
   }
 
@@ -234,5 +274,35 @@ export class MockPrivatePoolStore implements PrivatePoolStore {
       });
     }
     return Promise.resolve(out);
+  }
+
+  claimTonEvent(
+    eventId: string,
+    consumedAt: string,
+    expectedInvestorKey: string,
+  ): Promise<ClaimTonEventResult> {
+    const expected = normalizeAllocatorInvestorKey(expectedInvestorKey);
+    const existing = this.tonEvents.get(eventId);
+    if (!existing) {
+      return Promise.resolve({ status: "not_found" });
+    }
+    const normalizedKey = normalizeAllocatorInvestorKey(existing.investor_key);
+    if (normalizedKey !== expected) {
+      return Promise.resolve({ status: "mismatch" });
+    }
+    if (existing.consumed_at) {
+      return Promise.resolve({ status: "consumed" });
+    }
+    const updated: TonAllocatorEvent = {
+      ...existing,
+      investor_key: normalizedKey,
+      consumed_at: consumedAt,
+    };
+    this.tonEvents.set(eventId, updated);
+    return Promise.resolve({ status: "claimed", event: updated });
+  }
+
+  getLatestPrice(): Promise<PriceSnapshot | null> {
+    return Promise.resolve(null);
   }
 }

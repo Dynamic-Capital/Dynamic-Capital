@@ -2,6 +2,7 @@ import { registerHandler } from "../_shared/serve.ts";
 import { bad, corsHeaders, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { createClient } from "../_shared/client.ts";
 import { need } from "../_shared/env.ts";
+import { normalizeAllocatorInvestorKey } from "../_shared/private-pool.ts";
 
 interface AllocatorEvent {
   depositId: string;
@@ -75,7 +76,7 @@ function normalizeEvent(event: AllocatorEvent): Required<AllocatorEvent> {
   const valuation = event.valuationUsdt ?? usdtAmount;
   return {
     depositId: String(depositId),
-    investorKey: String(investorKey),
+    investorKey: normalizeAllocatorInvestorKey(String(investorKey)),
     usdtAmount: Number(usdtAmount),
     dctAmount: Number(dctAmount),
     fxRate: Number(fxRate),

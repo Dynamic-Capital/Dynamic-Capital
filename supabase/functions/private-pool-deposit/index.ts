@@ -3,6 +3,7 @@ import {
   createSupabasePoolStore,
   ensureActiveCycle,
   ensureInvestor,
+  getAllocatorKeyForInvestor,
   type PrivatePoolStore,
   type Profile,
   recomputeShares,
@@ -75,6 +76,8 @@ export function createDepositHandler(
     }
     try {
       const now = deps.now();
+      const investor = await ensureInvestor(store, profile.profileId, now);
+      const allocatorKey = getAllocatorKeyForInvestor(investor.id);
       let amount = Number(body.amount);
       let dctAmount: number | null = null;
       let fxRate: number | null = null;
@@ -83,17 +86,24 @@ export function createDepositHandler(
       let tonTxHash: string | null = null;
       if (body.tonEventId) {
         tonEventId = body.tonEventId;
-        const claimed = await store.claimTonEvent(
+        const claimResult = await store.claimTonEvent(
           body.tonEventId,
           now.toISOString(),
+          allocatorKey,
         );
-        if (!claimed) {
-          return bad(
-            "Allocator event already consumed or missing",
-            undefined,
+        if (claimResult.status === "mismatch") {
+          return unauth(
+            "Allocator event does not belong to this investor",
             req,
           );
         }
+        if (claimResult.status === "consumed") {
+          return bad("Allocator event already consumed", undefined, req);
+        }
+        if (claimResult.status === "not_found") {
+          return bad("Allocator event missing", undefined, req);
+        }
+        const claimed = claimResult.event;
         dctAmount = claimed.dct_amount;
         fxRate = claimed.fx_rate;
         valuation = roundCurrency(claimed.valuation_usdt);
@@ -103,7 +113,6 @@ export function createDepositHandler(
       if (!Number.isFinite(amount) || amount <= 0) {
         return bad("Invalid amount", undefined, req);
       }
-      const investor = await ensureInvestor(store, profile.profileId, now);
       const cycle = await ensureActiveCycle(store, now);
       const deposit = await store.insertDeposit({
         investor_id: investor.id,

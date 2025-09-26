@@ -157,7 +157,8 @@ export interface PrivatePoolStore {
   claimTonEvent(
     eventId: string,
     consumedAt: string,
-  ): Promise<TonAllocatorEvent | null>;
+    expectedInvestorKey: string,
+  ): Promise<ClaimTonEventResult>;
   getLatestPrice(symbol: string): Promise<PriceSnapshot | null>;
 }
 
@@ -172,6 +173,12 @@ export interface TonAllocatorEvent {
   valuation_usdt: number;
   consumed_at: string | null;
 }
+
+export type ClaimTonEventResult =
+  | { status: "claimed"; event: TonAllocatorEvent }
+  | { status: "not_found" }
+  | { status: "mismatch" }
+  | { status: "consumed" };
 
 export interface PriceSnapshot {
   id: string;
@@ -552,28 +559,51 @@ export class SupabasePrivatePoolStore implements PrivatePoolStore {
   async claimTonEvent(
     eventId: string,
     consumedAt: string,
-  ): Promise<TonAllocatorEvent | null> {
+    expectedInvestorKey: string,
+  ): Promise<ClaimTonEventResult> {
+    const expected = normalizeAllocatorInvestorKey(expectedInvestorKey);
     const { data, error } = await this.client
+      .from("ton_pool_events")
+      .select(
+        "id, deposit_id, investor_key, ton_tx_hash, usdt_amount, dct_amount, fx_rate, valuation_usdt, consumed_at",
+      )
+      .eq("id", eventId)
+      .maybeSingle();
+    if (error) throw new Error(`claimTonEvent lookup failed: ${error.message}`);
+    if (!data) return { status: "not_found" };
+    const normalizedKey = normalizeAllocatorInvestorKey(data.investor_key);
+    if (normalizedKey !== expected) {
+      return { status: "mismatch" };
+    }
+    if (data.consumed_at) {
+      return { status: "consumed" };
+    }
+    const { data: updated, error: updateError } = await this.client
       .from("ton_pool_events")
       .update({ consumed_at: consumedAt, updated_at: consumedAt })
       .eq("id", eventId)
       .is("consumed_at", null)
-      .select(
-        "id, deposit_id, investor_key, ton_tx_hash, usdt_amount, dct_amount, fx_rate, valuation_usdt, consumed_at",
-      )
+      .select("id")
       .maybeSingle();
-    if (error) throw new Error(`claimTonEvent failed: ${error.message}`);
-    if (!data) return null;
+    if (updateError) {
+      throw new Error(`claimTonEvent update failed: ${updateError.message}`);
+    }
+    if (!updated) {
+      return { status: "consumed" };
+    }
     return {
-      id: data.id,
-      deposit_id: data.deposit_id,
-      investor_key: data.investor_key,
-      ton_tx_hash: data.ton_tx_hash,
-      usdt_amount: Number(data.usdt_amount ?? 0),
-      dct_amount: Number(data.dct_amount ?? 0),
-      fx_rate: Number(data.fx_rate ?? 0),
-      valuation_usdt: Number(data.valuation_usdt ?? data.usdt_amount ?? 0),
-      consumed_at: data.consumed_at ?? consumedAt,
+      status: "claimed",
+      event: {
+        id: data.id,
+        deposit_id: data.deposit_id,
+        investor_key: normalizedKey,
+        ton_tx_hash: data.ton_tx_hash,
+        usdt_amount: Number(data.usdt_amount ?? 0),
+        dct_amount: Number(data.dct_amount ?? 0),
+        fx_rate: Number(data.fx_rate ?? 0),
+        valuation_usdt: Number(data.valuation_usdt ?? data.usdt_amount ?? 0),
+        consumed_at: consumedAt,
+      },
     };
   }
 
@@ -667,6 +697,14 @@ export function createSupabasePoolStore(): SupabasePrivatePoolStore {
 export function roundCurrency(value: number, decimals = 2): number {
   const factor = 10 ** decimals;
   return Math.round(value * factor) / factor;
+}
+
+export function normalizeAllocatorInvestorKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+export function getAllocatorKeyForInvestor(investorId: string): string {
+  return normalizeAllocatorInvestorKey(investorId);
 }
 
 export function getCycleMonthYear(

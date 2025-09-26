@@ -31,6 +31,7 @@ interface PayoutEntry {
   live_valuation_usdt: number;
   dct_balance: number;
   allocator_tx_hash?: string | null;
+  loss_usdt?: number;
 }
 
 interface SettlementTotals {
@@ -38,6 +39,7 @@ interface SettlementTotals {
   payout_total: number;
   reinvest_total: number;
   performance_fee_total: number;
+  loss_total: number;
 }
 
 export interface NotifyArgs {
@@ -130,6 +132,7 @@ export function createSettleHandler(
       }
       const shareData = await recomputeShares(store, activeCycle.id, now);
       const totalProfit = roundCurrency(profit);
+      const hasLoss = totalProfit <= 0;
       const summary: PayoutEntry[] = [];
       let payoutTotal = 0;
       let reinvestTotal = 0;
@@ -137,9 +140,13 @@ export function createSettleHandler(
       for (const record of shareData.records) {
         const shareFraction = record.share_percentage / 100;
         const gross = roundCurrency(totalProfit * shareFraction);
-        const payout = roundCurrency(gross * 0.64);
-        const reinvest = roundCurrency(gross * 0.16);
-        const fee = roundCurrency(gross * 0.20);
+        const payout = hasLoss ? 0 : roundCurrency(gross * 0.64);
+        const reinvest = hasLoss ? 0 : roundCurrency(gross * 0.16);
+        const fee = hasLoss ? 0 : roundCurrency(gross * 0.20);
+        let loss = 0;
+        if (hasLoss && gross < 0) {
+          loss = Math.abs(gross);
+        }
         payoutTotal += payout;
         reinvestTotal += reinvest;
         feeTotal += fee;
@@ -179,6 +186,7 @@ export function createSettleHandler(
           live_valuation_usdt: roundCurrency(liveValuation),
           dct_balance: Number(dctBalance.toFixed(6)),
           allocator_tx_hash: allocatorTx,
+          loss_usdt: loss > 0 ? roundCurrency(loss) : undefined,
         });
       }
       await store.closeCycle(activeCycle.id, {
@@ -203,19 +211,24 @@ export function createSettleHandler(
       });
       for (const entry of summary) {
         const base = shareData.contributions.get(entry.investor_id) ?? 0;
-        if (base > 0) {
+        let carryoverBase = roundCurrency(base);
+        if (hasLoss) {
+          const adjusted = roundCurrency(base + entry.gross_profit_usdt);
+          carryoverBase = Math.max(0, adjusted);
+        }
+        if (carryoverBase > 0) {
           await store.insertDeposit({
             investor_id: entry.investor_id,
             cycle_id: nextCycle.id,
-            amount_usdt: roundCurrency(base),
+            amount_usdt: carryoverBase,
             deposit_type: "carryover",
             notes:
               `Carryover from ${activeCycle.cycle_month}/${activeCycle.cycle_year}`,
             created_at: now.toISOString(),
-            valuation_usdt: roundCurrency(base),
+            valuation_usdt: carryoverBase,
           });
         }
-        if (entry.reinvest_usdt > 0) {
+        if (!hasLoss && entry.reinvest_usdt > 0) {
           await store.insertDeposit({
             investor_id: entry.investor_id,
             cycle_id: nextCycle.id,
@@ -232,12 +245,40 @@ export function createSettleHandler(
       const contacts = await store.listInvestorContacts(
         summary.map((s) => s.investor_id),
       );
-      const totals: SettlementTotals = {
-        profit_total: totalProfit,
-        payout_total: roundCurrency(payoutTotal),
-        reinvest_total: roundCurrency(reinvestTotal),
-        performance_fee_total: roundCurrency(feeTotal),
-      };
+      const totals: SettlementTotals = summary.reduce<SettlementTotals>(
+        (acc, entry) => {
+          acc.profit_total = roundCurrency(
+            acc.profit_total + entry.gross_profit_usdt,
+          );
+          acc.payout_total = roundCurrency(
+            acc.payout_total + entry.payout_usdt,
+          );
+          acc.reinvest_total = roundCurrency(
+            acc.reinvest_total + entry.reinvest_usdt,
+          );
+          acc.performance_fee_total = roundCurrency(
+            acc.performance_fee_total + entry.performance_fee_usdt,
+          );
+          const loss = entry.loss_usdt ?? 0;
+          if (loss > 0) {
+            acc.loss_total = roundCurrency(acc.loss_total + loss);
+          }
+          return acc;
+        },
+        {
+          profit_total: 0,
+          payout_total: 0,
+          reinvest_total: 0,
+          performance_fee_total: 0,
+          loss_total: 0,
+        },
+      );
+      totals.profit_total = roundCurrency(totalProfit);
+      if (hasLoss) {
+        totals.payout_total = 0;
+        totals.reinvest_total = 0;
+        totals.performance_fee_total = 0;
+      }
       await deps.notifyInvestors({
         cycle: activeCycle,
         summary,
@@ -287,12 +328,22 @@ async function defaultNotifyInvestors(args: NotifyArgs): Promise<void> {
         const entry = summaryMap.get(contact.investor_id);
         const share = shareMap.get(contact.investor_id);
         if (!entry || !share) return;
+        const hasLoss = entry.loss_usdt !== undefined && entry.loss_usdt > 0;
+        const profitLine = hasLoss
+          ? `Loss share: ${entry.loss_usdt!.toFixed(2)} USDT`
+          : `Profit share: ${entry.payout_usdt.toFixed(2)} USDT`;
+        const reinvestLine = hasLoss
+          ? "Reinvested: 0.00 USDT"
+          : `Reinvested: ${entry.reinvest_usdt.toFixed(2)} USDT`;
+        const feeLine = hasLoss
+          ? "Performance fee: 0.00 USDT"
+          : `Performance fee: ${entry.performance_fee_usdt.toFixed(2)} USDT`;
         const lines = [
           `Dynamic Capital – Private Fund Pool`,
           `Cycle ${args.cycle.cycle_month}/${args.cycle.cycle_year} settled.`,
-          `Profit share: ${entry.payout_usdt.toFixed(2)} USDT`,
-          `Reinvested: ${entry.reinvest_usdt.toFixed(2)} USDT`,
-          `Performance fee: ${entry.performance_fee_usdt.toFixed(2)} USDT`,
+          profitLine,
+          reinvestLine,
+          feeLine,
           `New share: ${share.share_percentage.toFixed(2)}%`,
         ];
         if (args.notes) {
