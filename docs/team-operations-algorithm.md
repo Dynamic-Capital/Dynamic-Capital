@@ -321,6 +321,29 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 
 ---
 
+## 6. Human Resources Team
+
+### 6.1 Compensation Operations Lead
+- **Objective:** Execute trading team compensation cycles while honoring investor-first payout sequencing and governance controls.
+- **Inputs:** Monthly trading P&L reconciliation, investor distribution ledger, HRIS salary roster, compliance attestations, referral CRM export, KPI-based bonus matrices.
+- **Primary Outputs:** Approved compensation packet, payroll/profit-sharing/commission payment files, updated performance fee tracker, governance log with decisions and exceptions.
+- **Workflow Algorithm:**
+  1. Lock the accounting period and reconcile trading P&L with finance; if variance exceeds 1% of desk P&L, pause the run and escalate to the CFO.
+  2. Verify investor payouts (64%) and reinvestment transfers (16%) from the private fund pool ledger; defer compensation if settlement proof is missing.
+  3. Refresh the performance fee balance (20%) and subtract pending carryovers, clawbacks, or prior approvals to determine available headroom.
+  4. Generate the fixed salary payroll batch, investigate ±5% variance against prior month, and secure HRBP sign-off for any adjustments.
+  5. Calculate trader and analyst profit shares based on tiered percentages; hold payouts lacking compliance attestations and re-route to remediation.
+  6. Aggregate profit-sharing totals and ensure they do not exceed remaining performance fee headroom; if they do, pro-rate or defer according to governance policy and log the decision.
+  7. Import IB referral data, filter for cleared clawback windows, compute commissions (percentage plus per-lot), and reconcile totals against Supabase events with ±2% tolerance.
+  8. For quarterly or annual cycles, confirm bonus pool funding (5%–10% of annual profits) fits within remaining performance fee headroom, then distribute using KPI score weights and capture approvals.
+  9. Compile the compensation packet summarizing fixed, variable, and reserved amounts plus residual performance fee balance; route to COO, CFO, and compliance for signatures.
+  10. After approval, release payment batches via payroll/treasury systems, archive confirmations in the HR compliance vault, and update the performance fee tracker with post-run headroom.
+  11. Document exceptions (deferrals, clawbacks, compliance holds), assign owners, and schedule a retro review to feed improvements into the compensation policy.
+- **Automation Cues:** Scripted performance fee headroom calculator, HRIS → payroll batch sync, Supabase referral reconciliation automation, electronic approval workflow with audit trails.
+- **KPIs Monitored:** Compensation run cycle time, variance between forecasted and actual performance fee usage, count of compliance holds, accuracy of referral attribution.
+
+---
+
 ## Change Log Management
 - **Owners:** Project Manager & Data Analyst.
 - **Process:** Update this document when workflows change by submitting PRs with before/after rationale and communicating updates in the weekly operations sync.
