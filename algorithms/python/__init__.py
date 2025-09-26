@@ -28,6 +28,14 @@ from .dct_token_sync import (
     DCTProductionPlanner,
     DCTSyncJob,
 )
+from .vip_auto_token_sync import (
+    VipAutoSyncJob,
+    VipAutoSyncReport,
+    VipMembershipProvider,
+    VipMembershipSnapshot,
+    VipTokenGrant,
+    VipTokenisationStrategy,
+)
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
@@ -56,6 +64,12 @@ __all__ = _trade_exports + [
     "DCTProductionPlan",
     "DCTProductionPlanner",
     "DCTSyncJob",
+    "VipAutoSyncJob",
+    "VipAutoSyncReport",
+    "VipMembershipProvider",
+    "VipMembershipSnapshot",
+    "VipTokenGrant",
+    "VipTokenisationStrategy",
 ]
 
 globals().update({name: getattr(_trade_logic, name) for name in _trade_exports})
@@ -85,5 +99,11 @@ globals().update(
         "DCTProductionPlan": DCTProductionPlan,
         "DCTProductionPlanner": DCTProductionPlanner,
         "DCTSyncJob": DCTSyncJob,
+        "VipAutoSyncJob": VipAutoSyncJob,
+        "VipAutoSyncReport": VipAutoSyncReport,
+        "VipMembershipProvider": VipMembershipProvider,
+        "VipMembershipSnapshot": VipMembershipSnapshot,
+        "VipTokenGrant": VipTokenGrant,
+        "VipTokenisationStrategy": VipTokenisationStrategy,
     }
 )
