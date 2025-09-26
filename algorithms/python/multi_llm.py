@@ -21,6 +21,17 @@ class CompletionClient(Protocol):  # pragma: no cover - interface definition
         """Return a completion for the supplied prompt."""
 
 
+class ParameterScheduler(Protocol):  # pragma: no cover - interface definition
+    """Protocol describing an adaptive strategy for LLM decoding parameters."""
+
+    def __call__(
+        self,
+        run: "LLMRun",
+        feedback: Mapping[str, Any],
+    ) -> Mapping[str, float | int]:
+        """Return updated decoding parameters after observing ``run``."""
+
+
 @dataclass(slots=True)
 class LLMRun:
     """Captures a single model invocation and its response."""
@@ -51,8 +62,15 @@ class LLMConfig:
     nucleus_p: float
     max_tokens: int
     extra_parameters: Mapping[str, Any] = field(default_factory=dict)
+    parameter_scheduler: ParameterScheduler | None = None
 
-    def run(self, prompt: str, *, strip: bool = True) -> LLMRun:
+    def run(
+        self,
+        prompt: str,
+        *,
+        strip: bool = True,
+        feedback: Mapping[str, Any] | None = None,
+    ) -> LLMRun:
         """Execute the completion and capture the metadata for logging."""
 
         response = self.client.complete(
@@ -70,7 +88,96 @@ class LLMConfig:
         }
         if self.extra_parameters:
             parameters.update(self.extra_parameters)
-        return LLMRun(name=self.name, prompt=prompt, response=response, parameters=parameters)
+        run = LLMRun(name=self.name, prompt=prompt, response=response, parameters=parameters)
+        self._apply_scheduler(run, feedback)
+        return run
+
+    def apply_feedback(self, run: LLMRun, feedback: Mapping[str, Any]) -> None:
+        """Feed additional feedback into the scheduler after ``run`` has been evaluated."""
+
+        self._apply_scheduler(run, feedback)
+
+    def _apply_scheduler(
+        self,
+        run: LLMRun,
+        feedback: Mapping[str, Any] | None,
+    ) -> None:
+        if self.parameter_scheduler is None:
+            return
+        enriched_feedback: Dict[str, Any] = {
+            "response_length": len(run.response),
+            "prompt_length": len(run.prompt),
+        }
+        if feedback:
+            enriched_feedback.update(feedback)
+        updates = self.parameter_scheduler(run, enriched_feedback)
+        if not updates:
+            return
+        self._update_parameters(updates)
+
+    def _update_parameters(self, updates: Mapping[str, float | int]) -> None:
+        if "temperature" in updates:
+            self.temperature = float(updates["temperature"])
+        if "nucleus_p" in updates:
+            self.nucleus_p = float(updates["nucleus_p"])
+        if "max_tokens" in updates:
+            self.max_tokens = int(updates["max_tokens"])
+
+
+@dataclass(slots=True)
+class AdaptiveParameterScheduler:
+    """Default heuristic scheduler that nudges decoding settings over time."""
+
+    min_temperature: float = 0.1
+    max_temperature: float = 1.3
+    temperature_step: float = 0.05
+    min_nucleus_p: float = 0.2
+    max_nucleus_p: float = 0.95
+    nucleus_step: float = 0.05
+    max_tokens_step: int = 128
+    max_tokens_floor: int = 256
+    max_tokens_ceiling: int | None = None
+
+    def __call__(
+        self,
+        run: LLMRun,
+        feedback: Mapping[str, Any],
+    ) -> Mapping[str, float | int]:
+        updates: Dict[str, float | int] = {}
+        parameters = run.parameters
+        previous_temperature = float(parameters.get("temperature", 0.0))
+        previous_nucleus = float(parameters.get("nucleus_p", 0.0))
+        previous_max_tokens = int(parameters.get("max_tokens", self.max_tokens_floor))
+
+        parse_success = feedback.get("parse_success")
+        if parse_success is False:
+            updates["temperature"] = max(
+                self.min_temperature,
+                previous_temperature - self.temperature_step,
+            )
+            updates["nucleus_p"] = max(
+                self.min_nucleus_p,
+                previous_nucleus - self.nucleus_step,
+            )
+        elif parse_success is True and feedback.get("response_quality", 0.0) >= 0.8:
+            updates["temperature"] = min(
+                self.max_temperature,
+                previous_temperature + (self.temperature_step / 2.0),
+            )
+
+        response_length = int(feedback.get("response_length", 0))
+        truncated = feedback.get("truncated")
+        if truncated or response_length >= int(previous_max_tokens * 0.95):
+            proposed = previous_max_tokens + self.max_tokens_step
+            if self.max_tokens_ceiling is not None:
+                proposed = min(proposed, self.max_tokens_ceiling)
+            updates["max_tokens"] = proposed
+        elif response_length and response_length < int(previous_max_tokens * 0.35):
+            proposed = max(self.max_tokens_floor, previous_max_tokens - (self.max_tokens_step // 2))
+            if proposed < previous_max_tokens:
+                updates["max_tokens"] = proposed
+
+        return updates
 
 
 def collect_strings(*candidates: Optional[Iterable[Any] | Any]) -> list[str]:
@@ -143,6 +250,8 @@ __all__ = [
     "CompletionClient",
     "LLMConfig",
     "LLMRun",
+    "ParameterScheduler",
+    "AdaptiveParameterScheduler",
     "collect_strings",
     "parse_json_response",
     "serialise_runs",

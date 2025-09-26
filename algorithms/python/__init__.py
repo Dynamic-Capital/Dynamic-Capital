@@ -57,6 +57,8 @@ from .desk_token_hub import (
     TokenHubDevelopmentOrchestrator,
     TokenHubSyncReport,
 )
+from .multi_llm import AdaptiveParameterScheduler
+from .multi_llm_memory import MemoryStore, MultiLLMMemoryStore
 from .project_faq_generator import (
     FAQEntry,
     FAQRequest,
@@ -89,6 +91,7 @@ __all__ = _trade_exports + [
     "MarketAdvisoryEngine",
     "MarketAdvisoryReport",
     "MarketAdvisoryRequest",
+    "AdaptiveParameterScheduler",
     "DCTAllocationEngine",
     "DCTAllocationResult",
     "DCTAllocationRule",
@@ -112,6 +115,8 @@ __all__ = _trade_exports + [
     "FAQSource",
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
+    "MemoryStore",
+    "MultiLLMMemoryStore",
     "VipAutoSyncJob",
     "VipAutoSyncReport",
     "VipMembershipProvider",
@@ -173,5 +178,8 @@ globals().update(
         "FAQSource": FAQSource,
         "ProjectFAQGenerator": ProjectFAQGenerator,
         "ProjectFAQPackage": ProjectFAQPackage,
+        "AdaptiveParameterScheduler": AdaptiveParameterScheduler,
+        "MemoryStore": MemoryStore,
+        "MultiLLMMemoryStore": MultiLLMMemoryStore,
     }
 )

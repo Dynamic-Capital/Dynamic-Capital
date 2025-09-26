@@ -1,16 +1,36 @@
 import json
 from dataclasses import replace
-from typing import Any, Dict, Iterable, Sequence
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple
 
 import pytest
 
+from algorithms.python.multi_llm import LLMConfig
 from algorithms.python.project_faq_generator import (
     FAQEntry,
     FAQRequest,
     FAQSource,
     ProjectFAQGenerator,
 )
-from algorithms.python.multi_llm import LLMConfig
+
+
+class StubMemoryStore:
+    def __init__(self, entries: Sequence[Mapping[str, Any]] | None = None) -> None:
+        self.entries = list(entries or [])
+        self.queries: list[tuple[str, str, Optional[int]]] = []
+        self.stored: list[tuple[str, str, Mapping[str, Any]]] = []
+
+    def store(self, namespace: str, key: str, artefact: Mapping[str, Any]) -> None:
+        self.stored.append((namespace, key, artefact))
+
+    def retrieve(
+        self,
+        namespace: str,
+        key: str,
+        *,
+        limit: int | None = None,
+    ) -> Sequence[Mapping[str, Any]]:
+        self.queries.append((namespace, key, limit))
+        return list(self.entries)
 
 
 class StubClient:
@@ -198,6 +218,47 @@ def test_review_payload_optional_fields(faq_request: FAQRequest) -> None:
 
     assert isinstance(package.summary, type(None))
     assert package.callouts == ["Validate data licensing"]
+
+
+def test_generator_integrates_memory_lessons(faq_request: FAQRequest) -> None:
+    ideation_payload = {
+        "questions": [
+            {
+                "question": "How is compliance enforced?",
+                "audience": "regulators",
+            }
+        ],
+        "summary": "Focus on compliance and governance pillars.",
+    }
+    answer_payload = {
+        "answer": "Compliance is enforced through automated policy agents.",
+        "tags": ["compliance"],
+    }
+
+    memory_entries = [
+        {
+            "summary": "Previous launches emphasised compliance readiness.",
+            "callouts": ["Ensure legal review before publication"],
+        }
+    ]
+    memory_store = StubMemoryStore(memory_entries)
+
+    ideation_client = StubClient([json.dumps(ideation_payload)])
+    answer_client = StubClient([json.dumps(answer_payload)])
+
+    generator = ProjectFAQGenerator(
+        ideation=_config(ideation_client),
+        answer=_config(answer_client),
+        max_questions=3,
+        memory_store=memory_store,
+    )
+
+    package = generator.generate(replace(faq_request, seed_questions=(), priority_topics=()))
+
+    assert memory_store.queries[0][0] == "project_faq"
+    assert memory_store.stored[0][0] == "project_faq"
+    assert package.metadata["memory_lessons_retrieved"] == 1
+    assert "Prior lessons" in package.metadata["context_note"]
     assert len(package.entries) == 2  # includes existing FAQ
     assert any(isinstance(entry, FAQEntry) for entry in package.entries)
 

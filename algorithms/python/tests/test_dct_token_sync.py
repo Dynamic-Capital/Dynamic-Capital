@@ -228,6 +228,78 @@ def test_multi_llm_optimiser_aggregates_responses() -> None:
     assert result.serialised_runs() is not None
 
 
+def test_multi_llm_optimiser_applies_weights() -> None:
+    snapshot = DCTMarketSnapshot(
+        as_of=datetime(2024, 7, 1, 12, 0, tzinfo=timezone.utc),
+        ton_price_usd=2.1,
+        trailing_ton_price_usd=2.0,
+        demand_index=0.55,
+        performance_index=0.62,
+        volatility_index=0.28,
+        policy_adjustment=0.05,
+        usd_reward_budget=90_000,
+        previous_epoch_mint=45_000,
+        circulating_supply=1_000_000,
+        buffer_ratio=0.06,
+        max_emission=None,
+    )
+    rules = [
+        DCTAllocationRule("VIP", weight=2, multiplier=1.0, member_count=18),
+        DCTAllocationRule("Treasury", weight=3, multiplier=1.0),
+    ]
+
+    response_one = json.dumps(
+        {
+            "policy_adjustment_delta": 0.2,
+            "demand_multiplier": 1.1,
+            "performance_multiplier": 1.05,
+            "volatility_multiplier": 0.9,
+            "allocation_overrides": {"VIP": 1.2},
+        }
+    )
+    response_two = json.dumps(
+        {
+            "policy_adjustment_delta": -0.1,
+            "demand_multiplier": 0.95,
+            "performance_multiplier": 0.9,
+            "volatility_multiplier": 1.05,
+            "allocation_overrides": {"VIP": 1.05},
+        }
+    )
+
+    config_one = LLMConfig(
+        name="alpha",
+        client=_StubLLMClient([response_one]),
+        temperature=0.2,
+        nucleus_p=0.9,
+        max_tokens=256,
+    )
+    config_two = LLMConfig(
+        name="beta",
+        client=_StubLLMClient([response_two]),
+        temperature=0.25,
+        nucleus_p=0.85,
+        max_tokens=256,
+    )
+
+    optimiser = DCTMultiLLMOptimiser(
+        models=[config_one, config_two],
+        multiplier_upper_bound=1.4,
+        model_weights={"alpha": 2.0, "beta": 0.5},
+    )
+    result = optimiser.optimise(snapshot, rules)
+
+    assert pytest.approx(result.adjustment.policy_adjustment_delta, rel=1e-6) == 0.14
+    assert pytest.approx(result.adjustment.demand_index_multiplier, rel=1e-6) == 1.07
+    assert pytest.approx(result.adjustment.performance_index_multiplier, rel=1e-6) == 1.02
+    assert pytest.approx(result.adjustment.volatility_index_multiplier, rel=1e-6) == 0.93
+    assert result.adjustment.allocation_multipliers["VIP"] == pytest.approx(1.17, rel=1e-6)
+
+    optimiser.record_feedback({"alpha": 0.5, "beta": 0.0})
+    assert optimiser.model_weights["alpha"] == pytest.approx(1.875, rel=1e-6)
+    assert optimiser.model_weights["beta"] == pytest.approx(0.625, rel=1e-6)
+
+
 def test_sync_job_includes_llm_adjustments() -> None:
     calculator = DCTPriceCalculator()
     planner = DCTProductionPlanner()
@@ -242,6 +314,8 @@ def test_sync_job_includes_llm_adjustments() -> None:
     class _StubOptimiser:
         def __init__(self) -> None:
             self.calls: list[Tuple[DCTMarketSnapshot, Tuple[DCTAllocationRule, ...]]] = []
+            self.model_weights: Dict[str, float] = {"committee": 1.0}
+            self.feedback: list[Mapping[str, float]] = []
 
         def optimise(
             self,
@@ -266,6 +340,9 @@ def test_sync_job_includes_llm_adjustments() -> None:
                 recommendations=({"notes": ["Boost VIP rewards"]},),
                 notes=("Boost VIP rewards",),
             )
+
+        def record_feedback(self, scores: Mapping[str, float]) -> None:
+            self.feedback.append(dict(scores))
 
     optimiser = _StubOptimiser()
     job = DCTSyncJob(calculator, planner, engine, writer, optimizer=optimiser)
@@ -298,3 +375,4 @@ def test_sync_job_includes_llm_adjustments() -> None:
     assert "llm_notes" in payload
     assert payload["llm_notes"][0] == "Boost VIP rewards"
     assert payload["llm_recommendations"][0]["notes"][0] == "Boost VIP rewards"
+    assert payload["llm_weights"] == optimiser.model_weights

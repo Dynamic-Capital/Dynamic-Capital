@@ -15,6 +15,7 @@ from .multi_llm import (
     parse_json_response,
     serialise_runs,
 )
+from .multi_llm_memory import MemoryStore
 
 
 @dataclass(slots=True)
@@ -106,6 +107,7 @@ class ProjectFAQGenerator:
     review: Optional[LLMConfig] = None
     max_questions: int = 12
     source_character_limit: int = 1200
+    memory_store: MemoryStore | None = None
 
     def generate(self, request: FAQRequest) -> ProjectFAQPackage:
         """Return a curated FAQ package for the supplied project request."""
@@ -118,15 +120,39 @@ class ProjectFAQGenerator:
             "objectives": list(request.objectives),
         }
 
+        memory_key: str | None = None
+        memory_entries: Sequence[Mapping[str, Any]] = ()
+        if self.memory_store is not None:
+            memory_key = self._memory_key(request)
+            try:
+                memory_entries = tuple(
+                    self.memory_store.retrieve(
+                        "project_faq",
+                        memory_key,
+                        limit=3,
+                    )
+                )
+            except Exception:  # pragma: no cover - defensive guard for external stores
+                memory_entries = ()
+
         entries = self._initialise_existing_entries(request)
         metadata["existing_faq_count"] = len(entries)
 
-        context_note = self._build_context_note(request)
+        if memory_entries:
+            metadata["memory_lessons_retrieved"] = len(memory_entries)
+        if memory_key:
+            metadata["memory_key"] = memory_key
+
+        context_note = self._build_context_note(request, memory_entries)
         ideation_prompt = self._build_ideation_prompt(request, context_note)
         ideation_run = self.ideation.run(ideation_prompt)
         runs.append(ideation_run)
 
         ideation_payload = parse_json_response(ideation_run.response, fallback_key="analysis") or {}
+        self.ideation.apply_feedback(
+            ideation_run,
+            {"parse_success": bool(ideation_payload)},
+        )
         metadata["ideation_payload"] = ideation_payload
 
         draft_questions = self._normalise_questions(ideation_payload, request)
@@ -148,6 +174,7 @@ class ProjectFAQGenerator:
 
             payload = parse_json_response(answer_run.response, fallback_key="answer") or {}
             answer_payloads.append(payload)
+            self.answer.apply_feedback(answer_run, {"parse_success": bool(payload)})
 
             answer_text = self._resolve_answer_text(payload)
             tags = collect_strings(draft.tags, payload.get("tags"))
@@ -175,6 +202,7 @@ class ProjectFAQGenerator:
             runs.append(review_run)
 
             review_payload = parse_json_response(review_run.response, fallback_key="review_notes") or {}
+            self.review.apply_feedback(review_run, {"parse_success": bool(review_payload)})
             metadata["review_payload"] = review_payload
 
             updated_entries, review_summary, review_callouts = self._apply_review(entries, review_payload)
@@ -190,6 +218,21 @@ class ProjectFAQGenerator:
             "context_note": context_note,
             "question_count": len(entries),
         }
+
+        if self.memory_store is not None and memory_key is not None:
+            artefact = {
+                "project_name": request.project_name,
+                "tone": request.tone,
+                "target_audience": list(request.target_audience),
+                "summary": summary,
+                "callouts": list(callouts),
+                "metadata": package_metadata,
+                "raw_response": raw_response,
+            }
+            try:
+                self.memory_store.store("project_faq", memory_key, artefact)
+            except Exception:  # pragma: no cover - defensive guard for external stores
+                pass
 
         return ProjectFAQPackage(
             entries=entries,
@@ -216,7 +259,11 @@ class ProjectFAQGenerator:
             )
         return entries
 
-    def _build_context_note(self, request: FAQRequest) -> str:
+    def _build_context_note(
+        self,
+        request: FAQRequest,
+        lessons: Sequence[Mapping[str, Any]] | None = None,
+    ) -> str:
         sections = [
             f"Project: {request.project_name.strip()}",
             f"Voice and tone: {request.tone.strip()}",
@@ -231,7 +278,45 @@ class ProjectFAQGenerator:
         if request.priority_topics:
             sections.append("Priority topics: " + ", ".join(request.priority_topics))
 
+        lesson_highlights = self._format_lessons(lessons)
+        if lesson_highlights:
+            sections.append("Prior lessons: " + " | ".join(lesson_highlights))
+
         return " | ".join(sections)
+
+    def _memory_key(self, request: FAQRequest) -> str:
+        project = request.project_name.strip().lower() or "unknown"
+        audience = (
+            "-".join(sorted(str(a).strip().lower() for a in request.target_audience if str(a).strip()))
+            or "general"
+        )
+        tone = request.tone.strip().lower() or "neutral"
+        return f"{project}::{audience}::{tone}"
+
+    def _format_lessons(
+        self,
+        lessons: Sequence[Mapping[str, Any]] | None,
+    ) -> list[str]:
+        if not lessons:
+            return []
+        highlights: list[str] = []
+        for entry in lessons:
+            summary = str(entry.get("summary", "")).strip()
+            if summary:
+                highlights.append(summary)
+                continue
+            callouts = entry.get("callouts")
+            if isinstance(callouts, Sequence) and not isinstance(callouts, (str, bytes)):
+                snippet = next((str(item).strip() for item in callouts if str(item).strip()), "")
+                if snippet:
+                    highlights.append(snippet)
+                    continue
+            metadata = entry.get("metadata")
+            if isinstance(metadata, Mapping):
+                note = metadata.get("project_name") or metadata.get("summary")
+                if isinstance(note, str) and note.strip():
+                    highlights.append(note.strip())
+        return highlights[:3]
 
     def _build_ideation_prompt(self, request: FAQRequest, context_note: str) -> str:
         source_digest = self._compile_source_digest(request.sources)

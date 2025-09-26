@@ -5,7 +5,7 @@ from __future__ import annotations
 import textwrap
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, List, Mapping, MutableSequence, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, MutableSequence, Optional, Sequence
 
 from .multi_llm import LLMConfig, LLMRun, parse_json_response, serialise_runs
 from .supabase_sync import SupabaseTableWriter
@@ -385,6 +385,10 @@ class DCTMultiLLMOptimiser:
     multiplier_lower_bound: float = 0.5
     multiplier_upper_bound: float = 1.5
     extra_instructions: str = ""
+    model_weights: MutableMapping[str, float] = field(default_factory=dict)
+    feedback_learning_rate: float = 0.25
+    weight_floor: float = 0.05
+    weight_ceiling: float = 5.0
 
     def optimise(
         self,
@@ -396,20 +400,23 @@ class DCTMultiLLMOptimiser:
 
         prompt = self._build_prompt(snapshot, rules)
         runs: list[LLMRun] = []
-        adjustments: list[DCTLLMAdjustment] = []
+        adjustments: list[tuple[str, DCTLLMAdjustment]] = []
         recommendations: list[Mapping[str, Any]] = []
         notes: list[str] = []
 
         for config in self.models:
+            self._ensure_weight(config.name)
             run = config.run(prompt)
             runs.append(run)
             parsed = parse_json_response(run.response)
+            parse_success = isinstance(parsed, Mapping) and bool(parsed)
+            config.apply_feedback(run, {"parse_success": parse_success})
             if not parsed:
                 continue
             recommendations.append(parsed)
             adjustment = self._parse_adjustment(parsed, rules)
             if adjustment:
-                adjustments.append(adjustment)
+                adjustments.append((config.name, adjustment))
             notes.extend(self._extract_notes(parsed))
 
         aggregate = self._aggregate_adjustments(adjustments)
@@ -571,7 +578,10 @@ class DCTMultiLLMOptimiser:
             overrides[label] = multiplier
         return overrides
 
-    def _aggregate_adjustments(self, adjustments: Sequence[DCTLLMAdjustment]) -> DCTLLMAdjustment:
+    def _aggregate_adjustments(
+        self,
+        adjustments: Sequence[tuple[str, DCTLLMAdjustment]],
+    ) -> DCTLLMAdjustment:
         if not adjustments:
             return DCTLLMAdjustment(
                 index_lower_bound=self.index_lower_bound,
@@ -580,24 +590,127 @@ class DCTMultiLLMOptimiser:
                 policy_upper_bound=self.policy_upper_bound,
             )
 
+        weighted_policy = 0.0
+        weighted_demand = 0.0
+        weighted_performance = 0.0
+        weighted_volatility = 0.0
+        total_weight = 0.0
+
+        allocation_totals: Dict[str, float] = {}
+        allocation_weights: Dict[str, float] = {}
+
+        for name, adjustment in adjustments:
+            weight = self._normalised_weight(name)
+            if weight <= 0.0:
+                continue
+            total_weight += weight
+            weighted_policy += adjustment.policy_adjustment_delta * weight
+            weighted_demand += adjustment.demand_index_multiplier * weight
+            weighted_performance += adjustment.performance_index_multiplier * weight
+            weighted_volatility += adjustment.volatility_index_multiplier * weight
+            for label, multiplier in adjustment.allocation_multipliers.items():
+                allocation_totals[label] = allocation_totals.get(label, 0.0) + (multiplier * weight)
+                allocation_weights[label] = allocation_weights.get(label, 0.0) + weight
+
+        if total_weight == 0.0:
+            plain = [adjustment for _, adjustment in adjustments]
+            return self._aggregate_average(plain)
+
+        averaged_allocations = {
+            label: _clamp(
+                allocation_totals[label] / allocation_weights[label],
+                lower=0.0,
+                upper=self.multiplier_upper_bound,
+            )
+            for label in allocation_totals
+        }
+
+        return DCTLLMAdjustment(
+            policy_adjustment_delta=_clamp(
+                weighted_policy / total_weight,
+                lower=self.policy_lower_bound,
+                upper=self.policy_upper_bound,
+            ),
+            demand_index_multiplier=_clamp(
+                weighted_demand / total_weight,
+                lower=self.multiplier_lower_bound,
+                upper=self.multiplier_upper_bound,
+            ),
+            performance_index_multiplier=_clamp(
+                weighted_performance / total_weight,
+                lower=self.multiplier_lower_bound,
+                upper=self.multiplier_upper_bound,
+            ),
+            volatility_index_multiplier=_clamp(
+                weighted_volatility / total_weight,
+                lower=self.multiplier_lower_bound,
+                upper=self.multiplier_upper_bound,
+            ),
+            allocation_multipliers=averaged_allocations,
+            index_lower_bound=self.index_lower_bound,
+            index_upper_bound=self.index_upper_bound,
+            policy_lower_bound=self.policy_lower_bound,
+            policy_upper_bound=self.policy_upper_bound,
+        )
+
+    def record_feedback(
+        self,
+        scores: Mapping[str, float],
+        *,
+        learning_rate: float | None = None,
+    ) -> None:
+        rate = learning_rate if learning_rate is not None else self.feedback_learning_rate
+        rate = min(max(rate, 0.0), 1.0)
+        for name, raw_score in scores.items():
+            try:
+                numeric = float(raw_score)
+            except (TypeError, ValueError):
+                continue
+            baseline = self._ensure_weight(name)
+            reward = max(0.0, numeric)
+            target = 1.0 + reward
+            updated = (1.0 - rate) * baseline + rate * target
+            self.model_weights[name] = _clamp(
+                updated,
+                lower=self.weight_floor,
+                upper=self.weight_ceiling,
+            )
+
+    def load_weights(self, weights: Mapping[str, float]) -> None:
+        for name, value in weights.items():
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError):
+                continue
+            self.model_weights[name] = _clamp(
+                numeric,
+                lower=self.weight_floor,
+                upper=self.weight_ceiling,
+            )
+
+    def _aggregate_average(self, adjustments: Sequence[DCTLLMAdjustment]) -> DCTLLMAdjustment:
+        if not adjustments:
+            return DCTLLMAdjustment(
+                index_lower_bound=self.index_lower_bound,
+                index_upper_bound=self.index_upper_bound,
+                policy_lower_bound=self.policy_lower_bound,
+                policy_upper_bound=self.policy_upper_bound,
+            )
         count = len(adjustments)
         policy_delta = sum(adj.policy_adjustment_delta for adj in adjustments) / count
         demand_multiplier = sum(adj.demand_index_multiplier for adj in adjustments) / count
         performance_multiplier = sum(adj.performance_index_multiplier for adj in adjustments) / count
         volatility_multiplier = sum(adj.volatility_index_multiplier for adj in adjustments) / count
-
         aggregated: Dict[str, float] = {}
         counts: Dict[str, int] = {}
         for adj in adjustments:
             for label, multiplier in adj.allocation_multipliers.items():
                 aggregated[label] = aggregated.get(label, 0.0) + multiplier
                 counts[label] = counts.get(label, 0) + 1
-
         averaged = {
             label: _clamp(aggregated[label] / counts[label], lower=0.0, upper=self.multiplier_upper_bound)
             for label in aggregated
         }
-
         return DCTLLMAdjustment(
             policy_adjustment_delta=_clamp(
                 policy_delta,
@@ -625,6 +738,15 @@ class DCTMultiLLMOptimiser:
             policy_lower_bound=self.policy_lower_bound,
             policy_upper_bound=self.policy_upper_bound,
         )
+
+    def _ensure_weight(self, name: str) -> float:
+        if name not in self.model_weights:
+            self.model_weights[name] = 1.0
+        return self.model_weights[name]
+
+    def _normalised_weight(self, name: str) -> float:
+        raw = self._ensure_weight(name)
+        return _clamp(raw, lower=self.weight_floor, upper=self.weight_ceiling)
 
     def _coerce_float(
         self,
@@ -712,7 +834,12 @@ class DCTSyncJob:
     writer: SupabaseTableWriter
     optimizer: DCTMultiLLMOptimiser | None = None
 
-    def run(self, snapshot: DCTMarketSnapshot) -> int:
+    def run(
+        self,
+        snapshot: DCTMarketSnapshot,
+        *,
+        optimizer_feedback: Mapping[str, float] | None = None,
+    ) -> int:
         price_inputs = snapshot.price_inputs()
         allocation_engine = self.allocation_engine
         optimisation: DCTLLMOptimisationResult | None = None
@@ -747,5 +874,10 @@ class DCTSyncJob:
                 payload["llm_recommendations"] = [
                     dict(rec) for rec in optimisation.recommendations
                 ]
+            payload["llm_weights"] = dict(self.optimizer.model_weights)
+
+        if self.optimizer is not None and optimizer_feedback:
+            self.optimizer.record_feedback(optimizer_feedback)
+            payload.setdefault("llm_weights", dict(self.optimizer.model_weights))
 
         return self.writer.upsert([payload])

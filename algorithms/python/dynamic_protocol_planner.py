@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING
 
 from .multi_llm import LLMConfig, LLMRun, collect_strings, parse_json_response
+from .multi_llm_memory import MemoryStore
 
 try:  # pragma: no cover - optional dependency graph handled lazily in tests
     from .optimization_workflow import optimize_trading_stack
@@ -362,6 +363,7 @@ class DynamicProtocolPlanner:
     risk: Optional[LLMConfig] = None
     psychology: Optional[LLMConfig] = None
     review: Optional[LLMConfig] = None
+    memory_store: MemoryStore | None = None
 
     def generate_protocol(
         self,
@@ -377,6 +379,24 @@ class DynamicProtocolPlanner:
             trade_logic,
             optimization_plan,
         )
+        memory_key: str | None = None
+        historical_lessons: Sequence[Mapping[str, Any]] = ()
+        if self.memory_store is not None:
+            memory_key = self._memory_key(context, optimization_plan)
+            try:
+                historical_lessons = tuple(
+                    self.memory_store.retrieve(
+                        "dynamic_protocol",
+                        memory_key,
+                        limit=3,
+                    )
+                )
+            except Exception:  # pragma: no cover - defensive guard for external stores
+                historical_lessons = ()
+        lesson_highlights = self._format_lessons(historical_lessons)
+        if lesson_highlights:
+            composed_context = dict(composed_context)
+            composed_context["historical_lessons"] = lesson_highlights
         context_payload = json.dumps(
             composed_context,
             indent=2,
@@ -390,6 +410,10 @@ class DynamicProtocolPlanner:
         architect_run = self.architect.run(architect_prompt)
         runs.append(architect_run)
         architect_payload = parse_json_response(architect_run.response, fallback_key="narrative")
+        self.architect.apply_feedback(
+            architect_run,
+            {"parse_success": isinstance(architect_payload, Mapping)},
+        )
         if isinstance(architect_payload, Mapping):
             _reduce_payload(plan, architect_payload)
 
@@ -398,6 +422,10 @@ class DynamicProtocolPlanner:
             risk_run = self.risk.run(risk_prompt)
             runs.append(risk_run)
             risk_payload = parse_json_response(risk_run.response, fallback_key="risk_notes")
+            self.risk.apply_feedback(
+                risk_run,
+                {"parse_success": isinstance(risk_payload, Mapping)},
+            )
             if isinstance(risk_payload, Mapping):
                 _reduce_payload(plan, risk_payload)
 
@@ -406,6 +434,10 @@ class DynamicProtocolPlanner:
             psychology_run = self.psychology.run(psychology_prompt)
             runs.append(psychology_run)
             psychology_payload = parse_json_response(psychology_run.response, fallback_key="psychology_notes")
+            self.psychology.apply_feedback(
+                psychology_run,
+                {"parse_success": isinstance(psychology_payload, Mapping)},
+            )
             if isinstance(psychology_payload, Mapping):
                 _reduce_payload(plan, psychology_payload)
 
@@ -414,6 +446,10 @@ class DynamicProtocolPlanner:
             review_run = self.review.run(review_prompt)
             runs.append(review_run)
             review_payload = parse_json_response(review_run.response, fallback_key="review_notes")
+            self.review.apply_feedback(
+                review_run,
+                {"parse_success": isinstance(review_payload, Mapping)},
+            )
             if isinstance(review_payload, Mapping):
                 _reduce_payload(plan, review_payload)
 
@@ -428,7 +464,68 @@ class DynamicProtocolPlanner:
             annotations["trade_logic"] = trade_logic_summary
         if optimization_summary:
             annotations["optimization"] = optimization_summary
+        if lesson_highlights:
+            annotations["historical_lessons"] = lesson_highlights
+            annotations["memory_lessons_retrieved"] = len(lesson_highlights)
+        if self.memory_store is not None and memory_key is not None:
+            artefact = {
+                "plan": cleaned,
+                "annotations": annotations,
+                "context": composed_context,
+            }
+            try:
+                self.memory_store.store("dynamic_protocol", memory_key, artefact)
+            except Exception:  # pragma: no cover - defensive guard for external stores
+                pass
         return ProtocolDraft(plan=cleaned, runs=runs, annotations=annotations)
+
+    def _memory_key(
+        self,
+        context: Optional[Mapping[str, Any]],
+        optimization_plan: Any,
+    ) -> str:
+        components: list[str] = []
+        if context:
+            for candidate in ("desk", "portfolio", "focus", "strategy", "project"):
+                value = context.get(candidate)
+                if isinstance(value, str) and value.strip():
+                    components.append(value.strip().lower())
+        plan_name = getattr(optimization_plan, "name", None)
+        if isinstance(plan_name, str) and plan_name.strip():
+            components.append(plan_name.strip().lower())
+        if not components:
+            components.append("global")
+        return "::".join(components)
+
+    def _format_lessons(
+        self,
+        lessons: Sequence[Mapping[str, Any]],
+    ) -> list[str]:
+        highlights: list[str] = []
+        for entry in lessons:
+            summary = entry.get("summary")
+            if isinstance(summary, str) and summary.strip():
+                highlights.append(summary.strip())
+                continue
+            annotations = entry.get("annotations")
+            if isinstance(annotations, Mapping):
+                review_notes = annotations.get("review")
+                if isinstance(review_notes, str) and review_notes.strip():
+                    highlights.append(review_notes.strip())
+                    continue
+            plan = entry.get("plan")
+            if isinstance(plan, Mapping):
+                for horizon in HORIZON_KEYS:
+                    categories = plan.get(horizon)
+                    if not isinstance(categories, Mapping):
+                        continue
+                    objectives = categories.get("objectives")
+                    if isinstance(objectives, list) and objectives:
+                        candidate = str(objectives[0]).strip()
+                        if candidate:
+                            highlights.append(f"{horizon}: {candidate}")
+                            break
+        return highlights[:3]
 
     def _build_architect_prompt(self, context_payload: str) -> str:
         categories = ", ".join(CATEGORY_KEYS)

@@ -1,6 +1,6 @@
 import json
 from types import SimpleNamespace
-from typing import Any, Dict, Iterable, Mapping, Sequence
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple
 
 import pytest
 
@@ -37,6 +37,26 @@ class StubClient:
 
 def _config(client: StubClient) -> LLMConfig:
     return LLMConfig(name="stub", client=client, temperature=0.2, nucleus_p=0.9, max_tokens=512)
+
+
+class StubMemoryStore:
+    def __init__(self, entries: Sequence[Mapping[str, Any]] | None = None) -> None:
+        self.entries = list(entries or [])
+        self.queries: list[tuple[str, str, Optional[int]]] = []
+        self.stored: list[tuple[str, str, Mapping[str, Any]]] = []
+
+    def store(self, namespace: str, key: str, artefact: Mapping[str, Any]) -> None:
+        self.stored.append((namespace, key, artefact))
+
+    def retrieve(
+        self,
+        namespace: str,
+        key: str,
+        *,
+        limit: int | None = None,
+    ) -> Sequence[Mapping[str, Any]]:
+        self.queries.append((namespace, key, limit))
+        return list(self.entries)
 
 
 def test_planner_aggregates_multiple_models() -> None:
@@ -81,11 +101,20 @@ def test_planner_aggregates_multiple_models() -> None:
     psychology_client = StubClient([json.dumps(psychology_payload)])
     review_client = StubClient([json.dumps(review_payload)])
 
+    memory_entries = [
+        {
+            "summary": "Past FX protocols stressed compliance checklists.",
+            "plan": {"weekly": {"review": ["Archive desk reviews"]}},
+        }
+    ]
+    memory_store = StubMemoryStore(memory_entries)
+
     planner = DynamicProtocolPlanner(
         architect=_config(architect_client),
         risk=_config(risk_client),
         psychology=_config(psychology_client),
         review=_config(review_client),
+        memory_store=memory_store,
     )
 
     draft = planner.generate_protocol(context={"desk": "FX", "focus": "structure"})
@@ -103,6 +132,10 @@ def test_planner_aggregates_multiple_models() -> None:
     assert "risk and capital management" in risk_client.calls[0]["prompt"].lower()
     assert "psychology specialist" in psychology_client.calls[0]["prompt"]
     assert "audit model" in review_client.calls[0]["prompt"]
+    assert "historical_lessons" in architect_client.calls[0]["prompt"]
+    assert draft.annotations["memory_lessons_retrieved"] == 1
+    assert memory_store.queries[0][0] == "dynamic_protocol"
+    assert memory_store.stored[0][0] == "dynamic_protocol"
 
 
 def test_generate_protocol_includes_trade_logic_context() -> None:
