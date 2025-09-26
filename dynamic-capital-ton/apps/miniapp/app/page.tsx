@@ -4,6 +4,7 @@ import {
   TonConnectButton,
   TonConnectUIProvider,
   useTonConnectUI,
+  type UIWallet,
 } from "@tonconnect/ui-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -1666,9 +1667,67 @@ const NAV_ITEMS: NavItem[] = [
   { id: "support", label: "Support", icon: LifebuoyIcon },
 ];
 
+const BITGET_WALLETS: UIWallet[] = [
+  {
+    name: "Bitget Wallet",
+    appName: "bitgetTonWallet",
+    imageUrl:
+      "https://raw.githubusercontent.com/bitgetwallet/download/refs/heads/main/logo/png/bitget_wallet_logo_288_mini.png",
+    aboutUrl: "https://web3.bitget.com",
+    universalLink: "https://bkcode.vip/ton-connect",
+    deepLink: "bitkeep://",
+    bridgeUrl: "https://ton-connect-bridge.bgwapi.io/bridge",
+    platforms: ["ios", "android", "chrome"],
+    features: [
+      {
+        name: "SendTransaction",
+        maxMessages: 4,
+        extraCurrencySupported: false,
+      },
+    ],
+  },
+  {
+    name: "BitgetWeb3",
+    appName: "BitgetWeb3",
+    imageUrl:
+      "https://img.bitgetimg.com/image/third/1731638059795.png",
+    aboutUrl: "https://www.bitget.com",
+    universalLink: "https://t.me/BitgetOfficialBot?attach=wallet",
+    bridgeUrl: "https://ton-connect-bridge.bgwapi.io/bridge",
+    platforms: ["ios", "android", "windows", "macos", "linux"],
+    features: [
+      {
+        name: "SendTransaction",
+        maxMessages: 4,
+        extraCurrencySupported: false,
+      },
+    ],
+  },
+  {
+    name: "Bitget Wallet Lite",
+    appName: "bitgetWalletLite",
+    imageUrl:
+      "https://raw.githubusercontent.com/bitgetwallet/download/refs/heads/main/logo/png/bitget_wallet_lite_logo_288.png",
+    aboutUrl: "https://web3.bitget.com",
+    universalLink: "https://t.me/BitgetWallet_TGBot?attach=wallet",
+    bridgeUrl: "https://ton-connect-bridge.bgwapi.io/bridge",
+    platforms: ["ios", "android", "macos", "windows", "linux"],
+    features: [
+      {
+        name: "SendTransaction",
+        maxMessages: 255,
+        extraCurrencySupported: false,
+      },
+    ],
+  },
+];
+
 export default function Page() {
   return (
-    <TonConnectUIProvider manifestUrl="/tonconnect-manifest.json">
+    <TonConnectUIProvider
+      manifestUrl="/tonconnect-manifest.json"
+      walletsListConfiguration={{ includeWallets: BITGET_WALLETS }}
+    >
       <HomeInner />
     </TonConnectUIProvider>
   );
