@@ -10,6 +10,7 @@ import {
   type DynamicBrandingConfig,
   type DynamicBrandingOverrides,
 } from "./types/branding.types";
+import { normalizeThemePassTokens } from "../utils/theme-pass.ts";
 
 const palette: BrandingPalette = {
   brand: {
@@ -290,6 +291,19 @@ const metadata: BrandingMetadata = {
 
 const tokens = createBrandingTokens({ palette, gradients, motion });
 
+const distribution: DynamicBrandingConfig["distribution"] = {
+  metadataUri: "https://dao.dynamic.capital/branding/theme-pass.json",
+  themePassUri: "https://dao.dynamic.capital/branding/theme-pass.json",
+  media: {
+    logo: "https://dao.dynamic.capital/branding/media/logo.svg",
+    favicon: "https://dao.dynamic.capital/branding/media/favicon.ico",
+    appleTouchIcon:
+      "https://dao.dynamic.capital/branding/media/apple-touch-icon.png",
+    socialPreview:
+      "https://dao.dynamic.capital/branding/media/social-preview.png",
+  },
+};
+
 const dynamicBranding: DynamicBrandingConfig = {
   palette,
   gradients,
@@ -302,6 +316,7 @@ const dynamicBranding: DynamicBrandingConfig = {
     appleTouchIcon: "/logo.svg",
     socialPreview: "/social/social-preview.svg",
   },
+  distribution,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -344,6 +359,7 @@ export function exportDynamicBranding(): DynamicBrandingConfig {
 
 export function importDynamicBranding(
   overrides: DynamicBrandingOverrides = {},
+  themePassOverride?: unknown,
 ): DynamicBrandingConfig {
   if (!isRecord(overrides)) {
     return exportDynamicBranding();
@@ -355,7 +371,21 @@ export function importDynamicBranding(
     motion: merged.motion,
   });
 
-  merged.tokens = applyTokenOverrides(generatedTokens, overrides.tokens);
+  const themePassTokens = typeof themePassOverride !== "undefined"
+    ? normalizeThemePassTokens(themePassOverride, generatedTokens)
+    : null;
+
+  const baseTokens = themePassTokens
+    ? {
+      light: mergeThemeTokens(
+        generatedTokens.light,
+        themePassTokens.tokens.light,
+      ),
+      dark: mergeThemeTokens(generatedTokens.dark, themePassTokens.tokens.dark),
+    }
+    : generatedTokens;
+
+  merged.tokens = applyTokenOverrides(baseTokens, overrides.tokens);
 
   return merged;
 }

@@ -51,11 +51,12 @@ function durationSeconds(start: bigint): number {
 }
 
 export async function withApiMetrics(
-  req: Request,
+  req: Request | undefined,
   route: string,
   handler: Handler,
 ): Promise<Response> {
-  const baseAttributes: Attributes = { route, method: req.method };
+  const method = req?.method ?? "GET";
+  const baseAttributes: Attributes = { route, method };
 
   httpRequestsInFlight.add(1, baseAttributes);
   const start = now();

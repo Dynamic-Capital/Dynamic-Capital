@@ -10,6 +10,7 @@ import {
   exportDynamicBranding,
   importDynamicBranding,
 } from "../apps/web/resources/dynamic-branding.config.ts";
+import { normalizeThemePassTokens } from "../apps/web/utils/theme-pass.ts";
 
 const ORIGINAL_PRIMARY = dynamicBranding.palette.light.primary;
 const ORIGINAL_TAGLINE = dynamicBranding.metadata.tagline;
@@ -59,6 +60,50 @@ test("importDynamicBranding allows token overrides to opt-out of automation", ()
 
   assertEqual(merged.tokens.light["--primary"], "120 50% 45%");
   assertEqual(dynamicBranding.tokens.light["--primary"], ORIGINAL_PRIMARY);
+});
+
+test("importDynamicBranding applies Theme Pass tokens before manual overrides", () => {
+  const themePass = {
+    colors: {
+      brand: {
+        base: "120 75% 40%",
+      },
+      light: {
+        primary: "120 75% 40%",
+      },
+    },
+    effects: {
+      motion: {
+        durations: {
+          fast: "0.2s",
+        },
+      },
+    },
+  };
+
+  const merged = importDynamicBranding(
+    {
+      tokens: {
+        light: {
+          "--primary": "360 70% 45%",
+        },
+      },
+    },
+    themePass,
+  );
+
+  assertEqual(merged.tokens.light["--primary"], "360 70% 45%");
+  assertEqual(merged.tokens.dark["--dc-brand"], "120 75% 40%");
+  assertEqual(merged.tokens.light["--motion-duration-fast"], "0.2s");
+});
+
+test("normalizeThemePassTokens returns defaults when validation fails", () => {
+  const result = normalizeThemePassTokens(
+    { colors: { light: { primary: 123 } } },
+    dynamicBranding.tokens,
+  );
+
+  assertEqual(result, null);
 });
 
 test("importDynamicBranding gracefully handles non-object overrides", () => {
