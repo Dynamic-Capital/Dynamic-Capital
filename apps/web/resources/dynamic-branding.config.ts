@@ -297,9 +297,9 @@ const dynamicBranding: DynamicBrandingConfig = {
   tokens,
   metadata,
   assets: {
-    logo: "/logo.png",
+    logo: "/logo.svg",
     favicon: "/favicon.ico",
-    appleTouchIcon: "/logo.png",
+    appleTouchIcon: "/logo.svg",
     socialPreview: "/social/social-preview.svg",
   },
 };

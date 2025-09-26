@@ -160,7 +160,8 @@ docs/agent.md,5081,md,159
 .github/workflows/auto-pr.yml,1344,yml,47
 .github/workflows/verify.yml,633,yml,21
 README.md,2424,md,98
-index.html,1004,html,33
+index.html,713,html,20
+apps/web/public/logo.svg,1010,svg,34
 tailwind.config.ts,3221,ts,112
 package-lock.json,272100,json,7614
 .bolt/supabase_discarded_migrations/20250803063516_235f296c-d879-4a9d-af54-9f87a4376bdb.sql,272,sql,7

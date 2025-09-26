@@ -1,15 +1,16 @@
 {
-  "name": "Dynamic Chatty Bot",
-  "short_name": "ChattyBot",
+  "name": "Dynamic Capital",
+  "short_name": "DynamicCap",
+  "description": "Dynamic Capital delivers institutional trading intelligence, mentorship, and automation for ambitious operators.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#ee3a3a",
   "icons": [
     {
-      "src": "/logo.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ]
 }
