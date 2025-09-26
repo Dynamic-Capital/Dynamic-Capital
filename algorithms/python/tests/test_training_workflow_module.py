@@ -60,7 +60,11 @@ def test_label_snapshots_and_package_dataset(tmp_path: Path):
         writer=writer,
         pipeline_state_path=tmp_path / "pipeline_state.json",
     )
-    assert result.partitions["train"] or result.partitions["validation"]
+    assert (
+        result.partitions["train"].count > 0
+        or result.partitions["validation"].count > 0
+        or result.partitions["test"].count > 0
+    )
     assert result.state_path is not None and result.state_path.exists()
     assert "pipeline" in result.pipeline_state
 

@@ -10,7 +10,7 @@ from typing import Callable, Dict, Iterable, List, Mapping, Optional, Sequence, 
 
 from .backtesting import Backtester, BacktestResult
 from .data_pipeline import InstrumentMeta, MarketDataIngestionJob, RawBar
-from .dataset_builder import DatasetWriter
+from .dataset_builder import DatasetSplitMetadata, DatasetWriter
 from .hyperparameter_search import HyperparameterSearch
 from .offline_labeler import LabelingConfig, OfflineLabeler
 from .optimization_workflow import OptimizationPlan, optimize_trading_stack
@@ -34,7 +34,7 @@ class LabelledDatasetSplits:
     """Payload produced by :func:`label_snapshots_and_package_dataset`."""
 
     labelled: List[LabeledFeature]
-    partitions: Dict[str, List[dict]]
+    partitions: Dict[str, DatasetSplitMetadata]
     pipeline_state: Dict[str, object]
     dataset_dir: Path
     state_path: Optional[Path]
