@@ -15,6 +15,13 @@ from .economic_catalysts import (
     EconomicCatalystGenerator,
     EconomicCatalystSyncJob,
 )
+from .loss_recovery_programme import (
+    AccountState,
+    LossRecoveryConfig,
+    LossRecoveryProgramme,
+    RecoveryPlan,
+    RecoveryStep,
+)
 from .dct_token_sync import (
     DCTAllocationEngine,
     DCTAllocationResult,
@@ -53,6 +60,11 @@ __all__ = _trade_exports + [
     "EconomicCatalyst",
     "EconomicCatalystGenerator",
     "EconomicCatalystSyncJob",
+    "AccountState",
+    "LossRecoveryConfig",
+    "LossRecoveryProgramme",
+    "RecoveryPlan",
+    "RecoveryStep",
     "DCTAllocationEngine",
     "DCTAllocationResult",
     "DCTAllocationRule",
@@ -88,6 +100,11 @@ globals().update(
         "EconomicCatalyst": EconomicCatalyst,
         "EconomicCatalystGenerator": EconomicCatalystGenerator,
         "EconomicCatalystSyncJob": EconomicCatalystSyncJob,
+        "AccountState": AccountState,
+        "LossRecoveryConfig": LossRecoveryConfig,
+        "LossRecoveryProgramme": LossRecoveryProgramme,
+        "RecoveryPlan": RecoveryPlan,
+        "RecoveryStep": RecoveryStep,
         "DCTAllocationEngine": DCTAllocationEngine,
         "DCTAllocationResult": DCTAllocationResult,
         "DCTAllocationRule": DCTAllocationRule,
