@@ -10,6 +10,7 @@ import {
   initTelegram,
   showBackButton,
 } from "@/lib/telegram";
+import { attachGlobalTonConnect, getMiniAppThemeManager } from "@/lib/miniapp-theme";
 
 export default function MiniAppProviders(
   { children }: { children: ReactNode },
@@ -20,10 +21,15 @@ export default function MiniAppProviders(
   useEffect(() => {
     initTelegram();
     applyThemeVars();
+    const themeManager = getMiniAppThemeManager();
+    const detachTonConnect = attachGlobalTonConnect(themeManager);
     const webApp: any = (window as any)?.Telegram?.WebApp;
     const onTheme = () => applyThemeVars();
     webApp?.onEvent?.("themeChanged", onTheme);
-    return () => webApp?.offEvent?.("themeChanged", onTheme);
+    return () => {
+      detachTonConnect?.();
+      webApp?.offEvent?.("themeChanged", onTheme);
+    };
   }, []);
 
   useEffect(() => {

@@ -6,6 +6,10 @@ import {
   useTonConnectUI,
 } from "@tonconnect/ui-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useMiniAppThemeManager,
+} from "../../../../shared/miniapp/use-miniapp-theme";
+import type { MiniAppThemeOption } from "../../../../shared/miniapp/theme-loader";
 
 import type {
   LiveIntelSnapshot,
@@ -24,7 +28,13 @@ const PLAN_IDS = [
 
 type Plan = (typeof PLAN_IDS)[number];
 
-type SectionId = "overview" | "plans" | "intel" | "activity" | "support";
+type SectionId =
+  | "overview"
+  | "plans"
+  | "intel"
+  | "activity"
+  | "appearance"
+  | "support";
 
 type TelegramUser = {
   id?: number;
@@ -528,6 +538,22 @@ function formatWalletAddress(address?: string | null): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
+function resolveThemeSwatches(theme: MiniAppThemeOption): string[] {
+  const background =
+    theme.cssVariables["--tg-bg"] ??
+    theme.cssVariables["--surface"] ??
+    "#0b1120";
+  const accent =
+    theme.cssVariables["--tg-accent"] ??
+    theme.cssVariables["--accent"] ??
+    "#38bdf8";
+  const text =
+    theme.cssVariables["--tg-text"] ??
+    theme.cssVariables["--text-primary"] ??
+    "#f8fafc";
+  return [background, accent, text];
+}
+
 function HomeInner() {
   const [tonConnectUI] = useTonConnectUI();
   const [planOptions, setPlanOptions] = useState<PlanOption[]>(
@@ -547,6 +573,9 @@ function HomeInner() {
   const telegramId = useTelegramId();
   const liveIntel = useLiveIntel();
   const [countdown, setCountdown] = useState<number | null>(null);
+  const { manager: themeManager, state: themeState } = useMiniAppThemeManager(
+    tonConnectUI,
+  );
 
   const selectedPlan = useMemo(
     () => planOptions.find((option) => option.id === plan),
@@ -554,6 +583,43 @@ function HomeInner() {
   );
   const wallet = tonConnectUI?.account;
   const walletAddress = wallet?.address;
+
+  const themeOptions = themeState.availableThemes;
+  const walletConnected = Boolean(walletAddress);
+  const isThemeBusy = themeState.isLoading || themeState.isApplying;
+  const themeEmptyCopy = walletConnected
+    ? "When a Theme NFT is detected it will appear here with the option to preview and apply it instantly."
+    : "Connect a TON wallet above to see any Theme NFTs you've collected.";
+  const themeStatusMessage = useMemo(() => {
+    if (themeState.isApplying) {
+      return "Applying theme…";
+    }
+    if (!walletConnected) {
+      return "Connect a TON wallet to unlock partner themes.";
+    }
+    if (themeState.isLoading) {
+      return "Checking your Theme NFTs…";
+    }
+    if (!themeOptions.length) {
+      return "No Theme NFTs detected yet. Refresh after minting.";
+    }
+    return null;
+  }, [themeOptions.length, themeState.isApplying, themeState.isLoading, walletConnected]);
+
+  const handleThemeSelect = useCallback(
+    (theme: MiniAppThemeOption) => {
+      void themeManager.selectTheme(theme.id);
+    },
+    [themeManager],
+  );
+
+  const handleThemeReset = useCallback(() => {
+    void themeManager.resetTheme();
+  }, [themeManager]);
+
+  const handleThemeRefresh = useCallback(() => {
+    void themeManager.refresh();
+  }, [themeManager]);
 
   const metrics = liveIntel.report?.metrics ?? FALLBACK_METRICS;
   const timeline = liveIntel.report?.timeline ?? ACTIVITY_FEED;
@@ -578,6 +644,7 @@ function HomeInner() {
       "plans",
       "intel",
       "activity",
+      "appearance",
       "support",
     ];
     sectionIds.forEach((sectionId) => {
@@ -1046,6 +1113,107 @@ function HomeInner() {
           </ul>
         </section>
 
+        <section className="section-card" id="appearance">
+          <div className="section-header">
+            <div>
+              <h2 className="section-title">Appearance</h2>
+              <p className="section-description">
+                Personalise the desk with partner palettes unlocked by your Theme NFTs.
+              </p>
+            </div>
+            {isThemeBusy && (
+              <span className="theme-sync-pill" role="status" aria-live="polite">
+                Syncing…
+              </span>
+            )}
+          </div>
+
+          {themeState.error && (
+            <div className="plan-sync-alert" role="alert">
+              {themeState.error}
+            </div>
+          )}
+
+          {themeStatusMessage && (
+            <p className="theme-status" role="status" aria-live="polite">
+              {themeStatusMessage}
+            </p>
+          )}
+
+          <div className="theme-grid" role="list">
+            {themeOptions.map((theme) => {
+              const isActive = themeState.activeThemeId === theme.id;
+              const swatches = resolveThemeSwatches(theme);
+              return (
+                <button
+                  key={theme.id}
+                  type="button"
+                  role="listitem"
+                  className={`theme-option${isActive ? " theme-option--active" : ""}`}
+                  onClick={() => {
+                    if (!isActive) {
+                      handleThemeSelect(theme);
+                    }
+                  }}
+                  disabled={isThemeBusy && !isActive}
+                  aria-pressed={isActive}
+                >
+                  <div className="theme-option__preview" aria-hidden>
+                    {theme.previewImage ? (
+                      <img src={theme.previewImage} alt="" loading="lazy" />
+                    ) : (
+                      swatches.map((color, index) => (
+                        <span
+                          key={`${theme.id}-swatch-${index}`}
+                          style={{ background: color }}
+                        />
+                      ))
+                    )}
+                  </div>
+                  <div className="theme-option__meta">
+                    <div className="theme-option__headline">
+                      <span className="theme-option__name">{theme.label}</span>
+                      {isActive && <span className="theme-option__badge">Active</span>}
+                    </div>
+                    {theme.description && (
+                      <p className="theme-option__description">{theme.description}</p>
+                    )}
+                    {theme.updatedAt && (
+                      <span className="theme-option__updated">
+                        Updated {formatRelativeTime(theme.updatedAt)}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+            {!themeOptions.length && (
+              <div className="theme-empty" role="listitem">
+                <p>{themeEmptyCopy}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="theme-actions">
+            <button
+              type="button"
+              className="button button-ghost"
+              onClick={handleThemeReset}
+              disabled={!themeState.activeThemeId || isThemeBusy}
+            >
+              Use default palette
+            </button>
+            <button
+              type="button"
+              className="button button-secondary"
+              onClick={handleThemeRefresh}
+              disabled={themeState.isLoading}
+            >
+              Refresh themes
+            </button>
+          </div>
+        </section>
+
         <section className="section-card" id="support">
           <h2 className="section-title">What you unlock</h2>
           <div className="feature-grid">
@@ -1431,6 +1599,27 @@ function ActivityIcon({ active }: { active: boolean }) {
   );
 }
 
+function PaletteIcon({ active }: { active: boolean }) {
+  return (
+    <svg
+      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
+        active ? "text-sky-100" : "text-slate-400"
+      }`}
+      viewBox="0 0 24 24"
+      role="presentation"
+      aria-hidden
+    >
+      <path
+        d="M12 3a9 9 0 1 0 0 18c1.6 0 2.6-.92 2.6-2.06 0-1.27-.96-2-2.14-2.3-.94-.25-1.43-.86-1.43-1.62 0-.92.74-1.7 1.7-1.7h1.75c1.43 0 2.52-1.09 2.52-2.52A7 7 0 0 0 12 3Zm-4.4 8a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm2.7-3.9a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm5.4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm1.6 3.9a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Z"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function LifebuoyIcon({ active }: { active: boolean }) {
   return (
     <svg
@@ -1473,6 +1662,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "plans", label: "Plans", icon: SparkIcon },
   { id: "intel", label: "Live intel", icon: RadarIcon },
   { id: "activity", label: "Timeline", icon: ActivityIcon },
+  { id: "appearance", label: "Themes", icon: PaletteIcon },
   { id: "support", label: "Support", icon: LifebuoyIcon },
 ];
 
