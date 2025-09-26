@@ -20,6 +20,43 @@ import type {
 import { DEFAULT_REFRESH_SECONDS } from "../data/live-intel";
 import { getSupabaseClient } from "../lib/supabase-client";
 
+type TonNetwork = "mainnet" | "testnet";
+
+const TONCONNECT_NETWORK: TonNetwork =
+  process.env.NEXT_PUBLIC_TON_NETWORK === "testnet" ? "testnet" : "mainnet";
+
+const TONKEEPER_LINKS: Record<
+  TonNetwork,
+  { universalLink: string; bridgeUrl: string }
+> = {
+  mainnet: {
+    universalLink: "https://app.tonkeeper.com/ton-connect",
+    bridgeUrl: "https://bridge.tonapi.io/bridge",
+  },
+  testnet: {
+    universalLink: "https://testnet.tonkeeper.com/ton-connect",
+    bridgeUrl: "https://testnet.tonapi.io/bridge",
+  },
+};
+
+const tonkeeperDefaults = TONKEEPER_LINKS[TONCONNECT_NETWORK];
+
+const tonkeeperWallet: NonNullable<
+  WalletsListConfiguration["includeWallets"]
+>[number] = {
+  appName: "tonkeeper",
+  name: "Tonkeeper",
+  imageUrl: "https://tonkeeper.com/assets/tonconnect-icon.png",
+  aboutUrl: "https://tonkeeper.com",
+  universalLink:
+    process.env.NEXT_PUBLIC_TONKEEPER_UNIVERSAL_LINK ??
+    tonkeeperDefaults.universalLink,
+  bridgeUrl:
+    process.env.NEXT_PUBLIC_TONKEEPER_BRIDGE_URL ??
+    tonkeeperDefaults.bridgeUrl,
+  platforms: ["ios", "android", "chrome", "firefox"],
+};
+
 const PLAN_IDS = [
   "vip_bronze",
   "vip_silver",
@@ -104,15 +141,7 @@ type LiveIntelState = {
 const RECOMMENDED_WALLETS: NonNullable<
   WalletsListConfiguration["includeWallets"]
 > = [
-  {
-    appName: "tonkeeper",
-    name: "Tonkeeper",
-    imageUrl: "https://tonkeeper.com/assets/tonconnect-icon.png",
-    aboutUrl: "https://tonkeeper.com",
-    universalLink: "https://app.tonkeeper.com/ton-connect",
-    bridgeUrl: "https://bridge.tonapi.io/bridge",
-    platforms: ["ios", "android", "chrome", "firefox"],
-  },
+  tonkeeperWallet,
   {
     appName: "tonhub",
     name: "Tonhub",

@@ -10,6 +10,9 @@ Create a `.env.local` file with the following values:
 
 ```bash
 NEXT_PUBLIC_APP_URL=https://dynamic-capital-qazf2.ondigitalocean.app
+NEXT_PUBLIC_TON_NETWORK=mainnet
+NEXT_PUBLIC_TONKEEPER_UNIVERSAL_LINK=https://app.tonkeeper.com/ton-connect
+NEXT_PUBLIC_TONKEEPER_BRIDGE_URL=https://bridge.tonapi.io/bridge
 NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 SUPABASE_FN_URL=https://<project>.functions.supabase.co
@@ -17,8 +20,11 @@ SUPABASE_FN_URL=https://<project>.functions.supabase.co
 SUPABASE_ANON_KEY=<anon-key>
 ```
 
-The `NEXT_PUBLIC_SUPABASE_*` values enable live subscription plan updates inside
-the Mini App by connecting directly to Supabase Realtime.
+Set `NEXT_PUBLIC_TON_NETWORK=testnet` to point Tonkeeper connections at the
+testnet infrastructure. Override `NEXT_PUBLIC_TONKEEPER_*` if you need custom
+Tonkeeper endpoints (they default to mainnet values). The
+`NEXT_PUBLIC_SUPABASE_*` values enable live subscription plan updates inside the
+Mini App by connecting directly to Supabase Realtime.
 
 ## Key scripts
 
