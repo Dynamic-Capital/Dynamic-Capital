@@ -24,6 +24,7 @@ from algorithms.python.trade_logic import (
     LorentzianKNNModel,
     LorentzianKNNStrategy,
     MarketSnapshot,
+    SMCZone,
     TradeDecision,
     TradeConfig,
     TradeLogic,
@@ -635,6 +636,150 @@ def test_trade_logic_layers_smc_context():
     assert smc_context["structure"]["bos"] == "bullish"
     assert "PDH" in smc_context["liquidity"]["penalised_levels"]
     assert "smc" in decision.reason
+
+
+def test_trade_logic_smc_zones_balance_support_and_pressure():
+    config = TradeConfig(
+        neighbors=1,
+        label_lookahead=0,
+        min_confidence=0.0,
+        use_adr=False,
+        smc_structure_lookback=3,
+        smc_structure_threshold_pips=5.0,
+        smc_level_threshold_pips=15.0,
+        smc_round_number_interval_pips=50.0,
+        smc_bias_weight=0.2,
+        smc_liquidity_weight=0.1,
+        max_smc_adjustment=0.4,
+    )
+    logic = TradeLogic(config=config)
+
+    signals = deque(
+        [
+            TradeSignal(direction=0, confidence=0.0, votes=0, neighbors_considered=0),
+            TradeSignal(direction=0, confidence=0.0, votes=0, neighbors_considered=0),
+            TradeSignal(direction=1, confidence=0.75, votes=7, neighbors_considered=9),
+        ]
+    )
+
+    class SequenceStrategy:
+        def __init__(self, queue: deque[TradeSignal]) -> None:
+            self._signals = queue
+
+        def update(self, snapshot: MarketSnapshot) -> TradeSignal:
+            if self._signals:
+                return self._signals.popleft()
+            return TradeSignal(direction=0, confidence=0.0, votes=0, neighbors_considered=0)
+
+    logic.strategy = SequenceStrategy(signals)
+
+    base_time = datetime(2024, 3, 6, 12, 0, tzinfo=timezone.utc)
+    snapshots = [
+        MarketSnapshot(
+            symbol="EURUSD",
+            timestamp=base_time,
+            open=1.2000,
+            high=1.2010,
+            low=1.1990,
+            close=1.2000,
+            rsi_fast=52.0,
+            adx_fast=18.0,
+            rsi_slow=49.0,
+            adx_slow=16.0,
+            pip_size=0.0001,
+            pip_value=10.0,
+            daily_high=1.2010,
+            daily_low=1.1990,
+            previous_daily_high=1.1985,
+            previous_daily_low=1.1950,
+            weekly_high=1.2050,
+            weekly_low=1.1950,
+            previous_week_high=1.2100,
+            previous_week_low=1.1900,
+        ),
+        MarketSnapshot(
+            symbol="EURUSD",
+            timestamp=base_time + timedelta(minutes=5),
+            open=1.2000,
+            high=1.2030,
+            low=1.1995,
+            close=1.2025,
+            rsi_fast=55.0,
+            adx_fast=20.0,
+            rsi_slow=50.5,
+            adx_slow=17.2,
+            pip_size=0.0001,
+            pip_value=10.0,
+            daily_high=1.2030,
+            daily_low=1.1995,
+            previous_daily_high=1.1985,
+            previous_daily_low=1.1950,
+            weekly_high=1.2050,
+            weekly_low=1.1950,
+            previous_week_high=1.2100,
+            previous_week_low=1.1900,
+        ),
+        MarketSnapshot(
+            symbol="EURUSD",
+            timestamp=base_time + timedelta(minutes=10),
+            open=1.2025,
+            high=1.2035,
+            low=1.2010,
+            close=1.2020,
+            rsi_fast=56.5,
+            adx_fast=21.0,
+            rsi_slow=51.0,
+            adx_slow=17.5,
+            pip_size=0.0001,
+            pip_value=10.0,
+            daily_high=1.2035,
+            daily_low=1.1995,
+            previous_daily_high=1.2035,
+            previous_daily_low=1.1950,
+            weekly_high=1.2050,
+            weekly_low=1.1950,
+            previous_week_high=1.2100,
+            previous_week_low=1.1900,
+            smc_zones=[
+                SMCZone(
+                    name="Demand-Base",
+                    price=1.2010,
+                    side="demand",
+                    role="continuation",
+                    strength=1.5,
+                    metadata={"note": "London continuation zone"},
+                ),
+                {
+                    "name": "Supply-Flip",
+                    "price": 1.2030,
+                    "side": "supply",
+                    "role": "reversal",
+                    "strength": 0.8,
+                },
+            ],
+        ),
+    ]
+
+    decisions: list[TradeDecision] = []
+    for snapshot in snapshots:
+        decisions = logic.on_bar(snapshot)
+
+    open_decisions = [decision for decision in decisions if decision.action == "open"]
+    assert open_decisions, "expected an open trade decision with enhanced SMC context"
+
+    decision = open_decisions[0]
+    smc_context = decision.context["smc"]
+    assert smc_context["enabled"]
+    assert smc_context["structure"]["bias"] == 1
+    liquidity = smc_context["liquidity"]
+    assert "Demand-Base" in liquidity["supportive_levels"]
+    assert "Supply-Flip" in liquidity["penalised_levels"]
+    assert liquidity["support"] == pytest.approx(0.18, rel=1e-3)
+    assert liquidity["penalty"] == pytest.approx(0.072, rel=1e-3)
+    assert smc_context["components"]["liquidity_penalty"] == pytest.approx(
+        0.108, rel=1e-3
+    )
+    assert smc_context["modifier"] == pytest.approx(1.308, rel=1e-3)
 
 
 def test_trade_logic_applies_grok_advice():
