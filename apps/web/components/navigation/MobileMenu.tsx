@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,18 @@ export const MobileMenu: React.FC = () => {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const navItems = NAV_ITEMS.filter((item) => item.showOnMobile);
+  const [hash, setHash] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateHash = () => setHash(window.location.hash ?? "");
+
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, [pathname]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -34,13 +46,22 @@ export const MobileMenu: React.FC = () => {
         <nav className="px-6 py-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = item.path === "/"
+            const anchorTarget = item.href?.startsWith("/#")
+              ? item.href.split("#")[1] ?? ""
+              : "";
+            const isActive = item.href?.startsWith("/#")
+              ? pathname === "/" && (
+                anchorTarget === "overview"
+                  ? hash === "" || hash === "#overview"
+                  : hash === `#${anchorTarget}`
+              )
+              : item.path === "/"
               ? pathname === "/"
               : pathname.startsWith(item.path);
             return (
               <Link
                 key={item.id}
-                href={item.path}
+                href={item.href ?? item.path}
                 aria-label={item.ariaLabel}
                 title={item.description}
                 className={cn(

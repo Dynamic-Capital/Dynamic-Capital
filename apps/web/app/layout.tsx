@@ -18,12 +18,11 @@ import {
 
 import Providers from "./providers";
 import { getStaticLandingDocument } from "@/lib/staticLanding";
-import {
-  Footer,
-  Header,
-  RouteGuard,
-  ScrollToHash,
-} from "@/components/magic-portfolio";
+import { RouteGuard, ScrollToHash } from "@/components/magic-portfolio";
+import { SiteHeader } from "@/components/navigation/SiteHeader";
+import { SiteFooter } from "@/components/navigation/SiteFooter";
+import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
+import { SkipToContent } from "@/components/navigation/SkipToContent";
 import { dynamicBranding, dynamicUI } from "@/resources";
 
 const SITE_URL = process.env.SITE_URL || "http://localhost:8080";
@@ -346,14 +345,28 @@ export default async function RootLayout(
                 }}
               />
             </RevealFx>
-            <Flex fillWidth minHeight="16" s={{ hide: true }} />
-            <Header />
-            <Flex zIndex={0} fillWidth padding="l" horizontal="center" flex={1}>
-              <Flex horizontal="center" fillWidth minHeight="0">
+            <SkipToContent />
+            <SiteHeader />
+            <Flex
+              zIndex={0}
+              fillWidth
+              padding="l"
+              paddingBottom="24"
+              horizontal="center"
+              flex={1}
+            >
+              <Flex
+                id="main-content"
+                horizontal="center"
+                fillWidth
+                minHeight="0"
+                tabIndex={-1}
+              >
                 <RouteGuard>{children}</RouteGuard>
               </Flex>
             </Flex>
-            <Footer />
+            <SiteFooter />
+            <MobileBottomNav />
           </Column>
         </Providers>
       </body>

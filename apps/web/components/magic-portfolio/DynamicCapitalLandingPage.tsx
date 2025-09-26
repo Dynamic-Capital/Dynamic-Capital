@@ -331,7 +331,7 @@ export function DynamicCapitalLandingPage() {
         variant="wide"
         revealDelay={0.64}
         anchor={{
-          id: HOME_NAV_SECTION_IDS.market,
+          id: HOME_NAV_SECTION_IDS.providers,
           ariaLabel: "Market intelligence",
         }}
       >
@@ -355,7 +355,7 @@ export function DynamicCapitalLandingPage() {
       <Section
         revealDelay={1.12}
         anchor={{
-          id: HOME_NAV_SECTION_IDS.mentorship,
+          id: HOME_NAV_SECTION_IDS.workflows,
           ariaLabel: "Mentorship programmes",
         }}
       >
@@ -367,7 +367,7 @@ export function DynamicCapitalLandingPage() {
       <Section
         revealDelay={1.28}
         anchor={{
-          id: HOME_NAV_SECTION_IDS.plans,
+          id: HOME_NAV_SECTION_IDS.analytics,
           ariaLabel: "Membership plans",
         }}
       >
@@ -385,7 +385,7 @@ export function DynamicCapitalLandingPage() {
       <Section
         revealDelay={1.6}
         anchor={{
-          id: HOME_NAV_SECTION_IDS.trust,
+          id: HOME_NAV_SECTION_IDS.security,
           ariaLabel: "Trust and compliance",
         }}
       >

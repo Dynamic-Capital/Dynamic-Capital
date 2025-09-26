@@ -1,6 +1,5 @@
 export const ogDefaults = {
-  title: 'Dynamic Capital — Institutional trading intelligence',
+  title: "Dynamic Capital — Multi-LLM orchestration workspace",
   description:
-    'Dynamic Capital delivers institutional-grade trading signals, mentorship, and automation for ambitious operators.',
+    "Benchmark, route, and observe every AI provider from a single Dynamic Capital desk built for institutional teams.",
 };
-

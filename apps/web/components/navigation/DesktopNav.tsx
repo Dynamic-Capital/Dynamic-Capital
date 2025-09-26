@@ -1,21 +1,52 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/utils";
 import { motion, useReducedMotion } from "framer-motion";
-import NAV_ITEMS from "./nav-items";
+import NAV_ITEMS, { type NavItem } from "./nav-items";
 
 const navItems = NAV_ITEMS;
 
 export const DesktopNav: React.FC = () => {
   const pathname = usePathname();
   const shouldReduceMotion = useReducedMotion();
+  const [hash, setHash] = useState<string>("");
 
-  const isActive = (path: string) =>
-    path === "/" ? pathname === "/" : pathname.startsWith(path);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateHash = () => {
+      setHash(window.location.hash ?? "");
+    };
+
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+
+    return () => {
+      window.removeEventListener("hashchange", updateHash);
+    };
+  }, [pathname]);
+
+  const isActive = (item: NavItem) => {
+    if (item.href?.startsWith("/#")) {
+      const target = item.href.split("#")[1] ?? "";
+      if (pathname !== "/") {
+        return false;
+      }
+      if (target === "overview") {
+        return hash === "" || hash === "#overview";
+      }
+      return hash === `#${target}`;
+    }
+
+    if (item.path === "/") {
+      return pathname === "/";
+    }
+
+    return pathname.startsWith(item.path);
+  };
 
   return (
     <motion.nav
@@ -28,7 +59,7 @@ export const DesktopNav: React.FC = () => {
     >
       {navItems.map((item, index) => {
         const Icon = item.icon;
-        const active = isActive(item.path);
+        const active = isActive(item);
         return (
           <motion.div
             key={item.id}
@@ -42,7 +73,7 @@ export const DesktopNav: React.FC = () => {
             whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
           >
             <Link
-              href={item.path}
+              href={item.href ?? item.path}
               aria-label={item.ariaLabel}
               className={cn(
                 "flex min-w-[11rem] flex-col gap-1 rounded-md px-4 py-3 transition",

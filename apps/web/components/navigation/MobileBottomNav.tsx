@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/utils";
@@ -11,7 +11,7 @@ import {
   useReducedMotion,
 } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import NAV_ITEMS from "./nav-items";
+import NAV_ITEMS, { type NavItem } from "./nav-items";
 
 const navItems = NAV_ITEMS.filter((n) => n.showOnMobile);
 
@@ -19,11 +19,41 @@ export const MobileBottomNav: React.FC = () => {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
   const columnCount = navItems.length || 1;
+  const [hash, setHash] = useState<string>("");
 
-  const isActive = (path: string) =>
-    path === "/" ? pathname === "/" : pathname.startsWith(path);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
-  const activeIndex = navItems.findIndex((item) => isActive(item.path));
+    const updateHash = () => {
+      setHash(window.location.hash ?? "");
+    };
+
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, [pathname]);
+
+  const isActive = (item: NavItem) => {
+    if (item.href?.startsWith("/#")) {
+      const target = item.href.split("#")[1] ?? "";
+      if (pathname !== "/") {
+        return false;
+      }
+      if (target === "overview") {
+        return hash === "" || hash === "#overview";
+      }
+      return hash === `#${target}`;
+    }
+
+    if (item.path === "/") {
+      return pathname === "/";
+    }
+
+    return pathname.startsWith(item.path);
+  };
+
+  const activeIndex = navItems.findIndex((item) => isActive(item));
   const indicatorWidth = 100 / columnCount;
 
   return (
@@ -51,7 +81,7 @@ export const MobileBottomNav: React.FC = () => {
           >
             {navItems.map((item, index) => {
               const Icon = item.icon;
-              const linkActive = isActive(item.path);
+              const linkActive = isActive(item);
 
               return (
                 <motion.div
@@ -63,7 +93,7 @@ export const MobileBottomNav: React.FC = () => {
                     : { delay: index * 0.05, duration: 0.3, ease: "easeOut" }}
                 >
                   <Link
-                    href={item.path}
+                    href={item.href ?? item.path}
                     aria-label={item.ariaLabel}
                     title={item.description}
                     className={cn(

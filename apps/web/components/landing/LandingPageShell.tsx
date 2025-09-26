@@ -6,7 +6,7 @@ import { opacity, SpacingToken } from "@/components/dynamic-ui-system";
 import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
 import { dynamicUI } from "@/resources";
-import { DynamicCapitalLandingPage } from "@/components/magic-portfolio/DynamicCapitalLandingPage";
+import { MultiLlmLandingPage } from "@/components/landing/MultiLlmLandingPage";
 import { HomeNavigationRail } from "@/components/landing/HomeNavigationRail";
 import type {
   ChromaBackgroundProps,
@@ -115,7 +115,7 @@ export function LandingPageShell({
         horizontal="center"
       >
         <HomeNavigationRail className="mt-4" />
-        <DynamicCapitalLandingPage />
+        <MultiLlmLandingPage />
       </Column>
       {showAssistant
         ? (

@@ -1,12 +1,12 @@
 import {
-  Award,
   Bot,
-  GraduationCap,
-  Home,
+  Layers,
   LayoutDashboard,
+  LifeBuoy,
   type LucideIcon,
   Shield,
   TrendingUp,
+  Workflow,
 } from "lucide-react";
 
 export interface NavItem {
@@ -17,84 +17,86 @@ export interface NavItem {
   icon: LucideIcon;
   path: string;
   ariaLabel: string;
+  href?: string;
   showOnMobile?: boolean;
 }
 
 export const NAV_ITEMS: NavItem[] = [
   {
-    id: "home",
+    id: "overview",
     step: "Step 1",
-    label: "Start here",
-    description: "Tour the platform and set your first goal.",
-    icon: Home,
-    path: "/",
-    ariaLabel: "Step 1: Start here. Tour the platform and set your first goal.",
-    showOnMobile: true,
-  },
-  {
-    id: "education",
-    step: "Step 2",
-    label: "Learn the basics",
-    description: "Watch bite-sized lessons built for beginners.",
-    icon: GraduationCap,
-    path: "/blog",
-    ariaLabel:
-      "Step 2: Learn the basics. Watch bite-sized lessons built for beginners.",
-    showOnMobile: true,
-  },
-  {
-    id: "plans",
-    step: "Step 3",
-    label: "Choose a plan",
-    description: "Compare membership paths when you're ready to join.",
-    icon: TrendingUp,
-    path: "/plans",
-    ariaLabel:
-      "Step 3: Choose a plan. Compare membership paths when you're ready to join.",
-    showOnMobile: true,
-  },
-  {
-    id: "success",
-    step: "Step 4",
-    label: "See real results",
-    description: "Browse live desk projects and member wins.",
-    icon: Award,
-    path: "/work",
-    ariaLabel:
-      "Step 4: See real results. Browse live desk projects and member wins.",
-    showOnMobile: true,
-  },
-  {
-    id: "support",
-    step: "Step 5",
-    label: "Support desk",
-    description: "Chat with concierge and find quick-start resources.",
-    icon: Shield,
-    path: "/support",
-    ariaLabel:
-      "Step 5: Support desk. Chat with concierge and find quick-start resources.",
-    showOnMobile: true,
-  },
-  {
-    id: "heatmap",
-    step: "Step 6",
-    label: "Heatmap tool",
-    description: "Explore the desk's cross-asset market heatmap.",
-    icon: LayoutDashboard,
-    path: "/tools/heatmap",
-    ariaLabel:
-      "Step 6: Heatmap tool. Explore the desk's cross-asset market heatmap.",
-    showOnMobile: true,
-  },
-  {
-    id: "multi-llm",
-    step: "Step 7",
-    label: "LLM studio",
-    description: "Benchmark responses across our AI provider stack.",
+    label: "Workspace",
+    description: "Preview the multi-LLM orchestration hub.",
     icon: Bot,
-    path: "/tools/multi-llm",
+    path: "/",
+    href: "/#overview",
+    ariaLabel: "Step 1: Workspace. Preview the multi-LLM orchestration hub.",
+    showOnMobile: true,
+  },
+  {
+    id: "providers",
+    step: "Step 2",
+    label: "Providers",
+    description: "Compare coverage and context windows.",
+    icon: Layers,
+    path: "/",
+    href: "/#provider-matrix",
     ariaLabel:
-      "Step 7: LLM studio. Benchmark responses across our AI provider stack.",
+      "Step 2: Providers. Compare coverage and context windows across vendors.",
+    showOnMobile: true,
+  },
+  {
+    id: "routing",
+    step: "Step 3",
+    label: "Routing",
+    description: "Blend ensembles, fallbacks, and policies.",
+    icon: Workflow,
+    path: "/",
+    href: "/#orchestration",
+    ariaLabel: "Step 3: Routing. Blend ensembles, fallbacks, and policies.",
+    showOnMobile: true,
+  },
+  {
+    id: "analytics",
+    step: "Step 4",
+    label: "Analytics",
+    description: "Inspect latency, quality, and spend traces.",
+    icon: TrendingUp,
+    path: "/",
+    href: "/#analytics",
+    ariaLabel: "Step 4: Analytics. Inspect latency, quality, and spend traces.",
+    showOnMobile: true,
+  },
+  {
+    id: "guardrails",
+    step: "Step 5",
+    label: "Guardrails",
+    description: "Review compliance and escalation workflows.",
+    icon: Shield,
+    path: "/",
+    href: "/#resilience",
+    ariaLabel:
+      "Step 5: Guardrails. Review compliance and escalation workflows.",
+    showOnMobile: true,
+  },
+  {
+    id: "studio",
+    step: "Step 6",
+    label: "LLM studio",
+    description: "Run side-by-side provider benchmarks.",
+    icon: LayoutDashboard,
+    path: "/tools/multi-llm",
+    ariaLabel: "Step 6: LLM studio. Run side-by-side provider benchmarks.",
+    showOnMobile: true,
+  },
+  {
+    id: "onboarding",
+    step: "Step 7",
+    label: "Onboarding",
+    description: "Activate concierge setup and pricing.",
+    icon: LifeBuoy,
+    path: "/plans",
+    ariaLabel: "Step 7: Onboarding. Activate concierge setup and pricing.",
     showOnMobile: true,
   },
 ];
