@@ -143,3 +143,44 @@ export const cotReports = pgTable("cot_reports", {
 
 export type CotReport = typeof cotReports.$inferSelect;
 export type NewCotReport = typeof cotReports.$inferInsert;
+
+export const marketMovers = pgTable("market_movers", {
+  symbol: text("symbol").primaryKey(),
+  display: text("display").notNull(),
+  score: numeric("score", { precision: 8, scale: 4, mode: "number" })
+    .notNull(),
+  classification: text("classification").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+});
+
+export type MarketMover = typeof marketMovers.$inferSelect;
+export type NewMarketMover = typeof marketMovers.$inferInsert;
+
+type FundamentalMetric = {
+  label: string;
+  value: string;
+};
+
+export const fundamentalPositioning = pgTable("fundamental_positioning", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  asset: text("asset").notNull().unique(),
+  sector: text("sector").notNull(),
+  positioning: text("positioning").notNull(),
+  summary: text("summary").notNull(),
+  catalysts: jsonb("catalysts").$type<string[]>().notNull()
+    .default([] as string[]),
+  riskControls: text("risk_controls").notNull(),
+  metrics: jsonb("metrics").$type<FundamentalMetric[]>().notNull()
+    .default([] as FundamentalMetric[]),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+});
+
+export type FundamentalPositioning = typeof fundamentalPositioning.$inferSelect;
+export type NewFundamentalPositioning =
+  typeof fundamentalPositioning.$inferInsert;
