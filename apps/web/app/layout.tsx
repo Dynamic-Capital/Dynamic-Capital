@@ -18,6 +18,8 @@ import {
 
 import Providers from "./providers";
 import { getStaticLandingDocument } from "@/lib/staticLanding";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { callEdgeFunction } from "@/config/supabase";
 import {
   Footer,
   Header,
@@ -69,46 +71,119 @@ const themeAttributeDefaults = Object.fromEntries(
 const dynamicBrandingStyles = createBrandingStyles(brandingTokens);
 const dynamicBrandingStyleMarkup =
   `<style id="${BRANDING_STYLE_ELEMENT_ID}">${dynamicBrandingStyles}</style>`;
-const dynamicThemeScript = `(function () {
-  try {
-    var root = document.documentElement;
-    var defaultTheme = '${style.theme}';
-    var attributes = ${JSON.stringify(themeAttributeDefaults)};
+function createDynamicThemeScript(themePassData: unknown): string {
+  return `(function () {
+    try {
+      var root = document.documentElement;
+      var defaultTheme = '${style.theme}';
+      var attributes = ${JSON.stringify(themeAttributeDefaults)};
+      var themePassFallback = ${JSON.stringify(themePassData ?? null)};
 
-    Object.entries(attributes).forEach(function ([key, value]) {
-      var attribute = 'data-' + key;
-      if (!root.hasAttribute(attribute)) {
-        root.setAttribute(attribute, value);
+      Object.entries(attributes).forEach(function ([key, value]) {
+        var attribute = 'data-' + key;
+        if (!root.hasAttribute(attribute)) {
+          root.setAttribute(attribute, value);
+        }
+      });
+
+      var themePassRaw = null;
+      try {
+        themePassRaw = localStorage.getItem('dc-theme-pass');
+      } catch (error) {
+        themePassRaw = null;
       }
-    });
 
-    var resolveTheme = function (themeValue) {
-      if (!themeValue || themeValue === 'system') {
-        var prefersDark = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        return prefersDark ? 'dark' : 'light';
+      var themePassPayload = themePassFallback;
+      if (themePassRaw) {
+        try {
+          themePassPayload = JSON.parse(themePassRaw);
+        } catch (error) {
+          themePassPayload = themePassFallback;
+        }
       }
-      return themeValue;
-    };
 
-    var storedTheme = localStorage.getItem('data-theme');
-    var resolvedTheme = resolveTheme(storedTheme || defaultTheme);
-    root.setAttribute('data-theme', resolvedTheme);
+      if (themePassPayload && themePassPayload.metadata) {
+        try {
+          var metadata = themePassPayload.metadata;
+          var partnerAssets = metadata.partnerAssets || {};
+          for (var assetKey in partnerAssets) {
+            if (Object.prototype.hasOwnProperty.call(partnerAssets, assetKey)) {
+              try {
+                root.style.setProperty(assetKey, partnerAssets[assetKey]);
+              } catch (error) {
+                console.warn('[theme-pass] Failed to set CSS variable', assetKey, error);
+              }
+            }
+          }
 
-    Object.keys(attributes).forEach(function (key) {
-      var storageKey = 'data-' + key;
-      var storedValue = localStorage.getItem(storageKey);
-      if (storedValue) {
-        root.setAttribute(storageKey, storedValue);
+          var styleId = 'theme-pass-overrides';
+          var styleEl = document.getElementById(styleId);
+          if (!(styleEl instanceof HTMLStyleElement)) {
+            styleEl = document.createElement('style');
+            styleEl.id = styleId;
+            document.head.appendChild(styleEl);
+          }
+
+          var cssSegments = [];
+          var appendRules = function (selector, variables) {
+            if (!variables) return;
+            var keys = Object.keys(variables);
+            if (!keys.length) return;
+            cssSegments.push(selector + ' {');
+            keys.forEach(function (name) {
+              cssSegments.push('  ' + name + ': ' + variables[name] + ';');
+            });
+            cssSegments.push('}');
+          };
+
+          appendRules(':root', metadata.variables && metadata.variables.common);
+          appendRules('[data-theme="light"]', metadata.variables && metadata.variables.light);
+          appendRules('[data-theme="dark"]', metadata.variables && metadata.variables.dark);
+
+          if (cssSegments.length > 0) {
+            styleEl.textContent = cssSegments.join('\n');
+          }
+        } catch (error) {
+          console.warn('[theme-pass] Failed to hydrate theme pass', error);
+        }
       }
-    });
-  } catch (error) {
-    document.documentElement.setAttribute('data-theme', '${DEFAULT_THEME}');
-  }
-})();`;
-const dynamicThemeScriptMarkup =
-  `<script id="${THEME_SCRIPT_ID}">${dynamicThemeScript}</script>`;
 
-function ensureThemeAssets(markup: string): string {
+      var resolveTheme = function (themeValue) {
+        if (!themeValue || themeValue === 'system') {
+          var prefersDark = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          return prefersDark ? 'dark' : 'light';
+        }
+        return themeValue;
+      };
+
+      var storedTheme = null;
+      try {
+        storedTheme = localStorage.getItem('data-theme');
+      } catch (error) {
+        storedTheme = null;
+      }
+      var resolvedTheme = resolveTheme(storedTheme || defaultTheme);
+      root.setAttribute('data-theme', resolvedTheme);
+
+      Object.keys(attributes).forEach(function (key) {
+        var storageKey = 'data-' + key;
+        var storedValue = null;
+        try {
+          storedValue = localStorage.getItem(storageKey);
+        } catch (error) {
+          storedValue = null;
+        }
+        if (storedValue) {
+          root.setAttribute(storageKey, storedValue);
+        }
+      });
+    } catch (error) {
+      document.documentElement.setAttribute('data-theme', '${DEFAULT_THEME}');
+    }
+  })();`;
+}
+
+function ensureThemeAssets(markup: string, themeScriptMarkup: string): string {
   const fragments: string[] = [];
   const existingMarkup = markup ?? "";
 
@@ -121,7 +196,7 @@ function ensureThemeAssets(markup: string): string {
   }
 
   if (!existingMarkup.includes(`id="${THEME_SCRIPT_ID}"`)) {
-    fragments.push(dynamicThemeScriptMarkup);
+    fragments.push(themeScriptMarkup);
   }
 
   return fragments.join("\n");
@@ -234,6 +309,33 @@ export default async function RootLayout(
   const isStaticSnapshot =
     globalThis?.process?.env?.["STATIC_SNAPSHOT"] === "true";
 
+  let themePassData: unknown = null;
+  try {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      const { data } = await callEdgeFunction<{
+        themePass?: { id: string; metadata?: unknown } | null;
+      }>("THEME_GET", { token: session.access_token });
+      if (data?.themePass?.id && data.themePass.metadata) {
+        themePassData = {
+          id: data.themePass.id,
+          metadata: data.themePass.metadata,
+        };
+      }
+    }
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[theme-pass] Unable to resolve server selection", error);
+    }
+  }
+
+  const dynamicThemeScript = createDynamicThemeScript(themePassData);
+  const dynamicThemeScriptMarkup =
+    `<script id="${THEME_SCRIPT_ID}">${dynamicThemeScript}</script>`;
+
   if (isStaticSnapshot) {
     const { head, body, lang } = await getStaticLandingDocument();
     return (
@@ -244,7 +346,11 @@ export default async function RootLayout(
         {...htmlAttributeDefaults}
         data-theme={DEFAULT_THEME}
       >
-        <head dangerouslySetInnerHTML={{ __html: ensureThemeAssets(head) }} />
+        <head
+          dangerouslySetInnerHTML={{
+            __html: ensureThemeAssets(head, dynamicThemeScriptMarkup),
+          }}
+        />
         <body
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: body }}

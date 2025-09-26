@@ -12,6 +12,24 @@ function parseToken(bearer: string | undefined) {
   }
 }
 
+type ThemeMode = "auto" | "light" | "dark";
+
+function isThemeMode(value: unknown): value is ThemeMode {
+  return value === "auto" || value === "light" || value === "dark";
+}
+
+function sanitizeThemePass(value: unknown) {
+  if (!value || typeof value !== "object") return null;
+  const { id, metadata } = value as { id?: unknown; metadata?: unknown };
+  if (typeof id !== "string" || id.length === 0) {
+    return null;
+  }
+  if (metadata && typeof metadata === "object") {
+    return { id, metadata };
+  }
+  return { id };
+}
+
 export async function handler(req: Request): Promise<Response> {
   const uid = parseToken(req.headers.get("authorization") || "");
   if (!uid) {
@@ -19,12 +37,14 @@ export async function handler(req: Request): Promise<Response> {
       status: 401,
     });
   }
-  const { mode } = await req.json().catch(() => ({}));
-  if (!["auto", "light", "dark"].includes(mode)) {
+  const { mode, themePass } = await req.json().catch(() => ({}));
+  if (!isThemeMode(mode)) {
     return new Response(JSON.stringify({ ok: false, error: "bad mode" }), {
       status: 400,
     });
   }
+  const normalizedThemePass = sanitizeThemePass(themePass);
+  const payload = JSON.stringify({ mode, themePass: normalizedThemePass });
   try {
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = requireEnv(
       [
@@ -36,7 +56,7 @@ export async function handler(req: Request): Promise<Response> {
     // upsert into bot_settings
     const body = [{
       setting_key: `theme:${uid}`,
-      setting_value: mode,
+      setting_value: payload,
       description: "miniapp theme",
       is_system: false,
     }];

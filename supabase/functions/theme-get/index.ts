@@ -12,6 +12,49 @@ function parseToken(bearer: string | undefined) {
   }
 }
 
+type ThemeMode = "auto" | "light" | "dark";
+
+function isThemeMode(value: unknown): value is ThemeMode {
+  return value === "auto" || value === "light" || value === "dark";
+}
+
+function parseThemePreference(
+  value: unknown,
+): { mode: ThemeMode; themePass?: { id: string; metadata?: unknown } | null } {
+  const fallback: ThemeMode = "auto";
+
+  if (typeof value === "string") {
+    try {
+      return parseThemePreference(JSON.parse(value));
+    } catch {
+      return { mode: isThemeMode(value) ? value : fallback };
+    }
+  }
+
+  if (value && typeof value === "object") {
+    const candidate = value as { mode?: unknown; themePass?: unknown };
+    const mode = isThemeMode(candidate.mode) ? candidate.mode : fallback;
+    let themePass = null;
+    const rawThemePass = candidate.themePass;
+    if (rawThemePass && typeof rawThemePass === "object") {
+      const { id, metadata } = rawThemePass as {
+        id?: unknown;
+        metadata?: unknown;
+      };
+      if (typeof id === "string" && id.length > 0) {
+        if (metadata && typeof metadata === "object") {
+          themePass = { id, metadata };
+        } else {
+          themePass = { id };
+        }
+      }
+    }
+    return { mode, themePass };
+  }
+
+  return { mode: fallback };
+}
+
 export async function handler(req: Request): Promise<Response> {
   const uid = parseToken(req.headers.get("authorization") || "");
   if (!uid) {
@@ -19,9 +62,9 @@ export async function handler(req: Request): Promise<Response> {
       status: 401,
     });
   }
-  const mode = await getSetting<"auto" | "light" | "dark">(`theme:${uid}`)
-    || "auto";
-  return new Response(JSON.stringify({ mode }), {
+  const stored = await getSetting<unknown>(`theme:${uid}`);
+  const preference = parseThemePreference(stored ?? "auto");
+  return new Response(JSON.stringify(preference), {
     headers: { "content-type": "application/json" },
   });
 }
