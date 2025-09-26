@@ -130,8 +130,10 @@ export const handler = registerHandler(async (req) => {
     }
 
     // Calculate total revenue
-    const totalRevenue = revenueData?.reduce((sum, payment) =>
-      sum + (payment.amount || 0), 0) || 0;
+    const totalRevenue = (revenueData ?? []).reduce((sum, payment) => {
+      const amount = Number(payment.amount ?? 0);
+      return sum + (Number.isFinite(amount) ? amount : 0);
+    }, 0);
     logStep("Total revenue calculated", { totalRevenue });
 
     // Calculate package performance
@@ -143,15 +145,17 @@ export const handler = registerHandler(async (req) => {
         sub.plan_id === plan.id
       ) || [];
 
-      const revenue = planPayments.reduce((sum, payment) =>
-        sum + (payment.amount || 0), 0);
+      const revenue = planPayments.reduce((sum, payment) => {
+        const amount = Number(payment.amount ?? 0);
+        return sum + (Number.isFinite(amount) ? amount : 0);
+      }, 0);
       const sales = planSubscriptions.length;
 
       return {
         id: plan.id,
         name: plan.name,
         sales,
-        revenue: revenue / 100, // Convert from cents
+        revenue,
         currency: plan.currency || "USD",
       };
     }) || [];
@@ -168,7 +172,7 @@ export const handler = registerHandler(async (req) => {
 
     const analyticsData = {
       timeframe,
-      total_revenue: totalRevenue / 100, // Convert from cents
+      total_revenue: totalRevenue,
       currency: "USD",
       comparison: comparisonData,
       package_performance: packagePerformance,
