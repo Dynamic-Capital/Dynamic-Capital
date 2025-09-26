@@ -53,6 +53,103 @@ interface ChatAssistantWidgetProps {
 
 const MAX_HISTORY = 50;
 const MAX_REQUEST_HISTORY = 20;
+const SUGGESTION_PAGE_SIZE = 3;
+const MAX_SUGGESTION_DECK = 12;
+
+type SyncStatus = "idle" | "syncing" | "connected" | "error";
+
+interface WeightedSuggestion {
+  text: string;
+  weight: number;
+}
+
+const INTRO_SUGGESTIONS: readonly WeightedSuggestion[] = [
+  { text: "What does the Dynamic Capital desk include?", weight: 5 },
+  { text: "How do I get started with VIP onboarding?", weight: 4 },
+  { text: "Which automation templates can I unlock?", weight: 4 },
+];
+
+const FOLLOW_UP_SUGGESTIONS: readonly WeightedSuggestion[] = [
+  { text: "Show me the latest automation playbooks.", weight: 4 },
+  { text: "What trading tools can I access today?", weight: 4 },
+  { text: "How do I escalate to a human desk lead?", weight: 4 },
+];
+
+const PROGRESSION_SUGGESTIONS: readonly WeightedSuggestion[] = [
+  { text: "Summarize the key desk takeaways so far.", weight: 3 },
+  { text: "What should I prioritize next to stay on track?", weight: 3 },
+];
+
+const STATUS_SUGGESTIONS: Record<SyncStatus, readonly WeightedSuggestion[]> = {
+  idle: [
+    { text: "Walk me through the desk services.", weight: 6 },
+    { text: "What perks unlock when I activate the desk?", weight: 5 },
+  ],
+  syncing: [
+    { text: "While it syncs, show me quick wins.", weight: 6 },
+    { text: "Preview the automation templates I should prep.", weight: 5 },
+  ],
+  connected: [
+    { text: "Recommend my next best action.", weight: 6 },
+    { text: "Which signals or bots should I enable today?", weight: 5 },
+  ],
+  error: [
+    { text: "How do I reach @DynamicCapital_Support?", weight: 6 },
+    { text: "Share the offline trading playbook.", weight: 5 },
+    { text: "Show me what to do while the desk is offline.", weight: 5 },
+  ],
+};
+
+const KEYWORD_SUGGESTIONS: Record<string, readonly WeightedSuggestion[]> = {
+  vip: [
+    { text: "Compare VIP mentorship tiers for me.", weight: 6 },
+    { text: "What perks come with VIP onboarding?", weight: 5 },
+  ],
+  mentor: [
+    { text: "Who are the VIP mentors I can meet?", weight: 5 },
+    { text: "Line up my first mentorship session.", weight: 4 },
+  ],
+  token: [
+    { text: "Explain the DCT token utilities again.", weight: 6 },
+    { text: "How do I earn more DCT rewards?", weight: 4 },
+  ],
+  plan: [
+    { text: "Break down the subscription plans.", weight: 6 },
+    { text: "Help me choose between the VIP plans.", weight: 5 },
+  ],
+  bot: [
+    { text: "Which bots should I start with today?", weight: 6 },
+    { text: "Set up a starter automation flow for me.", weight: 5 },
+  ],
+  automation: [
+    { text: "Guide me through setting up automation.", weight: 6 },
+    { text: "Show automation templates by strategy.", weight: 5 },
+  ],
+  risk: [
+    { text: "Give me risk management best practices.", weight: 6 },
+    { text: "Build me a guardrail checklist.", weight: 5 },
+  ],
+  support: [
+    { text: "List human support options.", weight: 6 },
+    { text: "When should I escalate to a desk lead?", weight: 5 },
+  ],
+};
+
+const TELEGRAM_CONNECTED_SUGGESTIONS: readonly WeightedSuggestion[] = [
+  { text: "Confirm my Telegram perks are active.", weight: 5 },
+  { text: "Sync my Telegram chats with the desk.", weight: 4 },
+];
+
+const TELEGRAM_UNCONNECTED_SUGGESTIONS: readonly WeightedSuggestion[] = [
+  { text: "Sync my Telegram perks with the desk.", weight: 6 },
+  { text: "Invite me to the Dynamic Capital VIP rooms.", weight: 5 },
+];
+
+const DESK_PLAYBOOK = [
+  "24/7 coverage with human desk leads for escalations.",
+  "Automation templates for scalps, swings, and treasury flows.",
+  "Risk dashboards, journaling prompts, and daily debriefs included.",
+] as const;
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -64,7 +161,133 @@ interface ChatRequestMessage {
   content: string;
 }
 
-type SyncStatus = "idle" | "syncing" | "connected" | "error";
+interface SuggestionContext {
+  history: ChatMessage[];
+  status: SyncStatus;
+  hasTelegramProfile: boolean;
+}
+
+const normalize = (value: string) => value.toLowerCase();
+
+function buildSuggestionDeck({
+  history,
+  status,
+  hasTelegramProfile,
+}: SuggestionContext): string[] {
+  const userMessages = history.filter((message) => message.role === "user");
+  const assistantMessages = history.filter(
+    (message) => message.role === "assistant",
+  );
+  const lastUserMessage = userMessages.at(-1)?.content ?? "";
+  const lastUserMessageNormalized = normalize(lastUserMessage);
+  const isFirstInteraction = userMessages.length === 0;
+  const hasDeepThread = userMessages.length >= 3 ||
+    assistantMessages.length >= 3;
+
+  const scores = new Map<string, number>();
+
+  const addSuggestion = (suggestion: WeightedSuggestion | undefined) => {
+    if (!suggestion) {
+      return;
+    }
+    const text = suggestion.text.trim();
+    if (!text) {
+      return;
+    }
+    const normalized = normalize(text);
+    if (normalized === lastUserMessageNormalized) {
+      return;
+    }
+    const nextScore = (scores.get(text) ?? 0) + suggestion.weight;
+    scores.set(text, nextScore);
+  };
+
+  const addSuggestions = (
+    suggestions: readonly WeightedSuggestion[] | undefined,
+    weightMultiplier = 1,
+  ) => {
+    if (!suggestions) {
+      return;
+    }
+    for (const suggestion of suggestions) {
+      addSuggestion({
+        text: suggestion.text,
+        weight: suggestion.weight * weightMultiplier,
+      });
+    }
+  };
+
+  addSuggestions(STATUS_SUGGESTIONS[status]);
+  addSuggestions(
+    isFirstInteraction ? INTRO_SUGGESTIONS : FOLLOW_UP_SUGGESTIONS,
+  );
+
+  for (const [keyword, suggestions] of Object.entries(KEYWORD_SUGGESTIONS)) {
+    if (lastUserMessageNormalized.includes(keyword)) {
+      addSuggestions(suggestions, 1.15);
+    }
+  }
+
+  if (hasTelegramProfile) {
+    addSuggestions(TELEGRAM_CONNECTED_SUGGESTIONS);
+  } else {
+    addSuggestions(TELEGRAM_UNCONNECTED_SUGGESTIONS);
+  }
+
+  if (hasDeepThread) {
+    addSuggestions(PROGRESSION_SUGGESTIONS);
+  }
+
+  addSuggestions(INTRO_SUGGESTIONS, 0.75);
+  addSuggestions(FOLLOW_UP_SUGGESTIONS, 0.65);
+
+  const askedQuestions = new Set(
+    userMessages.map((message) => normalize(message.content)),
+  );
+
+  const ranked = Array.from(scores.entries()).map(([text, score]) => {
+    const penalty = askedQuestions.has(normalize(text)) ? 4 : 0;
+    return {
+      text,
+      score: score - penalty,
+    };
+  });
+
+  const filtered = ranked
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => {
+      if (b.score === a.score) {
+        return a.text.localeCompare(b.text);
+      }
+      return b.score - a.score;
+    })
+    .map((entry) => entry.text);
+
+  if (filtered.length === 0) {
+    return INTRO_SUGGESTIONS.map((entry) => entry.text);
+  }
+
+  if (filtered.length < SUGGESTION_PAGE_SIZE) {
+    const fallbackPool = [
+      ...INTRO_SUGGESTIONS,
+      ...FOLLOW_UP_SUGGESTIONS,
+      ...(hasTelegramProfile
+        ? TELEGRAM_CONNECTED_SUGGESTIONS
+        : TELEGRAM_UNCONNECTED_SUGGESTIONS),
+    ];
+    for (const fallback of fallbackPool) {
+      if (filtered.includes(fallback.text)) {
+        continue;
+      }
+      filtered.push(fallback.text);
+      if (filtered.length >= SUGGESTION_PAGE_SIZE) {
+        break;
+      }
+    }
+  }
+
+  return filtered.slice(0, MAX_SUGGESTION_DECK);
+}
 
 const SYSTEM_PROMPT =
   `You are the Dynamic Capital desk assistant. Answer like an elite trading desk lead: confident, structured, and concise. Use short paragraphs or bullet points when useful, keep replies under 180 words, and highlight VIP access, execution support, automation templates, and 24/7 desk coverage when relevant. Always include a short risk disclaimer and finish with: "💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!"`;
@@ -190,6 +413,7 @@ export function ChatAssistantWidget(
     }
   });
   const [hasUnread, setHasUnread] = useState(false);
+  const [suggestionCursor, setSuggestionCursor] = useState(0);
   const [sessionId] = useState(() => {
     if (typeof window === "undefined") {
       return "";
@@ -206,14 +430,60 @@ export function ChatAssistantWidget(
   const inputRef = useRef<HTMLInputElement | null>(null);
   const previousAssistantCountRef = useRef(0);
 
-  const quickSuggestions = useMemo(
-    () => [
-      "What’s VIP Mentorship?",
-      "How does DCT token work?",
-      "Show me subscription plans.",
-    ],
-    [],
+  const focusInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+  }, []);
+
+  const suggestionDeck = useMemo(
+    () =>
+      buildSuggestionDeck({
+        history: messages,
+        status: syncStatus,
+        hasTelegramProfile: Boolean(telegramData),
+      }),
+    [messages, syncStatus, telegramData],
   );
+
+  const totalSuggestionPages = useMemo(() => {
+    if (suggestionDeck.length === 0) {
+      return 0;
+    }
+    return Math.ceil(suggestionDeck.length / SUGGESTION_PAGE_SIZE);
+  }, [suggestionDeck.length]);
+
+  const visibleSuggestions = useMemo(() => {
+    if (totalSuggestionPages === 0) {
+      return [] as string[];
+    }
+    const start = suggestionCursor * SUGGESTION_PAGE_SIZE;
+    return suggestionDeck.slice(start, start + SUGGESTION_PAGE_SIZE);
+  }, [suggestionCursor, suggestionDeck, totalSuggestionPages]);
+
+  useEffect(() => {
+    setSuggestionCursor(0);
+  }, [messages.length, syncStatus, telegramData?.id]);
+
+  useEffect(() => {
+    setSuggestionCursor((current) => {
+      if (totalSuggestionPages === 0) {
+        return 0;
+      }
+      return Math.min(current, totalSuggestionPages - 1);
+    });
+  }, [totalSuggestionPages]);
+
+  const hasSuggestionOverflow = totalSuggestionPages > 1;
+  const hasSuggestions = visibleSuggestions.length > 0;
+
+  const cycleSuggestions = useCallback(() => {
+    if (totalSuggestionPages === 0) {
+      return;
+    }
+    setSuggestionCursor((current) => (current + 1) % totalSuggestionPages);
+    focusInput();
+  }, [focusInput, totalSuggestionPages]);
 
   const assistantMessageCount = useMemo(
     () => messages.filter((message) => message.role === "assistant").length,
@@ -299,12 +569,6 @@ export function ChatAssistantWidget(
     setMessages((previous) => {
       const next = [...previous, ...msgs];
       return next.slice(-MAX_HISTORY);
-    });
-  }, []);
-
-  const focusInput = useCallback(() => {
-    requestAnimationFrame(() => {
-      inputRef.current?.focus();
     });
   }, []);
 
@@ -774,27 +1038,89 @@ export function ChatAssistantWidget(
                             : null}
                         </AnimatePresence>
                       </div>
-                      <Column gap="8" align="start" className="w-full">
+                      {hasSuggestions
+                        ? (
+                          <Column gap="8" align="start" className="w-full">
+                            <Row
+                              horizontal="between"
+                              vertical="center"
+                              className="w-full"
+                            >
+                              <Text
+                                variant="label-default-s"
+                                onBackground="neutral-weak"
+                              >
+                                Quick replies
+                              </Text>
+                              {hasSuggestionOverflow
+                                ? (
+                                  <Button
+                                    type="button"
+                                    size="s"
+                                    variant="secondary"
+                                    data-border="rounded"
+                                    onClick={cycleSuggestions}
+                                    aria-label="Refresh quick replies"
+                                  >
+                                    <span className="flex items-center gap-1.5">
+                                      <RotateCcw className="h-4 w-4" />
+                                      <span>Refresh</span>
+                                    </span>
+                                  </Button>
+                                )
+                                : null}
+                            </Row>
+                            <Row gap="8" wrap className="w-full">
+                              {visibleSuggestions.map((suggestion) => (
+                                <Button
+                                  key={suggestion}
+                                  type="button"
+                                  size="s"
+                                  variant="secondary"
+                                  data-border="rounded"
+                                  onClick={() => handleSuggestion(suggestion)}
+                                >
+                                  {suggestion}
+                                </Button>
+                              ))}
+                            </Row>
+                          </Column>
+                        )
+                        : null}
+                      <Column
+                        gap="8"
+                        align="start"
+                        className="w-full rounded-xl border border-primary/10 bg-primary/5 p-4"
+                      >
                         <Text
                           variant="label-default-s"
                           onBackground="neutral-weak"
                         >
-                          Quick replies
+                          Desk playbook highlights
                         </Text>
-                        <Row gap="8" wrap>
-                          {quickSuggestions.map((suggestion) => (
-                            <Button
-                              key={suggestion}
-                              type="button"
-                              size="s"
-                              variant="secondary"
-                              data-border="rounded"
-                              onClick={() => handleSuggestion(suggestion)}
+                        <Column gap="4" align="start" className="w-full">
+                          {DESK_PLAYBOOK.map((highlight) => (
+                            <Row
+                              key={highlight}
+                              gap="8"
+                              align="start"
+                              vertical="start"
+                              className="w-full"
                             >
-                              {suggestion}
-                            </Button>
+                              <span className="mt-1 text-xs text-primary">
+                                •
+                              </span>
+                              <Text
+                                as="span"
+                                variant="body-default-xs"
+                                onBackground="neutral-strong"
+                                className="text-left"
+                              >
+                                {highlight}
+                              </Text>
+                            </Row>
                           ))}
-                        </Row>
+                        </Column>
                       </Column>
                       <form
                         onSubmit={handleSubmit}
