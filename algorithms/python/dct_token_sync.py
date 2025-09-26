@@ -175,7 +175,7 @@ class DCTProductionPlanner:
         else:
             cap = max(0.0, cap)
 
-        final_mint = min(smoothed_mint, cap) if cap > 0 else smoothed_mint
+        final_mint = min(smoothed_mint, cap)
         cap_applied = final_mint < smoothed_mint
         return DCTProductionPlan(
             target_mint=target_mint,
