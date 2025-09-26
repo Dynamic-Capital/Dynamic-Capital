@@ -90,6 +90,9 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 - Optional Mini App (glass theme, 1:1 assets)
 - Admin commands for maintenance
 - **Dynamic Codex Integration** for AI-powered development
+- **Multi-LLM Studio tool** (`apps/web/app/tools/multi-llm`) for comparing
+  OpenAI, Anthropic, and Groq chat completions side by side with configurable
+  temperature and token limits directly inside the main Next.js app.
 
 ## Dynamic Theme System
 

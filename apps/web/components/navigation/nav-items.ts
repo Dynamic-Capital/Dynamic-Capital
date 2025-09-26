@@ -1,5 +1,6 @@
 import {
   Award,
+  Bot,
   GraduationCap,
   Home,
   LayoutDashboard,
@@ -83,6 +84,17 @@ export const NAV_ITEMS: NavItem[] = [
     path: "/tools/heatmap",
     ariaLabel:
       "Step 6: Heatmap tool. Explore the desk's cross-asset market heatmap.",
+    showOnMobile: true,
+  },
+  {
+    id: "multi-llm",
+    step: "Step 7",
+    label: "LLM studio",
+    description: "Benchmark responses across our AI provider stack.",
+    icon: Bot,
+    path: "/tools/multi-llm",
+    ariaLabel:
+      "Step 7: LLM studio. Benchmark responses across our AI provider stack.",
     showOnMobile: true,
   },
 ];
