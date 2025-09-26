@@ -1,0 +1,8 @@
+{
+  "venueAllowlist": ["binance", "kraken"],
+  "venueCaps": {
+    "binance": 25000,
+    "kraken": 15000
+  },
+  "rateLimitPerMinute": 60
+}
