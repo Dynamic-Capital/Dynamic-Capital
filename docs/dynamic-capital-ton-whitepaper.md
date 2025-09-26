@@ -114,6 +114,32 @@ when volatility triggers are breached, subject to post-event ratification.
 - Conduct a formal governance review of price structure levers every 30 days,
   with quarterly deep dives that audit performance against guardrail metrics.
 
+### TON DEX Transparency Stack
+
+Dynamic Capital complements internal dashboards with public TON-native scanners
+so that community members can independently verify market health:
+
+1. **DeDust.io Scanner** – The flagship TON DEX interface for reviewing DCT
+   liquidity pools, recent swaps, and aggregated trading volume once the jetton
+   is listed.
+2. **STON.fi Analytics** – Provides TVL, pool depth, and price history for the
+   STON.fi pairs that concentrate treasury-backed liquidity (e.g., DCT/TON and
+   DCT/USDT).
+3. **TONviewer** – A network-wide explorer that surfaces jetton balances and
+   transfer history, helping contributors audit vesting contracts and treasury
+   wallets.
+4. **DexScreener** – Aggregates live market data across TON DEX venues,
+   including DeDust and STON.fi, and auto-generates a public chart once the
+   liquidity pool address is active.
+
+**Operational Workflow.** After deploying the DCT jetton, treasury managers seed
+liquidity on DeDust and STON.fi pairs. DexScreener ingests those pools and
+publishes a shareable analytics page (e.g.,
+`https://dexscreener.com/ton/dct-ton`) that investors can monitor for price
+discovery, market cap, depth, and order flow. These open tools reinforce Dynamic
+Capital’s transparency mandate by making every trade, unlock, and liquidity
+adjustment observable without requiring proprietary access.
+
 ## Token Supply & Emissions
 
 ### Distribution Overview

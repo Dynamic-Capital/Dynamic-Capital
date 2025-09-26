@@ -43,6 +43,12 @@ from .economic_catalysts import (
     EconomicCatalystGenerator,
     EconomicCatalystSyncJob,
 )
+from .dex_scanner import (
+    DexPoolSnapshot,
+    DexScannerAlgo,
+    DexScannerSignal,
+    build_scanner_for_tokens,
+)
 from .currency_correlation import (
     CorrelationSeries,
     CurrencyCorrelationCalculator,
@@ -143,6 +149,10 @@ __all__ = _trade_exports + [
     "ElliottWaveReport",
     "MechanicalAnalysisCalculator",
     "MechanicalMetrics",
+    "DexPoolSnapshot",
+    "DexScannerAlgo",
+    "DexScannerSignal",
+    "build_scanner_for_tokens",
     "EconomicCatalyst",
     "EconomicCatalystGenerator",
     "EconomicCatalystSyncJob",
@@ -243,6 +253,10 @@ globals().update(
         "EconomicCatalyst": EconomicCatalyst,
         "EconomicCatalystGenerator": EconomicCatalystGenerator,
         "EconomicCatalystSyncJob": EconomicCatalystSyncJob,
+        "DexPoolSnapshot": DexPoolSnapshot,
+        "DexScannerAlgo": DexScannerAlgo,
+        "DexScannerSignal": DexScannerSignal,
+        "build_scanner_for_tokens": build_scanner_for_tokens,
         "CorrelationSeries": CorrelationSeries,
         "CurrencyCorrelationCalculator": CurrencyCorrelationCalculator,
         "CurrencyCorrelationReport": CurrencyCorrelationReport,
