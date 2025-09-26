@@ -37,12 +37,13 @@ controller; any future adjustments require an on-chain governance vote with
 delayed execution safeguards. This mirrors the deployment configuration for the
 jetton, anchoring monetary policy in auditable on-chain parameters.
 
-At launch, circulating supply is constrained to programmatic emissions from the
-Community & Rewards stream alongside the dedicated Liquidity & Market Making
-buffer. Treasury, team, advisor, and grant allocations are escrowed in TON
-vesting contracts with transparent cliffs and drip schedules that mirror the
-table below. Unlock schedules are published ahead of time, and governance can
-pause or re-sequence emissions if security or market stability concerns arise.
+At launch, circulating supply is constrained to the public circulation
+allocation that fuels community growth initiatives alongside the dedicated
+liquidity provision buffer. Treasury, team, advisor, staking, and liquidity
+allocations are escrowed in TON vesting contracts with transparent cliffs and
+drip schedules that mirror the table below. Unlock schedules are published ahead
+of time, and governance can pause or re-sequence emissions if security or market
+stability concerns arise.
 
 Treasury policies route a governed share of protocol fees toward buybacks and
 liquidity programs, reinforcing price stability while re-circulating value to
@@ -115,17 +116,49 @@ when volatility triggers are breached, subject to post-event ratification.
 
 ## Token Supply & Emissions
 
-| Allocation                | Amount (DCT) | Percent of Supply | Vesting / Unlock Schedule                               |
-| ------------------------- | ------------ | ----------------- | -------------------------------------------------------- |
-| Community & Rewards       | 50,000,000   | 50%               | 48-month emissions with halving every 12 months          |
-| Treasury / Operations     | 20,000,000   | 20%               | Governance-gated deployments; quarterly reporting        |
-| Team & Advisors (Vested)  | 15,000,000   | 15%               | 12-month cliff followed by 36-month linear vesting       |
-| Liquidity & Market Making | 10,000,000   | 10%               | STON.fi & DeDust pools managed by multisig rebalancing   |
-| Ecosystem Grants          | 5,000,000    | 5%                | Milestone-based releases with governance approval        |
+### Distribution Overview
+
+| Allocation          | Amount (DCT) | Percent of Supply | Vesting / Unlock Schedule                 |
+| ------------------- | ------------ | ----------------- | ----------------------------------------- |
+| Public Circulation  | 50,000,000   | 50%               | Sales, airdrops, and ecosystem incentives |
+| Treasury            | 20,000,000   | 20%               | Governance-gated deployments              |
+| Team & Advisors     | 15,000,000   | 15%               | 12-month cliff, 36-month vesting          |
+| Staking Rewards     | 10,000,000   | 10%               | Programmatic staking emissions            |
+| Liquidity Provision | 5,000,000    | 5%                | TON DEX and CEX liquidity support         |
 
 Emission events are orchestrated via audited TON smart contracts.
 Treasury-controlled mint functions are time-locked and require multi-signature
 authorization to protect against supply shocks.
+
+### Sale Rounds
+
+- **Private Sale (Seed Investors)** – 10,000,000 DCT allocated at $0.02 per
+  token. Participants receive 20% at the Token Generation Event (TGE) with the
+  remaining 80% vesting linearly over six months.
+- **Public Sale (IDO via TONStarter)** – 15,000,000 DCT offered at $0.05 per
+  token. Tokens are fully unlocked at TGE to accelerate community distribution.
+- **DEX Listing (STON.fi / DeDust)** – Launch liquidity seeded at $0.10 per DCT
+  from the treasury and liquidity provisions to bootstrap trading pairs.
+
+### Token Credit Settlement
+
+- **Private & Public Sales** – Contributors send TON or USDT to the official
+  sale contract, which auto-credits purchased DCT directly to their TON wallet.
+- **DEX Trading** – Swaps on supported pools settle instantly against seeded
+  liquidity reserves.
+- **Staking Rewards** – Treasury-managed distributions stream to wallets that
+  lock DCT in staking contracts.
+- **Ecosystem Usage** – Payments for mentorship, subscriptions, or fund pools
+  can be converted into DCT and either credited to wallets or locked to activate
+  benefits.
+
+### Public Sale Contract Address
+
+The public sale is executed through a verified TON Jetton Sale Contract. The
+official address is announced ahead of launch on Dynamic Capital’s Telegram
+channels, the official website, and the TONStarter launchpad. Always verify the
+address through these sources before contributing; funds sent to unverified
+contracts cannot be recovered.
 
 ## Utility
 
@@ -170,9 +203,12 @@ Treasury deployments require dual approval from the Contributor Council and
 Token Assembly. Reporting dashboards publish monthly transparency updates
 detailing inflows, outflows, and performance.
 
-| Operations Treasury Wallet | Address | Explorer Links |
-| -------------------------- | ------- | -------------- |
-| Multisig (Ops runway)      | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | [tonviewer](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) · [tonscan](https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) |
+- **Operations Treasury Wallet**
+  - **Address:** `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD`
+  - **Explorer:**
+    [tonviewer](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD)
+    ·
+    [tonscan](https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD)
 
 The operations treasury wallet aggregates subscription inflows before routing
 governance-approved splits to auto-invest, burn, and working-capital buckets. A
