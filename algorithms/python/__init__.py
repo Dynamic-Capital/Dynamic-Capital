@@ -46,6 +46,12 @@ from .vip_auto_token_sync import (
     VipTokenGrant,
     VipTokenisationStrategy,
 )
+from .desk_token_hub import (
+    CHECKLIST_REFERENCE as DESK_TOKEN_CHECKLIST_REFERENCE,
+    TokenHubDevelopmentContext,
+    TokenHubDevelopmentOrchestrator,
+    TokenHubSyncReport,
+)
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
@@ -82,6 +88,10 @@ __all__ = _trade_exports + [
     "DCTLLMAdjustment",
     "DCTLLMOptimisationResult",
     "DCTSyncJob",
+    "DESK_TOKEN_CHECKLIST_REFERENCE",
+    "TokenHubDevelopmentContext",
+    "TokenHubDevelopmentOrchestrator",
+    "TokenHubSyncReport",
     "VipAutoSyncJob",
     "VipAutoSyncReport",
     "VipMembershipProvider",
@@ -125,6 +135,10 @@ globals().update(
         "DCTLLMAdjustment": DCTLLMAdjustment,
         "DCTLLMOptimisationResult": DCTLLMOptimisationResult,
         "DCTSyncJob": DCTSyncJob,
+        "DESK_TOKEN_CHECKLIST_REFERENCE": DESK_TOKEN_CHECKLIST_REFERENCE,
+        "TokenHubDevelopmentContext": TokenHubDevelopmentContext,
+        "TokenHubDevelopmentOrchestrator": TokenHubDevelopmentOrchestrator,
+        "TokenHubSyncReport": TokenHubSyncReport,
         "VipAutoSyncJob": VipAutoSyncJob,
         "VipAutoSyncReport": VipAutoSyncReport,
         "VipMembershipProvider": VipMembershipProvider,
