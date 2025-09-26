@@ -1,4 +1,5 @@
 import {
+  assert,
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
@@ -9,8 +10,9 @@ Deno.env.set("TELEGRAM_BOT_TOKEN", "bot-token");
 Deno.env.set("ANNOUNCE_CHAT_ID", "chat-id");
 Deno.env.set("APP_URL", "https://app.example");
 Deno.env.set("TON_INDEXER_URL", "https://indexer.example");
+Deno.env.set("TON_USD_OVERRIDE", "2");
 
-const { handler } = await import("./index.ts");
+const { handler, verifyTonPayment } = await import("./index.ts");
 type HandlerDependencies = NonNullable<Parameters<typeof handler>[1]>;
 
 type AppConfigRow = {
@@ -28,23 +30,145 @@ type AppConfigRow = {
   dex_router: string;
 };
 
-function createSupabaseStub(config: AppConfigRow) {
-  return {
-    from(table: string) {
-      if (table === "app_config") {
-        return {
-          select() {
-            return {
-              eq: () => ({
-                single: async () => ({ data: config, error: null }),
-              }),
-            };
-          },
-        };
-      }
-      throw new Error(`Unexpected table access: ${table}`);
+type SupabaseStubState = {
+  subscriptions: Array<unknown>;
+  stakes: Array<unknown>;
+  txLogs: Array<unknown>;
+};
+
+function createSupabaseStub(
+  config: AppConfigRow,
+  options: {
+    user?: { id: string } | null;
+    wallet?: { address?: string } | null;
+    planPricing?: Record<string, {
+      price: number;
+      currency?: string;
+      dynamic_price_usdt?: number | null;
+      pricing_formula?: string | null;
+      last_priced_at?: string | null;
+      performance_snapshot?: Record<string, unknown> | null;
+    }>;
+  } = {},
+) {
+  const state: SupabaseStubState = {
+    subscriptions: [],
+    stakes: [],
+    txLogs: [],
+  };
+
+  const plans = options.planPricing ?? {
+    vip_bronze: {
+      price: 120,
+      currency: "USD",
+      performance_snapshot: { ton_amount: 1.2, dct_amount: 120 },
     },
   };
+
+  const client = {
+    from(table: string) {
+      switch (table) {
+        case "app_config":
+          return {
+            select() {
+              return {
+                eq() {
+                  return {
+                    single: async () => ({ data: config, error: null }),
+                  };
+                },
+              };
+            },
+          };
+        case "subscription_plans":
+          return {
+            select() {
+              return {
+                eq(_column: string, value: string) {
+                  return {
+                    single: async () => ({
+                      data: plans[value] ?? null,
+                      error: plans[value]
+                        ? null
+                        : { message: "Plan not found" },
+                    }),
+                  };
+                },
+              };
+            },
+          };
+        case "users":
+          return {
+            select() {
+              return {
+                eq() {
+                  return {
+                    single: async () => ({
+                      data: options.user ?? null,
+                      error: options.user
+                        ? null
+                        : { message: "User not found" },
+                    }),
+                  };
+                },
+              };
+            },
+          };
+        case "wallets":
+          return {
+            select() {
+              return {
+                eq() {
+                  return {
+                    maybeSingle: async () => ({
+                      data: options.wallet ?? null,
+                      error: null,
+                    }),
+                  };
+                },
+              };
+            },
+          };
+        case "subscriptions":
+          return {
+            insert(values: unknown) {
+              state.subscriptions.push(values);
+              return {
+                select() {
+                  return {
+                    single: async () => ({
+                      data: {
+                        id: "sub-1",
+                        ...(values as Record<string, unknown>),
+                      },
+                      error: null,
+                    }),
+                  };
+                },
+              };
+            },
+          };
+        case "stakes":
+          return {
+            insert: async (values: unknown) => {
+              state.stakes.push(values);
+              return { error: null };
+            },
+          };
+        case "tx_logs":
+          return {
+            insert: async (values: Array<unknown>) => {
+              state.txLogs.push(...values);
+              return { error: null };
+            },
+          };
+        default:
+          throw new Error(`Unexpected table access: ${table}`);
+      }
+    },
+  };
+
+  return { client, state };
 }
 
 Deno.test("rejects subscription when TON transfer goes to different wallet", async () => {
@@ -61,7 +185,7 @@ Deno.test("rejects subscription when TON transfer goes to different wallet", asy
     },
   );
 
-  const supabaseStub = createSupabaseStub({
+  const { client: supabaseStub } = createSupabaseStub({
     operations_pct: 60,
     autoinvest_pct: 30,
     buyback_burn_pct: 10,
@@ -110,4 +234,183 @@ Deno.test("rejects subscription when TON transfer goes to different wallet", asy
   const body = await response.text();
   assertStringIncludes(body, "Funds not received");
   assertEquals(fetchCalls.length, 1);
+});
+
+Deno.test("verifyTonPayment fails closed when indexer URL is missing", async () => {
+  const original = Deno.env.get("TON_INDEXER_URL");
+  try {
+    if (original) Deno.env.delete("TON_INDEXER_URL");
+    const result = await verifyTonPayment(
+      "0xhash",
+      "EQOPS",
+      100,
+      async () => {
+        throw new Error("fetch should not be called");
+      },
+    );
+    assertEquals(result.ok, false);
+    if (result.ok) {
+      throw new Error(
+        "Expected verification to fail when indexer is unavailable",
+      );
+    }
+    assertEquals(result.error, "TON indexer unavailable");
+    assertEquals(result.status, 503);
+  } finally {
+    if (original) {
+      Deno.env.set("TON_INDEXER_URL", original);
+    }
+  }
+});
+
+Deno.test("rejects subscription when payer wallet mismatches linked wallet", async () => {
+  const request = new Request(
+    "https://example/functions/process-subscription",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        telegram_id: "1234",
+        plan: "vip_bronze",
+        tx_hash: "0xfeedbeef",
+      }),
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+
+  const { client: supabaseStub, state } = createSupabaseStub(
+    {
+      operations_pct: 60,
+      autoinvest_pct: 30,
+      buyback_burn_pct: 10,
+      min_ops_pct: 40,
+      max_ops_pct: 75,
+      min_invest_pct: 15,
+      max_invest_pct: 45,
+      min_burn_pct: 5,
+      max_burn_pct: 20,
+      ops_treasury: "EQOPS",
+      dct_master: "EQMASTER",
+      dex_router: "EQROUTER",
+    },
+    {
+      user: { id: "user-1" },
+      wallet: { address: "EQLINKED" },
+    },
+  );
+
+  const fetchStub: typeof fetch = async (input) => {
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+    if (url.includes("/transactions/")) {
+      return new Response(
+        JSON.stringify({
+          destination: "EQOPS",
+          amount: 120_000_000_000,
+          source: "EQATTACKER",
+        }),
+        { status: 200 },
+      );
+    }
+
+    throw new Error(`Unexpected fetch call: ${url}`);
+  };
+
+  const response = await handler(request, {
+    supabase: supabaseStub as HandlerDependencies["supabase"],
+    fetch: fetchStub,
+  });
+
+  assertEquals(response.status, 400);
+  const body = await response.text();
+  assertStringIncludes(body, "Payer wallet does not match linked wallet");
+  assertEquals(state.subscriptions.length, 0);
+  assertEquals(state.stakes.length, 0);
+  assertEquals(state.txLogs.length, 0);
+});
+
+Deno.test("processes subscription when payer wallet matches linked wallet", async () => {
+  const request = new Request(
+    "https://example/functions/process-subscription",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        telegram_id: "5678",
+        plan: "vip_bronze",
+        tx_hash: "0xabc123",
+      }),
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+
+  const { client: supabaseStub, state } = createSupabaseStub(
+    {
+      operations_pct: 60,
+      autoinvest_pct: 30,
+      buyback_burn_pct: 10,
+      min_ops_pct: 40,
+      max_ops_pct: 75,
+      min_invest_pct: 15,
+      max_invest_pct: 45,
+      min_burn_pct: 5,
+      max_burn_pct: 20,
+      ops_treasury: "EQOPS",
+      dct_master: "EQMASTER",
+      dex_router: "EQROUTER",
+    },
+    {
+      user: { id: "user-2" },
+      wallet: { address: "EQLINKED" },
+    },
+  );
+
+  const notifications: Array<string> = [];
+  const fetchCalls: Array<string> = [];
+  const fetchStub: typeof fetch = async (input, init) => {
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+    fetchCalls.push(url);
+
+    if (url.includes("/transactions/")) {
+      return new Response(
+        JSON.stringify({
+          destination: "EQOPS",
+          amount: 120_000_000_000,
+          source: "EQLINKED",
+        }),
+        { status: 200 },
+      );
+    }
+
+    if (url.includes("api.telegram.org")) {
+      if (init?.body) {
+        notifications.push(String(init.body));
+      }
+      return new Response("ok", { status: 200 });
+    }
+
+    throw new Error(`Unexpected fetch call: ${url}`);
+  };
+
+  const response = await handler(request, {
+    supabase: supabaseStub as HandlerDependencies["supabase"],
+    fetch: fetchStub,
+  });
+
+  assertEquals(response.status, 200);
+  assert(fetchCalls.some((url) => url.includes("/transactions/")));
+  assertEquals(state.subscriptions.length, 1);
+  assertEquals(state.stakes.length, 1);
+  assertEquals(state.txLogs.length, 4);
+
+  const payload = await response.json();
+  assertEquals(payload.ok, true);
+  assertEquals(payload.ton_paid > 0, true);
+  assertEquals(notifications.length, 1);
 });

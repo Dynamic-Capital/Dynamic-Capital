@@ -49,7 +49,7 @@ type SupabaseClient = typeof supabase;
 
 type VerifyTonPaymentResult =
   | { ok: true; amountTON: number; payerAddress?: string }
-  | { ok: false; error: string };
+  | { ok: false; error: string; status?: number };
 
 interface PlanPricing {
   basePrice: number;
@@ -132,7 +132,7 @@ function normalizeAddress(value: string): string {
   return value.trim().toLowerCase();
 }
 
-async function verifyTonPayment(
+export async function verifyTonPayment(
   txHash: string,
   expectedWallet: string,
   expectedAmount: number,
@@ -140,7 +140,11 @@ async function verifyTonPayment(
 ): Promise<VerifyTonPaymentResult> {
   const indexerUrl = Deno.env.get("TON_INDEXER_URL");
   if (!indexerUrl) {
-    return { ok: true, amountTON: expectedAmount };
+    return {
+      ok: false,
+      error: "TON indexer unavailable",
+      status: 503,
+    };
   }
 
   const response = await fetchFn(
@@ -324,8 +328,62 @@ export async function handler(
     );
 
     if (!verify.ok) {
-      console.warn("TON payment verification failed", verify.error);
-      return new Response(verify.error, { status: 400 });
+      const status = verify.status ?? 400;
+      const log = status >= 500 ? console.error : console.warn;
+      log("TON payment verification failed", verify.error);
+      return new Response(verify.error, { status });
+    }
+
+    const { data: userRow, error: userError } = await deps.supabase
+      .from("users")
+      .select("id")
+      .eq("telegram_id", telegram_id)
+      .single();
+
+    if (userError || !userRow) {
+      throw new Error("User not found");
+    }
+
+    const user = userRow as { id: string };
+
+    const { data: walletRow, error: walletError } = await deps.supabase
+      .from("wallets")
+      .select("address")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (walletError) {
+      throw new Error(walletError.message);
+    }
+
+    const linkedAddress = walletRow?.address as string | undefined;
+
+    if (!linkedAddress) {
+      console.warn("User has no linked wallet", { userId: user.id });
+      return new Response("Linked wallet required", { status: 400 });
+    }
+
+    const payerAddress = verify.payerAddress;
+
+    if (!payerAddress) {
+      console.warn("Missing payer address from TON verification", {
+        userId: user.id,
+        tx_hash,
+      });
+      return new Response("Unable to validate payer wallet", { status: 400 });
+    }
+
+    if (
+      normalizeAddress(linkedAddress) !== normalizeAddress(payerAddress)
+    ) {
+      console.warn("Payer wallet mismatch", {
+        userId: user.id,
+        linkedAddress,
+        payerAddress,
+      });
+      return new Response("Payer wallet does not match linked wallet", {
+        status: 400,
+      });
     }
 
     const tonPaid = verify.amountTON;
@@ -340,18 +398,6 @@ export async function handler(
       ]);
 
     await burnDCT(config.dct_master, dctForBurn);
-
-    const { data: userRow, error: userError } = await deps.supabase
-      .from("users")
-      .select("id")
-      .eq("telegram_id", telegram_id)
-      .single();
-
-    if (userError || !userRow) {
-      throw new Error("User not found");
-    }
-
-    const user = userRow as { id: string };
 
     const { data: subscription, error: subError } = await deps.supabase
       .from("subscriptions")
