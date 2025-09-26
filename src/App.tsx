@@ -34,9 +34,9 @@ function App() {
               </Routes>
             </main>
             <SiteFooter />
+            <Toaster />
+            <Sonner />
           </div>
-          <Toaster />
-          <Sonner />
         </Router>
       </AppProviders>
     </QueryClientProvider>
