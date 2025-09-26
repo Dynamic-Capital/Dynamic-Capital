@@ -87,6 +87,8 @@ def test_engine_combines_grok_and_deepseek_payloads() -> None:
     assert sorted(report.alerts) == ["Monitor NY open liquidity", "Watch US yields"]
     assert report.metadata["deepseek"]["risk_score"] == pytest.approx(0.4)
     assert report.metadata["prompt_optimisation"]["macro_events_retained"] == 2
+    assert report.metadata["prompt_optimisation"]["macro_events_omitted_items"] == []
+    assert report.metadata["prompt_optimisation"]["watchlist_omitted_items"] == []
     assert "Grok-1 intelligence" in deepseek_client.calls[0]["prompt"]
 
 
@@ -148,11 +150,24 @@ def test_prompt_payload_optimises_context_volume() -> None:
 
     assert len(payload["macro_events"]) == 3
     assert meta["macro_events_omitted"] == 1
+    assert meta["macro_events_omitted_items"] == ["FOMC minutes"]
     assert payload["watchlist"] == ["EURUSD", "DXY"]
     assert meta["watchlist_omitted"] == 1
+    assert meta["watchlist_omitted_items"] == ["USDJPY"]
     assert len(payload["open_positions"]) == 1
     assert meta["open_positions_omitted"] == 1
+    assert meta["open_positions_omitted_details"] == [
+        {
+            "symbol": "USDJPY",
+            "direction": "short",
+            "size": 0.1,
+            "entry_price": 152.3,
+        }
+    ]
     assert set(payload["analytics"].keys()) <= {"carry", "momentum", "volatility_zscore"}
     assert len(payload["analytics"]) == 2
     assert meta["analytics_omitted"] == 1
+    assert meta["analytics_omitted_keys"] == ["volatility_zscore"]
+    assert meta["analytics_pruned_keys"] == []
     assert meta["context_pruned"] == 1
+    assert meta["context_pruned_keys"] == ["empty"]
