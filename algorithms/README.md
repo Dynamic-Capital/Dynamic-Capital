@@ -13,6 +13,8 @@ engineers, and QA can collaborate without stepping on each other's toes.
   alerts and forward structured events into Supabase.
 - `mql5/` – MetaTrader 5 Expert Advisor implementation, supporting libraries,
   and backtesting artifacts.
+- `nextjs-multi-llm/` – Next.js build orchestration blueprint that routes
+  content generation across multiple LLM providers with deterministic caching.
 
 Refer to the README in each sub-folder for layout details, build commands, and
 handoff expectations between teams. Supabase database migrations and functions
