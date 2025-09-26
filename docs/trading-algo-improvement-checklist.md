@@ -43,6 +43,12 @@ into measurable trading performance.
 
 - [ ] Extend `SMCAnalyzer.observe` with new mitigation block or liquidity
       pattern checks before persisting context to Supabase.
+- [ ] Populate `MarketSnapshot.smc_zones` with discretionary continuation and
+      reversal bases so automated runs reference the same supply/demand map as
+      desk markups.
+- [ ] Calibrate `smc_liquidity_weight` and `smc_bias_weight` after adding new
+      zones to confirm continuation bases boost aligned trades while opposing
+      supply/demand pockets still gate entries.
 - [ ] Add unit or integration tests for each new SMC filter under
       `tests/trading-*` to prevent regressions in BOS/SMS detection.
 - [ ] Log additional analyzer outputs (e.g., swept level IDs, mitigation block

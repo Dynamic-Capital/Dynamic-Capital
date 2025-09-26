@@ -147,8 +147,25 @@ class LabeledFeature:
 
 
 @dataclass(slots=True)
+class SMCZone:
+    """Discretionary supply/demand zone surfaced by analysts or detectors."""
+
+    name: str
+    price: float
+    side: Literal["supply", "demand"]
+    role: Literal["continuation", "reversal"]
+    strength: Optional[float] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True)
 class MarketSnapshot:
-    """Normalized view of the market data required by the strategy."""
+    """Normalized view of the market data required by the strategy.
+
+    The optional ``smc_zones`` field carries discretionary supply/demand bases
+    so :class:`SMCAnalyzer` can align continuation and reversal logic with desk
+    markups.
+    """
 
     symbol: str
     timestamp: datetime
@@ -179,6 +196,7 @@ class MarketSnapshot:
     mechanical_energy: Optional[float] = None
     mechanical_stress_ratio: Optional[float] = None
     mechanical_state: Optional[str] = None
+    smc_zones: Optional[Sequence[SMCZone | Dict[str, Any]]] = None
 
     def feature_vector(self) -> tuple[float, ...]:
         mechanical_features = (
@@ -331,7 +349,12 @@ class RiskParameters:
 
 
 class SMCAnalyzer:
-    """Derives lightweight SMC context to enrich trade decisions."""
+    """Derives lightweight SMC context to enrich trade decisions.
+
+    In addition to standard session levels, the analyzer now considers
+    discretionary :class:`SMCZone` definitions so continuation bases can boost
+    aligned trades while nearby supply/demand still gates opposing setups.
+    """
 
     def __init__(self, config: TradeConfig) -> None:
         self.config = config
@@ -358,19 +381,28 @@ class SMCAnalyzer:
 
         base = self._last_context
         structure_context = dict(base["structure"])
+        levels_base = base["levels"]
         levels_context = {
-            "near": [dict(level) for level in base["levels"]["near"]],
-            "swept": [dict(level) for level in base["levels"]["swept"]],
+            "near": [dict(level) for level in levels_base["near"]],
+            "swept": [dict(level) for level in levels_base["swept"]],
             "pressure": {
-                "long": list(base["levels"]["pressure"]["long"]),
-                "short": list(base["levels"]["pressure"]["short"]),
+                "long": list(levels_base["pressure"]["long"]),
+                "short": list(levels_base["pressure"]["short"]),
             },
-            "threshold_pips": base["levels"]["threshold_pips"],
-            "round_number_interval_pips": base["levels"]["round_number_interval_pips"],
-            "all_levels": [dict(level) for level in base["levels"]["all_levels"]],
+            "threshold_pips": levels_base["threshold_pips"],
+            "round_number_interval_pips": levels_base["round_number_interval_pips"],
+            "all_levels": [dict(level) for level in levels_base["all_levels"]],
         }
+        pressure_detail = levels_base.get("pressure_detail")
+        if pressure_detail:
+            levels_context["pressure_detail"] = {
+                "long": [dict(level) for level in pressure_detail.get("long", [])],
+                "short": [dict(level) for level in pressure_detail.get("short", [])],
+            }
+        if "zones" in levels_base:
+            levels_context["zones"] = [dict(zone) for zone in levels_base.get("zones", [])]
         if base["levels"].get("round_number") is not None:
-            levels_context["round_number"] = dict(base["levels"]["round_number"])
+            levels_context["round_number"] = dict(levels_base["round_number"])
 
         history_ready = bool(base.get("history_ready", False))
         components: Dict[str, float] = {
@@ -392,8 +424,11 @@ class SMCAnalyzer:
             return 1.0, meta
 
         structure_adjustment = 0.0
-        liquidity_penalty = 0.0
+        liquidity_adjustment = 0.0
+        penalty_strength = 0.0
+        support_strength = 0.0
         penalised_levels: List[str] = []
+        supportive_levels: List[str] = []
 
         bias = structure_context.get("bias", 0)
         sms = bool(structure_context.get("sms", False))
@@ -408,14 +443,65 @@ class SMCAnalyzer:
             structure_adjustment -= sms_penalty
             components["sms_penalty"] = -sms_penalty
 
-        pressure_key = "long" if signal.direction > 0 else "short"
-        pressure_levels = levels_context["pressure"].get(pressure_key, [])
-        if signal.direction != 0 and pressure_levels:
-            liquidity_penalty = self.config.smc_liquidity_weight
-            penalised_levels = list(pressure_levels)
-        components["liquidity_penalty"] = -liquidity_penalty
+        base_weight = max(0.0, self.config.smc_liquidity_weight)
+        if signal.direction != 0 and base_weight > 0.0:
+            for level in levels_context.get("near", []):
+                name = str(level.get("name", "")) or "level"
+                relation = str(level.get("relation", ""))
+                if relation not in {"above", "below", "at"}:
+                    continue
+                try:
+                    strength_value = float(level.get("strength", 1.0))
+                except (TypeError, ValueError):
+                    strength_value = 1.0
+                strength_value = max(0.0, strength_value)
+                role = str(level.get("role", "")).lower()
+                role_multiplier = 1.0
+                if role == "continuation":
+                    role_multiplier = 1.2
+                elif role == "reversal":
+                    role_multiplier = 0.9
+                weight = base_weight * strength_value * role_multiplier
+                if math.isclose(weight, 0.0, abs_tol=1e-9):
+                    continue
+                bias_direction = int(level.get("bias_direction", 0))
+                if bias_direction > 0:
+                    bias_direction = 1
+                elif bias_direction < 0:
+                    bias_direction = -1
+                applied = False
+                if bias_direction == 0:
+                    if signal.direction > 0 and relation in {"above", "at"}:
+                        penalty_strength += weight
+                        penalised_levels.append(name)
+                        applied = True
+                    elif signal.direction < 0 and relation in {"below", "at"}:
+                        penalty_strength += weight
+                        penalised_levels.append(name)
+                        applied = True
+                else:
+                    if bias_direction == signal.direction:
+                        expected_relations = {1: {"below", "at"}, -1: {"above", "at"}}
+                        if relation in expected_relations[bias_direction]:
+                            support_strength += weight
+                            supportive_levels.append(name)
+                            applied = True
+                        else:
+                            penalty_strength += weight
+                            penalised_levels.append(name)
+                            applied = True
+                    else:
+                        penalty_strength += weight
+                        penalised_levels.append(name)
+                        applied = True
+                if not applied and relation == "at":
+                    penalty_strength += weight
+                    penalised_levels.append(name)
 
-        adjustment = structure_adjustment - liquidity_penalty
+        liquidity_adjustment = support_strength - penalty_strength
+        components["liquidity_penalty"] = liquidity_adjustment
+
+        adjustment = structure_adjustment + liquidity_adjustment
         max_adjust = max(0.0, self.config.max_smc_adjustment)
         modifier = 1.0 + adjustment
         lower_bound = max(0.0, 1.0 - max_adjust)
@@ -430,7 +516,10 @@ class SMCAnalyzer:
             "components": components,
             "liquidity": {
                 "penalised_levels": penalised_levels,
-                "penalty": liquidity_penalty,
+                "supportive_levels": supportive_levels,
+                "penalty": penalty_strength,
+                "support": support_strength,
+                "net": liquidity_adjustment,
             },
             "adjustment": adjustment,
             "modifier": modifier,
@@ -472,33 +561,76 @@ class SMCAnalyzer:
 
         levels: List[Dict[str, Any]] = []
 
-        def push_level(name: str, value: Optional[float]) -> None:
+        def push_level(
+            name: str,
+            value: Optional[float],
+            *,
+            kind: str = "reference",
+            bias_direction: int = 0,
+            role: Optional[str] = None,
+            source: Optional[str] = None,
+            strength: Optional[float] = None,
+            extra: Optional[Dict[str, Any]] = None,
+        ) -> None:
             if value is None:
                 return
             level_value = float(value)
-            distance_pips = abs(snapshot.close - level_value) / pip_size if pip_size > 0 else float("inf")
+            distance_pips = (
+                abs(snapshot.close - level_value) / pip_size if pip_size > 0 else float("inf")
+            )
             relation = "at"
             if level_value > snapshot.close + tolerance:
                 relation = "above"
             elif level_value < snapshot.close - tolerance:
                 relation = "below"
-            levels.append(
-                {
-                    "name": name,
-                    "value": level_value,
-                    "distance_pips": float(distance_pips),
-                    "relation": relation,
-                }
-            )
+            record: Dict[str, Any] = {
+                "name": name,
+                "value": level_value,
+                "distance_pips": float(distance_pips),
+                "relation": relation,
+                "kind": kind,
+            }
+            if bias_direction != 0:
+                record["bias_direction"] = 1 if bias_direction > 0 else -1
+            if role:
+                record["role"] = role
+            if source:
+                record["source"] = source
+            if strength is not None:
+                try:
+                    record["strength"] = max(0.0, float(strength))
+                except (TypeError, ValueError):
+                    record["strength"] = 1.0
+            if extra:
+                record.update(extra)
+            levels.append(record)
 
-        push_level("PDH", snapshot.previous_daily_high)
-        push_level("PDL", snapshot.previous_daily_low)
-        push_level("PWH", snapshot.previous_week_high)
-        push_level("PWL", snapshot.previous_week_low)
-        push_level("DailyHigh", snapshot.daily_high)
-        push_level("DailyLow", snapshot.daily_low)
-        push_level("WeeklyHigh", snapshot.weekly_high)
-        push_level("WeeklyLow", snapshot.weekly_low)
+        push_level("PDH", snapshot.previous_daily_high, kind="session_high", source="previous_daily_high")
+        push_level("PDL", snapshot.previous_daily_low, kind="session_low", source="previous_daily_low")
+        push_level("PWH", snapshot.previous_week_high, kind="session_high", source="previous_week_high")
+        push_level("PWL", snapshot.previous_week_low, kind="session_low", source="previous_week_low")
+        push_level("DailyHigh", snapshot.daily_high, kind="session_high", source="daily_high")
+        push_level("DailyLow", snapshot.daily_low, kind="session_low", source="daily_low")
+        push_level("WeeklyHigh", snapshot.weekly_high, kind="session_high", source="weekly_high")
+        push_level("WeeklyLow", snapshot.weekly_low, kind="session_low", source="weekly_low")
+
+        zones_summary: List[Dict[str, Any]] = []
+        if snapshot.smc_zones:
+            for raw_zone in snapshot.smc_zones:
+                zone = self._normalise_zone(raw_zone)
+                if zone is None:
+                    continue
+                zones_summary.append(dict(zone))
+                push_level(
+                    zone["name"],
+                    zone["price"],
+                    kind="smc_zone",
+                    bias_direction=zone["bias_direction"],
+                    role=zone["role"],
+                    source=zone["side"],
+                    strength=zone.get("strength"),
+                    extra={"metadata": dict(zone.get("metadata", {}))},
+                )
 
         round_number_info: Optional[Dict[str, Any]] = None
         rn_interval = max(0.0, self.config.smc_round_number_interval_pips) * pip_size
@@ -515,12 +647,21 @@ class SMCAnalyzer:
                 "value": float(rn_value),
                 "distance_pips": float(distance_pips),
                 "relation": relation,
+                "kind": "round_number",
+                "source": "round_number",
             }
             levels.append(round_number_info)
 
-        near_levels = [dict(level) for level in levels if level["distance_pips"] <= level_threshold_pips]
+        near_levels = sorted(
+            (dict(level) for level in levels if level["distance_pips"] <= level_threshold_pips),
+            key=lambda entry: entry["distance_pips"],
+        )
         pressure_long = sorted({level["name"] for level in near_levels if level["relation"] in {"above", "at"}})
         pressure_short = sorted({level["name"] for level in near_levels if level["relation"] in {"below", "at"}})
+        pressure_detail = {
+            "long": [dict(level) for level in near_levels if level["relation"] in {"above", "at"}],
+            "short": [dict(level) for level in near_levels if level["relation"] in {"below", "at"}],
+        }
 
         cross_threshold = max(structure_threshold, pip_size)
         swept_levels: List[Dict[str, Any]] = []
@@ -567,6 +708,7 @@ class SMCAnalyzer:
                 "near": near_levels,
                 "swept": swept_levels,
                 "pressure": {"long": pressure_long, "short": pressure_short},
+                "pressure_detail": pressure_detail,
                 "threshold_pips": level_threshold_pips,
                 "round_number_interval_pips": self.config.smc_round_number_interval_pips,
                 "all_levels": [dict(level) for level in levels],
@@ -575,7 +717,82 @@ class SMCAnalyzer:
         }
         if round_number_info is not None:
             context["levels"]["round_number"] = dict(round_number_info)
+        if zones_summary:
+            context["levels"]["zones"] = [dict(zone) for zone in zones_summary]
         return context
+
+    @staticmethod
+    def _normalise_zone(zone: SMCZone | Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Convert an arbitrary zone payload into a normalised dictionary."""
+
+        base: Dict[str, Any]
+        if isinstance(zone, SMCZone):
+            base = {
+                "name": zone.name,
+                "price": float(zone.price),
+                "side": zone.side,
+                "role": zone.role,
+                "strength": zone.strength,
+                "metadata": dict(zone.metadata),
+            }
+        elif isinstance(zone, dict):
+            name = zone.get("name")
+            price = zone.get("price")
+            side = zone.get("side")
+            role = zone.get("role")
+            if name is None or price is None or side is None or role is None:
+                return None
+            try:
+                price_value = float(price)
+            except (TypeError, ValueError):
+                return None
+            base = {
+                "name": str(name),
+                "price": price_value,
+                "side": str(side),
+                "role": str(role),
+                "strength": zone.get("strength"),
+                "metadata": dict(zone.get("metadata", {})) if isinstance(zone.get("metadata"), dict) else {},
+            }
+        else:
+            return None
+
+        side_value = base["side"].lower()
+        if side_value not in {"supply", "demand"}:
+            return None
+        role_value = base["role"].lower()
+        if role_value not in {"continuation", "reversal"}:
+            return None
+
+        try:
+            price_value = float(base["price"])
+        except (TypeError, ValueError):
+            return None
+        if not math.isfinite(price_value):
+            return None
+
+        strength_value = base.get("strength")
+        if strength_value is None:
+            normalised_strength = 1.0
+        else:
+            try:
+                normalised_strength = max(0.0, float(strength_value))
+            except (TypeError, ValueError):
+                normalised_strength = 1.0
+
+        metadata = base.get("metadata")
+        if not isinstance(metadata, dict):
+            metadata = {}
+
+        return {
+            "name": base["name"],
+            "price": price_value,
+            "side": side_value,
+            "role": role_value,
+            "strength": normalised_strength,
+            "metadata": metadata,
+            "bias_direction": -1 if side_value == "supply" else 1,
+        }
 
 # ---------------------------------------------------------------------------
 # Feature pipeline helpers
@@ -2212,6 +2429,7 @@ __all__ = [
     "LabeledFeature",
     "LorentzianKNNModel",
     "LorentzianKNNStrategy",
+    "SMCZone",
     "MarketSnapshot",
     "OnlineFeatureScaler",
     "PerformanceMetrics",
