@@ -131,6 +131,12 @@ from .human_resources_playbooks import (
     build_human_resources_sync_algorithm,
 )
 from .route_keeper import Route, RouteKeeperAlgorithm, RouteKeeperSyncResult
+from .supabase_edge_functions import (
+    EdgeFunctionRunbook,
+    EdgeFunctionSpec,
+    SupabaseEdgeFunctionAlgorithm,
+    SupabaseEdgeFunctionPlan,
+)
 from .tonkeeper_sync import (
     TonkeeperAccountSnapshot,
     TonkeeperLLMCoordinator,
