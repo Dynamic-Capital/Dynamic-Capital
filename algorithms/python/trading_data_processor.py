@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-import statistics
+import math
 import textwrap
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -203,6 +203,33 @@ class TradingDataProcessor:
 
         return payload, optimisation_meta
 
+    # ------------------------------------------------------------------
+    # Snapshot statistics
+    # ------------------------------------------------------------------
+
+    @dataclass(slots=True)
+    class _RunningStats:
+        """Incremental accumulator for means and population variance."""
+
+        count: int = 0
+        mean: float = 0.0
+        m2: float = 0.0
+
+        def add(self, value: float) -> None:
+            self.count += 1
+            delta = value - self.mean
+            self.mean += delta / self.count
+            delta2 = value - self.mean
+            self.m2 += delta * delta2
+
+        def mean_value(self) -> float:
+            return self.mean if self.count else 0.0
+
+        def std_dev(self) -> float:
+            if self.count <= 1:
+                return 0.0
+            return math.sqrt(self.m2 / self.count)
+
     def _prepare_catalysts(
         self, catalysts: Sequence[EconomicCatalyst | Mapping[str, Any]]
     ) -> tuple[list[str], list[dict[str, Any]]]:
@@ -253,72 +280,104 @@ class TradingDataProcessor:
         return str(event).strip()
 
     def _summarise_snapshots(self, snapshots: Sequence[MarketSnapshot]) -> Dict[str, float]:
-        closes = [snap.close for snap in snapshots]
-        rsi_fast_values = [snap.rsi_fast for snap in snapshots]
-        adx_fast_values = [snap.adx_fast for snap in snapshots]
-        rsi_slow_values = [snap.rsi_slow for snap in snapshots]
-        adx_slow_values = [snap.adx_slow for snap in snapshots]
-        velocity_values = [snap.mechanical_velocity for snap in snapshots if snap.mechanical_velocity is not None]
-        acceleration_values = [
-            snap.mechanical_acceleration for snap in snapshots if snap.mechanical_acceleration is not None
-        ]
-        jerk_values = [snap.mechanical_jerk for snap in snapshots if snap.mechanical_jerk is not None]
-        energy_values = [snap.mechanical_energy for snap in snapshots if snap.mechanical_energy is not None]
-        stress_values = [
-            snap.mechanical_stress_ratio for snap in snapshots if snap.mechanical_stress_ratio is not None
-        ]
-        bias_values = [snap.mechanical_bias() for snap in snapshots]
+        close_stats = self._RunningStats()
+        rsi_fast_stats = self._RunningStats()
+        adx_fast_stats = self._RunningStats()
+        rsi_slow_stats = self._RunningStats()
+        adx_slow_stats = self._RunningStats()
+        velocity_stats = self._RunningStats()
+        acceleration_stats = self._RunningStats()
+        jerk_stats = self._RunningStats()
+        energy_stats = self._RunningStats()
+        stress_stats = self._RunningStats()
+        bias_stats = self._RunningStats()
 
-        close_first = closes[0]
-        close_last = closes[-1]
-        momentum = (close_last - close_first) / close_first if close_first else 0.0
-        range_high = max(
-            (snap.high for snap in snapshots if snap.high is not None),
-            default=close_last,
-        )
-        range_low = min(
-            (snap.low for snap in snapshots if snap.low is not None),
-            default=close_last,
-        )
+        close_first = float(snapshots[0].close)
+        close_last = close_first
+
+        rsi_fast_first = snapshots[0].rsi_fast
+        adx_fast_first = snapshots[0].adx_fast
+        rsi_slow_first = snapshots[0].rsi_slow
+        adx_slow_first = snapshots[0].adx_slow
+
+        rsi_fast_last = rsi_fast_first
+        adx_fast_last = adx_fast_first
+        rsi_slow_last = rsi_slow_first
+        adx_slow_last = adx_slow_first
+
+        range_high: Optional[float] = None
+        range_low: Optional[float] = None
+
+        for snap in snapshots:
+            close = float(snap.close)
+            close_stats.add(close)
+            close_last = close
+
+            rsi_fast_stats.add(float(snap.rsi_fast))
+            adx_fast_stats.add(float(snap.adx_fast))
+            rsi_slow_stats.add(float(snap.rsi_slow))
+            adx_slow_stats.add(float(snap.adx_slow))
+
+            rsi_fast_last = snap.rsi_fast
+            adx_fast_last = snap.adx_fast
+            rsi_slow_last = snap.rsi_slow
+            adx_slow_last = snap.adx_slow
+
+            if snap.mechanical_velocity is not None:
+                velocity_stats.add(float(snap.mechanical_velocity))
+            if snap.mechanical_acceleration is not None:
+                acceleration_stats.add(float(snap.mechanical_acceleration))
+            if snap.mechanical_jerk is not None:
+                jerk_stats.add(float(snap.mechanical_jerk))
+            if snap.mechanical_energy is not None:
+                energy_stats.add(float(snap.mechanical_energy))
+            if snap.mechanical_stress_ratio is not None:
+                stress_stats.add(float(snap.mechanical_stress_ratio))
+
+            bias_stats.add(float(snap.mechanical_bias()))
+
+            if snap.high is not None:
+                high = float(snap.high)
+                range_high = high if range_high is None else max(range_high, high)
+            if snap.low is not None:
+                low = float(snap.low)
+                range_low = low if range_low is None else min(range_low, low)
+
+        range_high = range_high if range_high is not None else close_last
+        range_low = range_low if range_low is not None else close_last
         range_span = range_high - range_low
         pct_range = range_span / close_last if close_last else 0.0
 
-        def _safe_mean(values: Sequence[float]) -> float:
-            return statistics.fmean(values) if values else 0.0
+        momentum = (close_last - close_first) / close_first if close_first else 0.0
 
-        def _safe_std(values: Sequence[float]) -> float:
-            if len(values) <= 1:
-                return 0.0
-            return statistics.pstdev(values)
-
-        rsi_fast_trend = rsi_fast_values[-1] - rsi_fast_values[0]
-        adx_fast_trend = adx_fast_values[-1] - adx_fast_values[0]
-        rsi_slow_trend = rsi_slow_values[-1] - rsi_slow_values[0]
-        adx_slow_trend = adx_slow_values[-1] - adx_slow_values[0]
+        rsi_fast_trend = float(rsi_fast_last - rsi_fast_first)
+        adx_fast_trend = float(adx_fast_last - adx_fast_first)
+        rsi_slow_trend = float(rsi_slow_last - rsi_slow_first)
+        adx_slow_trend = float(adx_slow_last - adx_slow_first)
 
         return {
             "samples": float(len(snapshots)),
             "close_last": float(close_last),
-            "close_mean": _safe_mean(closes),
-            "close_volatility": _safe_std(closes),
+            "close_mean": close_stats.mean_value(),
+            "close_volatility": close_stats.std_dev(),
             "momentum_pct": float(momentum),
             "range_high": float(range_high),
             "range_low": float(range_low),
             "range_pct": float(pct_range),
-            "rsi_fast_mean": _safe_mean(rsi_fast_values),
-            "rsi_fast_trend": float(rsi_fast_trend),
-            "adx_fast_mean": _safe_mean(adx_fast_values),
-            "adx_fast_trend": float(adx_fast_trend),
-            "rsi_slow_mean": _safe_mean(rsi_slow_values),
-            "rsi_slow_trend": float(rsi_slow_trend),
-            "adx_slow_mean": _safe_mean(adx_slow_values),
-            "adx_slow_trend": float(adx_slow_trend),
-            "mechanical_velocity_mean": _safe_mean(velocity_values),
-            "mechanical_acceleration_mean": _safe_mean(acceleration_values),
-            "mechanical_jerk_mean": _safe_mean(jerk_values),
-            "mechanical_energy_mean": _safe_mean(energy_values),
-            "mechanical_stress_mean": _safe_mean(stress_values),
-            "mechanical_bias_mean": _safe_mean(bias_values),
+            "rsi_fast_mean": rsi_fast_stats.mean_value(),
+            "rsi_fast_trend": rsi_fast_trend,
+            "adx_fast_mean": adx_fast_stats.mean_value(),
+            "adx_fast_trend": adx_fast_trend,
+            "rsi_slow_mean": rsi_slow_stats.mean_value(),
+            "rsi_slow_trend": rsi_slow_trend,
+            "adx_slow_mean": adx_slow_stats.mean_value(),
+            "adx_slow_trend": adx_slow_trend,
+            "mechanical_velocity_mean": velocity_stats.mean_value(),
+            "mechanical_acceleration_mean": acceleration_stats.mean_value(),
+            "mechanical_jerk_mean": jerk_stats.mean_value(),
+            "mechanical_energy_mean": energy_stats.mean_value(),
+            "mechanical_stress_mean": stress_stats.mean_value(),
+            "mechanical_bias_mean": bias_stats.mean_value(),
         }
 
     def _select_top_k_analytics(self, analytics: Mapping[str, float]) -> Dict[str, float]:

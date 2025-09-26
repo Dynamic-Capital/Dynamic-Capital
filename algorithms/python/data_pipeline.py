@@ -39,24 +39,29 @@ def _rolling_mean(values: Sequence[float]) -> float:
     return sum(values) / len(values)
 
 
-def _compute_rsi(closes: Sequence[float], period: int) -> List[Optional[float]]:
-    if period <= 0:
+def _compute_rsi_multi(closes: Sequence[float], periods: Iterable[int]) -> dict[int, List[Optional[float]]]:
+    unique_periods = sorted({int(period) for period in periods})
+    if not unique_periods:
+        raise ValueError("at least one RSI period is required")
+    if any(period <= 0 for period in unique_periods):
         raise ValueError("RSI period must be positive")
-    total = len(closes)
-    rsis: List[Optional[float]] = [None] * total
-    if total <= period:
-        return rsis
 
-    gain_sum = 0.0
-    loss_sum = 0.0
-    for idx in range(1, period + 1):
-        change = closes[idx] - closes[idx - 1]
-        if change >= 0:
-            gain_sum += change
-        else:
-            loss_sum -= change
-    avg_gain = gain_sum / period
-    avg_loss = loss_sum / period
+    total = len(closes)
+    results: dict[int, List[Optional[float]]] = {period: [None] * total for period in unique_periods}
+    if total == 0:
+        return results
+
+    class _RsiState:
+        __slots__ = ("period", "gain_sum", "loss_sum", "avg_gain", "avg_loss")
+
+        def __init__(self, period: int) -> None:
+            self.period = period
+            self.gain_sum = 0.0
+            self.loss_sum = 0.0
+            self.avg_gain = 0.0
+            self.avg_loss = 0.0
+
+    states = [_RsiState(period) for period in unique_periods]
 
     def _rsi_from_averages(avg_gain: float, avg_loss: float) -> float:
         if avg_loss == 0:
@@ -65,51 +70,68 @@ def _compute_rsi(closes: Sequence[float], period: int) -> List[Optional[float]]:
             rs = avg_gain / avg_loss
         return 100 - (100 / (1 + rs))
 
-    rsis[period] = _rsi_from_averages(avg_gain, avg_loss)
-
-    for idx in range(period + 1, total):
+    for idx in range(1, total):
         change = closes[idx] - closes[idx - 1]
         gain = change if change > 0 else 0.0
         loss = -change if change < 0 else 0.0
-        avg_gain = (avg_gain * (period - 1) + gain) / period
-        avg_loss = (avg_loss * (period - 1) + loss) / period
-        rsis[idx] = _rsi_from_averages(avg_gain, avg_loss)
-    return rsis
+
+        for state in states:
+            if idx <= state.period:
+                state.gain_sum += gain
+                state.loss_sum += loss
+                if idx == state.period:
+                    state.avg_gain = state.gain_sum / state.period
+                    state.avg_loss = state.loss_sum / state.period
+                    results[state.period][idx] = _rsi_from_averages(state.avg_gain, state.avg_loss)
+                continue
+
+            state.avg_gain = (state.avg_gain * (state.period - 1) + gain) / state.period
+            state.avg_loss = (state.avg_loss * (state.period - 1) + loss) / state.period
+            results[state.period][idx] = _rsi_from_averages(state.avg_gain, state.avg_loss)
+
+    return results
 
 
-def _compute_adx(
+def _compute_rsi(closes: Sequence[float], period: int) -> List[Optional[float]]:
+    return _compute_rsi_multi(closes, [period])[period]
+
+
+def _compute_adx_multi(
     highs: Sequence[float],
     lows: Sequence[float],
     closes: Sequence[float],
-    period: int,
-) -> List[Optional[float]]:
-    if period <= 0:
-        raise ValueError("ADX period must be positive")
+    periods: Iterable[int],
+) -> dict[int, List[Optional[float]]]:
     if not (len(highs) == len(lows) == len(closes)):
         raise ValueError("High, low, and close series must share the same length")
-    total = len(closes)
-    adx_values: List[Optional[float]] = [None] * total
-    if total <= period:
-        return adx_values
 
-    tr_sum = 0.0
-    plus_dm_sum = 0.0
-    minus_dm_sum = 0.0
+    unique_periods = sorted({int(period) for period in periods})
+    if not unique_periods:
+        raise ValueError("at least one ADX period is required")
+    if any(period <= 0 for period in unique_periods):
+        raise ValueError("ADX period must be positive")
+
+    total = len(closes)
+    results: dict[int, List[Optional[float]]] = {period: [None] * total for period in unique_periods}
+    if total == 0:
+        return results
+
+    class _AdxState:
+        __slots__ = ("period", "tr_sum", "plus_dm_sum", "minus_dm_sum", "adx")
+
+        def __init__(self, period: int) -> None:
+            self.period = period
+            self.tr_sum = 0.0
+            self.plus_dm_sum = 0.0
+            self.minus_dm_sum = 0.0
+            self.adx = 0.0
+
+    states = [_AdxState(period) for period in unique_periods]
 
     def _true_range(idx: int, prev_close: float) -> float:
         high = highs[idx]
         low = lows[idx]
         return max(high - low, abs(high - prev_close), abs(low - prev_close))
-
-    for idx in range(1, period + 1):
-        up_move = highs[idx] - highs[idx - 1]
-        down_move = lows[idx - 1] - lows[idx]
-        plus_dm = up_move if up_move > down_move and up_move > 0 else 0.0
-        minus_dm = down_move if down_move > up_move and down_move > 0 else 0.0
-        tr = _true_range(idx, closes[idx - 1])
-        plus_dm_sum += plus_dm
-        minus_dm_sum += minus_dm
-        tr_sum += tr
 
     def _di_values(tr_sum: float, plus_dm_sum: float, minus_dm_sum: float) -> tuple[float, float]:
         if tr_sum == 0:
@@ -118,31 +140,48 @@ def _compute_adx(
         minus_di = 100 * (minus_dm_sum / tr_sum)
         return plus_di, minus_di
 
-    plus_di, minus_di = _di_values(tr_sum, plus_dm_sum, minus_dm_sum)
-    di_diff = abs(plus_di - minus_di)
-    di_sum = plus_di + minus_di
-    dx = 0.0 if di_sum == 0 else (di_diff / di_sum) * 100
-    adx = dx
-    adx_values[period] = adx
-
-    for idx in range(period + 1, total):
+    for idx in range(1, total):
         up_move = highs[idx] - highs[idx - 1]
         down_move = lows[idx - 1] - lows[idx]
         plus_dm = up_move if up_move > down_move and up_move > 0 else 0.0
         minus_dm = down_move if down_move > up_move and down_move > 0 else 0.0
         tr = _true_range(idx, closes[idx - 1])
 
-        plus_dm_sum = plus_dm_sum - (plus_dm_sum / period) + plus_dm
-        minus_dm_sum = minus_dm_sum - (minus_dm_sum / period) + minus_dm
-        tr_sum = tr_sum - (tr_sum / period) + tr
+        for state in states:
+            if idx <= state.period:
+                state.plus_dm_sum += plus_dm
+                state.minus_dm_sum += minus_dm
+                state.tr_sum += tr
+                if idx == state.period:
+                    plus_di, minus_di = _di_values(state.tr_sum, state.plus_dm_sum, state.minus_dm_sum)
+                    di_diff = abs(plus_di - minus_di)
+                    di_sum = plus_di + minus_di
+                    dx = 0.0 if di_sum == 0 else (di_diff / di_sum) * 100
+                    state.adx = dx
+                    results[state.period][idx] = state.adx
+                continue
 
-        plus_di, minus_di = _di_values(tr_sum, plus_dm_sum, minus_dm_sum)
-        di_diff = abs(plus_di - minus_di)
-        di_sum = plus_di + minus_di
-        dx = 0.0 if di_sum == 0 else (di_diff / di_sum) * 100
-        adx = (adx * (period - 1) + dx) / period
-        adx_values[idx] = adx
-    return adx_values
+            state.plus_dm_sum = state.plus_dm_sum - (state.plus_dm_sum / state.period) + plus_dm
+            state.minus_dm_sum = state.minus_dm_sum - (state.minus_dm_sum / state.period) + minus_dm
+            state.tr_sum = state.tr_sum - (state.tr_sum / state.period) + tr
+
+            plus_di, minus_di = _di_values(state.tr_sum, state.plus_dm_sum, state.minus_dm_sum)
+            di_diff = abs(plus_di - minus_di)
+            di_sum = plus_di + minus_di
+            dx = 0.0 if di_sum == 0 else (di_diff / di_sum) * 100
+            state.adx = (state.adx * (state.period - 1) + dx) / state.period
+            results[state.period][idx] = state.adx
+
+    return results
+
+
+def _compute_adx(
+    highs: Sequence[float],
+    lows: Sequence[float],
+    closes: Sequence[float],
+    period: int,
+) -> List[Optional[float]]:
+    return _compute_adx_multi(highs, lows, closes, [period])[period]
 
 
 class MarketDataIngestionJob:
@@ -174,10 +213,12 @@ class MarketDataIngestionJob:
         highs = [row.high for row in rows]
         lows = [row.low for row in rows]
 
-        rsi_fast_values = _compute_rsi(closes, self.rsi_fast)
-        rsi_slow_values = _compute_rsi(closes, self.rsi_slow)
-        adx_fast_values = _compute_adx(highs, lows, closes, self.adx_fast)
-        adx_slow_values = _compute_adx(highs, lows, closes, self.adx_slow)
+        rsi_map = _compute_rsi_multi(closes, (self.rsi_fast, self.rsi_slow))
+        adx_map = _compute_adx_multi(highs, lows, closes, (self.adx_fast, self.adx_slow))
+        rsi_fast_values = rsi_map[self.rsi_fast]
+        rsi_slow_values = rsi_map[self.rsi_slow]
+        adx_fast_values = adx_map[self.adx_fast]
+        adx_slow_values = adx_map[self.adx_slow]
 
         mechanical_map: dict[datetime, "MechanicalMetrics"] = {}
         if len(rows) >= 4:

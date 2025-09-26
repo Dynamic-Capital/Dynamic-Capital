@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from algorithms.python.data_pipeline import _compute_adx, _compute_rsi
+from algorithms.python.data_pipeline import (
+    _compute_adx,
+    _compute_adx_multi,
+    _compute_rsi,
+    _compute_rsi_multi,
+)
 
 
 @pytest.mark.parametrize(
@@ -107,6 +112,14 @@ def test_compute_rsi_matches_reference(period: int, closes: list[float], expecte
 def test_compute_rsi_rejects_non_positive_period() -> None:
     with pytest.raises(ValueError):
         _compute_rsi([1.0, 1.1], 0)
+
+
+def test_compute_rsi_multi_matches_single() -> None:
+    closes = [1.0, 1.05, 1.02, 1.08, 1.1, 1.12, 1.15, 1.09, 1.11, 1.14, 1.16]
+    periods = (3, 5, 7)
+    multi = _compute_rsi_multi(closes, periods)
+    for period in periods:
+        assert multi[period] == _compute_rsi(closes, period)
 
 
 @pytest.mark.parametrize(
@@ -298,3 +311,13 @@ def test_compute_adx_validates_lengths() -> None:
 def test_compute_adx_rejects_non_positive_period() -> None:
     with pytest.raises(ValueError):
         _compute_adx([1.0, 1.1], [0.9, 1.0], [1.0, 1.1], 0)
+
+
+def test_compute_adx_multi_matches_single() -> None:
+    highs = [1.0, 1.1, 1.08, 1.12, 1.15, 1.13, 1.18, 1.2, 1.22]
+    lows = [0.98, 1.05, 1.02, 1.07, 1.1, 1.09, 1.12, 1.14, 1.17]
+    closes = [1.0, 1.08, 1.07, 1.1, 1.12, 1.11, 1.15, 1.18, 1.2]
+    periods = (3, 4)
+    multi = _compute_adx_multi(highs, lows, closes, periods)
+    for period in periods:
+        assert multi[period] == _compute_adx(highs, lows, closes, period)
