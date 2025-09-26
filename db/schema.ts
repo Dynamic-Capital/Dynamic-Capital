@@ -159,6 +159,21 @@ export const marketMovers = pgTable("market_movers", {
 export type MarketMover = typeof marketMovers.$inferSelect;
 export type NewMarketMover = typeof marketMovers.$inferInsert;
 
+export const mentorFeedback = pgTable("mentor_feedback", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  mentorId: uuid("mentor_id"),
+  menteeTelegramId: text("mentee_telegram_id"),
+  score: numeric("score", { precision: 2, scale: 1, mode: "number" })
+    .notNull(),
+  notes: text("notes"),
+  source: text("source"),
+  submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+});
+
+export type MentorFeedback = typeof mentorFeedback.$inferSelect;
+export type NewMentorFeedback = typeof mentorFeedback.$inferInsert;
+
 export const economicCatalysts = pgTable("economic_catalysts", {
   pair: text("pair").primaryKey(),
   observedAt: timestamp("observed_at", { withTimezone: true }).notNull(),

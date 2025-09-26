@@ -48,6 +48,7 @@ export const SUPABASE_CONFIG = {
     THEME_SAVE: "theme-save",
     CONTENT_BATCH: "content-batch",
     ANALYTICS_DATA: "analytics-data",
+    LANDING_HERO_METRICS: "landing-hero-metrics",
     ECONOMIC_CALENDAR: "economic-calendar",
     MINIAPP: "miniapp",
     VERIFY_INITDATA: "verify-initdata",
