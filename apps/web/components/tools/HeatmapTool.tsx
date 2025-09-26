@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+
 import {
   Column,
   Heading,
@@ -6,6 +10,8 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
+
+import { useSupabase } from "@/context/SupabaseProvider";
 
 import type { Colors } from "@/components/dynamic-ui-system";
 
@@ -66,6 +72,20 @@ type MomentumEntry = {
   symbol: string;
   display: string;
   score: number;
+  classification?: MomentumClassification;
+  updatedAt?: string;
+};
+
+type MarketMoverApiEntry = {
+  symbol: string;
+  display: string;
+  score: number;
+  classification?: string;
+  updated_at?: string;
+};
+
+type MarketMoversResponse = {
+  data?: MarketMoverApiEntry[];
 };
 
 const COMMODITY_STRENGTH: CommodityStrengthEntry[] = [
@@ -167,6 +187,8 @@ const MATRIX_DIMENSIONS = {
   margin: 40,
 };
 
+const MARKET_MOVERS_REFRESH_MS = 60_000;
+
 const MATRIX_POINTS: MatrixPoint[] = [
   {
     symbol: "XAU/USD",
@@ -242,7 +264,7 @@ const MATRIX_POINTS: MatrixPoint[] = [
   },
 ];
 
-const TREND_MOMENTUM: MomentumEntry[] = [
+const DEFAULT_TREND_MOMENTUM: MomentumEntry[] = [
   { symbol: "Copper", display: "Copper", score: 78 },
   { symbol: "CORNF", display: "CORNF", score: 46 },
   { symbol: "NGAS", display: "NGAS", score: 58 },
@@ -400,6 +422,33 @@ const classifyMomentum = (score: number): MomentumClassification => {
   return "Very Bearish";
 };
 
+const MOMENTUM_CATEGORIES = [
+  "Very Bearish",
+  "Bearish",
+  "Bullish",
+  "Very Bullish",
+] as const satisfies readonly MomentumClassification[];
+
+const isMomentumClassification = (
+  value: string | undefined,
+): value is MomentumClassification =>
+  Boolean(
+    value && MOMENTUM_CATEGORIES.includes(value as MomentumClassification),
+  );
+
+const resolveMomentumClassification = (
+  classification: string | undefined,
+  score: number,
+): MomentumClassification =>
+  isMomentumClassification(classification)
+    ? classification
+    : classifyMomentum(score);
+
+const clampMomentumScore = (score: number) => Math.max(0, Math.min(100, score));
+
+const formatMomentumScore = (score: number) =>
+  Number.isInteger(score) ? score.toFixed(0) : score.toFixed(1);
+
 const MOMENTUM_STYLES: Record<
   MomentumClassification,
   { label: string; fill: string; track: string }
@@ -433,6 +482,143 @@ export type HeatmapToolProps = {
 };
 
 export function HeatmapTool({ id }: HeatmapToolProps) {
+  const { supabase } = useSupabase();
+  const [trendMomentum, setTrendMomentum] = useState<MomentumEntry[]>(
+    DEFAULT_TREND_MOMENTUM,
+  );
+  const [isLoadingMovers, setIsLoadingMovers] = useState(false);
+  const [moversError, setMoversError] = useState<string | null>(null);
+
+  const momentumStats = useMemo(() => {
+    const counts: Record<MomentumClassification, number> = {
+      "Very Bearish": 0,
+      Bearish: 0,
+      Bullish: 0,
+      "Very Bullish": 0,
+    };
+    let latest: Date | null = null;
+
+    for (const entry of trendMomentum) {
+      const classification = resolveMomentumClassification(
+        entry.classification,
+        entry.score,
+      );
+      counts[classification] += 1;
+
+      if (entry.updatedAt) {
+        const parsed = new Date(entry.updatedAt);
+        if (!Number.isNaN(parsed.getTime())) {
+          if (!latest || parsed > latest) {
+            latest = parsed;
+          }
+        }
+      }
+    }
+
+    return { counts, latestUpdatedAt: latest };
+  }, [trendMomentum]);
+
+  const lastUpdatedLabel = useMemo(() => {
+    if (!momentumStats.latestUpdatedAt) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat(undefined, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short",
+    }).format(momentumStats.latestUpdatedAt);
+  }, [momentumStats.latestUpdatedAt]);
+
+  useEffect(() => {
+    let isMounted = true;
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const normaliseEntry = (entry: MarketMoverApiEntry): MomentumEntry => {
+      const rawScore = Number(entry.score);
+      const numericScore = clampMomentumScore(
+        Number.isFinite(rawScore) ? rawScore : 0,
+      );
+      return {
+        symbol: entry.symbol,
+        display: entry.display,
+        score: numericScore,
+        classification: resolveMomentumClassification(
+          entry.classification,
+          numericScore,
+        ),
+        updatedAt: entry.updated_at ?? undefined,
+      };
+    };
+
+    async function fetchMovers() {
+      if (!isMounted) {
+        return;
+      }
+
+      setIsLoadingMovers(true);
+
+      try {
+        const { data, error } = await supabase.functions.invoke<
+          MarketMoversResponse
+        >("market-movers-feed", { method: "GET" });
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (error) {
+          setMoversError(error.message ?? "Failed to load market movers");
+        } else if (Array.isArray(data?.data)) {
+          setTrendMomentum(data.data.map(normaliseEntry));
+          setMoversError(null);
+        }
+      } catch (error: unknown) {
+        if (isMounted) {
+          const message = error instanceof Error
+            ? error.message
+            : "Failed to load market movers";
+          setMoversError(message);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingMovers(false);
+          if (refreshTimer) {
+            clearTimeout(refreshTimer);
+          }
+          refreshTimer = setTimeout(fetchMovers, MARKET_MOVERS_REFRESH_MS);
+        }
+      }
+    }
+
+    fetchMovers();
+
+    const channel = supabase
+      .channel("market-movers-feed")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "market_movers" },
+        () => {
+          if (!isMounted) {
+            return;
+          }
+          fetchMovers();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      if (refreshTimer) {
+        clearTimeout(refreshTimer);
+      }
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
+
   return (
     <Column
       id={id}
@@ -942,82 +1128,101 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
           </Column>
           <Row horizontal="between" vertical="center" gap="12" wrap>
             <Text variant="label-default-s" onBackground="neutral-medium">
-              {TREND_MOMENTUM.length} matches
+              {trendMomentum.length} matches
+              {isLoadingMovers ? " · updating…" : null}
             </Text>
             <Row gap="12" wrap>
-              <Text variant="label-default-s" onBackground="neutral-medium">
-                0 Very Bearish
-              </Text>
-              <Text variant="label-default-s" onBackground="neutral-medium">
-                30 Bearish
-              </Text>
-              <Text variant="label-default-s" onBackground="neutral-medium">
-                50 Bullish
-              </Text>
-              <Text variant="label-default-s" onBackground="neutral-medium">
-                70 Very Bullish
-              </Text>
-              <Text variant="label-default-s" onBackground="neutral-medium">
-                100
-              </Text>
+              {MOMENTUM_CATEGORIES.map((category) => (
+                <Text
+                  key={category}
+                  variant="label-default-s"
+                  onBackground="neutral-medium"
+                >
+                  {momentumStats.counts[category]} {category}
+                </Text>
+              ))}
             </Row>
           </Row>
-          <Column gap="16">
-            {TREND_MOMENTUM.map((entry, index) => {
-              const classification = classifyMomentum(entry.score);
-              const style = MOMENTUM_STYLES[classification];
+          {moversError
+            ? (
+              <Text variant="label-default-s" onBackground="danger-medium">
+                {moversError}
+              </Text>
+            )
+            : null}
+          {trendMomentum.length === 0 && !isLoadingMovers
+            ? (
+              <Text variant="body-default-m" onBackground="neutral-medium">
+                No qualifying movers at the moment.
+              </Text>
+            )
+            : (
+              <Column gap="16">
+                {trendMomentum.map((entry, index) => {
+                  const classification = resolveMomentumClassification(
+                    entry.classification,
+                    entry.score,
+                  );
+                  const style = MOMENTUM_STYLES[classification];
+                  const scoreValue = clampMomentumScore(entry.score);
+                  const scoreLabel = formatMomentumScore(scoreValue);
 
-              return (
-                <Column key={entry.symbol} gap="12">
-                  <Row
-                    horizontal="between"
-                    vertical="center"
-                    gap="12"
-                    s={{ direction: "column", align: "start" }}
-                  >
-                    <Column gap="4">
-                      <Heading as="h4" variant="heading-strong-s">
-                        {entry.display}
-                      </Heading>
-                      <Text
-                        variant="body-default-s"
-                        onBackground="neutral-medium"
+                  return (
+                    <Column key={entry.symbol} gap="12">
+                      <Row
+                        horizontal="between"
+                        vertical="center"
+                        gap="12"
+                        s={{ direction: "column", align: "start" }}
                       >
-                        {classification}
-                      </Text>
+                        <Column gap="4">
+                          <Heading as="h4" variant="heading-strong-s">
+                            {entry.display}
+                          </Heading>
+                          <Text
+                            variant="body-default-s"
+                            onBackground="neutral-medium"
+                          >
+                            {classification}
+                          </Text>
+                        </Column>
+                        <Text variant="heading-strong-s">{scoreLabel}</Text>
+                      </Row>
+                      <div
+                        role="progressbar"
+                        aria-valuenow={Math.round(scoreValue)}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        style={{
+                          width: "100%",
+                          height: 10,
+                          borderRadius: 999,
+                          background: style.track,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${scoreValue}%`,
+                            height: "100%",
+                            background: style.fill,
+                          }}
+                        />
+                      </div>
+                      {index < trendMomentum.length - 1
+                        ? <Line background="neutral-alpha-weak" />
+                        : null}
                     </Column>
-                    <Text variant="heading-strong-s">{entry.score}</Text>
-                  </Row>
-                  <div
-                    role="progressbar"
-                    aria-valuenow={entry.score}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    style={{
-                      width: "100%",
-                      height: 10,
-                      borderRadius: 999,
-                      background: style.track,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${entry.score}%`,
-                        height: "100%",
-                        background: style.fill,
-                      }}
-                    />
-                  </div>
-                  {index < TREND_MOMENTUM.length - 1
-                    ? <Line background="neutral-alpha-weak" />
-                    : null}
-                </Column>
-              );
-            })}
-          </Column>
+                  );
+                })}
+              </Column>
+            )}
           <Text variant="label-default-s" onBackground="neutral-medium">
-            As of 25 September 2025 at 06:29 GMT+5
+            {lastUpdatedLabel
+              ? `Synced ${lastUpdatedLabel}`
+              : isLoadingMovers
+              ? "Refreshing live movers…"
+              : "Awaiting first sync"}
           </Text>
         </Column>
       </Row>
