@@ -34,6 +34,60 @@ const IMPACT_STYLES: Record<ImpactLevel, ImpactStyle> = {
   Low: { label: "Low impact", background: "neutral-alpha-weak", icon: "info" },
 };
 
+const NUMBER_FORMATTER_CACHE = new Map<string, Intl.NumberFormat>();
+
+const formatNumber = (
+  value: number | undefined,
+  options: Intl.NumberFormatOptions,
+) => {
+  if (value === undefined || Number.isNaN(value)) {
+    return "—";
+  }
+
+  const key = JSON.stringify(options);
+  let formatter = NUMBER_FORMATTER_CACHE.get(key);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("en-US", options);
+    NUMBER_FORMATTER_CACHE.set(key, formatter);
+  }
+
+  return formatter.format(value);
+};
+
+const formatChangePercent = (value?: number) => {
+  if (value === undefined || Number.isNaN(value)) {
+    return "—";
+  }
+  const absolute = Math.abs(value).toFixed(2);
+  if (value > 0) {
+    return `+${absolute}%`;
+  }
+  if (value < 0) {
+    return `-${absolute}%`;
+  }
+  return `${absolute}%`;
+};
+
+const resolveChangeBackground = (value?: number): TagBackground => {
+  if (value === undefined || Number.isNaN(value)) {
+    return "neutral-alpha-weak";
+  }
+  if (value > 0) {
+    return "brand-alpha-weak";
+  }
+  if (value < 0) {
+    return "danger-alpha-weak";
+  }
+  return "neutral-alpha-weak";
+};
+
+const resolveChangeIcon = (value?: number): string | undefined => {
+  if (value === undefined || Number.isNaN(value) || value === 0) {
+    return undefined;
+  }
+  return value > 0 ? "trending-up" : "trending-down";
+};
+
 interface EconomicCalendarSectionProps {
   events?: EconomicEvent[];
   loading?: boolean;
@@ -137,6 +191,12 @@ export function EconomicCalendarSection(
             const impactDetails = IMPACT_STYLES[event.impact] ??
               IMPACT_STYLES.Medium;
             const showDeskPlan = event.deskPlan.length > 0;
+            const focusHighlights = event.marketHighlights.length > 0
+              ? event.marketHighlights
+              : event.marketFocus.map((focus) => ({
+                focus,
+                instruments: [],
+              }));
 
             return (
               <Fragment key={event.id}>
@@ -189,7 +249,7 @@ export function EconomicCalendarSection(
                       >
                         {event.commentary}
                       </Text>
-                      {event.marketFocus.length > 0
+                      {focusHighlights.length > 0
                         ? (
                           <Column gap="8">
                             <Text
@@ -198,18 +258,77 @@ export function EconomicCalendarSection(
                             >
                               Market focus
                             </Text>
-                            <Row gap="8" wrap>
-                              {event.marketFocus.map((focus) => (
-                                <Tag
-                                  key={focus}
-                                  size="s"
-                                  background="brand-alpha-weak"
-                                  prefixIcon="target"
-                                >
-                                  {focus}
-                                </Tag>
-                              ))}
-                            </Row>
+                            <Column gap="8">
+                              {focusHighlights.map((highlight) => {
+                                const hasData =
+                                  highlight.instruments.length > 0;
+                                return (
+                                  <Row
+                                    key={highlight.focus}
+                                    gap="8"
+                                    wrap
+                                    vertical="center"
+                                  >
+                                    <Tag
+                                      size="s"
+                                      background="brand-alpha-weak"
+                                      prefixIcon="target"
+                                    >
+                                      {highlight.focus}
+                                    </Tag>
+                                    {hasData
+                                      ? highlight.instruments.map(
+                                        (instrument) => {
+                                          const priceLabel = formatNumber(
+                                            instrument.last,
+                                            instrument.format,
+                                          );
+                                          const changeLabel =
+                                            formatChangePercent(
+                                              instrument.changePercent,
+                                            );
+                                          const changeBackground =
+                                            resolveChangeBackground(
+                                              instrument.changePercent,
+                                            );
+                                          const changeIcon = resolveChangeIcon(
+                                            instrument.changePercent,
+                                          );
+                                          return (
+                                            <Row
+                                              key={`${highlight.focus}-${instrument.instrumentId}`}
+                                              gap="8"
+                                              wrap
+                                              vertical="center"
+                                            >
+                                              <Tag
+                                                size="s"
+                                                background="neutral-alpha-weak"
+                                              >
+                                                {instrument.displaySymbol}
+                                              </Tag>
+                                              <Tag
+                                                size="s"
+                                                background="neutral-alpha-weak"
+                                              >
+                                                {priceLabel}
+                                              </Tag>
+                                              <Tag
+                                                size="s"
+                                                background={changeBackground}
+                                                prefixIcon={changeIcon}
+                                              >
+                                                {changeLabel}
+                                              </Tag>
+                                            </Row>
+                                          );
+                                        },
+                                      )
+                                      : null}
+                                  </Row>
+                                );
+                              })}
+                            </Column>
                           </Column>
                         )
                         : null}

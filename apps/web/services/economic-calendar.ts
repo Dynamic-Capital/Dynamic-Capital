@@ -1,5 +1,8 @@
-import tradingDeskPlan from "@/data/trading-desk-plan.json" with { type: "json" };
+import tradingDeskPlan from "@/data/trading-desk-plan.json" with {
+  type: "json",
+};
 import { callEdgeFunction } from "@/config/supabase";
+import { findInstrumentMetadata } from "@/data/instruments";
 import type { EconomicEvent, ImpactLevel } from "@/types/economic-event";
 import { optionalEnvVar } from "@/utils/env";
 
@@ -83,6 +86,364 @@ export interface FetchEconomicEventsOptions {
    * is attempted first before falling back to the Supabase edge function.
    */
   source?: "auto" | CalendarSource;
+}
+
+type MarketQuote = {
+  last: number;
+  changePercent: number;
+  high: number;
+  low: number;
+  updatedAt: Date | null;
+};
+
+type EconomicEventMarketInstrument =
+  EconomicEvent["marketHighlights"][number]["instruments"][number];
+
+const AWESOME_API_BASE_URL = "https://economia.awesomeapi.com.br/last";
+
+const DEFAULT_NUMBER_FORMAT: Intl.NumberFormatOptions = {
+  style: "decimal",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+};
+
+const DXY_COMPOSITION: Array<{ instrumentId: string; exponent: number }> = [
+  { instrumentId: "EURUSD", exponent: -0.576 },
+  { instrumentId: "USDJPY", exponent: 0.136 },
+  { instrumentId: "GBPUSD", exponent: -0.119 },
+  { instrumentId: "USDCAD", exponent: 0.091 },
+  { instrumentId: "USDSEK", exponent: 0.042 },
+  { instrumentId: "USDCHF", exponent: 0.036 },
+];
+
+const MARKET_FOCUS_OVERRIDES: Record<string, string[]> = {
+  usd: ["DXY"],
+  "us dollar": ["DXY"],
+  dxy: ["DXY"],
+  eur: ["EURUSD"],
+  euro: ["EURUSD"],
+  jpy: ["USDJPY"],
+  yen: ["USDJPY"],
+  gbp: ["GBPUSD"],
+  pound: ["GBPUSD"],
+  aud: ["AUDUSD"],
+  aussie: ["AUDUSD"],
+  nzd: ["NZDUSD"],
+  cad: ["USDCAD"],
+  chf: ["USDCHF"],
+  btc: ["BTCUSD"],
+  bitcoin: ["BTCUSD"],
+  eth: ["ETHUSD"],
+  ether: ["ETHUSD"],
+  xau: ["XAUUSD"],
+  gold: ["XAUUSD"],
+  xag: ["XAGUSD"],
+  silver: ["XAGUSD"],
+  oil: ["USOil"],
+  "crude oil": ["USOil"],
+  wti: ["USOil"],
+  brent: ["UKOil"],
+};
+
+function normalizeFocusToken(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function hasAwesomeApiSupport(instrumentId: string): boolean {
+  if (instrumentId === "DXY") {
+    return true;
+  }
+
+  const metadata = findInstrumentMetadata(instrumentId);
+  return Boolean(metadata?.base && metadata.quote);
+}
+
+function resolveFocusInstruments(focus: string): string[] {
+  const normalized = normalizeFocusToken(focus);
+  if (!normalized) {
+    return [];
+  }
+
+  const override = MARKET_FOCUS_OVERRIDES[normalized];
+  if (override) {
+    return override.filter((instrumentId) =>
+      hasAwesomeApiSupport(instrumentId)
+    );
+  }
+
+  const sanitized = focus.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!sanitized) {
+    return [];
+  }
+
+  if (hasAwesomeApiSupport(sanitized)) {
+    return [sanitized];
+  }
+
+  if (sanitized.length === 3) {
+    if (sanitized === "USD") {
+      return ["DXY"];
+    }
+
+    const forward = `${sanitized}USD`;
+    if (hasAwesomeApiSupport(forward)) {
+      return [forward];
+    }
+
+    const backward = `USD${sanitized}`;
+    if (hasAwesomeApiSupport(backward)) {
+      return [backward];
+    }
+  }
+
+  return [];
+}
+
+function toAwesomeApiCode(instrumentId: string): string | null {
+  const metadata = findInstrumentMetadata(instrumentId);
+  if (!metadata?.base || !metadata.quote) {
+    return null;
+  }
+  return `${metadata.base}-${metadata.quote}`;
+}
+
+function parseNumber(value?: string | null): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function parseTimestamp(value?: string | null): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const normalized = `${value.replace(" ", "T")}Z`;
+  const parsed = Date.parse(normalized);
+  return Number.isNaN(parsed) ? undefined : parsed;
+}
+
+async function fetchAwesomeApiQuotes(
+  instrumentIds: Iterable<string>,
+): Promise<Record<string, MarketQuote>> {
+  const targets = new Set<string>();
+
+  for (const instrumentId of instrumentIds) {
+    if (instrumentId === "DXY") {
+      for (const component of DXY_COMPOSITION) {
+        targets.add(component.instrumentId);
+      }
+      continue;
+    }
+
+    if (hasAwesomeApiSupport(instrumentId)) {
+      targets.add(instrumentId);
+    }
+  }
+
+  const marketCodes = Array.from(targets)
+    .map((instrumentId) => toAwesomeApiCode(instrumentId))
+    .filter((code): code is string => Boolean(code));
+
+  if (marketCodes.length === 0) {
+    return {};
+  }
+
+  const url = `${AWESOME_API_BASE_URL}/${marketCodes.join(",")}`;
+  const response = await fetch(url, { cache: "no-store" });
+
+  if (!response.ok) {
+    throw new Error(
+      `AwesomeAPI request failed: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const payload = (await response.json()) as Record<
+    string,
+    {
+      bid?: string;
+      pctChange?: string;
+      high?: string;
+      low?: string;
+      create_date?: string | null;
+    }
+  >;
+
+  const quotes: Record<string, MarketQuote> = {};
+
+  for (const [key, value] of Object.entries(payload)) {
+    const last = parseNumber(value.bid);
+    const changePercent = parseNumber(value.pctChange);
+    const high = parseNumber(value.high);
+    const low = parseNumber(value.low);
+
+    if (
+      last === undefined ||
+      changePercent === undefined ||
+      high === undefined ||
+      low === undefined
+    ) {
+      continue;
+    }
+
+    const timestamp = parseTimestamp(value.create_date);
+    quotes[key] = {
+      last,
+      changePercent,
+      high,
+      low,
+      updatedAt: timestamp ? new Date(timestamp) : null,
+    };
+  }
+
+  return quotes;
+}
+
+function computeDxyQuote(
+  quotes: Record<string, MarketQuote>,
+): MarketQuote | undefined {
+  const base = 50.14348112;
+  let last = base;
+  let high = base;
+  let low = base;
+  let changeDecimal = 0;
+
+  for (const { instrumentId, exponent } of DXY_COMPOSITION) {
+    const quote = quotes[instrumentId];
+    if (!quote) {
+      return undefined;
+    }
+
+    const rate = quote.last;
+    const highRate = exponent >= 0 ? quote.high : quote.low;
+    const lowRate = exponent >= 0 ? quote.low : quote.high;
+
+    if (
+      rate === undefined ||
+      highRate === undefined ||
+      lowRate === undefined ||
+      !Number.isFinite(rate) ||
+      !Number.isFinite(highRate) ||
+      !Number.isFinite(lowRate)
+    ) {
+      return undefined;
+    }
+
+    last *= Math.pow(rate, exponent);
+    high *= Math.pow(highRate, exponent);
+    low *= Math.pow(lowRate, exponent);
+    changeDecimal += exponent * (quote.changePercent / 100);
+  }
+
+  const computedHigh = Math.max(high, low);
+  const computedLow = Math.min(high, low);
+
+  if (
+    !Number.isFinite(last) ||
+    !Number.isFinite(computedHigh) ||
+    !Number.isFinite(computedLow)
+  ) {
+    return undefined;
+  }
+
+  return {
+    last,
+    high: computedHigh,
+    low: computedLow,
+    changePercent: changeDecimal * 100,
+    updatedAt: null,
+  };
+}
+
+async function withMarketHighlights(
+  events: EconomicEvent[],
+): Promise<EconomicEvent[]> {
+  if (events.length === 0) {
+    return events;
+  }
+
+  const focusPlans = events.map((event) =>
+    event.marketFocus.map((focus) => ({
+      focus,
+      instrumentIds: resolveFocusInstruments(focus),
+    }))
+  );
+
+  const instruments = new Set<string>();
+  for (const focusPlan of focusPlans) {
+    for (const { instrumentIds } of focusPlan) {
+      for (const instrumentId of instrumentIds) {
+        instruments.add(instrumentId);
+      }
+    }
+  }
+
+  let quotes: Record<string, MarketQuote> = {};
+
+  if (instruments.size > 0) {
+    try {
+      quotes = await fetchAwesomeApiQuotes(instruments);
+    } catch (error) {
+      console.error(
+        "Failed to load AwesomeAPI quotes for economic calendar",
+        error,
+      );
+      quotes = {};
+    }
+
+    if (instruments.has("DXY")) {
+      const dxy = computeDxyQuote(quotes);
+      if (dxy) {
+        const updatedAtSource = DXY_COMPOSITION
+          .map((component) =>
+            quotes[component.instrumentId]?.updatedAt?.getTime()
+          )
+          .filter((value): value is number =>
+            value !== undefined && Number.isFinite(value)
+          );
+        const updatedAt = updatedAtSource.length > 0
+          ? new Date(Math.max(...updatedAtSource))
+          : null;
+        quotes = { ...quotes, DXY: { ...dxy, updatedAt } };
+      }
+    }
+  }
+
+  return events.map((event, index) => {
+    const focusPlan = focusPlans[index];
+    const marketHighlights = focusPlan.map(({ focus, instrumentIds }) => {
+      const instrumentsWithData = instrumentIds
+        .map((instrumentId): EconomicEventMarketInstrument | null => {
+          const metadata = findInstrumentMetadata(instrumentId);
+          if (!metadata) {
+            return null;
+          }
+          const quote = quotes[instrumentId];
+          const instrument: EconomicEventMarketInstrument = {
+            instrumentId: metadata.id,
+            displaySymbol: metadata.displaySymbol ?? metadata.id,
+            name: metadata.name,
+            format: metadata.format ?? DEFAULT_NUMBER_FORMAT,
+            last: quote?.last,
+            changePercent: quote?.changePercent,
+            high: quote?.high,
+            low: quote?.low,
+            lastUpdated: quote?.updatedAt
+              ? quote.updatedAt.toISOString()
+              : null,
+          };
+          return instrument;
+        })
+        .filter((entry): entry is EconomicEventMarketInstrument =>
+          entry !== null
+        );
+
+      return { focus, instruments: instrumentsWithData };
+    });
+
+    return { ...event, marketHighlights };
+  });
 }
 
 let cachedEvents: EconomicEvent[] | null = null;
@@ -299,6 +660,7 @@ function normalizeEconomicEvent(
       raw.impact ?? raw.impact_level ?? raw.impactLevel ?? raw.importance,
     ),
     marketFocus: parseMarketFocus(raw),
+    marketHighlights: [],
     commentary,
     deskPlan: parseDeskPlan(raw, eventId),
   };
@@ -336,7 +698,8 @@ async function fetchFromEdge(): Promise<EconomicEvent[]> {
     throw new Error(error.message || "Unable to load economic calendar events");
   }
 
-  return normalizeEconomicEvents(data);
+  const events = normalizeEconomicEvents(data);
+  return withMarketHighlights(events);
 }
 
 async function fetchFromRest(): Promise<EconomicEvent[]> {
@@ -364,7 +727,8 @@ async function fetchFromRest(): Promise<EconomicEvent[]> {
   }
 
   const data = (await response.json()) as EconomicCalendarResponse;
-  return normalizeEconomicEvents(data);
+  const events = normalizeEconomicEvents(data);
+  return withMarketHighlights(events);
 }
 
 function resolveSources(
