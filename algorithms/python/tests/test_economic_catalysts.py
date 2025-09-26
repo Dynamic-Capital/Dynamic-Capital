@@ -7,6 +7,7 @@ import pytest
 from algorithms.python.awesome_api import AwesomeAPIAutoCalculator
 from algorithms.python.data_pipeline import RawBar
 from algorithms.python.economic_catalysts import (
+    EconomicCatalyst,
     EconomicCatalystGenerator,
     EconomicCatalystSyncJob,
 )
@@ -135,3 +136,27 @@ def test_sync_job_handles_fetch_errors() -> None:
     )
 
     assert job.run() == 0
+
+
+def test_catalyst_from_mapping_and_macro_event() -> None:
+    observed_at = datetime(2024, 4, 12, 15, 30, tzinfo=timezone.utc)
+    payload = {
+        "pair": "EUR-USD",
+        "observed_at": observed_at.isoformat(),
+        "headline": "Euro breaks above 1.09",
+        "impact": "High",
+        "market_focus": ["EUR", "USD"],
+        "commentary": "Momentum chase extends into NY close",
+        "metrics": {"percentage_change": 1.2345, "volatility": 0.45},
+        "source": "awesomeapi",
+    }
+
+    catalyst = EconomicCatalyst.from_mapping(payload)
+
+    assert catalyst.pair == "EUR-USD"
+    assert catalyst.market_focus[-1] == "EUR-USD"
+
+    summary = catalyst.to_macro_event()
+    assert "High" in summary
+    assert "EUR-USD" in summary
+    assert "Δ+1.23%" in summary

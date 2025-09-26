@@ -7,6 +7,7 @@ from typing import Any
 import pytest
 
 from algorithms.python.trade_logic import ActivePosition, MarketSnapshot
+from algorithms.python.economic_catalysts import EconomicCatalyst
 from algorithms.python.trading_data_processor import (
     TradingDataProcessor,
     TradingDataRequest,
@@ -126,4 +127,48 @@ def test_feature_summary_captures_momentum_and_range() -> None:
     assert result.feature_summary["range_high"] >= result.feature_summary["range_low"]
     assert result.metadata["prompt_optimisation"]["snapshots_retained"] == 2
     assert "Optimisation stats" in grok_client.calls[0]["prompt"]
+
+
+def test_processor_merges_macro_events_with_catalysts() -> None:
+    grok_client = StubClient("{}")
+    deepseek_client = StubClient("{}")
+
+    processor = TradingDataProcessor(grok_client=grok_client, deepseek_client=deepseek_client)
+
+    catalyst = EconomicCatalyst(
+        pair="EUR-USD",
+        observed_at=datetime(2024, 4, 12, 14, 0, tzinfo=timezone.utc),
+        headline="Euro extends breakout",
+        impact="High",
+        market_focus=("EUR", "USD", "EUR-USD"),
+        commentary="Momentum chase into NY close",
+        metrics={"percentage_change": 1.1},
+    )
+    catalyst_mapping = {
+        "pair": "GBP-USD",
+        "observed_at": datetime(2024, 4, 12, 13, 30, tzinfo=timezone.utc).isoformat(),
+        "headline": "Cable slips on data",
+        "impact": "Medium",
+        "market_focus": ["GBP", "USD"],
+        "commentary": "Traders fade the surprise beat",
+        "metrics": {"percentage_change": -0.4},
+    }
+
+    request = TradingDataRequest(
+        snapshots=[_snapshot(1.0830, minutes=0), _snapshot(1.0825, minutes=5)],
+        macro_events=["Existing macro event"],
+        catalysts=[catalyst, catalyst_mapping],
+    )
+
+    result = processor.process(request)
+
+    prompt = grok_client.calls[0]["prompt"]
+    assert "Existing macro event" in prompt
+    assert "Euro extends breakout" in prompt
+    assert "Cable slips on data" in prompt
+
+    optimisation_meta = result.metadata["prompt_optimisation"]
+    assert optimisation_meta["macro_events_retained"] == 3
+    assert optimisation_meta["macro_events_from_catalysts"] == 2
+    assert optimisation_meta["catalysts_supplied"] == 2
 

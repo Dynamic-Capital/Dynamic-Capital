@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import logging
+import re
+
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Iterable, Mapping, MutableMapping, Sequence
+from datetime import UTC, datetime
+from typing import Any, Iterable, Mapping, MutableMapping, Sequence
 
 from .awesome_api import (
     AwesomeAPIAutoCalculator,
@@ -31,6 +33,114 @@ class EconomicCatalyst:
     commentary: str
     metrics: Mapping[str, float]
     source: str = "awesomeapi"
+
+    @classmethod
+    def from_mapping(cls, payload: Mapping[str, Any]) -> "EconomicCatalyst":
+        """Normalise a mapping into an :class:`EconomicCatalyst` instance.
+
+        The Supabase REST API and cached JSON artifacts return dictionaries
+        that mirror the catalyst schema.  Trading workflows often ingest those
+        payloads directly, so this helper converts them into the strongly typed
+        dataclass used throughout the algorithms package.
+        """
+
+        def _coerce_datetime(value: Any) -> datetime:
+            if isinstance(value, datetime):
+                return value if value.tzinfo else value.replace(tzinfo=UTC)
+            if not isinstance(value, str):
+                raise ValueError("observed_at must be a datetime or ISO string")
+            try:
+                parsed = datetime.fromisoformat(value)
+            except ValueError as exc:  # pragma: no cover - malformed input guard
+                raise ValueError(f"Invalid observed_at timestamp: {value!r}") from exc
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=UTC)
+            return parsed
+
+        def _ensure_strings(value: Any) -> tuple[str, ...]:
+            if value is None:
+                return tuple()
+            if isinstance(value, str):
+                tokens = [token.strip() for token in re.split(r"[\n,|;]", value)]
+            elif isinstance(value, Iterable):
+                tokens = []
+                for token in value:
+                    if isinstance(token, str):
+                        tokens.append(token.strip())
+            else:
+                return tuple()
+            return tuple(token for token in tokens if token)
+
+        def _coerce_metrics(value: Any) -> Mapping[str, float]:
+            if not isinstance(value, Mapping):
+                return {}
+            metrics: dict[str, float] = {}
+            for key, metric in value.items():
+                label = str(key)
+                try:
+                    metrics[label] = float(metric)
+                except (TypeError, ValueError):
+                    continue
+            return metrics
+
+        pair = str(payload.get("pair") or payload.get("symbol") or "").strip()
+        if not pair:
+            raise ValueError("pair is required to build an EconomicCatalyst")
+
+        headline = str(payload.get("headline") or payload.get("title") or "").strip()
+        if not headline:
+            raise ValueError("headline is required to build an EconomicCatalyst")
+
+        impact = str(payload.get("impact") or payload.get("impact_level") or "Medium").strip()
+        if not impact:
+            impact = "Medium"
+        impact = impact[0].upper() + impact[1:].lower() if impact else "Medium"
+
+        commentary_raw = payload.get("commentary") or payload.get("summary") or ""
+        commentary = str(commentary_raw).strip()
+
+        observed_at_value = payload.get("observed_at") or payload.get("observedAt")
+        if observed_at_value is None:
+            raise ValueError("observed_at is required to build an EconomicCatalyst")
+        observed_at = _coerce_datetime(observed_at_value)
+
+        focus_raw = (
+            payload.get("market_focus")
+            or payload.get("marketFocus")
+            or payload.get("focus")
+            or ()
+        )
+        market_focus = _ensure_strings(focus_raw)
+        if not market_focus:
+            market_focus = _ensure_strings(payload.get("market_focus"))
+        focus = tuple(EconomicCatalystGenerator._normalise_focus(market_focus, pair))
+
+        metrics = _coerce_metrics(payload.get("metrics"))
+
+        source = str(payload.get("source") or payload.get("provider") or "awesomeapi").strip()
+        if not source:
+            source = "awesomeapi"
+
+        return cls(
+            pair=pair,
+            observed_at=observed_at,
+            headline=headline,
+            impact=impact,
+            market_focus=focus,
+            commentary=commentary,
+            metrics=metrics,
+            source=source,
+        )
+
+    def to_macro_event(self) -> str:
+        """Summarise the catalyst into a compact macro event headline."""
+
+        timestamp = self.observed_at.astimezone(UTC).strftime("%d %b %H:%M UTC")
+        focus = ", ".join(self.market_focus) if self.market_focus else self.pair
+        change = self.metrics.get("percentage_change") if self.metrics else None
+        change_text = f" Δ{change:+.2f}%" if isinstance(change, (int, float)) else ""
+        commentary = f" – {self.commentary}" if self.commentary else ""
+        return f"[{self.impact}] {focus}: {self.headline}{change_text} ({timestamp}){commentary}"
 
 
 @dataclass(slots=True)
