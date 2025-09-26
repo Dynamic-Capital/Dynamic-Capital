@@ -1,4 +1,4 @@
-import { dynamicBranding, dynamicUI } from "../apps/web/resources";
+import { dynamicBranding, dynamicUI } from "../../apps/web/resources";
 
 const BRANDING_STYLE_ELEMENT_ID = "dynamic-branding-tokens";
 const THEME_STORAGE_KEY = "data-theme";
@@ -11,8 +11,9 @@ const {
 const { style } = basicsConfig;
 const { dataStyle } = dataVizConfig;
 
-const DEFAULT_THEME =
-  style.theme === "light" || style.theme === "dark" ? style.theme : "dark";
+const DEFAULT_THEME = style.theme === "light" || style.theme === "dark"
+  ? style.theme
+  : "dark";
 
 const htmlAttributeDefaults: Record<string, string> = {
   "data-neutral": style.neutral,
@@ -55,7 +56,9 @@ function applyBrandingAttributes(root: HTMLElement) {
 
 function applyThemeAttributes(root: HTMLElement) {
   const storedTheme = safeStorageGet(THEME_STORAGE_KEY);
-  const resolvedTheme = resolveTheme(storedTheme ?? style.theme ?? DEFAULT_THEME);
+  const resolvedTheme = resolveTheme(
+    storedTheme ?? style.theme ?? DEFAULT_THEME,
+  );
   root.setAttribute("data-theme", resolvedTheme);
 
   for (const [key, fallbackValue] of Object.entries(themeAttributeDefaults)) {
@@ -165,7 +168,9 @@ function serializeBrandingTokens(tokenSet: Record<string, string>): string {
 
 function resolveTheme(themeValue: string | null | undefined): string {
   if (!themeValue || themeValue === "system") {
-    if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+    if (
+      typeof window !== "undefined" && typeof window.matchMedia === "function"
+    ) {
       return window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light";
