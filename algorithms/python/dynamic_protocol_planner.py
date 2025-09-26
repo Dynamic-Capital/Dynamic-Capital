@@ -3,11 +3,27 @@
 from __future__ import annotations
 
 import json
+import math
 import textwrap
-from dataclasses import dataclass, field
-from typing import Any, Dict, Mapping, Optional, Sequence
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, Tuple, TYPE_CHECKING
 
 from .multi_llm import LLMConfig, LLMRun, collect_strings, parse_json_response
+
+try:  # pragma: no cover - optional dependency graph handled lazily in tests
+    from .optimization_workflow import optimize_trading_stack
+except Exception:  # pragma: no cover - allow importing when optimisation stack unavailable
+    optimize_trading_stack = None  # type: ignore[assignment]
+
+if TYPE_CHECKING:  # pragma: no cover - import cycles avoided at runtime
+    from collections.abc import Callable
+
+    from .backtesting import BacktestResult
+    from .optimization_workflow import OptimizationPlan
+    from .realtime import BrokerConnector, HealthMonitor, StateStore
+    from .trade_logic import MarketSnapshot, RiskParameters, TradeConfig, TradeLogic
+    from .trade_logic import PerformanceMetrics  # noqa: F401  # re-export for typing
+    from .grok_advisor import TradeAdvisor
 
 
 HORIZON_KEYS: tuple[str, ...] = ("yearly", "quarterly", "monthly", "weekly", "daily")
@@ -77,6 +93,134 @@ CATEGORY_ALIASES: Dict[str, str] = {
     "review": "review",
     "retrospective": "review",
 }
+
+
+def _round_float(value: Any, *, precision: int = 6) -> Any:
+    if isinstance(value, float):
+        if math.isnan(value):
+            return "nan"
+        if math.isinf(value):
+            return "inf" if value > 0 else "-inf"
+        return round(value, precision)
+    return value
+
+
+def _summarise_dataclass(instance: Any) -> Dict[str, Any]:
+    if instance is None or not hasattr(instance, "__dataclass_fields__"):
+        return {}
+    return {key: _round_float(value) for key, value in asdict(instance).items()}
+
+
+def _summarise_performance(metrics: Any) -> Dict[str, Any]:
+    if metrics is None or not hasattr(metrics, "__dataclass_fields__"):
+        return {}
+    summary = {
+        "total_trades": getattr(metrics, "total_trades", 0),
+        "wins": getattr(metrics, "wins", 0),
+        "losses": getattr(metrics, "losses", 0),
+        "hit_rate": _round_float(getattr(metrics, "hit_rate", 0.0), precision=4),
+        "profit_factor": _round_float(getattr(metrics, "profit_factor", 0.0), precision=4),
+        "max_drawdown_pct": _round_float(getattr(metrics, "max_drawdown_pct", 0.0), precision=3),
+    }
+    return summary
+
+
+def _summarise_backtest(result: Any) -> Dict[str, Any]:
+    if result is None:
+        return {}
+    summary = {
+        "ending_equity": _round_float(getattr(result, "ending_equity", 0.0), precision=2),
+        "decisions": len(getattr(result, "decisions", []) or []),
+        "trades": len(getattr(result, "trades", []) or []),
+    }
+    performance = getattr(result, "performance", None)
+    perf_summary = _summarise_performance(performance)
+    if perf_summary:
+        summary["performance"] = perf_summary
+    return summary
+
+
+def _summarise_trade_logic(trade_logic: Any) -> Dict[str, Any]:
+    if trade_logic is None:
+        return {}
+    payload: Dict[str, Any] = {}
+    config = getattr(trade_logic, "config", None)
+    config_summary = _summarise_dataclass(config)
+    if config_summary:
+        payload["config"] = config_summary
+    risk = getattr(trade_logic, "risk", None)
+    params = getattr(risk, "params", None) if risk else None
+    risk_summary = _summarise_dataclass(params)
+    if risk_summary:
+        payload["risk_parameters"] = risk_summary
+    metrics = None
+    if risk:
+        metrics_fn = getattr(risk, "metrics", None)
+        if callable(metrics_fn):
+            try:
+                metrics = metrics_fn()
+            except Exception:  # pragma: no cover - guard against external risk implementations
+                metrics = None
+    perf_summary = _summarise_performance(metrics)
+    if perf_summary:
+        payload["risk_metrics"] = perf_summary
+    adr_tracker = getattr(trade_logic, "adr_tracker", None)
+    if adr_tracker is not None:
+        payload["adr"] = {
+            "period": getattr(adr_tracker, "period", None),
+            "value": _round_float(getattr(adr_tracker, "value", None)),
+        }
+    smc = getattr(trade_logic, "smc", None)
+    payload["smc"] = {
+        "enabled": bool(smc),
+        "structure_threshold_pips": _round_float(getattr(config, "smc_structure_threshold_pips", None)),
+        "liquidity_weight": _round_float(getattr(config, "smc_liquidity_weight", None)),
+    }
+    return payload
+
+
+def _summarise_optimization_plan(plan: Any) -> Dict[str, Any]:
+    if plan is None:
+        return {}
+    summary: Dict[str, Any] = {}
+    base_config = getattr(plan, "base_config", None)
+    tuned_config = getattr(plan, "tuned_config", None)
+    best_config = getattr(plan, "best_config", None)
+    if base_config:
+        summary["base_config"] = _summarise_dataclass(base_config)
+    if tuned_config:
+        summary["tuned_config"] = _summarise_dataclass(tuned_config)
+    if best_config:
+        summary["best_config"] = _summarise_dataclass(best_config)
+    backtest = getattr(plan, "backtest_result", None)
+    backtest_summary = _summarise_backtest(backtest)
+    if backtest_summary:
+        summary["backtest"] = backtest_summary
+    insights = getattr(plan, "insights", None)
+    insights_summary = _summarise_dataclass(insights)
+    if insights_summary:
+        summary["insights"] = insights_summary
+    history = getattr(plan, "history", None)
+    if history is not None:
+        summary["search_iterations"] = len(history)
+    realtime = getattr(plan, "realtime_executor", None)
+    summary["realtime_ready"] = realtime is not None
+    return summary
+
+
+def _compose_context(
+    base_context: Optional[Mapping[str, Any]],
+    trade_logic: Any,
+    optimization_plan: Any,
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    context: Dict[str, Any] = dict(base_context or {})
+    trade_logic_summary = _summarise_trade_logic(trade_logic)
+    optimization_summary = _summarise_optimization_plan(optimization_plan)
+    if trade_logic_summary:
+        context["trade_logic"] = trade_logic_summary
+    if optimization_summary:
+        context["optimization"] = optimization_summary
+    return context, trade_logic_summary, optimization_summary
 
 
 def _normalise_key(value: str) -> str:
@@ -213,10 +357,26 @@ class DynamicProtocolPlanner:
     psychology: Optional[LLMConfig] = None
     review: Optional[LLMConfig] = None
 
-    def generate_protocol(self, *, context: Optional[Mapping[str, Any]] = None) -> ProtocolDraft:
+    def generate_protocol(
+        self,
+        *,
+        context: Optional[Mapping[str, Any]] = None,
+        trade_logic: "TradeLogic" | None = None,
+        optimization_plan: "OptimizationPlan" | None = None,
+    ) -> ProtocolDraft:
         """Generate an integrated protocol across strategy horizons."""
 
-        context_payload = json.dumps(context or {}, indent=2, sort_keys=True, default=str)
+        composed_context, trade_logic_summary, optimization_summary = _compose_context(
+            context,
+            trade_logic,
+            optimization_plan,
+        )
+        context_payload = json.dumps(
+            composed_context,
+            indent=2,
+            sort_keys=True,
+            default=str,
+        )
         plan = _initial_plan()
         runs: list[LLMRun] = []
 
@@ -252,7 +412,16 @@ class DynamicProtocolPlanner:
                 _reduce_payload(plan, review_payload)
 
         cleaned = _deduplicate_plan(plan)
-        annotations = {"horizons": HORIZON_KEYS, "categories": CATEGORY_KEYS}
+        annotations: Dict[str, Any] = {
+            "horizons": HORIZON_KEYS,
+            "categories": CATEGORY_KEYS,
+        }
+        if context:
+            annotations["context_supplied"] = True
+        if trade_logic_summary:
+            annotations["trade_logic"] = trade_logic_summary
+        if optimization_summary:
+            annotations["optimization"] = optimization_summary
         return ProtocolDraft(plan=cleaned, runs=runs, annotations=annotations)
 
     def _build_architect_prompt(self, context_payload: str) -> str:
@@ -276,6 +445,46 @@ class DynamicProtocolPlanner:
             {context_payload}
             """
         ).strip()
+
+    def optimize_and_generate(
+        self,
+        snapshots: Sequence["MarketSnapshot"],
+        search_space: Mapping[str, Iterable],
+        *,
+        base_config: "TradeConfig" | None = None,
+        risk_parameters: "RiskParameters" | None = None,
+        scoring: "Callable[[BacktestResult], float]" | None = None,
+        initial_equity: float = 10_000.0,
+        broker: "BrokerConnector" | None = None,
+        state_store: "StateStore" | None = None,
+        health_monitor: "HealthMonitor" | None = None,
+        advisor: "TradeAdvisor" | None = None,
+        context: Optional[Mapping[str, Any]] = None,
+    ) -> ProtocolDraft:
+        """Run optimisation workflow before generating the protocol."""
+
+        if optimize_trading_stack is None:  # pragma: no cover - handled in production environments
+            raise RuntimeError("optimize_trading_stack is unavailable in this environment")
+
+        plan = optimize_trading_stack(
+            snapshots,
+            search_space,
+            base_config=base_config,
+            risk_parameters=risk_parameters,
+            scoring=scoring,
+            initial_equity=initial_equity,
+            broker=broker,
+            state_store=state_store,
+            health_monitor=health_monitor,
+            advisor=advisor,
+        )
+
+        trade_logic = getattr(plan, "trade_logic", None)
+        return self.generate_protocol(
+            context=context,
+            trade_logic=trade_logic,
+            optimization_plan=plan,
+        )
 
     def _build_risk_prompt(self, context_payload: str, plan: Mapping[str, Mapping[str, Sequence[str]]]) -> str:
         plan_payload = json.dumps(plan, indent=2, sort_keys=True, default=str)
