@@ -167,8 +167,11 @@ def _serialise_report(analysis: BacktestAnalysis) -> Dict[str, Any]:
             "metadata": dict(trade.metadata),
         }
 
+    serialised_trades = [_serialise_trade(trade) for trade in analysis.trades]
+
     return {
         "summary": summary_dict,
+        "trades": serialised_trades,
         "best_trades": [_serialise_trade(trade) for trade in analysis.best_trades],
         "worst_trades": [_serialise_trade(trade) for trade in analysis.worst_trades],
         "recommendations": [asdict(rec) for rec in analysis.recommendations],

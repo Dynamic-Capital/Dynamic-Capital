@@ -18,6 +18,9 @@ def test_run_mock_backtest_produces_profitable_report() -> None:
     assert report["net_profit"] > 0
     assert report["summary"]["trade_count"] == len(result.trades)
     assert report["summary"]["total_return_pct"] > 0
+    assert report["trades"], "report should include serialised trades"
+    assert len(report["trades"]) == len(result.trades)
+    assert report["trades"][0]["profit"] == result.trades[0].profit
     assert report["summary_text"].startswith("Starting balance $50,000.00")
     # Ensure best/worst trades carry serialised timestamps
     first_best = report["best_trades"][0]
