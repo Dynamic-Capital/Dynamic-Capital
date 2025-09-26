@@ -20,6 +20,7 @@ class MarketIntelligenceRequest:
 
     snapshot: MarketSnapshot
     context: Dict[str, Any] = field(default_factory=dict)
+    strategy_context: Dict[str, Any] = field(default_factory=dict)
     macro_events: Sequence[str] = field(default_factory=tuple)
     watchlist: Sequence[str] = field(default_factory=tuple)
     open_positions: Sequence[ActivePosition] = field(default_factory=tuple)
@@ -189,6 +190,12 @@ class MarketIntelligenceEngine:
             default=str,
             sort_keys=True,
         )
+        strategy_context_json = json.dumps(
+            payload.get("strategy_context", {}),
+            indent=2,
+            default=str,
+            sort_keys=True,
+        )
         optimisation_note = self._format_context_note(prompt_meta)
 
         return textwrap.dedent(
@@ -219,6 +226,9 @@ class MarketIntelligenceEngine:
 
             Quantitative analytics:
             {analytics_json}
+
+            Strategy context:
+            {strategy_context_json}
             """
         ).strip()
 
@@ -227,6 +237,10 @@ class MarketIntelligenceEngine:
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         snapshot_payload, snapshot_meta = self._snapshot_payload(request.snapshot)
         context_payload, context_pruned_keys = self._compact_mapping(request.context)
+        (
+            strategy_context_payload,
+            strategy_context_pruned_keys,
+        ) = self._compact_mapping(request.strategy_context)
         macro_events, macro_omitted_items = self._normalise_sequence(
             request.macro_events,
             self.max_macro_events,
@@ -249,6 +263,8 @@ class MarketIntelligenceEngine:
         payload: Dict[str, Any] = {"snapshot": snapshot_payload}
         if context_payload:
             payload["context"] = context_payload
+        if strategy_context_payload:
+            payload["strategy_context"] = strategy_context_payload
         if macro_events:
             payload["macro_events"] = macro_events
         if watchlist:
@@ -275,6 +291,9 @@ class MarketIntelligenceEngine:
             "context_retained": len(context_payload),
             "context_pruned": len(context_pruned_keys),
             "context_pruned_keys": context_pruned_keys,
+            "strategy_context_retained": len(strategy_context_payload),
+            "strategy_context_pruned": len(strategy_context_pruned_keys),
+            "strategy_context_pruned_keys": strategy_context_pruned_keys,
         }
         optimisation_meta.update(snapshot_meta)
 

@@ -70,6 +70,11 @@ def test_engine_combines_grok_and_deepseek_payloads() -> None:
     request = MarketIntelligenceRequest(
         snapshot=_snapshot(),
         context={"session": "London"},
+        strategy_context={
+            "original_confidence": 0.62,
+            "final_confidence": 0.496,
+            "correlation": {"modifier": 0.8},
+        },
         macro_events=["US CPI", "ECB minutes"],
         watchlist=["EURUSD", "DXY"],
         open_positions=[ActivePosition(symbol="GBPUSD", direction=1, size=0.2, entry_price=1.2650)],
@@ -89,7 +94,11 @@ def test_engine_combines_grok_and_deepseek_payloads() -> None:
     assert report.metadata["prompt_optimisation"]["macro_events_retained"] == 2
     assert report.metadata["prompt_optimisation"]["macro_events_omitted_items"] == []
     assert report.metadata["prompt_optimisation"]["watchlist_omitted_items"] == []
+    assert report.metadata["prompt_optimisation"]["strategy_context_retained"] == 3
+    assert report.metadata["prompt_optimisation"]["strategy_context_pruned"] == 0
+    assert report.metadata["prompt_optimisation"]["strategy_context_pruned_keys"] == []
     assert "Grok-1 intelligence" in deepseek_client.calls[0]["prompt"]
+    assert "Strategy context" in deepseek_client.calls[0]["prompt"]
 
 
 def test_engine_handles_textual_responses() -> None:
@@ -112,7 +121,12 @@ def test_prompts_request_step_by_step_reasoning() -> None:
     grok_client = StubClient("{}")
     deepseek_client = StubClient("{}")
     engine = MarketIntelligenceEngine(grok_client=grok_client, deepseek_client=deepseek_client)
-    request = MarketIntelligenceRequest(snapshot=_snapshot(), macro_events=["NFP"], analytics={"beta": 0.5})
+    request = MarketIntelligenceRequest(
+        snapshot=_snapshot(),
+        macro_events=["NFP"],
+        analytics={"beta": 0.5},
+        strategy_context={"final_confidence": 0.58},
+    )
 
     payload, meta = engine._prepare_prompt_payload(request)
     grok_prompt = engine._build_grok_prompt(payload, meta)
@@ -123,6 +137,7 @@ def test_prompts_request_step_by_step_reasoning() -> None:
     assert "Quantitative analytics" in deepseek_prompt
     assert "All relevant context supplied" in grok_prompt
     assert "All relevant context supplied" in deepseek_prompt
+    assert "Strategy context" in deepseek_prompt
 
 
 def test_prompt_payload_optimises_context_volume() -> None:
@@ -144,6 +159,11 @@ def test_prompt_payload_optimises_context_volume() -> None:
         ],
         analytics={"volatility_zscore": -0.7, "carry": 1.2, "momentum": -2.4},
         context={"session": "London", "empty": ""},
+        strategy_context={
+            "final_confidence": 0.48,
+            "advisor": {},
+            "notes": "",
+        },
     )
 
     payload, meta = engine._prepare_prompt_payload(request)
@@ -171,3 +191,7 @@ def test_prompt_payload_optimises_context_volume() -> None:
     assert meta["analytics_pruned_keys"] == []
     assert meta["context_pruned"] == 1
     assert meta["context_pruned_keys"] == ["empty"]
+    assert payload["strategy_context"] == {"final_confidence": 0.48}
+    assert meta["strategy_context_retained"] == 1
+    assert meta["strategy_context_pruned"] == 2
+    assert meta["strategy_context_pruned_keys"] == ["advisor", "notes"]

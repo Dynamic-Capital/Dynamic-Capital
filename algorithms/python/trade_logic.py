@@ -1837,6 +1837,48 @@ class TradeLogic:
         signal: TradeSignal,
         open_positions: Sequence[ActivePosition],
     ) -> tuple[TradeSignal, Dict[str, Any]]:
+        adjusted_confidence, context = self._compute_signal_context(
+            snapshot=snapshot,
+            signal=signal,
+            open_positions=open_positions,
+        )
+        original_confidence = signal.confidence
+        if math.isclose(adjusted_confidence, original_confidence, rel_tol=1e-6):
+            return signal, context
+        adjusted_signal = TradeSignal(
+            direction=signal.direction,
+            confidence=adjusted_confidence,
+            votes=signal.votes,
+            neighbors_considered=signal.neighbors_considered,
+        )
+        return adjusted_signal, context
+
+    def compute_signal_context(
+        self,
+        *,
+        snapshot: MarketSnapshot,
+        signal: TradeSignal,
+        open_positions: Sequence[ActivePosition] | None = None,
+    ) -> Dict[str, Any]:
+        """Return the contextual modifiers that would be applied to ``signal``."""
+
+        positions = list(open_positions or [])
+        if self.smc:
+            self.smc.observe(snapshot)
+        _, context = self._compute_signal_context(
+            snapshot=snapshot,
+            signal=signal,
+            open_positions=positions,
+        )
+        return deepcopy(context)
+
+    def _compute_signal_context(
+        self,
+        *,
+        snapshot: MarketSnapshot,
+        signal: TradeSignal,
+        open_positions: Sequence[ActivePosition],
+    ) -> tuple[float, Dict[str, Any]]:
         original_confidence = signal.confidence
         correlation_modifier, correlation_meta = self._compute_correlation_modifier(
             snapshot=snapshot,
@@ -1860,17 +1902,9 @@ class TradeLogic:
             "final_confidence": adjusted_confidence,
             "correlation": {"modifier": correlation_modifier, **correlation_meta},
             "seasonal": {"modifier": seasonal_modifier, **seasonal_meta},
-            "smc": smc_meta,
+            "smc": dict(smc_meta),
         }
-        if math.isclose(adjusted_confidence, original_confidence, rel_tol=1e-6):
-            return signal, context
-        adjusted_signal = TradeSignal(
-            direction=signal.direction,
-            confidence=adjusted_confidence,
-            votes=signal.votes,
-            neighbors_considered=signal.neighbors_considered,
-        )
-        return adjusted_signal, context
+        return adjusted_confidence, context
 
     def _compute_correlation_modifier(
         self,

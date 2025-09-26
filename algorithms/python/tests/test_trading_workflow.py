@@ -370,6 +370,62 @@ def test_trade_logic_applies_correlation_and_seasonal_context():
     assert decision.context["smc"]["modifier"] == pytest.approx(1.0, rel=1e-3)
 
 
+def test_trade_logic_exposes_signal_context():
+    config = TradeConfig(
+        neighbors=1,
+        label_lookahead=0,
+        min_confidence=0.0,
+        use_adr=False,
+        use_smc_context=False,
+    )
+    logic = TradeLogic(config=config)
+
+    base_signal = TradeSignal(direction=1, confidence=0.7, votes=5, neighbors_considered=7)
+
+    class StaticStrategy:
+        def __init__(self, signal: TradeSignal) -> None:
+            self._signal = signal
+
+        def update(self, snapshot: MarketSnapshot) -> TradeSignal:
+            return self._signal
+
+    logic.strategy = StaticStrategy(base_signal)
+
+    snapshot = MarketSnapshot(
+        symbol="GBPUSD",
+        timestamp=datetime.now(timezone.utc),
+        close=1.2750,
+        rsi_fast=55.0,
+        adx_fast=20.0,
+        rsi_slow=52.0,
+        adx_slow=18.0,
+        pip_size=0.0001,
+        pip_value=10.0,
+        correlation_scores={"EURUSD": 0.8},
+        seasonal_bias=0.5,
+        seasonal_confidence=0.9,
+    )
+
+    open_positions = [
+        ActivePosition(symbol="EURUSD", direction=1, size=0.2, entry_price=1.1000)
+    ]
+
+    context_snapshot = logic.compute_signal_context(
+        snapshot=snapshot,
+        signal=base_signal,
+        open_positions=open_positions,
+    )
+
+    decisions = logic.on_bar(snapshot, open_positions=open_positions)
+    open_decision = next(dec for dec in decisions if dec.action == "open")
+
+    assert open_decision.signal is not None
+    assert open_decision.context == context_snapshot
+    assert open_decision.signal.confidence == pytest.approx(
+        context_snapshot["final_confidence"], rel=1e-6
+    )
+
+
 def test_trade_logic_layers_smc_context():
     config = TradeConfig(
         neighbors=1,
