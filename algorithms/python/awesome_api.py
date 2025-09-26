@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from typing import List, Mapping, MutableSequence, Sequence
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .data_pipeline import InstrumentMeta, MarketDataIngestionJob, RawBar
 from .trade_logic import MarketSnapshot
@@ -19,6 +20,16 @@ BASE_URL = "https://economia.awesomeapi.com.br"
 USER_AGENT = "DynamicCapitalBot/1.0"
 DEFAULT_HISTORY = 256
 DEFAULT_TIMEOUT = 10.0
+
+DESK_TIME_ZONE_NAME = "Indian/Maldives"
+try:
+    DESK_TIME_ZONE = ZoneInfo(DESK_TIME_ZONE_NAME)
+except ZoneInfoNotFoundError:  # pragma: no cover - environment-specific
+    LOGGER.warning(
+        "ZoneInfo database missing %s; falling back to UTC for AwesomeAPI bars",
+        DESK_TIME_ZONE_NAME,
+    )
+    DESK_TIME_ZONE = UTC
 
 
 class AwesomeAPIError(RuntimeError):
@@ -41,7 +52,7 @@ def _parse_timestamp(value: object) -> datetime:
         epoch = int(str(value))
     except (TypeError, ValueError) as exc:
         raise ValueError(f"invalid timestamp: {value!r}") from exc
-    return datetime.fromtimestamp(epoch, tz=UTC)
+    return datetime.fromtimestamp(epoch, tz=DESK_TIME_ZONE)
 
 
 def _extract_close(entry: Mapping[str, object]) -> float:
