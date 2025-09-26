@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Sequence
 
-from .grok_advisor import CompletionClient
+from .multi_llm import CompletionClient
 
 
 def _normalise_str_list(values: Any) -> List[str]:
