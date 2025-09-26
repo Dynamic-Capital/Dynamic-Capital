@@ -314,7 +314,18 @@ export async function handler(
       throw new Error(`Unsupported currency ${planPricing.currency}`);
     }
 
-    const expectedTonAmount = planPricing.tonAmount ?? planPricing.displayPrice;
+    if (planPricing.tonAmount === null) {
+      const message = {
+        ok: false,
+        error: "TON pricing temporarily unavailable. Please retry shortly.",
+      };
+      return new Response(JSON.stringify(message), {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const expectedTonAmount = planPricing.tonAmount;
 
     if (!Number.isFinite(expectedTonAmount) || expectedTonAmount <= 0) {
       throw new Error("Unable to determine TON price for plan");

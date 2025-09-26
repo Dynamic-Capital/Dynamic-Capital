@@ -1,8 +1,50 @@
-import {
-  assert,
-  assertEquals,
-  assertStringIncludes,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+function assert(
+  condition: unknown,
+  message = "Assertion failed",
+): asserts condition {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
+
+function serialize(value: unknown): string {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function assertEquals<T>(actual: T, expected: T, message?: string): void {
+  const isEqual = (() => {
+    if (Object.is(actual, expected)) return true;
+    if (
+      typeof actual === "object" && actual !== null &&
+      typeof expected === "object" && expected !== null
+    ) {
+      return serialize(actual) === serialize(expected);
+    }
+    return false;
+  })();
+
+  if (!isEqual) {
+    const suffix = `Expected ${serialize(expected)}, received ${
+      serialize(actual)
+    }`;
+    throw new Error(message ? `${message}: ${suffix}` : suffix);
+  }
+}
+
+function assertStringIncludes(
+  actual: string,
+  expected: string,
+  message?: string,
+): void {
+  if (!actual.includes(expected)) {
+    const suffix = `Expected "${expected}" to be contained within "${actual}"`;
+    throw new Error(message ? `${message}: ${suffix}` : suffix);
+  }
+}
 
 Deno.env.set("SUPABASE_URL", "https://example.supabase.co");
 Deno.env.set("SUPABASE_SERVICE_KEY", "service-key");
@@ -170,6 +212,85 @@ function createSupabaseStub(
 
   return { client, state };
 }
+
+Deno.test("returns 503 when TON pricing is unavailable", async () => {
+  const originalOverride = Deno.env.get("TON_USD_OVERRIDE");
+  try {
+    if (originalOverride) {
+      Deno.env.delete("TON_USD_OVERRIDE");
+    }
+
+    const request = new Request(
+      "https://example/functions/process-subscription",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          telegram_id: "9999",
+          plan: "vip_bronze",
+          tx_hash: "0xnope",
+        }),
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+
+    const { client: supabaseStub } = createSupabaseStub(
+      {
+        operations_pct: 60,
+        autoinvest_pct: 30,
+        buyback_burn_pct: 10,
+        min_ops_pct: 40,
+        max_ops_pct: 75,
+        min_invest_pct: 15,
+        max_invest_pct: 45,
+        min_burn_pct: 5,
+        max_burn_pct: 20,
+        ops_treasury: "EQOPS",
+        dct_master: "EQMASTER",
+        dex_router: "EQROUTER",
+      },
+      {
+        planPricing: {
+          vip_bronze: {
+            price: 120,
+            currency: "USD",
+            performance_snapshot: null,
+          },
+        },
+      },
+    );
+
+    const fetchCalls: Array<string> = [];
+    const fetchStub: typeof fetch = async (input, _init) => {
+      const url = typeof input === "string"
+        ? input
+        : input instanceof URL
+        ? input.toString()
+        : input.url;
+      fetchCalls.push(url);
+
+      if (url.includes("tonapi.io")) {
+        return new Response(JSON.stringify({ rates: {} }), { status: 200 });
+      }
+
+      throw new Error(`Unexpected fetch call: ${url}`);
+    };
+
+    const response = await handler(request, {
+      supabase: supabaseStub as HandlerDependencies["supabase"],
+      fetch: fetchStub,
+    });
+
+    assertEquals(response.status, 503);
+    const payload = await response.json();
+    assertEquals(payload.ok, false);
+    assertStringIncludes(payload.error, "temporarily unavailable");
+    assert(fetchCalls.some((url) => url.includes("tonapi.io")));
+  } finally {
+    if (originalOverride) {
+      Deno.env.set("TON_USD_OVERRIDE", originalOverride);
+    }
+  }
+});
 
 Deno.test("rejects subscription when TON transfer goes to different wallet", async () => {
   const request = new Request(
