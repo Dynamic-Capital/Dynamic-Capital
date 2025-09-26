@@ -58,6 +58,8 @@ apps/mini/dist/
 miniapp/
 !dynamic-capital-ton/apps/miniapp/
 !dynamic-capital-ton/apps/miniapp/**
+!shared/miniapp/
+!shared/miniapp/**
 # Allow Next.js mini app source under apps/web
 !apps/web/components/miniapp/
 !apps/web/components/miniapp/**
