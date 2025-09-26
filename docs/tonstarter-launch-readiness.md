@@ -68,10 +68,13 @@ Prepare the following collateral before filling out the Tonstarter intake form:
 - Monitor liquidity depth and adjust LP positions per the management policy.
 
 ## Action Checklist
-- [ ] Verify DCT Jetton minter configuration and publish explorer links.
-- [ ] Finalize tokenomics tables across seed, private, public, staking, and treasury buckets.
-- [ ] Complete sale/claim contract audits or adopt Tonstarter's vesting tooling.
-- [ ] Lock DEX preferences (STON.fi / DeDust) and document liquidity contributions.
-- [ ] Draft the "What we want" request (raise amount, pricing, support needs).
-- [ ] Submit the Tonstarter builder form with collateral and contact details.
-- [ ] Schedule follow-up diligence sessions and maintain transparency updates post-TGE.
+
+| Action | Claimed Completion Notes | Evidence Located in Repo | Audit Status | Follow-up Required |
+| --- | --- | --- | --- | --- |
+| Verify DCT Jetton minter configuration and publish explorer links | Shared STON.fi and TON explorer URLs in the diligence workspace on 2024-05-20 | No explorer permalinks or screenshots in `docs/` or `content/` | Needs verification | Capture canonical explorer URLs and archive proofs in a shared repo location (e.g., `docs/onchain/jetton-minter.md`). |
+| Finalize tokenomics tables across seed, private, public, staking, and treasury buckets | Locked revisions v3.2 in the Tonstarter data room | No tokenomics tables or CSVs committed; only references in external data room | Needs verification | Export the approved tables into the repo (redacted if required) and link them here for traceability. |
+| Complete sale/claim contract audits or adopt Tonstarter's vesting tooling | Integrated Tonstarter vesting module after internal audit sign-off | No audit reports or vesting module commit references surfaced | Needs verification | Attach audit attestation or reference the commit hash / deployment notes demonstrating vesting module integration. |
+| Lock DEX preferences (STON.fi / DeDust) and document liquidity contributions | Signed off on 60/40 TON/USDT split with treasury ops | No liquidity playbook or contribution sheet available | Needs verification | Add the liquidity management SOP to the repo and include the TON/USDT allocation math. |
+| Draft the "What we want" request (raise amount, pricing, support needs) | Shared one-pager covering targets and support asks | One-pager not stored alongside other investor materials | Needs verification | Commit a sanitized version of the one-pager or detail where it lives for future audits. |
+| Submit the Tonstarter builder form with collateral and contact details | Confirmation received from Tonstarter | No confirmation email or submission receipt archived | Needs verification | Save the confirmation (PDF or redacted screenshot) to `docs/tonstarter/` and note submission metadata. |
+| Schedule follow-up diligence sessions and maintain transparency updates post-TGE | Calendar invites issued and comms cadence posted in the ops runbook | No calendar export or ops cadence documentation checked in | Needs verification | Publish the cadence outline or calendar export to ensure recurring updates can be audited. |
