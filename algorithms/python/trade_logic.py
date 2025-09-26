@@ -128,7 +128,8 @@ kernels = _load_remote_module("jdehorty/KernelFunctions/2")
 class FeatureRow:
     """Historical feature sample with an optional forward-looking label."""
 
-    features: tuple[float, ...]
+    raw_features: tuple[float, ...]
+    scaled_features: tuple[float, ...]
     close: float
     timestamp: datetime
     label: Optional[int] = None
@@ -144,6 +145,7 @@ class LabeledFeature:
     close: float
     timestamp: datetime
     metadata: Dict[str, Any] = field(default_factory=dict)
+    raw_features: Optional[tuple[float, ...]] = None
 
 
 @dataclass(slots=True)
@@ -864,6 +866,9 @@ class LorentzianKNNModel:
             "samples": [
                 {
                     "features": list(sample.features),
+                    "raw_features": list(sample.raw_features)
+                    if sample.raw_features is not None
+                    else None,
                     "label": sample.label,
                     "close": sample.close,
                     "timestamp": sample.timestamp.isoformat(),
@@ -881,8 +886,15 @@ class LorentzianKNNModel:
         samples = state.get("samples", [])
         for payload in samples:
             timestamp = datetime.fromisoformat(payload["timestamp"])
+            raw_features_payload = payload.get("raw_features")
+            raw_features = (
+                tuple(float(x) for x in raw_features_payload)
+                if raw_features_payload is not None
+                else None
+            )
             sample = LabeledFeature(
                 features=tuple(float(x) for x in payload["features"]),
+                raw_features=raw_features,
                 label=int(payload["label"]),
                 close=float(payload["close"]),
                 timestamp=timestamp,
@@ -930,8 +942,14 @@ class LorentzianKNNStrategy:
 
     def update(self, snapshot: MarketSnapshot) -> Optional[TradeSignal]:
         features = snapshot.feature_vector()
-        transformed = self.pipeline.push(features)
-        row = FeatureRow(features=transformed, close=snapshot.close, timestamp=snapshot.timestamp)
+        raw_features = tuple(float(value) for value in features)
+        transformed = self.pipeline.push(raw_features)
+        row = FeatureRow(
+            raw_features=raw_features,
+            scaled_features=transformed,
+            close=snapshot.close,
+            timestamp=snapshot.timestamp,
+        )
         self._rows.append(row)
         if len(self._rows) > self.max_rows:
             self._rows.popleft()
@@ -943,19 +961,24 @@ class LorentzianKNNStrategy:
             except IndexError:
                 label_row = None
             if label_row is not None and label_row.label is None:
-                move_pips = abs(snapshot.close - label_row.close) / snapshot.pip_size
-                if move_pips < self.neutral_zone_pips:
+                pip_size = snapshot.pip_size if snapshot.pip_size > 0 else 1.0
+                move_pips = abs(snapshot.close - label_row.close) / pip_size
+                neutral_zone = max(0.0, self.neutral_zone_pips)
+                if move_pips < neutral_zone:
                     label_row.label = 0
                 else:
                     label_row.label = 1 if snapshot.close > label_row.close else -1
             if label_row is not None and label_row.label is not None and not label_row.persisted:
+                scaled_features = self.pipeline.transform(label_row.raw_features, update=False)
                 labelled = LabeledFeature(
-                    features=label_row.features,
+                    features=scaled_features,
+                    raw_features=label_row.raw_features,
                     label=int(label_row.label),
                     close=label_row.close,
                     timestamp=label_row.timestamp,
                 )
                 self.model.add_sample(labelled)
+                label_row.scaled_features = scaled_features
                 label_row.persisted = True
 
         return self._evaluate(transformed)
