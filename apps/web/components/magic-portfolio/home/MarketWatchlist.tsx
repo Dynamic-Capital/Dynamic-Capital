@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Column,
   Heading,
+  Icon,
   Line,
   Row,
   Tag,
@@ -69,6 +70,38 @@ type BiasVisual = {
 type CategoryVisual = {
   icon: IconName;
   label: string;
+};
+
+type InsightTone = "brand" | "neutral" | "danger";
+
+type InsightVisual = {
+  label: string;
+  icon: IconName;
+  tone: InsightTone;
+};
+
+type InsightToneStyle = {
+  background: `${"brand" | "neutral" | "danger"}-alpha-${"weak" | "medium"}`;
+  icon: `${"brand" | "neutral" | "danger"}-${"weak" | "medium" | "strong"}`;
+  text: `${"brand" | "neutral" | "danger"}-${"weak" | "medium" | "strong"}`;
+};
+
+const INSIGHT_TONE_STYLES: Record<InsightTone, InsightToneStyle> = {
+  brand: {
+    background: "brand-alpha-weak",
+    icon: "brand-medium",
+    text: "brand-strong",
+  },
+  neutral: {
+    background: "neutral-alpha-weak",
+    icon: "neutral-medium",
+    text: "neutral-strong",
+  },
+  danger: {
+    background: "danger-alpha-weak",
+    icon: "danger-medium",
+    text: "danger-strong",
+  },
 };
 
 type MarketApiQuote = {
@@ -423,10 +456,75 @@ const describeLevelProximity = (
     : `Through resistance ${levelLabel}.`;
 };
 
+const collapseWhitespace = (value: string) => value.replace(/\s+/g, " ").trim();
+
+const stripTrailingPeriod = (value: string) => {
+  const collapsed = collapseWhitespace(value);
+  return collapsed.endsWith(".") ? collapsed.slice(0, -1) : collapsed;
+};
+
+const createInsight = (
+  label: string,
+  icon: IconName,
+  tone: InsightTone = "neutral",
+): InsightVisual => ({
+  label: collapseWhitespace(label),
+  icon,
+  tone,
+});
+
+const determineLevelTone = (
+  normalized: string,
+  type: "support" | "resistance",
+): InsightTone => {
+  const lower = normalized.toLowerCase();
+  if (type === "support") {
+    if (lower.includes("below support") || lower.includes("pressing support")) {
+      return "danger";
+    }
+    if (lower.includes("holding above support")) {
+      return "brand";
+    }
+    return "neutral";
+  }
+
+  if (
+    lower.includes("through resistance") ||
+    lower.includes("testing resistance")
+  ) {
+    return "brand";
+  }
+  return "neutral";
+};
+
+const buildLevelInsight = (
+  message: string,
+  type: "support" | "resistance",
+): InsightVisual | null => {
+  if (!message) {
+    return null;
+  }
+  const normalized = stripTrailingPeriod(message);
+  if (!normalized) {
+    return null;
+  }
+
+  const tone = determineLevelTone(normalized, type);
+  const icon = type === "support" ? "shield" : "flag";
+  const prefix = type === "support" ? "Support" : "Resistance";
+
+  return createInsight(`${prefix}: ${normalized}`, icon, tone);
+};
+
+const fallbackInsights = (text: string, icon: IconName): InsightVisual[] => {
+  const normalized = collapseWhitespace(text);
+  return normalized ? [createInsight(normalized, icon, "neutral")] : [];
+};
+
 const buildQuickTakeaway = (
   item: MarketWatchlistItem,
   quote: MarketQuote | undefined,
-) => {
+): InsightVisual[] => {
   const price = quote?.last;
   const { playbook } = item;
 
@@ -435,52 +533,61 @@ const buildQuickTakeaway = (
     !Number.isFinite(price) ||
     !playbook
   ) {
-    return item.beginnerTip;
+    return fallbackInsights(item.beginnerTip, "sparkles");
   }
 
   const { support, resistance, automation } = playbook;
   const formattedPrice = formatNumber(price, item.format);
 
   if (formattedPrice === "—") {
-    return item.beginnerTip;
+    return fallbackInsights(item.beginnerTip, "sparkles");
   }
 
-  const guidance: string[] = [`Last trade ${formattedPrice}.`];
+  const insights: InsightVisual[] = [
+    createInsight(`Last trade ${formattedPrice}`, "activity", "brand"),
+  ];
 
   if (support !== undefined) {
-    const supportInsight = describeLevelProximity(
-      price,
-      support,
+    const supportInsight = buildLevelInsight(
+      describeLevelProximity(price, support, "support", item.format),
       "support",
-      item.format,
     );
     if (supportInsight) {
-      guidance.push(supportInsight);
+      insights.push(supportInsight);
     }
   }
 
   if (resistance !== undefined) {
-    const resistanceInsight = describeLevelProximity(
-      price,
-      resistance,
+    const resistanceInsight = buildLevelInsight(
+      describeLevelProximity(price, resistance, "resistance", item.format),
       "resistance",
-      item.format,
     );
     if (resistanceInsight) {
-      guidance.push(resistanceInsight);
+      insights.push(resistanceInsight);
     }
   }
 
-  const changeLabel = formatChangePercent(quote?.changePercent);
+  const changePercent = quote?.changePercent;
+  const changeLabel = formatChangePercent(changePercent);
   if (changeLabel !== "—") {
-    guidance.push(`Session move ${changeLabel}.`);
+    const tone = changePercent === undefined || Number.isNaN(changePercent)
+      ? "neutral"
+      : changePercent < 0
+      ? "danger"
+      : changePercent > 0
+      ? "brand"
+      : "neutral";
+    const icon = tone === "danger" ? "alert-triangle" : "activity";
+    insights.push(createInsight(`Session move ${changeLabel}`, icon, tone));
   }
 
   if (automation) {
-    guidance.push(automation);
+    insights.push(
+      createInsight(`Automation: ${automation}`, "repeat", "neutral"),
+    );
   }
 
-  return guidance.join(" ");
+  return insights;
 };
 
 const selectPlanMessage = (
@@ -507,37 +614,55 @@ const selectPlanMessage = (
 const buildStrategyFocus = (
   item: MarketWatchlistItem,
   quote: MarketQuote | undefined,
-) => {
+): InsightVisual[] => {
   const { playbook } = item;
   if (!playbook) {
-    return item.focus;
+    return fallbackInsights(item.focus, "target");
   }
 
-  const changeLabel = formatChangePercent(quote?.changePercent);
+  const changePercent = quote?.changePercent;
+  const changeLabel = formatChangePercent(changePercent);
   const rangeLabel = formatRange(quote, item.format);
-  const planMessage = selectPlanMessage(playbook, quote?.changePercent);
+  const planMessage = collapseWhitespace(
+    selectPlanMessage(playbook, changePercent),
+  );
 
-  const segments: string[] = [];
+  const insights: InsightVisual[] = [];
 
   if (changeLabel !== "—") {
-    segments.push(`Momentum ${changeLabel}.`);
-  }
-  if (rangeLabel !== "—") {
-    segments.push(`Intraday range ${rangeLabel}.`);
+    const tone = changePercent === undefined || Number.isNaN(changePercent)
+      ? "neutral"
+      : changePercent < 0
+      ? "danger"
+      : changePercent > 0
+      ? "brand"
+      : "neutral";
+    const icon = tone === "danger" ? "alert-triangle" : "activity";
+    insights.push(createInsight(`Momentum ${changeLabel}`, icon, tone));
   }
 
-  segments.push(planMessage);
+  if (rangeLabel !== "—") {
+    insights.push(createInsight(`Range ${rangeLabel}`, "grid", "neutral"));
+  }
+
+  if (planMessage) {
+    insights.push(createInsight(`Plan: ${planMessage}`, "target", "brand"));
+  }
 
   if (playbook.flipLevel !== undefined) {
     const flipLabel = formatNumber(playbook.flipLevel, item.format);
     if (flipLabel !== "—") {
-      segments.push(`Flip level ${flipLabel}.`);
+      insights.push(createInsight(`Flip level ${flipLabel}`, "flag", "brand"));
     }
   }
 
-  segments.push(`Automation note: ${playbook.automation}`);
+  if (playbook.automation) {
+    insights.push(
+      createInsight(`Automation: ${playbook.automation}`, "repeat", "neutral"),
+    );
+  }
 
-  return segments.join(" ");
+  return insights;
 };
 
 const parseNumber = (value?: string): number | undefined => {
@@ -990,15 +1115,76 @@ export function MarketWatchlist() {
                   <Text variant="label-default-s" onBackground="brand-strong">
                     Quick takeaway
                   </Text>
-                  <Text variant="body-default-s" onBackground="brand-strong">
-                    {quickTakeaway}
-                  </Text>
+                  <Column gap="4">
+                    {quickTakeaway.length > 0
+                      ? quickTakeaway.map((insight, index) => {
+                        const tone = INSIGHT_TONE_STYLES[insight.tone];
+                        return (
+                          <Row
+                            key={`${item.symbol}-takeaway-${index}`}
+                            background={tone.background}
+                            radius="s"
+                            padding="s"
+                            gap="8"
+                            vertical="center"
+                          >
+                            <Icon
+                              name={insight.icon}
+                              onBackground={tone.icon}
+                            />
+                            <Text
+                              variant="body-default-s"
+                              onBackground={tone.text}
+                            >
+                              {insight.label}
+                            </Text>
+                          </Row>
+                        );
+                      })
+                      : (
+                        <Text
+                          variant="body-default-s"
+                          onBackground="brand-strong"
+                        >
+                          No quick insights available.
+                        </Text>
+                      )}
+                  </Column>
                 </Column>
                 <Column flex={1} minWidth={24} gap="8">
                   <Text variant="label-default-s" onBackground="neutral-weak">
                     Strategy focus
                   </Text>
-                  <Text variant="body-default-m">{strategyFocus}</Text>
+                  <Column gap="4">
+                    {strategyFocus.length > 0
+                      ? strategyFocus.map((insight, index) => {
+                        const tone = INSIGHT_TONE_STYLES[insight.tone];
+                        return (
+                          <Row
+                            key={`${item.symbol}-strategy-${index}`}
+                            background={tone.background}
+                            radius="s"
+                            padding="s"
+                            gap="8"
+                            vertical="center"
+                          >
+                            <Icon
+                              name={insight.icon}
+                              onBackground={tone.icon}
+                            />
+                            <Text
+                              variant="body-default-m"
+                              onBackground={tone.text}
+                            >
+                              {insight.label}
+                            </Text>
+                          </Row>
+                        );
+                      })
+                      : (
+                        <Text variant="body-default-m">No focus guidance.</Text>
+                      )}
+                  </Column>
                 </Column>
               </Row>
             </Column>
