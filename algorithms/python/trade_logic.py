@@ -25,7 +25,7 @@ from copy import deepcopy
 from heapq import nsmallest
 from collections import OrderedDict, deque
 from dataclasses import asdict, dataclass, field, fields
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from types import ModuleType, SimpleNamespace
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator, List, Literal, Optional, Sequence, Tuple
 
@@ -1238,6 +1238,26 @@ class LorentzianKNNStrategy:
 # ---------------------------------------------------------------------------
 
 
+TradeType = Literal["Swing", "Intra-day", "Scalp"]
+
+
+@dataclass(slots=True)
+class TradeClassificationRules:
+    """Thresholds used to infer the trading style for a completed position."""
+
+    scalp_max_duration_minutes: float = 60.0
+    """Upper bound on the holding period (in minutes) still considered a scalp."""
+
+    intraday_max_duration_minutes: float = 24 * 60.0
+    """Longest position duration (in minutes) that remains an intra-day trade."""
+
+    scalp_max_pips: Optional[float] = None
+    """Optional ceiling on the pip target for scalp trades."""
+
+    intraday_max_pips: Optional[float] = None
+    """Optional ceiling on the pip target for intra-day trades."""
+
+
 @dataclass(slots=True)
 class CompletedTrade:
     """Representation of a fully realised position used for analytics."""
@@ -1252,6 +1272,16 @@ class CompletedTrade:
     profit: float
     pips: float
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def holding_period(self) -> timedelta:
+        """Return the time delta between opening and closing the position."""
+
+        return self.close_time - self.open_time
+
+    def holding_period_minutes(self) -> float:
+        """Convenience accessor exposing the holding period in minutes."""
+
+        return max(0.0, self.holding_period().total_seconds() / 60.0)
 
 
 @dataclass(slots=True)
@@ -1321,6 +1351,44 @@ class PerformanceTracker:
             max_drawdown_pct=self._max_drawdown_pct,
             equity_curve=list(self._equity_curve),
         )
+
+
+def classify_trade_type(
+    trade: CompletedTrade,
+    *,
+    rules: Optional[TradeClassificationRules] = None,
+) -> TradeType:
+    """Infer whether a trade fits scalp, intra-day, or swing criteria.
+
+    Parameters
+    ----------
+    trade:
+        The completed trade that should be analysed.
+    rules:
+        Optional override for the default classification thresholds.
+
+    Returns
+    -------
+    TradeType
+        A human-readable label describing the trading style.
+    """
+
+    thresholds = rules or TradeClassificationRules()
+
+    duration_minutes = trade.holding_period_minutes()
+    pip_distance = abs(float(trade.pips))
+
+    if duration_minutes <= thresholds.scalp_max_duration_minutes and (
+        thresholds.scalp_max_pips is None or pip_distance <= thresholds.scalp_max_pips
+    ):
+        return "Scalp"
+
+    if duration_minutes <= thresholds.intraday_max_duration_minutes and (
+        thresholds.intraday_max_pips is None or pip_distance <= thresholds.intraday_max_pips
+    ):
+        return "Intra-day"
+
+    return "Swing"
 
 
 # ---------------------------------------------------------------------------
@@ -2137,6 +2205,7 @@ class TradeLogic:
 
 __all__ = [
     "ActivePosition",
+    "TradeClassificationRules",
     "CompletedTrade",
     "FeatureRow",
     "FeaturePipeline",
@@ -2150,6 +2219,8 @@ __all__ = [
     "RiskManager",
     "RiskParameters",
     "RiskEvent",
+    "TradeType",
+    "classify_trade_type",
     "TradeConfig",
     "TradeDecision",
     "TradeLogic",
