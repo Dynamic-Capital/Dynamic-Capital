@@ -6,10 +6,12 @@ import json
 import statistics
 import textwrap
 from dataclasses import dataclass, field
-from typing import Any, Dict, Mapping, Optional, Sequence
+from datetime import datetime
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
 from .multi_llm import CompletionClient, LLMConfig, collect_strings, parse_json_response, serialise_runs
 from .trade_logic import ActivePosition, MarketSnapshot
+from .economic_catalysts import EconomicCatalyst
 
 
 @dataclass(slots=True)
@@ -20,6 +22,7 @@ class TradingDataRequest:
     context: Dict[str, Any] = field(default_factory=dict)
     analytics: Dict[str, float] = field(default_factory=dict)
     macro_events: Sequence[str] = field(default_factory=tuple)
+    catalysts: Sequence[EconomicCatalyst | Mapping[str, Any]] = field(default_factory=tuple)
     open_positions: Sequence[ActivePosition] = field(default_factory=tuple)
     notes: Sequence[str] = field(default_factory=tuple)
 
@@ -149,11 +152,26 @@ class TradingDataProcessor:
 
         analytics = self._select_top_k_analytics(request.analytics)
 
+        catalyst_events, catalyst_details = self._prepare_catalysts(request.catalysts)
+        macro_candidates = [self._normalise_event_text(event) for event in request.macro_events]
+        macro_candidates.extend(catalyst_events)
+
+        deduped_macro_events: list[str] = []
+        seen_events: set[str] = set()
+        for event in macro_candidates:
+            if not event or event in seen_events:
+                continue
+            deduped_macro_events.append(event)
+            seen_events.add(event)
+
+        macro_events = deduped_macro_events[:8]
+        macro_omitted = max(0, len([event for event in macro_candidates if event]) - len(macro_events))
+
         payload: Dict[str, Any] = {
             "feature_summary": feature_summary,
             "context": context,
             "analytics": analytics,
-            "macro_events": list(request.macro_events[:8]),
+            "macro_events": macro_events,
             "open_positions": [
                 {
                     "symbol": pos.symbol,
@@ -165,13 +183,18 @@ class TradingDataProcessor:
             ],
             "notes": list(request.notes[:8]),
         }
+        if catalyst_details:
+            payload["catalysts"] = catalyst_details
 
         optimisation_meta = {
             "snapshots_retained": len(retained),
             "snapshots_omitted": omitted,
             "context_pruned": context_pruned,
             "analytics_retained": len(analytics),
-            "macro_events_retained": min(len(request.macro_events), 8),
+            "macro_events_retained": len(macro_events),
+            "macro_events_omitted": macro_omitted,
+            "macro_events_from_catalysts": len(catalyst_events),
+            "catalysts_supplied": len(request.catalysts),
             "open_positions_retained": min(len(request.open_positions), 6),
         }
         if omitted:
@@ -179,6 +202,55 @@ class TradingDataProcessor:
             optimisation_meta["last_snapshot"] = retained[-1].timestamp.isoformat()
 
         return payload, optimisation_meta
+
+    def _prepare_catalysts(
+        self, catalysts: Sequence[EconomicCatalyst | Mapping[str, Any]]
+    ) -> tuple[list[str], list[dict[str, Any]]]:
+        if not catalysts:
+            return [], []
+
+        candidates: list[tuple[datetime, str, dict[str, Any]]] = []
+        for entry in catalysts:
+            try:
+                if isinstance(entry, EconomicCatalyst):
+                    catalyst = entry
+                elif isinstance(entry, Mapping):
+                    catalyst = EconomicCatalyst.from_mapping(entry)
+                else:
+                    continue
+            except (ValueError, TypeError):
+                continue
+
+            detail = {
+                "pair": catalyst.pair,
+                "headline": catalyst.headline,
+                "impact": catalyst.impact,
+                "observed_at": catalyst.observed_at.isoformat(),
+                "commentary": catalyst.commentary,
+                "market_focus": list(catalyst.market_focus),
+                "source": catalyst.source,
+                "metrics": {
+                    key: float(value)
+                    for key, value in catalyst.metrics.items()
+                    if isinstance(value, (int, float))
+                },
+            }
+            candidates.append((catalyst.observed_at, catalyst.to_macro_event(), detail))
+
+        if not candidates:
+            return [], []
+
+        candidates.sort(key=lambda item: item[0], reverse=True)
+        events = [self._normalise_event_text(event) for _, event, _ in candidates]
+        details = [detail for *_, detail in candidates[:6]]
+        return events, details
+
+    def _normalise_event_text(self, event: Any) -> str:
+        if isinstance(event, str):
+            return event.strip()
+        if event is None:
+            return ""
+        return str(event).strip()
 
     def _summarise_snapshots(self, snapshots: Sequence[MarketSnapshot]) -> Dict[str, float]:
         closes = [snap.close for snap in snapshots]
