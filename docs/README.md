@@ -69,6 +69,7 @@ documenting which assets were consulted.
 | 4.7 | [VERCEL_PRODUCTION_CHECKLIST.md](./VERCEL_PRODUCTION_CHECKLIST.md)         | Well-architected review for Vercel deployments.                                        |
 | 4.8 | [postgres-upgrade.md](./postgres-upgrade.md)                               | Steps to upgrade PostgreSQL safely to the latest patched release.                      |
 | 4.9 | [ton-web3-guidelines.md](./ton-web3-guidelines.md)                         | TON DNS, storage, and site operations playbook linking contracts and Supabase assets.  |
+| 4.10 | [on-chain-flows.md](./on-chain-flows.md)                                 | Mermaid diagram and contract references for the subscription → swap → burn automation. |
 
 ## 5. Telegram & Mini App Delivery
 
