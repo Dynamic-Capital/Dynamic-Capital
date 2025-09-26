@@ -34,15 +34,15 @@ documenting which assets were consulted.
 
 ## 2. Development Workflow & Standards
 
-| Ref | Document                                                           | Summary                                                                                 |
-| --- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| 2.1 | [BEST_PRACTICES.md](./BEST_PRACTICES.md)                           | Coding conventions, review expectations, and shared quality bars.                       |
-| 2.2 | [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)               | Local development flow, tooling setup, and day-to-day commands.                         |
-| 2.3 | [HYBRID_DEVELOPMENT_WORKFLOW.md](./HYBRID_DEVELOPMENT_WORKFLOW.md) | Guidance for working across Dynamic, Supabase, and local Next.js surfaces concurrently. |
-| 2.4 | [code-structure.md](./code-structure.md)                           | High-level overview of monorepo structure and module boundaries.                        |
-| 2.5 | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Commands, flags, general knowledge, and GitHub handoff loop for the Codex CLI helper.   |
-| 2.6 | [CLEANUP_AND_CODEMODS.md](./CLEANUP_AND_CODEMODS.md)               | Strategy for running codemods and debt cleanups safely.                                 |
-| 2.7 | [NEXTJS_BUILD_CACHE_TASK.md](./NEXTJS_BUILD_CACHE_TASK.md)         | Instructions for the Next.js build cache maintenance task.                              |
+| Ref | Document                                                           | Summary                                                                                   |
+| --- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| 2.1 | [BEST_PRACTICES.md](./BEST_PRACTICES.md)                           | Coding conventions, review expectations, and shared quality bars.                         |
+| 2.2 | [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)               | Local development flow, tooling setup, and day-to-day commands.                           |
+| 2.3 | [HYBRID_DEVELOPMENT_WORKFLOW.md](./HYBRID_DEVELOPMENT_WORKFLOW.md) | Guidance for working across Dynamic, Supabase, and local Next.js surfaces concurrently.   |
+| 2.4 | [code-structure.md](./code-structure.md)                           | High-level overview of monorepo structure and module boundaries.                          |
+| 2.5 | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Commands, flags, general knowledge, and GitHub handoff loop for the Codex CLI helper.     |
+| 2.6 | [CLEANUP_AND_CODEMODS.md](./CLEANUP_AND_CODEMODS.md)               | Strategy for running codemods and debt cleanups safely.                                   |
+| 2.7 | [NEXTJS_BUILD_CACHE_TASK.md](./NEXTJS_BUILD_CACHE_TASK.md)         | Instructions for the Next.js build cache maintenance task.                                |
 | 2.8 | [ton-ide-plugins.md](./ton-ide-plugins.md)                         | Official TON IDE plugins for JetBrains, VS Code, and the Web IDE with install checklists. |
 
 ## 3. Environment & Configuration
@@ -58,18 +58,18 @@ documenting which assets were consulted.
 
 ## 4. Deployment & Infrastructure
 
-| Ref | Document                                                                   | Summary                                                                                |
-| --- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| 4.1 | [DEPLOYMENT.md](./DEPLOYMENT.md)                                           | End-to-end deployment procedure for the Next.js app, Mini App, and Supabase functions. |
-| 4.2 | [INCREMENTAL_MIGRATION_TO_VERCEL.md](./INCREMENTAL_MIGRATION_TO_VERCEL.md) | Guide for migrating workloads into Vercel iteratively.                                 |
-| 4.3 | [DIGITALOCEAN_APP_LOGS.md](./DIGITALOCEAN_APP_LOGS.md)                     | Collecting and analyzing DigitalOcean App Platform logs.                               |
-| 4.4 | [DUCKDNS_NGINX_CERTBOT.md](./DUCKDNS_NGINX_CERTBOT.md)                     | DuckDNS and Certbot automation notes for the hardened Nginx proxy.                     |
-| 4.5 | [NETWORKING.md](./NETWORKING.md)                                           | DNS, domain, and origin configuration for the platform.                                |
-| 4.6 | [VERCEL_PROJECT_SETTINGS.md](./VERCEL_PROJECT_SETTINGS.md)                 | Recommended Vercel project settings matching the checked-in config.                    |
-| 4.7 | [VERCEL_PRODUCTION_CHECKLIST.md](./VERCEL_PRODUCTION_CHECKLIST.md)         | Well-architected review for Vercel deployments.                                        |
-| 4.8 | [postgres-upgrade.md](./postgres-upgrade.md)                               | Steps to upgrade PostgreSQL safely to the latest patched release.                      |
-| 4.9 | [ton-web3-guidelines.md](./ton-web3-guidelines.md)                         | TON DNS, storage, and site operations playbook linking contracts and Supabase assets.  |
-| 4.10 | [on-chain-flows.md](./on-chain-flows.md)                                 | Mermaid diagram and contract references for the subscription → swap → burn automation. |
+| Ref  | Document                                                                   | Summary                                                                                |
+| ---- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 4.1  | [DEPLOYMENT.md](./DEPLOYMENT.md)                                           | End-to-end deployment procedure for the Next.js app, Mini App, and Supabase functions. |
+| 4.2  | [INCREMENTAL_MIGRATION_TO_VERCEL.md](./INCREMENTAL_MIGRATION_TO_VERCEL.md) | Guide for migrating workloads into Vercel iteratively.                                 |
+| 4.3  | [DIGITALOCEAN_APP_LOGS.md](./DIGITALOCEAN_APP_LOGS.md)                     | Collecting and analyzing DigitalOcean App Platform logs.                               |
+| 4.4  | [DUCKDNS_NGINX_CERTBOT.md](./DUCKDNS_NGINX_CERTBOT.md)                     | DuckDNS and Certbot automation notes for the hardened Nginx proxy.                     |
+| 4.5  | [NETWORKING.md](./NETWORKING.md)                                           | DNS, domain, and origin configuration for the platform.                                |
+| 4.6  | [VERCEL_PROJECT_SETTINGS.md](./VERCEL_PROJECT_SETTINGS.md)                 | Recommended Vercel project settings matching the checked-in config.                    |
+| 4.7  | [VERCEL_PRODUCTION_CHECKLIST.md](./VERCEL_PRODUCTION_CHECKLIST.md)         | Well-architected review for Vercel deployments.                                        |
+| 4.8  | [postgres-upgrade.md](./postgres-upgrade.md)                               | Steps to upgrade PostgreSQL safely to the latest patched release.                      |
+| 4.9  | [ton-web3-guidelines.md](./ton-web3-guidelines.md)                         | TON DNS, storage, and site operations playbook linking contracts and Supabase assets.  |
+| 4.10 | [on-chain-flows.md](./on-chain-flows.md)                                   | Mermaid diagram and contract references for the subscription → swap → burn automation. |
 
 ## 5. Telegram & Mini App Delivery
 

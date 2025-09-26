@@ -33,7 +33,11 @@ export function MobileFooterNav() {
     }
   }, [pathname]);
 
-  const navItems = resolvePrimaryNavItems(pathname, hash, (item) => item.includeInFooter);
+  const navItems = resolvePrimaryNavItems(
+    pathname,
+    hash,
+    (item) => item.includeInFooter,
+  );
 
   if (!navItems.length) {
     return null;

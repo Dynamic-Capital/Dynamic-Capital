@@ -48,9 +48,9 @@
 
 ## 🚀 Project Overview
 
-The Dynamic Capital Bot is a comprehensive Telegram bot built with
-TypeScript, Supabase, and Deno Edge Functions. It manages VIP subscriptions,
-education packages, payments, and user interactions.
+The Dynamic Capital Bot is a comprehensive Telegram bot built with TypeScript,
+Supabase, and Deno Edge Functions. It manages VIP subscriptions, education
+packages, payments, and user interactions.
 
 ### Key Features
 
@@ -577,22 +577,39 @@ Auth: None.
 
 #### 26. Theme Get (`/theme-get`)
 
-Retrieve the persisted theme preference for the signed-in user. The edge
-function decodes the Supabase JWT, loads the `theme:<uid>` record from
-`bot_settings`, and falls back to `auto` (system) when no preference has been
-stored.
+Retrieve the persisted theme preference for the signed-in user. The handler
+decodes the Supabase JWT, loads the `theme:<uid>` record from `bot_settings`,
+and falls back to `auto` (system) when no preference has been stored. The
+payload now includes the last selected Theme Pass so dashboards can rehydrate
+custom branding immediately after authentication.
 
 ```http
 GET /functions/v1/theme-get
 Authorization: Bearer <token>
 
 Response:
-{ "mode": "auto" }
+{
+  "mode": "auto",
+  "themePassId": "founders-glass",
+  "updatedAt": "2025-02-15T21:06:44.293Z"
+}
 ```
 
 - **mode** – `"auto"`, `"light"`, or `"dark"`; the value is consumed by the
   `useTheme` hook in `apps/web/hooks/useTheme.tsx` to align the dashboard and
   Telegram Mini App shells.
+- **themePassId** – Optional string identifying the selected Theme Pass (for
+  example `founders-glass`). `null` indicates that the default Dynamic Core
+  branding should be applied.
+- **updatedAt** – ISO timestamp recording when the preference was last saved.
+
+Headers:
+
+- `Authorization: Bearer <token>` – Required.
+- `apikey: <Supabase anon key>` – Required; Supabase client libraries inject
+  this automatically.
+
+Rate limit: **30 requests per minute per user**.
 
 Auth: Bearer token required.
 
@@ -607,19 +624,90 @@ POST /functions/v1/theme-save
 Authorization: Bearer <token>
 Content-Type: application/json
 
-{ "mode": "dark" }
+{
+  "mode": "dark",
+  "themePassId": "nightfall-carbon"
+}
 
 Response:
-{ "ok": true }
+{ "ok": true, "mode": "dark", "themePassId": "nightfall-carbon" }
 ```
 
 - **mode** – Required; must be `"auto"`, `"light"`, or `"dark"`.
-- The Mini App and dashboard call this endpoint after toggling the theme so the
-  next session rehydrates with the same appearance.
+- **themePassId** – Optional; pass a known Theme Pass identifier or omit/`null`
+  to revert to Dynamic Core branding.
+- The Mini App and dashboard call this endpoint after toggling the theme or
+  switching Theme Passes so the next session rehydrates with the same
+  appearance.
+
+Headers:
+
+- `Authorization: Bearer <token>` – Required.
+- `apikey: <Supabase anon key>` – Required; Supabase client libraries inject it
+  automatically.
+
+Rate limit: **20 write requests per minute per user**.
 
 Auth: Bearer token required.
 
-#### 28. Content Batch (`/content-batch`)
+#### 28. Theme Entitlements (`/theme-entitlements`)
+
+Resolve the list of Theme Passes a wallet can access. The function inspects the
+provided TON wallet address, queries the configured indexer/TonAPI for Theme NFT
+ownership, checks the on-chain DCT balance, and returns the eligible passes
+sorted by priority.
+
+```http
+POST /functions/v1/theme-entitlements
+Content-Type: application/json
+
+{ "wallet": "EQF-2HMDumZqcO_xzrEwyY7JTOz9GBxWzyaasRtayL-OQAFA" }
+
+Response:
+{
+  "ok": true,
+  "wallet": "EQF-2HMDumZqcO_XZREDA...",
+  "evaluatedAt": "2025-02-15T21:10:11.120Z",
+  "dctBalance": 742.18,
+  "nftCollections": ["EQF-2HMDumZqcO_xzrEwyY7JTOz9GBxWzyaasRtayL-OQAFA"],
+  "themes": [
+    {
+      "id": "founders-glass",
+      "label": "Founders Glass",
+      "priority": 100,
+      "reasons": ["Requires Founders Theme Pass NFT."],
+      "metadata": { "accentColor": "#F5C65E" }
+    },
+    {
+      "id": "nightfall-carbon",
+      "label": "Nightfall Carbon",
+      "priority": 85,
+      "reasons": ["Requires 500 DCT or more in wallet holdings."],
+      "metadata": { "accentColor": "#4DD0E1" }
+    }
+  ]
+}
+```
+
+- **wallet** – TON wallet address evaluated.
+- **dctBalance** – Liquid DCT detected (9-decimal jetton balance converted to
+  whole units).
+- **nftCollections** – Theme NFT collections detected for auditing/debugging.
+- **themes** – Sorted array of eligible Theme Pass summaries with priority and
+  eligibility notes.
+
+Headers:
+
+- `Content-Type: application/json`
+- `apikey: <Supabase anon key>` (required)
+- `Authorization: Bearer <Supabase anon key>` (recommended when calling from
+  untrusted clients)
+
+Rate limit: **5 requests per minute per wallet address**.
+
+Auth: None (wallet-based gating only).
+
+#### 29. Content Batch (`/content-batch`)
 
 Fetch multiple content entries at once.
 
@@ -635,7 +723,7 @@ Response:
 
 Auth: None.
 
-#### 29. Miniapp (`/miniapp`)
+#### 30. Miniapp (`/miniapp`)
 
 Serve the Telegram Mini App configuration.
 
@@ -648,7 +736,7 @@ Response:
 
 Auth: None.
 
-#### 30. Verify Initdata (`/verify-initdata`)
+#### 31. Verify Initdata (`/verify-initdata`)
 
 Verify and decode Telegram `initData` payloads.
 

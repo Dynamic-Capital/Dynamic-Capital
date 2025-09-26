@@ -8,9 +8,9 @@ experience ergonomic.
 
 ## Environments
 
-- [ ] Document the purpose of each environment (development, staging, production,
-      and optional preview sandboxes) so contributors know which surface to use
-      for a given task.
+- [ ] Document the purpose of each environment (development, staging,
+      production, and optional preview sandboxes) so contributors know which
+      surface to use for a given task.
 - [ ] Confirm staging mirrors production configuration closely enough to produce
       trustworthy results before promoting a release.
 - [ ] Restrict destructive operations (database migrations, feature flag flips)
@@ -18,20 +18,20 @@ experience ergonomic.
 
 ## Branches
 
-- [ ] Ensure `main` maps to production deployments and that staging releases flow
-      from a stabilized branch (`develop`, `release/*`, or equivalent).
-- [ ] Keep feature branches short-lived and merge them through pull requests with
-      required reviews or checks to enforce error tolerance.
-- [ ] Update onboarding docs with the latest branch-to-environment mapping so new
-      collaborators can learn the workflow quickly.
+- [ ] Ensure `main` maps to production deployments and that staging releases
+      flow from a stabilized branch (`develop`, `release/*`, or equivalent).
+- [ ] Keep feature branches short-lived and merge them through pull requests
+      with required reviews or checks to enforce error tolerance.
+- [ ] Update onboarding docs with the latest branch-to-environment mapping so
+      new collaborators can learn the workflow quickly.
 
 ## Builds
 
 - [ ] Verify CI builds produce distinct outputs for development, staging, and
       production contexts with the right logging, debugging, and optimization
       levels.
-- [ ] Enable preview builds (per pull request or feature branch) when stakeholders
-      need isolated URLs for review without blocking staging.
+- [ ] Enable preview builds (per pull request or feature branch) when
+      stakeholders need isolated URLs for review without blocking staging.
 - [ ] Label build artifacts and deployment targets clearly (preview, staging,
       production) across dashboards and release notes.
 

@@ -1,6 +1,10 @@
 // >>> DC BLOCK: theme-save-core (start)
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { optionalEnv, requireEnv } from "../_shared/env.ts";
+import {
+  DEFAULT_THEME_PASS_ID,
+  isThemePassId,
+} from "../../../shared/theme/passes.ts";
 
 function parseToken(bearer: string | undefined) {
   if (!bearer?.startsWith("Bearer ")) return 0;
@@ -12,6 +16,12 @@ function parseToken(bearer: string | undefined) {
   }
 }
 
+type ThemeSavePayload = {
+  mode: "auto" | "light" | "dark";
+  themePassId: string | null;
+  updatedAt: string;
+};
+
 export async function handler(req: Request): Promise<Response> {
   const uid = parseToken(req.headers.get("authorization") || "");
   if (!uid) {
@@ -19,12 +29,40 @@ export async function handler(req: Request): Promise<Response> {
       status: 401,
     });
   }
-  const { mode } = await req.json().catch(() => ({}));
+  const { mode, themePassId } = await req.json().catch(() => ({}));
   if (!["auto", "light", "dark"].includes(mode)) {
     return new Response(JSON.stringify({ ok: false, error: "bad mode" }), {
       status: 400,
     });
   }
+  const rawThemePass = typeof themePassId === "string"
+    ? themePassId.trim()
+    : themePassId === null
+    ? null
+    : undefined;
+  if (
+    typeof rawThemePass === "string" && rawThemePass.length > 0 &&
+    !isThemePassId(rawThemePass)
+  ) {
+    return new Response(
+      JSON.stringify({ ok: false, error: "invalid themePassId" }),
+      {
+        status: 400,
+      },
+    );
+  }
+  const normalizedThemePass = rawThemePass === undefined
+    ? null
+    : rawThemePass === null || rawThemePass === ""
+    ? null
+    : isThemePassId(rawThemePass)
+    ? rawThemePass
+    : DEFAULT_THEME_PASS_ID;
+  const payload: ThemeSavePayload = {
+    mode,
+    themePassId: normalizedThemePass,
+    updatedAt: new Date().toISOString(),
+  };
   try {
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = requireEnv(
       [
@@ -36,7 +74,7 @@ export async function handler(req: Request): Promise<Response> {
     // upsert into bot_settings
     const body = [{
       setting_key: `theme:${uid}`,
-      setting_value: mode,
+      setting_value: JSON.stringify(payload),
       description: "miniapp theme",
       is_system: false,
     }];
@@ -51,9 +89,12 @@ export async function handler(req: Request): Promise<Response> {
       body: JSON.stringify(body),
     });
     const ok = r.ok;
-    return new Response(JSON.stringify({ ok }), {
-      headers: { "content-type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ ok, mode, themePassId: payload.themePassId }),
+      {
+        headers: { "content-type": "application/json" },
+      },
+    );
   } catch (e) {
     return new Response(JSON.stringify({ ok: false, error: String(e) }), {
       status: 500,

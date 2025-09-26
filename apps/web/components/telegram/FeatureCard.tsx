@@ -11,13 +11,13 @@ interface FeatureCardProps {
   accent?: "blue" | "green" | "purple" | "orange" | "red" | "teal";
 }
 
-export const FeatureCard = ({ 
-  icon: Icon, 
-  title, 
-  description, 
+export const FeatureCard = ({
+  icon: Icon,
+  title,
+  description,
   onClick,
   badge,
-  accent = "blue"
+  accent = "blue",
 }: FeatureCardProps) => {
   const getAccentColor = () => {
     switch (accent) {
@@ -67,8 +67,12 @@ export const FeatureCard = ({
           </div>
         )}
         <div className="relative">
-          <div className={`bot-icon-wrapper w-20 h-20 ${getAccentBg()} rounded-3xl group-hover:scale-110`}>
-            <Icon className={`w-10 h-10 ${getAccentColor()} transition-transform group-hover:scale-110`} />
+          <div
+            className={`bot-icon-wrapper w-20 h-20 ${getAccentBg()} rounded-3xl group-hover:scale-110`}
+          >
+            <Icon
+              className={`w-10 h-10 ${getAccentColor()} transition-transform group-hover:scale-110`}
+            />
           </div>
           <div className="absolute -top-1 -right-1 w-6 h-6 bg-telegram rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>

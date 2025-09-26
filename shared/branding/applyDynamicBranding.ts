@@ -1,7 +1,14 @@
-import { dynamicBranding, dynamicUI } from "../../apps/web/resources";
+import {
+  dynamicBranding,
+  dynamicUI,
+  importDynamicBranding,
+} from "../../apps/web/resources";
+import type { DynamicBrandingOverrides } from "../../apps/web/resources/types/branding.types.ts";
+import { getThemePassById } from "../theme/passes.ts";
 
 const BRANDING_STYLE_ELEMENT_ID = "dynamic-branding-tokens";
 const THEME_STORAGE_KEY = "data-theme";
+const THEME_PASS_STORAGE_KEY = "theme-pass:id";
 
 const {
   basics: basicsConfig,
@@ -41,11 +48,19 @@ export function applyDynamicBranding(): void {
   }
 
   const root = document.documentElement;
-  const brandingStyles = createBrandingStyles(dynamicBranding.tokens);
+  const themePassId = safeStorageGet(THEME_PASS_STORAGE_KEY);
+  const themePass = getThemePassById(themePassId ?? undefined);
+  const overrides = themePass?.brandingOverrides as
+    | DynamicBrandingOverrides
+    | undefined;
+  const brandingConfig = overrides
+    ? importDynamicBranding(overrides)
+    : dynamicBranding;
+  const brandingStyles = createBrandingStyles(brandingConfig.tokens);
   ensureBrandingStyleElement(document, brandingStyles);
   applyBrandingAttributes(root);
   applyThemeAttributes(root);
-  applyBrandingMetadata(document);
+  applyBrandingMetadata(document, brandingConfig);
 }
 
 function applyBrandingAttributes(root: HTMLElement) {
@@ -71,8 +86,11 @@ function applyThemeAttributes(root: HTMLElement) {
   }
 }
 
-function applyBrandingMetadata(doc: Document) {
-  const { metadata, assets, palette } = dynamicBranding;
+function applyBrandingMetadata(
+  doc: Document,
+  brandingConfig: typeof dynamicBranding,
+) {
+  const { metadata, assets, palette } = brandingConfig;
 
   if (metadata?.name) {
     doc.title = metadata.name;

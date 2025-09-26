@@ -1,18 +1,24 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Loader2, 
-  RefreshCw,
+import {
+  CheckCircle,
+  Clock,
+  CreditCard,
+  Loader2,
   Receipt,
-  CreditCard
+  RefreshCw,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,7 +55,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('payments')
+        .from("payments")
         .select(`
           id,
           amount,
@@ -64,7 +70,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
             is_lifetime
           )
         `)
-        .eq('id', paymentId)
+        .eq("id", paymentId)
         .single();
 
       if (error) throw error;
@@ -81,10 +87,13 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
 
       // Show uploader if payment is pending and no receipt uploaded yet
       const webhookData = data.webhook_data as any;
-      const needsResubmit = ['pending_review', 'failed'].includes(data.status);
-      setShowUploader((data.status === 'pending' && !webhookData?.storage_path) || needsResubmit);
+      const needsResubmit = ["pending_review", "failed"].includes(data.status);
+      setShowUploader(
+        (data.status === "pending" && !webhookData?.storage_path) ||
+          needsResubmit,
+      );
     } catch (error: any) {
-      toast.error(error.message || 'Failed to fetch payment status');
+      toast.error(error.message || "Failed to fetch payment status");
     } finally {
       setLoading(false);
     }
@@ -96,12 +105,12 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'pending':
-      case 'pending_review':
+      case "pending":
+      case "pending_review":
         return <Clock className="h-5 w-5 text-yellow-500" />;
-      case 'failed':
+      case "failed":
         return <XCircle className="h-5 w-5 text-dc-brand" />;
       default:
         return <Clock className="h-5 w-5 text-gray-500" />;
@@ -110,14 +119,26 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Completed</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Pending Review</Badge>;
-      case 'pending_review':
+      case "completed":
+        return (
+          <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+            Completed
+          </Badge>
+        );
+      case "pending":
+        return (
+          <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+            Pending Review
+          </Badge>
+        );
+      case "pending_review":
         return <Badge variant="outline">Manual Review</Badge>;
-      case 'failed':
-        return <Badge className="bg-dc-brand/10 text-dc-brand-dark border-dc-brand/20">Failed</Badge>;
+      case "failed":
+        return (
+          <Badge className="bg-dc-brand/10 text-dc-brand-dark border-dc-brand/20">
+            Failed
+          </Badge>
+        );
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
@@ -173,77 +194,91 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="text-sm font-medium text-muted-foreground">Plan</div>
+              <div className="text-sm font-medium text-muted-foreground">
+                Plan
+              </div>
               <div className="font-medium">{payment.plan.name}</div>
             </div>
             <div>
-              <div className="text-sm font-medium text-muted-foreground">Amount</div>
-              <div className="font-medium">${payment.amount} {payment.currency}</div>
+              <div className="text-sm font-medium text-muted-foreground">
+                Amount
+              </div>
+              <div className="font-medium">
+                ${payment.amount} {payment.currency}
+              </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-muted-foreground">Payment Method</div>
-              <div className="font-medium capitalize">{payment.payment_method.replace('_', ' ')}</div>
+              <div className="text-sm font-medium text-muted-foreground">
+                Payment Method
+              </div>
+              <div className="font-medium capitalize">
+                {payment.payment_method.replace("_", " ")}
+              </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-muted-foreground">Created</div>
+              <div className="text-sm font-medium text-muted-foreground">
+                Created
+              </div>
               <div className="font-medium">
                 {formatIsoDate(payment.created_at)}
               </div>
             </div>
           </div>
 
-          {payment.status === 'completed' && (
+          {payment.status === "completed" && (
             <Alert className="border-green-500/20 bg-green-500/10">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-600">
-                <strong>Payment Successful!</strong> Your {payment.plan.name} plan is now active.
+                <strong>Payment Successful!</strong> Your {payment.plan.name}
+                {" "}
+                plan is now active.
               </AlertDescription>
             </Alert>
           )}
 
-          {payment.status === 'pending' && (
+          {payment.status === "pending" && (
             <Alert className="border-yellow-500/20 bg-yellow-500/10">
               <Clock className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="text-yellow-600">
                 <strong>Payment Under Review</strong>
                 {payment.webhook_data?.storage_path
-                  ? ' Your receipt has been uploaded and is being processed.'
-                  : ' Please upload your payment receipt to continue.'
-                }
+                  ? " Your receipt has been uploaded and is being processed."
+                  : " Please upload your payment receipt to continue."}
               </AlertDescription>
             </Alert>
           )}
 
-          {payment.status === 'pending_review' && (
+          {payment.status === "pending_review" && (
             <Alert className="border-yellow-500/20 bg-yellow-500/10">
               <Clock className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="text-yellow-600">
-                <strong>Manual Review Required</strong> Our team will check your payment. You may re-upload your receipt if needed.
+                <strong>Manual Review Required</strong>{" "}
+                Our team will check your payment. You may re-upload your receipt
+                if needed.
               </AlertDescription>
             </Alert>
           )}
 
-          {payment.status === 'failed' && (
+          {payment.status === "failed" && (
             <Alert className="border-dc-brand/20 bg-dc-brand/10">
               <XCircle className="h-4 w-4 text-dc-brand-dark" />
               <AlertDescription className="text-dc-brand-dark">
-                <strong>Payment Failed</strong> Please try again or contact support for assistance.
+                <strong>Payment Failed</strong>{" "}
+                Please try again or contact support for assistance.
               </AlertDescription>
             </Alert>
           )}
 
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={fetchPaymentStatus} 
+            <Button
+              variant="outline"
+              onClick={fetchPaymentStatus}
               disabled={loading}
               size="sm"
             >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
+              {loading
+                ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                : <RefreshCw className="h-4 w-4 mr-2" />}
               Refresh Status
             </Button>
 
@@ -260,7 +295,7 @@ export const PaymentStatus: React.FC<PaymentStatusProps> = ({ paymentId }) => {
       </Card>
 
       {showUploader && (
-        <ReceiptUploader 
+        <ReceiptUploader
           paymentId={payment.id}
           onUploadComplete={(success) => {
             if (success) {

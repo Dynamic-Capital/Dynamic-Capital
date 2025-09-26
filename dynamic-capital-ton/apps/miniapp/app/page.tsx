@@ -6,6 +6,7 @@ import {
   useTonConnectUI,
 } from "@tonconnect/ui-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ThemeEntitlementsPayload } from "../../../../shared/theme/entitlements.ts";
 
 import type {
   LiveIntelSnapshot,
@@ -547,6 +548,14 @@ function HomeInner() {
   const telegramId = useTelegramId();
   const liveIntel = useLiveIntel();
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [themeEntitlements, setThemeEntitlements] =
+    useState<ThemeEntitlementsPayload | null>(null);
+  const [themeEntitlementsStatus, setThemeEntitlementsStatus] = useState({
+    isLoading: false,
+    error: null as string | null,
+  });
+  const mountedRef = useRef(true);
+  const lastWalletEventRef = useRef<string | null>(null);
 
   const selectedPlan = useMemo(
     () => planOptions.find((option) => option.id === plan),
@@ -557,6 +566,145 @@ function HomeInner() {
 
   const metrics = liveIntel.report?.metrics ?? FALLBACK_METRICS;
   const timeline = liveIntel.report?.timeline ?? ACTIVITY_FEED;
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const refreshThemeEntitlements = useCallback(
+    async (address: string | null) => {
+      if (!address) {
+        if (mountedRef.current) {
+          setThemeEntitlements(null);
+          setThemeEntitlementsStatus({ isLoading: false, error: null });
+        }
+        return;
+      }
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !anonKey) {
+        if (mountedRef.current) {
+          setThemeEntitlementsStatus({
+            isLoading: false,
+            error: "Missing Supabase configuration for theme entitlements.",
+          });
+        }
+        return;
+      }
+
+      if (mountedRef.current) {
+        setThemeEntitlementsStatus((previous) => ({
+          ...previous,
+          isLoading: true,
+        }));
+      }
+
+      try {
+        const functionsUrl = supabaseUrl.replace(
+          ".supabase.co",
+          ".functions.supabase.co",
+        );
+        const response = await fetch(`${functionsUrl}/theme-entitlements`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            apikey: anonKey,
+            Authorization: `Bearer ${anonKey}`,
+          },
+          body: JSON.stringify({ wallet: address }),
+        });
+        if (!response.ok) {
+          throw new Error(`theme-entitlements returned ${response.status}`);
+        }
+        const payload = await response.json() as ThemeEntitlementsPayload;
+        if (mountedRef.current) {
+          setThemeEntitlements(payload);
+          setThemeEntitlementsStatus({ isLoading: false, error: null });
+        }
+      } catch (error) {
+        if (mountedRef.current) {
+          setThemeEntitlementsStatus({
+            isLoading: false,
+            error: error instanceof Error ? error.message : "Unable to load theme entitlements",
+          });
+        }
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    void refreshThemeEntitlements(walletAddress ?? null);
+  }, [walletAddress, refreshThemeEntitlements]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const handleInvalidate = () => {
+      void refreshThemeEntitlements(walletAddress ?? null);
+    };
+    window.addEventListener("wallet-connect:open", handleInvalidate);
+    window.addEventListener("wallet-connect:connected", handleInvalidate);
+    return () => {
+      window.removeEventListener("wallet-connect:open", handleInvalidate);
+      window.removeEventListener("wallet-connect:connected", handleInvalidate);
+    };
+  }, [walletAddress, refreshThemeEntitlements]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const previous = lastWalletEventRef.current;
+    if (walletAddress && walletAddress !== previous) {
+      window.dispatchEvent(new CustomEvent("wallet-connect:connected", {
+        detail: { address: walletAddress },
+      }));
+    } else if (!walletAddress && previous) {
+      window.dispatchEvent(new CustomEvent("wallet-connect:disconnected", {
+        detail: { address: null, previousAddress: previous },
+      }));
+    }
+    lastWalletEventRef.current = walletAddress ?? null;
+  }, [walletAddress]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    const root = document.documentElement;
+    if (themeEntitlements) {
+      root.setAttribute(
+        "data-theme-entitlements",
+        String(themeEntitlements.themes?.length ?? 0),
+      );
+    } else {
+      root.removeAttribute("data-theme-entitlements");
+    }
+  }, [themeEntitlements]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    const root = document.documentElement;
+    root.setAttribute(
+      "data-theme-entitlements-loading",
+      themeEntitlementsStatus.isLoading ? "true" : "false",
+    );
+    if (themeEntitlementsStatus.error) {
+      root.setAttribute(
+        "data-theme-entitlements-error",
+        themeEntitlementsStatus.error,
+      );
+    } else {
+      root.removeAttribute("data-theme-entitlements-error");
+    }
+  }, [themeEntitlementsStatus.isLoading, themeEntitlementsStatus.error]);
 
   useEffect(() => {
     if (typeof window === "undefined") {

@@ -87,7 +87,9 @@ export default function SupportPage() {
               Concierge support for every VIP member
             </h1>
             <p className="text-lg text-muted-foreground md:text-xl">
-              Tap a path below to connect with a human instantly, review onboarding resources, or hand off a desk task to the Dynamic Capital team.
+              Tap a path below to connect with a human instantly, review
+              onboarding resources, or hand off a desk task to the Dynamic
+              Capital team.
             </p>
           </div>
         </header>
@@ -121,10 +123,15 @@ export default function SupportPage() {
                 Need the operations console?
               </CardTitle>
               <CardDescription className="text-base text-muted-foreground">
-                Admins can still access the Telegram Bot Dashboard for automation and analytics.
+                Admins can still access the Telegram Bot Dashboard for
+                automation and analytics.
               </CardDescription>
             </div>
-            <Button asChild variant="outline" className="border-white/20 text-foreground">
+            <Button
+              asChild
+              variant="outline"
+              className="border-white/20 text-foreground"
+            >
               <Link href="/telegram">
                 Open bot dashboard
                 <ArrowUpRight className="ml-2 h-4 w-4" aria-hidden="true" />

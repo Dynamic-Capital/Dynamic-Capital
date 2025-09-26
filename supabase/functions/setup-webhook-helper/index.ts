@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { need } from "../_shared/env.ts";
-import { ok, oops, mna } from "../_shared/http.ts";
+import { mna, ok, oops } from "../_shared/http.ts";
 import { ensureWebhookSecret } from "../_shared/telegram_secret.ts";
 import { createClient } from "../_shared/client.ts";
 import { version } from "../_shared/version.ts";
@@ -29,8 +29,12 @@ export async function handler(req: Request): Promise<Response> {
   try {
     const BOT_TOKEN = need("TELEGRAM_BOT_TOKEN");
     const SUPABASE_URL = need("SUPABASE_URL");
-    const PROJECT_URL = SUPABASE_URL.replace("https://", "").replace(".supabase.co", "");
-    const WEBHOOK_URL = `https://${PROJECT_URL}.functions.supabase.co/telegram-bot`;
+    const PROJECT_URL = SUPABASE_URL.replace("https://", "").replace(
+      ".supabase.co",
+      "",
+    );
+    const WEBHOOK_URL =
+      `https://${PROJECT_URL}.functions.supabase.co/telegram-bot`;
 
     const supa = createClient();
     const WEBHOOK_SECRET = await ensureWebhookSecret(supa);
@@ -55,7 +59,9 @@ export async function handler(req: Request): Promise<Response> {
 
     if (!telegramResult.ok) {
       console.error("Telegram webhook setup failed:", telegramResult);
-      return withCors(oops("Failed to set webhook with Telegram", telegramResult));
+      return withCors(
+        oops("Failed to set webhook with Telegram", telegramResult),
+      );
     }
     return withCors(ok({
       success: true,
@@ -69,7 +75,9 @@ export async function handler(req: Request): Promise<Response> {
     }));
   } catch (error) {
     console.error("Setup webhook error:", error);
-    return withCors(oops("Failed to setup webhook", { error: (error as Error).message }));
+    return withCors(
+      oops("Failed to setup webhook", { error: (error as Error).message }),
+    );
   }
 }
 

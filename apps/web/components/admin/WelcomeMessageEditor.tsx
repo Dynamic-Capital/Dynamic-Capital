@@ -78,7 +78,8 @@ export const WelcomeMessageEditor = () => {
       logger.log("Welcome message loaded successfully:", data);
       setWelcomeMessage({
         ...data,
-        content_type: (data.content_type as "text" | "html" | "markdown") || "text"
+        content_type: (data.content_type as "text" | "html" | "markdown") ||
+          "text",
       });
       setEditedMessage(data.content_value);
     } catch (error) {
@@ -128,7 +129,8 @@ export const WelcomeMessageEditor = () => {
       logger.log("Default welcome message created:", data);
       setWelcomeMessage({
         ...data,
-        content_type: (data.content_type as "text" | "html" | "markdown") || "text"
+        content_type: (data.content_type as "text" | "html" | "markdown") ||
+          "text",
       });
       setEditedMessage(data.content_value);
 
@@ -170,10 +172,10 @@ export const WelcomeMessageEditor = () => {
       setWelcomeMessage((prev) =>
         prev
           ? {
-              ...prev,
-              content_value: editedMessage,
-              last_modified_by: "admin",
-            }
+            ...prev,
+            content_value: editedMessage,
+            last_modified_by: "admin",
+          }
           : null
       );
 

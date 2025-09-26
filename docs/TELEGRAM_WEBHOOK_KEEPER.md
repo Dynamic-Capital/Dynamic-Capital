@@ -6,7 +6,7 @@
 
 ## Secret-token validation
 
-- When calling [setWebhook](https://core.telegram.org/bots/api#setwebhook), supply
-  `secret_token` so Telegram signs requests.
+- When calling [setWebhook](https://core.telegram.org/bots/api#setwebhook),
+  supply `secret_token` so Telegram signs requests.
 - Telegram then includes `X-Telegram-Bot-Api-Secret-Token`; the keeper compares
   this header to the stored secret and replies `401` on mismatch.

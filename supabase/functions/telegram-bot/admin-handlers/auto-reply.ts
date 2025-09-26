@@ -1,4 +1,4 @@
-import { supabaseAdmin, sendMessage } from "./common.ts";
+import { sendMessage, supabaseAdmin } from "./common.ts";
 
 export async function handleAutoReplyTemplatesManagement(
   chatId: number,
@@ -18,11 +18,14 @@ export async function handleAutoReplyTemplatesManagement(
       supabaseAdmin
         .from("auto_reply_templates")
         .select("*", { count: "exact", head: true })
-        .eq("is_active", true)
+        .eq("is_active", true),
     ]);
 
     if (templatesResult.error) {
-      console.error("Error fetching auto reply templates:", templatesResult.error);
+      console.error(
+        "Error fetching auto reply templates:",
+        templatesResult.error,
+      );
       await sendMessage(
         chatId,
         "❌ Error fetching auto reply templates. Please try again.",

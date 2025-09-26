@@ -1,11 +1,13 @@
-import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
+import { isAdmin, verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
-import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
+import { bad, corsHeaders, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 export const handler = registerHandler(async (req) => {
   const url = new URL(req.url);
-  const approveMatch = url.pathname.match(/\/receipt\/([^/]+)\/(approve|reject)/);
+  const approveMatch = url.pathname.match(
+    /\/receipt\/([^/]+)\/(approve|reject)/,
+  );
 
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -41,7 +43,10 @@ export const handler = registerHandler(async (req) => {
     const ext = file.name.split(".").pop();
     const path = `${u.id}/${crypto.randomUUID()}${ext ? `.${ext}` : ""}`;
     try {
-      const { error } = await supa.storage.from("payment-receipts").upload(path, file);
+      const { error } = await supa.storage.from("payment-receipts").upload(
+        path,
+        file,
+      );
       if (error) throw error;
     } catch (err) {
       console.error("upload error", err);
@@ -55,7 +60,11 @@ export const handler = registerHandler(async (req) => {
     const id = approveMatch[1];
     const action = approveMatch[2];
     let body: { initData?: string };
-    try { body = await req.json(); } catch { body = {}; }
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
     const u = await verifyInitDataAndGetUser(body.initData || "");
     if (!u || !isAdmin(u.id)) return unauth();
     let supa;
@@ -67,7 +76,10 @@ export const handler = registerHandler(async (req) => {
     if (supa) {
       const verdict = action === "approve" ? "approved" : "rejected";
       try {
-        const { error } = await supa.from("receipts").update({ verdict }).eq("id", id);
+        const { error } = await supa.from("receipts").update({ verdict }).eq(
+          "id",
+          id,
+        );
         if (error) {
           // ignore error
         }

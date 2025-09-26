@@ -46,6 +46,7 @@ export const SUPABASE_CONFIG = {
     MINIAPP_HEALTH: "miniapp-health",
     THEME_GET: "theme-get",
     THEME_SAVE: "theme-save",
+    THEME_ENTITLEMENTS: "theme-entitlements",
     CONTENT_BATCH: "content-batch",
     ANALYTICS_DATA: "analytics-data",
     ECONOMIC_CALENDAR: "economic-calendar",

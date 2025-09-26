@@ -1,5 +1,5 @@
 import { createClient } from "../_shared/client.ts";
-import { ok, mna, unauth, oops } from "../_shared/http.ts";
+import { mna, ok, oops, unauth } from "../_shared/http.ts";
 import { getEnv, requireEnv } from "../_shared/env.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
@@ -21,7 +21,10 @@ export const handler = registerHandler(async (req) => {
   try {
     const urlObj = new URL(req.url);
     if (req.method === "GET" && urlObj.pathname.endsWith("/version")) {
-      return ok({ name: "rotate-webhook-secret", ts: new Date().toISOString() });
+      return ok({
+        name: "rotate-webhook-secret",
+        ts: new Date().toISOString(),
+      });
     }
     if (req.method === "HEAD") return new Response(null, { status: 200 });
     if (req.method !== "POST") {
@@ -34,8 +37,9 @@ export const handler = registerHandler(async (req) => {
       return unauth();
     }
 
-    const { TELEGRAM_BOT_TOKEN: token } =
-      requireEnv(["TELEGRAM_BOT_TOKEN"] as const);
+    const { TELEGRAM_BOT_TOKEN: token } = requireEnv(
+      ["TELEGRAM_BOT_TOKEN"] as const,
+    );
     const supa = createClient();
     const ref = (new URL(getEnv("SUPABASE_URL"))).hostname.split(".")[0];
     const expectedUrl = `https://${ref}.functions.supabase.co/telegram-bot`;

@@ -385,52 +385,59 @@ const DEPOSIT_FORM_HTML = `<!doctype html>
 </html>`;
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 export const handler = registerHandler(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
     const supabase = createSupabaseClient(supabaseUrl, supabaseServiceRoleKey, {
       auth: { persistSession: false },
     });
 
     // Upload the HTML file to storage
     const { data, error } = await supabase.storage
-      .from('miniapp')
-      .upload('index.html', new Blob([DEPOSIT_FORM_HTML], { type: 'text/html' }), {
-        upsert: true,
-        contentType: 'text/html'
-      });
+      .from("miniapp")
+      .upload(
+        "index.html",
+        new Blob([DEPOSIT_FORM_HTML], { type: "text/html" }),
+        {
+          upsert: true,
+          contentType: "text/html",
+        },
+      );
 
     if (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      message: 'HTML uploaded successfully',
-      path: data.path 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "HTML uploaded successfully",
+        path: data.path,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
-    console.error('Error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error("Error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

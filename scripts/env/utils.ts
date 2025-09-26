@@ -1,11 +1,11 @@
-import { readFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { readFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 export type EnvDomain = {
   name: string;
   description?: string;
-  visibility: 'public' | 'server';
+  visibility: "public" | "server";
   providers: string[];
   vars: string[];
 };
@@ -23,18 +23,18 @@ export type AppEnvCheck = {
 
 export type AppModule = {
   envDefinition?: { app: string; public: string[]; server: string[] };
-  checkRuntimeEnv: (mode?: 'throw' | 'report') => {
+  checkRuntimeEnv: (mode?: "throw" | "report") => {
     success: boolean;
     missing: { public: string[]; server: string[] };
   };
 };
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-export const repoRoot = resolve(__dirname, '..', '..');
+export const repoRoot = resolve(__dirname, "..", "..");
 
 export async function loadEnvMap(): Promise<EnvMap> {
-  const mapPath = join(repoRoot, 'env', 'env.map.json');
-  const raw = await readFile(mapPath, 'utf8');
+  const mapPath = join(repoRoot, "env", "env.map.json");
+  const raw = await readFile(mapPath, "utf8");
   return JSON.parse(raw) as EnvMap;
 }
 
@@ -56,24 +56,32 @@ export function groupByProvider(map: EnvMap): ProviderKeyMap {
 
 export async function loadAppModules(): Promise<AppEnvCheck[]> {
   const apps = [
-    { app: 'web', path: join(repoRoot, 'apps', 'web', 'lib', 'env.ts') },
-    { app: 'landing', path: join(repoRoot, 'apps', 'landing', 'lib', 'env.ts') },
+    { app: "web", path: join(repoRoot, "apps", "web", "lib", "env.ts") },
+    {
+      app: "landing",
+      path: join(repoRoot, "apps", "landing", "lib", "env.ts"),
+    },
   ];
 
   const results: AppEnvCheck[] = [];
 
   const originalSkip = process.env.DC_SKIP_RUNTIME_ENV_CHECK;
-  process.env.DC_SKIP_RUNTIME_ENV_CHECK = 'true';
+  process.env.DC_SKIP_RUNTIME_ENV_CHECK = "true";
 
   for (const entry of apps) {
     try {
       const mod = (await import(pathToFileURL(entry.path).href)) as AppModule;
-      const result = mod.checkRuntimeEnv('report');
+      const result = mod.checkRuntimeEnv("report");
       results.push({ app: entry.app, missing: result.missing });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown import error';
+      const message = error instanceof Error
+        ? error.message
+        : "Unknown import error";
       console.error(`⚠️ Failed to load ${entry.app} env module: ${message}`);
-      results.push({ app: entry.app, missing: { public: ['<load-error>'], server: [] } });
+      results.push({
+        app: entry.app,
+        missing: { public: ["<load-error>"], server: [] },
+      });
     }
   }
 

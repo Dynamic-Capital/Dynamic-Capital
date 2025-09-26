@@ -152,8 +152,7 @@ export const BotDebugger = () => {
 
                 <div className="mt-4 p-3 bg-muted rounded">
                   <p className="text-sm text-muted-foreground">
-                    Last checked:{" "}
-                    {formatIsoDateTime(botStatus.timestamp)}
+                    Last checked: {formatIsoDateTime(botStatus.timestamp)}
                   </p>
                 </div>
               </div>

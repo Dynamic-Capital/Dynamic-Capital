@@ -1,11 +1,17 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,18 +22,20 @@ interface ReceiptUploaderProps {
 
 export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
   paymentId,
-  onUploadComplete
+  onUploadComplete,
 }) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
   const [retrying, setRetrying] = useState(false);
 
   const handleFileUpload = async () => {
     if (!uploadedFile || !paymentId) return;
 
     setUploading(true);
-    setUploadStatus('idle');
+    setUploadStatus("idle");
 
     try {
       const initData = (window as any).Telegram?.WebApp?.initData;
@@ -40,28 +48,33 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
       };
       if (initData) uploadBody.initData = initData;
 
-      const { data: uploadData, error: uploadError } = await supabase.functions.invoke('receipt-upload-url', {
-        body: uploadBody,
-      });
+      const { data: uploadData, error: uploadError } = await supabase.functions
+        .invoke("receipt-upload-url", {
+          body: uploadBody,
+        });
 
       if (uploadError) throw uploadError;
 
       if (!uploadData?.upload_url) {
-        throw new Error('No upload URL received');
+        throw new Error("No upload URL received");
       }
 
       // Upload file directly to the signed URL
       const uploadResponse = await fetch(uploadData.upload_url, {
-        method: 'PUT',
+        method: "PUT",
         body: uploadedFile,
         headers: {
-          'Content-Type': uploadedFile.type,
-          'x-amz-acl': 'private'
-        }
+          "Content-Type": uploadedFile.type,
+          "x-amz-acl": "private",
+        },
       });
 
       if (!uploadResponse.ok) {
-        console.error('Upload failed:', uploadResponse.status, uploadResponse.statusText);
+        console.error(
+          "Upload failed:",
+          uploadResponse.status,
+          uploadResponse.statusText,
+        );
         throw new Error(`Upload failed: ${uploadResponse.statusText}`);
       }
 
@@ -73,19 +86,24 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
       };
       if (initData) submitBody.initData = initData;
 
-      const { error: submitError } = await supabase.functions.invoke('receipt-submit', {
-        body: submitBody,
-      });
+      const { error: submitError } = await supabase.functions.invoke(
+        "receipt-submit",
+        {
+          body: submitBody,
+        },
+      );
 
       if (submitError) throw submitError;
 
-      setUploadStatus('success');
-      toast.success('Receipt uploaded successfully! Your payment is being reviewed.');
+      setUploadStatus("success");
+      toast.success(
+        "Receipt uploaded successfully! Your payment is being reviewed.",
+      );
       onUploadComplete?.(true);
     } catch (error: any) {
-      console.error('Receipt upload error:', error);
-      setUploadStatus('error');
-      toast.error(error.message || 'Failed to upload receipt');
+      console.error("Receipt upload error:", error);
+      setUploadStatus("error");
+      toast.error(error.message || "Failed to upload receipt");
       onUploadComplete?.(false);
     } finally {
       setUploading(false);
@@ -116,18 +134,19 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
           accept="image/*,.pdf"
           onChange={(e) => {
             setUploadedFile(e.target.files?.[0] || null);
-            setUploadStatus('idle');
+            setUploadStatus("idle");
           }}
           className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
         />
-        
+
         {uploadedFile && (
           <div className="text-sm text-muted-foreground">
-            Selected: {uploadedFile.name} ({(uploadedFile.size / 1024 / 1024).toFixed(2)}MB)
+            Selected: {uploadedFile.name}{" "}
+            ({(uploadedFile.size / 1024 / 1024).toFixed(2)}MB)
           </div>
         )}
 
-        {uploadStatus === 'success' && (
+        {uploadStatus === "success" && (
           <Alert className="border-green-500/20 bg-green-500/10">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-600">
@@ -136,7 +155,7 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
           </Alert>
         )}
 
-        {uploadStatus === 'error' && (
+        {uploadStatus === "error" && (
           <Alert className="border-dc-brand/20 bg-dc-brand/10">
             <AlertCircle className="h-4 w-4 text-dc-brand-dark" />
             <AlertDescription className="text-dc-brand-dark">
@@ -145,34 +164,32 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
           </Alert>
         )}
 
-        {uploadStatus === 'error' ? (
-          <Button
-            variant="outline"
-            onClick={handleRetry}
-            disabled={retrying || uploading || !uploadedFile}
-            className="w-full"
-          >
-            {retrying ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Upload className="h-4 w-4 mr-2" />
-            )}
-            {retrying ? 'Retrying...' : 'Retry Upload'}
-          </Button>
-        ) : (
-          <Button
-            onClick={handleFileUpload}
-            disabled={!uploadedFile || uploading}
-            className="w-full"
-          >
-            {uploading ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Upload className="h-4 w-4 mr-2" />
-            )}
-            {uploading ? "Uploading..." : "Submit Receipt"}
-          </Button>
-        )}
+        {uploadStatus === "error"
+          ? (
+            <Button
+              variant="outline"
+              onClick={handleRetry}
+              disabled={retrying || uploading || !uploadedFile}
+              className="w-full"
+            >
+              {retrying
+                ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                : <Upload className="h-4 w-4 mr-2" />}
+              {retrying ? "Retrying..." : "Retry Upload"}
+            </Button>
+          )
+          : (
+            <Button
+              onClick={handleFileUpload}
+              disabled={!uploadedFile || uploading}
+              className="w-full"
+            >
+              {uploading
+                ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                : <Upload className="h-4 w-4 mr-2" />}
+              {uploading ? "Uploading..." : "Submit Receipt"}
+            </Button>
+          )}
       </CardContent>
     </Card>
   );

@@ -5,6 +5,11 @@ import { useTheme as useDynamicUiTheme } from "@/components/dynamic-ui-system";
 
 import { callEdgeFunction } from "@/config/supabase";
 import { supabase } from "@/integrations/supabase/client";
+import { useThemeEntitlements } from "@/hooks/useThemeEntitlements";
+import {
+  applyDynamicBranding,
+} from "../../../shared/branding/applyDynamicBranding.ts";
+import { isThemePassId } from "../../../shared/theme/passes.ts";
 import type { Session } from "@supabase/supabase-js";
 
 type Theme = "light" | "dark" | "system";
@@ -18,11 +23,56 @@ interface TelegramWebApp {
 const isValidTheme = (value: unknown): value is Theme =>
   value === "light" || value === "dark" || value === "system";
 
+const THEME_PASS_STORAGE_KEY = "theme-pass:id";
+
+function readStoredThemePass(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(THEME_PASS_STORAGE_KEY);
+    return raw && raw.trim().length > 0 ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistThemePass(value: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (value) {
+      window.localStorage.setItem(THEME_PASS_STORAGE_KEY, value);
+    } else {
+      window.localStorage.removeItem(THEME_PASS_STORAGE_KEY);
+    }
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function applyThemePassAttributes(value: string | null) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (value) {
+    root.setAttribute("data-theme-pass", value);
+  } else {
+    root.removeAttribute("data-theme-pass");
+  }
+}
+
 export function useTheme() {
   const { theme: dynamicUiTheme, resolvedTheme, setTheme: setDynamicUiTheme } =
     useDynamicUiTheme();
   const preference = (dynamicUiTheme ?? "system") as Theme;
   const [session, setSession] = useState<Session | null>(null);
+  const [themePassId, setThemePassId] = useState<string | null>(
+    () => readStoredThemePass(),
+  );
+  const {
+    entitlements,
+    dctBalance,
+    isLoading: entitlementsLoading,
+    error: entitlementsError,
+    refresh: refreshEntitlements,
+  } = useThemeEntitlements();
   const getTimeBasedTheme = useCallback(() => {
     if (typeof window === "undefined") return "light";
 
@@ -77,6 +127,16 @@ export function useTheme() {
   }, []);
 
   useEffect(() => {
+    applyThemePassAttributes(themePassId);
+    persistThemePass(themePassId);
+    try {
+      applyDynamicBranding();
+    } catch {
+      // ignore branding refresh errors
+    }
+  }, [themePassId]);
+
+  useEffect(() => {
     const applyTheme = (value: Theme) => {
       setDynamicUiTheme(value);
       const tg = globalThis.Telegram?.WebApp as TelegramWebApp | undefined;
@@ -88,7 +148,7 @@ export function useTheme() {
 
       if (session?.access_token) {
         const { data, error } = await callEdgeFunction<
-          { mode?: "auto" | Theme }
+          { mode?: "auto" | Theme; themePassId?: string | null }
         >(
           "THEME_GET",
           {
@@ -99,6 +159,16 @@ export function useTheme() {
         if (!error && data) {
           const mode = data.mode;
           applyTheme(mode === "auto" ? "system" : mode);
+          if (data.themePassId === null) {
+            setThemePassId(null);
+          } else if (
+            typeof data.themePassId === "string" &&
+            isThemePassId(data.themePassId)
+          ) {
+            setThemePassId(data.themePassId);
+          } else {
+            setThemePassId(readStoredThemePass());
+          }
           return;
         }
       }
@@ -117,11 +187,13 @@ export function useTheme() {
           } else {
             applyTheme("system");
           }
+          setThemePassId(readStoredThemePass());
         } catch {
           applyTheme("system");
         }
       } else {
         applyTheme("system");
+        setThemePassId(readStoredThemePass());
       }
     };
 
@@ -224,10 +296,11 @@ export function useTheme() {
       persistPreference(newTheme, { skip: Boolean(tg) });
 
       if (session?.access_token) {
+        const payloadMode = newTheme === "system" ? "auto" : newTheme;
         const { error } = await callEdgeFunction("THEME_SAVE", {
           method: "POST",
           token: session.access_token,
-          body: { mode: newTheme === "system" ? "auto" : newTheme },
+          body: { mode: payloadMode, themePassId: themePassId ?? null },
         });
 
         if (error) {
@@ -235,7 +308,7 @@ export function useTheme() {
         }
       }
     },
-    [persistPreference, session, setDynamicUiTheme],
+    [persistPreference, session, setDynamicUiTheme, themePassId],
   );
 
   const toggleTheme = useCallback(() => {
@@ -248,6 +321,36 @@ export function useTheme() {
     }
   }, [preference, setThemeMode]);
 
+  const setThemePass = useCallback(
+    async (nextPassId: string | null) => {
+      const normalized = nextPassId && isThemePassId(nextPassId)
+        ? nextPassId
+        : null;
+      if (themePassId === normalized) {
+        return;
+      }
+      setThemePassId((current) => {
+        if (current === normalized) {
+          return current;
+        }
+        return normalized;
+      });
+
+      if (session?.access_token) {
+        const payloadMode = preference === "system" ? "auto" : preference;
+        const { error } = await callEdgeFunction("THEME_SAVE", {
+          method: "POST",
+          token: session.access_token,
+          body: { mode: payloadMode, themePassId: normalized },
+        });
+        if (error) {
+          // ignore persistence failures
+        }
+      }
+    },
+    [preference, session?.access_token, themePassId],
+  );
+
   const isInTelegram = typeof window !== "undefined" &&
     Boolean(globalThis.Telegram?.WebApp as TelegramWebApp | undefined);
 
@@ -258,5 +361,12 @@ export function useTheme() {
     setTheme: setThemeMode,
     toggleTheme,
     isInTelegram,
+    themePassId,
+    setThemePass,
+    themeEntitlements: entitlements,
+    themeEntitlementsLoading: entitlementsLoading,
+    themeEntitlementsError: entitlementsError,
+    refreshThemeEntitlements: refreshEntitlements,
+    themeEntitlementsDctBalance: dctBalance,
   };
 }

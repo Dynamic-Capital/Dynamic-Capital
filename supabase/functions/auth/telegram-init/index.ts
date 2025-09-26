@@ -1,7 +1,7 @@
 import { createClient } from "../../_shared/client.ts";
 import { verifyFromRaw } from "../../verify-initdata/index.ts";
 import { envOrSetting } from "../../_shared/config.ts";
-import { json, mna, oops, bad } from "../../_shared/http.ts";
+import { bad, json, mna, oops } from "../../_shared/http.ts";
 import { version } from "../../_shared/version.ts";
 import { registerHandler } from "../../_shared/serve.ts";
 
@@ -17,7 +17,9 @@ export const MAX_TTL = 60 * 60; // 1 hour
 export function clampTtl(ttl: unknown): number {
   const num = Number(ttl);
   if (!isNaN(num) && num > 0) {
-    if (num > MAX_TTL) console.warn(`ttl ${num} exceeds max ${MAX_TTL}, clamped`);
+    if (num > MAX_TTL) {
+      console.warn(`ttl ${num} exceeds max ${MAX_TTL}, clamped`);
+    }
     return Math.min(num, MAX_TTL);
   }
   return MAX_TTL;
@@ -76,11 +78,11 @@ export async function handler(req: Request): Promise<Response> {
       signJWT: (
         p: Record<string, unknown>,
         o: Record<string, unknown>,
-      ) => Promise<{ access_token?: string; token?: string; jwt?: string }>
+      ) => Promise<{ access_token?: string; token?: string; jwt?: string }>;
     };
     const signed = await auth.signJWT(payload, opts);
-    const access_token =
-      signed.access_token || signed.token || signed.jwt || "";
+    const access_token = signed.access_token || signed.token || signed.jwt ||
+      "";
 
     return withCors(json({ access_token, profile }, 200, {
       "cache-control": "no-store",

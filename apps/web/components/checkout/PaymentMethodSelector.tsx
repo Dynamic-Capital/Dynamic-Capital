@@ -1,10 +1,28 @@
 "use client";
 
 import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, ExternalLink, CreditCard, Building, Coins } from "lucide-react";
+import {
+  Building,
+  Coins,
+  CreditCard,
+  ExternalLink,
+  Loader2,
+} from "lucide-react";
 import type { PaymentMethod } from "./types";
 
 interface PaymentMethodSelectorProps {
@@ -20,16 +38,21 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   setPaymentMethod,
   handleCheckout,
   processingCheckout,
-  finalPrice
+  finalPrice,
 }) => (
   <div className="space-y-4">
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Choose Payment Method</CardTitle>
-        <CardDescription>Select how you'd like to complete your payment</CardDescription>
+        <CardDescription>
+          Select how you'd like to complete your payment
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <Select value={paymentMethod} onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}>
+        <Select
+          value={paymentMethod}
+          onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select payment method" />
           </SelectTrigger>
@@ -62,14 +85,16 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       disabled={processingCheckout}
       className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 shadow-lg hover:shadow-xl transition-all duration-300"
     >
-      {processingCheckout ? (
-        <Loader2 className="h-5 w-5 animate-spin mr-2" />
-      ) : paymentMethod === "telegram" ? (
-        <ExternalLink className="h-5 w-5 mr-2" />
-      ) : (
-        <CreditCard className="h-5 w-5 mr-2" />
-      )}
-      {paymentMethod === "telegram" ? "Continue in Telegram" : `Pay with ${paymentMethod === "bank_transfer" ? "Bank Transfer" : "Crypto"}`} - ${finalPrice.toFixed(2)}
+      {processingCheckout
+        ? <Loader2 className="h-5 w-5 animate-spin mr-2" />
+        : paymentMethod === "telegram"
+        ? <ExternalLink className="h-5 w-5 mr-2" />
+        : <CreditCard className="h-5 w-5 mr-2" />}
+      {paymentMethod === "telegram"
+        ? "Continue in Telegram"
+        : `Pay with ${
+          paymentMethod === "bank_transfer" ? "Bank Transfer" : "Crypto"
+        }`} - ${finalPrice.toFixed(2)}
     </Button>
   </div>
 );

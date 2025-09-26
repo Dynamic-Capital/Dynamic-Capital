@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Star, Crown } from "lucide-react";
+import { Check, Crown, Star } from "lucide-react";
 
 interface PlanSummaryProps {
   name: string;
@@ -9,8 +9,9 @@ interface PlanSummaryProps {
 }
 
 export const PlanSummary = ({ name, price, features }: PlanSummaryProps) => {
-  const isVip = name.toLowerCase().includes("vip") || name.toLowerCase().includes("pro");
-  
+  const isVip = name.toLowerCase().includes("vip") ||
+    name.toLowerCase().includes("pro");
+
   return (
     <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-all duration-300">
       {isVip && (
@@ -19,7 +20,7 @@ export const PlanSummary = ({ name, price, features }: PlanSummaryProps) => {
           Premium
         </div>
       )}
-      
+
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2 mb-2">
           <CardTitle className="text-xl">{name}</CardTitle>
@@ -36,7 +37,7 @@ export const PlanSummary = ({ name, price, features }: PlanSummaryProps) => {
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         <div className="space-y-3">
           <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
@@ -53,7 +54,7 @@ export const PlanSummary = ({ name, price, features }: PlanSummaryProps) => {
             ))}
           </ul>
         </div>
-        
+
         <div className="pt-2 border-t border-muted">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Instant activation</span>
@@ -66,4 +67,3 @@ export const PlanSummary = ({ name, price, features }: PlanSummaryProps) => {
 };
 
 export default PlanSummary;
-

@@ -3,9 +3,9 @@ const globalAny: any = typeof window !== "undefined" ? window : undefined;
 export const tg = globalAny?.Telegram?.WebApp as
   | undefined
   | (typeof globalAny.Telegram.WebApp & {
-      __dcMainHandler?: () => void;
-      __dcBackHandler?: () => void;
-    });
+    __dcMainHandler?: () => void;
+    __dcBackHandler?: () => void;
+  });
 
 export function initTelegram() {
   if (!tg) return;

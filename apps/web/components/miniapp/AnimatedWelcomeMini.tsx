@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { MotionCard } from "@/components/ui/motion-card";
 import { Badge } from "@/components/ui/badge";
-import { ThreeDEmoticon, TradingEmoticonSet, EmoticonRain } from "@/components/ui/three-d-emoticons";
-import { Sparkles, TrendingUp, Users, Shield, Award } from "lucide-react";
+import {
+  EmoticonRain,
+  ThreeDEmoticon,
+  TradingEmoticonSet,
+} from "@/components/ui/three-d-emoticons";
+import { Award, Shield, Sparkles, TrendingUp, Users } from "lucide-react";
 
 interface AnimatedWelcomeMiniProps {
   className?: string;
 }
 
-const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "" }) => {
+const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = (
+  { className = "" },
+) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showEmoticonRain, setShowEmoticonRain] = useState(false);
 
@@ -18,20 +24,20 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
       title: "Hey there! Welcome to Dynamic Capital VIP!",
       subtitle: "Ready to level up your trading game?",
       emoji: "👋",
-      color: "from-brand-primary/20 to-brand-secondary/20"
+      color: "from-brand-primary/20 to-brand-secondary/20",
     },
     {
       title: "Get premium signals & expert guidance",
       subtitle: "Join thousands of successful traders",
       emoji: "📈",
-      color: "from-green-500/20 to-emerald-500/20"
+      color: "from-green-500/20 to-emerald-500/20",
     },
     {
       title: "What would you like to do?",
       subtitle: "Choose your trading journey",
       emoji: "🚀",
-      color: "from-primary/20 to-accent/20"
-    }
+      color: "from-primary/20 to-accent/20",
+    },
   ];
 
   useEffect(() => {
@@ -53,21 +59,21 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
 
   return (
     <>
-      <EmoticonRain 
-        emojis={['📈', '💰', '🚀', '⭐', '💎']}
+      <EmoticonRain
+        emojis={["📈", "💰", "🚀", "⭐", "💎"]}
         count={8}
         active={showEmoticonRain}
       />
-      
-      <MotionCard 
-        variant="glass" 
-        hover={true} 
-        animate={true} 
+
+      <MotionCard
+        variant="glass"
+        hover={true}
+        animate={true}
         className={`relative overflow-hidden bg-gradient-to-br ${currentStepData.color} border-primary/30 ${className}`}
       >
         <div className="relative z-10 p-6">
           {/* Header with 3D Emoticon */}
-          <motion.div 
+          <motion.div
             className="text-center mb-6"
             key={currentStep}
             initial={{ opacity: 0, y: 20 }}
@@ -76,7 +82,7 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
             transition={{ duration: 0.5 }}
           >
             <div className="flex justify-center items-center gap-3 mb-4">
-              <ThreeDEmoticon 
+              <ThreeDEmoticon
                 emoji={currentStepData.emoji}
                 size={40}
                 intensity={0.4}
@@ -89,16 +95,16 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
                 <Sparkles className="h-6 w-6 text-primary" />
               </motion.div>
             </div>
-            
-            <motion.h2 
+
+            <motion.h2
               className="text-xl font-bold text-foreground mb-2 leading-tight"
               animate={{ scale: [1, 1.02, 1] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
               {currentStepData.title}
             </motion.h2>
-            
-            <motion.p 
+
+            <motion.p
               className="text-muted-foreground text-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -109,13 +115,13 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
           </motion.div>
 
           {/* Stats Section with Enhanced Design */}
-          <motion.div 
+          <motion.div
             className="grid grid-cols-3 gap-4 mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
           >
-            <motion.div 
+            <motion.div
               className="text-center group"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -133,7 +139,7 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
               </Badge>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               className="text-center group"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -151,7 +157,7 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
               </Badge>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               className="text-center group"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -171,7 +177,7 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
           </motion.div>
 
           {/* Trading Emoticon Set */}
-          <motion.div 
+          <motion.div
             className="flex justify-center mb-4"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -181,7 +187,7 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
           </motion.div>
 
           {/* Step Indicators */}
-          <motion.div 
+          <motion.div
             className="flex justify-center gap-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -191,13 +197,15 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
               <motion.div
                 key={index}
                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentStep 
-                    ? 'bg-primary scale-125' 
-                    : 'bg-muted-foreground/30'
+                  index === currentStep
+                    ? "bg-primary scale-125"
+                    : "bg-muted-foreground/30"
                 }`}
-                animate={index === currentStep ? {
-                  scale: [1.25, 1.5, 1.25],
-                } : {}}
+                animate={index === currentStep
+                  ? {
+                    scale: [1.25, 1.5, 1.25],
+                  }
+                  : {}}
                 transition={{ duration: 0.5 }}
               />
             ))}
@@ -209,10 +217,10 @@ const AnimatedWelcomeMini: React.FC<AnimatedWelcomeMiniProps> = ({ className = "
           className="absolute inset-0 opacity-5"
           animate={{
             background: [
-              'radial-gradient(circle at 20% 50%, hsl(var(--primary)) 0%, transparent 50%)',
-              'radial-gradient(circle at 80% 50%, hsl(var(--primary)) 0%, transparent 50%)',
-              'radial-gradient(circle at 40% 50%, hsl(var(--primary)) 0%, transparent 50%)'
-            ]
+              "radial-gradient(circle at 20% 50%, hsl(var(--primary)) 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 50%, hsl(var(--primary)) 0%, transparent 50%)",
+              "radial-gradient(circle at 40% 50%, hsl(var(--primary)) 0%, transparent 50%)",
+            ],
           }}
           transition={{ duration: 8, repeat: Infinity }}
         />

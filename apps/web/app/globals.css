@@ -1,6 +1,6 @@
-@import './styles/mobile.css';
-@import '../resources/custom.css';
-@import '../resources/brand-tokens.css';
+@import "./styles/mobile.css";
+@import "../resources/custom.css";
+@import "../resources/brand-tokens.css";
 @reference "./theme.css";
 @tailwind base;
 @tailwind components;

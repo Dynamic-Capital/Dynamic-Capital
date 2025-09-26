@@ -39,7 +39,8 @@ export async function readDbWebhookSecret(
 export async function expectedSecret(
   supa?: SupabaseLike,
 ): Promise<string | null> {
-  return (await readDbWebhookSecret(supa)) || optionalEnv("TELEGRAM_WEBHOOK_SECRET");
+  return (await readDbWebhookSecret(supa)) ||
+    optionalEnv("TELEGRAM_WEBHOOK_SECRET");
 }
 
 function genHex(n = 24) {

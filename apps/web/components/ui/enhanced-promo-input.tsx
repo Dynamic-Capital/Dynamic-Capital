@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Sparkles, Loader2 } from "lucide-react";
+import { Check, Loader2, Sparkles, X } from "lucide-react";
 import { cn } from "@/utils";
 import { StatefulButton } from "./stateful-button";
 
@@ -19,21 +19,23 @@ interface EnhancedPromoInputProps {
   className?: string;
 }
 
-export function EnhancedPromoInput({ 
-  onApply, 
-  isLoading = false, 
-  appliedPromo, 
+export function EnhancedPromoInput({
+  onApply,
+  isLoading = false,
+  appliedPromo,
   onRemove,
-  className 
+  className,
 }: EnhancedPromoInputProps) {
   const [code, setCode] = useState("");
-  const [state, setState] = useState<"default" | "focus" | "success" | "error">("default");
+  const [state, setState] = useState<"default" | "focus" | "success" | "error">(
+    "default",
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const [shakeKey, setShakeKey] = useState(0);
 
   const handleSubmit = async () => {
     if (!code.trim()) return;
-    
+
     setState("default");
     try {
       const success = await onApply(code);
@@ -43,12 +45,12 @@ export function EnhancedPromoInput({
       } else {
         setState("error");
         setErrorMessage("Invalid promo code");
-        setShakeKey(prev => prev + 1);
+        setShakeKey((prev) => prev + 1);
       }
     } catch (error) {
       setState("error");
       setErrorMessage("Failed to validate code");
-      setShakeKey(prev => prev + 1);
+      setShakeKey((prev) => prev + 1);
     }
   };
 
@@ -63,7 +65,10 @@ export function EnhancedPromoInput({
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className={cn("p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 ui-rounded-lg", className)}
+        className={cn(
+          "p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 ui-rounded-lg",
+          className,
+        )}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -71,7 +76,10 @@ export function EnhancedPromoInput({
             <span className="text-subheading font-medium text-green-700 dark:text-green-300">
               {appliedPromo.code} applied
             </span>
-            <Badge variant="outline" className="text-green-600 border-green-200">
+            <Badge
+              variant="outline"
+              className="text-green-600 border-green-200"
+            >
               {appliedPromo.discount}
             </Badge>
           </div>
@@ -112,9 +120,10 @@ export function EnhancedPromoInput({
                 "w-full min-h-[44px] px-4 py-2 ui-rounded-lg border transition-all duration-200",
                 "placeholder:text-muted-foreground font-medium",
                 state === "focus" && "border-primary ring-2 ring-primary/20",
-                state === "success" && "border-green-500 ring-2 ring-green-500/20",
+                state === "success" &&
+                  "border-green-500 ring-2 ring-green-500/20",
                 state === "error" && "border-dc-brand ring-2 ring-dc-brand/20",
-                state === "default" && "border-border hover:border-border/80"
+                state === "default" && "border-border hover:border-border/80",
               )}
             />
             <AnimatePresence>
@@ -145,7 +154,7 @@ export function EnhancedPromoInput({
           </StatefulButton>
         </div>
       </motion.div>
-      
+
       <AnimatePresence>
         {state === "error" && errorMessage && (
           <motion.p
