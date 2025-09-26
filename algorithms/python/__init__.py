@@ -8,6 +8,7 @@ from .awesome_api import (
     AwesomeAPIError,
     AwesomeAPISnapshotBuilder,
 )
+from .elliott_wave import ElliottSwing, ElliottWaveAnalyzer, ElliottWaveReport
 from .mechanical_analysis import MechanicalAnalysisCalculator, MechanicalMetrics
 from .economic_catalysts import (
     EconomicCatalyst,
@@ -23,6 +24,9 @@ __all__ = _trade_exports + [
     "AwesomeAPIClient",
     "AwesomeAPIError",
     "AwesomeAPISnapshotBuilder",
+    "ElliottSwing",
+    "ElliottWaveAnalyzer",
+    "ElliottWaveReport",
     "MechanicalAnalysisCalculator",
     "MechanicalMetrics",
     "EconomicCatalyst",
@@ -38,6 +42,9 @@ globals().update(
         "AwesomeAPIClient": AwesomeAPIClient,
         "AwesomeAPIError": AwesomeAPIError,
         "AwesomeAPISnapshotBuilder": AwesomeAPISnapshotBuilder,
+        "ElliottSwing": ElliottSwing,
+        "ElliottWaveAnalyzer": ElliottWaveAnalyzer,
+        "ElliottWaveReport": ElliottWaveReport,
         "MechanicalAnalysisCalculator": MechanicalAnalysisCalculator,
         "MechanicalMetrics": MechanicalMetrics,
         "EconomicCatalyst": EconomicCatalyst,
