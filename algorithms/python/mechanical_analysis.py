@@ -5,10 +5,19 @@ from __future__ import annotations
 import statistics
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Sequence, Tuple
+from typing import List, Protocol, Sequence, Tuple
 
 from .awesome_api import AwesomeAPIClient, AwesomeAPIError, DEFAULT_HISTORY
-from .data_pipeline import RawBar
+
+
+class BarLike(Protocol):
+    """Protocol describing the minimal bar interface required for analysis."""
+
+    timestamp: datetime
+    open: float
+    high: float
+    low: float
+    close: float
 
 State = str
 
@@ -40,7 +49,7 @@ def _classify_state(velocity: float, acceleration: float, jerk: float) -> State:
     return "Neutral"
 
 
-def _ensure_minimum_history(pair: str, bars: Sequence[RawBar]) -> None:
+def _ensure_minimum_history(pair: str, bars: Sequence[BarLike]) -> None:
     if len(bars) < 4:
         raise AwesomeAPIError(
             f"AwesomeAPI returned insufficient history for {pair}; need at least 4 bars"
@@ -63,7 +72,7 @@ class MechanicalAnalysisCalculator:
         pair: str,
         *,
         history: int | None = None,
-        bars: Sequence[RawBar] | None = None,
+        bars: Sequence[BarLike] | None = None,
     ) -> MechanicalMetrics:
         """Fetch (or use supplied) bars and compute the latest mechanical metrics."""
 
@@ -75,7 +84,7 @@ class MechanicalAnalysisCalculator:
         pair: str,
         *,
         history: int | None = None,
-        bars: Sequence[RawBar] | None = None,
+        bars: Sequence[BarLike] | None = None,
     ) -> List[Tuple[datetime, MechanicalMetrics]]:
         """Return timestamps paired with mechanical metrics across the series."""
 
@@ -93,8 +102,8 @@ class MechanicalAnalysisCalculator:
         pair: str,
         *,
         history: int | None,
-        bars: Sequence[RawBar] | None,
-    ) -> Sequence[RawBar]:
+        bars: Sequence[BarLike] | None,
+    ) -> Sequence[BarLike]:
         if bars is not None:
             if not bars:
                 raise ValueError("bars must be non-empty when provided explicitly")
@@ -104,7 +113,7 @@ class MechanicalAnalysisCalculator:
             raise ValueError("history must be at least 4 to compute mechanical metrics")
         return self.client.fetch_bars(pair, limit=window)
 
-    def _latest_metrics(self, pair: str, bars: Sequence[RawBar]) -> MechanicalMetrics:
+    def _latest_metrics(self, pair: str, bars: Sequence[BarLike]) -> MechanicalMetrics:
         _ensure_minimum_history(pair, bars)
         closes = [bar.close for bar in bars]
         velocities = _velocities(closes)
