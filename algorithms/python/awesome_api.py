@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import statistics
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import List, Mapping, MutableSequence, Sequence
@@ -142,6 +143,111 @@ class AwesomeAPIClient:
         return bars
 
 
+@dataclass(frozen=True, slots=True)
+class AwesomeAPIAutoMetrics:
+    """Derived analytics from an AwesomeAPI price history."""
+
+    pair: str
+    sample_size: int
+    latest_close: float
+    previous_close: float
+    absolute_change: float
+    percentage_change: float
+    average_close: float
+    high: float
+    low: float
+    price_range: float
+    cumulative_return: float
+    average_daily_change: float
+    volatility: float
+    trend_strength: float
+
+
+@dataclass(slots=True)
+class AwesomeAPIAutoCalculator:
+    """Automatically summarise AwesomeAPI bars into actionable metrics."""
+
+    client: AwesomeAPIClient = field(default_factory=AwesomeAPIClient)
+    history: int = DEFAULT_HISTORY
+
+    def compute_metrics(
+        self,
+        pair: str,
+        *,
+        history: int | None = None,
+        bars: Sequence[RawBar] | None = None,
+    ) -> AwesomeAPIAutoMetrics:
+        """Fetch AwesomeAPI bars (or use supplied data) and compute analytics."""
+
+        if bars is None:
+            window = self.history if history is None else history
+            if window <= 1:
+                raise ValueError("history must be at least 2 to compute metrics")
+            series = self.client.fetch_bars(pair, limit=window)
+        else:
+            series = list(bars)
+            if not series:
+                raise ValueError("bars must be non-empty when provided explicitly")
+
+        return self._summarise(pair, series)
+
+    def _summarise(
+        self, pair: str, bars: Sequence[RawBar]
+    ) -> AwesomeAPIAutoMetrics:
+        if len(bars) < 2:
+            raise AwesomeAPIError(
+                f"AwesomeAPI returned insufficient history for {pair}; need at least 2 bars"
+            )
+
+        closes = [bar.close for bar in bars]
+        highs = [bar.high for bar in bars]
+        lows = [bar.low for bar in bars]
+
+        latest_close = closes[-1]
+        previous_close = closes[-2]
+        absolute_change = latest_close - previous_close
+        percentage_change = (
+            (absolute_change / previous_close) * 100.0 if previous_close else 0.0
+        )
+        average_close = sum(closes) / len(closes)
+        high = max(highs)
+        low = min(lows)
+        price_range = high - low
+        cumulative_return = (
+            (latest_close - closes[0]) / closes[0] if closes[0] else 0.0
+        )
+        deltas = [closes[idx] - closes[idx - 1] for idx in range(1, len(closes))]
+        average_daily_change = sum(deltas) / len(deltas) if deltas else 0.0
+        volatility = statistics.pstdev(closes) if len(closes) > 1 else 0.0
+
+        half = len(closes) // 2
+        if half:
+            first_avg = sum(closes[:half]) / half
+            second_avg = sum(closes[-half:]) / half
+        else:
+            first_avg = second_avg = average_close
+        trend_strength = (
+            (second_avg - first_avg) / first_avg if first_avg else 0.0
+        )
+
+        return AwesomeAPIAutoMetrics(
+            pair=pair,
+            sample_size=len(bars),
+            latest_close=latest_close,
+            previous_close=previous_close,
+            absolute_change=absolute_change,
+            percentage_change=percentage_change,
+            average_close=average_close,
+            high=high,
+            low=low,
+            price_range=price_range,
+            cumulative_return=cumulative_return,
+            average_daily_change=average_daily_change,
+            volatility=volatility,
+            trend_strength=trend_strength,
+        )
+
+
 @dataclass(slots=True)
 class AwesomeAPISnapshotBuilder:
     """Build :class:`MarketSnapshot` sequences from AwesomeAPI market data."""
@@ -183,4 +289,6 @@ __all__ = [
     "AwesomeAPIClient",
     "AwesomeAPIError",
     "AwesomeAPISnapshotBuilder",
+    "AwesomeAPIAutoCalculator",
+    "AwesomeAPIAutoMetrics",
 ]
