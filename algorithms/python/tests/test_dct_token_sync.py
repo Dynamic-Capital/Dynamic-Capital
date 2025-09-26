@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
+from typing import Any, Dict, Sequence, Tuple
 
 import pytest
 
@@ -12,9 +14,40 @@ from algorithms.python.dct_token_sync import (
     DCTPriceInputs,
     DCTProductionInputs,
     DCTProductionPlanner,
+    DCTLLMAdjustment,
+    DCTLLMOptimisationResult,
+    DCTMultiLLMOptimiser,
     DCTSyncJob,
 )
 from algorithms.python.supabase_sync import SupabaseTableWriter
+from algorithms.python.multi_llm import LLMConfig
+
+
+
+class _StubLLMClient:
+    def __init__(self, responses: Sequence[str]) -> None:
+        self.responses = list(responses)
+        self.calls: list[Dict[str, Any]] = []
+
+    def complete(
+        self,
+        prompt: str,
+        *,
+        temperature: float,
+        max_tokens: int,
+        nucleus_p: float,
+    ) -> str:
+        self.calls.append(
+            {
+                "prompt": prompt,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "nucleus_p": nucleus_p,
+            }
+        )
+        if not self.responses:
+            return ""
+        return self.responses.pop(0)
 
 
 class _StubWriter(SupabaseTableWriter):
@@ -130,3 +163,138 @@ def test_sync_job_compiles_payload_and_writes_to_supabase() -> None:
     assert vip_allocation["label"] == "VIP"  # type: ignore[index]
     assert vip_allocation["per_member"] is not None  # type: ignore[index]
 
+
+
+def test_multi_llm_optimiser_aggregates_responses() -> None:
+    snapshot = DCTMarketSnapshot(
+        as_of=datetime(2024, 6, 1, 15, 0, tzinfo=timezone.utc),
+        ton_price_usd=2.6,
+        trailing_ton_price_usd=2.4,
+        demand_index=0.7,
+        performance_index=0.62,
+        volatility_index=0.28,
+        policy_adjustment=0.15,
+        usd_reward_budget=120_000,
+        previous_epoch_mint=40_000,
+        circulating_supply=1_500_000,
+        buffer_ratio=0.08,
+        max_emission=None,
+    )
+    rules = [
+        DCTAllocationRule("VIP", weight=3, multiplier=1.1, member_count=30),
+        DCTAllocationRule("Treasury", weight=2, multiplier=1.0),
+    ]
+
+    response_one = json.dumps(
+        {
+            "policy_adjustment_delta": 0.1,
+            "demand_multiplier": 1.1,
+            "performance_multiplier": 0.9,
+            "volatility_multiplier": 0.95,
+            "allocation_overrides": {"VIP": 1.25, "Treasury": 0.9},
+            "notes": ["Boost VIP rewards"],
+        }
+    )
+    response_two = json.dumps(
+        {
+            "policy_adjustment_delta": 0.0,
+            "demand_multiplier": 1.05,
+            "performance_multiplier": 1.1,
+            "volatility_multiplier": 0.85,
+            "allocation_overrides": [{"label": "VIP", "multiplier": 1.15}],
+            "notes": ["Reduce treasury drift"],
+        }
+    )
+
+    client_one = _StubLLMClient([response_one])
+    client_two = _StubLLMClient([response_two])
+    config_one = LLMConfig(name="treasury", client=client_one, temperature=0.2, nucleus_p=0.9, max_tokens=256)
+    config_two = LLMConfig(name="growth", client=client_two, temperature=0.25, nucleus_p=0.85, max_tokens=256)
+
+    optimiser = DCTMultiLLMOptimiser(models=[config_one, config_two], multiplier_upper_bound=1.4)
+    result = optimiser.optimise(snapshot, rules)
+
+    assert isinstance(result, DCTLLMOptimisationResult)
+    assert len(result.runs) == 2
+    assert "Dynamic Capital Token" in client_one.calls[0]["prompt"]
+    assert "allocation" in client_two.calls[0]["prompt"].lower()
+    assert pytest.approx(result.adjustment.policy_adjustment_delta, rel=1e-6) == 0.05
+    assert pytest.approx(result.adjustment.demand_index_multiplier, rel=1e-6) == 1.075
+    assert pytest.approx(result.adjustment.performance_index_multiplier, rel=1e-6) == 1.0
+    assert pytest.approx(result.adjustment.volatility_index_multiplier, rel=1e-6) == 0.9
+    assert result.adjustment.allocation_multipliers["VIP"] == pytest.approx(1.2, rel=1e-6)
+    assert result.adjustment.allocation_multipliers["Treasury"] == pytest.approx(0.9, rel=1e-6)
+    assert set(result.notes) == {"Boost VIP rewards", "Reduce treasury drift"}
+    assert result.serialised_runs() is not None
+
+
+def test_sync_job_includes_llm_adjustments() -> None:
+    calculator = DCTPriceCalculator()
+    planner = DCTProductionPlanner()
+    engine = DCTAllocationEngine(
+        [
+            DCTAllocationRule("VIP", weight=2, multiplier=1.0, member_count=25),
+            DCTAllocationRule("Treasury", weight=3, multiplier=1.0),
+        ]
+    )
+    writer = _StubWriter()
+
+    class _StubOptimiser:
+        def __init__(self) -> None:
+            self.calls: list[Tuple[DCTMarketSnapshot, Tuple[DCTAllocationRule, ...]]] = []
+
+        def optimise(
+            self,
+            snapshot: DCTMarketSnapshot,
+            rules: Sequence[DCTAllocationRule],
+        ) -> DCTLLMOptimisationResult:
+            self.calls.append((snapshot, tuple(rules)))
+            adjustment = DCTLLMAdjustment(
+                policy_adjustment_delta=0.2,
+                demand_index_multiplier=1.1,
+                performance_index_multiplier=1.0,
+                volatility_index_multiplier=0.9,
+                allocation_multipliers={"VIP": 1.25},
+                index_lower_bound=0.0,
+                index_upper_bound=1.5,
+                policy_lower_bound=-1.0,
+                policy_upper_bound=1.0,
+            )
+            return DCTLLMOptimisationResult(
+                adjustment=adjustment,
+                runs=(),
+                recommendations=({"notes": ["Boost VIP rewards"]},),
+                notes=("Boost VIP rewards",),
+            )
+
+    optimiser = _StubOptimiser()
+    job = DCTSyncJob(calculator, planner, engine, writer, optimizer=optimiser)
+
+    snapshot = DCTMarketSnapshot(
+        as_of=datetime(2024, 7, 1, 10, 0, tzinfo=timezone.utc),
+        ton_price_usd=2.2,
+        trailing_ton_price_usd=2.0,
+        demand_index=0.6,
+        performance_index=0.58,
+        volatility_index=0.32,
+        policy_adjustment=0.1,
+        usd_reward_budget=80_000,
+        previous_epoch_mint=30_000,
+        circulating_supply=1_200_000,
+        buffer_ratio=0.05,
+        max_emission=None,
+    )
+
+    rows_written = job.run(snapshot)
+    assert rows_written == 1
+    assert optimiser.calls
+
+    payload = writer.rows[0]
+    assert "llm_adjustment" in payload
+    assert payload["llm_adjustment"]["allocation_multipliers"]["VIP"] == pytest.approx(1.25, rel=1e-6)
+    allocations = payload["allocations"]  # type: ignore[index]
+    vip_allocation = next(entry for entry in allocations if entry["label"] == "VIP")
+    assert pytest.approx(vip_allocation["multiplier"], rel=1e-6) == 1.25
+    assert "llm_notes" in payload
+    assert payload["llm_notes"][0] == "Boost VIP rewards"
+    assert payload["llm_recommendations"][0]["notes"][0] == "Boost VIP rewards"
