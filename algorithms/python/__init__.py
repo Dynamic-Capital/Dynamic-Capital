@@ -81,6 +81,12 @@ from .dct_market_maker import (
     DCTMarketMakerModel,
     DCTMarketMakerQuote,
 )
+from .dct_buyback_algo import (
+    DCTBuybackAlgorithm,
+    DCTBuybackInputs,
+    DCTBuybackPlan,
+    DCTBuybackTranche,
+)
 from .dct_token_sync import (
     DCTAllocationEngine,
     DCTAllocationResult,
@@ -222,6 +228,10 @@ __all__ = _trade_exports + [
     "DCTMarketMakerInputs",
     "DCTMarketMakerModel",
     "DCTMarketMakerQuote",
+    "DCTBuybackAlgorithm",
+    "DCTBuybackInputs",
+    "DCTBuybackPlan",
+    "DCTBuybackTranche",
     "DexPoolSnapshot",
     "DexScannerAlgo",
     "DexScannerSignal",
