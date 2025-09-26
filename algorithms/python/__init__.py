@@ -8,6 +8,7 @@ from .awesome_api import (
     AwesomeAPIError,
     AwesomeAPISnapshotBuilder,
 )
+from .mechanical_analysis import MechanicalAnalysisCalculator, MechanicalMetrics
 from .economic_catalysts import (
     EconomicCatalyst,
     EconomicCatalystGenerator,
@@ -22,6 +23,8 @@ __all__ = _trade_exports + [
     "AwesomeAPIClient",
     "AwesomeAPIError",
     "AwesomeAPISnapshotBuilder",
+    "MechanicalAnalysisCalculator",
+    "MechanicalMetrics",
     "EconomicCatalyst",
     "EconomicCatalystGenerator",
     "EconomicCatalystSyncJob",
@@ -35,6 +38,8 @@ globals().update(
         "AwesomeAPIClient": AwesomeAPIClient,
         "AwesomeAPIError": AwesomeAPIError,
         "AwesomeAPISnapshotBuilder": AwesomeAPISnapshotBuilder,
+        "MechanicalAnalysisCalculator": MechanicalAnalysisCalculator,
+        "MechanicalMetrics": MechanicalMetrics,
         "EconomicCatalyst": EconomicCatalyst,
         "EconomicCatalystGenerator": EconomicCatalystGenerator,
         "EconomicCatalystSyncJob": EconomicCatalystSyncJob,
