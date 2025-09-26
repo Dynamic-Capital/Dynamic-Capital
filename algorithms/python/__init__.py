@@ -64,6 +64,14 @@ from .project_faq_generator import (
     ProjectFAQGenerator,
     ProjectFAQPackage,
 )
+from .executive_playbooks import (
+    CEO_PLAYBOOK,
+    CFO_PLAYBOOK,
+    COO_PLAYBOOK,
+    EXECUTIVE_PLAYBOOKS,
+    build_executive_playbooks,
+    build_executive_sync_algorithm,
+)
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
@@ -112,6 +120,12 @@ __all__ = _trade_exports + [
     "FAQSource",
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
+    "CEO_PLAYBOOK",
+    "CFO_PLAYBOOK",
+    "COO_PLAYBOOK",
+    "EXECUTIVE_PLAYBOOKS",
+    "build_executive_playbooks",
+    "build_executive_sync_algorithm",
     "VipAutoSyncJob",
     "VipAutoSyncReport",
     "VipMembershipProvider",
@@ -173,5 +187,11 @@ globals().update(
         "FAQSource": FAQSource,
         "ProjectFAQGenerator": ProjectFAQGenerator,
         "ProjectFAQPackage": ProjectFAQPackage,
+        "CEO_PLAYBOOK": CEO_PLAYBOOK,
+        "CFO_PLAYBOOK": CFO_PLAYBOOK,
+        "COO_PLAYBOOK": COO_PLAYBOOK,
+        "EXECUTIVE_PLAYBOOKS": EXECUTIVE_PLAYBOOKS,
+        "build_executive_playbooks": build_executive_playbooks,
+        "build_executive_sync_algorithm": build_executive_sync_algorithm,
     }
 )
