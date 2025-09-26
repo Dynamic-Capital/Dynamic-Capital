@@ -71,3 +71,11 @@ export const HOME_NAV_SECTIONS: HomeNavSection[] = [
     href: `/#${HOME_NAV_SECTION_IDS.onboarding}`,
   },
 ];
+
+export const HOME_NAV_SECTION_MAP = HOME_NAV_SECTIONS.reduce(
+  (accumulator, section) => {
+    accumulator[section.id] = section;
+    return accumulator;
+  },
+  {} as Record<HomeNavSectionId, HomeNavSection>,
+);
