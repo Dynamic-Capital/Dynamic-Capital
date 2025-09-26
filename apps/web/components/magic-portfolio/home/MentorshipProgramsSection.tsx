@@ -19,9 +19,11 @@ type MentorshipProgram = {
   description: string;
   focus: string;
   features: string[];
-  planId: string;
+  planId?: string;
+  primaryCtaHref?: string;
   primaryCtaLabel: string;
-  secondaryCtaLabel: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaHref?: string;
 };
 
 const PROGRAMS: MentorshipProgram[] = [
@@ -58,6 +60,23 @@ const PROGRAMS: MentorshipProgram[] = [
     planId: "vip-lifetime",
     primaryCtaLabel: "Unlock with lifetime access",
     secondaryCtaLabel: "Talk with the mentorship lead",
+  },
+  {
+    id: "loss-recovery-programme",
+    name: "Loss Recovery Programme",
+    cadence: "Application-based",
+    description:
+      "A structured turnaround plan for disciplined traders facing sustained drawdowns.",
+    focus:
+      "Audit live trading history, reset risk, and rebuild execution habits before scaling back into full size.",
+    features: [
+      "Read-only MT4/MT5 or Myfxbook/FXBlue audit by senior strategists",
+      "Tailored recovery roadmap covering risk reset and position sizing",
+      "Session rules and playbook setups to restore disciplined execution",
+    ],
+    primaryCtaLabel: "Submit details for review",
+    primaryCtaHref: "#loss-recovery",
+    secondaryCtaLabel: "Book the recovery review",
   },
 ];
 
@@ -121,28 +140,50 @@ export function MentorshipProgramsSection() {
                 ))}
               </Column>
               <Row gap="12" s={{ direction: "column" }}>
-                <Button
-                  size="m"
-                  variant="secondary"
-                  data-border="rounded"
-                  prefixIcon="sparkles"
-                  href={`/checkout?plan=${encodeURIComponent(program.planId)}`}
-                >
-                  {program.primaryCtaLabel}
-                </Button>
-                {about.calendar.display && about.calendar.link
-                  ? (
+                {(() => {
+                  const primaryHref = program.primaryCtaHref ??
+                    (program.planId
+                      ? `/checkout?plan=${encodeURIComponent(program.planId)}`
+                      : undefined);
+
+                  return primaryHref
+                    ? (
+                      <Button
+                        size="m"
+                        variant="secondary"
+                        data-border="rounded"
+                        prefixIcon="sparkles"
+                        href={primaryHref}
+                      >
+                        {program.primaryCtaLabel}
+                      </Button>
+                    )
+                    : null;
+                })()}
+                {(() => {
+                  const secondaryHref = program.secondaryCtaHref ??
+                    about.calendar.link;
+
+                  if (
+                    !program.secondaryCtaLabel ||
+                    !about.calendar.display ||
+                    !secondaryHref
+                  ) {
+                    return null;
+                  }
+
+                  return (
                     <Button
                       size="m"
                       variant="secondary"
                       data-border="rounded"
                       prefixIcon="calendar"
-                      href={about.calendar.link}
+                      href={secondaryHref}
                     >
                       {program.secondaryCtaLabel}
                     </Button>
-                  )
-                  : null}
+                  );
+                })()}
               </Row>
             </Column>
             {index < PROGRAMS.length - 1

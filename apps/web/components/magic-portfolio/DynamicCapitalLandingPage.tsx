@@ -25,6 +25,7 @@ import { FxMarketSnapshotSection } from "@/components/magic-portfolio/home/FxMar
 import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
 import { IndexStrengthSection } from "@/components/magic-portfolio/home/IndexStrengthSection";
 import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
+import { LossRecoveryProgrammeSection } from "@/components/magic-portfolio/home/LossRecoveryProgrammeSection";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
 import { PerformanceInsightsSection } from "@/components/magic-portfolio/home/PerformanceInsightsSection";
@@ -233,6 +234,16 @@ const SERVICES = [
     ctaHref: "#mentorship-programs",
   },
   {
+    id: "loss-recovery",
+    icon: "shield" as const,
+    name: "Loss Recovery Programme",
+    tagline: "Risk-first turnaround plans for disciplined traders.",
+    description:
+      "Submit read-only performance history for an audit, then partner with senior strategists to reset risk and rebuild execution.",
+    ctaLabel: "Explore the programme",
+    ctaHref: "#loss-recovery",
+  },
+  {
     id: "capital-bridge",
     icon: "rocket" as const,
     name: "Capital Bridge",
@@ -348,27 +359,30 @@ export function DynamicCapitalLandingPage() {
         <MentorshipProgramsSection />
       </Section>
       <Section revealDelay={1.2}>
-        <VipPlansPricingSection />
+        <LossRecoveryProgrammeSection />
       </Section>
       <Section revealDelay={1.28}>
-        <VipPackagesSection />
+        <VipPlansPricingSection />
       </Section>
       <Section revealDelay={1.36}>
-        <MentorAndTrustSection />
+        <VipPackagesSection />
       </Section>
       <Section revealDelay={1.44}>
-        <PoolTradingSection />
+        <MentorAndTrustSection />
       </Section>
       <Section revealDelay={1.52}>
-        <ComplianceCertificates />
+        <PoolTradingSection />
       </Section>
       <Section revealDelay={1.6}>
-        <FundingReadinessSection />
+        <ComplianceCertificates />
       </Section>
       <Section revealDelay={1.68}>
-        <CheckoutCallout />
+        <FundingReadinessSection />
       </Section>
       <Section revealDelay={1.76}>
+        <CheckoutCallout />
+      </Section>
+      <Section revealDelay={1.84}>
         <AboutShowcase />
       </Section>
       <Section reveal={false}>
