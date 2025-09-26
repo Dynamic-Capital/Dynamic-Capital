@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import List
+from typing import Any, Iterable, List, Mapping, Protocol, Sequence
 
 from .desk_plan_formatter import render_desk_plan
 from .trade_logic import (
@@ -35,6 +36,60 @@ class Scenario:
     signal: TradeSignal
     snapshot: MarketSnapshot
     open_positions: List[ActivePosition]
+
+
+class RolloutNotFoundError(RuntimeError):
+    """Raised when a rollout identifier cannot be resolved to scenario data."""
+
+
+class RolloutDataSource(Protocol):
+    """Abstract source of rollout metadata."""
+
+    def load_rollout(self, rollout: str) -> Sequence[Mapping[str, Any]] | None:
+        """Return serialized scenario metadata for *rollout* or ``None`` when missing."""
+
+
+class JsonRolloutDataSource:
+    """Read rollout scenarios from timestamped JSON artifacts."""
+
+    def __init__(self, base_path: Path | None = None) -> None:
+        root = Path(__file__).resolve().parents[2]
+        self._base_path = base_path or root / "apps" / "web" / "data" / "rollouts"
+
+    def load_rollout(self, rollout: str) -> Sequence[Mapping[str, Any]] | None:
+        path = self._resolve_path(rollout)
+        if not path or not path.is_file():
+            raise RolloutNotFoundError(self._format_missing_message(rollout))
+        try:
+            data = json.loads(path.read_text())
+        except json.JSONDecodeError as exc:  # pragma: no cover - malformed input
+            raise RuntimeError(f"Unable to parse rollout data at {path}: {exc}") from exc
+        if not isinstance(data, Iterable):
+            raise RuntimeError(f"Rollout payload at {path} must be an iterable of scenarios")
+        return list(data)
+
+    def available_rollouts(self) -> list[str]:
+        if not self._base_path.exists():
+            return []
+        return sorted(path.stem for path in self._base_path.glob("*.json"))
+
+    def _resolve_path(self, rollout: str) -> Path | None:
+        candidate = Path(rollout)
+        if candidate.is_absolute():
+            return candidate
+        if candidate.suffix:
+            return (self._base_path / candidate).resolve()
+        return (self._base_path / f"{rollout}.json").resolve()
+
+    def _format_missing_message(self, rollout: str) -> str:
+        options = self.available_rollouts()
+        if options:
+            formatted = ", ".join(options)
+            return f"No rollout data found for '{rollout}'. Available rollouts: {formatted}."
+        return (
+            f"No rollout data found for '{rollout}'."
+            " Provide a rollout slug or date that matches a JSON artifact."
+        )
 
 
 def _run_scenario(scenario: Scenario) -> tuple[TradeDecision, MarketSnapshot]:
@@ -98,280 +153,188 @@ def _scenario_data(decision: TradeDecision, snapshot: MarketSnapshot) -> dict:
     }
 
 
-def build_scenarios() -> List[Scenario]:
-    tz = timezone.utc
+def _parse_timestamp(value: Any, *, field: str) -> datetime:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    if not isinstance(value, str):
+        raise ValueError(f"Expected ISO formatted timestamp for {field!r}, got {value!r}")
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError as exc:  # pragma: no cover - defensive programming
+        raise ValueError(f"Invalid timestamp '{value}' for field {field!r}") from exc
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
+def _parse_optional_timestamp(value: Any, *, field: str) -> datetime | None:
+    if value is None:
+        return None
+    return _parse_timestamp(value, field=field)
+
+
+def _build_config(payload: Mapping[str, Any]) -> TradeConfig:
+    if not isinstance(payload, Mapping):
+        raise ValueError("Trade configuration must be a mapping")
+    return TradeConfig(**dict(payload))
+
+
+def _build_signal(payload: Mapping[str, Any]) -> TradeSignal:
+    if not isinstance(payload, Mapping):
+        raise ValueError("Trade signal must be a mapping")
+    return TradeSignal(**dict(payload))
+
+
+def _build_snapshot(payload: Mapping[str, Any]) -> MarketSnapshot:
+    if not isinstance(payload, Mapping):
+        raise ValueError("Market snapshot must be a mapping")
+    payload = dict(payload)
+    payload["timestamp"] = _parse_timestamp(payload.get("timestamp"), field="snapshot.timestamp")
+    return MarketSnapshot(**payload)
+
+
+def _build_positions(payload: Iterable[Mapping[str, Any]]) -> List[ActivePosition]:
+    positions: List[ActivePosition] = []
+    for index, entry in enumerate(payload):
+        if not isinstance(entry, Mapping):
+            raise ValueError(f"Open position #{index} must be a mapping")
+        data = dict(entry)
+        opened_at = _parse_optional_timestamp(data.get("opened_at"), field=f"open_positions[{index}].opened_at")
+        if opened_at is not None:
+            data["opened_at"] = opened_at
+        else:
+            data.pop("opened_at", None)
+        positions.append(ActivePosition(**data))
+    return positions
+
+
+def build_scenarios(
+    rollout: str,
+    *,
+    data_source: RolloutDataSource | None = None,
+) -> List[Scenario]:
+    source = data_source or JsonRolloutDataSource()
+    metadata = source.load_rollout(rollout)
+    if not metadata:
+        raise RolloutNotFoundError(f"No scenarios available for rollout '{rollout}'.")
 
     scenarios: List[Scenario] = []
+    for index, raw in enumerate(metadata):
+        if not isinstance(raw, Mapping):
+            raise ValueError(f"Scenario #{index} must be a mapping")
+        try:
+            scenario_id = raw["id"]
+            config = _build_config(raw["config"])
+            signal = _build_signal(raw["signal"])
+            snapshot = _build_snapshot(raw["snapshot"])
+            open_positions_payload = raw.get("open_positions", [])
+        except KeyError as exc:
+            missing = exc.args[0]
+            raise ValueError(f"Scenario #{index} is missing required key '{missing}'") from exc
 
-    scenarios.append(
-        Scenario(
-            id="fomc",
-            config=TradeConfig(
-                neighbors=3,
-                label_lookahead=2,
-                min_confidence=0.0,
-                use_adr=False,
-                manual_stop_loss_pips=30.0,
-                manual_take_profit_pips=60.0,
-                correlation_threshold=0.55,
-                correlation_weight=0.5,
-                max_correlation_adjustment=0.4,
-                seasonal_bias_weight=0.45,
-                max_seasonal_adjustment=0.25,
-                smc_level_threshold_pips=18.0,
-                smc_round_number_interval_pips=25.0,
-            ),
-            signal=TradeSignal(direction=-1, confidence=0.78, votes=9, neighbors_considered=12),
-            snapshot=MarketSnapshot(
-                symbol="US500",
-                timestamp=datetime(2025, 3, 19, 18, 0, tzinfo=tz),
-                open=5132.0,
-                high=5158.5,
-                low=5104.5,
-                close=5120.5,
-                rsi_fast=68.0,
-                adx_fast=24.0,
-                rsi_slow=60.5,
-                adx_slow=20.0,
-                pip_size=0.25,
-                pip_value=5.0,
-                daily_high=5158.5,
-                daily_low=5096.0,
-                previous_daily_high=5144.0,
-                previous_daily_low=5078.5,
-                weekly_high=5188.0,
-                weekly_low=5020.0,
-                previous_week_high=5206.0,
-                previous_week_low=5008.0,
-                correlation_scores={"US100": 0.82, "DXY": -0.67},
-                seasonal_bias=-0.38,
-                seasonal_confidence=0.6,
-            ),
-            open_positions=[
-                ActivePosition(
-                    symbol="US100",
-                    direction=-1,
-                    size=0.6,
-                    entry_price=17980.0,
-                    opened_at=datetime(2025, 3, 18, 14, 0, tzinfo=tz),
-                ),
-                ActivePosition(
-                    symbol="DXY",
-                    direction=1,
-                    size=0.3,
-                    entry_price=104.2,
-                    opened_at=datetime(2025, 3, 18, 10, 0, tzinfo=tz),
-                ),
-            ],
-        )
-    )
+        if not isinstance(open_positions_payload, Iterable):
+            raise ValueError("open_positions must be an iterable")
+        open_positions = _build_positions(open_positions_payload)
 
-    scenarios.append(
-        Scenario(
-            id="uk-cpi",
-            config=TradeConfig(
-                neighbors=3,
-                label_lookahead=2,
-                min_confidence=0.0,
-                use_adr=False,
-                manual_stop_loss_pips=28.0,
-                manual_take_profit_pips=56.0,
-                correlation_threshold=0.55,
-                correlation_weight=0.5,
-                max_correlation_adjustment=0.35,
-                seasonal_bias_weight=0.4,
-                max_seasonal_adjustment=0.25,
-                smc_level_threshold_pips=14.0,
-                smc_round_number_interval_pips=50.0,
-            ),
-            signal=TradeSignal(direction=-1, confidence=0.69, votes=7, neighbors_considered=10),
-            snapshot=MarketSnapshot(
-                symbol="GBPUSD",
-                timestamp=datetime(2025, 3, 19, 7, 0, tzinfo=tz),
-                open=1.2780,
-                high=1.2795,
-                low=1.2710,
-                close=1.2732,
-                rsi_fast=43.0,
-                adx_fast=23.0,
-                rsi_slow=46.0,
-                adx_slow=18.5,
-                pip_size=0.0001,
-                pip_value=10.0,
-                daily_high=1.2795,
-                daily_low=1.2705,
-                previous_daily_high=1.2830,
-                previous_daily_low=1.2718,
-                weekly_high=1.2890,
-                weekly_low=1.2620,
-                previous_week_high=1.2935,
-                previous_week_low=1.2585,
-                correlation_scores={"EURUSD": 0.66, "DXY": -0.63},
-                seasonal_bias=-0.32,
-                seasonal_confidence=0.62,
-            ),
-            open_positions=[
-                ActivePosition(
-                    symbol="EURUSD",
-                    direction=1,
-                    size=0.4,
-                    entry_price=1.0960,
-                    opened_at=datetime(2025, 3, 18, 11, 0, tzinfo=tz),
-                ),
-                ActivePosition(
-                    symbol="DXY",
-                    direction=1,
-                    size=0.25,
-                    entry_price=104.15,
-                    opened_at=datetime(2025, 3, 18, 8, 0, tzinfo=tz),
-                ),
-            ],
+        scenarios.append(
+            Scenario(
+                id=str(scenario_id),
+                config=config,
+                signal=signal,
+                snapshot=snapshot,
+                open_positions=open_positions,
+            )
         )
-    )
-
-    scenarios.append(
-        Scenario(
-            id="ecb-speeches",
-            config=TradeConfig(
-                neighbors=3,
-                label_lookahead=2,
-                min_confidence=0.0,
-                use_adr=False,
-                manual_stop_loss_pips=26.0,
-                manual_take_profit_pips=52.0,
-                correlation_threshold=0.5,
-                correlation_weight=0.45,
-                max_correlation_adjustment=0.3,
-                seasonal_bias_weight=0.35,
-                max_seasonal_adjustment=0.2,
-                smc_level_threshold_pips=12.0,
-                smc_round_number_interval_pips=40.0,
-            ),
-            signal=TradeSignal(direction=1, confidence=0.65, votes=6, neighbors_considered=9),
-            snapshot=MarketSnapshot(
-                symbol="EURUSD",
-                timestamp=datetime(2025, 3, 20, 9, 30, tzinfo=tz),
-                open=1.0915,
-                high=1.0948,
-                low=1.0892,
-                close=1.0936,
-                rsi_fast=57.0,
-                adx_fast=19.5,
-                rsi_slow=54.0,
-                adx_slow=17.0,
-                pip_size=0.0001,
-                pip_value=10.0,
-                daily_high=1.0948,
-                daily_low=1.0888,
-                previous_daily_high=1.0925,
-                previous_daily_low=1.0855,
-                weekly_high=1.0975,
-                weekly_low=1.0790,
-                previous_week_high=1.1020,
-                previous_week_low=1.0765,
-                correlation_scores={"EURJPY": 0.61, "DXY": -0.58},
-                seasonal_bias=0.28,
-                seasonal_confidence=0.58,
-            ),
-            open_positions=[
-                ActivePosition(
-                    symbol="EURJPY",
-                    direction=1,
-                    size=0.35,
-                    entry_price=163.8,
-                    opened_at=datetime(2025, 3, 19, 6, 0, tzinfo=tz),
-                ),
-                ActivePosition(
-                    symbol="DXY",
-                    direction=-1,
-                    size=0.2,
-                    entry_price=104.05,
-                    opened_at=datetime(2025, 3, 19, 4, 0, tzinfo=tz),
-                ),
-            ],
-        )
-    )
-
-    scenarios.append(
-        Scenario(
-            id="us-pmi",
-            config=TradeConfig(
-                neighbors=3,
-                label_lookahead=2,
-                min_confidence=0.0,
-                use_adr=False,
-                manual_stop_loss_pips=24.0,
-                manual_take_profit_pips=48.0,
-                correlation_threshold=0.5,
-                correlation_weight=0.45,
-                max_correlation_adjustment=0.35,
-                seasonal_bias_weight=0.4,
-                max_seasonal_adjustment=0.25,
-                smc_level_threshold_pips=15.0,
-                smc_round_number_interval_pips=20.0,
-            ),
-            signal=TradeSignal(direction=1, confidence=0.71, votes=8, neighbors_considered=11),
-            snapshot=MarketSnapshot(
-                symbol="XAUUSD",
-                timestamp=datetime(2025, 3, 21, 13, 45, tzinfo=tz),
-                open=2362.0,
-                high=2374.5,
-                low=2355.0,
-                close=2371.2,
-                rsi_fast=62.0,
-                adx_fast=25.0,
-                rsi_slow=58.0,
-                adx_slow=21.0,
-                pip_size=0.1,
-                pip_value=1.0,
-                daily_high=2374.5,
-                daily_low=2348.0,
-                previous_daily_high=2366.0,
-                previous_daily_low=2332.0,
-                weekly_high=2382.0,
-                weekly_low=2298.0,
-                previous_week_high=2394.0,
-                previous_week_low=2286.0,
-                correlation_scores={"WTICOUSD": 0.58, "DXY": -0.6},
-                seasonal_bias=0.34,
-                seasonal_confidence=0.64,
-            ),
-            open_positions=[
-                ActivePosition(
-                    symbol="WTICOUSD",
-                    direction=1,
-                    size=0.8,
-                    entry_price=78.4,
-                    opened_at=datetime(2025, 3, 20, 15, 0, tzinfo=tz),
-                ),
-                ActivePosition(
-                    symbol="USDJPY",
-                    direction=-1,
-                    size=0.5,
-                    entry_price=148.2,
-                    opened_at=datetime(2025, 3, 20, 9, 0, tzinfo=tz),
-                ),
-            ],
-        )
-    )
 
     return scenarios
 
 
-def generate_snapshot() -> dict:
+def generate_snapshot(
+    rollout: str,
+    *,
+    data_source: RolloutDataSource | None = None,
+) -> dict:
     snapshot: dict[str, dict] = {}
-    for scenario in build_scenarios():
+    for scenario in build_scenarios(rollout, data_source=data_source):
         decision, market_snapshot = _run_scenario(scenario)
         snapshot[scenario.id] = _scenario_data(decision, market_snapshot)
     return snapshot
 
 
-def main() -> None:
-    data = generate_snapshot()
+def _default_output_path() -> Path:
     root = Path(__file__).resolve().parents[2]
-    target = root / "apps" / "web" / "data" / "trading-desk-plan.json"
+    return root / "apps" / "web" / "data" / "trading-desk-plan.json"
+
+
+def materialize_desk_plan(
+    rollout: str,
+    *,
+    data_source: RolloutDataSource | None = None,
+    output_path: Path | None = None,
+) -> Path:
+    data = generate_snapshot(rollout, data_source=data_source)
+    target = output_path or _default_output_path()
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(data, indent=2, sort_keys=True))
+    return target
+
+
+def _parse_rollout_date(value: str) -> date:
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            f"Invalid rollout date '{value}'. Expected ISO 8601 (YYYY-MM-DD)."
+        ) from exc
+    return parsed.date()
+
+
+def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--rollout",
+        help="Rollout slug to materialize (for example 'fomc-2025-03-19').",
+    )
+    group.add_argument(
+        "--rollout-date",
+        type=_parse_rollout_date,
+        help="Rollout date to materialize (ISO format, e.g. 2025-03-21).",
+    )
+    parser.add_argument(
+        "--data-root",
+        type=Path,
+        help="Override the rollout JSON directory (defaults to apps/web/data/rollouts).",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Write the trading desk plan to this file instead of the default location.",
+    )
+    return parser.parse_args(argv)
+
+
+def _resolve_rollout_identifier(args: argparse.Namespace) -> str:
+    if args.rollout:
+        return args.rollout
+    assert args.rollout_date is not None
+    return args.rollout_date.isoformat()
+
+
+def main(argv: Sequence[str] | None = None) -> None:
+    args = _parse_args(argv)
+    rollout_identifier = _resolve_rollout_identifier(args)
+    data_source: RolloutDataSource | None = None
+    if args.data_root is not None:
+        data_source = JsonRolloutDataSource(base_path=args.data_root)
+    try:
+        target = materialize_desk_plan(
+            rollout_identifier,
+            data_source=data_source,
+            output_path=args.output,
+        )
+    except RolloutNotFoundError as exc:
+        raise SystemExit(str(exc)) from exc
     print(f"Wrote {target}")
 
 
