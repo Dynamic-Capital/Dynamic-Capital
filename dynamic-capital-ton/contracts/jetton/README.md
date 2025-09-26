@@ -30,3 +30,10 @@ Refer to `config.yaml` for the default deployment parameters. The pool
 allocator (`../pool_allocator.tact`) expects the timelocked router and treasury
 addresses exposed by the master contract, so deploy it alongside the jetton and
 reuse the same multisig administrator when configuring the vault.
+
+## Metadata
+
+The off-chain jetton metadata lives in `metadata.json`. It surfaces the token
+name, symbol, decimals (9), and canonical project URL so wallets and explorers
+can render DCT consistently. Publish the file to IPFS or your preferred static
+host and point the master contract's metadata URI to the hosted JSON artifact.

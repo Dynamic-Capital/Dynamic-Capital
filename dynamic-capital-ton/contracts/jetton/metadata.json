@@ -1,0 +1,9 @@
+{
+  "name": "Dynamic Capital Token",
+  "symbol": "DCT",
+  "description": "Dynamic Capital Token (DCT) powers the Dynamic Capital trading desk ecosystem with governance-aligned liquidity, automated buyback-and-burn flows, and staking multipliers coordinated through the Dynamic Capital Mini App.",
+  "decimals": 9,
+  "external_url": "https://dynamic.capital",
+  "version": "1.0",
+  "standard": "ton.jetton.v1"
+}
