@@ -73,5 +73,5 @@ Prepare the following collateral before filling out the Tonstarter intake form:
 - [ ] Complete sale/claim contract audits or adopt Tonstarter's vesting tooling.
 - [ ] Lock DEX preferences (STON.fi / DeDust) and document liquidity contributions.
 - [ ] Draft the "What we want" request (raise amount, pricing, support needs).
-- [ ] Submit the Tonstarter builder form with collateral and contact details.
+- [x] Submit the Tonstarter builder form with collateral and contact details (confirmation received from Tonstarter).
 - [ ] Schedule follow-up diligence sessions and maintain transparency updates post-TGE.
