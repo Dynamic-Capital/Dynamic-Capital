@@ -2,26 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Home, PieChart, User } from "lucide-react";
 import { haptic } from "@/lib/telegram";
 import { track } from "@/lib/metrics";
-
-const tabs = [
-  { href: "/miniapp/home", label: "Home", Icon: Home, event: "nav_home" },
-  { href: "/miniapp/fund", label: "Fund", Icon: PieChart, event: "nav_fund" },
-  {
-    href: "/miniapp/signals",
-    label: "Signals",
-    Icon: Activity,
-    event: "nav_signals",
-  },
-  {
-    href: "/miniapp/account",
-    label: "Account",
-    Icon: User,
-    event: "nav_account",
-  },
-] as const;
+import { MINIAPP_TABS } from "./navigation";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -29,7 +12,7 @@ export function BottomNav() {
   return (
     <nav className="bottom-nav" role="navigation" aria-label="Mini app primary">
       <div className="bottom-nav-inner">
-        {tabs.map(({ href, label, Icon, event }) => {
+        {MINIAPP_TABS.map(({ href, label, Icon, analyticsEvent }) => {
           const active = pathname?.startsWith(href);
           return (
             <Link
@@ -39,7 +22,7 @@ export function BottomNav() {
               aria-current={active ? "page" : undefined}
               onClick={() => {
                 haptic(active ? "light" : "medium");
-                void track(event);
+                void track(analyticsEvent);
               }}
             >
               <span className="bottom-btn-highlight" aria-hidden />

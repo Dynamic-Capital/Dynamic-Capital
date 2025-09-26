@@ -36,6 +36,7 @@ import { VipPlansPricingSection } from "@/components/magic-portfolio/home/VipPla
 import { cn } from "@/utils";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 import styles from "./DynamicCapitalLandingPage.module.scss";
+import { HOME_NAV_SECTION_IDS } from "@/components/landing/home-navigation-config";
 
 const QUICK_METRICS = [
   {
@@ -322,7 +323,13 @@ export function DynamicCapitalLandingPage() {
       <Section variant="wide" reveal={false}>
         <HeroExperience />
       </Section>
-      <Section revealDelay={0.24}>
+      <Section
+        revealDelay={0.24}
+        anchor={{
+          id: HOME_NAV_SECTION_IDS.overview,
+          ariaLabel: "Platform overview",
+        }}
+      >
         <ValuePropositionSection />
       </Section>
       <Section revealDelay={0.32}>
@@ -337,7 +344,14 @@ export function DynamicCapitalLandingPage() {
       <Section revealDelay={0.56}>
         <AutomationWorkflowSection />
       </Section>
-      <Section variant="wide" revealDelay={0.64}>
+      <Section
+        variant="wide"
+        revealDelay={0.64}
+        anchor={{
+          id: HOME_NAV_SECTION_IDS.market,
+          ariaLabel: "Market intelligence",
+        }}
+      >
         <MarketIntelligenceSection />
       </Section>
       <Section variant="wide" revealDelay={0.72}>
@@ -355,13 +369,25 @@ export function DynamicCapitalLandingPage() {
       <Section revealDelay={1.04}>
         <FundamentalAnalysisSection />
       </Section>
-      <Section revealDelay={1.12}>
+      <Section
+        revealDelay={1.12}
+        anchor={{
+          id: HOME_NAV_SECTION_IDS.mentorship,
+          ariaLabel: "Mentorship programmes",
+        }}
+      >
         <MentorshipProgramsSection />
       </Section>
       <Section revealDelay={1.2}>
         <LossRecoveryProgrammeSection />
       </Section>
-      <Section revealDelay={1.28}>
+      <Section
+        revealDelay={1.28}
+        anchor={{
+          id: HOME_NAV_SECTION_IDS.plans,
+          ariaLabel: "Membership plans",
+        }}
+      >
         <VipPlansPricingSection />
       </Section>
       <Section revealDelay={1.36}>
@@ -373,13 +399,25 @@ export function DynamicCapitalLandingPage() {
       <Section revealDelay={1.52}>
         <PoolTradingSection />
       </Section>
-      <Section revealDelay={1.6}>
+      <Section
+        revealDelay={1.6}
+        anchor={{
+          id: HOME_NAV_SECTION_IDS.trust,
+          ariaLabel: "Trust and compliance",
+        }}
+      >
         <ComplianceCertificates />
       </Section>
       <Section revealDelay={1.68}>
         <FundingReadinessSection />
       </Section>
-      <Section revealDelay={1.76}>
+      <Section
+        revealDelay={1.76}
+        anchor={{
+          id: HOME_NAV_SECTION_IDS.onboarding,
+          ariaLabel: "Get started with Dynamic Capital",
+        }}
+      >
         <CheckoutCallout />
       </Section>
       <Section revealDelay={1.84}>
@@ -394,12 +432,18 @@ export function DynamicCapitalLandingPage() {
 
 type SectionVariant = "compact" | "wide";
 
+interface SectionAnchor {
+  id: string;
+  ariaLabel?: string;
+}
+
 interface SectionProps {
   children: ReactNode;
   className?: string;
   reveal?: boolean;
   revealDelay?: number;
   variant?: SectionVariant;
+  anchor?: SectionAnchor;
 }
 
 function Section({
@@ -408,14 +452,21 @@ function Section({
   reveal = true,
   revealDelay,
   variant = "compact",
+  anchor,
 }: SectionProps) {
   const variantClassName = variant === "wide"
     ? styles.sectionWide
     : styles.sectionCompact;
+  const SectionComponent = (anchor ? "section" : "div") as "section" | "div";
   const section = (
-    <div className={cn(styles.section, variantClassName, className)}>
+    <SectionComponent
+      id={anchor?.id}
+      aria-label={anchor?.ariaLabel}
+      data-section-anchor={anchor?.id}
+      className={cn(styles.section, variantClassName, className)}
+    >
       {children}
-    </div>
+    </SectionComponent>
   );
 
   if (!reveal) {
