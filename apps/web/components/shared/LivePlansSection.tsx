@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,26 +40,15 @@ import {
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { HorizontalSnapScroll } from "@/components/ui/horizontal-snap-scroll";
 import { useToast } from "@/hooks/useToast";
-import { buildFunctionUrl, callEdgeFunction } from "@/config/supabase";
+import { buildFunctionUrl } from "@/config/supabase";
 import PromoCodeInput from "@/components/billing/PromoCodeInput";
 import { formatPrice } from "@/utils";
 import { ActivePromosSection } from "@/components/shared/ActivePromosSection";
+import { useSupabase } from "@/context/SupabaseProvider";
+import { fetchSubscriptionPlans } from "@/services/plans";
+import type { Plan as SubscriptionPlan } from "@/types/plan";
 
-interface Plan {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  duration_months: number;
-  is_lifetime: boolean;
-  features: string[];
-  dct_amount?: number;
-  ton_amount?: number | null;
-  pricing?: {
-    dctAmount?: number;
-    tonAmount?: number | null;
-  };
-}
+type Plan = SubscriptionPlan;
 
 interface LivePlansSectionProps {
   showPromo?: boolean;
@@ -79,35 +68,104 @@ export const LivePlansSection = ({
   showHeader = true,
 }: LivePlansSectionProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { supabase } = useSupabase();
 
-  const fetchPlans = useCallback(async () => {
+  const resolveLatestTimestamp = useCallback((entries: Plan[]): Date | null => {
+    let latest: Date | null = null;
+    for (const entry of entries) {
+      const candidates = [
+        entry.last_priced_at,
+        entry.pricing?.lastPricedAt,
+      ].filter((value): value is string =>
+        Boolean(value && value.trim().length > 0)
+      );
+
+      for (const candidate of candidates) {
+        const parsed = new Date(candidate);
+        if (Number.isNaN(parsed.getTime())) {
+          continue;
+        }
+
+        if (!latest || parsed > latest) {
+          latest = parsed;
+        }
+      }
+    }
+
+    return latest;
+  }, []);
+
+  const fetchPlans = useCallback(async (options: { silent?: boolean } = {}) => {
+    const { silent = false } = options;
+
+    setIsSyncing(true);
     try {
-      const { data, error } = await callEdgeFunction("PLANS");
+      const fetchedPlans = await fetchSubscriptionPlans({ force: true });
+      setPlans(fetchedPlans);
+      setSyncError(null);
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if ((data as any)?.plans) {
-        setPlans((data as any).plans);
-      }
+      const latestTimestamp = resolveLatestTimestamp(fetchedPlans);
+      setLastUpdated(latestTimestamp ?? new Date());
     } catch (error) {
       console.error("Failed to fetch plans:", error);
+      const message = error instanceof Error
+        ? error.message
+        : "Failed to load subscription plans";
+      setSyncError(message);
       toast({
         title: "Error",
-        description: "Failed to load subscription plans",
+        description: message,
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsSyncing(false);
+      if (!silent) {
+        setInitialLoading(false);
+      }
     }
-  }, [toast]);
+  }, [resolveLatestTimestamp, toast]);
 
   useEffect(() => {
     fetchPlans();
   }, [fetchPlans]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("live-subscription-plans")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "subscription_plans" },
+        () => {
+          fetchPlans({ silent: true });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchPlans, supabase]);
+
+  const lastUpdatedLabel = useMemo(() => {
+    if (!lastUpdated) {
+      return initialLoading ? "Preparing live plans…" : "Awaiting live updates";
+    }
+
+    const formatter = new Intl.DateTimeFormat(undefined, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return `Synced ${formatter.format(lastUpdated)}`;
+  }, [initialLoading, lastUpdated]);
 
   const handleSelectPlan = (planId: string) => {
     if (onPlanSelect) {
@@ -142,7 +200,7 @@ export const LivePlansSection = ({
   const isVipPlan = (name: string) =>
     name.toLowerCase().includes("vip") || name.toLowerCase().includes("pro");
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <Card>
         <CardContent className="space-y-4 py-8">
@@ -174,6 +232,24 @@ export const LivePlansSection = ({
                 to our VIP community.
               </p>
             )}
+
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`inline-flex h-2 w-2 rounded-full ${
+                    isSyncing ? "animate-pulse bg-primary" : "bg-emerald-500"
+                  }`}
+                />
+                <span>{lastUpdatedLabel}</span>
+              </div>
+              {syncError
+                ? <span className="text-destructive">{syncError}</span>
+                : (
+                  <span className="text-muted-foreground">
+                    {isSyncing ? "Refreshing…" : "Live"}
+                  </span>
+                )}
+            </div>
 
             {showPromo && (
               <div className="mb-6 space-y-6">
