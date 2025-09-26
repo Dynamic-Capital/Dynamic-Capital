@@ -22,6 +22,11 @@ from .loss_recovery_programme import (
     RecoveryPlan,
     RecoveryStep,
 )
+from .market_advisory import (
+    MarketAdvisoryEngine,
+    MarketAdvisoryReport,
+    MarketAdvisoryRequest,
+)
 from .dct_token_sync import (
     DCTAllocationEngine,
     DCTAllocationResult,
@@ -74,6 +79,9 @@ __all__ = _trade_exports + [
     "LossRecoveryProgramme",
     "RecoveryPlan",
     "RecoveryStep",
+    "MarketAdvisoryEngine",
+    "MarketAdvisoryReport",
+    "MarketAdvisoryRequest",
     "DCTAllocationEngine",
     "DCTAllocationResult",
     "DCTAllocationRule",
@@ -121,6 +129,9 @@ globals().update(
         "LossRecoveryProgramme": LossRecoveryProgramme,
         "RecoveryPlan": RecoveryPlan,
         "RecoveryStep": RecoveryStep,
+        "MarketAdvisoryEngine": MarketAdvisoryEngine,
+        "MarketAdvisoryReport": MarketAdvisoryReport,
+        "MarketAdvisoryRequest": MarketAdvisoryRequest,
         "DCTAllocationEngine": DCTAllocationEngine,
         "DCTAllocationResult": DCTAllocationResult,
         "DCTAllocationRule": DCTAllocationRule,
