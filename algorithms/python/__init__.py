@@ -8,6 +8,12 @@ from .awesome_api import (
     AwesomeAPIError,
     AwesomeAPISnapshotBuilder,
 )
+from .awesome_sync import (
+    AwesomeAlgoSyncEngine,
+    AwesomeAlgoSyncReport,
+    AwesomeAlgoSyncRequest,
+    AwesomeLLMInsights,
+)
 from .back_to_breakeven import (
     AccountSnapshot,
     BackToBreakevenCalculator,
@@ -116,6 +122,10 @@ __all__ = _trade_exports + [
     "AwesomeAPIClient",
     "AwesomeAPIError",
     "AwesomeAPISnapshotBuilder",
+    "AwesomeAlgoSyncEngine",
+    "AwesomeAlgoSyncReport",
+    "AwesomeAlgoSyncRequest",
+    "AwesomeLLMInsights",
     "AccountSnapshot",
     "BackToBreakevenCalculator",
     "BreakevenPhase",
@@ -204,6 +214,10 @@ globals().update(
         "AwesomeAPIClient": AwesomeAPIClient,
         "AwesomeAPIError": AwesomeAPIError,
         "AwesomeAPISnapshotBuilder": AwesomeAPISnapshotBuilder,
+        "AwesomeAlgoSyncEngine": AwesomeAlgoSyncEngine,
+        "AwesomeAlgoSyncReport": AwesomeAlgoSyncReport,
+        "AwesomeAlgoSyncRequest": AwesomeAlgoSyncRequest,
+        "AwesomeLLMInsights": AwesomeLLMInsights,
         "AccountSnapshot": AccountSnapshot,
         "BackToBreakevenCalculator": BackToBreakevenCalculator,
         "BreakevenPhase": BreakevenPhase,
