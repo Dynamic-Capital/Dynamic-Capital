@@ -700,6 +700,95 @@ def test_trade_logic_applies_grok_advice():
     assert "rationale" in decision.context["advisor"]
 
 
+def test_trade_logic_recomputes_context_after_advisor_override():
+    config = TradeConfig(
+        neighbors=1,
+        label_lookahead=0,
+        min_confidence=0.0,
+        use_adr=False,
+        use_smc_context=False,
+        correlation_threshold=0.6,
+        correlation_weight=0.5,
+        max_correlation_adjustment=0.4,
+    )
+    logic = TradeLogic(config=config)
+
+    class StaticStrategy:
+        def __init__(self, signal: TradeSignal) -> None:
+            self._signal = signal
+
+        def update(self, snapshot: MarketSnapshot) -> TradeSignal:
+            return self._signal
+
+    base_signal = TradeSignal(direction=1, confidence=0.6, votes=5, neighbors_considered=8)
+    logic.strategy = StaticStrategy(base_signal)
+
+    opened_at = datetime.now(timezone.utc) - timedelta(hours=1)
+    open_positions = [
+        ActivePosition(
+            symbol="GBPUSD",
+            direction=1,
+            size=0.5,
+            entry_price=1.2000,
+            stop_loss=1.1900,
+            take_profit=1.2200,
+            opened_at=opened_at,
+        )
+    ]
+
+    snapshot = MarketSnapshot(
+        symbol="EURUSD",
+        timestamp=datetime.now(timezone.utc),
+        close=1.1050,
+        rsi_fast=55.0,
+        adx_fast=20.0,
+        rsi_slow=52.0,
+        adx_slow=18.0,
+        pip_size=0.0001,
+        pip_value=10.0,
+        correlation_scores={"GBPUSD": 0.9},
+    )
+
+    class FlippingAdvisor:
+        def __init__(self) -> None:
+            self.calls = 0
+            self.initial_context = None
+
+        def review(self, *, snapshot, signal, context, open_positions):
+            self.calls += 1
+            assert context["correlation"]["penalised"], "expected initial correlation penalty"
+            self.initial_context = context
+            return AdvisorFeedback(
+                adjusted_signal=TradeSignal(
+                    direction=-signal.direction,
+                    confidence=signal.confidence,
+                    votes=signal.votes,
+                    neighbors_considered=signal.neighbors_considered,
+                ),
+                metadata={"source": "flip"},
+            )
+
+    advisor = FlippingAdvisor()
+
+    decisions = logic.on_bar(snapshot, open_positions=open_positions, advisor=advisor)
+    decision = next(dec for dec in decisions if dec.action == "open")
+
+    assert advisor.calls == 1
+    assert decision.signal is not None
+    assert decision.signal.direction == -1
+    assert advisor.initial_context is not None
+    assert decision.signal.confidence > advisor.initial_context["final_confidence"]
+
+    context = decision.context
+    assert not context["correlation"]["penalised"], "penalty should be cleared after flip"
+    assert any(entry["symbol"] == "GBPUSD" for entry in context["correlation"]["boosted"])
+    assert context["original_confidence"] == pytest.approx(
+        advisor.initial_context["final_confidence"], rel=1e-6
+    )
+    assert context["final_confidence"] == pytest.approx(decision.signal.confidence, rel=1e-6)
+    assert context["advisor"]["source"] == "flip"
+
+
 def test_trade_logic_manages_break_even_and_trailing_stops():
     config = TradeConfig(
         neighbors=1,

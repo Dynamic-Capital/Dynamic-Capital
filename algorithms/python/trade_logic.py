@@ -1536,7 +1536,11 @@ class TradeLogic:
                 if advisor_feedback:
                     if advisor_feedback.adjusted_signal is not None:
                         signal = advisor_feedback.adjusted_signal
-                        context["final_confidence"] = signal.confidence
+                        signal, context = self._apply_contextual_adjustments(
+                            snapshot=snapshot,
+                            signal=signal,
+                            open_positions=open_positions,
+                        )
                     advisor_meta = dict(advisor_feedback.metadata)
                     if advisor_feedback.raw_response and "raw_response" not in advisor_meta:
                         advisor_meta["raw_response"] = advisor_feedback.raw_response
