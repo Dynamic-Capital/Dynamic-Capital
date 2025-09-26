@@ -1,52 +1,55 @@
 import { IconType } from "react-icons";
 
 import {
-  HiArrowUpRight,
-  HiOutlineLink,
-  HiArrowTopRightOnSquare,
-  HiEnvelope,
-  HiCalendarDays,
+  HiArrowPath,
   HiArrowRight,
+  HiArrowTopRightOnSquare,
+  HiArrowUpRight,
+  HiCalendarDays,
+  HiCheckCircle,
+  HiEnvelope,
+  HiMapPin,
+  HiOutlineDocument,
   HiOutlineEye,
   HiOutlineEyeSlash,
-  HiOutlineDocument,
   HiOutlineGlobeAsiaAustralia,
+  HiOutlineLink,
   HiOutlineRocketLaunch,
-  HiArrowPath,
-  HiMapPin,
-  HiCheckCircle,
+  HiPhone,
   HiSparkles,
 } from "react-icons/hi2";
 
 import {
-  PiHouseDuotone,
-  PiUserCircleDuotone,
-  PiGridFourDuotone,
   PiBookBookmarkDuotone,
-  PiImageDuotone,
   PiCrownSimpleDuotone,
+  PiGridFourDuotone,
+  PiHouseDuotone,
+  PiImageDuotone,
+  PiUserCircleDuotone,
 } from "react-icons/pi";
 
 import {
+  SiFigma,
   SiJavascript,
   SiNextdotjs,
-  SiFigma,
   SiSupabase,
+  SiTradingview,
 } from "react-icons/si";
 
 import {
   FaDiscord,
-  FaGithub,
-  FaLinkedin,
-  FaX,
-  FaThreads,
-  FaXTwitter,
   FaFacebook,
+  FaGithub,
+  FaInfinity,
+  FaInstagram,
+  FaLinkedin,
   FaPinterest,
-  FaWhatsapp,
   FaReddit,
   FaTelegram,
-  FaInfinity,
+  FaThreads,
+  FaWhatsapp,
+  FaX,
+  FaXTwitter,
 } from "react-icons/fa6";
 
 export const iconLibrary: Record<string, IconType> = {
@@ -77,16 +80,19 @@ export const iconLibrary: Record<string, IconType> = {
   location: HiMapPin,
   check: HiCheckCircle,
   sparkles: HiSparkles,
+  phone: HiPhone,
   infinity: FaInfinity,
   javascript: SiJavascript,
   nextjs: SiNextdotjs,
   supabase: SiSupabase,
   figma: SiFigma,
   facebook: FaFacebook,
+  instagram: FaInstagram,
   pinterest: FaPinterest,
   whatsapp: FaWhatsapp,
   reddit: FaReddit,
   telegram: FaTelegram,
+  tradingview: SiTradingview,
 };
 
 export type IconLibrary = typeof iconLibrary;

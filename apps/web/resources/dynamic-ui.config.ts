@@ -202,9 +202,11 @@ const schema: SchemaConfig = {
 };
 
 const sameAs: SameAsConfig = {
-  telegram: "https://t.me/Dynamic_VIP_BOT",
-  linkedin: "https://www.linkedin.com/company/dynamic-capital-ai/",
-  x: "https://x.com/dynamiccapitalhq",
+  telegram: "https://t.me/DynamicCapital_Support",
+  instagram: "https://www.instagram.com/dynamic.capital",
+  facebook: "https://www.facebook.com/dynamic.capital.fb",
+  tradingview: "https://www.tradingview.com/u/DynamicCapital-FX/",
+  website: "https://dynamic-capital-qazf2.ondigitalocean.app/",
 };
 
 const socialSharing: SocialSharingConfig = {

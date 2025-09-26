@@ -398,7 +398,7 @@ export default function CheckoutSection({ selectedPlanId, promoCode, onBack }: C
                     variant="brand"
                     size="lg"
                     className="min-h-[48px] touch-manipulation flex-1"
-                    onClick={() => window.open('https://t.me/Dynamic_VIP_BOT', '_blank')}
+                    onClick={() => window.open('https://t.me/DynamicCapital_Support', '_blank')}
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Receipt

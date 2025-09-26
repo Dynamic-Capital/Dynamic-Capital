@@ -124,7 +124,7 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
     if (paymentMethod === "telegram") {
       setProcessingCheckout(true);
       try {
-        const botUsername = "Dynamic_VIP_BOT";
+        const botUsername = "DynamicCapital_Support";
         const telegramUrl = `https://t.me/${botUsername}?start=plan_${selectedPlan.id}${promoValidation?.valid ? `_promo_${promoCode}` : ''}`;
         window.open(telegramUrl, '_blank');
         toast.success('Redirecting to Telegram to complete purchase');

@@ -394,7 +394,7 @@ export default function PlanSection() {
                   💡 For the full experience with instant payments and account
                   management,
                   <a
-                    href="https://t.me/Dynamic_VIP_BOT"
+                    href="https://t.me/DynamicCapital_Support"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline ml-1 hover:text-blue-800"

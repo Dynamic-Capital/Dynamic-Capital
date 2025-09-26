@@ -165,13 +165,13 @@ export default function Landing() {
           <Card className="bg-gradient-to-r from-accent/20 to-primary/20 border-accent/30">
             <CardHeader className="text-center py-4">
               <CardTitle className="text-foreground text-sm mb-2">
-                Open @Dynamic_VIP_BOT
+                Open @DynamicCapital_Support
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground mb-3">
                 Access full bot features and commands
               </CardDescription>
-              <a 
-                href="https://t.me/Dynamic_VIP_BOT" 
+              <a
+                href="https://t.me/DynamicCapital_Support"
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-primary text-sm font-medium hover:text-primary/80 transition-colors"

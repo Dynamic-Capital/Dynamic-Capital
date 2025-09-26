@@ -16,7 +16,7 @@ import { DESK_TIME_ZONE, formatWithDeskTimezone } from "@/utils/deskTime";
 import { useEffect, useState } from "react";
 
 const TELEGRAM_LINK = social.find((item) => item.name === "Telegram")?.link ||
-  "https://t.me/Dynamic_VIP_BOT";
+  "https://t.me/DynamicCapital_Support";
 
 const SUPPORT_EMAIL = `mailto:${person.email}`;
 
