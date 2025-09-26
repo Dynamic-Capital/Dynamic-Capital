@@ -28,6 +28,90 @@ DCT serves as the cohesive utility for these layers by enforcing access
 controls, coordinating incentives, and providing settlement guarantees for
 protocol participants.
 
+## Total Supply and Tokenomics
+
+DCT tokenomics are meticulously designed to balance protocol liquidity with
+long-run alignment between traders, contributors, and the treasury. The supply
+is capped at 1,000,000,000 DCT minted at TGE under a time-locked multi-signature
+controller; any future adjustments require an on-chain governance vote with
+delayed execution safeguards.
+
+At launch, circulating supply is constrained to the Public Sale allocation and a
+thin liquidity buffer sourced from the Community & Liquidity bucket.
+Contributor, partner, treasury, and grant allocations are escrowed in TON
+vesting contracts with transparent cliffs and drip schedules that mirror the
+table below. Unlock schedules are published ahead of time, and governance can
+pause or re-sequence emissions if security or market stability concerns arise.
+
+Treasury policies route a governed share of protocol fees toward buybacks and
+liquidity programs, reinforcing price stability while re-circulating value to
+active contributors. Additional sink mechanics—staking lock-ups, vault fees
+denominated in DCT, and programmatic burns triggered by slashing or
+inactivity—offset new issuance and anchor a deflationary bias over time.
+Circulating supply dashboards provide real-time unlock calendars and burn totals
+to maintain transparency.
+
+## Price Structure Strategy
+
+### Launch Pricing Mechanics
+
+- **Listing Venues** – Dual list on STON.fi (TON AMM) and a curated DeDust
+  order-book pair within the first 24 hours to capture both retail and
+  professional flow.
+- **Discovery Method** – Conduct a 72-hour Dutch auction with a price band of
+  0.08 to 0.12 TON per DCT, seeding 5% of supply; clearing price sets the
+  initial AMM pool ratios.
+- **Liquidity Buffer Split** – Allocate the 5,000,000 DCT liquidity buffer 60%
+  to TON:DCT on STON.fi, 30% to USDT:DCT on DeDust, and retain 10% in treasury
+  for post-launch volatility absorption.
+- **Slippage Guardrails** – Cap auction wallet orders at 1% of circulating
+  supply per transaction and configure AMM pool weights to limit impact to <1%
+  for 250,000 TON trades during the first week.
+
+### Secondary-Market Support
+
+- **Target Pairs** – Maintain deep TON:DCT (STON.fi) and USDT:DCT (DeDust)
+  liquidity with a minimum combined depth of 1,000,000 TON or equivalent within
+  ±2% of the mid-price.
+- **Treasury Depth Goals** – Rebalance positions daily to keep at least 65% of
+  treasury-managed liquidity in-range and ready for two-sided quotes.
+- **Market-Maker Incentives** – Offer 6% annualized DCT incentives for verified
+  market-making desks that sustain >90% uptime and <50 bps quoted spreads on
+  whitelisted venues.
+- **Peg & Volatility Guardrails** – Trigger review if the 7-day moving average
+  deviates ±15% from auction VWAP or if intraday volatility exceeds 40%
+  annualized.
+
+### Long-Term Stabilization Levers
+
+- **Buyback Cadence** – Deploy up to 20% of monthly net protocol fees toward
+  on-chain buybacks, prioritizing periods where price trades below the 90-day
+  moving average.
+- **Staking Lock Adjustments** – Increase or decrease lock multipliers by 10%
+  increments to modulate staking participation when circulating float exceeds or
+  falls below target bands.
+- **Burn Triggers** – Route 50% of all penalty fees and redeemed buybacks to
+  permanent burns once treasury coverage exceeds 24 months of runway.
+- **Emission Throttles** – Allow governance to throttle scheduled emissions by
+  up to 25% per quarter when liquidity coverage or volatility metrics breach
+  risk thresholds.
+
+### Governance Oversight
+
+The DAO Multisig proposes parameter updates, which require a Token Assembly vote
+with a 48-hour timelock before execution. Emergency guardrails empower the Risk
+Council to impose temporary trading halts or rebalance liquidity within 12 hours
+when volatility triggers are breached, subject to post-event ratification.
+
+### Monitoring & Reporting
+
+- Publish real-time dashboards tracking price bands, AMM depth, circulating
+  supply, and cumulative burn totals.
+- Release weekly market-ops reports summarizing treasury interventions, buyback
+  executions, and market-maker performance.
+- Conduct a formal governance review of price structure levers every 30 days,
+  with quarterly deep dives that audit performance against guardrail metrics.
+
 ## Token Supply & Emissions
 
 | Metric                | Allocation        | Vesting / Unlock Schedule                                          |
