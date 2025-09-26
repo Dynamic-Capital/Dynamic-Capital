@@ -86,6 +86,7 @@ def test_engine_combines_grok_and_deepseek_payloads() -> None:
     assert report.confidence == pytest.approx(0.496)
     assert sorted(report.alerts) == ["Monitor NY open liquidity", "Watch US yields"]
     assert report.metadata["deepseek"]["risk_score"] == pytest.approx(0.4)
+    assert report.metadata["prompt_optimisation"]["macro_events_retained"] == 2
     assert "Grok-1 intelligence" in deepseek_client.calls[0]["prompt"]
 
 
@@ -111,9 +112,47 @@ def test_prompts_request_step_by_step_reasoning() -> None:
     engine = MarketIntelligenceEngine(grok_client=grok_client, deepseek_client=deepseek_client)
     request = MarketIntelligenceRequest(snapshot=_snapshot(), macro_events=["NFP"], analytics={"beta": 0.5})
 
-    grok_prompt = engine._build_grok_prompt(request)
-    deepseek_prompt = engine._build_deepseek_prompt(request, {"narrative": "Test"})
+    payload, meta = engine._prepare_prompt_payload(request)
+    grok_prompt = engine._build_grok_prompt(payload, meta)
+    deepseek_prompt = engine._build_deepseek_prompt(payload, {"narrative": "Test"}, meta)
 
     assert "think step-by-step" in grok_prompt
     assert "Work step-by-step" in deepseek_prompt
     assert "Quantitative analytics" in deepseek_prompt
+    assert "All relevant context supplied" in grok_prompt
+    assert "All relevant context supplied" in deepseek_prompt
+
+
+def test_prompt_payload_optimises_context_volume() -> None:
+    engine = MarketIntelligenceEngine(
+        grok_client=StubClient("{}"),
+        deepseek_client=StubClient("{}"),
+        max_macro_events=3,
+        max_watchlist=2,
+        max_positions=1,
+        analytics_top_k=2,
+    )
+    request = MarketIntelligenceRequest(
+        snapshot=_snapshot(),
+        macro_events=["US CPI", "ECB minutes", "BoE presser", "FOMC minutes"],
+        watchlist=["EURUSD", "DXY", "USDJPY", "EURUSD"],
+        open_positions=[
+            ActivePosition(symbol="GBPUSD", direction=1, size=0.2, entry_price=1.2650),
+            ActivePosition(symbol="USDJPY", direction=-1, size=0.1, entry_price=152.30),
+        ],
+        analytics={"volatility_zscore": -0.7, "carry": 1.2, "momentum": -2.4},
+        context={"session": "London", "empty": ""},
+    )
+
+    payload, meta = engine._prepare_prompt_payload(request)
+
+    assert len(payload["macro_events"]) == 3
+    assert meta["macro_events_omitted"] == 1
+    assert payload["watchlist"] == ["EURUSD", "DXY"]
+    assert meta["watchlist_omitted"] == 1
+    assert len(payload["open_positions"]) == 1
+    assert meta["open_positions_omitted"] == 1
+    assert set(payload["analytics"].keys()) <= {"carry", "momentum", "volatility_zscore"}
+    assert len(payload["analytics"]) == 2
+    assert meta["analytics_omitted"] == 1
+    assert meta["context_pruned"] == 1

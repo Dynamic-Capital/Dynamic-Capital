@@ -5,8 +5,9 @@ from __future__ import annotations
 import json
 import math
 import textwrap
+from collections.abc import Mapping as MappingCollection, Sequence as SequenceCollection
 from dataclasses import dataclass, field
-from typing import Any, Dict, Mapping, Optional, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
 from .grok_advisor import CompletionClient, GrokAdvisor
 from .trade_logic import ActivePosition, MarketSnapshot
@@ -50,11 +51,18 @@ class MarketIntelligenceEngine:
     deepseek_temperature: float = 0.15
     deepseek_nucleus_p: float = 0.9
     deepseek_max_tokens: int = 384
+    max_macro_events: int = 6
+    max_watchlist: int = 10
+    max_positions: int = 6
+    analytics_top_k: int = 10
+    max_correlation_pairs: int = 8
 
     def generate_report(self, request: MarketIntelligenceRequest) -> MarketIntelligenceReport:
         """Return an aggregated intelligence brief for the supplied market state."""
 
-        grok_prompt = self._build_grok_prompt(request)
+        prompt_payload, prompt_meta = self._prepare_prompt_payload(request)
+
+        grok_prompt = self._build_grok_prompt(prompt_payload, prompt_meta)
         grok_response = self.grok_client.complete(
             grok_prompt,
             temperature=self.grok_temperature,
@@ -63,7 +71,11 @@ class MarketIntelligenceEngine:
         )
         grok_payload = self._parse_payload(grok_response)
 
-        deepseek_prompt = self._build_deepseek_prompt(request, grok_payload)
+        deepseek_prompt = self._build_deepseek_prompt(
+            prompt_payload,
+            grok_payload,
+            prompt_meta,
+        )
         deepseek_response = self.deepseek_client.complete(
             deepseek_prompt,
             temperature=self.deepseek_temperature,
@@ -98,6 +110,7 @@ class MarketIntelligenceEngine:
         metadata: Dict[str, Any] = {
             "grok": grok_payload,
             "deepseek": deepseek_payload,
+            "prompt_optimisation": prompt_meta,
         }
 
         raw_response = self._serialise_raw(
@@ -116,52 +129,13 @@ class MarketIntelligenceEngine:
             raw_response=raw_response,
         )
 
-    def _build_grok_prompt(self, request: MarketIntelligenceRequest) -> str:
-        snapshot_payload: Dict[str, Any] = {
-            "symbol": request.snapshot.symbol,
-            "timestamp": request.snapshot.timestamp.isoformat(),
-            "close": request.snapshot.close,
-            "rsi_fast": request.snapshot.rsi_fast,
-            "adx_fast": request.snapshot.adx_fast,
-            "rsi_slow": request.snapshot.rsi_slow,
-            "adx_slow": request.snapshot.adx_slow,
-            "pip_size": request.snapshot.pip_size,
-            "pip_value": request.snapshot.pip_value,
-            "seasonal_bias": request.snapshot.seasonal_bias,
-            "seasonal_confidence": request.snapshot.seasonal_confidence,
-        }
-        if request.snapshot.correlation_scores:
-            snapshot_payload["correlation_scores"] = request.snapshot.correlation_scores
-        if request.snapshot.open is not None:
-            snapshot_payload["open"] = request.snapshot.open
-        if request.snapshot.high is not None:
-            snapshot_payload["high"] = request.snapshot.high
-        if request.snapshot.low is not None:
-            snapshot_payload["low"] = request.snapshot.low
-
-        positions_summary = [
-            {
-                "symbol": position.symbol,
-                "direction": GrokAdvisor._direction(position.direction),
-                "size": position.size,
-                "entry_price": position.entry_price,
-                "stop_loss": position.stop_loss,
-                "take_profit": position.take_profit,
-                "opened_at": position.opened_at.isoformat() if position.opened_at else None,
-            }
-            for position in request.open_positions
-        ]
-
-        payload = {
-            "snapshot": snapshot_payload,
-            "context": request.context,
-            "macro_events": list(request.macro_events),
-            "watchlist": list(request.watchlist),
-            "open_positions": positions_summary,
-            "analytics": request.analytics,
-        }
-
+    def _build_grok_prompt(
+        self,
+        payload: Mapping[str, Any],
+        prompt_meta: Mapping[str, Any],
+    ) -> str:
         payload_json = json.dumps(payload, indent=2, default=str, sort_keys=True)
+        optimisation_note = self._format_context_note(prompt_meta)
 
         return textwrap.dedent(
             f"""
@@ -177,6 +151,8 @@ class MarketIntelligenceEngine:
               - "data_signals": optional key metrics that influenced your reasoning.
             Do not include markdown or explanations outside the JSON payload.
 
+            {optimisation_note}
+
             Market telemetry:
             {payload_json}
             """
@@ -184,24 +160,36 @@ class MarketIntelligenceEngine:
 
     def _build_deepseek_prompt(
         self,
-        request: MarketIntelligenceRequest,
+        payload: Mapping[str, Any],
         grok_payload: Mapping[str, Any],
+        prompt_meta: Mapping[str, Any],
     ) -> str:
+        snapshot = payload.get("snapshot", {})
         snapshot_json = json.dumps(
             {
-                "symbol": request.snapshot.symbol,
-                "timestamp": request.snapshot.timestamp.isoformat(),
-                "close": request.snapshot.close,
-                "pip_size": request.snapshot.pip_size,
-                "pip_value": request.snapshot.pip_value,
+                "symbol": snapshot.get("symbol"),
+                "timestamp": snapshot.get("timestamp"),
+                "close": snapshot.get("close"),
+                "pip_size": snapshot.get("pip_size"),
+                "pip_value": snapshot.get("pip_value"),
             },
             indent=2,
             default=str,
             sort_keys=True,
         )
         grok_json = json.dumps(grok_payload, indent=2, default=str, sort_keys=True)
-        events_json = json.dumps(list(request.macro_events), indent=2, default=str)
-        analytics_json = json.dumps(request.analytics, indent=2, default=str, sort_keys=True)
+        events_json = json.dumps(
+            payload.get("macro_events", []),
+            indent=2,
+            default=str,
+        )
+        analytics_json = json.dumps(
+            payload.get("analytics", {}),
+            indent=2,
+            default=str,
+            sort_keys=True,
+        )
+        optimisation_note = self._format_context_note(prompt_meta)
 
         return textwrap.dedent(
             f"""
@@ -218,6 +206,8 @@ class MarketIntelligenceEngine:
               - "rationale": optional short explanation.
             Do not return any additional prose.
 
+            {optimisation_note}
+
             Base snapshot:
             {snapshot_json}
 
@@ -231,6 +221,242 @@ class MarketIntelligenceEngine:
             {analytics_json}
             """
         ).strip()
+
+    def _prepare_prompt_payload(
+        self, request: MarketIntelligenceRequest
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        snapshot_payload, snapshot_meta = self._snapshot_payload(request.snapshot)
+        context_payload = self._compact_mapping(request.context)
+        macro_events, macro_omitted = self._normalise_sequence(
+            request.macro_events,
+            self.max_macro_events,
+        )
+        watchlist, watchlist_omitted = self._normalise_sequence(
+            request.watchlist,
+            self.max_watchlist,
+        )
+        positions_summary, positions_omitted = self._summarise_positions(
+            request.open_positions
+        )
+        analytics_summary, analytics_omitted = self._prepare_analytics(
+            request.analytics
+        )
+
+        payload: Dict[str, Any] = {"snapshot": snapshot_payload}
+        if context_payload:
+            payload["context"] = context_payload
+        if macro_events:
+            payload["macro_events"] = macro_events
+        if watchlist:
+            payload["watchlist"] = watchlist
+        if positions_summary:
+            payload["open_positions"] = positions_summary
+        if analytics_summary:
+            payload["analytics"] = analytics_summary
+
+        optimisation_meta: Dict[str, Any] = {
+            "macro_events_retained": len(macro_events),
+            "macro_events_omitted": macro_omitted,
+            "watchlist_retained": len(watchlist),
+            "watchlist_omitted": watchlist_omitted,
+            "open_positions_retained": len(positions_summary),
+            "open_positions_omitted": positions_omitted,
+            "analytics_retained": len(analytics_summary),
+            "analytics_omitted": analytics_omitted,
+            "context_retained": len(context_payload),
+            "context_pruned": max(0, len(request.context) - len(context_payload)),
+        }
+        optimisation_meta.update(snapshot_meta)
+
+        return payload, optimisation_meta
+
+    def _snapshot_payload(
+        self, snapshot: MarketSnapshot
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        payload: Dict[str, Any] = {
+            "symbol": snapshot.symbol,
+            "timestamp": snapshot.timestamp.isoformat(),
+            "close": snapshot.close,
+            "rsi_fast": snapshot.rsi_fast,
+            "adx_fast": snapshot.adx_fast,
+            "rsi_slow": snapshot.rsi_slow,
+            "adx_slow": snapshot.adx_slow,
+            "pip_size": snapshot.pip_size,
+            "pip_value": snapshot.pip_value,
+        }
+
+        optional_fields = (
+            "open",
+            "high",
+            "low",
+            "daily_high",
+            "daily_low",
+            "previous_daily_high",
+            "previous_daily_low",
+            "weekly_high",
+            "weekly_low",
+            "previous_week_high",
+            "previous_week_low",
+            "seasonal_bias",
+            "seasonal_confidence",
+        )
+        for field_name in optional_fields:
+            value = getattr(snapshot, field_name, None)
+            if value is not None:
+                payload[field_name] = value
+
+        snapshot_meta: Dict[str, Any] = {}
+        if snapshot.correlation_scores:
+            correlations = self._prioritise_metrics(
+                snapshot.correlation_scores,
+                self.max_correlation_pairs,
+            )
+            payload["correlation_scores"] = correlations
+            snapshot_meta["snapshot_correlation_retained"] = len(correlations)
+            snapshot_meta["snapshot_correlation_omitted"] = max(
+                0,
+                len(snapshot.correlation_scores) - len(correlations),
+            )
+
+        return payload, snapshot_meta
+
+    def _summarise_positions(
+        self, positions: Sequence[ActivePosition]
+    ) -> Tuple[list[Dict[str, Any]], int]:
+        if self.max_positions <= 0:
+            return [], len(positions)
+
+        summary: list[Dict[str, Any]] = []
+        for position in positions[: self.max_positions]:
+            entry: Dict[str, Any] = {
+                "symbol": position.symbol,
+                "direction": GrokAdvisor._direction(position.direction),
+                "size": position.size,
+                "entry_price": position.entry_price,
+            }
+            if position.stop_loss is not None:
+                entry["stop_loss"] = position.stop_loss
+            if position.take_profit is not None:
+                entry["take_profit"] = position.take_profit
+            if position.opened_at is not None:
+                entry["opened_at"] = position.opened_at.isoformat()
+            summary.append(entry)
+
+        omitted = max(0, len(positions) - len(summary))
+        return summary, omitted
+
+    def _prepare_analytics(
+        self, analytics: Mapping[str, Any]
+    ) -> Tuple[Dict[str, Any], int]:
+        compact = self._compact_mapping(analytics)
+        if not compact or self.analytics_top_k <= 0:
+            return ({}, len(compact)) if compact else ({}, 0)
+
+        prioritised = self._prioritise_metrics(compact, self.analytics_top_k)
+        omitted = max(0, len(compact) - len(prioritised))
+        return prioritised, omitted
+
+    @staticmethod
+    def _compact_mapping(mapping: Mapping[str, Any]) -> Dict[str, Any]:
+        compact: Dict[str, Any] = {}
+        for key, value in mapping.items():
+            if value is None:
+                continue
+            if isinstance(value, str):
+                if not value.strip():
+                    continue
+            elif isinstance(value, MappingCollection):
+                if not value:
+                    continue
+            elif isinstance(value, SequenceCollection) and not isinstance(value, (str, bytes)):
+                if not list(value):
+                    continue
+            compact[key] = value
+        return compact
+
+    def _normalise_sequence(
+        self,
+        values: Sequence[Any],
+        limit: int,
+    ) -> Tuple[list[str], int]:
+        cleaned: list[str] = []
+        seen: set[str] = set()
+        for value in values:
+            text = str(value).strip()
+            if not text or text in seen:
+                continue
+            seen.add(text)
+            cleaned.append(text)
+
+        if limit <= 0:
+            return cleaned, 0
+
+        limited = cleaned[:limit]
+        omitted = max(0, len(cleaned) - len(limited))
+        return limited, omitted
+
+    def _prioritise_metrics(
+        self,
+        analytics: Mapping[str, Any],
+        limit: int,
+    ) -> Dict[str, Any]:
+        if limit <= 0:
+            return {}
+
+        items = list(analytics.items())
+        if len(items) <= limit:
+            return dict(items)
+
+        numeric: list[Tuple[str, float]] = []
+        fallback: list[Tuple[str, Any]] = []
+        for key, value in items:
+            number: Optional[float]
+            try:
+                number = float(value)
+            except (TypeError, ValueError):
+                number = None
+            if number is None or not math.isfinite(number):
+                fallback.append((key, value))
+                continue
+            numeric.append((key, number))
+
+        numeric.sort(key=lambda item: abs(item[1]), reverse=True)
+
+        prioritised: Dict[str, Any] = {}
+        for key, number in numeric:
+            if len(prioritised) >= limit:
+                break
+            prioritised[key] = number
+
+        if len(prioritised) < limit:
+            for key, value in fallback:
+                if len(prioritised) >= limit:
+                    break
+                prioritised[key] = value
+
+        if not prioritised:
+            for key, value in items[:limit]:
+                prioritised[key] = value
+
+        return prioritised
+
+    @staticmethod
+    def _format_context_note(meta: Mapping[str, Any]) -> str:
+        trimmed_segments = []
+        labels = {
+            "macro_events_omitted": "macro events",
+            "watchlist_omitted": "watchlist instruments",
+            "open_positions_omitted": "open positions",
+            "analytics_omitted": "analytics signals",
+        }
+        for key, label in labels.items():
+            omitted = meta.get(key)
+            if isinstance(omitted, int) and omitted > 0:
+                trimmed_segments.append(f"{omitted} {label}")
+        if not trimmed_segments:
+            return "All relevant context supplied; no truncation applied."
+        joined = ", ".join(trimmed_segments)
+        return f"Context trimmed to top signals; omitted {joined}."
 
     @staticmethod
     def _parse_payload(response: str) -> Dict[str, Any]:
