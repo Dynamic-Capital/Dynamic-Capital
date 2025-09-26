@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Column,
   Heading,
@@ -7,7 +9,16 @@ import {
   Text,
 } from "@/components/dynamic-ui-system";
 import type { Colors } from "@/components/dynamic-ui-system";
-import type { ComponentProps, ReactNode } from "react";
+import { formatIsoTime } from "@/utils/isoFormat";
+import {
+  type ComponentProps,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 type CurrencyStrength = {
   code: string;
@@ -64,66 +75,413 @@ type InsightCardProps = {
   children: ReactNode;
 };
 
-const LAST_UPDATED = "25 September 2025 · 06:28 GMT+5";
-
-const CURRENCY_STRENGTH_METER: CurrencyStrength[] = [
-  {
-    code: "JPY",
-    rank: 1,
-    tone: "strong",
-    summary:
-      "Yen strength is evident with NZD/JPY (-0.17%) and USD/JPY (-0.11%) sliding on the session.",
-  },
-  {
-    code: "AUD",
-    rank: 2,
-    tone: "strong",
-    summary:
-      "AUD is bid broadly with AUD/NZD (+0.12%), AUD/USD (+0.08%), and AUD/CAD (+0.05%) topping the gainers list.",
-  },
-  {
-    code: "EUR",
-    rank: 3,
-    tone: "strong",
-    summary:
-      "EUR outperforms higher-beta peers as EUR/NZD prints the largest advance at +0.12%.",
-  },
-  {
-    code: "CHF",
-    rank: 4,
-    tone: "balanced",
-    summary:
-      "CHF holds mid-pack; NZD/CHF (-0.10%) weakness keeps the franc supported versus antipodeans.",
-  },
-  {
-    code: "CAD",
-    rank: 5,
-    tone: "balanced",
-    summary:
-      "CAD trades steady—losses to AUD are offset by NZD/CAD (-0.12%) pressure favouring the loonie.",
-  },
-  {
-    code: "GBP",
-    rank: 6,
-    tone: "soft",
-    summary:
-      "GBP momentum is mixed: GBP/NZD still climbs (+0.05%) while GBP/JPY (-0.09%) tracks yen strength.",
-  },
-  {
-    code: "USD",
-    rank: 7,
-    tone: "soft",
-    summary:
-      "USD slips as USD/JPY drops -0.11% and AUD/USD adds +0.08%, reflecting softer dollar demand.",
-  },
-  {
-    code: "NZD",
-    rank: 8,
-    tone: "soft",
-    summary:
-      "NZD is the clear laggard with NZD crosses leading decliners, including NZD/JPY (-0.17%) and NZD/CAD (-0.12%).",
-  },
+const DISPLAY_CURRENCIES: Array<CurrencyStrength["code"]> = [
+  "JPY",
+  "AUD",
+  "EUR",
+  "CHF",
+  "CAD",
+  "GBP",
+  "USD",
+  "NZD",
 ];
+
+const FALLBACK_STRENGTH: CurrencyStrength[] = DISPLAY_CURRENCIES.map(
+  (code, index) => ({
+    code,
+    rank: index + 1,
+    tone: "balanced",
+    summary: "Awaiting live market sync.",
+  }),
+);
+
+const FALLBACK_VOLATILITY: CurrencyVolatility[] = DISPLAY_CURRENCIES.map(
+  (code, index) => ({
+    code,
+    rank: index + 1,
+    summary: "Awaiting live market sync.",
+  }),
+);
+
+type FxPair = {
+  base: string;
+  quote: string;
+  symbol: string;
+};
+
+type FxApiQuote = {
+  bid?: string;
+  pctChange?: string;
+  high?: string;
+  low?: string;
+  create_date?: string;
+};
+
+type StrengthHighlight = {
+  pairLabel: string;
+  effect: number;
+  pairChange: number;
+};
+
+type VolatilityHighlight = {
+  pairLabel: string;
+  rangePercent: number;
+};
+
+type CurrencyAggregate = {
+  totalEffect: number;
+  count: number;
+  totalVolatility: number;
+  volatilityCount: number;
+  topPositive?: StrengthHighlight;
+  topNegative?: StrengthHighlight;
+  topVolatility?: VolatilityHighlight;
+};
+
+type CurrencyMetric = {
+  code: string;
+  averageChange: number;
+  averageRange: number;
+  topPositive?: StrengthHighlight;
+  topNegative?: StrengthHighlight;
+  topVolatility?: VolatilityHighlight;
+};
+
+type CurrencySnapshot = {
+  strength: CurrencyStrength[];
+  volatility: CurrencyVolatility[];
+  lastUpdated: Date | null;
+};
+
+const FX_PAIRS: FxPair[] = [
+  { base: "EUR", quote: "USD", symbol: "EURUSD" },
+  { base: "GBP", quote: "USD", symbol: "GBPUSD" },
+  { base: "AUD", quote: "USD", symbol: "AUDUSD" },
+  { base: "NZD", quote: "USD", symbol: "NZDUSD" },
+  { base: "USD", quote: "CAD", symbol: "USDCAD" },
+  { base: "USD", quote: "CHF", symbol: "USDCHF" },
+  { base: "USD", quote: "JPY", symbol: "USDJPY" },
+  { base: "EUR", quote: "GBP", symbol: "EURGBP" },
+  { base: "EUR", quote: "AUD", symbol: "EURAUD" },
+  { base: "EUR", quote: "NZD", symbol: "EURNZD" },
+  { base: "GBP", quote: "AUD", symbol: "GBPAUD" },
+  { base: "AUD", quote: "NZD", symbol: "AUDNZD" },
+  { base: "EUR", quote: "JPY", symbol: "EURJPY" },
+  { base: "GBP", quote: "JPY", symbol: "GBPJPY" },
+  { base: "AUD", quote: "JPY", symbol: "AUDJPY" },
+  { base: "NZD", quote: "JPY", symbol: "NZDJPY" },
+  { base: "CAD", quote: "JPY", symbol: "CADJPY" },
+  { base: "CHF", quote: "JPY", symbol: "CHFJPY" },
+  { base: "EUR", quote: "CHF", symbol: "EURCHF" },
+  { base: "GBP", quote: "CHF", symbol: "GBPCHF" },
+];
+
+const FX_ENDPOINT = `https://economia.awesomeapi.com.br/last/${
+  FX_PAIRS.map(
+    ({ base, quote }) => `${base}-${quote}`,
+  ).join(",")
+}`;
+
+const REFRESH_INTERVAL_MS = 60_000;
+
+const parseNumber = (value?: string): number | undefined => {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const parseTimestamp = (value?: string): number | undefined => {
+  if (!value) {
+    return undefined;
+  }
+  const normalized = `${value.replace(" ", "T")}Z`;
+  const parsed = Date.parse(normalized);
+  return Number.isNaN(parsed) ? undefined : parsed;
+};
+
+const computeRangePercent = (
+  last: number | undefined,
+  high: number | undefined,
+  low: number | undefined,
+): number | undefined => {
+  if (
+    last === undefined ||
+    high === undefined ||
+    low === undefined ||
+    !Number.isFinite(last) ||
+    !Number.isFinite(high) ||
+    !Number.isFinite(low) ||
+    last === 0
+  ) {
+    return undefined;
+  }
+
+  const range = Math.abs(high - low);
+  if (!Number.isFinite(range) || range === 0) {
+    return undefined;
+  }
+
+  return (range / Math.abs(last)) * 100;
+};
+
+const ensureAggregate = (
+  aggregates: Record<string, CurrencyAggregate>,
+  code: string,
+): CurrencyAggregate => {
+  const existing = aggregates[code];
+  if (existing) {
+    return existing;
+  }
+
+  const created: CurrencyAggregate = {
+    totalEffect: 0,
+    count: 0,
+    totalVolatility: 0,
+    volatilityCount: 0,
+  };
+
+  aggregates[code] = created;
+  return created;
+};
+
+const recordStrengthHighlight = (
+  aggregate: CurrencyAggregate,
+  effect: number,
+  pairLabel: string,
+  pairChange: number,
+) => {
+  if (!Number.isFinite(effect) || !Number.isFinite(pairChange)) {
+    return;
+  }
+
+  if (effect >= 0) {
+    if (!aggregate.topPositive || effect > aggregate.topPositive.effect) {
+      aggregate.topPositive = { pairLabel, effect, pairChange };
+    }
+    return;
+  }
+
+  if (
+    !aggregate.topNegative ||
+    Math.abs(effect) > Math.abs(aggregate.topNegative.effect)
+  ) {
+    aggregate.topNegative = { pairLabel, effect, pairChange };
+  }
+};
+
+const updateAggregate = (
+  aggregates: Record<string, CurrencyAggregate>,
+  code: string,
+  effect: number | undefined,
+  pairLabel: string,
+  pairChange: number | undefined,
+  rangePercent: number | undefined,
+) => {
+  const aggregate = ensureAggregate(aggregates, code);
+
+  if (effect !== undefined && Number.isFinite(effect)) {
+    aggregate.totalEffect += effect;
+    aggregate.count += 1;
+    if (pairChange !== undefined && Number.isFinite(pairChange)) {
+      recordStrengthHighlight(aggregate, effect, pairLabel, pairChange);
+    }
+  }
+
+  if (rangePercent !== undefined && Number.isFinite(rangePercent)) {
+    aggregate.totalVolatility += rangePercent;
+    aggregate.volatilityCount += 1;
+    if (
+      !aggregate.topVolatility ||
+      rangePercent > aggregate.topVolatility.rangePercent
+    ) {
+      aggregate.topVolatility = { pairLabel, rangePercent };
+    }
+  }
+};
+
+const determineTone = (
+  index: number,
+  total: number,
+): CurrencyStrength["tone"] => {
+  if (total <= 0) {
+    return "balanced";
+  }
+
+  const strongCount = Math.max(1, Math.ceil(total / 3));
+  const softCount = Math.max(1, Math.ceil(total / 3));
+
+  if (index < strongCount) {
+    return "strong";
+  }
+  if (index >= total - softCount) {
+    return "soft";
+  }
+  return "balanced";
+};
+
+const formatSignedPercentValue = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return "0.00%";
+  }
+  const formatted = Math.abs(value).toFixed(2);
+  if (value > 0) {
+    return `+${formatted}%`;
+  }
+  if (value < 0) {
+    return `-${formatted}%`;
+  }
+  return `${formatted}%`;
+};
+
+const formatUnsignedPercentValue = (value: number): string => {
+  if (!Number.isFinite(value)) {
+    return "0.00%";
+  }
+  return `${Math.abs(value).toFixed(2)}%`;
+};
+
+const buildStrengthSummary = (metric: CurrencyMetric): string => {
+  const averageLabel = formatSignedPercentValue(metric.averageChange);
+  const preferredHighlight = metric.averageChange >= 0
+    ? metric.topPositive ?? metric.topNegative
+    : metric.topNegative ?? metric.topPositive;
+
+  if (!preferredHighlight) {
+    return `Avg cross performance ${averageLabel}.`;
+  }
+
+  const prefix = preferredHighlight === metric.topPositive
+    ? "Strongest support from"
+    : "Heaviest drag from";
+  const changeLabel = formatSignedPercentValue(
+    preferredHighlight.pairChange,
+  );
+
+  return `Avg cross performance ${averageLabel}. ${prefix} ${preferredHighlight.pairLabel} ${changeLabel}.`;
+};
+
+const buildVolatilitySummary = (metric: CurrencyMetric): string => {
+  const averageLabel = formatUnsignedPercentValue(metric.averageRange);
+  const highlight = metric.topVolatility;
+
+  if (!highlight) {
+    return `Average realized range ${averageLabel}.`;
+  }
+
+  return `Average realized range ${averageLabel}. ${highlight.pairLabel} spanned ${
+    formatUnsignedPercentValue(highlight.rangePercent)
+  }.`;
+};
+
+const loadCurrencySnapshot = async (
+  signal?: AbortSignal,
+): Promise<CurrencySnapshot> => {
+  const response = await fetch(FX_ENDPOINT, { cache: "no-store", signal });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch FX snapshot (${response.status})`);
+  }
+
+  const payload = (await response.json()) as Record<string, FxApiQuote>;
+  const aggregates: Record<string, CurrencyAggregate> = {};
+  let latestTimestamp: number | undefined;
+
+  for (const pair of FX_PAIRS) {
+    const quote = payload[pair.symbol];
+    if (!quote) {
+      continue;
+    }
+
+    const changePercent = parseNumber(quote.pctChange);
+    const last = parseNumber(quote.bid);
+    const high = parseNumber(quote.high);
+    const low = parseNumber(quote.low);
+    const rangePercent = computeRangePercent(last, high, low);
+    const pairLabel = `${pair.base}/${pair.quote}`;
+
+    updateAggregate(
+      aggregates,
+      pair.base,
+      changePercent,
+      pairLabel,
+      changePercent,
+      rangePercent,
+    );
+    updateAggregate(
+      aggregates,
+      pair.quote,
+      changePercent !== undefined ? -changePercent : undefined,
+      pairLabel,
+      changePercent,
+      rangePercent,
+    );
+
+    const timestamp = parseTimestamp(quote.create_date);
+    if (timestamp !== undefined) {
+      latestTimestamp = latestTimestamp
+        ? Math.max(latestTimestamp, timestamp)
+        : timestamp;
+    }
+  }
+
+  const metrics: CurrencyMetric[] = DISPLAY_CURRENCIES.map((code) => {
+    const aggregate = aggregates[code];
+    if (!aggregate) {
+      return {
+        code,
+        averageChange: 0,
+        averageRange: 0,
+      };
+    }
+
+    const averageChange = aggregate.count > 0
+      ? aggregate.totalEffect / aggregate.count
+      : 0;
+    const averageRange = aggregate.volatilityCount > 0
+      ? aggregate.totalVolatility / aggregate.volatilityCount
+      : 0;
+
+    return {
+      code,
+      averageChange,
+      averageRange,
+      topPositive: aggregate.topPositive,
+      topNegative: aggregate.topNegative,
+      topVolatility: aggregate.topVolatility,
+    };
+  });
+
+  const strengthOrdered = [...metrics].sort(
+    (a, b) => b.averageChange - a.averageChange,
+  );
+
+  const strength: CurrencyStrength[] = strengthOrdered.map((metric, index) => ({
+    code: metric.code,
+    rank: index + 1,
+    tone: determineTone(index, strengthOrdered.length),
+    summary: buildStrengthSummary(metric),
+  }));
+
+  const volatilityOrdered = [...metrics].sort(
+    (a, b) => b.averageRange - a.averageRange,
+  );
+
+  const volatility: CurrencyVolatility[] = volatilityOrdered.map(
+    (metric, index) => ({
+      code: metric.code,
+      rank: index + 1,
+      summary: buildVolatilitySummary(metric),
+    }),
+  );
+
+  return {
+    strength,
+    volatility,
+    lastUpdated: latestTimestamp ? new Date(latestTimestamp) : null,
+  };
+};
 
 const TOP_GAINERS: TopMover[] = [
   {
@@ -211,53 +569,6 @@ const TOP_LOSERS: TopMover[] = [
   },
 ];
 
-const CURRENCY_VOLATILITY_METER: CurrencyVolatility[] = [
-  {
-    code: "JPY",
-    rank: 1,
-    summary:
-      "Leads realized swings with both NZD/JPY and USD/JPY featuring among the day’s most volatile pairs.",
-  },
-  {
-    code: "AUD",
-    rank: 2,
-    summary:
-      "AUD pairs stay active—AUD/USD and AUD/NZD register 0.21% and 0.20% ranges respectively.",
-  },
-  {
-    code: "NZD",
-    rank: 3,
-    summary:
-      "NZD volatility is elevated as multiple NZD crosses occupy the top mover boards.",
-  },
-  {
-    code: "CHF",
-    rank: 4,
-    summary: "CHF ranges stay supported alongside softness in NZD/CHF.",
-  },
-  {
-    code: "USD",
-    rank: 5,
-    summary:
-      "USD price action is moderate—USD/JPY swings 0.23% but USD/CAD remains among the calmest pairs.",
-  },
-  {
-    code: "GBP",
-    rank: 6,
-    summary: "GBP movement is contained outside of GBP/JPY’s 0.20% band.",
-  },
-  {
-    code: "CAD",
-    rank: 7,
-    summary: "CAD sits on the quieter side with USDCAD volatility just 0.07%.",
-  },
-  {
-    code: "EUR",
-    rank: 8,
-    summary: "EUR ranges are light—EUR/CAD and EUR/GBP each move only 0.06%.",
-  },
-];
-
 const MOST_VOLATILE_PAIRS: VolatilityPair[] = [
   { symbol: "NZDJPY", pair: "NZD/JPY", rangePercent: 0.25 },
   { symbol: "USDJPY", pair: "USD/JPY", rangePercent: 0.23 },
@@ -327,6 +638,107 @@ const formatPrice = (value: number) =>
   }).format(value);
 
 export function FxMarketSnapshotSection() {
+  const [strengthMeter, setStrengthMeter] = useState<CurrencyStrength[]>(
+    FALLBACK_STRENGTH,
+  );
+  const [volatilityMeter, setVolatilityMeter] = useState<CurrencyVolatility[]>(
+    FALLBACK_VOLATILITY,
+  );
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isMountedRef = useRef(true);
+  const inFlightRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+      abortControllerRef.current?.abort();
+    },
+    [],
+  );
+
+  const refreshSnapshot = useCallback(async () => {
+    if (inFlightRef.current) {
+      return;
+    }
+
+    inFlightRef.current = true;
+    abortControllerRef.current?.abort();
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    if (isMountedRef.current) {
+      setIsFetching(true);
+    }
+
+    try {
+      const snapshot = await loadCurrencySnapshot(controller.signal);
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      setStrengthMeter(snapshot.strength);
+      setVolatilityMeter(snapshot.volatility);
+      setLastUpdated(snapshot.lastUpdated ?? new Date());
+      setError(null);
+    } catch (snapshotError) {
+      if (
+        snapshotError instanceof DOMException &&
+        snapshotError.name === "AbortError"
+      ) {
+        return;
+      }
+
+      if (isMountedRef.current) {
+        setError("Live market feed unavailable. Retrying…");
+      }
+    } finally {
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
+      inFlightRef.current = false;
+      if (isMountedRef.current) {
+        setIsFetching(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshSnapshot();
+
+    const interval = setInterval(() => {
+      refreshSnapshot();
+    }, REFRESH_INTERVAL_MS);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [refreshSnapshot]);
+
+  const statusLabel = useMemo(() => {
+    if (error) {
+      return error;
+    }
+    if (!lastUpdated && isFetching) {
+      return "Fetching live feed…";
+    }
+    if (isFetching) {
+      return "Syncing live feed…";
+    }
+    if (lastUpdated) {
+      return `Synced ${formatIsoTime(lastUpdated)}`;
+    }
+    return "Waiting for live feed…";
+  }, [error, isFetching, lastUpdated]);
+
+  const statusTone: TagBackground = error
+    ? "danger-alpha-weak"
+    : "neutral-alpha-weak";
+
   return (
     <Column
       id="fx-market-snapshot"
@@ -341,8 +753,8 @@ export function FxMarketSnapshotSection() {
       <Column gap="12" maxWidth={32}>
         <Row gap="12" vertical="center">
           <Heading variant="display-strong-xs">FX market snapshot</Heading>
-          <Tag size="s" background="neutral-alpha-weak" prefixIcon="clock">
-            {LAST_UPDATED}
+          <Tag size="s" background={statusTone} prefixIcon="clock">
+            {statusLabel}
           </Tag>
         </Row>
         <Text variant="body-default-l" onBackground="neutral-weak">
@@ -363,7 +775,7 @@ export function FxMarketSnapshotSection() {
             }}
           >
             <Row gap="16" wrap>
-              {CURRENCY_STRENGTH_METER.map((currency) => (
+              {strengthMeter.map((currency) => (
                 <Column
                   key={currency.code}
                   background="page"
@@ -405,7 +817,7 @@ export function FxMarketSnapshotSection() {
             }}
           >
             <Column gap="12">
-              {CURRENCY_VOLATILITY_METER.map((currency) => (
+              {volatilityMeter.map((currency) => (
                 <Row key={currency.code} gap="12" vertical="start">
                   <Tag size="s" background="neutral-alpha-weak">
                     #{currency.rank}
