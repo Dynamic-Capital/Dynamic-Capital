@@ -118,18 +118,22 @@ def _tune_trade_config(base: TradeConfig, insights: OptimizationInsights) -> Tra
         neutral_zone = max(base.neutral_zone_pips, insights.average_range_pips * 0.02)
         config.neutral_zone_pips = round(min(neutral_zone, base.neutral_zone_pips * 2), 3)
         if base.use_adr:
-            stop_factor = max(base.adr_stop_loss_factor, 0.5)
-            take_factor = max(base.adr_take_profit_factor, 1.0)
-            config.manual_stop_loss_pips = round(
-                max(base.manual_stop_loss_pips, insights.average_range_pips * stop_factor), 3
-            )
-            config.manual_take_profit_pips = round(
-                max(
-                    base.manual_take_profit_pips,
-                    insights.average_range_pips * take_factor,
-                ),
-                3,
-            )
+            range_pips = float(insights.average_range_pips)
+            stop_floor = max(base.adr_stop_loss_factor, 0.5)
+            take_floor = max(base.adr_take_profit_factor, 1.0)
+            target_stop = max(base.manual_stop_loss_pips, range_pips * stop_floor)
+            target_take = max(base.manual_take_profit_pips, range_pips * take_floor)
+
+            stop_factor = target_stop / range_pips
+            take_factor = target_take / range_pips
+            if base.manual_stop_loss_pips > 0 and base.manual_take_profit_pips > 0:
+                desired_rr = base.manual_take_profit_pips / base.manual_stop_loss_pips
+                take_factor = max(take_factor, stop_factor * desired_rr)
+
+            config.adr_stop_loss_factor = round(stop_factor, 3)
+            config.adr_take_profit_factor = round(take_factor, 3)
+            config.manual_stop_loss_pips = round(target_stop, 3)
+            config.manual_take_profit_pips = round(target_take, 3)
 
     return config
 
