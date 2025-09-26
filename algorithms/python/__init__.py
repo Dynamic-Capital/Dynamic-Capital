@@ -77,6 +77,11 @@ from .project_faq_generator import (
     ProjectFAQGenerator,
     ProjectFAQPackage,
 )
+from .dynamic_learning_algorithm import (
+    DynamicLearningEngine,
+    LearningAlgorithmReport,
+    LearningAlgorithmRequest,
+)
 from .executive_playbooks import (
     CEO_PLAYBOOK,
     CFO_PLAYBOOK,
@@ -142,6 +147,9 @@ __all__ = _trade_exports + [
     "FAQSource",
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
+    "DynamicLearningEngine",
+    "LearningAlgorithmReport",
+    "LearningAlgorithmRequest",
     "CEO_PLAYBOOK",
     "CFO_PLAYBOOK",
     "COO_PLAYBOOK",
@@ -218,6 +226,9 @@ globals().update(
         "FAQSource": FAQSource,
         "ProjectFAQGenerator": ProjectFAQGenerator,
         "ProjectFAQPackage": ProjectFAQPackage,
+        "DynamicLearningEngine": DynamicLearningEngine,
+        "LearningAlgorithmReport": LearningAlgorithmReport,
+        "LearningAlgorithmRequest": LearningAlgorithmRequest,
         "CEO_PLAYBOOK": CEO_PLAYBOOK,
         "CFO_PLAYBOOK": CFO_PLAYBOOK,
         "COO_PLAYBOOK": COO_PLAYBOOK,
