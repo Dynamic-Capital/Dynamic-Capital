@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AsciiShaderText } from "@/components/ui/AsciiShaderText";
 import { formatIsoTime } from "@/utils/isoFormat";
 import {
   type ComponentProps,
@@ -1147,24 +1148,32 @@ function MoversTable({ title, data, tone }: MoversSection) {
                   </Column>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Text variant="body-strong-s">
-                    {formatPercent(item.changePercent)}
-                  </Text>
+                  <AsciiShaderText asChild intensity="bold">
+                    <Text variant="body-strong-s">
+                      {formatPercent(item.changePercent)}
+                    </Text>
+                  </AsciiShaderText>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    {formatChange(item.change)}
-                  </Text>
+                  <AsciiShaderText asChild intensity="balanced">
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      {formatChange(item.change)}
+                    </Text>
+                  </AsciiShaderText>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    {formatPips(item.pips)}
-                  </Text>
+                  <AsciiShaderText asChild intensity="balanced">
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      {formatPips(item.pips)}
+                    </Text>
+                  </AsciiShaderText>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    {formatPrice(item.lastPrice)}
-                  </Text>
+                  <AsciiShaderText asChild intensity="bold">
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      {formatPrice(item.lastPrice)}
+                    </Text>
+                  </AsciiShaderText>
                 </TableCell>
               </TableRow>
             ))}

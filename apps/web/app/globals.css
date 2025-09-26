@@ -1,6 +1,6 @@
-@import './styles/mobile.css';
-@import '../resources/custom.css';
-@import '../resources/brand-tokens.css';
+@import "./styles/mobile.css";
+@import "../resources/custom.css";
+@import "../resources/brand-tokens.css";
 @reference "./theme.css";
 @tailwind base;
 @tailwind components;
@@ -163,6 +163,100 @@
       radial-gradient(circle at 10px 10px, currentColor 2px, transparent 2px);
     background-size: 40px 40px, 40px 40px, 40px 40px;
     background-position: 0 0, 0 0, 0 0;
+  }
+
+  .ascii-shader-text {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: inherit;
+    isolation: isolate;
+    min-width: 0;
+  }
+
+  .ascii-shader-text__content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .ascii-shader-text::before,
+  .ascii-shader-text::after {
+    content: "";
+    position: absolute;
+    inset: -8%;
+    pointer-events: none;
+    border-radius: inherit;
+    transition: opacity 0.35s ease;
+  }
+
+  .ascii-shader-text::before {
+    z-index: 0;
+    background:
+      radial-gradient(
+        circle at 15% 20%,
+        hsl(var(--brand) / 0.18),
+        transparent 55%
+      ),
+      radial-gradient(
+      circle at 80% 30%,
+      hsl(var(--accent) / 0.16),
+      transparent 60%
+    );
+    filter: blur(10px);
+    opacity: 0.4;
+  }
+
+  .ascii-shader-text::after {
+    z-index: 1;
+    background-image: linear-gradient(
+      125deg,
+      rgba(56, 189, 248, 0.45),
+      rgba(147, 51, 234, 0.45),
+      rgba(249, 115, 22, 0.4)
+    );
+    background-size: 220% 100%;
+    mix-blend-mode: screen;
+    opacity: 0.52;
+    animation: ascii-shader-pan 14s linear infinite;
+    mask-image: var(--ascii-shader-texture);
+    mask-repeat: repeat;
+    mask-size: var(--ascii-mask-size, 260px 140%);
+    -webkit-mask-image: var(--ascii-shader-texture);
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: var(--ascii-mask-size, 260px 140%);
+    filter: saturate(1.25) contrast(1.05);
+  }
+
+  .ascii-shader-text[data-ascii-intensity="subtle"]::before {
+    opacity: 0.25;
+  }
+
+  .ascii-shader-text[data-ascii-intensity="bold"]::before {
+    opacity: 0.6;
+  }
+
+  .ascii-shader-text[data-ascii-intensity="subtle"]::after {
+    opacity: 0.32;
+  }
+
+  .ascii-shader-text[data-ascii-intensity="bold"]::after {
+    opacity: 0.72;
+  }
+
+  @keyframes ascii-shader-pan {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: -200% 50%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ascii-shader-text::after {
+      animation-duration: 0.01s;
+      animation-iteration-count: 1;
+    }
   }
 
   .pattern-hexagon {

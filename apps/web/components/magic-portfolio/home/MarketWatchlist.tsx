@@ -11,6 +11,7 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
+import { AsciiShaderText } from "@/components/ui/AsciiShaderText";
 import type { IconName } from "@/resources/icons";
 import { formatIsoTime } from "@/utils/isoFormat";
 import {
@@ -1066,15 +1067,19 @@ export function MarketWatchlist() {
                 </Column>
                 <Column gap="8" horizontal="end" align="end">
                   <Row gap="12" vertical="center">
-                    <Text variant="heading-strong-m" align="right">
-                      {formatNumber(quote?.last, item.format)}
-                    </Text>
+                    <AsciiShaderText asChild intensity="bold">
+                      <Text variant="heading-strong-m" align="right">
+                        {formatNumber(quote?.last, item.format)}
+                      </Text>
+                    </AsciiShaderText>
                     <Tag
                       size="s"
                       background={changeBackground}
                       onBackground={changeForeground}
                     >
-                      {formatChangePercent(changeValue)}
+                      <AsciiShaderText intensity="balanced">
+                        {formatChangePercent(changeValue)}
+                      </AsciiShaderText>
                     </Tag>
                   </Row>
                   <Text
@@ -1100,9 +1105,11 @@ export function MarketWatchlist() {
                   <Text variant="label-default-s" onBackground="neutral-weak">
                     Intraday range
                   </Text>
-                  <Text variant="body-default-m">
-                    {formatRange(quote, item.format)}
-                  </Text>
+                  <AsciiShaderText asChild intensity="subtle">
+                    <Text variant="body-default-m">
+                      {formatRange(quote, item.format)}
+                    </Text>
+                  </AsciiShaderText>
                 </Column>
                 <Column
                   flex={1}
@@ -1132,22 +1139,26 @@ export function MarketWatchlist() {
                               name={insight.icon}
                               onBackground={tone.icon}
                             />
-                            <Text
-                              variant="body-default-s"
-                              onBackground={tone.text}
-                            >
-                              {insight.label}
-                            </Text>
+                            <AsciiShaderText asChild intensity="subtle">
+                              <Text
+                                variant="body-default-s"
+                                onBackground={tone.text}
+                              >
+                                {insight.label}
+                              </Text>
+                            </AsciiShaderText>
                           </Row>
                         );
                       })
                       : (
-                        <Text
-                          variant="body-default-s"
-                          onBackground="brand-strong"
-                        >
-                          No quick insights available.
-                        </Text>
+                        <AsciiShaderText asChild intensity="subtle">
+                          <Text
+                            variant="body-default-s"
+                            onBackground="brand-strong"
+                          >
+                            No quick insights available.
+                          </Text>
+                        </AsciiShaderText>
                       )}
                   </Column>
                 </Column>
@@ -1172,17 +1183,23 @@ export function MarketWatchlist() {
                               name={insight.icon}
                               onBackground={tone.icon}
                             />
-                            <Text
-                              variant="body-default-m"
-                              onBackground={tone.text}
-                            >
-                              {insight.label}
-                            </Text>
+                            <AsciiShaderText asChild intensity="subtle">
+                              <Text
+                                variant="body-default-m"
+                                onBackground={tone.text}
+                              >
+                                {insight.label}
+                              </Text>
+                            </AsciiShaderText>
                           </Row>
                         );
                       })
                       : (
-                        <Text variant="body-default-m">No focus guidance.</Text>
+                        <AsciiShaderText asChild intensity="subtle">
+                          <Text variant="body-default-m">
+                            No focus guidance.
+                          </Text>
+                        </AsciiShaderText>
                       )}
                   </Column>
                 </Column>
