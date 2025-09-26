@@ -63,7 +63,7 @@ const home: Home = {
   label: "Home",
   title: ogDefaults.title,
   description: ogDefaults.description,
-  headline: <>Run a professional trading desk without hiring a team.</>,
+  headline: <>Orchestrate every LLM provider from one workspace.</>,
   featured: {
     display: true,
     title: (
@@ -72,20 +72,20 @@ const home: Home = {
           onBackground="brand-strong"
           className="ml-4 font-semibold tracking-tight"
         >
-          Launch update: Adaptive desk automations
+          Launch update: Multi-LLM Studio 2.0
         </Text>
         <Line background="brand-alpha-strong" vert height="20" />
         <Text marginRight="4" onBackground="brand-medium">
-          Spin up a done-for-you routine in minutes
+          Route prompts across OpenAI, Anthropic, and Groq instantly
         </Text>
       </Row>
     ),
-    href: "/plans",
+    href: "/tools/multi-llm",
   },
   subline: (
     <>
-      Personalized onboarding, live mentor cues, and automation guardrails align
-      every session around a documented edge.
+      Benchmark responses, enforce routing policies, and stream observability
+      metrics without juggling vendor dashboards or custom glue code.
     </>
   ),
 };

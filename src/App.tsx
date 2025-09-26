@@ -8,7 +8,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { LandingPageShell } from "@/components/landing/LandingPageShell";
 import CheckoutPage from "./pages/CheckoutPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import { Footer } from "@/components/magic-portfolio/Footer";
+import { SiteFooter } from "@/components/navigation/SiteFooter";
 
 const queryClient = new QueryClient();
 
@@ -33,7 +33,7 @@ function App() {
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </main>
-            <Footer />
+            <SiteFooter />
           </div>
           <Toaster />
           <Sonner />
