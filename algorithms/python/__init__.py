@@ -100,6 +100,13 @@ from .executive_playbooks import (
     build_executive_playbooks,
     build_executive_sync_algorithm,
 )
+from .trading_psychology_elements import (
+    Element,
+    ElementProfile,
+    ElementSignal,
+    PsychologyTelemetry,
+    score_elements,
+)
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
@@ -175,6 +182,11 @@ __all__ = _trade_exports + [
     "EXECUTIVE_PLAYBOOKS",
     "build_executive_playbooks",
     "build_executive_sync_algorithm",
+    "Element",
+    "ElementProfile",
+    "ElementSignal",
+    "PsychologyTelemetry",
+    "score_elements",
     "VipAutoSyncJob",
     "VipAutoSyncReport",
     "VipMembershipProvider",
@@ -260,6 +272,11 @@ globals().update(
         "EXECUTIVE_PLAYBOOKS": EXECUTIVE_PLAYBOOKS,
         "build_executive_playbooks": build_executive_playbooks,
         "build_executive_sync_algorithm": build_executive_sync_algorithm,
+        "Element": Element,
+        "ElementProfile": ElementProfile,
+        "ElementSignal": ElementSignal,
+        "PsychologyTelemetry": PsychologyTelemetry,
+        "score_elements": score_elements,
         "StepExecution": StepExecution,
         "StepHandler": StepHandler,
         "StepResult": StepResult,
