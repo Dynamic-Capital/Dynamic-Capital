@@ -26,3 +26,23 @@ emissions:
 governance:
   multisig: "EQxxxxxxxx"
   timelockHours: 48
+
+themePasses:
+  daoMultisig: "EQCThemeDaoMultisig1111111111111111111111111111111"
+  royalty:
+    numerator: 500
+    denominator: 10000
+    destination: "EQCRoyaltySink1111111111111111111111111111111"
+  plannedMints:
+    - index: 0
+      name: Genesis Theme Pass
+      defaultPriority: 100
+      contentUri: "ipfs://dynamic-capital/theme/genesis.json"
+    - index: 1
+      name: Growth Theme Pass
+      defaultPriority: 80
+      contentUri: "ipfs://dynamic-capital/theme/growth.json"
+    - index: 2
+      name: Community Theme Pass
+      defaultPriority: 60
+      contentUri: "ipfs://dynamic-capital/theme/community.json"
