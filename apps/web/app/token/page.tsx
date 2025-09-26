@@ -53,6 +53,23 @@ const TOKEN_UTILITIES = [
   "Vote on treasury moves through the 48-hour guarded governance window.",
 ] as const;
 
+const DEX_POOLS = [
+  {
+    dex: "STON.fi",
+    pair: "DCT/USDT",
+    url: "https://app.ston.fi/swap?from=USDT&to=DCT",
+    description:
+      "Anchor the treasury's USD peg with a stablecoin pool that supports fiat settlements and OTC conversions.",
+  },
+  {
+    dex: "DeDust",
+    pair: "DCT/TON",
+    url: "https://dedust.io/swap/TON-DCT",
+    description:
+      "Route native TON liquidity for buybacks, burns, and member swaps directly against the treasury's base asset.",
+  },
+] as const;
+
 export const metadata = {
   title: "Dynamic Capital Token (DCT)",
   description:
@@ -185,6 +202,39 @@ export default function TokenPage() {
                 </Row>
                 <Text variant="body-default-m" onBackground="neutral-weak">
                   {tier.description}
+                </Text>
+              </Column>
+            </Row>
+          ))}
+        </Column>
+      </Column>
+
+      <Column gap="24" maxWidth={40} fillWidth>
+        <Heading variant="heading-strong-l">Active DEX pools</Heading>
+        <Column gap="16">
+          {DEX_POOLS.map((pool) => (
+            <Row
+              key={pool.pair}
+              gap="16"
+              background="surface"
+              border="neutral-alpha-medium"
+              radius="l"
+              padding="20"
+              s={{ direction: "column" }}
+            >
+              <Column gap="12" fillWidth>
+                <Row gap="12" vertical="center" wrap>
+                  <Icon name="repeat" onBackground="brand-medium" />
+                  <Heading variant="heading-strong-m">{pool.pair}</Heading>
+                  <Tag size="s" background="brand-alpha-weak">
+                    {pool.dex}
+                  </Tag>
+                </Row>
+                <Text variant="body-default-m" onBackground="neutral-weak">
+                  {pool.description}
+                </Text>
+                <Text variant="label-default-s" onBackground="brand-medium">
+                  {pool.url}
                 </Text>
               </Column>
             </Row>
