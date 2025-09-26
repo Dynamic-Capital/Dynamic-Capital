@@ -12,6 +12,11 @@ import {
 } from "@/components/dynamic-ui-system";
 import type { IconName } from "@/resources/icons";
 import { formatIsoTime } from "@/utils/isoFormat";
+import {
+  type AssetClass,
+  findInstrumentMetadata,
+  getInstrumentMetadata,
+} from "@/data/instruments";
 
 interface StrategyPlaybook {
   automation: string;
@@ -103,25 +108,39 @@ const BIAS_DETAILS: Record<MarketWatchlistItem["bias"], BiasVisual> = {
   },
 };
 
-const WATCHLIST: MarketWatchlistItem[] = [
+const CATEGORY_BY_ASSET_CLASS: Record<AssetClass, InstrumentCategory> = {
+  commodities: "Metals",
+  currencies: "FX",
+  indices: "Indices",
+  crypto: "Crypto",
+};
+
+const DEFAULT_NUMBER_FORMAT: Intl.NumberFormatOptions = {
+  style: "decimal",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+};
+
+type WatchlistConfigEntry =
+  & Omit<
+    MarketWatchlistItem,
+    "symbol" | "displaySymbol" | "name" | "category" | "dataKey" | "format"
+  >
+  & {
+    instrumentId: string;
+    formatOverride?: Intl.NumberFormatOptions;
+    categoryOverride?: InstrumentCategory;
+  };
+
+const WATCHLIST_CONFIG: WatchlistConfigEntry[] = [
   {
-    symbol: "XAUUSD",
-    displaySymbol: "XAU/USD",
-    name: "Spot gold",
-    category: "Metals",
+    instrumentId: "XAUUSD",
     session: "Asia accumulation",
     focus:
       "Risk-off flows keep gold bid; running partial hedge overlay with alerts for a break of $2,400 support to flip defensive.",
     beginnerTip:
       "Gold is the safety trade. We stay cautious if price slips under $2,400 and look for steadier moves before adding risk.",
     bias: "Monitoring",
-    dataKey: "XAUUSD",
-    format: {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
     playbook: {
       automation:
         "Metals algo sync trims exposure if $2,400 gives way and scales back in on reclaim.",
@@ -140,22 +159,13 @@ const WATCHLIST: MarketWatchlistItem[] = [
     },
   },
   {
-    symbol: "DXY",
-    displaySymbol: "DXY",
-    name: "US Dollar Index",
-    category: "Indices",
+    instrumentId: "DXY",
     session: "Global dollar flows",
     focus:
       "Watching rate expectations and Treasury auctions for momentum cues. Dollar strength keeps risk desks defensive on global beta.",
     beginnerTip:
       "When the dollar index rises, other currencies and risk assets usually cool off. Strong DXY means scale position sizes down.",
     bias: "Long",
-    dataKey: "DXY",
-    format: {
-      style: "decimal",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
     playbook: {
       automation:
         "Macro hedge algo scales defensive overlays as the dollar momentum firmed up.",
@@ -173,23 +183,13 @@ const WATCHLIST: MarketWatchlistItem[] = [
     },
   },
   {
-    symbol: "USDJPY",
-    displaySymbol: "USD/JPY",
-    name: "US dollar vs Japanese yen",
-    category: "FX",
+    instrumentId: "USDJPY",
     session: "Tokyo carry unwind",
     focus:
       "Tracking MoF rhetoric and US yields for timing on fresh shorts. Alerted automation for spikes sub 147.00 as risk trigger.",
     beginnerTip:
       "A falling USD/JPY means the yen is getting stronger. Quick drops toward 147 are our cue to slow down and reassess entries.",
     bias: "Monitoring",
-    dataKey: "USDJPY",
-    format: {
-      style: "currency",
-      currency: "JPY",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
     playbook: {
       automation:
         "Asia FX algo arms fresh shorts on spikes sub 147.00 and reloads into orderly pullbacks.",
@@ -208,23 +208,13 @@ const WATCHLIST: MarketWatchlistItem[] = [
     },
   },
   {
-    symbol: "GBPUSD",
-    displaySymbol: "GBP/USD",
-    name: "British pound vs US dollar",
-    category: "FX",
+    instrumentId: "GBPUSD",
     session: "London spot flow",
     focus:
       "Watching BoE commentary and US data for continuation shorts while price is capped below key weekly supply near 1.36.",
     beginnerTip:
       "Sellers stay in control while GBP/USD holds below 1.36. Keep any long ideas small and respect the broader downtrend.",
     bias: "Short",
-    dataKey: "GBPUSD",
-    format: {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
-    },
     playbook: {
       automation:
         "Cable short algo scales clips while price stays below weekly supply near 1.3600.",
@@ -243,23 +233,13 @@ const WATCHLIST: MarketWatchlistItem[] = [
     },
   },
   {
-    symbol: "BTCUSD",
-    displaySymbol: "BTC/USD",
-    name: "Bitcoin spot",
-    category: "Crypto",
+    instrumentId: "BTCUSD",
     session: "London momentum",
     focus:
       "Scaling automation on the $64k breakout shelf while funding stays balanced. Monitoring for exhaustion near $66k liquidity.",
     beginnerTip:
       "Bitcoin pushing above $64k keeps bullish momentum alive, but we plan exits near $66k in case buyers tire out.",
     bias: "Long",
-    dataKey: "BTCUSD",
-    format: {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    },
     playbook: {
       automation:
         "Digital assets algo scales in above the $64k shelf and trims into $66k liquidity.",
@@ -277,23 +257,13 @@ const WATCHLIST: MarketWatchlistItem[] = [
     },
   },
   {
-    symbol: "ETHUSD",
-    displaySymbol: "ETH/USD",
-    name: "Ether spot",
-    category: "Crypto",
+    instrumentId: "ETHUSD",
     session: "US overlap",
     focus:
       "Looking for acceptance above $3.1k to continue the weekly trend. Mentors tightening invalidation beneath $2.95k swing lows.",
     beginnerTip:
       "Ether needs to hold above $3.1k to confirm the uptrend. Below $2.95k we step aside and wait for clarity.",
     bias: "Long",
-    dataKey: "ETHUSD",
-    format: {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    },
     playbook: {
       automation:
         "ETH momentum algo tightens invalidation beneath $2.95k and adds back above $3.10k.",
@@ -313,26 +283,55 @@ const WATCHLIST: MarketWatchlistItem[] = [
   },
 ];
 
-const MARKET_CODES = [
-  "XAU-USD",
-  "GBP-USD",
-  "USD-JPY",
-  "EUR-USD",
-  "USD-CAD",
-  "USD-SEK",
-  "USD-CHF",
-  "BTC-USD",
-  "ETH-USD",
+const WATCHLIST: MarketWatchlistItem[] = WATCHLIST_CONFIG.map((item) => {
+  const metadata = getInstrumentMetadata(item.instrumentId);
+  const category = item.categoryOverride ??
+    CATEGORY_BY_ASSET_CLASS[metadata.assetClass];
+  const format = item.formatOverride ?? metadata.format ??
+    DEFAULT_NUMBER_FORMAT;
+
+  return {
+    symbol: metadata.id,
+    displaySymbol: metadata.displaySymbol,
+    name: metadata.name,
+    category,
+    session: item.session,
+    focus: item.focus,
+    beginnerTip: item.beginnerTip,
+    bias: item.bias,
+    dataKey: metadata.id,
+    format,
+    playbook: item.playbook,
+  };
+});
+
+const toMarketCode = (symbol: string) => {
+  const metadata = findInstrumentMetadata(symbol);
+  if (!metadata?.base || !metadata.quote) {
+    return null;
+  }
+  return `${metadata.base}-${metadata.quote}`;
+};
+
+const DXY_COMPOSITION: Array<{ instrumentId: string; exponent: number }> = [
+  { instrumentId: "EURUSD", exponent: -0.576 },
+  { instrumentId: "USDJPY", exponent: 0.136 },
+  { instrumentId: "GBPUSD", exponent: -0.119 },
+  { instrumentId: "USDCAD", exponent: 0.091 },
+  { instrumentId: "USDSEK", exponent: 0.042 },
+  { instrumentId: "USDCHF", exponent: 0.036 },
 ];
 
-const DXY_COMPOSITION: Array<{ key: string; exponent: number }> = [
-  { key: "EURUSD", exponent: -0.576 },
-  { key: "USDJPY", exponent: 0.136 },
-  { key: "GBPUSD", exponent: -0.119 },
-  { key: "USDCAD", exponent: 0.091 },
-  { key: "USDSEK", exponent: 0.042 },
-  { key: "USDCHF", exponent: 0.036 },
-];
+const MARKET_CODES = Array.from(
+  new Set(
+    [
+      ...WATCHLIST.map((item) => item.dataKey),
+      ...DXY_COMPOSITION.map((entry) => entry.instrumentId),
+    ]
+      .map(toMarketCode)
+      .filter((code): code is string => Boolean(code)),
+  ),
+);
 
 const MARKET_ENDPOINT = `https://economia.awesomeapi.com.br/last/${
   MARKET_CODES.join(",")
@@ -567,8 +566,8 @@ const computeDxyQuote = (
   let low = base;
   let changeDecimal = 0;
 
-  for (const { key, exponent } of DXY_COMPOSITION) {
-    const quote = quotes[key];
+  for (const { instrumentId, exponent } of DXY_COMPOSITION) {
+    const quote = quotes[instrumentId];
     if (!quote) {
       return undefined;
     }

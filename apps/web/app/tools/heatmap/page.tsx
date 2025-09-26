@@ -25,7 +25,7 @@ export default function HeatmapToolPage() {
         </Text>
       </Column>
       <Column maxWidth={64} fillWidth>
-        <HeatmapTool />
+        <HeatmapTool assetClass="commodities" />
       </Column>
     </Column>
   );

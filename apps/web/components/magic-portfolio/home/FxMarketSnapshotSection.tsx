@@ -27,6 +27,11 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  DEFAULT_FX_PAIRS,
+  getInstrumentMetadata,
+  PRIMARY_CURRENCY_CODES,
+} from "@/data/instruments";
 
 type CurrencyStrength = {
   code: string;
@@ -83,16 +88,8 @@ type InsightCardProps = {
   children: ReactNode;
 };
 
-const DISPLAY_CURRENCIES: Array<CurrencyStrength["code"]> = [
-  "JPY",
-  "AUD",
-  "EUR",
-  "CHF",
-  "CAD",
-  "GBP",
-  "USD",
-  "NZD",
-];
+const DISPLAY_CURRENCIES: Array<CurrencyStrength["code"]> =
+  PRIMARY_CURRENCY_CODES.map((code) => code as CurrencyStrength["code"]);
 
 const FALLBACK_STRENGTH: CurrencyStrength[] = DISPLAY_CURRENCIES.map(
   (code, index) => ({
@@ -179,28 +176,13 @@ type CurrencySnapshot = {
   lastUpdated: Date | null;
 };
 
-const FX_PAIRS: FxPair[] = [
-  { base: "EUR", quote: "USD", symbol: "EURUSD" },
-  { base: "GBP", quote: "USD", symbol: "GBPUSD" },
-  { base: "AUD", quote: "USD", symbol: "AUDUSD" },
-  { base: "NZD", quote: "USD", symbol: "NZDUSD" },
-  { base: "USD", quote: "CAD", symbol: "USDCAD" },
-  { base: "USD", quote: "CHF", symbol: "USDCHF" },
-  { base: "USD", quote: "JPY", symbol: "USDJPY" },
-  { base: "EUR", quote: "GBP", symbol: "EURGBP" },
-  { base: "EUR", quote: "AUD", symbol: "EURAUD" },
-  { base: "EUR", quote: "NZD", symbol: "EURNZD" },
-  { base: "GBP", quote: "AUD", symbol: "GBPAUD" },
-  { base: "AUD", quote: "NZD", symbol: "AUDNZD" },
-  { base: "EUR", quote: "JPY", symbol: "EURJPY" },
-  { base: "GBP", quote: "JPY", symbol: "GBPJPY" },
-  { base: "AUD", quote: "JPY", symbol: "AUDJPY" },
-  { base: "NZD", quote: "JPY", symbol: "NZDJPY" },
-  { base: "CAD", quote: "JPY", symbol: "CADJPY" },
-  { base: "CHF", quote: "JPY", symbol: "CHFJPY" },
-  { base: "EUR", quote: "CHF", symbol: "EURCHF" },
-  { base: "GBP", quote: "CHF", symbol: "GBPCHF" },
-];
+const FX_PAIRS: FxPair[] = DEFAULT_FX_PAIRS.map((instrumentId) => {
+  const metadata = getInstrumentMetadata(instrumentId);
+  if (!metadata.base || !metadata.quote) {
+    throw new Error(`Missing base/quote metadata for ${instrumentId}`);
+  }
+  return { base: metadata.base, quote: metadata.quote, symbol: metadata.id };
+});
 
 const FX_ENDPOINT = `https://economia.awesomeapi.com.br/last/${
   FX_PAIRS.map(

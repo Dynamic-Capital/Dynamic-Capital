@@ -14,26 +14,35 @@ import {
 import { useSupabase } from "@/context/SupabaseProvider";
 
 import type { Colors } from "@/components/dynamic-ui-system";
+import {
+  HEATMAP_CONFIGS,
+  type HeatmapAssetClass,
+  type HeatmapMatrixPointConfig,
+  type HeatmapMomentumClassification,
+  type HeatmapMomentumEntryConfig,
+  type HeatmapSeriesConfig,
+  type HeatmapStrengthEntryConfig,
+  type HeatmapTrendDirection,
+} from "./heatmapConfigs";
+import {
+  findInstrumentMetadata,
+  formatInstrumentLabel,
+} from "@/data/instruments";
 
-type Sentiment = "Bullish" | "Bearish" | "Neutral";
-
-type CommodityStrengthEntry = {
-  symbol: string;
-  name: string;
-  score: number;
-  dayChange: string;
-  sentiment: Sentiment;
+type StrengthEntry = HeatmapStrengthEntryConfig & {
+  instrumentId: string;
+  symbolLabel: string;
+  nameLabel: string;
 };
 
-type RelativeStrengthSeries = {
-  symbol: string;
+type RelativeStrengthSeries = HeatmapSeriesConfig & {
+  instrumentId: string;
   label: string;
-  values: number[];
 };
 
 type RelativeStrengthGeometry = {
   series: Array<{
-    symbol: string;
+    instrumentId: string;
     label: string;
     path: string;
     color: string;
@@ -43,15 +52,9 @@ type RelativeStrengthGeometry = {
   yTicks: Array<{ value: number; y: number }>;
 };
 
-type TrendDirection = "Bullish" | "Bearish" | "Balancing";
-
-type MatrixPoint = {
-  symbol: string;
+type MatrixPoint = HeatmapMatrixPointConfig & {
+  instrumentId: string;
   label: string;
-  shortTerm: number;
-  longTerm: number;
-  conviction: number;
-  direction: TrendDirection;
 };
 
 type MatrixGeometry = {
@@ -62,17 +65,11 @@ type MatrixGeometry = {
   };
 };
 
-type MomentumClassification =
-  | "Very Bullish"
-  | "Bullish"
-  | "Bearish"
-  | "Very Bearish";
-
 type MomentumEntry = {
   symbol: string;
   display: string;
   score: number;
-  classification?: MomentumClassification;
+  classification?: HeatmapMomentumClassification;
   updatedAt?: string;
 };
 
@@ -87,92 +84,6 @@ type MarketMoverApiEntry = {
 type MarketMoversResponse = {
   data?: MarketMoverApiEntry[];
 };
-
-const COMMODITY_STRENGTH: CommodityStrengthEntry[] = [
-  {
-    symbol: "XAG",
-    name: "XAG/USD",
-    score: 47,
-    dayChange: "-0.5%",
-    sentiment: "Bearish",
-  },
-  {
-    symbol: "NGAS",
-    name: "NGAS",
-    score: 58,
-    dayChange: "+2.3%",
-    sentiment: "Neutral",
-  },
-  {
-    symbol: "WHEATF",
-    name: "WHEATF",
-    score: 39,
-    dayChange: "-1.2%",
-    sentiment: "Bearish",
-  },
-  {
-    symbol: "UKOil",
-    name: "UKOil",
-    score: 63,
-    dayChange: "+1.1%",
-    sentiment: "Bullish",
-  },
-  {
-    symbol: "USOil",
-    name: "USOil",
-    score: 66,
-    dayChange: "+0.8%",
-    sentiment: "Bullish",
-  },
-  {
-    symbol: "SOYF",
-    name: "SOYF",
-    score: 68,
-    dayChange: "+1.4%",
-    sentiment: "Bullish",
-  },
-  {
-    symbol: "XAU",
-    name: "XAU/USD",
-    score: 81,
-    dayChange: "+0.7%",
-    sentiment: "Bullish",
-  },
-  {
-    symbol: "CORNF",
-    name: "CORNF",
-    score: 52,
-    dayChange: "+0.6%",
-    sentiment: "Neutral",
-  },
-  {
-    symbol: "Copper",
-    name: "Copper",
-    score: 76,
-    dayChange: "+0.9%",
-    sentiment: "Bullish",
-  },
-];
-
-const RELATIVE_STRENGTH_LABELS = [
-  "Aug 29",
-  "Sep 4",
-  "Sep 10",
-  "Sep 16",
-  "Sep 23",
-];
-
-const RELATIVE_STRENGTH_SERIES: RelativeStrengthSeries[] = [
-  { symbol: "Copper", label: "Copper", values: [48, 56, 62, 70, 78] },
-  { symbol: "CORNF", label: "CORNF", values: [34, 42, 47, 52, 58] },
-  { symbol: "NGAS", label: "NGAS", values: [32, 36, 41, 44, 49] },
-  { symbol: "SOYF", label: "SOYF", values: [46, 52, 58, 63, 68] },
-  { symbol: "UKOil", label: "UKOil", values: [44, 49, 54, 59, 64] },
-  { symbol: "USOil", label: "USOil", values: [42, 47, 53, 58, 63] },
-  { symbol: "WHEATF", label: "WHEATF", values: [30, 34, 36, 38, 41] },
-  { symbol: "XAG/USD", label: "XAG/USD", values: [45, 48, 46, 49, 53] },
-  { symbol: "XAU/USD", label: "XAU/USD", values: [58, 62, 66, 72, 78] },
-];
 
 const CHART_DIMENSIONS = {
   width: 640,
@@ -189,111 +100,8 @@ const MATRIX_DIMENSIONS = {
 
 const MARKET_MOVERS_REFRESH_MS = 60_000;
 
-const MATRIX_POINTS: MatrixPoint[] = [
-  {
-    symbol: "XAU/USD",
-    label: "Gold",
-    shortTerm: 74,
-    longTerm: 78,
-    conviction: 86,
-    direction: "Bullish",
-  },
-  {
-    symbol: "XAG/USD",
-    label: "Silver",
-    shortTerm: 52,
-    longTerm: 58,
-    conviction: 64,
-    direction: "Balancing",
-  },
-  {
-    symbol: "Copper",
-    label: "Copper",
-    shortTerm: 68,
-    longTerm: 72,
-    conviction: 81,
-    direction: "Bullish",
-  },
-  {
-    symbol: "NGAS",
-    label: "Nat gas",
-    shortTerm: 46,
-    longTerm: 42,
-    conviction: 58,
-    direction: "Bearish",
-  },
-  {
-    symbol: "SOYF",
-    label: "Soybeans",
-    shortTerm: 60,
-    longTerm: 56,
-    conviction: 63,
-    direction: "Bullish",
-  },
-  {
-    symbol: "UKOil",
-    label: "UKOil",
-    shortTerm: 64,
-    longTerm: 66,
-    conviction: 72,
-    direction: "Bullish",
-  },
-  {
-    symbol: "USOil",
-    label: "USOil",
-    shortTerm: 58,
-    longTerm: 61,
-    conviction: 68,
-    direction: "Bullish",
-  },
-  {
-    symbol: "CORNF",
-    label: "Corn",
-    shortTerm: 44,
-    longTerm: 48,
-    conviction: 52,
-    direction: "Bearish",
-  },
-  {
-    symbol: "WHEATF",
-    label: "Wheat",
-    shortTerm: 36,
-    longTerm: 40,
-    conviction: 45,
-    direction: "Bearish",
-  },
-];
-
-const DEFAULT_TREND_MOMENTUM: MomentumEntry[] = [
-  { symbol: "Copper", display: "Copper", score: 78 },
-  { symbol: "CORNF", display: "CORNF", score: 46 },
-  { symbol: "NGAS", display: "NGAS", score: 58 },
-  { symbol: "SOYF", display: "SOYF", score: 67 },
-  { symbol: "UKOil", display: "UKOil", score: 73 },
-  { symbol: "USOil", display: "USOil", score: 71 },
-  { symbol: "WHEATF", display: "WHEATF", score: 38 },
-  { symbol: "XAG", display: "XAG/USD", score: 55 },
-  { symbol: "XAU", display: "XAU/USD", score: 84 },
-  { symbol: "USD", display: "USD", score: 62 },
-  { symbol: "BTC", display: "BTC", score: 74 },
-  { symbol: "ETH", display: "ETH", score: 68 },
-  { symbol: "CHN50", display: "CHN50", score: 54 },
-  { symbol: "AUS200", display: "AUS200", score: 57 },
-  { symbol: "UK100", display: "UK100", score: 52 },
-  { symbol: "FRA40", display: "FRA40", score: 51 },
-  { symbol: "EUSTX50", display: "EUSTX50", score: 50 },
-  { symbol: "JPN225", display: "JPN225", score: 59 },
-  { symbol: "HKG33", display: "HKG33", score: 45 },
-  { symbol: "ESP35", display: "ESP35", score: 53 },
-  { symbol: "US30", display: "US30", score: 61 },
-  { symbol: "GER30", display: "GER30", score: 58 },
-  { symbol: "NAS100", display: "NAS100", score: 65 },
-  { symbol: "SPX500", display: "SPX500", score: 63 },
-  { symbol: "US2000", display: "US2000", score: 49 },
-];
-
 const SENTIMENT_STYLES: Record<
-  Sentiment,
+  HeatmapStrengthEntryConfig["sentiment"],
   { background: Colors; icon: string }
 > = {
   Bullish: { background: "brand-alpha-weak", icon: "trending-up" },
@@ -302,7 +110,7 @@ const SENTIMENT_STYLES: Record<
 };
 
 const DIRECTION_STYLES: Record<
-  TrendDirection,
+  HeatmapTrendDirection,
   { background: Colors; icon: string }
 > = {
   Bullish: { background: "brand-alpha-weak", icon: "arrow-up-right" },
@@ -310,147 +118,15 @@ const DIRECTION_STYLES: Record<
   Balancing: { background: "neutral-alpha-weak", icon: "move" },
 };
 
-const getChartColor = (index: number) => {
-  const paletteIndex = (index % 5) + 1;
-  if (index < 5) {
-    return `hsl(var(--chart-${paletteIndex}))`;
-  }
-  return `hsl(var(--chart-${paletteIndex}) / 0.6)`;
-};
-
-const buildRelativeStrengthGeometry = (): RelativeStrengthGeometry => {
-  const { width, height, marginX, marginY } = CHART_DIMENSIONS;
-  const usableWidth = width - marginX * 2;
-  const usableHeight = height - marginY * 2;
-  const minValue = 0;
-  const maxValue = 100;
-  const valueRange = maxValue - minValue;
-
-  const scaleX = (index: number) =>
-    marginX +
-    (usableWidth / Math.max(RELATIVE_STRENGTH_LABELS.length - 1, 1)) * index;
-  const scaleY = (value: number) =>
-    height - marginY - ((value - minValue) / valueRange) * usableHeight;
-
-  const series = RELATIVE_STRENGTH_SERIES.map((item, index) => {
-    const coordinates = item.values.map((value, valueIndex) => ({
-      x: scaleX(valueIndex),
-      y: scaleY(value),
-    }));
-    const path = coordinates
-      .map((point, pointIndex) =>
-        `${pointIndex === 0 ? "M" : "L"}${point.x} ${point.y}`
-      )
-      .join(" ");
-
-    const lastValue = item.values[item.values.length - 1];
-    const lastPoint = coordinates[coordinates.length - 1];
-
-    return {
-      symbol: item.symbol,
-      label: item.label,
-      path,
-      color: getChartColor(index),
-      lastPoint: { ...lastPoint, value: lastValue },
-    };
-  });
-
-  const xTicks = RELATIVE_STRENGTH_LABELS.map((label, index) => ({
-    label,
-    x: scaleX(index),
-  }));
-
-  const yTicks = [20, 40, 60, 80, 100].map((value) => ({
-    value,
-    y: scaleY(value),
-  }));
-
-  return { series, xTicks, yTicks };
-};
-
-const RELATIVE_STRENGTH_GEOMETRY = buildRelativeStrengthGeometry();
-
-const buildMatrixGeometry = (): MatrixGeometry => {
-  const { width, height, margin } = MATRIX_DIMENSIONS;
-  const usableWidth = width - margin * 2;
-  const usableHeight = height - margin * 2;
-
-  const scale = (value: number) => value / 100;
-
-  const toX = (value: number) => margin + scale(value) * usableWidth;
-  const toY = (value: number) => height - margin - scale(value) * usableHeight;
-
-  const points = MATRIX_POINTS.map((point) => ({
-    ...point,
-    x: toX(point.longTerm),
-    y: toY(point.shortTerm),
-  }));
-
-  const buildTicks = () =>
-    [20, 40, 60, 80].map((value) => ({
-      value,
-      x: toX(value),
-    }));
-
-  const buildYTicks = () =>
-    [20, 40, 60, 80].map((value) => ({
-      value,
-      y: toY(value),
-    }));
-
-  return {
-    points,
-    axes: {
-      xTicks: buildTicks(),
-      yTicks: buildYTicks(),
-    },
-  };
-};
-
-const MATRIX_GEOMETRY = buildMatrixGeometry();
-
-const classifyMomentum = (score: number): MomentumClassification => {
-  if (score >= 70) {
-    return "Very Bullish";
-  }
-  if (score >= 50) {
-    return "Bullish";
-  }
-  if (score >= 30) {
-    return "Bearish";
-  }
-  return "Very Bearish";
-};
-
 const MOMENTUM_CATEGORIES = [
   "Very Bearish",
   "Bearish",
   "Bullish",
   "Very Bullish",
-] as const satisfies readonly MomentumClassification[];
-
-const isMomentumClassification = (
-  value: string | undefined,
-): value is MomentumClassification =>
-  Boolean(
-    value && MOMENTUM_CATEGORIES.includes(value as MomentumClassification),
-  );
-
-const resolveMomentumClassification = (
-  classification: string | undefined,
-  score: number,
-): MomentumClassification =>
-  isMomentumClassification(classification)
-    ? classification
-    : classifyMomentum(score);
-
-const clampMomentumScore = (score: number) => Math.max(0, Math.min(100, score));
-
-const formatMomentumScore = (score: number) =>
-  Number.isInteger(score) ? score.toFixed(0) : score.toFixed(1);
+] as const satisfies readonly HeatmapMomentumClassification[];
 
 const MOMENTUM_STYLES: Record<
-  MomentumClassification,
+  HeatmapMomentumClassification,
   { label: string; fill: string; track: string }
 > = {
   "Very Bullish": {
@@ -475,22 +151,258 @@ const MOMENTUM_STYLES: Record<
   },
 };
 
-const SENTIMENT_LABEL = "Market Snapshot";
+const getChartColor = (index: number) => {
+  const paletteIndex = (index % 5) + 1;
+  if (index < 5) {
+    return `hsl(var(--chart-${paletteIndex}))`;
+  }
+  return `hsl(var(--chart-${paletteIndex}) / 0.6)`;
+};
+
+const buildStrengthEntries = (
+  entries: HeatmapStrengthEntryConfig[],
+): StrengthEntry[] =>
+  entries.map((entry) => {
+    const metadata = findInstrumentMetadata(entry.instrumentId);
+    return {
+      ...entry,
+      instrumentId: entry.instrumentId,
+      symbolLabel: metadata
+        ? metadata.shortCode ?? metadata.displaySymbol
+        : entry.instrumentId,
+      nameLabel: metadata?.name ?? metadata?.displaySymbol ??
+        entry.instrumentId,
+    };
+  });
+
+const buildSeries = (
+  series: HeatmapSeriesConfig[],
+): RelativeStrengthSeries[] =>
+  series.map((entry) => ({
+    ...entry,
+    instrumentId: entry.instrumentId,
+    label: entry.label ??
+      formatInstrumentLabel(entry.instrumentId, { variant: "display" }),
+  }));
+
+const buildRelativeStrengthGeometry = (
+  labels: string[],
+  seriesConfig: HeatmapSeriesConfig[],
+): RelativeStrengthGeometry => {
+  const { width, height, marginX, marginY } = CHART_DIMENSIONS;
+  const usableWidth = width - marginX * 2;
+  const usableHeight = height - marginY * 2;
+  const minValue = 0;
+  const maxValue = 100;
+  const valueRange = maxValue - minValue;
+
+  const scaleX = (index: number) =>
+    marginX + (usableWidth / Math.max(labels.length - 1, 1)) * index;
+  const scaleY = (value: number) =>
+    height - marginY - ((value - minValue) / valueRange) * usableHeight;
+
+  const resolvedSeries = buildSeries(seriesConfig);
+
+  const series = resolvedSeries.map((item, index) => {
+    const coordinates = item.values.map((value, valueIndex) => ({
+      x: scaleX(valueIndex),
+      y: scaleY(value),
+    }));
+    const path = coordinates
+      .map((point, pointIndex) =>
+        `${pointIndex === 0 ? "M" : "L"}${point.x} ${point.y}`
+      )
+      .join(" ");
+
+    const lastValue = item.values[item.values.length - 1];
+    const lastPoint = coordinates[coordinates.length - 1];
+
+    return {
+      instrumentId: item.instrumentId,
+      label: item.label,
+      path,
+      color: getChartColor(index),
+      lastPoint: { ...lastPoint, value: lastValue },
+    };
+  });
+
+  const xTicks = labels.map((label, index) => ({
+    label,
+    x: scaleX(index),
+  }));
+
+  const yTicks = [20, 40, 60, 80, 100].map((value) => ({
+    value,
+    y: scaleY(value),
+  }));
+
+  return { series, xTicks, yTicks };
+};
+
+const buildMatrixPoints = (
+  points: HeatmapMatrixPointConfig[],
+): MatrixPoint[] =>
+  points.map((point) => ({
+    ...point,
+    instrumentId: point.instrumentId,
+    label: point.label ??
+      formatInstrumentLabel(point.instrumentId, { variant: "display" }),
+  }));
+
+const buildMatrixGeometry = (
+  points: HeatmapMatrixPointConfig[],
+): MatrixGeometry => {
+  const { width, height, margin } = MATRIX_DIMENSIONS;
+  const usableWidth = width - margin * 2;
+  const usableHeight = height - margin * 2;
+
+  const scale = (value: number) => value / 100;
+
+  const toX = (value: number) => margin + scale(value) * usableWidth;
+  const toY = (value: number) => height - margin - scale(value) * usableHeight;
+
+  const resolvedPoints = buildMatrixPoints(points);
+
+  const mappedPoints = resolvedPoints.map((point) => ({
+    ...point,
+    x: toX(point.longTerm),
+    y: toY(point.shortTerm),
+  }));
+
+  const buildTicks = () =>
+    [20, 40, 60, 80].map((value) => ({
+      value,
+      x: toX(value),
+    }));
+
+  const buildYTicks = () =>
+    [20, 40, 60, 80].map((value) => ({
+      value,
+      y: toY(value),
+    }));
+
+  return {
+    points: mappedPoints,
+    axes: {
+      xTicks: buildTicks(),
+      yTicks: buildYTicks(),
+    },
+  };
+};
+
+const isMomentumClassification = (
+  value: string | undefined,
+): value is HeatmapMomentumClassification =>
+  Boolean(
+    value &&
+      MOMENTUM_CATEGORIES.includes(value as HeatmapMomentumClassification),
+  );
+
+const classifyMomentum = (score: number): HeatmapMomentumClassification => {
+  if (score >= 70) {
+    return "Very Bullish";
+  }
+  if (score >= 50) {
+    return "Bullish";
+  }
+  if (score >= 30) {
+    return "Bearish";
+  }
+  return "Very Bearish";
+};
+
+const resolveMomentumClassification = (
+  entry: HeatmapMomentumEntryConfig,
+  score: number,
+): HeatmapMomentumClassification =>
+  isMomentumClassification(entry.classification)
+    ? entry.classification
+    : classifyMomentum(score);
+
+const clampMomentumScore = (score: number) => Math.max(0, Math.min(100, score));
+
+const formatMomentumScore = (score: number) =>
+  Number.isInteger(score) ? score.toFixed(0) : score.toFixed(1);
+
+const normaliseMomentumEntry = (
+  entry: HeatmapMomentumEntryConfig,
+): MomentumEntry => {
+  const score = clampMomentumScore(entry.score);
+  const display = entry.display ??
+    formatInstrumentLabel(entry.instrumentId, { variant: "display" });
+  return {
+    symbol: entry.instrumentId,
+    display,
+    score,
+    classification: resolveMomentumClassification(entry, score),
+  };
+};
+
+const normaliseApiMomentumEntry = (
+  entry: MarketMoverApiEntry,
+): MomentumEntry => {
+  const rawScore = Number(entry.score);
+  const numericScore = clampMomentumScore(
+    Number.isFinite(rawScore) ? rawScore : 0,
+  );
+
+  const configEntry: HeatmapMomentumEntryConfig = {
+    instrumentId: entry.symbol,
+    score: numericScore,
+    display: entry.display,
+    classification: entry.classification as
+      | HeatmapMomentumClassification
+      | undefined,
+  };
+
+  return {
+    ...normaliseMomentumEntry(configEntry),
+    updatedAt: entry.updated_at ?? undefined,
+  };
+};
 
 export type HeatmapToolProps = {
   id?: string;
+  assetClass: HeatmapAssetClass;
 };
 
-export function HeatmapTool({ id }: HeatmapToolProps) {
+export function HeatmapTool({ id, assetClass }: HeatmapToolProps) {
+  const config = HEATMAP_CONFIGS[assetClass];
   const { supabase } = useSupabase();
+
+  const strengthEntries = useMemo(
+    () => buildStrengthEntries(config.strength.entries),
+    [config.strength.entries],
+  );
+
+  const relativeStrengthGeometry = useMemo(
+    () =>
+      buildRelativeStrengthGeometry(config.chart.labels, config.chart.series),
+    [config.chart.labels, config.chart.series],
+  );
+
+  const matrixGeometry = useMemo(
+    () => buildMatrixGeometry(config.matrix.points),
+    [config.matrix.points],
+  );
+
+  const defaultMomentum = useMemo(
+    () => config.marketMovers.defaultEntries.map(normaliseMomentumEntry),
+    [config.marketMovers.defaultEntries],
+  );
+
   const [trendMomentum, setTrendMomentum] = useState<MomentumEntry[]>(
-    DEFAULT_TREND_MOMENTUM,
+    defaultMomentum,
   );
   const [isLoadingMovers, setIsLoadingMovers] = useState(false);
   const [moversError, setMoversError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setTrendMomentum(defaultMomentum);
+  }, [defaultMomentum]);
+
   const momentumStats = useMemo(() => {
-    const counts: Record<MomentumClassification, number> = {
+    const counts: Record<HeatmapMomentumClassification, number> = {
       "Very Bearish": 0,
       Bearish: 0,
       Bullish: 0,
@@ -499,10 +411,9 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
     let latest: Date | null = null;
 
     for (const entry of trendMomentum) {
-      const classification = resolveMomentumClassification(
-        entry.classification,
-        entry.score,
-      );
+      const classification = entry.classification
+        ? entry.classification
+        : classifyMomentum(entry.score);
       counts[classification] += 1;
 
       if (entry.updatedAt) {
@@ -537,23 +448,6 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
     let isMounted = true;
     let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
-    const normaliseEntry = (entry: MarketMoverApiEntry): MomentumEntry => {
-      const rawScore = Number(entry.score);
-      const numericScore = clampMomentumScore(
-        Number.isFinite(rawScore) ? rawScore : 0,
-      );
-      return {
-        symbol: entry.symbol,
-        display: entry.display,
-        score: numericScore,
-        classification: resolveMomentumClassification(
-          entry.classification,
-          numericScore,
-        ),
-        updatedAt: entry.updated_at ?? undefined,
-      };
-    };
-
     async function fetchMovers() {
       if (!isMounted) {
         return;
@@ -573,7 +467,7 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
         if (error) {
           setMoversError(error.message ?? "Failed to load market movers");
         } else if (Array.isArray(data?.data)) {
-          setTrendMomentum(data.data.map(normaliseEntry));
+          setTrendMomentum(data.data.map(normaliseApiMomentumEntry));
           setMoversError(null);
         }
       } catch (error: unknown) {
@@ -629,14 +523,12 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
       padding="xl"
       gap="32"
       shadow="l"
-      aria-label={SENTIMENT_LABEL}
+      aria-label={config.snapshotLabel}
     >
       <Column gap="12" maxWidth={32}>
-        <Heading variant="display-strong-xs">Market snapshot</Heading>
+        <Heading variant="display-strong-xs">{config.hero.title}</Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          A consolidated read on the desk&apos;s cross-asset coverage – from
-          commodity momentum to index leadership – so you can calibrate exposure
-          in seconds.
+          {config.hero.description}
         </Text>
       </Column>
 
@@ -652,20 +544,19 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
         >
           <Column gap="8">
             <Heading as="h3" variant="heading-strong-s">
-              Commodities Strength
+              {config.strength.copy.title}
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak">
-              Quick view of contract-level momentum, sentiment, and intraday
-              bias to anchor your commodity playbook.
+              {config.strength.copy.description}
             </Text>
           </Column>
 
           <Column gap="16">
-            {COMMODITY_STRENGTH.map((commodity, index) => {
-              const sentiment = SENTIMENT_STYLES[commodity.sentiment];
+            {strengthEntries.map((entry, index) => {
+              const sentiment = SENTIMENT_STYLES[entry.sentiment];
 
               return (
-                <Column key={commodity.symbol} gap="12">
+                <Column key={entry.instrumentId} gap="12">
                   <Row
                     horizontal="between"
                     vertical="center"
@@ -675,36 +566,36 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                     <Column gap="4">
                       <Row gap="8" vertical="center">
                         <Heading as="h4" variant="heading-strong-s">
-                          {commodity.symbol}
+                          {entry.symbolLabel}
                         </Heading>
                         <Tag
                           size="s"
                           background={sentiment.background}
                           prefixIcon={sentiment.icon}
                         >
-                          {commodity.sentiment}
+                          {entry.sentiment}
                         </Tag>
                       </Row>
                       <Text
                         variant="body-default-s"
                         onBackground="neutral-medium"
                       >
-                        {commodity.name}
+                        {entry.nameLabel}
                       </Text>
                     </Column>
                     <Column minWidth={18} gap="4" horizontal="end">
-                      <Text variant="heading-strong-s">{commodity.score}</Text>
+                      <Text variant="heading-strong-s">{entry.score}</Text>
                       <Text
                         variant="label-default-s"
                         onBackground="neutral-medium"
                       >
-                        {commodity.dayChange}
+                        {entry.dayChange}
                       </Text>
                     </Column>
                   </Row>
                   <div
                     role="progressbar"
-                    aria-valuenow={commodity.score}
+                    aria-valuenow={entry.score}
                     aria-valuemin={0}
                     aria-valuemax={100}
                     style={{
@@ -717,7 +608,7 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                   >
                     <div
                       style={{
-                        width: `${commodity.score}%`,
+                        width: `${entry.score}%`,
                         height: "100%",
                         background: sentiment.background === "danger-alpha-weak"
                           ? "hsl(var(--destructive))"
@@ -728,7 +619,7 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                       }}
                     />
                   </div>
-                  {index < COMMODITY_STRENGTH.length - 1
+                  {index < strengthEntries.length - 1
                     ? <Line background="neutral-alpha-weak" />
                     : null}
                 </Column>
@@ -737,7 +628,7 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
           </Column>
 
           <Text variant="label-default-s" onBackground="neutral-medium">
-            As of 25 September 2025 at 06:29 GMT+5
+            {config.strength.copy.asOf}
           </Text>
         </Column>
 
@@ -752,11 +643,10 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
         >
           <Column gap="8">
             <Heading as="h3" variant="heading-strong-s">
-              Commodities Heat Map
+              {config.chart.copy.title}
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak">
-              Relative momentum readings over the last month highlight which
-              contracts are heating up or losing steam.
+              {config.chart.copy.description}
             </Text>
           </Column>
           <div
@@ -767,7 +657,7 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
           >
             <svg
               role="img"
-              aria-label="Relative strength of monitored commodities over the last 30 days"
+              aria-label={`${config.chart.copy.title} over the last 30 days`}
               viewBox={`0 0 ${CHART_DIMENSIONS.width} ${CHART_DIMENSIONS.height}`}
               style={{ width: "100%", height: "auto" }}
             >
@@ -793,7 +683,7 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                 y2={CHART_DIMENSIONS.height - CHART_DIMENSIONS.marginY}
                 stroke="rgba(255,255,255,0.12)"
               />
-              {RELATIVE_STRENGTH_GEOMETRY.yTicks.map((tick) => (
+              {relativeStrengthGeometry.yTicks.map((tick) => (
                 <g key={`y-${tick.value}`}>
                   <line
                     x1={CHART_DIMENSIONS.marginX}
@@ -814,7 +704,7 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                   </text>
                 </g>
               ))}
-              {RELATIVE_STRENGTH_GEOMETRY.xTicks.map((tick) => (
+              {relativeStrengthGeometry.xTicks.map((tick) => (
                 <g key={`x-${tick.label}`}>
                   <text
                     x={tick.x}
@@ -827,8 +717,8 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                   </text>
                 </g>
               ))}
-              {RELATIVE_STRENGTH_GEOMETRY.series.map((series) => (
-                <g key={series.symbol}>
+              {relativeStrengthGeometry.series.map((series) => (
+                <g key={series.instrumentId}>
                   <path
                     d={series.path}
                     fill="none"
@@ -848,8 +738,12 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
             </svg>
           </div>
           <Row gap="8" wrap>
-            {RELATIVE_STRENGTH_GEOMETRY.series.map((series) => (
-              <Tag key={series.symbol} size="s" background="neutral-alpha-weak">
+            {relativeStrengthGeometry.series.map((series) => (
+              <Tag
+                key={series.instrumentId}
+                size="s"
+                background="neutral-alpha-weak"
+              >
                 <span
                   style={{
                     display: "inline-block",
@@ -865,7 +759,7 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
             ))}
           </Row>
           <Text variant="label-default-s" onBackground="neutral-medium">
-            As of 25 September 2025 at 06:29 GMT+5
+            {config.chart.copy.asOf}
           </Text>
         </Column>
       </Row>
@@ -882,31 +776,23 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
         >
           <Column gap="8">
             <Heading as="h3" variant="heading-strong-s">
-              Commodities Volatility
+              {config.matrix.copy.title}
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak">
-              Short- versus long-term trend posture shows where volatility is
-              compressing or expanding across the complex.
+              {config.matrix.copy.description}
             </Text>
           </Column>
           <Row gap="8" wrap>
-            <Tag
-              size="s"
-              background="neutral-alpha-weak"
-              prefixIcon="trending-up"
-            >
-              20 SMA
-            </Tag>
-            <Tag
-              size="s"
-              background="neutral-alpha-weak"
-              prefixIcon="trending-up"
-            >
-              5 SMA
-            </Tag>
-            <Tag size="s" background="brand-alpha-weak" prefixIcon="play">
-              Replay
-            </Tag>
+            {config.matrix.tags.map((tag) => (
+              <Tag
+                key={tag.label}
+                size="s"
+                background={tag.background ?? "neutral-alpha-weak"}
+                prefixIcon={tag.icon}
+              >
+                {tag.label}
+              </Tag>
+            ))}
           </Row>
           <div style={{ width: "100%", overflowX: "auto" }}>
             <svg
@@ -923,26 +809,6 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                 fill="var(--neutral-alpha-weak)"
                 opacity={0.08}
               />
-              <rect
-                x={MATRIX_DIMENSIONS.margin}
-                y={MATRIX_DIMENSIONS.margin}
-                width={(MATRIX_DIMENSIONS.width -
-                  MATRIX_DIMENSIONS.margin * 2) / 2}
-                height={(MATRIX_DIMENSIONS.height -
-                  MATRIX_DIMENSIONS.margin * 2) / 2}
-                fill="hsl(var(--chart-1) / 0.08)"
-              />
-              <rect
-                x={MATRIX_DIMENSIONS.margin +
-                  (MATRIX_DIMENSIONS.width - MATRIX_DIMENSIONS.margin * 2) / 2}
-                y={MATRIX_DIMENSIONS.margin +
-                  (MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin * 2) / 2}
-                width={(MATRIX_DIMENSIONS.width -
-                  MATRIX_DIMENSIONS.margin * 2) / 2}
-                height={(MATRIX_DIMENSIONS.height -
-                  MATRIX_DIMENSIONS.margin * 2) / 2}
-                fill="hsl(var(--destructive) / 0.12)"
-              />
               <line
                 x1={MATRIX_DIMENSIONS.margin}
                 y1={MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin}
@@ -957,34 +823,15 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                 y2={MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin}
                 stroke="rgba(255,255,255,0.12)"
               />
-              <line
-                x1={MATRIX_DIMENSIONS.margin}
-                y1={MATRIX_DIMENSIONS.margin +
-                  (MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin * 2) / 2}
-                x2={MATRIX_DIMENSIONS.width - MATRIX_DIMENSIONS.margin}
-                y2={MATRIX_DIMENSIONS.margin +
-                  (MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin * 2) / 2}
-                stroke="rgba(255,255,255,0.08)"
-                strokeDasharray="4 6"
-              />
-              <line
-                x1={MATRIX_DIMENSIONS.margin +
-                  (MATRIX_DIMENSIONS.width - MATRIX_DIMENSIONS.margin * 2) / 2}
-                y1={MATRIX_DIMENSIONS.margin}
-                x2={MATRIX_DIMENSIONS.margin +
-                  (MATRIX_DIMENSIONS.width - MATRIX_DIMENSIONS.margin * 2) / 2}
-                y2={MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin}
-                stroke="rgba(255,255,255,0.08)"
-                strokeDasharray="4 6"
-              />
-              {MATRIX_GEOMETRY.axes.yTicks.map((tick) => (
+              {matrixGeometry.axes.yTicks.map((tick) => (
                 <g key={`matrix-y-${tick.value}`}>
                   <line
                     x1={MATRIX_DIMENSIONS.margin}
                     x2={MATRIX_DIMENSIONS.width - MATRIX_DIMENSIONS.margin}
                     y1={tick.y}
                     y2={tick.y}
-                    stroke="rgba(255,255,255,0.04)"
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeDasharray="4 6"
                   />
                   <text
                     x={MATRIX_DIMENSIONS.margin - 12}
@@ -997,18 +844,19 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                   </text>
                 </g>
               ))}
-              {MATRIX_GEOMETRY.axes.xTicks.map((tick) => (
+              {matrixGeometry.axes.xTicks.map((tick) => (
                 <g key={`matrix-x-${tick.value}`}>
                   <line
                     x1={tick.x}
                     x2={tick.x}
                     y1={MATRIX_DIMENSIONS.margin}
                     y2={MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin}
-                    stroke="rgba(255,255,255,0.04)"
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeDasharray="4 6"
                   />
                   <text
                     x={tick.x}
-                    y={MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin + 20}
+                    y={MATRIX_DIMENSIONS.height - MATRIX_DIMENSIONS.margin + 24}
                     fontSize={12}
                     fill="var(--neutral-on-background-weak)"
                     textAnchor="middle"
@@ -1017,62 +865,34 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                   </text>
                 </g>
               ))}
-              {MATRIX_GEOMETRY.points.map((point) => {
-                const styles = DIRECTION_STYLES[point.direction];
+              {matrixGeometry.points.map((point) => {
+                const directionStyle = DIRECTION_STYLES[point.direction];
                 return (
-                  <g key={point.symbol}>
+                  <g key={point.instrumentId}>
                     <circle
                       cx={point.x}
                       cy={point.y}
-                      r={Math.max(6, point.conviction / 14)}
-                      fill={styles.background === "danger-alpha-weak"
+                      r={10}
+                      fill={directionStyle.background === "danger-alpha-weak"
                         ? "hsl(var(--destructive))"
-                        : styles.background === "brand-alpha-weak"
+                        : directionStyle.background === "brand-alpha-weak"
                         ? "hsl(var(--chart-1))"
-                        : "hsl(var(--chart-3))"}
-                      opacity={0.82}
+                        : "hsl(var(--chart-2))"}
+                      opacity={0.7}
                     />
-                    <text
-                      x={point.x + 12}
-                      y={point.y + 4}
-                      fontSize={12}
-                      fill="var(--neutral-on-background-weak)"
-                    >
-                      {point.symbol}
-                    </text>
                   </g>
                 );
               })}
-              <text
-                x={MATRIX_DIMENSIONS.width / 2}
-                y={MATRIX_DIMENSIONS.margin - 12}
-                fontSize={12}
-                fill="var(--neutral-on-background-weak)"
-                textAnchor="middle"
-              >
-                Stronger bullish trend →
-              </text>
-              <text
-                x={MATRIX_DIMENSIONS.margin - 24}
-                y={MATRIX_DIMENSIONS.height / 2}
-                fontSize={12}
-                fill="var(--neutral-on-background-weak)"
-                textAnchor="middle"
-                transform={`rotate(-90 ${MATRIX_DIMENSIONS.margin - 24} ${
-                  MATRIX_DIMENSIONS.height / 2
-                })`}
-              >
-                ↑ Stronger short-term momentum
-              </text>
             </svg>
           </div>
-          <Column gap="12">
-            {MATRIX_GEOMETRY.points.map((point) => {
+          <Column gap="16">
+            {matrixGeometry.points.map((point) => {
               const directionStyle = DIRECTION_STYLES[point.direction];
               return (
                 <Row
-                  key={`${point.symbol}-detail`}
+                  key={point.instrumentId}
                   horizontal="between"
+                  vertical="center"
                   gap="12"
                   s={{ direction: "column", align: "start" }}
                 >
@@ -1104,7 +924,7 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
             })}
           </Column>
           <Text variant="label-default-s" onBackground="neutral-medium">
-            As of 25 September 2025 at 06:29 GMT+5
+            {config.matrix.copy.asOf}
           </Text>
         </Column>
 
@@ -1119,11 +939,10 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
         >
           <Column gap="8">
             <Heading as="h3" variant="heading-strong-s">
-              Market Movers
+              {config.marketMovers.copy.title}
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak">
-              Multi-asset momentum board covering currencies, crypto, and global
-              indices to spotlight leadership shifts.
+              {config.marketMovers.copy.description}
             </Text>
           </Column>
           <Row horizontal="between" vertical="center" gap="12" wrap>
@@ -1159,16 +978,15 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
             : (
               <Column gap="16">
                 {trendMomentum.map((entry, index) => {
-                  const classification = resolveMomentumClassification(
-                    entry.classification,
-                    entry.score,
-                  );
+                  const classification = entry.classification
+                    ? entry.classification
+                    : classifyMomentum(entry.score);
                   const style = MOMENTUM_STYLES[classification];
                   const scoreValue = clampMomentumScore(entry.score);
                   const scoreLabel = formatMomentumScore(scoreValue);
 
                   return (
-                    <Column key={entry.symbol} gap="12">
+                    <Column key={`${entry.symbol}-${index}`} gap="12">
                       <Row
                         horizontal="between"
                         vertical="center"
@@ -1209,21 +1027,18 @@ export function HeatmapTool({ id }: HeatmapToolProps) {
                           }}
                         />
                       </div>
-                      {index < trendMomentum.length - 1
-                        ? <Line background="neutral-alpha-weak" />
-                        : null}
                     </Column>
                   );
                 })}
               </Column>
             )}
-          <Text variant="label-default-s" onBackground="neutral-medium">
-            {lastUpdatedLabel
-              ? `Synced ${lastUpdatedLabel}`
-              : isLoadingMovers
-              ? "Refreshing live movers…"
-              : "Awaiting first sync"}
-          </Text>
+          {lastUpdatedLabel
+            ? (
+              <Text variant="label-default-s" onBackground="neutral-medium">
+                Last refreshed {lastUpdatedLabel}
+              </Text>
+            )
+            : null}
         </Column>
       </Row>
     </Column>

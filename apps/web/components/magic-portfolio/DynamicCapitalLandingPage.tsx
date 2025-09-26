@@ -17,10 +17,13 @@ import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
 import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
 import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
 import { CommodityStrengthSection } from "@/components/magic-portfolio/home/CommodityStrengthSection";
+import { CryptoStrengthSection } from "@/components/magic-portfolio/home/CryptoStrengthSection";
+import { CurrencyStrengthSection } from "@/components/magic-portfolio/home/CurrencyStrengthSection";
 import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
 import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
 import { FxMarketSnapshotSection } from "@/components/magic-portfolio/home/FxMarketSnapshotSection";
 import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
+import { IndexStrengthSection } from "@/components/magic-portfolio/home/IndexStrengthSection";
 import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
 import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
 import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
@@ -329,34 +332,43 @@ export function DynamicCapitalLandingPage() {
       <Section variant="wide" revealDelay={0.72}>
         <CommodityStrengthSection />
       </Section>
-      <Section revealDelay={0.8}>
-        <FundamentalAnalysisSection />
+      <Section variant="wide" revealDelay={0.8}>
+        <CurrencyStrengthSection />
       </Section>
-      <Section revealDelay={0.88}>
-        <MentorshipProgramsSection />
+      <Section variant="wide" revealDelay={0.88}>
+        <IndexStrengthSection />
       </Section>
-      <Section revealDelay={0.96}>
-        <VipPlansPricingSection />
+      <Section variant="wide" revealDelay={0.96}>
+        <CryptoStrengthSection />
       </Section>
       <Section revealDelay={1.04}>
-        <VipPackagesSection />
+        <FundamentalAnalysisSection />
       </Section>
       <Section revealDelay={1.12}>
-        <MentorAndTrustSection />
+        <MentorshipProgramsSection />
       </Section>
       <Section revealDelay={1.2}>
-        <PoolTradingSection />
+        <VipPlansPricingSection />
       </Section>
       <Section revealDelay={1.28}>
-        <ComplianceCertificates />
+        <VipPackagesSection />
       </Section>
       <Section revealDelay={1.36}>
-        <FundingReadinessSection />
+        <MentorAndTrustSection />
       </Section>
       <Section revealDelay={1.44}>
-        <CheckoutCallout />
+        <PoolTradingSection />
       </Section>
       <Section revealDelay={1.52}>
+        <ComplianceCertificates />
+      </Section>
+      <Section revealDelay={1.6}>
+        <FundingReadinessSection />
+      </Section>
+      <Section revealDelay={1.68}>
+        <CheckoutCallout />
+      </Section>
+      <Section revealDelay={1.76}>
         <AboutShowcase />
       </Section>
       <Section reveal={false}>
