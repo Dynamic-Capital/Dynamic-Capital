@@ -22,6 +22,12 @@ from .loss_recovery_programme import (
     RecoveryPlan,
     RecoveryStep,
 )
+from .auto_sync_multi_llm import (
+    AutoSyncAction,
+    AutoSyncPlan,
+    DynamicAutoSyncOrchestrator,
+    SyncSnapshot,
+)
 from .dct_token_sync import (
     DCTAllocationEngine,
     DCTAllocationResult,
@@ -65,6 +71,10 @@ __all__ = _trade_exports + [
     "LossRecoveryProgramme",
     "RecoveryPlan",
     "RecoveryStep",
+    "AutoSyncAction",
+    "AutoSyncPlan",
+    "DynamicAutoSyncOrchestrator",
+    "SyncSnapshot",
     "DCTAllocationEngine",
     "DCTAllocationResult",
     "DCTAllocationRule",
@@ -105,6 +115,10 @@ globals().update(
         "LossRecoveryProgramme": LossRecoveryProgramme,
         "RecoveryPlan": RecoveryPlan,
         "RecoveryStep": RecoveryStep,
+        "AutoSyncAction": AutoSyncAction,
+        "AutoSyncPlan": AutoSyncPlan,
+        "DynamicAutoSyncOrchestrator": DynamicAutoSyncOrchestrator,
+        "SyncSnapshot": SyncSnapshot,
         "DCTAllocationEngine": DCTAllocationEngine,
         "DCTAllocationResult": DCTAllocationResult,
         "DCTAllocationRule": DCTAllocationRule,
