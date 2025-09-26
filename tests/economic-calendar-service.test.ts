@@ -1,9 +1,5 @@
 import test from "node:test";
-import {
-  deepStrictEqual,
-  ok,
-  strictEqual,
-} from "node:assert/strict";
+import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import { freshImport } from "./utils/freshImport.ts";
@@ -19,33 +15,72 @@ test("economic calendar service normalizes REST payloads", async () => {
   let capturedUrl: string | URL | Request | undefined;
   let capturedHeaders: Record<string, string> | undefined;
 
+  let awesomeApiUrl: string | undefined;
+
   globalThis.fetch = async (input, init) => {
-    capturedUrl = input as string | URL | Request;
-    capturedHeaders = init?.headers as Record<string, string> | undefined;
-    const body = JSON.stringify({
-      events: [
-        {
-          id: "fomc",
-          scheduled_at: "2024-03-19T18:00:00Z",
-          title: "FOMC rate decision & Powell press conference",
-          impact: "high",
-          market_focus: ["USD", "Rates", "US Indices"],
-          commentary: "Test commentary",
-          desk_plan: ["Step one", "Step two"],
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+    if (url === "https://api.example.com/calendar") {
+      capturedUrl = input as string | URL | Request;
+      capturedHeaders = init?.headers as Record<string, string> | undefined;
+      const body = JSON.stringify({
+        events: [
+          {
+            id: "fomc",
+            scheduled_at: "2024-03-19T18:00:00Z",
+            title: "FOMC rate decision & Powell press conference",
+            impact: "high",
+            market_focus: ["EURUSD", "USDJPY"],
+            commentary: "Test commentary",
+            desk_plan: ["Step one", "Step two"],
+          },
+        ],
+      });
+      return new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.startsWith("https://economia.awesomeapi.com.br/last/")) {
+      awesomeApiUrl = url;
+      const body = JSON.stringify({
+        EURUSD: {
+          bid: "1.1000",
+          pctChange: "0.50",
+          high: "1.1050",
+          low: "1.0950",
+          create_date: "2024-03-19 17:59:00",
         },
-      ],
-    });
-    return new Response(body, {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+        USDJPY: {
+          bid: "151.200",
+          pctChange: "-0.30",
+          high: "152.000",
+          low: "150.900",
+          create_date: "2024-03-19 17:59:00",
+        },
+      });
+      return new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected fetch: ${url}`);
   };
 
   try {
     const service = await freshImport(
       "../../apps/web/services/economic-calendar.ts",
     );
-    const events = await service.fetchEconomicEvents({ force: true, source: "rest" });
+    const events = await service.fetchEconomicEvents({
+      force: true,
+      source: "rest",
+    });
 
     strictEqual(
       typeof capturedUrl === "string" ? capturedUrl : capturedUrl?.toString(),
@@ -54,6 +89,9 @@ test("economic calendar service normalizes REST payloads", async () => {
 
     ok(capturedHeaders);
     strictEqual(capturedHeaders?.["x-api-key"], "test-key");
+    ok(awesomeApiUrl);
+    ok(awesomeApiUrl?.includes("EUR-USD"));
+    ok(awesomeApiUrl?.includes("USD-JPY"));
     strictEqual(events.length, 1);
 
     const [event] = events;
@@ -61,7 +99,21 @@ test("economic calendar service normalizes REST payloads", async () => {
     strictEqual(event.day, "Tue · 19 Mar");
     strictEqual(event.time, "18:00 GMT");
     strictEqual(event.impact, "High");
-    deepStrictEqual(event.marketFocus, ["USD", "Rates", "US Indices"]);
+    deepStrictEqual(event.marketFocus, ["EURUSD", "USDJPY"]);
+    strictEqual(event.marketHighlights.length, 2);
+    const [eurusdHighlight, usdjpyHighlight] = event.marketHighlights;
+    strictEqual(eurusdHighlight.focus, "EURUSD");
+    strictEqual(eurusdHighlight.instruments.length, 1);
+    strictEqual(eurusdHighlight.instruments[0].instrumentId, "EURUSD");
+    strictEqual(eurusdHighlight.instruments[0].displaySymbol, "EUR/USD");
+    strictEqual(eurusdHighlight.instruments[0].last, 1.1);
+    strictEqual(eurusdHighlight.instruments[0].changePercent, 0.5);
+    strictEqual(usdjpyHighlight.focus, "USDJPY");
+    strictEqual(usdjpyHighlight.instruments.length, 1);
+    strictEqual(usdjpyHighlight.instruments[0].instrumentId, "USDJPY");
+    strictEqual(usdjpyHighlight.instruments[0].displaySymbol, "USD/JPY");
+    strictEqual(usdjpyHighlight.instruments[0].last, 151.2);
+    strictEqual(usdjpyHighlight.instruments[0].changePercent, -0.3);
     deepStrictEqual(event.deskPlan, ["Step one", "Step two"]);
     strictEqual(event.commentary, "Test commentary");
 
@@ -96,36 +148,67 @@ test("economic calendar service falls back to desk plan snapshots", async () => 
   >;
 
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => {
-    const body = JSON.stringify({
-      events: [
-        {
-          id: "fomc",
-          scheduled_at: "2024-03-19T18:00:00Z",
-          title: "FOMC rate decision",
-          impact: "medium",
-          market_focus: ["USD"],
-          commentary: "Uses fallback plan",
+  globalThis.fetch = async (input) => {
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+    if (url === "https://api.example.com/calendar") {
+      const body = JSON.stringify({
+        events: [
+          {
+            id: "fomc",
+            scheduled_at: "2024-03-19T18:00:00Z",
+            title: "FOMC rate decision",
+            impact: "medium",
+            market_focus: ["USDJPY"],
+            commentary: "Uses fallback plan",
+          },
+        ],
+      });
+      return new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.startsWith("https://economia.awesomeapi.com.br/last/")) {
+      const body = JSON.stringify({
+        USDJPY: {
+          bid: "150.500",
+          pctChange: "0.10",
+          high: "150.900",
+          low: "149.900",
+          create_date: "2024-03-19 17:58:00",
         },
-      ],
-    });
-    return new Response(body, {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+      });
+      return new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected fetch: ${url}`);
   };
 
   try {
     const service = await freshImport(
       "../../apps/web/services/economic-calendar.ts",
     );
-    const events = await service.fetchEconomicEvents({ force: true, source: "rest" });
+    const events = await service.fetchEconomicEvents({
+      force: true,
+      source: "rest",
+    });
 
     strictEqual(events.length, 1);
     const [event] = events;
     ok(event.deskPlan.length > 0);
     deepStrictEqual(event.deskPlan, planData["fomc"].plan);
     strictEqual(event.impact, "Medium");
+    strictEqual(event.marketHighlights.length, 1);
+    strictEqual(event.marketHighlights[0]?.focus, "USDJPY");
 
     service.resetEconomicCalendarCache();
   } finally {
