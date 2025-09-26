@@ -36,6 +36,54 @@ interface TradingAccountRow {
   updated_at: string;
 }
 
+interface DctUserRow {
+  id: string;
+  telegram_id: number | null;
+  wallet_address: string;
+  ton_domain: string | null;
+  metadata: unknown;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DctSubscriptionRow {
+  id: string;
+  user_id: string;
+  plan: string;
+  ton_paid: number;
+  operations_ton: number;
+  auto_invest_ton: number;
+  burn_ton: number;
+  dct_bought: number;
+  dct_auto_invest: number;
+  dct_burned: number;
+  tx_hash: string;
+  router_swap_id: string | null;
+  burn_tx_hash: string | null;
+  split_operations_pct: number;
+  split_auto_invest_pct: number;
+  split_burn_pct: number;
+  next_renewal_at: string | null;
+  notes: unknown;
+  created_at: string;
+}
+
+interface DctStakeRow {
+  id: string;
+  user_id: string;
+  subscription_id: string | null;
+  dct_amount: number;
+  multiplier: number;
+  weight: number;
+  lock_months: number | null;
+  lock_until: string | null;
+  early_exit_penalty_bps: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  notes: unknown;
+}
+
 interface SignalRow {
   id: string;
   alert_id: string;
@@ -106,6 +154,11 @@ interface StubState {
   signalDispatches: Map<string, SignalDispatchRow>;
   trades: Map<string, TradeRow>;
   tradeTickets: Map<string, string>;
+  dctUsers: Map<string, DctUserRow>;
+  dctUsersByWallet: Map<string, string>;
+  dctSubscriptions: Map<string, DctSubscriptionRow>;
+  dctSubscriptionsByTx: Map<string, string>;
+  dctStakes: Map<string, DctStakeRow>;
 }
 
 const stubState: StubState = {
@@ -118,6 +171,11 @@ const stubState: StubState = {
   signalDispatches: new Map(),
   trades: new Map(),
   tradeTickets: new Map(),
+  dctUsers: new Map(),
+  dctUsersByWallet: new Map(),
+  dctSubscriptions: new Map(),
+  dctSubscriptionsByTx: new Map(),
+  dctStakes: new Map(),
 };
 
 export const __testSupabaseState = stubState;
@@ -132,6 +190,11 @@ export function __resetSupabaseState() {
   stubState.signalDispatches.clear();
   stubState.trades.clear();
   stubState.tradeTickets.clear();
+  stubState.dctUsers.clear();
+  stubState.dctUsersByWallet.clear();
+  stubState.dctSubscriptions.clear();
+  stubState.dctSubscriptionsByTx.clear();
+  stubState.dctStakes.clear();
 }
 
 function clone<T>(value: T): T {
@@ -158,15 +221,23 @@ type QueryBuilder<T> = {
   maybeSingle(): Promise<{ data: T | null; error: { message: string } | null }>;
   single(): Promise<{ data: T | null; error: { message: string } | null }>;
   then<TResult1 = unknown, TResult2 = never>(
-    onfulfilled?: ((
-      value: { data: T[]; error: { message: string } | null },
-    ) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+    onfulfilled?:
+      | ((
+        value: { data: T[]; error: { message: string } | null },
+      ) => TResult1 | PromiseLike<TResult1>)
+      | undefined
+      | null,
+    onrejected?:
+      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
+      | undefined
+      | null,
   ): Promise<TResult1 | TResult2>;
   get(): Promise<{ data: T[]; error: { message: string } | null }>;
 };
 
-function createQueryBuilder<T extends Record<string, unknown>>(rows: T[]): QueryBuilder<T> {
+function createQueryBuilder<T extends Record<string, unknown>>(
+  rows: T[],
+): QueryBuilder<T> {
   let results = rows.map((row) => clone(row));
   const builder: Partial<QueryBuilder<T>> = {
     eq(field: string, value: unknown) {
@@ -228,9 +299,7 @@ function paymentsHandlers(state: StubState) {
       return {
         eq(field: string, value: unknown) {
           const key = String(value);
-          const row = field === "id"
-            ? state.payments.get(key) ?? null
-            : null;
+          const row = field === "id" ? state.payments.get(key) ?? null : null;
           return {
             async maybeSingle() {
               return { data: row ? clone(row) : null, error: null };
@@ -400,12 +469,207 @@ function tradingAccountsHandlers(state: StubState) {
           const updated: TradingAccountRow = {
             ...existing,
             ...values,
-            updated_at: values.updated_at ? String(values.updated_at) : isoNow(),
+            updated_at: values.updated_at
+              ? String(values.updated_at)
+              : isoNow(),
           };
           state.tradingAccounts.set(key, updated);
           return { data: [clone(updated)], error: null };
         },
       };
+    },
+  };
+}
+
+function dctUsersHandlers(state: StubState) {
+  return {
+    upsert(
+      values: Record<string, unknown> | Record<string, unknown>[],
+      options?: { onConflict?: string },
+    ) {
+      const rows = Array.isArray(values) ? values : [values];
+      if (rows.length !== 1) {
+        return { data: null, error: { message: "single row upsert only" } };
+      }
+      const payload = rows[0];
+      const walletRaw = payload.wallet_address;
+      const wallet = walletRaw === undefined || walletRaw === null
+        ? ""
+        : String(walletRaw);
+      if (!wallet) {
+        return { data: null, error: { message: "wallet_address required" } };
+      }
+      const now = isoNow();
+      let recordId: string | undefined;
+      if (options?.onConflict === "wallet_address") {
+        recordId = state.dctUsersByWallet.get(wallet);
+      }
+      let record: DctUserRow;
+      if (recordId) {
+        record = state.dctUsers.get(recordId) ?? {
+          id: recordId,
+          telegram_id: null,
+          wallet_address: wallet,
+          ton_domain: null,
+          metadata: null,
+          created_at: now,
+          updated_at: now,
+        };
+      } else {
+        recordId = String(payload.id ?? crypto.randomUUID());
+        record = {
+          id: recordId,
+          telegram_id: null,
+          wallet_address: wallet,
+          ton_domain: null,
+          metadata: null,
+          created_at: now,
+          updated_at: now,
+        };
+      }
+
+      if (payload.telegram_id !== undefined) {
+        record.telegram_id = payload.telegram_id === null
+          ? null
+          : Number(payload.telegram_id);
+      }
+      record.wallet_address = wallet;
+      if (payload.ton_domain !== undefined) {
+        record.ton_domain = payload.ton_domain === null
+          ? null
+          : String(payload.ton_domain);
+      }
+      if (payload.metadata !== undefined) {
+        record.metadata = clone(payload.metadata ?? null);
+      }
+      if (!record.created_at) record.created_at = now;
+      record.updated_at = now;
+
+      state.dctUsers.set(record.id, clone(record));
+      state.dctUsersByWallet.set(wallet, record.id);
+
+      const data = clone(record);
+      return {
+        data: [data],
+        error: null,
+        select() {
+          return {
+            async single() {
+              return { data, error: null };
+            },
+          };
+        },
+      };
+    },
+    select(_columns?: string) {
+      return createQueryBuilder(Array.from(state.dctUsers.values()));
+    },
+  };
+}
+
+function dctSubscriptionsHandlers(state: StubState) {
+  return {
+    select(_columns?: string) {
+      return createQueryBuilder(Array.from(state.dctSubscriptions.values()));
+    },
+    insert(values: Record<string, unknown> | Record<string, unknown>[]) {
+      const rows = Array.isArray(values) ? values : [values];
+      const inserted: DctSubscriptionRow[] = [];
+      for (const row of rows) {
+        const txHash = String(row.tx_hash ?? "");
+        if (!txHash) {
+          return {
+            data: null,
+            error: { message: "tx_hash required" },
+          };
+        }
+        if (state.dctSubscriptionsByTx.has(txHash)) {
+          return {
+            data: null,
+            error: {
+              message:
+                'duplicate key value violates unique constraint "dct_subscriptions_tx_hash_unique"',
+            },
+          };
+        }
+        const id = String(row.id ?? crypto.randomUUID());
+        const createdAt = row.created_at ? String(row.created_at) : isoNow();
+        const record: DctSubscriptionRow = {
+          id,
+          user_id: String(row.user_id ?? ""),
+          plan: String(row.plan ?? ""),
+          ton_paid: Number(row.ton_paid ?? 0),
+          operations_ton: Number(row.operations_ton ?? 0),
+          auto_invest_ton: Number(row.auto_invest_ton ?? 0),
+          burn_ton: Number(row.burn_ton ?? 0),
+          dct_bought: Number(row.dct_bought ?? 0),
+          dct_auto_invest: Number(row.dct_auto_invest ?? 0),
+          dct_burned: Number(row.dct_burned ?? 0),
+          tx_hash: txHash,
+          router_swap_id: row.router_swap_id === undefined ||
+              row.router_swap_id === null
+            ? null
+            : String(row.router_swap_id),
+          burn_tx_hash: row.burn_tx_hash === undefined ||
+              row.burn_tx_hash === null
+            ? null
+            : String(row.burn_tx_hash),
+          split_operations_pct: Number(row.split_operations_pct ?? 0),
+          split_auto_invest_pct: Number(row.split_auto_invest_pct ?? 0),
+          split_burn_pct: Number(row.split_burn_pct ?? 0),
+          next_renewal_at: row.next_renewal_at === undefined ||
+              row.next_renewal_at === null
+            ? null
+            : String(row.next_renewal_at),
+          notes: row.notes === undefined ? null : clone(row.notes ?? null),
+          created_at: createdAt,
+        };
+        state.dctSubscriptions.set(id, clone(record));
+        state.dctSubscriptionsByTx.set(txHash, id);
+        inserted.push(record);
+      }
+      return { data: inserted.map((row) => clone(row)), error: null };
+    },
+  };
+}
+
+function dctStakesHandlers(state: StubState) {
+  return {
+    select(_columns?: string) {
+      return createQueryBuilder(Array.from(state.dctStakes.values()));
+    },
+    insert(values: Record<string, unknown> | Record<string, unknown>[]) {
+      const rows = Array.isArray(values) ? values : [values];
+      const inserted: DctStakeRow[] = [];
+      for (const row of rows) {
+        const id = String(row.id ?? crypto.randomUUID());
+        const now = isoNow();
+        const record: DctStakeRow = {
+          id,
+          user_id: String(row.user_id ?? ""),
+          subscription_id: row.subscription_id === undefined ||
+              row.subscription_id === null
+            ? null
+            : String(row.subscription_id),
+          dct_amount: Number(row.dct_amount ?? 0),
+          multiplier: Number(row.multiplier ?? 1),
+          weight: Number(row.weight ?? 0),
+          lock_months: row.lock_months === undefined || row.lock_months === null
+            ? null
+            : Number(row.lock_months),
+          lock_until: row.lock_until === undefined || row.lock_until === null
+            ? null
+            : String(row.lock_until),
+          early_exit_penalty_bps: Number(row.early_exit_penalty_bps ?? 0),
+          status: String(row.status ?? "active"),
+          created_at: row.created_at ? String(row.created_at) : now,
+          updated_at: row.updated_at ? String(row.updated_at) : now,
+          notes: row.notes === undefined ? null : clone(row.notes ?? null),
+        };
+        state.dctStakes.set(id, clone(record));
+        inserted.push(record);
+      }
+      return { data: inserted.map((row) => clone(row)), error: null };
     },
   };
 }
@@ -423,7 +687,11 @@ function signalsHandlers(state: StubState) {
           return { data: null, error: { message: "missing required fields" } };
         }
         const id = String(row.id ?? crypto.randomUUID());
-        if (Array.from(state.signals.values()).some((sig) => sig.alert_id === row.alert_id)) {
+        if (
+          Array.from(state.signals.values()).some((sig) =>
+            sig.alert_id === row.alert_id
+          )
+        ) {
           return { data: null, error: { message: "duplicate alert_id" } };
         }
         const now = isoNow();
@@ -629,7 +897,10 @@ function tradesHandlers(state: StubState) {
   };
 }
 
-function handleClaimTradingSignal(state: StubState, params: Record<string, unknown>) {
+function handleClaimTradingSignal(
+  state: StubState,
+  params: Record<string, unknown>,
+) {
   const workerIdRaw = params.p_worker_id ?? params.worker_id;
   const workerId = workerIdRaw === undefined || workerIdRaw === null
     ? ""
@@ -701,7 +972,10 @@ function handleClaimTradingSignal(state: StubState, params: Record<string, unkno
   return clone(candidate);
 }
 
-function handleMarkTradingSignalStatus(state: StubState, params: Record<string, unknown>) {
+function handleMarkTradingSignalStatus(
+  state: StubState,
+  params: Record<string, unknown>,
+) {
   const signalIdRaw = params.p_signal_id ?? params.signal_id;
   if (signalIdRaw === undefined || signalIdRaw === null) {
     throw new Error("p_signal_id is required");
@@ -721,7 +995,9 @@ function handleMarkTradingSignalStatus(state: StubState, params: Record<string, 
   signal.status = status;
   if ("p_error" in params) {
     const error = params.p_error;
-    signal.error_reason = error === undefined || error === null ? null : String(error);
+    signal.error_reason = error === undefined || error === null
+      ? null
+      : String(error);
   }
   if (params.p_next_poll_at !== undefined && params.p_next_poll_at !== null) {
     signal.next_poll_at = String(params.p_next_poll_at);
@@ -763,7 +1039,10 @@ function handleMarkTradingSignalStatus(state: StubState, params: Record<string, 
   return clone(signal);
 }
 
-function handleRecordTradeUpdate(state: StubState, params: Record<string, unknown>) {
+function handleRecordTradeUpdate(
+  state: StubState,
+  params: Record<string, unknown>,
+) {
   const signalIdRaw = params.p_signal_id ?? params.signal_id;
   if (signalIdRaw === undefined || signalIdRaw === null) {
     throw new Error("p_signal_id is required");
@@ -776,7 +1055,10 @@ function handleRecordTradeUpdate(state: StubState, params: Record<string, unknow
 
   const statusParam = params.p_status ?? params.status;
   const status = (statusParam as TradeStatus) ?? "pending";
-  const payload = (params.p_payload ?? params.payload ?? {}) as Record<string, unknown>;
+  const payload = (params.p_payload ?? params.payload ?? {}) as Record<
+    string,
+    unknown
+  >;
   const ticketParam = params.p_mt5_ticket_id ?? params.mt5_ticket_id;
   const ticket = ticketParam === undefined || ticketParam === null
     ? null
@@ -784,7 +1066,9 @@ function handleRecordTradeUpdate(state: StubState, params: Record<string, unknow
   const now = isoNow();
 
   let tradeId = ticket ? state.tradeTickets.get(ticket) : undefined;
-  let record: TradeRow | undefined = tradeId ? state.trades.get(tradeId) : undefined;
+  let record: TradeRow | undefined = tradeId
+    ? state.trades.get(tradeId)
+    : undefined;
   if (!record) {
     tradeId = crypto.randomUUID();
     record = {
@@ -824,9 +1108,10 @@ function handleRecordTradeUpdate(state: StubState, params: Record<string, unknow
   record.stop_loss = toNumber(payload.stop_loss);
   record.take_profit = toNumber(payload.take_profit);
   record.execution_payload = payload ?? {};
-  record.error_reason = payload.error_reason === undefined || payload.error_reason === null
-    ? null
-    : String(payload.error_reason);
+  record.error_reason =
+    payload.error_reason === undefined || payload.error_reason === null
+      ? null
+      : String(payload.error_reason);
   if (payload.opened_at !== undefined && payload.opened_at !== null) {
     record.opened_at = String(payload.opened_at);
   }
@@ -862,6 +1147,12 @@ class SupabaseStub {
         return userSubscriptionsHandlers(this.state);
       case "receipts":
         return receiptsHandlers(this.state);
+      case "dct_users":
+        return dctUsersHandlers(this.state);
+      case "dct_subscriptions":
+        return dctSubscriptionsHandlers(this.state);
+      case "dct_stakes":
+        return dctStakesHandlers(this.state);
       case "trading_accounts":
         return tradingAccountsHandlers(this.state);
       case "signals":
@@ -940,7 +1231,8 @@ class SupabaseStub {
         async createSignedUploadUrl(key: string) {
           return {
             data: {
-              signedUrl: `http://example.com/storage/v1/object/upload/sign/${key}?token=token`,
+              signedUrl:
+                `http://example.com/storage/v1/object/upload/sign/${key}?token=token`,
             },
             error: null,
           };
@@ -967,11 +1259,16 @@ class SupabaseStub {
   auth = {
     async getUser() {
       return {
-        data: { user: { id: "stub-user", user_metadata: { telegram_id: "stub" } } },
+        data: {
+          user: { id: "stub-user", user_metadata: { telegram_id: "stub" } },
+        },
         error: null,
       };
     },
-    async signJWT(_payload: Record<string, unknown>, _opts: Record<string, unknown>) {
+    async signJWT(
+      _payload: Record<string, unknown>,
+      _opts: Record<string, unknown>,
+    ) {
       return { access_token: "token" };
     },
   };

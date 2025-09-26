@@ -2,6 +2,13 @@ import { registerHandler } from "../_shared/serve.ts";
 import { bad, corsHeaders, json, methodNotAllowed } from "../_shared/http.ts";
 import { createClient } from "../_shared/client.ts";
 import { need, optionalEnv } from "../_shared/env.ts";
+import {
+  roundTon,
+  type SplitConfig,
+  SubscriptionManager,
+  SubscriptionManagerError,
+  type VerifiedTonPayment,
+} from "./subscription-manager.ts";
 
 interface SubscriptionRequest {
   initData?: string;
@@ -17,40 +24,9 @@ interface SubscriptionRequest {
   metadata?: Record<string, unknown>;
 }
 
-interface SplitConfig {
-  operationsPct: number;
-  autoInvestPct: number;
-  buybackBurnPct: number;
-}
-
 interface SplitBounds {
   min: number;
   max: number;
-}
-
-type SwapTag = "auto-invest" | "buyback-burn";
-
-type VerifiedTonPayment = {
-  ok: true;
-  amountTon: number;
-  blockTime?: string;
-} | {
-  ok: false;
-  error: string;
-};
-
-interface SwapResult {
-  dctAmount: number;
-  swapTxHash: string;
-  routerSwapId: string;
-  priceSnapshotId: string | null;
-  oraclePrice: number | null;
-  usdNotional: number;
-}
-
-interface StakeConfig {
-  months: number | null;
-  multiplier: number;
 }
 
 const DEFAULT_SPLITS: SplitConfig = {
@@ -64,47 +40,6 @@ const SPLIT_BOUNDS: Record<keyof SplitConfig, SplitBounds> = {
   autoInvestPct: { min: 15, max: 45 },
   buybackBurnPct: { min: 5, max: 20 },
 };
-
-const LOCK_CONFIG: Record<string, StakeConfig> = {
-  "vip_bronze": { months: 3, multiplier: 1.2 },
-  "vip_silver": { months: 6, multiplier: 1.5 },
-  "vip_gold": { months: 12, multiplier: 2.0 },
-  "mentorship": { months: 6, multiplier: 1.35 },
-};
-
-const EARLY_EXIT_PENALTY_BPS = 200;
-
-const ORACLE_SYMBOL = "DCTUSDT";
-
-async function fetchOraclePrice() {
-  const supabase = createClient("service");
-  const { data, error } = await supabase
-    .from("price_snapshots")
-    .select("id, price_usd, signed_at")
-    .eq("symbol", ORACLE_SYMBOL)
-    .order("signed_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) {
-    throw new Error(`Oracle lookup failed: ${error.message}`);
-  }
-  if (!data) {
-    throw new Error("Oracle price unavailable");
-  }
-  const price = Number(data.price_usd);
-  if (!Number.isFinite(price) || price <= 0) {
-    throw new Error("Oracle price invalid");
-  }
-  const signedAt = Date.parse(data.signed_at);
-  if (!Number.isFinite(signedAt)) {
-    throw new Error("Oracle snapshot missing timestamp");
-  }
-  const ageMs = Date.now() - signedAt;
-  if (ageMs > 10 * 60 * 1000) {
-    throw new Error("Oracle price stale");
-  }
-  return { price, snapshotId: data.id as string | null };
-}
 
 function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
@@ -142,16 +77,6 @@ function validateSplits(
   }
 
   return merged;
-}
-
-function roundTon(value: number): number {
-  return Number(value.toFixed(9));
-}
-
-function addMonths(date: Date, months: number): Date {
-  const copy = new Date(date.getTime());
-  copy.setUTCMonth(copy.getUTCMonth() + months);
-  return copy;
 }
 
 async function verifyTonPayment(
@@ -208,86 +133,6 @@ async function verifyTonPayment(
   return { ok: true, amountTon, blockTime };
 }
 
-async function executeSwap(
-  tonAmount: number,
-  tag: SwapTag,
-): Promise<SwapResult> {
-  if (tonAmount <= 0) {
-    return {
-      dctAmount: 0,
-      swapTxHash: "",
-      routerSwapId: "",
-      priceSnapshotId: null,
-      oraclePrice: null,
-      usdNotional: 0,
-    };
-  }
-
-  const tonUsdOverride = optionalEnv("TON_USD_PRICE");
-  const tonUsd = tonUsdOverride ? Number(tonUsdOverride) : 1;
-  if (!Number.isFinite(tonUsd) || tonUsd <= 0) {
-    throw new Error("Invalid TON_USD_PRICE value");
-  }
-
-  const priceOverrideRaw = optionalEnv("DCT_PRICE_OVERRIDE");
-  if (priceOverrideRaw) {
-    const price = Number(priceOverrideRaw);
-    if (!Number.isFinite(price) || price <= 0) {
-      throw new Error("Invalid DCT_PRICE_OVERRIDE value");
-    }
-    const usdNotional = roundTon(tonAmount * tonUsd);
-    const dctAmount = roundTon(usdNotional / price);
-    return {
-      dctAmount,
-      swapTxHash: `simulated-${tag}`,
-      routerSwapId: `sim-${crypto.randomUUID()}`,
-      priceSnapshotId: null,
-      oraclePrice: price,
-      usdNotional,
-    };
-  }
-
-  const oracle = await fetchOraclePrice();
-  const usdNotional = roundTon(tonAmount * tonUsd);
-  const dctAmount = roundTon(usdNotional / oracle.price);
-  return {
-    dctAmount,
-    swapTxHash: `allocator-${tag}-${crypto.randomUUID()}`,
-    routerSwapId: oracle.snapshotId ?? "",
-    priceSnapshotId: oracle.snapshotId ?? null,
-    oraclePrice: oracle.price,
-    usdNotional,
-  };
-}
-
-async function triggerBurn(
-  amountDct: number,
-  context: Record<string, unknown>,
-): Promise<string | null> {
-  if (amountDct <= 0) return null;
-  const burnHook = optionalEnv("BURN_WEBHOOK_URL");
-  if (!burnHook) return null;
-
-  const response = await fetch(burnHook, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      amount: amountDct,
-      ...context,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Burn webhook error ${response.status}`);
-  }
-
-  const payload = await response.json().catch(
-    () => ({} as Record<string, unknown>),
-  );
-  const burnTxHash = payload.txHash ?? payload.burnTxHash ?? null;
-  return burnTxHash ? String(burnTxHash) : null;
-}
-
 async function notifyBot(message: Record<string, unknown>): Promise<void> {
   const botWebhook = optionalEnv("BOT_WEBHOOK_URL");
   if (!botWebhook) return;
@@ -297,10 +142,6 @@ async function notifyBot(message: Record<string, unknown>): Promise<void> {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(message),
   });
-}
-
-function resolveStakeConfig(plan: string): StakeConfig {
-  return LOCK_CONFIG[plan] ?? { months: null, multiplier: 1.0 };
 }
 
 export const handler = registerHandler(async (req) => {
@@ -366,179 +207,43 @@ export const handler = registerHandler(async (req) => {
   const autoInvestTon = roundTon((tonAmount * splits.autoInvestPct) / 100);
   const burnTon = roundTon(tonAmount - operationsTon - autoInvestTon);
 
-  let autoInvestSwap: SwapResult = {
-    dctAmount: 0,
-    swapTxHash: "",
-    routerSwapId: "",
-    priceSnapshotId: null,
-    oraclePrice: null,
-    usdNotional: 0,
-  };
-  let burnSwap: SwapResult = {
-    dctAmount: 0,
-    swapTxHash: "",
-    routerSwapId: "",
-    priceSnapshotId: null,
-    oraclePrice: null,
-    usdNotional: 0,
-  };
-
-  try {
-    autoInvestSwap = await executeSwap(autoInvestTon, "auto-invest");
-    burnSwap = await executeSwap(burnTon, "buyback-burn");
-  } catch (error) {
-    return bad(
-      error instanceof Error ? error.message : "Swap failed",
-      undefined,
-      req,
-    );
-  }
-
-  let burnTxHash: string | null = null;
-  try {
-    burnTxHash = await triggerBurn(burnSwap.dctAmount, {
-      tonTxHash: body.tonTxHash,
-      dctMaster,
-    });
-  } catch (error) {
-    return bad(
-      error instanceof Error ? error.message : "Burn hook failed",
-      undefined,
-      req,
-    );
-  }
-
   const supabase = createClient("service");
+  const manager = new SubscriptionManager({ supabase });
 
-  const userPayload = {
-    telegram_id: body.telegramId ?? null,
-    wallet_address: body.walletAddress,
-    ton_domain: body.tonDomain ?? null,
-    metadata: body.metadata ?? null,
-  } as Record<string, unknown>;
-
-  const { data: user, error: userError } = await supabase
-    .from("dct_users")
-    .upsert(userPayload, { onConflict: "wallet_address" })
-    .select()
-    .single();
-
-  if (userError) {
-    return bad(`Failed to upsert user: ${userError.message}`, undefined, req);
-  }
-
-  const subscriptionId = crypto.randomUUID();
-  const subscriptionRecord = {
-    id: subscriptionId,
-    user_id: user.id,
-    plan: body.plan,
-    ton_paid: tonAmount,
-    operations_ton: operationsTon,
-    auto_invest_ton: autoInvestTon,
-    burn_ton: burnTon,
-    dct_bought: roundTon(autoInvestSwap.dctAmount + burnSwap.dctAmount),
-    dct_auto_invest: roundTon(autoInvestSwap.dctAmount),
-    dct_burned: roundTon(burnSwap.dctAmount),
-    tx_hash: body.tonTxHash,
-    router_swap_id: autoInvestSwap.routerSwapId || burnSwap.routerSwapId ||
-      null,
-    burn_tx_hash: burnTxHash,
-    split_operations_pct: splits.operationsPct,
-    split_auto_invest_pct: splits.autoInvestPct,
-    split_burn_pct: splits.buybackBurnPct,
-    next_renewal_at: body.nextRenewalAt ?? null,
-    notes: {
-      source: "dct-auto-invest",
-      paymentId: body.paymentId ?? null,
-      verification,
-      swaps: {
-        autoInvest: autoInvestSwap,
-        burn: burnSwap,
+  let receipt;
+  try {
+    receipt = await manager.payFor(
+      {
+        telegramId: body.telegramId ?? null,
+        walletAddress: body.walletAddress,
+        tonDomain: body.tonDomain ?? null,
+        metadata: body.metadata ?? null,
       },
-      valuations: {
-        autoInvestUsd: autoInvestSwap.usdNotional,
-        burnUsd: burnSwap.usdNotional,
-        oraclePrice: autoInvestSwap.oraclePrice ?? burnSwap.oraclePrice,
-        priceSnapshotId: autoInvestSwap.priceSnapshotId ??
-          burnSwap.priceSnapshotId ?? null,
+      {
+        plan: body.plan,
+        tonTxHash: body.tonTxHash,
+        tonAmount,
+        operationsTon,
+        autoInvestTon,
+        burnTon,
+        splits,
+        verification,
+        operationsWallet,
+        dctMaster,
+        nextRenewalAt: body.nextRenewalAt ?? null,
+        paymentId: body.paymentId ?? null,
       },
-    },
-  };
-
-  const { error: subscriptionError } = await supabase
-    .from("dct_subscriptions")
-    .insert(subscriptionRecord);
-
-  if (subscriptionError) {
-    return bad(
-      `Failed to record subscription: ${subscriptionError.message}`,
-      undefined,
-      req,
     );
-  }
-
-  const stakeConfig = resolveStakeConfig(body.plan);
-  let stakeId: string | null = null;
-  if (autoInvestSwap.dctAmount > 0) {
-    const weight = roundTon(autoInvestSwap.dctAmount * stakeConfig.multiplier);
-    const lockUntil = stakeConfig.months
-      ? addMonths(new Date(), stakeConfig.months)
-      : null;
-    stakeId = crypto.randomUUID();
-    const { error: stakeError } = await supabase
-      .from("dct_stakes")
-      .insert({
-        id: stakeId,
-        user_id: user.id,
-        subscription_id: subscriptionId,
-        dct_amount: roundTon(autoInvestSwap.dctAmount),
-        multiplier: stakeConfig.multiplier,
-        weight,
-        lock_months: stakeConfig.months,
-        lock_until: lockUntil ? lockUntil.toISOString() : null,
-        early_exit_penalty_bps: EARLY_EXIT_PENALTY_BPS,
-        status: "active",
-        notes: {
-          plan: body.plan,
-          tonTxHash: body.tonTxHash,
-        },
-      });
-
-    if (stakeError) {
-      return bad(
-        `Failed to create stake: ${stakeError.message}`,
-        undefined,
-        req,
-      );
+  } catch (error) {
+    if (error instanceof SubscriptionManagerError) {
+      return bad(error.message, undefined, req);
     }
+    return bad("Subscription processing failed", undefined, req);
   }
 
   const responsePayload = {
     ok: true,
-    data: {
-      userId: user.id,
-      subscriptionId,
-      stakeId,
-      tonAmount,
-      splits,
-      autoInvest: {
-        ton: autoInvestTon,
-        dct: roundTon(autoInvestSwap.dctAmount),
-        swapTxHash: autoInvestSwap.swapTxHash,
-      },
-      burn: {
-        ton: burnTon,
-        dct: roundTon(burnSwap.dctAmount),
-        swapTxHash: burnSwap.swapTxHash,
-        burnTxHash,
-      },
-      operations: {
-        ton: operationsTon,
-        wallet: operationsWallet,
-      },
-      nextRenewalAt: body.nextRenewalAt ?? null,
-      processedAt: new Date().toISOString(),
-    },
+    data: receipt,
   };
 
   await notifyBot({
