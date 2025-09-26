@@ -171,6 +171,16 @@ Treasury deployments require dual approval from the Contributor Council and
 Token Assembly. Reporting dashboards publish monthly transparency updates
 detailing inflows, outflows, and performance.
 
+| Operations Treasury Wallet | Address | Explorer Links |
+| -------------------------- | ------- | -------------- |
+| Multisig (Ops runway)      | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | [tonviewer](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) · [tonscan](https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) |
+
+The operations treasury wallet aggregates subscription inflows before routing
+governance-approved splits to auto-invest, burn, and working-capital buckets. A
+rotation into a new multisig requires synchronized updates across Supabase
+`app_config`, DNS resolver records, and the runbooks maintained in
+`docs/on-chain-flows.md` to keep the resolver graph consistent.
+
 ## Compliance & Risk Controls
 
 Dynamic Capital integrates programmatic KYC/KYB checks for institutional
