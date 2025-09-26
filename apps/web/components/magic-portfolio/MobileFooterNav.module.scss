@@ -40,6 +40,10 @@
     transition: color 0.2s ease, background 0.2s ease;
   }
 
+  .navItemInner {
+    display: contents;
+  }
+
   .navItemActive {
     color: hsl(var(--primary));
     background: hsl(var(--primary) / 0.08);

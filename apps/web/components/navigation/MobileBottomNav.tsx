@@ -103,19 +103,21 @@ export const MobileBottomNav: React.FC = () => {
                         : "text-muted-foreground hover:text-primary",
                     )}
                   >
-                    <span
-                      className={cn(
-                        "text-[10px] font-semibold uppercase tracking-wide",
-                        linkActive ? "text-primary" : "text-muted-foreground",
-                      )}
-                    >
-                      {item.step}
+                    <span className="contents">
+                      <span
+                        className={cn(
+                          "text-[10px] font-semibold uppercase tracking-wide",
+                          linkActive ? "text-primary" : "text-muted-foreground",
+                        )}
+                      >
+                        {item.step}
+                      </span>
+                      <Icon className="h-5 w-5" />
+                      <span className="text-xs font-medium leading-tight">
+                        {item.label}
+                      </span>
+                      <span className="sr-only">{item.description}</span>
                     </span>
-                    <Icon className="h-5 w-5" />
-                    <span className="text-xs font-medium leading-tight">
-                      {item.label}
-                    </span>
-                    <span className="sr-only">{item.description}</span>
                   </Link>
                 </motion.div>
               );

@@ -243,34 +243,36 @@ export function HomeNavigationRail({ className }: { className?: string }) {
                     role="tab"
                     aria-selected={isActive}
                   >
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary sm:h-7 sm:w-7">
-                      <Icon
-                        className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                        strokeWidth={2.1}
-                      />
-                    </span>
-                    <span className="flex min-w-0 flex-col items-start leading-tight">
-                      <span className="truncate text-sm sm:text-[15px]">
-                        {section.label}
-                      </span>
-                      <span className="sr-only text-[11px] font-normal text-muted-foreground/80 sm:not-sr-only sm:text-xs sm:leading-snug">
-                        {section.description}
-                      </span>
-                    </span>
-                    {isActive
-                      ? (
-                        <motion.span
-                          aria-hidden
-                          layoutId="nav-active-indicator"
-                          className="absolute inset-0 -z-[1] rounded-full bg-primary/10"
-                          transition={{
-                            type: "spring",
-                            stiffness: 260,
-                            damping: 24,
-                          }}
+                    <span className="contents">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary sm:h-7 sm:w-7">
+                        <Icon
+                          className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                          strokeWidth={2.1}
                         />
-                      )
-                      : null}
+                      </span>
+                      <span className="flex min-w-0 flex-col items-start leading-tight">
+                        <span className="truncate text-sm sm:text-[15px]">
+                          {section.label}
+                        </span>
+                        <span className="sr-only text-[11px] font-normal text-muted-foreground/80 sm:not-sr-only sm:text-xs sm:leading-snug">
+                          {section.description}
+                        </span>
+                      </span>
+                      {isActive
+                        ? (
+                          <motion.span
+                            aria-hidden
+                            layoutId="nav-active-indicator"
+                            className="absolute inset-0 -z-[1] rounded-full bg-primary/10"
+                            transition={{
+                              type: "spring",
+                              stiffness: 260,
+                              damping: 24,
+                            }}
+                          />
+                        )
+                        : null}
+                    </span>
                   </Link>
                 </motion.div>
               );

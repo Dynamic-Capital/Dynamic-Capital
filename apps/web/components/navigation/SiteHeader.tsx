@@ -38,9 +38,11 @@ export function SiteHeader() {
           aria-label="Dynamic Capital home"
           className="flex items-center gap-3"
         >
-          <BrandLogo size="md" variant="brand" showText={false} animated />
-          <span className="hidden text-sm font-semibold uppercase tracking-[0.32em] text-muted-foreground sm:inline">
-            Dynamic Capital
+          <span className="contents">
+            <BrandLogo size="md" variant="brand" showText={false} animated />
+            <span className="hidden text-sm font-semibold uppercase tracking-[0.32em] text-muted-foreground sm:inline">
+              Dynamic Capital
+            </span>
           </span>
         </Link>
 
@@ -84,8 +86,10 @@ export function SiteHeader() {
               aria-label="Open support"
             >
               <Link href="/support" aria-label="Support center">
-                <LifeBuoy className="h-5 w-5" />
-                <span className="sr-only">Support</span>
+                <span className="contents">
+                  <LifeBuoy className="h-5 w-5" />
+                  <span className="sr-only">Support</span>
+                </span>
               </Link>
             </Button>
             <MobileMenu />
