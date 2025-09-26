@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment } from "react";
+import { type CSSProperties, Fragment } from "react";
 
 import {
   Button,
@@ -15,23 +15,38 @@ import {
 import { useEconomicCalendar } from "@/hooks/useEconomicCalendar";
 import type { EconomicEvent, ImpactLevel } from "@/types/economic-event";
 import type { Colors } from "@/components/dynamic-ui-system";
+import {
+  balanceIconColor,
+  balanceTextColor,
+  type BalanceTone,
+  balanceToneClass,
+} from "@/utils/balancePalette";
 
 type TagBackground = Colors | "page" | "surface" | "overlay" | "transparent";
 
-type ImpactStyle = { label: string; background: TagBackground; icon: string };
+type ImpactStyle = {
+  label: string;
+  icon: string;
+  tone?: BalanceTone;
+  fallbackBackground?: TagBackground;
+};
 
 const IMPACT_STYLES: Record<ImpactLevel, ImpactStyle> = {
   High: {
     label: "High impact",
-    background: "danger-alpha-weak",
     icon: "alert-triangle",
+    tone: "bearish",
   },
   Medium: {
     label: "Medium impact",
-    background: "brand-alpha-weak",
     icon: "activity",
+    tone: "premium",
   },
-  Low: { label: "Low impact", background: "neutral-alpha-weak", icon: "info" },
+  Low: {
+    label: "Low impact",
+    icon: "info",
+    fallbackBackground: "neutral-alpha-weak",
+  },
 };
 
 const NUMBER_FORMATTER_CACHE = new Map<string, Intl.NumberFormat>();
@@ -68,17 +83,27 @@ const formatChangePercent = (value?: number) => {
   return `${absolute}%`;
 };
 
-const resolveChangeBackground = (value?: number): TagBackground => {
-  if (value === undefined || Number.isNaN(value)) {
-    return "neutral-alpha-weak";
+const toneTextStyle = (tone: BalanceTone): CSSProperties => ({
+  color: balanceTextColor(tone),
+});
+
+const toneIconStyle = (tone: BalanceTone): CSSProperties => ({
+  color: balanceIconColor(tone),
+});
+
+type ChangeToneStyle = {
+  tone?: BalanceTone;
+  fallbackBackground?: TagBackground;
+};
+
+const resolveChangeTone = (value?: number): ChangeToneStyle => {
+  if (value === undefined || Number.isNaN(value) || value === 0) {
+    return { fallbackBackground: "neutral-alpha-weak" };
   }
   if (value > 0) {
-    return "brand-alpha-weak";
+    return { tone: "bullish" };
   }
-  if (value < 0) {
-    return "danger-alpha-weak";
-  }
-  return "neutral-alpha-weak";
+  return { tone: "bearish" };
 };
 
 const resolveChangeIcon = (value?: number): string | undefined => {
@@ -150,7 +175,7 @@ export function EconomicCalendarSection(
               gap="12"
             >
               <Row gap="12" vertical="center">
-                <Icon name="activity" onBackground="brand-medium" />
+                <Icon name="activity" style={toneIconStyle("premium")} />
                 <Text variant="body-strong-m">Loading upcoming catalysts…</Text>
               </Row>
               <Text variant="body-default-m" onBackground="neutral-weak">
@@ -163,19 +188,25 @@ export function EconomicCalendarSection(
         {showError
           ? (
             <Column
-              background="danger-alpha-weak"
-              border="danger-alpha-medium"
+              className={balanceToneClass("bearish")}
+              border="neutral-alpha-weak"
               radius="l"
               padding="l"
               gap="16"
             >
               <Row gap="12" vertical="center">
-                <Icon name="alert-triangle" onBackground="danger-strong" />
-                <Text variant="body-strong-m" onBackground="danger-strong">
+                <Icon name="alert-triangle" data-balance-icon />
+                <Text
+                  variant="body-strong-m"
+                  style={toneTextStyle("bearish")}
+                >
                   Economic calendar temporarily unavailable
                 </Text>
               </Row>
-              <Text variant="body-default-m" onBackground="danger-strong">
+              <Text
+                variant="body-default-m"
+                style={toneTextStyle("bearish")}
+              >
                 {error}
               </Text>
               <Row gap="12" wrap>
@@ -236,7 +267,10 @@ export function EconomicCalendarSection(
                           </Heading>
                           <Tag
                             size="s"
-                            background={impactDetails.background}
+                            className={impactDetails.tone
+                              ? balanceToneClass(impactDetails.tone)
+                              : undefined}
+                            background={impactDetails.fallbackBackground}
                             prefixIcon={impactDetails.icon}
                           >
                             {impactDetails.label}
@@ -271,7 +305,7 @@ export function EconomicCalendarSection(
                                   >
                                     <Tag
                                       size="s"
-                                      background="brand-alpha-weak"
+                                      className={balanceToneClass("premium")}
                                       prefixIcon="target"
                                     >
                                       {highlight.focus}
@@ -287,10 +321,18 @@ export function EconomicCalendarSection(
                                             formatChangePercent(
                                               instrument.changePercent,
                                             );
-                                          const changeBackground =
-                                            resolveChangeBackground(
+                                          const changeToneStyle =
+                                            resolveChangeTone(
                                               instrument.changePercent,
                                             );
+                                          const changeToneClass =
+                                            changeToneStyle.tone
+                                              ? balanceToneClass(
+                                                changeToneStyle.tone,
+                                              )
+                                              : undefined;
+                                          const changeBackground =
+                                            changeToneStyle.fallbackBackground;
                                           const changeIcon = resolveChangeIcon(
                                             instrument.changePercent,
                                           );
@@ -315,6 +357,7 @@ export function EconomicCalendarSection(
                                               </Tag>
                                               <Tag
                                                 size="s"
+                                                className={changeToneClass}
                                                 background={changeBackground}
                                                 prefixIcon={changeIcon}
                                               >
@@ -347,7 +390,7 @@ export function EconomicCalendarSection(
                               <Row key={planIndex} gap="8" vertical="start">
                                 <Icon
                                   name="sparkles"
-                                  onBackground="brand-medium"
+                                  style={toneIconStyle("premium")}
                                 />
                                 <Text as="li" variant="body-default-m">
                                   {plan}
@@ -385,7 +428,7 @@ export function EconomicCalendarSection(
               gap="12"
             >
               <Row gap="12" vertical="center">
-                <Icon name="sparkles" onBackground="brand-medium" />
+                <Icon name="sparkles" style={toneIconStyle("premium")} />
                 <Text variant="body-strong-m">
                   Desk is preparing new catalysts
                 </Text>

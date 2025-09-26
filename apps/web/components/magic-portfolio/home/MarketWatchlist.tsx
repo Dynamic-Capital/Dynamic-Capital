@@ -1,8 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ComponentProps,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
+  type Colors,
   Column,
   Heading,
   Icon,
@@ -18,6 +26,11 @@ import {
   findInstrumentMetadata,
   getInstrumentMetadata,
 } from "@/data/instruments";
+import {
+  balanceTextColor,
+  type BalanceTone,
+  balanceToneClass,
+} from "@/utils/balancePalette";
 
 interface StrategyPlaybook {
   automation: string;
@@ -60,11 +73,9 @@ type MarketQuote = {
 
 type BiasVisual = {
   label: string;
-  background: `${"brand" | "danger" | "neutral"}-alpha-${"weak" | "medium"}`;
-  onBackground: `${"brand" | "danger" | "neutral"}-${
-    | "weak"
-    | "medium"
-    | "strong"}`;
+  tone?: BalanceTone;
+  fallbackBackground?: Colors;
+  fallbackOnBackground?: Colors;
 };
 
 type CategoryVisual = {
@@ -72,7 +83,7 @@ type CategoryVisual = {
   label: string;
 };
 
-type InsightTone = "brand" | "neutral" | "danger";
+type InsightTone = "bullish" | "neutral" | "bearish";
 
 type InsightVisual = {
   label: string;
@@ -80,28 +91,23 @@ type InsightVisual = {
   tone: InsightTone;
 };
 
+type IconBackground = ComponentProps<typeof Icon>["onBackground"];
+
 type InsightToneStyle = {
-  background: `${"brand" | "neutral" | "danger"}-alpha-${"weak" | "medium"}`;
-  icon: `${"brand" | "neutral" | "danger"}-${"weak" | "medium" | "strong"}`;
-  text: `${"brand" | "neutral" | "danger"}-${"weak" | "medium" | "strong"}`;
+  tone?: BalanceTone;
+  fallbackBackground?: Colors;
+  fallbackIcon?: IconBackground;
+  fallbackText?: Colors;
 };
 
 const INSIGHT_TONE_STYLES: Record<InsightTone, InsightToneStyle> = {
-  brand: {
-    background: "brand-alpha-weak",
-    icon: "brand-medium",
-    text: "brand-strong",
-  },
+  bullish: { tone: "bullish" },
   neutral: {
-    background: "neutral-alpha-weak",
-    icon: "neutral-medium",
-    text: "neutral-strong",
+    fallbackBackground: "neutral-alpha-weak",
+    fallbackIcon: "neutral-medium",
+    fallbackText: "neutral-strong",
   },
-  danger: {
-    background: "danger-alpha-weak",
-    icon: "danger-medium",
-    text: "danger-strong",
-  },
+  bearish: { tone: "bearish" },
 };
 
 type MarketApiQuote = {
@@ -124,20 +130,12 @@ const CATEGORY_DETAILS: Record<InstrumentCategory, CategoryVisual> = {
 };
 
 const BIAS_DETAILS: Record<MarketWatchlistItem["bias"], BiasVisual> = {
-  Long: {
-    label: "Long bias",
-    background: "brand-alpha-weak",
-    onBackground: "brand-strong",
-  },
-  Short: {
-    label: "Short bias",
-    background: "danger-alpha-weak",
-    onBackground: "danger-strong",
-  },
+  Long: { label: "Long bias", tone: "bullish" },
+  Short: { label: "Short bias", tone: "bearish" },
   Monitoring: {
     label: "Monitoring",
-    background: "neutral-alpha-weak",
-    onBackground: "neutral-strong",
+    fallbackBackground: "neutral-alpha-weak",
+    fallbackOnBackground: "neutral-strong",
   },
 };
 
@@ -480,10 +478,10 @@ const determineLevelTone = (
   const lower = normalized.toLowerCase();
   if (type === "support") {
     if (lower.includes("below support") || lower.includes("pressing support")) {
-      return "danger";
+      return "bearish";
     }
     if (lower.includes("holding above support")) {
-      return "brand";
+      return "bullish";
     }
     return "neutral";
   }
@@ -492,7 +490,7 @@ const determineLevelTone = (
     lower.includes("through resistance") ||
     lower.includes("testing resistance")
   ) {
-    return "brand";
+    return "bullish";
   }
   return "neutral";
 };
@@ -544,7 +542,7 @@ const buildQuickTakeaway = (
   }
 
   const insights: InsightVisual[] = [
-    createInsight(`Last trade ${formattedPrice}`, "activity", "brand"),
+    createInsight(`Last trade ${formattedPrice}`, "activity", "bullish"),
   ];
 
   if (support !== undefined) {
@@ -570,14 +568,15 @@ const buildQuickTakeaway = (
   const changePercent = quote?.changePercent;
   const changeLabel = formatChangePercent(changePercent);
   if (changeLabel !== "—") {
-    const tone = changePercent === undefined || Number.isNaN(changePercent)
+    const tone: InsightTone = changePercent === undefined ||
+        Number.isNaN(changePercent)
       ? "neutral"
       : changePercent < 0
-      ? "danger"
+      ? "bearish"
       : changePercent > 0
-      ? "brand"
+      ? "bullish"
       : "neutral";
-    const icon = tone === "danger" ? "alert-triangle" : "activity";
+    const icon = tone === "bearish" ? "alert-triangle" : "activity";
     insights.push(createInsight(`Session move ${changeLabel}`, icon, tone));
   }
 
@@ -630,14 +629,15 @@ const buildStrategyFocus = (
   const insights: InsightVisual[] = [];
 
   if (changeLabel !== "—") {
-    const tone = changePercent === undefined || Number.isNaN(changePercent)
+    const tone: InsightTone = changePercent === undefined ||
+        Number.isNaN(changePercent)
       ? "neutral"
       : changePercent < 0
-      ? "danger"
+      ? "bearish"
       : changePercent > 0
-      ? "brand"
+      ? "bullish"
       : "neutral";
-    const icon = tone === "danger" ? "alert-triangle" : "activity";
+    const icon = tone === "bearish" ? "alert-triangle" : "activity";
     insights.push(createInsight(`Momentum ${changeLabel}`, icon, tone));
   }
 
@@ -646,13 +646,15 @@ const buildStrategyFocus = (
   }
 
   if (planMessage) {
-    insights.push(createInsight(`Plan: ${planMessage}`, "target", "brand"));
+    insights.push(createInsight(`Plan: ${planMessage}`, "target", "bullish"));
   }
 
   if (playbook.flipLevel !== undefined) {
     const flipLabel = formatNumber(playbook.flipLevel, item.format);
     if (flipLabel !== "—") {
-      insights.push(createInsight(`Flip level ${flipLabel}`, "flag", "brand"));
+      insights.push(
+        createInsight(`Flip level ${flipLabel}`, "flag", "bullish"),
+      );
     }
   }
 
@@ -989,7 +991,10 @@ export function MarketWatchlist() {
           <Tag size="s">{statusLabel}</Tag>
           {error
             ? (
-              <Text variant="label-default-s" onBackground="danger-strong">
+              <Text
+                variant="label-default-s"
+                style={{ color: balanceTextColor("bearish") }}
+              >
                 {error}
               </Text>
             )
@@ -1017,16 +1022,29 @@ export function MarketWatchlist() {
             : undefined;
           const quickTakeaway = buildQuickTakeaway(item, quote);
           const strategyFocus = buildStrategyFocus(item, quote);
-          const changeBackground = changePositive === undefined
-            ? "neutral-alpha-weak"
-            : changePositive
-            ? "brand-alpha-weak"
-            : "danger-alpha-weak";
-          const changeForeground = changePositive === undefined
-            ? "neutral-strong"
-            : changePositive
-            ? "brand-strong"
-            : "danger-strong";
+          const biasTone = bias.tone;
+          const biasClassName = biasTone
+            ? balanceToneClass(biasTone)
+            : undefined;
+          const biasBackground = biasTone
+            ? undefined
+            : bias.fallbackBackground ?? "neutral-alpha-weak";
+          const biasForeground = biasTone
+            ? undefined
+            : bias.fallbackOnBackground ?? "neutral-strong";
+          const changeTone: BalanceTone | undefined =
+            changePositive === undefined
+              ? undefined
+              : changePositive
+              ? "bullish"
+              : "bearish";
+          const changeClassName = changeTone
+            ? balanceToneClass(changeTone)
+            : undefined;
+          const changeBackground = changeTone
+            ? undefined
+            : "neutral-alpha-weak";
+          const changeForeground = changeTone ? undefined : "neutral-strong";
 
           return (
             <Column
@@ -1054,8 +1072,9 @@ export function MarketWatchlist() {
                     </Tag>
                     <Tag
                       size="s"
-                      background={bias.background}
-                      onBackground={bias.onBackground}
+                      className={biasClassName}
+                      background={biasBackground}
+                      onBackground={biasTone ? undefined : biasForeground}
                     >
                       {bias.label}
                     </Tag>
@@ -1071,8 +1090,9 @@ export function MarketWatchlist() {
                     </Text>
                     <Tag
                       size="s"
+                      className={changeClassName}
                       background={changeBackground}
-                      onBackground={changeForeground}
+                      onBackground={changeTone ? undefined : changeForeground}
                     >
                       {formatChangePercent(changeValue)}
                     </Tag>
@@ -1108,21 +1128,34 @@ export function MarketWatchlist() {
                   flex={1}
                   minWidth={24}
                   gap="8"
-                  background="brand-alpha-weak"
+                  className={balanceToneClass("premium")}
                   padding="m"
                   radius="m"
                 >
-                  <Text variant="label-default-s" onBackground="brand-strong">
+                  <Text variant="label-default-s">
                     Quick takeaway
                   </Text>
                   <Column gap="4">
                     {quickTakeaway.length > 0
                       ? quickTakeaway.map((insight, index) => {
                         const tone = INSIGHT_TONE_STYLES[insight.tone];
+                        const toneClassName = tone.tone
+                          ? balanceToneClass(tone.tone)
+                          : undefined;
+                        const toneBackground = tone.tone
+                          ? undefined
+                          : tone.fallbackBackground ?? "neutral-alpha-weak";
+                        const toneIcon = tone.tone
+                          ? undefined
+                          : tone.fallbackIcon ?? "neutral-medium";
+                        const toneText = tone.tone
+                          ? undefined
+                          : tone.fallbackText ?? "neutral-strong";
                         return (
                           <Row
                             key={`${item.symbol}-takeaway-${index}`}
-                            background={tone.background}
+                            className={toneClassName}
+                            background={toneBackground}
                             radius="s"
                             padding="s"
                             gap="8"
@@ -1130,11 +1163,11 @@ export function MarketWatchlist() {
                           >
                             <Icon
                               name={insight.icon}
-                              onBackground={tone.icon}
+                              onBackground={toneIcon}
                             />
                             <Text
                               variant="body-default-s"
-                              onBackground={tone.text}
+                              onBackground={toneText}
                             >
                               {insight.label}
                             </Text>
@@ -1144,25 +1177,45 @@ export function MarketWatchlist() {
                       : (
                         <Text
                           variant="body-default-s"
-                          onBackground="brand-strong"
+                          style={{ color: balanceTextColor("premium") }}
                         >
                           No quick insights available.
                         </Text>
                       )}
                   </Column>
                 </Column>
-                <Column flex={1} minWidth={24} gap="8">
-                  <Text variant="label-default-s" onBackground="neutral-weak">
+                <Column
+                  flex={1}
+                  minWidth={24}
+                  gap="8"
+                  className={balanceToneClass("discount")}
+                  padding="m"
+                  radius="m"
+                >
+                  <Text variant="label-default-s">
                     Strategy focus
                   </Text>
                   <Column gap="4">
                     {strategyFocus.length > 0
                       ? strategyFocus.map((insight, index) => {
                         const tone = INSIGHT_TONE_STYLES[insight.tone];
+                        const toneClassName = tone.tone
+                          ? balanceToneClass(tone.tone)
+                          : undefined;
+                        const toneBackground = tone.tone
+                          ? undefined
+                          : tone.fallbackBackground ?? "neutral-alpha-weak";
+                        const toneIcon = tone.tone
+                          ? undefined
+                          : tone.fallbackIcon ?? "neutral-medium";
+                        const toneText = tone.tone
+                          ? undefined
+                          : tone.fallbackText ?? "neutral-strong";
                         return (
                           <Row
                             key={`${item.symbol}-strategy-${index}`}
-                            background={tone.background}
+                            className={toneClassName}
+                            background={toneBackground}
                             radius="s"
                             padding="s"
                             gap="8"
@@ -1170,11 +1223,11 @@ export function MarketWatchlist() {
                           >
                             <Icon
                               name={insight.icon}
-                              onBackground={tone.icon}
+                              onBackground={toneIcon}
                             />
                             <Text
                               variant="body-default-m"
-                              onBackground={tone.text}
+                              onBackground={toneText}
                             >
                               {insight.label}
                             </Text>
