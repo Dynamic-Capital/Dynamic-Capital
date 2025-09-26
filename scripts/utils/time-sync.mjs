@@ -1,7 +1,66 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
 
-const MALDIVES_TIME_ZONE = "Indian/Maldives";
+import deskTimeZoneConfig from "../../shared/time/desk-time-zone.json" assert {
+  type: "json",
+};
+
+const FALLBACK_TIME_ZONE = "Indian/Maldives";
+const FALLBACK_LABEL = "Malé, Maldives";
+const FALLBACK_ABBREVIATION = "MVT";
+const FALLBACK_OFFSET = "+05:00";
+
+function coerceString(value) {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+const DESK_TIME_ZONE = coerceString(deskTimeZoneConfig?.iana) ??
+  FALLBACK_TIME_ZONE;
+const DESK_TIME_ZONE_LABEL = coerceString(deskTimeZoneConfig?.label) ??
+  FALLBACK_LABEL;
+const DESK_TIME_ZONE_ABBREVIATION =
+  coerceString(deskTimeZoneConfig?.abbreviation) ?? FALLBACK_ABBREVIATION;
+const DESK_TIME_ZONE_OFFSET = coerceString(deskTimeZoneConfig?.offset) ??
+  FALLBACK_OFFSET;
+
+function formatOffset(offsetValue) {
+  if (!offsetValue) {
+    return undefined;
+  }
+
+  const hasSign = offsetValue.startsWith("+") || offsetValue.startsWith("-");
+  const normalized = hasSign ? offsetValue : `+${offsetValue}`;
+
+  return `UTC${normalized}`;
+}
+
+function describeDeskTimeZone() {
+  const parts = [DESK_TIME_ZONE_LABEL];
+
+  if (DESK_TIME_ZONE_ABBREVIATION) {
+    parts.push(`(${DESK_TIME_ZONE_ABBREVIATION}`);
+  }
+
+  const formattedOffset = formatOffset(DESK_TIME_ZONE_OFFSET);
+
+  if (formattedOffset) {
+    if (DESK_TIME_ZONE_ABBREVIATION) {
+      const lastIndex = parts.length - 1;
+      parts[lastIndex] = `${parts[lastIndex]}, ${formattedOffset})`;
+    } else {
+      parts.push(`(${formattedOffset})`);
+    }
+  } else if (DESK_TIME_ZONE_ABBREVIATION) {
+    const lastIndex = parts.length - 1;
+    parts[lastIndex] = `${parts[lastIndex]})`;
+  }
+
+  return parts.join(" ");
+}
 
 function normalizeLogger(logger = console) {
   const fallback = {
@@ -31,14 +90,14 @@ function normalizeLogger(logger = console) {
   };
 }
 
-export function syncMaldivesClock({ logger = console } = {}) {
+export function syncDeskClock({ logger = console } = {}) {
   const { info, warn, debug } = normalizeLogger(logger);
 
   const steps = [
     {
-      label: `Set system timezone to ${MALDIVES_TIME_ZONE}`,
+      label: `Set system timezone to ${DESK_TIME_ZONE}`,
       command: "timedatectl",
-      args: ["set-timezone", MALDIVES_TIME_ZONE],
+      args: ["set-timezone", DESK_TIME_ZONE],
       required: true,
     },
     {
@@ -50,7 +109,7 @@ export function syncMaldivesClock({ logger = console } = {}) {
   ];
 
   info(
-    "🕒 Ensuring build environment clock is aligned with Maldives time (UTC+05:00)…",
+    `🕒 Ensuring build environment clock is aligned with ${describeDeskTimeZone()}…`,
   );
 
   const requiredFailures = [];
@@ -102,15 +161,15 @@ export function syncMaldivesClock({ logger = console } = {}) {
   const ok = requiredFailures.length === 0;
 
   if (ok) {
-    info("✅ Maldives time synchronization steps completed.");
+    info("✅ Desk time synchronization steps completed.");
   } else {
     warn(
-      "⚠️  Maldives time synchronization encountered required-step failures.",
+      "⚠️  Desk time synchronization encountered required-step failures.",
     );
   }
 
   if (optionalWarnings.length > 0) {
-    warn("ℹ️  Optional time sync steps reported warnings:");
+    warn("ℹ️  Optional desk time sync steps reported warnings:");
     for (const message of optionalWarnings) {
       warn(`   • ${message}`);
     }
@@ -124,4 +183,8 @@ export function syncMaldivesClock({ logger = console } = {}) {
   };
 }
 
-export default syncMaldivesClock;
+export function syncMaldivesClock(options) {
+  return syncDeskClock(options);
+}
+
+export default syncDeskClock;

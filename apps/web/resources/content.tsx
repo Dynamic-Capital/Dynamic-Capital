@@ -3,6 +3,7 @@ import {
   Blog,
   Gallery,
   Home,
+  IANATimeZone,
   Newsletter,
   Person,
   Social,
@@ -10,8 +11,22 @@ import {
 } from "@/resources/types";
 import { Line, Row, Text } from "@/components/dynamic-ui-system";
 
+import deskTimeZone from "../../../shared/time/desk-time-zone.json";
 import { supabaseAsset } from "./assets";
 import { ogDefaults } from "./og-defaults";
+
+const fallbackDeskTimeZone: IANATimeZone = "Indian/Maldives";
+const rawDeskTimeZone =
+  typeof deskTimeZone?.iana === "string" && deskTimeZone.iana.length > 0
+    ? deskTimeZone.iana
+    : undefined;
+const DESK_TIME_ZONE =
+  (rawDeskTimeZone ?? fallbackDeskTimeZone) as IANATimeZone;
+
+const DESK_TIME_ZONE_LABEL =
+  typeof deskTimeZone?.label === "string" && deskTimeZone.label.length > 0
+    ? deskTimeZone.label
+    : "Malé, Maldives";
 
 const person: Person = {
   firstName: "Abdul Mumin",
@@ -20,8 +35,8 @@ const person: Person = {
   role: "Founder",
   avatar: supabaseAsset("images/avatar.jpg"),
   email: "dynamiccaptialapp@gmail.com",
-  location: "Indian/Maldives",
-  locationLabel: "Malé, Maldives",
+  location: DESK_TIME_ZONE,
+  locationLabel: DESK_TIME_ZONE_LABEL,
 };
 
 const newsletter: Newsletter = {
