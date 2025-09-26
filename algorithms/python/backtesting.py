@@ -86,12 +86,16 @@ class Backtester:
         open_positions: List[ActivePosition],
     ) -> Optional[CompletedTrade]:
         for idx, pos in enumerate(open_positions):
-            if pos.symbol == decision.symbol and pos.direction == decision.direction:
-                exit_price = snapshot.close
+            direction = decision.direction if decision.direction is not None else pos.direction
+            if pos.symbol == decision.symbol and pos.direction == direction:
+                exit_price = decision.exit if decision.exit is not None else snapshot.close
                 if self.slippage_pips:
                     exit_price -= self.slippage_pips * snapshot.pip_size * (1 if pos.direction > 0 else -1)
                 pips = (exit_price - pos.entry_price) / snapshot.pip_size * pos.direction
                 profit = pips * snapshot.pip_value * pos.size
+                metadata = {"reason": decision.reason}
+                if decision.context:
+                    metadata["context"] = decision.context
                 trade = CompletedTrade(
                     symbol=pos.symbol,
                     direction=pos.direction,
@@ -102,7 +106,7 @@ class Backtester:
                     close_time=snapshot.timestamp,
                     profit=profit,
                     pips=pips,
-                    metadata={"reason": decision.reason},
+                    metadata=metadata,
                 )
                 del open_positions[idx]
                 return trade

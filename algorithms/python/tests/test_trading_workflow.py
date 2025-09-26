@@ -81,7 +81,7 @@ def test_lorentzian_knn_model_predicts_direction():
     ]
     model = LorentzianKNNModel(neighbors=1)
     model.fit(samples)
-    signal = model.predict((0.1, 0.1, 0.1, 0.1))
+    signal = model.predict((0.1, 0.1, 0.1, 0.1), timestamp=timestamp)
     assert signal is not None
     assert signal.direction == 1
 
@@ -95,7 +95,7 @@ def test_lorentzian_knn_model_skips_unlabelled_samples():
     model.add_sample(
         LabeledFeature(features=(10.0, 10.0, 10.0, 10.0), label=None, close=1.0, timestamp=timestamp)
     )
-    assert model.predict((0.1, 0.1, 0.1, 0.1)) is None
+    assert model.predict((0.1, 0.1, 0.1, 0.1), timestamp=timestamp) is None
 
 
 def test_lorentzian_knn_model_prediction_consistency_with_unlabelled_entries():
@@ -111,12 +111,12 @@ def test_lorentzian_knn_model_prediction_consistency_with_unlabelled_entries():
     model.add_sample(
         LabeledFeature(features=(10.0, 10.0, 10.0, 10.0), label=None, close=1.0, timestamp=timestamp)
     )
-    first_signal = model.predict((0.1, 0.1, 0.1, 0.1))
+    first_signal = model.predict((0.1, 0.1, 0.1, 0.1), timestamp=timestamp)
     assert first_signal is not None
     assert first_signal.direction == 1
 
     # Ensure cached predictions remain the same when requesting again.
-    cached_signal = model.predict((0.1, 0.1, 0.1, 0.1))
+    cached_signal = model.predict((0.1, 0.1, 0.1, 0.1), timestamp=timestamp)
     assert cached_signal is not None
     assert cached_signal.direction == first_signal.direction
 
@@ -184,6 +184,32 @@ def test_lorentzian_knn_model_applies_advisor_feedback():
     assert signal is not None
     assert signal.direction == -1
     assert feedbacks and feedbacks[0].metadata["source"] == "dual_llm"
+
+
+def test_lorentzian_knn_model_prefers_recent_samples():
+    now = datetime.now(timezone.utc)
+    model = LorentzianKNNModel(neighbors=1, recency_halflife_minutes=60)
+    model.fit(
+        [
+            LabeledFeature(
+                features=(0.0, 0.0, 0.0, 0.0),
+                label=1,
+                close=1.0,
+                timestamp=now - timedelta(hours=12),
+            ),
+            LabeledFeature(
+                features=(1.0, 1.0, 1.0, 1.0),
+                label=-1,
+                close=1.0,
+                timestamp=now - timedelta(minutes=5),
+            ),
+        ]
+    )
+
+    signal = model.predict((0.5, 0.5, 0.5, 0.5), timestamp=now)
+
+    assert signal is not None
+    assert signal.direction == -1
 
 
 def test_backtester_generates_performance_metrics(tmp_path: Path):
@@ -640,3 +666,103 @@ def test_trade_logic_handles_zero_stop_loss_inputs():
     assert "breakeven" in decision.context["components"]
     assert "trailing" in decision.context["components"]
     assert decision.context["previous_stop_loss"] is None
+
+def test_generate_exit_decisions_respect_intrabar_stop_levels():
+    logic = TradeLogic(config=TradeConfig(neighbors=1))
+    now = datetime.now(timezone.utc)
+    position = ActivePosition(
+        symbol="EURUSD",
+        direction=1,
+        size=1.0,
+        entry_price=1.2,
+        stop_loss=1.195,
+        take_profit=1.21,
+    )
+    snapshot = MarketSnapshot(
+        symbol="EURUSD",
+        timestamp=now,
+        close=1.204,
+        open=1.204,
+        high=1.206,
+        low=1.1945,
+        rsi_fast=55.0,
+        adx_fast=20.0,
+        rsi_slow=50.0,
+        adx_slow=18.0,
+        pip_size=0.0001,
+        pip_value=10.0,
+    )
+
+    decisions, remaining = logic._generate_exit_decisions(snapshot, [position])
+
+    assert not remaining
+    assert len(decisions) == 1
+    decision = decisions[0]
+    assert decision.context["trigger"] == "stop_loss"
+    assert decision.exit == pytest.approx(1.195)
+
+
+def test_generate_exit_decisions_handles_price_gaps():
+    logic = TradeLogic(config=TradeConfig(neighbors=1))
+    now = datetime.now(timezone.utc)
+    position = ActivePosition(
+        symbol="EURUSD",
+        direction=1,
+        size=1.0,
+        entry_price=1.2,
+        stop_loss=1.195,
+        take_profit=1.21,
+    )
+    snapshot = MarketSnapshot(
+        symbol="EURUSD",
+        timestamp=now,
+        close=1.194,
+        open=1.193,
+        high=1.196,
+        low=1.192,
+        rsi_fast=45.0,
+        adx_fast=22.0,
+        rsi_slow=40.0,
+        adx_slow=19.0,
+        pip_size=0.0001,
+        pip_value=10.0,
+    )
+
+    decisions, _ = logic._generate_exit_decisions(snapshot, [position])
+
+    assert decisions
+    assert decisions[0].exit == pytest.approx(1.193)
+    assert decisions[0].context["trigger"] == "stop_loss"
+
+
+def test_generate_exit_decisions_prioritises_nearest_level_when_both_hit():
+    logic = TradeLogic(config=TradeConfig(neighbors=1))
+    now = datetime.now(timezone.utc)
+    position = ActivePosition(
+        symbol="EURUSD",
+        direction=1,
+        size=1.0,
+        entry_price=1.2,
+        stop_loss=1.19,
+        take_profit=1.205,
+    )
+    snapshot = MarketSnapshot(
+        symbol="EURUSD",
+        timestamp=now,
+        close=1.201,
+        open=1.203,
+        high=1.207,
+        low=1.189,
+        rsi_fast=60.0,
+        adx_fast=25.0,
+        rsi_slow=52.0,
+        adx_slow=21.0,
+        pip_size=0.0001,
+        pip_value=10.0,
+    )
+
+    decisions, _ = logic._generate_exit_decisions(snapshot, [position])
+
+    assert decisions
+    assert decisions[0].context["trigger"] == "take_profit"
+    assert decisions[0].exit == pytest.approx(1.205)

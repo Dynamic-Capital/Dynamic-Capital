@@ -197,6 +197,7 @@ class TradeDecision:
     direction: Optional[int] = None
     size: Optional[float] = None
     entry: Optional[float] = None
+    exit: Optional[float] = None
     stop_loss: Optional[float] = None
     take_profit: Optional[float] = None
     reason: str = ""
@@ -225,6 +226,7 @@ class TradeConfig:
     max_rows: int = 2_000
     label_lookahead: int = 4
     neutral_zone_pips: float = 2.0
+    knn_recency_halflife_minutes: Optional[float] = None
     manual_stop_loss_pips: float = 30.0
     manual_take_profit_pips: float = 60.0
     break_even_pips: float = 10.0
@@ -795,6 +797,7 @@ class LorentzianKNNModel:
         distance_fn: Optional[Callable[[Sequence[float], Sequence[float]], float]] = None,
         grok_weight: float = 0.6,
         deepseek_weight: float = 0.4,
+        recency_halflife_minutes: Optional[float] = None,
         cache_size: int = 32,
     ) -> None:
         if neighbors <= 0:
@@ -803,13 +806,21 @@ class LorentzianKNNModel:
             raise ValueError("advisor weights must be non-negative")
         if cache_size < 0:
             raise ValueError("cache_size cannot be negative")
+        if recency_halflife_minutes is not None and recency_halflife_minutes <= 0:
+            raise ValueError("recency_halflife_minutes must be positive")
         self.neighbors = neighbors
         self.max_samples = max_samples
         self.distance_fn = distance_fn or _resolve_distance_function()
         self.grok_weight = float(grok_weight)
         self.deepseek_weight = float(deepseek_weight)
         self._weight_total = self.grok_weight + self.deepseek_weight
-        self._cache_capacity = int(cache_size)
+        self._recency_halflife_minutes = (
+            float(recency_halflife_minutes) if recency_halflife_minutes is not None else None
+        )
+        self._recency_halflife_seconds = (
+            self._recency_halflife_minutes * 60.0 if self._recency_halflife_minutes else None
+        )
+        self._cache_capacity = 0 if self._recency_halflife_seconds else int(cache_size)
         self._samples: deque[LabeledFeature] = deque()
         self._distance_cache: OrderedDict[tuple[float, ...], tuple[int, tuple[tuple[float, int], ...]]] = (
             OrderedDict()
@@ -879,14 +890,35 @@ class LorentzianKNNModel:
     def iter_samples(self) -> Iterator[LabeledFeature]:
         yield from self._samples
 
-    def predict(self, features: Sequence[float]) -> Optional[TradeSignal]:
+    def predict(
+        self, features: Sequence[float], *, timestamp: Optional[datetime] = None
+    ) -> Optional[TradeSignal]:
         if self._labelled_count < self.neighbors:
             return None
 
         cached = self._get_cached_neighbors(features)
         if cached is None:
+            recency_seconds = self._recency_halflife_seconds
+
+            def _distance_with_recency(sample: LabeledFeature) -> float:
+                base = self.distance_fn(sample.features, features)
+                if not recency_seconds or timestamp is None:
+                    return base
+                sample_timestamp = getattr(sample, "timestamp", None)
+                if not isinstance(sample_timestamp, datetime):
+                    return base
+                try:
+                    age = (timestamp - sample_timestamp).total_seconds()
+                except Exception:
+                    return base
+                if age <= 0:
+                    return base
+                decay = 0.5 ** (age / recency_seconds)
+                decay = max(decay, 1e-6)
+                return base / decay
+
             distances_iter = (
-                (self.distance_fn(row.features, features), int(label))
+                (_distance_with_recency(row), int(label))
                 for row in self._samples
                 if (label := row.label) is not None
             )
@@ -947,7 +979,7 @@ class LorentzianKNNModel:
     ) -> tuple[Optional[TradeSignal], list["AdvisorFeedback"]]:
         """Predict and optionally refine the signal with Grok-1/DeepSeek advisors."""
 
-        signal = self.predict(features)
+        signal = self.predict(features, timestamp=snapshot.timestamp)
         if signal is None or not advisors:
             return signal, []
 
@@ -979,6 +1011,7 @@ class LorentzianKNNModel:
                 "grok": self.grok_weight,
                 "deepseek": self.deepseek_weight,
             },
+            "recency_halflife_minutes": self._recency_halflife_minutes,
             "samples": [
                 {
                     "features": list(sample.features),
@@ -998,11 +1031,13 @@ class LorentzianKNNModel:
         weights = state.get("weights", {})
         grok_weight = float(weights.get("grok", 0.6))
         deepseek_weight = float(weights.get("deepseek", 0.4))
+        recency_halflife = state.get("recency_halflife_minutes")
         model = cls(
             neighbors=neighbors,
             max_samples=max_samples,
             grok_weight=grok_weight,
             deepseek_weight=deepseek_weight,
+            recency_halflife_minutes=recency_halflife,
         )
         samples = state.get("samples", [])
         for payload in samples:
@@ -1033,6 +1068,7 @@ class LorentzianKNNStrategy:
         max_rows: int,
         label_lookahead: int,
         neutral_zone_pips: float,
+        recency_halflife_minutes: Optional[float],
     ) -> None:
         if neighbors <= 0:
             raise ValueError("neighbors must be positive")
@@ -1051,6 +1087,7 @@ class LorentzianKNNStrategy:
             neighbors=self.neighbors,
             max_samples=self.max_rows,
             distance_fn=self.distance_fn,
+            recency_halflife_minutes=recency_halflife_minutes,
         )
         self._rows: deque[FeatureRow] = deque()
 
@@ -1084,10 +1121,12 @@ class LorentzianKNNStrategy:
                 self.model.add_sample(labelled)
                 label_row.persisted = True
 
-        return self._evaluate(transformed)
+        return self._evaluate(transformed, snapshot.timestamp)
 
-    def _evaluate(self, features: Sequence[float]) -> Optional[TradeSignal]:
-        return self.model.predict(features)
+    def _evaluate(
+        self, features: Sequence[float], timestamp: datetime
+    ) -> Optional[TradeSignal]:
+        return self.model.predict(features, timestamp=timestamp)
 
     def ingest_labelled(self, samples: Iterable[LabeledFeature]) -> None:
         for sample in samples:
@@ -1339,6 +1378,7 @@ class TradeLogic:
             max_rows=self.config.max_rows,
             label_lookahead=self.config.label_lookahead,
             neutral_zone_pips=self.config.neutral_zone_pips,
+            recency_halflife_minutes=self.config.knn_recency_halflife_minutes,
         )
         self.risk = risk or RiskManager()
         self.adr_tracker = (
@@ -1630,23 +1670,69 @@ class TradeLogic:
         decisions: List[TradeDecision] = []
         remaining: List[ActivePosition] = []
         price = snapshot.close
+        open_price = snapshot.open if snapshot.open is not None else price
+        high = snapshot.high if snapshot.high is not None else price
+        low = snapshot.low if snapshot.low is not None else price
+        pip_size = snapshot.pip_size if snapshot.pip_size != 0 else 1.0
+        tolerance = abs(pip_size) * 1e-4 or 1e-6
+
         for pos in open_positions:
             if pos.symbol != snapshot.symbol:
                 remaining.append(pos)
                 continue
-            stop_hit = False
-            if pos.stop_loss is not None:
-                if pos.direction > 0 and price <= pos.stop_loss:
-                    stop_hit = True
-                elif pos.direction < 0 and price >= pos.stop_loss:
-                    stop_hit = True
-            take_hit = False
-            if not stop_hit and pos.take_profit is not None:
-                if pos.direction > 0 and price >= pos.take_profit:
-                    take_hit = True
-                elif pos.direction < 0 and price <= pos.take_profit:
-                    take_hit = True
-            if stop_hit or take_hit:
+
+            direction = pos.direction
+
+            def _level_hit(level: Optional[float], *, is_stop: bool) -> bool:
+                if level is None or direction == 0:
+                    return False
+                if direction > 0:
+                    return low <= level if is_stop else high >= level
+                return high >= level if is_stop else low <= level
+
+            stop_triggered = _level_hit(pos.stop_loss, is_stop=True)
+            take_triggered = _level_hit(pos.take_profit, is_stop=False)
+
+            trigger: Optional[str] = None
+            exit_price: Optional[float] = None
+
+            if stop_triggered and take_triggered:
+                reference = open_price if open_price is not None else price
+                stop_level = pos.stop_loss if pos.stop_loss is not None else reference
+                take_level = pos.take_profit if pos.take_profit is not None else reference
+                stop_distance = abs(reference - stop_level)
+                take_distance = abs(reference - take_level)
+                if take_distance + tolerance < stop_distance:
+                    trigger = "take_profit"
+                elif stop_distance + tolerance < take_distance:
+                    trigger = "stop_loss"
+                else:
+                    trigger = "stop_loss"
+            elif stop_triggered:
+                trigger = "stop_loss"
+            elif take_triggered:
+                trigger = "take_profit"
+
+            if trigger == "stop_loss":
+                exit_price = pos.stop_loss
+            elif trigger == "take_profit":
+                exit_price = pos.take_profit
+
+            if trigger is not None:
+                if exit_price is None:
+                    exit_price = price
+                if open_price is not None:
+                    if direction > 0:
+                        if trigger == "stop_loss" and open_price < exit_price - tolerance:
+                            exit_price = open_price
+                        elif trigger == "take_profit" and open_price > exit_price + tolerance:
+                            exit_price = open_price
+                    elif direction < 0:
+                        if trigger == "stop_loss" and open_price > exit_price + tolerance:
+                            exit_price = open_price
+                        elif trigger == "take_profit" and open_price < exit_price - tolerance:
+                            exit_price = open_price
+
                 decisions.append(
                     TradeDecision(
                         action="close",
@@ -1654,9 +1740,20 @@ class TradeLogic:
                         direction=pos.direction,
                         size=pos.size,
                         entry=pos.entry_price,
+                        exit=exit_price,
                         stop_loss=pos.stop_loss,
                         take_profit=pos.take_profit,
-                        reason="Stop loss hit" if stop_hit else "Take profit hit",
+                        reason="Stop loss hit" if trigger == "stop_loss" else "Take profit hit",
+                        context={
+                            "trigger": trigger,
+                            "bar": {
+                                "open": open_price,
+                                "high": high,
+                                "low": low,
+                                "close": price,
+                            },
+                            "exit_price": exit_price,
+                        },
                     )
                 )
             else:
