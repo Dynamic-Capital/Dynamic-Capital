@@ -156,3 +156,10 @@ documenting which assets were consulted.
 | 10.2 | [MENTORSHIP — Pricing Strategy](./mentorship/pricing-strategy.md) | Pricing, positioning, and enrollment plan for the mentorship offering.      |
 | 10.3 | [ict-terminology-cheatsheet.md](./ict-terminology-cheatsheet.md)  | Glossary of ICT/market structure terminology used across docs.              |
 | 10.4 | [api-documentation.md](./api-documentation.md)                    | Supabase edge function API reference optimised for AI-assisted development. |
+
+## 11. Human Resources & Compensation
+
+| Ref  | Document                                                                     | Summary                                                   |
+| ---- | ---------------------------------------------------------------------------- | --------------------------------------------------------- |
+| 11.1 | [human-resources/trading-compensation.md](./human-resources/trading-compensation.md) | Compensation policy covering salaries, profit sharing, IB commissions, and bonus governance. |
+
