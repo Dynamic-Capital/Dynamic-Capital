@@ -76,6 +76,11 @@ from .market_advisory import (
     MarketAdvisoryReport,
     MarketAdvisoryRequest,
 )
+from .dct_market_maker import (
+    DCTMarketMakerInputs,
+    DCTMarketMakerModel,
+    DCTMarketMakerQuote,
+)
 from .dct_token_sync import (
     DCTAllocationEngine,
     DCTAllocationResult,
@@ -198,6 +203,9 @@ __all__ = _trade_exports + [
     "ElliottWaveReport",
     "MechanicalAnalysisCalculator",
     "MechanicalMetrics",
+    "DCTMarketMakerInputs",
+    "DCTMarketMakerModel",
+    "DCTMarketMakerQuote",
     "DexPoolSnapshot",
     "DexScannerAlgo",
     "DexScannerSignal",
