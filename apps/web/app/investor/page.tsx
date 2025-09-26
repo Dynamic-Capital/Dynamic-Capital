@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 
 import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 import { InvestorMetricsPanel } from "@/components/investor/InvestorMetricsPanel";
+import { getCachedInvestorOverview } from "@/lib/investor-overview-cache";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
-import { fetchInvestorOverview } from "@/lib/investor-metrics";
 
 export const metadata = {
   title: "Investor Dashboard – Dynamic Capital",
@@ -22,7 +22,7 @@ export default async function InvestorPage() {
   }
 
   try {
-    const overview = await fetchInvestorOverview(supabase, user.id);
+    const overview = await getCachedInvestorOverview(user.id);
 
     return (
       <Column
