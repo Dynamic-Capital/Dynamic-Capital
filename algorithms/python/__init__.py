@@ -1,4 +1,10 @@
-"""Python trading strategy utilities for Dynamic Capital."""
+"""Python trading strategy utilities for Dynamic Capital.
+
+The module exposes helper planners that mirror the Dynamic Capital treasury
+and token policy handbooks.  See :mod:`algorithms.python.dct_treasury_growth`
+for the treasury growth heuristics derived from the sustainability
+whitepaper.
+"""
 
 from . import trade_logic as _trade_logic
 from .awesome_api import (
@@ -45,6 +51,12 @@ from .vip_auto_token_sync import (
     VipMembershipSnapshot,
     VipTokenGrant,
     VipTokenisationStrategy,
+)
+from .dct_treasury_growth import (
+    TreasuryGrowthLevers,
+    TreasuryGrowthPlan,
+    TreasuryGrowthPlanner,
+    TreasurySnapshot,
 )
 from .desk_token_hub import (
     CHECKLIST_REFERENCE as DESK_TOKEN_CHECKLIST_REFERENCE,
@@ -98,6 +110,10 @@ __all__ = _trade_exports + [
     "VipMembershipSnapshot",
     "VipTokenGrant",
     "VipTokenisationStrategy",
+    "TreasuryGrowthLevers",
+    "TreasuryGrowthPlan",
+    "TreasuryGrowthPlanner",
+    "TreasurySnapshot",
 ]
 
 globals().update({name: getattr(_trade_logic, name) for name in _trade_exports})
@@ -145,5 +161,9 @@ globals().update(
         "VipMembershipSnapshot": VipMembershipSnapshot,
         "VipTokenGrant": VipTokenGrant,
         "VipTokenisationStrategy": VipTokenisationStrategy,
+        "TreasuryGrowthLevers": TreasuryGrowthLevers,
+        "TreasuryGrowthPlan": TreasuryGrowthPlan,
+        "TreasuryGrowthPlanner": TreasuryGrowthPlanner,
+        "TreasurySnapshot": TreasurySnapshot,
     }
 )
