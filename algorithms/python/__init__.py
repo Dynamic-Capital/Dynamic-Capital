@@ -1,6 +1,15 @@
 """Python trading strategy utilities for Dynamic Capital."""
 
 from . import trade_logic as _trade_logic
+from .alert_notifications import (
+    AlertEngine,
+    AlertEvent,
+    AlertRule,
+    AlertSyncService,
+    MarketDatum,
+    Notification,
+    NotificationPlanner,
+)
 from .awesome_api import (
     AwesomeAPIAutoCalculator,
     AwesomeAPIAutoMetrics,
@@ -149,6 +158,13 @@ from .time_keeper import (
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
 __all__ = _trade_exports + [
+    "AlertEngine",
+    "AlertEvent",
+    "AlertRule",
+    "AlertSyncService",
+    "MarketDatum",
+    "Notification",
+    "NotificationPlanner",
     "AwesomeAPIAutoCalculator",
     "AwesomeAPIAutoMetrics",
     "AwesomeAPIClient",
