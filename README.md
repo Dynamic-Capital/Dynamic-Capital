@@ -93,6 +93,8 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 - **Multi-LLM Studio tool** (`apps/web/app/tools/multi-llm`) for comparing
   OpenAI, Anthropic, and Groq chat completions side by side with configurable
   temperature and token limits directly inside the main Next.js app.
+- Step through the [Dynamic Multi-LLM & Trading Algo Enhancement Roadmap](docs/multi-llm-algo-enhancement-roadmap.md)
+  to align provider orchestration with the trading automation stack.
 
 ## Dynamic Theme System
 
