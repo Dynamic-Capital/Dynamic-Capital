@@ -145,6 +145,20 @@ from .time_keeper import (
     TimeKeeperSyncResult,
     TradingSession,
 )
+from .loop_algorithms import (
+    LoopExecutionSummary,
+    LoopRun,
+    StopCondition,
+    run_plan_loop,
+)
+from .trading_algo_enhancement import (
+    EnhancementProgress,
+    EnhancementRoadmap,
+    EnhancementTask,
+    build_default_roadmap,
+    build_trading_algo_enhancement_plan,
+    loop_trading_algo_enhancement_plan,
+)
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
@@ -255,6 +269,16 @@ __all__ = _trade_exports + [
     "TimeKeeperAlgorithm",
     "TimeKeeperSyncResult",
     "TradingSession",
+    "EnhancementTask",
+    "EnhancementRoadmap",
+    "EnhancementProgress",
+    "build_default_roadmap",
+    "build_trading_algo_enhancement_plan",
+    "loop_trading_algo_enhancement_plan",
+    "LoopExecutionSummary",
+    "LoopRun",
+    "StopCondition",
+    "run_plan_loop",
     "VipAutoSyncJob",
     "VipAutoSyncReport",
     "VipMembershipProvider",
@@ -358,6 +382,16 @@ globals().update(
         "ElementSignal": ElementSignal,
         "PsychologyTelemetry": PsychologyTelemetry,
         "score_elements": score_elements,
+        "EnhancementProgress": EnhancementProgress,
+        "EnhancementRoadmap": EnhancementRoadmap,
+        "EnhancementTask": EnhancementTask,
+        "build_default_roadmap": build_default_roadmap,
+        "build_trading_algo_enhancement_plan": build_trading_algo_enhancement_plan,
+        "loop_trading_algo_enhancement_plan": loop_trading_algo_enhancement_plan,
+        "LoopExecutionSummary": LoopExecutionSummary,
+        "LoopRun": LoopRun,
+        "StopCondition": StopCondition,
+        "run_plan_loop": run_plan_loop,
         "StepExecution": StepExecution,
         "StepHandler": StepHandler,
         "StepResult": StepResult,
