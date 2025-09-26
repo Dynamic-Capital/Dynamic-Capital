@@ -26,7 +26,48 @@ standard jetton template with the following extensions:
 5. Emit governance messages for front-ends and off-chain indexers when actions
    are scheduled/executed.
 
-Refer to `config.yaml` for the default deployment parameters. The pool
-allocator (`../pool_allocator.tact`) expects the timelocked router and treasury
-addresses exposed by the master contract, so deploy it alongside the jetton and
-reuse the same multisig administrator when configuring the vault.
+Refer to `config.yaml` for the default deployment parameters. The pool allocator
+(`../pool_allocator.tact`) expects the timelocked router and treasury addresses
+exposed by the master contract, so deploy it alongside the jetton and reuse the
+same multisig administrator when configuring the vault.
+
+## Theme collection deployment
+
+The Theme Pass collection (`theme/theme_collection.tact`) is a TIP-4 compliant
+NFT collection configured for DAO-managed content updates. Use the following
+steps when deploying and managing the collection:
+
+1. Compile and deploy `theme_collection.tact` with the DAO multisig, collection
+   owner, royalty configuration, and compiled Theme Pass item code from
+   `theme_item.tact`. The deployment values are tracked under the `themePasses`
+   section in `../config.yaml`.
+2. Initialize the collection content dictionary with the planned mint indices
+   and URIs listed in `config.yaml`. Each mint can be assigned an initial
+   priority (higher numbers surface earlier in the front-end) during deployment.
+3. Grant the DAO multisig exclusive rights to update or freeze item metadata by
+   keeping the `dao` address in the collection contract synchronized with the
+   governance configuration.
+
+### Updating content
+
+DAO proposals must target opcode `0x544d4331` (`OP_SET_CONTENT`) on the
+collection. The message body layout is:
+
+```
+bits[32]  -> opcode
+bits[64]  -> Theme Pass index
+ref       -> metadata/content cell (e.g., off-chain URI)
+bits[32]  -> priority score
+```
+
+Successful calls emit a `ThemeContentEvent` event with opcode `0x544d4531`,
+allowing indexers to pick up URI and priority updates. Any attempt from a
+non-DAO sender fails with `"theme: unauthorized"`.
+
+### Freezing metadata
+
+To permanently lock an item's metadata, the DAO submits opcode `0x544d4332`
+(`OP_FREEZE`) with the 64-bit item index. The collection persists the frozen
+flag and emits a `ThemeFrozenEvent` (`0x544d4532`). Once frozen, future content
+updates for that item will be rejected both on-chain and in the mirroring NFT
+item contracts. This protects milestone Theme Pass art drops after approval.
