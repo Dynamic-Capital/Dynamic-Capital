@@ -115,7 +115,21 @@ type FxApiQuote = {
   high?: string;
   low?: string;
   create_date?: string;
+  varBid?: string;
 };
+
+type PairSnapshot = {
+  symbol: string;
+  pairLabel: string;
+  changePercent?: number;
+  change?: number;
+  pips?: number;
+  lastPrice?: number;
+  rangePercent?: number;
+};
+
+const MOVERS_DISPLAY_LIMIT = 5;
+const VOLATILITY_DISPLAY_LIMIT = 5;
 
 type StrengthHighlight = {
   pairLabel: string;
@@ -150,6 +164,10 @@ type CurrencyMetric = {
 type CurrencySnapshot = {
   strength: CurrencyStrength[];
   volatility: CurrencyVolatility[];
+  topGainers: TopMover[];
+  topLosers: TopMover[];
+  mostVolatilePairs: VolatilityPair[];
+  leastVolatilePairs: VolatilityPair[];
   lastUpdated: Date | null;
 };
 
@@ -224,6 +242,19 @@ const computeRangePercent = (
   }
 
   return (range / Math.abs(last)) * 100;
+};
+
+const computePips = (
+  change: number | undefined,
+  quoteCurrency: string,
+): number | undefined => {
+  if (change === undefined || !Number.isFinite(change)) {
+    return undefined;
+  }
+
+  const pipValue = quoteCurrency === "JPY" ? 0.01 : 0.0001;
+
+  return change / pipValue;
 };
 
 const ensureAggregate = (
@@ -387,6 +418,7 @@ const loadCurrencySnapshot = async (
   const payload = (await response.json()) as Record<string, FxApiQuote>;
   const aggregates: Record<string, CurrencyAggregate> = {};
   let latestTimestamp: number | undefined;
+  const pairSnapshots: PairSnapshot[] = [];
 
   for (const pair of FX_PAIRS) {
     const quote = payload[pair.symbol];
@@ -396,10 +428,28 @@ const loadCurrencySnapshot = async (
 
     const changePercent = parseNumber(quote.pctChange);
     const last = parseNumber(quote.bid);
+    const change = parseNumber(quote.varBid) ??
+      (changePercent !== undefined &&
+          last !== undefined &&
+          Number.isFinite(changePercent) &&
+          Number.isFinite(last)
+        ? (last * changePercent) / 100
+        : undefined);
+    const pips = computePips(change, pair.quote);
     const high = parseNumber(quote.high);
     const low = parseNumber(quote.low);
     const rangePercent = computeRangePercent(last, high, low);
     const pairLabel = `${pair.base}/${pair.quote}`;
+
+    pairSnapshots.push({
+      symbol: pair.symbol,
+      pairLabel,
+      changePercent,
+      change,
+      pips,
+      lastPrice: last,
+      rangePercent,
+    });
 
     updateAggregate(
       aggregates,
@@ -476,14 +526,91 @@ const loadCurrencySnapshot = async (
     }),
   );
 
+  const validMovers = pairSnapshots.filter((snapshot) =>
+    typeof snapshot.changePercent === "number" &&
+    Number.isFinite(snapshot.changePercent) &&
+    typeof snapshot.change === "number" &&
+    Number.isFinite(snapshot.change) &&
+    typeof snapshot.pips === "number" &&
+    Number.isFinite(snapshot.pips) &&
+    typeof snapshot.lastPrice === "number" &&
+    Number.isFinite(snapshot.lastPrice)
+  );
+
+  const sortedByChangeDesc = [...validMovers].sort((a, b) =>
+    (b.changePercent ?? -Infinity) - (a.changePercent ?? -Infinity)
+  );
+  const sortedByChangeAsc = [...validMovers].sort((a, b) =>
+    (a.changePercent ?? Infinity) - (b.changePercent ?? Infinity)
+  );
+
+  const positiveMovers = sortedByChangeDesc.filter((item) =>
+    (item.changePercent ?? 0) >= 0
+  );
+  const negativeMovers = sortedByChangeAsc.filter((item) =>
+    (item.changePercent ?? 0) <= 0
+  );
+
+  const topGainersSnapshots = positiveMovers.length >= MOVERS_DISPLAY_LIMIT
+    ? positiveMovers.slice(0, MOVERS_DISPLAY_LIMIT)
+    : sortedByChangeDesc.slice(0, MOVERS_DISPLAY_LIMIT);
+  const topLosersSnapshots = negativeMovers.length >= MOVERS_DISPLAY_LIMIT
+    ? negativeMovers.slice(0, MOVERS_DISPLAY_LIMIT)
+    : sortedByChangeAsc.slice(0, MOVERS_DISPLAY_LIMIT);
+
+  const topGainers: TopMover[] = topGainersSnapshots.map((snapshot) => ({
+    symbol: snapshot.symbol,
+    pair: snapshot.pairLabel,
+    changePercent: snapshot.changePercent ?? 0,
+    change: snapshot.change ?? 0,
+    pips: snapshot.pips ?? 0,
+    lastPrice: snapshot.lastPrice ?? 0,
+  }));
+
+  const topLosers: TopMover[] = topLosersSnapshots.map((snapshot) => ({
+    symbol: snapshot.symbol,
+    pair: snapshot.pairLabel,
+    changePercent: snapshot.changePercent ?? 0,
+    change: snapshot.change ?? 0,
+    pips: snapshot.pips ?? 0,
+    lastPrice: snapshot.lastPrice ?? 0,
+  }));
+
+  const validVolatility = pairSnapshots.filter((snapshot) =>
+    typeof snapshot.rangePercent === "number" &&
+    Number.isFinite(snapshot.rangePercent)
+  );
+
+  const mostVolatilePairs: VolatilityPair[] = [...validVolatility]
+    .sort((a, b) => (b.rangePercent ?? 0) - (a.rangePercent ?? 0))
+    .slice(0, VOLATILITY_DISPLAY_LIMIT)
+    .map((snapshot) => ({
+      symbol: snapshot.symbol,
+      pair: snapshot.pairLabel,
+      rangePercent: snapshot.rangePercent ?? 0,
+    }));
+
+  const leastVolatilePairs: VolatilityPair[] = [...validVolatility]
+    .sort((a, b) => (a.rangePercent ?? 0) - (b.rangePercent ?? 0))
+    .slice(0, VOLATILITY_DISPLAY_LIMIT)
+    .map((snapshot) => ({
+      symbol: snapshot.symbol,
+      pair: snapshot.pairLabel,
+      rangePercent: snapshot.rangePercent ?? 0,
+    }));
+
   return {
     strength,
     volatility,
+    topGainers,
+    topLosers,
+    mostVolatilePairs,
+    leastVolatilePairs,
     lastUpdated: latestTimestamp ? new Date(latestTimestamp) : null,
   };
 };
 
-const TOP_GAINERS: TopMover[] = [
+const FALLBACK_TOP_GAINERS: TopMover[] = [
   {
     symbol: "EURNZD",
     pair: "EUR/NZD",
@@ -526,7 +653,7 @@ const TOP_GAINERS: TopMover[] = [
   },
 ];
 
-const TOP_LOSERS: TopMover[] = [
+const FALLBACK_TOP_LOSERS: TopMover[] = [
   {
     symbol: "NZDJPY",
     pair: "NZD/JPY",
@@ -569,7 +696,7 @@ const TOP_LOSERS: TopMover[] = [
   },
 ];
 
-const MOST_VOLATILE_PAIRS: VolatilityPair[] = [
+const FALLBACK_MOST_VOLATILE_PAIRS: VolatilityPair[] = [
   { symbol: "NZDJPY", pair: "NZD/JPY", rangePercent: 0.25 },
   { symbol: "USDJPY", pair: "USD/JPY", rangePercent: 0.23 },
   { symbol: "AUDUSD", pair: "AUD/USD", rangePercent: 0.21 },
@@ -577,7 +704,7 @@ const MOST_VOLATILE_PAIRS: VolatilityPair[] = [
   { symbol: "GBPJPY", pair: "GBP/JPY", rangePercent: 0.2 },
 ];
 
-const LEAST_VOLATILE_PAIRS: VolatilityPair[] = [
+const FALLBACK_LEAST_VOLATILE_PAIRS: VolatilityPair[] = [
   { symbol: "EURCAD", pair: "EUR/CAD", rangePercent: 0.06 },
   { symbol: "EURGBP", pair: "EUR/GBP", rangePercent: 0.06 },
   { symbol: "USDCAD", pair: "USD/CAD", rangePercent: 0.07 },
@@ -585,31 +712,21 @@ const LEAST_VOLATILE_PAIRS: VolatilityPair[] = [
   { symbol: "EURUSD", pair: "EUR/USD", rangePercent: 0.1 },
 ];
 
-const MOVERS_SECTIONS = [
-  { title: "Top gainers", data: TOP_GAINERS, tone: "brand-alpha-weak" },
-  { title: "Top losers", data: TOP_LOSERS, tone: "danger-alpha-weak" },
-] as const satisfies Array<{
-  title: string;
-  data: TopMover[];
-  tone: TagBackground;
-}>;
+const MOVERS_DISPLAY_METADATA = [
+  { title: "Top gainers", tone: "brand-alpha-weak" },
+  { title: "Top losers", tone: "danger-alpha-weak" },
+] as const satisfies Array<Pick<MoversSection, "title" | "tone">>;
 
-const VOLATILITY_BUCKETS = [
+const VOLATILITY_DISPLAY_METADATA = [
   {
     title: "Most volatile",
-    data: MOST_VOLATILE_PAIRS,
     background: "brand-alpha-weak",
   },
   {
     title: "Least volatile",
-    data: LEAST_VOLATILE_PAIRS,
     background: "neutral-alpha-weak",
   },
-] as const satisfies Array<{
-  title: string;
-  data: VolatilityPair[];
-  background: TagBackground;
-}>;
+] as const satisfies Array<Pick<VolatilityBucket, "title" | "background">>;
 
 const toneTagBackground: Record<CurrencyStrength["tone"], TagBackground> = {
   strong: "brand-alpha-weak",
@@ -643,6 +760,18 @@ export function FxMarketSnapshotSection() {
   );
   const [volatilityMeter, setVolatilityMeter] = useState<CurrencyVolatility[]>(
     FALLBACK_VOLATILITY,
+  );
+  const [topGainers, setTopGainers] = useState<TopMover[]>(
+    FALLBACK_TOP_GAINERS,
+  );
+  const [topLosers, setTopLosers] = useState<TopMover[]>(FALLBACK_TOP_LOSERS);
+  const [mostVolatilePairs, setMostVolatilePairs] = useState<VolatilityPair[]>(
+    FALLBACK_MOST_VOLATILE_PAIRS,
+  );
+  const [leastVolatilePairs, setLeastVolatilePairs] = useState<
+    VolatilityPair[]
+  >(
+    FALLBACK_LEAST_VOLATILE_PAIRS,
   );
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isFetching, setIsFetching] = useState(false);
@@ -683,6 +812,26 @@ export function FxMarketSnapshotSection() {
 
       setStrengthMeter(snapshot.strength);
       setVolatilityMeter(snapshot.volatility);
+      setTopGainers(
+        snapshot.topGainers.length > 0
+          ? snapshot.topGainers
+          : FALLBACK_TOP_GAINERS,
+      );
+      setTopLosers(
+        snapshot.topLosers.length > 0
+          ? snapshot.topLosers
+          : FALLBACK_TOP_LOSERS,
+      );
+      setMostVolatilePairs(
+        snapshot.mostVolatilePairs.length > 0
+          ? snapshot.mostVolatilePairs
+          : FALLBACK_MOST_VOLATILE_PAIRS,
+      );
+      setLeastVolatilePairs(
+        snapshot.leastVolatilePairs.length > 0
+          ? snapshot.leastVolatilePairs
+          : FALLBACK_LEAST_VOLATILE_PAIRS,
+      );
       setLastUpdated(snapshot.lastUpdated ?? new Date());
       setError(null);
     } catch (snapshotError) {
@@ -718,6 +867,38 @@ export function FxMarketSnapshotSection() {
       clearInterval(interval);
     };
   }, [refreshSnapshot]);
+
+  const moversSections = useMemo<MoversSection[]>(
+    () => [
+      {
+        title: MOVERS_DISPLAY_METADATA[0].title,
+        tone: MOVERS_DISPLAY_METADATA[0].tone,
+        data: topGainers,
+      },
+      {
+        title: MOVERS_DISPLAY_METADATA[1].title,
+        tone: MOVERS_DISPLAY_METADATA[1].tone,
+        data: topLosers,
+      },
+    ],
+    [topGainers, topLosers],
+  );
+
+  const volatilityBuckets = useMemo<VolatilityBucket[]>(
+    () => [
+      {
+        title: VOLATILITY_DISPLAY_METADATA[0].title,
+        background: VOLATILITY_DISPLAY_METADATA[0].background,
+        data: mostVolatilePairs,
+      },
+      {
+        title: VOLATILITY_DISPLAY_METADATA[1].title,
+        background: VOLATILITY_DISPLAY_METADATA[1].background,
+        data: leastVolatilePairs,
+      },
+    ],
+    [leastVolatilePairs, mostVolatilePairs],
+  );
 
   const statusLabel = useMemo(() => {
     if (error) {
@@ -845,7 +1026,7 @@ export function FxMarketSnapshotSection() {
             }}
           >
             <Column gap="16">
-              {MOVERS_SECTIONS.map((section) => (
+              {moversSections.map((section) => (
                 <MoversTable key={section.title} {...section} />
               ))}
             </Column>
@@ -861,7 +1042,7 @@ export function FxMarketSnapshotSection() {
             }}
           >
             <Row gap="16" wrap>
-              {VOLATILITY_BUCKETS.map((bucket) => (
+              {volatilityBuckets.map((bucket) => (
                 <VolatilityBucketPanel key={bucket.title} {...bucket} />
               ))}
             </Row>
