@@ -8,6 +8,13 @@ from .awesome_api import (
     AwesomeAPIError,
     AwesomeAPISnapshotBuilder,
 )
+from .back_to_breakeven import (
+    AccountSnapshot,
+    BackToBreakevenCalculator,
+    BreakevenPhase,
+    BreakevenPlan,
+    BreakevenRequest,
+)
 from .elliott_wave import ElliottSwing, ElliottWaveAnalyzer, ElliottWaveReport
 from .mechanical_analysis import MechanicalAnalysisCalculator, MechanicalMetrics
 from .economic_catalysts import (
@@ -87,6 +94,11 @@ __all__ = _trade_exports + [
     "AwesomeAPIClient",
     "AwesomeAPIError",
     "AwesomeAPISnapshotBuilder",
+    "AccountSnapshot",
+    "BackToBreakevenCalculator",
+    "BreakevenPhase",
+    "BreakevenPlan",
+    "BreakevenRequest",
     "ElliottSwing",
     "ElliottWaveAnalyzer",
     "ElliottWaveReport",
@@ -152,6 +164,11 @@ globals().update(
         "AwesomeAPIClient": AwesomeAPIClient,
         "AwesomeAPIError": AwesomeAPIError,
         "AwesomeAPISnapshotBuilder": AwesomeAPISnapshotBuilder,
+        "AccountSnapshot": AccountSnapshot,
+        "BackToBreakevenCalculator": BackToBreakevenCalculator,
+        "BreakevenPhase": BreakevenPhase,
+        "BreakevenPlan": BreakevenPlan,
+        "BreakevenRequest": BreakevenRequest,
         "ElliottSwing": ElliottSwing,
         "ElliottWaveAnalyzer": ElliottWaveAnalyzer,
         "ElliottWaveReport": ElliottWaveReport,
