@@ -426,43 +426,7 @@ const formatRange = (
   return `${low} – ${high}`;
 };
 
-const describeLevelProximity = (
-  price: number,
-  level: number,
-  type: "support" | "resistance",
-  options: Intl.NumberFormatOptions,
-) => {
-  const levelLabel = formatNumber(level, options);
-  if (levelLabel === "—") {
-    return "";
-  }
-
-  const deltaPercent = Math.abs((price - level) / level) * 100;
-  if (deltaPercent < 0.15) {
-    return `Sitting on ${type} ${levelLabel}.`;
-  }
-  if (deltaPercent < 0.4) {
-    const direction = price > level ? "testing" : "pressing";
-    return `${direction} ${type} ${levelLabel}.`;
-  }
-
-  if (type === "support") {
-    return price > level
-      ? `Holding above support ${levelLabel}.`
-      : `Below support ${levelLabel}.`;
-  }
-
-  return price < level
-    ? `Holding below resistance ${levelLabel}.`
-    : `Through resistance ${levelLabel}.`;
-};
-
 const collapseWhitespace = (value: string) => value.replace(/\s+/g, " ").trim();
-
-const stripTrailingPeriod = (value: string) => {
-  const collapsed = collapseWhitespace(value);
-  return collapsed.endsWith(".") ? collapsed.slice(0, -1) : collapsed;
-};
 
 const createInsight = (
   label: string,
@@ -474,47 +438,62 @@ const createInsight = (
   tone,
 });
 
-const determineLevelTone = (
-  normalized: string,
-  type: "support" | "resistance",
-): InsightTone => {
-  const lower = normalized.toLowerCase();
-  if (type === "support") {
-    if (lower.includes("below support") || lower.includes("pressing support")) {
-      return "danger";
-    }
-    if (lower.includes("holding above support")) {
-      return "brand";
-    }
-    return "neutral";
-  }
-
-  if (
-    lower.includes("through resistance") ||
-    lower.includes("testing resistance")
-  ) {
-    return "brand";
-  }
-  return "neutral";
-};
-
 const buildLevelInsight = (
-  message: string,
+  price: number,
+  level: number,
   type: "support" | "resistance",
+  options: Intl.NumberFormatOptions,
 ): InsightVisual | null => {
-  if (!message) {
-    return null;
-  }
-  const normalized = stripTrailingPeriod(message);
-  if (!normalized) {
+  const levelLabel = formatNumber(level, options);
+  if (levelLabel === "—") {
     return null;
   }
 
-  const tone = determineLevelTone(normalized, type);
   const icon = type === "support" ? "shield" : "flag";
   const prefix = type === "support" ? "Support" : "Resistance";
+  const deltaPercent = Math.abs((price - level) / level) * 100;
+  const isAboveLevel = price >= level;
 
-  return createInsight(`${prefix}: ${normalized}`, icon, tone);
+  let tone: InsightTone = "neutral";
+  let description: string;
+
+  if (type === "support") {
+    if (deltaPercent < 0.15) {
+      description = isAboveLevel
+        ? `Sitting on ${levelLabel}`
+        : `Retesting ${levelLabel} from below`;
+      tone = isAboveLevel ? "brand" : "danger";
+    } else if (deltaPercent < 0.4) {
+      description = isAboveLevel
+        ? `Testing ${levelLabel} from above`
+        : `Pressing ${levelLabel}`;
+      tone = isAboveLevel ? "brand" : "danger";
+    } else {
+      description = isAboveLevel
+        ? `Holding above ${levelLabel}`
+        : `Lost ${levelLabel}`;
+      tone = isAboveLevel ? "brand" : "danger";
+    }
+  } else {
+    if (deltaPercent < 0.15) {
+      description = isAboveLevel
+        ? `Grinding through ${levelLabel}`
+        : `Pinning ${levelLabel}`;
+      tone = isAboveLevel ? "brand" : "neutral";
+    } else if (deltaPercent < 0.4) {
+      description = isAboveLevel
+        ? `Breaking above ${levelLabel}`
+        : `Testing ${levelLabel}`;
+      tone = isAboveLevel ? "brand" : "neutral";
+    } else {
+      description = isAboveLevel
+        ? `Cleared ${levelLabel}`
+        : `Holding below ${levelLabel}`;
+      tone = isAboveLevel ? "brand" : "neutral";
+    }
+  }
+
+  return createInsight(`${prefix}: ${description}`, icon, tone);
 };
 
 const fallbackInsights = (text: string, icon: IconName): InsightVisual[] => {
@@ -550,8 +529,10 @@ const buildQuickTakeaway = (
 
   if (support !== undefined) {
     const supportInsight = buildLevelInsight(
-      describeLevelProximity(price, support, "support", item.format),
+      price,
+      support,
       "support",
+      item.format,
     );
     if (supportInsight) {
       insights.push(supportInsight);
@@ -560,8 +541,10 @@ const buildQuickTakeaway = (
 
   if (resistance !== undefined) {
     const resistanceInsight = buildLevelInsight(
-      describeLevelProximity(price, resistance, "resistance", item.format),
+      price,
+      resistance,
       "resistance",
+      item.format,
     );
     if (resistanceInsight) {
       insights.push(resistanceInsight);
