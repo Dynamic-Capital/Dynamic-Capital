@@ -111,6 +111,21 @@ export type BrandingTokens = {
 };
 
 /**
+ * Distributed metadata references for publishing theme assets.
+ */
+export type BrandingDistribution = {
+  metadataUri: string;
+  themePassUri?: string;
+  media: {
+    logo: string;
+    favicon: string;
+    appleTouchIcon: string;
+    socialPreview: string;
+    [key: string]: string;
+  };
+};
+
+/**
  * Deep partial utility for nested configuration objects.
  */
 export type DeepPartial<T> = {
@@ -134,6 +149,7 @@ export type DynamicBrandingConfig = {
     appleTouchIcon: string;
     socialPreview: string;
   };
+  distribution: BrandingDistribution;
 };
 
 /**

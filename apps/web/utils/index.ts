@@ -6,6 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export { formatPrice } from "./format-price.ts";
+export { normalizeThemePassTokens, validateThemePass } from "./theme-pass.ts";
 // Route-related helpers rely on Node.js modules. Import them directly from
 // `./routes.ts` in server-only contexts to avoid bundling Node-specific code in
 // client modules.
