@@ -59,15 +59,24 @@ export function InvestorMetricsPanel(
     [],
   );
 
-  const formatDateTime = useCallback((value: string | null) => {
-    if (!value) return "—";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "—";
-    return new Intl.DateTimeFormat("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(date);
-  }, []);
+  const dateTimeFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }),
+    [],
+  );
+
+  const formatDateTime = useCallback(
+    (value: string | null) => {
+      if (!value) return "—";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "—";
+      return dateTimeFormatter.format(date);
+    },
+    [dateTimeFormatter],
+  );
 
   const profitLossValue = overview.equity.profitLossUsd;
   const profitLossClass = profitLossValue >= 0
