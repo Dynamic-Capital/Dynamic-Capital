@@ -74,9 +74,93 @@ type StatusBadgeProps = Partial<ComponentPropsWithoutRef<typeof Badge>>;
 interface StatusMeta {
   badge: string;
   badgeProps: StatusBadgeProps;
-  label: string;
-  description: string;
+  label: ReactNode;
+  description: ReactNode;
   icon: ReactNode;
+}
+
+const ASCII_FRAMES = ["░", "▒", "▓", "█", "▓", "▒", "░", "▚", "▞"] as const;
+
+interface AsciiShaderTextProps {
+  text: string;
+  active?: boolean;
+}
+
+function AsciiShaderText({ text, active = false }: AsciiShaderTextProps) {
+  const [frame, setFrame] = useState(0);
+  const characters = useMemo(() => text.split(""), [text]);
+
+  useEffect(() => {
+    if (!active) {
+      setFrame(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setFrame((current) => (current + 1) % ASCII_FRAMES.length);
+    }, 120);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [active]);
+
+  return (
+    <span
+      aria-label={text}
+      className="relative inline-flex flex-wrap items-center gap-[0.35em] font-mono text-primary uppercase tracking-[0.32em]"
+    >
+      <motion.span
+        aria-hidden
+        className="pointer-events-none absolute -inset-y-1 inset-x-0 rounded-md bg-gradient-to-r from-primary/20 via-transparent to-dc-accent/30 blur-xl"
+        animate={{ opacity: [0.35, 0.75, 0.35], scale: [0.98, 1.02, 0.98] }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {characters.map((character, index) => {
+        const displayCharacter = character === " " ? "\u00A0" : character;
+        return (
+          <span key={`${character}-${index}`} className="relative inline-block">
+            <motion.span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 text-xs leading-none text-primary/60 blur-[0.3px] mix-blend-screen"
+              animate={{
+                opacity: [0.25, 0.85, 0.25],
+                y: [2, -2, 2],
+              }}
+              transition={{
+                duration: 1.2,
+                delay: index * 0.05,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              {ASCII_FRAMES[(frame + index) % ASCII_FRAMES.length]}
+            </motion.span>
+            <motion.span
+              className="relative"
+              animate={{
+                y: [0, -2, 0],
+                color: ["#a855f7", "#22d3ee", "#a855f7"],
+                textShadow: [
+                  "0 0 0 rgba(168, 85, 247, 0)",
+                  "0 0 12px rgba(59, 130, 246, 0.75)",
+                  "0 0 0 rgba(168, 85, 247, 0)",
+                ],
+              }}
+              transition={{
+                duration: 1.2,
+                delay: index * 0.05,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              {displayCharacter}
+            </motion.span>
+          </span>
+        );
+      })}
+    </span>
+  );
 }
 
 export function ChatAssistantWidget(
@@ -376,14 +460,14 @@ export function ChatAssistantWidget(
     switch (syncStatus) {
       case "syncing":
         return {
-          badge: "⚡ Instant replies",
+          badge: "⚡ API sync",
           badgeProps: {
             ...baseBadgeProps,
             background: "brand-alpha-weak",
             border: "brand-alpha-medium",
             onBackground: "brand-strong",
           },
-          label: "Writing your reply in real time",
+          label: <AsciiShaderText text="API SYNC IN PROGRESS" active />,
           description:
             "Hang tight — the assistant is pulling desk intel for you.",
           icon: <Loader2 className="h-4 w-4 animate-spin text-primary" />,
