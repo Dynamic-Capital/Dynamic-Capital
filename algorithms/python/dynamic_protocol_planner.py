@@ -179,6 +179,12 @@ def _summarise_trade_logic(trade_logic: Any) -> Dict[str, Any]:
     return payload
 
 
+def summarise_trade_logic(trade_logic: Any) -> Dict[str, Any]:
+    """Public helper that mirrors the protocol trade logic summary."""
+
+    return _summarise_trade_logic(trade_logic)
+
+
 def _summarise_optimization_plan(plan: Any) -> Dict[str, Any]:
     if plan is None:
         return {}
@@ -552,5 +558,6 @@ __all__ = [
     "DynamicProtocolPlanner",
     "HORIZON_KEYS",
     "ProtocolDraft",
+    "summarise_trade_logic",
 ]
 

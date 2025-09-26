@@ -14,9 +14,13 @@ from algorithms.python.desk_sync import (
     DeskSyncReport,
     TeamRolePlaybook,
     TeamRoleSyncAlgorithm,
+    summarise_trade_logic,
     TradingDeskSynchroniser,
 )
-from algorithms.python.dynamic_protocol_planner import ProtocolDraft
+from algorithms.python.dynamic_protocol_planner import (
+    ProtocolDraft,
+    summarise_trade_logic as protocol_summarise_trade_logic,
+)
 from algorithms.python.trade_logic import TradeLogic
 
 
@@ -118,3 +122,15 @@ def test_team_role_sync_errors_on_unknown_focus() -> None:
     sync = TeamRoleSyncAlgorithm(_build_playbooks())
     with pytest.raises(KeyError):
         sync.synchronise(focus=("Unknown",))
+
+
+def test_trade_logic_summary_aligns_with_protocol() -> None:
+    trade_logic = TradeLogic()
+
+    desk_summary = summarise_trade_logic(trade_logic)
+    protocol_summary = protocol_summarise_trade_logic(trade_logic)
+
+    assert desk_summary["config"] == protocol_summary["config"]
+    assert desk_summary["adr"] == protocol_summary["adr"]
+    assert desk_summary["smc"] == protocol_summary["smc"]
+    assert "strategy" in desk_summary
