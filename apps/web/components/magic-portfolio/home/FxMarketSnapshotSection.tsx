@@ -9,6 +9,11 @@ import {
 } from "@/components/dynamic-ui-system";
 import type { Colors } from "@/components/dynamic-ui-system";
 import {
+  balanceTextColor,
+  type BalanceTone,
+  balanceToneClass,
+} from "@/utils/balancePalette";
+import {
   Table,
   TableBody,
   TableCaption,
@@ -20,6 +25,7 @@ import {
 import { formatIsoTime } from "@/utils/isoFormat";
 import {
   type ComponentProps,
+  type CSSProperties,
   type ReactNode,
   useCallback,
   useEffect,
@@ -66,19 +72,22 @@ type TagBackground = Colors | "page" | "surface" | "overlay" | "transparent";
 type MoversSection = {
   title: string;
   data: TopMover[];
-  tone: TagBackground;
+  tone?: BalanceTone;
+  fallbackBackground?: TagBackground;
 };
 
 type VolatilityBucket = {
   title: string;
   data: VolatilityPair[];
-  background: TagBackground;
+  tone?: BalanceTone;
+  fallbackBackground?: TagBackground;
 };
 
 type InsightCardTag = {
   label: string;
   icon?: ComponentProps<typeof Tag>["prefixIcon"];
-  tone?: TagBackground;
+  tone?: BalanceTone;
+  fallbackBackground?: TagBackground;
 };
 
 type InsightCardProps = {
@@ -703,25 +712,25 @@ const FALLBACK_LEAST_VOLATILE_PAIRS: VolatilityPair[] = [
 ];
 
 const MOVERS_DISPLAY_METADATA = [
-  { title: "Top gainers", tone: "brand-alpha-weak" },
-  { title: "Top losers", tone: "danger-alpha-weak" },
+  { title: "Top gainers", tone: "bullish" },
+  { title: "Top losers", tone: "bearish" },
 ] as const satisfies Array<Pick<MoversSection, "title" | "tone">>;
 
 const VOLATILITY_DISPLAY_METADATA = [
   {
     title: "Most volatile",
-    background: "brand-alpha-weak",
+    tone: "premium",
   },
   {
     title: "Least volatile",
-    background: "neutral-alpha-weak",
+    tone: "bullish",
   },
-] as const satisfies Array<Pick<VolatilityBucket, "title" | "background">>;
+] as const satisfies Array<Pick<VolatilityBucket, "title" | "tone">>;
 
-const toneTagBackground: Record<CurrencyStrength["tone"], TagBackground> = {
-  strong: "brand-alpha-weak",
-  balanced: "neutral-alpha-weak",
-  soft: "danger-alpha-weak",
+const strengthToneMap: Record<CurrencyStrength["tone"], BalanceTone> = {
+  strong: "premium",
+  balanced: "bullish",
+  soft: "bearish",
 };
 
 const toneLabel: Record<CurrencyStrength["tone"], string> = {
@@ -743,6 +752,10 @@ const formatPrice = (value: number) =>
     minimumFractionDigits: 3,
     maximumFractionDigits: 6,
   }).format(value);
+
+const toneTextStyle = (tone: BalanceTone): CSSProperties => ({
+  color: balanceTextColor(tone),
+});
 
 export function FxMarketSnapshotSection() {
   const [strengthMeter, setStrengthMeter] = useState<CurrencyStrength[]>(
@@ -878,12 +891,12 @@ export function FxMarketSnapshotSection() {
     () => [
       {
         title: VOLATILITY_DISPLAY_METADATA[0].title,
-        background: VOLATILITY_DISPLAY_METADATA[0].background,
+        tone: VOLATILITY_DISPLAY_METADATA[0].tone,
         data: mostVolatilePairs,
       },
       {
         title: VOLATILITY_DISPLAY_METADATA[1].title,
-        background: VOLATILITY_DISPLAY_METADATA[1].background,
+        tone: VOLATILITY_DISPLAY_METADATA[1].tone,
         data: leastVolatilePairs,
       },
     ],
@@ -906,8 +919,9 @@ export function FxMarketSnapshotSection() {
     return "Waiting for live feed…";
   }, [error, isFetching, lastUpdated]);
 
-  const statusTone: TagBackground = error
-    ? "danger-alpha-weak"
+  const statusToneClass = error ? balanceToneClass("bearish") : undefined;
+  const statusToneBackground: TagBackground | undefined = error
+    ? undefined
     : "neutral-alpha-weak";
 
   return (
@@ -933,7 +947,8 @@ export function FxMarketSnapshotSection() {
           </Heading>
           <Tag
             size="s"
-            background={statusTone}
+            className={statusToneClass}
+            background={statusToneBackground}
             prefixIcon="clock"
             role="status"
             aria-live="polite"
@@ -956,7 +971,7 @@ export function FxMarketSnapshotSection() {
             tag={{
               label: "Currency leadership",
               icon: "flag",
-              tone: "brand-alpha-weak",
+              tone: "premium",
             }}
           >
             <Row gap="16" wrap>
@@ -980,7 +995,12 @@ export function FxMarketSnapshotSection() {
                         {currency.code}
                       </Heading>
                     </Row>
-                    <Tag size="s" background={toneTagBackground[currency.tone]}>
+                    <Tag
+                      size="s"
+                      className={balanceToneClass(
+                        strengthToneMap[currency.tone],
+                      )}
+                    >
                       {toneLabel[currency.tone]}
                     </Tag>
                   </Row>
@@ -998,7 +1018,7 @@ export function FxMarketSnapshotSection() {
             tag={{
               label: "Realized volatility",
               icon: "activity",
-              tone: "neutral-alpha-weak",
+              fallbackBackground: "neutral-alpha-weak",
             }}
           >
             <Column gap="12">
@@ -1026,7 +1046,7 @@ export function FxMarketSnapshotSection() {
             tag={{
               label: "Session movers",
               icon: "trending-up",
-              tone: "brand-alpha-weak",
+              tone: "premium",
             }}
           >
             <Column gap="16">
@@ -1042,7 +1062,7 @@ export function FxMarketSnapshotSection() {
             tag={{
               label: "Trading ranges",
               icon: "target",
-              tone: "neutral-alpha-weak",
+              tone: "discount",
             }}
           >
             <Row gap="16" wrap>
@@ -1058,6 +1078,11 @@ export function FxMarketSnapshotSection() {
 }
 
 function InsightCard({ title, description, tag, children }: InsightCardProps) {
+  const tagToneClass = tag?.tone ? balanceToneClass(tag.tone) : undefined;
+  const tagBackground = tag?.tone
+    ? undefined
+    : tag?.fallbackBackground ?? "neutral-alpha-weak";
+
   return (
     <Column
       background="page"
@@ -1072,7 +1097,8 @@ function InsightCard({ title, description, tag, children }: InsightCardProps) {
           ? (
             <Tag
               size="s"
-              background={tag.tone ?? "neutral-alpha-weak"}
+              className={tagToneClass}
+              background={tagBackground}
               prefixIcon={tag.icon}
             >
               {tag.label}
@@ -1095,14 +1121,16 @@ function InsightCard({ title, description, tag, children }: InsightCardProps) {
   );
 }
 
-function MoversTable({ title, data, tone }: MoversSection) {
+function MoversTable({ title, data, tone, fallbackBackground }: MoversSection) {
   const tableLabel = `${title} currency movers`;
+  const toneClass = tone ? balanceToneClass(tone) : undefined;
 
   return (
     <Column gap="12" align="start">
       <Tag
         size="s"
-        background={tone}
+        className={toneClass}
+        background={fallbackBackground}
         prefixIcon={title === "Top gainers" ? "trending-up" : "trending-down"}
       >
         {title}
@@ -1136,38 +1164,57 @@ function MoversTable({ title, data, tone }: MoversSection) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item) => (
-              <TableRow key={item.symbol}>
-                <TableCell>
-                  <Column gap="4" align="start">
-                    <Text variant="body-strong-s">{item.pair}</Text>
-                    <Text variant="body-default-s" onBackground="neutral-weak">
-                      {item.symbol}
+            {data.map((item) => {
+              const changeTone: BalanceTone = item.changePercent >= 0
+                ? "bullish"
+                : "bearish";
+              const changeTextStyle = toneTextStyle(changeTone);
+
+              return (
+                <TableRow key={item.symbol}>
+                  <TableCell>
+                    <Column gap="4" align="start">
+                      <Text variant="body-strong-s">{item.pair}</Text>
+                      <Text
+                        variant="body-default-s"
+                        onBackground="neutral-weak"
+                      >
+                        {item.symbol}
+                      </Text>
+                    </Column>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Text
+                      variant="body-strong-s"
+                      style={changeTextStyle}
+                    >
+                      {formatPercent(item.changePercent)}
                     </Text>
-                  </Column>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Text variant="body-strong-s">
-                    {formatPercent(item.changePercent)}
-                  </Text>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    {formatChange(item.change)}
-                  </Text>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    {formatPips(item.pips)}
-                  </Text>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    {formatPrice(item.lastPrice)}
-                  </Text>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Text
+                      variant="body-default-s"
+                      style={changeTextStyle}
+                    >
+                      {formatChange(item.change)}
+                    </Text>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Text
+                      variant="body-default-s"
+                      style={changeTextStyle}
+                    >
+                      {formatPips(item.pips)}
+                    </Text>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      {formatPrice(item.lastPrice)}
+                    </Text>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </Column>
@@ -1175,10 +1222,16 @@ function MoversTable({ title, data, tone }: MoversSection) {
   );
 }
 
-function VolatilityBucketPanel({ title, data, background }: VolatilityBucket) {
+function VolatilityBucketPanel({
+  title,
+  data,
+  tone,
+  fallbackBackground,
+}: VolatilityBucket) {
   const headingId = `${
     title.toLowerCase().replace(/[^a-z0-9]+/g, "-")
   }-bucket-label`;
+  const toneClass = tone ? balanceToneClass(tone) : undefined;
 
   return (
     <Column
@@ -1194,7 +1247,8 @@ function VolatilityBucketPanel({ title, data, background }: VolatilityBucket) {
       <Tag
         id={headingId}
         size="s"
-        background={background}
+        className={toneClass}
+        background={fallbackBackground}
         prefixIcon="activity"
       >
         {title}

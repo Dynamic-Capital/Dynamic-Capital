@@ -38,6 +38,11 @@ import { useToast } from "@/hooks/useToast";
 import { supabase } from "@/integrations/supabase/client";
 import { logChatMessage } from "@/integrations/supabase/queries";
 import { cn } from "@/utils";
+import {
+  balanceTextColor,
+  type BalanceTone,
+  balanceToneClass,
+} from "@/utils/balancePalette";
 
 export interface TelegramAuthData {
   id: number;
@@ -373,62 +378,79 @@ export function ChatAssistantWidget(
       className: "shrink-0",
     };
 
+    const badgeClass = (tone: BalanceTone) =>
+      cn(baseBadgeProps.className, balanceToneClass(tone));
+
     switch (syncStatus) {
       case "syncing":
         return {
           badge: "⚡ Instant replies",
           badgeProps: {
             ...baseBadgeProps,
-            background: "brand-alpha-weak",
-            border: "brand-alpha-medium",
-            onBackground: "brand-strong",
+            className: badgeClass("discount"),
           },
           label: "Writing your reply in real time",
           description:
             "Hang tight — the assistant is pulling desk intel for you.",
-          icon: <Loader2 className="h-4 w-4 animate-spin text-primary" />,
+          icon: (
+            <Loader2
+              className="h-4 w-4 animate-spin"
+              style={{ color: balanceTextColor("discount") }}
+            />
+          ),
         };
       case "connected":
         return {
           badge: "🟢 Online",
           badgeProps: {
             ...baseBadgeProps,
-            background: "success-alpha-weak",
-            border: "success-alpha-medium",
-            onBackground: "success-strong",
+            className: badgeClass("premium"),
           },
           label: "Desk assistant ready for follow-ups",
           description: "Ask about VIP plans, tokens, or trading basics.",
-          icon: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
+          icon: (
+            <CheckCircle2
+              className="h-4 w-4"
+              style={{ color: balanceTextColor("premium") }}
+            />
+          ),
         };
       case "error":
         return {
           badge: "⚠️ Reconnecting",
           badgeProps: {
             ...baseBadgeProps,
-            background: "danger-alpha-weak",
-            border: "danger-alpha-medium",
-            onBackground: "danger-strong",
+            className: badgeClass("bearish"),
           },
           label: "Loaded the fallback desk playbook",
           description: "We saved your message and will reconnect shortly.",
-          icon: <WifiOff className="h-4 w-4 text-rose-500" />,
+          icon: (
+            <WifiOff
+              className="h-4 w-4"
+              style={{ color: balanceTextColor("bearish") }}
+            />
+          ),
         };
       default:
         return {
           badge: "🟢 Online",
           badgeProps: {
             ...baseBadgeProps,
-            background: "neutral-alpha-weak",
-            border: "neutral-alpha-medium",
-            onBackground: "brand-strong",
+            className: badgeClass("premium"),
           },
           label: "Dynamic Capital AI assistant",
           description: "Ask about VIP onboarding, tokens, or trading basics.",
-          icon: <Sparkles className="h-4 w-4 text-primary" />,
+          icon: (
+            <Sparkles
+              className="h-4 w-4"
+              style={{ color: balanceTextColor("premium") }}
+            />
+          ),
         };
     }
-  }, [syncStatus]);
+  }, [
+    syncStatus,
+  ]);
 
   const containerPositionClass = cn(
     "fixed z-40",
