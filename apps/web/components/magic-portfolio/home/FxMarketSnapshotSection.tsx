@@ -9,6 +9,7 @@ import {
   Text,
 } from "@/components/dynamic-ui-system";
 import type { Colors } from "@/components/dynamic-ui-system";
+import { Progress } from "@/components/ui/progress";
 import { formatIsoTime } from "@/utils/isoFormat";
 import {
   type ComponentProps,
@@ -25,6 +26,8 @@ type CurrencyStrength = {
   rank: number;
   tone: "strong" | "balanced" | "soft";
   summary: string;
+  averageChange: number;
+  highlight?: StrengthHighlight;
 };
 
 type TopMover = {
@@ -40,6 +43,8 @@ type CurrencyVolatility = {
   code: string;
   rank: number;
   summary: string;
+  averageRange: number;
+  highlight?: VolatilityHighlight;
 };
 
 type VolatilityPair = {
@@ -92,6 +97,7 @@ const FALLBACK_STRENGTH: CurrencyStrength[] = DISPLAY_CURRENCIES.map(
     rank: index + 1,
     tone: "balanced",
     summary: "Awaiting live market sync.",
+    averageChange: 0,
   }),
 );
 
@@ -100,6 +106,7 @@ const FALLBACK_VOLATILITY: CurrencyVolatility[] = DISPLAY_CURRENCIES.map(
     code,
     rank: index + 1,
     summary: "Awaiting live market sync.",
+    averageRange: 0,
   }),
 );
 
@@ -352,8 +359,8 @@ const determineTone = (
   return "balanced";
 };
 
-const formatSignedPercentValue = (value: number): string => {
-  if (!Number.isFinite(value)) {
+const formatSignedPercentValue = (value?: number): string => {
+  if (value === undefined || !Number.isFinite(value)) {
     return "0.00%";
   }
   const formatted = Math.abs(value).toFixed(2);
@@ -366,8 +373,8 @@ const formatSignedPercentValue = (value: number): string => {
   return `${formatted}%`;
 };
 
-const formatUnsignedPercentValue = (value: number): string => {
-  if (!Number.isFinite(value)) {
+const formatUnsignedPercentValue = (value?: number): string => {
+  if (value === undefined || !Number.isFinite(value)) {
     return "0.00%";
   }
   return `${Math.abs(value).toFixed(2)}%`;
@@ -507,12 +514,26 @@ const loadCurrencySnapshot = async (
     (a, b) => b.averageChange - a.averageChange,
   );
 
-  const strength: CurrencyStrength[] = strengthOrdered.map((metric, index) => ({
-    code: metric.code,
-    rank: index + 1,
-    tone: determineTone(index, strengthOrdered.length),
-    summary: buildStrengthSummary(metric),
-  }));
+  const strength: CurrencyStrength[] = strengthOrdered.map((metric, index) => {
+    const highlight = metric.averageChange >= 0
+      ? metric.topPositive ?? metric.topNegative
+      : metric.topNegative ?? metric.topPositive;
+
+    return {
+      code: metric.code,
+      rank: index + 1,
+      tone: determineTone(index, strengthOrdered.length),
+      summary: buildStrengthSummary(metric),
+      averageChange: metric.averageChange,
+      highlight: highlight
+        ? {
+          pairLabel: highlight.pairLabel,
+          effect: highlight.effect,
+          pairChange: highlight.pairChange,
+        }
+        : undefined,
+    } satisfies CurrencyStrength;
+  });
 
   const volatilityOrdered = [...metrics].sort(
     (a, b) => b.averageRange - a.averageRange,
@@ -523,6 +544,13 @@ const loadCurrencySnapshot = async (
       code: metric.code,
       rank: index + 1,
       summary: buildVolatilitySummary(metric),
+      averageRange: metric.averageRange,
+      highlight: metric.topVolatility
+        ? {
+          pairLabel: metric.topVolatility.pairLabel,
+          rangePercent: metric.topVolatility.rangePercent,
+        }
+        : undefined,
     }),
   );
 
@@ -740,19 +768,59 @@ const toneLabel: Record<CurrencyStrength["tone"], string> = {
   soft: "Under pressure",
 };
 
-const formatPercent = (value: number) =>
-  `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
+const strengthProgressIndicator: Record<CurrencyStrength["tone"], string> = {
+  strong: "bg-gradient-brand",
+  balanced: "bg-muted",
+  soft: "bg-destructive",
+};
 
-const formatChange = (value: number) => value.toFixed(4);
+const getVolatilityIndicatorClass = (rank: number, total: number) => {
+  if (total <= 0) {
+    return "bg-muted";
+  }
 
-const formatPips = (value: number) =>
-  `${value > 0 ? "+" : ""}${value.toFixed(1)}`;
+  const activeBand = Math.max(1, Math.ceil(total / 3));
+  if (rank <= activeBand) {
+    return "bg-gradient-brand";
+  }
 
-const formatPrice = (value: number) =>
-  new Intl.NumberFormat("en-US", {
+  if (rank > total - activeBand) {
+    return "bg-muted";
+  }
+
+  return "bg-info";
+};
+
+const formatPercent = (value?: number) => {
+  if (value === undefined || !Number.isFinite(value)) {
+    return "—";
+  }
+  return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
+};
+
+const formatChange = (value?: number) => {
+  if (value === undefined || !Number.isFinite(value)) {
+    return "—";
+  }
+  return value.toFixed(4);
+};
+
+const formatPips = (value?: number) => {
+  if (value === undefined || !Number.isFinite(value)) {
+    return "—";
+  }
+  return `${value > 0 ? "+" : ""}${value.toFixed(1)}`;
+};
+
+const formatPrice = (value?: number) => {
+  if (value === undefined || !Number.isFinite(value)) {
+    return "—";
+  }
+  return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 3,
     maximumFractionDigits: 6,
   }).format(value);
+};
 
 export function FxMarketSnapshotSection() {
   const [strengthMeter, setStrengthMeter] = useState<CurrencyStrength[]>(
@@ -920,6 +988,31 @@ export function FxMarketSnapshotSection() {
     ? "danger-alpha-weak"
     : "neutral-alpha-weak";
 
+  const strengthMaxMagnitude = useMemo(
+    () =>
+      strengthMeter.reduce(
+        (max, currency) => Math.max(max, Math.abs(currency.averageChange)),
+        0,
+      ),
+    [strengthMeter],
+  );
+
+  const volatilityMaxRange = useMemo(
+    () =>
+      volatilityMeter.reduce(
+        (max, currency) => Math.max(max, Math.abs(currency.averageRange)),
+        0,
+      ),
+    [volatilityMeter],
+  );
+
+  const normalizedStrengthMax = strengthMaxMagnitude > 0
+    ? strengthMaxMagnitude
+    : 1;
+  const normalizedVolatilityMax = volatilityMaxRange > 0
+    ? volatilityMaxRange
+    : 1;
+
   return (
     <Column
       id="fx-market-snapshot"
@@ -976,13 +1069,51 @@ export function FxMarketSnapshotSection() {
                         {currency.code}
                       </Heading>
                     </Row>
-                    <Tag size="s" background={toneTagBackground[currency.tone]}>
-                      {toneLabel[currency.tone]}
-                    </Tag>
+                    <Row gap="8" vertical="center">
+                      <Text variant="body-strong-s">
+                        {formatSignedPercentValue(currency.averageChange)}
+                      </Text>
+                      <Tag
+                        size="s"
+                        background={toneTagBackground[currency.tone]}
+                      >
+                        {toneLabel[currency.tone]}
+                      </Tag>
+                    </Row>
                   </Row>
+                  <div className="w-full">
+                    <Progress
+                      value={Math.abs(currency.averageChange)}
+                      max={normalizedStrengthMax}
+                      showLabel={false}
+                      showValue={false}
+                      indicatorClassName={strengthProgressIndicator[
+                        currency.tone
+                      ]}
+                      className="h-1.5"
+                    />
+                  </div>
                   <Text variant="body-default-s" onBackground="neutral-weak">
                     {currency.summary}
                   </Text>
+                  {currency.highlight
+                    ? (
+                      <Tag
+                        size="s"
+                        background={currency.averageChange >= 0
+                          ? "brand-alpha-weak"
+                          : "danger-alpha-weak"}
+                        prefixIcon={currency.averageChange >= 0
+                          ? "trending-up"
+                          : "trending-down"}
+                      >
+                        {currency.highlight.pairLabel}{" "}
+                        {formatSignedPercentValue(
+                          currency.highlight.pairChange,
+                        )}
+                      </Tag>
+                    )
+                    : null}
                 </Column>
               ))}
             </Row>
@@ -999,17 +1130,56 @@ export function FxMarketSnapshotSection() {
           >
             <Column gap="12">
               {volatilityMeter.map((currency) => (
-                <Row key={currency.code} gap="12" vertical="start">
-                  <Tag size="s" background="neutral-alpha-weak">
-                    #{currency.rank}
-                  </Tag>
-                  <Column gap="4">
-                    <Text variant="body-strong-s">{currency.code}</Text>
-                    <Text variant="body-default-s" onBackground="neutral-weak">
-                      {currency.summary}
+                <Column
+                  key={currency.code}
+                  background="page"
+                  border="neutral-alpha-weak"
+                  radius="l"
+                  padding="l"
+                  gap="12"
+                >
+                  <Row horizontal="between" vertical="center" gap="8">
+                    <Row gap="8" vertical="center">
+                      <Tag size="s" background="neutral-alpha-weak">
+                        #{currency.rank}
+                      </Tag>
+                      <Text variant="body-strong-s">{currency.code}</Text>
+                    </Row>
+                    <Text variant="body-strong-s">
+                      {formatUnsignedPercentValue(currency.averageRange)}
                     </Text>
-                  </Column>
-                </Row>
+                  </Row>
+                  <div className="w-full">
+                    <Progress
+                      value={Math.abs(currency.averageRange)}
+                      max={normalizedVolatilityMax}
+                      showLabel={false}
+                      showValue={false}
+                      indicatorClassName={getVolatilityIndicatorClass(
+                        currency.rank,
+                        volatilityMeter.length,
+                      )}
+                      className="h-1.5"
+                    />
+                  </div>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    {currency.summary}
+                  </Text>
+                  {currency.highlight
+                    ? (
+                      <Tag
+                        size="s"
+                        background="brand-alpha-weak"
+                        prefixIcon="activity"
+                      >
+                        {currency.highlight.pairLabel}{" "}
+                        {formatUnsignedPercentValue(
+                          currency.highlight.rangePercent,
+                        )}
+                      </Tag>
+                    )
+                    : null}
+                </Column>
               ))}
             </Column>
           </InsightCard>
