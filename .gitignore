@@ -63,6 +63,8 @@ miniapp/
 # Allow Next.js mini app source under apps/web
 !apps/web/components/miniapp/
 !apps/web/components/miniapp/**
+!apps/web/services/miniapp/
+!apps/web/services/miniapp/**
 !apps/web/app/(miniapp)/
 !apps/web/app/(miniapp)/**
 

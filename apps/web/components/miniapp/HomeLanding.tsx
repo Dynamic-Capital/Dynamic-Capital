@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  Fragment,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Card,
   CardContent,
@@ -8,26 +16,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
+import { MotionCard } from "@/components/ui/motion-card";
 import {
-  FloatingActionCard,
   Interactive3DCard,
   LiquidCard,
 } from "@/components/ui/interactive-cards";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Award,
-  Clock,
-  Gift,
-  MessageSquare,
-  Shield,
-  Sparkles,
-  Star,
-  Target,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { Clock, Gift, Sparkles } from "lucide-react";
 import { LivePlansSection } from "@/components/shared/LivePlansSection";
 import { ServiceStackCarousel } from "@/components/shared/ServiceStackCarousel";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
@@ -48,6 +44,16 @@ import {
 import { callEdgeFunction } from "@/config/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toast } from "./Toast";
+import { useDeskClock } from "@/hooks/useDeskClock";
+import {
+  DEFAULT_HOME_SECTION_ORDER,
+  DEFAULT_MARKET_PULSE_METRICS,
+  fetchDynamicHomeSync,
+  type HomeSectionId,
+  type MarketPulseMetric,
+  type MultiLlmInsight,
+} from "@/services/miniapp/homeContentSync";
+import { MiniAppMetricsSliders } from "./MiniAppMetricsSliders";
 
 interface BotContent {
   content_key: string;
@@ -90,6 +96,15 @@ interface PromoValidationInfo {
   reason?: string;
 }
 
+const DEFAULT_ABOUT_US_TEXT =
+  "Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.";
+
+const DEFAULT_SERVICES_TEXT =
+  "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support";
+
+const DEFAULT_ANNOUNCEMENTS_TEXT =
+  "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.";
+
 export default function HomeLanding({ telegramData }: HomeLandingProps) {
   const [aboutUs, setAboutUs] = useState<string>("Loading...");
   const [services, setServices] = useState<string>("Loading...");
@@ -102,13 +117,46 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(
     null,
   );
+  const subscriptionRef = useRef<SubscriptionStatus | null>(null);
   const [promoStatus, setPromoStatus] = useState<
     { code: string; copied: boolean | null; discountText?: string } | null
   >(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [sectionOrder, setSectionOrder] = useState<HomeSectionId[]>(
+    DEFAULT_HOME_SECTION_ORDER,
+  );
+  const [sectionReasons, setSectionReasons] = useState<
+    Partial<Record<HomeSectionId, string>>
+  >({});
+  const [marketPulseMetrics, setMarketPulseMetrics] = useState<
+    MarketPulseMetric[]
+  >(DEFAULT_MARKET_PULSE_METRICS);
+  const [llmInsights, setLlmInsights] = useState<MultiLlmInsight[]>([]);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
 
   const isInTelegram = typeof window !== "undefined" && window.Telegram?.WebApp;
+  const deskClock = useDeskClock();
+
+  const lastSyncedLabel = useMemo(() => {
+    if (!lastSyncedAt) {
+      return "just now";
+    }
+    const lastSyncedDate = new Date(lastSyncedAt);
+    const diff = deskClock.now.getTime() - lastSyncedDate.getTime();
+    if (!Number.isFinite(diff) || diff < 0) {
+      return "just now";
+    }
+    const minutes = Math.round(diff / 60000);
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes} min${minutes === 1 ? "" : "s"} ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) {
+      return `${hours} hr${hours === 1 ? "" : "s"} ago`;
+    }
+    const days = Math.round(hours / 24);
+    return `${days} day${days === 1 ? "" : "s"} ago`;
+  }, [deskClock.now, lastSyncedAt]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -121,9 +169,18 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchContent = async () => {
+      setLoading(true);
+
+      let resolvedAbout = DEFAULT_ABOUT_US_TEXT;
+      let resolvedServices = DEFAULT_SERVICES_TEXT;
+      let resolvedAnnouncements = DEFAULT_ANNOUNCEMENTS_TEXT;
+      let resolvedSubscription: SubscriptionStatus | null =
+        subscriptionRef.current;
+
       try {
-        // Fetch about us and services from bot_content
         const { data: contentData, status: contentStatus } =
           await callEdgeFunction("CONTENT_BATCH", {
             method: "POST",
@@ -148,36 +205,37 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
             c.content_key === "announcements"
           );
 
-          setAboutUs(
-            aboutContent?.content_value ||
-              "Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.",
-          );
-          setServices(
-            servicesContent?.content_value ||
-              "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support",
-          );
-          setAnnouncements(
-            announcementsContent?.content_value ||
-              "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.",
-          );
+          resolvedAbout = aboutContent?.content_value || DEFAULT_ABOUT_US_TEXT;
+          resolvedServices = servicesContent?.content_value ||
+            DEFAULT_SERVICES_TEXT;
+          resolvedAnnouncements = announcementsContent?.content_value ||
+            DEFAULT_ANNOUNCEMENTS_TEXT;
         }
 
-        // Fetch active promotions - Only if backend is available
+        if (isMounted) {
+          setAboutUs(resolvedAbout);
+          setServices(resolvedServices);
+          setAnnouncements(resolvedAnnouncements);
+        }
+
         try {
-          const { callEdgeFunction } = await import("@/config/supabase");
-          const { data: promoData, status: promoStatus } =
-            await callEdgeFunction("ACTIVE_PROMOS");
+          const { callEdgeFunction: callEdgeFn } = await import(
+            "@/config/supabase"
+          );
+          const { data: promoData, status: promoStatus } = await callEdgeFn(
+            "ACTIVE_PROMOS",
+          );
           if (
+            isMounted &&
             promoStatus === 200 && (promoData as any)?.ok &&
             (promoData as any).promotions
           ) {
             setActivePromos((promoData as any).promotions);
           }
         } catch (promoError) {
-          console.warn("Promo fetch failed - using defaults");
+          console.warn("Promo fetch failed - using defaults", promoError);
         }
 
-        // Fetch subscription status if in Telegram
         if (isInTelegram && telegramData?.user?.id) {
           const { data: subData, status: subStatus } = await callEdgeFunction(
             "SUBSCRIPTION_STATUS",
@@ -189,30 +247,81 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
             },
           );
           if (subStatus === 200 && subData) {
-            setSubscription(subData as SubscriptionStatus);
+            resolvedSubscription = subData as SubscriptionStatus;
+            if (isMounted) {
+              subscriptionRef.current = resolvedSubscription;
+              setSubscription(resolvedSubscription);
+            }
           } else {
             console.warn("Subscription fetch failed:", subStatus);
           }
         }
       } catch (error) {
         console.error("Failed to fetch content:", error);
-        // Fallback to default content if fetch fails
-        setAboutUs(
-          "Dynamic Capital is your premier destination for professional trading insights and VIP market analysis. We provide cutting-edge trading signals, comprehensive market research, and personalized support to help you achieve your financial goals.",
+        if (isMounted) {
+          setAboutUs(DEFAULT_ABOUT_US_TEXT);
+          setServices(DEFAULT_SERVICES_TEXT);
+          setAnnouncements(DEFAULT_ANNOUNCEMENTS_TEXT);
+        }
+      }
+
+      try {
+        const syncResult = await fetchDynamicHomeSync({
+          baseContent: {
+            aboutUs: resolvedAbout,
+            services: resolvedServices,
+            announcements: resolvedAnnouncements,
+          },
+          subscription: resolvedSubscription,
+        });
+
+        if (!isMounted) return;
+
+        if (syncResult.overrides?.aboutUs) {
+          resolvedAbout = syncResult.overrides.aboutUs;
+          setAboutUs(resolvedAbout);
+        }
+        if (syncResult.overrides?.services) {
+          resolvedServices = syncResult.overrides.services;
+          setServices(resolvedServices);
+        }
+        if (syncResult.overrides?.announcements) {
+          resolvedAnnouncements = syncResult.overrides.announcements;
+          setAnnouncements(resolvedAnnouncements);
+        }
+
+        setSectionOrder(syncResult.order);
+        const reasons: Partial<Record<HomeSectionId, string>> = {};
+        syncResult.sections.forEach((section) => {
+          reasons[section.id] = section.reason ?? "";
+        });
+        setSectionReasons(reasons);
+        setMarketPulseMetrics(
+          syncResult.metrics.length > 0
+            ? syncResult.metrics
+            : DEFAULT_MARKET_PULSE_METRICS,
         );
-        setServices(
-          "📈 Real-time Trading Signals\n📊 Daily Market Analysis\n🛡️ Risk Management Guidance\n👨‍🏫 Personal Trading Mentor\n💎 Exclusive VIP Community\n📞 24/7 Customer Support",
-        );
-        setAnnouncements(
-          "🚀 New year, new trading opportunities! Join our VIP community and get access to premium signals.",
-        );
+        setLlmInsights(syncResult.insights);
+        setLastSyncedAt(syncResult.updatedAt);
+      } catch (syncError) {
+        console.error("Failed to run dynamic home sync:", syncError);
+        if (isMounted) {
+          setSectionOrder(DEFAULT_HOME_SECTION_ORDER);
+          setMarketPulseMetrics(DEFAULT_MARKET_PULSE_METRICS);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchContent();
-  }, [telegramData?.user?.id, isInTelegram]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isInTelegram, telegramData?.user?.id]);
 
   const formatDiscountText = useCallback(
     (promo: Partial<PromoValidationInfo> | ActivePromo) => {
@@ -305,50 +414,52 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
   const bgOpacity = Math.min(scrollY / 300, 0.8);
 
-  if (loading) {
-    return (
-      <div className="py-20 space-y-4">
-        <Skeleton className="h-8 w-1/2 mx-auto" />
-        <Skeleton className="h-4 w-3/4 mx-auto" />
-        <Skeleton className="h-4 w-2/3 mx-auto" />
-      </div>
-    );
-  }
+  const renderSectionReason = (
+    sectionId: HomeSectionId,
+    className = "text-[11px] text-muted-foreground/80 mt-2",
+  ) => {
+    const reason = sectionReasons[sectionId];
+    if (!reason) return null;
+    return <p className={className}>Focus: {reason}</p>;
+  };
 
-  return (
-    <div className="space-y-6 relative z-10">
-      <motion.div
-        className="space-y-4 scroll-bg-transition"
-        variants={slowParentVariants}
-        initial="hidden"
-        animate="visible"
-        style={{
-          background: `linear-gradient(135deg, 
-            hsl(var(--telegram) / ${0.9 - bgOpacity * 0.3}), 
-            hsl(var(--primary) / ${0.8 - bgOpacity * 0.2}), 
-            hsl(var(--accent) / ${0.7 - bgOpacity * 0.2})), 
-            hsl(var(--background) / ${bgOpacity})`,
-        }}
-      >
-        {/* Animated Hero Section */}
-        <motion.div variants={childVariants}>
+  const sectionRenderers: Record<HomeSectionId, () => ReactNode> = {
+    hero: () => (
+      <motion.div variants={childVariants}>
+        <div className="space-y-3">
           <AnimatedWelcomeMini className="ui-rounded-lg ui-shadow" />
-        </motion.div>
-
-        {/* Animated Status Display */}
-        {isInTelegram && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background/60 px-3 py-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-primary" />
+              Auto-sync {lastSyncedLabel}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              Desk time {deskClock.formatted}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    ),
+    status: () =>
+      isInTelegram
+        ? (
           <motion.div variants={childVariants}>
-            <AnimatedStatusDisplay
-              isVip={subscription?.is_vip}
-              planName={subscription?.plan_name || "Free"}
-              daysRemaining={subscription?.days_remaining}
-              paymentStatus={subscription?.payment_status}
-              showBackground={false}
-            />
+            <div className="space-y-2">
+              <AnimatedStatusDisplay
+                isVip={subscription?.is_vip}
+                planName={subscription?.plan_name || "Free"}
+                daysRemaining={subscription?.days_remaining}
+                paymentStatus={subscription?.payment_status}
+                showBackground={false}
+              />
+              {renderSectionReason("status")}
+            </div>
           </motion.div>
-        )}
-
-        {/* Have a Promo Code Section */}
+        )
+        : null,
+    promo: () => (
+      <div className="space-y-4">
         <FadeInOnView delay={100} animation="slide-in-right">
           <MotionCard
             variant="glass"
@@ -366,43 +477,17 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
                 Enter your promo code below to unlock exclusive discounts!
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <PromoCodeInput
                 planId="6e07f718-606e-489d-9626-2a5fa3e84eec"
                 onApplied={(code, validation) =>
                   handlePromoApply(code, validation)}
               />
+              {renderSectionReason("promo")}
             </CardContent>
           </MotionCard>
         </FadeInOnView>
 
-        {/* Announcements with 3D Emoticons */}
-        <FadeInOnView delay={150} animation="slide-in-right">
-          <MotionCard
-            variant="glass"
-            hover={true}
-            animate={true}
-            delay={0.2}
-            className="ui-rounded-lg ui-shadow"
-          >
-            <div className="p-4 border-l-4 border-gradient-to-b from-primary to-accent">
-              <div className="flex items-center gap-2 mb-2">
-                <ThreeDEmoticon emoji="📢" size={20} intensity={0.3} />
-                <h3 className="text-subheading font-semibold">
-                  Latest Announcements
-                </h3>
-                <TradingEmoticonSet variant="celebration" className="ml-auto" />
-              </div>
-              <FadeInOnView delay={200} animation="fade-in">
-                <p className="text-body-sm whitespace-pre-line leading-relaxed text-foreground">
-                  {announcements}
-                </p>
-              </FadeInOnView>
-            </div>
-          </MotionCard>
-        </FadeInOnView>
-
-        {/* Limited Offers / Active Promos */}
         <FadeInOnView delay={250} animation="bounce-in">
           <Interactive3DCard
             intensity={0.1}
@@ -517,160 +602,220 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
                 )
                 : (
                   <div className="text-center py-8 space-y-3">
-                    <motion.div
-                      className="w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center"
-                      whileHover={{ scale: 1.1, rotate: 10 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 260,
-                        damping: 20,
-                      }}
-                    >
-                      <ThreeDEmoticon emoji="🎁" size={32} intensity={0.5} />
-                    </motion.div>
-                    <p className="text-muted-foreground text-sm">
-                      No active promotions right now, but check back soon for
-                      amazing deals!
+                    <ThreeDEmoticon emoji="🛎️" size={24} intensity={0.3} />
+                    <p className="text-body-sm text-muted-foreground">
+                      Promotions are refreshed in real-time by our marketing
+                      desk.
                     </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set("tab", "plan");
-                        window.history.pushState({}, "", url.toString());
-                        window.dispatchEvent(new PopStateEvent("popstate"));
-                      }}
-                    >
-                      View Plans
-                    </Button>
                   </div>
                 )}
             </div>
           </Interactive3DCard>
         </FadeInOnView>
-
-        {/* About Dynamic Capital */}
-        <FadeInOnView delay={300} animation="bounce-in">
-          <motion.div whileHover={{ scale: 1.02 }}>
-            <LiquidCard
-              className="hover:shadow-2xl transition-all duration-300 hover:scale-[1.01] ui-rounded-lg ui-shadow ui-border-glass"
-              color="hsl(var(--primary))"
-            >
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <ThreeDEmoticon
-                    emoji="🏆"
-                    size={24}
-                    intensity={0.4}
-                    animate={true}
-                  />
-                  <h3 className="text-heading font-semibold">
-                    About Dynamic Capital
-                  </h3>
-                  <TradingEmoticonSet variant="vip" className="ml-auto" />
-                </div>
-                <p className="text-subheading text-foreground/90 whitespace-pre-line leading-relaxed">
-                  {aboutUs}
-                </p>
-              </div>
-            </LiquidCard>
-          </motion.div>
-        </FadeInOnView>
-
-        {/* Our Services - Stack Carousel */}
-        <FadeInOnView delay={320} animation="fade-in-up">
-          <ServiceStackCarousel services={services} />
-        </FadeInOnView>
-
-        {/* VIP Packages - Enhanced */}
-        <FadeInOnView delay={350} animation="fade-in-up">
-          <div className="space-y-4">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
+      </div>
+    ),
+    announcements: () => (
+      <FadeInOnView delay={150} animation="slide-in-right">
+        <MotionCard
+          variant="glass"
+          hover={true}
+          animate={true}
+          delay={0.2}
+          className="ui-rounded-lg ui-shadow"
+        >
+          <div className="p-4 border-l-4 border-gradient-to-b from-primary to-accent">
+            <div className="flex items-center gap-2 mb-2">
+              <ThreeDEmoticon emoji="📢" size={20} intensity={0.3} />
+              <h3 className="text-subheading font-semibold">
+                Latest Announcements
+              </h3>
+              <TradingEmoticonSet variant="celebration" className="ml-auto" />
+            </div>
+            <FadeInOnView delay={200} animation="fade-in">
+              <p className="text-body-sm whitespace-pre-line leading-relaxed text-foreground">
+                {announcements}
+              </p>
+            </FadeInOnView>
+            {renderSectionReason(
+              "announcements",
+              "text-[11px] text-muted-foreground mt-3",
+            )}
+          </div>
+        </MotionCard>
+      </FadeInOnView>
+    ),
+    "market-pulse": () => (
+      <FadeInOnView delay={220} animation="fade-in-up">
+        <MiniAppMetricsSliders
+          metrics={marketPulseMetrics}
+          insights={llmInsights}
+          deskTimeLabel={deskClock.formatted}
+          lastSyncedLabel={lastSyncedLabel}
+          sectionReason={sectionReasons["market-pulse"]}
+        />
+      </FadeInOnView>
+    ),
+    about: () => (
+      <FadeInOnView delay={300} animation="fade-in-up">
+        <motion.div variants={parentVariants}>
+          <LiquidCard>
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-4">
                 <ThreeDEmoticon
-                  emoji="💎"
+                  emoji="🏆"
                   size={24}
                   intensity={0.4}
                   animate={true}
                 />
                 <h3 className="text-heading font-semibold">
-                  VIP Subscription Plans
+                  About Dynamic Capital
                 </h3>
                 <TradingEmoticonSet variant="vip" className="ml-auto" />
               </div>
-              <p className="text-body-sm text-muted-foreground">
-                Unlock premium trading insights and exclusive benefits
+              <p className="text-subheading text-foreground/90 whitespace-pre-line leading-relaxed">
+                {aboutUs}
               </p>
+              {renderSectionReason("about")}
             </div>
+          </LiquidCard>
+        </motion.div>
+      </FadeInOnView>
+    ),
+    services: () => (
+      <FadeInOnView delay={320} animation="fade-in-up">
+        <div className="space-y-2">
+          {renderSectionReason(
+            "services",
+            "text-xs text-muted-foreground text-center",
+          )}
+          <ServiceStackCarousel services={services} />
+        </div>
+      </FadeInOnView>
+    ),
+    plans: () => (
+      <FadeInOnView delay={350} animation="fade-in-up">
+        <div className="space-y-4">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <ThreeDEmoticon
+                emoji="💎"
+                size={24}
+                intensity={0.4}
+                animate={true}
+              />
+              <h3 className="text-heading font-semibold">
+                VIP Subscription Plans
+              </h3>
+              <TradingEmoticonSet variant="vip" className="ml-auto" />
+            </div>
+            <p className="text-body-sm text-muted-foreground">
+              Unlock premium trading insights and exclusive benefits
+            </p>
+            {renderSectionReason("plans", "text-xs text-muted-foreground mt-2")}
+          </div>
 
-            <LivePlansSection
-              showPromo={!!isInTelegram}
-              telegramData={telegramData}
-              showHeader={false}
-              onPlanSelect={(planId) => {
-                // Switch to plan tab
+          <LivePlansSection
+            showPromo={!!isInTelegram}
+            telegramData={telegramData}
+            showHeader={false}
+            onPlanSelect={() => {
+              const url = new URL(window.location.href);
+              url.searchParams.set("tab", "plan");
+              window.history.pushState({}, "", url.toString());
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+          />
+        </div>
+      </FadeInOnView>
+    ),
+    cta: () => (
+      <MotionCard
+        variant="glow"
+        hover={true}
+        animate={true}
+        delay={0.6}
+        className="bg-gradient-to-r from-primary/10 to-dc-brand-light/10 border-primary/20 ui-rounded-lg ui-shadow"
+      >
+        <CardContent className="p-6 text-center space-y-4">
+          <div className="flex justify-center items-center gap-2">
+            <ThreeDEmoticon
+              emoji="🚀"
+              size={24}
+              intensity={0.4}
+              animate={true}
+            />
+            <Sparkles className="h-6 w-6 text-primary" />
+            <TradingEmoticonSet variant="success" />
+          </div>
+          <h3 className="text-heading font-semibold">
+            Ready to Start Trading Like a Pro?
+          </h3>
+          <p className="text-body-sm text-muted-foreground">
+            Join thousands of successful traders who trust Dynamic Capital for
+            their trading journey.
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <Button
+              className="min-h-[44px] font-semibold"
+              onClick={() => {
                 const url = new URL(window.location.href);
                 url.searchParams.set("tab", "plan");
                 window.history.pushState({}, "", url.toString());
                 window.dispatchEvent(new PopStateEvent("popstate"));
               }}
-            />
+            >
+              View Plans
+            </Button>
+            <button
+              className="text-subheading underline text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.set("tab", "help");
+                window.history.pushState({}, "", url.toString());
+                window.dispatchEvent(new PopStateEvent("popstate"));
+              }}
+            >
+              How it works
+            </button>
           </div>
-        </FadeInOnView>
+          {renderSectionReason("cta", "text-xs text-muted-foreground mt-4")}
+        </CardContent>
+      </MotionCard>
+    ),
+  };
 
-        {/* Call to Action */}
-        <MotionCard
-          variant="glow"
-          hover={true}
-          animate={true}
-          delay={0.6}
-          className="bg-gradient-to-r from-primary/10 to-dc-brand-light/10 border-primary/20 ui-rounded-lg ui-shadow"
-        >
-          <CardContent className="p-6 text-center">
-            <div className="flex justify-center items-center gap-2 mb-3">
-              <ThreeDEmoticon
-                emoji="🚀"
-                size={24}
-                intensity={0.4}
-                animate={true}
-              />
-              <Sparkles className="h-6 w-6 text-primary" />
-              <TradingEmoticonSet variant="success" />
-            </div>
-            <h3 className="text-heading font-semibold mb-2">
-              Ready to Start Trading Like a Pro?
-            </h3>
-            <p className="text-body-sm text-muted-foreground mb-4">
-              Join thousands of successful traders who trust Dynamic Capital for
-              their trading journey.
-            </p>
-            <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-              <Button
-                className="min-h-[44px] font-semibold"
-                onClick={() => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set("tab", "plan");
-                  window.history.pushState({}, "", url.toString());
-                  window.dispatchEvent(new PopStateEvent("popstate"));
-                }}
-              >
-                View Plans
-              </Button>
-              <button
-                className="text-subheading underline text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set("tab", "help");
-                  window.history.pushState({}, "", url.toString());
-                  window.dispatchEvent(new PopStateEvent("popstate"));
-                }}
-              >
-                How it works
-              </button>
-            </div>
-          </CardContent>
-        </MotionCard>
+  if (loading) {
+    return (
+      <div className="py-20 space-y-4">
+        <Skeleton className="h-8 w-1/2 mx-auto" />
+        <Skeleton className="h-4 w-3/4 mx-auto" />
+        <Skeleton className="h-4 w-2/3 mx-auto" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 relative z-10">
+      <motion.div
+        className="space-y-4 scroll-bg-transition"
+        variants={slowParentVariants}
+        initial="hidden"
+        animate="visible"
+        style={{
+          background: `linear-gradient(135deg,
+            hsl(var(--telegram) / ${0.9 - bgOpacity * 0.3}),
+            hsl(var(--primary) / ${0.8 - bgOpacity * 0.2}),
+            hsl(var(--accent) / ${0.7 - bgOpacity * 0.2})),
+            hsl(var(--background) / ${bgOpacity})`,
+        }}
+      >
+        {sectionOrder.map((sectionId) => {
+          const render = sectionRenderers[sectionId];
+          if (!render) return null;
+          const content = render();
+          if (!content) return null;
+          return <Fragment key={sectionId}>{content}</Fragment>;
+        })}
       </motion.div>
 
       <Toast
