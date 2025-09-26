@@ -82,29 +82,31 @@ export const DesktopNav: React.FC = () => {
                   : "text-foreground hover:bg-accent hover:text-accent-foreground",
               )}
             >
-              <span
-                className={cn(
-                  "text-[11px] font-semibold uppercase tracking-wide",
-                  active
-                    ? "text-primary-foreground/80"
-                    : "text-muted-foreground",
-                )}
-              >
-                {item.step}
-              </span>
-              <div className="flex items-center gap-2 font-medium">
-                <Icon className="h-4 w-4" />
-                <span>{item.label}</span>
-              </div>
-              <span
-                className={cn(
-                  "text-xs leading-snug",
-                  active
-                    ? "text-primary-foreground/80"
-                    : "text-muted-foreground",
-                )}
-              >
-                {item.description}
+              <span className="contents">
+                <span
+                  className={cn(
+                    "text-[11px] font-semibold uppercase tracking-wide",
+                    active
+                      ? "text-primary-foreground/80"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {item.step}
+                </span>
+                <div className="flex items-center gap-2 font-medium">
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </div>
+                <span
+                  className={cn(
+                    "text-xs leading-snug",
+                    active
+                      ? "text-primary-foreground/80"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {item.description}
+                </span>
               </span>
             </Link>
           </motion.div>

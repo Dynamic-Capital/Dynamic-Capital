@@ -33,7 +33,11 @@ export function MobileFooterNav() {
     }
   }, [pathname]);
 
-  const navItems = resolvePrimaryNavItems(pathname, hash, (item) => item.includeInFooter);
+  const navItems = resolvePrimaryNavItems(
+    pathname,
+    hash,
+    (item) => item.includeInFooter,
+  );
 
   if (!navItems.length) {
     return null;
@@ -50,10 +54,12 @@ export function MobileFooterNav() {
               [styles.navItemActive]: item.selected,
             })}
           >
-            <span className={styles.emoji} aria-hidden>
-              {item.emoji}
+            <span className={styles.navItemInner}>
+              <span className={styles.emoji} aria-hidden>
+                {item.emoji}
+              </span>
+              <span className={styles.label}>{item.mobileLabel}</span>
             </span>
-            <span className={styles.label}>{item.mobileLabel}</span>
           </Link>
         ))}
       </div>
