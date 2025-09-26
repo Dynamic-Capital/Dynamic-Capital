@@ -752,7 +752,7 @@ export function FxMarketSnapshotSection() {
     >
       <Column gap="12" maxWidth={32}>
         <Row gap="12" vertical="center">
-          <Heading variant="display-strong-xs">FX market snapshot</Heading>
+          <Heading variant="display-strong-xs">Dynamic market snapshot</Heading>
           <Tag size="s" background={statusTone} prefixIcon="clock">
             {statusLabel}
           </Tag>
