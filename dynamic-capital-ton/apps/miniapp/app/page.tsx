@@ -5,6 +5,7 @@ import {
   TonConnectUIProvider,
   useTonConnectUI,
 } from "@tonconnect/ui-react";
+import type { WalletsListConfiguration } from "@tonconnect/ui-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useMiniAppThemeManager,
@@ -99,6 +100,38 @@ type LiveIntelState = {
   isSyncing: boolean;
   error?: string;
 };
+
+const RECOMMENDED_WALLETS: NonNullable<
+  WalletsListConfiguration["includeWallets"]
+> = [
+  {
+    appName: "tonkeeper",
+    name: "Tonkeeper",
+    imageUrl: "https://tonkeeper.com/assets/tonconnect-icon.png",
+    aboutUrl: "https://tonkeeper.com",
+    universalLink: "https://app.tonkeeper.com/ton-connect",
+    bridgeUrl: "https://bridge.tonapi.io/bridge",
+    platforms: ["ios", "android", "chrome", "firefox"],
+  },
+  {
+    appName: "tonhub",
+    name: "Tonhub",
+    imageUrl: "https://tonhub.com/tonconnect_logo.png",
+    aboutUrl: "https://tonhub.com",
+    universalLink: "https://tonhub.com/ton-connect",
+    bridgeUrl: "https://connect.tonhubapi.com/tonconnect",
+    platforms: ["ios", "android"],
+  },
+  {
+    appName: "mytonwallet",
+    name: "MyTonWallet",
+    imageUrl: "https://mytonwallet.io/icon-256.png",
+    aboutUrl: "https://mytonwallet.io",
+    universalLink: "https://connect.mytonwallet.org",
+    bridgeUrl: "https://tonconnectbridge.mytonwallet.org/bridge/",
+    platforms: ["chrome", "windows", "macos", "linux"],
+  },
+];
 
 const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
   {
@@ -1668,7 +1701,10 @@ const NAV_ITEMS: NavItem[] = [
 
 export default function Page() {
   return (
-    <TonConnectUIProvider manifestUrl="/tonconnect-manifest.json">
+    <TonConnectUIProvider
+      manifestUrl="/tonconnect-manifest.json"
+      walletsListConfiguration={{ includeWallets: RECOMMENDED_WALLETS }}
+    >
       <HomeInner />
     </TonConnectUIProvider>
   );
