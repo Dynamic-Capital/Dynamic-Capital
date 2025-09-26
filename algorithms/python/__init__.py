@@ -17,6 +17,21 @@ from .back_to_breakeven import (
 )
 from .elliott_wave import ElliottSwing, ElliottWaveAnalyzer, ElliottWaveReport
 from .mechanical_analysis import MechanicalAnalysisCalculator, MechanicalMetrics
+from .core_orchestration import (
+    ObserverEvent,
+    OrchestrationBuilder,
+    OrchestrationContext,
+    OrchestrationError,
+    OrchestrationExecution,
+    OrchestrationObserver,
+    OrchestrationPlan,
+    OrchestrationStep,
+    StepExecution,
+    StepHandler,
+    StepResult,
+    StepStatus,
+    execute_plan,
+)
 from .economic_catalysts import (
     EconomicCatalyst,
     EconomicCatalystGenerator,
@@ -119,6 +134,14 @@ __all__ = _trade_exports + [
     "MarketAdvisoryEngine",
     "MarketAdvisoryReport",
     "MarketAdvisoryRequest",
+    "ObserverEvent",
+    "OrchestrationBuilder",
+    "OrchestrationContext",
+    "OrchestrationError",
+    "OrchestrationExecution",
+    "OrchestrationObserver",
+    "OrchestrationPlan",
+    "OrchestrationStep",
     "DCTAllocationEngine",
     "DCTAllocationResult",
     "DCTAllocationRule",
@@ -142,6 +165,10 @@ __all__ = _trade_exports + [
     "FAQSource",
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
+    "StepExecution",
+    "StepHandler",
+    "StepResult",
+    "StepStatus",
     "CEO_PLAYBOOK",
     "CFO_PLAYBOOK",
     "COO_PLAYBOOK",
@@ -154,6 +181,7 @@ __all__ = _trade_exports + [
     "VipMembershipSnapshot",
     "VipTokenGrant",
     "VipTokenisationStrategy",
+    "execute_plan",
 ]
 
 globals().update({name: getattr(_trade_logic, name) for name in _trade_exports})
@@ -189,6 +217,14 @@ globals().update(
         "MarketAdvisoryEngine": MarketAdvisoryEngine,
         "MarketAdvisoryReport": MarketAdvisoryReport,
         "MarketAdvisoryRequest": MarketAdvisoryRequest,
+        "ObserverEvent": ObserverEvent,
+        "OrchestrationBuilder": OrchestrationBuilder,
+        "OrchestrationContext": OrchestrationContext,
+        "OrchestrationError": OrchestrationError,
+        "OrchestrationExecution": OrchestrationExecution,
+        "OrchestrationObserver": OrchestrationObserver,
+        "OrchestrationPlan": OrchestrationPlan,
+        "OrchestrationStep": OrchestrationStep,
         "DCTAllocationEngine": DCTAllocationEngine,
         "DCTAllocationResult": DCTAllocationResult,
         "DCTAllocationRule": DCTAllocationRule,
@@ -224,5 +260,10 @@ globals().update(
         "EXECUTIVE_PLAYBOOKS": EXECUTIVE_PLAYBOOKS,
         "build_executive_playbooks": build_executive_playbooks,
         "build_executive_sync_algorithm": build_executive_sync_algorithm,
+        "StepExecution": StepExecution,
+        "StepHandler": StepHandler,
+        "StepResult": StepResult,
+        "StepStatus": StepStatus,
+        "execute_plan": execute_plan,
     }
 )
