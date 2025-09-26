@@ -112,6 +112,15 @@ from .executive_playbooks import (
     build_executive_playbooks,
     build_executive_sync_algorithm,
 )
+from .human_resources_playbooks import (
+    HUMAN_RESOURCES_PLAYBOOKS,
+    PEOPLE_DEVELOPMENT_PLAYBOOK,
+    PEOPLE_OPERATIONS_PLAYBOOK,
+    TALENT_ACQUISITION_PLAYBOOK,
+    TOTAL_REWARDS_PLAYBOOK,
+    build_human_resources_playbooks,
+    build_human_resources_sync_algorithm,
+)
 from .route_keeper import Route, RouteKeeperAlgorithm, RouteKeeperSyncResult
 from .tonkeeper_sync import (
     TonkeeperAccountSnapshot,
@@ -229,6 +238,13 @@ __all__ = _trade_exports + [
     "EXECUTIVE_PLAYBOOKS",
     "build_executive_playbooks",
     "build_executive_sync_algorithm",
+    "PEOPLE_OPERATIONS_PLAYBOOK",
+    "TALENT_ACQUISITION_PLAYBOOK",
+    "TOTAL_REWARDS_PLAYBOOK",
+    "PEOPLE_DEVELOPMENT_PLAYBOOK",
+    "HUMAN_RESOURCES_PLAYBOOKS",
+    "build_human_resources_playbooks",
+    "build_human_resources_sync_algorithm",
     "Element",
     "ElementProfile",
     "ElementSignal",
