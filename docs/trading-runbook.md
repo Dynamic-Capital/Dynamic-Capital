@@ -1,11 +1,12 @@
 # Trading Operations Runbook
 
-This runbook describes the end-to-end operational lifecycle for the Lorentzian k-NN
-strategy that powers Dynamic Capital's discretionary trading stack.
+This runbook describes the end-to-end operational lifecycle for the Lorentzian
+k-NN strategy that powers Dynamic Capital's discretionary trading stack.
 
 ## 1. Daily Data Refresh
 
-1. Export the previous trading day's OHLC candles from the broker or data vendor.
+1. Export the previous trading day's OHLC candles from the broker or data
+   vendor.
 2. Run the historical ingestion job:
    ```python
    from pathlib import Path
@@ -17,6 +18,14 @@ strategy that powers Dynamic Capital's discretionary trading stack.
    instrument = InstrumentMeta(symbol="XAUUSD", pip_size=0.1, pip_value=1.0)
    snapshots = job.run(bars, instrument)
    job.save_csv(snapshots, Path("data/xauusd_snapshots.csv"))
+   ```
+   Alternatively, pull bars directly from Yahoo Finance with the collector CLI:
+   ```bash
+   python -m algorithms.python.backtest_data_collector \
+     XAUUSD data/xauusd_snapshots.csv \
+     --vendor-symbol XAUUSD=X \
+     --start 2024-01-01 --end 2024-01-31 --interval 1h \
+     --metadata data/xauusd_snapshots.metadata.json
    ```
 3. Store the resulting snapshots in the research data lake (e.g. S3 or Supabase
    storage) and update the catalogue entry with the generated metadata file.
@@ -49,8 +58,8 @@ strategy that powers Dynamic Capital's discretionary trading stack.
    ```
 3. Review the resulting `BacktestResult` metrics (hit rate, profit factor,
    drawdown) and promote the best configuration into the staging registry.
-4. Freeze the trained artefacts via `model_artifacts.save_artifacts`, storing the
-   scaler state, neighbour set, and configuration document.
+4. Freeze the trained artefacts via `model_artifacts.save_artifacts`, storing
+   the scaler state, neighbour set, and configuration document.
 
 ## 4. Pre-Deployment Validation
 
@@ -84,4 +93,3 @@ strategy that powers Dynamic Capital's discretionary trading stack.
 4. Trigger the rollback procedure (redeploy the previous artefact version) if
    production performance deviates materially from backtest expectations or if
    risk limits are breached.
-
