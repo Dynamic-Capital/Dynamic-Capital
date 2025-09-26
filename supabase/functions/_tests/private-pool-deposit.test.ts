@@ -90,6 +90,63 @@ denoTest("private-pool-deposit rejects invalid amount", async () => {
   assertEquals(notifications.length, 0);
 });
 
+denoTest(
+  "private-pool-deposit rejects ton event investor mismatch",
+  async () => {
+    const profileId = "profile-ton";
+    const investorId = "investor-ton";
+    const tonEventId = "event-ton-1";
+    const store = new MockPrivatePoolStore({
+      profiles: [
+        {
+          id: profileId,
+          role: "user",
+          telegram_id: "400",
+          display_name: "Tina",
+        },
+      ],
+      investors: [
+        {
+          id: investorId,
+          profile_id: profileId,
+          status: "active",
+          joined_at: new Date("2025-01-01T00:00:00Z").toISOString(),
+        },
+      ],
+      tonEvents: [
+        {
+          id: tonEventId,
+          deposit_id: "dep-123",
+          investor_key: "different-investor",
+          ton_tx_hash: "ton-hash",
+          usdt_amount: 150,
+          dct_amount: 10,
+          fx_rate: 15,
+          valuation_usdt: 150,
+          consumed_at: null,
+        },
+      ],
+    });
+    const handler = createDepositHandler({
+      createStore: () => store,
+      resolveProfile: () => Promise.resolve({ profileId, telegramId: "400" }),
+      now: () => new Date("2025-02-01T00:00:00Z"),
+      notifyDeposit: () => Promise.resolve(),
+    });
+    const resp = await handler(
+      new Request("http://localhost", {
+        method: "POST",
+        body: JSON.stringify({ tonEventId }),
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    assertEquals(resp.status, 401);
+    const tonEvent = store.tonEvents.get(tonEventId);
+    if (!tonEvent) throw new Error("ton event missing");
+    assertEquals(tonEvent.consumed_at, null);
+  },
+);
+
 function denoTest(name: string, fn: () => Promise<void> | void) {
   Deno.test(name, fn);
 }
