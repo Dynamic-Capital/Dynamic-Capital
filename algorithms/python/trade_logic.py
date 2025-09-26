@@ -1401,7 +1401,7 @@ class TradeLogic:
                     open_positions=open_positions,
                 )
             except Exception:  # pragma: no cover - advisor failures should not halt trading
-                logger.exception("Grok advisor review failed for %s", snapshot.symbol)
+                logger.exception("Trade advisor review failed for %s", snapshot.symbol)
             else:
                 if advisor_feedback:
                     if advisor_feedback.adjusted_signal is not None:

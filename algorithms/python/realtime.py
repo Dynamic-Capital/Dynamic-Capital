@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import datetime
+import os
 from typing import Callable, List, Optional, Protocol, Sequence, TYPE_CHECKING
 
 from .trade_logic import ActivePosition, MarketSnapshot, TradeDecision, TradeLogic
@@ -143,10 +144,48 @@ class RealtimeExecutor:
                     break
 
 
+def resolve_trade_advisor(*, provider: Optional[str] = None) -> "TradeAdvisor" | None:
+    """Instantiate a trade advisor based on the configured provider."""
+
+    selected = (provider or os.getenv("ADVISOR_PROVIDER") or "").strip().lower()
+    if not selected or selected == "grok":
+        return None
+    if selected in {"none", "disabled"}:
+        return None
+    if selected == "deepseek":
+        from .deepseek_advisor import advisor_from_environment
+
+        return advisor_from_environment()
+    raise ValueError(f"Unknown advisor provider: {provider}")
+
+
+def build_realtime_executor(
+    logic: TradeLogic,
+    broker: BrokerConnector,
+    *,
+    state_store: Optional[StateStore] = None,
+    health_monitor: Optional[HealthMonitor] = None,
+    advisor_provider: Optional[str] = None,
+    advisor: "TradeAdvisor" | None = None,
+) -> "RealtimeExecutor":
+    """Build a :class:`RealtimeExecutor` with the configured advisor provider."""
+
+    resolved_advisor = advisor if advisor is not None else resolve_trade_advisor(provider=advisor_provider)
+    return RealtimeExecutor(
+        logic,
+        broker,
+        state_store=state_store,
+        health_monitor=health_monitor,
+        advisor=resolved_advisor,
+    )
+
+
 __all__ = [
     "BrokerConnector",
     "HealthMonitor",
     "InMemoryStateStore",
     "RealtimeExecutor",
+    "build_realtime_executor",
+    "resolve_trade_advisor",
     "StateStore",
 ]
