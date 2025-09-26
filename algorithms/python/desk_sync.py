@@ -18,7 +18,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Sequence
 
-from .dynamic_protocol_planner import ProtocolDraft
+from .dynamic_protocol_planner import ProtocolDraft, summarise_trade_logic as protocol_trade_logic_summary
 from .trade_logic import PerformanceMetrics, TradeLogic
 
 __all__ = [
@@ -124,17 +124,13 @@ class TeamRoleSyncAlgorithm:
 
 
 def summarise_trade_logic(trade_logic: TradeLogic) -> Dict[str, Any]:
-    """Return a lightweight snapshot of the configured trading logic."""
+    """Return a snapshot of the trading logic aligned with protocol summaries."""
 
-    summary: Dict[str, Any] = {
-        "config": asdict(trade_logic.config),
-    }
+    summary = protocol_trade_logic_summary(trade_logic)
 
     risk = getattr(trade_logic, "risk", None)
+    metrics_payload: Dict[str, Any] | None = summary.get("risk_metrics")
     if risk is not None:
-        params = getattr(risk, "params", None)
-        if params is not None:
-            summary["risk_parameters"] = asdict(params)
         metrics = None
         metrics_fn = getattr(risk, "metrics", None)
         if callable(metrics_fn):
@@ -143,23 +139,25 @@ def summarise_trade_logic(trade_logic: TradeLogic) -> Dict[str, Any]:
             except Exception:  # pragma: no cover - risk metrics are optional
                 metrics = None
         if isinstance(metrics, PerformanceMetrics):
-            summary["risk_metrics"] = asdict(metrics)
+            metrics_dict = asdict(metrics)
+            if metrics_payload:
+                metrics_payload = {**metrics_payload, **metrics_dict}
+            else:
+                metrics_payload = metrics_dict
+    if metrics_payload:
+        summary["risk_metrics"] = metrics_payload
 
     strategy = getattr(trade_logic, "strategy", None)
     if strategy is not None:
-        summary["strategy"] = {
+        summary.setdefault("strategy", {
             "neighbors": getattr(strategy, "neighbors", None),
             "max_rows": getattr(strategy, "max_rows", None),
             "label_lookahead": getattr(strategy, "label_lookahead", None),
             "neutral_zone_pips": getattr(strategy, "neutral_zone_pips", None),
-        }
+        })
 
-    adr_tracker = getattr(trade_logic, "adr_tracker", None)
-    if adr_tracker is not None:
-        summary["adr"] = {
-            "period": getattr(adr_tracker, "period", None),
-            "value": getattr(adr_tracker, "value", None),
-        }
+    if "config" not in summary:
+        summary["config"] = asdict(trade_logic.config)
 
     return summary
 
