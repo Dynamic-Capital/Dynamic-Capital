@@ -15,6 +15,12 @@ from .economic_catalysts import (
     EconomicCatalystGenerator,
     EconomicCatalystSyncJob,
 )
+from .currency_correlation import (
+    CorrelationSeries,
+    CurrencyCorrelationCalculator,
+    CurrencyCorrelationReport,
+    CurrencyCorrelationRequest,
+)
 from .loss_recovery_programme import (
     AccountState,
     LossRecoveryConfig,
@@ -89,6 +95,10 @@ __all__ = _trade_exports + [
     "EconomicCatalyst",
     "EconomicCatalystGenerator",
     "EconomicCatalystSyncJob",
+    "CorrelationSeries",
+    "CurrencyCorrelationCalculator",
+    "CurrencyCorrelationReport",
+    "CurrencyCorrelationRequest",
     "AccountState",
     "LossRecoveryConfig",
     "LossRecoveryProgramme",
@@ -150,6 +160,10 @@ globals().update(
         "EconomicCatalyst": EconomicCatalyst,
         "EconomicCatalystGenerator": EconomicCatalystGenerator,
         "EconomicCatalystSyncJob": EconomicCatalystSyncJob,
+        "CorrelationSeries": CorrelationSeries,
+        "CurrencyCorrelationCalculator": CurrencyCorrelationCalculator,
+        "CurrencyCorrelationReport": CurrencyCorrelationReport,
+        "CurrencyCorrelationRequest": CurrencyCorrelationRequest,
         "AccountState": AccountState,
         "LossRecoveryConfig": LossRecoveryConfig,
         "LossRecoveryProgramme": LossRecoveryProgramme,
