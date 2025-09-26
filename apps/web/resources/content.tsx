@@ -19,8 +19,9 @@ const person: Person = {
   name: "Abdul Mumin Ibun Aflhal",
   role: "Founder",
   avatar: supabaseAsset("images/avatar.jpg"),
-  email: "hello@dynamic.capital",
+  email: "dynamiccaptialapp@gmail.com",
   location: "Indian/Maldives",
+  locationLabel: "Malé, Maldives",
 };
 
 const newsletter: Newsletter = {
@@ -36,24 +37,44 @@ const newsletter: Newsletter = {
 
 const social: Social = [
   {
+    name: "Website",
+    icon: "globe",
+    link: "https://dynamic-capital-qazf2.ondigitalocean.app/",
+  },
+  {
     name: "Telegram",
     icon: "telegram",
-    link: "https://t.me/Dynamic_VIP_BOT",
+    link: "https://t.me/DynamicCapital_Support",
   },
   {
-    name: "LinkedIn",
-    icon: "linkedin",
-    link: "https://www.linkedin.com/company/dynamic-capital-ai/",
+    name: "Instagram",
+    icon: "instagram",
+    link: "https://www.instagram.com/dynamic.capital",
   },
   {
-    name: "X",
-    icon: "x",
-    link: "https://x.com/dynamiccapitalhq",
+    name: "Facebook",
+    icon: "facebook",
+    link: "https://www.facebook.com/dynamic.capital.fb",
+  },
+  {
+    name: "TradingView",
+    icon: "tradingview",
+    link: "https://www.tradingview.com/u/DynamicCapital-FX/",
   },
   {
     name: "Email",
     icon: "email",
     link: `mailto:${person.email}`,
+  },
+  {
+    name: "Phone",
+    icon: "phone",
+    link: "tel:+9609990615",
+  },
+  {
+    name: "Location",
+    icon: "location",
+    link: "https://maps.google.com/?q=Mal%C3%A9,+Maldives",
   },
 ];
 

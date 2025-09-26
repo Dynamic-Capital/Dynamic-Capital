@@ -46,7 +46,7 @@ export function FAQSection() {
   const handleContactSupport = () => {
     const isInTelegram = typeof window !== 'undefined' && window.Telegram?.WebApp;
     if (isInTelegram) {
-      window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
+      window.open('https://t.me/DynamicCapital_Support', '_blank');
     } else {
       window.open('https://t.me/DynamicCapital_Support', '_blank');
     }

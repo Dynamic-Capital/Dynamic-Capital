@@ -50,7 +50,7 @@ export function AboutShowcase() {
               </Tag>
             ))}
             <Tag size="m" prefixIcon="location">
-              {person.location}
+              {person.locationLabel ?? person.location}
             </Tag>
           </Row>
         </Column>

@@ -45,7 +45,7 @@ const IntegrationSection = (
           description:
             "Access premium signals and commands through our official bot",
           icon: Bot,
-          link: "@Dynamic_VIP_BOT",
+          link: "@DynamicCapital_Support",
           color: "from-[hsl(var(--telegram))] to-[hsl(var(--telegram-dark))]",
           action: onOpenTelegram,
           primary: true,
@@ -69,7 +69,7 @@ const IntegrationSection = (
           primary: false,
         },
       ],
-      botTitle: "@Dynamic_VIP_BOT",
+      botTitle: "@DynamicCapital_Support",
       botDescription:
         "Your personal trading assistant with instant access to premium signals, market analysis, and VIP community features. Start receiving professional trading alerts directly in Telegram.",
       botPrimaryButton: "Open Telegram Bot",
@@ -339,7 +339,10 @@ const IntegrationSection = (
                     variant="outline"
                     className="w-full sm:w-auto border-telegram text-telegram hover:bg-telegram/10"
                     onClick={() =>
-                      window.open("https://t.me/Dynamic_VIP_BOT", "_blank")}
+                      window.open(
+                        "https://t.me/DynamicCapital_Support",
+                        "_blank",
+                      )}
                   >
                     {content.botSecondaryButton}
                     <ExternalLink className="w-4 h-4 ml-2" />

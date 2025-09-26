@@ -38,7 +38,7 @@ export function QuickActions() {
       description: "Priority assistance",
       icon: <Headphones className="h-5 w-5" />,
       action: () => {
-        window.open('https://t.me/Dynamic_VIP_BOT', '_blank');
+        window.open('https://t.me/DynamicCapital_Support', '_blank');
         toast.success('Opening VIP support...');
       },
       isExternal: true,

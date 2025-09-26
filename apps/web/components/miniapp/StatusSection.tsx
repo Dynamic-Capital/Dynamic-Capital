@@ -273,8 +273,8 @@ export default function StatusSection({ telegramData }: StatusSectionProps) {
             <ExternalLink className="h-4 w-4" />
             <AlertDescription className="text-blue-600">
               💡 For real-time subscription status and payments,{' '}
-              <a 
-                href="https://t.me/Dynamic_VIP_BOT" 
+              <a
+                href="https://t.me/DynamicCapital_Support"
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="underline hover:text-blue-800"
