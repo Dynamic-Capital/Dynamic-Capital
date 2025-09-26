@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useState } from "react";
 import {
   Card,
@@ -109,6 +111,10 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
   const isInTelegram = typeof window !== "undefined" && window.Telegram?.WebApp;
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -209,21 +215,31 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
   }, [telegramData?.user?.id, isInTelegram]);
 
   const formatDiscountText = useCallback(
-    (promo: Partial<ActivePromo & PromoValidationInfo>) => {
-      const discountType = promo.discount_type || promo.type;
-      const discountValue = typeof promo.discount_value === "number"
+    (promo: Partial<PromoValidationInfo> | ActivePromo) => {
+      const discountType = promo.discount_type ||
+        (promo as PromoValidationInfo).type;
+      const rawDiscountValue = typeof promo.discount_value === "number"
         ? promo.discount_value
-        : typeof promo.value === "number"
-        ? promo.value
+        : typeof (promo as PromoValidationInfo).value === "number"
+        ? (promo as PromoValidationInfo).value
         : undefined;
 
-      if (!discountType || typeof discountValue !== "number") {
+      if (!discountType || typeof rawDiscountValue !== "number") {
         return null;
       }
 
-      return discountType === "percentage"
-        ? `${discountValue}% OFF`
-        : `$${discountValue} OFF`;
+      const normalizedType =
+        discountType === "percentage" || discountType === "fixed"
+          ? discountType
+          : undefined;
+
+      if (!normalizedType) {
+        return null;
+      }
+
+      return normalizedType === "percentage"
+        ? `${rawDiscountValue}% OFF`
+        : `$${rawDiscountValue} OFF`;
     },
     [],
   );
