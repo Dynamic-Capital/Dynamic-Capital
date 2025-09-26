@@ -57,6 +57,7 @@ class BacktestAnalysis:
     """Container returned by :func:`analyze_backtest`."""
 
     summary: BacktestSummary
+    trades: List[CompletedTrade]
     best_trades: List[CompletedTrade]
     worst_trades: List[CompletedTrade]
     recommendations: List[OptimizationRecommendation]
@@ -283,6 +284,7 @@ def analyze_backtest(
 
     return BacktestAnalysis(
         summary=summary,
+        trades=list(result.trades),
         best_trades=best,
         worst_trades=worst,
         recommendations=_generate_recommendations(summary),

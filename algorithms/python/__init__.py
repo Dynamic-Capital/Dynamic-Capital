@@ -23,6 +23,8 @@ from .awesome_sync import (
     AwesomeAlgoSyncRequest,
     AwesomeLLMInsights,
 )
+from .backtest_analysis import BacktestAnalysis, BacktestSummary, analyze_backtest
+from .backtest_demo import run_mock_backtest
 from .back_to_breakeven import (
     AccountSnapshot,
     BackToBreakevenCalculator,
