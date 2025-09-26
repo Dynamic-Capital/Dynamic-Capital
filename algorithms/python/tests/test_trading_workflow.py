@@ -86,6 +86,71 @@ def test_lorentzian_knn_model_predicts_direction():
     assert signal.direction == 1
 
 
+def test_lorentzian_knn_model_serializes_weights():
+    timestamp = datetime.now(timezone.utc)
+    model = LorentzianKNNModel(neighbors=1, grok_weight=0.7, deepseek_weight=0.2)
+    model.add_sample(
+        LabeledFeature(features=(0.0, 0.0, 0.0, 0.0), label=1, close=1.0, timestamp=timestamp)
+    )
+    state = model.state_dict()
+    assert state["weights"]["grok"] == pytest.approx(0.7)
+    restored = LorentzianKNNModel.from_state(state)
+    assert restored.grok_weight == pytest.approx(0.7)
+    assert restored.deepseek_weight == pytest.approx(0.2)
+
+
+def test_lorentzian_knn_model_applies_advisor_feedback():
+    timestamp = datetime.now(timezone.utc)
+    model = LorentzianKNNModel(neighbors=1)
+    model.add_sample(
+        LabeledFeature(features=(0.0, 0.0, 0.0, 0.0), label=1, close=1.0, timestamp=timestamp)
+    )
+
+    snapshot = MarketSnapshot(
+        symbol="XAUUSD",
+        timestamp=timestamp,
+        close=1800.0,
+        rsi_fast=55.0,
+        adx_fast=22.0,
+        rsi_slow=50.0,
+        adx_slow=20.0,
+        pip_size=0.1,
+        pip_value=1.0,
+    )
+
+    class StubAdvisor:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def review(self, *, snapshot, signal, context, open_positions):
+            self.calls += 1
+            assert snapshot.symbol == "XAUUSD"
+            assert context["risk"] == "medium"
+            return AdvisorFeedback(
+                adjusted_signal=TradeSignal(
+                    direction=-signal.direction,
+                    confidence=0.5,
+                    votes=signal.votes,
+                    neighbors_considered=signal.neighbors_considered,
+                ),
+                metadata={"source": "dual_llm"},
+            )
+
+    advisor = StubAdvisor()
+    signal, feedbacks = model.evaluate_with_advisors(
+        (0.1, 0.1, 0.1, 0.1),
+        snapshot=snapshot,
+        context={"risk": "medium"},
+        open_positions=[],
+        advisors=[advisor],
+    )
+
+    assert advisor.calls == 1
+    assert signal is not None
+    assert signal.direction == -1
+    assert feedbacks and feedbacks[0].metadata["source"] == "dual_llm"
+
+
 def test_backtester_generates_performance_metrics(tmp_path: Path):
     snapshots = _build_snapshots()
     config = TradeConfig(neighbors=1, label_lookahead=2, min_confidence=0.0)

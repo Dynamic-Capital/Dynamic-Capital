@@ -23,7 +23,7 @@ import pickle
 import sys
 from copy import deepcopy
 from heapq import nsmallest
-from collections import deque
+from collections import OrderedDict, deque
 from dataclasses import asdict, dataclass, field, fields
 from datetime import UTC, date, datetime
 from types import ModuleType, SimpleNamespace
@@ -793,19 +793,70 @@ class LorentzianKNNModel:
         neighbors: int,
         max_samples: Optional[int] = None,
         distance_fn: Optional[Callable[[Sequence[float], Sequence[float]], float]] = None,
+        grok_weight: float = 0.6,
+        deepseek_weight: float = 0.4,
+        cache_size: int = 32,
     ) -> None:
         if neighbors <= 0:
             raise ValueError("neighbors must be positive")
+        if grok_weight < 0 or deepseek_weight < 0:
+            raise ValueError("advisor weights must be non-negative")
+        if cache_size < 0:
+            raise ValueError("cache_size cannot be negative")
         self.neighbors = neighbors
         self.max_samples = max_samples
         self.distance_fn = distance_fn or _resolve_distance_function()
+        self.grok_weight = float(grok_weight)
+        self.deepseek_weight = float(deepseek_weight)
+        self._weight_total = self.grok_weight + self.deepseek_weight
+        self._cache_capacity = int(cache_size)
         self._samples: deque[LabeledFeature] = deque()
+        self._distance_cache: OrderedDict[tuple[float, ...], tuple[int, tuple[tuple[float, int], ...]]] = (
+            OrderedDict()
+        )
+        self._cache_generation = 0
 
     def __len__(self) -> int:  # pragma: no cover - trivial
         return len(self._samples)
 
+    def _invalidate_cache(self) -> None:
+        self._cache_generation += 1
+        if self._cache_capacity == 0:
+            self._distance_cache.clear()
+
+    def _cache_key(self, features: Sequence[float]) -> tuple[float, ...]:
+        return tuple(float(value) for value in features)
+
+    def _store_cached_neighbors(
+        self, features: Sequence[float], winners: Sequence[tuple[float, int]]
+    ) -> None:
+        if self._cache_capacity <= 0:
+            return
+        key = self._cache_key(features)
+        payload = (self._cache_generation, tuple((float(d), int(label)) for d, label in winners))
+        self._distance_cache[key] = payload
+        self._distance_cache.move_to_end(key)
+        if len(self._distance_cache) > self._cache_capacity:
+            self._distance_cache.popitem(last=False)
+
+    def _get_cached_neighbors(self, features: Sequence[float]) -> Optional[list[tuple[float, int]]]:
+        if self._cache_capacity <= 0:
+            return None
+        key = self._cache_key(features)
+        cached = self._distance_cache.get(key)
+        if not cached:
+            return None
+        generation, winners = cached
+        if generation != self._cache_generation:
+            self._distance_cache.pop(key, None)
+            return None
+        self._distance_cache.move_to_end(key)
+        return [tuple(pair) for pair in winners]
+
     def reset(self) -> None:
         self._samples.clear()
+        self._distance_cache.clear()
+        self._cache_generation = 0
 
     def fit(self, samples: Iterable[LabeledFeature]) -> None:
         self.reset()
@@ -817,6 +868,7 @@ class LorentzianKNNModel:
         if self.max_samples is not None:
             while len(self._samples) > self.max_samples:
                 self._samples.popleft()
+        self._invalidate_cache()
 
     def iter_samples(self) -> Iterator[LabeledFeature]:
         yield from self._samples
@@ -826,12 +878,17 @@ class LorentzianKNNModel:
         if len(labelled_rows) < self.neighbors:
             return None
 
-        distances: list[tuple[float, int]] = []
-        for row in labelled_rows:
-            distance = self.distance_fn(row.features, features)
-            distances.append((distance, int(row.label)))
+        cached = self._get_cached_neighbors(features)
+        if cached is None:
+            distances_iter = (
+                (self.distance_fn(row.features, features), int(row.label))
+                for row in labelled_rows
+            )
+            winners = nsmallest(self.neighbors, distances_iter, key=lambda item: item[0])
+            self._store_cached_neighbors(features, winners)
+        else:
+            winners = cached
 
-        winners = nsmallest(self.neighbors, distances, key=lambda item: item[0])
         limit = len(winners)
         if limit == 0:
             return None
@@ -849,7 +906,23 @@ class LorentzianKNNModel:
                 neighbors_considered=limit,
             )
 
-        confidence = abs(vote) / limit if limit else 0.0
+        distance_weights = [1.0 / (1.0 + distance) for distance, _ in winners]
+        distance_sum = sum(distance_weights)
+        weighted_vote = sum(label * weight for weight, (_, label) in zip(distance_weights, winners))
+        grok_component = abs(vote) / limit if limit else 0.0
+        if distance_sum > 0:
+            consensus_component = abs(weighted_vote) / distance_sum
+        else:  # pragma: no cover - defensive guard
+            consensus_component = grok_component
+        average_distance = sum(distance for distance, _ in winners) / limit
+        deepseek_component = 1.0 / (1.0 + average_distance)
+        combined_weight = self._weight_total if self._weight_total > 0 else 1.0
+        confidence = (
+            self.grok_weight * max(grok_component, consensus_component)
+            + self.deepseek_weight * deepseek_component
+        ) / combined_weight
+        confidence = max(0.0, min(1.0, confidence))
+
         return TradeSignal(
             direction=direction,
             confidence=confidence,
@@ -857,10 +930,49 @@ class LorentzianKNNModel:
             neighbors_considered=limit,
         )
 
+    def evaluate_with_advisors(
+        self,
+        features: Sequence[float],
+        *,
+        snapshot: "MarketSnapshot",
+        context: Optional[Dict[str, Any]] = None,
+        open_positions: Optional[Sequence["ActivePosition"]] = None,
+        advisors: Optional[Sequence["TradeAdvisor"]] = None,
+    ) -> tuple[Optional[TradeSignal], list["AdvisorFeedback"]]:
+        """Predict and optionally refine the signal with Grok-1/DeepSeek advisors."""
+
+        signal = self.predict(features)
+        if signal is None or not advisors:
+            return signal, []
+
+        context_payload: Dict[str, Any] = dict(context or {})
+        positions = tuple(open_positions or ())
+        feedbacks: list["AdvisorFeedback"] = []
+        working_signal = signal
+
+        for advisor in advisors:
+            feedback = advisor.review(
+                snapshot=snapshot,
+                signal=working_signal,
+                context=context_payload,
+                open_positions=positions,
+            )
+            if feedback is None:
+                continue
+            feedbacks.append(feedback)
+            if feedback.adjusted_signal is not None:
+                working_signal = feedback.adjusted_signal
+
+        return working_signal, feedbacks
+
     def state_dict(self) -> Dict[str, Any]:
         return {
             "neighbors": self.neighbors,
             "max_samples": self.max_samples,
+            "weights": {
+                "grok": self.grok_weight,
+                "deepseek": self.deepseek_weight,
+            },
             "samples": [
                 {
                     "features": list(sample.features),
@@ -877,7 +989,15 @@ class LorentzianKNNModel:
     def from_state(cls, state: Dict[str, Any]) -> "LorentzianKNNModel":
         neighbors = int(state.get("neighbors", 0))
         max_samples = state.get("max_samples")
-        model = cls(neighbors=neighbors, max_samples=max_samples)
+        weights = state.get("weights", {})
+        grok_weight = float(weights.get("grok", 0.6))
+        deepseek_weight = float(weights.get("deepseek", 0.4))
+        model = cls(
+            neighbors=neighbors,
+            max_samples=max_samples,
+            grok_weight=grok_weight,
+            deepseek_weight=deepseek_weight,
+        )
         samples = state.get("samples", [])
         for payload in samples:
             timestamp = datetime.fromisoformat(payload["timestamp"])
