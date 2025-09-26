@@ -815,6 +815,7 @@ class LorentzianKNNModel:
             OrderedDict()
         )
         self._cache_generation = 0
+        self._labelled_count = 0
 
     def __len__(self) -> int:  # pragma: no cover - trivial
         return len(self._samples)
@@ -857,6 +858,7 @@ class LorentzianKNNModel:
         self._samples.clear()
         self._distance_cache.clear()
         self._cache_generation = 0
+        self._labelled_count = 0
 
     def fit(self, samples: Iterable[LabeledFeature]) -> None:
         self.reset()
@@ -864,25 +866,29 @@ class LorentzianKNNModel:
             self.add_sample(sample)
 
     def add_sample(self, sample: LabeledFeature) -> None:
+        if sample.label is not None:
+            self._labelled_count += 1
         self._samples.append(sample)
         if self.max_samples is not None:
             while len(self._samples) > self.max_samples:
-                self._samples.popleft()
+                removed = self._samples.popleft()
+                if removed.label is not None:
+                    self._labelled_count -= 1
         self._invalidate_cache()
 
     def iter_samples(self) -> Iterator[LabeledFeature]:
         yield from self._samples
 
     def predict(self, features: Sequence[float]) -> Optional[TradeSignal]:
-        labelled_rows = [row for row in self._samples if row.label is not None]
-        if len(labelled_rows) < self.neighbors:
+        if self._labelled_count < self.neighbors:
             return None
 
         cached = self._get_cached_neighbors(features)
         if cached is None:
             distances_iter = (
-                (self.distance_fn(row.features, features), int(row.label))
-                for row in labelled_rows
+                (self.distance_fn(row.features, features), int(label))
+                for row in self._samples
+                if (label := row.label) is not None
             )
             winners = nsmallest(self.neighbors, distances_iter, key=lambda item: item[0])
             self._store_cached_neighbors(features, winners)

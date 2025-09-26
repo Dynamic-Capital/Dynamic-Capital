@@ -86,6 +86,41 @@ def test_lorentzian_knn_model_predicts_direction():
     assert signal.direction == 1
 
 
+def test_lorentzian_knn_model_skips_unlabelled_samples():
+    timestamp = datetime.now(timezone.utc)
+    model = LorentzianKNNModel(neighbors=2)
+    model.add_sample(
+        LabeledFeature(features=(0.0, 0.0, 0.0, 0.0), label=1, close=1.0, timestamp=timestamp)
+    )
+    model.add_sample(
+        LabeledFeature(features=(10.0, 10.0, 10.0, 10.0), label=None, close=1.0, timestamp=timestamp)
+    )
+    assert model.predict((0.1, 0.1, 0.1, 0.1)) is None
+
+
+def test_lorentzian_knn_model_prediction_consistency_with_unlabelled_entries():
+    timestamp = datetime.now(timezone.utc)
+    model = LorentzianKNNModel(neighbors=1)
+    labeled = LabeledFeature(
+        features=(0.0, 0.0, 0.0, 0.0),
+        label=1,
+        close=1.0,
+        timestamp=timestamp,
+    )
+    model.add_sample(labeled)
+    model.add_sample(
+        LabeledFeature(features=(10.0, 10.0, 10.0, 10.0), label=None, close=1.0, timestamp=timestamp)
+    )
+    first_signal = model.predict((0.1, 0.1, 0.1, 0.1))
+    assert first_signal is not None
+    assert first_signal.direction == 1
+
+    # Ensure cached predictions remain the same when requesting again.
+    cached_signal = model.predict((0.1, 0.1, 0.1, 0.1))
+    assert cached_signal is not None
+    assert cached_signal.direction == first_signal.direction
+
+
 def test_lorentzian_knn_model_serializes_weights():
     timestamp = datetime.now(timezone.utc)
     model = LorentzianKNNModel(neighbors=1, grok_weight=0.7, deepseek_weight=0.2)
