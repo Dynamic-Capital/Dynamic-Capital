@@ -35,3 +35,26 @@ remain in the top-level `supabase/` directory.
 To enable Grok feedback in a live service, instantiate a completion client
 (e.g. wrapping the local `grok-1` `InferenceRunner`) and pass a configured
 `GrokAdvisor` instance into `RealtimeExecutor`.
+
+## Trading psychology scoring inputs
+
+`python/trading_psychology.py` ingests structured observations describing the
+desk's operating rhythm. Each `PsychologyObservation` should include:
+
+- `timestamp` – timezone-aware datetime indicating when the reflection was
+  captured.
+- `plan_adherence` – 0.0–1.0 score covering pre-session planning follow-through.
+- `risk_compliance` – 0.0–1.0 ratio of trades that respected risk parameters.
+- `recovery_rate` – 0.0–1.0 measure of how quickly the trader rebounded from a
+  setback.
+- `emotional_stability` – 0.0–1.0 pulse on emotional regulation during the
+  session.
+- `focus_quality` – 0.0–1.0 assessment of concentration on planned setups.
+- `distraction_events` – integer count of meaningful distractions recorded for
+  the session (used as a penalty against focus).
+- `routine_adherence` – 0.0–1.0 signal for journaling, warm-ups, and recovery
+  routines completed.
+
+The ingestion pipeline should publish the most recent observations (typically
+the last 10–14 sessions) so the model can apply recency-weighted scoring before
+syncing composite readiness into Supabase.

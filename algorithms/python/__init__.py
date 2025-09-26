@@ -14,6 +14,13 @@ from .economic_catalysts import (
     EconomicCatalystGenerator,
     EconomicCatalystSyncJob,
 )
+from .trading_psychology import (
+    PsychologyObservation,
+    PsychologyScore,
+    TradingPsychologyInsights,
+    TradingPsychologyModel,
+)
+from .jobs.trading_psychology_job import TradingPsychologySyncJob
 
 _trade_exports = list(getattr(_trade_logic, "__all__", []))  # type: ignore[attr-defined]
 
@@ -28,6 +35,11 @@ __all__ = _trade_exports + [
     "EconomicCatalyst",
     "EconomicCatalystGenerator",
     "EconomicCatalystSyncJob",
+    "PsychologyObservation",
+    "PsychologyScore",
+    "TradingPsychologyModel",
+    "TradingPsychologyInsights",
+    "TradingPsychologySyncJob",
 ]
 
 globals().update({name: getattr(_trade_logic, name) for name in _trade_exports})
@@ -43,5 +55,10 @@ globals().update(
         "EconomicCatalyst": EconomicCatalyst,
         "EconomicCatalystGenerator": EconomicCatalystGenerator,
         "EconomicCatalystSyncJob": EconomicCatalystSyncJob,
+        "PsychologyObservation": PsychologyObservation,
+        "PsychologyScore": PsychologyScore,
+        "TradingPsychologyModel": TradingPsychologyModel,
+        "TradingPsychologyInsights": TradingPsychologyInsights,
+        "TradingPsychologySyncJob": TradingPsychologySyncJob,
     }
 )
