@@ -5,11 +5,18 @@ import {
   TonConnectUIProvider,
   useTonConnectUI,
 } from "@tonconnect/ui-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import type {
+  LiveIntelSnapshot,
+  LiveMetric,
+  LiveTimelineEntry,
+} from "../data/live-intel";
+import { DEFAULT_REFRESH_SECONDS } from "../data/live-intel";
 
 type Plan = "vip_bronze" | "vip_silver" | "vip_gold" | "mentorship";
 
-type SectionId = "overview" | "plans" | "activity" | "support";
+type SectionId = "overview" | "plans" | "intel" | "activity" | "support";
 
 type TelegramUser = {
   id?: number;
@@ -30,12 +37,7 @@ type PlanOption = {
   highlights: string[];
 };
 
-type ActivityItem = {
-  title: string;
-  status: "complete" | "pending" | "upcoming";
-  timestamp: string;
-  description: string;
-};
+type ActivityItem = LiveTimelineEntry;
 
 type SupportOption = {
   title: string;
@@ -49,10 +51,165 @@ type NavItem = {
   icon: (props: { active: boolean }) => JSX.Element;
 };
 
+type LiveIntelState = {
+  status: "loading" | "ready" | "error";
+  report?: LiveIntelSnapshot;
+  updatedAt?: string;
+  nextRefreshSeconds?: number;
+  isSyncing: boolean;
+  error?: string;
+};
+
 declare global {
   interface Window {
     Telegram?: { WebApp?: TelegramWebApp };
   }
+}
+
+function formatRelativeTime(iso?: string): string {
+  if (!iso) {
+    return "just now";
+  }
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return "just now";
+  }
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  if (diffMs <= 0) {
+    return "just now";
+  }
+  const diffSeconds = Math.floor(diffMs / 1000);
+  if (diffSeconds < 60) {
+    return `${diffSeconds}s ago`;
+  }
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  if (diffMinutes < 60) {
+    return `${diffMinutes}m ago`;
+  }
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) {
+    return `${diffHours}h ago`;
+  }
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
+
+function formatConfidence(value?: number): string | null {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return null;
+  }
+  const bounded = Math.min(Math.max(value, 0), 1);
+  return `${Math.round(bounded * 100)}% confidence`;
+}
+
+function riskSeverity(score?: number): "low" | "medium" | "high" {
+  if (typeof score !== "number" || Number.isNaN(score)) {
+    return "low";
+  }
+  if (score < 0.34) {
+    return "low";
+  }
+  if (score < 0.67) {
+    return "medium";
+  }
+  return "high";
+}
+
+const FALLBACK_METRICS: LiveMetric[] = [
+  {
+    label: "Projected desk yield",
+    value: "18–24% APY",
+    change: "Desk baseline",
+    trend: "steady",
+  },
+  {
+    label: "Live trading pairs",
+    value: "12 curated",
+    change: "Auto-managed",
+    trend: "steady",
+  },
+  {
+    label: "Withdrawal buffer",
+    value: "4 hour SLA",
+    change: "Standard",
+    trend: "steady",
+  },
+];
+
+type LiveIntelResponse = {
+  generatedAt: string;
+  nextUpdateInSeconds?: number;
+  report: LiveIntelSnapshot;
+};
+
+function useLiveIntel(
+  pollMs: number = DEFAULT_REFRESH_SECONDS * 1000,
+): LiveIntelState & { refresh: () => void } {
+  const [state, setState] = useState<LiveIntelState>({
+    status: "loading",
+    isSyncing: true,
+  });
+  const isUnmounted = useRef(false);
+
+  const fetchIntel = useCallback(async () => {
+    setState((previous) => ({
+      ...previous,
+      status: previous.report ? previous.status : "loading",
+      isSyncing: true,
+      error: previous.report ? previous.error : undefined,
+    }));
+
+    try {
+      const response = await fetch("/api/live-intel", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      const payload: LiveIntelResponse = await response.json();
+      if (isUnmounted.current) {
+        return;
+      }
+      setState({
+        status: "ready",
+        report: payload.report,
+        updatedAt: payload.generatedAt,
+        nextRefreshSeconds:
+          payload.nextUpdateInSeconds ?? Math.floor(pollMs / 1000),
+        isSyncing: false,
+        error: undefined,
+      });
+    } catch (error) {
+      if (isUnmounted.current) {
+        return;
+      }
+      const message =
+        error instanceof Error ? error.message : "Unknown sync error";
+      setState((previous) => ({
+        ...previous,
+        status: previous.report ? "ready" : "error",
+        isSyncing: false,
+        error: message,
+      }));
+    }
+  }, [pollMs]);
+
+  useEffect(() => {
+    isUnmounted.current = false;
+    void fetchIntel();
+    const intervalId = setInterval(() => {
+      void fetchIntel();
+    }, pollMs);
+
+    return () => {
+      isUnmounted.current = true;
+      clearInterval(intervalId);
+    };
+  }, [fetchIntel, pollMs]);
+
+  return {
+    ...state,
+    refresh: fetchIntel,
+  };
 }
 
 const PLAN_OPTIONS: PlanOption[] = [
@@ -201,6 +358,8 @@ function HomeInner() {
   const [isLinking, setIsLinking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const telegramId = useTelegramId();
+  const liveIntel = useLiveIntel();
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   const selectedPlan = useMemo(
     () => PLAN_OPTIONS.find((option) => option.id === plan),
@@ -208,6 +367,9 @@ function HomeInner() {
   );
   const wallet = tonConnectUI?.account;
   const walletAddress = wallet?.address;
+
+  const metrics = liveIntel.report?.metrics ?? FALLBACK_METRICS;
+  const timeline = liveIntel.report?.timeline ?? ACTIVITY_FEED;
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -227,6 +389,7 @@ function HomeInner() {
     const sectionIds: SectionId[] = [
       "overview",
       "plans",
+      "intel",
       "activity",
       "support",
     ];
@@ -239,6 +402,30 @@ function HomeInner() {
 
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (liveIntel.nextRefreshSeconds == null) {
+      setCountdown(null);
+      return;
+    }
+    setCountdown(liveIntel.nextRefreshSeconds);
+    const intervalId = setInterval(() => {
+      setCountdown((previous) => {
+        if (previous === null) {
+          return previous;
+        }
+        if (previous <= 1) {
+          return 0;
+        }
+        return previous - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [liveIntel.updatedAt, liveIntel.nextRefreshSeconds]);
 
   async function linkWallet() {
     if (!tonConnectUI) {
@@ -343,6 +530,33 @@ function HomeInner() {
     <div className="app-shell">
       <main className="app-container">
         <section className="hero-card" id="overview">
+          <div className="sync-banner">
+            <span
+              className={`sync-indicator${
+                liveIntel.isSyncing ? " sync-indicator--pulse" : ""
+              }`}
+              aria-hidden
+            />
+            <span className="sync-text">
+              Auto-syncing Grok-1 + DeepSeek-V2 feed
+            </span>
+            {countdown !== null && (
+              <span className="sync-countdown" aria-live="polite">
+                {liveIntel.isSyncing
+                  ? "Updating…"
+                  : `Next sync in ${countdown}s`}
+              </span>
+            )}
+            <button
+              type="button"
+              className="button button-ghost sync-refresh"
+              onClick={() => liveIntel.refresh()}
+              disabled={liveIntel.isSyncing}
+            >
+              Refresh
+            </button>
+          </div>
+
           <div className="hero-header">
             <div>
               <p className="eyebrow">Dynamic Capital Desk</p>
@@ -355,18 +569,28 @@ function HomeInner() {
               </p>
             </div>
             <div className="hero-metrics">
-              <div className="metric">
-                <span className="metric-label">Projected desk yield</span>
-                <span className="metric-value">18–24% APY</span>
-              </div>
-              <div className="metric">
-                <span className="metric-label">Live trading pairs</span>
-                <span className="metric-value">12 curated</span>
-              </div>
-              <div className="metric">
-                <span className="metric-label">Withdrawal buffer</span>
-                <span className="metric-value">4 hour SLA</span>
-              </div>
+              {metrics.map((metric) => (
+                <div className="metric" key={metric.label}>
+                  <span className="metric-label">{metric.label}</span>
+                  <span className="metric-value">
+                    {metric.value}
+                    {metric.change && (
+                      <span
+                        className={`metric-change metric-change--${
+                          metric.trend ?? "steady"
+                        }`}
+                      >
+                        {metric.trend === "down"
+                          ? "▼"
+                          : metric.trend === "up"
+                          ? "▲"
+                          : "•"}{" "}
+                        {metric.change}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -391,6 +615,14 @@ function HomeInner() {
             <div>
               <p className="status-label">Telegram ID</p>
               <p className="status-value">{telegramId}</p>
+            </div>
+            <div>
+              <p className="status-label">Live feed</p>
+              <p className="status-value">
+                {liveIntel.isSyncing
+                  ? "Syncing…"
+                  : formatRelativeTime(liveIntel.updatedAt)}
+              </p>
             </div>
             {selectedPlan && (
               <div>
@@ -454,12 +686,22 @@ function HomeInner() {
           </div>
         </section>
 
+        <LiveIntelligenceSection
+          intel={liveIntel.report}
+          status={liveIntel.status}
+          isSyncing={liveIntel.isSyncing}
+          updatedAt={liveIntel.updatedAt}
+          countdown={countdown}
+          error={liveIntel.error}
+          onRefresh={liveIntel.refresh}
+        />
+
         <section className="section-card" id="activity">
           <h2 className="section-title">Desk timeline</h2>
           <ul className="activity-list">
-            {ACTIVITY_FEED.map((item) => (
+            {timeline.map((item) => (
               <li
-                key={item.title}
+                key={`${item.title}-${item.timestamp}`}
                 className={`activity-item activity-item--${item.status}`}
               >
                 <div className="activity-marker" aria-hidden />
@@ -538,6 +780,224 @@ function HomeInner() {
   );
 }
 
+function LiveIntelligenceSection({
+  intel,
+  status,
+  isSyncing,
+  updatedAt,
+  countdown,
+  error,
+  onRefresh,
+}: {
+  intel?: LiveIntelSnapshot;
+  status: LiveIntelState["status"];
+  isSyncing: boolean;
+  updatedAt?: string;
+  countdown: number | null;
+  error?: string;
+  onRefresh: () => void;
+}) {
+  const confidenceLabel = formatConfidence(intel?.confidence);
+  const alerts = intel?.alerts ?? [];
+  const opportunities = intel?.opportunities ?? [];
+  const risks = intel?.risks ?? [];
+  const hasIntel = Boolean(intel);
+
+  return (
+    <section className="section-card" id="intel">
+      <div className="section-header">
+        <div>
+          <h2 className="section-title">Live desk intelligence</h2>
+          <p className="section-description">
+            Grok-1 strategy briefs are auto-synced with DeepSeek-V2 risk
+            arbitration so every decision stays in lockstep with the desk.
+          </p>
+        </div>
+        <div className="selected-plan-pill">
+          {isSyncing
+            ? "Syncing…"
+            : countdown !== null
+            ? `Next sync in ${countdown}s`
+            : updatedAt
+            ? `Updated ${formatRelativeTime(updatedAt)}`
+            : "Awaiting sync"}
+        </div>
+      </div>
+
+      {error && status === "error" && (
+        <div className="status-banner status-banner--error">
+          Unable to reach the intelligence feed right now. We'll retry
+          automatically.
+          <button
+            type="button"
+            className="button button-ghost"
+            onClick={onRefresh}
+          >
+            Retry now
+          </button>
+        </div>
+      )}
+
+      <div className="intel-grid">
+        <div className="intel-card intel-card--primary">
+          <div className="intel-meta">
+            <span className="intel-updated">
+              {isSyncing
+                ? "Streaming Grok-1 update…"
+                : updatedAt
+                ? `Last sync ${formatRelativeTime(updatedAt)}`
+                : "Waiting for first sync"}
+            </span>
+            {confidenceLabel && (
+              <span className="confidence-chip">{confidenceLabel}</span>
+            )}
+          </div>
+          {hasIntel ? (
+            <>
+              <p className="intel-narrative">{intel?.narrative}</p>
+              {alerts.length > 0 ? (
+                <ul className="alert-list">
+                  {alerts.map((alert) => (
+                    <li key={alert} className="alert-pill">
+                      <span aria-hidden>⚠️</span>
+                      {alert}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="intel-muted">
+                  No blocking alerts flagged by DeepSeek-V2 sentinel.
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="skeleton-group">
+              <div className="skeleton skeleton--text skeleton--wide" />
+              <div className="skeleton skeleton--text skeleton--wide" />
+              <div className="skeleton skeleton--text skeleton--medium" />
+            </div>
+          )}
+        </div>
+
+        <div className="intel-card">
+          <h3>Opportunities</h3>
+          {hasIntel ? (
+            <ul className="intel-list">
+              {opportunities.map((item) => (
+                <li key={item}>
+                  <span
+                    className="intel-bullet intel-bullet--opportunity"
+                    aria-hidden
+                  />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <IntelListSkeleton />
+          )}
+        </div>
+
+        <div className="intel-card">
+          <h3>Risks</h3>
+          {hasIntel ? (
+            <ul className="intel-list">
+              {risks.map((item) => (
+                <li key={item}>
+                  <span className="intel-bullet intel-bullet--risk" aria-hidden />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <IntelListSkeleton />
+          )}
+        </div>
+      </div>
+
+      {intel ? (
+        <ModelBreakdown intel={intel} />
+      ) : (
+        <div className="model-grid">
+          <div className="model-card">
+            <div className="skeleton skeleton--text skeleton--medium" />
+            <div className="skeleton skeleton--block" />
+            <div className="skeleton skeleton--text skeleton--medium" />
+          </div>
+          <div className="model-card">
+            <div className="skeleton skeleton--text skeleton--medium" />
+            <div className="skeleton skeleton--block" />
+            <div className="skeleton skeleton--text skeleton--medium" />
+          </div>
+        </div>
+      )}
+
+      {error && status !== "error" && (
+        <div className="status-banner status-banner--error">
+          Brief network hiccup detected. Showing the last Grok-1 + DeepSeek-V2
+          sync while we refresh in the background.
+        </div>
+      )}
+    </section>
+  );
+}
+
+function IntelListSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="skeleton-group">
+      {Array.from({ length: count }).map((_, index) => (
+        <div
+          key={`intel-skeleton-${index}`}
+          className="skeleton skeleton--text skeleton--wide"
+        />
+      ))}
+    </div>
+  );
+}
+
+function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
+  const grok = intel.models.grok;
+  const deepseek = intel.models.deepseek;
+  const riskScore =
+    typeof deepseek.riskScore === "number"
+      ? Math.min(Math.max(deepseek.riskScore, 0), 1)
+      : null;
+  const riskLevel = riskSeverity(riskScore ?? undefined);
+  const riskLabel =
+    riskScore === null ? "Risk scan" : `${Math.round(riskScore * 100)}% risk`;
+
+  return (
+    <div className="model-grid">
+      <div className="model-card">
+        <div className="model-header">
+          <span className="model-name">Grok-1 strategist</span>
+          <span className="model-tag">{grok.focus}</span>
+        </div>
+        <p className="model-summary">{grok.summary}</p>
+        <ul className="model-highlights">
+          {grok.highlights.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+      <div className="model-card">
+        <div className="model-header">
+          <span className="model-name">DeepSeek-V2 sentinel</span>
+          <span className={`model-risk model-risk--${riskLevel}`}>
+            {riskLabel}
+          </span>
+        </div>
+        <p className="model-summary">{deepseek.summary}</p>
+        <ul className="model-highlights">
+          {deepseek.highlights.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 function HomeIcon({ active }: { active: boolean }) {
   return (
     <svg
@@ -575,6 +1035,44 @@ function SparkIcon({ active }: { active: boolean }) {
         stroke="currentColor"
         strokeWidth="1.5"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function RadarIcon({ active }: { active: boolean }) {
+  return (
+    <svg
+      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
+        active ? "text-sky-100" : "text-slate-400"
+      }`}
+      viewBox="0 0 24 24"
+      role="presentation"
+      aria-hidden
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        opacity={active ? 1 : 0.8}
+      />
+      <path
+        d="M12 4v4m0 4 4 4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="2.2"
+        fill={active ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.2"
       />
     </svg>
   );
@@ -643,7 +1141,8 @@ function LifebuoyIcon({ active }: { active: boolean }) {
 const NAV_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview", icon: HomeIcon },
   { id: "plans", label: "Plans", icon: SparkIcon },
-  { id: "activity", label: "Activity", icon: ActivityIcon },
+  { id: "intel", label: "Live intel", icon: RadarIcon },
+  { id: "activity", label: "Timeline", icon: ActivityIcon },
   { id: "support", label: "Support", icon: LifebuoyIcon },
 ];
 
