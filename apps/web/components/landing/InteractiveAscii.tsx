@@ -30,6 +30,35 @@ const DEFAULT_FONT: CSSProperties = {
   lineHeight: "1em",
 };
 
+const fontAspectRatioCache = new Map<string, number>();
+
+function normalizeFontProperties(font: CSSProperties | undefined) {
+  const appliedFont: CSSProperties = { ...DEFAULT_FONT, ...font };
+
+  const fontFamily = appliedFont.fontFamily ?? "monospace";
+  const fontWeight = String(appliedFont.fontWeight ?? 400);
+  const fontSize =
+    typeof appliedFont.fontSize === "number"
+      ? `${appliedFont.fontSize}px`
+      : appliedFont.fontSize ?? "12px";
+  const lineHeight =
+    typeof appliedFont.lineHeight === "number"
+      ? `${appliedFont.lineHeight}px`
+      : (appliedFont.lineHeight as string | undefined) ?? "1em";
+  const letterSpacing =
+    typeof appliedFont.letterSpacing === "number"
+      ? `${appliedFont.letterSpacing}px`
+      : (appliedFont.letterSpacing as string | undefined) ?? "0em";
+
+  return {
+    fontFamily,
+    fontWeight,
+    fontSize,
+    lineHeight,
+    letterSpacing,
+  } as const;
+}
+
 type CharacterSetKey = keyof typeof characterSets | "custom";
 
 type DitheringMode = "none" | "floyd" | "atkinson" | "noise" | "ordered";
@@ -122,35 +151,34 @@ const mapRange = (
 };
 
 function measureFontAspectRatio(font: CSSProperties | undefined) {
+  const normalized = normalizeFontProperties(font);
+  const cacheKey = JSON.stringify(normalized);
+  const cachedRatio = fontAspectRatioCache.get(cacheKey);
+  if (cachedRatio !== undefined) {
+    return cachedRatio;
+  }
+
   if (typeof window === "undefined" || typeof document === "undefined") {
     return 1;
   }
 
-  const appliedFont: CSSProperties = { ...DEFAULT_FONT, ...font };
   const temp = document.createElement("div");
   temp.style.position = "absolute";
   temp.style.visibility = "hidden";
   temp.style.whiteSpace = "nowrap";
-  temp.style.fontFamily = appliedFont.fontFamily ?? "monospace";
-  temp.style.fontWeight = String(appliedFont.fontWeight ?? 400);
-  temp.style.fontSize =
-    typeof appliedFont.fontSize === "number"
-      ? `${appliedFont.fontSize}px`
-      : appliedFont.fontSize ?? "12px";
-  temp.style.lineHeight =
-    typeof appliedFont.lineHeight === "number"
-      ? `${appliedFont.lineHeight}px`
-      : (appliedFont.lineHeight as string | undefined) ?? "1em";
-  temp.style.letterSpacing =
-    typeof appliedFont.letterSpacing === "number"
-      ? `${appliedFont.letterSpacing}px`
-      : (appliedFont.letterSpacing as string | undefined) ?? "0em";
+  temp.style.fontFamily = normalized.fontFamily;
+  temp.style.fontWeight = normalized.fontWeight;
+  temp.style.fontSize = normalized.fontSize;
+  temp.style.lineHeight = normalized.lineHeight;
+  temp.style.letterSpacing = normalized.letterSpacing;
   temp.textContent = "W";
   document.body.appendChild(temp);
   const width = temp.offsetWidth || 1;
   const height = temp.offsetHeight || 1;
   document.body.removeChild(temp);
-  return width / height;
+  const ratio = width / height;
+  fontAspectRatioCache.set(cacheKey, ratio);
+  return ratio;
 }
 
 function parseColor(color: string | undefined): RGBA {
