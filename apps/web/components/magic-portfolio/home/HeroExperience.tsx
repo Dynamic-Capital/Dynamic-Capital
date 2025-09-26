@@ -28,6 +28,7 @@ import {
 } from "@/components/dynamic-ui-system";
 import { home } from "@/resources";
 import { cn } from "@/utils";
+import { useHeroMetrics } from "@/hooks/useHeroMetrics";
 import styles from "./HeroExperience.module.scss";
 
 const ONBOARDING_STEPS = [
@@ -97,24 +98,6 @@ const PREVIEW_CARDS = [
 
 type PreviewCard = (typeof PREVIEW_CARDS)[number];
 
-const SOCIAL_PROOF = [
-  {
-    icon: "users",
-    value: "9,200+",
-    label: "traders onboarded to the desk",
-  },
-  {
-    icon: "timer",
-    value: "12 days",
-    label: "median time to unlock live signals",
-  },
-  {
-    icon: "sparkles",
-    value: "4.9/5",
-    label: "mentor satisfaction score",
-  },
-] as const;
-
 export function HeroExperience() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const previewSurfaceRef = useRef<HTMLDivElement | null>(null);
@@ -139,6 +122,7 @@ export function HeroExperience() {
     damping: 22,
     mass: 0.5,
   });
+  const { heroMetrics } = useHeroMetrics();
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -551,7 +535,7 @@ export function HeroExperience() {
             horizontal="center"
             className={styles.socialProof}
           >
-            {SOCIAL_PROOF.map((stat) => (
+            {heroMetrics.map((stat) => (
               <Column
                 key={stat.label}
                 gap="8"
@@ -565,7 +549,12 @@ export function HeroExperience() {
                 <Row gap="12" vertical="center">
                   <Icon name={stat.icon} onBackground="brand-medium" />
                   <Column gap="4">
-                    <Text variant="heading-strong-m">{stat.value}</Text>
+                    <Text
+                      variant="heading-strong-m"
+                      className={cn(stat.isFallback && "animate-pulse")}
+                    >
+                      {stat.value}
+                    </Text>
                     <Text variant="label-default-s" onBackground="neutral-weak">
                       {stat.label}
                     </Text>

@@ -1657,6 +1657,44 @@ export type Database = {
         };
         Relationships: [];
       };
+      mentor_feedback: {
+        Row: {
+          id: string;
+          mentor_id: string | null;
+          mentee_telegram_id: string | null;
+          notes: string | null;
+          score: number;
+          source: string | null;
+          submitted_at: string;
+        };
+        Insert: {
+          id?: string;
+          mentor_id?: string | null;
+          mentee_telegram_id?: string | null;
+          notes?: string | null;
+          score: number;
+          source?: string | null;
+          submitted_at?: string;
+        };
+        Update: {
+          id?: string;
+          mentor_id?: string | null;
+          mentee_telegram_id?: string | null;
+          notes?: string | null;
+          score?: number;
+          source?: string | null;
+          submitted_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "mentor_feedback_mentor_id_fkey";
+            columns: ["mentor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       user_package_assignments: {
         Row: {
           assigned_at: string | null;

@@ -35,26 +35,9 @@ import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackage
 import { VipPlansPricingSection } from "@/components/magic-portfolio/home/VipPlansPricingSection";
 import { cn } from "@/utils";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
+import { useHeroMetrics } from "@/hooks/useHeroMetrics";
 import styles from "./DynamicCapitalLandingPage.module.scss";
 import { HOME_NAV_SECTION_IDS } from "@/components/landing/home-navigation-config";
-
-const QUICK_METRICS = [
-  {
-    icon: "timer" as const,
-    value: "12 days",
-    label: "median time to unlock live signals",
-  },
-  {
-    icon: "target" as const,
-    value: "91%",
-    label: "playbook adherence once automation is active",
-  },
-  {
-    icon: "sparkles" as const,
-    value: "4.9/5",
-    label: "mentor satisfaction from active members",
-  },
-];
 
 const EXPERIENCE_HIGHLIGHTS = [
   {
@@ -625,6 +608,8 @@ function ServicesOverviewSection() {
 }
 
 function ExperienceHighlightsSection() {
+  const { quickMetrics } = useHeroMetrics();
+
   return (
     <Column fillWidth gap="24" align="start">
       <Column gap="12" align="start">
@@ -645,7 +630,7 @@ function ExperienceHighlightsSection() {
         </Text>
       </Column>
       <div className={styles.statGrid}>
-        {QUICK_METRICS.map((metric) => (
+        {quickMetrics.map((metric) => (
           <Column
             key={metric.label}
             background="surface"
@@ -658,11 +643,26 @@ function ExperienceHighlightsSection() {
           >
             <Row gap="12" vertical="center">
               <Icon name={metric.icon} onBackground="brand-medium" />
-              <Heading variant="display-strong-xs">{metric.value}</Heading>
+              <Heading
+                variant="display-strong-xs"
+                className={cn(metric.isFallback && "animate-pulse")}
+              >
+                {metric.value}
+              </Heading>
             </Row>
             <Text variant="body-default-m" onBackground="neutral-weak">
               {metric.label}
             </Text>
+            {metric.helperText
+              ? (
+                <Text
+                  variant="label-default-s"
+                  onBackground="neutral-weak"
+                >
+                  {metric.helperText}
+                </Text>
+              )
+              : null}
           </Column>
         ))}
       </div>
