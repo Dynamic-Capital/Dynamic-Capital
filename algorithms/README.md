@@ -28,6 +28,9 @@ remain in the top-level `supabase/` directory.
 - `python/realtime.py` – wire Grok into `RealtimeExecutor` by supplying an
   advisor instance; decisions surface the returned rationale under the
   `context["advisor"]` key for downstream audit trails.
+- `python/awesome_api.py` – converts AwesomeAPI FX/crypto data into
+  `MarketSnapshot` objects so the Python trading stack and live logic consume
+  the same market feed used by the product surfaces.
 
 To enable Grok feedback in a live service, instantiate a completion client
 (e.g. wrapping the local `grok-1` `InferenceRunner`) and pass a configured

@@ -13,6 +13,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import urlopen
 
+from .awesome_api import AwesomeAPIClient
 from .data_pipeline import InstrumentMeta, MarketDataIngestionJob, RawBar
 from .training_workflow import PreparedSnapshotDataset, prepare_market_snapshot_dataset
 
@@ -123,22 +124,32 @@ def collect_backtest_data(
     metadata_path: Optional[Path] = None,
     job: Optional[MarketDataIngestionJob] = None,
     bars: Optional[Sequence[RawBar]] = None,
+    source: str = "yahoo",
+    awesome_history: int = 256,
+    awesome_client: Optional[AwesomeAPIClient] = None,
 ) -> PreparedSnapshotDataset:
     """Download OHLC data and build a :class:`PreparedSnapshotDataset`."""
 
     if start >= end:
         raise ValueError("start must be earlier than end")
 
-    config = YahooDownloadConfig(
-        symbol=vendor_symbol or dataset_symbol,
-        start=start,
-        end=end,
-        interval=interval,
-    )
-
     series: Sequence[RawBar]
     if bars is None:
-        series = download_yahoo_bars(config)
+        if source == "awesomeapi":
+            if not vendor_symbol:
+                raise ValueError("vendor_symbol is required when source='awesomeapi'")
+            client = awesome_client or AwesomeAPIClient()
+            series = client.fetch_bars(vendor_symbol, limit=awesome_history)
+        elif source == "yahoo":
+            config = YahooDownloadConfig(
+                symbol=vendor_symbol or dataset_symbol,
+                start=start,
+                end=end,
+                interval=interval,
+            )
+            series = download_yahoo_bars(config)
+        else:
+            raise ValueError("source must be either 'yahoo' or 'awesomeapi'")
     else:
         series = list(bars)
         if not series:

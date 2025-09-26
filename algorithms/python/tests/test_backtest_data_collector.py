@@ -67,6 +67,67 @@ def test_collect_backtest_data(tmp_path: Path, sample_bars: list[RawBar]) -> Non
     assert result.metadata["symbol"] == instrument.symbol
 
 
+def test_collect_backtest_data_from_awesomeapi(
+    monkeypatch: pytest.MonkeyPatch, sample_bars: list[RawBar]
+) -> None:
+    instrument = InstrumentMeta(symbol="XAUUSD", pip_size=0.1, pip_value=1.0)
+    job = MarketDataIngestionJob(rsi_fast=3, rsi_slow=5, adx_fast=3, adx_slow=5)
+
+    class StubClient:
+        def fetch_bars(self, pair: str, *, limit: int) -> list[RawBar]:
+            assert pair == "XAU-USD"
+            assert limit == 128
+            return list(sample_bars)
+
+    from algorithms.python import backtest_data_collector as module
+
+    monkeypatch.setattr(module, "AwesomeAPIClient", lambda: StubClient())
+
+    result = collect_backtest_data(
+        dataset_symbol=instrument.symbol,
+        vendor_symbol="XAU-USD",
+        start=sample_bars[0].timestamp,
+        end=sample_bars[-1].timestamp,
+        interval="1h",
+        pip_size=instrument.pip_size,
+        pip_value=instrument.pip_value,
+        job=job,
+        source="awesomeapi",
+        awesome_history=128,
+    )
+
+    assert result.snapshots
+    assert result.metadata["symbol"] == instrument.symbol
+
+
+def test_collect_backtest_data_requires_vendor_symbol_for_awesomeapi(
+    monkeypatch: pytest.MonkeyPatch, sample_bars: list[RawBar]
+) -> None:
+    instrument = InstrumentMeta(symbol="XAUUSD", pip_size=0.1, pip_value=1.0)
+    job = MarketDataIngestionJob(rsi_fast=3, rsi_slow=5, adx_fast=3, adx_slow=5)
+
+    class StubClient:
+        def fetch_bars(self, pair: str, *, limit: int) -> list[RawBar]:  # pragma: no cover - defensive
+            return list(sample_bars)
+
+    from algorithms.python import backtest_data_collector as module
+
+    monkeypatch.setattr(module, "AwesomeAPIClient", lambda: StubClient())
+
+    with pytest.raises(ValueError):
+        collect_backtest_data(
+            dataset_symbol=instrument.symbol,
+            vendor_symbol=None,
+            start=sample_bars[0].timestamp,
+            end=sample_bars[-1].timestamp,
+            interval="1h",
+            pip_size=instrument.pip_size,
+            pip_value=instrument.pip_value,
+            job=job,
+            source="awesomeapi",
+        )
+
+
 def test_yahoo_download_config_validates_interval(sample_bars: list[RawBar]) -> None:
     start = sample_bars[0].timestamp
     end = sample_bars[-1].timestamp
