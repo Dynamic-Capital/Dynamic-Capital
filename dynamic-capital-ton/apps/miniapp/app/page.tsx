@@ -1,11 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import {
   TonConnectButton,
   TonConnectUIProvider,
   useTonConnectUI,
 } from "@tonconnect/ui-react";
 import { useEffect, useMemo, useState } from "react";
+
+import { EquityChart } from "../components/equity-chart";
+import { PositionsTable } from "../components/positions-table";
+import type {
+  ExnessAccountSummary,
+  ExnessEquityPoint,
+  ExnessPosition,
+} from "../lib/exness";
 
 type Plan = "vip_bronze" | "vip_silver" | "vip_gold" | "mentorship";
 
@@ -28,19 +37,6 @@ type PlanOption = {
   cadence: string;
   description: string;
   highlights: string[];
-};
-
-type ActivityItem = {
-  title: string;
-  status: "complete" | "pending" | "upcoming";
-  timestamp: string;
-  description: string;
-};
-
-type SupportOption = {
-  title: string;
-  description: string;
-  action: string;
 };
 
 type NavItem = {
@@ -128,51 +124,6 @@ const OVERVIEW_FEATURES = [
   },
 ];
 
-const ACTIVITY_FEED: ActivityItem[] = [
-  {
-    title: "Desk sync complete",
-    status: "complete",
-    timestamp: "12:04",
-    description:
-      "Wallet authorized with trading desk. Next rebalancing cycle triggers at 18:00 UTC.",
-  },
-  {
-    title: "Strategy review",
-    status: "pending",
-    timestamp: "Today",
-    description:
-      "Bronze plan summary ready. Confirm subscription to unlock full auto-invest routing.",
-  },
-  {
-    title: "Capital deployment window",
-    status: "upcoming",
-    timestamp: "Tomorrow",
-    description:
-      "Desk will open a short deployment window for high-volume TON liquidity pairs.",
-  },
-];
-
-const SUPPORT_OPTIONS: SupportOption[] = [
-  {
-    title: "Concierge chat",
-    description:
-      "Direct line to our desk managers for allocation or compliance questions.",
-    action: "Open Telegram thread",
-  },
-  {
-    title: "Trading playbook",
-    description:
-      "Step-by-step frameworks and risk tooling to mirror the Dynamic Capital approach.",
-    action: "View docs",
-  },
-  {
-    title: "Status center",
-    description:
-      "Check live uptime for deposits, OCR, and auto-invest execution engines.",
-    action: "Launch status page",
-  },
-];
-
 function useTelegramId(): string {
   if (typeof window === "undefined") {
     return "demo";
@@ -200,7 +151,29 @@ function HomeInner() {
   const [activeSection, setActiveSection] = useState<SectionId>("overview");
   const [isLinking, setIsLinking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [accountSummary, setAccountSummary] = useState<ExnessAccountSummary | null>(null);
+  const [equityHistory, setEquityHistory] = useState<ExnessEquityPoint[]>([]);
+  const [positions, setPositions] = useState<ExnessPosition[]>([]);
+  const [loadingState, setLoadingState] = useState({
+    summary: true,
+    equity: true,
+    positions: true,
+  });
+  const [sources, setSources] = useState<{
+    summary?: string;
+    equity?: string;
+    positions?: string;
+  }>({});
+  const [errors, setErrors] = useState<{
+    summary?: string;
+    equity?: string;
+    positions?: string;
+  }>({});
   const telegramId = useTelegramId();
+  const isAdmin = useMemo(
+    () => ADMIN_TELEGRAM_IDS.includes(telegramId),
+    [telegramId],
+  );
 
   const selectedPlan = useMemo(
     () => PLAN_OPTIONS.find((option) => option.id === plan),
@@ -238,6 +211,86 @@ function HomeInner() {
     });
 
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadExnessData() {
+      setLoadingState({ summary: true, equity: true, positions: true });
+      setErrors({});
+
+      try {
+        const [summaryResponse, positionsResponse, equityResponse] = await Promise.all([
+          fetch("/api/exness/summary"),
+          fetch("/api/exness/positions"),
+          fetch("/api/exness/equity"),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        const summaryPayload = await summaryResponse.json().catch(() => null);
+        const positionsPayload = await positionsResponse.json().catch(() => null);
+        const equityPayload = await equityResponse.json().catch(() => null);
+
+        if (summaryResponse.ok && summaryPayload?.data) {
+          setAccountSummary(summaryPayload.data as ExnessAccountSummary);
+          setSources((prev) => ({ ...prev, summary: summaryPayload.source }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            summary:
+              (summaryPayload?.error as string | undefined) ??
+              "Account summary is temporarily unavailable.",
+          }));
+        }
+
+        if (positionsResponse.ok && positionsPayload?.data) {
+          setPositions(positionsPayload.data as ExnessPosition[]);
+          setSources((prev) => ({ ...prev, positions: positionsPayload.source }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            positions:
+              (positionsPayload?.error as string | undefined) ??
+              "Positions failed to load.",
+          }));
+        }
+
+        if (equityResponse.ok && equityPayload?.data) {
+          setEquityHistory(equityPayload.data as ExnessEquityPoint[]);
+          setSources((prev) => ({ ...prev, equity: equityPayload.source }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            equity:
+              (equityPayload?.error as string | undefined) ??
+              "Equity history failed to load.",
+          }));
+        }
+      } catch (error) {
+        console.error("Unable to load Exness data", error);
+        if (!cancelled) {
+          setErrors({
+            summary: "Unable to reach the trading bridge.",
+            positions: "Unable to reach the trading bridge.",
+            equity: "Unable to reach the trading bridge.",
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingState({ summary: false, equity: false, positions: false });
+        }
+      }
+    }
+
+    loadExnessData();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function linkWallet() {
@@ -339,6 +392,13 @@ function HomeInner() {
     }
   }
 
+  const chartLoading = loadingState.summary || loadingState.equity;
+  const chartError = errors.equity ?? errors.summary ?? null;
+  const chartSource = sources.equity ?? sources.summary;
+  const positionsLoading = loadingState.positions;
+  const positionsError = errors.positions ?? null;
+  const positionsSource = sources.positions;
+
   return (
     <div className="app-shell">
       <main className="app-container">
@@ -379,6 +439,11 @@ function HomeInner() {
             >
               {isLinking ? "Linking…" : "Link wallet to desk"}
             </button>
+            {isAdmin && (
+              <Link href="/admin/mt5" className="button button-primary">
+                Open MT5 terminal
+              </Link>
+            )}
           </div>
 
           <div className="hero-status">
@@ -455,46 +520,47 @@ function HomeInner() {
         </section>
 
         <section className="section-card" id="activity">
-          <h2 className="section-title">Desk timeline</h2>
-          <ul className="activity-list">
-            {ACTIVITY_FEED.map((item) => (
-              <li
-                key={item.title}
-                className={`activity-item activity-item--${item.status}`}
-              >
-                <div className="activity-marker" aria-hidden />
-                <div>
-                  <div className="activity-header">
-                    <span className="activity-title">{item.title}</span>
-                    <span className="activity-timestamp">{item.timestamp}</span>
-                  </div>
-                  <p className="activity-description">{item.description}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="section-header">
+            <div>
+              <h2 className="section-title">Live equity intelligence</h2>
+              <p className="section-description">
+                Streaming equity and margin stats refreshed from Exness MT5.
+              </p>
+            </div>
+          </div>
+          <EquityChart
+            points={equityHistory}
+            summary={accountSummary}
+            loading={chartLoading}
+            error={chartError}
+            source={chartSource}
+          />
         </section>
 
         <section className="section-card" id="support">
-          <h2 className="section-title">What you unlock</h2>
+          <div className="section-header">
+            <div>
+              <h2 className="section-title">Execution desk cockpit</h2>
+              <p className="section-description">
+                Inspect the live MT5 tickets and desk capabilities before deploying
+                capital.
+              </p>
+            </div>
+          </div>
+
+          <PositionsTable
+            positions={positions}
+            loading={positionsLoading}
+            error={positionsError}
+            source={positionsSource}
+          />
+
           <div className="feature-grid">
             {OVERVIEW_FEATURES.map((feature) => (
               <article key={feature.title} className="feature-card">
                 <h3>{feature.title}</h3>
                 <p>{feature.description}</p>
               </article>
-            ))}
-          </div>
-
-          <div className="support-grid">
-            {SUPPORT_OPTIONS.map((option) => (
-              <div key={option.title} className="support-card">
-                <div>
-                  <h3>{option.title}</h3>
-                  <p>{option.description}</p>
-                </div>
-                <button className="button button-ghost">{option.action}</button>
-              </div>
             ))}
           </div>
         </section>
@@ -646,6 +712,11 @@ const NAV_ITEMS: NavItem[] = [
   { id: "activity", label: "Activity", icon: ActivityIcon },
   { id: "support", label: "Support", icon: LifebuoyIcon },
 ];
+
+const ADMIN_TELEGRAM_IDS = (process.env.NEXT_PUBLIC_TELEGRAM_ADMIN_IDS ?? "")
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
 
 export default function Page() {
   return (
