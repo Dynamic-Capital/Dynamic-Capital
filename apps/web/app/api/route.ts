@@ -1,18 +1,17 @@
-import {
-  jsonResponse,
-  methodNotAllowed,
-  corsHeaders,
-} from '@/utils/http.ts';
+import { withApiMetrics } from "@/observability/server-metrics.ts";
+import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
 
 interface ApiResponse {
   message: string;
 }
 
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 
 export async function GET(req: Request) {
-  const body: ApiResponse = { message: 'API is running' };
-  return jsonResponse(body, {}, req);
+  return withApiMetrics(req, "/api", async () => {
+    const body: ApiResponse = { message: "API is running" };
+    return jsonResponse(body, {}, req);
+  });
 }
 
 export const POST = methodNotAllowed;
@@ -21,6 +20,6 @@ export const PATCH = methodNotAllowed;
 export const DELETE = methodNotAllowed;
 export const HEAD = methodNotAllowed;
 export function OPTIONS(req: Request) {
-  const headers = corsHeaders(req, 'GET');
+  const headers = corsHeaders(req, "GET");
   return new Response(null, { status: 204, headers });
 }

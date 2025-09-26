@@ -1,40 +1,155 @@
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { isProduction } from '@/config/node-env';
+import { metrics } from "@opentelemetry/api";
+import type { MeterProvider } from "@opentelemetry/sdk-metrics";
+import {
+  ExplicitBucketHistogramAggregation,
+  InstrumentType,
+  MeterProvider as SDKMeterProvider,
+  View,
+} from "@opentelemetry/sdk-metrics";
+import { registerInstrumentations } from "@opentelemetry/instrumentation";
+import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
+import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
+import { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
+import { Resource } from "@opentelemetry/resources";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+import { isProduction } from "@/config/node-env";
 
-export async function register() {
-  // Ensure Next.js' OpenTelemetry context is registered first to avoid null context errors
-  try {
-    const { registerOTel } = await import('@vercel/otel');
-    registerOTel();
-  } catch {
-    // Optional dependency not installed; continue without OpenTelemetry registration
-  }
-  // Register OpenTelemetry instrumentations to avoid dynamic import warnings
-  registerInstrumentations({ instrumentations: [] });
+const SERVICE_NAME = "dynamic-capital-web";
 
-  // Only enable Sentry when explicitly requested and not during production build
-  if (isProduction || process.env.ENABLE_SENTRY !== 'true') {
+type TelemetryState = {
+  meterProvider?: MeterProvider;
+  sentryInitialized?: boolean;
+};
+
+type SentryFacade = {
+  init?: (options: Record<string, unknown>) => void;
+  getCurrentHub?: () => { getClient?: () => unknown } | undefined;
+};
+
+const globalTelemetryState = globalThis as typeof globalThis & {
+  __dynamicCapitalTelemetry?: TelemetryState;
+};
+
+globalTelemetryState.__dynamicCapitalTelemetry ??= {};
+
+const telemetryState = globalTelemetryState.__dynamicCapitalTelemetry;
+
+export const prometheusExporter = new PrometheusExporter({
+  preventServerStart: true,
+  appendTimestamp: false,
+});
+
+async function ensureMeterProvider() {
+  if (telemetryState.meterProvider) {
     return;
   }
 
   try {
-    // Use a dynamic import that is ignored by webpack so that Sentry's
-    // optional peer dependencies (which contain dynamic `require` calls)
-    // are not bundled during compilation. This suppresses "Critical
-    // dependency" warnings emitted by webpack when building the app.
-    const Sentry =
-      typeof window === 'undefined'
-        ? await import(
-            /* webpackIgnore: true */ '@sentry/nextjs'
-          )
-        : await import(
-            /* webpackIgnore: true */ '@sentry/browser'
-          );
-    Sentry.init({
-      dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
-      tracesSampleRate: 1.0,
-    });
+    const { registerOTel } = await import("@vercel/otel");
+    registerOTel();
   } catch {
-    // Sentry SDK not installed; skip initialization
+    // Optional dependency not installed; continue without Vercel helper.
   }
+
+  registerInstrumentations({
+    instrumentations: [
+      new HttpInstrumentation({
+        ignoreIncomingRequestHook: (request) => {
+          const url = request.url ?? "";
+          return (
+            url.startsWith("/_next/") ||
+            url.startsWith("/static/") ||
+            url.startsWith("/api/metrics")
+          );
+        },
+        requireParentforOutgoingSpans: false,
+      }),
+      new FetchInstrumentation({ clearTimingResources: true }),
+    ],
+  });
+
+  const resource = Resource.default().merge(
+    new Resource({
+      [SemanticResourceAttributes.SERVICE_NAME]: SERVICE_NAME,
+      [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
+        process.env.VERCEL_ENV || process.env.NODE_ENV || "development",
+    }),
+  );
+
+  const meterProvider = new SDKMeterProvider({
+    resource,
+    readers: [prometheusExporter],
+    views: [
+      new View({
+        instrumentName: "http_request_duration_seconds",
+        instrumentType: InstrumentType.HISTOGRAM,
+        aggregation: new ExplicitBucketHistogramAggregation([
+          0.05,
+          0.1,
+          0.25,
+          0.5,
+          1,
+          2,
+          5,
+          10,
+        ]),
+      }),
+    ],
+  });
+
+  metrics.setGlobalMeterProvider(meterProvider);
+  telemetryState.meterProvider = meterProvider;
+}
+
+async function ensureSentry() {
+  if (telemetryState.sentryInitialized) {
+    return;
+  }
+
+  const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
+  if (!dsn) {
+    return;
+  }
+
+  try {
+    const sentryModule = typeof window === "undefined"
+      ? await import(/* webpackIgnore: true */ "@sentry/nextjs")
+      : await import(/* webpackIgnore: true */ "@sentry/browser");
+
+    const sentry = ((sentryModule as { default?: unknown }).default ??
+      sentryModule) as SentryFacade;
+
+    const hub = typeof sentry.getCurrentHub === "function"
+      ? sentry.getCurrentHub()
+      : undefined;
+    const hasClient = hub && typeof hub.getClient === "function"
+      ? hub.getClient() !== null
+      : false;
+
+    if (typeof sentry.init === "function" && !hasClient) {
+      sentry.init({
+        dsn,
+        environment: process.env.SENTRY_ENV ||
+          process.env.VERCEL_ENV ||
+          process.env.NODE_ENV ||
+          "development",
+        release: process.env.SENTRY_RELEASE ||
+          process.env.VERCEL_GIT_COMMIT_SHA,
+        enableTracing: true,
+        tracesSampleRate: 1.0,
+        profilesSampleRate: 1.0,
+      });
+    }
+
+    telemetryState.sentryInitialized = true;
+  } catch (error) {
+    if (!isProduction) {
+      console.warn("[telemetry] Failed to initialise Sentry", error);
+    }
+  }
+}
+
+export async function register() {
+  await ensureMeterProvider();
+  await ensureSentry();
 }

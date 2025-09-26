@@ -1,12 +1,17 @@
-import { corsHeaders, jsonResponse, methodNotAllowed } from '@/utils/http.ts';
-import { healthPayload } from '@/utils/commit.ts';
+import { withApiMetrics } from "@/observability/server-metrics.ts";
+import { corsHeaders, jsonResponse, methodNotAllowed } from "@/utils/http.ts";
+import { healthPayload } from "@/utils/commit.ts";
 
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 
 const payload = healthPayload();
 
 export function GET(req: Request) {
-  return jsonResponse(payload, {}, req);
+  return withApiMetrics(
+    req,
+    "/api/health",
+    async () => jsonResponse(payload, {}, req),
+  );
 }
 
 export function HEAD() {
@@ -16,7 +21,7 @@ export function HEAD() {
 export function OPTIONS(req: Request) {
   return new Response(null, {
     status: 204,
-    headers: corsHeaders(req, 'GET'),
+    headers: corsHeaders(req, "GET"),
   });
 }
 
