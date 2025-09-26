@@ -9,12 +9,12 @@ import {
   applyBrandingEnvDefaults,
   PRODUCTION_ORIGIN,
 } from "./utils/branding-env.mjs";
-import { syncMaldivesClock } from "./utils/time-sync.mjs";
+import { syncDeskClock } from "./utils/time-sync.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const timeSyncOutcome = syncMaldivesClock({ logger: console });
+const timeSyncOutcome = syncDeskClock({ logger: console });
 if (!timeSyncOutcome.ok) {
   console.warn(
     "⚠️  Proceeding with Next.js build despite timezone synchronization issues.",

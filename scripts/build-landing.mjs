@@ -4,7 +4,7 @@ import { access, cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createSanitizedNpmEnv } from "./utils/npm-env.mjs";
-import { syncMaldivesClock } from "./utils/time-sync.mjs";
+import { syncDeskClock } from "./utils/time-sync.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");
@@ -14,7 +14,7 @@ const backupDir = join(repoRoot, "_static.backup");
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
 
-const timeSyncOutcome = syncMaldivesClock({ logger: console });
+const timeSyncOutcome = syncDeskClock({ logger: console });
 if (!timeSyncOutcome.ok) {
   console.warn(
     "⚠️  Proceeding with landing snapshot build despite timezone synchronization issues.",
