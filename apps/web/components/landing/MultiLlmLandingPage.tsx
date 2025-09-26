@@ -14,65 +14,17 @@ import {
   Text,
 } from "@/components/dynamic-ui-system";
 import { HOME_NAV_SECTION_IDS } from "@/components/landing/home-navigation-config";
+import { useHeroMetrics } from "@/hooks/useHeroMetrics";
+import { useMultiLlmProviders } from "@/hooks/useMultiLlmProviders";
+import type { ProviderId } from "@/services/llm/types";
 import { cn } from "@/utils";
 import { baseURL, person } from "@/resources";
 
-const HERO_METRICS = [
-  {
-    label: "Latency (p95)",
-    value: "780 ms",
-    description: "Median production trace across configured providers",
-  },
-  {
-    label: "Tokens orchestrated / day",
-    value: "12.5M",
-    description: "Routed with adaptive batching and streaming fallbacks",
-  },
-  {
-    label: "Reliability",
-    value: "99.9%",
-    description: "Automated retries, circuit breaking, and health probes",
-  },
-];
-
-const PROVIDER_MATRIX = [
-  {
-    name: "OpenAI",
-    focus: "Reasoning & planning",
-    standout: "Auto fallback to GPT-4 Turbo when GPT-4.1 saturates",
-    latency: "0.8 s",
-    context: "128k",
-    pricing: "$$",
-    icon: "sparkles" as const,
-  },
-  {
-    name: "Anthropic",
-    focus: "Structured analysis",
-    standout: "Claude 3.5 Sonnet ensembles with streaming map-reduce",
-    latency: "0.7 s",
-    context: "200k",
-    pricing: "$$$",
-    icon: "shield" as const,
-  },
-  {
-    name: "Groq",
-    focus: "Ultra-low latency",
-    standout: "<120 ms GPU decoded responses for play-by-play scoring",
-    latency: "0.12 s",
-    context: "32k",
-    pricing: "$",
-    icon: "timer" as const,
-  },
-  {
-    name: "OpenRouter",
-    focus: "Long-tail models",
-    standout: "One integration, rotating best-in-class community models",
-    latency: "0.9 s",
-    context: "varies",
-    pricing: "$",
-    icon: "grid" as const,
-  },
-];
+const PROVIDER_ICON_MAP: Record<ProviderId, string> = {
+  openai: "sparkles",
+  anthropic: "shield",
+  groq: "timer",
+};
 
 const ROUTING_POLICIES = [
   {
@@ -98,25 +50,6 @@ const ROUTING_POLICIES = [
     description:
       "Emit structured traces to your warehouse or monitoring stack with latency, cost, and safety audit context per turn.",
     icon: "compass" as const,
-  },
-];
-
-const ANALYTICS_SIGNALS = [
-  {
-    label: "Token efficiency",
-    value: "18%",
-    detail: "Less spend per insight by routing to the leanest passing model.",
-  },
-  {
-    label: "Resolution speed",
-    value: "3.4×",
-    detail:
-      "Faster answers when fallback providers prewarm streaming sessions.",
-  },
-  {
-    label: "Quality uplift",
-    value: "+12",
-    detail: "Average rubric score improvement across benchmarked prompts.",
   },
 ];
 
@@ -178,6 +111,19 @@ const MULTI_LLM_TITLE = "Dynamic Capital — Multi-LLM orchestration workspace";
 const MULTI_LLM_DESCRIPTION =
   "Benchmark, route, and observe every provider in a single Once UI workspace designed for institutional desks.";
 
+const tokenFormatter = new Intl.NumberFormat("en-US", { notation: "compact" });
+
+const formatTokens = (value: number) =>
+  `${tokenFormatter.format(Math.max(0, value))} tokens`;
+
+const sentenceCase = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1)}`;
+};
+
 interface SectionProps {
   anchor: string;
   children: ReactNode;
@@ -207,6 +153,31 @@ function Section({ anchor, children, className, delay }: SectionProps) {
 }
 
 export function MultiLlmLandingPage() {
+  const {
+    heroMetrics,
+    quickMetrics,
+    isError: heroMetricsError,
+    error: heroMetricsErrorDetails,
+  } = useHeroMetrics();
+  const {
+    data: providerSummaries = [],
+    isLoading: providersLoading,
+    isError: providersError,
+    error: providersErrorDetails,
+  } = useMultiLlmProviders();
+
+  const heroMetricsUsingFallback = heroMetrics.some((metric) =>
+    metric.isFallback
+  );
+  const heroMetricsErrorMessage = heroMetricsError && heroMetricsErrorDetails
+    ? heroMetricsErrorDetails.message
+    : null;
+
+  const providers = providerSummaries;
+  const providerErrorMessage = providersError && providersErrorDetails
+    ? providersErrorDetails.message
+    : null;
+
   return (
     <Column
       as="main"
@@ -261,8 +232,8 @@ export function MultiLlmLandingPage() {
                 wrap="balance"
               >
                 Dynamic Capital&apos;s workspace routes prompts across OpenAI,
-                Anthropic, Groq, and OpenRouter with automated fallbacks,
-                observability hooks, and mentor oversight.
+                Anthropic, and Groq with automated fallbacks, observability
+                hooks, and mentor oversight.
               </Text>
             </Column>
 
@@ -320,10 +291,10 @@ export function MultiLlmLandingPage() {
               horizontal="center"
               className="gap-4"
             >
-              {HERO_METRICS.map((metric) => (
+              {heroMetrics.map((metric) => (
                 <Column
                   key={metric.label}
-                  gap="8"
+                  gap="12"
                   padding="16"
                   radius="l"
                   background="surface"
@@ -333,10 +304,14 @@ export function MultiLlmLandingPage() {
                 >
                   <Text
                     variant="label-default-s"
-                    onBackground="brand-medium"
-                    className="uppercase"
+                    onBackground={metric.isFallback
+                      ? "neutral-weak"
+                      : "brand-medium"}
+                    className="uppercase tracking-[0.18em]"
                   >
-                    {metric.label}
+                    {metric.isFallback
+                      ? "Awaiting live sync"
+                      : "Live desk telemetry"}
                   </Text>
                   <Heading variant="heading-strong-m">{metric.value}</Heading>
                   <Text
@@ -344,11 +319,42 @@ export function MultiLlmLandingPage() {
                     onBackground="neutral-weak"
                     wrap="balance"
                   >
-                    {metric.description}
+                    {sentenceCase(metric.label)}
                   </Text>
                 </Column>
               ))}
             </Row>
+            {heroMetricsErrorMessage
+              ? (
+                <Text
+                  variant="body-default-s"
+                  onBackground="neutral-weak"
+                  align="center"
+                >
+                  {heroMetricsErrorMessage}
+                </Text>
+              )
+              : null}
+            {heroMetricsUsingFallback
+              ? (
+                <Text
+                  variant="body-default-s"
+                  onBackground="neutral-weak"
+                  align="center"
+                >
+                  Metrics fall back to the latest algorithm snapshot while live
+                  telemetry syncs.
+                </Text>
+              )
+              : (
+                <Text
+                  variant="body-default-s"
+                  onBackground="neutral-weak"
+                  align="center"
+                >
+                  Metrics refresh directly from the trading desk algorithms.
+                </Text>
+              )}
           </Column>
         </section>
       </RevealFx>
@@ -367,43 +373,90 @@ export function MultiLlmLandingPage() {
             for every workload.
           </Text>
         </Column>
-        <div className="grid gap-4 md:grid-cols-2">
-          {PROVIDER_MATRIX.map((provider) => (
-            <Column
-              key={provider.name}
-              gap="12"
-              padding="24"
-              radius="xl"
-              background="surface"
-              border="brand-alpha-weak"
-              data-border="rounded"
-              className="bg-background/70 shadow-xl shadow-brand/10"
-            >
-              <Row gap="12" vertical="center">
-                <Icon name={provider.icon} size="m" />
-                <Column>
-                  <Heading variant="heading-strong-m">
-                    {provider.name}
-                  </Heading>
+        {providers.length > 0
+          ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {providers.map((provider) => (
+                <Column
+                  key={provider.id}
+                  gap="12"
+                  padding="24"
+                  radius="xl"
+                  background="surface"
+                  border="brand-alpha-weak"
+                  data-border="rounded"
+                  className="bg-background/70 shadow-xl shadow-brand/10"
+                >
+                  <Row gap="12" vertical="center" wrap>
+                    <Icon
+                      name={PROVIDER_ICON_MAP[provider.id] ?? "sparkles"}
+                      size="m"
+                    />
+                    <Column>
+                      <Heading variant="heading-strong-m">
+                        {provider.name}
+                      </Heading>
+                      <Text
+                        variant="body-default-s"
+                        onBackground="neutral-weak"
+                      >
+                        {provider.description}
+                      </Text>
+                    </Column>
+                  </Row>
+                  <Row gap="16" wrap className="gap-3 text-sm">
+                    <BadgeStat
+                      label="Default model"
+                      value={provider.defaultModel}
+                    />
+                    <BadgeStat
+                      label="Context window"
+                      value={formatTokens(provider.contextWindow)}
+                    />
+                    <BadgeStat
+                      label="Max output"
+                      value={formatTokens(provider.maxOutputTokens)}
+                    />
+                  </Row>
                   <Text
-                    variant="body-default-s"
-                    onBackground="neutral-weak"
+                    variant="label-default-s"
+                    onBackground={provider.configured
+                      ? "brand-medium"
+                      : "danger-strong"}
+                    className="uppercase"
                   >
-                    {provider.focus}
+                    {provider.configured
+                      ? "Configured in this workspace"
+                      : "Add API key to enable"}
                   </Text>
                 </Column>
-              </Row>
-              <Text variant="body-default-m" onBackground="neutral-strong">
-                {provider.standout}
+              ))}
+            </div>
+          )
+          : (
+            <Column
+              gap="12"
+              padding="24"
+              radius="l"
+              background="surface"
+              border="neutral-alpha-weak"
+              data-border="rounded"
+              className="bg-background/60 shadow-lg shadow-black/10"
+            >
+              <Text variant="body-default-m" onBackground="neutral-weak">
+                {providersLoading
+                  ? "Syncing provider coverage…"
+                  : "Provider metadata is unavailable right now. Refresh to try again."}
               </Text>
-              <Row gap="16" wrap className="gap-3 text-sm">
-                <BadgeStat label="Latency" value={provider.latency} />
-                <BadgeStat label="Context" value={provider.context} />
-                <BadgeStat label="Pricing" value={provider.pricing} />
-              </Row>
+              {providerErrorMessage
+                ? (
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    {providerErrorMessage}
+                  </Text>
+                )
+                : null}
             </Column>
-          ))}
-        </div>
+          )}
       </Section>
 
       <Section anchor={HOME_NAV_SECTION_IDS.workflows} delay={0.18}>
@@ -459,9 +512,9 @@ export function MultiLlmLandingPage() {
           </Text>
         </Column>
         <Row gap="16" wrap className="gap-4">
-          {ANALYTICS_SIGNALS.map((signal) => (
+          {quickMetrics.map((metric) => (
             <Column
-              key={signal.label}
+              key={metric.label}
               gap="8"
               padding="24"
               radius="l"
@@ -472,19 +525,32 @@ export function MultiLlmLandingPage() {
             >
               <Text
                 variant="label-default-s"
-                onBackground="brand-medium"
+                onBackground={metric.isFallback
+                  ? "neutral-weak"
+                  : "brand-medium"}
                 className="uppercase"
               >
-                {signal.label}
+                {metric.isFallback ? "Awaiting live sync" : "Live analytics"}
               </Text>
-              <Heading variant="heading-strong-l">{signal.value}</Heading>
+              <Heading variant="heading-strong-l">{metric.value}</Heading>
               <Text
                 variant="body-default-s"
                 onBackground="neutral-weak"
                 wrap="balance"
               >
-                {signal.detail}
+                {sentenceCase(metric.label)}
               </Text>
+              {metric.helperText
+                ? (
+                  <Text
+                    variant="body-default-s"
+                    onBackground="neutral-weak"
+                    wrap="balance"
+                  >
+                    {metric.helperText}
+                  </Text>
+                )
+                : null}
             </Column>
           ))}
         </Row>
