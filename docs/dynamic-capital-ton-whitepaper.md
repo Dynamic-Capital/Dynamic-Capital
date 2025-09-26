@@ -1,8 +1,8 @@
-# Dynamic Capital TON Coin Whitepaper
+# Dynamic Capital Token (DCT) Whitepaper
 
 ## Abstract
 
-Dynamic Capital TON Coin (DCT) is the on-chain utility token that powers the
+Dynamic Capital Token (DCT) is the on-chain utility token that powers the
 Dynamic Capital ecosystem on The Open Network (TON). The asset enables
 permissionless access to quantitative trading signals, liquidity coordination,
 and governance. DCT is engineered to align incentives between strategy
@@ -238,7 +238,7 @@ shocks.
 
 ## Conclusion
 
-Dynamic Capital TON Coin is the coordination layer connecting intelligence,
+Dynamic Capital Token (DCT) is the coordination layer connecting intelligence,
 liquidity, and governance across the Dynamic Capital stack. The token aligns
 incentives for contributors and capital providers while maintaining strict risk
 oversight. By combining programmable emissions, utility-driven demand, and

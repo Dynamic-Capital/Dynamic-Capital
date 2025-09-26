@@ -1,6 +1,6 @@
 # Desk Hub Mini App – Token Hub Development Checklist
 
-This checklist translates the Dynamic Capital TON Coin (DCT) whitepaper into actionable tasks for the Desk Hub mini app token hub.
+This checklist translates the Dynamic Capital Token (DCT) whitepaper into actionable tasks for the Desk Hub mini app token hub.
 Use it to coordinate product, engineering, governance, and compliance workstreams.
 
 ## Foundation & Architecture
