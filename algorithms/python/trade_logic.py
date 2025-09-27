@@ -392,6 +392,7 @@ class SMCAnalyzer:
             "threshold_pips": levels_base["threshold_pips"],
             "round_number_interval_pips": levels_base["round_number_interval_pips"],
             "all_levels": [dict(level) for level in levels_base["all_levels"]],
+            "pip_size": levels_base.get("pip_size", 0.0),
         }
         pressure_detail = levels_base.get("pressure_detail")
         if pressure_detail:
@@ -445,6 +446,17 @@ class SMCAnalyzer:
 
         base_weight = max(0.0, self.config.smc_liquidity_weight)
         if signal.direction != 0 and base_weight > 0.0:
+            pip_size = float(levels_base.get("pip_size", 0.0))
+            tolerance = pip_size * 0.5 if pip_size > 0 else 1e-6
+            penalty_clusters: Dict[tuple[str, str, int], float] = {}
+            support_clusters: Dict[tuple[str, str, int], float] = {}
+
+            def _cluster_key(value: float, relation: str, effect: str) -> tuple[str, str, int]:
+                bucket = 0
+                if tolerance > 0:
+                    bucket = int(round(value / tolerance))
+                return (effect, relation, bucket)
+
             for level in levels_context.get("near", []):
                 name = str(level.get("name", "")) or "level"
                 relation = str(level.get("relation", ""))
@@ -472,31 +484,91 @@ class SMCAnalyzer:
                 applied = False
                 if bias_direction == 0:
                     if signal.direction > 0 and relation in {"above", "at"}:
-                        penalty_strength += weight
-                        penalised_levels.append(name)
+                        key = None
+                        if isinstance(level.get("value"), (int, float)):
+                            key = _cluster_key(float(level["value"]), relation, "penalty")
+                            previous = penalty_clusters.get(key)
+                        else:
+                            previous = None
+                        if previous is None or weight > previous:
+                            delta = weight - (previous or 0.0)
+                            penalty_strength += delta
+                            penalised_levels.append(name)
+                            if key is not None:
+                                penalty_clusters[key] = weight
                         applied = True
                     elif signal.direction < 0 and relation in {"below", "at"}:
-                        penalty_strength += weight
-                        penalised_levels.append(name)
+                        key = None
+                        if isinstance(level.get("value"), (int, float)):
+                            key = _cluster_key(float(level["value"]), relation, "penalty")
+                            previous = penalty_clusters.get(key)
+                        else:
+                            previous = None
+                        if previous is None or weight > previous:
+                            delta = weight - (previous or 0.0)
+                            penalty_strength += delta
+                            penalised_levels.append(name)
+                            if key is not None:
+                                penalty_clusters[key] = weight
                         applied = True
                 else:
                     if bias_direction == signal.direction:
                         expected_relations = {1: {"below", "at"}, -1: {"above", "at"}}
                         if relation in expected_relations[bias_direction]:
-                            support_strength += weight
-                            supportive_levels.append(name)
+                            key = None
+                            if isinstance(level.get("value"), (int, float)):
+                                key = _cluster_key(float(level["value"]), relation, "support")
+                                previous = support_clusters.get(key)
+                            else:
+                                previous = None
+                            if previous is None or weight > previous:
+                                delta = weight - (previous or 0.0)
+                                support_strength += delta
+                                supportive_levels.append(name)
+                                if key is not None:
+                                    support_clusters[key] = weight
                             applied = True
                         else:
-                            penalty_strength += weight
-                            penalised_levels.append(name)
+                            key = None
+                            if isinstance(level.get("value"), (int, float)):
+                                key = _cluster_key(float(level["value"]), relation, "penalty")
+                                previous = penalty_clusters.get(key)
+                            else:
+                                previous = None
+                            if previous is None or weight > previous:
+                                delta = weight - (previous or 0.0)
+                                penalty_strength += delta
+                                penalised_levels.append(name)
+                                if key is not None:
+                                    penalty_clusters[key] = weight
                             applied = True
                     else:
-                        penalty_strength += weight
-                        penalised_levels.append(name)
+                        key = None
+                        if isinstance(level.get("value"), (int, float)):
+                            key = _cluster_key(float(level["value"]), relation, "penalty")
+                            previous = penalty_clusters.get(key)
+                        else:
+                            previous = None
+                        if previous is None or weight > previous:
+                            delta = weight - (previous or 0.0)
+                            penalty_strength += delta
+                            penalised_levels.append(name)
+                            if key is not None:
+                                penalty_clusters[key] = weight
                         applied = True
                 if not applied and relation == "at":
-                    penalty_strength += weight
-                    penalised_levels.append(name)
+                    key = None
+                    if isinstance(level.get("value"), (int, float)):
+                        key = _cluster_key(float(level["value"]), relation, "penalty")
+                        previous = penalty_clusters.get(key)
+                    else:
+                        previous = None
+                    if previous is None or weight > previous:
+                        delta = weight - (previous or 0.0)
+                        penalty_strength += delta
+                        penalised_levels.append(name)
+                        if key is not None:
+                            penalty_clusters[key] = weight
 
         liquidity_adjustment = support_strength - penalty_strength
         components["liquidity_penalty"] = liquidity_adjustment
@@ -712,6 +784,7 @@ class SMCAnalyzer:
                 "threshold_pips": level_threshold_pips,
                 "round_number_interval_pips": self.config.smc_round_number_interval_pips,
                 "all_levels": [dict(level) for level in levels],
+                "pip_size": pip_size,
             },
             "history_ready": history_ready,
         }
