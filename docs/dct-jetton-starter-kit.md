@@ -25,13 +25,13 @@ and a TypeScript Edge Function that automates the subscription → buyback → b
 
 - [ ] Genesis transactions mint the following fixed amounts to controlled
       wallets:
-  | Allocation                | Amount (DCT) | Notes                                |
-  | ------------------------- | ------------ | ------------------------------------ |
-  | Community & Rewards       | 50,000,000   | Streamed via emissions controller    |
-  | Treasury / Operations     | 20,000,000   | Liquidity, partnerships, incentives  |
-  | Team & Advisors (Vested)  | 15,000,000   | 12-month cliff, 36-month linear vest |
-  | Liquidity & Market Making | 10,000,000   | Initial DEX & market making          |
-  | Ecosystem Grants          | 5,000,000    | Grants and ecosystem growth          |
+  | Allocation                 | Amount (DCT) | Notes                                                                                |
+  | -------------------------- | ------------ | ------------------------------------------------------------------------------------ |
+  | Ecosystem & Staking        | 40,000,000   | 5-year emissions (12M → 4M buckets); seeds the 3% community drop + staking bootstrap |
+  | Investor Pool / Fund Ops   | 25,000,000   | 6-month cliff, then 24-month linear vesting under fund governance                    |
+  | Founders & Team (Vested)   | 15,000,000   | 12-month cliff, then 36-month linear vesting                                         |
+  | Partnerships & Liquidity   | 10,000,000   | 5% liquidity buffer and 2% partner unlock at TGE; 24-month vest on remainder         |
+  | Treasury & Emergency Guard | 10,000,000   | 60-month linear release with emergency pause controls                                |
 - [ ] After genesis, no account (including multisig) can mint additional tokens.
 
 ### Governance & Safety Controls
@@ -85,8 +85,8 @@ Key tables:
   output, and burn metrics per subscription cycle.
 - `dct_stakes` — tracks off-chain staking balances with lock windows, weights,
   and status transitions.
-- `dct_emissions` — ledger for epoch rewards distributed from the Community &
-  Rewards allocation.
+- `dct_emissions` — ledger for epoch rewards streamed from the Ecosystem &
+  Staking allocation.
 
 Each table enforces referential integrity and retains operational metadata
 (created/updated timestamps, webhook trace IDs, etc.). Numeric columns use
