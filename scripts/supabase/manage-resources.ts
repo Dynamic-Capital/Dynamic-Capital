@@ -3,7 +3,7 @@ import {
   isAbsolute,
   resolve as resolvePath,
   toFileUrl,
-} from "https://deno.land/std@0.224.0/path/mod.ts";
+} from "std/path/mod.ts";
 import type {
   ColumnDefinition,
   PolicyDefinition,

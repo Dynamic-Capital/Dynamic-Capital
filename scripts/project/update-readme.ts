@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import process from "node:process";
 
 interface HighlightItem {
   text: string;
@@ -56,7 +57,7 @@ function buildBadges(meta?: ReleaseMeta): string {
   return badges.join(' ');
 }
 
-async function main(): Promise<void> {
+function main(): void {
   const cwd = process.cwd();
   const readmePath = join(cwd, 'README.md');
   if (!existsSync(readmePath)) {
@@ -87,8 +88,10 @@ async function main(): Promise<void> {
   writeFileSync(readmePath, updated.replace(/\s+$/g, '') + '\n');
 }
 
-main().catch((error) => {
+try {
+  main();
+} catch (error) {
   console.error('[update-readme] Unable to update README markers');
   console.error(error);
   process.exitCode = 1;
-});
+}

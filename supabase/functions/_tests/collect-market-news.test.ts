@@ -1,7 +1,7 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+} from "std/assert/mod.ts";
 
 function fnv1a64(input: string): number {
   let hash = 1469598103934665603n;
@@ -25,6 +25,8 @@ Deno.test("collect-market-news upserts normalized rows", async () => {
     input: Request | URL | string,
     init?: RequestInit,
   ) => {
+    await Promise.resolve(); // satisfy require-await
+
     const url = typeof input === "string"
       ? new URL(input)
       : input instanceof Request

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import process from "node:process";
 
 interface CommitRecord {
   prNumber?: number;
@@ -24,7 +25,7 @@ function ensureGh(): boolean {
   try {
     const result = runGh(['--version']);
     return result.status === 0;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -41,7 +42,7 @@ function loadCommits(cacheDir: string): CommitPayload | undefined {
   return JSON.parse(readFileSync(path, 'utf8')) as CommitPayload;
 }
 
-async function main(): Promise<void> {
+function main(): void {
   if (process.env.SKIP_RELEASE_ANNOUNCE === '1') {
     console.info('[release-announcer] Skipping announcement (SKIP_RELEASE_ANNOUNCE set).');
     return;
@@ -98,8 +99,10 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error) => {
+try {
+  main();
+} catch (error) {
   console.error('[release-announcer] Failed to announce release');
   console.error(error);
   process.exitCode = 1;
-});
+}

@@ -10,7 +10,7 @@ let originalFetch: typeof fetch | null = null;
 // Populate both a test-only env map and the runtime env so that code
 // accessing either `process.env` or `Deno.env` sees the injected values.
 export function setTestEnv(values: Partial<Record<EnvKey, string>>) {
-  const merged: Partial<Record<EnvKey, string>> = { ...values } as any;
+  const merged: Partial<Record<EnvKey, string>> = { ...values };
   // Provide sane defaults for Supabase envs to satisfy createClient checks.
   if (merged.SUPABASE_URL && !merged.SUPABASE_ANON_KEY) {
     merged.SUPABASE_ANON_KEY = "test-anon";
@@ -23,8 +23,9 @@ export function setTestEnv(values: Partial<Record<EnvKey, string>>) {
 
   for (const [k, v] of Object.entries(merged)) {
     try {
-      // @ts-ignore -- Deno may be unavailable in some environments
-      Deno.env.set(k, v);
+      if (typeof Deno !== "undefined" && typeof Deno.env?.set === "function") {
+        Deno.env.set(k, v);
+      }
     } catch {
       // ignore when Deno.env is not writable
     }
@@ -35,7 +36,7 @@ export function setTestEnv(values: Partial<Record<EnvKey, string>>) {
 
   // Default offline fetch stub to avoid accidental network calls during tests.
   if (!originalFetch) originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response("{}", { status: 200 });
+  globalThis.fetch = () => Promise.resolve(new Response("{}", { status: 200 }));
 }
 
 export function clearTestEnv() {
@@ -43,8 +44,12 @@ export function clearTestEnv() {
   if (current) {
     for (const k of Object.keys(current)) {
       try {
-        // @ts-ignore -- Deno may be unavailable
-        Deno.env.delete(k);
+        if (
+          typeof Deno !== "undefined" &&
+          typeof Deno.env?.delete === "function"
+        ) {
+          Deno.env.delete(k);
+        }
       } catch {
         // ignore
       }

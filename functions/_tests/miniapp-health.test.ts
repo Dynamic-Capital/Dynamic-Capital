@@ -4,7 +4,7 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+} from "std/assert/mod.ts";
 
 // Provide dummy Supabase environment so miniapp-health module can be loaded
 Deno.env.set("SUPABASE_URL", "https://example.com");
@@ -36,11 +36,13 @@ Deno.test("miniapp-health: GET returns method not allowed", async () => {
 Deno.test("miniapp-health: POST without env returns shape with vip.is_vip null", async () => {
   if (!mod?.default) return;
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () =>
-    new Response(JSON.stringify([]), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    });
+  globalThis.fetch = () =>
+    Promise.resolve(
+      new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
   try {
     const req = new Request("http://x/miniapp-health", {
       method: "POST",

@@ -10,21 +10,21 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+} from "std/assert/mod.ts";
 import {
   clearTestEnv,
   setTestEnv,
 } from "../../supabase/functions/_tests/env-mock.ts";
 
 // Minimal env for the handler; tests should NEVER need real secrets
-  setTestEnv({
-    SUPABASE_URL: "http://local",
-    SUPABASE_ANON_KEY: "test-anon",
-    SUPABASE_SERVICE_ROLE_KEY: "test-svc",
-    TELEGRAM_BOT_TOKEN: "test-token",
-    TELEGRAM_WEBHOOK_SECRET: "test-secret",
-    MINI_APP_URL: "https://example.com/",
-  });
+setTestEnv({
+  SUPABASE_URL: "http://local",
+  SUPABASE_ANON_KEY: "test-anon",
+  SUPABASE_SERVICE_ROLE_KEY: "test-svc",
+  TELEGRAM_BOT_TOKEN: "test-token",
+  TELEGRAM_WEBHOOK_SECRET: "test-secret",
+  MINI_APP_URL: "https://example.com/",
+});
 
 // Try common paths without modifying existing files:
 const candidates = [
@@ -84,8 +84,8 @@ Deno.test("handler responds to /start offline", async () => {
       res = await mod.default(req);
     } catch {
       // Try with injected deps (mock fetch + supabase) if supported
-      const mockFetch: typeof fetch = async () =>
-        new Response("{}", { status: 200 });
+      const mockFetch: typeof fetch = () =>
+        Promise.resolve(new Response("{}", { status: 200 }));
       type MockSupabase = {
         from: () => { insert: () => { error: null } };
       };

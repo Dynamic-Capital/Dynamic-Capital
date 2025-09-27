@@ -169,9 +169,9 @@ function serializeBrandingTokens(tokenSet: Record<string, string>): string {
 function resolveTheme(themeValue: string | null | undefined): string {
   if (!themeValue || themeValue === "system") {
     if (
-      typeof window !== "undefined" && typeof window.matchMedia === "function"
+      typeof window !== "undefined" && typeof globalThis.matchMedia === "function"
     ) {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
+      return globalThis.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light";
     }
@@ -187,8 +187,8 @@ function resolveTheme(themeValue: string | null | undefined): string {
 
 function safeStorageGet(key: string): string | null {
   try {
-    return window.localStorage.getItem(key);
-  } catch (error) {
+    return globalThis.localStorage.getItem(key);
+  } catch (_error) {
     return null;
   }
 }

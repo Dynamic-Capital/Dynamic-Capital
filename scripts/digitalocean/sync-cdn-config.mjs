@@ -89,7 +89,9 @@ async function apiRequest(path, token, { method = 'GET', body } = {}) {
       if (payload?.message) {
         message += `: ${payload.message}`;
       }
-    } catch {}
+    } catch (_parseError) {
+      // Ignore non-JSON error bodies and fall back to the base message.
+    }
     throw new Error(message);
   }
 

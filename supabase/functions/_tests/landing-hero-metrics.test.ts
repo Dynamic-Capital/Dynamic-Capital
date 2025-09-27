@@ -1,7 +1,7 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+} from "std/assert/mod.ts";
 
 type FetchCall = {
   url: URL;
@@ -57,6 +57,8 @@ Deno.test("landing-hero-metrics aggregates supabase data", async () => {
     input: Request | URL | string,
     init?: RequestInit,
   ) => {
+    await Promise.resolve(); // satisfy require-await
+
     const url = typeof input === "string"
       ? new URL(input)
       : input instanceof Request
@@ -166,6 +168,8 @@ Deno.test("landing-hero-metrics returns fallbacks when tables are empty", async 
     input: Request | URL | string,
     init?: RequestInit,
   ) => {
+    await Promise.resolve(); // satisfy require-await
+
     const url = typeof input === "string"
       ? new URL(input)
       : input instanceof Request

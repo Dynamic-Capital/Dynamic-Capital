@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import process from "node:process";
 
 interface CommitRecord {
   hash: string;
@@ -144,7 +145,7 @@ function prependChangelogEntry(changelogPath: string, version: string, date: str
   writeFileSync(changelogPath, finalValue.trimEnd() + '\n');
 }
 
-async function main(): Promise<void> {
+function main(): void {
   const args = parseArgs(process.argv);
   const cwd = process.cwd();
   const cacheDir = join(cwd, '.project-cache');
@@ -187,8 +188,10 @@ async function main(): Promise<void> {
   writeFileSync(metaPath, JSON.stringify(meta, null, 2));
 }
 
-main().catch((error) => {
+try {
+  main();
+} catch (error) {
   console.error('[generate-release-notes] Unable to generate release artifacts');
   console.error(error);
   process.exitCode = 1;
-});
+}
