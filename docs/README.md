@@ -163,6 +163,7 @@ documenting which assets were consulted.
 | 10.3 | [ict-terminology-cheatsheet.md](./ict-terminology-cheatsheet.md)  | Glossary of ICT/market structure terminology used across docs.              |
 | 10.4 | [api-documentation.md](./api-documentation.md)                    | Supabase edge function API reference optimised for AI-assisted development. |
 | 10.5 | [dynamic-mental-operating-system.md](./dynamic-mental-operating-system.md) | Daily algorithm for aligning purpose, decisions, and compounding action.    |
+| 10.6 | [dynamic-capital-wisdom-playbook.md](./dynamic-capital-wisdom-playbook.md) | Fibonacci-inspired mindset compass for pattern recognition and balanced execution. |
 
 ## 11. Human Resources & Compensation
 
