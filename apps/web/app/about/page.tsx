@@ -137,7 +137,14 @@ export default function About() {
                   name="calendar"
                   onBackground="brand-weak"
                 />
-                <Row paddingX="8">Schedule a call</Row>
+                <Text
+                  as="span"
+                  paddingX="8"
+                  variant="body-default-s"
+                  onBackground="neutral-strong"
+                >
+                  Schedule a call
+                </Text>
                 <IconButton
                   href={about.calendar.link}
                   data-border="rounded"
