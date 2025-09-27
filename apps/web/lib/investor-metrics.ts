@@ -102,6 +102,7 @@ export interface InvestorOverview {
   burnTotals: BurnTotals;
   subscription: SubscriptionStatus | null;
   lastBuyback: BuybackEvent | null;
+  buybackHistory: BuybackEvent[];
 }
 
 export function normalizeNumeric(
@@ -238,23 +239,34 @@ export async function fetchSubscriptionStatus(
   return normalizeSubscription(data as RawSubscriptionStatusRow | null);
 }
 
-export async function fetchLastBuyback(
+export interface BuybackHistoryOptions {
+  limit?: number;
+}
+
+export async function fetchBuybackHistory(
   client: SupabaseServerClient,
-): Promise<BuybackEvent | null> {
+  { limit = 24 }: BuybackHistoryOptions = {},
+): Promise<BuybackEvent[]> {
   const { data, error } = await client
     .from(BUYBACK_EVENTS_VIEW)
     .select(
       "executed_at, burn_ton, dct_burned, burn_tx_hash, router_swap_id",
     )
     .order("executed_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(limit);
 
   if (error) {
     throw new Error(error.message || "Failed to load buyback history.");
   }
 
-  return normalizeBuyback(data as RawBuybackRow | null);
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data
+    .map((row) => normalizeBuyback(row as RawBuybackRow | null))
+    .filter((event): event is BuybackEvent => event !== null)
+    .reverse();
 }
 
 export async function fetchInvestorOverview(
@@ -263,17 +275,22 @@ export async function fetchInvestorOverview(
 ): Promise<InvestorOverview> {
   assertProfileAccess(profileId);
 
-  const [equity, burnTotals, subscription, lastBuyback] = await Promise.all([
+  const [equity, burnTotals, subscription, buybackHistory] = await Promise.all([
     fetchInvestorEquity(client, profileId),
     fetchBurnTotals(client),
     fetchSubscriptionStatus(client, profileId),
-    fetchLastBuyback(client),
+    fetchBuybackHistory(client),
   ]);
+
+  const lastBuyback = buybackHistory.length
+    ? buybackHistory[buybackHistory.length - 1]
+    : null;
 
   return {
     equity,
     burnTotals,
     subscription,
     lastBuyback,
+    buybackHistory,
   };
 }
