@@ -214,12 +214,19 @@ class DynamicORCAlgo:
         for requirement in requirements:
             self.register(requirement)
 
-    def update_status(self, identifier: str, status: ORCStatus, *, note: str | None = None) -> None:
+    def update_status(
+        self, identifier: str, status: ORCStatus | str, *, note: str | None = None
+    ) -> None:
         """Update the status (and optionally notes) for a requirement."""
 
         if identifier not in self._requirements:
             raise KeyError(f"Unknown requirement: {identifier}")
         requirement = self._requirements[identifier]
+        if isinstance(status, str):
+            try:
+                status = ORCStatus(status)
+            except ValueError as error:  # pragma: no cover - defensive validation
+                raise ValueError(f"Invalid ORCStatus value: {status!r}") from error
         requirement.status = status
         if note:
             requirement.notes.append(note)
