@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import logging
+import os
+from hmac import compare_digest
 from typing import Any, Dict, Optional
 
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request
 
 from dynamic_ai.core import DynamicFusionAlgo
 from dynamic_algo.trading_core import DynamicTradingAlgo
@@ -23,9 +25,34 @@ treasury = DynamicTreasuryAlgo()
 supabase_logger = SupabaseLogger()
 telegram_bot = DynamicTelegramBot.from_env()
 
+SECRET_HEADER = "X-Tradingview-Secret"
+
+
+def _verify_secret() -> Optional[Response]:
+    """Validate the shared TradingView webhook secret."""
+
+    expected_secret = os.environ.get("TRADINGVIEW_WEBHOOK_SECRET")
+    if not expected_secret:
+        logger.error("TradingView webhook secret is not configured.")
+        return jsonify({"error": "Webhook secret not configured."}), 500
+
+    provided_secret = request.headers.get(SECRET_HEADER)
+    if not provided_secret or not compare_digest(provided_secret, expected_secret):
+        logger.warning(
+            "Rejected TradingView webhook due to invalid secret.",
+            extra={"header": SECRET_HEADER},
+        )
+        return jsonify({"error": "Unauthorized"}), 401
+
+    return None
+
 
 @app.route("/webhook", methods=["POST"])
 def webhook() -> Any:
+    verification = _verify_secret()
+    if verification is not None:
+        return verification
+
     payload = request.get_json(silent=True) or {}
     logger.info("TradingView alert received: %s", payload)
 
