@@ -529,6 +529,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      cot_reports: {
+        Row: {
+          commercial_long: string | null;
+          commercial_short: string | null;
+          created_at: string;
+          date: string | null;
+          id: number;
+          market: string | null;
+          noncommercial_long: string | null;
+          noncommercial_short: string | null;
+        };
+        Insert: {
+          commercial_long?: string | null;
+          commercial_short?: string | null;
+          created_at?: string;
+          date?: string | null;
+          id?: number;
+          market?: string | null;
+          noncommercial_long?: string | null;
+          noncommercial_short?: string | null;
+        };
+        Update: {
+          commercial_long?: string | null;
+          commercial_short?: string | null;
+          created_at?: string;
+          date?: string | null;
+          id?: number;
+          market?: string | null;
+          noncommercial_long?: string | null;
+          noncommercial_short?: string | null;
+        };
+        Relationships: [];
+      };
       daily_analytics: {
         Row: {
           button_clicks: Json | null;
@@ -847,6 +880,69 @@ export type Database = {
           key?: string;
           updated_at?: string;
           value?: Json | null;
+        };
+        Relationships: [];
+      };
+      market_movers: {
+        Row: {
+          classification: string;
+          created_at: string;
+          display: string;
+          score: number;
+          symbol: string;
+          updated_at: string;
+        };
+        Insert: {
+          classification: string;
+          created_at?: string;
+          display: string;
+          score: number;
+          symbol: string;
+          updated_at?: string;
+        };
+        Update: {
+          classification?: string;
+          created_at?: string;
+          display?: string;
+          score?: number;
+          symbol?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      market_news: {
+        Row: {
+          actual: string | null;
+          created_at: string;
+          currency: string | null;
+          event_time: string | null;
+          forecast: string | null;
+          headline: string | null;
+          id: number;
+          impact: string | null;
+          source: string | null;
+        };
+        Insert: {
+          actual?: string | null;
+          created_at?: string;
+          currency?: string | null;
+          event_time?: string | null;
+          forecast?: string | null;
+          headline?: string | null;
+          id?: number;
+          impact?: string | null;
+          source?: string | null;
+        };
+        Update: {
+          actual?: string | null;
+          created_at?: string;
+          currency?: string | null;
+          event_time?: string | null;
+          forecast?: string | null;
+          headline?: string | null;
+          id?: number;
+          impact?: string | null;
+          source?: string | null;
         };
         Relationships: [];
       };
@@ -1233,6 +1329,36 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      sentiment: {
+        Row: {
+          created_at: string;
+          id: number;
+          long_percent: number | null;
+          sentiment: number | null;
+          short_percent: number | null;
+          source: string | null;
+          symbol: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: number;
+          long_percent?: number | null;
+          sentiment?: number | null;
+          short_percent?: number | null;
+          source?: string | null;
+          symbol?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          long_percent?: number | null;
+          sentiment?: number | null;
+          short_percent?: number | null;
+          source?: string | null;
+          symbol?: string | null;
+        };
+        Relationships: [];
       };
       signal_dispatches: {
         Row: {
