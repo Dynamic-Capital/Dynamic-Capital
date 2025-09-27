@@ -77,6 +77,84 @@ DCT ecosystem.
 4. **Week 11+** – Promote new sources to primary once error budgets remain green
    for 30 days; keep AwesomeAPI as tertiary fallback.
 
+## Target Architecture
+
+- **Ingestion** – Each provider gets a dedicated Deno service (living under
+  `algorithms/deno`) with a common abstraction for rate-limit aware fetching,
+  response validation (Zod schemas), and batched upserts into Supabase via RPC
+  functions. Reusable helpers (queue scheduling, retry policies, telemetry
+  emitters) live in `shared/data-ingestion`.
+- **Streaming** – Real-time feeds (Finnhub, Polygon.io) flow through the existing
+  Redis pub/sub fabric. Queue workers normalize events into canonical symbol and
+  venue identifiers before writing to the `market_movers_live` table.
+- **Batch Backfill** – Historical pulls (Alpha Vantage, FRED, IMF, Nasdaq Data
+  Link) run as daily GitHub Actions workflows. Artifacts (CSV/Parquet) are
+  stored in S3 with version tags and mirrored to Supabase through the copy API
+  so analysts can query via SQL immediately.
+- **Downstream Consumption** – The `economic-calendar` edge function fans out the
+  unified Supabase views to the React clients. Vercel edge caching is enabled to
+  keep P95 latency <200ms despite larger payloads.
+
+## Schema & Storage Changes
+
+| Table/View                          | Purpose                                                     | Owner |
+| ----------------------------------- | ----------------------------------------------------------- | ----- |
+| `market_movers_live` (new)          | Level-1 snapshots from Finnhub/Polygon.io.                  | Data  |
+| `macro_series` (new)                | Normalized FRED/IMF/OECD time series with metadata JSON.    | Data  |
+| `futures_open_interest` (new)       | Quandl futures exposure aggregated by contract and expiry.  | Data  |
+| `provider_health` (new)             | Captures latency, error, and freshness metrics per vendor.  | SRE   |
+| `market_news` (updated)             | Adds `sentiment_score` and `source_vendor` columns.         | Data  |
+| `cot_reports` (updated)             | Adds raw CFTC identifiers and audit trail references (S3).  | Data  |
+
+Migration scripts live in `supabase/migrations/<date>_provider_expansion.sql`
+and include reversible `DOWN` statements. Coordinate releases with Supabase row
+level security (RLS) updates to ensure analysts keep read-only access.
+
+## Security & Compliance
+
+- Provision provider credentials in Supabase Secrets Manager with unique
+  service accounts per environment (dev/staging/prod). Rotate via GitHub Actions
+  `secrets:rotate-provider-keys` workflow.
+- Restrict outbound IPs using the managed NAT gateway to satisfy Polygon.io and
+  Trading Economics allow lists.
+- Enable audit logging for the new AWS S3 bucket to track all artifact reads and
+  writes. Monthly compliance reviews pull these logs into the GRC dashboard.
+
+## Testing & Validation Strategy
+
+1. **Contract Tests** – For each connector, add Deno test suites asserting
+   response schemas and transformation logic (`npm run test:connectors`).
+2. **Backfill Verification** – Compare daily aggregates between legacy
+   AwesomeAPI/Yahoo Finance datasets and the new sources for a 30-day overlap to
+   confirm <1% variance.
+3. **Load Testing** – Replay peak trading hours via k6 scripts to confirm Redis
+   and Supabase handle the increased throughput with <10% CPU headroom loss.
+4. **Failover Drills** – Simulate provider outages quarterly by toggling feature
+   flags in LaunchDarkly and verifying orchestrator switchover within SLA.
+
+## Resource & Ownership Plan
+
+| Stream                | Squad             | Key Deliverables                              |
+| --------------------- | ----------------- | --------------------------------------------- |
+| Forex & Indices       | Velocity Trading  | Alpha Vantage/Finnhub connectors, live routing |
+| Commodities & Macro   | Macro Insights    | Trading Economics, FRED/IMF ingestion          |
+| Sentiment & Derivatives | Quant Research    | CFTC direct pipeline, NewsAPI NLP scoring      |
+| Platform & Tooling    | Core Platform     | Secrets mgmt, observability, CI enhancements    |
+
+Weekly integration syncs track blockers, and an Asana board holds milestones.
+
+## Risk Mitigation
+
+- **Vendor Quotas** – Configure adaptive polling intervals driven by remaining
+  quota metrics to avoid hard rate-limit breaches.
+- **Data Drift** – Monitor schema or field definition changes by validating
+  against stored JSON schemas each run. Alert via PagerDuty when mismatches
+  occur.
+- **Cost Overruns** – Instrument per-provider cost dashboards using billing API
+  exports; alert finance when monthly run-rate exceeds budget by >10%.
+- **Operational Load** – Introduce runbook automation (via Opsgenie) for common
+  remediation tasks like re-running failed backfills or rotating keys.
+
 ## Operational Guardrails
 
 - Add provider-specific dashboards (latency, error rates, freshness) to the
