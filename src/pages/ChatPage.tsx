@@ -10,54 +10,11 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { z } from "zod";
 
-import {
-  chatHistorySchema,
-  chatMessageSchema,
-  type ChatMessage,
-} from "@/services/dynamic-ai/schema";
+import { useDynamicChat } from "@/hooks/useDynamicChat";
+import { type ChatMessage } from "@/services/dynamic-ai/schema";
 
 const SESSION_STORAGE_KEY = "dynamic-capital.ai.session";
-
-const chatHistoryResponseSchema = z.union([
-  z.object({
-    ok: z.literal(true),
-    messages: chatHistorySchema,
-  }),
-  z
-    .object({
-      ok: z.literal(false),
-      error: z.string().optional(),
-      message: z.string().optional(),
-    })
-    .passthrough(),
-]);
-
-type ChatHistoryResponse = z.infer<typeof chatHistoryResponseSchema>;
-type ChatHistorySuccessResponse = Extract<
-  ChatHistoryResponse,
-  { ok: true }
->;
-
-const chatPostResponseSchema = z.union([
-  z.object({
-    ok: z.literal(true),
-    assistantMessage: chatMessageSchema,
-    history: chatHistorySchema,
-    metadata: z.record(z.unknown()).optional(),
-  }),
-  z
-    .object({
-      ok: z.literal(false),
-      error: z.string().optional(),
-      message: z.string().optional(),
-    })
-    .passthrough(),
-]);
-
-type ChatPostResponse = z.infer<typeof chatPostResponseSchema>;
-type ChatPostSuccessResponse = Extract<ChatPostResponse, { ok: true }>;
 
 type UiMessageStatus = "sent" | "pending" | "error";
 
@@ -107,6 +64,10 @@ export function ChatPage() {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const queryClient = useQueryClient();
 
+  const { fetchHistory, sendMessage } = useDynamicChat({
+    sessionId: sessionId ?? undefined,
+  });
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -122,7 +83,7 @@ export function ChatPage() {
   }, []);
 
   const chatHistoryKey = useMemo(
-    () => ["dynamic-ai-chat-history", sessionId],
+    () => ["dynamic-ai-chat-history", sessionId ?? "pending"],
     [sessionId],
   );
 
@@ -131,36 +92,8 @@ export function ChatPage() {
     enabled: Boolean(sessionId),
     staleTime: 30_000,
     queryFn: async () => {
-      if (!sessionId) {
-        throw new Error("Missing session identifier");
-      }
-
-      const response = await fetch(
-        `/api/dynamic-ai/chat?sessionId=${encodeURIComponent(sessionId)}`,
-      );
-
-      let parsed: unknown;
-      try {
-        parsed = await response.json();
-      } catch (error) {
-        console.error("Failed to parse chat history", error);
-        throw new Error("We could not load your previous conversation.");
-      }
-
-      const result = chatHistoryResponseSchema.safeParse(parsed);
-      if (!result.success) {
-        throw new Error("Received an invalid chat history response.");
-      }
-
-      if (!response.ok || !result.data.ok) {
-        const message =
-          (result.data as Extract<ChatHistoryResponse, { ok: false }>).error ??
-          (result.data as Extract<ChatHistoryResponse, { ok: false }>).message ??
-          "We could not load your previous conversation.";
-        throw new Error(message);
-      }
-
-      return result.data;
+      const result = await fetchHistory();
+      return result;
     },
   });
 
@@ -198,49 +131,17 @@ export function ChatPage() {
     }: {
       message: string;
       history: ChatMessage[];
-    }): Promise<ChatPostSuccessResponse> => {
+    }) => {
       if (!sessionId) {
         throw new Error("Missing session identifier");
       }
 
-      const response = await fetch("/api/dynamic-ai/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sessionId,
-          message,
-          history,
-        }),
+      const response = await sendMessage({
+        message,
+        history,
       });
 
-      let parsed: unknown;
-      try {
-        parsed = await response.json();
-      } catch (error) {
-        console.error("Failed to parse chat response", error);
-        throw new Error(
-          "The concierge returned an unexpected response. Please try again.",
-        );
-      }
-
-      const result = chatPostResponseSchema.safeParse(parsed);
-      if (!result.success) {
-        throw new Error(
-          "The concierge returned an unexpected response. Please try again.",
-        );
-      }
-
-      if (!response.ok || !result.data.ok) {
-        const messageText =
-          (result.data as Extract<ChatPostResponse, { ok: false }>).error ??
-          (result.data as Extract<ChatPostResponse, { ok: false }>).message ??
-          "The concierge is temporarily unavailable. Please try again later.";
-        throw new Error(messageText);
-      }
-
-      return result.data;
+      return response;
     },
     onMutate: async ({ message }) => {
       setErrorMessage(null);
@@ -263,11 +164,9 @@ export function ChatPage() {
     },
     onSuccess: (data) => {
       setMessages(toUiMessages(data.history));
-      const successPayload: ChatHistorySuccessResponse = {
-        ok: true,
+      queryClient.setQueryData(chatHistoryKey, {
         messages: data.history,
-      };
-      queryClient.setQueryData(chatHistoryKey, successPayload);
+      });
     },
     onError: (error, _variables, context) => {
       if (error instanceof Error) {
@@ -324,7 +223,10 @@ export function ChatPage() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(SESSION_STORAGE_KEY, nextSession);
     }
-    queryClient.removeQueries({ queryKey: ["dynamic-ai-chat-history"] });
+    queryClient.removeQueries({
+      queryKey: ["dynamic-ai-chat-history"],
+      exact: false,
+    });
   };
 
   return (
