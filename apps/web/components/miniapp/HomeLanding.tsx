@@ -98,10 +98,33 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     Boolean(window.Telegram?.WebApp);
 
   useEffect(() => {
+    const abortController = new AbortController();
     let mounted = true;
 
     const fetchContent = async () => {
       setLoading(true);
+
+      const promoPromise: Promise<ActivePromo | null> = callEdgeFunction(
+        "ACTIVE_PROMOS",
+        { signal: abortController.signal },
+      )
+        .then((response) => {
+          const { data, status } = response ?? {};
+          if (status !== 200) {
+            return null;
+          }
+          const promotions =
+            (data as { promotions?: ActivePromo[] } | undefined)?.promotions;
+          return promotions?.[0] ?? null;
+        })
+        .catch((promoError) => {
+          if (!abortController.signal.aborted) {
+            console.warn("Promo fetch failed", promoError);
+          }
+          return null;
+        });
+
+      let promoResult: ActivePromo | null | undefined;
 
       try {
         const { data: contentData, status: contentStatus } =
@@ -110,6 +133,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
             body: {
               keys: ["about_us", "our_services", "announcements"],
             },
+            signal: abortController.signal,
           });
 
         let nextAbout = DEFAULT_ABOUT_TEXT;
@@ -118,7 +142,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
         if (
           contentStatus === 200 &&
-          (contentData as { ok?: boolean; contents?: BotContent[] })?.contents
+          (contentData as { contents?: BotContent[] } | undefined)?.contents
         ) {
           const contents =
             (contentData as { contents?: BotContent[] }).contents ?? [];
@@ -143,23 +167,34 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           }
         }
 
-        if (!mounted) return;
+        if (!mounted || abortController.signal.aborted) return;
         setAbout(nextAbout);
         setServices(nextServices);
         setAnnouncement(nextAnnouncement);
 
-        try {
-          const syncResult = await fetchDynamicHomeSync({
+        const [syncOutcome, promo] = await Promise.all([
+          fetchDynamicHomeSync({
             baseContent: {
               aboutUs: nextAbout,
               services: nextServices,
               announcements: nextAnnouncement,
             },
             subscription: null,
-          });
+          })
+            .then((result) => ({ status: "fulfilled" as const, result }))
+            .catch((syncError) => ({
+              status: "rejected" as const,
+              error: syncError,
+            })),
+          promoPromise,
+        ]);
 
-          if (!mounted) return;
+        promoResult = promo;
 
+        if (!mounted || abortController.signal.aborted) return;
+
+        if (syncOutcome.status === "fulfilled") {
+          const syncResult = syncOutcome.result;
           setMetrics(
             syncResult.metrics.length > 0
               ? syncResult.metrics
@@ -167,46 +202,31 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           );
           setInsights(syncResult.insights);
           setLastSyncedAt(syncResult.updatedAt ?? null);
-        } catch (syncError) {
-          console.error("Failed to run dynamic home sync", syncError);
-          if (mounted) {
-            setMetrics(DEFAULT_MARKET_PULSE_METRICS);
-            setInsights([]);
-            setLastSyncedAt(null);
-          }
+        } else {
+          console.error("Failed to run dynamic home sync", syncOutcome.error);
+          setMetrics(DEFAULT_MARKET_PULSE_METRICS);
+          setInsights([]);
+          setLastSyncedAt(null);
         }
       } catch (error) {
+        if (abortController.signal.aborted) {
+          return;
+        }
+
         console.error("Failed to fetch mini app content", error);
         if (mounted) {
           setAbout(DEFAULT_ABOUT_TEXT);
           setServices(DEFAULT_SERVICES_TEXT);
           setAnnouncement(DEFAULT_ANNOUNCEMENT);
           setMetrics(DEFAULT_MARKET_PULSE_METRICS);
+          setInsights([]);
+          setLastSyncedAt(null);
         }
-      }
-
-      try {
-        const { data: promoData, status: promoStatus } = await callEdgeFunction(
-          "ACTIVE_PROMOS",
-        );
-        if (
-          mounted &&
-          promoStatus === 200 &&
-          (promoData as { promotions?: ActivePromo[] })?.promotions?.length
-        ) {
-          const [firstPromo] = (promoData as { promotions?: ActivePromo[] })
-            .promotions!;
-          setActivePromo(firstPromo);
-        } else if (mounted) {
-          setActivePromo(null);
-        }
-      } catch (promoError) {
-        console.warn("Promo fetch failed", promoError);
-        if (mounted) {
-          setActivePromo(null);
-        }
+        promoResult = await promoPromise;
       } finally {
+        const finalPromo = promoResult ?? (await promoPromise);
         if (mounted) {
+          setActivePromo(finalPromo);
           setLoading(false);
         }
       }
@@ -216,6 +236,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
     return () => {
       mounted = false;
+      abortController.abort();
     };
   }, []);
 
