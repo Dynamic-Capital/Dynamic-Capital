@@ -1,7 +1,10 @@
 // functions/_tests/webhook-secret.test.ts
 // Test validation of x-telegram-bot-api-secret-token header for telegram-webhook.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { setTestEnv, clearTestEnv } from "../../supabase/functions/_tests/env-mock.ts";
+import {
+  clearTestEnv,
+  setTestEnv,
+} from "../../supabase/functions/_tests/env-mock.ts";
 
 // Provide minimal environment so the handler module can load without reaching for
 // real secrets or network resources.
@@ -36,6 +39,16 @@ Deno.test("rejects invalid webhook secret", async () => {
       "content-type": "application/json",
       "x-telegram-bot-api-secret-token": "wrong-secret",
     },
+    body: "{}",
+  });
+  const res = await handler(req);
+  assertEquals(res.status, 401);
+});
+
+Deno.test("rejects missing webhook secret", async () => {
+  const req = new Request("http://local/telegram-webhook", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
     body: "{}",
   });
   const res = await handler(req);

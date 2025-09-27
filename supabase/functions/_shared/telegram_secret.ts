@@ -39,7 +39,8 @@ export async function readDbWebhookSecret(
 export async function expectedSecret(
   supa?: SupabaseLike,
 ): Promise<string | null> {
-  return (await readDbWebhookSecret(supa)) || optionalEnv("TELEGRAM_WEBHOOK_SECRET");
+  return (await readDbWebhookSecret(supa)) ||
+    optionalEnv("TELEGRAM_WEBHOOK_SECRET");
 }
 
 function genHex(n = 24) {
@@ -63,6 +64,14 @@ export async function ensureWebhookSecret(
   if (error) throw new Error("upsert bot_settings failed: " + error.message);
   return secret;
 }
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) {
+    out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return out === 0;
+}
 export async function validateTelegramHeader(
   req: Request,
 ): Promise<Response | null> {
@@ -76,6 +85,6 @@ export async function validateTelegramHeader(
   const exp = await expectedSecret();
   if (!exp) return unauth("missing secret");
   const got = req.headers.get("x-telegram-bot-api-secret-token");
-  if (!got || got !== exp) return unauth("bad secret");
+  if (!got || !timingSafeEqual(got, exp)) return unauth("bad secret");
   return null;
 }
