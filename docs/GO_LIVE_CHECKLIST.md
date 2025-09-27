@@ -1,24 +1,24 @@
 # Go Live Checklist
 
 - [ ] Webhook set & verified. See the
-  [Go-Live Validation Playbook](./go-live-validation-playbook.md#1-telegram-webhook-health)
-  for the scripted check and health probe steps.
+      [Go-Live Validation Playbook](./go-live-validation-playbook.md#1-telegram-webhook-health)
+      for the scripted check and health probe steps.
 - [ ] Bank happy path (should approve). Follow the
-  [bank approval runbook](./go-live-validation-playbook.md#2-bank-approvals--happy-path)
-  to capture evidence that `current_vip.is_vip = true`.
+      [bank approval runbook](./go-live-validation-playbook.md#2-bank-approvals--happy-path)
+      to capture evidence that `current_vip.is_vip = true`.
 - [ ] Bank near-miss (manual_review with reason). Mirror the
-  [near-miss checklist](./go-live-validation-playbook.md#3-bank-approvals--near-miss)
-  so manual reviews are recorded with a reason.
+      [near-miss checklist](./go-live-validation-playbook.md#3-bank-approvals--near-miss)
+      so manual reviews are recorded with a reason.
 - [x] Duplicate image (blocked).
 - [ ] Duplicate receipt submissions are rejected. Follow the
-  [safeguard walkthrough](./go-live-validation-playbook.md#4-duplicate-receipt-safeguard)
-  to capture the duplicate error response.
+      [safeguard walkthrough](./go-live-validation-playbook.md#4-duplicate-receipt-safeguard)
+      to capture the duplicate error response.
 - [ ] (If crypto enabled) TXID awaiting confirmations → approve later. Use the
-  [crypto validation steps](./go-live-validation-playbook.md#5-crypto-txid-confirmations-if-enabled)
-  when rails are active.
+      [crypto validation steps](./go-live-validation-playbook.md#5-crypto-txid-confirmations-if-enabled)
+      when rails are active.
 - [ ] Admin commands respond. Run the
-  [admin smoke test](./go-live-validation-playbook.md#6-admin-command-smoke-test)
-  from an authorized Telegram account.
+      [admin smoke test](./go-live-validation-playbook.md#6-admin-command-smoke-test)
+      from an authorized Telegram account.
 
 ## Local webhook smoke test
 
@@ -58,8 +58,9 @@ Pay","web_app":{"short_name":"dynamic_pay"}}}'
 curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/deleteWebhook"
 
 # Set webhook with secret token (replace <PROJECT_REF>)
+# If TELEGRAM_WEBHOOK_URL is set, use that value instead of the Supabase host.
 curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
-  -d "url=https://<PROJECT_REF>.functions.supabase.co/telegram-bot" \
+  -d "url=${TELEGRAM_WEBHOOK_URL:-https://<PROJECT_REF>.functions.supabase.co/telegram-bot}" \
   -d "secret_token=$TELEGRAM_WEBHOOK_SECRET"
 
 # Inspect current webhook

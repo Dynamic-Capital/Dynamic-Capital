@@ -26,3 +26,10 @@ export function functionUrl(name: string): string | null {
   const host = functionsHost();
   return host ? `https://${host}/${name}` : null;
 }
+
+export function telegramWebhookUrl(): string | null {
+  const override = optionalEnv("TELEGRAM_WEBHOOK_URL");
+  if (override) return override;
+  const host = functionsHost();
+  return host ? `https://${host}/telegram-bot` : null;
+}

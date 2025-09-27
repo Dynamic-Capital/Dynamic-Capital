@@ -2,6 +2,7 @@ import { optionalEnv } from "../_shared/env.ts";
 import { mna, nf, ok, oops, unauth } from "../_shared/http.ts";
 import { expectedSecret } from "../_shared/telegram_secret.ts";
 import { envOrSetting } from "../_shared/config.ts";
+import { telegramWebhookUrl } from "../_shared/edge.ts";
 
 interface TgResp {
   ok: boolean;
@@ -49,7 +50,8 @@ export async function handler(req: Request): Promise<Response> {
       if (!token || !secret) return oops("missing bot token or webhook secret");
 
       const functionsBase = `${url.protocol}//${url.host}`;
-      const expectedWebhook = `${functionsBase}/telegram-bot`;
+      const expectedWebhook = telegramWebhookUrl() ||
+        `${functionsBase}/telegram-bot`;
 
       const info = await tg(token, "getWebhookInfo");
       const currentUrl = info?.result?.url as string | undefined;

@@ -3,8 +3,9 @@
 
 import { optionalEnv } from "../_shared/env.ts";
 import { envOrSetting } from "../_shared/config.ts";
-import { ok, unauth, nf, mna, oops } from "../_shared/http.ts";
+import { mna, nf, ok, oops, unauth } from "../_shared/http.ts";
 import { expectedSecret } from "../_shared/telegram_secret.ts";
+import { telegramWebhookUrl } from "../_shared/edge.ts";
 
 interface TelegramResponse {
   ok: boolean;
@@ -74,7 +75,8 @@ export async function handler(req: Request): Promise<Response> {
 
       // --- Step 2: derive expected endpoints ---
       const functionsBase = `${url.protocol}//${url.host}`;
-      const expectedWebhook = `${functionsBase}/telegram-bot`;
+      const expectedWebhook = telegramWebhookUrl() ||
+        `${functionsBase}/telegram-bot`;
 
       // --- Step 3: ping related endpoints ---
       const [botVer, miniVer, miniHead] = await Promise.all([
@@ -96,10 +98,10 @@ export async function handler(req: Request): Promise<Response> {
       if (botToken) {
         const info = await tg(botToken, "getWebhookInfo");
         webhookActual = info?.result?.url as string | null ?? null;
-        const currentSecret = info?.result?.secret_token as string | null ?? null;
+        const currentSecret = info?.result?.secret_token as string | null ??
+          null;
         webhookSecretOk = !webhookSecret || currentSecret === webhookSecret;
-        const mismatch =
-          webhookActual !== expectedWebhook || !webhookSecretOk;
+        const mismatch = webhookActual !== expectedWebhook || !webhookSecretOk;
         if (mismatch && fix && webhookSecret) {
           const set = await tg(botToken, "setWebhook", {
             url: expectedWebhook,
@@ -130,8 +132,8 @@ export async function handler(req: Request): Promise<Response> {
       let menuFixed = false;
       if (botToken) {
         const menu = await tg(botToken, "getChatMenuButton");
-        menuActual =
-          menu?.result?.menu_button?.web_app?.url as string | null ?? null;
+        menuActual = menu?.result?.menu_button?.web_app?.url as string | null ??
+          null;
         const menuMismatch = miniExpected && menuActual !== miniExpected;
         if (menuMismatch && fix && miniExpected) {
           const set = await tg(botToken, "setChatMenuButton", {
@@ -162,8 +164,16 @@ export async function handler(req: Request): Promise<Response> {
         secrets,
         endpoints,
         telegram: {
-          webhook: { expected: expectedWebhook, actual: webhookActual, fixed: webhookFixed },
-          menu: { expected: miniExpected, actual: menuActual, fixed: menuFixed },
+          webhook: {
+            expected: expectedWebhook,
+            actual: webhookActual,
+            fixed: webhookFixed,
+          },
+          menu: {
+            expected: miniExpected,
+            actual: menuActual,
+            fixed: menuFixed,
+          },
         },
         notes,
         version: { name: "sync-audit", ts: new Date().toISOString() },
@@ -179,6 +189,5 @@ export async function handler(req: Request): Promise<Response> {
 }
 
 Deno.serve(handler);
-
 
 export default handler;
