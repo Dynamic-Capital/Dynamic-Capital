@@ -11,6 +11,7 @@ from dynamic_bridge import (
     BridgeIncident,
     BridgeLink,
     DynamicBridgeOrchestrator,
+    create_dynamic_mt5_bridge,
 )
 
 
@@ -99,3 +100,44 @@ def test_open_incident_penalises_score_until_resolved() -> None:
     recovered_report = orchestrator.evaluate_health()
     assert recovered_report.degraded_links == ()
     assert recovered_report.link_scores["signals-to-execution"] == pytest.approx(0.96)
+
+
+def test_create_dynamic_mt5_bridge_defaults() -> None:
+    orchestrator = create_dynamic_mt5_bridge()
+
+    edge_endpoint = orchestrator.get_endpoint("supabase-edge")
+    assert edge_endpoint.protocol == "https"
+    assert edge_endpoint.criticality == "high"
+
+    report = orchestrator.evaluate_health()
+
+    assert report.metadata["total_links"] == 6
+    assert report.metadata["total_endpoints"] == 7
+    assert report.degraded_links == ()
+    assert report.overall_score == pytest.approx(0.9658, rel=1e-3)
+
+
+def test_create_dynamic_mt5_bridge_with_overrides_and_incidents() -> None:
+    orchestrator = create_dynamic_mt5_bridge(
+        link_overrides={
+            "realtime-to-worker": {
+                "expected_latency_ms": 420.0,
+                "latency_budget_ms": 200.0,
+                "reliability": 0.82,
+            }
+        },
+        incidents=[
+            {
+                "identifier": "mt5-latency-spike",
+                "link": "realtime-to-worker",
+                "severity": "major",
+                "summary": "Realtime channel backlog affecting MT5 bridge",
+            }
+        ],
+    )
+
+    report = orchestrator.evaluate_health()
+
+    assert "realtime-to-worker" in report.degraded_links
+    assert any(inc.identifier == "mt5-latency-spike" for inc in report.open_incidents)
+    assert report.link_scores["realtime-to-worker"] < 0.82
