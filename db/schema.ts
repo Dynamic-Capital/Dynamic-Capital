@@ -3,12 +3,14 @@ import {
   bigserial,
   boolean,
   date,
+  index,
   integer,
   jsonb,
   numeric,
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -219,3 +221,91 @@ export const fundamentalPositioning = pgTable("fundamental_positioning", {
 export type FundamentalPositioning = typeof fundamentalPositioning.$inferSelect;
 export type NewFundamentalPositioning =
   typeof fundamentalPositioning.$inferInsert;
+
+export const onchainBalances = pgTable("onchain_balances", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  chainId: text("chain_id").notNull(),
+  address: text("address").notNull(),
+  tokenAddress: text("token_address"),
+  tokenSymbol: text("token_symbol").notNull(),
+  tokenDecimals: integer("token_decimals").notNull().default(0),
+  balance: numeric("balance", { precision: 30, scale: 12, mode: "string" })
+    .notNull(),
+  usdValue: numeric("usd_value", { precision: 30, scale: 12, mode: "number" }),
+  observedAt: timestamp("observed_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull()
+    .default({} as Record<string, unknown>),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+}, (table) => ({
+  chainIdx: index("onchain_balances_chain_idx").on(table.chainId),
+  addressIdx: index("onchain_balances_address_idx").on(table.address),
+  uniqueSnapshot: uniqueIndex("onchain_balances_unique").on(
+    table.chainId,
+    table.address,
+    table.tokenAddress,
+    table.observedAt,
+  ),
+}));
+
+export type OnchainBalanceRow = typeof onchainBalances.$inferSelect;
+export type NewOnchainBalanceRow = typeof onchainBalances.$inferInsert;
+
+export const onchainActivity = pgTable("onchain_activity", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  chainId: text("chain_id").notNull(),
+  address: text("address").notNull(),
+  txHash: text("tx_hash").notNull(),
+  direction: text("direction").notNull(),
+  counterparty: text("counterparty"),
+  tokenSymbol: text("token_symbol"),
+  amount: numeric("amount", { precision: 30, scale: 12, mode: "string" })
+    .notNull(),
+  status: text("status").notNull().default("confirmed"),
+  blockNumber: text("block_number"),
+  blockTimestamp: timestamp("block_timestamp", { withTimezone: true }),
+  fee: numeric("fee", { precision: 30, scale: 12, mode: "string" }),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull()
+    .default({} as Record<string, unknown>),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+}, (table) => ({
+  txIdx: uniqueIndex("onchain_activity_unique").on(
+    table.chainId,
+    table.txHash,
+    table.address,
+  ),
+  chainIdx: index("onchain_activity_chain_idx").on(table.chainId),
+}));
+
+export type OnchainActivityRow = typeof onchainActivity.$inferSelect;
+export type NewOnchainActivityRow = typeof onchainActivity.$inferInsert;
+
+export const onchainMetrics = pgTable("onchain_metrics", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  provider: text("provider").notNull(),
+  metric: text("metric").notNull(),
+  value: numeric("value", { precision: 30, scale: 12, mode: "number" })
+    .notNull(),
+  unit: text("unit"),
+  observedAt: timestamp("observed_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  tags: jsonb("tags").$type<Record<string, string>>().notNull()
+    .default({} as Record<string, string>),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull()
+    .default({} as Record<string, unknown>),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+}, (table) => ({
+  metricIdx: uniqueIndex("onchain_metrics_unique").on(
+    table.provider,
+    table.metric,
+    table.observedAt,
+  ),
+}));
+
+export type OnchainMetricRow = typeof onchainMetrics.$inferSelect;
+export type NewOnchainMetricRow = typeof onchainMetrics.$inferInsert;

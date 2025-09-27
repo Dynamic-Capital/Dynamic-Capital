@@ -2,6 +2,7 @@ import { registerHandler } from "../_shared/serve.ts";
 import { bad, corsHeaders, json, methodNotAllowed } from "../_shared/http.ts";
 import { createClient } from "../_shared/client.ts";
 import { need, optionalEnv } from "../_shared/env.ts";
+import { lookupTonTransaction } from "../_shared/onchain/index.ts";
 import {
   publishBurnExecutedEvent,
   publishPaymentRecordedEvent,
@@ -163,53 +164,33 @@ async function verifyTonPayment(
   expectedWallet: string,
   expectedAmount: number,
 ): Promise<VerifiedTonPayment> {
-  const indexerUrl = optionalEnv("TON_INDEXER_URL");
-  if (!indexerUrl) {
+  const tonApiBase = optionalEnv("TON_API_BASE_URL");
+  if (!tonApiBase) {
     return { ok: true, amountTon: expectedAmount };
   }
 
-  const response = await fetch(
-    `${indexerUrl.replace(/\/$/, "")}/transactions/${txHash}`,
-  );
-  if (!response.ok) {
-    return { ok: false, error: `Indexer returned ${response.status}` };
+  try {
+    const tx = await lookupTonTransaction(txHash, expectedWallet);
+    if (normalizeAddress(tx.to) !== normalizeAddress(expectedWallet)) {
+      return { ok: false, error: "Funds not received by intake wallet" };
+    }
+
+    const amountTon = Number(tx.value);
+    if (!Number.isFinite(amountTon) || amountTon <= 0) {
+      return { ok: false, error: "Transaction value missing" };
+    }
+
+    if (amountTon + 1e-6 < expectedAmount) {
+      return { ok: false, error: "TON amount less than expected" };
+    }
+
+    return { ok: true, amountTon, blockTime: tx.blockTimestamp };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
-
-  const payload = await response.json();
-  const destination: string | undefined = payload.destination ??
-    payload.account?.address ??
-    payload.in_msg?.destination ??
-    payload.out_msg?.destination;
-  if (!destination) {
-    return { ok: false, error: "Indexer response missing destination" };
-  }
-
-  const normalizedDestination = normalizeAddress(String(destination));
-  if (normalizedDestination !== normalizeAddress(expectedWallet)) {
-    return { ok: false, error: "Funds not received by intake wallet" };
-  }
-
-  const amountCandidate = payload.amountTon ?? payload.amount ??
-    payload.value ?? payload.coins ?? payload.in_msg?.value ?? 0;
-  const amountNumeric = Number(amountCandidate);
-  const amountTon = amountNumeric > 1_000_000
-    ? amountNumeric / 1_000_000_000
-    : amountNumeric;
-  if (!Number.isFinite(amountTon) || amountTon <= 0) {
-    return { ok: false, error: "Indexer response missing amount" };
-  }
-
-  if (amountTon + 1e-6 < expectedAmount) {
-    return { ok: false, error: "TON amount less than expected" };
-  }
-
-  const blockTime: string | undefined = typeof payload.timestamp === "string"
-    ? payload.timestamp
-    : payload.utime
-    ? new Date(Number(payload.utime) * 1000).toISOString()
-    : undefined;
-
-  return { ok: true, amountTon, blockTime };
 }
 
 async function executeSwap(

@@ -53,7 +53,14 @@ export type EnvKey =
   | "PROMO_AUTOGEN_SECRET"
   | "VIP_PRICING_LOOKBACK_DAYS"
   | "PROMO_AUTOGEN_MIN_USERS"
-  | "PROMO_AUTOGEN_MIN_REVENUE";
+  | "PROMO_AUTOGEN_MIN_REVENUE"
+  | "TON_INDEXER_URL"
+  | "TON_API_BASE_URL"
+  | "TON_API_KEY"
+  | "ETHERSCAN_API_KEY"
+  | "COVALENT_API_KEY"
+  | "MORALIS_API_KEY"
+  | "GLASSNODE_API_KEY";
 
 /** Test-only env injection type */
 type TestEnv = Partial<Record<EnvKey, string>>;
