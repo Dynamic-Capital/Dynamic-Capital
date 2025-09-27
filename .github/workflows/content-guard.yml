@@ -17,7 +17,12 @@ jobs:
           git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD > changed.txt
           cat changed.txt
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            apps/*/package-lock.json
       - name: Run content guard
         env:
           CHANGED_LIST: changed.txt
