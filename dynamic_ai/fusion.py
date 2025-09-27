@@ -115,13 +115,26 @@ class SentimentLobe:
     negative_keywords: Sequence[str] = ("downgrade", "bearish", "risk")
 
     def evaluate(self, data: Mapping[str, Any]) -> LobeSignal:
-        feeds: Iterable[Mapping[str, Any]] = data.get("sentiment_feeds", [])  # type: ignore[assignment]
+        feeds: Iterable[Mapping[str, Any]] | Mapping[str, Any] | None = data.get(
+            "sentiment_feeds",
+            [],
+        )  # type: ignore[assignment]
+
+        feed_list: list[Mapping[str, Any]]
+        if feeds is None:
+            feed_list = []
+        elif isinstance(feeds, Mapping):
+            feed_list = [feeds]
+        elif isinstance(feeds, (str, bytes)):
+            feed_list = []
+        else:
+            feed_list = [feed for feed in feeds if isinstance(feed, Mapping)]
 
         positive_hits = 0
         negative_hits = 0
         aggregate_score = 0.0
 
-        for feed in feeds or []:
+        for feed in feed_list:
             score = float(feed.get("score", 0.0))
             aggregate_score += score
             text = str(feed.get("summary", "")).lower()
@@ -130,7 +143,7 @@ class SentimentLobe:
             if any(keyword in text for keyword in self.negative_keywords):
                 negative_hits += 1
 
-        count = max(len(list(feeds or [])), 1)
+        count = max(len(feed_list), 1)
         avg_score = aggregate_score / count
         keyword_bias = positive_hits - negative_hits
         score = max(-1.0, min(1.0, avg_score + 0.2 * keyword_bias))
