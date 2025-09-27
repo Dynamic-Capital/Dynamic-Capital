@@ -8,9 +8,9 @@
 ## What's New
 
 <!-- WHATS_NEW:START -->
-
-Project highlights will appear here after the first automated release.
-
+- Dynamic AI multi-lobe fusion engine now powers adaptive trade orchestration with a Supabase-backed hedging service for real-time guardrails.
+- Multi-LLM Studio workspace enables cross-provider strategy design with shared prompts, benchmarks, and deployment presets.
+- Enhanced Telegram bot console delivers richer admin telemetry, escalation tooling, and instant Mini App synchronization.
 <!-- WHATS_NEW:END -->
 
 ## Shortcuts
@@ -93,12 +93,33 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 - **Multi-LLM Studio tool** (`apps/web/app/tools/multi-llm`) for comparing
   OpenAI, Anthropic, and Groq chat completions side by side with configurable
   temperature and token limits directly inside the main Next.js app.
+- **Market Intelligence Workspace** with curated data rooms, model outputs, and deal pipelines for investor-ready insights.
+- **Dynamic Market Review automation** that aggregates TradingView signals, Telegram alerts, and Supabase events into actionable hedging triggers.
+- **`economic-calendar` edge function** streaming macro events into the signal bus for instant bot and dashboard consumption.
 - Step through the
   [Dynamic AI & Dynamic Trading Algo Enhancement Roadmap](docs/multi-llm-algo-enhancement-roadmap.md)
   to align provider orchestration with the trading automation stack.
 - Onboard fast with the
   [Dynamic AI Overview](docs/dynamic-ai-overview.md) summarising the Brain layer,
   lobe fusion model, and operational guardrails that keep automation governed.
+
+## Investor Experience
+
+- **TonConnect onboarding flow** delivers deep links from Telegram, QR fallback, and guarded session handshakes so traders can authenticate once and rejoin across devices.
+- **Automation guardrails** enforce per-user hedging limits, circuit breakers, and operator approval queues before new strategies reach production.
+- **Supported wallets** include Tonkeeper, OpenMask, and MyTonWallet with dynamic capability negotiation for staking, swaps, and signature payloads.
+
+## Treasury & Token
+
+- **Dynamic Capital Token (DCT)** anchors treasury governance with transparent supply, vesting cliffs, and fee routing published in the [DCT whitepaper](docs/dynamic-capital-ton-whitepaper.md).
+- **Live DEX references**: monitor liquidity and pricing on [STON.fi](https://app.ston.fi) and [DeDust](https://dedust.io) pairs, with hedging hooks synced to the Supabase ledger service.
+
+## Architecture & Docs
+
+Explore the broader platform anatomy and contributor guides:
+
+- [Dynamic Capital ecosystem anatomy](docs/dynamic-capital-ecosystem-anatomy.md)
+- [Dynamic AI overview](docs/dynamic-ai-overview.md)
 
 ## Dynamic Theme System
 
