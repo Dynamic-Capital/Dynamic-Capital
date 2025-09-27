@@ -3,6 +3,8 @@
 from .agents import (
     Agent,
     AgentResult,
+    AtomAgent,
+    AtomAgentResult,
     ChatAgentResult,
     ChatTurn,
     DynamicChatAgent,
@@ -57,6 +59,8 @@ from .hedge import (
 __all__ = [
     "Agent",
     "AgentResult",
+    "AtomAgent",
+    "AtomAgentResult",
     "ChatAgentResult",
     "ChatTurn",
     "DynamicChatAgent",

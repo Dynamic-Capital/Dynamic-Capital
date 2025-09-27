@@ -17,6 +17,8 @@ from typing import TYPE_CHECKING, Any
 __all__ = [
     "Agent",
     "AgentResult",
+    "AtomAgent",
+    "AtomAgentResult",
     "ChatAgentResult",
     "ChatTurn",
     "DynamicChatAgent",
@@ -36,6 +38,8 @@ __all__ = [
 _AGENT_EXPORTS = {
     "Agent",
     "AgentResult",
+    "AtomAgent",
+    "AtomAgentResult",
     "ChatAgentResult",
     "ChatTurn",
     "DynamicChatAgent",
@@ -56,6 +60,8 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
     from dynamic_ai import (
         Agent,
         AgentResult,
+        AtomAgent,
+        AtomAgentResult,
         ChatAgentResult,
         ChatTurn,
         DynamicChatAgent,
