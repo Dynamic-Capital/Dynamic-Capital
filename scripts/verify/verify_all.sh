@@ -12,6 +12,7 @@ bash scripts/verify/static_code_checks.sh
 bash scripts/verify/deployed_function_checks.sh
 bash scripts/verify/runtime_wiring_checks.sh
 bash scripts/verify/miniapp_safety.sh
+bash scripts/verify/tradingview_webhook.sh
 
 # Build markdown report
 OUT=".out/verify_report.md"
@@ -37,6 +38,7 @@ emit_section "A) Static Code Checks" ".out/static_checks.txt"
 emit_section "B) Deployed Function Checks" ".out/deployed_checks.txt"
 emit_section "C) Runtime Wiring Checks" ".out/runtime_checks.txt"
 emit_section "D) Mini App Safety" ".out/miniapp_safety.txt"
+emit_section "E) TradingView Webhook" ".out/tradingview_webhook.txt"
 
 echo "Report written to $OUT"
 say "Done."
