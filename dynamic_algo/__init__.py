@@ -78,6 +78,13 @@ from .dynamic_scripts import (
     DynamicScriptRegistry,
     ScriptConfigError,
 )
+from .dynamic_traffic import (
+    DynamicTrafficControl,
+    RoutePolicy,
+    RouteSnapshot,
+    TrafficDecision,
+    TrafficSignal,
+)
 
 __all__ = [
     "ORDER_ACTION_BUY",
@@ -140,4 +147,9 @@ __all__ = [
     "DynamicScript",
     "DynamicScriptRegistry",
     "ScriptConfigError",
+    "DynamicTrafficControl",
+    "RoutePolicy",
+    "RouteSnapshot",
+    "TrafficDecision",
+    "TrafficSignal",
 ]
