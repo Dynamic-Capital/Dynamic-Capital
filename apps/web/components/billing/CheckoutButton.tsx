@@ -12,7 +12,9 @@ export const CheckoutButton = ({ plan }: CheckoutButtonProps) => {
   const router = useRouter();
 
   const handleCheckout = () => {
-    router.push(`/payment-status?status=success&plan=${encodeURIComponent(plan)}`);
+    router.push(
+      `/payment-status?status=success&plan=${encodeURIComponent(plan)}`,
+    );
   };
 
   return (

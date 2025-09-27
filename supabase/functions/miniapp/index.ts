@@ -5,7 +5,7 @@ import { optionalEnv, requireEnv } from "../_shared/env.ts";
 import { serveStatic, StaticOpts } from "../_shared/static.ts";
 import { createClient } from "@supabase/supabase-js";
 import { ENHANCED_SECURITY_HEADERS, withSecurity } from "./security.ts";
-import { smartCompress, DISABLE_HTML_COMPRESSION } from "./compression.ts";
+import { DISABLE_HTML_COMPRESSION, smartCompress } from "./compression.ts";
 import { fetchFromStorage } from "./storage.ts";
 import { handleApiRoutes } from "./routes.ts";
 
@@ -24,21 +24,23 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 
 // Serve static files from the built React app with fallback
 async function serveStaticIndex(): Promise<Response | null> {
-      try {
-        const staticIndexPath = new URL("./static/index.html", import.meta.url);
-        const htmlContent = await Deno.readTextFile(staticIndexPath);
-        console.log(`[miniapp] Serving static index.html (${htmlContent.length} bytes)`);
-        return new Response(htmlContent, {
-          headers: {
-            "content-type": "text/html; charset=utf-8",
-            "cache-control": "no-cache",
-            "x-served-from": "static"
-          }
-        });
-      } catch (e) {
-        console.warn("[miniapp] Static index.html not found:", e.message);
-        return null;
-      }
+  try {
+    const staticIndexPath = new URL("./static/index.html", import.meta.url);
+    const htmlContent = await Deno.readTextFile(staticIndexPath);
+    console.log(
+      `[miniapp] Serving static index.html (${htmlContent.length} bytes)`,
+    );
+    return new Response(htmlContent, {
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache",
+        "x-served-from": "static",
+      },
+    });
+  } catch (e) {
+    console.warn("[miniapp] Static index.html not found:", e.message);
+    return null;
+  }
 }
 
 // Embedded React App HTML Template
@@ -263,7 +265,7 @@ console.log(
   "[miniapp] Configuration - SERVE_FROM_STORAGE:",
   SERVE_FROM_STORAGE,
   "DISABLE_HTML_COMPRESSION:",
-  DISABLE_HTML_COMPRESSION
+  DISABLE_HTML_COMPRESSION,
 );
 
 // API Routes Handler
@@ -273,9 +275,9 @@ export async function handler(req: Request): Promise<Response> {
   const path = url.pathname;
   const normalizedPath = path.startsWith("/miniapp")
     ? (() => {
-        const stripped = path.slice("/miniapp".length) || "/";
-        return stripped.startsWith("/") ? stripped : `/${stripped}`;
-      })()
+      const stripped = path.slice("/miniapp".length) || "/";
+      return stripped.startsWith("/") ? stripped : `/${stripped}`;
+    })()
     : path;
 
   const logPath = normalizedPath === path
@@ -283,17 +285,22 @@ export async function handler(req: Request): Promise<Response> {
     : `${path} -> ${normalizedPath}`;
 
   console.log(`[miniapp] ${req.method} ${logPath}`);
-  
+
   // Handle version endpoint for health checks and deployment verification
   if (path === "/version") {
-    return withSecurity(new Response(JSON.stringify({
-      version: "1.0.0",
-      timestamp: new Date().toISOString(),
-      healthy: true,
-      deployment_id: Deno.env.get("DENO_DEPLOYMENT_ID") || "unknown"
-    }), {
-      headers: { "content-type": "application/json" }
-    }));
+    return withSecurity(
+      new Response(
+        JSON.stringify({
+          version: "1.0.0",
+          timestamp: new Date().toISOString(),
+          healthy: true,
+          deployment_id: Deno.env.get("DENO_DEPLOYMENT_ID") || "unknown",
+        }),
+        {
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
   }
 
   // Try to use the static server helper for SPA routes
@@ -315,27 +322,27 @@ export async function handler(req: Request): Promise<Response> {
           "/vite.svg",
           "/robots.txt",
           "/sitemap.xml",
-        ]
+        ],
       };
 
       // Try static serving first (normalize /miniapp prefix if present)
       const staticReq = path.startsWith("/miniapp")
         ? (() => {
-            const u = new URL(req.url);
-            u.pathname = u.pathname.replace(/^\/miniapp/, "");
-            return new Request(u, req);
-          })()
+          const u = new URL(req.url);
+          u.pathname = u.pathname.replace(/^\/miniapp/, "");
+          return new Request(u, req);
+        })()
         : req;
       const staticResponse = await serveStatic(staticReq, staticOpts);
-      
+
       // If static serving succeeds, add diagnostic header and return
       if (staticResponse.status === 200) {
         const headers = new Headers(staticResponse.headers);
         headers.set("x-served-from", "static");
         console.log(`[miniapp] Served ${path} from static build`);
-        return new Response(staticResponse.body, { 
-          status: staticResponse.status, 
-          headers 
+        return new Response(staticResponse.body, {
+          status: staticResponse.status,
+          headers,
         });
       }
     } catch (e) {
@@ -346,22 +353,26 @@ export async function handler(req: Request): Promise<Response> {
   // HEAD routes
   if (req.method === "HEAD") {
     if (path === "/" || path === "/miniapp" || path === "/miniapp/") {
-      return withSecurity(new Response(null, { 
-        status: 200, 
-        headers: { 
-          "content-type": "text/html; charset=utf-8",
-          "x-served-from": "head-check"
-        } 
-      }));
+      return withSecurity(
+        new Response(null, {
+          status: 200,
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+            "x-served-from": "head-check",
+          },
+        }),
+      );
     }
     if (path === "/miniapp/version") {
-      return withSecurity(new Response(null, { 
-        status: 200,
-        headers: { 
-          "content-type": "application/json; charset=utf-8",
-          "x-served-from": "head-check"
-        }
-      }));
+      return withSecurity(
+        new Response(null, {
+          status: 200,
+          headers: {
+            "content-type": "application/json; charset=utf-8",
+            "x-served-from": "head-check",
+          },
+        }),
+      );
     }
     return withSecurity(nf("Not Found"));
   }
@@ -386,10 +397,12 @@ export async function handler(req: Request): Promise<Response> {
         if (staticResp) {
           const headers = new Headers(staticResp.headers);
           headers.set("x-served-from", "static-fallback");
-          return withSecurity(new Response(staticResp.body, { 
-            status: staticResp.status, 
-            headers 
-          }));
+          return withSecurity(
+            new Response(staticResp.body, {
+              status: staticResp.status,
+              headers,
+            }),
+          );
         }
         // Final fallback to embedded
         htmlContent = REACT_APP_HTML;
@@ -402,12 +415,14 @@ export async function handler(req: Request): Promise<Response> {
       if (staticResp) {
         const headers = new Headers(staticResp.headers);
         headers.set("x-served-from", "static");
-        return withSecurity(new Response(staticResp.body, { 
-          status: staticResp.status, 
-          headers 
-        }));
+        return withSecurity(
+          new Response(staticResp.body, {
+            status: staticResp.status,
+            headers,
+          }),
+        );
       }
-      
+
       // Fallback to embedded
       htmlContent = REACT_APP_HTML;
       servedFrom = "embedded";
@@ -417,42 +432,45 @@ export async function handler(req: Request): Promise<Response> {
     const arr = new TextEncoder().encode(htmlContent);
     const contentType = "text/html; charset=utf-8";
     const { stream, encoding } = smartCompress(arr, req, contentType);
-    
+
     const headers: Record<string, string> = {
       "content-type": contentType,
       "cache-control": "no-cache",
       "x-served-from": servedFrom,
     };
-    
+
     if (encoding) {
       headers["content-encoding"] = encoding;
       console.log(`[miniapp] Applied ${encoding} compression to HTML response`);
     }
 
-    console.log(`[miniapp] Serving index.html (${arr.length} bytes) with headers:`, headers);
+    console.log(
+      `[miniapp] Serving index.html (${arr.length} bytes) with headers:`,
+      headers,
+    );
     const resp = new Response(stream, { status: 200, headers });
     return withSecurity(resp);
   }
 
   // GET /miniapp/version
   if (path === "/miniapp/version") {
-    const versionData = { 
-      name: "miniapp", 
+    const versionData = {
+      name: "miniapp",
       ts: new Date().toISOString(),
       serveFromStorage: SERVE_FROM_STORAGE,
-      htmlCompressionDisabled: DISABLE_HTML_COMPRESSION
+      htmlCompressionDisabled: DISABLE_HTML_COMPRESSION,
     };
-    
+
     const body = new TextEncoder().encode(JSON.stringify(versionData));
     const contentType = "application/json; charset=utf-8";
     const { stream, encoding } = smartCompress(body, req, contentType);
-    
-    const headers: Record<string, string> = { 
+
+    const headers: Record<string, string> = {
       "content-type": contentType,
-      "x-served-from": "version-endpoint"
+      "x-served-from": "version-endpoint",
     };
     if (encoding) headers["content-encoding"] = encoding;
-    
+
     const resp = new Response(stream, { status: 200, headers });
     console.log(`[miniapp] Served version endpoint`);
     return withSecurity(resp);
@@ -468,7 +486,10 @@ export async function handler(req: Request): Promise<Response> {
 
     // Try static build first
     try {
-      const staticAssetPath = new URL(`./static/assets/${assetPath}`, import.meta.url);
+      const staticAssetPath = new URL(
+        `./static/assets/${assetPath}`,
+        import.meta.url,
+      );
       arr = await Deno.readFile(staticAssetPath);
       servedFrom = "static";
       console.log(`[miniapp] Served asset ${assetPath} from static build`);
@@ -479,7 +500,9 @@ export async function handler(req: Request): Promise<Response> {
         servedFrom = "storage";
         console.log(`[miniapp] Served asset ${assetPath} from storage`);
       } else {
-        console.warn(`[miniapp] Asset ${assetPath} not found in static or storage`);
+        console.warn(
+          `[miniapp] Asset ${assetPath} not found in static or storage`,
+        );
         return withSecurity(nf("Asset not found"));
       }
     }
@@ -495,7 +518,9 @@ export async function handler(req: Request): Promise<Response> {
       if (assetPath.endsWith(".json")) return "application/json";
       if (assetPath.endsWith(".svg")) return "image/svg+xml";
       if (assetPath.endsWith(".png")) return "image/png";
-      if (assetPath.endsWith(".jpg") || assetPath.endsWith(".jpeg")) return "image/jpeg";
+      if (assetPath.endsWith(".jpg") || assetPath.endsWith(".jpeg")) {
+        return "image/jpeg";
+      }
       if (assetPath.endsWith(".ico")) return "image/x-icon";
       return "application/octet-stream";
     })();
@@ -505,7 +530,7 @@ export async function handler(req: Request): Promise<Response> {
       "cache-control": "public, max-age=31536000, immutable",
       "x-served-from": servedFrom,
     };
-    
+
     const resp = new Response(arr, { status: 200, headers });
     return withSecurity(resp);
   }
@@ -521,7 +546,7 @@ export async function handler(req: Request): Promise<Response> {
 }
 
 if (import.meta.main) {
-  if (typeof Deno !== 'undefined' && 'serve' in Deno) {
+  if (typeof Deno !== "undefined" && "serve" in Deno) {
     Deno.serve(handler);
   }
 }

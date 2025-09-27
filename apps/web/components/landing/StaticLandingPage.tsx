@@ -1,4 +1,4 @@
-import { getStaticLandingDocument } from '@/lib/staticLanding';
+import { getStaticLandingDocument } from "@/lib/staticLanding";
 
 export async function StaticLandingPage() {
   const { body } = await getStaticLandingDocument();

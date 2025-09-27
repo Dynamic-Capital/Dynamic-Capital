@@ -26,7 +26,11 @@ export async function handler(req: Request): Promise<Response> {
       .catch(() => ({}));
 
     if (test) {
-      return json({ success: true, message: "trade-helper OK" }, 200, corsHeaders);
+      return json(
+        { success: true, message: "trade-helper OK" },
+        200,
+        corsHeaders,
+      );
     }
 
     if (!instrument) {

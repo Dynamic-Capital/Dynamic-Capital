@@ -38,7 +38,7 @@ export function MagneticButton({
     const deltaY = e.clientY - centerY;
 
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    
+
     if (distance < range) {
       x.set(deltaX * strength);
       y.set(deltaY * strength);

@@ -3,7 +3,14 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { isRouteEnabled, protectedRoutes } from "@/resources";
-import { Flex, Spinner, Button, Heading, Column, PasswordInput } from "@/components/dynamic-ui-system";
+import {
+  Button,
+  Column,
+  Flex,
+  Heading,
+  PasswordInput,
+  Spinner,
+} from "@/components/dynamic-ui-system";
 import NotFound from "@/app/not-found";
 
 interface RouteGuardProps {
@@ -47,7 +54,9 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
       setIsPasswordRequired(false);
       setIsAuthenticated(false);
 
-      const routeEnabled = Boolean(normalizedPathname && isRouteEnabled(normalizedPathname));
+      const routeEnabled = Boolean(
+        normalizedPathname && isRouteEnabled(normalizedPathname),
+      );
       setIsAllowed(routeEnabled);
 
       if (protectedRoutes[normalizedPathname as keyof typeof protectedRoutes]) {

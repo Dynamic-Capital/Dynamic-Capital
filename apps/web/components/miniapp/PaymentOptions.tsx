@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, Banknote } from "lucide-react";
+import { Banknote, CreditCard } from "lucide-react";
 import Image from "next/image";
 
 interface PaymentOption {
@@ -19,7 +19,9 @@ interface PaymentOptionsProps {
   currency: string;
 }
 
-export function PaymentOptions({ selectedMethod, onSelect, currency }: PaymentOptionsProps) {
+export function PaymentOptions(
+  { selectedMethod, onSelect, currency }: PaymentOptionsProps,
+) {
   const paymentOptions: PaymentOption[] = [
     {
       id: "bank_transfer",
@@ -34,14 +36,18 @@ export function PaymentOptions({ selectedMethod, onSelect, currency }: PaymentOp
             className="h-5 w-5"
           />
           <div className="flex gap-1 text-xs">
-            <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">BML</span>
-            <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded text-xs">MIB</span>
+            <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
+              BML
+            </span>
+            <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded text-xs">
+              MIB
+            </span>
           </div>
         </div>
       ),
       description: "Direct bank transfer - most secure",
       processingTime: "1-3 business days",
-      isPopular: currency === "MVR"
+      isPopular: currency === "MVR",
     },
     {
       id: "crypto",
@@ -67,30 +73,32 @@ export function PaymentOptions({ selectedMethod, onSelect, currency }: PaymentOp
       ),
       description: "USDT (TRC20) - instant processing",
       processingTime: "5-30 minutes",
-      isPopular: currency === "USD"
-    }
+      isPopular: currency === "USD",
+    },
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {paymentOptions.map((option) => (
-        <Card 
+        <Card
           key={option.id}
           className={`glass-card cursor-pointer transition-all duration-300 hover:scale-105 ${
-            selectedMethod === option.id 
-              ? 'border-primary shadow-lg ring-2 ring-primary/20 glass-active' 
-              : 'border-white/10 hover:border-primary/50'
+            selectedMethod === option.id
+              ? "border-primary shadow-lg ring-2 ring-primary/20 glass-active"
+              : "border-white/10 hover:border-primary/50"
           }`}
           onClick={() => onSelect(option.id)}
         >
           <CardContent className="p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg transition-all duration-200 ${
-                  selectedMethod === option.id 
-                    ? 'bg-primary/10 border border-primary/20' 
-                    : 'bg-muted'
-                }`}>
+                <div
+                  className={`p-2 rounded-lg transition-all duration-200 ${
+                    selectedMethod === option.id
+                      ? "bg-primary/10 border border-primary/20"
+                      : "bg-muted"
+                  }`}
+                >
                   {option.icon}
                 </div>
                 <div>
@@ -102,7 +110,9 @@ export function PaymentOptions({ selectedMethod, onSelect, currency }: PaymentOp
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{option.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {option.description}
+                  </p>
                 </div>
               </div>
             </div>

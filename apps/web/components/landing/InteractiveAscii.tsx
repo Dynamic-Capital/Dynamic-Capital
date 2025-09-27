@@ -37,18 +37,15 @@ function normalizeFontProperties(font: CSSProperties | undefined) {
 
   const fontFamily = appliedFont.fontFamily ?? "monospace";
   const fontWeight = String(appliedFont.fontWeight ?? 400);
-  const fontSize =
-    typeof appliedFont.fontSize === "number"
-      ? `${appliedFont.fontSize}px`
-      : appliedFont.fontSize ?? "12px";
-  const lineHeight =
-    typeof appliedFont.lineHeight === "number"
-      ? `${appliedFont.lineHeight}px`
-      : (appliedFont.lineHeight as string | undefined) ?? "1em";
-  const letterSpacing =
-    typeof appliedFont.letterSpacing === "number"
-      ? `${appliedFont.letterSpacing}px`
-      : (appliedFont.letterSpacing as string | undefined) ?? "0em";
+  const fontSize = typeof appliedFont.fontSize === "number"
+    ? `${appliedFont.fontSize}px`
+    : appliedFont.fontSize ?? "12px";
+  const lineHeight = typeof appliedFont.lineHeight === "number"
+    ? `${appliedFont.lineHeight}px`
+    : (appliedFont.lineHeight as string | undefined) ?? "1em";
+  const letterSpacing = typeof appliedFont.letterSpacing === "number"
+    ? `${appliedFont.letterSpacing}px`
+    : (appliedFont.letterSpacing as string | undefined) ?? "0em";
 
   return {
     fontFamily,
@@ -141,7 +138,7 @@ const mapRange = (
   fromLow: number,
   fromHigh: number,
   toLow: number,
-  toHigh: number
+  toHigh: number,
 ) => {
   if (fromLow === fromHigh) {
     return toLow;
@@ -203,8 +200,9 @@ function parseColor(color: string | undefined): RGBA {
     return { r, g, b, a };
   }
 
-  const rgbaMatch =
-    color.trim().match(/^rgba?\((\d+),(\d+),(\d+)(?:,(\d*\.?\d+))?\)$/i);
+  const rgbaMatch = color.trim().match(
+    /^rgba?\((\d+),(\d+),(\d+)(?:,(\d*\.?\d+))?\)$/i,
+  );
   if (rgbaMatch) {
     return {
       r: clamp(parseInt(rgbaMatch[1], 10), 0, 255),
@@ -218,7 +216,11 @@ function parseColor(color: string | undefined): RGBA {
   return { r: 255, g: 255, b: 255, a: 1 };
 }
 
-function interpolateColor(color1: RGBA, color2: RGBA, percentage: number): RGBA {
+function interpolateColor(
+  color1: RGBA,
+  color2: RGBA,
+  percentage: number,
+): RGBA {
   const t = clamp(percentage, 0, 1);
   return {
     r: Math.round(color1.r + (color2.r - color1.r) * t),
@@ -246,11 +248,11 @@ class SeededRandom {
 
 function useFollowCursor(
   smoothing = 0,
-  containerRef: React.RefObject<HTMLElement>
+  containerRef: React.RefObject<HTMLElement>,
 ) {
   const movementTransition = useMemo(
     () => ({ damping: 100, stiffness: mapRange(smoothing, 0, 100, 2000, 50) }),
-    [smoothing]
+    [smoothing],
   );
 
   const hasSpring = smoothing !== 0;
@@ -265,8 +267,12 @@ function useFollowCursor(
     const handlePointerMove = (event: MouseEvent | TouchEvent) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const clientX = "touches" in event ? event.touches[0]?.clientX : event.clientX;
-      const clientY = "touches" in event ? event.touches[0]?.clientY : event.clientY;
+      const clientX = "touches" in event
+        ? event.touches[0]?.clientX
+        : event.clientX;
+      const clientY = "touches" in event
+        ? event.touches[0]?.clientY
+        : event.clientY;
       if (typeof clientX !== "number" || typeof clientY !== "number") return;
       const x = (clientX - rect.left) / (rect.width || 1);
       const y = (clientY - rect.top) / (rect.height || 1);
@@ -289,7 +295,9 @@ function useFollowCursor(
 
     const container = containerRef.current;
     container?.addEventListener("mousemove", handlePointerMove);
-    container?.addEventListener("touchmove", handlePointerMove, { passive: true });
+    container?.addEventListener("touchmove", handlePointerMove, {
+      passive: true,
+    });
     container?.addEventListener("mouseleave", handlePointerLeave);
 
     return () => {
@@ -316,7 +324,7 @@ function generateGrayValues(
   cursorY: number,
   cursorInitialized: boolean,
   font: CSSProperties,
-  cursorImage?: HTMLImageElement
+  cursorImage?: HTMLImageElement,
 ) {
   const {
     cursorConfig,
@@ -329,7 +337,9 @@ function generateGrayValues(
 
   const contrastFactor = (259 * (contrast + 255)) / (255 * (259 - contrast));
   const fontAspectRatio = measureFontAspectRatio(font);
-  const asciiHeight = Math.round((img.height / img.width) * outputWidth * fontAspectRatio);
+  const asciiHeight = Math.round(
+    (img.height / img.width) * outputWidth * fontAspectRatio,
+  );
   canvas.width = outputWidth;
   canvas.height = asciiHeight;
   ctx.filter = blur > 0 ? `blur(${blur}px)` : "none";
@@ -342,7 +352,14 @@ function generateGrayValues(
     ctx.scale(1, fontAspectRatio);
     const radius = cursorConfig.width / 2;
     if (cursorConfig.style === "gradient") {
-      const gradient = ctx.createRadialGradient(mappedX, mappedY, 0, mappedX, mappedY, radius);
+      const gradient = ctx.createRadialGradient(
+        mappedX,
+        mappedY,
+        0,
+        mappedX,
+        mappedY,
+        radius,
+      );
       if (cursorConfig.invert) {
         gradient.addColorStop(0, "rgba(255,255,255,1)");
         gradient.addColorStop(1, "rgba(255,255,255,0)");
@@ -360,17 +377,20 @@ function generateGrayValues(
       ctx.arc(mappedX, mappedY, radius, 0, Math.PI * 2);
       ctx.fill();
     } else if (cursorConfig.style === "image" && cursorImage) {
-      const cursorHeight = (cursorImage.height / cursorImage.width) * cursorConfig.width;
+      const cursorHeight = (cursorImage.height / cursorImage.width) *
+        cursorConfig.width;
       ctx.save();
       if (cursorConfig.invert) {
-        ctx.filter = `${ctx.filter === "none" ? "" : `${ctx.filter} `}invert(1)`;
+        ctx.filter = `${
+          ctx.filter === "none" ? "" : `${ctx.filter} `
+        }invert(1)`;
       }
       ctx.drawImage(
         cursorImage,
         mappedX - cursorConfig.width / 2,
         mappedY - cursorHeight / 2,
         cursorConfig.width,
-        cursorHeight
+        cursorHeight,
       );
       ctx.restore();
     }
@@ -386,7 +406,11 @@ function generateGrayValues(
     if (invertColors) {
       lum = 255 - lum;
     }
-    const adjusted = clamp(contrastFactor * (lum - 128) + 128 + brightness, 0, 255);
+    const adjusted = clamp(
+      contrastFactor * (lum - 128) + 128 + brightness,
+      0,
+      255,
+    );
     gray.push(adjusted);
   }
 
@@ -403,12 +427,11 @@ function generateAscii(
   cursorInitialized: boolean,
   font: CSSProperties,
   cursorImage: HTMLImageElement | undefined,
-  rngSeed: number
+  rngSeed: number,
 ) {
-  const gradient =
-    props.characterSet === "custom"
-      ? props.customCharacterSet || "0 "
-      : characterSets[props.characterSet];
+  const gradient = props.characterSet === "custom"
+    ? props.customCharacterSet || "0 "
+    : characterSets[props.characterSet];
   const levels = gradient.length;
   const { gray: grayOriginal, asciiHeight } = generateGrayValues(
     img,
@@ -419,7 +442,7 @@ function generateAscii(
     cursorY,
     cursorInitialized,
     font,
-    cursorImage
+    cursorImage,
   );
 
   const gray = [...grayOriginal];
@@ -446,21 +469,21 @@ function generateAscii(
           gray[idx - 1 + props.outputWidth] = clamp(
             gray[idx - 1 + props.outputWidth] + (error * 3) / 16,
             0,
-            255
+            255,
           );
         }
         if (y + 1 < asciiHeight) {
           gray[idx + props.outputWidth] = clamp(
             gray[idx + props.outputWidth] + (error * 5) / 16,
             0,
-            255
+            255,
           );
         }
         if (x + 1 < props.outputWidth && y + 1 < asciiHeight) {
           gray[idx + props.outputWidth + 1] = clamp(
             gray[idx + props.outputWidth + 1] + error / 16,
             0,
-            255
+            255,
           );
         }
       }
@@ -491,19 +514,19 @@ function generateAscii(
             gray[idx - 1 + props.outputWidth] = clamp(
               gray[idx - 1 + props.outputWidth] + diffusion,
               0,
-              255
+              255,
             );
           }
           gray[idx + props.outputWidth] = clamp(
             gray[idx + props.outputWidth] + diffusion,
             0,
-            255
+            255,
           );
           if (x + 1 < props.outputWidth) {
             gray[idx + props.outputWidth + 1] = clamp(
               gray[idx + props.outputWidth + 1] + diffusion,
               0,
-              255
+              255,
             );
           }
         }
@@ -511,7 +534,7 @@ function generateAscii(
           gray[idx + 2 * props.outputWidth] = clamp(
             gray[idx + 2 * props.outputWidth] + diffusion,
             0,
-            255
+            255,
           );
         }
       }
@@ -551,7 +574,8 @@ function generateAscii(
           continue;
         }
         const p = gray[idx] / 255;
-        const t = (bayer[y % matrixSize][x % matrixSize] + 0.5) / (matrixSize * matrixSize);
+        const t = (bayer[y % matrixSize][x % matrixSize] + 0.5) /
+          (matrixSize * matrixSize);
         const valueWithDither = clamp(p + t - 0.5, 0, 1);
         let level = Math.floor(valueWithDither * levels);
         if (level >= levels) level = levels - 1;
@@ -580,7 +604,7 @@ function generateAscii(
 
 function useResizeObserver(
   elementRef: React.RefObject<HTMLElement>,
-  callback: () => void
+  callback: () => void,
 ) {
   useEffect(() => {
     if (!elementRef.current) return;
@@ -637,10 +661,11 @@ export function InteractiveAscii({
   const rngSeedRef = useRef(Math.random());
   const frameRef = useRef<number | null>(null);
 
-  const { x: cursorX, y: cursorY, initialized, initializedRef } = useFollowCursor(
-    cursor?.smoothing ?? 0,
-    containerRef
-  );
+  const { x: cursorX, y: cursorY, initialized, initializedRef } =
+    useFollowCursor(
+      cursor?.smoothing ?? 0,
+      containerRef,
+    );
 
   useEffect(() => {
     const img = new Image();
@@ -713,7 +738,7 @@ export function InteractiveAscii({
       initializedRef.current,
       props.font,
       cursorImage,
-      rngSeedRef.current
+      rngSeedRef.current,
     );
     setText(ascii);
 
@@ -737,15 +762,15 @@ export function InteractiveAscii({
             Math.min(point1, point2),
             Math.max(point1, point2),
             0,
-            1
+            1,
           );
           percent = clamp(percent, 0, 1);
         }
         const interpolated = percent <= point1
           ? color1
           : percent >= point2
-            ? color2
-            : interpolateColor(color1, color2, percent);
+          ? color2
+          : interpolateColor(color1, color2, percent);
         const idx = i * 4;
         imageData.data[idx] = interpolated.r;
         imageData.data[idx + 1] = interpolated.g;
@@ -855,12 +880,16 @@ export function InteractiveAscii({
     transformOrigin: "center",
     fontVariantNumeric: "tabular-nums",
     color: color?.mode === "color" ? color.color ?? "#ffffff" : "transparent",
-    backgroundImage: color?.mode && color.mode !== "color" && maskUrl ? `url(${maskUrl})` : undefined,
+    backgroundImage: color?.mode && color.mode !== "color" && maskUrl
+      ? `url(${maskUrl})`
+      : undefined,
     backgroundRepeat: "no-repeat",
     backgroundSize: "100% 100%",
     imageRendering: "pixelated",
     backgroundClip: color?.mode && color.mode !== "color" ? "text" : undefined,
-    WebkitBackgroundClip: color?.mode && color.mode !== "color" ? "text" : undefined,
+    WebkitBackgroundClip: color?.mode && color.mode !== "color"
+      ? "text"
+      : undefined,
     ...appliedFont,
   };
 
@@ -873,25 +902,25 @@ export function InteractiveAscii({
 
   return (
     <div ref={containerRef} className={className} style={baseStyle}>
-      {glow && glow.blur > 0 && glow.opacity > 0 ? (
-        <div
-          ref={glowRef}
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            filter: `blur(${glow.blur}px)` ,
-            opacity: glow.opacity,
-            ...textStyle,
-            transform: "translate(-50%, -50%)",
-          }}
-          aria-hidden="true"
-        >
-          {text}
-        </div>
-      ) : (
-        <div ref={glowRef} style={{ display: "none" }} />
-      )}
+      {glow && glow.blur > 0 && glow.opacity > 0
+        ? (
+          <div
+            ref={glowRef}
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              filter: `blur(${glow.blur}px)`,
+              opacity: glow.opacity,
+              ...textStyle,
+              transform: "translate(-50%, -50%)",
+            }}
+            aria-hidden="true"
+          >
+            {text}
+          </div>
+        )
+        : <div ref={glowRef} style={{ display: "none" }} />}
       <div
         ref={textRef}
         style={{

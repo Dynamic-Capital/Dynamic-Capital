@@ -78,7 +78,8 @@ async function ensureMeterProvider() {
   }
 
   if (!isNodeRuntime) {
-    telemetryState.meterProvider = metrics.getMeterProvider() as unknown as MeterProvider;
+    telemetryState.meterProvider = metrics
+      .getMeterProvider() as unknown as MeterProvider;
     return;
   }
 

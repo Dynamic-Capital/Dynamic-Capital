@@ -34,14 +34,17 @@ export function ParallaxBlurCard({
   const y = useTransform(scrollYProgress, [0, 1], ["-20%", "20%"]); // Parallax offset
 
   return (
-    <div ref={ref} className={cn("relative overflow-hidden rounded-xl", className)}>
+    <div
+      ref={ref}
+      className={cn("relative overflow-hidden rounded-xl", className)}
+    >
       {/* Parallax gradient background */}
       <motion.div
         style={{ y }}
         className={cn(
           "absolute inset-0 pointer-events-none bg-gradient-to-br",
           gradientStart,
-          gradientEnd
+          gradientEnd,
         )}
       />
 

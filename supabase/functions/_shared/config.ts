@@ -195,11 +195,11 @@ export async function getContentBatch(
   defaults: Record<string, string> = {},
 ): Promise<Record<string, string | null>> {
   if (keys.length === 0) return {};
-  
+
   // Check cache first
   const cached: Record<string, string | null> = {};
   const uncached: string[] = [];
-  
+
   for (const key of keys) {
     const hit = getCached<string>(`c:${key}`);
     if (hit !== null) {
@@ -208,14 +208,14 @@ export async function getContentBatch(
       uncached.push(key);
     }
   }
-  
+
   if (uncached.length === 0) return cached;
-  
+
   const client = getClient();
   if (!client) {
-    return keys.reduce((acc, key) => ({ 
-      ...acc, 
-      [key]: cached[key] ?? defaults[key] ?? null 
+    return keys.reduce((acc, key) => ({
+      ...acc,
+      [key]: cached[key] ?? defaults[key] ?? null,
     }), {});
   }
 
@@ -225,10 +225,8 @@ export async function getContentBatch(
     });
 
     if (error) throw error;
-    
-    const rows: ContentRow[] = Array.isArray(data)
-      ? data as ContentRow[]
-      : [];
+
+    const rows: ContentRow[] = Array.isArray(data) ? data as ContentRow[] : [];
     const result: Record<string, string | null> = { ...cached };
     for (const key of uncached) {
       const found = rows.find((row) => row.content_key === key);
@@ -236,12 +234,12 @@ export async function getContentBatch(
       result[key] = value;
       if (value !== null) setCached(`c:${key}`, value);
     }
-    
+
     return result;
   } catch {
-    return keys.reduce((acc, key) => ({ 
-      ...acc, 
-      [key]: cached[key] ?? defaults[key] ?? null 
+    return keys.reduce((acc, key) => ({
+      ...acc,
+      [key]: cached[key] ?? defaults[key] ?? null,
     }), {});
   }
 }

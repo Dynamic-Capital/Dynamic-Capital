@@ -1,16 +1,17 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { getEnv } from "../_shared/env.ts";
-import { bad, mna, oops, json } from "../_shared/http.ts";
+import { bad, json, mna, oops } from "../_shared/http.ts";
 import { createSupabaseClient } from "../_shared/client.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 export async function handler(req: Request): Promise<Response> {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -26,7 +27,10 @@ export async function handler(req: Request): Promise<Response> {
   const supaAuth = createSupabaseClient(
     getEnv("SUPABASE_URL"),
     getEnv("SUPABASE_ANON_KEY"),
-    { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
+    {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false },
+    },
   );
 
   const { data: { user } } = await supaAuth.auth.getUser();

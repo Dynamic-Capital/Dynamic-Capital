@@ -1,6 +1,7 @@
 # Nginx and Let's Encrypt for DuckDNS
 
-These steps install Nginx, enable HTTPS with Certbot, and force all traffic to your DuckDNS domain (replace `example.duckdns.org` with your own).
+These steps install Nginx, enable HTTPS with Certbot, and force all traffic to
+your DuckDNS domain (replace `example.duckdns.org` with your own).
 
 1. **Install Nginx**
    ```bash
@@ -20,8 +21,7 @@ These steps install Nginx, enable HTTPS with Certbot, and force all traffic to y
    sudo chown -R $USER:$USER /var/www/example
    ```
 
-4. **Configure Nginx**
-   Create `/etc/nginx/sites-available/example`:
+4. **Configure Nginx** Create `/etc/nginx/sites-available/example`:
    ```nginx
    server {
        listen 80;
@@ -61,8 +61,7 @@ These steps install Nginx, enable HTTPS with Certbot, and force all traffic to y
    ```
    Certbot updates Nginx with an HTTPS server block.
 
-7. **Force HTTP to HTTPS**
-   Ensure the port-80 block contains:
+7. **Force HTTP to HTTPS** Ensure the port-80 block contains:
    ```nginx
    return 301 https://example.duckdns.org$request_uri;
    ```
@@ -73,7 +72,8 @@ These steps install Nginx, enable HTTPS with Certbot, and force all traffic to y
    ```
 
 8. **Verify redirect and HTTPS**
-   - Visit `http://example.duckdns.org`; it should redirect to `https://example.duckdns.org`.
+   - Visit `http://example.duckdns.org`; it should redirect to
+     `https://example.duckdns.org`.
    - Check in your browser that the certificate is valid.
 
 9. **Confirm automatic certificate renewal**
@@ -87,7 +87,8 @@ These steps secure the DuckDNS domain with automatic HTTPS certificates.
 ## Docker-based setup
 
 This project also ships with a containerized Nginx and Certbot configuration.
-From the repository root, obtain the initial certificate (covering the root, `www`, and `api` subdomains) and start the services:
+From the repository root, obtain the initial certificate (covering the root,
+`www`, and `api` subdomains) and start the services:
 
 ```bash
 DOMAIN=example.duckdns.org EMAIL=you@example.com scripts/init-letsencrypt.sh

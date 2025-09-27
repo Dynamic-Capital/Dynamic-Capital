@@ -1,4 +1,4 @@
-import { ok, mna, oops, bad } from "../_shared/http.ts";
+import { bad, mna, ok, oops } from "../_shared/http.ts";
 import { validateTelegramHeader } from "../_shared/telegram_secret.ts";
 import { createLogger } from "../_shared/logger.ts";
 import { envOrSetting, getContent } from "../_shared/config.ts";
@@ -20,8 +20,7 @@ const baseLogger = createLogger({ function: "telegram-webhook" });
 function getLogger(req: Request) {
   return createLogger({
     function: "telegram-webhook",
-    requestId:
-      req.headers.get("sb-request-id") ||
+    requestId: req.headers.get("sb-request-id") ||
       req.headers.get("x-request-id") ||
       crypto.randomUUID(),
   });
@@ -109,7 +108,10 @@ export async function handler(req: Request): Promise<Response> {
         if (error) {
           logger.error("webhook_updates insert error", error);
         } else if (!data || data.length === 0) {
-          logger.info("duplicate update", { update_id: updateId, decision: "ignored" });
+          logger.info("duplicate update", {
+            update_id: updateId,
+            decision: "ignored",
+          });
           return ok({ ok: true });
         }
       } catch (err) {
@@ -124,8 +126,10 @@ export async function handler(req: Request): Promise<Response> {
       "/start": async (chatId) => {
         const { url, short } = await readMiniAppEnv();
         const botUsername = (await envOrSetting("TELEGRAM_BOT_USERNAME")) || "";
-        const btnText = await getContent("miniapp_button_text") ?? "Open VIP Mini App";
-        const prompt = await getContent("miniapp_open_prompt") ?? "Join the VIP Mini App:";
+        const btnText = await getContent("miniapp_button_text") ??
+          "Open VIP Mini App";
+        const prompt = await getContent("miniapp_open_prompt") ??
+          "Join the VIP Mini App:";
 
         if (url) {
           await sendMessage(chatId, prompt, {

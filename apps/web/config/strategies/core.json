@@ -1,288 +1,288 @@
 {
-    "id": "core-v1",
-    "name": "Core Rule + Signal Stack",
-    "description": "Risk-first rule engine paired with principle-based scoring stack for discretionary-style automation.",
-    "rule_engine": {
-        "flatten_on_violation": true,
-        "auto_disable_on_daily_stop": true,
-        "checks": {
-            "risk": true,
-            "execution": true,
-            "quality_gates": true,
-            "time_window": true,
-            "news_block": true
-        }
-    },
-    "risk": {
-        "max_risk_per_trade": 0.0075,
-        "max_daily_loss": 0.03,
-        "daily_disable_hours": 24,
-        "min_rr": 1.5,
-        "max_total_positions": 4,
-        "max_positions_per_symbol": 2,
-        "max_total_exposure": 4,
-        "correlation_blocks": [
-            [
-                "XAUUSD",
-                "XAGUSD"
-            ],
-            [
-                "NAS100",
-                "US30"
-            ]
-        ]
-    },
-    "execution": {
-        "spread_max_points": 25,
-        "slippage_max_points": 10,
-        "time_window": [
-            "07:00-10:00",
-            "13:30-16:00"
-        ],
-        "session_timezone": "exchange",
-        "news_block_minutes": {
-            "before": 30,
-            "after": 30
-        }
-    },
-    "trade_management": {
-        "move_to_be_r_multiple": 1.0,
-        "partials": [
-            {
-                "r_multiple": 1.0,
-                "size": 0.5
-            }
-        ],
-        "trail": {
-            "method": "structure",
-            "lookback_swings": 1,
-            "atr_period": 14,
-            "atr_multiplier": 1.0
-        },
-        "daily_stop_action": "close_all_disable"
-    },
-    "quality_gates": {
-        "min_tick_volume": 500,
-        "min_volatility_atr": 0.0008,
-        "no_trade_gap_factor": 0.5,
-        "avoid_overlap_bars": 5
-    },
-    "signal_stack": {
-        "trend_structure": {
-            "ema_period": 30,
-            "ema_slope_lookback": 3,
-            "dow": {
-                "pivot_left": 3,
-                "pivot_right": 3
-            },
-            "reward": 3
-        },
-        "wyckoff": {
-            "enabled": true,
-            "range_min_bars": 15,
-            "range_max_adr_ratio": 0.35,
-            "volume_spike_factor": 1.5,
-            "spring_reward": 2,
-            "utad_reward": 2
-        },
-        "elliott": {
-            "enabled": true,
-            "impulse_min_swings": 5,
-            "impulse_pullback_range": [
-                0.382,
-                0.618
-            ],
-            "corrective_ratio": [
-                0.618,
-                1.0
-            ],
-            "require_tdi_divergence": true,
-            "reward": 2
-        },
-        "location": {
-            "adr_prefer_range": [
-                0.2,
-                0.8
-            ],
-            "adr_hard_cap": 0.9,
-            "asian_session": "00:00-05:00",
-            "kill_zone_preference": true,
-            "fibonacci": {
-                "retrace_levels": [
-                    0.382,
-                    0.5,
-                    0.618
-                ],
-                "extension_levels": [
-                    1.272,
-                    1.618
-                ]
-            },
-            "pivot_points": "classic",
-            "fvg_min_points": 5,
-            "bos_lookback": 50,
-            "reward": 3
-        },
-        "timing": {
-            "kill_zones": [
-                {
-                    "name": "London",
-                    "start": "07:00",
-                    "end": "10:00"
-                },
-                {
-                    "name": "New York",
-                    "start": "13:30",
-                    "end": "16:00"
-                }
-            ],
-            "reward": 1
-        },
-        "momentum": {
-            "tdi": {
-                "rsi_length": 13,
-                "signal_length": 2,
-                "band_length": 34,
-                "extreme_bounds": [
-                    30,
-                    70
-                ]
-            },
-            "candle_triggers": [
-                "engulfing",
-                "pin"
-            ],
-            "reward": 2
-        }
-    },
-    "scoring": {
-        "components": {
-            "trend": {
-                "max": 3,
-                "sources": [
-                    "trend_structure"
-                ]
-            },
-            "location": {
-                "max": 3,
-                "sources": [
-                    "location"
-                ]
-            },
-            "structure": {
-                "max": 2,
-                "sources": [
-                    "wyckoff",
-                    "elliott"
-                ]
-            },
-            "momentum": {
-                "max": 2,
-                "sources": [
-                    "momentum"
-                ]
-            }
-        },
-        "timing_bonus": {
-            "max": 1,
-            "source": "timing"
-        },
-        "threshold": 7
-    },
-    "entries": {
-        "preferred_order_types": [
-            "limit",
-            "market"
-        ],
-        "limit_retracement_default": 0.5,
-        "fvg_retest_allowance": true
-    },
-    "stops": {
-        "basis": [
-            "structure",
-            "atr"
-        ],
-        "structure_buffer_points": 5,
-        "atr_period": 14,
-        "atr_multiplier": 1.5
-    },
-    "targets": [
-        {
-            "name": "T1",
-            "r_multiple": 1.0,
-            "size": 0.5
-        },
-        {
-            "name": "T2",
-            "target": "structure",
-            "fallback_pivot": "R1/S1"
-        },
-        {
-            "name": "T3",
-            "fib_extension": 1.618
-        }
+  "id": "core-v1",
+  "name": "Core Rule + Signal Stack",
+  "description": "Risk-first rule engine paired with principle-based scoring stack for discretionary-style automation.",
+  "rule_engine": {
+    "flatten_on_violation": true,
+    "auto_disable_on_daily_stop": true,
+    "checks": {
+      "risk": true,
+      "execution": true,
+      "quality_gates": true,
+      "time_window": true,
+      "news_block": true
+    }
+  },
+  "risk": {
+    "max_risk_per_trade": 0.0075,
+    "max_daily_loss": 0.03,
+    "daily_disable_hours": 24,
+    "min_rr": 1.5,
+    "max_total_positions": 4,
+    "max_positions_per_symbol": 2,
+    "max_total_exposure": 4,
+    "correlation_blocks": [
+      [
+        "XAUUSD",
+        "XAGUSD"
+      ],
+      [
+        "NAS100",
+        "US30"
+      ]
+    ]
+  },
+  "execution": {
+    "spread_max_points": 25,
+    "slippage_max_points": 10,
+    "time_window": [
+      "07:00-10:00",
+      "13:30-16:00"
     ],
-    "toggles": {
-        "use_wyckoff": true,
-        "use_elliott": true,
-        "use_tdi": true
+    "session_timezone": "exchange",
+    "news_block_minutes": {
+      "before": 30,
+      "after": 30
+    }
+  },
+  "trade_management": {
+    "move_to_be_r_multiple": 1.0,
+    "partials": [
+      {
+        "r_multiple": 1.0,
+        "size": 0.5
+      }
+    ],
+    "trail": {
+      "method": "structure",
+      "lookback_swings": 1,
+      "atr_period": 14,
+      "atr_multiplier": 1.0
     },
-    "backtest": {
-        "walk_forward_window": "1M",
-        "out_of_sample_window": "1M",
-        "session_breakdown": [
-            "London",
-            "New York"
+    "daily_stop_action": "close_all_disable"
+  },
+  "quality_gates": {
+    "min_tick_volume": 500,
+    "min_volatility_atr": 0.0008,
+    "no_trade_gap_factor": 0.5,
+    "avoid_overlap_bars": 5
+  },
+  "signal_stack": {
+    "trend_structure": {
+      "ema_period": 30,
+      "ema_slope_lookback": 3,
+      "dow": {
+        "pivot_left": 3,
+        "pivot_right": 3
+      },
+      "reward": 3
+    },
+    "wyckoff": {
+      "enabled": true,
+      "range_min_bars": 15,
+      "range_max_adr_ratio": 0.35,
+      "volume_spike_factor": 1.5,
+      "spring_reward": 2,
+      "utad_reward": 2
+    },
+    "elliott": {
+      "enabled": true,
+      "impulse_min_swings": 5,
+      "impulse_pullback_range": [
+        0.382,
+        0.618
+      ],
+      "corrective_ratio": [
+        0.618,
+        1.0
+      ],
+      "require_tdi_divergence": true,
+      "reward": 2
+    },
+    "location": {
+      "adr_prefer_range": [
+        0.2,
+        0.8
+      ],
+      "adr_hard_cap": 0.9,
+      "asian_session": "00:00-05:00",
+      "kill_zone_preference": true,
+      "fibonacci": {
+        "retrace_levels": [
+          0.382,
+          0.5,
+          0.618
         ],
-        "heatmap_dimensions": [
-            "weekday",
-            "hour"
-        ],
-        "ablation_features": [
-            "wyckoff",
-            "elliott",
-            "tdi"
+        "extension_levels": [
+          1.272,
+          1.618
         ]
+      },
+      "pivot_points": "classic",
+      "fvg_min_points": 5,
+      "bos_lookback": 50,
+      "reward": 3
     },
-    "filters": {
-        "ema30_trend": true,
-        "dow_swing_pLeft": 3,
-        "dow_swing_pRight": 3,
-        "adr_thresholds": [
-            0.2,
-            0.8
-        ],
-        "avoid_after_news_min": 30
-    },
-    "confluence": {
-        "use_asian_range": true,
-        "kill_zones": true,
-        "pivots": "classic",
-        "fib_retrace_levels": [
-            0.382,
-            0.5,
-            0.618
-        ],
-        "fib_ext_levels": [
-            1.272,
-            1.618
-        ],
-        "fvg_min_points": 5,
-        "bos_lookback": 50
+    "timing": {
+      "kill_zones": [
+        {
+          "name": "London",
+          "start": "07:00",
+          "end": "10:00"
+        },
+        {
+          "name": "New York",
+          "start": "13:30",
+          "end": "16:00"
+        }
+      ],
+      "reward": 1
     },
     "momentum": {
-        "tdi": {
-            "rsi_length": 13,
-            "signal_length": 2,
-            "band_length": 34,
-            "extreme_bounds": [
-                30,
-                70
-            ]
-        },
-        "candle_trigger": [
-            "engulfing",
-            "pin"
+      "tdi": {
+        "rsi_length": 13,
+        "signal_length": 2,
+        "band_length": 34,
+        "extreme_bounds": [
+          30,
+          70
         ]
+      },
+      "candle_triggers": [
+        "engulfing",
+        "pin"
+      ],
+      "reward": 2
     }
+  },
+  "scoring": {
+    "components": {
+      "trend": {
+        "max": 3,
+        "sources": [
+          "trend_structure"
+        ]
+      },
+      "location": {
+        "max": 3,
+        "sources": [
+          "location"
+        ]
+      },
+      "structure": {
+        "max": 2,
+        "sources": [
+          "wyckoff",
+          "elliott"
+        ]
+      },
+      "momentum": {
+        "max": 2,
+        "sources": [
+          "momentum"
+        ]
+      }
+    },
+    "timing_bonus": {
+      "max": 1,
+      "source": "timing"
+    },
+    "threshold": 7
+  },
+  "entries": {
+    "preferred_order_types": [
+      "limit",
+      "market"
+    ],
+    "limit_retracement_default": 0.5,
+    "fvg_retest_allowance": true
+  },
+  "stops": {
+    "basis": [
+      "structure",
+      "atr"
+    ],
+    "structure_buffer_points": 5,
+    "atr_period": 14,
+    "atr_multiplier": 1.5
+  },
+  "targets": [
+    {
+      "name": "T1",
+      "r_multiple": 1.0,
+      "size": 0.5
+    },
+    {
+      "name": "T2",
+      "target": "structure",
+      "fallback_pivot": "R1/S1"
+    },
+    {
+      "name": "T3",
+      "fib_extension": 1.618
+    }
+  ],
+  "toggles": {
+    "use_wyckoff": true,
+    "use_elliott": true,
+    "use_tdi": true
+  },
+  "backtest": {
+    "walk_forward_window": "1M",
+    "out_of_sample_window": "1M",
+    "session_breakdown": [
+      "London",
+      "New York"
+    ],
+    "heatmap_dimensions": [
+      "weekday",
+      "hour"
+    ],
+    "ablation_features": [
+      "wyckoff",
+      "elliott",
+      "tdi"
+    ]
+  },
+  "filters": {
+    "ema30_trend": true,
+    "dow_swing_pLeft": 3,
+    "dow_swing_pRight": 3,
+    "adr_thresholds": [
+      0.2,
+      0.8
+    ],
+    "avoid_after_news_min": 30
+  },
+  "confluence": {
+    "use_asian_range": true,
+    "kill_zones": true,
+    "pivots": "classic",
+    "fib_retrace_levels": [
+      0.382,
+      0.5,
+      0.618
+    ],
+    "fib_ext_levels": [
+      1.272,
+      1.618
+    ],
+    "fvg_min_points": 5,
+    "bos_lookback": 50
+  },
+  "momentum": {
+    "tdi": {
+      "rsi_length": 13,
+      "signal_length": 2,
+      "band_length": 34,
+      "extreme_bounds": [
+        30,
+        70
+      ]
+    },
+    "candle_trigger": [
+      "engulfing",
+      "pin"
+    ]
+  }
 }

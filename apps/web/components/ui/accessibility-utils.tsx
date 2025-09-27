@@ -15,7 +15,7 @@ export function SkipLink({ href, children, className }: SkipLinkProps) {
         "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50",
         "bg-primary text-primary-foreground px-4 py-2 ui-rounded-lg",
         "focus:outline-none focus:ring-2 focus:ring-primary/50",
-        className
+        className,
       )}
     >
       {children}
@@ -33,7 +33,7 @@ export function VisuallyHidden({ children, className }: VisuallyHiddenProps) {
     <span
       className={cn(
         "sr-only",
-        className
+        className,
       )}
     >
       {children}
@@ -47,7 +47,9 @@ interface AccessibleIconProps {
   className?: string;
 }
 
-export function AccessibleIcon({ icon, label, className }: AccessibleIconProps) {
+export function AccessibleIcon(
+  { icon, label, className }: AccessibleIconProps,
+) {
   return (
     <span className={className} aria-label={label} role="img">
       {icon}
@@ -62,15 +64,18 @@ interface HighContrastTextProps {
   className?: string;
 }
 
-export function HighContrastText({ 
-  children, 
+export function HighContrastText({
+  children,
   variant = "primary",
-  className 
+  className,
 }: HighContrastTextProps) {
   const variantClasses = {
-    primary: "text-foreground contrast-more:text-black dark:contrast-more:text-white",
-    secondary: "text-muted-foreground contrast-more:text-gray-800 dark:contrast-more:text-gray-200",
-    muted: "text-muted-foreground/80 contrast-more:text-gray-700 dark:contrast-more:text-gray-300"
+    primary:
+      "text-foreground contrast-more:text-black dark:contrast-more:text-white",
+    secondary:
+      "text-muted-foreground contrast-more:text-gray-800 dark:contrast-more:text-gray-200",
+    muted:
+      "text-muted-foreground/80 contrast-more:text-gray-700 dark:contrast-more:text-gray-300",
   };
 
   return (

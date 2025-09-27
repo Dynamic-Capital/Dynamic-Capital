@@ -1,15 +1,16 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "../_shared/client.ts";
 import { getEnv } from "../_shared/env.ts";
-import { bad, mna, oops, json } from "../_shared/http.ts";
+import { bad, json, mna, oops } from "../_shared/http.ts";
 import { createSupabaseClient } from "../_shared/client.ts";
 import { version } from "../_shared/version.ts";
 import { verifyInitData } from "../_shared/telegram_init.ts";
 import { getCryptoDepositAddress } from "../_shared/config.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 type Body = {
@@ -34,7 +35,7 @@ type CryptoInstructions = { type: "crypto"; address: string; note: string };
 type Instructions = BankInstructions | CryptoInstructions;
 
 export async function handler(req: Request): Promise<Response> {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -52,7 +53,10 @@ export async function handler(req: Request): Promise<Response> {
     const supaAuth = createSupabaseClient(
       getEnv("SUPABASE_URL"),
       getEnv("SUPABASE_ANON_KEY"),
-      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false } },
+      {
+        global: { headers: { Authorization: authHeader } },
+        auth: { persistSession: false },
+      },
     );
     const { data: { user } } = await supaAuth.auth.getUser();
     if (user) {
@@ -123,10 +127,9 @@ export async function handler(req: Request): Promise<Response> {
     .select("id,created_at")
     .single();
   if (perr) {
-    const message =
-      typeof perr === "object" && perr && "message" in perr
-        ? String((perr as { message: string }).message)
-        : "Unknown error";
+    const message = typeof perr === "object" && perr && "message" in perr
+      ? String((perr as { message: string }).message)
+      : "Unknown error";
     return oops(message);
   }
 
@@ -139,7 +142,10 @@ export async function handler(req: Request): Promise<Response> {
       )
       .eq("is_active", true)
       .order("display_order");
-    instructions = { type: "bank_transfer", banks: (banks as BankAccount[]) || [] };
+    instructions = {
+      type: "bank_transfer",
+      banks: (banks as BankAccount[]) || [],
+    };
   } else if (body.method === "crypto") {
     const cryptoAddress = await getCryptoDepositAddress();
     if (!cryptoAddress) {
@@ -148,13 +154,18 @@ export async function handler(req: Request): Promise<Response> {
     instructions = {
       type: "crypto",
       address: cryptoAddress,
-      note: "Send USDT (TRC20) to the provided address. Upload your transaction receipt after payment.",
+      note:
+        "Send USDT (TRC20) to the provided address. Upload your transaction receipt after payment.",
     };
   } else {
     return bad("Unsupported payment method");
   }
 
-  return json({ ok: true, payment_id: pay!.id, instructions }, 200, corsHeaders);
+  return json(
+    { ok: true, payment_id: pay!.id, instructions },
+    200,
+    corsHeaders,
+  );
 }
 
 if (import.meta.main) serve(handler);

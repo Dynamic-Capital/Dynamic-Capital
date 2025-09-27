@@ -1,17 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MessageSquare, Send, Loader2, Bot } from "lucide-react";
+import { Bot, Loader2, MessageSquare, Send } from "lucide-react";
 import { FadeInOnView } from "@/components/ui/fade-in-on-view";
 import { MotionCard, MotionCardContainer } from "@/components/ui/motion-card";
 import { MicroButton, MicroInput } from "@/components/ui/micro-interactions";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { staggerContainerVariants, staggerItemVariants } from "@/lib/motion-variants";
+import {
+  staggerContainerVariants,
+  staggerItemVariants,
+} from "@/lib/motion-variants";
 
 export function AskSection() {
   const [question, setQuestion] = useState("");
@@ -23,7 +32,7 @@ export function AskSection() {
     "How do I start trading?",
     "What are the best trading strategies?",
     "How to manage risk in trading?",
-    "What are VIP benefits?"
+    "What are VIP benefits?",
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,19 +50,22 @@ export function AskSection() {
     setAnswer("");
 
     try {
-      const { data, error } = await supabase.functions.invoke('ai-faq-assistant', {
-        body: { question: question.trim() }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "ai-faq-assistant",
+        {
+          body: { question: question.trim() },
+        },
+      );
 
       if (error) throw error;
-      
+
       if (data.answer) {
         setAnswer(data.answer);
       } else {
-        throw new Error('No answer received');
+        throw new Error("No answer received");
       }
     } catch (error) {
-      console.error('Failed to get AI answer:', error);
+      console.error("Failed to get AI answer:", error);
       toast({
         title: "Unable to get answer",
         description: "Please try again or contact support",
@@ -73,13 +85,14 @@ export function AskSection() {
             AI Assistant
           </CardTitle>
           <CardDescription>
-            Ask any trading or platform related question and get instant AI-powered answers
+            Ask any trading or platform related question and get instant
+            AI-powered answers
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Quick suggestion buttons */}
           <MotionCardContainer staggerDelay={0.1}>
-            <motion.div 
+            <motion.div
               className="flex flex-wrap gap-2"
               variants={staggerContainerVariants}
               initial="hidden"
@@ -90,7 +103,8 @@ export function AskSection() {
                   <MicroButton
                     variant="glass"
                     size="sm"
-                    onClick={() => setQuestion(suggestion)}
+                    onClick={() =>
+                      setQuestion(suggestion)}
                     className="text-xs h-8 px-3"
                     disabled={isLoading}
                   >
@@ -101,8 +115,8 @@ export function AskSection() {
             </motion.div>
           </MotionCardContainer>
 
-          <motion.form 
-            onSubmit={handleSubmit} 
+          <motion.form
+            onSubmit={handleSubmit}
             className="space-y-4"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -116,23 +130,25 @@ export function AskSection() {
               disabled={isLoading}
               icon={<Bot className="h-4 w-4" />}
             />
-            
+
             <button
               type="submit"
               disabled={isLoading || !question.trim()}
               className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Getting answer...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4" />
-                  Ask Question
-                </>
-              )}
+              {isLoading
+                ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Getting answer...
+                  </>
+                )
+                : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Ask Question
+                  </>
+                )}
             </button>
           </motion.form>
 
@@ -145,23 +161,26 @@ export function AskSection() {
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
               >
-                <MotionCard variant="glow" className="border-primary/10 bg-primary/5">
+                <MotionCard
+                  variant="glow"
+                  className="border-primary/10 bg-primary/5"
+                >
                   <div className="flex items-start gap-3">
-                    <motion.div 
+                    <motion.div
                       className="flex-shrink-0 p-2 bg-primary/10 rounded-full"
-                      animate={{ 
+                      animate={{
                         boxShadow: [
                           "0 0 0 0 hsl(var(--primary) / 0.3)",
                           "0 0 0 8px hsl(var(--primary) / 0.1)",
-                          "0 0 0 0 hsl(var(--primary) / 0.3)"
-                        ]
+                          "0 0 0 0 hsl(var(--primary) / 0.3)",
+                        ],
                       }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
                       <MessageSquare className="h-4 w-4 text-primary" />
                     </motion.div>
                     <div className="flex-1 space-y-2">
-                      <motion.h4 
+                      <motion.h4
                         className="font-medium text-primary"
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -169,7 +188,7 @@ export function AskSection() {
                       >
                         AI Answer:
                       </motion.h4>
-                      <motion.div 
+                      <motion.div
                         className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

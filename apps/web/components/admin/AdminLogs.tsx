@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Search, RefreshCw, Calendar } from "lucide-react";
+import { Calendar, FileText, RefreshCw, Search } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { callEdgeFunction } from "@/config/supabase";
@@ -40,16 +40,16 @@ export function AdminLogs() {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction('ADMIN_LOGS', {
-        method: 'POST',
+      const { data, error } = await callEdgeFunction("ADMIN_LOGS", {
+        method: "POST",
         headers: {
-          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
         },
         body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
           limit,
-          offset: 0
-        }
+          offset: 0,
+        },
       });
 
       if (error) {
@@ -59,10 +59,10 @@ export function AdminLogs() {
       if ((data as any)?.ok) {
         setLogs((data as any).items || []);
       } else {
-        throw new Error((data as any)?.error || 'Failed to load admin logs');
+        throw new Error((data as any)?.error || "Failed to load admin logs");
       }
     } catch (error) {
-      console.error('Failed to load admin logs:', error);
+      console.error("Failed to load admin logs:", error);
       toast({
         title: "Error",
         description: "Failed to load admin logs",
@@ -77,7 +77,7 @@ export function AdminLogs() {
     loadLogs();
   }, [loadLogs]);
 
-  const filteredLogs = logs.filter(log =>
+  const filteredLogs = logs.filter((log) =>
     log.action_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.action_description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.admin_telegram_id.includes(searchTerm)
@@ -85,12 +85,18 @@ export function AdminLogs() {
 
   const getActionColor = (actionType: string) => {
     switch (actionType.toLowerCase()) {
-      case 'approve': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'reject': return 'bg-dc-brand/10 text-dc-brand border-dc-brand/20';
-      case 'update': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'delete': return 'bg-dc-brand/10 text-dc-brand border-dc-brand/20';
-      case 'create': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      default: return 'bg-muted text-muted-foreground';
+      case "approve":
+        return "bg-green-500/10 text-green-500 border-green-500/20";
+      case "reject":
+        return "bg-dc-brand/10 text-dc-brand border-dc-brand/20";
+      case "update":
+        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+      case "delete":
+        return "bg-dc-brand/10 text-dc-brand border-dc-brand/20";
+      case "create":
+        return "bg-green-500/10 text-green-500 border-green-500/20";
+      default:
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -115,73 +121,85 @@ export function AdminLogs() {
               className="pl-10"
             />
           </div>
-          <Button onClick={loadLogs} disabled={loading} variant="outline" size="sm">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <Button
+            onClick={loadLogs}
+            disabled={loading}
+            variant="outline"
+            size="sm"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[500px]">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-2">Loading logs...</span>
-            </div>
-          ) : filteredLogs.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchTerm ? "No logs match your search" : "No logs found"}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredLogs.map((log) => (
-                <div
-                  key={log.id}
-                  className="border rounded-lg p-4 space-y-2 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <Badge className={getActionColor(log.action_type)}>
-                      {log.action_type}
-                    </Badge>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calendar className="w-3 h-3" />
-                      {formatDate(log.created_at)}
+          {loading
+            ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary">
+                </div>
+                <span className="ml-2">Loading logs...</span>
+              </div>
+            )
+            : filteredLogs.length === 0
+            ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchTerm ? "No logs match your search" : "No logs found"}
+              </div>
+            )
+            : (
+              <div className="space-y-3">
+                {filteredLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="border rounded-lg p-4 space-y-2 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <Badge className={getActionColor(log.action_type)}>
+                        {log.action_type}
+                      </Badge>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(log.created_at)}
+                      </div>
                     </div>
-                  </div>
-                  
-                  <p className="text-sm font-medium">{log.action_description}</p>
-                  
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Admin: {log.admin_telegram_id}</span>
-                    {log.affected_table && (
-                      <span>Table: {log.affected_table}</span>
+
+                    <p className="text-sm font-medium">
+                      {log.action_description}
+                    </p>
+
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Admin: {log.admin_telegram_id}</span>
+                      {log.affected_table && (
+                        <span>Table: {log.affected_table}</span>
+                      )}
+                    </div>
+
+                    {(log.old_values || log.new_values) && (
+                      <details className="text-xs">
+                        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                          View changes
+                        </summary>
+                        <div className="mt-2 p-2 bg-muted rounded text-xs">
+                          {log.old_values && (
+                            <div>
+                              <strong>Before:</strong>
+                              <pre className="mt-1 text-xs">{JSON.stringify(log.old_values, null, 2)}</pre>
+                            </div>
+                          )}
+                          {log.new_values && (
+                            <div className="mt-2">
+                              <strong>After:</strong>
+                              <pre className="mt-1 text-xs">{JSON.stringify(log.new_values, null, 2)}</pre>
+                            </div>
+                          )}
+                        </div>
+                      </details>
                     )}
                   </div>
-                  
-                  {(log.old_values || log.new_values) && (
-                    <details className="text-xs">
-                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                        View changes
-                      </summary>
-                      <div className="mt-2 p-2 bg-muted rounded text-xs">
-                        {log.old_values && (
-                          <div>
-                            <strong>Before:</strong>
-                            <pre className="mt-1 text-xs">{JSON.stringify(log.old_values, null, 2)}</pre>
-                          </div>
-                        )}
-                        {log.new_values && (
-                          <div className="mt-2">
-                            <strong>After:</strong>
-                            <pre className="mt-1 text-xs">{JSON.stringify(log.new_values, null, 2)}</pre>
-                          </div>
-                        )}
-                      </div>
-                    </details>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
         </ScrollArea>
       </CardContent>
     </Card>

@@ -14,9 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 // import { getQueryCounts } from '@/integrations/supabase/client';
-import { useSupabase } from '@/context/SupabaseProvider';
-import logger from '@/utils/logger';
-import { formatSupabaseError } from '@/utils/supabaseError';
+import { useSupabase } from "@/context/SupabaseProvider";
+import logger from "@/utils/logger";
+import { formatSupabaseError } from "@/utils/supabaseError";
 import { useToast } from "@/hooks/useToast";
 import { getCached } from "@/utils/cache";
 import { getTimezones } from "@/utils/timezones";
@@ -125,7 +125,10 @@ export const SystemStatus = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: formatSupabaseError(error, "Failed to check system status"),
+        description: formatSupabaseError(
+          error,
+          "Failed to check system status",
+        ),
         variant: "destructive",
       });
     } finally {
@@ -391,7 +394,9 @@ export const SystemStatus = () => {
                               : "No response time"}
                           </p>
                           {func.error && (
-                            <p className="text-xs text-dc-brand">{func.error}</p>
+                            <p className="text-xs text-dc-brand">
+                              {func.error}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -449,8 +454,7 @@ export const SystemStatus = () => {
                           </p>
                           {table.lastUpdated && (
                             <p className="text-xs text-muted-foreground">
-                              Last updated:{" "}
-                              {formatIsoDate(table.lastUpdated)}
+                              Last updated: {formatIsoDate(table.lastUpdated)}
                             </p>
                           )}
                         </div>

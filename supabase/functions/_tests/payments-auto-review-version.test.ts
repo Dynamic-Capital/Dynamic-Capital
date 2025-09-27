@@ -1,8 +1,13 @@
-import { assertEquals, assert } from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.224.0/testing/asserts.ts";
 import handler from "../payments-auto-review/index.ts";
 
 Deno.test("payments-auto-review exposes version", async () => {
-  const res = await handler(new Request("https://example.com/version", { method: "GET" }));
+  const res = await handler(
+    new Request("https://example.com/version", { method: "GET" }),
+  );
   assertEquals(res.status, 200);
   const body = await res.json();
   assertEquals(body.name, "payments-auto-review");
