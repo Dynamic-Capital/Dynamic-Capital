@@ -10,14 +10,6 @@ import {
   UsersRound,
 } from "lucide-react";
 
-export interface HomeNavSection {
-  id: HomeNavSectionId;
-  label: string;
-  description: string;
-  icon: LucideIcon;
-  href: string;
-}
-
 export const HOME_NAV_SECTION_IDS = {
   overview: "overview",
   token: "dct-token",
@@ -30,6 +22,17 @@ export const HOME_NAV_SECTION_IDS = {
 } as const;
 
 export type HomeNavSectionId = keyof typeof HOME_NAV_SECTION_IDS;
+
+export type HomeNavSectionSlug =
+  (typeof HOME_NAV_SECTION_IDS)[HomeNavSectionId];
+
+export interface HomeNavSection {
+  id: HomeNavSectionId;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+  href: string;
+}
 
 export const HOME_NAV_SECTIONS: HomeNavSection[] = [
   {
@@ -97,3 +100,28 @@ export const HOME_NAV_SECTION_MAP = HOME_NAV_SECTIONS.reduce(
   },
   {} as Record<HomeNavSectionId, HomeNavSection>,
 );
+
+export const HOME_NAV_SECTION_SLUG_TO_ID = Object.entries(
+  HOME_NAV_SECTION_IDS,
+).reduce(
+  (accumulator, [id, slug]) => {
+    accumulator[slug as HomeNavSectionSlug] = id as HomeNavSectionId;
+    return accumulator;
+  },
+  {} as Record<HomeNavSectionSlug, HomeNavSectionId>,
+);
+
+type SectionIdsFromConfig = (typeof HOME_NAV_SECTIONS)[number]["id"];
+
+type MissingSections = Exclude<HomeNavSectionId, SectionIdsFromConfig>;
+type UnexpectedSections = Exclude<SectionIdsFromConfig, HomeNavSectionId>;
+
+type AssertAllSectionsCovered = MissingSections extends never
+  ? true
+  : ["Missing HOME_NAV_SECTIONS entry for", MissingSections];
+type AssertNoUnexpectedSections = UnexpectedSections extends never
+  ? true
+  : ["Unexpected HOME_NAV_SECTIONS id", UnexpectedSections];
+
+const _assertAllSectionsCovered: AssertAllSectionsCovered = true;
+const _assertNoUnexpectedSections: AssertNoUnexpectedSections = true;

@@ -7,8 +7,11 @@ import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/utils";
 
 import {
+  HOME_NAV_SECTION_IDS,
+  HOME_NAV_SECTION_SLUG_TO_ID,
   HOME_NAV_SECTIONS,
   type HomeNavSectionId,
+  type HomeNavSectionSlug,
 } from "./home-navigation-config";
 
 const observerOptions: IntersectionObserverInit = {
@@ -77,14 +80,35 @@ export function HomeNavigationRail({ className }: { className?: string }) {
     });
   }, []);
 
+  const resolveIdFromSlug = useCallback((slug: string | null) => {
+    if (!slug) {
+      return null;
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(HOME_NAV_SECTION_SLUG_TO_ID, slug)
+    ) {
+      return HOME_NAV_SECTION_SLUG_TO_ID[slug as HomeNavSectionSlug];
+    }
+
+    return null;
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
       return;
     }
 
-    const sectionElements = HOME_NAV_SECTIONS.map(({ id }) =>
-      document.querySelector<HTMLElement>(`[data-section-anchor="${id}"]`)
-    ).filter((element): element is HTMLElement => Boolean(element));
+    const sectionElements = HOME_NAV_SECTIONS.map(({ id }) => {
+      const slug = HOME_NAV_SECTION_IDS[id];
+      if (!slug) {
+        return null;
+      }
+
+      return document.querySelector<HTMLElement>(
+        `[data-section-anchor="${slug}"]`,
+      );
+    }).filter((element): element is HTMLElement => Boolean(element));
 
     if (!sectionElements.length) {
       return;
@@ -97,9 +121,11 @@ export function HomeNavigationRail({ className }: { className?: string }) {
 
       if (visibleEntries.length > 0) {
         const latest = visibleEntries[0];
-        const anchor = latest.target.getAttribute("data-section-anchor");
+        const anchor = resolveIdFromSlug(
+          latest.target.getAttribute("data-section-anchor"),
+        );
         if (anchor && anchor !== activeIdRef.current) {
-          setActiveId(anchor as HomeNavSectionId);
+          setActiveId(anchor);
         }
         return;
       }
@@ -112,9 +138,11 @@ export function HomeNavigationRail({ className }: { className?: string }) {
         )[0];
 
       if (nearest) {
-        const anchor = nearest.target.getAttribute("data-section-anchor");
+        const anchor = resolveIdFromSlug(
+          nearest.target.getAttribute("data-section-anchor"),
+        );
         if (anchor && anchor !== activeIdRef.current) {
-          setActiveId(anchor as HomeNavSectionId);
+          setActiveId(anchor);
         }
       }
     }, observerOptions);
@@ -122,21 +150,20 @@ export function HomeNavigationRail({ className }: { className?: string }) {
     sectionElements.forEach((element) => observer.observe(element));
 
     return () => observer.disconnect();
-  }, [setActiveId]);
+  }, [resolveIdFromSlug, setActiveId]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    const hash = window.location.hash?.replace(/^#/, "") as
-      | HomeNavSectionId
-      | undefined;
+    const hash = window.location.hash?.replace(/^#/, "") ?? null;
+    const sectionId = resolveIdFromSlug(hash);
 
-    if (hash && HOME_NAV_SECTIONS.some((section) => section.id === hash)) {
-      setActiveId(hash);
+    if (sectionId) {
+      setActiveId(sectionId);
     }
-  }, [setActiveId]);
+  }, [resolveIdFromSlug, setActiveId]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
