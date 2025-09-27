@@ -1,0 +1,5 @@
+# Ignore the fetched sources; only metadata stays under version control.
+*
+!.gitignore
+!README.md
+!version.json
