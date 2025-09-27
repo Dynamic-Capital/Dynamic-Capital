@@ -1,0 +1,187 @@
+import tradingDeskPlan from "@/data/trading-desk-plan.json" with {
+  type: "json",
+};
+import {
+  type AssetClass,
+  DEFAULT_FX_PAIRS,
+  findInstrumentMetadata,
+  type InstrumentMetadata,
+  listInstruments,
+} from "@/data/instruments";
+
+const ASSET_CLASSES = [
+  "commodities",
+  "currencies",
+  "indices",
+  "crypto",
+] as const satisfies readonly AssetClass[];
+
+export interface RestEndpointDescriptor {
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS";
+  path: string;
+  description: string;
+}
+
+export interface InstrumentSample {
+  id: string;
+  name: string;
+  displaySymbol: string;
+  assetClass: AssetClass;
+}
+
+export interface TradingPlanSummary {
+  id: string;
+  symbol: string;
+  direction: string;
+  entry: number;
+  confidence: number | null;
+  takeProfit?: number;
+  stopLoss?: number;
+  planSummary: string[];
+}
+
+export interface DynamicRestResources {
+  instruments: {
+    total: number;
+    assetClasses: Record<AssetClass, {
+      count: number;
+      sample: InstrumentSample[];
+    }>;
+    majorPairs: InstrumentSample[];
+  };
+  tradingDesk: {
+    plansAvailable: number;
+    activePlans: TradingPlanSummary[];
+  };
+}
+
+export interface DynamicRestResponse {
+  status: "ok";
+  generatedAt: string;
+  metadata: {
+    version: number;
+    repository: string;
+  };
+  endpoints: RestEndpointDescriptor[];
+  resources: DynamicRestResources;
+}
+
+type TradingDeskPlan = Record<string, TradingPlan | undefined>;
+
+type TradingPlan = {
+  direction?: string;
+  entry?: number;
+  finalConfidence?: number;
+  originalConfidence?: number;
+  plan?: string[];
+  reason?: string;
+  stopLoss?: number;
+  symbol?: string;
+  takeProfit?: number;
+};
+
+const TRADING_DESK_PLAN = tradingDeskPlan as TradingDeskPlan;
+
+function toInstrumentSample(metadata: InstrumentMetadata): InstrumentSample {
+  return {
+    id: metadata.id,
+    name: metadata.name,
+    displaySymbol: metadata.displaySymbol ?? metadata.shortCode ?? metadata.id,
+    assetClass: metadata.assetClass,
+  };
+}
+
+function summariseInstruments() {
+  let total = 0;
+  const assetClasses =
+    {} as DynamicRestResources["instruments"]["assetClasses"];
+
+  for (const assetClass of ASSET_CLASSES) {
+    const instruments = listInstruments(assetClass);
+    total += instruments.length;
+    assetClasses[assetClass] = {
+      count: instruments.length,
+      sample: instruments.slice(0, 3).map(toInstrumentSample),
+    };
+  }
+
+  const majorPairs = DEFAULT_FX_PAIRS
+    .map((instrumentId) => findInstrumentMetadata(instrumentId))
+    .filter((metadata): metadata is InstrumentMetadata => Boolean(metadata))
+    .map(toInstrumentSample);
+
+  return {
+    total,
+    assetClasses,
+    majorPairs,
+  } satisfies DynamicRestResources["instruments"];
+}
+
+function summariseTradingDesk(): DynamicRestResources["tradingDesk"] {
+  const entries: TradingPlanSummary[] = [];
+
+  for (const [id, plan] of Object.entries(TRADING_DESK_PLAN)) {
+    if (!plan || !plan.symbol || plan.entry === undefined) {
+      continue;
+    }
+
+    const confidence = plan.finalConfidence ?? plan.originalConfidence ?? null;
+
+    entries.push({
+      id,
+      symbol: plan.symbol,
+      direction: plan.direction ?? "neutral",
+      entry: plan.entry,
+      confidence,
+      takeProfit: plan.takeProfit,
+      stopLoss: plan.stopLoss,
+      planSummary: (plan.plan ?? []).slice(0, 2),
+    });
+  }
+
+  entries.sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0));
+
+  return {
+    plansAvailable: entries.length,
+    activePlans: entries,
+  } satisfies DynamicRestResources["tradingDesk"];
+}
+
+export function buildDynamicRestResponse(
+  now: Date = new Date(),
+): DynamicRestResponse {
+  const instruments = summariseInstruments();
+  const tradingDesk = summariseTradingDesk();
+
+  return {
+    status: "ok",
+    generatedAt: now.toISOString(),
+    metadata: {
+      version: 1,
+      repository: "Dynamic Capital",
+    },
+    endpoints: [
+      {
+        method: "GET",
+        path: "/api/dynamic-rest",
+        description:
+          "Retrieve aggregated Dynamic Capital datasets for public use.",
+      },
+      {
+        method: "GET",
+        path: "/api/dynamic-rest/resources/instruments",
+        description: "List curated trading instruments grouped by asset class.",
+      },
+      {
+        method: "GET",
+        path: "/api/dynamic-rest/resources/trading-desk",
+        description:
+          "Fetch trading desk plan snapshots with execution context.",
+      },
+    ],
+    resources: {
+      instruments,
+      tradingDesk,
+    },
+  } satisfies DynamicRestResponse;
+}
