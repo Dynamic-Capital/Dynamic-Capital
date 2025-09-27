@@ -47,7 +47,9 @@ export const WelcomeMessage = () => {
     plans?: Plan[];
   }
 
-  const [planIds, setPlanIds] = useState<{ monthly?: string; lifetime?: string }>({});
+  const [planIds, setPlanIds] = useState<
+    { monthly?: string; lifetime?: string }
+  >({});
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -99,9 +101,8 @@ export const WelcomeMessage = () => {
         WebApp?: { initDataUnsafe?: { user?: { id?: number } } };
       };
     };
-    const telegramId =
-      ((window as unknown as TelegramWindow).Telegram?.WebApp?.
-        initDataUnsafe?.user?.id ?? "") as number | string;
+    const telegramId = ((window as unknown as TelegramWindow).Telegram?.WebApp
+      ?.initDataUnsafe?.user?.id ?? "") as number | string;
     try {
       const { data, error } = await supabase.functions.invoke(
         "checkout-init",
@@ -340,7 +341,11 @@ export const WelcomeMessage = () => {
                   <li>✓ Educational content</li>
                   <li>✓ Community access</li>
                 </ul>
-                <Button className="w-full" variant="outline" onClick={handleFree}>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={handleFree}
+                >
                   Get Started
                 </Button>
               </CardContent>
@@ -367,7 +372,10 @@ export const WelcomeMessage = () => {
                   <li>✓ Priority support</li>
                   <li>✓ Exclusive content</li>
                 </ul>
-                <Button className="w-full" onClick={() => handleCheckout("monthly")}>
+                <Button
+                  className="w-full"
+                  onClick={() => handleCheckout("monthly")}
+                >
                   Upgrade Now
                 </Button>
               </CardContent>

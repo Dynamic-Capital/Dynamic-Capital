@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, Loader2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, Loader2, X } from "lucide-react";
 import { cn } from "@/utils";
 import { EnhancedButton, EnhancedButtonProps } from "./enhanced-button";
 
@@ -32,7 +32,7 @@ export function StatefulButton({
   ...props
 }: StatefulButtonProps) {
   const [internalState, setInternalState] = useState<ButtonState>("idle");
-  
+
   const currentState = state !== "idle" ? state : internalState;
 
   React.useEffect(() => {
@@ -47,10 +47,10 @@ export function StatefulButton({
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if (currentState !== "idle") return;
-    
+
     setInternalState("loading");
     onStateChange?.("loading");
-    
+
     try {
       await onClick?.(e);
       setInternalState("success");
@@ -130,15 +130,20 @@ export function StatefulButton({
       className={cn(
         "min-w-[120px] transition-all duration-300",
         currentState === "loading" && "cursor-wait",
-        currentState === "success" && "bg-success hover:bg-success/90 border-success",
-        currentState === "error" && "bg-dc-brand-dark hover:bg-dc-brand-dark border-dc-brand-dark",
-        className
+        currentState === "success" &&
+          "bg-success hover:bg-success/90 border-success",
+        currentState === "error" &&
+          "bg-dc-brand-dark hover:bg-dc-brand-dark border-dc-brand-dark",
+        className,
       )}
       disabled={disabled || currentState !== "idle"}
       onClick={handleClick}
     >
       <AnimatePresence mode="wait">
-        <motion.div key={currentState} className="flex items-center justify-center">
+        <motion.div
+          key={currentState}
+          className="flex items-center justify-center"
+        >
           {getContent()}
         </motion.div>
       </AnimatePresence>

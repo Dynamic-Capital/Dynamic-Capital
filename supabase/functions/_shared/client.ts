@@ -89,12 +89,40 @@ const SUPABASE_SERVICE_ROLE_KEY = getEnvVar("SUPABASE_SERVICE_ROLE_KEY", [
 let anonClient: SupabaseClient | null = null;
 let serviceClient: SupabaseClient | null = null;
 
+type CreateClientOverride = (
+  role: "anon" | "service",
+  options?: SupabaseClientOptions<"public">,
+) => SupabaseClient;
+
+type GlobalWithOverride = typeof globalThis & {
+  __supabaseCreateClientOverride__?: CreateClientOverride | null;
+};
+
+const globalOverrideHost = globalThis as GlobalWithOverride;
+
+function getCreateClientOverride(): CreateClientOverride | null {
+  return globalOverrideHost.__supabaseCreateClientOverride__ ?? null;
+}
+
+export function __setCreateClientOverride(
+  override: CreateClientOverride | null,
+) {
+  globalOverrideHost.__supabaseCreateClientOverride__ = override ?? null;
+  anonClient = null;
+  serviceClient = null;
+}
+
 export type { SupabaseClient, SupabaseClientOptions };
 
 export function createClient(
   role: "anon" | "service" = "anon",
   options?: SupabaseClientOptions<"public">,
 ): SupabaseClient {
+  const override = getCreateClientOverride();
+  if (override) {
+    return override(role, options);
+  }
+
   const key = role === "service"
     ? SUPABASE_SERVICE_ROLE_KEY
     : SUPABASE_ANON_KEY;

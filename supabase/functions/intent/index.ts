@@ -1,7 +1,12 @@
 import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
-import { ok, bad, unauth, mna, oops, corsHeaders } from "../_shared/http.ts";
-import { getContent, getCryptoDepositAddress } from "../_shared/config.ts";
+import { bad, corsHeaders, mna, ok, oops, unauth } from "../_shared/http.ts";
+import {
+  convertUsdAmount,
+  getContent,
+  getCryptoDepositAddress,
+  getUsdToMvrRate,
+} from "../_shared/config.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
@@ -43,10 +48,12 @@ export const handler = registerHandler(async (req) => {
   }
 
   if (body.type === "bank") {
-    const pay_code = crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase();
+    const pay_code = crypto.randomUUID().replace(/-/g, "").slice(0, 6)
+      .toUpperCase();
     const currency = body.currency === "MVR" ? "MVR" : "USD";
     const baseAmount = body.amount || 50;
-    const expected = currency === "MVR" ? baseAmount * 17.5 : baseAmount;
+    const conversionRate = currency === "MVR" ? await getUsdToMvrRate() : 1;
+    const expected = convertUsdAmount(baseAmount, currency, conversionRate);
     let userId: string | undefined;
     if (supa) {
       const { data: bu } = await supa
@@ -92,7 +99,8 @@ export const handler = registerHandler(async (req) => {
     );
     const currency = body.currency === "MVR" ? "MVR" : "USD";
     const baseAmount = body.amount || defaultAmount;
-    const expected = currency === "MVR" ? baseAmount * 17.5 : baseAmount;
+    const conversionRate = currency === "MVR" ? await getUsdToMvrRate() : 1;
+    const expected = convertUsdAmount(baseAmount, currency, conversionRate);
 
     let userId: string | undefined;
     if (supa) {

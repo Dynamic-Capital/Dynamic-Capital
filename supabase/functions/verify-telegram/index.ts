@@ -1,5 +1,5 @@
 import { optionalEnv } from "../_shared/env.ts";
-import { bad, mna, ok, oops, json } from "../_shared/http.ts";
+import { bad, json, mna, ok, oops } from "../_shared/http.ts";
 
 const allowList = new Set(
   (Deno.env.get("MINIAPP_ORIGIN") || "")

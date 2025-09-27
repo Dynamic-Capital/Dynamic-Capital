@@ -40,7 +40,9 @@ if (placeholders.length > 0) {
 
 if (!process.env.MINIAPP_ORIGIN && process.env.SITE_URL) {
   process.env.MINIAPP_ORIGIN = process.env.SITE_URL;
-  info(`MINIAPP_ORIGIN defaulted to ${process.env.MINIAPP_ORIGIN} to match SITE_URL.`);
+  info(
+    `MINIAPP_ORIGIN defaulted to ${process.env.MINIAPP_ORIGIN} to match SITE_URL.`,
+  );
 } else if (process.env.MINIAPP_ORIGIN) {
   info(`MINIAPP_ORIGIN is set to ${process.env.MINIAPP_ORIGIN}.`);
 }

@@ -5,6 +5,7 @@
 - Prefer anon key for public reads; elevate via RPC where possible.
 
 ## Rotation (recommended quarterly or after suspected exposure)
+
 ```bash
 npx supabase login
 npx supabase link --project-ref <PROJECT_REF>

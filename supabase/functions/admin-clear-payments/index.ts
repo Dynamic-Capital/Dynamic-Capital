@@ -4,7 +4,8 @@ import { json, mna, oops } from "../_shared/http.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 export async function handler(req: Request): Promise<Response> {
@@ -23,9 +24,9 @@ export async function handler(req: Request): Promise<Response> {
 
     // Clear all pending payments
     const { data: payments, error: paymentsError } = await supabase
-      .from('payments')
-      .update({ status: 'cancelled' })
-      .eq('status', 'pending')
+      .from("payments")
+      .update({ status: "cancelled" })
+      .eq("status", "pending")
       .select();
 
     if (paymentsError) {
@@ -37,22 +38,24 @@ export async function handler(req: Request): Promise<Response> {
 
     // Clear pending user subscriptions
     const { data: subscriptions, error: subscriptionsError } = await supabase
-      .from('user_subscriptions')
-      .update({ payment_status: 'cancelled' })
-      .eq('payment_status', 'pending')
+      .from("user_subscriptions")
+      .update({ payment_status: "cancelled" })
+      .eq("payment_status", "pending")
       .select();
 
     if (subscriptionsError) {
       console.error("Error clearing subscriptions:", subscriptionsError);
     } else {
-      console.log(`Cleared ${subscriptions?.length || 0} pending subscriptions`);
+      console.log(
+        `Cleared ${subscriptions?.length || 0} pending subscriptions`,
+      );
     }
 
     // Clear pending education enrollments
     const { data: enrollments, error: enrollmentsError } = await supabase
-      .from('education_enrollments')
-      .update({ payment_status: 'cancelled' })
-      .eq('payment_status', 'pending')
+      .from("education_enrollments")
+      .update({ payment_status: "cancelled" })
+      .eq("payment_status", "pending")
       .select();
 
     if (enrollmentsError) {
@@ -63,13 +66,13 @@ export async function handler(req: Request): Promise<Response> {
 
     // Reset active user sessions
     const { data: sessions, error: sessionsError } = await supabase
-      .from('user_sessions')
-      .update({ 
-        is_active: false, 
+      .from("user_sessions")
+      .update({
+        is_active: false,
         ended_at: new Date().toISOString(),
-        end_reason: 'admin_reset'
+        end_reason: "admin_reset",
       })
-      .eq('is_active', true)
+      .eq("is_active", true)
       .select();
 
     if (sessionsError) {
@@ -80,16 +83,19 @@ export async function handler(req: Request): Promise<Response> {
 
     console.log("Payment clearing completed successfully");
 
-    return json({
-      success: true,
-      cleared: {
-        payments: payments?.length || 0,
-        subscriptions: subscriptions?.length || 0,
-        enrollments: enrollments?.length || 0,
-        sessions: sessions?.length || 0
-      }
-    }, 200, corsHeaders);
-
+    return json(
+      {
+        success: true,
+        cleared: {
+          payments: payments?.length || 0,
+          subscriptions: subscriptions?.length || 0,
+          enrollments: enrollments?.length || 0,
+          sessions: sessions?.length || 0,
+        },
+      },
+      200,
+      corsHeaders,
+    );
   } catch (error) {
     console.error("Error in admin-clear-payments:", error);
     return oops((error as Error).message);

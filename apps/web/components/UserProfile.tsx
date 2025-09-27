@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 
 interface UserProfileProps {
@@ -9,7 +9,9 @@ interface UserProfileProps {
   avatarUrl?: string;
 }
 
-export default function UserProfile({ name, email, avatarUrl }: UserProfileProps) {
+export default function UserProfile(
+  { name, email, avatarUrl }: UserProfileProps,
+) {
   const [showEmail, setShowEmail] = useState(false);
 
   useEffect(() => {
@@ -39,4 +41,3 @@ export default function UserProfile({ name, email, avatarUrl }: UserProfileProps
     </div>
   );
 }
-

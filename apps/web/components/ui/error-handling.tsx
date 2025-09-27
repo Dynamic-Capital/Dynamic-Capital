@@ -1,18 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  AlertCircle, 
-  CheckCircle, 
-  Clock, 
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  ExternalLink,
   RefreshCw,
   WifiOff,
-  ExternalLink
 } from "lucide-react";
 import { toast } from "sonner";
 import { callEdgeFunction } from "@/config/supabase";
@@ -30,42 +36,42 @@ export function NetworkStatus({ className }: NetworkStatusProps) {
     const handleOnline = () => {
       setIsOnline(true);
       setLastCheck(new Date());
-      toast.success('Connection restored');
+      toast.success("Connection restored");
     };
 
     const handleOffline = () => {
       setIsOnline(false);
       setLastCheck(new Date());
-      toast.error('Connection lost');
+      toast.error("Connection lost");
     };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
   const testConnection = async () => {
     setTesting(true);
     try {
-      const { error } = await callEdgeFunction('CONTENT_BATCH', {
-        method: 'POST',
-        body: { keys: ['network_test'] },
+      const { error } = await callEdgeFunction("CONTENT_BATCH", {
+        method: "POST",
+        body: { keys: ["network_test"] },
       });
 
       if (!error) {
         setIsOnline(true);
-        toast.success('Connection test successful');
+        toast.success("Connection test successful");
       } else {
         setIsOnline(false);
-        toast.error('Connection test failed');
+        toast.error("Connection test failed");
       }
     } catch {
       setIsOnline(false);
-      toast.error('Network error');
+      toast.error("Network error");
     } finally {
       setTesting(false);
       setLastCheck(new Date());
@@ -90,7 +96,9 @@ export function NetworkStatus({ className }: NetworkStatusProps) {
           disabled={testing}
           className="ml-2"
         >
-          <RefreshCw className={`h-4 w-4 mr-1 ${testing ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`h-4 w-4 mr-1 ${testing ? "animate-spin" : ""}`}
+          />
           Test
         </Button>
       </AlertDescription>
@@ -107,7 +115,9 @@ export class ErrorBoundary extends React.Component<
   { children: React.ReactNode; fallback?: React.ReactNode },
   ErrorBoundaryState
 > {
-  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
+  constructor(
+    props: { children: React.ReactNode; fallback?: React.ReactNode },
+  ) {
     super(props);
     this.state = { hasError: false };
   }
@@ -117,7 +127,7 @@ export class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    console.error("Error caught by boundary:", error, errorInfo);
   }
 
   render() {
@@ -141,11 +151,13 @@ interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
 }
 
-export function LoadingSpinner({ message = "Loading...", size = "md" }: LoadingSpinnerProps) {
+export function LoadingSpinner(
+  { message = "Loading...", size = "md" }: LoadingSpinnerProps,
+) {
   const sizeClasses = {
     sm: "h-4 w-4",
-    md: "h-6 w-6", 
-    lg: "h-8 w-8"
+    md: "h-6 w-6",
+    lg: "h-8 w-8",
   };
 
   return (
@@ -163,7 +175,9 @@ interface RetryableComponentProps {
   loading?: boolean;
 }
 
-export function RetryableComponent({ children, onRetry, error, loading }: RetryableComponentProps) {
+export function RetryableComponent(
+  { children, onRetry, error, loading }: RetryableComponentProps,
+) {
   if (loading) {
     return <LoadingSpinner />;
   }

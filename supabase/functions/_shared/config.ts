@@ -195,11 +195,11 @@ export async function getContentBatch(
   defaults: Record<string, string> = {},
 ): Promise<Record<string, string | null>> {
   if (keys.length === 0) return {};
-  
+
   // Check cache first
   const cached: Record<string, string | null> = {};
   const uncached: string[] = [];
-  
+
   for (const key of keys) {
     const hit = getCached<string>(`c:${key}`);
     if (hit !== null) {
@@ -208,14 +208,14 @@ export async function getContentBatch(
       uncached.push(key);
     }
   }
-  
+
   if (uncached.length === 0) return cached;
-  
+
   const client = getClient();
   if (!client) {
-    return keys.reduce((acc, key) => ({ 
-      ...acc, 
-      [key]: cached[key] ?? defaults[key] ?? null 
+    return keys.reduce((acc, key) => ({
+      ...acc,
+      [key]: cached[key] ?? defaults[key] ?? null,
     }), {});
   }
 
@@ -225,10 +225,8 @@ export async function getContentBatch(
     });
 
     if (error) throw error;
-    
-    const rows: ContentRow[] = Array.isArray(data)
-      ? data as ContentRow[]
-      : [];
+
+    const rows: ContentRow[] = Array.isArray(data) ? data as ContentRow[] : [];
     const result: Record<string, string | null> = { ...cached };
     for (const key of uncached) {
       const found = rows.find((row) => row.content_key === key);
@@ -236,14 +234,52 @@ export async function getContentBatch(
       result[key] = value;
       if (value !== null) setCached(`c:${key}`, value);
     }
-    
+
     return result;
   } catch {
-    return keys.reduce((acc, key) => ({ 
-      ...acc, 
-      [key]: cached[key] ?? defaults[key] ?? null 
+    return keys.reduce((acc, key) => ({
+      ...acc,
+      [key]: cached[key] ?? defaults[key] ?? null,
     }), {});
   }
+}
+
+const DEFAULT_USD_MVR_RATE = 20;
+
+function parsePositiveNumber(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+  return parsed;
+}
+
+export async function getUsdToMvrRate(): Promise<number> {
+  const envRate = parsePositiveNumber(maybe("USD_MVR_RATE"));
+  if (envRate) return envRate;
+
+  const contentRate = parsePositiveNumber(
+    await getContent<string>("usd_mvr_rate"),
+  );
+  if (contentRate) return contentRate;
+
+  return DEFAULT_USD_MVR_RATE;
+}
+
+export function convertUsdAmount(
+  amount: number,
+  currency: string,
+  usdToMvrRate: number,
+): number {
+  if (!Number.isFinite(amount) || amount < 0) return 0;
+  if (currency === "MVR") {
+    return amount *
+      (Number.isFinite(usdToMvrRate) && usdToMvrRate > 0
+        ? usdToMvrRate
+        : DEFAULT_USD_MVR_RATE);
+  }
+  return amount;
 }
 
 export { envOrSetting, getConfig, requireSetting, setConfig };

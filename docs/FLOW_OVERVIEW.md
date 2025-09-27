@@ -1,6 +1,7 @@
 # Flow Overview
 
 ## A) Request Flow (Telegram → Edge → DB → Telegram)
+
 ```mermaid
 flowchart LR
   TG[User • Telegram] -->|update| WH[Edge Function: telegram-webhook]
@@ -10,6 +11,7 @@ flowchart LR
 ```
 
 ## B) Payments/Activation
+
 ```mermaid
 sequenceDiagram
   participant User

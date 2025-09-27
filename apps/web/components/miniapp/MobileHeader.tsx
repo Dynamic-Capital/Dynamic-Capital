@@ -1,8 +1,7 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Bell, Settings, Menu } from 'lucide-react';
-import { TouchFeedback } from '@/components/ui/mobile-gestures';
-
+import React from "react";
+import { motion } from "framer-motion";
+import { Bell, Menu, Settings } from "lucide-react";
+import { TouchFeedback } from "@/components/ui/mobile-gestures";
 
 interface MobileHeaderProps {
   title: string;
@@ -38,7 +37,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               </motion.div>
             </TouchFeedback>
           )}
-          
+
           <motion.h1
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}

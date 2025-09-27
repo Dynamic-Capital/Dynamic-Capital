@@ -1,8 +1,8 @@
 {
-"name": "landing",
-"private": true,
-"scripts": {
-"build": "node ../../scripts/build-landing.mjs",
-"start": "npx serve ../../_static -l ${PORT:-8080}"
-}
+  "name": "landing",
+  "private": true,
+  "scripts": {
+    "build": "node ../../scripts/build-landing.mjs",
+    "start": "npx serve ../../_static -l ${PORT:-8080}"
+  }
 }

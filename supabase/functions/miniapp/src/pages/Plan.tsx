@@ -49,7 +49,7 @@ export default function Plan() {
 
     // Check for preselected plan in URL
     const urlParams = new URLSearchParams(globalThis.location.search);
-    const planParam = urlParams.get('plan');
+    const planParam = urlParams.get("plan");
     if (planParam) {
       setSelected(planParam);
     }
@@ -70,7 +70,7 @@ export default function Plan() {
 
   const validatePromoCode = async () => {
     if (!promoCode.trim() || !selected) return;
-    
+
     try {
       const res = await fetch(functionUrl("promo-validate")!, {
         method: "POST",
@@ -83,11 +83,17 @@ export default function Plan() {
       });
       const data = await res.json();
       setPromoValidation(data);
-      
+
       if (data.valid) {
-        setToast({ message: `Promo applied! $${data.final_amount} final amount`, type: "success" });
+        setToast({
+          message: `Promo applied! $${data.final_amount} final amount`,
+          type: "success",
+        });
       } else {
-        setToast({ message: data.reason || "Invalid promo code", type: "error" });
+        setToast({
+          message: data.reason || "Invalid promo code",
+          type: "error",
+        });
       }
     } catch {
       setToast({ message: "Failed to validate promo code", type: "error" });
@@ -115,7 +121,7 @@ export default function Plan() {
       if (json?.ok) {
         setPaymentId(json.payment_id);
         setInstructions(json.instructions as Instructions);
-        
+
         // If promo code was validated, redeem it
         if (promoValidation?.valid && promoCode) {
           try {
@@ -171,11 +177,16 @@ export default function Plan() {
                   />
                 </div>
                 {promoValidation && (
-                  <div className={`text-xs p-2 rounded ${promoValidation.valid ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
-                    {promoValidation.valid 
+                  <div
+                    className={`text-xs p-2 rounded ${
+                      promoValidation.valid
+                        ? "bg-green-500/20 text-green-300"
+                        : "bg-red-500/20 text-red-300"
+                    }`}
+                  >
+                    {promoValidation.valid
                       ? `Discount applied! Final amount: $${promoValidation.final_amount}`
-                      : promoValidation.reason
-                    }
+                      : promoValidation.reason}
                   </div>
                 )}
               </div>
@@ -193,12 +204,13 @@ export default function Plan() {
               <div className="flex items-center justify-between">
                 <span>{p.name}</span>
                 <span className="text-sm">
-                  {promoValidation?.valid && selected === p.id 
-                    ? `$${promoValidation.final_amount}` 
-                    : `$${p.price}`
-                  } {p.currency}
+                  {promoValidation?.valid && selected === p.id
+                    ? `$${promoValidation.final_amount}`
+                    : `$${p.price}`} {p.currency}
                   {promoValidation?.valid && selected === p.id && (
-                    <span className="ml-2 text-xs line-through opacity-60">${p.price}</span>
+                    <span className="ml-2 text-xs line-through opacity-60">
+                      ${p.price}
+                    </span>
                   )}
                 </span>
               </div>

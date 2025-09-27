@@ -1,8 +1,8 @@
 export {
-  MiniAppThemeManager,
   attachGlobalTonConnect,
   attachTonConnect,
   getMiniAppThemeManager,
+  MiniAppThemeManager,
 } from "../../../shared/miniapp/theme-loader";
 export type {
   MiniAppThemeOption,

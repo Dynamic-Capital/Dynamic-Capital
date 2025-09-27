@@ -1,32 +1,41 @@
 # Trading Team Compensation Guide
 
-This guide codifies Dynamic Capital's compensation structure for trading operations staff, aligning employee payouts with the private fund pool's investor obligations.
+This guide codifies Dynamic Capital's compensation structure for trading
+operations staff, aligning employee payouts with the private fund pool's
+investor obligations.
 
 ## Policy Overview Checklist
 
 - [ ] Review market rates annually to keep fixed salary bands competitive.
-- [ ] Confirm profit-sharing calculations against verified trading P&L statements each month.
-- [ ] Audit introducing broker (IB) referral tracking before processing commission payouts.
-- [ ] Allocate the quarterly or annual bonus pool only after investor distributions and reinvestment targets are met.
-- [ ] Document governance approvals (COO, CFO, or delegated committee) for any exceptions to this policy.
+- [ ] Confirm profit-sharing calculations against verified trading P&L
+      statements each month.
+- [ ] Audit introducing broker (IB) referral tracking before processing
+      commission payouts.
+- [ ] Allocate the quarterly or annual bonus pool only after investor
+      distributions and reinvestment targets are met.
+- [ ] Document governance approvals (COO, CFO, or delegated committee) for any
+      exceptions to this policy.
 
 ## Fixed Salaries
 
 ### Eligible Roles
 
-- Administrative staff, including HR, compliance, IT support, and customer support.
+- Administrative staff, including HR, compliance, IT support, and customer
+  support.
 - Research and technical analysts who provide routine market updates.
-- Risk managers responsible for supervising trading activity and enforcing risk protocols.
+- Risk managers responsible for supervising trading activity and enforcing risk
+  protocols.
 
 ### Compensation Bands
 
-| Role Group            | Suggested Monthly Range (MVR) | Notes |
-| -------------------- | ------------------------------ | ----- |
-| Administrative Staff  | 10,000–15,000                 | Adjust for tenure, shift coverage, and cross-training.
-| Analysts              | 15,000–25,000                 | Calibrate for specialization and contribution to revenue initiatives.
-| Senior Analysts/Risk Managers | 20,000–30,000         | Reserve the top of band for individuals leading portfolio-wide risk decisions.
+| Role Group                    | Suggested Monthly Range (MVR) | Notes                                                                          |
+| ----------------------------- | ----------------------------- | ------------------------------------------------------------------------------ |
+| Administrative Staff          | 10,000–15,000                 | Adjust for tenure, shift coverage, and cross-training.                         |
+| Analysts                      | 15,000–25,000                 | Calibrate for specialization and contribution to revenue initiatives.          |
+| Senior Analysts/Risk Managers | 20,000–30,000                 | Reserve the top of band for individuals leading portfolio-wide risk decisions. |
 
-> **Adjustment cadence:** Revisit salary bands during annual budgeting to benchmark against market data and inflation.
+> **Adjustment cadence:** Revisit salary bands during annual budgeting to
+> benchmark against market data and inflation.
 
 ## Profit Sharing
 
@@ -37,17 +46,19 @@ This guide codifies Dynamic Capital's compensation structure for trading operati
 
 ### Distribution Tiers
 
-| Role Level     | Profit Share Range | Performance Triggers |
-| -------------- | ------------------ | -------------------- |
-| Junior Traders | 10%–15%            | Achieve desk KPIs with monitored drawdown limits and compliant journal entries.
-| Senior Traders | 20%–30%            | Deliver alpha within approved risk budgets while mentoring junior staff.
-| Senior Analysts | 5%–10% override    | Apply when analysts co-own trade theses and contribute to execution quality.
+| Role Level      | Profit Share Range | Performance Triggers                                                            |
+| --------------- | ------------------ | ------------------------------------------------------------------------------- |
+| Junior Traders  | 10%–15%            | Achieve desk KPIs with monitored drawdown limits and compliant journal entries. |
+| Senior Traders  | 20%–30%            | Deliver alpha within approved risk budgets while mentoring junior staff.        |
+| Senior Analysts | 5%–10% override    | Apply when analysts co-own trade theses and contribute to execution quality.    |
 
 ### Administration Checklist
 
 - [ ] Calculate profit share after reconciling trader P&L with finance.
-- [ ] Cap payouts so combined employee distributions do not exceed the investor-aligned performance fee allocation (see below).
-- [ ] Log trader acknowledgements of risk policy compliance before releasing payments.
+- [ ] Cap payouts so combined employee distributions do not exceed the
+      investor-aligned performance fee allocation (see below).
+- [ ] Log trader acknowledgements of risk policy compliance before releasing
+      payments.
 
 ## Introducing Broker (IB) Commissions
 
@@ -58,16 +69,20 @@ This guide codifies Dynamic Capital's compensation structure for trading operati
 
 ### Eligibility & Controls
 
-- [ ] Ensure IB status is documented with signed agreements and compliance approvals.
-- [ ] Validate referral attribution via CRM or Supabase event logs before paying commissions.
+- [ ] Ensure IB status is documented with signed agreements and compliance
+      approvals.
+- [ ] Validate referral attribution via CRM or Supabase event logs before paying
+      commissions.
 - [ ] Apply clawbacks for churned accounts as stipulated in referral contracts.
 
 ## Performance Bonuses
 
 ### Pool Funding
 
-- Allocate 5%–10% of annual profits to the bonus pool after investor and reinvestment commitments are fulfilled.
-- Limit pool drawdowns if trading performance falls below the minimum investor hurdle rate.
+- Allocate 5%–10% of annual profits to the bonus pool after investor and
+  reinvestment commitments are fulfilled.
+- Limit pool drawdowns if trading performance falls below the minimum investor
+  hurdle rate.
 
 ### Distribution Cadence
 
@@ -78,42 +93,57 @@ This guide codifies Dynamic Capital's compensation structure for trading operati
 
 - [ ] Publish KPI scorecards ahead of each bonus cycle.
 - [ ] Obtain executive approval for pool size and distribution formula.
-- [ ] Communicate bonus letters alongside updated salary or profit-sharing adjustments.
+- [ ] Communicate bonus letters alongside updated salary or profit-sharing
+      adjustments.
 
 ## Alignment with Investor Profit Split
 
 Per `docs/private-fund-pool.md`, net profits flow as:
 
-1. **64% Investor Payouts:** Primary obligation to limited partners. Must be completed before employee variable compensation is executed.
-2. **16% Reinvestment:** Allocate to growth reserves and platform enhancements. Profit-sharing draws cannot reduce this reserve below the mandated threshold.
-3. **20% Performance Fee:** Serves as the ceiling for trader profit-sharing, analyst overrides, and bonus pool allocations.
+1. **64% Investor Payouts:** Primary obligation to limited partners. Must be
+   completed before employee variable compensation is executed.
+2. **16% Reinvestment:** Allocate to growth reserves and platform enhancements.
+   Profit-sharing draws cannot reduce this reserve below the mandated threshold.
+3. **20% Performance Fee:** Serves as the ceiling for trader profit-sharing,
+   analyst overrides, and bonus pool allocations.
 
 **Sequencing Requirements**
 
-- [ ] Complete investor payouts and reinvestment transfers before scheduling employee distributions.
-- [ ] If cumulative employee variable compensation would exceed the 20% performance fee, convene governance to approve deferrals or rebalancing.
-- [ ] Maintain a ledger mapping each payout to the associated performance fee tranche for audit readiness.
+- [ ] Complete investor payouts and reinvestment transfers before scheduling
+      employee distributions.
+- [ ] If cumulative employee variable compensation would exceed the 20%
+      performance fee, convene governance to approve deferrals or rebalancing.
+- [ ] Maintain a ledger mapping each payout to the associated performance fee
+      tranche for audit readiness.
 
 ## Governance & Review
 
-- Refresh this policy annually or when material changes to investor agreements occur.
-- Store compensation approvals and payout reports in the HR compliance vault with restricted access.
-- Provide summary metrics to leadership (total salary spend, profit share percentages, commission tallies) each quarter.
+- Refresh this policy annually or when material changes to investor agreements
+  occur.
+- Store compensation approvals and payout reports in the HR compliance vault
+  with restricted access.
+- Provide summary metrics to leadership (total salary spend, profit share
+  percentages, commission tallies) each quarter.
 
 ## Compensation Run Algorithm
 
 ### Inputs
 
 - Verified monthly trading P&L export (desk-level and trader-level breakdowns).
-- Investor distribution ledger showing completion of the 64/16/20 split sequencing.
-- HRIS roster with salary bands, role levels, and eligibility flags (profit share, IB, bonus).
+- Investor distribution ledger showing completion of the 64/16/20 split
+  sequencing.
+- HRIS roster with salary bands, role levels, and eligibility flags (profit
+  share, IB, bonus).
 - Referral CRM report for IB activity and clawback status.
-- Compliance attestations confirming risk policy adherence for all variable-comp recipients.
+- Compliance attestations confirming risk policy adherence for all variable-comp
+  recipients.
 
 ### Outputs
 
-- Signed compensation packet summarizing fixed salaries, variable payouts, and investor-aligned reserves.
-- Payment file or batch instructions for payroll, profit-sharing transfers, and IB commissions.
+- Signed compensation packet summarizing fixed salaries, variable payouts, and
+  investor-aligned reserves.
+- Payment file or batch instructions for payroll, profit-sharing transfers, and
+  IB commissions.
 - Governance log noting approvals, exceptions, and performance fee utilization.
 - Updated performance fee tracker reflecting remaining headroom after payouts.
 
@@ -121,32 +151,52 @@ Per `docs/private-fund-pool.md`, net profits flow as:
 
 1. **Pre-Run Validation**
    1. Lock the accounting period and reconcile trading P&L with finance.
-      - If reconciliation variance exceeds 1% of monthly desk P&L, halt the run and escalate to the CFO.
-   2. Confirm investor payouts (64%) and reinvestment transfers (16%) have settled; document transaction IDs in the ledger.
-      - If either bucket is outstanding, reschedule the compensation run and notify HR leadership.
-   3. Refresh the performance fee pool balance (20%) and subtract any prior-period carryovers or clawbacks.
+      - If reconciliation variance exceeds 1% of monthly desk P&L, halt the run
+        and escalate to the CFO.
+   2. Confirm investor payouts (64%) and reinvestment transfers (16%) have
+      settled; document transaction IDs in the ledger.
+      - If either bucket is outstanding, reschedule the compensation run and
+        notify HR leadership.
+   3. Refresh the performance fee pool balance (20%) and subtract any
+      prior-period carryovers or clawbacks.
 2. **Fixed Salary Processing**
    1. Generate the payroll batch using HRIS salary bands.
-   2. Spot-check variance against prior month for ±5% swings; if exceeded, require HRBP approval with justification (promotion, COLA, etc.).
-   3. Queue disbursement and update the governance log with total fixed salary spend.
+   2. Spot-check variance against prior month for ±5% swings; if exceeded,
+      require HRBP approval with justification (promotion, COLA, etc.).
+   3. Queue disbursement and update the governance log with total fixed salary
+      spend.
 3. **Profit Sharing Allocation**
-   1. For each eligible trader or analyst, compute share = eligible P&L × tier percentage.
-   2. Validate compliance attestations (risk logs, journal entries). If missing, hold payout and trigger remediation workflow.
-   3. Sum all calculated profit shares; if the amount exceeds remaining performance fee headroom, pro-rate payouts or defer per governance policy and capture decision in the log.
+   1. For each eligible trader or analyst, compute share = eligible P&L × tier
+      percentage.
+   2. Validate compliance attestations (risk logs, journal entries). If missing,
+      hold payout and trigger remediation workflow.
+   3. Sum all calculated profit shares; if the amount exceeds remaining
+      performance fee headroom, pro-rate payouts or defer per governance policy
+      and capture decision in the log.
 4. **IB Commission Calculation**
-   1. Import referral CRM report and filter for eligible deposits/lots with cleared clawback windows.
+   1. Import referral CRM report and filter for eligible deposits/lots with
+      cleared clawback windows.
    2. Compute commission using the configured percentage and per-lot schedule.
-   3. Cross-check totals against Supabase referral events; discrepancies >2% require re-audit before release.
+   3. Cross-check totals against Supabase referral events; discrepancies >2%
+      require re-audit before release.
 5. **Bonus Pool Consideration (Quarterly/Annual)**
-   1. Determine whether the cycle triggers a bonus event; if not, skip to step 6.
-   2. Confirm bonus pool funding (5%–10% of annual profits) is within the remaining performance fee allocation.
-   3. Allocate bonuses based on KPI scoring matrix, documenting weights and approvals.
+   1. Determine whether the cycle triggers a bonus event; if not, skip to
+      step 6.
+   2. Confirm bonus pool funding (5%–10% of annual profits) is within the
+      remaining performance fee allocation.
+   3. Allocate bonuses based on KPI scoring matrix, documenting weights and
+      approvals.
 6. **Approval & Release**
-   1. Compile the compensation packet with salary, profit share, commission, and bonus summaries plus remaining performance fee balance.
-   2. Route packet for COO, CFO, and compliance signatures; capture timestamps in governance log.
-   3. After approvals, transmit payment batches to payroll/treasury systems and archive receipts in the HR compliance vault.
+   1. Compile the compensation packet with salary, profit share, commission, and
+      bonus summaries plus remaining performance fee balance.
+   2. Route packet for COO, CFO, and compliance signatures; capture timestamps
+      in governance log.
+   3. After approvals, transmit payment batches to payroll/treasury systems and
+      archive receipts in the HR compliance vault.
 7. **Post-Run Audit**
-   1. Update performance fee tracker with actual disbursed amounts and residual headroom.
-   2. File exception reports (deferrals, clawbacks, compliance holds) and assign follow-up owners.
-   3. Schedule a retro review; incorporate lessons into the next policy refresh if systemic issues arise.
-
+   1. Update performance fee tracker with actual disbursed amounts and residual
+      headroom.
+   2. File exception reports (deferrals, clawbacks, compliance holds) and assign
+      follow-up owners.
+   3. Schedule a retro review; incorporate lessons into the next policy refresh
+      if systemic issues arise.

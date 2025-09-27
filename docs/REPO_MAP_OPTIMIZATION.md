@@ -42,22 +42,27 @@ _Last updated: 2025-09-17._
 
 ### 1.5 Site Map (Next.js & Supporting Endpoints)
 
-| Route         | Audience / Access       | Description & Key Hooks                                                                                                      |
-| ------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Route         | Audience / Access       | Description & Key Hooks                                                                                                                                                                                                                                                   |
+| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/`           | Public                  | Marketing landing experience rendered via the `OnceLandingPage` composition with CTA handlers deep-linking to the Telegram bot for onboarding, plan selection, and payments. Brand gradients and the animated `BrandLogo` establish the Dynamic Capital look immediately. |
-| `/:locale`    | Public                  | Locale-aware alias that reuses the homepage component and layout providers while injecting locale content, keeping routing logic centralized. Locale shells inherit the same brand tokens so translated routes still surface the signature gradients. |
-| `/telegram`   | Authenticated ops staff | Rich dashboard for monitoring the Telegram bot, reviewing analytics, managing promos, and launching the embedded admin console. The dashboard bootstraps brand-aware providers so charts, alerts, and badges reuse the `dc-brand` palette. |
-| `/signal`     | Public CDN              | Serves the pre-rendered `_static/index.html` snapshot to host the marketing page without requiring runtime secrets. The static artifact bakes in the same gradient overlays and typography so the CDN host mirrors live branding. |
-| `/healthz`    | Ops & monitoring        | JSON health probe exposing status, timestamp, and environment metadata for uptime checks. Branding metadata (app name, environment tags) keeps monitoring dashboards aligned with Dynamic Capital terminology. |
-| `/api`        | Programmatic            | Baseline API heartbeat returning a simple payload with CORS headers for service-level probes. Responses include the branded service identifier so upstream monitors display the correct Dynamic Capital label. |
-| `/api/hello`  | Programmatic            | Demo JSON response plus preflight handler for smoke tests and sample integrations. Payload text references Dynamic Capital to validate that partner sandboxes surface the right branding. |
-| `/api/auth/*` | Authenticated           | NextAuth handler wired to the Supabase adapter and GitHub OAuth for secure console sign-in. Metadata passed to identity providers keeps OAuth consent screens consistent with Dynamic Capital’s brand naming. |
+| `/:locale`    | Public                  | Locale-aware alias that reuses the homepage component and layout providers while injecting locale content, keeping routing logic centralized. Locale shells inherit the same brand tokens so translated routes still surface the signature gradients.                     |
+| `/telegram`   | Authenticated ops staff | Rich dashboard for monitoring the Telegram bot, reviewing analytics, managing promos, and launching the embedded admin console. The dashboard bootstraps brand-aware providers so charts, alerts, and badges reuse the `dc-brand` palette.                                |
+| `/signal`     | Public CDN              | Serves the pre-rendered `_static/index.html` snapshot to host the marketing page without requiring runtime secrets. The static artifact bakes in the same gradient overlays and typography so the CDN host mirrors live branding.                                         |
+| `/healthz`    | Ops & monitoring        | JSON health probe exposing status, timestamp, and environment metadata for uptime checks. Branding metadata (app name, environment tags) keeps monitoring dashboards aligned with Dynamic Capital terminology.                                                            |
+| `/api`        | Programmatic            | Baseline API heartbeat returning a simple payload with CORS headers for service-level probes. Responses include the branded service identifier so upstream monitors display the correct Dynamic Capital label.                                                            |
+| `/api/hello`  | Programmatic            | Demo JSON response plus preflight handler for smoke tests and sample integrations. Payload text references Dynamic Capital to validate that partner sandboxes surface the right branding.                                                                                 |
+| `/api/auth/*` | Authenticated           | NextAuth handler wired to the Supabase adapter and GitHub OAuth for secure console sign-in. Metadata passed to identity providers keeps OAuth consent screens consistent with Dynamic Capital’s brand naming.                                                             |
 
 **Brand Alignment Notes**
 
-- Gradient overlays and `BrandLogo` variants are shared between SSR and static hosts so animations, typography, and color ramps stay synchronized across entry points.
-- Supabase-powered content pulls (hero KPIs, testimonials) are wrapped with brand-aware typography tokens so marketing copy preserves the Dynamic Capital tone.
-- CTA links encode `dynamic.capital` deep links that open the Telegram bot in a branded context, avoiding mismatched hostnames.
+- Gradient overlays and `BrandLogo` variants are shared between SSR and static
+  hosts so animations, typography, and color ramps stay synchronized across
+  entry points.
+- Supabase-powered content pulls (hero KPIs, testimonials) are wrapped with
+  brand-aware typography tokens so marketing copy preserves the Dynamic Capital
+  tone.
+- CTA links encode `dynamic.capital` deep links that open the Telegram bot in a
+  branded context, avoiding mismatched hostnames.
 
 ### 1.6 Page Map (Landing `/` Experience)
 

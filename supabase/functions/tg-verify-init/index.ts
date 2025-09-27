@@ -73,4 +73,3 @@ if (import.meta.main) serve(handler);
 
 export default handler;
 // <<< DC BLOCK: tg-verify-core (end)
-

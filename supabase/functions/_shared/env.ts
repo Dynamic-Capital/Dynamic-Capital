@@ -53,7 +53,8 @@ export type EnvKey =
   | "PROMO_AUTOGEN_SECRET"
   | "VIP_PRICING_LOOKBACK_DAYS"
   | "PROMO_AUTOGEN_MIN_USERS"
-  | "PROMO_AUTOGEN_MIN_REVENUE";
+  | "PROMO_AUTOGEN_MIN_REVENUE"
+  | "GROK_API_KEY";
 
 /** Test-only env injection type */
 type TestEnv = Partial<Record<EnvKey, string>>;

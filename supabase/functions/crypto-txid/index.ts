@@ -1,12 +1,18 @@
 import { verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
 import { bad, mna, ok, unauth } from "../_shared/http.ts";
+import { convertUsdAmount, getUsdToMvrRate } from "../_shared/config.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 export const handler = registerHandler(async (req) => {
   if (req.method !== "POST") return mna();
 
-  let body: { initData?: string; txid?: string; amount?: number; currency?: string };
+  let body: {
+    initData?: string;
+    txid?: string;
+    amount?: number;
+    currency?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -41,7 +47,8 @@ export const handler = registerHandler(async (req) => {
     }
     const currency = body.currency === "MVR" ? "MVR" : "USD";
     const baseAmount = body.amount || 0;
-    const expected = currency === "MVR" ? baseAmount * 17.5 : baseAmount;
+    const conversionRate = currency === "MVR" ? await getUsdToMvrRate() : 1;
+    const expected = convertUsdAmount(baseAmount, currency, conversionRate);
     const { error } = await supa.from("payment_intents").insert({
       user_id: userId ?? crypto.randomUUID(),
       method: "crypto",

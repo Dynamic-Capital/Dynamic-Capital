@@ -66,7 +66,9 @@ export const NAV_ITEMS: NavItem[] = [
     description: "Run side-by-side provider benchmarks.",
     icon: LayoutDashboard,
     path: "/tools/multi-llm",
-    ariaLabel: `Step ${deskNavItems.length + 1}: LLM studio. Run side-by-side provider benchmarks.`,
+    ariaLabel: `Step ${
+      deskNavItems.length + 1
+    }: LLM studio. Run side-by-side provider benchmarks.`,
     showOnMobile: true,
   },
   ...(onboardingNavItem ? [onboardingNavItem] : []),

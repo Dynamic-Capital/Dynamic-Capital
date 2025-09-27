@@ -14,11 +14,13 @@ import {
 import { createClient } from "../_shared/client.ts";
 type SupabaseClient = ReturnType<typeof createClient>;
 import {
+  convertUsdAmount,
   envOrSetting,
   getContent,
   getContentBatch,
   getCryptoDepositAddress,
   getFlag,
+  getUsdToMvrRate,
 } from "../_shared/config.ts";
 import { buildMainMenu, type MenuSection } from "./menu.ts";
 import {
@@ -1670,7 +1672,8 @@ async function handleCallback(update: TelegramUpdate): Promise<void> {
         return;
       }
       const usdPrice = plan.price;
-      const amount = currency === "MVR" ? usdPrice * 17.5 : usdPrice;
+      const conversionRate = currency === "MVR" ? await getUsdToMvrRate() : 1;
+      const amount = convertUsdAmount(usdPrice, currency, conversionRate);
       if (method === "bank") {
         await supa.from("payments").insert({
           user_id: userId,

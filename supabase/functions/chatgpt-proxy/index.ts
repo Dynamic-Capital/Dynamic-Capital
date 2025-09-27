@@ -34,7 +34,10 @@ function parseMessages(payload: unknown): ChatCompletionMessage[] {
     ) {
       const trimmedContent = content.trim();
       if (trimmedContent.length > 0) {
-        sanitized.push({ role: role as ChatCompletionRole, content: trimmedContent });
+        sanitized.push({
+          role: role as ChatCompletionRole,
+          content: trimmedContent,
+        });
       }
     }
   }

@@ -191,9 +191,7 @@ async function runDoctl(
   context: string | undefined,
 ): Promise<string> {
   try {
-    const finalArgs = context
-      ? ["--context", context, ...args]
-      : args;
+    const finalArgs = context ? ["--context", context, ...args] : args;
     const command = new Deno.Command("doctl", {
       args: finalArgs,
       stdout: "piped",

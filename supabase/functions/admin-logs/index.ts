@@ -1,6 +1,6 @@
 import { createClient } from "../_shared/client.ts";
-import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
-import { ok, bad, unauth, mna, oops } from "../_shared/http.ts";
+import { isAdmin, verifyInitDataAndGetUser } from "../_shared/telegram.ts";
+import { bad, mna, ok, oops, unauth } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 export const handler = registerHandler(async (req) => {

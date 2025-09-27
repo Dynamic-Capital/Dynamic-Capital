@@ -1,6 +1,8 @@
 # Wrapper Integration
 
-This project can interact with external services through Postgres foreign data wrappers (FDWs). Wrappers let the app query APIs and storage services using regular SQL via Supabase.
+This project can interact with external services through Postgres foreign data
+wrappers (FDWs). Wrappers let the app query APIs and storage services using
+regular SQL via Supabase.
 
 ## Installation
 
@@ -43,10 +45,17 @@ CREATE FOREIGN TABLE s3_files (
 
 ## Application Usage
 
-Wrapper-backed tables can be queried from both the Next.js app and the Telegram bot. Place shared helpers under `apps/web/integrations/` so they can be imported from the web dashboard and edge functions alike:
+Wrapper-backed tables can be queried from both the Next.js app and the Telegram
+bot. Place shared helpers under `apps/web/integrations/` so they can be imported
+from the web dashboard and edge functions alike:
 
 ```ts
-import { getRedisSession, getAuth0User, listS3Files } from "@/integrations/wrappers";
+import {
+  getAuth0User,
+  getRedisSession,
+  listS3Files,
+} from "@/integrations/wrappers";
 ```
 
-Use these functions to fetch cached sessions, authenticated users, or file metadata through the unified SQL interface.
+Use these functions to fetch cached sessions, authenticated users, or file
+metadata through the unified SQL interface.
