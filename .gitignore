@@ -87,3 +87,5 @@ miniapp/
 bun.lockb
 .codex-workflow-state.json
 .project-cache/
+# Python bytecode cache directories
+__pycache__/
