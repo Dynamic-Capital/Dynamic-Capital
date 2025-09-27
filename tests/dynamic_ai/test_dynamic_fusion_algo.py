@@ -1,11 +1,13 @@
 from pathlib import Path
 import sys
+from typing import Any, Iterable
 
 import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from dynamic_ai.core import DynamicFusionAlgo
+from dynamic_ai.fusion import SentimentLobe
 
 
 @pytest.fixture()
@@ -118,3 +120,20 @@ def test_mm_parameters_scale_with_inventory(algo: DynamicFusionAlgo) -> None:
     )
 
     assert params["gamma"] == pytest.approx(0.2)
+
+
+def test_sentiment_lobe_handles_generator_feeds() -> None:
+    lobe = SentimentLobe()
+
+    def feed_generator() -> Iterable[dict[str, Any]]:
+        for feed in (
+            {"score": 0.6, "summary": "Growth outlook bullish"},
+            {"score": -0.2, "summary": "Risk warnings bearish tone"},
+            {"score": 0.4, "summary": "Upgrade and growth prospects"},
+        ):
+            yield feed
+
+    signal = lobe.evaluate({"sentiment_feeds": feed_generator()})
+
+    assert signal.score == pytest.approx(0.4666666, rel=1e-6)
+    assert signal.confidence == pytest.approx(0.4666666, rel=1e-6)

@@ -6,6 +6,7 @@ import pytest
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from dynamic_ai import AISignal, ExecutionAgent, ResearchAgent, RiskAgent
+from dynamic_ai.analysis import DynamicAnalysis
 from algorithms.python.dynamic_ai_sync import run_dynamic_agent_cycle
 
 
@@ -16,6 +17,20 @@ def research_payload() -> dict:
         "fundamental": {"earnings_trend": "up", "growth": 0.2},
         "sentiment": {"tone": "positive", "volume": 0.6},
     }
+
+
+def test_dynamic_analysis_handles_generator_alignment() -> None:
+    analysis = DynamicAnalysis()
+    component = analysis._analyse_technical(
+        {
+            "trend": "neutral",
+            "momentum": 0.0,
+            "volatility": 1.0,
+            "moving_average_alignment": (signal for signal in ("bullish", "bearish", "bullish")),
+        }
+    )
+
+    assert component.score == pytest.approx(0.05, abs=1e-6)
 
 
 def test_research_agent_generates_structured_analysis(research_payload: dict) -> None:
