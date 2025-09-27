@@ -276,10 +276,22 @@ class DynamicResearchAlgo:
 
     # ---------------------------------------------------------- internal helpers
     def _summaries(self, *, theme: str | None = None) -> Iterable[ResearchIdeaSummary]:
+        reference_time = _now() if self.window_duration is not None else None
+        theme_key = theme.lower() if theme is not None else None
+
         for idea_id, history in self._entries.items():
             if not history:
                 continue
-            filtered = [entry for entry in history if theme is None or entry.theme == theme.lower()]
+            if reference_time is not None:
+                self._prune(history, reference=reference_time)
+            if not history:
+                continue
+
+            filtered = [
+                entry
+                for entry in history
+                if theme_key is None or entry.theme == theme_key
+            ]
             if not filtered:
                 continue
             summary = self._summarise(idea_id, filtered)
