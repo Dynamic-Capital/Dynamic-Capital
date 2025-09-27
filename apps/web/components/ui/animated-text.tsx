@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 
 interface TypewriterTextProps {
@@ -277,6 +283,171 @@ export const LetterReveal: React.FC<LetterRevealProps> = ({
   );
 };
 
+const DEFAULT_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*';
+
+type LetterFxSpeed = 'slow' | 'medium' | 'fast';
+type LetterFxTrigger = 'instant' | 'hover' | 'inView';
+
+interface LetterFxProps {
+  children: React.ReactNode;
+  speed?: LetterFxSpeed;
+  trigger?: LetterFxTrigger;
+  charset?: string;
+  className?: string;
+  letterClassName?: string;
+}
+
+export const LetterFx: React.FC<LetterFxProps> = ({
+  children,
+  speed = 'medium',
+  trigger = 'instant',
+  charset = DEFAULT_CHARSET,
+  className = '',
+  letterClassName = ''
+}) => {
+  const resolvedText = useMemo(() => {
+    return React.Children.toArray(children)
+      .map((child) => {
+        if (typeof child === 'string' || typeof child === 'number') {
+          return String(child);
+        }
+        return '';
+      })
+      .join('');
+  }, [children]);
+
+  const letters = useMemo(() => resolvedText.split(''), [resolvedText]);
+  const [displayText, setDisplayText] = useState<string[]>(letters);
+  const containerRef = useRef<HTMLSpanElement | null>(null);
+  const intervalsRef = useRef<{
+    scramble?: ReturnType<typeof setInterval>;
+    reveal?: ReturnType<typeof setInterval>;
+  }>({});
+  const charsetToUse = charset && charset.length > 0 ? charset : DEFAULT_CHARSET;
+
+  const cleanup = useCallback(() => {
+    if (intervalsRef.current.scramble) {
+      clearInterval(intervalsRef.current.scramble);
+    }
+    if (intervalsRef.current.reveal) {
+      clearInterval(intervalsRef.current.reveal);
+    }
+    intervalsRef.current = {};
+  }, []);
+
+  const randomChar = useCallback(() => {
+    const index = Math.floor(Math.random() * charsetToUse.length);
+    return charsetToUse[index];
+  }, [charsetToUse]);
+
+  const startAnimation = useCallback(() => {
+    if (letters.length === 0) {
+      return;
+    }
+
+    cleanup();
+
+    let revealIndex = 0;
+
+    setDisplayText(
+      letters.map((letter) => (letter === ' ' ? ' ' : randomChar()))
+    );
+
+    intervalsRef.current.scramble = setInterval(() => {
+      setDisplayText(
+        letters.map((letter, index) => {
+          if (index < revealIndex) {
+            return letter;
+          }
+          return letter === ' ' ? ' ' : randomChar();
+        })
+      );
+    }, 45);
+
+    const speedMap: Record<LetterFxSpeed, number> = {
+      slow: 140,
+      medium: 90,
+      fast: 60
+    };
+
+    intervalsRef.current.reveal = setInterval(() => {
+      revealIndex += 1;
+
+      if (revealIndex > letters.length) {
+        cleanup();
+        setDisplayText(letters);
+      }
+    }, speedMap[speed]);
+  }, [cleanup, letters, randomChar, speed]);
+
+  useEffect(() => {
+    setDisplayText(letters);
+    if (trigger === 'instant') {
+      startAnimation();
+    }
+    return cleanup;
+  }, [letters, trigger, startAnimation, cleanup]);
+
+  useEffect(() => {
+    if (trigger !== 'inView') {
+      return;
+    }
+
+    const node = containerRef.current;
+    if (!node) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            startAnimation();
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, [trigger, startAnimation]);
+
+  const handleHover = useCallback(() => {
+    if (trigger === 'hover') {
+      startAnimation();
+    }
+  }, [trigger, startAnimation]);
+
+  const outerClassName = ['relative inline-block', className]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <span
+      ref={containerRef}
+      className={outerClassName}
+      onMouseEnter={handleHover}
+      onFocus={handleHover}
+      aria-label={resolvedText}
+      role="text"
+    >
+      <span aria-hidden="true" className="inline-flex flex-wrap">
+        {displayText.map((character, index) => (
+          <span
+            key={`${character}-${index}`}
+            className={['inline-block', letterClassName].filter(Boolean).join(' ')}
+          >
+            {character === ' ' ? '\u00A0' : character}
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+};
+
 interface FloatingWordsProps {
   text: string;
   className?: string;
@@ -331,5 +502,6 @@ export default {
   GradientText,
   MorphingText,
   LetterReveal,
-  FloatingWords
+  FloatingWords,
+  LetterFx
 };

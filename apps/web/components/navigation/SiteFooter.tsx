@@ -6,6 +6,7 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
+import { LetterFx } from "@/components/ui/animated-text";
 import { schema, social } from "@/resources";
 import NAV_ITEMS from "./nav-items";
 
@@ -115,7 +116,14 @@ export function SiteFooter() {
         >
           <Column gap="4">
             <Text variant="body-default-s" onBackground="neutral-weak">
-              © {currentYear} {schema.name}. All rights reserved.
+              <LetterFx
+                speed="medium"
+                trigger="inView"
+                charset="X$@aHz0y#?*01+"
+                letterClassName="tracking-tight"
+              >
+                © {currentYear} {schema.name}. All rights reserved.
+              </LetterFx>
             </Text>
             <Text variant="body-default-xs" onBackground="neutral-weak">
               SOC 2 aligned logging · Least privilege credential management ·
