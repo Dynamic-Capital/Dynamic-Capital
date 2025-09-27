@@ -758,14 +758,11 @@ export async function fetchEconomicEvents(
     cachedEvents = null;
     cachedError = null;
   } else {
-    if (cachedEvents) {
+    if (cachedEvents !== null && !cachedError) {
       return cachedEvents;
     }
     if (pendingRequest) {
       return pendingRequest;
-    }
-    if (cachedError && cachedEvents) {
-      return cachedEvents;
     }
   }
 
@@ -810,7 +807,7 @@ export async function fetchEconomicEvents(
       return events;
     })
     .catch((err) => {
-      cachedEvents = [];
+      cachedEvents = null;
       cachedError = err instanceof Error ? err.message : String(err);
       throw err instanceof Error
         ? err
