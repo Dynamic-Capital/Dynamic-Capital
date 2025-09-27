@@ -18,32 +18,32 @@ documenting which assets were consulted.
 
 ## 1. Orientation & Repo Maps
 
-| Ref  | Document                                               | Summary                                                                                           |
-| ---- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| 1.1  | [FLOW_OVERVIEW.md](./FLOW_OVERVIEW.md)                 | End-to-end map of how the marketing site, Telegram bot, Supabase functions, and Mini App connect. |
-| 1.2  | [agent.md](./agent.md)                                 | Behavioral contract for the Dynamic Capital agent across Telegram commands and the Mini App.      |
-| 1.3  | [FEATURES.md](./FEATURES.md)                           | Feature catalog outlining customer-facing capabilities and planned enhancements.                  |
-| 1.4  | [ROADMAP.md](./ROADMAP.md)                             | Timeline of in-flight and upcoming initiatives with milestone guidance.                           |
-| 1.5  | [REPO_SUMMARY.md](./REPO_SUMMARY.md)                   | Generated snapshot of top-level directories, edge functions, and environment keys.                |
-| 1.6  | [REPO_MAP_OPTIMIZATION.md](./REPO_MAP_OPTIMIZATION.md) | Deep dive on code surface responsibilities plus optimization tracker.                             |
-| 1.7  | [REPO_FILE_ORGANIZER.md](./REPO_FILE_ORGANIZER.md)     | Categorized listing of top-level files/folders and their roles.                                   |
-| 1.8  | [REPO_INVENTORY.md](./REPO_INVENTORY.md)               | Narrative walkthrough of major directories, Supabase assets, and trading scaffolding.             |
-| 1.9  | [SETUP_SUMMARY.md](./SETUP_SUMMARY.md)                 | Generated recap of setup goals, migration highlights, and CI guardrails.                          |
-| 1.10 | [INVENTORY.csv](./INVENTORY.csv)                       | CSV export that tracks documentation counts, line totals, and repo metrics.                       |
-| 1.11 | [CHANGELOG.md](./CHANGELOG.md)                         | Chronological release notes maintained by the release automation.                                 |
-| 1.12 | [dynamic-capital-ecosystem-anatomy.md](./dynamic-capital-ecosystem-anatomy.md) | Biological metaphor guide detailing how every subsystem maps to automation pillars. |
+| Ref  | Document                                                                       | Summary                                                                                                                    |
+| ---- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| 1.1  | [FLOW_OVERVIEW.md](./FLOW_OVERVIEW.md)                                         | End-to-end map of how the marketing site, Telegram bot, Supabase functions, and Mini App connect.                          |
+| 1.2  | [agent.md](./agent.md)                                                         | Behavioral contract for the Dynamic Capital agent across Telegram commands and the Mini App.                               |
+| 1.3  | [FEATURES.md](./FEATURES.md)                                                   | Feature catalog outlining customer-facing capabilities and planned enhancements.                                           |
+| 1.4  | [ROADMAP.md](./ROADMAP.md)                                                     | Timeline of in-flight and upcoming initiatives with milestone guidance.                                                    |
+| 1.5  | [REPO_SUMMARY.md](./REPO_SUMMARY.md)                                           | Generated snapshot of top-level directories, edge functions, and environment keys.                                         |
+| 1.6  | [REPO_MAP_OPTIMIZATION.md](./REPO_MAP_OPTIMIZATION.md)                         | Deep dive on code surface responsibilities plus optimization tracker.                                                      |
+| 1.7  | [REPO_FILE_ORGANIZER.md](./REPO_FILE_ORGANIZER.md)                             | Categorized listing of top-level files/folders and their roles.                                                            |
+| 1.8  | [REPO_INVENTORY.md](./REPO_INVENTORY.md)                                       | Narrative walkthrough of major directories, Supabase assets, and trading scaffolding.                                      |
+| 1.9  | [SETUP_SUMMARY.md](./SETUP_SUMMARY.md)                                         | Generated recap of setup goals, migration highlights, and CI guardrails.                                                   |
+| 1.10 | [INVENTORY.csv](./INVENTORY.csv)                                               | CSV export that tracks documentation counts, line totals, and repo metrics.                                                |
+| 1.11 | [CHANGELOG.md](./CHANGELOG.md)                                                 | Chronological release notes maintained by the release automation.                                                          |
+| 1.12 | [dynamic-capital-ecosystem-anatomy.md](./dynamic-capital-ecosystem-anatomy.md) | Biological metaphor guide detailing how every subsystem, feedback loop, and TradingView bridge maps to automation pillars. |
 
 ## 2. Development Workflow & Standards
 
-| Ref | Document                                                           | Summary                                                                                 |
-| --- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| 2.1 | [BEST_PRACTICES.md](./BEST_PRACTICES.md)                           | Coding conventions, review expectations, and shared quality bars.                       |
-| 2.2 | [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)               | Local development flow, tooling setup, and day-to-day commands.                         |
-| 2.3 | [HYBRID_DEVELOPMENT_WORKFLOW.md](./HYBRID_DEVELOPMENT_WORKFLOW.md) | Guidance for working across Dynamic, Supabase, and local Next.js surfaces concurrently. |
-| 2.4 | [code-structure.md](./code-structure.md)                           | High-level overview of monorepo structure and module boundaries.                        |
-| 2.5 | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Commands, flags, general knowledge, and GitHub handoff loop for the Codex CLI helper.   |
-| 2.6 | [CLEANUP_AND_CODEMODS.md](./CLEANUP_AND_CODEMODS.md)               | Strategy for running codemods and debt cleanups safely.                                 |
-| 2.7 | [NEXTJS_BUILD_CACHE_TASK.md](./NEXTJS_BUILD_CACHE_TASK.md)         | Instructions for the Next.js build cache maintenance task.                              |
+| Ref | Document                                                           | Summary                                                                                   |
+| --- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| 2.1 | [BEST_PRACTICES.md](./BEST_PRACTICES.md)                           | Coding conventions, review expectations, and shared quality bars.                         |
+| 2.2 | [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md)               | Local development flow, tooling setup, and day-to-day commands.                           |
+| 2.3 | [HYBRID_DEVELOPMENT_WORKFLOW.md](./HYBRID_DEVELOPMENT_WORKFLOW.md) | Guidance for working across Dynamic, Supabase, and local Next.js surfaces concurrently.   |
+| 2.4 | [code-structure.md](./code-structure.md)                           | High-level overview of monorepo structure and module boundaries.                          |
+| 2.5 | [codex_cli_workflow.md](./codex_cli_workflow.md)                   | Commands, flags, general knowledge, and GitHub handoff loop for the Codex CLI helper.     |
+| 2.6 | [CLEANUP_AND_CODEMODS.md](./CLEANUP_AND_CODEMODS.md)               | Strategy for running codemods and debt cleanups safely.                                   |
+| 2.7 | [NEXTJS_BUILD_CACHE_TASK.md](./NEXTJS_BUILD_CACHE_TASK.md)         | Instructions for the Next.js build cache maintenance task.                                |
 | 2.8 | [ton-ide-plugins.md](./ton-ide-plugins.md)                         | Official TON IDE plugins for JetBrains, VS Code, and the Web IDE with install checklists. |
 
 ## 3. Environment & Configuration
@@ -59,18 +59,18 @@ documenting which assets were consulted.
 
 ## 4. Deployment & Infrastructure
 
-| Ref | Document                                                                   | Summary                                                                                |
-| --- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| 4.1 | [DEPLOYMENT.md](./DEPLOYMENT.md)                                           | End-to-end deployment procedure for the Next.js app, Mini App, and Supabase functions. |
-| 4.2 | [INCREMENTAL_MIGRATION_TO_VERCEL.md](./INCREMENTAL_MIGRATION_TO_VERCEL.md) | Guide for migrating workloads into Vercel iteratively.                                 |
-| 4.3 | [DIGITALOCEAN_APP_LOGS.md](./DIGITALOCEAN_APP_LOGS.md)                     | Collecting and analyzing DigitalOcean App Platform logs.                               |
-| 4.4 | [DUCKDNS_NGINX_CERTBOT.md](./DUCKDNS_NGINX_CERTBOT.md)                     | DuckDNS and Certbot automation notes for the hardened Nginx proxy.                     |
-| 4.5 | [NETWORKING.md](./NETWORKING.md)                                           | DNS, domain, and origin configuration for the platform.                                |
-| 4.6 | [VERCEL_PROJECT_SETTINGS.md](./VERCEL_PROJECT_SETTINGS.md)                 | Recommended Vercel project settings matching the checked-in config.                    |
-| 4.7 | [VERCEL_PRODUCTION_CHECKLIST.md](./VERCEL_PRODUCTION_CHECKLIST.md)         | Well-architected review for Vercel deployments.                                        |
-| 4.8 | [postgres-upgrade.md](./postgres-upgrade.md)                               | Steps to upgrade PostgreSQL safely to the latest patched release.                      |
-| 4.9 | [ton-web3-guidelines.md](./ton-web3-guidelines.md)                         | TON DNS, storage, and site operations playbook linking contracts and Supabase assets.  |
-| 4.10 | [on-chain-flows.md](./on-chain-flows.md)                                 | Mermaid diagram and contract references for the subscription → swap → burn automation. |
+| Ref  | Document                                                                   | Summary                                                                                |
+| ---- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 4.1  | [DEPLOYMENT.md](./DEPLOYMENT.md)                                           | End-to-end deployment procedure for the Next.js app, Mini App, and Supabase functions. |
+| 4.2  | [INCREMENTAL_MIGRATION_TO_VERCEL.md](./INCREMENTAL_MIGRATION_TO_VERCEL.md) | Guide for migrating workloads into Vercel iteratively.                                 |
+| 4.3  | [DIGITALOCEAN_APP_LOGS.md](./DIGITALOCEAN_APP_LOGS.md)                     | Collecting and analyzing DigitalOcean App Platform logs.                               |
+| 4.4  | [DUCKDNS_NGINX_CERTBOT.md](./DUCKDNS_NGINX_CERTBOT.md)                     | DuckDNS and Certbot automation notes for the hardened Nginx proxy.                     |
+| 4.5  | [NETWORKING.md](./NETWORKING.md)                                           | DNS, domain, and origin configuration for the platform.                                |
+| 4.6  | [VERCEL_PROJECT_SETTINGS.md](./VERCEL_PROJECT_SETTINGS.md)                 | Recommended Vercel project settings matching the checked-in config.                    |
+| 4.7  | [VERCEL_PRODUCTION_CHECKLIST.md](./VERCEL_PRODUCTION_CHECKLIST.md)         | Well-architected review for Vercel deployments.                                        |
+| 4.8  | [postgres-upgrade.md](./postgres-upgrade.md)                               | Steps to upgrade PostgreSQL safely to the latest patched release.                      |
+| 4.9  | [ton-web3-guidelines.md](./ton-web3-guidelines.md)                         | TON DNS, storage, and site operations playbook linking contracts and Supabase assets.  |
+| 4.10 | [on-chain-flows.md](./on-chain-flows.md)                                   | Mermaid diagram and contract references for the subscription → swap → burn automation. |
 
 ## 5. Telegram & Mini App Delivery
 
@@ -89,16 +89,16 @@ documenting which assets were consulted.
 
 ## 6. Trading & Financial Operations
 
-| Ref | Document                                                                             | Summary                                                                  |
-| --- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| 6.1 | [automated-trading-checklist.md](./automated-trading-checklist.md)                   | Project plan for delivering the TradingView → Supabase → MT5 automation. |
-| 6.2 | [TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md](./TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md)   | Detailed bridge build between TradingView alerts and MetaTrader 5.       |
-| 6.3 | [TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md) | Cross-team onboarding workflow for the TradingView/MT5 stack.            |
-| 6.4 | [investing-com-candlestick-checklist.md](./investing-com-candlestick-checklist.md)   | Checklist for ingesting Investing.com candlestick signals.               |
-| 6.5 | [trading-runbook.md](./trading-runbook.md)                                           | Day-to-day trading operations, monitoring, and model lifecycle steps.    |
-| 6.6 | [private-fund-pool.md](./private-fund-pool.md)                                       | Architecture and database design for the private fund pool service.      |
-| 6.7 | [index-advisor.md](./index-advisor.md)                                               | Using Supabase Index Advisor to tune query performance.                  |
-| 6.8 | [WRAPPERS_INTEGRATION.md](./WRAPPERS_INTEGRATION.md)                                 | How to connect external services via Postgres foreign data wrappers.     |
+| Ref | Document                                                                             | Summary                                                                                  |
+| --- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| 6.1 | [automated-trading-checklist.md](./automated-trading-checklist.md)                   | Project plan for delivering the TradingView → Supabase → MT5 automation.                 |
+| 6.2 | [TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md](./TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md)   | Detailed bridge build between TradingView alerts and MetaTrader 5.                       |
+| 6.3 | [TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md) | Cross-team onboarding workflow for the TradingView/MT5 stack.                            |
+| 6.4 | [investing-com-candlestick-checklist.md](./investing-com-candlestick-checklist.md)   | Checklist for ingesting Investing.com candlestick signals.                               |
+| 6.5 | [trading-runbook.md](./trading-runbook.md)                                           | Day-to-day trading operations, monitoring, and model lifecycle steps.                    |
+| 6.6 | [private-fund-pool.md](./private-fund-pool.md)                                       | Architecture and database design for the private fund pool service.                      |
+| 6.7 | [index-advisor.md](./index-advisor.md)                                               | Using Supabase Index Advisor to tune query performance.                                  |
+| 6.8 | [WRAPPERS_INTEGRATION.md](./WRAPPERS_INTEGRATION.md)                                 | How to connect external services via Postgres foreign data wrappers.                     |
 | 6.9 | [trading-data-organization.md](./trading-data-organization.md)                       | Folder taxonomy for templates, journals, KPIs, and backtests across each horizon bucket. |
 
 ## 7. Operational Runbooks & Launch Phases
@@ -161,7 +161,6 @@ documenting which assets were consulted.
 
 ## 11. Human Resources & Compensation
 
-| Ref  | Document                                                                     | Summary                                                   |
-| ---- | ---------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Ref  | Document                                                                             | Summary                                                                                      |
+| ---- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
 | 11.1 | [human-resources/trading-compensation.md](./human-resources/trading-compensation.md) | Compensation policy covering salaries, profit sharing, IB commissions, and bonus governance. |
-
