@@ -24,6 +24,8 @@ decisions, or briefing new contributors on the technology landscape.
 - Deploy LLaMA-family models in edge-constrained or air-gapped environments.
 - Pair with quant notebooks to enable on-demand strategy explanations without
   cloud latency.
+- Follow the [llama.cpp Runtime Integration](./llama-cpp-runtime.md) guide to
+  sync vendor sources and build the optimized Docker image.
 
 ### LLaMA-Factory
 

@@ -35,6 +35,25 @@ services:
       - certbot-var:/var/lib/letsencrypt
     entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/lib/letsencrypt; sleep 12h & wait $${!}; done;'
 
+  llama-server:
+    build:
+      context: ..
+      dockerfile: docker/llama.cpp.Dockerfile
+      args:
+        LLAMA_CPP_COMMIT: 72b24d96c6888c609d562779a23787304ae4609c
+    environment:
+      LLAMA_MODEL: /models/your-model.gguf
+      LLAMA_SERVER_PORT: 8081
+    command: ["--ctx-size", "4096"]
+    volumes:
+      - type: bind
+        source: ./models
+        target: /models
+        read_only: true
+    ports:
+      - "8081:8081"
+    profiles: ["llama"]
+
 volumes:
   certbot-etc:
   certbot-var:
