@@ -1576,6 +1576,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      mt5_trade_logs: {
+        Row: {
+          id: string;
+          mt5_ticket_id: string;
+          symbol: string;
+          side: string;
+          volume: number | null;
+          open_price: number | null;
+          profit: number | null;
+          account_login: string | null;
+          opened_at: string | null;
+          raw_payload: Json;
+          received_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          mt5_ticket_id: string;
+          symbol: string;
+          side: string;
+          volume?: number | null;
+          open_price?: number | null;
+          profit?: number | null;
+          account_login?: string | null;
+          opened_at?: string | null;
+          raw_payload?: Json;
+          received_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          mt5_ticket_id?: string;
+          symbol?: string;
+          side?: string;
+          volume?: number | null;
+          open_price?: number | null;
+          profit?: number | null;
+          account_login?: string | null;
+          opened_at?: string | null;
+          raw_payload?: Json;
+          received_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       trades: {
         Row: {
           account_id: string | null;
