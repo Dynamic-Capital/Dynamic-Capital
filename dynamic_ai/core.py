@@ -73,18 +73,46 @@ class DynamicFusionAlgo:
         if raw_signal not in VALID_SIGNALS:
             raw_signal = "NEUTRAL"
 
+        extra_notes: List[str] = []
+
         ai_action = self._refine_action(raw_signal, market_data)
         confidence = self._calculate_confidence(raw_signal, market_data)
+
+        ai_action, confidence, risk_note = self._apply_risk_overrides(
+            ai_action,
+            confidence,
+            market_data,
+        )
+        if risk_note:
+            extra_notes.append(risk_note)
+
         ai_action, confidence, human_note = self._blend_with_human_bias(
             ai_action,
             confidence,
             market_data,
         )
-        reasoning = self._build_reasoning(ai_action, confidence, market_data, human_note)
+        if human_note:
+            extra_notes.append(human_note)
+
+        ai_action, confidence, post_human_risk_note = self._apply_risk_overrides(
+            ai_action,
+            confidence,
+            market_data,
+        )
+        if post_human_risk_note and post_human_risk_note not in extra_notes:
+            extra_notes.append(post_human_risk_note)
+
+        reasoning = self._build_reasoning(ai_action, confidence, market_data, extra_notes)
 
         return AISignal(action=ai_action, confidence=confidence, reasoning=reasoning, original_signal=raw_signal)
 
     def _refine_action(self, raw_signal: str, market_data: Dict[str, Any]) -> str:
+        composite_score = self._derive_composite_score(raw_signal, market_data)
+        if composite_score is not None:
+            composite_action = self._score_to_action(composite_score)
+            if composite_action != "NEUTRAL" or raw_signal in {"BUY", "SELL"}:
+                return composite_action
+
         momentum = self._coerce_float(market_data.get("momentum"), default=0.0)
         trend = str(market_data.get("trend", "")).lower()
 
@@ -99,6 +127,52 @@ class DynamicFusionAlgo:
             return "SELL"
 
         return raw_signal
+
+    def _derive_composite_score(self, raw_signal: str, market_data: Dict[str, Any]) -> float | None:
+        """Blend structured indicators into a directional score in ``[-1, 1]``.
+
+        The method allows the fusion algo to react to richer payloads such as
+        quantitative model outputs or curated analyst sentiment without forcing
+        callers to pre-compute the final action. When no meaningful inputs are
+        present the method returns ``None`` to preserve prior behaviour.
+        """
+
+        contributions: List[tuple[float, float]] = []
+
+        def add_component(value: Optional[float], weight: float) -> None:
+            if value is None or weight <= 0:
+                return
+            clamped = max(-1.0, min(1.0, value))
+            contributions.append((clamped, weight))
+
+        add_component(self._action_to_score(raw_signal), 0.4)
+
+        momentum = market_data.get("momentum")
+        add_component(self._safe_float(momentum), 0.35)
+
+        sentiment_value = self._sentiment_to_scalar(market_data.get("sentiment"))
+        add_component(sentiment_value, 0.25)
+
+        alignment = self._safe_float(market_data.get("signal_alignment"))
+        if alignment is not None:
+            add_component(alignment, 0.2)
+
+        composite_inputs = market_data.get("composite_scores") or market_data.get("model_scores")
+        if isinstance(composite_inputs, Iterable) and not isinstance(composite_inputs, (str, bytes, bytearray)):
+            aggregated = [self._safe_float(value) for value in composite_inputs]
+            valid_scores = [value for value in aggregated if value is not None]
+            if valid_scores:
+                add_component(sum(valid_scores) / len(valid_scores), 0.3)
+
+        if not contributions:
+            return None
+
+        numerator = sum(value * weight for value, weight in contributions)
+        denominator = sum(weight for _, weight in contributions)
+        if denominator == 0:
+            return None
+
+        return numerator / denominator
 
     def _calculate_confidence(self, raw_signal: str, market_data: Dict[str, Any]) -> float:
         base_confidence = self._coerce_float(market_data.get("confidence"), default=self.neutral_confidence)
@@ -115,6 +189,31 @@ class DynamicFusionAlgo:
         elif volatility < 0.5:
             confidence = min(1.0, confidence + 0.05)
 
+        alignment = market_data.get("signal_alignment")
+        if alignment is not None:
+            alignment_value = max(-1.0, min(1.0, self._coerce_float(alignment, default=0.0)))
+            if alignment_value > 0:
+                confidence = min(1.0, confidence + min(0.2, alignment_value * 0.15))
+            elif alignment_value < 0:
+                confidence = max(0.0, confidence + max(-0.2, alignment_value * 0.2))
+
+        data_quality = market_data.get("data_quality")
+        if data_quality is not None:
+            quality_score = max(0.0, min(1.0, self._coerce_float(data_quality, default=1.0)))
+            if quality_score < 0.5:
+                confidence = max(0.0, confidence - (0.5 - quality_score) * 0.3)
+
+        risk_score = market_data.get("risk_score")
+        if risk_score is not None:
+            risk_value = max(0.0, min(1.0, self._coerce_float(risk_score, default=0.0)))
+            confidence = max(0.0, confidence - risk_value * 0.2)
+
+        drawdown = market_data.get("drawdown")
+        if drawdown is not None:
+            drawdown_value = abs(self._coerce_float(drawdown, default=0.0))
+            if drawdown_value > 5:
+                confidence = max(0.0, confidence - min(0.25, (drawdown_value - 5) * 0.01))
+
         if raw_signal == "NEUTRAL":
             confidence = min(confidence, 0.5)
 
@@ -125,7 +224,7 @@ class DynamicFusionAlgo:
         action: str,
         confidence: float,
         market_data: Dict[str, Any],
-        human_note: str | None,
+        annotations: Iterable[str] | None,
     ) -> str:
         comments: List[str] = []
 
@@ -148,8 +247,8 @@ class DynamicFusionAlgo:
         elif confidence <= 0.35:
             comments.append("Low confidence – risk controls recommended before execution.")
 
-        if human_note:
-            comments.append(human_note)
+        if annotations:
+            comments.extend(note for note in annotations if note)
 
         if not comments:
             comments.append("Signal defaulted to neutral heuristics due to limited context.")
@@ -275,3 +374,63 @@ class DynamicFusionAlgo:
     @staticmethod
     def _score_to_action(score: float) -> str:
         return score_to_action(score)
+
+    @staticmethod
+    def _safe_float(value: Any) -> Optional[float]:
+        if value is None:
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _sentiment_to_scalar(sentiment: Any) -> Optional[float]:
+        if sentiment is None:
+            return None
+        sentiment_str = str(sentiment).strip().lower()
+        if not sentiment_str:
+            return None
+        if sentiment_str in {"bullish", "positive", "up"}:
+            return 1.0
+        if sentiment_str in {"bearish", "negative", "down"}:
+            return -1.0
+        if sentiment_str in {"neutral", "sideways"}:
+            return 0.0
+        try:
+            value = float(sentiment_str)
+        except ValueError:
+            return None
+        return max(-1.0, min(1.0, value))
+
+    def _apply_risk_overrides(
+        self,
+        action: str,
+        confidence: float,
+        market_data: Dict[str, Any],
+    ) -> tuple[str, float, str | None]:
+        risk_score = self._safe_float(market_data.get("risk_score"))
+        circuit_breaker = bool(market_data.get("circuit_breaker"))
+        drawdown = self._safe_float(market_data.get("drawdown"))
+
+        updated_action = action
+        updated_confidence = confidence
+        note: Optional[str] = None
+
+        if circuit_breaker:
+            updated_action = "NEUTRAL"
+            updated_confidence = min(updated_confidence, 0.35)
+            note = "Circuit breaker active – automation constrained to neutral."
+
+        elif risk_score is not None and risk_score >= 0.75:
+            updated_action = "HOLD" if action in {"BUY", "SELL"} else "NEUTRAL"
+            updated_confidence = min(updated_confidence, 0.4)
+            note = "High systemic risk reduced aggressiveness of the trade call."
+
+        if drawdown is not None and drawdown <= -10:
+            updated_action = "NEUTRAL"
+            updated_confidence = min(updated_confidence, 0.4)
+            drawdown_note = "Recent drawdown triggered capital preservation mode."
+            note = drawdown_note if note is None else f"{note} {drawdown_note}"
+
+        return updated_action, round(updated_confidence, 2), note
