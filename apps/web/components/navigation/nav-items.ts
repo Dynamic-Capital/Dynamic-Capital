@@ -1,4 +1,5 @@
 import {
+  Gauge,
   LayoutDashboard,
   LineChart,
   type LucideIcon,
@@ -88,14 +89,26 @@ const extraNavItems: NavItem[] = [
     showOnMobile: true,
   },
   {
-    id: "market-review",
+    id: "ui-optimizer",
     step: `Step ${firstExtraStep + 2}`,
+    label: "Dynamic UI optimizer",
+    description: "Optimize readiness workflows and activation channels.",
+    icon: Gauge,
+    path: "/tools/dynamic-ui-optimizer",
+    ariaLabel: `Step ${
+      firstExtraStep + 2
+    }: Dynamic UI optimizer. Optimize readiness workflows and activation channels.`,
+    showOnMobile: true,
+  },
+  {
+    id: "market-review",
+    step: `Step ${firstExtraStep + 3}`,
     label: "Market review",
     description: "Track FX strength, volatility, and cross-asset watchlists.",
     icon: LineChart,
     path: "/tools/dynamic-market-review",
     ariaLabel: `Step ${
-      firstExtraStep + 2
+      firstExtraStep + 3
     }: Market review. Track FX strength, volatility, and cross-asset watchlists.`,
     showOnMobile: true,
   },

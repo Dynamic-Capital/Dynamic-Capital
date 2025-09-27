@@ -108,15 +108,15 @@ const home: Home = {
           onBackground="brand-strong"
           className="ml-4 font-semibold tracking-tight"
         >
-          Launch update: Dynamic market review
+          Launch update: Dynamic UI optimizer
         </Text>
         <Line background="brand-alpha-strong" vert height="20" />
         <Text marginRight="4" onBackground="brand-medium">
-          Cross-asset intelligence with live FX, commodity, and index signals
+          Diagnose readiness velocity and activation channels in real time
         </Text>
       </Row>
     ),
-    href: "/tools/dynamic-market-review",
+    href: "/tools/dynamic-ui-optimizer",
   },
   subline: (
     <>
