@@ -20,6 +20,7 @@ Deno.test("economic calendar function returns normalized events", async () => {
   g.process.env.SUPABASE_SERVICE_ROLE_KEY = serviceKey;
 
   const capturedRequests: Array<{ url: URL; headers: Headers }> = [];
+  const sentimentRequests: URL[] = [];
 
   globalThis.fetch = async (
     input: Request | URL | string,
@@ -58,6 +59,30 @@ Deno.test("economic calendar function returns normalized events", async () => {
       });
     }
 
+    if (
+      url.hostname === "stub.supabase.co" &&
+      url.pathname.startsWith("/rest/v1/sentiment")
+    ) {
+      sentimentRequests.push(url);
+      const rows = [
+        {
+          source: "alternative.me",
+          symbol: "FNG",
+          sentiment: 65,
+          long_percent: 65,
+          short_percent: 35,
+          created_at: "2024-03-19T00:00:00Z",
+        },
+      ];
+      return new Response(JSON.stringify(rows), {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "content-range": "0-0/1",
+        },
+      });
+    }
+
     if (url.hostname === "stub.supabase.co") {
       return new Response("{}", {
         status: 200,
@@ -80,6 +105,8 @@ Deno.test("economic calendar function returns normalized events", async () => {
     assertEquals(response.status, 200);
     const payload = await response.json() as {
       events: Array<Record<string, unknown>>;
+      headlines: Array<Record<string, unknown>>;
+      sentiment: Array<Record<string, unknown>>;
     };
 
     assert(Array.isArray(payload.events));
@@ -108,6 +135,20 @@ Deno.test("economic calendar function returns normalized events", async () => {
     const authHeader = request.headers.get("authorization");
     assert(apiKey && apiKey.length > 0);
     assert(authHeader && authHeader.startsWith("Bearer "));
+
+    assertEquals(sentimentRequests.length, 1);
+    const [sentimentRequest] = sentimentRequests;
+    assertEquals(sentimentRequest.searchParams.get("order"), "created_at.desc");
+    assert(Array.isArray(payload.sentiment));
+    assertEquals(payload.sentiment.length, 1);
+    const [signal] = payload.sentiment;
+    assertEquals(signal.source, "alternative.me");
+    assertEquals(signal.symbol, "FNG");
+    assertEquals(signal.sentiment, 65);
+    assert(Array.isArray(payload.headlines));
+    assertEquals(payload.headlines.length, 1);
+    const [headline] = payload.headlines;
+    assertEquals(headline.headline, "CPI Release");
   } finally {
     globalThis.fetch = originalFetch;
     Deno.env.delete("SUPABASE_SERVICE_ROLE_KEY");

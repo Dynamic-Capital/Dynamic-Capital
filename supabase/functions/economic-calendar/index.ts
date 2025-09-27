@@ -36,6 +36,33 @@ type CalendarEvent = {
   actual?: string | null;
 };
 
+interface SentimentRow {
+  source: string | null;
+  symbol: string | null;
+  sentiment: number | null;
+  long_percent: number | null;
+  short_percent: number | null;
+  created_at: string | null;
+}
+
+type SentimentSignal = {
+  source: string;
+  symbol: string;
+  sentiment: number;
+  long_percent: number;
+  short_percent: number;
+  created_at: string;
+};
+
+type MarketHeadline = {
+  id: string;
+  source: string | null;
+  headline: string;
+  event_time: string;
+  impact: string | null;
+  market_focus: string[];
+};
+
 function getLogger(req: Request) {
   return createLogger({
     function: FUNCTION_NAME,
@@ -129,6 +156,46 @@ function mapRowToEvent(row: MarketNewsRow): CalendarEvent | null {
   return base;
 }
 
+function mapRowToHeadline(
+  row: MarketNewsRow,
+  event: CalendarEvent,
+): MarketHeadline {
+  return {
+    id: event.id,
+    source: row.source,
+    headline: event.title,
+    event_time: event.scheduled_at,
+    impact: event.impact ?? null,
+    market_focus: event.market_focus,
+  };
+}
+
+function mapRowToSentiment(row: SentimentRow): SentimentSignal | null {
+  if (!row.source || !row.symbol) return null;
+  const sentiment = typeof row.sentiment === "number" ? row.sentiment : null;
+  const longPercent = typeof row.long_percent === "number"
+    ? row.long_percent
+    : sentiment;
+  const shortPercent = typeof row.short_percent === "number"
+    ? row.short_percent
+    : (typeof sentiment === "number" ? Math.max(0, 100 - sentiment) : null);
+  const createdAt = row.created_at ? new Date(row.created_at) : null;
+  if (
+    sentiment === null || longPercent === null || shortPercent === null ||
+    !createdAt
+  ) {
+    return null;
+  }
+  return {
+    source: row.source,
+    symbol: row.symbol,
+    sentiment,
+    long_percent: longPercent,
+    short_percent: shortPercent,
+    created_at: createdAt.toISOString(),
+  };
+}
+
 export const handler = registerHandler(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -152,6 +219,8 @@ export const handler = registerHandler(async (req) => {
     const fromParam = parseDate(url.searchParams.get("from"));
     const toParam = parseDate(url.searchParams.get("to"));
     const sources = splitTokens(url.searchParams.get("source"));
+    const sentimentLimit = parseLimit(url.searchParams.get("sentiment_limit"));
+    const sentimentSince = parseDate(url.searchParams.get("sentiment_since"));
 
     const supabase = getServiceClient();
     let query = supabase
@@ -194,13 +263,56 @@ export const handler = registerHandler(async (req) => {
       );
     }
 
-    const events = (data ?? [])
-      .map((row) => mapRowToEvent(row as MarketNewsRow))
-      .filter((event): event is CalendarEvent => event !== null);
+    const mapped = (data ?? [])
+      .map((row) => {
+        const event = mapRowToEvent(row as MarketNewsRow);
+        return event ? { row: row as MarketNewsRow, event } : null;
+      })
+      .filter((entry): entry is { row: MarketNewsRow; event: CalendarEvent } =>
+        entry !== null
+      );
 
-    logger.info("Resolved economic calendar events", { count: events.length });
+    const events = mapped.map((entry) => entry.event);
+    const headlines = mapped.map((entry) =>
+      mapRowToHeadline(entry.row, entry.event)
+    );
 
-    return jsonResponse({ events }, { status: 200 }, req);
+    let sentimentQuery = supabase
+      .from("sentiment")
+      .select(
+        "source, symbol, sentiment, long_percent, short_percent, created_at",
+      )
+      .order("created_at", { ascending: false })
+      .limit(sentimentLimit);
+
+    if (sentimentSince) {
+      sentimentQuery = sentimentQuery.gte(
+        "created_at",
+        sentimentSince.toISOString(),
+      );
+    }
+
+    const { data: sentimentRows, error: sentimentError } = await sentimentQuery;
+
+    if (sentimentError) {
+      logger.error("Failed to load sentiment signals", sentimentError);
+      return jsonResponse(
+        { message: "Failed to load economic calendar events" },
+        { status: 500 },
+        req,
+      );
+    }
+
+    const sentiment = (sentimentRows ?? [])
+      .map((row) => mapRowToSentiment(row as SentimentRow))
+      .filter((signal): signal is SentimentSignal => signal !== null);
+
+    logger.info("Resolved economic calendar payload", {
+      events: events.length,
+      sentiment: sentiment.length,
+    });
+
+    return jsonResponse({ events, headlines, sentiment }, { status: 200 }, req);
   } catch (err) {
     logger.error("Unexpected error in economic calendar function", err);
     const message = err instanceof Error ? err.message : String(err);
