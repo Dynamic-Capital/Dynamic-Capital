@@ -59,6 +59,14 @@ from .dynamic_nodes import (
     NodeConfigError,
     NodeDependencyError,
 )
+from .dynamic_types import (
+    DynamicType,
+    DynamicTypeRegistry,
+    DynamicTypeError,
+    TypeClassification,
+    TypeConfigError,
+    TypeResolutionError,
+)
 from .dynamic_tracking import (
     DynamicTrackingAlgo,
     StageSummary,
@@ -119,6 +127,12 @@ __all__ = [
     "DynamicNodeError",
     "NodeConfigError",
     "NodeDependencyError",
+    "DynamicType",
+    "DynamicTypeRegistry",
+    "DynamicTypeError",
+    "TypeClassification",
+    "TypeConfigError",
+    "TypeResolutionError",
     "DynamicTrackingAlgo",
     "TrackingEvent",
     "StageSummary",
