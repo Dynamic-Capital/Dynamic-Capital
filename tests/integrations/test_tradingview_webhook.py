@@ -42,13 +42,13 @@ def stubbed_components(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
             return DummySignal()
 
     class DummyTradeResult:
-        def __init__(self) -> None:
+        def __init__(self, lot: float) -> None:
             self.ok = True
             self.retcode = 1
             self.profit = 42.0
             self.ticket = 1001
             self.symbol = "XAUUSD"
-            self.lot = 0.1
+            self.lot = lot
 
     class DummyTrader:
         def execute_trade(
@@ -58,7 +58,7 @@ def stubbed_components(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
             lot: float,
             symbol: str,
         ) -> DummyTradeResult:
-            return DummyTradeResult()
+            return DummyTradeResult(lot)
 
     class DummyTreasury:
         def update_from_trade(self, trade_result: DummyTradeResult) -> SimpleNamespace:
@@ -148,3 +148,32 @@ def test_webhook_processes_payload_with_valid_secret(
     assert data["status"] == "executed"
     assert stubbed_components.supabase_logger.logged_payloads
     assert stubbed_components.bot.messages
+    logged_payload = stubbed_components.supabase_logger.logged_payloads[-1]
+    assert logged_payload["lot"] == pytest.approx(0.25)
+    assert data["trade"]["lot"] == pytest.approx(0.25)
+
+
+@pytest.mark.parametrize("lot_value", [None, "invalid"])
+def test_webhook_defaults_to_minimum_lot(
+    lot_value,
+    monkeypatch: pytest.MonkeyPatch,
+    client,
+    stubbed_components: SimpleNamespace,
+) -> None:
+    monkeypatch.setenv("TRADINGVIEW_WEBHOOK_SECRET", "top-secret")
+
+    payload = {"symbol": "XAUUSD", "lot": lot_value, "signal": "BUY"}
+    response = client.post(
+        "/webhook",
+        json=payload,
+        headers={SECRET_HEADER: "top-secret"},
+    )
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["status"] == "executed"
+
+    assert stubbed_components.supabase_logger.logged_payloads
+    logged_payload = stubbed_components.supabase_logger.logged_payloads[-1]
+    assert logged_payload["lot"] == pytest.approx(0.1)
+    assert data["trade"]["lot"] == pytest.approx(0.1)

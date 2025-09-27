@@ -28,6 +28,23 @@ telegram_bot = DynamicTelegramBot.from_env()
 SECRET_HEADER = "X-Tradingview-Secret"
 
 
+def _coerce_lot(value: Any, default: float = 0.1) -> float:
+    """Safely parse the provided lot value."""
+
+    if value is None:
+        return default
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        logger.warning(
+            "Invalid lot value received from TradingView payload. Defaulting to %s.",
+            default,
+            extra={"lot": value},
+        )
+        return default
+
+
 def _verify_secret() -> Optional[Response]:
     """Validate the shared TradingView webhook secret."""
 
@@ -57,13 +74,15 @@ def webhook() -> Any:
     logger.info("TradingView alert received: %s", payload)
 
     symbol = str(payload.get("symbol", "XAUUSD"))
-    lot = float(payload.get("lot", 0.1))
+    lot = _coerce_lot(payload.get("lot"))
 
     ai_signal = fusion.generate_signal(payload)
     trade_result = trader.execute_trade(ai_signal, lot=lot, symbol=symbol)
     treasury_event = treasury.update_from_trade(trade_result)
 
-    supabase_logger.log_trade(_build_supabase_payload(payload, ai_signal, trade_result, treasury_event))
+    supabase_logger.log_trade(
+        _build_supabase_payload(payload, lot, ai_signal, trade_result, treasury_event)
+    )
 
     message = _format_telegram_message(symbol, ai_signal.to_dict(), trade_result, treasury_event)
     if telegram_bot and message:
@@ -90,13 +109,14 @@ def webhook() -> Any:
 
 def _build_supabase_payload(
     payload: Dict[str, Any],
+    lot: float,
     ai_signal,
     trade_result,
     treasury_event,
 ) -> Dict[str, Any]:
     supabase_payload = {
         "symbol": trade_result.symbol or payload.get("symbol"),
-        "lot": trade_result.lot or payload.get("lot", 0.1),
+        "lot": trade_result.lot or lot,
         "raw_signal": payload.get("signal", "NEUTRAL"),
         "ai_signal": ai_signal.action,
         "ai_confidence": ai_signal.confidence,
