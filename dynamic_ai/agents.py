@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, is_dataclass
+from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, Mapping, Protocol, Sequence
 
 from .analysis import DynamicAnalysis
@@ -18,6 +19,14 @@ from .hedge import (
     VolatilitySnapshot,
 )
 from .risk import PositionSizing, RiskContext, RiskManager, RiskParameters
+from dynamic_wave import (
+    DynamicWaveField,
+    WaveEvent,
+    WaveListener,
+    WaveMedium,
+    WaveSnapshot,
+    WaveSource,
+)
 from dynamic_space import (
     DynamicSpace,
     SpaceEvent,
@@ -151,6 +160,26 @@ class SpaceAgentResult(AgentResult):
 
 
 @dataclass(slots=True)
+class WaveAgentResult(AgentResult):
+    """Dynamic wave-field assessment emitted by the wave persona."""
+
+    medium: str
+    snapshot: WaveSnapshot
+    events: tuple[WaveEvent, ...] = field(default_factory=tuple)
+    recommendations: tuple[str, ...] = field(default_factory=tuple)
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = AgentResult.to_dict(self)
+        payload["medium"] = self.medium
+        payload["snapshot"] = _wave_snapshot_to_dict(self.snapshot)
+        if self.events:
+            payload["events"] = [_wave_event_to_dict(event) for event in self.events]
+        if self.recommendations:
+            payload["recommendations"] = list(self.recommendations)
+        return payload
+
+
+@dataclass(slots=True)
 class TradingAgentResult(AgentResult):
     """Execution outcome emitted by the trading persona."""
 
@@ -183,6 +212,27 @@ def _optional_float(value: Any) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _coerce_timestamp(value: Any) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return None
+        try:
+            parsed = datetime.fromisoformat(text)
+        except ValueError as exc:
+            raise ValueError("timestamp must be an ISO formatted datetime string") from exc
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        else:
+            parsed = parsed.astimezone(timezone.utc)
+        return parsed
+    raise ValueError("timestamp must be a datetime or ISO formatted string")
 
 
 def _coerce_risk_context(payload: Mapping[str, Any] | None) -> RiskContext:
@@ -320,6 +370,99 @@ def _space_snapshot_to_dict(snapshot: SpaceSnapshot) -> Dict[str, Any]:
     if events:
         payload["recent_events"] = [_space_event_to_dict(event) for event in events]
     return payload
+
+
+def _coerce_wave_mediums(values: Iterable[Any] | Any | None) -> Sequence[WaveMedium]:
+    if values is None:
+        return ()
+    if isinstance(values, (WaveMedium, Mapping)):
+        values = (values,)
+    if isinstance(values, (str, bytes)):
+        raise TypeError("medium definitions must not be strings")
+    mediums: list[WaveMedium] = []
+    for item in values:  # type: ignore[assignment]
+        if isinstance(item, WaveMedium):
+            mediums.append(item)
+        elif isinstance(item, Mapping):
+            mediums.append(WaveMedium(**item))
+        else:
+            raise TypeError("media must be WaveMedium instances or mappings")
+    return tuple(mediums)
+
+
+def _coerce_wave_sources(values: Iterable[Any] | Any | None) -> Sequence[WaveSource]:
+    if values is None:
+        return ()
+    if isinstance(values, (WaveSource, Mapping)):
+        values = (values,)
+    if isinstance(values, (str, bytes)):
+        raise TypeError("source definitions must not be strings")
+    sources: list[WaveSource] = []
+    for item in values:  # type: ignore[assignment]
+        if isinstance(item, WaveSource):
+            sources.append(item)
+        elif isinstance(item, Mapping):
+            sources.append(WaveSource(**item))
+        else:
+            raise TypeError("sources must be WaveSource instances or mappings")
+    return tuple(sources)
+
+
+def _coerce_wave_listeners(values: Iterable[Any] | Any | None) -> Sequence[WaveListener]:
+    if values is None:
+        return ()
+    if isinstance(values, (WaveListener, Mapping)):
+        values = (values,)
+    if isinstance(values, (str, bytes)):
+        raise TypeError("listener definitions must not be strings")
+    listeners: list[WaveListener] = []
+    for item in values:  # type: ignore[assignment]
+        if isinstance(item, WaveListener):
+            listeners.append(item)
+        elif isinstance(item, Mapping):
+            listeners.append(WaveListener(**item))
+        else:
+            raise TypeError("listeners must be WaveListener instances or mappings")
+    return tuple(listeners)
+
+
+def _wave_medium_to_dict(medium: WaveMedium) -> Dict[str, Any]:
+    return {
+        "name": medium.name,
+        "propagation_speed": medium.propagation_speed,
+        "attenuation": medium.attenuation,
+        "dispersion": medium.dispersion,
+        "refraction_index": medium.refraction_index,
+        "impedance": medium.impedance,
+        "tags": list(medium.tags),
+    }
+
+
+def _wave_event_to_dict(event: WaveEvent) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "timestamp": event.timestamp.isoformat(),
+        "description": event.description,
+        "intensity": event.intensity,
+    }
+    if event.listener:
+        payload["listener"] = event.listener
+    if event.source:
+        payload["source"] = event.source
+    if event.tags:
+        payload["tags"] = list(event.tags)
+    return payload
+
+
+def _wave_snapshot_to_dict(snapshot: WaveSnapshot) -> Dict[str, Any]:
+    return {
+        "timestamp": snapshot.timestamp.isoformat(),
+        "medium": _wave_medium_to_dict(snapshot.medium),
+        "listener_intensity": dict(snapshot.listener_intensity),
+        "dominant_frequency": snapshot.dominant_frequency,
+        "aggregate_energy": snapshot.aggregate_energy,
+        "coherence_index": snapshot.coherence_index,
+        "alerts": list(snapshot.alerts),
+    }
 
 
 def _coerce_news(values: Iterable[Any] | None) -> Sequence[NewsEvent]:
@@ -612,6 +755,153 @@ _SEVERITY_RANK = {
     SpaceEventSeverity.ALERT: 2,
     SpaceEventSeverity.CRITICAL: 3,
 }
+
+
+class WaveAgent:
+    """Persona orchestrating :class:`dynamic_wave.DynamicWaveField` operations."""
+
+    name = "wave"
+
+    def __init__(self, engine: DynamicWaveField | None = None) -> None:
+        self.field = engine or DynamicWaveField()
+
+    def run(self, payload: Mapping[str, Any]) -> WaveAgentResult:
+        context = dict(payload or {})
+
+        media_payload = context.get("media") or context.get("mediums")
+        try:
+            media = _coerce_wave_mediums(media_payload)
+        except TypeError as exc:
+            raise ValueError(str(exc)) from exc
+
+        requested_default = None
+        for key in ("medium", "default_medium", "medium_name"):
+            candidate = context.get(key)
+            if isinstance(candidate, str) and candidate.strip():
+                requested_default = candidate.strip()
+                break
+
+        for medium in media:
+            is_default = False
+            if requested_default:
+                is_default = medium.name == requested_default
+            elif not self.field.media:
+                is_default = True
+            self.field.register_medium(medium, default=is_default)
+
+        if requested_default:
+            if requested_default not in self.field.media:
+                raise ValueError(f"Unknown medium '{requested_default}' provided to WaveAgent.")
+            self.field.select_medium(requested_default)
+
+        sources_payload = context.get("sources") or context.get("source")
+        try:
+            sources = _coerce_wave_sources(sources_payload)
+        except TypeError as exc:
+            raise ValueError(str(exc)) from exc
+        for source in sources:
+            self.field.upsert_source(source)
+
+        listeners_payload = context.get("listeners") or context.get("listener")
+        try:
+            listeners = _coerce_wave_listeners(listeners_payload)
+        except TypeError as exc:
+            raise ValueError(str(exc)) from exc
+        for listener in listeners:
+            self.field.attach_listener(listener)
+
+        decay_value = context.get("decay_factor")
+        if decay_value is None and "decay" in context:
+            decay_value = context.get("decay")
+        if decay_value is not None:
+            try:
+                decay_factor = float(decay_value)
+            except (TypeError, ValueError) as exc:
+                raise ValueError("decay_factor must be numeric") from exc
+            self.field.decay_sources(decay_factor)
+
+        if not self.field.media:
+            raise ValueError("WaveAgent requires a propagation medium.")
+        if not self.field.sources:
+            raise ValueError("WaveAgent requires at least one source.")
+        if not self.field.listeners:
+            raise ValueError("WaveAgent requires at least one listener.")
+
+        timestamp_value = context.get("timestamp") or context.get("time")
+        try:
+            timestamp = _coerce_timestamp(timestamp_value)
+        except ValueError as exc:
+            raise ValueError(str(exc)) from exc
+
+        measure_medium = context.get("measure_medium")
+        if isinstance(measure_medium, str):
+            measure_medium = measure_medium.strip() or None
+        else:
+            measure_medium = None
+
+        try:
+            snapshot = self.field.measure(medium=measure_medium, timestamp=timestamp)
+        except (RuntimeError, KeyError) as exc:
+            raise ValueError(str(exc)) from exc
+
+        event_limit_value = context.get("event_limit") or context.get("events_limit")
+        try:
+            event_limit = max(0, int(event_limit_value)) if event_limit_value is not None else 3
+        except (TypeError, ValueError):
+            event_limit = 3
+        events = self.field.recent_activity(limit=event_limit) if event_limit else ()
+
+        energy_threshold = _coerce_float(context.get("energy_threshold"), 50.0)
+        energy_threshold = max(energy_threshold, 1e-9)
+        energy_ratio = min(snapshot.aggregate_energy / energy_threshold, 1.0)
+        coherence_target = _coerce_float(context.get("coherence_target"), 0.65)
+        safe_intensity = _coerce_float(context.get("safe_intensity"), 1.5)
+
+        if snapshot.listener_intensity:
+            peak_listener = max(snapshot.listener_intensity.items(), key=lambda item: item[1])
+        else:
+            peak_listener = (None, 0.0)
+
+        confidence = snapshot.coherence_index
+        confidence *= 1.0 - 0.4 * energy_ratio
+        if snapshot.alerts:
+            confidence *= 0.7
+        confidence = max(0.0, min(1.0, confidence))
+
+        narrative_parts = [
+            f"Medium {snapshot.medium.name} coherence {snapshot.coherence_index:.2f}",
+            f"dominant frequency {snapshot.dominant_frequency:.2f} Hz",
+            f"aggregate energy {snapshot.aggregate_energy:.2f}",
+        ]
+        if peak_listener[0]:
+            narrative_parts.append(f"peak intensity {peak_listener[0]}={peak_listener[1]:.2f}")
+        if snapshot.alerts:
+            narrative_parts.append("alerts: " + "; ".join(snapshot.alerts))
+        rationale = ", ".join(narrative_parts)
+
+        recommendations: list[str] = []
+        if snapshot.coherence_index < coherence_target:
+            recommendations.append("Increase source synchronisation to raise coherence.")
+        if energy_ratio > 0.7:
+            recommendations.append("Aggregate energy elevated; apply damping measures.")
+        if peak_listener[0] and peak_listener[1] > safe_intensity:
+            recommendations.append("Highest listener intensity exceeds safe threshold; redistribute load.")
+        if snapshot.alerts:
+            recommendations.extend(snapshot.alerts)
+        if not recommendations:
+            recommendations.append("Wave field operating within expected parameters.")
+
+        recommendations = list(dict.fromkeys(recommendations))
+
+        return WaveAgentResult(
+            agent=self.name,
+            rationale=rationale,
+            confidence=confidence,
+            medium=snapshot.medium.name,
+            snapshot=snapshot,
+            events=tuple(events),
+            recommendations=tuple(recommendations),
+        )
 
 
 class SpaceAgent:
@@ -953,4 +1243,6 @@ __all__ = [
     "RiskAgentResult",
     "SpaceAgent",
     "SpaceAgentResult",
+    "WaveAgent",
+    "WaveAgentResult",
 ]
