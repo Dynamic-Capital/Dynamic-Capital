@@ -96,6 +96,9 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 - Step through the
   [Dynamic AI & Dynamic Trading Algo Enhancement Roadmap](docs/multi-llm-algo-enhancement-roadmap.md)
   to align provider orchestration with the trading automation stack.
+- Onboard fast with the
+  [Dynamic AI Overview](docs/dynamic-ai-overview.md) summarising the Brain layer,
+  lobe fusion model, and operational guardrails that keep automation governed.
 
 ## Dynamic Theme System
 
