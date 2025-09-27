@@ -14,7 +14,7 @@ export async function generateMetadata() {
 
 export default function Gallery() {
   return (
-    <>
+    <Flex as="main" direction="column" maxWidth="l">
       <Schema
         as="webPage"
         baseURL={baseURL}
@@ -28,9 +28,7 @@ export default function Gallery() {
           image: toAbsoluteUrl(baseURL, person.avatar),
         }}
       />
-      <Flex as="main" maxWidth="l">
-        <GalleryView />
-      </Flex>
-    </>
+      <GalleryView />
+    </Flex>
   );
 }
