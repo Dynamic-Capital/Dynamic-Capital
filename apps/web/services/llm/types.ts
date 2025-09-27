@@ -23,6 +23,14 @@ export interface ProviderSummary {
 
 export type ProviderId = "openai" | "anthropic" | "groq";
 
+export interface PromptTemplate {
+  id: string;
+  label: string;
+  description: string;
+  providerSuitability: ProviderId[];
+  prompt: string;
+}
+
 export interface ChatRequest {
   providerId: ProviderId;
   messages: ChatMessage[];

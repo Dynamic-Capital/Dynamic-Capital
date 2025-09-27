@@ -26,12 +26,24 @@ import { cn } from "@/utils";
 import {
   type ChatMessage,
   type ChatResult,
+  type PromptTemplate,
   type ProviderId,
   type ProviderSummary,
 } from "@/services/llm/types";
 
+import {
+  applySystemPrompt,
+  FALLBACK_TEMPLATE_ID,
+  resolveTemplatePrompt,
+  selectTemplateForProvider,
+} from "./multi-llm-template-helpers";
+
 interface ProvidersResponse {
   providers: ProviderSummary[];
+}
+
+interface TemplatesResponse {
+  templates: PromptTemplate[];
 }
 
 const DEFAULT_SYSTEM_PROMPT =
@@ -46,6 +58,12 @@ export function MultiLlmStudio() {
   const [selectedProviderId, setSelectedProviderId] = useState<ProviderId | "">(
     "",
   );
+  const [templates, setTemplates] = useState<PromptTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
+    FALLBACK_TEMPLATE_ID,
+  );
+  const [templateError, setTemplateError] = useState<string | null>(null);
+  const [hasUserSelectedTemplate, setHasUserSelectedTemplate] = useState(false);
   const [messages, setMessages] = useState<ConversationItem[]>([
     { role: "system", content: DEFAULT_SYSTEM_PROMPT },
   ]);
@@ -69,14 +87,15 @@ export function MultiLlmStudio() {
         if (cancelled) return;
         setProviders(data.providers);
 
-        if (!selectedProviderId) {
-          const firstConfigured = data.providers.find((provider) =>
-            provider.configured
-          );
-          setSelectedProviderId(
-            (firstConfigured ?? data.providers[0])?.id ?? "",
-          );
-        }
+        const firstConfigured = data.providers.find((provider) =>
+          provider.configured
+        );
+        setSelectedProviderId((previous) => {
+          if (previous) {
+            return previous;
+          }
+          return (firstConfigured ?? data.providers[0])?.id ?? "";
+        });
       } catch (providerError) {
         if (cancelled) return;
         const message = providerError instanceof Error
@@ -91,12 +110,61 @@ export function MultiLlmStudio() {
     return () => {
       cancelled = true;
     };
-  }, [selectedProviderId]);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTemplates() {
+      try {
+        const response = await fetch("/api/tools/multi-llm/templates");
+        if (!response.ok) {
+          throw new Error(`Unable to fetch templates (${response.status}).`);
+        }
+
+        const data = (await response.json()) as TemplatesResponse;
+        if (cancelled) return;
+        setTemplates(data.templates);
+        setTemplateError(null);
+      } catch (templateLoadError) {
+        if (cancelled) return;
+        const message = templateLoadError instanceof Error
+          ? templateLoadError.message
+          : "Unable to load prompt templates.";
+        setTemplateError(message);
+        setTemplates([]);
+      }
+    }
+
+    void loadTemplates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const selectedProvider = useMemo(() => {
     return providers.find((provider) => provider.id === selectedProviderId) ??
       null;
   }, [providers, selectedProviderId]);
+
+  const providerNameById = useMemo(() => {
+    return new Map<ProviderId, string>(
+      providers.map((provider) => [provider.id, provider.name] as const),
+    );
+  }, [providers]);
+
+  const formatProviderSuitability = useCallback(
+    (ids: ProviderId[]) => {
+      if (ids.length === 0) {
+        return "Applies to all providers";
+      }
+
+      const labels = ids.map((id) => providerNameById.get(id) ?? id);
+      return `Best for: ${labels.join(", ")}`;
+    },
+    [providerNameById],
+  );
 
   useEffect(() => {
     if (!selectedProvider) return;
@@ -104,6 +172,68 @@ export function MultiLlmStudio() {
       Math.min(previous, selectedProvider.maxOutputTokens)
     );
   }, [selectedProvider]);
+
+  useEffect(() => {
+    if (templates.length === 0) {
+      if (selectedTemplateId !== FALLBACK_TEMPLATE_ID) {
+        setSelectedTemplateId(FALLBACK_TEMPLATE_ID);
+      }
+      return;
+    }
+
+    if (hasUserSelectedTemplate) {
+      return;
+    }
+
+    const recommended = selectTemplateForProvider(
+      templates,
+      selectedProviderId,
+    );
+
+    if (recommended && recommended.id !== selectedTemplateId) {
+      setSelectedTemplateId(recommended.id);
+    }
+  }, [
+    templates,
+    selectedProviderId,
+    hasUserSelectedTemplate,
+    selectedTemplateId,
+  ]);
+
+  useEffect(() => {
+    if (templates.length === 0) {
+      return;
+    }
+
+    if (selectedTemplateId === FALLBACK_TEMPLATE_ID) {
+      return;
+    }
+
+    const exists = templates.some((template) =>
+      template.id === selectedTemplateId
+    );
+    if (!exists) {
+      setSelectedTemplateId(templates[0].id);
+      setHasUserSelectedTemplate(false);
+    }
+  }, [templates, selectedTemplateId]);
+
+  const selectedTemplate = useMemo(() => {
+    if (selectedTemplateId === FALLBACK_TEMPLATE_ID) {
+      return null;
+    }
+
+    return templates.find((template) => template.id === selectedTemplateId) ??
+      null;
+  }, [selectedTemplateId, templates]);
+
+  const activeSystemPrompt = useMemo(() => {
+    return resolveTemplatePrompt(selectedTemplate, DEFAULT_SYSTEM_PROMPT);
+  }, [selectedTemplate]);
+
+  useEffect(() => {
+    setMessages((previous) => applySystemPrompt(previous, activeSystemPrompt));
+  }, [activeSystemPrompt]);
 
   const conversation = useMemo(
     () => messages.filter((message) => message.role !== "system"),
@@ -264,16 +394,75 @@ export function MultiLlmStudio() {
               </div>
             </div>
           </div>
-          {systemMessage && (
-            <div className="rounded-lg border border-dashed border-white/10 bg-muted/10 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                System prompt
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {systemMessage.content}
-              </p>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="prompt-template">Prompt template</Label>
+              <Select
+                value={selectedTemplateId}
+                onValueChange={(value) => {
+                  setSelectedTemplateId(value);
+                  setHasUserSelectedTemplate(true);
+                }}
+                disabled={templates.length === 0}
+              >
+                <SelectTrigger id="prompt-template">
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={FALLBACK_TEMPLATE_ID}>
+                    Default analysis prompt
+                  </SelectItem>
+                  {templates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      <div className="flex flex-col">
+                        <span>{template.label}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatProviderSuitability(
+                            template.providerSuitability,
+                          )}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {templateError && (
+                <p className="text-xs text-destructive">{templateError}</p>
+              )}
+              {templates.length === 0 && !templateError && (
+                <p className="text-xs text-muted-foreground">
+                  No templates configured. Using the default analysis prompt.
+                </p>
+              )}
             </div>
-          )}
+
+            {systemMessage && (
+              <div className="rounded-lg border border-dashed border-white/10 bg-muted/10 p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  {selectedTemplate
+                    ? `${selectedTemplate.label} prompt`
+                    : "Default system prompt"}
+                </p>
+                {selectedTemplate?.description && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {selectedTemplate.description}
+                  </p>
+                )}
+                {selectedTemplate?.providerSuitability.length
+                  ? (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {formatProviderSuitability(
+                        selectedTemplate.providerSuitability,
+                      )}
+                    </p>
+                  )
+                  : null}
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {systemMessage.content}
+                </p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -338,10 +527,12 @@ export function MultiLlmStudio() {
               <Button
                 variant="outline"
                 onClick={() =>
-                  setMessages([{
-                    role: "system",
-                    content: DEFAULT_SYSTEM_PROMPT,
-                  }])}
+                  setMessages([
+                    {
+                      role: "system",
+                      content: activeSystemPrompt,
+                    },
+                  ])}
                 disabled={isLoading}
               >
                 Reset conversation

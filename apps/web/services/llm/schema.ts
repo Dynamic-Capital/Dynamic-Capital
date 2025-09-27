@@ -30,3 +30,11 @@ export const chatRequestSchema = z.object({
 });
 
 export type ChatRequestInput = z.infer<typeof chatRequestSchema>;
+
+export const promptTemplateSchema = z.object({
+  id: z.string().min(1, "Template id is required"),
+  label: z.string().min(1, "Template label is required"),
+  description: z.string().min(1, "Template description is required"),
+  providerSuitability: z.array(providerIdSchema).default([]),
+  prompt: z.string().min(1, "Template prompt cannot be empty"),
+});
