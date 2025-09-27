@@ -30,6 +30,11 @@ reviewing obligations such as copyright notices or attribution requirements.
 | React Hook Form                | Form state management for onboarding and admin flows                    | MIT License        | https://github.com/react-hook-form/react-hook-form/blob/master/LICENSE |
 | React Three Fiber & Drei       | 3D scene rendering helpers for marketing visualizations                 | MIT License        | https://github.com/pmndrs/react-three-fiber/blob/master/LICENSE        |
 | @vercel/otel                   | OpenTelemetry instrumentation for server-side observability             | MIT License        | https://github.com/vercel/otel/blob/main/LICENSE                       |
+| llama.cpp                      | Local LLM inference runtime supporting on-prem quant research tooling   | MIT License        | https://github.com/ggml-org/llama.cpp/blob/master/LICENSE              |
+| LlamaIndex (run-llama)         | Retrieval-augmented generation framework for portfolio intelligence     | MIT License        | https://github.com/run-llama/llama_index/blob/main/LICENSE             |
+| LLaMA-Factory                  | Fine-tuning and alignment workflows for LLaMA-family models             | Apache License 2.0 | https://github.com/hiyouga/LLaMA-Factory/blob/main/LICENSE             |
+| Microsoft qlib                 | Quantitative research platform and data pipelines                        | MIT License        | https://github.com/microsoft/qlib/blob/main/LICENSE                    |
+| FinRL                          | Reinforcement learning toolkit for algorithmic trading research         | MIT License        | https://github.com/AI4Finance-Foundation/FinRL/blob/master/LICENSE     |
 
 For transitive dependencies bundled through npm or Deno, consult the package
 manager manifests (`package-lock.json`, `deno.lock`) or run the relevant license
