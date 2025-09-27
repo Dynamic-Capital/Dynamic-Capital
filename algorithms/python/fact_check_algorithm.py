@@ -4,6 +4,7 @@ import math
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from functools import lru_cache
 from typing import Mapping, Sequence
 
 __all__ = [
@@ -92,6 +93,22 @@ _STOPWORDS = {
 }
 
 _TOKEN_PATTERN = re.compile(r"[A-Za-z0-9_']+")
+
+
+def _clamp(value: float, minimum: float, maximum: float) -> float:
+    """Clamp ``value`` to the inclusive range [minimum, maximum]."""
+
+    return max(minimum, min(maximum, value))
+
+
+@lru_cache(maxsize=4096)
+def _cached_keywords(text: str) -> frozenset[str]:
+    """Return a cached, immutable keyword set for the provided text."""
+
+    if not text:
+        return frozenset()
+    tokens = _TOKEN_PATTERN.findall(text.lower())
+    return frozenset(token for token in tokens if token not in _STOPWORDS and len(token) > 2)
 
 
 @dataclass(slots=True)
@@ -248,8 +265,23 @@ class FactCheckEngine:
         total_weight = support_score + refute_score + neutral_score
         margin = support_score - refute_score
 
-        verdict = self._derive_verdict(total_weight, margin, support_score, refute_score)
-        confidence = self._confidence(total_weight, margin, support_score, refute_score)
+        considered_count = len(supporting) + len(refuting) + len(neutral)
+
+        verdict = self._derive_verdict(
+            total_weight,
+            margin,
+            support_score,
+            refute_score,
+            considered_count,
+        )
+        confidence = self._confidence(
+            total_weight,
+            margin,
+            support_score,
+            refute_score,
+            considered_count,
+            len(sources),
+        )
         reasoning = self._reasoning(
             verdict,
             total_weight,
@@ -257,7 +289,7 @@ class FactCheckEngine:
             support_score,
             refute_score,
             len(sources),
-            len(supporting) + len(refuting) + len(neutral),
+            considered_count,
         )
 
         metrics = {
@@ -265,11 +297,19 @@ class FactCheckEngine:
             "refute_score": round(refute_score, 4),
             "neutral_score": round(neutral_score, 4),
             "total_sources": float(len(sources)),
-            "considered_sources": float(len(supporting) + len(refuting) + len(neutral)),
+            "considered_sources": float(considered_count),
             "supporting_count": float(len(supporting)),
             "contradicting_count": float(len(refuting)),
             "neutral_count": float(len(neutral)),
             "margin": round(margin, 4),
+            "coverage_ratio": round(
+                considered_count / len(sources), 4
+            )
+            if sources
+            else 0.0,
+            "adaptive_margin": round(
+                self._adaptive_support_margin(total_weight, considered_count), 4
+            ),
         }
 
         return FactCheckResult(
@@ -295,11 +335,12 @@ class FactCheckEngine:
         margin: float,
         support_score: float,
         refute_score: float,
+        considered_sources: int,
     ) -> str:
         if total_weight <= self.weak_evidence_floor:
             return "INSUFFICIENT_EVIDENCE"
 
-        threshold = self.support_margin * total_weight
+        threshold = self._adaptive_support_margin(total_weight, considered_sources) * total_weight
         if margin >= threshold:
             return "SUPPORTED"
         if margin <= -threshold:
@@ -314,16 +355,30 @@ class FactCheckEngine:
         margin: float,
         support_score: float,
         refute_score: float,
+        considered_sources: int,
+        total_sources: int,
     ) -> float:
         if total_weight <= self.weak_evidence_floor:
             return 0.2
 
         dominance = max(support_score, refute_score) / total_weight if total_weight else 0.0
         balance = abs(margin) / total_weight if total_weight else 0.0
-        density = min(1.0, total_weight / (total_weight + 1.5))
+        density = min(1.0, total_weight / (total_weight + 1.0))
+        coverage = considered_sources / total_sources if total_sources else 0.0
 
-        confidence = 0.4 * dominance + 0.35 * balance + 0.25 * density
+        confidence = 0.35 * dominance + 0.3 * balance + 0.2 * density + 0.15 * coverage
         return round(max(0.05, min(confidence, 0.98)), 4)
+
+    def _adaptive_support_margin(self, total_weight: float, considered_sources: int) -> float:
+        """Dynamically scale the support margin threshold based on evidence quality."""
+
+        if total_weight <= 0:
+            return self.support_margin
+
+        diversity_factor = 1.0 + math.log1p(max(0, considered_sources - 1)) / 6
+        weight_pressure = 1.0 - 0.35 * math.exp(-total_weight)
+        adaptive_margin = self.support_margin * weight_pressure / diversity_factor
+        return _clamp(adaptive_margin, self.support_margin * 0.35, self.support_margin * 1.15)
 
     def _reasoning(
         self,
@@ -339,10 +394,15 @@ class FactCheckEngine:
         parts.append(
             f"Processed {considered_sources} of {total_sources} sources after reliability checks."
         )
+        if total_sources:
+            coverage = considered_sources / total_sources
+            parts.append(f"Coverage after screening: {coverage:.0%}.")
         if total_weight:
             parts.append(
                 f"Aggregate evidence weight {total_weight:.2f} with margin {margin:.2f} (support {support_score:.2f} vs refute {refute_score:.2f})."
             )
+            threshold = self._adaptive_support_margin(total_weight, considered_sources) * total_weight
+            parts.append(f"Adaptive margin threshold set at {threshold:.2f}.")
         else:
             parts.append("No evidence passed relevance and reliability thresholds.")
 
@@ -357,24 +417,33 @@ class FactCheckEngine:
         return " ".join(parts)
 
     def _evidence_weight(self, source: EvidenceSource, claim_terms: set[str]) -> float:
-        reliability = max(0.0, min(1.0, source.reliability))
-        if reliability < self.min_reliability:
-            reliability *= 0.5
-
+        reliability = self._reliability_factor(source.reliability)
         freshness = self._freshness_weight(source.published_at)
         relevance = self._relevance_score(source, claim_terms)
         metric_boost = self._metric_boost(source.metrics)
 
-        return reliability * freshness * (0.3 + 0.7 * relevance) * metric_boost
+        relevance_factor = 0.25 + 0.75 * relevance
+        return reliability * freshness * relevance_factor * metric_boost
+
+    def _reliability_factor(self, reliability: float) -> float:
+        reliability = _clamp(reliability, 0.0, 1.0)
+        if reliability < self.min_reliability:
+            penalty = (self.min_reliability - reliability) / max(self.min_reliability, 1e-6)
+            reliability *= 1.0 - 0.6 * penalty
+        else:
+            headroom = 1.0 - self.min_reliability
+            if headroom > 0:
+                reliability *= 0.85 + 0.15 * (reliability - self.min_reliability) / headroom
+        return max(self.weak_evidence_floor, reliability)
 
     def _metric_boost(self, metrics: Mapping[str, float]) -> float:
         if not metrics:
             return 1.0
-        values = [max(0.0, min(1.0, value)) for value in metrics.values()]
+        values = [_clamp(value, 0.0, 1.0) for value in metrics.values()]
         if not values:
             return 1.0
         quality = sum(values) / len(values)
-        return 1.0 + 0.25 * quality
+        return 1.0 + 0.3 * quality
 
     def _freshness_weight(self, published_at: datetime | None) -> float:
         if published_at is None or self._decay_lambda == 0.0:
@@ -399,10 +468,13 @@ class FactCheckEngine:
             return 0.3
 
         overlap = claim_terms.intersection(evidence_terms)
-        union_size = max(len(claim_terms), len(evidence_terms))
-        if not union_size:
+        union = claim_terms.union(evidence_terms)
+        if not union:
             return 0.3
-        return len(overlap) / union_size
+
+        jaccard = len(overlap) / len(union)
+        focus_bonus = 0.05 * min(len(overlap), 5)
+        return _clamp(jaccard + focus_bonus, 0.0, 1.0)
 
     def _claim_terms(self, claim: FactCheckClaim) -> set[str]:
         terms = self._keywords(claim.statement)
@@ -416,5 +488,6 @@ class FactCheckEngine:
         return terms
 
     def _keywords(self, text: str) -> set[str]:
-        tokens = _TOKEN_PATTERN.findall(text.lower())
-        return {token for token in tokens if token not in _STOPWORDS and len(token) > 2}
+        if not text:
+            return set()
+        return set(_cached_keywords(text))
