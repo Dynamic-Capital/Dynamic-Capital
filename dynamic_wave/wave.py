@@ -28,6 +28,13 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _seconds_since_midnight(moment: datetime) -> float:
+    """Return the number of elapsed seconds from the day's start."""
+
+    baseline = moment.replace(hour=0, minute=0, second=0, microsecond=0)
+    return (moment - baseline).total_seconds()
+
+
 def _normalise_identifier(value: str) -> str:
     text = str(value).strip()
     if not text:
@@ -362,8 +369,21 @@ class DynamicWaveField:
         coherence_accumulator = 0.0
         alert_messages: list[str] = []
 
-        for listener in self._listeners.values():
-            listener_intensity = self._measure_listener(listener, medium_obj, instant)
+        elapsed_seconds = _seconds_since_midnight(instant)
+        sources = tuple(self._sources.values())
+        listeners = tuple(self._listeners.values())
+        inverse_speed = (
+            1.0 / medium_obj.propagation_speed if medium_obj.propagation_speed > 0 else None
+        )
+
+        for listener in listeners:
+            listener_intensity = self._measure_listener(
+                listener,
+                medium_obj,
+                elapsed=elapsed_seconds,
+                sources=sources,
+                inverse_speed=inverse_speed,
+            )
             intensities[listener.name] = listener_intensity
             total_energy += listener_intensity ** 2
             if listener_intensity > listener.noise_floor * 10:
@@ -371,7 +391,7 @@ class DynamicWaveField:
                     f"listener {listener.name} intensity {listener_intensity:.3f} exceeds safe threshold"
                 )
 
-        for source in self._sources.values():
+        for source in sources:
             power = source.amplitude * max(source.coherence, 0.01)
             weighted_frequency += source.frequency_hz * power
             total_weight += power
@@ -400,20 +420,50 @@ class DynamicWaveField:
             )
         return snapshot
 
-    def _measure_listener(self, listener: WaveListener, medium: WaveMedium, timestamp: datetime) -> float:
-        elapsed = (timestamp - timestamp.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+    def _measure_listener(
+        self,
+        listener: WaveListener,
+        medium: WaveMedium,
+        *,
+        elapsed: float,
+        sources: Sequence[WaveSource],
+        inverse_speed: float | None,
+    ) -> float:
+        if not sources:
+            return max(listener.noise_floor, 0.0)
+
+        attenuation_coefficient = medium.attenuation
+        dispersion_coefficient = medium.dispersion
+        use_dispersion = dispersion_coefficient > 0.0
+        bandwidth = listener.bandwidth_hz
+        sensitivity = listener.sensitivity
+        gain = listener.gain
+        noise_floor = listener.noise_floor
+        listener_position = listener.position
         signal_sum = 0.0
-        for source in self._sources.values():
-            distance = _distance(listener.position, source.position) or 0.001
-            delay = medium.propagation_delay(distance)
-            sample_time = max(elapsed - delay, 0.0)
+        for source in sources:
+            if source.amplitude <= 0.0:
+                continue
+            distance = _distance(listener_position, source.position) or 0.001
+            if inverse_speed is None:
+                sample_time = 0.0
+            else:
+                delay = distance * inverse_speed
+                sample_time = max(elapsed - delay, 0.0)
             contribution = source.sample(sample_time)
-            attenuation = 1.0 / (1.0 + medium.attenuation * distance)
-            dispersion = exp(-medium.dispersion * distance)
-            window = 1.0 if source.frequency_hz <= listener.bandwidth_hz else listener.bandwidth_hz / (source.frequency_hz + 1e-9)
+            attenuation = 1.0 / (1.0 + attenuation_coefficient * distance)
+            if use_dispersion:
+                dispersion = exp(-dispersion_coefficient * distance)
+            else:
+                dispersion = 1.0
+            frequency = source.frequency_hz
+            if frequency <= bandwidth:
+                window = 1.0
+            else:
+                window = bandwidth / (frequency + 1e-9)
             signal_sum += contribution * attenuation * dispersion * window
-        measurement = abs(signal_sum) * listener.sensitivity * listener.gain
-        measurement = max(measurement, listener.noise_floor)
+        measurement = abs(signal_sum) * sensitivity * gain
+        measurement = max(measurement, noise_floor)
         return measurement
 
     def decay_sources(self, factor: float) -> None:
