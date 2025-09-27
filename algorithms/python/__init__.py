@@ -246,6 +246,7 @@ from .dynamic_question_answer_algo import (
     DQAQuestion,
     DynamicQuestionAnswerAlgo,
 )
+from .daily_routine_allocator import DailyRoutineAllocator, RoutinePrompt
 from .trading_psychology_elements import (
     Element,
     ElementProfile,
@@ -394,12 +395,14 @@ __all__ = _trade_exports + [
     "DynamicAISummary",
     "DynamicAISyncReport",
     "DynamicAISynchroniser",
+    "DailyRoutineAllocator",
     "DynamicMarketOutlookEngine",
     "MarketOutlookReport",
     "MarketOutlookTelemetry",
     "OutlookSignal",
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
+    "RoutinePrompt",
     "Route",
     "DynamicRouteKeeperAlgorithm",
     "RouteKeeperSyncResult",
@@ -483,6 +486,7 @@ globals().update(
         "AwesomeAlgoSyncRequest": AwesomeAlgoSyncRequest,
         "AwesomeLLMInsights": AwesomeLLMInsights,
         "AdaptiveLabelingConfig": AdaptiveLabelingConfig,
+        "DailyRoutineAllocator": DailyRoutineAllocator,
         "DynamicAdaptiveLabelingAlgorithm": DynamicAdaptiveLabelingAlgorithm,
         "LiveLabelSyncService": LiveLabelSyncService,
         "OnlineAdaptiveLabeler": OnlineAdaptiveLabeler,
@@ -568,6 +572,7 @@ globals().update(
         "FAQSource": FAQSource,
         "ProjectFAQGenerator": ProjectFAQGenerator,
         "ProjectFAQPackage": ProjectFAQPackage,
+        "RoutinePrompt": RoutinePrompt,
         "Route": Route,
         "DynamicRouteKeeperAlgorithm": DynamicRouteKeeperAlgorithm,
         "RouteKeeperSyncResult": RouteKeeperSyncResult,
