@@ -1,0 +1,261 @@
+{
+  "slug": "dynamic-capital-ton",
+  "outputPath": "docs/dynamic-capital-ton-whitepaper.md",
+  "title": "Dynamic Capital TON Coin Whitepaper",
+  "token": {
+    "name": "Dynamic Capital TON Coin",
+    "symbol": "DCT",
+    "network": "The Open Network (TON)",
+    "supplyCap": 100000000
+  },
+  "abstract": [
+    "Dynamic Capital TON Coin (DCT) is the on-chain utility token that powers the Dynamic Capital ecosystem on The Open Network (TON). The asset enables permissionless access to quantitative trading signals, liquidity coordination, and governance.",
+    "DCT is engineered to align incentives between strategy contributors, capital providers, and the treasury so that protocol growth directly benefits active participants. This document outlines the economic model, supply schedule, and token utilities that underpin the Dynamic Capital flywheel."
+  ],
+  "overview": {
+    "opening": [
+      "Dynamic Capital delivers AI-assisted trading intelligence, execution infrastructure, and liquidity programs designed for traders operating across TON and connected Layer 2 venues."
+    ],
+    "pillars": [
+      {
+        "title": "Intelligence Layer",
+        "description": "Quantitative models and AI copilots that curate actionable strategies, risk dashboards, and automated alerts."
+      },
+      {
+        "title": "Execution Layer",
+        "description": "Routing, portfolio automation, and settlement tooling integrated with TON wallets and DEX venues."
+      },
+      {
+        "title": "Liquidity Layer",
+        "description": "Smart vaults and structured pools that coordinate capital across market-making, yield, and hedging strategies."
+      }
+    ],
+    "closing": [
+      "DCT serves as the cohesive utility for these layers by enforcing access controls, coordinating incentives, and providing settlement guarantees for protocol participants."
+    ]
+  },
+  "tokenomics": {
+    "intro": [
+      "DCT tokenomics are meticulously designed to balance protocol liquidity with long-run alignment between traders, contributors, and the treasury. The supply is hard capped at 100,000,000 DCT under a time-locked multi-signature controller; any future adjustments require an on-chain governance vote with delayed execution safeguards. This mirrors the deployment configuration for the jetton, anchoring monetary policy in auditable on-chain parameters.",
+      "At launch, circulating supply is constrained to the public circulation allocation that fuels community growth initiatives alongside the dedicated liquidity provision buffer. Treasury, team, advisor, staking, and liquidity allocations are escrowed in TON vesting contracts with transparent cliffs and drip schedules that mirror the table below. Unlock schedules are published ahead of time, and governance can pause or re-sequence emissions if security or market stability concerns arise."
+    ],
+    "policies": [
+      "Treasury policies route a governed share of protocol fees toward buybacks and liquidity programs, reinforcing price stability while re-circulating value to active contributors.",
+      "Additional sink mechanics—staking lock-ups, vault fees denominated in DCT, and programmatic burns triggered by slashing or inactivity—offset new issuance and anchor a deflationary bias over time.",
+      "Circulating supply dashboards provide real-time unlock calendars and burn totals to maintain transparency."
+    ]
+  },
+  "priceStrategy": {
+    "launch": [
+      "Dual list on STON.fi (TON AMM) and a curated DeDust order-book pair within the first 24 hours to capture both retail and professional flow.",
+      "Conduct a 72-hour Dutch auction with a price band of 0.08 to 0.12 TON per DCT, seeding 5% of supply; clearing price sets the initial AMM pool ratios.",
+      "Allocate the 5,000,000 DCT liquidity buffer 60% to TON:DCT on STON.fi, 30% to USDT:DCT on DeDust, and retain 10% in treasury for post-launch volatility absorption.",
+      "Cap auction wallet orders at 1% of circulating supply per transaction and configure AMM pool weights to limit impact to <1% for 250,000 TON trades during the first week."
+    ],
+    "secondary": [
+      "Maintain deep TON:DCT (STON.fi) and USDT:DCT (DeDust) liquidity with a minimum combined depth of 1,000,000 TON or equivalent within ±2% of the mid-price.",
+      "Rebalance positions daily to keep at least 65% of treasury-managed liquidity in-range and ready for two-sided quotes.",
+      "Offer 6% annualized DCT incentives for verified market-making desks that sustain >90% uptime and <50 bps quoted spreads on whitelisted venues.",
+      "Trigger review if the 7-day moving average deviates ±15% from auction VWAP or if intraday volatility exceeds 40% annualized."
+    ],
+    "longTerm": [
+      "Deploy up to 20% of monthly net protocol fees toward on-chain buybacks, prioritizing periods where price trades below the 90-day moving average.",
+      "Increase or decrease staking lock multipliers by 10% increments to modulate staking participation when circulating float exceeds or falls below target bands.",
+      "Route 50% of all penalty fees and redeemed buybacks to permanent burns once treasury coverage exceeds 24 months of runway.",
+      "Allow governance to throttle scheduled emissions by up to 25% per quarter when liquidity coverage or volatility metrics breach risk thresholds."
+    ],
+    "governance": [
+      "The DAO Multisig proposes parameter updates, which require a Token Assembly vote with a 48-hour timelock before execution.",
+      "Emergency guardrails empower the Risk Council to impose temporary trading halts or rebalance liquidity within 12 hours when volatility triggers are breached, subject to post-event ratification."
+    ],
+    "monitoring": [
+      "Publish real-time dashboards tracking price bands, AMM depth, circulating supply, and cumulative burn totals.",
+      "Release weekly market-ops reports summarizing treasury interventions, buyback executions, and market-maker performance.",
+      "Conduct a formal governance review of price structure levers every 30 days, with quarterly deep dives that audit performance against guardrail metrics."
+    ],
+    "transparencyStack": [
+      {
+        "name": "DeDust.io Scanner",
+        "description": "Flagship TON DEX interface for reviewing DCT liquidity pools, recent swaps, and aggregated trading volume once the jetton is listed."
+      },
+      {
+        "name": "STON.fi Analytics",
+        "description": "Provides TVL, pool depth, and price history for the STON.fi pairs that concentrate treasury-backed liquidity (e.g., DCT/TON and DCT/USDT)."
+      },
+      {
+        "name": "TONviewer",
+        "description": "Network-wide explorer that surfaces jetton balances and transfer history, helping contributors audit vesting contracts and treasury wallets."
+      },
+      {
+        "name": "DexScreener",
+        "description": "Aggregates live market data across TON DEX venues, including DeDust and STON.fi, and auto-generates a public chart once the liquidity pool address is active."
+      }
+    ]
+  },
+  "distributionTable": [
+    {
+      "allocation": "Public Circulation",
+      "amount": 50000000,
+      "percent": 50,
+      "schedule": "Sales, airdrops, and ecosystem incentives"
+    },
+    {
+      "allocation": "Treasury",
+      "amount": 20000000,
+      "percent": 20,
+      "schedule": "Governance-gated deployments"
+    },
+    {
+      "allocation": "Team & Advisors",
+      "amount": 15000000,
+      "percent": 15,
+      "schedule": "12-month cliff, 36-month vesting"
+    },
+    {
+      "allocation": "Staking Rewards",
+      "amount": 10000000,
+      "percent": 10,
+      "schedule": "Programmatic staking emissions"
+    },
+    {
+      "allocation": "Liquidity Provision",
+      "amount": 5000000,
+      "percent": 5,
+      "schedule": "TON DEX and CEX liquidity support"
+    }
+  ],
+  "emissionNotes": [
+    "Emission events are orchestrated via audited TON smart contracts.",
+    "Treasury-controlled mint functions are time-locked and require multi-signature authorization to protect against supply shocks."
+  ],
+  "saleRounds": {
+    "intro": "Token distribution campaigns translate the long-term supply map into milestone-based raises that fund growth while protecting circulating float.",
+    "rounds": [
+      {
+        "name": "Private Sale (Seed Investors)",
+        "allocation": 10000000,
+        "price": 0.02,
+        "priceDenom": "USD",
+        "vesting": "20% at TGE, remaining 80% vests linearly over six months.",
+        "notes": "Anchors early strategic capital with an 18-month participation covenant for network support."
+      },
+      {
+        "name": "Liquidity Bootstrap",
+        "allocation": 5000000,
+        "price": 0.1,
+        "priceDenom": "Treasury cost basis USD",
+        "vesting": "Locked in DEX pools.",
+        "notes": "Matches the STON.fi and DeDust deployment plan to guarantee two-sided quotes."        
+      },
+      {
+        "name": "Community Sale",
+        "allocation": 15000000,
+        "price": 0.12,
+        "priceDenom": "TON",
+        "vesting": "Immediate delivery with staking bonus multipliers for 90-day lockups.",
+        "notes": "Aligns with quest campaigns and referral programs to expand on-chain membership."
+      }
+    ]
+  },
+  "utilityPrograms": [
+    {
+      "title": "Access & Intelligence",
+      "bullets": [
+        "Staking DCT unlocks advanced intelligence dashboards, streaming strategy alerts, and AI copilots tailored to TON markets.",
+        "Tiered staking multipliers discount premium data feeds and grant early access to experimental models vetted by the Risk Council."
+      ]
+    },
+    {
+      "title": "Liquidity & Treasury Alignment",
+      "bullets": [
+        "Liquidity providers earn boosted rewards when staking DCT alongside LP shares, aligning capital commitments with treasury guardrails.",
+        "Treasury automation routes a portion of profits into market-making vaults that backstop volatility and fund buyback programs."
+      ]
+    },
+    {
+      "title": "Governance & Community",
+      "bullets": [
+        "Token Assembly proposals require bonded DCT deposits that are slashed if malicious or spam motions are submitted.",
+        "Delegation framework empowers strategy contributors to represent passive holders while publishing transparent voting scorecards."
+      ]
+    }
+  ],
+  "treasury": [
+    "Profit-sharing treasury automation triggers buybacks and burns when profitability metrics exceed thresholds, reinforcing scarcity without manual intervention.",
+    "Vault fees denominated in DCT recycle value back into staking rewards, creating a closed loop between traders, contributors, and the treasury."  
+  ],
+  "governance": {
+    "councils": [
+      "DAO Multisig sets agendas, manages treasury programs, and escalates emergency measures.",
+      "Risk Council monitors market integrity, halting liquidity programs or staking withdrawals when guardrails breach configured thresholds.",
+      "Community Guild curates education, bounty programs, and ecosystem partnerships to expand utility demand."
+    ],
+    "quorum": "Token Assembly proposals require 8% quorum and >60% supermajority to pass, with quadratic voting modifiers that reward longer staking commitments.",
+    "participation": [
+      "Proposal lifecycle spans drafting, temperature check, formal vote, and execution with a minimum of seven days end-to-end.",
+      "Snapshot integration captures off-chain voting signals which are reconciled with on-chain stakes during final execution."
+    ]
+  },
+  "reporting": {
+    "cadence": [
+      "Weekly treasury notes summarize buybacks, burns, and staking participation metrics.",
+      "Monthly protocol health reports benchmark liquidity depth, fee capture, and user growth relative to targets."
+    ],
+    "analytics": [
+      "All analytics APIs publish machine-readable feeds that partners can query to validate supply, emissions, and treasury actions.",
+      "Historical data archives are preserved in Supabase storage with signed URLs for auditors and ecosystem partners."
+    ]
+  },
+  "roadmap": [
+    {
+      "phase": "Phase I — Launch Readiness (T-90 to T+30)",
+      "focus": "Establish circulating supply discipline and liquidity depth.",
+      "deliverables": [
+        "Deploy vesting contracts, liquidity vaults, and staking reward schedules.",
+        "Publish community sale handbook, FAQs, and onboarding tutorials for TON newcomers.",
+        "Run post-launch liquidity stress tests across DeDust, STON.fi, and aggregator routes."
+      ]
+    },
+    {
+      "phase": "Phase II — Ecosystem Expansion (T+30 to T+180)",
+      "focus": "Scale protocol utility through integrations and cross-network reach.",
+      "deliverables": [
+        "Launch partner vaults that bundle DCT with ecosystem tokens for co-incentivized strategies.",
+        "Onboard institutional desks to managed liquidity mandates with transparent performance reporting.",
+        "Release developer SDKs and governance APIs that allow community tools to embed staking and voting workflows."
+      ]
+    },
+    {
+      "phase": "Phase III — Governance Maturity (T+180 onward)",
+      "focus": "Transition policy decisions and treasury levers to token-governed automation.",
+      "deliverables": [
+        "Implement on-chain budget approvals tied to quarterly KPIs with automated disbursements.",
+        "Expand quadratic funding pools that reward ecosystem contributions verified by attestations.",
+        "Upgrade staking contracts with dynamic penalty curves informed by market volatility and liquidity depth metrics."
+      ]
+    }
+  ],
+  "compliance": [
+    "Adheres to ISO 27001, SOC 2 Type II, PCI DSS Level 1, HIPAA, GDPR, and the EU–US Data Privacy Framework through the Dynamic Capital compliance stack.",
+    "Implements per-venue KYC/AML guardrails and sanctions screening for treasury-facing programs.",
+    "Maintains evidence packages for exchange listings, including smart contract audits, penetration tests, and treasury attestations."
+  ],
+  "glossary": [
+    {
+      "term": "DCT",
+      "definition": "Dynamic Capital TON Coin utility token that coordinates access, incentives, and governance."
+    },
+    {
+      "term": "Token Assembly",
+      "definition": "Primary governance venue where bonded DCT holders vote on treasury policies and emissions schedules."
+    },
+    {
+      "term": "Risk Council",
+      "definition": "Specialized committee empowered to intervene when market volatility or security incidents threaten protocol stability."
+    },
+    {
+      "term": "Dutch Auction",
+      "definition": "Price discovery mechanism where the sale price descends until demand clears the allocation, establishing a fair launch reference."
+    }
+  ]
+}

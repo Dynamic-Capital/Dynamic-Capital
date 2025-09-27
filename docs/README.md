@@ -151,6 +151,7 @@ documenting which assets were consulted.
 | 9.6 | [VARIABLES_AND_LINKS_CHECKLIST.md](./VARIABLES_AND_LINKS_CHECKLIST.md)             | Environment variable and outbound link audit.                             |
 | 9.7 | [dynamic_codex_integration_checklist.md](./dynamic_codex_integration_checklist.md) | Historic plan for folding Dynamic Codex into the monorepo.                |
 | 9.8 | [project-updater.md](./project-updater.md)                                         | Automation suite that regenerates release docs and project metadata.      |
+| 9.9 | [whitepaper-pipeline.md](./whitepaper-pipeline.md)                                 | Workflow for generating whitepapers from JSON configs and review checklist. |
 
 ## 10. Reference, Content & Growth
 
