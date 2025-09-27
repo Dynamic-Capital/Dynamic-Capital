@@ -5,6 +5,21 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field, is_dataclass
 from typing import Any, Dict, Iterable, Mapping, Protocol, Sequence
 
+from dynamic_atom import (
+    AtomicComposition,
+    AtomSnapshot,
+    DynamicAtom,
+    ElectronShell,
+    ElectronTransition,
+)
+from dynamic_space import (
+    DynamicSpace,
+    SpaceEvent,
+    SpaceEventSeverity,
+    SpaceSector,
+    SpaceSnapshot,
+)
+
 from .analysis import DynamicAnalysis
 from .core import AISignal, DynamicFusionAlgo
 from .hedge import (
@@ -18,13 +33,6 @@ from .hedge import (
     VolatilitySnapshot,
 )
 from .risk import PositionSizing, RiskContext, RiskManager, RiskParameters
-from dynamic_space import (
-    DynamicSpace,
-    SpaceEvent,
-    SpaceEventSeverity,
-    SpaceSector,
-    SpaceSnapshot,
-)
 
 
 @dataclass(slots=True)
@@ -171,6 +179,26 @@ class TradingAgentResult(AgentResult):
         return payload
 
 
+@dataclass(slots=True)
+class AtomAgentResult(AgentResult):
+    """Atomic observation emitted by the Dynamic Atom persona."""
+
+    mode: str
+    snapshot: AtomSnapshot
+    transitions: tuple[ElectronTransition, ...] = field(default_factory=tuple)
+    residual_energy_ev: float = 0.0
+    emitted_energy_ev: float = 0.0
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = AgentResult.to_dict(self)
+        payload["mode"] = self.mode
+        payload["snapshot"] = self.snapshot.as_dict()
+        payload["transitions"] = [transition.as_dict() for transition in self.transitions]
+        payload["residual_energy_ev"] = self.residual_energy_ev
+        payload["emitted_energy_ev"] = self.emitted_energy_ev
+        return payload
+
+
 def _coerce_float(value: Any, default: float = 0.0) -> float:
     try:
         return float(value)
@@ -183,6 +211,139 @@ def _optional_float(value: Any) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
+
+def _clamp(value: float, *, lower: float = 0.0, upper: float = 1.0) -> float:
+    return max(lower, min(upper, value))
+
+
+def _coerce_atomic_composition(
+    payload: Mapping[str, Any] | AtomicComposition,
+) -> AtomicComposition:
+    if isinstance(payload, AtomicComposition):
+        return payload
+    if not isinstance(payload, Mapping):
+        raise TypeError("composition must be a mapping or AtomicComposition instance")
+
+    symbol = str(
+        payload.get("symbol")
+        or payload.get("element")
+        or payload.get("name")
+        or ""
+    ).strip()
+    if not symbol:
+        raise ValueError("composition requires an element symbol")
+
+    protons_value = payload.get("protons", payload.get("atomic_number"))
+    if protons_value is None:
+        raise ValueError("composition requires a proton count")
+    protons = int(protons_value)
+
+    neutrons_value = payload.get("neutrons")
+    if neutrons_value is None:
+        mass_number = payload.get("mass_number", payload.get("atomic_mass_number"))
+        if mass_number is None:
+            neutrons = protons
+        else:
+            neutrons = int(mass_number) - protons
+    else:
+        neutrons = int(neutrons_value)
+
+    electrons_value = payload.get("electrons")
+    if electrons_value is None:
+        charge_value = payload.get("charge")
+        electrons = protons - int(charge_value) if charge_value is not None else protons
+    else:
+        electrons = int(electrons_value)
+
+    metadata = payload.get("metadata")
+
+    return AtomicComposition(
+        symbol=symbol,
+        protons=protons,
+        neutrons=neutrons,
+        electrons=electrons,
+        metadata=metadata if isinstance(metadata, Mapping) else None,
+    )
+
+
+def _coerce_shells(values: Iterable[Any] | None) -> tuple[ElectronShell, ...] | None:
+    if values is None:
+        return None
+    shells: list[ElectronShell] = []
+    for item in values:
+        if isinstance(item, ElectronShell):
+            shells.append(item)
+            continue
+        if not isinstance(item, Mapping):
+            raise TypeError("shell definitions must be mappings or ElectronShell instances")
+        data = dict(item)
+        name = str(data.get("name") or data.get("label") or "").strip()
+        if not name:
+            raise ValueError("shell definition missing name")
+        n_value = data.get("principal_quantum_number", data.get("n"))
+        if n_value is None:
+            raise ValueError("shell definition missing principal quantum number")
+        capacity_value = data.get("capacity", data.get("max_electrons"))
+        if capacity_value is None:
+            raise ValueError("shell definition missing capacity")
+        energy_value = data.get("energy_ev", data.get("energy"))
+        if energy_value is None:
+            raise ValueError("shell definition missing energy")
+        electrons_value = data.get("electrons", data.get("occupied", data.get("population", 0)))
+        shells.append(
+            ElectronShell(
+                name=name,
+                principal_quantum_number=int(n_value),
+                capacity=int(capacity_value),
+                energy_ev=float(energy_value),
+                electrons=int(electrons_value),
+                metadata=data.get("metadata") if isinstance(data.get("metadata"), Mapping) else None,
+            )
+        )
+    return tuple(shells)
+
+
+def _coerce_atom(payload: Mapping[str, Any] | DynamicAtom) -> DynamicAtom:
+    if isinstance(payload, DynamicAtom):
+        return payload
+    if not isinstance(payload, Mapping):
+        raise TypeError("atom payload must be a mapping or DynamicAtom instance")
+
+    composition_payload = payload.get("composition")
+    if composition_payload is None:
+        composition_payload = payload
+
+    composition = _coerce_atomic_composition(composition_payload)
+
+    shells_payload = payload.get("shells")
+    shells = _coerce_shells(shells_payload) if shells_payload is not None else None
+
+    history_limit = payload.get("history_limit")
+    if history_limit is None:
+        history_arg = None
+    else:
+        try:
+            history_arg = int(history_limit)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("history_limit must be an integer") from exc
+
+    metadata = payload.get("metadata") if isinstance(payload.get("metadata"), Mapping) else None
+
+    kwargs: Dict[str, Any] = {"metadata": metadata} if metadata is not None else {}
+    if shells is not None:
+        kwargs["shells"] = shells
+    if history_arg is not None:
+        kwargs["history_limit"] = history_arg
+
+    return DynamicAtom(composition, **kwargs)
+
+
+def _should_relax(payload: Mapping[str, Any]) -> bool:
+    if bool(payload.get("relax")):
+        return True
+    mode = str(payload.get("mode") or payload.get("action") or payload.get("target_state") or "").lower()
+    return mode in {"relax", "relaxation", "emit", "cool", "ground"}
 
 
 def _coerce_risk_context(payload: Mapping[str, Any] | None) -> RiskContext:
@@ -606,6 +767,116 @@ class TradingAgent:
         )
 
 
+class AtomAgent:
+    """Persona orchestrating Dynamic Atom state transitions."""
+
+    name = "atom"
+
+    def __init__(self, atom: DynamicAtom | None = None) -> None:
+        self._atom = atom
+
+    @property
+    def atom(self) -> DynamicAtom | None:
+        return self._atom
+
+    def _resolve_atom(self, payload: Mapping[str, Any]) -> DynamicAtom:
+        candidate = payload.get("atom")
+        if isinstance(candidate, DynamicAtom):
+            self._atom = candidate
+            return candidate
+        if isinstance(candidate, Mapping):
+            self._atom = _coerce_atom(candidate)
+            return self._atom
+        if self._atom is not None:
+            return self._atom
+        atom_payload: Dict[str, Any]
+        if "composition" in payload and isinstance(payload["composition"], Mapping):
+            atom_payload = dict(payload)
+        else:
+            atom_payload = {"composition": payload}
+        self._atom = _coerce_atom(atom_payload)
+        return self._atom
+
+    def run(self, payload: Mapping[str, Any]) -> AtomAgentResult:
+        context = dict(payload or {})
+        try:
+            atom = self._resolve_atom(context)
+        except Exception as exc:
+            raise ValueError("AtomAgent requires a DynamicAtom or composition payload") from exc
+
+        energy_request = context.get("energy_ev")
+        if energy_request is None:
+            energy_request = context.get("excitation_energy_ev")
+        energy_value = _optional_float(energy_request)
+
+        transitions: tuple[ElectronTransition, ...] = ()
+        residual = 0.0
+        emitted = 0.0
+        mode = "observation"
+        rationale_parts: list[str] = []
+        confidence = 0.0
+
+        if energy_value is not None and energy_value > 0.0:
+            excitation = atom.excite(energy_value)
+            transitions = excitation.transitions
+            residual = excitation.residual_energy_ev
+            absorbed = excitation.absorbed_energy_ev
+            mode = "excitation"
+            total_input = absorbed + residual
+            confidence = _clamp(0.0 if total_input <= 0.0 else absorbed / total_input)
+            count = len(transitions)
+            if count:
+                rationale_parts.append(
+                    f"Absorbed {absorbed:.4f} eV via {count} excitation transition{'s' if count != 1 else ''}."
+                )
+            if residual > 0.0:
+                rationale_parts.append(f"Residual energy {residual:.4f} eV pending distribution.")
+        elif _should_relax(context) or (context.get("auto_relax") and atom.excitation_energy_ev > 0.0):
+            relaxation = atom.relax()
+            transitions = relaxation.transitions
+            emitted = relaxation.emitted_energy_ev
+            mode = "relaxation"
+            after_excitation = atom.excitation_energy_ev
+            baseline = emitted + after_excitation
+            confidence = _clamp(0.0 if baseline <= 0.0 else emitted / baseline)
+            count = len(transitions)
+            if count:
+                rationale_parts.append(
+                    f"Emitted {emitted:.4f} eV across {count} relaxation transition{'s' if count != 1 else ''}."
+                )
+            else:
+                rationale_parts.append("Atom already in ground state; relaxation unnecessary.")
+            if after_excitation > 0.0:
+                rationale_parts.append(f"Residual excitation energy {after_excitation:.4f} eV.")
+        else:
+            excitation_energy = atom.excitation_energy_ev
+            if excitation_energy <= 1e-9:
+                confidence = 0.9
+                rationale_parts.append("Atom remains in its ground state; observation only.")
+            else:
+                confidence = 0.5
+                rationale_parts.append(
+                    f"Atom retains {excitation_energy:.4f} eV of excitation; awaiting further directives."
+                )
+
+        if not rationale_parts:
+            rationale_parts.append("Atom state evaluated.")
+
+        snapshot = atom.snapshot()
+        self._atom = atom
+
+        return AtomAgentResult(
+            agent=self.name,
+            rationale=" ".join(rationale_parts),
+            confidence=confidence,
+            mode=mode,
+            snapshot=snapshot,
+            transitions=tuple(transitions),
+            residual_energy_ev=residual,
+            emitted_energy_ev=emitted,
+        )
+
+
 _SEVERITY_RANK = {
     SpaceEventSeverity.INFO: 0,
     SpaceEventSeverity.ADVISORY: 1,
@@ -942,6 +1213,8 @@ class DynamicChatAgent:
 __all__ = [
     "Agent",
     "AgentResult",
+    "AtomAgent",
+    "AtomAgentResult",
     "ChatAgentResult",
     "ChatTurn",
     "DynamicChatAgent",
@@ -953,4 +1226,6 @@ __all__ = [
     "RiskAgentResult",
     "SpaceAgent",
     "SpaceAgentResult",
+    "TradingAgent",
+    "TradingAgentResult",
 ]
