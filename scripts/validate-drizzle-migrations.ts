@@ -53,12 +53,16 @@ async function main() {
 
     const normalized = contents.replace(/\r\n/g, "\n");
     if (!normalized.endsWith("\n")) {
-      console.error(`❌ Migration file "${name}" must end with a trailing newline.`);
+      console.error(
+        `❌ Migration file "${name}" must end with a trailing newline.`,
+      );
       Deno.exit(1);
     }
   }
 
-  console.log(`✅ Validated ${entries.length} Supabase migrations in ${MIGRATIONS_DIR}.`);
+  console.log(
+    `✅ Validated ${entries.length} Supabase migrations in ${MIGRATIONS_DIR}.`,
+  );
 }
 
 if (import.meta.main) {

@@ -5,7 +5,7 @@ const nodeProcess = (globalThis as any).process as
   | undefined;
 
 const getEnv = (key: string): string | undefined => {
-  if ('Deno' in globalThis) {
+  if ("Deno" in globalThis) {
     const denoEnv = (globalThis as any).Deno?.env;
     const value = denoEnv?.get?.(key);
     if (value !== undefined) {
@@ -16,25 +16,25 @@ const getEnv = (key: string): string | undefined => {
   return nodeProcess?.env?.[key];
 };
 
-const rawAllowedOrigins = getEnv('ALLOWED_ORIGINS');
+const rawAllowedOrigins = getEnv("ALLOWED_ORIGINS");
 
-const defaultOrigin = getEnv('SITE_URL') || 'http://localhost:3000';
+const defaultOrigin = getEnv("SITE_URL") || "http://localhost:3000";
 
 let allowedOrigins: string[];
 
 if (rawAllowedOrigins === undefined) {
   allowedOrigins = [defaultOrigin];
-  if (!getEnv('SITE_URL')) {
+  if (!getEnv("SITE_URL")) {
     console.warn(
       `[CORS] ALLOWED_ORIGINS is missing; defaulting to ${defaultOrigin}`,
     );
   }
-} else if (rawAllowedOrigins.trim() === '') {
+} else if (rawAllowedOrigins.trim() === "") {
   // Empty string means allow all origins
-  allowedOrigins = ['*'];
+  allowedOrigins = ["*"];
 } else {
   allowedOrigins = rawAllowedOrigins
-    .split(',')
+    .split(",")
     .map((o: string) => o.trim())
     .filter(Boolean);
 
@@ -48,21 +48,21 @@ if (rawAllowedOrigins === undefined) {
 
 export function buildCorsHeaders(origin: string | null, methods?: string) {
   const headers: Record<string, string> = {
-    'access-control-allow-headers':
-      'authorization, x-client-info, apikey, content-type',
-    'access-control-allow-methods':
-      methods || 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+    "access-control-allow-headers":
+      "authorization, x-client-info, apikey, content-type",
+    "access-control-allow-methods": methods ||
+      "GET,POST,PUT,PATCH,DELETE,OPTIONS",
   };
-  if (allowedOrigins.includes('*')) {
-    headers['access-control-allow-origin'] = '*';
+  if (allowedOrigins.includes("*")) {
+    headers["access-control-allow-origin"] = "*";
   } else if (origin && allowedOrigins.includes(origin)) {
-    headers['access-control-allow-origin'] = origin;
+    headers["access-control-allow-origin"] = origin;
   }
   return headers;
 }
 
 export function corsHeaders(req: Request, methods?: string) {
-  return buildCorsHeaders(req.headers.get('origin'), methods);
+  return buildCorsHeaders(req.headers.get("origin"), methods);
 }
 
 export function jsonResponse(
@@ -71,7 +71,7 @@ export function jsonResponse(
   req?: Request,
 ) {
   const headers: Record<string, string> = {
-    'content-type': 'application/json; charset=utf-8',
+    "content-type": "application/json; charset=utf-8",
     ...(init.headers as Record<string, string> | undefined),
     ...(req ? corsHeaders(req) : {}),
   };
@@ -89,28 +89,28 @@ export function json(
 
 export const ok = (data: unknown = {}, req?: Request) =>
   jsonResponse(
-    { ok: true, ...((typeof data === 'object' && data) || {}) },
+    { ok: true, ...((typeof data === "object" && data) || {}) },
     { status: 200 },
     req,
   );
 
 export const bad = (
-  message = 'Bad Request',
+  message = "Bad Request",
   hint?: unknown,
   req?: Request,
 ) => jsonResponse({ ok: false, error: message, hint }, { status: 400 }, req);
 
-export const unauth = (message = 'Unauthorized', req?: Request) =>
+export const unauth = (message = "Unauthorized", req?: Request) =>
   jsonResponse({ ok: false, error: message }, { status: 401 }, req);
 
-export const nf = (message = 'Not Found', req?: Request) =>
+export const nf = (message = "Not Found", req?: Request) =>
   jsonResponse({ ok: false, error: message }, { status: 404 }, req);
 
 export const methodNotAllowed = (req?: Request) =>
-  jsonResponse({ error: 'Method Not Allowed' }, { status: 405 }, req);
+  jsonResponse({ error: "Method Not Allowed" }, { status: 405 }, req);
 
 export const mna = () =>
-  jsonResponse({ ok: false, error: 'Method Not Allowed' }, { status: 405 });
+  jsonResponse({ ok: false, error: "Method Not Allowed" }, { status: 405 });
 
 export const oops = (message: string, hint?: unknown, req?: Request) =>
   jsonResponse({ ok: false, error: message, hint }, { status: 500 }, req);

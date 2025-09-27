@@ -10,7 +10,10 @@ import {
   initTelegram,
   showBackButton,
 } from "@/lib/telegram";
-import { attachGlobalTonConnect, getMiniAppThemeManager } from "@/lib/miniapp-theme";
+import {
+  attachGlobalTonConnect,
+  getMiniAppThemeManager,
+} from "@/lib/miniapp-theme";
 
 export default function MiniAppProviders(
   { children }: { children: ReactNode },

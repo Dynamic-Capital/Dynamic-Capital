@@ -1,5 +1,5 @@
 import { Column, Heading, Meta, Schema } from "@/components/dynamic-ui-system";
-import { baseURL, about, person, toAbsoluteUrl, work } from "@/resources";
+import { about, baseURL, person, toAbsoluteUrl, work } from "@/resources";
 import { Projects } from "@/components/magic-portfolio/work/Projects";
 
 export async function generateMetadata() {

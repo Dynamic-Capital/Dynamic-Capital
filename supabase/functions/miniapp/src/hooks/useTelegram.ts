@@ -102,9 +102,7 @@ export function useTelegram() {
               console.log("[MiniApp] User synced successfully");
             }
           })
-          .catch((err) =>
-            console.error("[MiniApp] User sync error", err)
-          );
+          .catch((err) => console.error("[MiniApp] User sync error", err));
       }
     } catch (e) {
       console.warn("[MiniApp] Unable to verify Telegram initData", e);

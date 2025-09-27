@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DollarSign, Globe } from "lucide-react";
 
 interface CurrencySelectorProps {
@@ -8,7 +14,9 @@ interface CurrencySelectorProps {
   disabled?: boolean;
 }
 
-export function CurrencySelector({ value, onChange, disabled }: CurrencySelectorProps) {
+export function CurrencySelector(
+  { value, onChange, disabled }: CurrencySelectorProps,
+) {
   return (
     <div className="flex items-center gap-2">
       <Globe className="h-4 w-4 text-muted-foreground" />

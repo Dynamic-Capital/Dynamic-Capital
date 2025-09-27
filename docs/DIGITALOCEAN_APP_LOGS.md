@@ -1,6 +1,7 @@
 # DigitalOcean App Logs
 
-Guidelines for retrieving build, deploy, runtime, and crash logs for the DigitalOcean App.
+Guidelines for retrieving build, deploy, runtime, and crash logs for the
+DigitalOcean App.
 
 ## Automation
 
@@ -27,21 +28,29 @@ Guidelines for retrieving build, deploy, runtime, and crash logs for the Digital
      ```python
      import os
      from pydo import Client
+     ```
 
-    client = Client(token=os.environ.get("DIGITALOCEAN_TOKEN"))
-    get_resp = client.apps.get_logs(app_id="4f6c71e2", deployment_id="3aa4d20e", component_name="component")
-    ```
+   client = Client(token=os.environ.get("DIGITALOCEAN_TOKEN")) get_resp =
+   client.apps.get_logs(app_id="4f6c71e2", deployment_id="3aa4d20e",
+   component_name="component")
+   ```
+   ```
 
 ## Control Panel
 
-1. **Activity Logs** – Apps → *Your App* → **Activity** shows deployment timeline.
-2. **Deployment Logs** – Activity tab → click a deployment to view Build and Deploy logs.
-3. **Runtime Logs** – **Runtime Logs** tab → select a resource to view live logs.
-4. **Crash Logs** – Access with `doctl apps logs <app-id> --type=run_restarted` (optionally specify a component).
+1. **Activity Logs** – Apps → _Your App_ → **Activity** shows deployment
+   timeline.
+2. **Deployment Logs** – Activity tab → click a deployment to view Build and
+   Deploy logs.
+3. **Runtime Logs** – **Runtime Logs** tab → select a resource to view live
+   logs.
+4. **Crash Logs** – Access with `doctl apps logs <app-id> --type=run_restarted`
+   (optionally specify a component).
 
 ## Troubleshooting
 
 If the interface shows **Deploy logs are not available**, the logs may not yet
-be generated or have expired. Use the `doctl apps logs <app-id>
-<component-name> --type build` command or the API above to fetch them shortly
-after deployment.
+be generated or have expired. Use the
+`doctl apps logs <app-id>
+<component-name> --type build` command or the API
+above to fetch them shortly after deployment.

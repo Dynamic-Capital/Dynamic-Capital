@@ -54,12 +54,16 @@ docker compose --profile llama up llama-server
 Environment knobs exposed by `docker/llama-server-entrypoint.sh`:
 
 - `LLAMA_MODEL`: absolute path of the mounted GGUF model file.
-- `LLAMA_HF_REPO`: optional Hugging Face model repository. When set, the entrypoint invokes `llama-server -hf <repo>` and downloads the weights on demand. Pair with:
-  - `LLAMA_HF_FILE`: specific GGUF filename within the repo (defaults to the upstream manifest).
+- `LLAMA_HF_REPO`: optional Hugging Face model repository. When set, the
+  entrypoint invokes `llama-server -hf <repo>` and downloads the weights on
+  demand. Pair with:
+  - `LLAMA_HF_FILE`: specific GGUF filename within the repo (defaults to the
+    upstream manifest).
   - `LLAMA_HF_REVISION`: git ref/commit to pin the download.
   - `LLAMA_HF_TOKEN`: authentication token for private models.
 - `LLAMA_SERVER_HOST` (default `0.0.0.0`): listen address for the HTTP server.
-- `LLAMA_SERVER_PORT` (default `8080`, overridden to `8081` in the compose file).
+- `LLAMA_SERVER_PORT` (default `8080`, overridden to `8081` in the compose
+  file).
 - `LLAMA_SERVER_EXTRA_ARGS`: optional additional flags (e.g.
   `"--ctx-size 4096"`).
 
@@ -89,7 +93,9 @@ for the full option matrix.
 ## 5. Troubleshooting
 
 - **`git` missing** – install it before running the sync script.
-- **Model configuration errors** – the entrypoint requires either `LLAMA_MODEL` or `LLAMA_HF_REPO`.
-  Confirm that the host directory is mounted read-only when using `LLAMA_MODEL`, or that the Hugging Face repository values are correct when using `LLAMA_HF_*`.
+- **Model configuration errors** – the entrypoint requires either `LLAMA_MODEL`
+  or `LLAMA_HF_REPO`. Confirm that the host directory is mounted read-only when
+  using `LLAMA_MODEL`, or that the Hugging Face repository values are correct
+  when using `LLAMA_HF_*`.
 - **High memory usage** – tune context and batch sizes via
   `LLAMA_SERVER_EXTRA_ARGS` or Compose command overrides.

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { getEnv } from "../_shared/env.ts";
-import { ok, bad, unauth, mna } from "../_shared/http.ts";
+import { bad, mna, ok, unauth } from "../_shared/http.ts";
 
 function hex(buffer: ArrayBuffer): string {
   return Array.from(new Uint8Array(buffer))

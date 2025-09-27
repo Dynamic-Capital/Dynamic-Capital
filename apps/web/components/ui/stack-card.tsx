@@ -1,7 +1,12 @@
 "use client";
 
 import React from "react";
-import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
 import { cn } from "@/utils";
 import { Card, CardContent } from "./card";
 
@@ -132,7 +137,7 @@ export function AnimatedStack({
 
   React.useEffect(() => {
     if (!autoPlay) return;
-    
+
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % items.length);
     }, interval);
@@ -146,7 +151,7 @@ export function AnimatedStack({
         {items.map((item, index) => {
           const isActive = index === currentIndex;
           const offset = index - currentIndex;
-          
+
           return (
             <motion.div
               key={index}

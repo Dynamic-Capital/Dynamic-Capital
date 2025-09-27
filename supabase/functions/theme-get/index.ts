@@ -19,8 +19,8 @@ export async function handler(req: Request): Promise<Response> {
       status: 401,
     });
   }
-  const mode = await getSetting<"auto" | "light" | "dark">(`theme:${uid}`)
-    || "auto";
+  const mode = await getSetting<"auto" | "light" | "dark">(`theme:${uid}`) ||
+    "auto";
   return new Response(JSON.stringify({ mode }), {
     headers: { "content-type": "application/json" },
   });

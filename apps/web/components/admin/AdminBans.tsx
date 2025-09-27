@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Shield, UserX, Plus, Calendar, RefreshCw } from "lucide-react";
+import { Calendar, Plus, RefreshCw, Shield, UserX } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 import { callEdgeFunction } from "@/config/supabase";
@@ -40,28 +40,28 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction('ADMIN_BANS', {
-        method: 'POST',
+      const { data, error } = await callEdgeFunction("ADMIN_BANS", {
+        method: "POST",
         headers: {
-          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
         },
         body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
-          action: 'list'
-        }
+          action: "list",
+        },
       });
 
       if (error) {
-        console.warn('Failed to load bans:', error.message);
+        console.warn("Failed to load bans:", error.message);
         setBans([]);
       } else if ((data as any)?.ok) {
         setBans((data as any).bans || []);
       } else {
-        console.warn('Failed to load bans:', (data as any)?.error);
+        console.warn("Failed to load bans:", (data as any)?.error);
         setBans([]);
       }
     } catch (error) {
-      console.error('Failed to load bans:', error);
+      console.error("Failed to load bans:", error);
       setBans([]);
     } finally {
       setLoading(false);
@@ -85,18 +85,18 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction('ADMIN_BANS', {
-        method: 'POST',
+      const { data, error } = await callEdgeFunction("ADMIN_BANS", {
+        method: "POST",
         headers: {
-          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
         },
         body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
-          action: 'add',
+          action: "add",
           telegram_id: newTelegramId,
           reason: newReason || undefined,
-          expires_at: newExpiration || undefined
-        }
+          expires_at: newExpiration || undefined,
+        },
       });
 
       if (error) {
@@ -113,13 +113,15 @@ export function AdminBans() {
         setNewExpiration("");
         await loadBans();
       } else {
-        throw new Error((data as any)?.error || 'Failed to add ban');
+        throw new Error((data as any)?.error || "Failed to add ban");
       }
     } catch (error) {
-      console.error('Failed to add ban:', error);
+      console.error("Failed to add ban:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add ban",
+        description: error instanceof Error
+          ? error.message
+          : "Failed to add ban",
         variant: "destructive",
       });
     } finally {
@@ -134,16 +136,16 @@ export function AdminBans() {
         throw new Error("No admin authentication available");
       }
 
-      const { data, error } = await callEdgeFunction('ADMIN_BANS', {
-        method: 'POST',
+      const { data, error } = await callEdgeFunction("ADMIN_BANS", {
+        method: "POST",
         headers: {
-          ...(auth.token ? { 'Authorization': `Bearer ${auth.token}` } : {})
+          ...(auth.token ? { "Authorization": `Bearer ${auth.token}` } : {}),
         },
         body: {
           ...(auth.initData ? { initData: auth.initData } : {}),
-          action: 'remove',
-          ban_id: banId
-        }
+          action: "remove",
+          ban_id: banId,
+        },
       });
 
       if (error) {
@@ -157,13 +159,15 @@ export function AdminBans() {
         });
         await loadBans();
       } else {
-        throw new Error((data as any)?.error || 'Failed to remove ban');
+        throw new Error((data as any)?.error || "Failed to remove ban");
       }
     } catch (error) {
-      console.error('Failed to remove ban:', error);
+      console.error("Failed to remove ban:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to remove ban",
+        description: error instanceof Error
+          ? error.message
+          : "Failed to remove ban",
         variant: "destructive",
       });
     }
@@ -202,7 +206,9 @@ export function AdminBans() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Expiration (optional)</label>
+              <label className="text-sm font-medium">
+                Expiration (optional)
+              </label>
               <Input
                 type="datetime-local"
                 value={newExpiration}
@@ -219,8 +225,8 @@ export function AdminBans() {
               rows={3}
             />
           </div>
-          <Button 
-            onClick={addBan} 
+          <Button
+            onClick={addBan}
             disabled={isAddingBan || !newTelegramId.trim()}
             className="w-full"
           >
@@ -237,70 +243,90 @@ export function AdminBans() {
               <Shield className="w-5 h-5" />
               Active Bans ({bans.length})
             </div>
-            <Button onClick={loadBans} disabled={loading} variant="outline" size="sm">
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <Button
+              onClick={loadBans}
+              disabled={loading}
+              variant="outline"
+              size="sm"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+              />
             </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[400px]">
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <span className="ml-2">Loading bans...</span>
-              </div>
-            ) : bans.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No active bans
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {bans.map((ban) => (
-                  <div
-                    key={ban.id}
-                    className="border rounded-lg p-4 space-y-2 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="font-medium">User: {ban.telegram_id}</div>
-                      <div className="flex items-center gap-2">
+            {loading
+              ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary">
+                  </div>
+                  <span className="ml-2">Loading bans...</span>
+                </div>
+              )
+              : bans.length === 0
+              ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No active bans
+                </div>
+              )
+              : (
+                <div className="space-y-3">
+                  {bans.map((ban) => (
+                    <div
+                      key={ban.id}
+                      className="border rounded-lg p-4 space-y-2 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium">
+                          User: {ban.telegram_id}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {ban.expires_at && (
+                            <Badge
+                              variant={isExpired(ban.expires_at)
+                                ? "destructive"
+                                : "secondary"}
+                            >
+                              {isExpired(ban.expires_at) ? "Expired" : "Active"}
+                            </Badge>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => removeBan(ban.id)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+
+                      {ban.reason && (
+                        <p className="text-sm text-muted-foreground">
+                          {ban.reason}
+                        </p>
+                      )}
+
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          Created: {formatDate(ban.created_at)}
+                        </div>
                         {ban.expires_at && (
-                          <Badge variant={isExpired(ban.expires_at) ? "destructive" : "secondary"}>
-                            {isExpired(ban.expires_at) ? "Expired" : "Active"}
-                          </Badge>
+                          <span>Expires: {formatDate(ban.expires_at)}</span>
                         )}
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => removeBan(ban.id)}
-                        >
-                          Remove
-                        </Button>
                       </div>
-                    </div>
-                    
-                    {ban.reason && (
-                      <p className="text-sm text-muted-foreground">{ban.reason}</p>
-                    )}
-                    
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        Created: {formatDate(ban.created_at)}
-                      </div>
-                      {ban.expires_at && (
-                        <span>Expires: {formatDate(ban.expires_at)}</span>
+
+                      {ban.created_by && (
+                        <div className="text-xs text-muted-foreground">
+                          By: {ban.created_by}
+                        </div>
                       )}
                     </div>
-                    
-                    {ban.created_by && (
-                      <div className="text-xs text-muted-foreground">
-                        By: {ban.created_by}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
           </ScrollArea>
         </CardContent>
       </Card>

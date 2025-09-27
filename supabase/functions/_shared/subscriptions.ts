@@ -1,8 +1,11 @@
 import { createClient } from "./client.ts";
 
 export async function activateSubscription(
-  { telegramId, planId, paymentId }:
-    { telegramId: string | number; planId: string; paymentId: string },
+  { telegramId, planId, paymentId }: {
+    telegramId: string | number;
+    planId: string;
+    paymentId: string;
+  },
 ): Promise<string> {
   const supa = createClient();
 
@@ -19,9 +22,7 @@ export async function activateSubscription(
     .eq("id", planId)
     .maybeSingle();
 
-  const months = plan?.is_lifetime
-    ? 1200
-    : (plan?.duration_months || 1);
+  const months = plan?.is_lifetime ? 1200 : (plan?.duration_months || 1);
   const now = new Date();
   const base = user.subscription_expires_at &&
       new Date(user.subscription_expires_at) > now

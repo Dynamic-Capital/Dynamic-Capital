@@ -174,11 +174,13 @@ Always end responses with: "💡 Need more help? Contact @DynamicCapital_Support
 
     const answer = data.choices[0].message.content as string;
 
-    const { error: insertError } = await supabase.from("faq_embeddings").insert({
-      question,
-      answer,
-      embedding: questionEmbedding,
-    });
+    const { error: insertError } = await supabase.from("faq_embeddings").insert(
+      {
+        question,
+        answer,
+        embedding: questionEmbedding,
+      },
+    );
     if (insertError) console.error("insert faq_embeddings", insertError);
 
     return new Response(JSON.stringify({ answer }), {

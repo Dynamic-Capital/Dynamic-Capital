@@ -29,7 +29,7 @@ export async function buildMainMenu(
     "menu_faq_label",
     "menu_education_label",
     "menu_ask_label",
-    "menu_shouldibuy_label"
+    "menu_shouldibuy_label",
   ];
 
   const defaults = {
@@ -42,14 +42,15 @@ export async function buildMainMenu(
     menu_faq_label: "❓ FAQ",
     menu_education_label: "📚 Education",
     menu_ask_label: "🤖 Ask",
-    menu_shouldibuy_label: "💡 Should I Buy?"
+    menu_shouldibuy_label: "💡 Should I Buy?",
   };
 
   const labels = await getContentBatch(menuKeys, defaults);
 
   const firstRow: InlineKeyboardButton[] = [
     {
-      text: `${section === "dashboard" ? "✅ " : ""}${labels.menu_dashboard_label!}`,
+      text: `${section === "dashboard" ? "✅ " : ""}${labels
+        .menu_dashboard_label!}`,
       callback_data: "nav:dashboard",
     },
     {
@@ -57,7 +58,8 @@ export async function buildMainMenu(
       callback_data: "nav:plans",
     },
     {
-      text: `${section === "support" ? "✅ " : ""}${labels.menu_support_label!}`,
+      text: `${section === "support" ? "✅ " : ""}${labels
+        .menu_support_label!}`,
       callback_data: "nav:support",
     },
   ];

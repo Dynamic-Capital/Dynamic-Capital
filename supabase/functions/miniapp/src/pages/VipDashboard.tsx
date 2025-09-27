@@ -26,7 +26,9 @@ interface VipDashboardData {
 
 export default function VipDashboard() {
   const api = useApi();
-  const [dashboardData, setDashboardData] = useState<VipDashboardData | null>(null);
+  const [dashboardData, setDashboardData] = useState<VipDashboardData | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,7 +48,9 @@ export default function VipDashboard() {
     return (
       <div className="dc-screen">
         <TopBar title="VIP Dashboard" />
-        <div className="p-4 text-center text-dc-text-dim">Loading your VIP dashboard...</div>
+        <div className="p-4 text-center text-dc-text-dim">
+          Loading your VIP dashboard...
+        </div>
       </div>
     );
   }
@@ -92,13 +96,14 @@ export default function VipDashboard() {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const isExpiringSoon = dashboardData.user.subscription_expires_at && 
-    new Date(dashboardData.user.subscription_expires_at).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000;
+  const isExpiringSoon = dashboardData.user.subscription_expires_at &&
+    new Date(dashboardData.user.subscription_expires_at).getTime() -
+          Date.now() < 7 * 24 * 60 * 60 * 1000;
 
   return (
     <div className="dc-screen">
       <TopBar title="VIP Dashboard" />
-      
+
       {/* VIP Status */}
       <GlassPanel>
         <div className="text-center mb-4">
@@ -109,12 +114,16 @@ export default function VipDashboard() {
             Welcome to your exclusive VIP dashboard
           </div>
         </div>
-        
+
         {dashboardData.user.subscription_expires_at && (
           <div className="mt-4 p-3 border border-dc-accent/30 rounded-lg">
             <div className="flex justify-between items-center">
               <span className="text-dc-text-dim">Subscription expires:</span>
-              <span className={`font-medium ${isExpiringSoon ? 'text-red-400' : 'text-dc-text'}`}>
+              <span
+                className={`font-medium ${
+                  isExpiringSoon ? "text-red-400" : "text-dc-text"
+                }`}
+              >
                 {formatDate(dashboardData.user.subscription_expires_at)}
               </span>
             </div>
@@ -167,12 +176,19 @@ export default function VipDashboard() {
       {/* Recent Activity */}
       {dashboardData.recent_interactions.length > 0 && (
         <GlassPanel>
-          <div className="text-dc-text font-medium mb-3">Your Recent Activity</div>
+          <div className="text-dc-text font-medium mb-3">
+            Your Recent Activity
+          </div>
           <div className="space-y-2">
-            {dashboardData.recent_interactions.slice(0, 5).map((interaction) => (
-              <div key={interaction.id} className="flex justify-between items-center">
+            {dashboardData.recent_interactions.slice(0, 5).map((
+              interaction,
+            ) => (
+              <div
+                key={interaction.id}
+                className="flex justify-between items-center"
+              >
                 <span className="text-dc-text text-sm capitalize">
-                  {interaction.interaction_type.replace('_', ' ')}
+                  {interaction.interaction_type.replace("_", " ")}
                 </span>
                 <span className="text-dc-text-dim text-xs">
                   {formatDate(interaction.created_at)}

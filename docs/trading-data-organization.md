@@ -40,8 +40,8 @@ trading-ops/
     <horizon>/<session>/<date>-review.md
 ```
 
-- `<horizon>` uses the canonical set:
-  `12Y`, `6Y`, `3Y`, `1Y`, `6M`, `3M`, `1M`, `1W`, `1D`, `SESSION`.
+- `<horizon>` uses the canonical set: `12Y`, `6Y`, `3Y`, `1Y`, `6M`, `3M`, `1M`,
+  `1W`, `1D`, `SESSION`.
 - `<session>` maps to the trading window (e.g., `lon-open`, `ny-mid`,
   `asia-close`, or a strategy-specific code such as `ict-london-model`).
 - Use ISO dates (`YYYY-MM-DD`) for filenames to keep chronological sorting.
@@ -51,34 +51,36 @@ trading-ops/
 
 ## 3. Horizon Buckets & Review Cadence
 
-| Horizon | Primary Questions | Source Data | Owner | Review Rhythm |
-| --- | --- | --- | --- | --- |
-| **12Y / 6Y** | Macro validity of strategy families, regulatory shifts, fund KPIs. | Audited financials, macro research, archived journals. | CIO / Compliance | Semi-annual board prep. |
-| **3Y / 1Y** | Portfolio evolution, regime changes, model drift. | Algo aggregate KPIs, risk reports, annual post-mortems. | Quant Lead | Quarterly OKRs. |
-| **6M / 3M** | Seasonality effects, quarter-over-quarter drawdown control. | Broker statements, desk OKRs, quarterly journal highlights. | Desk Leads | Monthly desk sync. |
-| **1M / 1W** | Execution quality, campaign performance, liquidity notes. | Daily KPIs, journal insights, backtracking notes. | Strategy Owners | Weekly trade review. |
-| **1D / Session** | Trade-by-trade context, screenshot library, anomalies. | Session templates, raw blotter, screen recordings. | On-call Trader | End-of-session ritual. |
+| Horizon          | Primary Questions                                                  | Source Data                                                 | Owner            | Review Rhythm           |
+| ---------------- | ------------------------------------------------------------------ | ----------------------------------------------------------- | ---------------- | ----------------------- |
+| **12Y / 6Y**     | Macro validity of strategy families, regulatory shifts, fund KPIs. | Audited financials, macro research, archived journals.      | CIO / Compliance | Semi-annual board prep. |
+| **3Y / 1Y**      | Portfolio evolution, regime changes, model drift.                  | Algo aggregate KPIs, risk reports, annual post-mortems.     | Quant Lead       | Quarterly OKRs.         |
+| **6M / 3M**      | Seasonality effects, quarter-over-quarter drawdown control.        | Broker statements, desk OKRs, quarterly journal highlights. | Desk Leads       | Monthly desk sync.      |
+| **1M / 1W**      | Execution quality, campaign performance, liquidity notes.          | Daily KPIs, journal insights, backtracking notes.           | Strategy Owners  | Weekly trade review.    |
+| **1D / Session** | Trade-by-trade context, screenshot library, anomalies.             | Session templates, raw blotter, screen recordings.          | On-call Trader   | End-of-session ritual.  |
 
 ## 4. Session Workflow
 
-1. **Clone session template:** copy the relevant checklist from `templates/<horizon>`
-   into the new session folder and rename with the session code and date.
+1. **Clone session template:** copy the relevant checklist from
+   `templates/<horizon>` into the new session folder and rename with the session
+   code and date.
 2. **Ingest algo results:** export the broker or Supabase job output into
-   `algo-results/<horizon>/<session>/<date>-results.csv`. Append metadata (latency,
-   slippage) in the header block of the performance file.
-3. **Update performance KPIs:** fill `performance/<...>/<date>-kpis.md` with win rate,
-   expectancy, max drawdown, capital deployed, and notable deviations from plan.
+   `algo-results/<horizon>/<session>/<date>-results.csv`. Append metadata
+   (latency, slippage) in the header block of the performance file.
+3. **Update performance KPIs:** fill `performance/<...>/<date>-kpis.md` with win
+   rate, expectancy, max drawdown, capital deployed, and notable deviations from
+   plan.
 4. **Write journal entry:** summarize narrative context, screenshots, and action
-   items in `journals/<...>/<date>-journal.md`. Include links to any video reviews
-   stored in shared drives.
+   items in `journals/<...>/<date>-journal.md`. Include links to any video
+   reviews stored in shared drives.
 5. **Record backtesting/backtracking:**
    - Attach datasets to `backtesting/` when scenarios are rerun historically.
    - Use `backtracking/<...>/<date>-review.md` to document post-trade analysis,
      lessons learned, and checklist updates.
-6. **Sync upward horizons:** roll session metrics into the `1W` folder during weekly
-   reviews, then cascade into higher horizons during monthly and quarterly
-   recaps. Reference aggregates in the header of each higher-horizon document for
-   traceability.
+6. **Sync upward horizons:** roll session metrics into the `1W` folder during
+   weekly reviews, then cascade into higher horizons during monthly and
+   quarterly recaps. Reference aggregates in the header of each higher-horizon
+   document for traceability.
 
 ## 5. Template Metadata Blocks
 

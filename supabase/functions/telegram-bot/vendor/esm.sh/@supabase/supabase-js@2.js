@@ -124,7 +124,10 @@ export function createClient(..._args) {
     },
     auth: {
       async getUser() {
-        return { data: { user: { id: "", user_metadata: { telegram_id: "" } } }, error: null };
+        return {
+          data: { user: { id: "", user_metadata: { telegram_id: "" } } },
+          error: null,
+        };
       },
       async signJWT(_payload, _opts) {
         return { access_token: "token" };

@@ -1,4 +1,11 @@
-import { Column, Heading, Icon, Row, Tag, Text } from "@/components/dynamic-ui-system";
+import {
+  Column,
+  Heading,
+  Icon,
+  Row,
+  Tag,
+  Text,
+} from "@/components/dynamic-ui-system";
 
 const TOKEN_NAME = "Dynamic Capital Token";
 const TOKEN_SYMBOL = "DCT";
@@ -9,19 +16,22 @@ const SUPPLY_SPLITS = [
   {
     label: "Operations",
     value: "60%",
-    description: "Fuel day-to-day desk execution, analytics, and mentor coverage.",
+    description:
+      "Fuel day-to-day desk execution, analytics, and mentor coverage.",
     icon: "sparkles" as const,
   },
   {
     label: "Auto-invest pool",
     value: "30%",
-    description: "Deploy liquidity into strategies the desk validates each epoch.",
+    description:
+      "Deploy liquidity into strategies the desk validates each epoch.",
     icon: "rocket" as const,
   },
   {
     label: "Buyback & burn",
     value: "10%",
-    description: "Stabilize the treasury with scheduled market operations and burns.",
+    description:
+      "Stabilize the treasury with scheduled market operations and burns.",
     icon: "repeat" as const,
   },
 ] as const;
@@ -31,19 +41,22 @@ const LOCK_TIERS = [
     tier: "Bronze",
     duration: "3 months",
     multiplier: "1.2×",
-    description: "Starter tier that unlocks curated market briefs and limited drops.",
+    description:
+      "Starter tier that unlocks curated market briefs and limited drops.",
   },
   {
     tier: "Silver",
     duration: "6 months",
     multiplier: "1.5×",
-    description: "Enhance reward flow with priority access to automation templates.",
+    description:
+      "Enhance reward flow with priority access to automation templates.",
   },
   {
     tier: "Gold",
     duration: "12 months",
     multiplier: "2.0×",
-    description: "Max utility with VIP desk passes, mentor escalations, and beta slots.",
+    description:
+      "Max utility with VIP desk passes, mentor escalations, and beta slots.",
   },
 ] as const;
 
@@ -95,9 +108,13 @@ export default function TokenPage() {
         <Heading variant="display-strong-s" align="center">
           {TOKEN_NAME} ({TOKEN_SYMBOL})
         </Heading>
-        <Text variant="body-default-m" onBackground="neutral-weak" align="center">
-          The membership currency that powers Dynamic Capital automations, treasury
-          governance, and community rewards.
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          align="center"
+        >
+          The membership currency that powers Dynamic Capital automations,
+          treasury governance, and community rewards.
         </Text>
         <Row gap="16" wrap horizontal="center">
           <Row
@@ -109,7 +126,9 @@ export default function TokenPage() {
             vertical="center"
           >
             <Icon name="infinity" onBackground="brand-medium" />
-            <Text variant="label-strong-s">Max supply {formatNumber(TOKEN_MAX_SUPPLY)}</Text>
+            <Text variant="label-strong-s">
+              Max supply {formatNumber(TOKEN_MAX_SUPPLY)}
+            </Text>
           </Row>
           <Row
             gap="8"

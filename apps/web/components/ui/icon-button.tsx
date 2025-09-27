@@ -1,7 +1,12 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Icon, IconName } from "./icon";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./tooltip";
 import { cn } from "@/utils";
 
 const iconButtonVariants = cva(
@@ -10,10 +15,13 @@ const iconButtonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         ghost: "hover:bg-accent hover:text-accent-foreground",
-        subtle: "bg-secondary/50 text-secondary-foreground hover:bg-secondary/80",
-        telegram: "bg-telegram text-white hover:bg-telegram/90 hover:shadow-telegram",
+        subtle:
+          "bg-secondary/50 text-secondary-foreground hover:bg-secondary/80",
+        telegram:
+          "bg-telegram text-white hover:bg-telegram/90 hover:shadow-telegram",
       },
       size: {
         sm: "h-8 w-8",
@@ -25,11 +33,12 @@ const iconButtonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface IconButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof iconButtonVariants> {
   icon: IconName;
   iconAnimation?: "none" | "pulse" | "float" | "wiggle" | "glow";
@@ -38,14 +47,29 @@ export interface IconButtonProps
 }
 
 const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ className, variant, size, icon, iconAnimation = "none", tooltip, iconSize, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      icon,
+      iconAnimation = "none",
+      tooltip,
+      iconSize,
+      ...props
+    },
+    ref,
+  ) => {
     // Map button size to icon size if not explicitly provided
     const getIconSize = () => {
       if (iconSize) return iconSize;
       switch (size) {
-        case "sm": return "xs";
-        case "lg": return "base";
-        default: return "sm";
+        case "sm":
+          return "xs";
+        case "lg":
+          return "base";
+        default:
+          return "sm";
       }
     };
 
@@ -55,8 +79,8 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
         ref={ref}
         {...props}
       >
-        <Icon 
-          name={icon} 
+        <Icon
+          name={icon}
           animation={iconAnimation}
           size={getIconSize()}
         />
@@ -77,7 +101,7 @@ const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
     }
 
     return button;
-  }
+  },
 );
 
 IconButton.displayName = "IconButton";

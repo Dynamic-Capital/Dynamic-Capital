@@ -21,4 +21,3 @@ A payment is approved when:
 2. Amount within tolerance
 3. Currency matches
 4. Receipt date within time window
-
