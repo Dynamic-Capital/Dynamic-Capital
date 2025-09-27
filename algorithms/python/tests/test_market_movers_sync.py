@@ -69,3 +69,34 @@ def test_market_movers_sync_respects_score_floor():
 
     assert [row["symbol"] for row in writer.rows] == ["HIGH"]
     assert writer.rows[0]["score"] == pytest.approx(90)
+
+
+def test_market_movers_sync_normalises_thresholds_for_classification():
+    provider = DummyProvider(
+        [
+            MomentumDataPoint(symbol="X", display="Asset X", score=90),
+            MomentumDataPoint(symbol="Y", display="Asset Y", score=72),
+            MomentumDataPoint(symbol="Z", display="Asset Z", score=-5),
+        ]
+    )
+    writer = MemoryWriter()
+    job = MarketMoversSyncJob(
+        provider=provider,
+        writer=writer,
+        thresholds=(
+            (60, "Bullish"),
+            (80, "Very Bullish"),
+            (40, "Bearish"),
+            (0, "Very Bearish"),
+            (80, "Extremely Bullish"),
+        ),
+        score_min=-10,
+    )
+
+    job.run()
+
+    assert [row["classification"] for row in writer.rows] == [
+        "Extremely Bullish",
+        "Bullish",
+        "Very Bearish",
+    ]
