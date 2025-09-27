@@ -2,13 +2,55 @@
 
 Operational algorithms for Dynamic Capital's core roles. Each playbook defines objectives, required inputs, deterministic workflows, and automation leverage points.
 
+## Operating Rhythm and SOP Governance
+- **SOP ownership:** Each team lead maintains the SOPs below, reviews them bi-weekly, and documents deltas in the change log. Changes flow through a lightweight approval: proposer → adjacent stakeholders → ops lead sign-off.
+- **Cadence layers:** Tasks are grouped into Daily, Weekly, and Monthly/Quarterly motions so teams can plug procedures into calendar cadences without reworking the algorithm itself.
+- **Escalation tiers:** Every SOP references the primary escalation path (direct lead → cross-functional lead → exec) and includes automated triggers where feasible.
+- **Quality gates:** All workflows must surface clear entry criteria (prerequisites satisfied) and exit criteria (artifact delivered, stakeholder notified) to preserve determinism.
+- **Automation audit:** Quarterly, the ops lead evaluates automation cues for tooling or scripts that can shift manual steps to self-serve workflows.
+- **Algorithm sync:** Every team contributes to a centralized algorithm roadmap that captures optimizations, dependency impacts, and upgrade timing. Items are tagged by owning squad but groomed together during the cross-team sync.
+
+### Algorithm Lifecycle Sync
+1. **Intake:** Capture proposed algorithm updates (new model, rule change, automation) in the shared backlog with owner, rationale, target KPI, and downstream dependencies.
+2. **Triage:** Ops lead, Data Analyst, and relevant team leads meet twice weekly to prioritize requests using impact × effort and dependency readiness.
+3. **Development:** Owning team executes build/test workflow while notifying impacted squads via the shared change log and embedding observers in milestone reviews.
+4. **Integration testing:** Before rollout, run multi-team validations (e.g., marketing + community + data) against staging datasets or sandboxes to catch regression risk.
+5. **Rollout & measurement:** Launch with feature flags or phased deployment, monitor agreed guardrail metrics, and document learnings in the algorithm knowledge base.
+6. **Retrospective:** Within one week of launch, conduct a brief retro to log performance vs. hypothesis, outstanding work, and next optimization candidates.
+
+### SOP Implementation Checklist
+1. Confirm prerequisites and dependencies are documented in the `Inputs` list.
+2. Translate the workflow into calendar reminders or project-management templates aligned with the cadence bullets.
+3. Configure automations or alerts noted in the `Automation Cues` section.
+4. Archive run artifacts (briefs, reports, logs) in the shared knowledge base with searchable tags.
+5. Capture retro notes on bottlenecks; feed improvements back into the SOP during the bi-weekly review.
+
 ## How to Use This Document
 1. **Gather inputs:** Confirm prerequisite dashboards, briefs, and tooling are accessible.
 2. **Follow the workflow:** Execute the ordered steps. Conditional logic is indented beneath the triggering action.
 3. **Log outputs:** Every run should produce the listed artifacts or updates.
 4. **Automate when possible:** Suggested automations reduce manual effort and enforce consistency.
+5. **Link algorithm updates:** When executing a workflow that changes or consumes another team’s algorithm, cross-reference the Algorithm Lifecycle Sync to ensure dependencies and rollback plans are covered.
 
 ---
+
+## Cross-Team Algorithm Optimization Pod
+- **Purpose:** Maintain a unified roadmap for algorithm maintenance, development, and upgrades spanning growth, community, product, and support teams.
+- **Membership:** Ops lead (facilitator), Data Analyst (instrumentation owner), Marketing Strategist, Community Manager, Front-End and Back-End Developers, Blockchain Developer (as needed), and rotating representatives from Legal, DevOps, and Support.
+- **Cadence:**
+  - **Twice-Weekly Working Session (45 min):** Review new intake, groom backlog, assign discovery spikes, and confirm readiness of in-flight upgrades.
+  - **Weekly Demo Review (30 min):** Showcase algorithm changes, validate instrumentation, and confirm downstream content or communication updates.
+  - **Monthly Roadmap Reset (60 min):** Align on upcoming upgrade windows, resource allocation, and dependency sequencing.
+- **Key Artifacts:** Unified algorithm backlog, dependency matrix, testing calendar, rollout/rollback playbooks, and performance scorecards.
+- **Communication Channels:** Dedicated `#algo-sync` Slack channel for async updates, shared dashboard with guardrail metrics, and automated digest summarizing changes shipped and pending.
+
+### Pod Workflow
+1. **Discovery & Framing:** Owner drafts opportunity brief with problem statement, target KPIs, affected teams, and proposed experimentation path. Pod validates feasibility and data requirements.
+2. **Design & Spec:** Collaboratively define algorithm logic, data schema impacts, compliance considerations, and integration points. Designers and PMs update user-facing flows where applicable.
+3. **Build & QA:** Engineering squads implement changes following their team algorithms while pairing with Data Analyst on instrumentation and Legal on compliance gates.
+4. **Cross-Team Simulation:** Run synthetic or sandbox scenarios with Marketing, Community, and Support to ensure messaging, escalations, and handoffs are prepped.
+5. **Launch Governance:** Assign launch captain, confirm monitoring dashboards, and circulate pre-launch briefing outlining guardrails, communication plan, and rollback triggers.
+6. **Post-Launch Optimization:** Monitor metrics daily for first week, queue follow-up enhancements, and archive learnings in the knowledge base with clear ownership for next iteration.
 
 ## 1. Marketing Team
 
@@ -16,6 +58,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Align channel squads on growth targets and capital allocation.
 - **Inputs:** Weekly KPI dashboard, OKR tracker, budget ledger, pipeline forecast, leadership priorities.
 - **Primary Outputs:** Weekly strategy brief, updated OKR status, budget allocation log, opportunity/risk register.
+- **Cadence & SOPs:**
+  - **Daily:** Monitor KPI deltas and urgent leadership directives; push escalations to the channel leads room.
+  - **Weekly:** Issue the strategy brief, run mid-cycle KPI check, and refresh the opportunity/risk register.
+  - **Monthly/Quarterly:** Facilitate OKR planning, consolidate lessons learned, and update budget envelopes with finance.
 - **Workflow Algorithm:**
   1. Pull the latest KPI dashboard and compute week-over-week deltas.
      - If any KPI deviates ±10% from target, flag it in the opportunity/risk register.
@@ -33,6 +79,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Deliver on-brand assets mapped to funnel stages and compliance requirements.
 - **Inputs:** Strategist brief, content calendar, persona library, brand voice guide, legal checklist.
 - **Primary Outputs:** Approved copy/assets, metadata tags in CMS, performance annotations.
+- **Cadence & SOPs:**
+  - **Daily:** Work the content backlog, move drafts through the approval pipeline, and action reviewer notes within the same day.
+  - **Weekly:** Sync with strategist and social manager, publish performance annotations, and document learnings in the knowledge base.
+  - **Monthly/Quarterly:** Refresh persona insights with research and coordinate compliance audits on evergreen assets.
 - **Workflow Algorithm:**
   1. Parse strategist brief; map requested assets to funnel stage and target persona.
   2. For each asset:
@@ -51,6 +101,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Maximize reach, engagement, and attributable conversions across social channels.
 - **Inputs:** Approved content assets, social scheduling tool, historical engagement benchmarks, UTM generator, escalation matrix.
 - **Primary Outputs:** Scheduled content calendar, daily engagement log, weekly performance summary.
+- **Cadence & SOPs:**
+  - **Daily:** Monitor dashboards in 2-hour intervals, respond to escalations, and capture anomalies in the engagement log.
+  - **Weekly:** Publish the performance digest, recalibrate posting windows, and align with strategist on experiments.
+  - **Monthly/Quarterly:** Audit channel mix, update escalation thresholds, and report growth insights to leadership.
 - **Workflow Algorithm:**
   1. Import approved assets and create channel-specific variants (copy length, hashtag sets, creative crops).
   2. Batch-schedule posts during optimal send windows determined by past engagement data.
@@ -66,6 +120,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Source, activate, and scale high-ROI partnerships.
 - **Inputs:** Partner CRM, campaign brief, historical performance scorecards, legal templates, budget tracker.
 - **Primary Outputs:** Shortlist, outreach sequences, signed agreements, performance recap deck.
+- **Cadence & SOPs:**
+  - **Daily:** Advance live negotiations, confirm asset delivery, and clear CRM follow-up tasks.
+  - **Weekly:** Refresh the ranked shortlist, run performance reviews on active partners, and share updates with finance/legal.
+  - **Monthly/Quarterly:** Host partnership retrospectives, renew or sunset agreements, and adjust partner scoring criteria.
 - **Workflow Algorithm:**
   1. Filter partner CRM by campaign fit, past ROI, and audience overlap; produce ranked shortlist.
   2. Personalize outreach sequences with value propositions and expected deliverables; launch cadence in CRM.
@@ -81,6 +139,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Drive qualified traffic and conversions at efficient cost.
 - **Inputs:** Keyword rankings, paid media dashboards, change logs, landing page audit queue, experimentation backlog.
 - **Primary Outputs:** Optimization backlog, change log updates, A/B test reports, budget reallocation notes.
+- **Cadence & SOPs:**
+  - **Daily:** Review performance dashboards, adjust bids or budgets within guardrails, and document urgent changes.
+  - **Weekly:** Prioritize backlog items, launch/monitor experiments, and file the optimization report.
+  - **Monthly/Quarterly:** Recalibrate guardrails, audit landing pages, and align spend strategy with leadership.
 - **Workflow Algorithm:**
   1. Sync keyword and paid media dashboards; identify anomalies or opportunities exceeding ±15% variance.
   2. Prioritize actions using impact vs. effort framework and update backlog with owners and deadlines.
@@ -100,6 +162,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Maintain healthy community sentiment and growth.
 - **Inputs:** Marketing roadmap, product release schedule, sentiment dashboard, escalation playbooks, event calendar.
 - **Primary Outputs:** Community calendar, incident reports, weekly health digest, advocacy opportunities list.
+- **Cadence & SOPs:**
+  - **Daily:** Track sentiment, respond to escalations, and update the event prep checklist.
+  - **Weekly:** Host moderator sync, publish the health digest, and push feedback into product/marketing queues.
+  - **Monthly/Quarterly:** Run playbook drills, refresh FAQ packets, and assess community goals vs. KPIs.
 - **Workflow Algorithm:**
   1. Update the community calendar with upcoming launches, AMAs, and events; assign owners and deadlines.
   2. Preload FAQ packets and asset folders for each scheduled announcement.
@@ -115,6 +181,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Enforce community guidelines quickly and consistently.
 - **Inputs:** Moderation ruleset, coverage schedule, flagged content queue, ban/mute matrix, translation tool.
 - **Primary Outputs:** Cleared flag queue, incident log, policy improvement suggestions.
+- **Cadence & SOPs:**
+  - **Daily/Shift:** Sweep flagged content every 30 minutes, action incidents, and log outcomes.
+  - **Weekly:** Review escalation patterns with the community manager and suggest policy updates.
+  - **Monthly/Quarterly:** Participate in incident response drills and recalibrate the ban/mute matrix.
 - **Workflow Algorithm:**
   1. Every 30 minutes, sweep flagged content queue sorted by severity.
   2. For each item:
@@ -130,6 +200,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Resolve user issues rapidly and surface actionable feedback.
 - **Inputs:** Ticketing system, knowledge base, SLA matrix, product release notes, feedback tags.
 - **Primary Outputs:** Resolved tickets, escalations log, weekly trends report, updated FAQs.
+- **Cadence & SOPs:**
+  - **Daily:** Clear assigned tickets within SLA, document escalations, and log CSAT responses.
+  - **Weekly:** Compile the trends report, refresh macros, and propose knowledge base updates.
+  - **Monthly/Quarterly:** Audit ticket taxonomy, align on product releases, and review SLA adherence with ops.
 - **Workflow Algorithm:**
   1. Auto-triage new tickets by severity and category; claim tickets within SLA.
   2. Respond using macros or personalized replies referencing knowledge base articles.
@@ -148,6 +222,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Ship accessible, performant user experiences backed by automated tests.
 - **Inputs:** Sprint backlog, design specs, component library, QA test plans, feature flags.
 - **Primary Outputs:** Merged PRs, test artifacts, changelog entries, demo notes.
+- **Cadence & SOPs:**
+  - **Daily:** Advance in-flight tickets, run lint/type/test before pushes, and respond to code review within SLA.
+  - **Weekly:** Demo completed work, reconcile feature flags, and update the changelog.
+  - **Monthly/Quarterly:** Review tech debt backlog, audit accessibility metrics, and participate in incident drills.
 - **Workflow Algorithm:**
   1. Select top-priority ticket; clarify acceptance criteria with PM and designer.
   2. Break work into sub-tasks (UI, state, integration) and create checklist in issue tracker.
@@ -165,6 +243,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Deliver reliable, scalable services with observability baked in.
 - **Inputs:** Technical specs, API contracts, database schema, load thresholds, monitoring dashboards.
 - **Primary Outputs:** Service updates, migration scripts, API documentation, runbook revisions.
+- **Cadence & SOPs:**
+  - **Daily:** Inspect service dashboards, progress assigned stories, and sync with DevOps on incidents.
+  - **Weekly:** Execute load/performance validation, review telemetry, and update documentation after releases.
+  - **Monthly/Quarterly:** Refresh threat models, run failover tests, and groom technical debt roadmap.
 - **Workflow Algorithm:**
   1. Evaluate proposed change for schema or contract impact; document plan with rollback steps.
   2. Implement code with comprehensive unit and integration tests, including negative paths.
@@ -181,6 +263,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Create secure, auditable smart contracts with minimal gas usage.
 - **Inputs:** Protocol requirements, threat models, audit checklist, testnet environment, on-chain monitoring tools.
 - **Primary Outputs:** Contract code, unit/property tests, audit reports, deployment scripts, monitoring alerts.
+- **Cadence & SOPs:**
+  - **Daily:** Implement contract tasks, run static analysis, and review monitoring alerts.
+  - **Weekly:** Sync with security on audit findings, execute testnet simulations, and update documentation.
+  - **Monthly/Quarterly:** Conduct invariant reviews, refresh incident response drills, and recalibrate gas benchmarks.
 - **Workflow Algorithm:**
   1. Draft contract architecture with explicit invariants and upgrade strategy; review with security specialist.
   2. Implement contracts using defensive patterns and inline documentation.
@@ -198,6 +284,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Produce user-validated designs aligned with design system tokens.
 - **Inputs:** Product brief, research insights, design system library, accessibility checklist, usability testing panel.
 - **Primary Outputs:** Wireframes, prototypes, design specs, usability reports, token updates.
+- **Cadence & SOPs:**
+  - **Daily:** Progress assigned flows, partner with developers on implementation questions, and capture quick user feedback.
+  - **Weekly:** Run usability sessions, deliver design reviews, and ensure design tokens are synchronized.
+  - **Monthly/Quarterly:** Audit accessibility compliance, refresh the design knowledge base, and iterate on component usage data.
 - **Workflow Algorithm:**
   1. Translate product brief into user flows and low-fidelity wireframes; review with stakeholders for alignment.
   2. Upgrade approved flows to high-fidelity prototypes using design system tokens.
@@ -213,6 +303,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Ensure resilient infrastructure and frictionless releases.
 - **Inputs:** Monitoring dashboards, incident tickets, infrastructure-as-code repo, release calendar, security scan outputs.
 - **Primary Outputs:** Updated pipelines, deployment runbooks, incident postmortems, compliance reports.
+- **Cadence & SOPs:**
+  - **Daily:** Review alerts, triage incidents, and verify infrastructure health dashboards.
+  - **Weekly:** Prep release windows, run security scans, and update deployment runbooks.
+  - **Monthly/Quarterly:** Lead game days, evaluate cost optimization opportunities, and refresh compliance evidence.
 - **Workflow Algorithm:**
   1. Review real-time alerts and incident backlog; prioritize remediation based on severity and SLA.
   2. Audit upcoming releases for infrastructure dependencies; update IaC modules or environment variables accordingly.
@@ -231,6 +325,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Coordinate roadmap execution, resource alignment, and risk mitigation.
 - **Inputs:** Strategic roadmap, sprint backlog, resource allocation matrix, risk register, stakeholder roster.
 - **Primary Outputs:** Sprint plan, dependency tracker, status updates, retrospective notes, risk updates.
+- **Cadence & SOPs:**
+  - **Daily:** Clear blockers, update status dashboards, and confirm critical dependencies are on track.
+  - **Weekly:** Facilitate planning/review ceremonies, deliver stakeholder updates, and reconcile the risk register.
+  - **Monthly/Quarterly:** Run capacity planning, refresh operating cadences, and audit cross-team dependencies.
 - **Workflow Algorithm:**
   1. Consolidate roadmap and backlog; score initiatives using impact vs. effort and strategic alignment.
   2. Validate resource availability; adjust scope or negotiate trade-offs as needed.
@@ -245,6 +343,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Deliver trustworthy insights and automated reporting.
 - **Inputs:** Analytics request queue, data warehouse models, quality monitors, BI tooling, experiment logs.
 - **Primary Outputs:** Validated datasets, dashboards, insight briefs, data dictionary updates, automation scripts.
+- **Cadence & SOPs:**
+  - **Daily:** Triage new requests, monitor data freshness alerts, and resolve high-priority defects.
+  - **Weekly:** Ship dashboards/analyses, host insight reviews, and update automation scripts.
+  - **Monthly/Quarterly:** Conduct data quality audits, expand the data dictionary, and review analytics roadmap with stakeholders.
 - **Workflow Algorithm:**
   1. Intake requests via ticket form; clarify business question, required metrics, and deadline.
   2. Audit source data for freshness and quality; log anomalies in quality monitor.
@@ -260,6 +362,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Safeguard compliance and mitigate legal risks across initiatives.
 - **Inputs:** Regulatory updates, contract queue, campaign briefs, risk matrix, outside counsel notes.
 - **Primary Outputs:** Reviewed contracts, compliance guidance, risk mitigation plans, training materials.
+- **Cadence & SOPs:**
+  - **Daily:** Screen regulatory feeds, clear high-priority contract reviews, and log escalations.
+  - **Weekly:** Issue compliance guidance summaries, align with marketing/product on active campaigns, and track remediation tasks.
+  - **Monthly/Quarterly:** Deliver training sessions, refresh playbooks, and recalibrate the risk matrix with leadership.
 - **Workflow Algorithm:**
   1. Monitor regulatory feeds; log relevant changes in compliance tracker and brief affected teams.
   2. Prioritize contract reviews by risk/urgency; apply standardized risk checklist.
@@ -279,6 +385,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Validate high-leverage growth experiments rapidly and systematically.
 - **Inputs:** Experiment backlog, analytics dashboards, user research insights, resource availability, guardrail metrics.
 - **Primary Outputs:** Prioritized experiment queue, experiment briefs, win/loss documentation, integrated playbooks.
+- **Cadence & SOPs:**
+  - **Daily:** Monitor experiment guardrails, unblock dependencies, and log new ideas.
+  - **Weekly:** Re-rank backlog, launch/close experiments, and distribute decision memos.
+  - **Monthly/Quarterly:** Consolidate learnings, refresh guardrail metrics, and sync on strategic growth bets with leadership.
 - **Workflow Algorithm:**
   1. Score backlog weekly using ICE/RICE and strategic alignment; publish ranked queue.
   2. For top experiments, define hypothesis, success metric, guardrails, and required resources.
@@ -294,6 +404,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Maintain strong security posture and rapid incident response.
 - **Inputs:** Vulnerability scans, penetration test results, incident tickets, asset inventory, compliance requirements.
 - **Primary Outputs:** Remediation plan, incident reports, security posture dashboard, training updates.
+- **Cadence & SOPs:**
+  - **Daily:** Review vulnerability alerts, coordinate remediation actions, and watch incident queues.
+  - **Weekly:** Run incident readiness checks, track remediation SLAs, and publish posture updates.
+  - **Monthly/Quarterly:** Lead tabletop exercises, refresh response playbooks, and align with legal/compliance on regulatory shifts.
 - **Workflow Algorithm:**
   1. Review vulnerability feeds and scan outputs; prioritize based on severity and exploitability.
   2. Assign remediation tasks to owning teams; enforce SLA tracking.
@@ -308,6 +422,10 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 - **Objective:** Localize growth and community engagement in priority regions.
 - **Inputs:** Regional performance data, localization backlog, cultural playbooks, translation memory, local partner directory.
 - **Primary Outputs:** Localized assets, regional event plans, feedback reports, glossary updates.
+- **Cadence & SOPs:**
+  - **Daily:** Translate queued assets, validate cultural context with reviewers, and share urgent regional feedback.
+  - **Weekly:** Reconcile localization backlog, plan regional events, and sync with central marketing/community leads.
+  - **Monthly/Quarterly:** Evaluate regional KPIs, refresh glossary entries, and update partner directories.
 - **Workflow Algorithm:**
   1. Rank regions/languages by adoption potential and strategic priority.
   2. Pull localization backlog; assign tasks based on regional expertise and timelines.
@@ -347,3 +465,9 @@ Operational algorithms for Dynamic Capital's core roles. Each playbook defines o
 ## Change Log Management
 - **Owners:** Project Manager & Data Analyst.
 - **Process:** Update this document when workflows change by submitting PRs with before/after rationale and communicating updates in the weekly operations sync.
+
+## Cross-Team SOP Sync
+- **Facilitator:** Ops lead.
+- **Cadence:** Monthly cross-functional review focused on inter-team handoffs (e.g., marketing → community, product → support).
+- **Agenda Template:** Review outstanding action items, inspect high-friction handoffs, confirm automation opportunities, assign new owners/deadlines, and summarize updates for leadership within 24 hours.
+
