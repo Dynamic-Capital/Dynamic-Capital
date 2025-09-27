@@ -30,6 +30,8 @@ __all__ = [
     "TradingAgentResult",
     "SpaceAgent",
     "SpaceAgentResult",
+    "ElementAgent",
+    "ElementAgentResult",
     "run_dynamic_agent_cycle",
 ]
 
@@ -49,6 +51,8 @@ _AGENT_EXPORTS = {
     "TradingAgentResult",
     "SpaceAgent",
     "SpaceAgentResult",
+    "ElementAgent",
+    "ElementAgentResult",
 }
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
@@ -59,6 +63,8 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
         ChatAgentResult,
         ChatTurn,
         DynamicChatAgent,
+        ElementAgent,
+        ElementAgentResult,
         ExecutionAgent,
         ExecutionAgentResult,
         ResearchAgent,

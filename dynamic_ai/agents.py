@@ -7,6 +7,7 @@ from typing import Any, Dict, Iterable, Mapping, Protocol, Sequence
 
 from .analysis import DynamicAnalysis
 from .core import AISignal, DynamicFusionAlgo
+from .element_agent import ElementAgent
 from .hedge import (
     AccountState,
     DynamicHedgePolicy,
@@ -18,6 +19,7 @@ from .hedge import (
     VolatilitySnapshot,
 )
 from .risk import PositionSizing, RiskContext, RiskManager, RiskParameters
+from dynamic_algo.dynamic_elements import ElementSnapshot, ElementSummary
 from dynamic_space import (
     DynamicSpace,
     SpaceEvent,
@@ -145,6 +147,27 @@ class SpaceAgentResult(AgentResult):
         payload["snapshot"] = _space_snapshot_to_dict(self.snapshot)
         if self.events:
             payload["events"] = [_space_event_to_dict(event) for event in self.events]
+        if self.recommendations:
+            payload["recommendations"] = list(self.recommendations)
+        return payload
+
+
+@dataclass(slots=True)
+class ElementAgentResult(AgentResult):
+    """Elemental telemetry snapshot emitted by the elements persona."""
+
+    snapshot: ElementSnapshot
+    focus: ElementSummary | None = None
+    highlights: tuple[str, ...] = field(default_factory=tuple)
+    recommendations: tuple[str, ...] = field(default_factory=tuple)
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = AgentResult.to_dict(self)
+        payload["snapshot"] = self.snapshot.as_dict()
+        if self.focus is not None:
+            payload["focus"] = self.focus.as_dict()
+        if self.highlights:
+            payload["highlights"] = list(self.highlights)
         if self.recommendations:
             payload["recommendations"] = list(self.recommendations)
         return payload
@@ -953,4 +976,6 @@ __all__ = [
     "RiskAgentResult",
     "SpaceAgent",
     "SpaceAgentResult",
+    "ElementAgent",
+    "ElementAgentResult",
 ]
