@@ -23,6 +23,7 @@ example value, and where it's referenced in the repository.
 
 | Key                              | Purpose                                                                   | Required | Example                   | Used in                                                                       |
 | -------------------------------- | ------------------------------------------------------------------------- | -------- | ------------------------- | ----------------------------------------------------------------------------- |
+| `TRADINGVIEW_WEBHOOK_SECRET`     | Shared secret validated by the Python TradingView webhook receiver.       | Yes      | `python-shared`           | `integrations/tradingview.py`, `tests/integrations/test_tradingview_webhook.py` |
 | `TRADING_SIGNALS_WEBHOOK_SECRET` | Shared secret that TradingView webhooks must include when posting alerts. | Yes      | `supabase-shared`         | `algorithms/vercel-webhook` ingestion handler (see TradingView→MT5 docs)      |
 | `MT5_BRIDGE_WORKER_ID`           | Identifier passed to the MT5 listener when claiming Supabase signals.     | Yes      | `worker-nyc-01`           | MT5 bridge runtime (`claim_trading_signal` / `record_trade_update` RPC calls) |
 | `SUPABASE_SIGNALS_CHANNEL`       | Optional override for the realtime channel the MT5 bridge subscribes to.  | No       | `realtime:public:signals` | Trading bridge listener configuration                                         |
