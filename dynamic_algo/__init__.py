@@ -36,6 +36,7 @@ from .dynamic_pool import (
     PoolWithdrawal,
 )
 from .dynamic_metadata import DynamicMetadataAlgo, MetadataAttribute
+from .dynamic_mark import DynamicMark, PortfolioMarkSnapshot, PositionMark
 from .dynamic_marketing import (
     CampaignSnapshot,
     ChannelPerformance,
@@ -141,6 +142,9 @@ __all__ = [
     "DynamicMetadataAlgo",
     "MetadataAttribute",
     "DynamicMarketingAlgo",
+    "DynamicMark",
+    "PositionMark",
+    "PortfolioMarkSnapshot",
     "MarketingTouchpoint",
     "ChannelPerformance",
     "CampaignSnapshot",

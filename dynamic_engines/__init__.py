@@ -28,6 +28,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicPoolAlgo",
         "DynamicMetadataAlgo",
         "DynamicMarketingAlgo",
+        "DynamicMark",
         "DynamicPsychologyAlgo",
         "DynamicDecisionAlgo",
         "DynamicElementAlgo",
