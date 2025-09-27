@@ -111,7 +111,7 @@
   Annotate how structure evolved, why trades succeeded or failed, and how the
   guidelines here would have adjusted the plan.
 
-## Trading Algo Improvement Checklist
+## Dynamic Trading Algo (DTA) Improvement Checklist
 
 - [x] **Root Task: Data & Structure Integrity**
   - [ ] **Validate market structure inputs**: Confirm swing classification,

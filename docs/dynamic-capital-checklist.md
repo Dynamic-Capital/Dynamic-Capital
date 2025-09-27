@@ -160,7 +160,7 @@ detailed checklists into project docs for visibility.
 3. **[Dynamic Codex Integration Checklist](./dynamic_codex_integration_checklist.md)**
    – Archived context after merging Dynamic Codex into the `/telegram` Next.js
    route; keep for historical reference.
-4. **[Trading Algo Improvement Checklist](./trading-algo-improvement-checklist.md)**
+4. **[Dynamic Trading Algo (DTA) Improvement Checklist](./dynamic-trading-algo-improvement-checklist.md)**
    – Guides Smart Money Concepts tuning across configuration, analyzers, and
    delivery workflows so BOS/liquidity updates land consistently.
 

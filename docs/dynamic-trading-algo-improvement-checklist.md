@@ -1,11 +1,11 @@
-# Trading Algo Improvement Checklist
+# Dynamic Trading Algo (DTA) Improvement Checklist
 
 Use this checklist to tighten the Smart Money Concepts (SMC) workflow that
-supports the trading automation stack. Each section ladders into the repository
-touchpoints called out in `algorithms/`, Supabase Edge Functions, and the
-Telegram delivery surfaces so changes propagate end-to-end. Treat the list as a
-living review ritual for each improvement sprint so that new ideas translate
-into measurable trading performance.
+supports the Dynamic Trading Algo (DTA). Each section ladders into the
+repository touchpoints called out in `algorithms/`, Supabase Edge Functions, and
+the Telegram delivery surfaces so changes propagate end-to-end. Treat the list
+as a living review ritual for each improvement sprint so that new ideas
+translate into measurable trading performance.
 
 ## 1. Foundation & Data Hygiene
 
