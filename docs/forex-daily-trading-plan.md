@@ -40,6 +40,76 @@ Track completion evidence in the session journal and obtain the appropriate sign
 | New York close prep | Checklist photo or digital sign-off + stop adjustment log | Trader |
 | Journaling & archiving | Journal PDF, metrics sheet, and storage folder link | Operations |
 
+### Task IDs and Execution Map
+
+Assign each checklist item an ID while you work through the session. Capture the ID, timestamp, and verification evidence inside the trading journal so that the verification owner can sign off without ambiguity.
+
+#### Session-Level Controls
+
+| Task ID | Checklist Item | How to Run the Task | Verification Evidence | Owner |
+| --- | --- | --- | --- | --- |
+| SC-01 | Confirm guardrails, account status, news blackout windows | Open risk dashboard, broker portal, and economic calendar; document overrides if needed before entering markets | Screenshot of guardrails dashboard plus broker balance note stored in journal | Risk lead |
+| SC-02 | Complete pre-market intelligence sweep | Review macro calendar, overnight notes, and liquidity updates; refresh watchlist tiers | Annotated calendar excerpt and updated watchlist spreadsheet uploaded to session folder | Trader |
+| SC-03 | Build chart annotations, bias, and sizing limits | Mark key levels, bias, and ATR-based risk on trading platform and risk worksheet | Saved chart template and position-sizing worksheet export linked in journal | Trader |
+| SC-04 | Execute London block plan | Deploy alerts/orders, monitor context every 15 minutes, escalate anomalies | Order blotter snippet, alert log, and 15-minute context notes attached to execution log | Execution partner |
+| SC-05 | Conduct mid-session review | Reconcile realized/open risk, reassess catalysts, update scenarios | Adherence scorecard screenshot and revised playbook scenarios summary | Risk lead |
+| SC-06 | Prepare for New York close | Scale positions, lock stops, clear stale orders, stage documentation | Photo or digital sign-off of NY close checklist plus stop-adjustment audit log | Trader |
+| SC-07 | Journal and archive | Finalize journal entry, metrics, and archive artifacts | PDF journal export, metrics update, and archive directory link | Operations |
+
+#### T-90 to T-45 — Pre-Market Intelligence
+
+| Task ID | Task | How to Run the Task | Verification Evidence | Owner |
+| --- | --- | --- | --- | --- |
+| PM-01 | Review macro calendar | Check ForexFactory, CME, and desk notes; highlight high/medium-impact releases tied to watchlist pairs | Screenshot of annotated calendar with highlight timestamps stored in journal | Trader |
+| PM-02 | Sync overnight reports | Pull prior session price map, volatility summary, and broker notices; log key deltas | Consolidated note in journal with source links and summary bullets | Trader |
+| PM-03 | Update watchlist tiers | Rank pairs into Primary/Secondary/Parked based on liquidity and catalysts | Updated watchlist sheet uploaded and referenced in journal | Trader |
+
+#### T-45 to T-15 — Chart & Plan Build
+
+| Task ID | Task | How to Run the Task | Verification Evidence | Owner |
+| --- | --- | --- | --- | --- |
+| CP-01 | Annotate support/resistance zones | Work from weekly → daily → execution charts marking key zones with color coding | Chart workspace template saved to platform cloud/workspace export attached | Trader |
+| CP-02 | Record order flow areas | Note Asia range, prior value area, option barriers with confidence score | Screenshot of chart annotations plus confidence note saved in journal | Trader |
+| CP-03 | Define directional bias & structures | For each pair, assign bias and acceptable structures (trend, breakout, mean reversion) | Bias matrix table inserted into journal with rationale per pair | Trader |
+| CP-04 | Calculate position sizing limits | Use ATR and session R to compute allowable lot sizes | Completed sizing worksheet or calculator export stored with task ID | Trader |
+
+#### Session Open — Execution Block 1 (London)
+
+| Task ID | Task | How to Run the Task | Verification Evidence | Owner |
+| --- | --- | --- | --- | --- |
+| LX-01 | Confirm spreads and fill quality | Run micro-test order or depth check; ensure spread ≤ tolerance | Screenshot of DOM/spread monitor with timestamp | Trader |
+| LX-02 | Deploy resting orders or alerts | Load planned orders/alerts aligned with modules | Export of platform order/alert list saved to journal | Execution partner |
+| LX-03 | Track context every 15 minutes | Update log with structure, momentum, liquidity observations | Context log entries appended to 15-minute worksheet | Execution partner |
+| LX-04 | Escalate volatility/news variance | Notify risk lead when ATR doubles or catalysts shift; document response | Chat/email transcript or escalation note linked to journal | Trader |
+
+#### Mid-Session Review — Execution Block 2 (London/NY Overlap)
+
+| Task ID | Task | How to Run the Task | Verification Evidence | Owner |
+| --- | --- | --- | --- | --- |
+| MR-01 | Reconcile trade log | Update realized R, open risk, adherence score | Screenshot of reconciled log and adherence metrics table | Trader |
+| MR-02 | Reassess catalysts | Scan upcoming events, news feeds, and desk alerts; adjust focus pairs | Updated catalyst summary posted in journal | Risk lead |
+| MR-03 | Update playbook scenarios | Refresh continuation/reversal/chop scenarios; retire invalid setups | Versioned scenario matrix saved with timestamp | Risk lead |
+
+#### Final Block — New York Close Prep
+
+| Task ID | Task | How to Run the Task | Verification Evidence | Owner |
+| --- | --- | --- | --- | --- |
+| NY-01 | Scale down risk | Reduce exposure unless high-conviction catalyst persists; log rationale | Position summary showing reduced size with rationale note | Trader |
+| NY-02 | Lock stops & clear orders | Convert trailing stops, cancel resting orders extending past session | Platform activity log export showing stop/order adjustments | Trader |
+| NY-03 | Capture documentation | Snapshot charts, DOM/T&S for journaling | Screenshot bundle saved to archive folder referenced in journal | Operations |
+
+#### Discipline Checklist Integration
+
+| Task ID | Discipline | How to Run the Task | Verification Evidence | Owner |
+| --- | --- | --- | --- | --- |
+| DC-01 | Patience | Use checklist IDs to confirm setups meet module criteria; set timer to avoid revenge trading | Journal note confirming criteria met for each executed trade | Trader |
+| DC-02 | Consistency | Track adherence to time blocks; flag deviations immediately | Adherence delta table appended to journal | Trader |
+| DC-03 | Risk management | Double-check stop/target entries and mid-session review adjustments | Ticket screenshots pre- and post-adjustment filed with task IDs | Trader |
+| DC-04 | Record keeping | Enter trades within five minutes of exit and back up nightly | Journal timestamps plus backup confirmation screenshot | Operations |
+| DC-05 | Emotional control | Log stress scores; apply reset protocol ≥4 | Heart rate variability/score log attached with reset notes | Trader |
+| DC-06 | Flexibility | Update bias after objective triggers with documented rationale | Bias change memo with trigger evidence stored in archive | Trader |
+| DC-07 | Continuous learning | Schedule weekly drill/backtest block tied to session learnings | Calendar invite screenshot and drill summary added to weekly review | Trader |
+
 ## Workflow Timeline
 
 ### T-90 to T-45 — Pre-Market Intelligence
