@@ -6,8 +6,13 @@ import React, {
   useMemo,
   useRef,
   useState,
-} from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+} from "react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
 
 interface TypewriterTextProps {
   text: string;
@@ -22,11 +27,11 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
   text,
   delay = 0,
   speed = 50,
-  className = '',
-  cursorColor = 'text-primary',
-  onComplete
+  className = "",
+  cursorColor = "text-primary",
+  onComplete,
 }) => {
-  const [displayText, setDisplayText] = useState('');
+  const [displayText, setDisplayText] = useState("");
   const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
@@ -63,7 +68,7 @@ export const TypewriterText: React.FC<TypewriterTextProps> = ({
       <motion.span
         className={`inline-block ${cursorColor}`}
         animate={{ opacity: [1, 0] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
       >
         |
       </motion.span>
@@ -77,40 +82,50 @@ interface StaggeredTextProps {
   staggerDelay?: number;
   className?: string;
   wordClassName?: string;
-  animationType?: 'fadeUp' | 'scale' | 'rotate' | 'elastic';
+  animationType?: "fadeUp" | "scale" | "rotate" | "elastic";
 }
 
 export const StaggeredText: React.FC<StaggeredTextProps> = ({
   text,
   delay = 0,
   staggerDelay = 0.1,
-  className = '',
-  wordClassName = '',
-  animationType = 'fadeUp'
+  className = "",
+  wordClassName = "",
+  animationType = "fadeUp",
 }) => {
-  const words = text.split(' ');
+  const words = text.split(" ");
 
   const animations = {
     fadeUp: {
       initial: { opacity: 0, y: 50 },
       animate: { opacity: 1, y: 0 },
-      transition: { duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }
+      transition: { duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] },
     },
     scale: {
       initial: { opacity: 0, scale: 0.5 },
       animate: { opacity: 1, scale: 1 },
-      transition: { duration: 0.5, type: 'spring', stiffness: 260, damping: 20 }
+      transition: {
+        duration: 0.5,
+        type: "spring",
+        stiffness: 260,
+        damping: 20,
+      },
     },
     rotate: {
       initial: { opacity: 0, rotate: -10, scale: 0.8 },
       animate: { opacity: 1, rotate: 0, scale: 1 },
-      transition: { duration: 0.6, ease: 'easeOut' }
+      transition: { duration: 0.6, ease: "easeOut" },
     },
     elastic: {
       initial: { opacity: 0, y: 100, scale: 0.3 },
       animate: { opacity: 1, y: 0, scale: 1 },
-      transition: { duration: 0.8, type: 'spring', stiffness: 100, damping: 10 }
-    }
+      transition: {
+        duration: 0.8,
+        type: "spring",
+        stiffness: 100,
+        damping: 10,
+      },
+    },
   };
 
   const selectedAnimation = animations[animationType];
@@ -123,10 +138,10 @@ export const StaggeredText: React.FC<StaggeredTextProps> = ({
           className={`inline-block mr-2 ${wordClassName}`}
           initial={selectedAnimation.initial}
           animate={selectedAnimation.animate}
-      transition={{
-        ...selectedAnimation.transition,
-        delay: delay + index * staggerDelay
-      } as any}
+          transition={{
+            ...selectedAnimation.transition,
+            delay: delay + index * staggerDelay,
+          } as any}
         >
           {word}
         </motion.span>
@@ -145,24 +160,28 @@ interface GradientTextProps {
 
 export const GradientText: React.FC<GradientTextProps> = ({
   text,
-  gradient = 'from-primary via-accent to-accent',
-  className = '',
+  gradient = "from-primary via-accent to-accent",
+  className = "",
   animate = true,
-  animationDuration = 3
+  animationDuration = 3,
 }) => {
   return (
     <motion.span
       className={`bg-gradient-to-r ${gradient} bg-clip-text text-transparent bg-300% ${className}`}
-      animate={animate ? {
-        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
-      } : undefined}
-      transition={animate ? {
-        duration: animationDuration,
-        repeat: Infinity,
-        ease: 'linear'
-      } : undefined}
+      animate={animate
+        ? {
+          backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+        }
+        : undefined}
+      transition={animate
+        ? {
+          duration: animationDuration,
+          repeat: Infinity,
+          ease: "linear",
+        }
+        : undefined}
       style={{
-        backgroundSize: '300% 300%'
+        backgroundSize: "300% 300%",
       }}
     >
       {text}
@@ -180,8 +199,8 @@ interface MorphingTextProps {
 export const MorphingText: React.FC<MorphingTextProps> = ({
   texts,
   interval = 3000,
-  className = '',
-  morphDuration = 0.5
+  className = "",
+  morphDuration = 0.5,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -201,7 +220,7 @@ export const MorphingText: React.FC<MorphingTextProps> = ({
           initial={{ opacity: 0, y: 20, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 1.2 }}
-          transition={{ duration: morphDuration, ease: 'easeInOut' }}
+          transition={{ duration: morphDuration, ease: "easeInOut" }}
           className="absolute inset-0 flex items-center justify-center"
         >
           {texts[currentIndex]}
@@ -227,10 +246,10 @@ export const LetterReveal: React.FC<LetterRevealProps> = ({
   text,
   delay = 0,
   duration = 1.5,
-  className = '',
-  letterClassName = ''
+  className = "",
+  letterClassName = "",
 }) => {
-  const letters = text.split('');
+  const letters = text.split("");
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -238,28 +257,28 @@ export const LetterReveal: React.FC<LetterRevealProps> = ({
       opacity: 1,
       transition: {
         staggerChildren: duration / letters.length,
-        delayChildren: delay
-      }
-    }
+        delayChildren: delay,
+      },
+    },
   };
 
   const letterVariants = {
-    hidden: { 
-      opacity: 0, 
+    hidden: {
+      opacity: 0,
       y: 50,
       rotateX: -90,
-      scale: 0.5
+      scale: 0.5,
     },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       rotateX: 0,
       scale: 1,
       transition: {
         duration: 0.3,
-        ease: [0.6, -0.05, 0.01, 0.99] as [number, number, number, number]
-      }
-    }
+        ease: [0.6, -0.05, 0.01, 0.99] as [number, number, number, number],
+      },
+    },
   };
 
   return (
@@ -274,19 +293,19 @@ export const LetterReveal: React.FC<LetterRevealProps> = ({
           key={index}
           variants={letterVariants}
           className={`inline-block ${letterClassName}`}
-          style={{ transformOrigin: 'center bottom' }}
+          style={{ transformOrigin: "center bottom" }}
         >
-          {letter === ' ' ? '\u00A0' : letter}
+          {letter === " " ? "\u00A0" : letter}
         </motion.span>
       ))}
     </motion.div>
   );
 };
 
-const DEFAULT_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*';
+const DEFAULT_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*";
 
-type LetterFxSpeed = 'slow' | 'medium' | 'fast';
-type LetterFxTrigger = 'instant' | 'hover' | 'inView';
+type LetterFxSpeed = "slow" | "medium" | "fast";
+type LetterFxTrigger = "instant" | "hover" | "inView";
 
 interface LetterFxProps {
   children: React.ReactNode;
@@ -297,33 +316,52 @@ interface LetterFxProps {
   letterClassName?: string;
 }
 
+const extractTextFromChildren = (children: React.ReactNode): string => {
+  if (
+    children === undefined || children === null || typeof children === "boolean"
+  ) {
+    return "";
+  }
+
+  if (typeof children === "string" || typeof children === "number") {
+    return String(children);
+  }
+
+  if (Array.isArray(children)) {
+    return children.map((child) => extractTextFromChildren(child)).join("");
+  }
+
+  if (React.isValidElement(children)) {
+    const elementChildren =
+      (children.props as { children?: React.ReactNode }).children;
+    return extractTextFromChildren(elementChildren);
+  }
+
+  return "";
+};
+
 export const LetterFx: React.FC<LetterFxProps> = ({
   children,
-  speed = 'medium',
-  trigger = 'instant',
+  speed = "medium",
+  trigger = "instant",
   charset = DEFAULT_CHARSET,
-  className = '',
-  letterClassName = ''
+  className = "",
+  letterClassName = "",
 }) => {
-  const resolvedText = useMemo(() => {
-    return React.Children.toArray(children)
-      .map((child) => {
-        if (typeof child === 'string' || typeof child === 'number') {
-          return String(child);
-        }
-        return '';
-      })
-      .join('');
-  }, [children]);
+  const resolvedText = useMemo(() => extractTextFromChildren(children), [
+    children,
+  ]);
 
-  const letters = useMemo(() => resolvedText.split(''), [resolvedText]);
+  const letters = useMemo(() => resolvedText.split(""), [resolvedText]);
   const [displayText, setDisplayText] = useState<string[]>(letters);
   const containerRef = useRef<HTMLSpanElement | null>(null);
   const intervalsRef = useRef<{
     scramble?: ReturnType<typeof setInterval>;
     reveal?: ReturnType<typeof setInterval>;
   }>({});
-  const charsetToUse = charset && charset.length > 0 ? charset : DEFAULT_CHARSET;
+  const charsetToUse = charset && charset.length > 0
+    ? charset
+    : DEFAULT_CHARSET;
 
   const cleanup = useCallback(() => {
     if (intervalsRef.current.scramble) {
@@ -350,7 +388,7 @@ export const LetterFx: React.FC<LetterFxProps> = ({
     let revealIndex = 0;
 
     setDisplayText(
-      letters.map((letter) => (letter === ' ' ? ' ' : randomChar()))
+      letters.map((letter) => (letter === " " ? " " : randomChar())),
     );
 
     intervalsRef.current.scramble = setInterval(() => {
@@ -359,15 +397,15 @@ export const LetterFx: React.FC<LetterFxProps> = ({
           if (index < revealIndex) {
             return letter;
           }
-          return letter === ' ' ? ' ' : randomChar();
-        })
+          return letter === " " ? " " : randomChar();
+        }),
       );
     }, 45);
 
     const speedMap: Record<LetterFxSpeed, number> = {
       slow: 140,
       medium: 90,
-      fast: 60
+      fast: 60,
     };
 
     intervalsRef.current.reveal = setInterval(() => {
@@ -382,14 +420,14 @@ export const LetterFx: React.FC<LetterFxProps> = ({
 
   useEffect(() => {
     setDisplayText(letters);
-    if (trigger === 'instant') {
+    if (trigger === "instant") {
       startAnimation();
     }
     return cleanup;
   }, [letters, trigger, startAnimation, cleanup]);
 
   useEffect(() => {
-    if (trigger !== 'inView') {
+    if (trigger !== "inView") {
       return;
     }
 
@@ -407,7 +445,7 @@ export const LetterFx: React.FC<LetterFxProps> = ({
           }
         });
       },
-      { threshold: 0.3 }
+      { threshold: 0.3 },
     );
 
     observer.observe(node);
@@ -416,14 +454,14 @@ export const LetterFx: React.FC<LetterFxProps> = ({
   }, [trigger, startAnimation]);
 
   const handleHover = useCallback(() => {
-    if (trigger === 'hover') {
+    if (trigger === "hover") {
       startAnimation();
     }
   }, [trigger, startAnimation]);
 
-  const outerClassName = ['relative inline-block', className]
+  const outerClassName = ["relative inline-block", className]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 
   return (
     <span
@@ -434,13 +472,18 @@ export const LetterFx: React.FC<LetterFxProps> = ({
       aria-label={resolvedText}
       role="text"
     >
-      <span aria-hidden="true" className="inline-flex flex-wrap">
+      <span
+        aria-hidden="true"
+        className="inline-flex flex-wrap whitespace-pre-wrap"
+      >
         {displayText.map((character, index) => (
           <span
-            key={`${character}-${index}`}
-            className={['inline-block', letterClassName].filter(Boolean).join(' ')}
+            key={index}
+            className={["inline-block", letterClassName].filter(Boolean).join(
+              " ",
+            )}
           >
-            {character === ' ' ? '\u00A0' : character}
+            {character === " " ? " " : character}
           </span>
         ))}
       </span>
@@ -452,21 +495,21 @@ interface FloatingWordsProps {
   text: string;
   className?: string;
   wordClassName?: string;
-  intensity?: 'subtle' | 'medium' | 'strong';
+  intensity?: "subtle" | "medium" | "strong";
 }
 
 export const FloatingWords: React.FC<FloatingWordsProps> = ({
   text,
-  className = '',
-  wordClassName = '',
-  intensity = 'medium'
+  className = "",
+  wordClassName = "",
+  intensity = "medium",
 }) => {
-  const words = text.split(' ');
-  
+  const words = text.split(" ");
+
   const intensityMap = {
     subtle: { y: [-2, 2], duration: 3 },
     medium: { y: [-5, 5], duration: 2.5 },
-    strong: { y: [-10, 10], duration: 2 }
+    strong: { y: [-10, 10], duration: 2 },
   };
 
   const settings = intensityMap[intensity];
@@ -479,14 +522,14 @@ export const FloatingWords: React.FC<FloatingWordsProps> = ({
           className={`inline-block mr-2 ${wordClassName}`}
           animate={{
             y: settings.y,
-            rotate: [-1, 1, -1]
+            rotate: [-1, 1, -1],
           }}
           transition={{
             duration: settings.duration + (index * 0.1),
             repeat: Infinity,
             repeatType: "reverse",
             ease: "easeInOut",
-            delay: index * 0.2
+            delay: index * 0.2,
           }}
         >
           {word}
@@ -503,5 +546,5 @@ export default {
   MorphingText,
   LetterReveal,
   FloatingWords,
-  LetterFx
+  LetterFx,
 };
