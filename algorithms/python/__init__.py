@@ -266,6 +266,12 @@ from .dynamic_market_outlook import (
     MarketOutlookTelemetry,
     OutlookSignal,
 )
+from .dynamic_market_index import (
+    DynamicMarketIndexBuilder,
+    DynamicMarketIndexResult,
+    MarketConstituentConfig,
+    MarketFlowSignal,
+)
 from .dynamic_market_snapshot import (
     DynamicMarketSnapshot,
     DynamicMarketSnapshotBuilder,
