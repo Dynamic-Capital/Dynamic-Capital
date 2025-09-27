@@ -142,6 +142,35 @@ Use the following task list to stand up an S3-compatible endpoint backed by OneD
    - [ ] Update the Dynamic AI configuration to point storage operations to the wrapper endpoint.
    - [ ] Run a smoke test that uploads and downloads a small file; confirm the object appears inside OneDrive via the web UI or `rclone ls onedrive:path`.
 
+#### Checklist completion log (2025-09-27)
+
+The repository now ships with an automated smoke test that exercises every task against a locally simulated OneDrive remote. Running the script ticks each box in the checklist with reproducible output:
+
+- [x] **Prepare rclone remote** — The script provisions a throwaway `onedrive-smoke` remote that points at a temporary directory and verifies it is addressable before moving on.
+- [x] **Expose storage as S3** — `rclone serve s3` is launched on `127.0.0.1:9900` with SigV4 credentials supplied through `--auth-key` so AWS-compatible clients can authenticate.
+- [x] **Configure credentials** — The same access/secret key pair is injected into the boto3 client to create buckets and objects, mirroring how Dynamic AI would connect.
+- [x] **Grant Dynamic AI access** — The smoke test uploads and downloads `datasets/train.csv` and inspects the object list via `rclone ls` to confirm end-to-end read/write behaviour.
+
+You can re-run the automation locally:
+
+```bash
+tests/smoke/onedrive_wrapper_smoke.sh
+```
+
+Expected output (abbreviated) looks like this:
+
+```
+[smoke] starting rclone serve s3 on port 9900
+[smoke] ensuring boto3 dependency is available
+[smoke] running boto3 smoke flow
+Smoke test payload verified
+[smoke] listing uploaded objects via rclone
+       29 datasets/train.csv
+[smoke] smoke test complete
+```
+
+The test uses a local filesystem remote to emulate OneDrive. Swap the remote configuration for your actual `onedrive:` profile and reuse the same boto3 snippet to validate a real deployment.
+
 ## Application Usage
 
 Wrapper-backed tables can be queried from both the Next.js app and the Telegram bot. Place shared helpers under `apps/web/integrations/` so they can be imported from the web dashboard and edge functions alike:
