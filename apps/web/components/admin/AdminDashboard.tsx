@@ -183,6 +183,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   }, [telegramData, supabase]);
 
   const loadAdminData = useCallback(async () => {
+    setLoading(true);
     const hasAccess = await checkAdminAccess();
     if (!hasAccess) {
       setIsAdmin(false);
@@ -248,6 +249,8 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
         description: "Failed to load admin dashboard data",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   }, [checkAdminAccess, getAdminAuth, toast]);
 

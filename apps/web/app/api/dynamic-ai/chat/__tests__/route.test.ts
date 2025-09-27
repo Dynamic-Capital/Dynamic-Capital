@@ -1,4 +1,7 @@
-function assert(condition: boolean, message: string): asserts condition {
+function assertCondition(
+  condition: boolean,
+  message: string,
+): asserts condition {
   if (!condition) {
     throw new Error(message);
   }
@@ -113,9 +116,9 @@ Deno.test("POST /api/dynamic-ai/chat proxies requests to Dynamic AI", async () =
     metadata?: Record<string, unknown>;
   };
 
-  assert(payload.ok === true, "expected ok response");
+  assertCondition(payload.ok === true, "expected ok response");
   assertEquals(payload.assistantMessage?.content, "Desk is online");
-  assert(
+  assertCondition(
     payload.history?.length === 2,
     "expected history to include user and assistant",
   );
@@ -155,7 +158,7 @@ Deno.test("GET /api/dynamic-ai/chat returns persisted history", async () => {
     messages?: Array<{ role: string; content: string }>;
   };
 
-  assert(payload.ok === true, "expected ok response");
+  assertCondition(payload.ok === true, "expected ok response");
   assertEquals(payload.messages?.length, 2);
   assertEquals(payload.messages?.[0]?.role, "assistant");
   assertEquals(payload.messages?.[1]?.content, "Tell me more");
