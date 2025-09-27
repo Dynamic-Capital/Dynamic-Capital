@@ -100,6 +100,7 @@ documenting which assets were consulted.
 | 6.7 | [index-advisor.md](./index-advisor.md)                                               | Using Supabase Index Advisor to tune query performance.                                  |
 | 6.8 | [WRAPPERS_INTEGRATION.md](./WRAPPERS_INTEGRATION.md)                                 | How to connect external services via Postgres foreign data wrappers.                     |
 | 6.9 | [trading-data-organization.md](./trading-data-organization.md)                       | Folder taxonomy for templates, journals, KPIs, and backtests across each horizon bucket. |
+| 6.10 | [dai-webhook-routing.md](./dai-webhook-routing.md)                                   | Options for single-endpoint vs. auto-provisioned TradingView webhook routes managed by DAI. |
 
 ## 7. Operational Runbooks & Launch Phases
 
