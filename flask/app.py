@@ -104,7 +104,9 @@ def jsonify(*args: Any, **kwargs: Any) -> Response:
     else:
         payload = kwargs
 
-    return Response(payload)
+    response = Response(payload)
+    response.headers["Content-Type"] = "application/json"
+    return response
 
 
 class FlaskClient:
