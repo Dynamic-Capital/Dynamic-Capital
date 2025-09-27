@@ -26,6 +26,8 @@ __all__ = [
     "ResearchAgentResult",
     "RiskAgent",
     "RiskAgentResult",
+    "TradingAgent",
+    "TradingAgentResult",
     "SpaceAgent",
     "SpaceAgentResult",
     "run_dynamic_agent_cycle",
@@ -43,6 +45,8 @@ _AGENT_EXPORTS = {
     "ResearchAgentResult",
     "RiskAgent",
     "RiskAgentResult",
+    "TradingAgent",
+    "TradingAgentResult",
     "SpaceAgent",
     "SpaceAgentResult",
 }

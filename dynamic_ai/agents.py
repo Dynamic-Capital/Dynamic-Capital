@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, is_dataclass
 from typing import Any, Dict, Iterable, Mapping, Protocol, Sequence
 
 from .analysis import DynamicAnalysis
@@ -147,6 +147,27 @@ class SpaceAgentResult(AgentResult):
             payload["events"] = [_space_event_to_dict(event) for event in self.events]
         if self.recommendations:
             payload["recommendations"] = list(self.recommendations)
+        return payload
+
+
+@dataclass(slots=True)
+class TradingAgentResult(AgentResult):
+    """Execution outcome emitted by the trading persona."""
+
+    decision: Dict[str, Any]
+    trade: Dict[str, Any]
+    agents: Dict[str, Any]
+    optimisation: Dict[str, Any]
+    treasury_event: Dict[str, Any] | None = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = AgentResult.to_dict(self)
+        payload["decision"] = dict(self.decision)
+        payload["trade"] = dict(self.trade)
+        payload["agents"] = dict(self.agents)
+        payload["optimisation"] = dict(self.optimisation)
+        if self.treasury_event:
+            payload["treasury_event"] = dict(self.treasury_event)
         return payload
 
 
@@ -512,6 +533,76 @@ class RiskAgent:
             sizing=sizing,
             hedge_decisions=tuple(hedge_decisions),
             escalations=tuple(escalations),
+        )
+
+
+def _normalise_payload(value: Any) -> Dict[str, Any]:
+    if value is None:
+        return {}
+    if isinstance(value, Mapping):
+        return dict(value)
+    if hasattr(value, "to_dict"):
+        try:
+            candidate = value.to_dict()
+        except Exception:
+            candidate = value
+        else:
+            if isinstance(candidate, Mapping):
+                return dict(candidate)
+            return {"value": candidate}
+    if is_dataclass(value):
+        return asdict(value)
+    return {}
+
+
+class TradingAgent:
+    """Persona coordinating the Dynamic Trading Algo execution."""
+
+    name = "trading"
+
+    def __init__(self, trader: Any | None = None) -> None:
+        self.trader = trader
+
+    def run(self, payload: Mapping[str, Any]) -> TradingAgentResult:
+        from algorithms.python.dynamic_ai_sync import run_dynamic_algo_alignment
+
+        context = dict(payload or {})
+
+        if self.trader is not None and not any(
+            key in context for key in ("trader", "trade_algo", "executor")
+        ):
+            context["trader"] = self.trader
+
+        alignment = run_dynamic_algo_alignment(context)
+
+        decision_payload = _normalise_payload(alignment.get("decision"))
+        trade_payload = _normalise_payload(alignment.get("trade")) or {"status": "skipped"}
+        agents_payload = _normalise_payload(alignment.get("agents"))
+        optimisation_payload = _normalise_payload(alignment.get("optimisation"))
+        treasury_event_payload = _normalise_payload(alignment.get("treasury_event"))
+        if not treasury_event_payload:
+            treasury_event_payload = None
+
+        rationale = _extract_text(
+            decision_payload.get("rationale"),
+            trade_payload.get("message"),
+            alignment.get("message"),
+            "Trading cycle completed.",
+        )
+        if not rationale:
+            rationale = "Trading cycle completed."
+
+        confidence = _optional_float(decision_payload.get("confidence")) or 0.0
+
+        return TradingAgentResult(
+            agent=self.name,
+            rationale=rationale,
+            confidence=confidence,
+            decision=decision_payload,
+            trade=trade_payload,
+            agents=agents_payload,
+            optimisation=optimisation_payload,
+            treasury_event=treasury_event_payload,
         )
 
 

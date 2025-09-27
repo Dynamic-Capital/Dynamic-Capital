@@ -12,6 +12,8 @@ from .agents import (
     ResearchAgentResult,
     RiskAgent,
     RiskAgentResult,
+    TradingAgent,
+    TradingAgentResult,
     SpaceAgent,
     SpaceAgentResult,
 )
@@ -91,6 +93,8 @@ __all__ = [
     "RiskParameters",
     "RiskAgent",
     "RiskAgentResult",
+    "TradingAgent",
+    "TradingAgentResult",
     "SpaceAgent",
     "SpaceAgentResult",
     "AccountState",
