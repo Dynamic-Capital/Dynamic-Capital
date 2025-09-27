@@ -1,4 +1,4 @@
-# Dynamic Multi-LLM & Trading Algo Enhancement Roadmap
+# Dynamic AI & Trading Algo Enhancement Roadmap
 
 This roadmap breaks the multi-LLM studio, trading automation stack, and
 analytics surfaces into staged workstreams. Follow each step in order—the
