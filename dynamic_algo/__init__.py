@@ -85,6 +85,17 @@ from .dynamic_traffic import (
     TrafficDecision,
     TrafficSignal,
 )
+from .dynamic_problem_solving import (
+    ActionHypothesis,
+    ActionPlan,
+    DynamicProblemSolvingAlgo,
+    Goal,
+    GoalNotDefinedError,
+    Insight,
+    Obstacle,
+    ProblemOutcome,
+    ProblemSolvingError,
+)
 
 __all__ = [
     "ORDER_ACTION_BUY",
@@ -152,4 +163,13 @@ __all__ = [
     "RouteSnapshot",
     "TrafficDecision",
     "TrafficSignal",
+    "DynamicProblemSolvingAlgo",
+    "Goal",
+    "Obstacle",
+    "Insight",
+    "ActionHypothesis",
+    "ProblemOutcome",
+    "ActionPlan",
+    "ProblemSolvingError",
+    "GoalNotDefinedError",
 ]
