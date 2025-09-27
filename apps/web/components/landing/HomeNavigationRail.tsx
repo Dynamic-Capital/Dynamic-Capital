@@ -237,8 +237,6 @@ export function HomeNavigationRail({ className }: { className?: string }) {
               "md:flex-wrap md:justify-center md:overflow-visible md:pb-0",
               "lg:justify-start",
             )}
-            role="tablist"
-            aria-orientation="horizontal"
           >
             {HOME_NAV_SECTIONS.map((section, index) => {
               const Icon = section.icon;
@@ -267,8 +265,6 @@ export function HomeNavigationRail({ className }: { className?: string }) {
                         : "border-border/70 bg-background/60 text-muted-foreground hover:border-primary/40 hover:text-primary",
                     )}
                     aria-current={isActive ? "page" : undefined}
-                    role="tab"
-                    aria-selected={isActive}
                   >
                     <span className="contents">
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary sm:h-7 sm:w-7">
