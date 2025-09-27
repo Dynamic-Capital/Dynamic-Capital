@@ -1,11 +1,24 @@
 # Go Live Checklist
 
-- [ ] Webhook set & verified.
-- [ ] Bank happy path (should approve).
-- [ ] Bank near-miss (manual_review with reason).
+- [ ] Webhook set & verified. See the
+  [Go-Live Validation Playbook](./go-live-validation-playbook.md#1-telegram-webhook-health)
+  for the scripted check and health probe steps.
+- [ ] Bank happy path (should approve). Follow the
+  [bank approval runbook](./go-live-validation-playbook.md#2-bank-approvals--happy-path)
+  to capture evidence that `current_vip.is_vip = true`.
+- [ ] Bank near-miss (manual_review with reason). Mirror the
+  [near-miss checklist](./go-live-validation-playbook.md#3-bank-approvals--near-miss)
+  so manual reviews are recorded with a reason.
 - [x] Duplicate image (blocked).
-- [ ] (If crypto enabled) TXID awaiting confirmations → approve later.
-- [ ] Admin commands respond.
+- [ ] Duplicate receipt submissions are rejected. Follow the
+  [safeguard walkthrough](./go-live-validation-playbook.md#4-duplicate-receipt-safeguard)
+  to capture the duplicate error response.
+- [ ] (If crypto enabled) TXID awaiting confirmations → approve later. Use the
+  [crypto validation steps](./go-live-validation-playbook.md#5-crypto-txid-confirmations-if-enabled)
+  when rails are active.
+- [ ] Admin commands respond. Run the
+  [admin smoke test](./go-live-validation-playbook.md#6-admin-command-smoke-test)
+  from an authorized Telegram account.
 
 ## Local webhook smoke test
 

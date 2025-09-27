@@ -89,22 +89,28 @@ in your PR/issue notes so reviewers can see the evidence.
 
 Run the `go-live` automation key
 (`npm run checklists -- --checklist go-live --include-optional`) and mirror the
-manual validations below before exposing updates to traders or admins. Refer to
-the detailed [Go Live Checklist](./GO_LIVE_CHECKLIST.md) for curl commands and
-troubleshooting steps.
+manual validations below before exposing updates to traders or admins. Use the
+[Go-Live Validation Playbook](./go-live-validation-playbook.md) for step-by-step
+runbooks, curl commands, and evidence templates.
 
 1. [ ] Confirm the Telegram webhook is set and returning `200` responses for
-       health pings.
+       health pings (see
+       [playbook §1](./go-live-validation-playbook.md#1-telegram-webhook-health)).
 2. [ ] Walk through the bank happy path to ensure approvals mark
-       `current_vip.is_vip` correctly.
+       `current_vip.is_vip` correctly (see
+       [playbook §2](./go-live-validation-playbook.md#2-bank-approvals--happy-path)).
 3. [ ] Trigger a bank near-miss so `manual_review` captures the reason and the
-       workflow pauses safely.
+       workflow pauses safely (see
+       [playbook §3](./go-live-validation-playbook.md#3-bank-approvals--near-miss)).
 4. [ ] Verify duplicate image uploads are blocked to prevent bypassing
-       compliance checks.
+       compliance checks (see
+       [playbook §4](./go-live-validation-playbook.md#4-duplicate-receipt-safeguard)).
 5. [ ] (If crypto rails are enabled) Submit a transaction with a pending TXID
-       and ensure the approval occurs after confirmations land.
-6. [ ] Exercise admin commands (`/plans`, `/sync`, etc.) to confirm operations
-       tooling responds.
+       and ensure the approval occurs after confirmations land (see
+       [playbook §5](./go-live-validation-playbook.md#5-crypto-txid-confirmations-if-enabled)).
+6. [ ] Exercise admin commands (`/ping`, `/version`, `/admin`, etc.) to confirm
+       operations tooling responds (see
+       [playbook §6](./go-live-validation-playbook.md#6-admin-command-smoke-test)).
 7. [ ] Capture evidence (screenshots, curl output) and attach it to the
        release/PR summary for audit trails.
 
