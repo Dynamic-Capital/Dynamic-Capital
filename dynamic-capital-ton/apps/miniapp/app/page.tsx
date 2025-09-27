@@ -101,6 +101,13 @@ type LiveIntelState = {
   error?: string;
 };
 
+type PlanSyncStatus = {
+  isLoading: boolean;
+  isRealtimeSyncing: boolean;
+  updatedAt?: string;
+  error?: string | null;
+};
+
 const RECOMMENDED_WALLETS: NonNullable<
   WalletsListConfiguration["includeWallets"]
 > = [
@@ -132,6 +139,10 @@ const RECOMMENDED_WALLETS: NonNullable<
     platforms: ["chrome", "windows", "macos", "linux"],
   },
 ];
+
+const WALLETS_LIST_CONFIGURATION: WalletsListConfiguration = {
+  includeWallets: RECOMMENDED_WALLETS,
+};
 
 const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
   {
@@ -319,6 +330,65 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
   }
 
   return nextOptions.length > 0 ? nextOptions : [...FALLBACK_PLAN_OPTIONS];
+}
+
+function arePlanOptionsEqual(a: PlanOption[], b: PlanOption[]): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  const map = new Map<Plan, PlanOption>(a.map((option) => [option.id, option]));
+  for (const option of b) {
+    const current = map.get(option.id);
+    if (!current) {
+      return false;
+    }
+
+    if (
+      current.name !== option.name ||
+      current.price !== option.price ||
+      current.cadence !== option.cadence ||
+      current.description !== option.description
+    ) {
+      return false;
+    }
+
+    if (current.highlights.length !== option.highlights.length) {
+      return false;
+    }
+    for (let index = 0; index < current.highlights.length; index += 1) {
+      if (current.highlights[index] !== option.highlights[index]) {
+        return false;
+      }
+    }
+
+    const currentMeta = current.meta;
+    const nextMeta = option.meta;
+    if (
+      currentMeta.currency !== nextMeta.currency ||
+      currentMeta.amount !== nextMeta.amount ||
+      currentMeta.tonAmount !== nextMeta.tonAmount ||
+      currentMeta.dctAmount !== nextMeta.dctAmount ||
+      currentMeta.updatedAt !== nextMeta.updatedAt
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function arePlanSyncStatusesEqual(
+  a: PlanSyncStatus,
+  b: PlanSyncStatus,
+): boolean {
+  return a.isLoading === b.isLoading &&
+    a.isRealtimeSyncing === b.isRealtimeSyncing &&
+    a.updatedAt === b.updatedAt &&
+    (a.error ?? null) === (b.error ?? null);
 }
 
 function resolvePlanUpdatedAt(options: PlanOption[]): string | undefined {
@@ -590,12 +660,7 @@ function HomeInner() {
     () => [...FALLBACK_PLAN_OPTIONS],
   );
   const [plan, setPlan] = useState<Plan>(FALLBACK_PLAN_OPTIONS[0].id);
-  const [planSyncStatus, setPlanSyncStatus] = useState<{
-    isLoading: boolean;
-    isRealtimeSyncing: boolean;
-    updatedAt?: string;
-    error?: string | null;
-  }>({
+  const [planSyncStatus, setPlanSyncStatus] = useState<PlanSyncStatus>({
     isLoading: true,
     isRealtimeSyncing: false,
     updatedAt: undefined,
@@ -611,6 +676,16 @@ function HomeInner() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const { manager: themeManager, state: themeState } = useMiniAppThemeManager(
     tonConnectUI,
+  );
+
+  const updatePlanSyncStatus = useCallback(
+    (updater: (previous: PlanSyncStatus) => PlanSyncStatus) => {
+      setPlanSyncStatus((previous) => {
+        const next = updater(previous);
+        return arePlanSyncStatusesEqual(previous, next) ? previous : next;
+      });
+    },
+    [],
   );
 
   const selectedPlan = useMemo(
@@ -715,7 +790,7 @@ function HomeInner() {
       const controller = new AbortController();
       pendingController = controller;
 
-      setPlanSyncStatus((previous) => ({
+      updatePlanSyncStatus((previous) => ({
         ...previous,
         isLoading: options.showSpinner,
         isRealtimeSyncing: !options.showSpinner,
@@ -739,18 +814,21 @@ function HomeInner() {
           ? normalisePlanOptions(payload.plans as RawPlan[])
           : [...FALLBACK_PLAN_OPTIONS];
 
-        setPlanOptions(normalized);
+        setPlanOptions((previous) =>
+          arePlanOptionsEqual(previous, normalized) ? previous : normalized
+        );
         setPlan((current) =>
           normalized.some((option) => option.id === current)
             ? current
             : normalized[0]?.id ?? current
         );
-        setPlanSyncStatus({
+        const nextStatus: PlanSyncStatus = {
           isLoading: false,
           isRealtimeSyncing: false,
           updatedAt: resolvePlanUpdatedAt(normalized),
           error: null,
-        });
+        };
+        updatePlanSyncStatus(() => nextStatus);
       } catch (error) {
         if (controller.signal.aborted) {
           return;
@@ -764,7 +842,7 @@ function HomeInner() {
         setPlanOptions((previous) =>
           previous.length ? previous : [...FALLBACK_PLAN_OPTIONS]
         );
-        setPlanSyncStatus((previous) => ({
+        updatePlanSyncStatus((previous) => ({
           isLoading: false,
           isRealtimeSyncing: false,
           updatedAt: previous.updatedAt,
@@ -783,7 +861,7 @@ function HomeInner() {
 
     const supabase = getSupabaseClient();
     if (!supabase) {
-      setPlanSyncStatus((previous) => ({
+      updatePlanSyncStatus((previous) => ({
         ...previous,
         isLoading: false,
         isRealtimeSyncing: false,
@@ -802,10 +880,12 @@ function HomeInner() {
     }
 
     const scheduleRealtimeRefresh = () => {
-      setPlanSyncStatus((previous) => ({
-        ...previous,
-        isRealtimeSyncing: true,
-      }));
+      updatePlanSyncStatus((previous) => {
+        if (previous.isRealtimeSyncing) {
+          return previous;
+        }
+        return { ...previous, isRealtimeSyncing: true };
+      });
 
       if (refreshTimeout) {
         clearTimeout(refreshTimeout);
@@ -841,7 +921,7 @@ function HomeInner() {
       }
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [updatePlanSyncStatus]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -1789,7 +1869,7 @@ export default function Page() {
   return (
     <TonConnectUIProvider
       manifestUrl="/tonconnect-manifest.json"
-      walletsListConfiguration={{ includeWallets: RECOMMENDED_WALLETS }}
+      walletsListConfiguration={WALLETS_LIST_CONFIGURATION}
     >
       <HomeInner />
     </TonConnectUIProvider>
