@@ -27,7 +27,7 @@ from .dolphin_adapter import (
 )
 from .ollama_adapter import OllamaAdapter, OllamaConfig, OllamaPromptTemplate
 from .analysis import AnalysisComponent, DynamicAnalysis
-from .engine import DynamicAIEngine, EngineConfig, EngineResult
+from .engine import AgentCycleSnapshot, DynamicAIEngine, EngineConfig, EngineResult
 from .fusion import (
     FusionEngine,
     LobeSignal,
@@ -78,6 +78,7 @@ __all__ = [
     "DynamicAIEngine",
     "EngineConfig",
     "EngineResult",
+    "AgentCycleSnapshot",
     "ResearchAgent",
     "ResearchAgentResult",
     "FusionEngine",

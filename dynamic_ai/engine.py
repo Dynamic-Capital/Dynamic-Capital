@@ -6,6 +6,16 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
 from .analysis import DynamicAnalysis
+from .agents import (
+    DynamicChatAgent,
+    ExecutionAgent,
+    ExecutionAgentResult,
+    ResearchAgent,
+    ResearchAgentResult,
+    RiskAgent,
+    RiskAgentResult,
+    ChatAgentResult,
+)
 from .core import DynamicFusionAlgo, score_to_action
 from .fusion import (
     FusionEngine,
@@ -63,6 +73,7 @@ class EngineResult:
     position_sizing: Optional[PositionSizing]
     hedging: Sequence[HedgeDecision]
     metadata: Dict[str, Any] = field(default_factory=dict)
+    agents: Optional["AgentCycleSnapshot"] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialise the engine output into primitives."""
@@ -78,7 +89,32 @@ class EngineResult:
 
         if self.position_sizing is not None:
             payload["position_sizing"] = asdict(self.position_sizing)
+        if self.agents is not None:
+            payload["agents"] = self.agents.to_dict()
 
+        return payload
+
+
+@dataclass
+class AgentCycleSnapshot:
+    """Lightweight mirror of the Dynamic Agents orchestration cycle."""
+
+    research: Optional[ResearchAgentResult] = None
+    execution: Optional[ExecutionAgentResult] = None
+    risk: Optional[RiskAgentResult] = None
+    chat: Optional[ChatAgentResult] = None
+    decision: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {"decision": dict(self.decision)}
+        if self.research is not None:
+            payload["research"] = self.research.to_dict()
+        if self.execution is not None:
+            payload["execution"] = self.execution.to_dict()
+        if self.risk is not None:
+            payload["risk"] = self.risk.to_dict()
+        if self.chat is not None:
+            payload["chat"] = self.chat.to_dict()
         return payload
 
 
@@ -94,19 +130,28 @@ class DynamicAIEngine:
         lobes: Optional[Sequence[SignalLobe]] = None,
         risk_manager: Optional[RiskManager] = None,
         hedge_policy: Optional[DynamicHedgePolicy] = None,
+        research_agent: Optional[ResearchAgent] = None,
+        execution_agent: Optional[ExecutionAgent] = None,
+        risk_agent: Optional[RiskAgent] = None,
+        chat_agent: Optional[DynamicChatAgent] = None,
         config: Optional[EngineConfig] = None,
     ) -> None:
         self.config = config or EngineConfig()
         self.analysis = analysis or DynamicAnalysis()
         self.fusion_algo = fusion_algo or DynamicFusionAlgo()
         self.risk_manager = risk_manager or RiskManager()
-        self.hedge_policy = hedge_policy
+        self.hedge_policy = hedge_policy or DynamicHedgePolicy()
 
         if fusion_engine is not None:
             self.fusion_engine = fusion_engine
         else:
             effective_lobes = list(lobes) if lobes is not None else self._default_lobes()
             self.fusion_engine = FusionEngine(effective_lobes)
+
+        self.research_agent = research_agent or ResearchAgent(self.analysis)
+        self.execution_agent = execution_agent or ExecutionAgent(self.fusion_algo)
+        self.risk_agent = risk_agent or RiskAgent(self.risk_manager, self.hedge_policy)
+        self.chat_agent = chat_agent or DynamicChatAgent()
 
     def evaluate(
         self,
@@ -120,8 +165,12 @@ class DynamicAIEngine:
     ) -> EngineResult:
         """Run the Dynamic AI engine on the supplied payloads."""
 
-        analysis_result = self._run_analysis(research_data)
+        research_result = self._run_research(research_data)
+        analysis_result = (
+            research_result.analysis if research_result is not None else self._run_analysis(research_data)
+        )
         fusion_view = self._run_fusion_engine(market_data, regime)
+        execution_result = self._run_execution(market_data, analysis_result)
 
         augmented_market = dict(market_data)
         if analysis_result is not None:
@@ -132,8 +181,11 @@ class DynamicAIEngine:
             augmented_market.setdefault("fusion_score", fusion_view.get("score", 0.0))
             augmented_market.setdefault("fusion_action", fusion_view.get("action"))
 
-        ai_signal = self.fusion_algo.generate_signal(augmented_market)
-        base_signal = ai_signal.to_dict()
+        if execution_result is not None:
+            base_signal = execution_result.signal.to_dict()
+        else:
+            ai_signal = self.fusion_algo.generate_signal(augmented_market)
+            base_signal = ai_signal.to_dict()
 
         blended_signal = self._blend_sources(
             base_signal=base_signal,
@@ -143,18 +195,46 @@ class DynamicAIEngine:
         )
 
         context = risk_context or self.config.default_risk_context
-        risk_adjusted = self.risk_manager.enforce(dict(blended_signal), context)
+        risk_payload = self._prepare_risk_payload(
+            blended_signal,
+            context,
+            hedge_inputs,
+        )
+        risk_result = self._run_risk(risk_payload)
 
-        position_sizing: Optional[PositionSizing] = None
-        if self.config.enable_position_sizing:
-            volatility = float(augmented_market.get("volatility", 0.0))
-            position_sizing = self.risk_manager.sizing(
-                context,
-                confidence=float(risk_adjusted.get("confidence", 0.0)),
-                volatility=volatility,
-            )
+        if risk_result is not None:
+            risk_adjusted = dict(risk_result.adjusted_signal)
+            position_sizing = risk_result.sizing if self.config.enable_position_sizing else None
+            hedge_decisions: Sequence[HedgeDecision] = tuple(risk_result.hedge_decisions)
+            risk_rationale = risk_result.rationale
+        else:
+            risk_adjusted = self.risk_manager.enforce(dict(blended_signal), context)
+            position_sizing = None
+            if self.config.enable_position_sizing:
+                volatility = float(augmented_market.get("volatility", 0.0))
+                position_sizing = self.risk_manager.sizing(
+                    context,
+                    confidence=float(risk_adjusted.get("confidence", 0.0)),
+                    volatility=volatility,
+                )
+            hedge_decisions = self._run_hedging(hedge_inputs) if hedge_inputs else ()
+            risk_rationale = "Risk evaluation completed."
 
-        hedge_decisions = self._run_hedging(hedge_inputs) if hedge_inputs else []
+        decision_payload = self._build_decision_payload(
+            risk_adjusted,
+            position_sizing,
+            hedge_decisions,
+            risk_rationale,
+        )
+
+        agents_snapshot = self._build_agents_snapshot(
+            research_result,
+            execution_result,
+            risk_result,
+            decision_payload,
+            dialogue_history,
+        )
+        chat_result = agents_snapshot.chat
 
         metadata = {
             "analysis_weight": self.config.analysis_weight,
@@ -165,6 +245,8 @@ class DynamicAIEngine:
                 "core": base_signal,
             },
         }
+        if chat_result is not None:
+            metadata["chat_summary"] = chat_result.rationale
 
         return EngineResult(
             signal=base_signal,
@@ -174,17 +256,67 @@ class DynamicAIEngine:
             position_sizing=position_sizing,
             hedging=tuple(hedge_decisions),
             metadata=metadata,
+            agents=agents_snapshot,
         )
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+    def _run_research(
+        self, research_data: Optional[Mapping[str, Any]]
+    ) -> Optional[ResearchAgentResult]:
+        if not research_data:
+            return None
+        return self.research_agent.run(dict(research_data))
+
     def _run_analysis(
         self, research_data: Optional[Mapping[str, Any]]
     ) -> Optional[Dict[str, Any]]:
         if not research_data:
             return None
         return self.analysis.analyse(research_data)
+
+    def _run_execution(
+        self,
+        market_data: Mapping[str, Any],
+        analysis: Optional[Mapping[str, Any]],
+    ) -> Optional[ExecutionAgentResult]:
+        if not market_data:
+            return None
+        payload: Dict[str, Any] = {"market": dict(market_data)}
+        if analysis:
+            payload["analysis"] = dict(analysis)
+        return self.execution_agent.run(payload)
+
+    def _prepare_risk_payload(
+        self,
+        blended_signal: Mapping[str, Any],
+        context: RiskContext,
+        hedge_inputs: Optional[Mapping[str, Any]],
+    ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
+            "signal": dict(blended_signal),
+            "risk_context": context,
+            "risk_parameters": self.risk_manager.params,
+        }
+        if hedge_inputs and isinstance(hedge_inputs, Mapping):
+            account_state = hedge_inputs.get("account_state")
+            market_state = hedge_inputs.get("market_state")
+            if account_state is not None:
+                payload["account_state"] = account_state
+            if market_state is not None:
+                payload["market_state"] = market_state
+        return payload
+
+    def _run_risk(
+        self, payload: Mapping[str, Any]
+    ) -> Optional[RiskAgentResult]:
+        if not payload:
+            return None
+        try:
+            return self.risk_agent.run(payload)
+        except Exception:
+            return None
 
     def _run_fusion_engine(
         self,
@@ -422,4 +554,66 @@ class DynamicAIEngine:
             TrendMomentumLobe(),
             SentimentLobe(),
             TreasuryLobe(),
+        )
+
+    def _build_decision_payload(
+        self,
+        risk_adjusted: Mapping[str, Any],
+        position_sizing: Optional[PositionSizing],
+        hedge_decisions: Sequence[HedgeDecision],
+        risk_rationale: str,
+    ) -> Dict[str, Any]:
+        decision = {
+            "action": risk_adjusted.get("action"),
+            "confidence": risk_adjusted.get("confidence"),
+            "rationale": risk_rationale,
+            "signal": dict(risk_adjusted),
+        }
+        if position_sizing is not None:
+            decision["sizing"] = asdict(position_sizing)
+        if hedge_decisions:
+            decision["hedge_decisions"] = [asdict(decision) for decision in hedge_decisions]
+        return decision
+
+    def _build_agents_snapshot(
+        self,
+        research: Optional[ResearchAgentResult],
+        execution: Optional[ExecutionAgentResult],
+        risk: Optional[RiskAgentResult],
+        decision: Mapping[str, Any],
+        dialogue_history: Optional[Sequence[tuple[str, str]]],
+    ) -> AgentCycleSnapshot:
+        agents_payload: Dict[str, Any] = {}
+        if research is not None:
+            agents_payload["research"] = research.to_dict()
+        if execution is not None:
+            agents_payload["execution"] = execution.to_dict()
+        if risk is not None:
+            agents_payload["risk"] = risk.to_dict()
+
+        chat_candidate: Optional[ChatAgentResult] = None
+        if agents_payload:
+            chat_payload: Dict[str, Any] = {
+                "agents": agents_payload,
+                "decision": dict(decision),
+            }
+            if dialogue_history:
+                last_user = None
+                for user, _assistant in reversed(dialogue_history):
+                    if user:
+                        last_user = user
+                        break
+                if last_user:
+                    chat_payload["user_message"] = last_user
+            try:
+                chat_candidate = self.chat_agent.run(chat_payload)
+            except Exception:
+                chat_candidate = None
+
+        return AgentCycleSnapshot(
+            research=research,
+            execution=execution,
+            risk=risk,
+            chat=chat_candidate,
+            decision=dict(decision),
         )
