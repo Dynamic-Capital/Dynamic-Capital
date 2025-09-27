@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import isclose
 from typing import Any, Dict, Iterable, List, Optional
 
 
@@ -242,8 +243,8 @@ class DynamicFusionAlgo:
 
     @staticmethod
     def _score_to_action(score: float) -> str:
-        if score > 0.2:
+        if score > 0.2 or isclose(score, 0.2, rel_tol=0.0, abs_tol=1e-6):
             return "BUY"
-        if score < -0.2:
+        if score < -0.2 or isclose(score, -0.2, rel_tol=0.0, abs_tol=1e-6):
             return "SELL"
         return "NEUTRAL"
