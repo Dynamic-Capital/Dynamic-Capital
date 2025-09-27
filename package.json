@@ -52,6 +52,7 @@
     "do:sync-cdn": "node scripts/digitalocean/sync-cdn-config.mjs",
     "doctl:sync-site": "node scripts/doctl/sync-site-config.mjs",
     "checklists": "node scripts/run-checklists.js",
+    "go-live": "node scripts/run-checklists.js --checklist go-live",
     "export": "node scripts/npm-safe.mjs run build",
     "output": "node scripts/npm-safe.mjs -w apps/web run copy-static",
     "supabase:start": "supabase start",
@@ -65,6 +66,7 @@
   "devDependencies": {
     "chokidar-cli": "^3.0.0",
     "deno": "^2.5.0",
+    "dotenv": "^16.6.1",
     "supabase": "^2.40.7",
     "tsx": "^4.20.5",
     "yaml": "^2.8.1"

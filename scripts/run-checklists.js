@@ -1,7 +1,29 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
 import { createSanitizedNpmEnv } from './utils/npm-env.mjs';
+
+const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = path.resolve(MODULE_DIR, '..');
+
+function loadEnvFile(relativePath) {
+  const absolutePath = path.join(PROJECT_ROOT, relativePath);
+  if (!fs.existsSync(absolutePath)) {
+    return;
+  }
+
+  const result = dotenv.config({ path: absolutePath, override: false });
+  if (result.error && result.error.code !== 'ENOENT') {
+    throw result.error;
+  }
+}
+
+loadEnvFile('.env.local');
+loadEnvFile('.env');
 
 const TASK_LIBRARY = {
   'sync-env': {

@@ -38,32 +38,32 @@ repo health checks before audits, launches, or large merges. Track the results
 in your PR/issue notes so reviewers can see the evidence.
 
 - [x] Sync `.env` and `.env.local` with `.env.example` (`npm run sync-env`) to
-      ensure new environment keys are captured locally. _Ran with the
-      automation helper; 106 missing keys were appended to both `.env` and
-      `.env.local` from the template so local parity is restored._
+      ensure new environment keys are captured locally. _Ran with the automation
+      helper; 106 missing keys were appended to both `.env` and `.env.local`
+      from the template so local parity is restored._
 - [x] Run the repository test suite (`npm run test`) so Deno and Next.js smoke
       tests cover the latest changes. _Latest run passed 90 tests with one
       ignored case, matching the deno-based CI suite._
 - [ ] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to
       apply formatting and rerun Deno format/lint/type checks. _Run surfaced
       pre-existing lint violations (for example `require-await` on storage
-      helpers in `tests/supabase-client-stub.ts`, `no-import-prefix` in
-      Supabase function entrypoints, and `no-explicit-any` usage in web hooks),
-      so the script still fails pending cleanup._
+      helpers in `tests/supabase-client-stub.ts`, `no-import-prefix` in Supabase
+      function entrypoints, and `no-explicit-any` usage in web hooks), so the
+      script still fails pending cleanup._
 - [x] Run the aggregated verification suite (`npm run verify`) for the bundled
       static, runtime, and integration safety checks. _`verify_all.sh` completed
       successfully and refreshed `.out/verify_report.md` with the latest
       results._
 - [x] Audit Supabase Edge function hosts
       (`deno run -A scripts/audit-edge-hosts.ts`) to detect environment drift
-      between deployments. _Check completed via `npx deno`; 17 URLs were
-      scanned and none deviated from the expected host pattern._
+      between deployments. _Check completed via `npx deno`; 17 URLs were scanned
+      and none deviated from the expected host pattern._
 - [ ] Check linkage across environment variables and outbound URLs
       (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Helper
       now seeds Deno with the system trust store and proxy bundle so
       `getWebhookInfo.ok` resolves `true`, reporting the registered webhook as
-      `https://qeejuomcapbdlhnjqjcc.supabase.co/functions/v1/telegram-bot`.
-      The Supabase `linkage-audit` endpoint at
+      `https://qeejuomcapbdlhnjqjcc.supabase.co/functions/v1/telegram-bot`. The
+      Supabase `linkage-audit` endpoint at
       `https://qeejuomcapbdlhnjqjcc.functions.supabase.co/linkage-audit`
       continues to time out, so the host alignment work is still outstanding._
 - [ ] Verify the Telegram webhook configuration
@@ -96,11 +96,16 @@ in your PR/issue notes so reviewers can see the evidence.
 
 ## Go Live Checklist
 
-Run the `go-live` automation key
-(`npm run checklists -- --checklist go-live --include-optional`) and mirror the
-manual validations below before exposing updates to traders or admins. Use the
+Run `npm run go-live` (an alias for the `go-live` automation key) to execute the
+scripted checks. Pass `-- --include-optional` when you need the longer-running
+smoke tests alongside the core validations, then mirror the manual checks below
+before exposing updates to traders or admins. Use the
 [Go-Live Validation Playbook](./go-live-validation-playbook.md) for step-by-step
 runbooks, curl commands, and evidence templates.
+
+> [!TIP] Populate `TELEGRAM_BOT_TOKEN` (and related Telegram secrets) in
+> `.env.local` or `.env` so the automation can talk to the Telegram API when it
+> loads the configuration for webhook verification.
 
 1. [ ] Confirm the Telegram webhook is set and returning `200` responses for
        health pings (see
