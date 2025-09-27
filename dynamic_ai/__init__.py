@@ -14,6 +14,13 @@ from .agents import (
     RiskAgentResult,
 )
 from .core import AISignal, DynamicFusionAlgo
+from .dolphin_adapter import (
+    DolphinLlamaCppAdapter,
+    DolphinModelConfig,
+    DolphinPromptTemplate,
+    DolphinSamplingConfig,
+    LLMIntegrationError,
+)
 from .analysis import AnalysisComponent, DynamicAnalysis
 from .fusion import (
     FusionEngine,
@@ -46,6 +53,11 @@ __all__ = [
     "DynamicChatAgent",
     "AISignal",
     "DynamicFusionAlgo",
+    "DolphinLlamaCppAdapter",
+    "DolphinModelConfig",
+    "DolphinPromptTemplate",
+    "DolphinSamplingConfig",
+    "LLMIntegrationError",
     "ExecutionAgent",
     "ExecutionAgentResult",
     "AnalysisComponent",
