@@ -77,6 +77,23 @@ To expose OneDrive as S3, the following approaches are the most stable:
 
 These approaches preserve read/write/modify semantics. Shared OneDrive links alone are insufficient for writes because they do not provide programmatic authentication; always authenticate via rclone configuration or OAuth tokens from Azure AD.
 
+### OneDrive Wrapper Implementation Checklist
+
+Use the following task list to stand up an S3-compatible endpoint backed by OneDrive. Each task includes a verification step so you can confirm progress before moving on.
+
+1. **Prepare rclone remote**
+   - [ ] Create or update the `onedrive` remote with `rclone config`.
+   - [ ] Verify the remote by running `rclone lsd onedrive:` and ensuring the expected root folders appear.
+2. **Expose storage as S3**
+   - [ ] Choose either `rclone serve s3` or the MinIO gateway and launch it bound to `http://localhost:9000` (or your preferred host/port).
+   - [ ] Confirm the service is reachable with `curl http://localhost:9000` (it should respond with an XML error body when unauthenticated).
+3. **Configure credentials**
+   - [ ] Set `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` (or the `--user`/`--pass` flags for rclone) for local development and CI environments.
+   - [ ] Validate authentication by running `aws --endpoint-url http://localhost:9000 s3 ls` or the boto3 sample in the next section.
+4. **Grant Dynamic AI access**
+   - [ ] Update the Dynamic AI configuration to point storage operations to the wrapper endpoint.
+   - [ ] Run a smoke test that uploads and downloads a small file; confirm the object appears inside OneDrive via the web UI or `rclone ls onedrive:path`.
+
 ## Application Usage
 
 Wrapper-backed tables can be queried from both the Next.js app and the Telegram bot. Place shared helpers under `apps/web/integrations/` so they can be imported from the web dashboard and edge functions alike:
