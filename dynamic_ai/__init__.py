@@ -11,7 +11,7 @@ from .fusion import (
     TrendMomentumLobe,
     TreasuryLobe,
 )
-from .risk import PositionSizing, RiskContext, RiskManager, RiskParameters
+from .risk import LeverageGuidance, PositionSizing, RiskContext, RiskManager, RiskParameters
 
 __all__ = [
     "AISignal",
@@ -24,6 +24,7 @@ __all__ = [
     "SignalLobe",
     "TrendMomentumLobe",
     "TreasuryLobe",
+    "LeverageGuidance",
     "PositionSizing",
     "RiskContext",
     "RiskManager",
