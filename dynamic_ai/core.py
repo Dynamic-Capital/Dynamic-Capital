@@ -1,0 +1,113 @@
+"""Signal fusion logic for orchestrating AI-driven trade decisions."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Dict, Iterable, List, Optional
+
+
+VALID_SIGNALS = {"BUY", "SELL", "HOLD", "NEUTRAL"}
+
+
+@dataclass
+class AISignal:
+    """Container for AI-refined trading guidance."""
+
+    action: str
+    confidence: float
+    reasoning: str
+    original_signal: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Represent the signal as a serialisable dictionary."""
+
+        return {
+            "action": self.action,
+            "confidence": self.confidence,
+            "reasoning": self.reasoning,
+            "original_signal": self.original_signal,
+        }
+
+
+class DynamicFusionAlgo:
+    """Fuse raw TradingView alerts with lightweight AI heuristics."""
+
+    def __init__(self, *, neutral_confidence: float = 0.55, boost_topics: Optional[Iterable[str]] = None) -> None:
+        self.neutral_confidence = neutral_confidence
+        self.boost_topics: List[str] = [topic.lower() for topic in boost_topics] if boost_topics else []
+
+    def generate_signal(self, market_data: Dict[str, Any]) -> AISignal:
+        """Derive an actionable signal from the provided market payload."""
+
+        raw_signal = str(market_data.get("signal", "NEUTRAL")).upper()
+        if raw_signal not in VALID_SIGNALS:
+            raw_signal = "NEUTRAL"
+
+        ai_action = self._refine_action(raw_signal, market_data)
+        confidence = self._calculate_confidence(raw_signal, market_data)
+        reasoning = self._build_reasoning(ai_action, confidence, market_data)
+
+        return AISignal(action=ai_action, confidence=confidence, reasoning=reasoning, original_signal=raw_signal)
+
+    def _refine_action(self, raw_signal: str, market_data: Dict[str, Any]) -> str:
+        momentum = float(market_data.get("momentum", 0.0))
+        trend = str(market_data.get("trend", "")).lower()
+
+        if momentum > 0.6 and raw_signal == "BUY":
+            return "BUY"
+        if momentum < -0.6 and raw_signal == "SELL":
+            return "SELL"
+
+        if trend in {"bullish", "uptrend"} and raw_signal in {"BUY", "HOLD", "NEUTRAL"}:
+            return "BUY"
+        if trend in {"bearish", "downtrend"} and raw_signal in {"SELL", "HOLD", "NEUTRAL"}:
+            return "SELL"
+
+        return raw_signal
+
+    def _calculate_confidence(self, raw_signal: str, market_data: Dict[str, Any]) -> float:
+        base_confidence = float(market_data.get("confidence", self.neutral_confidence))
+        volatility = float(market_data.get("volatility", 0.0))
+        news_topics = [str(topic).lower() for topic in market_data.get("news", [])]
+
+        confidence = max(0.0, min(1.0, base_confidence))
+
+        if any(topic in self.boost_topics for topic in news_topics):
+            confidence = min(1.0, confidence + 0.1)
+
+        if volatility > 1.5:
+            confidence = max(0.0, confidence - 0.15)
+        elif volatility < 0.5:
+            confidence = min(1.0, confidence + 0.05)
+
+        if raw_signal == "NEUTRAL":
+            confidence = min(confidence, 0.5)
+
+        return round(confidence, 2)
+
+    def _build_reasoning(self, action: str, confidence: float, market_data: Dict[str, Any]) -> str:
+        comments: List[str] = []
+
+        trend = market_data.get("trend")
+        momentum = market_data.get("momentum")
+        support = market_data.get("support_level")
+        resistance = market_data.get("resistance_level")
+
+        if trend:
+            comments.append(f"Trend analysis points to {trend} conditions.")
+        if momentum is not None:
+            comments.append(f"Momentum score at {momentum} influenced the decision.")
+        if support and action == "BUY":
+            comments.append(f"Support level near {support} provides downside protection.")
+        if resistance and action == "SELL":
+            comments.append(f"Resistance near {resistance} caps upside potential.")
+
+        if confidence >= 0.75:
+            comments.append("High confidence due to signal alignment across indicators.")
+        elif confidence <= 0.35:
+            comments.append("Low confidence – risk controls recommended before execution.")
+
+        if not comments:
+            comments.append("Signal defaulted to neutral heuristics due to limited context.")
+
+        return " ".join(comments)
