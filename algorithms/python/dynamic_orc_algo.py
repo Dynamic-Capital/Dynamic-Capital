@@ -223,10 +223,14 @@ class DynamicORCAlgo:
             raise KeyError(f"Unknown requirement: {identifier}")
         requirement = self._requirements[identifier]
         if isinstance(status, str):
+            original_status = status
+            normalised_status = status.strip().lower()
             try:
-                status = ORCStatus(status)
+                status = ORCStatus(normalised_status)
             except ValueError as error:  # pragma: no cover - defensive validation
-                raise ValueError(f"Invalid ORCStatus value: {status!r}") from error
+                raise ValueError(
+                    f"Invalid ORCStatus value: {original_status!r}"
+                ) from error
         requirement.status = status
         if note:
             requirement.notes.append(note)

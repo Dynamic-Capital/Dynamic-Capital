@@ -88,3 +88,22 @@ def test_report_serialisation_and_status_updates() -> None:
     stored_requirement = algo.requirements()[0]
     assert stored_requirement.notes == ["Workshop complete"]
     assert algo.category_matrix()["enablement"][0].status is ORCStatus.VERIFIED
+
+
+@pytest.mark.parametrize(
+    "incoming_status",
+    ["verified", " VERIFIED ", "VERIFIED", "vErIfIeD"],
+)
+def test_update_status_normalises_strings(incoming_status: str) -> None:
+    algo = DynamicORCAlgo()
+    requirement = ORCRequirement(
+        identifier="support_training",
+        title="Train support squad",
+        category="Enablement",
+        description="Live training completed with support playbooks",
+    )
+    algo.register(requirement)
+
+    algo.update_status("support_training", incoming_status)
+
+    assert algo.requirements()[0].status is ORCStatus.VERIFIED
