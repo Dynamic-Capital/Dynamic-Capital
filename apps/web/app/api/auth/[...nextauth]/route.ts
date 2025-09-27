@@ -13,7 +13,12 @@ const { handlers } = NextAuth({
       clientSecret: process.env.GITHUB_SECRET || "",
     }),
   ],
+  /**
+   * Allow NextAuth to trust the host header when NEXTAUTH_URL is not set.
+   * This keeps local development flows working on arbitrary ports such as
+   * http://127.0.0.1:53682/auth?state=... without requiring additional envs.
+   */
+  trustHost: true,
 });
 
 export const { GET, POST } = handlers;
-
