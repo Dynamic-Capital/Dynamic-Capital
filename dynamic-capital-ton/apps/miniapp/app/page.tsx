@@ -11,6 +11,12 @@ import {
   useMiniAppThemeManager,
 } from "../../../../shared/miniapp/use-miniapp-theme";
 import type { MiniAppThemeOption } from "../../../../shared/miniapp/theme-loader";
+import {
+  isSupportedPlan,
+  linkTonMiniAppWallet,
+  type Plan,
+  processTonMiniAppSubscription,
+} from "../lib/ton-miniapp-helper";
 
 import type {
   LiveIntelSnapshot,
@@ -19,15 +25,6 @@ import type {
 } from "../data/live-intel";
 import { DEFAULT_REFRESH_SECONDS } from "../data/live-intel";
 import { getSupabaseClient } from "../lib/supabase-client";
-
-const PLAN_IDS = [
-  "vip_bronze",
-  "vip_silver",
-  "vip_gold",
-  "mentorship",
-] as const;
-
-type Plan = (typeof PLAN_IDS)[number];
 
 type SectionId =
   | "overview"
@@ -230,11 +227,6 @@ const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
 const FALLBACK_PLAN_LOOKUP: Record<Plan, PlanOption> = Object.fromEntries(
   FALLBACK_PLAN_OPTIONS.map((option) => [option.id, option]),
 ) as Record<Plan, PlanOption>;
-
-function isSupportedPlan(value: string | null | undefined): value is Plan {
-  if (!value) return false;
-  return PLAN_IDS.includes(value as Plan);
-}
 
 function coerceNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -961,30 +953,23 @@ function HomeInner() {
     setIsLinking(true);
     setStatusMessage(null);
 
-    try {
-      const response = await fetch("/api/link-wallet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          telegram_id: telegramId,
-          address: currentWallet.address,
-          publicKey: currentWallet.publicKey,
-        }),
-      });
+    const result = await linkTonMiniAppWallet({
+      telegramId,
+      wallet: currentWallet,
+    });
 
-      if (!response.ok) {
-        throw new Error(`Unexpected status ${response.status}`);
-      }
+    setIsLinking(false);
 
-      setStatusMessage("Wallet linked successfully. Desk access unlocked.");
-    } catch (error) {
-      console.error(error);
+    if (!result.ok) {
+      console.error("[miniapp] Wallet link failed", result.error);
       setStatusMessage(
-        "Unable to link your wallet right now. Please retry in a few moments.",
+        result.error ??
+          "Unable to link your wallet right now. Please retry in a few moments.",
       );
-    } finally {
-      setIsLinking(false);
+      return;
     }
+
+    setStatusMessage("Wallet linked successfully. Desk access unlocked.");
   }
 
   async function startSubscription() {
@@ -1004,34 +989,28 @@ function HomeInner() {
     const fakeHash = `FAKE_TX_HASH_${Date.now()}`;
     setTxHash(fakeHash);
 
-    try {
-      const response = await fetch("/api/process-subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          telegram_id: telegramId,
-          plan,
-          tx_hash: fakeHash,
-        }),
-      });
+    const result = await processTonMiniAppSubscription({
+      telegramId,
+      plan,
+      txHash: fakeHash,
+    });
 
-      if (!response.ok) {
-        throw new Error(`Unexpected status ${response.status}`);
-      }
+    setIsProcessing(false);
 
+    if (!result.ok) {
+      console.error("[miniapp] Subscription request failed", result.error);
       setStatusMessage(
-        `Subscription for ${
-          selectedPlan?.name ?? "your plan"
-        } submitted. Desk will confirm shortly.`,
+        result.error ??
+          "We couldn't start the subscription. Give it another try after checking your connection.",
       );
-    } catch (error) {
-      console.error(error);
-      setStatusMessage(
-        "We couldn't start the subscription. Give it another try after checking your connection.",
-      );
-    } finally {
-      setIsProcessing(false);
+      return;
     }
+
+    setStatusMessage(
+      `Subscription for ${
+        selectedPlan?.name ?? "your plan"
+      } submitted. Desk will confirm shortly.`,
+    );
   }
 
   function scrollToSection(sectionId: SectionId) {
