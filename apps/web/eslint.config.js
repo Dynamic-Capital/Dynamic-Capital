@@ -10,6 +10,7 @@ export default tseslint.config(
       "dist",
       "tests/**",
       "**/vendor/**",
+      "components/dynamic-ui-system/internal/**",
       "supabase/functions/**",
       ".next/**",
       "types/**",

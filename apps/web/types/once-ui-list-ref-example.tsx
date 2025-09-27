@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { List, ListItem } from "@once-ui-system/core";
+import { List, ListItem } from "@/components/dynamic-ui-system";
 
 /**
  * Example usage to document the ref behaviour for List and ListItem.
