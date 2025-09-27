@@ -241,9 +241,15 @@ class DynamicFusionAlgo:
         base_score = self._action_to_score(action)
         human_score = self._action_to_score(human_bias)
         combined = (base_score * (1.0 - human_weight)) + (human_score * human_weight)
-        fused_action = self._score_to_action(combined)
 
-        influence = abs(combined)
+        divergence = base_score * human_score < 0
+        if divergence and human_weight >= 0.5:
+            fused_action = human_bias
+            combined = human_score * human_weight
+        else:
+            fused_action = self._score_to_action(combined)
+
+        influence = max(abs(combined), human_weight if divergence else 0.0)
         boosted_confidence = max(
             confidence,
             min(1.0, round(confidence + human_weight * 0.25 + influence * 0.25, 2)),
