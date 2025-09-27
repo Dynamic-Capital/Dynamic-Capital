@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from time import perf_counter
@@ -10,6 +11,8 @@ from typing import Callable, Iterable, Mapping, MutableMapping, Sequence
 from urllib.parse import parse_qsl
 
 Protocol = str  # constrained via normalisation helpers
+
+_LOGGER = logging.getLogger(__name__)
 
 __all__ = [
     "CertificateAuthority",
@@ -79,20 +82,27 @@ def _normalise_path(value: str) -> tuple[str, tuple[str, ...]]:
     return path_part or "/", segments
 
 
-def _normalise_headers(headers: Mapping[str, str] | Sequence[tuple[str, str]] | None) -> Mapping[str, str]:
+def _normalise_headers(
+    headers: Mapping[str, object] | Sequence[tuple[str, object]] | None,
+) -> Mapping[str, tuple[str, ...]]:
     if headers is None:
         return {}
-    items: Iterable[tuple[str, str]]
+    items: Iterable[tuple[str, object]]
     if isinstance(headers, Mapping):
         items = headers.items()
     else:
         items = headers
-    normalised: dict[str, str] = {}
+    normalised: dict[str, list[str]] = {}
     for key, value in items:
         header_name = _normalise_text(str(key)).lower()
-        header_value = _normalise_text(str(value), allow_empty=True)
-        normalised[header_name] = header_value
-    return normalised
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+            values = value
+        else:
+            values = (value,)
+        for item in values:
+            header_value = _normalise_text(str(item), allow_empty=True)
+            normalised.setdefault(header_name, []).append(header_value)
+    return {name: tuple(values) for name, values in normalised.items()}
 
 
 def _normalise_tags(tags: Sequence[str] | None) -> tuple[str, ...]:
@@ -222,7 +232,7 @@ class HttpRequest:
     host: str
     protocol: Protocol = "http"
     query: Mapping[str, str] | Sequence[tuple[str, str]] | None = None
-    headers: Mapping[str, str] | Sequence[tuple[str, str]] | None = None
+    headers: Mapping[str, object] | Sequence[tuple[str, object]] | None = None
     body: bytes | str | None = None
     timestamp: datetime = field(default_factory=_utcnow)
     tags: Sequence[str] | None = None
@@ -231,7 +241,7 @@ class HttpRequest:
 
     _segments: tuple[str, ...] = field(init=False, repr=False)
     _query: Mapping[str, str] = field(init=False, repr=False)
-    _headers: Mapping[str, str] = field(init=False, repr=False)
+    _headers: Mapping[str, tuple[str, ...]] = field(init=False, repr=False)
     _tags: tuple[str, ...] = field(init=False, repr=False)
     _metadata: Mapping[str, object] | None = field(init=False, repr=False)
     _body: bytes | None = field(init=False, repr=False)
@@ -284,7 +294,7 @@ class HttpRequest:
         return self._segments
 
     @property
-    def headers_map(self) -> Mapping[str, str]:
+    def headers_map(self) -> Mapping[str, tuple[str, ...]]:
         return self._headers
 
     @property
@@ -311,7 +321,10 @@ class HttpRequest:
         return replace(self, path_params=dict(params))
 
     def get_header(self, name: str, default: str | None = None) -> str | None:
-        return self._headers.get(name.lower(), default)
+        values = self._headers.get(name.lower())
+        if not values:
+            return default
+        return values[0]
 
 
 @dataclass(slots=True)
@@ -320,13 +333,13 @@ class HttpResponse:
 
     status: int
     reason: str | None = None
-    headers: Mapping[str, str] | Sequence[tuple[str, str]] | None = None
+    headers: Mapping[str, object] | Sequence[tuple[str, object]] | None = None
     body: bytes | str | None = None
     protocol: Protocol = "http"
     timestamp: datetime = field(default_factory=_utcnow)
     metadata: Mapping[str, object] | None = None
 
-    _headers: Mapping[str, str] = field(init=False, repr=False)
+    _headers: Mapping[str, tuple[str, ...]] = field(init=False, repr=False)
     _body: bytes | None = field(init=False, repr=False)
     _metadata: Mapping[str, object] | None = field(init=False, repr=False)
 
@@ -353,7 +366,7 @@ class HttpResponse:
         object.__setattr__(self, "timestamp", timestamp)
 
     @property
-    def headers_map(self) -> Mapping[str, str]:
+    def headers_map(self) -> Mapping[str, tuple[str, ...]]:
         return self._headers
 
     @property
@@ -624,11 +637,12 @@ class DynamicHttp:
         try:
             raw_response = selected_route.handler(enriched_request)
             response = _coerce_response(raw_response, protocol=request.protocol)
-        except Exception as exc:  # pragma: no cover - safety net
+        except Exception:  # pragma: no cover - safety net
+            _LOGGER.exception("route handler raised an unexpected exception")
             response = HttpResponse(
                 status=500,
                 reason=_default_reason(500),
-                body=f"internal error: {exc}",
+                body="internal server error",
                 protocol=request.protocol,
             )
         selected_route.record_invocation(at=request.timestamp)
