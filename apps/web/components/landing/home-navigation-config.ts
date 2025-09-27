@@ -8,11 +8,13 @@ import {
   ServerCog,
   ShieldCheck,
   UsersRound,
+  Wallet,
 } from "lucide-react";
 
 export const HOME_NAV_SECTION_IDS = {
   overview: "overview",
   token: "dct-token",
+  wallet: "dynamic-wallet",
   markets: "live-markets",
   community: "community-trust",
   miniApp: "investor-mini-app",
@@ -48,6 +50,13 @@ export const HOME_NAV_SECTIONS: HomeNavSection[] = [
     description: "Understand burns, rewards, and transparency.",
     icon: Coins,
     href: `/#${HOME_NAV_SECTION_IDS.token}`,
+  },
+  {
+    id: "wallet",
+    label: "Dynamic Wallet",
+    description: "Link TON addresses with Supabase guardrails.",
+    icon: Wallet,
+    href: `/#${HOME_NAV_SECTION_IDS.wallet}`,
   },
   {
     id: "markets",
@@ -116,11 +125,9 @@ type SectionIdsFromConfig = (typeof HOME_NAV_SECTIONS)[number]["id"];
 type MissingSections = Exclude<HomeNavSectionId, SectionIdsFromConfig>;
 type UnexpectedSections = Exclude<SectionIdsFromConfig, HomeNavSectionId>;
 
-type AssertAllSectionsCovered = MissingSections extends never
-  ? true
+type AssertAllSectionsCovered = MissingSections extends never ? true
   : ["Missing HOME_NAV_SECTIONS entry for", MissingSections];
-type AssertNoUnexpectedSections = UnexpectedSections extends never
-  ? true
+type AssertNoUnexpectedSections = UnexpectedSections extends never ? true
   : ["Unexpected HOME_NAV_SECTIONS id", UnexpectedSections];
 
 const _assertAllSectionsCovered: AssertAllSectionsCovered = true;

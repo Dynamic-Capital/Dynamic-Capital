@@ -50,6 +50,33 @@ const TOKEN_FEATURES = [
   },
 ];
 
+const WALLET_FEATURES = [
+  {
+    title: "TonConnect onboarding",
+    description:
+      "Investors connect Tonkeeper, MyTonWallet, or Tonhub in seconds through the Mini App without leaving Telegram.",
+    icon: "sparkles" as const,
+  },
+  {
+    title: "Supabase-synced ledger",
+    description:
+      "Linked addresses flow into Supabase so staking rewards, VIP access, and automation triggers stay consistent across surfaces.",
+    icon: "repeat" as const,
+  },
+  {
+    title: "Automation ready",
+    description:
+      "Auto-invest pools and subscription webhooks read the wallet table directly to approve desk allocations in real time.",
+    icon: "rocket" as const,
+  },
+] as const;
+
+const WALLET_GUARDRAILS = [
+  "Row Level Security ensures only verified Telegram IDs can read or update wallet entries.",
+  "Background reconciliation catches deposits that land in the wrong address before credits are issued.",
+  "Admins can revoke or rotate wallets from the desk console with a complete audit trail.",
+] as const;
+
 const MARKET_WIDGETS = [
   {
     symbol: "OANDA:XAUUSD",
@@ -467,6 +494,78 @@ export function MultiLlmLandingPage() {
               </Column>
             ))}
           </Row>
+        </Column>
+      </Section>
+
+      <Section anchor={HOME_NAV_SECTION_IDS.wallet}>
+        <Column gap="20">
+          <Column gap="12">
+            <Tag variant="brand" size="m">
+              Dynamic wallet
+            </Tag>
+            <Heading variant="heading-strong-m">
+              One TonConnect handshake powers every surface
+            </Heading>
+            <Text
+              variant="body-default-m"
+              onBackground="neutral-weak"
+              wrap="balance"
+              className="max-w-3xl"
+            >
+              Link wallets from Telegram, store them in Supabase, and unlock
+              staking, VIP plans, and automation without duplicating onboarding
+              flows.
+            </Text>
+          </Column>
+          <Row gap="16" wrap className="gap-6">
+            {WALLET_FEATURES.map((feature) => (
+              <Column
+                key={feature.title}
+                gap="12"
+                padding="20"
+                radius="l"
+                background="surface"
+                border="neutral-alpha-weak"
+                data-border="rounded"
+                className="flex-1 min-w-[240px] bg-background/70 shadow-lg shadow-primary/5"
+              >
+                <Icon name={feature.icon} size="m" />
+                <Heading variant="heading-strong-xs">{feature.title}</Heading>
+                <Text
+                  variant="body-default-s"
+                  onBackground="neutral-weak"
+                  wrap="balance"
+                >
+                  {feature.description}
+                </Text>
+              </Column>
+            ))}
+          </Row>
+          <Column gap="12" className="max-w-3xl">
+            <Heading variant="heading-strong-s">Guardrails baked in</Heading>
+            <Column gap="8" as="ul">
+              {WALLET_GUARDRAILS.map((guardrail) => (
+                <Row
+                  key={guardrail}
+                  gap="12"
+                  as="li"
+                  horizontal="start"
+                  className="items-start"
+                >
+                  <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
+                    <Icon name="check" size="s" />
+                  </span>
+                  <Text
+                    variant="body-default-m"
+                    onBackground="neutral-strong"
+                    wrap="balance"
+                  >
+                    {guardrail}
+                  </Text>
+                </Row>
+              ))}
+            </Column>
+          </Column>
         </Column>
       </Section>
 
