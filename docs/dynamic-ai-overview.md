@@ -69,3 +69,29 @@ Dynamic AI now exposes a persona chain that mirrors the roadmap’s research →
 6. Optional `risk_parameters` to override guardrail tolerances per run.
 
 The helper returns the persona outputs plus a consolidated decision payload combining the fused action, risk adjustments, and hedge directives so downstream systems ingest a single, structured packet.【F:algorithms/python/dynamic_ai_sync.py†L64-L143】【F:algorithms/python/dynamic_ai_sync.py†L284-L292】
+
+## 8. Knowledge Ingestion from Books & Research Material
+
+Dynamic AI benefits from pairing real-time telemetry with curated trading literature so it can cite strategy playbooks while adapting to live regimes. Use the following workflow to operationalise book and PDF content inside the Brain:
+
+### 8.1 Preprocess long-form content
+
+1. **Extract text** – Run tools such as `PyPDF2`, `pdfplumber`, or Apache Tika to convert PDFs and e-books into raw text.
+2. **Clean & segment** – Normalise whitespace, remove headers/footers, and break content into 500–1000 token chunks (paragraph-scale) that preserve semantic context.
+3. **Persist** – Store the structured chunks as `.txt` or `.jsonl` assets under `knowledge_base/` so downstream jobs can stream them without re-OCRing.
+
+### 8.2 Embed knowledge for retrieval
+
+1. **Vectorise chunks** – Generate embeddings with the house model stack and index them with `pgvector`, `FAISS`, or `Chroma`, colocating the vectors alongside the raw text payloads in `knowledge_base/`.
+2. **Surface context** – Give persona agents retrieval hooks so prompts can combine Wyckoff, Dow Theory, or Elliott Wave passages with numerical telemetry when drafting rationales.
+
+### 8.3 Reinforcement alignment with literature
+
+1. **Define rewards** – Shape the training reward as `R = α·Performance + β·Knowledge_Alignment`, where the alignment term measures how closely decisions adhere to referenced strategies.
+2. **Score cross-references** – Encourage the Brain to justify signals using citations from the embedded library and penalise actions that contradict canon playbooks without strong market evidence.
+
+### 8.4 Hybrid training loop
+
+- **Numeric data** teaches pattern recognition from price, volume, and order-flow telemetry.
+- **Textual data** reinforces strategic heuristics, trade psychology, and risk doctrine.
+- **Fusion** of both streams helps the Brain reason like a trader who reads *Market Wizards* and then validates the ideas against MT5 execution data.
