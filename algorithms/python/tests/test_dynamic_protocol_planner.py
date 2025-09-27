@@ -103,6 +103,7 @@ def test_planner_aggregates_multiple_models() -> None:
     assert "risk and capital management" in risk_client.calls[0]["prompt"].lower()
     assert "psychology specialist" in psychology_client.calls[0]["prompt"]
     assert "audit model" in review_client.calls[0]["prompt"]
+    assert draft.annotations["category_assignments"]["market_outlook"] == ["DynamicTradingAlgo"]
 
 
 def test_generate_protocol_includes_trade_logic_context() -> None:
@@ -182,6 +183,9 @@ def test_to_dict_excludes_empty_categories() -> None:
     assert serialised["annotations"]["horizons"] == HORIZON_KEYS
     assert serialised["annotations"]["categories"] == CATEGORY_KEYS
     assert serialised["annotations"]["context_supplied"] is True
+    assert serialised["annotations"]["category_assignments"]["market_outlook"] == [
+        "DynamicTradingAlgo"
+    ]
 
 
 def test_optimize_and_generate_syncs_plan(monkeypatch: pytest.MonkeyPatch) -> None:
