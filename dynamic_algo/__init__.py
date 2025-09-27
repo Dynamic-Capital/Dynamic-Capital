@@ -21,6 +21,7 @@ from .dynamic_pool import (
     PoolWithdrawal,
 )
 from .dynamic_metadata import DynamicMetadataAlgo, MetadataAttribute
+from .dynamic_language import DynamicLanguageAlgo, LanguageAssessment
 from .dynamic_psychology import (
     DynamicPsychologyAlgo,
     ElementAggregate,
@@ -47,6 +48,8 @@ __all__ = [
     "PoolWithdrawal",
     "DynamicMetadataAlgo",
     "MetadataAttribute",
+    "DynamicLanguageAlgo",
+    "LanguageAssessment",
     "DynamicPsychologyAlgo",
     "PsychologyEntry",
     "PsychologySnapshot",
