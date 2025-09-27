@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import random
 from dataclasses import dataclass
 from typing import Any, Dict, Mapping, Optional
@@ -146,6 +147,45 @@ def _derive_generic_profile(symbol: str) -> InstrumentProfile:
         min_lot=0.01,
         max_lot=100.0,
     )
+
+
+def _clamp_unit(value: float) -> float:
+    return max(0.0, min(1.0, value))
+
+
+def _coerce_positive(value: float | None) -> float | None:
+    if value is None:
+        return None
+    if value <= 0.0:
+        return None
+    return value
+
+
+def _extract_signal_numeric(signal: Any, *keys: str) -> float | None:
+    if not keys:
+        return None
+    for key in keys:
+        candidate: Any
+        if isinstance(signal, Mapping) and key in signal:
+            candidate = signal[key]
+        elif hasattr(signal, key):
+            candidate = getattr(signal, key)
+        else:
+            continue
+
+        if candidate is None:
+            continue
+
+        try:
+            numeric = float(candidate)
+        except (TypeError, ValueError):
+            continue
+
+        if not math.isfinite(numeric):  # pragma: no cover - defensive guard
+            continue
+
+        return numeric
+    return None
 
 
 def _build_alias_index(profiles: Mapping[str, InstrumentProfile]) -> Dict[str, str]:
@@ -478,7 +518,9 @@ class DynamicTradingAlgo:
     def execute_trade(self, signal: Any, *, lot: float, symbol: str) -> TradeExecutionResult:
         action = self._extract_action(signal)
         canonical_symbol, profile = self._resolve_symbol(symbol)
-        adjusted_lot = self._clamp_lot(lot, profile)
+        base_lot = self._clamp_lot(lot, profile)
+        adjusted_lot = self._apply_signal_modifiers(signal, base_lot, profile)
+        adjusted_lot = self._clamp_lot(adjusted_lot, profile)
 
         if action == ORDER_ACTION_BUY:
             return self._buy(canonical_symbol, adjusted_lot, profile=profile)
@@ -629,6 +671,62 @@ class DynamicTradingAlgo:
         if value <= 0:
             value = profile.min_lot
         return round(min(max(value, profile.min_lot), profile.max_lot), 4)
+
+    def _apply_signal_modifiers(
+        self, signal: Any, lot: float, profile: InstrumentProfile
+    ) -> float:
+        multiplier = 1.0
+
+        confidence = _extract_signal_numeric(signal, "confidence", "confidence_score")
+        if confidence is not None:
+            multiplier *= 0.6 + 0.4 * _clamp_unit(confidence)
+
+        conviction = _extract_signal_numeric(signal, "conviction", "strength", "probability")
+        if conviction is not None:
+            multiplier *= 0.7 + 0.3 * _clamp_unit(conviction)
+
+        urgency = _extract_signal_numeric(signal, "urgency", "velocity", "timing")
+        if urgency is not None:
+            multiplier *= 0.85 + 0.3 * _clamp_unit(urgency)
+
+        risk = _extract_signal_numeric(signal, "risk", "risk_score", "drawdown_risk")
+        if risk is not None:
+            multiplier *= max(0.1, 1.0 - 0.5 * _clamp_unit(risk))
+
+        volatility = _extract_signal_numeric(signal, "volatility", "volatility_score", "turbulence")
+        if volatility is not None:
+            multiplier *= max(0.25, 1.0 - 0.4 * _clamp_unit(volatility))
+
+        size_multiplier = _extract_signal_numeric(signal, "size_multiplier", "lot_multiplier")
+        if size_multiplier is not None and size_multiplier > 0.0:
+            multiplier *= size_multiplier
+
+        adjusted = lot * multiplier
+
+        min_hint = _coerce_positive(
+            _extract_signal_numeric(signal, "min_lot", "min_position", "floor")
+        )
+        if min_hint is not None:
+            adjusted = max(adjusted, min_hint)
+
+        max_hint = _coerce_positive(
+            _extract_signal_numeric(signal, "max_lot", "max_position", "ceiling")
+        )
+
+        notional_cap = _coerce_positive(
+            _extract_signal_numeric(signal, "notional_cap", "max_notional", "exposure_cap")
+        )
+        if notional_cap is not None and profile.reference_price > 0:
+            allowed = notional_cap / max(profile.reference_price, profile.tick_size)
+            if max_hint is None:
+                max_hint = allowed
+            else:
+                max_hint = min(max_hint, allowed)
+
+        if max_hint is not None:
+            adjusted = min(adjusted, max_hint)
+
+        return adjusted
 
     def _bootstrap_connector(self) -> Any:
         if MT5Connector is None:
