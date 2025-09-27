@@ -14,6 +14,8 @@ import {
 import { home, person, social } from "@/resources";
 import { DESK_TIME_ZONE, formatWithDeskTimezone } from "@/utils/deskTime";
 import { useEffect, useState } from "react";
+import { useDeskOnboardingSteps } from "@/hooks/useDeskOnboardingSteps";
+import { DEFAULT_DESK_ONBOARDING_STEPS } from "@/services/deskOnboardingSteps";
 
 const TELEGRAM_LINK = social.find((item) => item.name === "Telegram")?.link ||
   "https://t.me/DynamicCapital_Support";
@@ -45,51 +47,6 @@ const FOUNDATION_PILLS = [
   "Mindset warm-ups",
 ];
 
-const ONBOARDING_STEPS = [
-  {
-    id: "orientation",
-    label: "Orientation sprint",
-    icon: "sparkles" as const,
-    summary:
-      "Five bite-sized prompts help you define a goal, funding level, and time commitment in under ten minutes.",
-    highlights: [
-      "Tour the workspace and translate jargon into plain language",
-      "Pin your first checklist so you always know the next move",
-      "Bookmark the dashboard that tracks progress in real time",
-    ],
-    actionLabel: "Open guided workspace",
-    actionHref: home.path,
-  },
-  {
-    id: "practice",
-    label: "Practice in the simulator",
-    icon: "calendar" as const,
-    summary:
-      "Lock in a weekly drill using the desk calendar and rehearse the strategy on live markets without risking capital.",
-    highlights: [
-      "Follow a mentor-led warm-up before every session",
-      "Journal practice trades with one-click templates",
-      "Collect instant feedback to celebrate small wins early",
-    ],
-    actionLabel: "Schedule a drill",
-    actionHref: "/plans",
-  },
-  {
-    id: "feedback",
-    label: "Get mentor feedback",
-    icon: "repeat" as const,
-    summary:
-      "Share your trading plan for a desk-side review and get a personal redirect toward VIP coaching or group labs.",
-    highlights: [
-      "Upload your plan for a recorded walkthrough",
-      "Collect community playbooks matched to your goals",
-      "Decide whether to scale solo or join a live lab",
-    ],
-    actionLabel: "Message the mentors",
-    actionHref: TELEGRAM_LINK,
-  },
-];
-
 const DESK_TIME_FORMAT: Intl.DateTimeFormatOptions = {
   hour: "2-digit",
   minute: "2-digit",
@@ -114,7 +71,23 @@ function getDeskSnapshot() {
 
 export function RouteArchiveNotice() {
   const [deskSnapshot, setDeskSnapshot] = useState(getDeskSnapshot);
-  const [activeStep, setActiveStep] = useState(ONBOARDING_STEPS[0]);
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const {
+    steps,
+    isLoading: stepsLoading,
+    isError: stepsError,
+    isFallback: stepsFallback,
+  } = useDeskOnboardingSteps();
+  const resolvedSteps = steps.length > 0
+    ? steps
+    : DEFAULT_DESK_ONBOARDING_STEPS;
+  const showStepsSkeleton = stepsLoading && steps.length === 0;
+  const stepCount = resolvedSteps.length;
+  const safeIndex = stepCount === 0
+    ? 0
+    : Math.min(activeStepIndex, stepCount - 1);
+  const activeStep = resolvedSteps[safeIndex] ??
+    DEFAULT_DESK_ONBOARDING_STEPS[0];
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -123,6 +96,12 @@ export function RouteArchiveNotice() {
 
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (safeIndex !== activeStepIndex) {
+      setActiveStepIndex(safeIndex);
+    }
+  }, [activeStepIndex, safeIndex]);
 
   return (
     <Column
@@ -222,14 +201,19 @@ export function RouteArchiveNotice() {
             </Text>
           </Column>
           <Row gap="16" wrap horizontal="center">
-            {ONBOARDING_STEPS.map((step) => {
-              const isActive = activeStep.id === step.id;
+            {resolvedSteps.map((step, index) => {
+              const isActive = index === safeIndex;
+              const isSkeleton = showStepsSkeleton;
 
               return (
                 <Column
-                  key={step.id}
+                  key={`${step.id}-${index}`}
                   as="button"
-                  onClick={() => setActiveStep(step)}
+                  onClick={() => {
+                    if (!isSkeleton) {
+                      setActiveStepIndex(index);
+                    }
+                  }}
                   gap="12"
                   background={isActive
                     ? "brand-alpha-strong"
@@ -243,6 +227,11 @@ export function RouteArchiveNotice() {
                   horizontal="start"
                   data-active={isActive ? "true" : "false"}
                   aria-pressed={isActive}
+                  aria-disabled={isSkeleton}
+                  style={{
+                    opacity: isSkeleton ? 0.6 : 1,
+                    cursor: isSkeleton ? "wait" : undefined,
+                  }}
                 >
                   <Row gap="12" vertical="center">
                     <Icon
@@ -268,6 +257,29 @@ export function RouteArchiveNotice() {
               );
             })}
           </Row>
+          {showStepsSkeleton
+            ? (
+              <Text
+                variant="label-default-s"
+                onBackground="neutral-medium"
+                align="center"
+              >
+                Loading the latest onboarding journey…
+              </Text>
+            )
+            : null}
+          {!showStepsSkeleton && (stepsError || stepsFallback)
+            ? (
+              <Text
+                variant="label-default-s"
+                onBackground="neutral-medium"
+                align="center"
+              >
+                Showing the default onboarding steps while we refresh live
+                content.
+              </Text>
+            )
+            : null}
           <Column
             background="surface"
             border="brand-alpha-medium"
@@ -300,6 +312,8 @@ export function RouteArchiveNotice() {
               size="m"
               variant="primary"
               data-border="rounded"
+              disabled={showStepsSkeleton}
+              aria-disabled={showStepsSkeleton}
               href={activeStep.actionHref}
             >
               {activeStep.actionLabel}
