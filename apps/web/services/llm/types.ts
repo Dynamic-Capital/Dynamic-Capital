@@ -21,7 +21,7 @@ export interface ProviderSummary {
   maxOutputTokens: number;
 }
 
-export type ProviderId = "openai" | "anthropic" | "groq";
+export type ProviderId = "openai" | "anthropic" | "groq" | "google-gemma";
 
 export interface ChatRequest {
   providerId: ProviderId;

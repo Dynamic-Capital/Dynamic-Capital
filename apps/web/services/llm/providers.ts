@@ -24,6 +24,9 @@ interface ProviderDefinition {
 type ProviderInvokeInput = Omit<ChatRequest, "providerId">;
 
 const ANTHROPIC_VERSION = "2023-06-01";
+const GEMMA_MODEL = "gemma-2-9b-it";
+const GEMMA_API_URL =
+  `https://generativelanguage.googleapis.com/v1beta/models/${GEMMA_MODEL}:generateContent`;
 
 const providerDefinitions: ProviderDefinition[] = [
   {
@@ -169,6 +172,66 @@ const providerDefinitions: ProviderDefinition[] = [
       };
     },
   },
+  {
+    id: "google-gemma",
+    name: "Google Gemma",
+    description: "Gemma 2 9B IT for open-weight, low-latency drafts.",
+    defaultModel: GEMMA_MODEL,
+    contextWindow: 8_192,
+    maxOutputTokens: 2_048,
+    envKeys: ["GOOGLE_GEMMA_API_KEY"],
+    async invoke(
+      { messages, temperature = 0.7, maxTokens },
+    ): Promise<Omit<ChatResult, "provider">> {
+      const apiKey = requireEnvVar("GOOGLE_GEMMA_API_KEY");
+      const { system, conversation } = normalizeMessages(messages);
+
+      const payload: GoogleGenerateContentRequest = {
+        contents: conversation.map((message) => ({
+          role: message.role === "assistant" ? "model" : "user",
+          parts: [{ text: message.content }],
+        })),
+        generationConfig: {
+          temperature,
+          maxOutputTokens: maxTokens,
+        },
+      };
+
+      if (system) {
+        payload.systemInstruction = {
+          role: "system",
+          parts: [{ text: system }],
+        };
+      }
+
+      const response = await fetch(`${GEMMA_API_URL}?key=${apiKey}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(
+          `Google Gemma request failed: ${response.status} ${error}`,
+        );
+      }
+
+      const body = (await response.json()) as GoogleGenerateContentResponse;
+      const contentText = extractGoogleText(body);
+      if (!contentText) {
+        throw new Error("Google Gemma response did not include text content.");
+      }
+
+      const usage = mapGoogleUsage(body.usageMetadata);
+
+      return {
+        message: { role: "assistant", content: contentText },
+        usage,
+        rawResponse: body,
+      };
+    },
+  },
 ];
 
 interface AnthropicMessageRequest {
@@ -213,6 +276,41 @@ interface OpenAIChatResponse {
     completion_tokens?: number;
     total_tokens?: number;
   };
+}
+
+interface GooglePart {
+  text?: string;
+}
+
+interface GoogleContent {
+  role: "user" | "model" | "system";
+  parts?: GooglePart[];
+}
+
+interface GoogleGenerationConfig {
+  temperature: number;
+  maxOutputTokens: number;
+}
+
+interface GoogleGenerateContentRequest {
+  contents: GoogleContent[];
+  generationConfig: GoogleGenerationConfig;
+  systemInstruction?: GoogleContent;
+}
+
+interface GoogleCandidate {
+  content?: GoogleContent;
+}
+
+interface GoogleUsageMetadata {
+  promptTokenCount?: number;
+  candidatesTokenCount?: number;
+  totalTokenCount?: number;
+}
+
+interface GoogleGenerateContentResponse {
+  candidates?: GoogleCandidate[];
+  usageMetadata?: GoogleUsageMetadata;
 }
 
 function normalizeMessages(messages: ChatMessage[]): {
@@ -293,6 +391,44 @@ function mapAnthropicUsage(
     input_tokens: inputTokens,
     output_tokens: outputTokens,
     total_tokens: totalTokens,
+  } = usage;
+  if (
+    inputTokens === undefined && outputTokens === undefined &&
+    totalTokens === undefined
+  ) {
+    return undefined;
+  }
+  return {
+    inputTokens,
+    outputTokens,
+    totalTokens,
+  };
+}
+
+function extractGoogleText(
+  response: GoogleGenerateContentResponse,
+): string | undefined {
+  for (const candidate of response.candidates ?? []) {
+    const parts = candidate.content?.parts ?? [];
+    for (const part of parts) {
+      if (
+        part && typeof part.text === "string" && part.text.trim().length > 0
+      ) {
+        return part.text;
+      }
+    }
+  }
+  return undefined;
+}
+
+function mapGoogleUsage(
+  usage?: GoogleUsageMetadata,
+): TokenUsage | undefined {
+  if (!usage) return undefined;
+  const {
+    promptTokenCount: inputTokens,
+    candidatesTokenCount: outputTokens,
+    totalTokenCount: totalTokens,
   } = usage;
   if (
     inputTokens === undefined && outputTokens === undefined &&

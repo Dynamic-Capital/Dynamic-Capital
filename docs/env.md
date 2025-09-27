@@ -72,6 +72,8 @@ Additional crypto keys:
    | `apps/web/services/llm/providers.ts`                                                                   |
 | `GROQ_API_KEY`            | API key for Groq-hosted Mixtral responses.                 | No                  | `gsk_...`    |
    | `apps/web/services/llm/providers.ts`                                                                   |
+| `GOOGLE_GEMMA_API_KEY`    | API key for Google Gemma responses in the LLM studio.      | No                  | `AIza...`    |
+   | `apps/web/services/llm/providers.ts`                                                                   |
 | `FAQ_ENABLED`             | Enables FAQ command handling.                              | No                  | `true`            | `supabase/functions/telegram-bot/index.ts`                                                              |
 | `AMOUNT_TOLERANCE`        | Allowed payment variance (fractional).                     | No                  | `0.02`            | `supabase/functions/telegram-bot/index.ts`                                                              |
 | `WINDOW_SECONDS`          | Time window for receipt timestamps.                        | No                  | `180`             | `supabase/functions/telegram-bot/index.ts`                                                              |

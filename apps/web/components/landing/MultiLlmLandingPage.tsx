@@ -24,6 +24,7 @@ const PROVIDER_ICON_MAP: Record<ProviderId, string> = {
   openai: "sparkles",
   anthropic: "shield",
   groq: "timer",
+  "google-gemma": "globe",
 };
 
 const ROUTING_POLICIES = [
@@ -79,7 +80,7 @@ const ONBOARDING_STEPS = [
     stage: "Day 0",
     title: "Connect providers",
     detail:
-      "Securely add OpenAI, Anthropic, Groq, and OpenRouter keys or import an existing Once UI configuration snapshot.",
+      "Securely add OpenAI, Anthropic, Groq, and Google Gemma keys or import an existing Once UI configuration snapshot.",
   },
   {
     stage: "Day 1",
