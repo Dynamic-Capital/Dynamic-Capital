@@ -112,6 +112,35 @@ class DynamicFusionAlgo:
 
         return " ".join(comments)
 
+    def mm_parameters(
+        self,
+        market_data: Dict[str, Any],
+        treasury: Dict[str, Any],
+        inventory: float,
+    ) -> Dict[str, float]:
+        """Return adaptive market-making parameters based on risk context."""
+
+        sigma = self._coerce_float(market_data.get("volatility"), default=0.01)
+        treasury_balance = self._coerce_float(treasury.get("balance"), default=100_000.0)
+
+        params: Dict[str, float] = {
+            "gamma": 0.1,
+            "kappa": 1.0,
+            "T": 60.0,
+            "spread_floor": 0.001,
+        }
+
+        if treasury_balance > 500_000:
+            params["gamma"] = 0.05
+
+        if sigma > 0.05:
+            params["spread_floor"] = 0.005
+
+        if abs(inventory) > 1_000:
+            params["gamma"] = max(params["gamma"], 0.2)
+
+        return params
+
     @staticmethod
     def _coerce_float(value: Any, *, default: float) -> float:
         """Attempt to cast a value to float, falling back to a default on failure."""

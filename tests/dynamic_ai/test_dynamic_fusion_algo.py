@@ -51,3 +51,24 @@ def test_news_none_is_treated_as_empty_iterable(algo: DynamicFusionAlgo) -> None
     signal = algo.generate_signal(payload)
 
     assert signal.confidence == pytest.approx(0.45)
+
+
+def test_mm_parameters_adjust_risk_controls(algo: DynamicFusionAlgo) -> None:
+    params = algo.mm_parameters(
+        market_data={"volatility": 0.06},
+        treasury={"balance": 750_000},
+        inventory=50,
+    )
+
+    assert params["gamma"] == pytest.approx(0.05)
+    assert params["spread_floor"] == pytest.approx(0.005)
+
+
+def test_mm_parameters_scale_with_inventory(algo: DynamicFusionAlgo) -> None:
+    params = algo.mm_parameters(
+        market_data={"volatility": 0.01},
+        treasury={"balance": 10_000},
+        inventory=2_000,
+    )
+
+    assert params["gamma"] == pytest.approx(0.2)
