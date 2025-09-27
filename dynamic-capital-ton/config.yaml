@@ -24,7 +24,8 @@ emissions:
   epochCap: 240000
 
 governance:
-  multisig: "EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD"
+  # Replace with the Tonstarter treasury multisig during deployment.
+  multisig: "EQxxxxxxxx"
   timelockHours: 48
 
 themePasses:
