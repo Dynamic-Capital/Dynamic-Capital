@@ -107,6 +107,94 @@ export const resourcePlan: ResourcePlan = {
         "CREATE TRIGGER infrastructure_jobs_set_updated_at\nBEFORE UPDATE ON public.infrastructure_jobs\nFOR EACH ROW EXECUTE FUNCTION public.set_infrastructure_job_updated_at();",
       ],
     },
+    {
+      schema: "public",
+      name: "routine_prompts",
+      comment:
+        "Dynamic AI generated routine prompts that power notifications and daily cards.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Unique identifier for the routine prompt entry.",
+        },
+        {
+          name: "time_slot",
+          type: "text",
+          nullable: false,
+          comment: "Time label associated with the scheduled routine block.",
+        },
+        {
+          name: "category",
+          type: "text",
+          comment:
+            "High-level category assigned by Dynamic AI (Prayer, Trading, etc.).",
+        },
+        {
+          name: "title",
+          type: "text",
+          comment:
+            "Display title for the scheduled block derived from the blueprint.",
+        },
+        {
+          name: "tip",
+          type: "text",
+          comment: "Practical checklist-style advice for the block.",
+        },
+        {
+          name: "quote",
+          type: "text",
+          comment: "Motivational or faith-based quote paired with the routine.",
+        },
+        {
+          name: "notification",
+          type: "text",
+          comment: "Short push notification copy combining title and tip cues.",
+        },
+        {
+          name: "created_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the routine prompt was generated.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "routine_prompts_time_slot_idx",
+          expression: "(time_slot)",
+          unique: true,
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+        force: true,
+      },
+      policies: [
+        {
+          name: "routine_prompts_service_all",
+          command: "ALL",
+          roles: ["service_role"],
+          using: "true",
+          withCheck: "true",
+          comment:
+            "Allow the service role to manage Dynamic AI routine prompts.",
+        },
+        {
+          name: "routine_prompts_authenticated_read",
+          command: "SELECT",
+          roles: ["authenticated"],
+          using: "true",
+          comment:
+            "Permit authenticated users to read the published routine prompts.",
+        },
+      ],
+    },
   ],
   storage: {
     enableRowLevelSecurity: true,
