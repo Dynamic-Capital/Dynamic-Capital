@@ -1,0 +1,180 @@
+import {
+  assertEquals,
+  assertStrictEquals,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
+
+Deno.test("analysis-ingest stores valid analyst insight", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests: Array<{ url: URL; init: RequestInit | undefined }> = [];
+
+  Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
+
+  globalThis.fetch = async (
+    input: Request | URL | string,
+    init?: RequestInit,
+  ) => {
+    const url = typeof input === "string"
+      ? new URL(input)
+      : input instanceof Request
+      ? new URL(input.url)
+      : new URL(input);
+
+    if (
+      url.hostname === "stub.supabase.co" &&
+      url.pathname.startsWith("/rest/v1/analyst_insights")
+    ) {
+      requests.push({ url, init });
+      return new Response(
+        JSON.stringify([{
+          id: crypto.randomUUID(),
+          created_at: "2024-05-01T00:00:00Z",
+        }]),
+        {
+          status: 201,
+          headers: { "content-type": "application/json" },
+        },
+      );
+    }
+
+    return originalFetch(input, init);
+  };
+
+  try {
+    const { handler } = await import(
+      `../analysis-ingest/index.ts?cache=${crypto.randomUUID()}`
+    );
+
+    const payload = {
+      symbol: "xauusd",
+      bias: "buy",
+      content: "Gold long setup on breakout",
+      chart_url: "https://www.tradingview.com/x/abcd1234/",
+    };
+
+    const response = await handler(
+      new Request("http://localhost/functions/v1/analysis-ingest", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      }),
+    );
+
+    assertEquals(response.status, 200);
+    const body = await response.json() as { status: string; id: string | null };
+    assertEquals(body.status, "ok");
+    assertStrictEquals(requests.length, 1);
+    const [{ init }] = requests;
+    const submitted = JSON.parse(init?.body as string) as Record<
+      string,
+      unknown
+    >;
+    assertEquals(submitted.symbol, "XAUUSD");
+    assertEquals(submitted.bias, "BUY");
+    assertEquals(submitted.content, "Gold long setup on breakout");
+    assertEquals(
+      submitted.chart_url,
+      "https://www.tradingview.com/x/abcd1234/",
+    );
+    assertEquals(submitted.author, "DynamicCapital-FX");
+  } finally {
+    globalThis.fetch = originalFetch;
+    Deno.env.delete("SUPABASE_SERVICE_ROLE_KEY");
+  }
+});
+
+Deno.test("analysis-ingest rejects invalid bias", async () => {
+  const { handler } = await import(
+    `../analysis-ingest/index.ts?cache=${crypto.randomUUID()}`
+  );
+
+  const response = await handler(
+    new Request("http://localhost/functions/v1/analysis-ingest", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        symbol: "BTCUSD",
+        bias: "strong-buy",
+        content: "Moon",
+      }),
+    }),
+  );
+
+  assertEquals(response.status, 400);
+  const body = await response.json() as { error: string };
+  assertEquals(body.error, "invalid_bias");
+});
+
+Deno.test("analysis-ingest rejects malformed chart URLs", async () => {
+  const { handler } = await import(
+    `../analysis-ingest/index.ts?cache=${crypto.randomUUID()}`
+  );
+
+  const response = await handler(
+    new Request("http://localhost/functions/v1/analysis-ingest", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        symbol: "EURUSD",
+        content: "Range-bound",
+        chart_url: "notaurl",
+      }),
+    }),
+  );
+
+  assertEquals(response.status, 400);
+  const body = await response.json() as { error: string };
+  assertEquals(body.error, "invalid_chart_url");
+});
+
+Deno.test("analysis-ingest surfaces database errors", async () => {
+  const originalFetch = globalThis.fetch;
+  Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", "service-role-key");
+
+  globalThis.fetch = async (
+    input: Request | URL | string,
+    init?: RequestInit,
+  ) => {
+    const url = typeof input === "string"
+      ? new URL(input)
+      : input instanceof Request
+      ? new URL(input.url)
+      : new URL(input);
+
+    if (
+      url.hostname === "stub.supabase.co" &&
+      url.pathname.startsWith("/rest/v1/analyst_insights")
+    ) {
+      return new Response(JSON.stringify({ message: "duplicate" }), {
+        status: 500,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    return originalFetch(input, init);
+  };
+
+  try {
+    const { handler } = await import(
+      `../analysis-ingest/index.ts?cache=${crypto.randomUUID()}`
+    );
+
+    const response = await handler(
+      new Request("http://localhost/functions/v1/analysis-ingest", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          symbol: "ETHUSD",
+          content: "Desk neutral",
+        }),
+      }),
+    );
+
+    assertEquals(response.status, 500);
+    const body = await response.json() as { status: string; message: string };
+    assertEquals(body.status, "error");
+    assertEquals(body.message, "database_error");
+  } finally {
+    globalThis.fetch = originalFetch;
+    Deno.env.delete("SUPABASE_SERVICE_ROLE_KEY");
+  }
+});

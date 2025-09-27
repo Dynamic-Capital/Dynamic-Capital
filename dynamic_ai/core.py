@@ -45,7 +45,12 @@ class DynamicFusionAlgo:
 
         ai_action = self._refine_action(raw_signal, market_data)
         confidence = self._calculate_confidence(raw_signal, market_data)
-        reasoning = self._build_reasoning(ai_action, confidence, market_data)
+        ai_action, confidence, human_note = self._blend_with_human_bias(
+            ai_action,
+            confidence,
+            market_data,
+        )
+        reasoning = self._build_reasoning(ai_action, confidence, market_data, human_note)
 
         return AISignal(action=ai_action, confidence=confidence, reasoning=reasoning, original_signal=raw_signal)
 
@@ -85,7 +90,13 @@ class DynamicFusionAlgo:
 
         return round(confidence, 2)
 
-    def _build_reasoning(self, action: str, confidence: float, market_data: Dict[str, Any]) -> str:
+    def _build_reasoning(
+        self,
+        action: str,
+        confidence: float,
+        market_data: Dict[str, Any],
+        human_note: str | None,
+    ) -> str:
         comments: List[str] = []
 
         trend = market_data.get("trend")
@@ -106,6 +117,9 @@ class DynamicFusionAlgo:
             comments.append("High confidence due to signal alignment across indicators.")
         elif confidence <= 0.35:
             comments.append("Low confidence – risk controls recommended before execution.")
+
+        if human_note:
+            comments.append(human_note)
 
         if not comments:
             comments.append("Signal defaulted to neutral heuristics due to limited context.")
@@ -166,3 +180,70 @@ class DynamicFusionAlgo:
         if isinstance(raw_topics, Iterable):
             return raw_topics
         return [raw_topics]
+
+    def _blend_with_human_bias(
+        self,
+        action: str,
+        confidence: float,
+        market_data: Dict[str, Any],
+    ) -> tuple[str, float, str | None]:
+        human_bias_raw = (
+            market_data.get("human_bias")
+            or market_data.get("analyst_bias")
+            or market_data.get("human_analysis")
+        )
+        if not human_bias_raw:
+            return action, confidence, None
+
+        human_bias = str(human_bias_raw).upper()
+        if human_bias not in VALID_SIGNALS:
+            return action, confidence, None
+
+        default_weight = 0.25 if human_bias in {"BUY", "SELL"} else 0.0
+        human_weight = self._coerce_float(
+            market_data.get("human_weight"),
+            default=default_weight,
+        )
+        human_weight = max(0.0, min(1.0, human_weight))
+        if human_weight == 0.0:
+            return action, confidence, None
+
+        base_score = self._action_to_score(action)
+        human_score = self._action_to_score(human_bias)
+        combined = (base_score * (1.0 - human_weight)) + (human_score * human_weight)
+        fused_action = self._score_to_action(combined)
+
+        influence = abs(combined)
+        boosted_confidence = max(
+            confidence,
+            min(1.0, round(confidence + human_weight * 0.25 + influence * 0.25, 2)),
+        )
+
+        if fused_action != action:
+            note = (
+                f"Human analysis ({human_bias}) adjusted action to {fused_action}"
+                f" with weight {human_weight:.2f}."
+            )
+        else:
+            note = (
+                f"Human analysis ({human_bias}) aligned with automation"
+                f" at weight {human_weight:.2f}."
+            )
+
+        return fused_action, boosted_confidence, note
+
+    @staticmethod
+    def _action_to_score(action: str) -> float:
+        if action == "BUY":
+            return 1.0
+        if action == "SELL":
+            return -1.0
+        return 0.0
+
+    @staticmethod
+    def _score_to_action(score: float) -> str:
+        if score > 0.2:
+            return "BUY"
+        if score < -0.2:
+            return "SELL"
+        return "NEUTRAL"

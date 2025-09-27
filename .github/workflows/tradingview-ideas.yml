@@ -1,0 +1,30 @@
+name: TradingView Ideas Collector
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  collect-tradingview-ideas:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
+
+      - name: Collect TradingView ideas
+        env:
+          TRADINGVIEW_USERNAME: ${{ secrets.TRADINGVIEW_USERNAME }}
+          SUPABASE_ANALYSIS_FN_URL: ${{ secrets.SUPABASE_ANALYSIS_FN_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python collect_tradingview.py
