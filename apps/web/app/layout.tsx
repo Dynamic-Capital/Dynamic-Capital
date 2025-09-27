@@ -18,7 +18,7 @@ import {
 
 import Providers from "./providers";
 import { getStaticLandingDocument } from "@/lib/staticLanding";
-import { RouteGuard, ScrollToHash } from "@/components/magic-portfolio";
+import { RouteGuard, ScrollToHash } from "@/components/dynamic-portfolio";
 import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { SiteFooter } from "@/components/navigation/SiteFooter";
 import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";

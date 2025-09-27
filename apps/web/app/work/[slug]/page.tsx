@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { brandProjectTitle, getPosts } from "@/utils/magic-portfolio/utils";
+import { brandProjectTitle, getPosts } from "@/utils/dynamic-portfolio/utils";
 import {
   AvatarGroup,
   Column,
@@ -13,11 +13,11 @@ import {
   Text,
 } from "@/components/dynamic-ui-system";
 import { about, baseURL, person, toAbsoluteUrl, work } from "@/resources";
-import { formatDate } from "@/utils/magic-portfolio/formatDate";
-import { CustomMDX, ScrollToHash } from "@/components/magic-portfolio";
+import { formatDate } from "@/utils/dynamic-portfolio/formatDate";
+import { CustomMDX, ScrollToHash } from "@/components/dynamic-portfolio";
 import type { Metadata } from "next";
 import { cache } from "react";
-import { Projects } from "@/components/magic-portfolio/work/Projects";
+import { Projects } from "@/components/dynamic-portfolio/work";
 import { Badge } from "@/components/ui/badge";
 
 type MaybePromise<T> = T | Promise<T>;

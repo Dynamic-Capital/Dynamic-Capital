@@ -13,26 +13,28 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-import { AboutShowcase } from "@/components/magic-portfolio/home/AboutShowcase";
-import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
-import { ComplianceCertificates } from "@/components/magic-portfolio/home/ComplianceCertificates";
-import { CommodityStrengthSection } from "@/components/magic-portfolio/home/CommodityStrengthSection";
-import { CryptoStrengthSection } from "@/components/magic-portfolio/home/CryptoStrengthSection";
-import { CurrencyStrengthSection } from "@/components/magic-portfolio/home/CurrencyStrengthSection";
-import { EconomicCalendarSection } from "@/components/magic-portfolio/home/EconomicCalendarSection";
-import { FundamentalAnalysisSection } from "@/components/magic-portfolio/home/FundamentalAnalysisSection";
-import { FxMarketSnapshotSection } from "@/components/magic-portfolio/home/FxMarketSnapshotSection";
-import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
-import { IndexStrengthSection } from "@/components/magic-portfolio/home/IndexStrengthSection";
-import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
-import { LossRecoveryProgrammeSection } from "@/components/magic-portfolio/home/LossRecoveryProgrammeSection";
-import { Mailchimp } from "@/components/magic-portfolio/Mailchimp";
-import { MarketWatchlist } from "@/components/magic-portfolio/home/MarketWatchlist";
-import { PerformanceInsightsSection } from "@/components/magic-portfolio/home/PerformanceInsightsSection";
-import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
-import { ValuePropositionSection } from "@/components/magic-portfolio/home/ValuePropositionSection";
-import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
-import { VipPlansPricingSection } from "@/components/magic-portfolio/home/VipPlansPricingSection";
+import { Mailchimp } from "@/components/dynamic-portfolio/Mailchimp";
+import {
+  AboutShowcase,
+  CheckoutCallout,
+  CommodityStrengthSection,
+  ComplianceCertificates,
+  CryptoStrengthSection,
+  CurrencyStrengthSection,
+  EconomicCalendarSection,
+  FundamentalAnalysisSection,
+  FxMarketSnapshotSection,
+  HeroExperience,
+  IndexStrengthSection,
+  LossRecoveryProgrammeSection,
+  MarketWatchlist,
+  MentorshipProgramsSection,
+  PerformanceInsightsSection,
+  PoolTradingSection,
+  ValuePropositionSection,
+  VipPackagesSection,
+  VipPlansPricingSection,
+} from "@/components/dynamic-portfolio/home";
 import { cn } from "@/utils";
 import { about, baseURL, home, person, toAbsoluteUrl } from "@/resources";
 import { useHeroMetrics } from "@/hooks/useHeroMetrics";

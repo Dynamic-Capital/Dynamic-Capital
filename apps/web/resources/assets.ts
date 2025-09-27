@@ -1,5 +1,5 @@
 const DEFAULT_SUPABASE_URL = "https://stub.supabase.co";
-const MAGIC_PORTFOLIO_BUCKET = "magic-portfolio";
+const DYNAMIC_PORTFOLIO_BUCKET = "dynamic-portfolio";
 
 const ABSOLUTE_URL_PATTERN = /^[a-z][a-z0-9+.-]*:\/\//i;
 
@@ -36,12 +36,12 @@ const SUPABASE_URL = resolveSupabaseUrl();
 function buildBucketBase(): string {
   try {
     const bucketUrl = new URL(
-      `/storage/v1/object/public/${MAGIC_PORTFOLIO_BUCKET}/`,
+      `/storage/v1/object/public/${DYNAMIC_PORTFOLIO_BUCKET}/`,
       SUPABASE_URL,
     );
     return bucketUrl.toString();
   } catch {
-    return `${DEFAULT_SUPABASE_URL}/storage/v1/object/public/${MAGIC_PORTFOLIO_BUCKET}/`;
+    return `${DEFAULT_SUPABASE_URL}/storage/v1/object/public/${DYNAMIC_PORTFOLIO_BUCKET}/`;
   }
 }
 
@@ -83,5 +83,5 @@ export function toAbsoluteUrl(
   }
 }
 
-export const magicPortfolioBucketBaseUrl = SUPABASE_BUCKET_BASE;
-export const magicPortfolioBucketName = MAGIC_PORTFOLIO_BUCKET;
+export const dynamicPortfolioBucketBaseUrl = SUPABASE_BUCKET_BASE;
+export const dynamicPortfolioBucketName = DYNAMIC_PORTFOLIO_BUCKET;

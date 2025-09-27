@@ -2,12 +2,12 @@
 
 import { Column, Row } from "@/components/dynamic-ui-system";
 
-import FxMarketSnapshotSection from "@/components/magic-portfolio/home/FxMarketSnapshotSection";
-import MarketWatchlist from "@/components/magic-portfolio/home/MarketWatchlist";
-import { CommodityStrengthSection } from "@/components/magic-portfolio/home/CommodityStrengthSection";
-import { CryptoStrengthSection } from "@/components/magic-portfolio/home/CryptoStrengthSection";
-import { CurrencyStrengthSection } from "@/components/magic-portfolio/home/CurrencyStrengthSection";
-import { IndexStrengthSection } from "@/components/magic-portfolio/home/IndexStrengthSection";
+import FxMarketSnapshotSection from "@/components/dynamic-portfolio/home/FxMarketSnapshotSection";
+import MarketWatchlist from "@/components/dynamic-portfolio/home/MarketWatchlist";
+import { CommodityStrengthSection } from "@/components/dynamic-portfolio/home/CommodityStrengthSection";
+import { CryptoStrengthSection } from "@/components/dynamic-portfolio/home/CryptoStrengthSection";
+import { CurrencyStrengthSection } from "@/components/dynamic-portfolio/home/CurrencyStrengthSection";
+import { IndexStrengthSection } from "@/components/dynamic-portfolio/home/IndexStrengthSection";
 
 export function DynamicMarketReview() {
   return (
