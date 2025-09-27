@@ -6,6 +6,8 @@ from .trading_core import (
     SUCCESS_RETCODE,
     TradeExecutionResult,
     DynamicTradingAlgo,
+    InstrumentProfile,
+    normalise_symbol,
 )
 from .market_flow import DynamicMarketFlow, MarketFlowSnapshot, MarketFlowTrade
 from .middleware import (
@@ -111,6 +113,8 @@ __all__ = [
     "SUCCESS_RETCODE",
     "TradeExecutionResult",
     "DynamicTradingAlgo",
+    "InstrumentProfile",
+    "normalise_symbol",
     "DynamicMarketFlow",
     "MarketFlowSnapshot",
     "MarketFlowTrade",
