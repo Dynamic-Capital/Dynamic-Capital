@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
 
-import deskTimeZoneConfig from "../../shared/time/desk-time-zone.json" assert {
+import deskTimeZoneConfig from "../../shared/time/desk-time-zone.json" with {
   type: "json",
 };
 
