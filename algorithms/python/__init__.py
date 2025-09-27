@@ -208,6 +208,16 @@ from .team_operations import (
     build_team_operations_playbooks,
     build_team_operations_sync_algorithm,
 )
+from .backend_keeper import (
+    BackendKeeperSyncResult,
+    BackendService,
+    DynamicBackendKeeperAlgorithm,
+)
+from .frontend_keeper import (
+    DynamicFrontendKeeperAlgorithm,
+    FrontendKeeperSyncResult,
+    FrontendSurface,
+)
 from .route_keeper import DynamicRouteKeeperAlgorithm, Route, RouteKeeperSyncResult
 from .supabase_edge_functions import (
     EdgeFunctionRunbook,
@@ -416,6 +426,12 @@ __all__ = _trade_exports + [
     "Route",
     "DynamicRouteKeeperAlgorithm",
     "RouteKeeperSyncResult",
+    "BackendKeeperSyncResult",
+    "BackendService",
+    "DynamicBackendKeeperAlgorithm",
+    "DynamicFrontendKeeperAlgorithm",
+    "FrontendKeeperSyncResult",
+    "FrontendSurface",
     "StepExecution",
     "StepHandler",
     "StepResult",
@@ -586,6 +602,12 @@ globals().update(
         "Route": Route,
         "DynamicRouteKeeperAlgorithm": DynamicRouteKeeperAlgorithm,
         "RouteKeeperSyncResult": RouteKeeperSyncResult,
+        "BackendKeeperSyncResult": BackendKeeperSyncResult,
+        "BackendService": BackendService,
+        "DynamicBackendKeeperAlgorithm": DynamicBackendKeeperAlgorithm,
+        "DynamicFrontendKeeperAlgorithm": DynamicFrontendKeeperAlgorithm,
+        "FrontendKeeperSyncResult": FrontendKeeperSyncResult,
+        "FrontendSurface": FrontendSurface,
         "EdgeFunctionRunbook": EdgeFunctionRunbook,
         "EdgeFunctionSpec": EdgeFunctionSpec,
         "DynamicSupabaseEdgeFunctionAlgorithm": DynamicSupabaseEdgeFunctionAlgorithm,
