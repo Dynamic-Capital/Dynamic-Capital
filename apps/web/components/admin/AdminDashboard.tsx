@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Activity,
@@ -9,7 +10,6 @@ import {
   CheckCircle2,
   Clock,
   DollarSign,
-  Loader2,
   Shield,
   Users,
   XCircle,
@@ -25,6 +25,89 @@ import { BotDiagnostics } from "./BotDiagnostics";
 import { callEdgeFunction } from "@/config/supabase";
 import { formatIsoDateTime } from "@/utils/isoFormat";
 import { DynamicButton, DynamicContainer } from "@/components/dynamic-ui";
+
+const AdminDashboardSkeleton = () => {
+  return (
+    <section
+      className="relative overflow-hidden rounded-[32px] border border-border/40 bg-gradient-to-br from-background via-card/40 to-background p-[1px] shadow-xl"
+      aria-busy="true"
+    >
+      <div className="pointer-events-none absolute inset-0 rounded-[32px] bg-gradient-to-br from-primary/20 via-transparent to-dc-accent/20 opacity-40" />
+      <div className="relative rounded-[32px] bg-background/95 p-6 sm:p-10">
+        <DynamicContainer variant="slideUp" className="space-y-10">
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-3 text-left">
+              <Skeleton className="h-6 w-64 rounded-full" />
+              <Skeleton className="h-10 w-72 rounded-2xl" />
+              <Skeleton className="h-4 w-80 rounded-full" />
+              <Skeleton className="h-4 w-60 rounded-full" />
+            </div>
+            <div className="flex flex-col items-start gap-2 sm:items-end">
+              <Skeleton className="h-6 w-40 rounded-full" />
+              <Skeleton className="h-6 w-32 rounded-full" />
+            </div>
+          </header>
+
+          <div className="space-y-6">
+            <div className="space-y-6 rounded-3xl border border-border/40 bg-card/70 p-6 shadow-inner">
+              <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+                <Skeleton className="h-4 w-72 rounded-full" />
+                <Skeleton className="h-4 w-48 rounded-full" />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="space-y-4 rounded-2xl border border-border/30 bg-background/80 p-4 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <Skeleton className="h-10 w-10 rounded-2xl" />
+                      <Skeleton className="h-4 w-16 rounded-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-3/4 rounded-full" />
+                      <Skeleton className="h-4 w-1/2 rounded-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-6 rounded-3xl border border-border/40 bg-card/70 p-6 shadow-inner">
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <Skeleton key={index} className="h-10 rounded-xl" />
+                ))}
+              </div>
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="space-y-3 rounded-2xl border border-border/30 bg-background/80 p-4 shadow-sm"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex flex-1 items-center gap-3">
+                        <Skeleton className="h-12 w-12 rounded-2xl" />
+                        <div className="w-full space-y-2">
+                          <Skeleton className="h-4 w-2/3 rounded-full" />
+                          <Skeleton className="h-4 w-1/2 rounded-full" />
+                        </div>
+                      </div>
+                      <div className="flex w-full flex-col items-start gap-2 sm:w-auto sm:items-end">
+                        <Skeleton className="h-4 w-24 rounded-full" />
+                        <Skeleton className="h-9 w-28 rounded-xl" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DynamicContainer>
+      </div>
+    </section>
+  );
+};
 
 interface AdminStats {
   total_users: number;
@@ -236,15 +319,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
   };
 
   if (loading) {
-    return (
-      <DynamicContainer
-        variant="fadeIn"
-        className="flex min-h-[200px] items-center justify-center rounded-3xl border border-border/50 bg-card/60 px-6 py-12 text-sm font-medium text-muted-foreground shadow-lg"
-      >
-        <Loader2 className="mr-3 h-6 w-6 animate-spin text-primary" />
-        Loading admin dashboard...
-      </DynamicContainer>
-    );
+    return <AdminDashboardSkeleton />;
   }
 
   if (!isAdmin) {
