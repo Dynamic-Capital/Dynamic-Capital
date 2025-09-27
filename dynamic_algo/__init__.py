@@ -8,6 +8,13 @@ from .trading_core import (
     DynamicTradingAlgo,
 )
 from .market_flow import DynamicMarketFlow, MarketFlowSnapshot, MarketFlowTrade
+from .dynamic_pool import (
+    DynamicPoolAlgo,
+    InvestorAllocation,
+    PoolDeposit,
+    PoolSnapshot,
+    PoolWithdrawal,
+)
 
 __all__ = [
     "ORDER_ACTION_BUY",
@@ -18,4 +25,9 @@ __all__ = [
     "DynamicMarketFlow",
     "MarketFlowSnapshot",
     "MarketFlowTrade",
+    "DynamicPoolAlgo",
+    "InvestorAllocation",
+    "PoolDeposit",
+    "PoolSnapshot",
+    "PoolWithdrawal",
 ]
