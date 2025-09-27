@@ -725,20 +725,33 @@ class DynamicFusionAlgo:
         if not context.indicator_panel:
             return 0.0
 
+        indicator_values = [
+            value
+            for name, value in context.indicator_panel
+            if name != "resolved_signal_bias"
+        ]
+
+        if not indicator_values:
+            return 0.0
+
         action_score = self._action_to_score(action)
         threshold = 0.15
 
-        values = [value for _, value in context.indicator_panel]
-
         if action_score == 0.0:
-            strong_bias = sum(1 for value in values if abs(value) > 0.4)
-            neutral_support = sum(1 for value in values if abs(value) <= threshold)
-            return (neutral_support - strong_bias) / len(values)
+            strong_bias = sum(1 for value in indicator_values if abs(value) > 0.4)
+            neutral_support = sum(
+                1 for value in indicator_values if abs(value) <= threshold
+            )
+            return (neutral_support - strong_bias) / len(indicator_values)
 
-        aligned = sum(1 for value in values if value * action_score > threshold)
-        conflicting = sum(1 for value in values if value * action_score < -threshold)
+        aligned = sum(
+            1 for value in indicator_values if value * action_score > threshold
+        )
+        conflicting = sum(
+            1 for value in indicator_values if value * action_score < -threshold
+        )
 
-        return (aligned - conflicting) / len(values)
+        return (aligned - conflicting) / len(indicator_values)
 
     def _build_consensus_provider(
         self, context: "PreparedMarketContext"
