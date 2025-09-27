@@ -57,6 +57,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_encryption": ("DynamicEncryptionEngine",),
     "dynamic_implicit_memory": ("DynamicImplicitMemory",),
     "dynamic_index": ("DynamicIndex",),
+    "dynamic_letter_index": ("DynamicLetterIndex",),
     "dynamic_indicators": ("DynamicIndicators",),
     "dynamic_keepers": (
         "DynamicAPIKeeperAlgorithm",
