@@ -43,6 +43,7 @@ key.
 | 14       | [`Investing.com Candlestick Signal Integration`](./investing-com-candlestick-checklist.md) | Bringing Investing.com pattern data into Supabase, queue, and Mini App surfaces | Plan and track the signal ingestion + alert rollout                  | —                     |
 | 15       | [`Trading Algo Improvement Checklist`](./trading-algo-improvement-checklist.md)            | Tune Smart Money Concepts configuration & QA loops                              | Iterate on BOS/liquidity heuristics across config, analyzers, and delivery            | —                     |
 | 16       | [`ISO 9241 Environment Alignment Checklist`](./iso9241_environment_checklist.md)          | ISO 9241-110-aligned review of environments, branches, builds, and configuration | Audit deployment hygiene against usability principles               | —                     |
+| 17       | [`CoinGecko Listing Readiness Checklist`](./coingecko-listing-checklist.md)                | Token listing evidence, market data, and compliance artifacts                     | Prepare the application package for a CoinGecko listing                                | —                     |
 
 ## Project delivery (priorities 1–3)
 
@@ -104,6 +105,8 @@ key.
 - **[`ISO 9241 Environment Alignment Checklist`](./iso9241_environment_checklist.md)**
   – keeps environment, branching, build, and configuration workflows aligned
   with ISO 9241-110 usability guidance.
+- **[`CoinGecko Listing Readiness Checklist`](./coingecko-listing-checklist.md)**
+  – compiles the evidence, documentation, and market data reviewers request during the CoinGecko token listing process.
 
 ## Keep documentation in sync
 
