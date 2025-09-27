@@ -1,0 +1,191 @@
+"""Aggregate exports for the Dynamic Capital toolkit surface.
+
+The original automation stack exposed a ``dynamic_tool_kits`` namespace that
+bundled contextual dataclasses, payload contracts, and other supporting
+structures.  As the repository grew these utilities were moved into
+domain-focused packages.  This module re-introduces the aggregated import
+surface so downstream consumers can continue using the historic entry point
+while the implementation remains centralised.
+"""
+
+from __future__ import annotations
+
+from importlib import import_module
+from typing import Dict, Iterable, Tuple
+
+# Each entry points to the supporting data models, contexts, and helper classes
+# for a particular domain toolkit.  Symbols are resolved lazily to avoid pulling
+# heavy dependencies unless they are explicitly requested by consumers.
+_TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
+    "dynamic_agents": (
+        "Agent",
+        "AgentResult",
+        "ChatAgentResult",
+        "ChatTurn",
+        "ExecutionAgent",
+        "ExecutionAgentResult",
+        "ResearchAgent",
+        "ResearchAgentResult",
+        "RiskAgent",
+        "RiskAgentResult",
+        "run_dynamic_agent_cycle",
+    ),
+    "dynamic_ai": (
+        "AISignal",
+        "DolphinLlamaCppAdapter",
+        "DolphinModelConfig",
+        "DolphinPromptTemplate",
+        "DolphinSamplingConfig",
+        "LLMIntegrationError",
+        "OllamaAdapter",
+        "OllamaConfig",
+        "OllamaPromptTemplate",
+        "AnalysisComponent",
+        "LobeSignal",
+        "LorentzianDistanceLobe",
+        "RegimeContext",
+        "SentimentLobe",
+        "SignalLobe",
+        "TrendMomentumLobe",
+        "TreasuryLobe",
+        "calibrate_lorentzian_lobe",
+        "load_lorentzian_model",
+        "PositionSizing",
+        "RiskContext",
+        "RiskManager",
+        "RiskParameters",
+        "AccountState",
+        "ExposurePosition",
+        "HedgeDecision",
+        "HedgePosition",
+        "MarketState",
+        "NewsEvent",
+        "VolatilitySnapshot",
+    ),
+    "dynamic_algo": (
+        "ORDER_ACTION_BUY",
+        "ORDER_ACTION_SELL",
+        "SUCCESS_RETCODE",
+        "TradeExecutionResult",
+        "InstrumentProfile",
+        "normalise_symbol",
+        "MarketFlowSnapshot",
+        "MarketFlowTrade",
+        "CEOPulse",
+        "CEOInitiativeSummary",
+        "CEOSnapshot",
+        "FinancialEntry",
+        "FinancialPeriodSummary",
+        "CFOSnapshot",
+        "OperationalSignal",
+        "OperationalDomainSummary",
+        "OperationsSnapshot",
+        "MiddlewareContext",
+        "MiddlewareExecutionError",
+        "InvestorAllocation",
+        "PoolDeposit",
+        "PoolSnapshot",
+        "PoolWithdrawal",
+        "MetadataAttribute",
+        "MarketingTouchpoint",
+        "ChannelPerformance",
+        "CampaignSnapshot",
+        "PsychologyEntry",
+        "PsychologySnapshot",
+        "ElementAggregate",
+        "DecisionSignal",
+        "DecisionContext",
+        "DecisionOption",
+        "DecisionSignalSummary",
+        "DecisionRecommendation",
+        "ElementContribution",
+        "ElementSummary",
+        "ElementSnapshot",
+        "NodeConfigError",
+        "NodeDependencyError",
+        "TypeClassification",
+        "TypeConfigError",
+        "TypeResolutionError",
+        "TrackingEvent",
+        "StageSummary",
+        "TrackingSnapshot",
+        "ScriptConfigError",
+        "RoutePolicy",
+        "RouteSnapshot",
+        "TrafficDecision",
+        "TrafficSignal",
+        "Goal",
+        "Obstacle",
+        "Insight",
+        "ActionHypothesis",
+        "ProblemOutcome",
+        "ActionPlan",
+        "ProblemSolvingError",
+        "GoalNotDefinedError",
+    ),
+    "dynamic_analytical_thinking": ("AnalyticalContext", "AnalyticalInsight", "AnalyticalSignal"),
+    "dynamic_arrow": ("ArrowSignal", "ArrowSnapshot"),
+    "dynamic_autonoetic": ("AutonoeticConsciousness", "AutonoeticContext", "AutonoeticSignal", "AutonoeticState"),
+    "dynamic_branch": ("BranchDefinition", "BranchStatus", "PromotionPlan"),
+    "dynamic_bridge": ("BridgeEndpoint", "BridgeHealthReport", "BridgeIncident", "BridgeLink", "create_dynamic_mt5_bridge"),
+    "dynamic_candles": ("Candle", "CandleAnalytics", "CandleSeries", "PatternSignal"),
+    "dynamic_consciousness": ("ConsciousnessContext", "ConsciousnessSignal", "ConsciousnessState"),
+    "dynamic_creative_thinking": ("CreativeContext", "CreativeFrame", "CreativeSignal"),
+    "dynamic_critical_thinking": ("CriticalEvaluation", "CriticalSignal", "EvaluationContext"),
+    "dynamic_effect": ("EffectImpulse", "EffectContext", "EffectFrame"),
+    "dynamic_emoticon": ("EmoticonContext", "EmoticonDesign", "EmoticonPalette", "EmoticonSignal"),
+    "dynamic_encryption": ("EncryptionEnvelope", "EncryptionRequest", "KeyMaterial"),
+    "dynamic_implicit_memory": ("ImplicitMemoryReport", "ImplicitMemoryTrace", "MemoryContext"),
+    "dynamic_index": ("IndexConstituent", "IndexSignal", "IndexSnapshot"),
+    "dynamic_indicators": ("IndicatorDefinition", "IndicatorOverview", "IndicatorReading", "IndicatorSnapshot"),
+    "dynamic_keepers": (
+        "ApiKeeperSyncResult",
+        "BackendKeeperSyncResult",
+        "ChannelKeeperSyncResult",
+        "FrontendKeeperSyncResult",
+        "GroupKeeperSyncResult",
+        "RouteKeeperSyncResult",
+        "TimeKeeperSyncResult",
+    ),
+    "dynamic_kyc": ("KycDocument", "ParticipantProfile", "ScreeningResult"),
+    "dynamic_library": ("LibraryAsset", "LibraryContext", "LibraryDigest"),
+    "dynamic_memory": ("ConsolidationContext", "MemoryConsolidationReport", "MemoryFragment"),
+    "dynamic_memory_reconsolidation": ("MemoryTrace", "ReconsolidationContext", "ReconsolidationPlan"),
+    "dynamic_metacognition": ("MetaSignal", "MetacognitiveReport", "ReflectionContext"),
+    "dynamic_mindset": ("MindsetCoach", "MindsetContext", "MindsetPlan", "MindsetSignal"),
+    "dynamic_numbers": ("NumberPulse", "NumberSignalReport", "NumberWindowSummary"),
+    "dynamic_package": ("PackageComponent", "PackageContext", "PackageDigest"),
+    "dynamic_pillars": ("PillarDefinition", "PillarOverview", "PillarSignal", "PillarSnapshot"),
+    "dynamic_quote": ("QuoteContext", "QuoteDigest", "QuoteIdea"),
+    "dynamic_reference": ("ReferenceContext", "ReferenceDigest", "ReferenceEntry"),
+    "dynamic_self_awareness": ("AwarenessContext", "SelfAwarenessReport", "SelfAwarenessSignal"),
+    "dynamic_skeleton": ("AuditLogEntry", "Proposal", "Vote", "ComplianceCheck", "ComplianceReport"),
+    "dynamic_states": ("StateSignal", "StateDefinition", "StateSnapshot"),
+    "dynamic_stem_cell": ("StemCellContext", "StemCellProfile", "StemCellSignal"),
+    "dynamic_syncronization": ("SyncDependency", "SyncEvent", "SyncIncident", "SyncStatusSnapshot", "SyncSystem"),
+    "dynamic_text": ("TextFragment", "TextContext", "TextDigest"),
+    "dynamic_thinking": ("ThinkingContext", "ThinkingFrame", "ThinkingSignal"),
+    "dynamic_ultimate_reality": ("NonDualContext", "UltimateRealitySignal", "UltimateRealityState"),
+    "dynamic_volume": ("BookLevel", "VolumeAlert", "VolumeSnapshot", "VolumeThresholds"),
+    "dynamic_wisdom": ("WisdomContext", "WisdomFrame", "WisdomSignal"),
+}
+
+__all__ = sorted({symbol for symbols in _TOOLKIT_EXPORTS.values() for symbol in symbols})
+
+
+def _load_symbol(module_name: str, symbol: str) -> object:
+    module = import_module(module_name)
+    value = getattr(module, symbol)
+    globals()[symbol] = value
+    return value
+
+
+def __getattr__(name: str) -> object:
+    for module_name, symbols in _TOOLKIT_EXPORTS.items():
+        if name in symbols:
+            return _load_symbol(module_name, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> Iterable[str]:
+    return sorted(__all__)
