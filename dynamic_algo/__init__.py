@@ -59,6 +59,13 @@ from .dynamic_nodes import (
     NodeConfigError,
     NodeDependencyError,
 )
+from .dynamic_school import (
+    CourseDefinition,
+    CourseProgress,
+    DynamicSchool,
+    LessonProgress,
+    StudentSnapshot,
+)
 
 __all__ = [
     "ORDER_ACTION_BUY",
@@ -108,4 +115,9 @@ __all__ = [
     "DynamicNodeError",
     "NodeConfigError",
     "NodeDependencyError",
+    "DynamicSchool",
+    "CourseDefinition",
+    "CourseProgress",
+    "LessonProgress",
+    "StudentSnapshot",
 ]
