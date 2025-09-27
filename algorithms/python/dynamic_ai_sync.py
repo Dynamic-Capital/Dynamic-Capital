@@ -6,7 +6,7 @@ import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from datetime import UTC, date, datetime
 from time import perf_counter
-from typing import Any, Callable, Dict, Mapping, Optional, Sequence
+from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Tuple
 
 from typing_extensions import Literal
 
@@ -97,6 +97,55 @@ def _first_mapping(context: Mapping[str, Any], *keys: str) -> Mapping[str, Any]:
         if isinstance(value, Mapping):
             return value
     return {}
+
+
+def _safe_float(value: Any) -> Optional[float]:
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return None
+    if numeric != numeric:  # NaN guard
+        return None
+    return numeric
+
+
+def _resolve_instrument(
+    trader: Any,
+    symbol: str,
+    helper: Optional[DynamicTradingAlgo] = None,
+) -> Tuple[str, Any | None, Optional[Callable[[float, Any], float]], Optional[DynamicTradingAlgo]]:
+    """Resolve canonical symbol/profile and a lot clamp helper."""
+
+    canonical_symbol = symbol
+    profile = None
+    clamp_fn: Optional[Callable[[float, Any], float]] = None
+
+    resolver = getattr(trader, "_resolve_symbol", None)
+    if callable(resolver):
+        try:
+            resolved_symbol, resolved_profile = resolver(symbol)
+        except Exception:
+            resolved_symbol, resolved_profile = symbol, None
+        else:
+            canonical_symbol, profile = resolved_symbol, resolved_profile
+
+    clamp_candidate = getattr(trader, "_clamp_lot", None)
+    if callable(clamp_candidate):
+        clamp_fn = clamp_candidate
+
+    helper_algo = helper
+    if profile is None or clamp_fn is None:
+        helper_algo = helper_algo or DynamicTradingAlgo()
+        try:
+            resolved_symbol, resolved_profile = helper_algo._resolve_symbol(symbol)
+        except Exception:
+            resolved_symbol, resolved_profile = canonical_symbol, profile
+        else:
+            canonical_symbol, profile = resolved_symbol, resolved_profile
+        if clamp_fn is None:
+            clamp_fn = helper_algo._clamp_lot
+
+    return canonical_symbol, profile, clamp_fn, helper_algo
 
 
 def run_dynamic_agent_cycle(context: Mapping[str, Any]) -> Dict[str, Any]:
@@ -224,6 +273,7 @@ def _apply_treasury_updates(
 def _summarise_optimisation(
     agent_cycle: Mapping[str, Any],
     trade_payload: Mapping[str, Any],
+    hedges: Sequence[Mapping[str, Any]] | None = None,
 ) -> Dict[str, Any]:
     agents = agent_cycle.get("agents") if isinstance(agent_cycle, Mapping) else {}
     risk_agent = agents.get("risk") if isinstance(agents, Mapping) else {}
@@ -249,12 +299,22 @@ def _summarise_optimisation(
     decision = agent_cycle.get("decision") if isinstance(agent_cycle, Mapping) else {}
     confidence = decision.get("confidence") if isinstance(decision, Mapping) else None
 
+    executed = 0
+    if hedges:
+        executed = sum(
+            1
+            for hedge in hedges
+            if isinstance(hedge, Mapping)
+            and str(hedge.get("status", "")).lower() == "executed"
+        )
+
     return {
         "status": status,
         "confidence": confidence,
         "risk_flags": tuple(escalations),
         "hedges_recommended": hedge_count,
         "risk_notes": tuple(risk_notes),
+        "hedges_executed": executed,
     }
 
 
@@ -274,6 +334,7 @@ def run_dynamic_algo_alignment(context: Mapping[str, Any]) -> Dict[str, Any]:
         or base_context.get("instrument"),
     )
     lot = _coerce_lot(base_context.get("lot") or base_context.get("order_size"))
+    requested_lot = lot
 
     trade_signal = _select_trade_signal(agent_cycle)
     trader = _ensure_trade_algo(
@@ -282,22 +343,157 @@ def run_dynamic_algo_alignment(context: Mapping[str, Any]) -> Dict[str, Any]:
         or base_context.get("executor"),
     )
 
+    helper_algo: Optional[DynamicTradingAlgo] = None
+
+    sizing_payload: Mapping[str, Any] = {}
+    if isinstance(trade_signal, Mapping):
+        sizing_candidate = trade_signal.get("sizing")
+        sizing_payload = _coerce_payload(sizing_candidate)
+
+    applied_sizing: Dict[str, Any] | None = None
+    if sizing_payload:
+        notional = _safe_float(sizing_payload.get("notional"))
+        leverage = _safe_float(sizing_payload.get("leverage")) or 1.0
+        if notional and notional > 0:
+            resolved_symbol, profile, clamp_fn, helper_algo = _resolve_instrument(
+                trader, symbol, helper=helper_algo
+            )
+            if profile is not None:
+                reference_price = getattr(profile, "reference_price", 0.0) or 0.0
+                tick_size = getattr(profile, "tick_size", 0.0) or 0.0
+                reference = reference_price if reference_price > 0 else tick_size
+                if reference <= 0:
+                    reference = 1.0
+                exposure = notional * max(leverage, 1.0)
+                raw_lot = exposure / reference
+                adjusted_lot = raw_lot
+                if clamp_fn is not None:
+                    try:
+                        adjusted_lot = clamp_fn(adjusted_lot, profile)
+                    except Exception:
+                        adjusted_lot = raw_lot
+                lot = adjusted_lot
+                applied_sizing = {
+                    "notional": notional,
+                    "leverage": max(leverage, 1.0),
+                    "exposure": round(exposure, 6),
+                    "lot": adjusted_lot,
+                    "symbol": resolved_symbol,
+                }
+                if sizing_payload.get("notes"):
+                    applied_sizing["notes"] = sizing_payload["notes"]
+                applied_sizing["requested_lot"] = requested_lot
+                if sizing_payload.keys() - {
+                    "notional",
+                    "leverage",
+                    "notes",
+                }:
+                    applied_sizing["source"] = {
+                        key: sizing_payload[key]
+                        for key in sizing_payload
+                        if key not in {"notional", "leverage", "notes"}
+                    }
+
     trade_result = trader.execute_trade(trade_signal, lot=lot, symbol=symbol)
     trade_payload = _coerce_payload(trade_result)
     trade_payload.setdefault("symbol", symbol)
     trade_payload.setdefault("lot", lot)
     trade_payload.setdefault("message", getattr(trade_result, "message", ""))
     trade_payload["status"] = "executed" if getattr(trade_result, "ok", False) else "skipped"
+    symbol = trade_payload.get("symbol", symbol)
+    if applied_sizing:
+        trade_payload["applied_sizing"] = applied_sizing
+        trade_payload.setdefault("requested_lot", requested_lot)
+
+    hedge_records: list[Dict[str, Any]] = []
+    decision_section = agent_cycle.get("decision") if isinstance(agent_cycle, Mapping) else {}
+    hedge_collection = ()
+    if isinstance(decision_section, Mapping):
+        hedge_collection = decision_section.get("hedge_decisions") or ()
+    if not hedge_collection:
+        agents_section = agent_cycle.get("agents") if isinstance(agent_cycle, Mapping) else {}
+        if isinstance(agents_section, Mapping):
+            risk_section = agents_section.get("risk")
+            if isinstance(risk_section, Mapping):
+                hedge_collection = risk_section.get("hedge_decisions") or ()
+
+    for raw_decision in hedge_collection or ():
+        decision_payload = _coerce_payload(raw_decision)
+        if not decision_payload:
+            continue
+        action = str(decision_payload.get("action", "")).upper()
+        hedge_symbol = decision_payload.get("hedge_symbol") or decision_payload.get("symbol")
+        side = str(decision_payload.get("side", "")).upper() or "LONG_HEDGE"
+        quantity = _safe_float(
+            decision_payload.get("quantity")
+            or decision_payload.get("lot")
+            or decision_payload.get("qty")
+        )
+        if not hedge_symbol or quantity is None:
+            continue
+
+        close = action == "CLOSE"
+        record: Dict[str, Any] = {
+            "decision": decision_payload,
+            "request": {
+                "symbol": hedge_symbol,
+                "lot": quantity,
+                "side": side,
+                "close": close,
+            },
+        }
+
+        execute_hedge = getattr(trader, "execute_hedge", None)
+        if not callable(execute_hedge):
+            record["status"] = "unsupported"
+            hedge_records.append(record)
+            continue
+
+        resolved_symbol, profile, clamp_fn, helper_algo = _resolve_instrument(
+            trader, str(hedge_symbol), helper=helper_algo
+        )
+        adjusted_quantity = quantity
+        if clamp_fn is not None and profile is not None:
+            try:
+                adjusted_quantity = clamp_fn(quantity, profile)
+            except Exception:
+                adjusted_quantity = quantity
+
+        try:
+            hedge_result = execute_hedge(
+                symbol=resolved_symbol,
+                lot=adjusted_quantity,
+                side=side,
+                close=close,
+            )
+        except Exception as exc:  # pragma: no cover - defensive guard
+            record["status"] = "error"
+            record["error"] = str(exc)
+        else:
+            result_payload = _coerce_payload(hedge_result)
+            result_payload.setdefault("symbol", resolved_symbol)
+            result_payload.setdefault("lot", adjusted_quantity)
+            status = "executed" if getattr(hedge_result, "ok", False) else "skipped"
+            result_payload.setdefault("status", status)
+            record["result"] = result_payload
+            record["status"] = status
+
+        hedge_records.append(record)
+
+    if hedge_records:
+        trade_payload["hedges"] = hedge_records
 
     treasury_event = _apply_treasury_updates(trade_result, base_context.get("treasury"))
-    optimisation = _summarise_optimisation(agent_cycle, trade_payload)
+    optimisation = _summarise_optimisation(agent_cycle, trade_payload, hedge_records)
 
     return {
         "symbol": symbol,
         "lot": lot,
+        "requested_lot": requested_lot,
         "agents": agent_cycle.get("agents", {}),
         "decision": agent_cycle.get("decision", {}),
         "trade": trade_payload,
+        "hedges": hedge_records,
         "treasury_event": treasury_event,
         "optimisation": optimisation,
     }
