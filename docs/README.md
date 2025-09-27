@@ -31,6 +31,7 @@ documenting which assets were consulted.
 | 1.9  | [SETUP_SUMMARY.md](./SETUP_SUMMARY.md)                 | Generated recap of setup goals, migration highlights, and CI guardrails.                          |
 | 1.10 | [INVENTORY.csv](./INVENTORY.csv)                       | CSV export that tracks documentation counts, line totals, and repo metrics.                       |
 | 1.11 | [CHANGELOG.md](./CHANGELOG.md)                         | Chronological release notes maintained by the release automation.                                 |
+| 1.12 | [dynamic-capital-ecosystem-anatomy.md](./dynamic-capital-ecosystem-anatomy.md) | Biological metaphor guide detailing how every subsystem maps to automation pillars. |
 
 ## 2. Development Workflow & Standards
 
