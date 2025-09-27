@@ -255,15 +255,21 @@ class DynamicAnalysis:
         )
 
     def _analyse_sentiment(self, data: Mapping[str, Any]) -> AnalysisComponent:
-        feeds: Iterable[Mapping[str, Any]] | None = data.get("feeds")  # type: ignore[assignment]
-        if not feeds:
-            feeds = data.get("sources")  # type: ignore[assignment]
+        feeds_source: Any = data.get("feeds")
+        if not feeds_source:
+            feeds_source = data.get("sources")
+
+        normalised_feeds: list[Mapping[str, Any]] = []
+        if isinstance(feeds_source, Mapping):
+            normalised_feeds = [feeds_source]
+        elif isinstance(feeds_source, Iterable) and not isinstance(feeds_source, (str, bytes)):
+            normalised_feeds = [feed for feed in feeds_source if isinstance(feed, Mapping)]
 
         aggregate_score = 0.0
         aggregate_confidence = 0.0
         count = 0
 
-        for feed in feeds or []:
+        for feed in normalised_feeds:
             count += 1
             score = _clamp(_coerce_float(feed.get("score"), 0.0), -1.0, 1.0)
             confidence = _clamp(_coerce_float(feed.get("confidence"), 0.5), 0.0, 1.0)

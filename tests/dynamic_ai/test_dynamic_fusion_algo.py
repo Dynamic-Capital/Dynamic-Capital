@@ -42,6 +42,24 @@ def test_confidence_boosts_for_single_string_news(algo: DynamicFusionAlgo) -> No
     assert signal.confidence == pytest.approx(0.6)
 
 
+def test_composite_scores_mapping_biases_action(algo: DynamicFusionAlgo) -> None:
+    payload = {
+        "signal": "NEUTRAL",
+        "confidence": 0.5,
+        "volatility": 1.0,
+        "composite_scores": {"model_a": 0.6, "model_b": 0.55, "model_c": 0.4},
+    }
+
+    context = algo._prepare_context(payload)
+
+    assert context.composite_scores == pytest.approx((0.6, 0.55, 0.4))
+    assert context.composite_trimmed_mean is not None
+
+    signal = algo.generate_signal(payload)
+
+    assert signal.action == "BUY"
+
+
 def test_human_bias_alignment_boosts_confidence(algo: DynamicFusionAlgo) -> None:
     payload = {
         "signal": "BUY",
