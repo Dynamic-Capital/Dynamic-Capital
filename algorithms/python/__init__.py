@@ -153,6 +153,18 @@ from .human_resources_playbooks import (
     build_human_resources_playbooks,
     build_human_resources_sync_algorithm,
 )
+from .team_operations import (
+    COMMUNITY_PLAYBOOKS as TEAM_COMMUNITY_PLAYBOOKS,
+    DEVELOPMENT_PLAYBOOKS as TEAM_DEVELOPMENT_PLAYBOOKS,
+    MARKETING_PLAYBOOKS as TEAM_MARKETING_PLAYBOOKS,
+    OPERATIONS_PLAYBOOKS as TEAM_OPERATIONS_CORE_PLAYBOOKS,
+    OPTIONAL_PLAYBOOKS as TEAM_OPTIONAL_PLAYBOOKS,
+    TEAM_OPERATIONS_PLAYBOOKS,
+    TeamOperationsAlignmentReport,
+    TeamOperationsLLMPlanner,
+    build_team_operations_playbooks,
+    build_team_operations_sync_algorithm,
+)
 from .route_keeper import Route, RouteKeeperAlgorithm, RouteKeeperSyncResult
 from .supabase_edge_functions import (
     EdgeFunctionRunbook,
@@ -319,6 +331,16 @@ __all__ = _trade_exports + [
     "HUMAN_RESOURCES_PLAYBOOKS",
     "build_human_resources_playbooks",
     "build_human_resources_sync_algorithm",
+    "TEAM_MARKETING_PLAYBOOKS",
+    "TEAM_COMMUNITY_PLAYBOOKS",
+    "TEAM_DEVELOPMENT_PLAYBOOKS",
+    "TEAM_OPERATIONS_CORE_PLAYBOOKS",
+    "TEAM_OPTIONAL_PLAYBOOKS",
+    "TEAM_OPERATIONS_PLAYBOOKS",
+    "build_team_operations_playbooks",
+    "build_team_operations_sync_algorithm",
+    "TeamOperationsAlignmentReport",
+    "TeamOperationsLLMPlanner",
     "Element",
     "ElementProfile",
     "ElementSignal",
