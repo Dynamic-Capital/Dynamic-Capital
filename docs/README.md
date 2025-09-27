@@ -32,6 +32,7 @@ documenting which assets were consulted.
 | 1.10 | [INVENTORY.csv](./INVENTORY.csv)                                               | CSV export that tracks documentation counts, line totals, and repo metrics.                                                |
 | 1.11 | [CHANGELOG.md](./CHANGELOG.md)                                                 | Chronological release notes maintained by the release automation.                                                          |
 | 1.12 | [dynamic-capital-ecosystem-anatomy.md](./dynamic-capital-ecosystem-anatomy.md) | Biological metaphor guide detailing how every subsystem, feedback loop, and TradingView bridge maps to automation pillars. |
+| 1.13 | [dynamic-capital-code-of-conduct.md](./dynamic-capital-code-of-conduct.md)     | Community behavior expectations, reporting paths, and enforcement process.                                                 |
 
 ## 2. Development Workflow & Standards
 
@@ -141,16 +142,16 @@ documenting which assets were consulted.
 
 ## 9. Checklists & Automation
 
-| Ref | Document                                                                           | Summary                                                                   |
-| --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| 9.1 | [CHECKLISTS.md](./CHECKLISTS.md)                                                   | Master directory of automation-aware checklists with priority guidance.   |
-| 9.2 | [dynamic-capital-checklist.md](./dynamic-capital-checklist.md)                     | Umbrella repo health tracker covering setup, automation, and QA.          |
-| 9.3 | [coding-efficiency-checklist.md](./coding-efficiency-checklist.md)                 | Repeatable template for feature delivery hygiene.                         |
-| 9.4 | [git-branch-organization-checklist.md](./git-branch-organization-checklist.md)     | Steps for aligning Git branches with deployable services.                 |
-| 9.5 | [dynamic-ui-development-checklist.md](./dynamic-ui-development-checklist.md)       | Checklist for Dynamic UI powered surfaces (landing, dashboard, Mini App). |
-| 9.6 | [VARIABLES_AND_LINKS_CHECKLIST.md](./VARIABLES_AND_LINKS_CHECKLIST.md)             | Environment variable and outbound link audit.                             |
-| 9.7 | [dynamic_codex_integration_checklist.md](./dynamic_codex_integration_checklist.md) | Historic plan for folding Dynamic Codex into the monorepo.                |
-| 9.8 | [project-updater.md](./project-updater.md)                                         | Automation suite that regenerates release docs and project metadata.      |
+| Ref | Document                                                                           | Summary                                                                     |
+| --- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 9.1 | [CHECKLISTS.md](./CHECKLISTS.md)                                                   | Master directory of automation-aware checklists with priority guidance.     |
+| 9.2 | [dynamic-capital-checklist.md](./dynamic-capital-checklist.md)                     | Umbrella repo health tracker covering setup, automation, and QA.            |
+| 9.3 | [coding-efficiency-checklist.md](./coding-efficiency-checklist.md)                 | Repeatable template for feature delivery hygiene.                           |
+| 9.4 | [git-branch-organization-checklist.md](./git-branch-organization-checklist.md)     | Steps for aligning Git branches with deployable services.                   |
+| 9.5 | [dynamic-ui-development-checklist.md](./dynamic-ui-development-checklist.md)       | Checklist for Dynamic UI powered surfaces (landing, dashboard, Mini App).   |
+| 9.6 | [VARIABLES_AND_LINKS_CHECKLIST.md](./VARIABLES_AND_LINKS_CHECKLIST.md)             | Environment variable and outbound link audit.                               |
+| 9.7 | [dynamic_codex_integration_checklist.md](./dynamic_codex_integration_checklist.md) | Historic plan for folding Dynamic Codex into the monorepo.                  |
+| 9.8 | [project-updater.md](./project-updater.md)                                         | Automation suite that regenerates release docs and project metadata.        |
 | 9.9 | [whitepaper-pipeline.md](./whitepaper-pipeline.md)                                 | Workflow for generating whitepapers from JSON configs and review checklist. |
 
 ## 10. Reference, Content & Growth
