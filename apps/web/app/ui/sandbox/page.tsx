@@ -6,6 +6,7 @@ import { ChevronDown, Play, Settings2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DynamicTable } from "@/components/ui/dynamic-table";
 import { MotionPlayButton } from "@/components/ui/motion-play-button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -169,6 +170,7 @@ export default function UISandbox() {
           </Tabs>
         </CardContent>
       </Card>
+      <DynamicTable />
     </motion.div>
   );
 }
