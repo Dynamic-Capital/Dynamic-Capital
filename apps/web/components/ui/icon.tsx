@@ -1,16 +1,22 @@
 import * as React from "react";
-import { icons, LucideProps } from "lucide-react";
+import type { LucideIcon, LucideProps } from "lucide-react";
+import { icons as lucideIcons } from "lucide-react/dist/esm/lucide-react";
 import { cn } from "@/utils";
 
-export type IconName = keyof typeof icons;
+const iconLibrary: Record<string, LucideIcon> = lucideIcons as Record<
+  string,
+  LucideIcon
+>;
+
+export type IconName = keyof typeof iconLibrary;
 
 // Standardized icon sizes based on universal theme
 const iconSizes = {
-  xs: "icon-xs",     // w-3 h-3
-  sm: "icon-sm",     // w-4 h-4  
+  xs: "icon-xs", // w-3 h-3
+  sm: "icon-sm", // w-4 h-4
   base: "icon-base", // w-5 h-5
-  lg: "icon-lg",     // w-6 h-6
-  xl: "icon-xl",     // w-8 h-8
+  lg: "icon-lg", // w-6 h-6
+  xl: "icon-xl", // w-8 h-8
 };
 
 export interface IconProps extends Omit<LucideProps, "ref"> {
@@ -21,13 +27,16 @@ export interface IconProps extends Omit<LucideProps, "ref"> {
 }
 
 const Icon = React.forwardRef<SVGSVGElement, IconProps>(
-  ({ name, size = "base", animation = "none", title, className, ...props }, ref) => {
-    const LucideIcon = icons[name];
+  (
+    { name, size = "base", animation = "none", title, className, ...props },
+    ref,
+  ) => {
+    const LucideIcon = iconLibrary[name];
 
     const animationClasses = {
       none: "",
       pulse: "animate-pulse",
-      float: "animate-float", 
+      float: "animate-float",
       wiggle: "animate-wiggle",
       glow: "animate-pulse-glow",
     };
@@ -39,13 +48,13 @@ const Icon = React.forwardRef<SVGSVGElement, IconProps>(
           iconSizes[size],
           animationClasses[animation],
           "transition-all duration-200",
-          className
+          className,
         )}
         aria-label={title}
         {...props}
       />
     );
-  }
+  },
 );
 
 Icon.displayName = "Icon";
