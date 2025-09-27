@@ -46,6 +46,14 @@ from .dynamic_psychology import (
     PsychologyEntry,
     PsychologySnapshot,
 )
+from .dynamic_decision import (
+    DecisionContext,
+    DecisionOption,
+    DecisionRecommendation,
+    DecisionSignal,
+    DecisionSignalSummary,
+    DynamicDecisionAlgo,
+)
 from .dynamic_elements import (
     DynamicElementAlgo,
     ElementContribution,
@@ -136,6 +144,12 @@ __all__ = [
     "PsychologyEntry",
     "PsychologySnapshot",
     "ElementAggregate",
+    "DynamicDecisionAlgo",
+    "DecisionSignal",
+    "DecisionContext",
+    "DecisionOption",
+    "DecisionSignalSummary",
+    "DecisionRecommendation",
     "DynamicElementAlgo",
     "ElementContribution",
     "ElementSummary",
