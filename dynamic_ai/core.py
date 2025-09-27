@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional
 
+from .llama_reasoner import LlamaSignalRefiner, ReasonerOutput
+
 
 VALID_SIGNALS = {"BUY", "SELL", "HOLD", "NEUTRAL"}
 
@@ -32,9 +34,16 @@ class AISignal:
 class DynamicFusionAlgo:
     """Fuse raw TradingView alerts with lightweight AI heuristics."""
 
-    def __init__(self, *, neutral_confidence: float = 0.55, boost_topics: Optional[Iterable[str]] = None) -> None:
+    def __init__(
+        self,
+        *,
+        neutral_confidence: float = 0.55,
+        boost_topics: Optional[Iterable[str]] = None,
+        reasoner: Optional[LlamaSignalRefiner] = None,
+    ) -> None:
         self.neutral_confidence = neutral_confidence
         self.boost_topics: List[str] = [topic.lower() for topic in boost_topics] if boost_topics else []
+        self.reasoner = reasoner
 
     def generate_signal(self, market_data: Dict[str, Any]) -> AISignal:
         """Derive an actionable signal from the provided market payload."""
@@ -43,11 +52,34 @@ class DynamicFusionAlgo:
         if raw_signal not in VALID_SIGNALS:
             raw_signal = "NEUTRAL"
 
-        ai_action = self._refine_action(raw_signal, market_data)
-        confidence = self._calculate_confidence(raw_signal, market_data)
-        reasoning = self._build_reasoning(ai_action, confidence, market_data)
+        fallback_action = self._refine_action(raw_signal, market_data)
+        fallback_confidence = self._calculate_confidence(raw_signal, market_data)
+        fallback_reasoning = self._build_reasoning(fallback_action, fallback_confidence, market_data)
 
-        return AISignal(action=ai_action, confidence=confidence, reasoning=reasoning, original_signal=raw_signal)
+        reasoned = self._call_reasoner(raw_signal, market_data)
+        if reasoned:
+            ai_action = self._sanitise_action(reasoned.action, fallback_action)
+            ai_confidence = self._sanitise_confidence(reasoned.confidence, fallback_confidence)
+            reasoning = reasoned.reasoning.strip() or fallback_reasoning
+
+            return AISignal(
+                action=ai_action,
+                confidence=ai_confidence,
+                reasoning=reasoning,
+                original_signal=raw_signal,
+            )
+
+        return AISignal(
+            action=fallback_action,
+            confidence=fallback_confidence,
+            reasoning=fallback_reasoning,
+            original_signal=raw_signal,
+        )
+
+    def _call_reasoner(self, raw_signal: str, market_data: Dict[str, Any]) -> Optional[ReasonerOutput]:
+        if not self.reasoner:
+            return None
+        return self.reasoner.refine_signal(raw_signal, market_data)
 
     def _refine_action(self, raw_signal: str, market_data: Dict[str, Any]) -> str:
         momentum = float(market_data.get("momentum", 0.0))
@@ -111,3 +143,20 @@ class DynamicFusionAlgo:
             comments.append("Signal defaulted to neutral heuristics due to limited context.")
 
         return " ".join(comments)
+
+    def _sanitise_action(self, candidate: str, fallback: str) -> str:
+        candidate_normalised = str(candidate or "").upper()
+        if candidate_normalised not in {"BUY", "SELL", "HOLD"}:
+            return fallback
+        return candidate_normalised
+
+    def _sanitise_confidence(self, candidate: float, fallback: float) -> float:
+        try:
+            value = float(candidate)
+        except (TypeError, ValueError):
+            return fallback
+
+        clamped = max(0.0, min(1.0, value))
+        if clamped == 0.0 and fallback > 0.0:
+            return fallback
+        return round(clamped, 2)

@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 from flask import Flask, jsonify, request
 
 from dynamic_ai.core import DynamicFusionAlgo
+from dynamic_ai.llama_reasoner import LlamaSignalRefiner
 from dynamic_algo.trading_core import DynamicTradingAlgo
 from dynamic_token.treasury import DynamicTreasuryAlgo
 from integrations.supabase_logger import SupabaseLogger
@@ -17,7 +18,13 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-fusion = DynamicFusionAlgo()
+reasoner = LlamaSignalRefiner.from_env()
+fusion = DynamicFusionAlgo(reasoner=reasoner)
+
+if reasoner:
+    logger.info("llama.cpp reasoner enabled for trading signals")
+else:
+    logger.info("llama.cpp reasoner not configured; defaulting to heuristic fusion")
 trader = DynamicTradingAlgo()
 treasury = DynamicTreasuryAlgo()
 supabase_logger = SupabaseLogger()
