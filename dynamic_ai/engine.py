@@ -37,6 +37,8 @@ from .hedge import (
     VolatilitySnapshot,
 )
 
+from dynamic_algo import DecisionContext, DecisionOption, DecisionSignal, DynamicDecisionAlgo
+
 
 ActionScore = Mapping[str, float]
 
@@ -47,6 +49,39 @@ _DEFAULT_ACTION_SCORES: ActionScore = {
     "HOLD": 0.0,
     "NEUTRAL": 0.0,
 }
+
+
+def _clamp01(value: float) -> float:
+    return max(0.0, min(1.0, value))
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _first_text(*candidates: Any) -> Optional[str]:
+    for candidate in candidates:
+        if candidate is None:
+            continue
+        if isinstance(candidate, str):
+            text = candidate.strip()
+            if text:
+                return text
+        if isinstance(candidate, Iterable) and not isinstance(candidate, (str, bytes)):
+            for item in candidate:
+                if isinstance(item, str):
+                    text = item.strip()
+                    if text:
+                        return text
+    return None
+
+
+def _normalise_action(value: Any, *, default: str = "NEUTRAL") -> str:
+    token = str(value or "").strip().upper()
+    return token or default.upper()
 
 
 @dataclass
@@ -60,6 +95,8 @@ class EngineConfig:
     default_regime: RegimeContext = field(default_factory=RegimeContext)
     default_risk_context: RiskContext = field(default_factory=RiskContext)
     enable_position_sizing: bool = True
+    enable_decision_optimiser: bool = True
+    decision_actions: tuple[str, ...] = ("BUY", "SELL", "HOLD")
 
 
 @dataclass
@@ -74,6 +111,7 @@ class EngineResult:
     hedging: Sequence[HedgeDecision]
     metadata: Dict[str, Any] = field(default_factory=dict)
     agents: Optional["AgentCycleSnapshot"] = None
+    optimisation: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialise the engine output into primitives."""
@@ -91,6 +129,8 @@ class EngineResult:
             payload["position_sizing"] = asdict(self.position_sizing)
         if self.agents is not None:
             payload["agents"] = self.agents.to_dict()
+        if self.optimisation is not None:
+            payload["optimisation"] = dict(self.optimisation)
 
         return payload
 
@@ -134,6 +174,7 @@ class DynamicAIEngine:
         execution_agent: Optional[ExecutionAgent] = None,
         risk_agent: Optional[RiskAgent] = None,
         chat_agent: Optional[DynamicChatAgent] = None,
+        decision_algo: Optional[DynamicDecisionAlgo] = None,
         config: Optional[EngineConfig] = None,
     ) -> None:
         self.config = config or EngineConfig()
@@ -141,6 +182,7 @@ class DynamicAIEngine:
         self.fusion_algo = fusion_algo or DynamicFusionAlgo()
         self.risk_manager = risk_manager or RiskManager()
         self.hedge_policy = hedge_policy or DynamicHedgePolicy()
+        self.decision_algo = decision_algo
 
         if fusion_engine is not None:
             self.fusion_engine = fusion_engine
@@ -220,11 +262,24 @@ class DynamicAIEngine:
             hedge_decisions = self._run_hedging(hedge_inputs) if hedge_inputs else ()
             risk_rationale = "Risk evaluation completed."
 
+        optimisation = self._optimise_with_dynamic_algo(
+            base_signal=base_signal,
+            analysis=analysis_result,
+            fusion=fusion_view,
+            risk_adjusted=risk_adjusted,
+            risk_result=risk_result,
+            position_sizing=position_sizing,
+            hedge_decisions=hedge_decisions,
+            risk_context=context,
+            market_snapshot=augmented_market,
+        )
+
         decision_payload = self._build_decision_payload(
             risk_adjusted,
             position_sizing,
             hedge_decisions,
             risk_rationale,
+            optimisation,
         )
 
         agents_snapshot = self._build_agents_snapshot(
@@ -247,6 +302,8 @@ class DynamicAIEngine:
         }
         if chat_result is not None:
             metadata["chat_summary"] = chat_result.rationale
+        if optimisation is not None:
+            metadata["optimisation"] = optimisation
 
         return EngineResult(
             signal=base_signal,
@@ -257,6 +314,7 @@ class DynamicAIEngine:
             hedging=tuple(hedge_decisions),
             metadata=metadata,
             agents=agents_snapshot,
+            optimisation=optimisation,
         )
 
     # ------------------------------------------------------------------
@@ -562,6 +620,7 @@ class DynamicAIEngine:
         position_sizing: Optional[PositionSizing],
         hedge_decisions: Sequence[HedgeDecision],
         risk_rationale: str,
+        optimisation: Optional[Mapping[str, Any]],
     ) -> Dict[str, Any]:
         decision = {
             "action": risk_adjusted.get("action"),
@@ -573,6 +632,8 @@ class DynamicAIEngine:
             decision["sizing"] = asdict(position_sizing)
         if hedge_decisions:
             decision["hedge_decisions"] = [asdict(decision) for decision in hedge_decisions]
+        if optimisation is not None:
+            decision["optimisation"] = dict(optimisation)
         return decision
 
     def _build_agents_snapshot(
@@ -617,3 +678,389 @@ class DynamicAIEngine:
             chat=chat_candidate,
             decision=dict(decision),
         )
+
+    def _optimise_with_dynamic_algo(
+        self,
+        *,
+        base_signal: Mapping[str, Any],
+        analysis: Optional[Mapping[str, Any]],
+        fusion: Optional[Mapping[str, Any]],
+        risk_adjusted: Mapping[str, Any],
+        risk_result: Optional[RiskAgentResult],
+        position_sizing: Optional[PositionSizing],
+        hedge_decisions: Sequence[HedgeDecision],
+        risk_context: RiskContext,
+        market_snapshot: Mapping[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        if not self.config.enable_decision_optimiser:
+            return None
+
+        actions = [
+            _normalise_action(action, default=self.config.neutral_action)
+            for action in (*self.config.decision_actions, risk_adjusted.get("action"))
+        ]
+        deduped_actions: list[str] = []
+        for action in actions:
+            if action and action not in deduped_actions:
+                deduped_actions.append(action)
+        if not deduped_actions:
+            return None
+
+        algo = self.decision_algo or DynamicDecisionAlgo()
+        try:
+            algo.clear_signals()
+        except AttributeError:
+            algo = DynamicDecisionAlgo()
+
+        signals = self._build_decision_signals(
+            base_signal=base_signal,
+            analysis=analysis,
+            fusion=fusion,
+            risk_adjusted=risk_adjusted,
+            risk_result=risk_result,
+            hedge_decisions=hedge_decisions,
+            position_sizing=position_sizing,
+            risk_context=risk_context,
+            market_snapshot=market_snapshot,
+        )
+        if not signals:
+            return None
+
+        algo.extend_signals(signals)
+
+        options = self._build_decision_options(
+            actions=tuple(deduped_actions),
+            risk_adjusted=risk_adjusted,
+            base_signal=base_signal,
+            hedge_decisions=hedge_decisions,
+            position_sizing=position_sizing,
+            risk_context=risk_context,
+        )
+        if not options:
+            return None
+
+        context = self._build_decision_context(
+            risk_adjusted=risk_adjusted,
+            base_signal=base_signal,
+            analysis=analysis,
+            fusion=fusion,
+            risk_result=risk_result,
+            risk_context=risk_context,
+            market_snapshot=market_snapshot,
+        )
+
+        recommendations = algo.evaluate_options(options, context=context)
+        if not recommendations:
+            return None
+
+        summary = algo.summarise_signals()
+        best = recommendations[0]
+
+        return {
+            "summary": summary.as_dict(),
+            "recommendations": [rec.as_dict() for rec in recommendations],
+            "best_option": best.option_id,
+            "best_priority": best.priority,
+            "context": asdict(context),
+            "signals": [self._serialise_decision_signal(signal) for signal in signals],
+            "actions": [option.option_id for option in options],
+        }
+
+    def _build_decision_signals(
+        self,
+        *,
+        base_signal: Mapping[str, Any],
+        analysis: Optional[Mapping[str, Any]],
+        fusion: Optional[Mapping[str, Any]],
+        risk_adjusted: Mapping[str, Any],
+        risk_result: Optional[RiskAgentResult],
+        hedge_decisions: Sequence[HedgeDecision],
+        position_sizing: Optional[PositionSizing],
+        risk_context: RiskContext,
+        market_snapshot: Mapping[str, Any],
+    ) -> tuple[DecisionSignal, ...]:
+        signals: list[DecisionSignal] = []
+
+        recommended_action = _normalise_action(
+            risk_adjusted.get("action"), default=self.config.neutral_action
+        )
+        base_score = _safe_float(risk_adjusted.get("score"), _safe_float(base_signal.get("score"), 0.0))
+        base_confidence = _clamp01(
+            _safe_float(risk_adjusted.get("confidence"), _safe_float(base_signal.get("confidence"), 0.5))
+        )
+        reasoning_note = _first_text(risk_adjusted.get("reasoning"), base_signal.get("reasoning"))
+
+        signals.append(
+            DecisionSignal(
+                theme="core_signal",
+                confidence=base_confidence,
+                urgency=_clamp01(abs(base_score)),
+                strategic_fit=1.0,
+                risk=_clamp01(max(0.0, 1.0 - base_confidence)),
+                weight=1.2,
+                note=reasoning_note,
+                metadata={
+                    "action": recommended_action,
+                    "score": base_score,
+                    "confidence": base_confidence,
+                },
+            )
+        )
+
+        if analysis:
+            analysis_action = _normalise_action(analysis.get("action"), default=recommended_action)
+            analysis_score = _safe_float(analysis.get("score"), 0.0)
+            analysis_confidence = _clamp01(_safe_float(analysis.get("confidence"), base_confidence))
+            signals.append(
+                DecisionSignal(
+                    theme="analysis",
+                    confidence=analysis_confidence,
+                    urgency=_clamp01(abs(analysis_score)),
+                    strategic_fit=_clamp01(0.9 if analysis_action == recommended_action else 0.65),
+                    risk=_clamp01(max(0.0, 1.0 - analysis_confidence)),
+                    weight=0.9,
+                    note=_first_text(analysis.get("primary_driver"), analysis.get("notes")),
+                    metadata={
+                        "action": analysis_action,
+                        "score": analysis_score,
+                    },
+                )
+            )
+
+        if fusion:
+            fusion_action = _normalise_action(fusion.get("action"), default=recommended_action)
+            fusion_score = _safe_float(fusion.get("score"), 0.0)
+            fusion_confidence = _clamp01(_safe_float(fusion.get("confidence"), base_confidence))
+            signals.append(
+                DecisionSignal(
+                    theme="fusion",
+                    confidence=fusion_confidence,
+                    urgency=_clamp01(abs(fusion_score)),
+                    strategic_fit=_clamp01(0.9 if fusion_action == recommended_action else 0.6),
+                    risk=_clamp01(max(0.0, 1.0 - fusion_confidence * 0.9)),
+                    weight=0.85,
+                    note=_first_text(fusion.get("reasoning"), fusion.get("notes")),
+                    metadata={
+                        "action": fusion_action,
+                        "score": fusion_score,
+                    },
+                )
+            )
+
+        if risk_result is not None:
+            risk_confidence = _clamp01(_safe_float(risk_result.confidence, base_confidence))
+            drawdown = abs(_safe_float(risk_context.daily_drawdown, 0.0))
+            volatility = _clamp01(_safe_float(risk_context.volatility, 0.0))
+            escalations = tuple(risk_result.escalations)
+            signals.append(
+                DecisionSignal(
+                    theme="risk",
+                    confidence=risk_confidence,
+                    urgency=_clamp01(0.4 + min(0.4, drawdown * 2.0) + volatility * 0.2),
+                    strategic_fit=_clamp01(0.85 if recommended_action == risk_adjusted.get("action", recommended_action) else 0.65),
+                    risk=_clamp01(0.2 + volatility * 0.4 + (0.2 if escalations else 0.0)),
+                    weight=1.1,
+                    note=risk_result.rationale or None,
+                    metadata={
+                        "escalations": list(escalations),
+                        "hedges": len(risk_result.hedge_decisions),
+                    },
+                )
+            )
+
+        if hedge_decisions:
+            volatility = _clamp01(_safe_float(risk_context.volatility, _safe_float(market_snapshot.get("volatility"), 0.0)))
+            signals.append(
+                DecisionSignal(
+                    theme="hedging",
+                    confidence=_clamp01(0.45 + min(0.35, 0.1 * len(hedge_decisions))),
+                    urgency=_clamp01(0.35 + volatility * 0.5),
+                    strategic_fit=_clamp01(0.6 + min(0.2, risk_context.treasury_health * 0.2)),
+                    risk=_clamp01(0.3 + volatility * 0.3),
+                    weight=0.6,
+                    note="Hedging adjustments recommended to balance exposure.",
+                    metadata={
+                        "hedges": [asdict(hedge) for hedge in hedge_decisions],
+                    },
+                )
+            )
+
+        if position_sizing is not None:
+            leverage = _clamp01(_safe_float(position_sizing.leverage, 1.0) / 5.0)
+            notional = _clamp01(_safe_float(position_sizing.notional, 0.0))
+            signals.append(
+                DecisionSignal(
+                    theme="sizing",
+                    confidence=_clamp01(0.4 + leverage * 0.5),
+                    urgency=_clamp01(0.3 + notional * 0.4),
+                    strategic_fit=_clamp01(0.6 + leverage * 0.3),
+                    risk=_clamp01(0.2 + max(0.0, 0.4 - leverage * 0.3)),
+                    weight=0.55,
+                    note=position_sizing.notes,
+                    metadata={
+                        "notional": position_sizing.notional,
+                        "leverage": position_sizing.leverage,
+                    },
+                )
+            )
+
+        return tuple(signals)
+
+    def _build_decision_options(
+        self,
+        *,
+        actions: Sequence[str],
+        risk_adjusted: Mapping[str, Any],
+        base_signal: Mapping[str, Any],
+        hedge_decisions: Sequence[HedgeDecision],
+        position_sizing: Optional[PositionSizing],
+        risk_context: RiskContext,
+    ) -> tuple[DecisionOption, ...]:
+        options: list[DecisionOption] = []
+        score_value = _safe_float(risk_adjusted.get("score"), _safe_float(base_signal.get("score"), 0.0))
+        confidence = _clamp01(_safe_float(risk_adjusted.get("confidence"), _safe_float(base_signal.get("confidence"), 0.5)))
+        volatility = _clamp01(_safe_float(risk_context.volatility, 0.0))
+        recommended_action = _normalise_action(risk_adjusted.get("action"), default=self.config.neutral_action)
+        hedge_factor = min(0.3, 0.1 * len(hedge_decisions))
+        leverage = 0.0
+        if position_sizing is not None:
+            leverage = _clamp01(_safe_float(position_sizing.leverage, 1.0) / 5.0)
+
+        for action in actions:
+            action_token = _normalise_action(action, default=self.config.neutral_action)
+            if not action_token:
+                continue
+            is_recommended = action_token == recommended_action
+            directional_strength = self._option_directional_strength(action_token, score_value)
+            expected_impact = _clamp01(0.35 + directional_strength * (0.45 if is_recommended else 0.3) + leverage * 0.2)
+            if action_token in {"HOLD", "NEUTRAL"}:
+                expected_impact = _clamp01(0.3 + (1.0 - abs(score_value)) * 0.3)
+            execution_complexity = _clamp01(
+                (0.55 if action_token in {"BUY", "SELL"} else 0.35) + hedge_factor + volatility * 0.2
+            )
+            risk_penalty = _clamp01((1.0 - confidence) + volatility * 0.4 + (0.15 if not is_recommended else 0.0))
+            if action_token in {"HOLD", "NEUTRAL"}:
+                risk_penalty = _clamp01(risk_penalty * 0.6)
+            cost_of_delay = _clamp01(
+                directional_strength * (0.7 if is_recommended else 0.4) + (0.1 if action_token == "BUY" else 0.05)
+            )
+            reversibility = 0.85 if action_token == "HOLD" else (0.7 if action_token == "NEUTRAL" else 0.45)
+            dependencies: list[str] = []
+            if hedge_decisions:
+                dependencies.append("hedging")
+            if risk_context.treasury_utilisation >= 0.5:
+                dependencies.append("treasury")
+            description = self._describe_decision_option(action_token, base_signal)
+
+            options.append(
+                DecisionOption(
+                    option_id=action_token,
+                    description=description,
+                    expected_impact=expected_impact,
+                    execution_complexity=execution_complexity,
+                    risk=risk_penalty,
+                    cost_of_delay=cost_of_delay,
+                    reversibility=_clamp01(reversibility),
+                    dependencies=tuple(dependencies),
+                    metadata={"recommended": is_recommended},
+                )
+            )
+
+        return tuple(options)
+
+    def _build_decision_context(
+        self,
+        *,
+        risk_adjusted: Mapping[str, Any],
+        base_signal: Mapping[str, Any],
+        analysis: Optional[Mapping[str, Any]],
+        fusion: Optional[Mapping[str, Any]],
+        risk_result: Optional[RiskAgentResult],
+        risk_context: RiskContext,
+        market_snapshot: Mapping[str, Any],
+    ) -> DecisionContext:
+        recommended_action = _normalise_action(
+            risk_adjusted.get("action"), default=self.config.neutral_action
+        )
+        confidence = _clamp01(
+            _safe_float(risk_adjusted.get("confidence"), _safe_float(base_signal.get("confidence"), 0.5))
+        )
+        confidences: list[float] = [confidence]
+        if analysis:
+            confidences.append(_clamp01(_safe_float(analysis.get("confidence"), confidence)))
+        if fusion:
+            confidences.append(_clamp01(_safe_float(fusion.get("confidence"), confidence)))
+        if risk_result is not None:
+            confidences.append(_clamp01(_safe_float(risk_result.confidence, confidence)))
+        data_confidence = sum(confidences) / len(confidences)
+
+        treasury_health = _clamp01(_safe_float(risk_context.treasury_health, 1.0))
+        utilisation = _clamp01(_safe_float(risk_context.treasury_utilisation, 0.0))
+        drawdown = _safe_float(risk_context.daily_drawdown, 0.0)
+        volatility = _clamp01(_safe_float(risk_context.volatility, _safe_float(market_snapshot.get("volatility"), 0.0)))
+
+        risk_tolerance = _clamp01(0.6 + treasury_health * 0.3 - max(0.0, -drawdown) * 0.6)
+        capacity = _clamp01(1.0 - utilisation)
+        principle_alignment = confidence
+        time_pressure = _clamp01(abs(_safe_float(base_signal.get("score"), 0.0)))
+
+        guardrails_source = risk_adjusted.get("risk_notes")
+        guardrails: list[str] = []
+        if isinstance(guardrails_source, Iterable) and not isinstance(guardrails_source, (str, bytes)):
+            guardrails = [str(note).strip() for note in guardrails_source if str(note).strip()]
+        if risk_result is not None and risk_result.escalations:
+            guardrails.extend(f"escalation:{item}" for item in risk_result.escalations)
+
+        focus_areas = ["core_signal"]
+        if analysis:
+            focus_areas.append("analysis")
+        if fusion:
+            focus_areas.append("fusion")
+        if risk_result is not None:
+            focus_areas.append("risk")
+        if volatility > 0.2:
+            focus_areas.append("volatility")
+
+        return DecisionContext(
+            objective=f"Execute {recommended_action} posture",
+            risk_tolerance=risk_tolerance,
+            capacity=capacity,
+            principle_alignment=principle_alignment,
+            time_pressure=time_pressure,
+            data_confidence=_clamp01(data_confidence),
+            guardrails=tuple(dict.fromkeys(guardrails)),
+            focus_areas=tuple(dict.fromkeys(focus_areas)),
+        )
+
+    def _serialise_decision_signal(self, signal: DecisionSignal) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
+            "theme": signal.theme,
+            "confidence": round(signal.confidence, 4),
+            "urgency": round(signal.urgency, 4),
+            "strategic_fit": round(signal.strategic_fit, 4),
+            "risk": round(signal.risk, 4),
+            "weight": round(signal.weight, 4),
+            "timestamp": signal.timestamp.isoformat(),
+        }
+        if signal.note:
+            payload["note"] = signal.note
+        if signal.metadata:
+            payload["metadata"] = dict(signal.metadata)
+        return payload
+
+    @staticmethod
+    def _describe_decision_option(action: str, base_signal: Mapping[str, Any]) -> str:
+        reasoning = _first_text(base_signal.get("reasoning"), base_signal.get("notes"))
+        if reasoning:
+            snippet = reasoning.split(".")[0].strip()
+            if snippet:
+                return f"{action} - {snippet[:120]}"
+        return f"{action} position aligned with blended signal"
+
+    @staticmethod
+    def _option_directional_strength(action: str, score: float) -> float:
+        if action == "BUY":
+            return _clamp01(max(0.0, score))
+        if action == "SELL":
+            return _clamp01(max(0.0, -score))
+        return _clamp01(max(0.0, 1.0 - abs(score)))
