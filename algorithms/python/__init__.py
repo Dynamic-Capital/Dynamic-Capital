@@ -279,6 +279,15 @@ from .dynamic_question_answer_algo import (
     DQAQuestion,
     DynamicQuestionAnswerAlgo,
 )
+from .dynamic_capital_principles import (
+    PLAYBOOK_OF_PRINCIPLES,
+    SUCCESS_FORMULA,
+    PrincipleSection,
+    SuccessFormula,
+    build_dqa_principles,
+    build_dqa_rules,
+    build_principle_sections,
+)
 from .daily_routine_allocator import DailyRoutineAllocator, RoutinePrompt
 from .trading_psychology_elements import (
     Element,
@@ -442,6 +451,13 @@ __all__ = _trade_exports + [
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
     "RoutinePrompt",
+    "PrincipleSection",
+    "SuccessFormula",
+    "PLAYBOOK_OF_PRINCIPLES",
+    "SUCCESS_FORMULA",
+    "build_principle_sections",
+    "build_dqa_principles",
+    "build_dqa_rules",
     "Route",
     "DynamicRouteKeeperAlgorithm",
     "RouteKeeperSyncResult",
@@ -627,6 +643,13 @@ globals().update(
         "ProjectFAQGenerator": ProjectFAQGenerator,
         "ProjectFAQPackage": ProjectFAQPackage,
         "RoutinePrompt": RoutinePrompt,
+        "PrincipleSection": PrincipleSection,
+        "SuccessFormula": SuccessFormula,
+        "PLAYBOOK_OF_PRINCIPLES": PLAYBOOK_OF_PRINCIPLES,
+        "SUCCESS_FORMULA": SUCCESS_FORMULA,
+        "build_principle_sections": build_principle_sections,
+        "build_dqa_principles": build_dqa_principles,
+        "build_dqa_rules": build_dqa_rules,
         "Route": Route,
         "DynamicRouteKeeperAlgorithm": DynamicRouteKeeperAlgorithm,
         "RouteKeeperSyncResult": RouteKeeperSyncResult,
