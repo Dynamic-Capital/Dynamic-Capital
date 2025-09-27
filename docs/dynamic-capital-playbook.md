@@ -3,12 +3,23 @@
 A field manual for building resilient influence, durable wealth, and a lasting legacy. Use the playbook as a living operating document—review it quarterly, refine it with post-mortems, and integrate it into team onboarding so the principles compound through consistent execution.
 
 ## Table of Contents
-1. [Operating Principles](#operating-principles)
-2. [Execution Matrix](#execution-matrix)
-3. [Cadence & Rituals](#cadence--rituals)
-4. [Risk Governance Rules](#risk-governance-rules)
-5. [Legacy & Influence Loop](#legacy--influence-loop)
-6. [Daily Dashboard Checklist](#daily-dashboard-checklist)
+
+<!-- TOC:START -->
+- [Operating Principles](#operating-principles)
+  - [1. Build an Unbreakable Network](#1-build-an-unbreakable-network)
+  - [2. Guard Your Reputation Like Gold](#2-guard-your-reputation-like-gold)
+  - [3. Control the Flow of Information](#3-control-the-flow-of-information)
+  - [4. Diversify Across Borders & Assets](#4-diversify-across-borders--assets)
+  - [5. Master the Art of Discretion](#5-master-the-art-of-discretion)
+  - [6. Turn Risk into Power](#6-turn-risk-into-power)
+  - [7. Think in Centuries, Act in Moments](#7-think-in-centuries-act-in-moments)
+  - [8. Use Wealth for Influence & Legacy](#8-use-wealth-for-influence--legacy)
+- [Execution Matrix](#execution-matrix)
+- [Cadence & Rituals](#cadence--rituals)
+- [Risk Governance Rules](#risk-governance-rules)
+- [Legacy & Influence Loop](#legacy--influence-loop)
+- [Daily Dashboard Checklist](#daily-dashboard-checklist)
+<!-- TOC:END -->
 
 ## Operating Principles
 
