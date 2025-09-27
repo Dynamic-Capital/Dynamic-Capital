@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   LineChart,
   type LucideIcon,
+  Network,
   PieChart,
 } from "lucide-react";
 
@@ -89,26 +90,38 @@ const extraNavItems: NavItem[] = [
     showOnMobile: true,
   },
   {
-    id: "ui-optimizer",
+    id: "dynamic-visual",
     step: `Step ${firstExtraStep + 2}`,
+    label: "Dynamic visual",
+    description: "Animate routing, guardrails, and liquidity relays.",
+    icon: Network,
+    path: "/tools/dynamic-visual",
+    ariaLabel: `Step ${
+      firstExtraStep + 2
+    }: Dynamic visual. Animate routing, guardrails, and liquidity relays.`,
+    showOnMobile: true,
+  },
+  {
+    id: "ui-optimizer",
+    step: `Step ${firstExtraStep + 3}`,
     label: "Dynamic UI optimizer",
     description: "Optimize readiness workflows and activation channels.",
     icon: Gauge,
     path: "/tools/dynamic-ui-optimizer",
     ariaLabel: `Step ${
-      firstExtraStep + 2
+      firstExtraStep + 3
     }: Dynamic UI optimizer. Optimize readiness workflows and activation channels.`,
     showOnMobile: true,
   },
   {
     id: "market-review",
-    step: `Step ${firstExtraStep + 3}`,
+    step: `Step ${firstExtraStep + 4}`,
     label: "Market review",
     description: "Track FX strength, volatility, and cross-asset watchlists.",
     icon: LineChart,
     path: "/tools/dynamic-market-review",
     ariaLabel: `Step ${
-      firstExtraStep + 3
+      firstExtraStep + 4
     }: Market review. Track FX strength, volatility, and cross-asset watchlists.`,
     showOnMobile: true,
   },
