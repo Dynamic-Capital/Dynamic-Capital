@@ -1,4 +1,9 @@
-import { LayoutDashboard, LineChart, type LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  LineChart,
+  PieChart,
+  type LucideIcon,
+} from "lucide-react";
 
 import {
   HOME_NAV_SECTION_MAP,
@@ -69,14 +74,27 @@ const extraNavItems: NavItem[] = [
     showOnMobile: true,
   },
   {
-    id: "market-review",
+    id: "dynamic-portfolio",
     step: `Step ${firstExtraStep + 1}`,
+    label: "Dynamic portfolio",
+    description:
+      "Explore the Dynamic Capital desk experience from hero to checkout.",
+    icon: PieChart,
+    path: "/tools/dynamic-portfolio",
+    ariaLabel: `Step ${
+      firstExtraStep + 1
+    }: Dynamic portfolio. Explore the Dynamic Capital desk experience from hero to checkout.`,
+    showOnMobile: true,
+  },
+  {
+    id: "market-review",
+    step: `Step ${firstExtraStep + 2}`,
     label: "Market review",
     description: "Track FX strength, volatility, and cross-asset watchlists.",
     icon: LineChart,
     path: "/tools/dynamic-market-review",
     ariaLabel: `Step ${
-      firstExtraStep + 1
+      firstExtraStep + 2
     }: Market review. Track FX strength, volatility, and cross-asset watchlists.`,
     showOnMobile: true,
   },
