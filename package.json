@@ -83,7 +83,7 @@
     "@upstash/redis": "^1.35.4",
     "@vercel/otel": "^1.13.0",
     "compressorjs": "^1.2.1",
-    "framer-motion": "^12.23.16",
+    "framer-motion": "^12.23.22",
     "inngest": "^3.40.3",
     "lovable-tagger": "^1.1.9",
     "lucide-react": "^0.544.0",
