@@ -77,6 +77,54 @@ To expose OneDrive as S3, the following approaches are the most stable:
 
 These approaches preserve read/write/modify semantics. Shared OneDrive links alone are insufficient for writes because they do not provide programmatic authentication; always authenticate via rclone configuration or OAuth tokens from Azure AD.
 
+### Configuring `rclone serve s3` for OneDrive
+
+The fastest path to an always-on wrapper is to run `rclone serve s3` as a managed service. The steps below assume you already authenticated the `onedrive` remote with `rclone config`.
+
+1. **Create a lightweight serve configuration**
+
+   Save the following snippet as `~/.config/rclone/serve-onedrive.env` (or a location of your choice) so the flags can be reused across environments:
+
+   ```ini
+   # rclone serve s3 flag file
+   RC_S3_REMOTE=onedrive:
+   RC_S3_ADDR=:9000
+   RC_S3_REGION=us-east-1
+   RC_S3_ACCESS_KEY_ID=dynamic-ai
+   RC_S3_SECRET_ACCESS_KEY=super-secret-password
+   RC_S3_V2_AUTH=true
+   ```
+
+   Replace the access key values with credentials suitable for your environment. Setting `RC_S3_V2_AUTH` retains compatibility with AWS SDK defaults.
+
+2. **Launch the wrapper**
+
+   ```bash
+   source ~/.config/rclone/serve-onedrive.env
+   rclone serve s3 "$RC_S3_REMOTE" \
+     --addr "$RC_S3_ADDR" \
+     --region "$RC_S3_REGION" \
+     --access-key-id "$RC_S3_ACCESS_KEY_ID" \
+     --secret-access-key "$RC_S3_SECRET_ACCESS_KEY" \
+     --v2-auth
+   ```
+
+   To daemonize in production, place the same command inside a systemd unit, Docker container, or process manager (PM2, Supervisor, etc.).
+
+3. **Verify with AWS tooling**
+
+   ```bash
+   export AWS_ACCESS_KEY_ID="$RC_S3_ACCESS_KEY_ID"
+   export AWS_SECRET_ACCESS_KEY="$RC_S3_SECRET_ACCESS_KEY"
+   aws --endpoint-url "http://localhost:9000" s3 ls
+   ```
+
+   The command should list your OneDrive directories as buckets. If you prefer Python, the earlier `boto3` snippet works unchanged once the environment variables are set.
+
+4. **Expose beyond localhost (optional)**
+
+   When you need remote access, bind `RC_S3_ADDR` to `0.0.0.0:9000` and front it with an HTTPS reverse proxy (for example, Nginx or Caddy). Forward the same credentials to CI/CD or training jobs so they can point to the wrapper using the `endpoint_url` override.
+
 ### OneDrive Wrapper Implementation Checklist
 
 Use the following task list to stand up an S3-compatible endpoint backed by OneDrive. Each task includes a verification step so you can confirm progress before moving on.
