@@ -1,0 +1,19 @@
+Tonstarter Vesting Module Internal Audit
+Run date: 2025-04-28
+Committee: Ops (J. Malik), Engineering (R. Chen), Compliance (L. Santos)
+
+Test suite: third_party/tribute-contracts/test/extensions/vesting.test.js
+Execution hash: 9f6c7c2 (pnpm test --filter vesting)
+Environment: node v18.19.0, pnpm 8.15.1
+
+Summary:
+- Access control scenarios: PASS
+- Schedule math (create/update/remove): PASS
+- Minimum balance enforcement: PASS
+- Multi-vesting scenarios: PASS
+
+Artifacts:
+- CI log archive stored in s3://dynamic-capital-audit/tonstarter/vesting/2025-04-28/log.txt (restricted access)
+- Reviewer notes captured in Notion doc `Tonstarter Vesting QA` (internal workspace)
+
+No blocking findings. Recommended recurring audit cadence: quarterly until post-TGE operations stabilize.

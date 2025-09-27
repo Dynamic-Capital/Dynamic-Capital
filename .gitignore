@@ -17,6 +17,8 @@ dist-ssr/
 _static/*
 !_static/404.html
 !_static/index.html
+!_static/ton/
+!_static/ton/**
 
 # Logs
 logs
