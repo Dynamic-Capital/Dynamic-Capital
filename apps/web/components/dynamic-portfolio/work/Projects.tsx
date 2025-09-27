@@ -1,6 +1,6 @@
-import { brandProjectTitle, getPosts } from "@/utils/magic-portfolio/utils";
+import { brandProjectTitle, getPosts } from "@/utils/dynamic-portfolio/utils";
 import { Column } from "@/components/dynamic-ui-system";
-import { ProjectCard } from "@/components/magic-portfolio";
+import { ProjectCard } from "@/components/dynamic-portfolio";
 
 interface ProjectsProps {
   range?: [number, number?];

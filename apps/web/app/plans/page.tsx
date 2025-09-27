@@ -1,11 +1,12 @@
-import { Heading, Column, Text } from "@/components/dynamic-ui-system";
+import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 
-import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
-import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
+import { VipPackagesSection } from "@/components/dynamic-portfolio/home/VipPackagesSection";
+import { CheckoutCallout } from "@/components/dynamic-portfolio/home/CheckoutCallout";
 
 export const metadata = {
   title: "VIP Plans – Dynamic Capital",
-  description: "Choose a Dynamic Capital VIP membership package and unlock the full trading desk experience.",
+  description:
+    "Choose a Dynamic Capital VIP membership package and unlock the full trading desk experience.",
 };
 
 export default function PlansPage() {
@@ -15,8 +16,13 @@ export default function PlansPage() {
         <Heading variant="display-strong-s" align="center">
           VIP membership plans
         </Heading>
-        <Text variant="body-default-m" onBackground="neutral-weak" align="center">
-          Explore live pricing, compare access levels, and move straight into checkout when you’re ready to join the desk.
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          align="center"
+        >
+          Explore live pricing, compare access levels, and move straight into
+          checkout when you’re ready to join the desk.
         </Text>
       </Column>
       <VipPackagesSection />
