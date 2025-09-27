@@ -1,12 +1,7 @@
 import { type ReactNode } from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Providers from "@/app/providers";
-import { DynamicButton } from "./components/DynamicButton";
+import { DynamicGuiShowcase } from "./components/DynamicGuiShowcase";
 import CheckoutPage from "~/pages/CheckoutPage";
 import NotFoundPage from "~/pages/NotFoundPage";
 
@@ -15,22 +10,10 @@ function AppProviders({ children }: { children: ReactNode }) {
 }
 
 function HomePage() {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">
-          Welcome to Dynamic Capital
-        </h1>
-        <p className="text-center text-lg mb-8">
-          Fast deposits for traders. Bank & crypto, verified.
-        </p>
-        <div className="text-center">
-          <DynamicButton onClick={() => navigate("/checkout")}>
-            Get Started
-          </DynamicButton>
-        </div>
+      <div className="container mx-auto px-4 py-10">
+        <DynamicGuiShowcase />
       </div>
     </div>
   );
