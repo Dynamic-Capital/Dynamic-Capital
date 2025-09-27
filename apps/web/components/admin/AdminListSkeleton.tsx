@@ -15,16 +15,16 @@ export function AdminListSkeleton({ rows = 4 }: AdminListSkeletonProps) {
           className="space-y-3 rounded-2xl border border-border/40 bg-card/70 p-4 shadow-sm"
         >
           <div className="flex items-center justify-between gap-3">
-            <Skeleton className="h-5 w-28 rounded-full" />
-            <Skeleton className="h-4 w-20 rounded-full" />
+            <Skeleton height="s" width="m" />
+            <Skeleton height="xs" width="s" />
           </div>
           <div className="space-y-2">
-            <Skeleton className="h-4 w-5/6 rounded-full" />
-            <Skeleton className="h-4 w-2/3 rounded-full" />
+            <Skeleton height="s" width="xl" className="max-w-[18rem]" />
+            <Skeleton height="s" width="l" className="max-w-[14rem]" />
           </div>
           <div className="flex items-center justify-between gap-3 text-xs">
-            <Skeleton className="h-4 w-32 rounded-full" />
-            <Skeleton className="h-4 w-24 rounded-full" />
+            <Skeleton height="xs" width="m" />
+            <Skeleton height="xs" width="s" />
           </div>
         </div>
       ))}
