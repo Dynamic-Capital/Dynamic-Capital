@@ -5,6 +5,12 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as pickle from "https://cdn.skypack.dev/pickleparser";
 
+import {
+  assignStops,
+  computeVolatility,
+  deriveFibonacciAnchors,
+} from "../_shared/sl_tp.ts";
+
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -185,6 +191,43 @@ serve(async (req) => {
 
     const model = await loadModel();
     const { signal, confidence, score } = evaluateSignal(model, prices);
+
+    const entryPrice = prices[prices.length - 1];
+    let sl: number | null = null;
+    let tp: number | null = null;
+
+    if (signal !== "NEUTRAL") {
+      const volatility = computeVolatility(prices);
+      const { retracement, extension } = deriveFibonacciAnchors(prices, signal);
+      const treasuryHealth = 1.0; // TODO: hydrate from treasury telemetry when available.
+      const { sl: computedSl, tp: computedTp } = assignStops({
+        entry: entryPrice,
+        side: signal,
+        volatility,
+        fibonacciRetracement: retracement,
+        fibonacciExtension: extension,
+        rr: 2,
+        treasuryHealth,
+      });
+
+      sl = computedSl;
+      tp = computedTp;
+
+      const { error: tradeError } = await supabase.from("trades").insert({
+        symbol,
+        side: signal,
+        qty: 1,
+        price: entryPrice,
+        sl,
+        tp,
+        pnl: null,
+        source: "Lorentzian",
+      });
+
+      if (tradeError) {
+        console.error("[lorentzian-eval] Failed to log trade", tradeError);
+      }
+    }
 
     const { error: insertError } = await supabase.from("signals").insert({
       source: "Lorentzian",
