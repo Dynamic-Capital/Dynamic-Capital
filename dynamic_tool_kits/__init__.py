@@ -161,7 +161,13 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_encryption": ("EncryptionEnvelope", "EncryptionRequest", "KeyMaterial"),
     "dynamic_implicit_memory": ("ImplicitMemoryReport", "ImplicitMemoryTrace", "MemoryContext"),
     "dynamic_index": ("IndexConstituent", "IndexSignal", "IndexSnapshot"),
-    "dynamic_indicators": ("IndicatorDefinition", "IndicatorOverview", "IndicatorReading", "IndicatorSnapshot"),
+    "dynamic_indicators": (
+        "IndicatorDefinition",
+        "IndicatorOverview",
+        "IndicatorReading",
+        "IndicatorSnapshot",
+        "create_dynamic_indicators",
+    ),
     "dynamic_keepers": (
         "ApiKeeperSyncResult",
         "BackendKeeperSyncResult",
