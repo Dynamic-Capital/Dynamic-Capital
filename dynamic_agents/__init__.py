@@ -27,10 +27,12 @@ __all__ = [
     "ResearchAgentResult",
     "RiskAgent",
     "RiskAgentResult",
-    "TradingAgent",
-    "TradingAgentResult",
     "SpaceAgent",
     "SpaceAgentResult",
+    "TradingAgent",
+    "TradingAgentResult",
+    "WaveAgent",
+    "WaveAgentResult",
     "run_dynamic_agent_cycle",
 ]
 
@@ -56,6 +58,8 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
         RiskAgentResult,
         SpaceAgent,
         SpaceAgentResult,
+        WaveAgent,
+        WaveAgentResult,
     )
 
 

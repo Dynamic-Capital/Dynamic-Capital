@@ -12,10 +12,12 @@ from .agents import (
     ResearchAgentResult,
     RiskAgent,
     RiskAgentResult,
-    TradingAgent,
-    TradingAgentResult,
     SpaceAgent,
     SpaceAgentResult,
+    TradingAgent,
+    TradingAgentResult,
+    WaveAgent,
+    WaveAgentResult,
 )
 from .core import AISignal, DynamicFusionAlgo
 from .dolphin_adapter import (
@@ -97,6 +99,8 @@ __all__ = [
     "TradingAgentResult",
     "SpaceAgent",
     "SpaceAgentResult",
+    "WaveAgent",
+    "WaveAgentResult",
     "AccountState",
     "DynamicHedgePolicy",
     "ExposurePosition",
