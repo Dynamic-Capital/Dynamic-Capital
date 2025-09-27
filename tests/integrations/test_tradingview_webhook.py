@@ -148,3 +148,39 @@ def test_webhook_processes_payload_with_valid_secret(
     assert data["status"] == "executed"
     assert stubbed_components.supabase_logger.logged_payloads
     assert stubbed_components.bot.messages
+
+
+def test_webhook_does_not_notify_on_failed_trade(
+    monkeypatch: pytest.MonkeyPatch,
+    client,
+    stubbed_components: SimpleNamespace,
+) -> None:
+    monkeypatch.setenv("TRADINGVIEW_WEBHOOK_SECRET", "top-secret")
+
+    class FailedTradeResult:
+        def __init__(self) -> None:
+            self.ok = False
+            self.retcode = 500
+            self.profit = -12.34
+            self.ticket = None
+            self.symbol = "XAUUSD"
+            self.lot = 0.1
+            self.message = "Trade rejected"
+
+    def fail_trade(ai_signal, *, lot: float, symbol: str) -> FailedTradeResult:
+        return FailedTradeResult()
+
+    monkeypatch.setattr(stubbed_components.trader, "execute_trade", fail_trade)
+
+    payload = {"symbol": "XAUUSD", "lot": 0.25, "signal": "BUY"}
+    response = client.post(
+        "/webhook",
+        json=payload,
+        headers={SECRET_HEADER: "top-secret"},
+    )
+
+    assert response.status_code == 200
+    assert stubbed_components.supabase_logger.logged_payloads
+    assert not stubbed_components.bot.messages
+    data = response.get_json()
+    assert data["status"] == "skipped"
