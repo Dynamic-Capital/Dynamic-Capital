@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 
 @dataclass
@@ -81,3 +81,63 @@ class RiskManager:
     def _finalise(signal: Dict[str, Any], notes: list[str]) -> Dict[str, Any]:
         signal["risk_notes"] = notes
         return signal
+
+
+def assign_sl_tp(
+    entry: float,
+    signal: str,
+    volatility: float,
+    *,
+    rr: float = 2.0,
+    fibonacci_retrace: float | None = None,
+    fibonacci_extension: float | None = None,
+    treasury_health: float = 1.0,
+) -> Tuple[float | None, float | None]:
+    """Derive stop-loss/take-profit levels for a trade idea.
+
+    The helper combines multiple heuristics:
+
+    * A volatility buffer (ATR/σ proxy) drives the baseline risk distance.
+    * Fibonacci retracement/extension anchors gently adjust the buffer.
+    * The requested risk:reward ratio determines the reward span.
+    * Treasury health tightens or widens the levels to curb utilisation spikes.
+
+    Any invalid signal returns ``(None, None)`` so the caller can skip logging a
+    trade.
+    """
+
+    side = signal.upper()
+    if side not in {"BUY", "SELL"}:
+        return None, None
+
+    rr_ratio = rr if rr > 0 else 2.0
+    latest_price = float(entry)
+    buffer_floor = max(0.01 * abs(latest_price), volatility * 1.5)
+
+    if fibonacci_retrace is not None:
+        retrace_distance = abs(latest_price - float(fibonacci_retrace))
+        buffer_floor = (buffer_floor * 0.5) + (retrace_distance * 0.5)
+
+    clamped_health = max(0.0, min(2.0, treasury_health))
+    if clamped_health < 0.8:
+        treasury_scale = 0.6 + 0.5 * (clamped_health / 0.8 if clamped_health else 0.0)
+    elif clamped_health > 1.2:
+        treasury_scale = 1.0 + min(0.5, (clamped_health - 1.2) * 0.5)
+    else:
+        treasury_scale = 1.0
+
+    risk_buffer = max(0.0, buffer_floor * treasury_scale)
+    reward_buffer = risk_buffer * rr_ratio
+
+    if fibonacci_extension is not None:
+        extension_distance = abs(float(fibonacci_extension) - latest_price)
+        reward_buffer = (reward_buffer * 0.5) + (extension_distance * 0.5)
+
+    if side == "BUY":
+        sl = round(latest_price - risk_buffer, 2)
+        tp = round(latest_price + reward_buffer, 2)
+    else:
+        sl = round(latest_price + risk_buffer, 2)
+        tp = round(latest_price - reward_buffer, 2)
+
+    return sl, tp
