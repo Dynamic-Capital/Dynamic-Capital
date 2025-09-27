@@ -1,0 +1,51 @@
+# Project Scan Overview
+
+## Step-by-step reconnaissance
+
+1. **Inventory top-level domains** – Enumerated primary directories at the
+   repository root to understand the breadth of applications, backend services,
+   and automation utilities before diving deeper.
+2. **Inspect client experiences** – Opened the `apps/` workspace to verify that
+   `landing` and `web` house the marketing site and the Next.js-powered Telegram
+   Mini App/dashboard bundle respectively.
+3. **Review algorithmic engines** – Surveyed Python packages under
+   `algorithms/`, `core/`, `dynamic_ai/`, `dynamic_algo/`, and `dynamic_token/`
+   to map where trading, treasury, and AI orchestration logic live.
+4. **Trace integrations and queues** – Checked `integrations/` and `queue/` to
+   identify connectors for MT5, Telegram, TradingView, and the lightweight job
+   runner dispatching asynchronous workloads.
+5. **Map infrastructure tooling** – Explored `scripts/`, `supabase/`, and
+   `tools/` to catalogue deployment flows, edge functions, and resource
+   definitions supporting automation and infrastructure-as-code.
+
+## Directory highlights
+
+- `apps/`
+  - `landing`: Lightweight marketing site package for the public-facing
+    experience.
+  - `web`: Comprehensive Next.js App Router workspace powering the Telegram Mini
+    App and admin console with shared components, hooks, and services.
+- `algorithms/`: Contains algorithm artifacts across Python, Pine Script, MQL5,
+  and webhook adapters for strategy experimentation and external integrations.
+- `core/`: Python trading core with fusion engines, market-making routines, and
+  shared Supabase client utilities.
+- `dynamic_ai/`: AI orchestration layer coordinating agent behaviors, risk
+  modules, hedging, and training pipelines.
+- `dynamic_algo/`: Modular automation suite describing roles (CEO/CFO/COO),
+  marketing, analytics, and middleware primitives for Dynamic Capital workflows.
+- `dynamic_token/`: Treasury utilities managing Dynamic Capital Token accounting
+  logic.
+- `integrations/`: Connectors bridging MT5, Telegram bots, TradingView feeds,
+  and Supabase logging helpers.
+- `queue/`: Custom TypeScript job queue with processors such as `dct-events` to
+  deliver webhook payloads reliably.
+- `scripts/`: Extensive deployment, auditing, and operational scripts for
+  Supabase, Telegram webhooks, Mini App builds, and environment validation.
+- `supabase/`: Edge functions, migrations, and resource schematics driving the
+  Supabase backend, including automation cron jobs and webhook handlers.
+- `docs/`: Knowledge base covering architecture overviews, compliance,
+  whitepapers, and contributor guides.
+- `data/` & `models/`: Datasets and machine learning artifact placeholders that
+  support analytics and AI-driven features across the platform.
+- `tools/`: Developer utilities, including automation helpers and shared
+  workflows for repository maintenance.
