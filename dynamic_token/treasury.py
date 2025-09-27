@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import isfinite
 from typing import Optional
 
 
@@ -28,8 +29,16 @@ class DynamicTreasuryAlgo:
         if not trade_result or getattr(trade_result, "retcode", None) != SUCCESS_RETCODE:
             return None
 
-        profit = float(getattr(trade_result, "profit", 0.0))
-        if profit <= 0:
+        raw_profit = getattr(trade_result, "profit", 0.0)
+        if raw_profit in (None, ""):
+            return None
+
+        try:
+            profit = float(raw_profit)
+        except (TypeError, ValueError):
+            return None
+
+        if not isfinite(profit) or profit <= 0:
             return None
 
         burn_amount = round(profit * 0.2, 2)
