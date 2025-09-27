@@ -3,9 +3,28 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Protocol, Sequence, Set, Tuple
 
-from .dolphin_adapter import DolphinLlamaCppAdapter, LLMIntegrationError
+from .dolphin_adapter import LLMIntegrationError
+
+if TYPE_CHECKING:  # pragma: no cover - used for typing only
+    from .dolphin_adapter import DolphinLlamaCppAdapter
+    from .ollama_adapter import OllamaAdapter
+
+
+class ReasoningAdapter(Protocol):
+    """Protocol describing the LLM adapter interface used by the fusion core."""
+
+    def enhance_reasoning(
+        self,
+        *,
+        action: str,
+        confidence: float,
+        base_reasoning: str,
+        market_context: Dict[str, Any],
+        prior_dialogue: Sequence[tuple[str, str]] | None = None,
+    ) -> str:
+        ...
 
 
 VALID_SIGNALS = {"BUY", "SELL", "HOLD", "NEUTRAL"}
@@ -105,11 +124,11 @@ class DynamicFusionAlgo:
         *,
         neutral_confidence: float = 0.55,
         boost_topics: Optional[Iterable[str]] = None,
-        llm_adapter: Optional[DolphinLlamaCppAdapter] = None,
+        llm_adapter: Optional[ReasoningAdapter] = None,
     ) -> None:
         self.neutral_confidence = neutral_confidence
         self.boost_topics: Set[str] = {topic.lower() for topic in boost_topics} if boost_topics else set()
-        self.llm_adapter = llm_adapter
+        self.llm_adapter: Optional[ReasoningAdapter] = llm_adapter
 
     def generate_signal(self, market_data: Dict[str, Any]) -> AISignal:
         """Derive an actionable signal from the provided market payload."""
