@@ -529,6 +529,61 @@ export type Database = {
         };
         Relationships: [];
       };
+      course_progress: {
+        Row: {
+          completed_at: string;
+          course_id: string;
+          created_at: string;
+          id: string;
+          lesson_id: string;
+          status: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          completed_at?: string;
+          course_id: string;
+          created_at?: string;
+          id?: string;
+          lesson_id: string;
+          status?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          completed_at?: string;
+          course_id?: string;
+          created_at?: string;
+          id?: string;
+          lesson_id?: string;
+          status?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "course_progress_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "school_courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "course_progress_lesson_id_fkey";
+            columns: ["lesson_id"];
+            isOneToOne: false;
+            referencedRelation: "school_lessons";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "course_progress_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       cot_reports: {
         Row: {
           commercial_long: string | null;
@@ -1389,6 +1444,89 @@ export type Database = {
             columns: ["session_id"];
             isOneToOne: false;
             referencedRelation: "user_sessions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      school_courses: {
+        Row: {
+          created_at: string;
+          estimated_minutes: number | null;
+          id: string;
+          sequence: number;
+          slug: string;
+          start_url: string;
+          summary: string | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          estimated_minutes?: number | null;
+          id?: string;
+          sequence: number;
+          slug: string;
+          start_url: string;
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          estimated_minutes?: number | null;
+          id?: string;
+          sequence?: number;
+          slug?: string;
+          start_url?: string;
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      school_lessons: {
+        Row: {
+          content_url: string | null;
+          course_id: string;
+          created_at: string;
+          estimated_minutes: number | null;
+          id: string;
+          sequence: number;
+          slug: string;
+          summary: string | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          content_url?: string | null;
+          course_id: string;
+          created_at?: string;
+          estimated_minutes?: number | null;
+          id?: string;
+          sequence: number;
+          slug: string;
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          content_url?: string | null;
+          course_id?: string;
+          created_at?: string;
+          estimated_minutes?: number | null;
+          id?: string;
+          sequence?: number;
+          slug?: string;
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "school_lessons_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "school_courses";
             referencedColumns: ["id"];
           },
         ];
