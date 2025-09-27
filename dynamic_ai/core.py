@@ -8,6 +8,36 @@ from typing import Any, Dict, Iterable, List, Optional
 
 VALID_SIGNALS = {"BUY", "SELL", "HOLD", "NEUTRAL"}
 
+ACTION_THRESHOLD = 0.2
+ACTION_TOLERANCE = 1e-6
+
+_ACTION_TO_SCORE = {"BUY": 1.0, "SELL": -1.0}
+
+
+def score_to_action(
+    score: float,
+    *,
+    neutral_action: str = "NEUTRAL",
+    threshold: float = ACTION_THRESHOLD,
+    tolerance: float = ACTION_TOLERANCE,
+) -> str:
+    """Return the discrete action corresponding to a blended ``score``.
+
+    The helper mirrors the tolerances used by the real-time Dynamic Algos so
+    that boundary scores (for example 0.1999999) resolve in the same
+    direction.  A small symmetric ``tolerance`` keeps floating point error from
+    flipping BUY/SELL intents when human overrides blend with automation.
+    """
+
+    upper_threshold = threshold - tolerance
+    lower_threshold = -threshold + tolerance
+
+    if score >= upper_threshold:
+        return "BUY"
+    if score <= lower_threshold:
+        return "SELL"
+    return neutral_action
+
 
 @dataclass
 class AISignal:
@@ -234,16 +264,8 @@ class DynamicFusionAlgo:
 
     @staticmethod
     def _action_to_score(action: str) -> float:
-        if action == "BUY":
-            return 1.0
-        if action == "SELL":
-            return -1.0
-        return 0.0
+        return _ACTION_TO_SCORE.get(action, 0.0)
 
     @staticmethod
     def _score_to_action(score: float) -> str:
-        if score > 0.2:
-            return "BUY"
-        if score < -0.2:
-            return "SELL"
-        return "NEUTRAL"
+        return score_to_action(score)

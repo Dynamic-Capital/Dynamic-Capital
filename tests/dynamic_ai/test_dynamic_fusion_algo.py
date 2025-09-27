@@ -71,6 +71,21 @@ def test_human_bias_override_when_divergent(algo: DynamicFusionAlgo) -> None:
     assert "adjusted action" in signal.reasoning
 
 
+def test_human_bias_boundary_scores_promote_action(algo: DynamicFusionAlgo) -> None:
+    payload = {
+        "signal": "NEUTRAL",
+        "confidence": 0.55,
+        "volatility": 1.0,
+        "human_bias": "BUY",
+        # Weight yields blended score fractionally under the nominal threshold.
+        "human_weight": 0.1999995,
+    }
+
+    signal = algo.generate_signal(payload)
+
+    assert signal.action == "BUY"
+
+
 def test_news_none_is_treated_as_empty_iterable(algo: DynamicFusionAlgo) -> None:
     payload = {
         "signal": "SELL",
