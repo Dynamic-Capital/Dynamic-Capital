@@ -85,17 +85,31 @@ export const DynamicMotionFlex = React.forwardRef<
     ref,
   ) => {
     const { variants, initial, whileInView, viewport: resolvedViewport } =
-      resolveMotionPreset({
-        animateIn,
-        variant,
-        once,
-        viewportAmount,
-        animate: animateProp,
-        variants: variantsProp,
-        viewport,
-        initial: initialProp,
-        whileInView: whileInViewProp,
-      });
+      React.useMemo(
+        () =>
+          resolveMotionPreset({
+            animateIn,
+            variant,
+            once,
+            viewportAmount,
+            animate: animateProp,
+            variants: variantsProp,
+            viewport,
+            initial: initialProp,
+            whileInView: whileInViewProp,
+          }),
+        [
+          animateIn,
+          animateProp,
+          initialProp,
+          once,
+          variant,
+          variantsProp,
+          viewport,
+          viewportAmount,
+          whileInViewProp,
+        ],
+      );
 
     return (
       <MotionFlexBase
@@ -140,17 +154,31 @@ export const DynamicMotionColumn = React.forwardRef<
     ref,
   ) => {
     const { variants, initial, whileInView, viewport: resolvedViewport } =
-      resolveMotionPreset({
-        animateIn,
-        variant,
-        once,
-        viewportAmount,
-        animate: animateProp,
-        variants: variantsProp,
-        viewport,
-        initial: initialProp,
-        whileInView: whileInViewProp,
-      });
+      React.useMemo(
+        () =>
+          resolveMotionPreset({
+            animateIn,
+            variant,
+            once,
+            viewportAmount,
+            animate: animateProp,
+            variants: variantsProp,
+            viewport,
+            initial: initialProp,
+            whileInView: whileInViewProp,
+          }),
+        [
+          animateIn,
+          animateProp,
+          initialProp,
+          once,
+          variant,
+          variantsProp,
+          viewport,
+          viewportAmount,
+          whileInViewProp,
+        ],
+      );
 
     return (
       <MotionColumnBase
@@ -195,17 +223,31 @@ export const DynamicMotionRow = React.forwardRef<
     ref,
   ) => {
     const { variants, initial, whileInView, viewport: resolvedViewport } =
-      resolveMotionPreset({
-        animateIn,
-        variant,
-        once,
-        viewportAmount,
-        animate: animateProp,
-        variants: variantsProp,
-        viewport,
-        initial: initialProp,
-        whileInView: whileInViewProp,
-      });
+      React.useMemo(
+        () =>
+          resolveMotionPreset({
+            animateIn,
+            variant,
+            once,
+            viewportAmount,
+            animate: animateProp,
+            variants: variantsProp,
+            viewport,
+            initial: initialProp,
+            whileInView: whileInViewProp,
+          }),
+        [
+          animateIn,
+          animateProp,
+          initialProp,
+          once,
+          variant,
+          variantsProp,
+          viewport,
+          viewportAmount,
+          whileInViewProp,
+        ],
+      );
 
     return (
       <MotionRowBase

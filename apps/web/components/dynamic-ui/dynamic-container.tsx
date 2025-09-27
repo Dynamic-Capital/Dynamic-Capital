@@ -53,21 +53,48 @@ export const DynamicContainer = React.forwardRef<
     },
     ref,
   ) => {
-    const shouldApplyPreset = animateIn && animateProp === undefined;
-    const resolvedVariants = variantsProp ??
-      (shouldApplyPreset && variant
-        ? dynamicMotionVariants[variant]
-        : undefined);
+    const {
+      variants: resolvedVariants,
+      initial: initialValue,
+      whileInView: whileInViewValue,
+      viewport: resolvedViewport,
+    } = React.useMemo(() => {
+      const shouldApplyPreset = animateIn && animateProp === undefined;
+      const resolvedVariants = variantsProp ??
+        (shouldApplyPreset && variant
+          ? dynamicMotionVariants[variant]
+          : undefined);
 
-    const initialValue = shouldApplyPreset && resolvedVariants
-      ? initialProp ?? "hidden"
-      : initialProp;
-    const whileInViewValue = shouldApplyPreset && resolvedVariants
-      ? whileInViewProp ?? "visible"
-      : whileInViewProp;
-    const resolvedViewport = shouldApplyPreset && resolvedVariants
-      ? viewport ?? { once, amount: viewportAmount }
-      : viewport;
+      if (!resolvedVariants) {
+        return {
+          variants: variantsProp,
+          initial: initialProp,
+          whileInView: whileInViewProp,
+          viewport,
+        } as const;
+      }
+
+      return {
+        variants: resolvedVariants,
+        initial: shouldApplyPreset ? initialProp ?? "hidden" : initialProp,
+        whileInView: shouldApplyPreset
+          ? whileInViewProp ?? "visible"
+          : whileInViewProp,
+        viewport: shouldApplyPreset
+          ? viewport ?? { once, amount: viewportAmount }
+          : viewport,
+      } as const;
+    }, [
+      animateIn,
+      animateProp,
+      initialProp,
+      once,
+      variant,
+      variantsProp,
+      viewport,
+      viewportAmount,
+      whileInViewProp,
+    ]);
 
     return (
       <MotionDiv
