@@ -166,10 +166,23 @@ process.env.ALLOWED_ORIGINS = ALLOWED_ORIGINS;
 process.env.DEFAULT_LOCALE = DEFAULT_LOCALE;
 process.env.NEXT_PUBLIC_DEFAULT_LOCALE = DEFAULT_LOCALE;
 
+const optimizePackageImports = ['lucide-react'];
+
+const modularizeImportRules = {
+  'lucide-react': {
+    transform: 'lucide-react/dist/esm/icons/{{member}}',
+    skipDefaultConversion: true,
+  },
+};
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  experimental: {
+    optimizePackageImports,
+  },
+  modularizeImports: modularizeImportRules,
   env: {
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
