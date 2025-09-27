@@ -177,6 +177,11 @@ detailed checklists into project docs for visibility.
 4. **[Dynamic Trading Algo (DTA) Improvement Checklist](./dynamic-trading-algo-improvement-checklist.md)**
    – Guides Smart Money Concepts tuning across configuration, analyzers, and
    delivery workflows so BOS/liquidity updates land consistently.
+5. **[Dynamic Domain Alignment Checklist](./dynamic-domain-alignment-checklist.md)**
+   – Coordinates DNS, DigitalOcean, Vercel, and Lovable updates so every surface
+   references the canonical `dynamic-capital-qazf2.ondigitalocean.app` origin,
+   optimizes HTTP/HTTPS routing, keeps API hosts consistent, and maintains the
+   Cloudflare anycast IP allow list.
 
 ## Completed Repo-Level Action Items
 
