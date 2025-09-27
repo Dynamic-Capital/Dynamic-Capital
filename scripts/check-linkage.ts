@@ -2,6 +2,8 @@
 // Runs an external linkage check using env + Telegram + (optionally) the Edge audit function.
 // Prints findings; always exits 0.
 
+import { createHttpClientWithEnvCa } from "./utils/http-client.ts";
+
 function env(k: string) {
   return Deno.env.get(k) ?? "";
 }
@@ -27,11 +29,15 @@ function expectedWebhookUrl(): string | null {
   return ref ? `https://${ref}.functions.supabase.co/telegram-bot` : null;
 }
 
-async function getJson(url: string) {
+async function getJson(url: string, client?: Deno.HttpClient) {
   try {
-    const r = await fetch(url);
+    const signal = AbortSignal.timeout(10_000);
+    const r = await fetch(url, client ? { client, signal } : { signal });
     return await r.json();
-  } catch {
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      console.warn(`[linkage] Request timed out for ${url}`);
+    }
     return null;
   }
 }
@@ -43,9 +49,15 @@ async function main() {
   const expectedWebhook = expectedWebhookUrl();
   let currentWebhook: string | null = null;
 
+  const tlsContext = await createHttpClientWithEnvCa();
+  if (tlsContext) {
+    console.log(`[tls] Using ${tlsContext.description}`);
+  }
+
   if (token) {
     const info = await getJson(
       `https://api.telegram.org/bot${token}/getWebhookInfo`,
+      tlsContext?.client,
     );
     currentWebhook = info?.result?.url ?? null;
     console.log("[linkage] getWebhookInfo.ok:", !!info?.ok);
@@ -74,6 +86,7 @@ async function main() {
   }
 
   // Always succeed; human interprets output.
+  tlsContext?.client.close();
   Deno.exit(0);
 }
 
