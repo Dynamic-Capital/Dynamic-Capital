@@ -7,10 +7,10 @@ spec:
     - rule: DEPLOYMENT_FAILED
     - rule: DOMAIN_FAILED
   domains:
-    - domain: dynamic-capital.ondigitalocean.app
+    - domain: dynamic-capital-qazf2.ondigitalocean.app
       type: PRIMARY
       wildcard: false
-      zone: dynamic-capital.ondigitalocean.app
+      zone: dynamic-capital-qazf2.ondigitalocean.app
     - domain: dynamic-capital.vercel.app
       type: ALIAS
       wildcard: false
@@ -25,7 +25,7 @@ spec:
           name: dynamic-capital
         match:
           authority:
-            exact: dynamic-capital.ondigitalocean.app
+            exact: dynamic-capital-qazf2.ondigitalocean.app
           path:
             prefix: /
   envs:
@@ -36,16 +36,19 @@ spec:
       value: "1"
       scope: RUN_AND_BUILD_TIME
     - key: SITE_URL
-      value: https://dynamic-capital.ondigitalocean.app
+      value: https://dynamic-capital-qazf2.ondigitalocean.app
       scope: RUN_AND_BUILD_TIME
     - key: NEXT_PUBLIC_SITE_URL
-      value: https://dynamic-capital.ondigitalocean.app
+      value: https://dynamic-capital-qazf2.ondigitalocean.app
       scope: RUN_AND_BUILD_TIME
     - key: ALLOWED_ORIGINS
-      value: https://dynamic-capital.ondigitalocean.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app
+      value: https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app
       scope: RUN_AND_BUILD_TIME
     - key: MINIAPP_ORIGIN
-      value: https://dynamic-capital.ondigitalocean.app
+      value: https://dynamic-capital-qazf2.ondigitalocean.app
+      scope: RUN_AND_BUILD_TIME
+    - key: TELEGRAM_WEBHOOK_URL
+      value: https://dynamic-capital-qazf2.ondigitalocean.app/webhook
       scope: RUN_AND_BUILD_TIME
     - key: NEXT_PUBLIC_SUPABASE_URL
       value: https://qeejuomcapbdlhnjqjcc.supabase.co
@@ -82,13 +85,16 @@ spec:
         http_path: /
       envs:
         - key: SITE_URL
-          value: https://dynamic-capital.ondigitalocean.app
+          value: https://dynamic-capital-qazf2.ondigitalocean.app
           scope: RUN_AND_BUILD_TIME
         - key: NEXT_PUBLIC_SITE_URL
-          value: https://dynamic-capital.ondigitalocean.app
+          value: https://dynamic-capital-qazf2.ondigitalocean.app
           scope: RUN_AND_BUILD_TIME
         - key: MINIAPP_ORIGIN
-          value: https://dynamic-capital.ondigitalocean.app
+          value: https://dynamic-capital-qazf2.ondigitalocean.app
+          scope: RUN_AND_BUILD_TIME
+        - key: TELEGRAM_WEBHOOK_URL
+          value: https://dynamic-capital-qazf2.ondigitalocean.app/webhook
           scope: RUN_AND_BUILD_TIME
   static_sites: []
   workers: []
