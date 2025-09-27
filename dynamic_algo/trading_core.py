@@ -52,6 +52,14 @@ class _PaperBroker:
             lot=lot,
         )
 
+    def open_hedge(self, symbol: str, lot: float, side: str) -> TradeExecutionResult:
+        action = ORDER_ACTION_BUY if side.upper() == "LONG_HEDGE" else ORDER_ACTION_SELL
+        return self.execute(action, symbol, lot)
+
+    def close_hedge(self, symbol: str, lot: float, side: str) -> TradeExecutionResult:
+        action = ORDER_ACTION_SELL if side.upper() == "LONG_HEDGE" else ORDER_ACTION_BUY
+        return self.execute(action, symbol, lot)
+
 
 class DynamicTradingAlgo:
     """High-level trade executor that orchestrates MT5 or paper trades."""
@@ -88,6 +96,36 @@ class DynamicTradingAlgo:
             return self._normalise_response(response, symbol=symbol, lot=lot)
 
         return self._paper_execute(ORDER_ACTION_SELL, symbol, lot)
+
+    def execute_hedge(
+        self,
+        *,
+        symbol: str,
+        lot: float,
+        side: str,
+        close: bool = False,
+    ) -> TradeExecutionResult:
+        """Execute a hedge open/close instruction."""
+
+        if close:
+            return self._close_hedge(symbol, lot, side)
+        return self._open_hedge(symbol, lot, side)
+
+    def _open_hedge(self, symbol: str, lot: float, side: str) -> TradeExecutionResult:
+        if self.connector and hasattr(self.connector, "open_hedge"):
+            response = self.connector.open_hedge(symbol, lot, side)
+            return self._normalise_response(response, symbol=symbol, lot=lot)
+
+        action = ORDER_ACTION_BUY if side.upper() == "LONG_HEDGE" else ORDER_ACTION_SELL
+        return self._paper_execute(action, symbol, lot)
+
+    def _close_hedge(self, symbol: str, lot: float, side: str) -> TradeExecutionResult:
+        if self.connector and hasattr(self.connector, "close_hedge"):
+            response = self.connector.close_hedge(symbol, lot, side)
+            return self._normalise_response(response, symbol=symbol, lot=lot)
+
+        action = ORDER_ACTION_SELL if side.upper() == "LONG_HEDGE" else ORDER_ACTION_BUY
+        return self._paper_execute(action, symbol, lot)
 
     def _paper_execute(self, action: str, symbol: str, lot: float) -> TradeExecutionResult:
         broker = _PaperBroker()

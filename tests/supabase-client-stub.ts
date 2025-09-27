@@ -21,6 +21,10 @@ type TradeStatus =
   | "failed"
   | "cancelled";
 
+type HedgeActionSide = "LONG_HEDGE" | "SHORT_HEDGE";
+type HedgeActionReason = "ATR_SPIKE" | "NEWS" | "DD_LIMIT";
+type HedgeActionStatus = "OPEN" | "CLOSED" | "CANCELLED";
+
 type TradingAccountStatus = "active" | "maintenance" | "disabled";
 
 interface TradingAccountRow {
@@ -96,6 +100,22 @@ interface TradeRow {
   updated_at: string;
 }
 
+interface HedgeActionRow {
+  id: string;
+  symbol: string;
+  hedge_symbol: string;
+  side: HedgeActionSide;
+  qty: number;
+  reason: HedgeActionReason;
+  status: HedgeActionStatus;
+  entry_price: number | null;
+  close_price: number | null;
+  pnl: number | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  closed_at: string | null;
+}
+
 interface StubState {
   payments: Map<string, Record<string, unknown>>;
   userSubscriptions: Map<string, Record<string, unknown>>;
@@ -106,6 +126,7 @@ interface StubState {
   signalDispatches: Map<string, SignalDispatchRow>;
   trades: Map<string, TradeRow>;
   tradeTickets: Map<string, string>;
+  hedgeActions: Map<string, HedgeActionRow>;
 }
 
 const stubState: StubState = {
@@ -118,6 +139,7 @@ const stubState: StubState = {
   signalDispatches: new Map(),
   trades: new Map(),
   tradeTickets: new Map(),
+  hedgeActions: new Map(),
 };
 
 export const __testSupabaseState = stubState;
@@ -132,6 +154,7 @@ export function __resetSupabaseState() {
   stubState.signalDispatches.clear();
   stubState.trades.clear();
   stubState.tradeTickets.clear();
+  stubState.hedgeActions.clear();
 }
 
 function clone<T>(value: T): T {
@@ -158,15 +181,23 @@ type QueryBuilder<T> = {
   maybeSingle(): Promise<{ data: T | null; error: { message: string } | null }>;
   single(): Promise<{ data: T | null; error: { message: string } | null }>;
   then<TResult1 = unknown, TResult2 = never>(
-    onfulfilled?: ((
-      value: { data: T[]; error: { message: string } | null },
-    ) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+    onfulfilled?:
+      | ((
+        value: { data: T[]; error: { message: string } | null },
+      ) => TResult1 | PromiseLike<TResult1>)
+      | undefined
+      | null,
+    onrejected?:
+      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
+      | undefined
+      | null,
   ): Promise<TResult1 | TResult2>;
   get(): Promise<{ data: T[]; error: { message: string } | null }>;
 };
 
-function createQueryBuilder<T extends Record<string, unknown>>(rows: T[]): QueryBuilder<T> {
+function createQueryBuilder<T extends Record<string, unknown>>(
+  rows: T[],
+): QueryBuilder<T> {
   let results = rows.map((row) => clone(row));
   const builder: Partial<QueryBuilder<T>> = {
     eq(field: string, value: unknown) {
@@ -228,9 +259,7 @@ function paymentsHandlers(state: StubState) {
       return {
         eq(field: string, value: unknown) {
           const key = String(value);
-          const row = field === "id"
-            ? state.payments.get(key) ?? null
-            : null;
+          const row = field === "id" ? state.payments.get(key) ?? null : null;
           return {
             async maybeSingle() {
               return { data: row ? clone(row) : null, error: null };
@@ -400,7 +429,9 @@ function tradingAccountsHandlers(state: StubState) {
           const updated: TradingAccountRow = {
             ...existing,
             ...values,
-            updated_at: values.updated_at ? String(values.updated_at) : isoNow(),
+            updated_at: values.updated_at
+              ? String(values.updated_at)
+              : isoNow(),
           };
           state.tradingAccounts.set(key, updated);
           return { data: [clone(updated)], error: null };
@@ -423,7 +454,11 @@ function signalsHandlers(state: StubState) {
           return { data: null, error: { message: "missing required fields" } };
         }
         const id = String(row.id ?? crypto.randomUUID());
-        if (Array.from(state.signals.values()).some((sig) => sig.alert_id === row.alert_id)) {
+        if (
+          Array.from(state.signals.values()).some((sig) =>
+            sig.alert_id === row.alert_id
+          )
+        ) {
           return { data: null, error: { message: "duplicate alert_id" } };
         }
         const now = isoNow();
@@ -629,7 +664,149 @@ function tradesHandlers(state: StubState) {
   };
 }
 
-function handleClaimTradingSignal(state: StubState, params: Record<string, unknown>) {
+function hedgeActionsHandlers(state: StubState) {
+  return {
+    select(_columns?: string) {
+      return createQueryBuilder(Array.from(state.hedgeActions.values()));
+    },
+    insert(values: Record<string, unknown> | Record<string, unknown>[]) {
+      const rows = Array.isArray(values) ? values : [values];
+      const inserted: HedgeActionRow[] = [];
+      for (const row of rows) {
+        const id = String(row.id ?? crypto.randomUUID());
+        const now = isoNow();
+        const record: HedgeActionRow = {
+          id,
+          symbol: row.symbol ? String(row.symbol) : "",
+          hedge_symbol: row.hedge_symbol ? String(row.hedge_symbol) : "",
+          side: (row.side as HedgeActionSide) ?? "SHORT_HEDGE",
+          qty: Number(row.qty ?? 0) || 0,
+          reason: (row.reason as HedgeActionReason) ?? "ATR_SPIKE",
+          status: (row.status as HedgeActionStatus) ?? "OPEN",
+          entry_price: toNumber(row.entry_price),
+          close_price: toNumber(row.close_price),
+          pnl: toNumber(row.pnl),
+          metadata: typeof row.metadata === "object" && row.metadata !== null
+            ? { ...(row.metadata as Record<string, unknown>) }
+            : {},
+          created_at: row.created_at ? String(row.created_at) : now,
+          closed_at: row.closed_at === undefined || row.closed_at === null
+            ? null
+            : String(row.closed_at),
+        };
+        state.hedgeActions.set(id, record);
+        inserted.push(record);
+      }
+      const data = inserted.map((row) => clone(row));
+      return {
+        data,
+        error: null,
+        select() {
+          return {
+            async single() {
+              return { data: data[0] ?? null, error: null };
+            },
+            async maybeSingle() {
+              return { data: data[0] ?? null, error: null };
+            },
+            then(
+              onfulfilled?: (
+                value: {
+                  data: HedgeActionRow[];
+                  error: { message: string } | null;
+                },
+              ) => unknown,
+              onrejected?: (reason: unknown) => unknown,
+            ) {
+              return Promise.resolve({ data, error: null }).then(
+                onfulfilled,
+                onrejected,
+              );
+            },
+          };
+        },
+      };
+    },
+    update(values: Record<string, unknown>) {
+      return {
+        eq(field: string, value: unknown) {
+          if (field !== "id") {
+            return { data: null, error: { message: "unsupported field" } };
+          }
+          const key = String(value);
+          const existing = state.hedgeActions.get(key);
+          if (!existing) {
+            return { data: null, error: { message: "not found" } };
+          }
+          const now = isoNow();
+          const updated: HedgeActionRow = {
+            ...existing,
+            ...values,
+            side: (values.side as HedgeActionSide) ?? existing.side,
+            reason: (values.reason as HedgeActionReason) ?? existing.reason,
+            status: (values.status as HedgeActionStatus) ?? existing.status,
+            qty: values.qty === undefined
+              ? existing.qty
+              : Number(values.qty) || 0,
+            entry_price: values.entry_price === undefined
+              ? existing.entry_price
+              : toNumber(values.entry_price),
+            close_price: values.close_price === undefined
+              ? existing.close_price
+              : toNumber(values.close_price),
+            pnl: values.pnl === undefined ? existing.pnl : toNumber(values.pnl),
+            metadata: values.metadata && typeof values.metadata === "object"
+              ? { ...(values.metadata as Record<string, unknown>) }
+              : existing.metadata,
+            closed_at:
+              values.closed_at === undefined || values.closed_at === null
+                ? existing.closed_at
+                : String(values.closed_at),
+            created_at: existing.created_at,
+          };
+          if (updated.status === "CLOSED" && !updated.closed_at) {
+            updated.closed_at = now;
+          }
+          state.hedgeActions.set(key, updated);
+          const data = [clone(updated)];
+          return {
+            data,
+            error: null,
+            select() {
+              return {
+                async single() {
+                  return { data: data[0] ?? null, error: null };
+                },
+                async maybeSingle() {
+                  return { data: data[0] ?? null, error: null };
+                },
+                then(
+                  onfulfilled?: (
+                    value: {
+                      data: HedgeActionRow[];
+                      error: { message: string } | null;
+                    },
+                  ) => unknown,
+                  onrejected?: (reason: unknown) => unknown,
+                ) {
+                  return Promise.resolve({ data, error: null }).then(
+                    onfulfilled,
+                    onrejected,
+                  );
+                },
+              };
+            },
+          };
+        },
+      };
+    },
+  };
+}
+
+function handleClaimTradingSignal(
+  state: StubState,
+  params: Record<string, unknown>,
+) {
   const workerIdRaw = params.p_worker_id ?? params.worker_id;
   const workerId = workerIdRaw === undefined || workerIdRaw === null
     ? ""
@@ -701,7 +878,10 @@ function handleClaimTradingSignal(state: StubState, params: Record<string, unkno
   return clone(candidate);
 }
 
-function handleMarkTradingSignalStatus(state: StubState, params: Record<string, unknown>) {
+function handleMarkTradingSignalStatus(
+  state: StubState,
+  params: Record<string, unknown>,
+) {
   const signalIdRaw = params.p_signal_id ?? params.signal_id;
   if (signalIdRaw === undefined || signalIdRaw === null) {
     throw new Error("p_signal_id is required");
@@ -721,7 +901,9 @@ function handleMarkTradingSignalStatus(state: StubState, params: Record<string, 
   signal.status = status;
   if ("p_error" in params) {
     const error = params.p_error;
-    signal.error_reason = error === undefined || error === null ? null : String(error);
+    signal.error_reason = error === undefined || error === null
+      ? null
+      : String(error);
   }
   if (params.p_next_poll_at !== undefined && params.p_next_poll_at !== null) {
     signal.next_poll_at = String(params.p_next_poll_at);
@@ -763,7 +945,10 @@ function handleMarkTradingSignalStatus(state: StubState, params: Record<string, 
   return clone(signal);
 }
 
-function handleRecordTradeUpdate(state: StubState, params: Record<string, unknown>) {
+function handleRecordTradeUpdate(
+  state: StubState,
+  params: Record<string, unknown>,
+) {
   const signalIdRaw = params.p_signal_id ?? params.signal_id;
   if (signalIdRaw === undefined || signalIdRaw === null) {
     throw new Error("p_signal_id is required");
@@ -776,7 +961,10 @@ function handleRecordTradeUpdate(state: StubState, params: Record<string, unknow
 
   const statusParam = params.p_status ?? params.status;
   const status = (statusParam as TradeStatus) ?? "pending";
-  const payload = (params.p_payload ?? params.payload ?? {}) as Record<string, unknown>;
+  const payload = (params.p_payload ?? params.payload ?? {}) as Record<
+    string,
+    unknown
+  >;
   const ticketParam = params.p_mt5_ticket_id ?? params.mt5_ticket_id;
   const ticket = ticketParam === undefined || ticketParam === null
     ? null
@@ -784,7 +972,9 @@ function handleRecordTradeUpdate(state: StubState, params: Record<string, unknow
   const now = isoNow();
 
   let tradeId = ticket ? state.tradeTickets.get(ticket) : undefined;
-  let record: TradeRow | undefined = tradeId ? state.trades.get(tradeId) : undefined;
+  let record: TradeRow | undefined = tradeId
+    ? state.trades.get(tradeId)
+    : undefined;
   if (!record) {
     tradeId = crypto.randomUUID();
     record = {
@@ -824,9 +1014,10 @@ function handleRecordTradeUpdate(state: StubState, params: Record<string, unknow
   record.stop_loss = toNumber(payload.stop_loss);
   record.take_profit = toNumber(payload.take_profit);
   record.execution_payload = payload ?? {};
-  record.error_reason = payload.error_reason === undefined || payload.error_reason === null
-    ? null
-    : String(payload.error_reason);
+  record.error_reason =
+    payload.error_reason === undefined || payload.error_reason === null
+      ? null
+      : String(payload.error_reason);
   if (payload.opened_at !== undefined && payload.opened_at !== null) {
     record.opened_at = String(payload.opened_at);
   }
@@ -870,6 +1061,8 @@ class SupabaseStub {
         return signalDispatchesHandlers(this.state);
       case "trades":
         return tradesHandlers(this.state);
+      case "hedge_actions":
+        return hedgeActionsHandlers(this.state);
       default:
         return {
           select() {
@@ -940,7 +1133,8 @@ class SupabaseStub {
         async createSignedUploadUrl(key: string) {
           return {
             data: {
-              signedUrl: `http://example.com/storage/v1/object/upload/sign/${key}?token=token`,
+              signedUrl:
+                `http://example.com/storage/v1/object/upload/sign/${key}?token=token`,
             },
             error: null,
           };
@@ -967,11 +1161,16 @@ class SupabaseStub {
   auth = {
     async getUser() {
       return {
-        data: { user: { id: "stub-user", user_metadata: { telegram_id: "stub" } } },
+        data: {
+          user: { id: "stub-user", user_metadata: { telegram_id: "stub" } },
+        },
         error: null,
       };
     },
-    async signJWT(_payload: Record<string, unknown>, _opts: Record<string, unknown>) {
+    async signJWT(
+      _payload: Record<string, unknown>,
+      _opts: Record<string, unknown>,
+    ) {
       return { access_token: "token" };
     },
   };

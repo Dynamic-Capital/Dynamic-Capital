@@ -69,6 +69,15 @@ the schema. It is enabled by default, depends on no upstream nodes, emits to the
 `{"source": "analyst_insights"}` so Fusion Brain can look up the discretionary
 ideas persisted by the analyst collector.
 
+### Dynamic Hedge Policy Node
+
+The `dynamic-hedge` policy node is registered with a five-minute interval and
+depends on `trades`, `correlations`, and `risk_settings` inputs. Its outputs are
+the new `hedge_actions` ledger and follow-up `signals` rows so the MT5 bridge
+can execute offsetting orders when volatility spikes, drawdown thresholds are
+breached, or scheduled macro events approach. Metadata captures a `confidence`
+score of `0.9` to help schedulers prioritise hedge execution.
+
 ### Step-by-Step Node Configuration Workflow
 
 1. **Model the node contract**

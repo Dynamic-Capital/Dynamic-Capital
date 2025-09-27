@@ -25,14 +25,54 @@ class MT5Connector:
             raise RuntimeError("MT5 initialization failed")
 
     def buy(self, symbol: str, lot: float) -> Any:
-        request = self._build_request(symbol=symbol, lot=lot, order_type=mt5.ORDER_TYPE_BUY)
+        request = self._build_request(
+            symbol=symbol,
+            lot=lot,
+            order_type=mt5.ORDER_TYPE_BUY,
+            comment_prefix="DynamicTradingAlgo BUY",
+        )
         return mt5.order_send(request)
 
     def sell(self, symbol: str, lot: float) -> Any:
-        request = self._build_request(symbol=symbol, lot=lot, order_type=mt5.ORDER_TYPE_SELL)
+        request = self._build_request(
+            symbol=symbol,
+            lot=lot,
+            order_type=mt5.ORDER_TYPE_SELL,
+            comment_prefix="DynamicTradingAlgo SELL",
+        )
         return mt5.order_send(request)
 
-    def _build_request(self, *, symbol: str, lot: float, order_type: int) -> dict:
+    def open_hedge(self, symbol: str, lot: float, side: str) -> Any:
+        order_type = mt5.ORDER_TYPE_BUY if side.upper() == "LONG_HEDGE" else mt5.ORDER_TYPE_SELL
+        request = self._build_request(
+            symbol=symbol,
+            lot=lot,
+            order_type=order_type,
+            type_filling=mt5.ORDER_FILLING_FOK,
+            comment_prefix="DynamicHedge OPEN",
+        )
+        return mt5.order_send(request)
+
+    def close_hedge(self, symbol: str, lot: float, side: str) -> Any:
+        reverse_type = mt5.ORDER_TYPE_SELL if side.upper() == "LONG_HEDGE" else mt5.ORDER_TYPE_BUY
+        request = self._build_request(
+            symbol=symbol,
+            lot=lot,
+            order_type=reverse_type,
+            type_filling=mt5.ORDER_FILLING_FOK,
+            comment_prefix="DynamicHedge CLOSE",
+        )
+        return mt5.order_send(request)
+
+    def _build_request(
+        self,
+        *,
+        symbol: str,
+        lot: float,
+        order_type: int,
+        type_filling: int | None = None,
+        comment_prefix: str = "DynamicTradingAlgo",
+    ) -> dict:
         tick = mt5.symbol_info_tick(symbol)
         price = tick.ask if order_type == mt5.ORDER_TYPE_BUY else tick.bid
 
@@ -46,7 +86,7 @@ class MT5Connector:
             "price": price,
             "deviation": 20,
             "magic": 234_000,
-            "comment": f"DynamicTradingAlgo {direction}",
+            "comment": f"{comment_prefix} {direction}",
             "type_time": mt5.ORDER_TIME_GTC,
-            "type_filling": mt5.ORDER_FILLING_IOC,
+            "type_filling": type_filling or mt5.ORDER_FILLING_IOC,
         }
