@@ -3,7 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
+from algorithms.python.desk_sync import TeamRolePlaybook
 from algorithms.python.multi_llm import LLMConfig
+from algorithms.python.playbook_training import (
+    PlaybookTrainingExample,
+    build_playbook_training_dataset,
+    optimise_playbook,
+)
 from algorithms.python.team_operations import (
     TEAM_OPERATIONS_PLAYBOOKS,
     TeamOperationsLLMPlanner,
@@ -161,3 +167,63 @@ def test_team_operations_planner_handles_single_llm() -> None:
     assert "Data integrity" in report.priorities
     assert "Data Analyst ↔ Legal Advisor" in report.dependencies
     assert report.risks == []
+
+
+def test_optimise_playbook_removes_duplicates() -> None:
+    playbook = TeamRolePlaybook(
+        name=" Optimisation Lead ",
+        objectives=("Align", "Align", " Execute"),
+        workflow=("  Step 1", "", "Step 1"),
+        outputs=("Report", "Report"),
+        kpis=("Cycle time", "Cycle time"),
+    )
+
+    optimised = optimise_playbook(playbook)
+
+    assert optimised.name == "Optimisation Lead"
+    assert optimised.objectives == ("Align", "Execute")
+    assert optimised.workflow == ("Step 1",)
+    assert optimised.outputs == ("Report",)
+    assert optimised.kpis == ("Cycle time",)
+
+
+def test_build_playbook_training_dataset_creates_examples() -> None:
+    playbooks = build_team_operations_playbooks(include_optional=False)
+    dataset = build_playbook_training_dataset(
+        playbooks,
+        focus=["Marketing Strategist", "Content Creator / Copywriter"],
+    )
+
+    assert dataset
+    singles = [example for example in dataset if example.metadata["type"] == "single_role"]
+    assert {example.metadata["role"] for example in singles} == {
+        "Marketing Strategist",
+        "Content Creator / Copywriter",
+    }
+    cohort = next(example for example in dataset if example.metadata["type"] == "cohort")
+    assert cohort.metadata["role_count"] == 2
+    assert "Roles:" in cohort.prompt
+
+
+def test_planner_prepare_training_dataset_enriches_metadata() -> None:
+    client = _StubClient(("{}",))
+    strategy = LLMConfig(
+        name="strategy",
+        client=client,
+        temperature=0.0,
+        nucleus_p=1.0,
+        max_tokens=128,
+    )
+    planner = TeamOperationsLLMPlanner(strategy=strategy)
+    playbooks = build_team_operations_playbooks(include_optional=False)
+
+    dataset = planner.prepare_training_dataset(
+        playbooks,
+        focus=["Marketing Strategist"],
+        context={"initiative": "Launch"},
+    )
+
+    assert all(isinstance(example, PlaybookTrainingExample) for example in dataset)
+    assert dataset[0].metadata["models"] == ["strategy"]
+    assert dataset[0].metadata["focus"] == ["Marketing Strategist"]
+    assert dataset[0].metadata["context"]["initiative"] == "Launch"
