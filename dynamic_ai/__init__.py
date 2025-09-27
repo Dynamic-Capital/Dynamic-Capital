@@ -29,6 +29,11 @@ from .dolphin_adapter import (
 )
 from .ollama_adapter import OllamaAdapter, OllamaConfig, OllamaPromptTemplate
 from .analysis import AnalysisComponent, DynamicAnalysis
+from .consciousness_suite import (
+    AwarenessContexts,
+    DynamicConsciousnessSuite,
+    IntegratedAwareness,
+)
 from .fusion import (
     FusionEngine,
     LobeSignal,
@@ -76,6 +81,9 @@ __all__ = [
     "ExecutionAgentResult",
     "AnalysisComponent",
     "DynamicAnalysis",
+    "AwarenessContexts",
+    "DynamicConsciousnessSuite",
+    "IntegratedAwareness",
     "ResearchAgent",
     "ResearchAgentResult",
     "FusionEngine",

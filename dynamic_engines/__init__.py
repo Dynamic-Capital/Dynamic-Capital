@@ -17,7 +17,13 @@ from typing import Dict, Iterable, Tuple
 # do not trigger import errors until the attribute is accessed.
 _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_agents": ("DynamicChatAgent",),
-    "dynamic_ai": ("DynamicFusionAlgo", "DynamicAnalysis", "FusionEngine", "DynamicHedgePolicy"),
+    "dynamic_ai": (
+        "DynamicFusionAlgo",
+        "DynamicAnalysis",
+        "FusionEngine",
+        "DynamicHedgePolicy",
+        "DynamicConsciousnessSuite",
+    ),
     "dynamic_algo": (
         "DynamicTradingAlgo",
         "DynamicMarketFlow",
