@@ -224,11 +224,18 @@ class DynamicThinkingEngine:
         return _clamp(aggregate / total_weight)
 
     def _dominant_themes(self) -> tuple[str, ...]:
-        counter: Counter[str] = Counter(signal.theme for signal in self._signals)
-        if not counter:
+        weighted: Counter[str] = Counter()
+        for signal in self._signals:
+            if signal.weight <= 0:
+                continue
+            weighted[signal.theme] += signal.weight
+        if not weighted:
             return ()
-        most_common = counter.most_common(3)
-        return tuple(theme for theme, _ in most_common)
+        sorted_themes = sorted(
+            weighted.items(),
+            key=lambda item: (-item[1], item[0]),
+        )
+        return tuple(theme for theme, _ in sorted_themes[:3])
 
     def _bias_alerts(
         self,
