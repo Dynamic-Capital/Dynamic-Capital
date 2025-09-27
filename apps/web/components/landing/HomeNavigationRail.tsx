@@ -197,7 +197,7 @@ export function HomeNavigationRail({ className }: { className?: string }) {
     >
       <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground sm:text-xs">
-          Explore the desk
+          Explore Dynamic Capital
         </div>
         <div className="relative">
           <div

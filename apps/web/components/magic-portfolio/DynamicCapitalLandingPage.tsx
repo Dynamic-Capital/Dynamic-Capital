@@ -331,7 +331,7 @@ export function DynamicCapitalLandingPage() {
         variant="wide"
         revealDelay={0.64}
         anchor={{
-          id: HOME_NAV_SECTION_IDS.providers,
+          id: HOME_NAV_SECTION_IDS.markets,
           ariaLabel: "Market intelligence",
         }}
       >
@@ -355,7 +355,7 @@ export function DynamicCapitalLandingPage() {
       <Section
         revealDelay={1.12}
         anchor={{
-          id: HOME_NAV_SECTION_IDS.workflows,
+          id: HOME_NAV_SECTION_IDS.community,
           ariaLabel: "Mentorship programmes",
         }}
       >
@@ -367,7 +367,7 @@ export function DynamicCapitalLandingPage() {
       <Section
         revealDelay={1.28}
         anchor={{
-          id: HOME_NAV_SECTION_IDS.analytics,
+          id: HOME_NAV_SECTION_IDS.miniApp,
           ariaLabel: "Membership plans",
         }}
       >
@@ -385,7 +385,7 @@ export function DynamicCapitalLandingPage() {
       <Section
         revealDelay={1.6}
         anchor={{
-          id: HOME_NAV_SECTION_IDS.security,
+          id: HOME_NAV_SECTION_IDS.admin,
           ariaLabel: "Trust and compliance",
         }}
       >
@@ -397,7 +397,7 @@ export function DynamicCapitalLandingPage() {
       <Section
         revealDelay={1.76}
         anchor={{
-          id: HOME_NAV_SECTION_IDS.onboarding,
+          id: HOME_NAV_SECTION_IDS.advantages,
           ariaLabel: "Get started with Dynamic Capital",
         }}
       >
