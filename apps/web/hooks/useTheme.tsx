@@ -1,19 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme as useDynamicUiTheme } from "@/components/dynamic-ui-system";
 
 import { callEdgeFunction } from "@/config/supabase";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 
-type Theme = "light" | "dark" | "system";
-
-interface TelegramWebApp {
-  colorScheme: "light" | "dark";
-  onEvent?: (event: "themeChanged", handler: () => void) => void;
-  offEvent?: (event: "themeChanged", handler: () => void) => void;
-}
+import {
+  createThemeModeSetter,
+  type TelegramWebApp,
+  type Theme,
+} from "./theme-persistence";
 
 const isValidTheme = (value: unknown): value is Theme =>
   value === "light" || value === "dark" || value === "system";
@@ -23,6 +21,11 @@ export function useTheme() {
     useDynamicUiTheme();
   const preference = (dynamicUiTheme ?? "system") as Theme;
   const [session, setSession] = useState<Session | null>(null);
+  const preferenceRef = useRef<Theme>(preference);
+
+  useEffect(() => {
+    preferenceRef.current = preference;
+  }, [preference]);
   const getTimeBasedTheme = useCallback(() => {
     if (typeof window === "undefined") return "light";
 
@@ -64,35 +67,26 @@ export function useTheme() {
     [],
   );
 
-  useEffect(() => {
-    let mounted = true;
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) setSession(session);
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const applyTheme = (value: Theme) => {
+  const applyTheme = useCallback(
+    (value: Theme) => {
       setDynamicUiTheme(value);
       const tg = globalThis.Telegram?.WebApp as TelegramWebApp | undefined;
       persistPreference(value, { skip: Boolean(tg) });
-    };
+    },
+    [persistPreference, setDynamicUiTheme],
+  );
 
-    const fetchTheme = async () => {
+  const fetchTheme = useCallback(
+    async (activeSession: Session | null) => {
       const tg = globalThis.Telegram?.WebApp as TelegramWebApp | undefined;
 
-      if (session?.access_token) {
+      if (activeSession?.access_token) {
         const { data, error } = await callEdgeFunction<
           { mode?: "auto" | Theme }
         >(
           "THEME_GET",
           {
-            token: session.access_token,
+            token: activeSession.access_token,
           },
         );
 
@@ -123,10 +117,36 @@ export function useTheme() {
       } else {
         applyTheme("system");
       }
+    },
+    [applyTheme],
+  );
+
+  useEffect(() => {
+    let mounted = true;
+
+    const handleSessionChange = (nextSession: Session | null) => {
+      if (mounted) {
+        setSession(nextSession);
+      }
     };
 
-    fetchTheme();
-  }, [persistPreference, session, setDynamicUiTheme]);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleSessionChange(session);
+      fetchTheme(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, nextSession) => {
+      handleSessionChange(nextSession);
+      fetchTheme(nextSession);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchTheme]);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -217,24 +237,15 @@ export function useTheme() {
     };
   }, [getTimeBasedTheme]);
 
-  const setThemeMode = useCallback(
-    async (newTheme: Theme) => {
-      setDynamicUiTheme(newTheme);
-      const tg = globalThis.Telegram?.WebApp as TelegramWebApp | undefined;
-      persistPreference(newTheme, { skip: Boolean(tg) });
-
-      if (session?.access_token) {
-        const { error } = await callEdgeFunction("THEME_SAVE", {
-          method: "POST",
-          token: session.access_token,
-          body: { mode: newTheme === "system" ? "auto" : newTheme },
-        });
-
-        if (error) {
-          // ignore errors
-        }
-      }
-    },
+  const setThemeMode = useMemo(
+    () =>
+      createThemeModeSetter({
+        setDynamicUiTheme,
+        persistPreference,
+        getSession: () => session,
+        callRemote: callEdgeFunction,
+        getCurrentPreference: () => preferenceRef.current,
+      }),
     [persistPreference, session, setDynamicUiTheme],
   );
 
