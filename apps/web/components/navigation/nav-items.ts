@@ -1,4 +1,4 @@
-import { LayoutDashboard, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, LineChart, type LucideIcon } from "lucide-react";
 
 import {
   HOME_NAV_SECTION_MAP,
@@ -54,25 +54,42 @@ const deskNavItems = DESK_NAV_SECTION_ORDER.map((sectionId, index) =>
   createNavItemFromSection(sectionId, index + 1)
 ).filter((item): item is NavItem => Boolean(item));
 
-const onboardingNavItem = createNavItemFromSection(
-  "advantages",
-  deskNavItems.length + 2,
-);
+const firstExtraStep = deskNavItems.length + 1;
 
-export const NAV_ITEMS: NavItem[] = [
-  ...deskNavItems,
+const extraNavItems: NavItem[] = [
   {
     id: "studio",
-    step: `Step ${deskNavItems.length + 1}`,
+    step: `Step ${firstExtraStep}`,
     label: "LLM studio",
     description: "Run side-by-side provider benchmarks.",
     icon: LayoutDashboard,
     path: "/tools/multi-llm",
-    ariaLabel: `Step ${
-      deskNavItems.length + 1
-    }: LLM studio. Run side-by-side provider benchmarks.`,
+    ariaLabel:
+      `Step ${firstExtraStep}: LLM studio. Run side-by-side provider benchmarks.`,
     showOnMobile: true,
   },
+  {
+    id: "market-review",
+    step: `Step ${firstExtraStep + 1}`,
+    label: "Market review",
+    description: "Track FX strength, volatility, and cross-asset watchlists.",
+    icon: LineChart,
+    path: "/tools/dynamic-market-review",
+    ariaLabel: `Step ${
+      firstExtraStep + 1
+    }: Market review. Track FX strength, volatility, and cross-asset watchlists.`,
+    showOnMobile: true,
+  },
+];
+
+const onboardingNavItem = createNavItemFromSection(
+  "advantages",
+  deskNavItems.length + extraNavItems.length + 1,
+);
+
+export const NAV_ITEMS: NavItem[] = [
+  ...deskNavItems,
+  ...extraNavItems,
   ...(onboardingNavItem ? [onboardingNavItem] : []),
 ];
 
