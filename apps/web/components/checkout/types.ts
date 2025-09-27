@@ -7,3 +7,11 @@ export interface BankAccount {
   account_number: string;
   currency: string;
 }
+
+export interface PromoValidationResult {
+  valid: boolean;
+  discountType?: "percentage" | "fixed";
+  discountValue?: number;
+  finalAmount?: number;
+  reason?: string;
+}
