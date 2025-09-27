@@ -1,32 +1,57 @@
-# Dynamic AI Overview
+# Dynamic AI (DAI) Overview
 
-Dynamic AI (DAI) is the "Brain" of the Dynamic Capital ecosystem. It ingests multi-source market data, learns from execution outcomes, and publishes orchestrated signals that downstream automation converts into trades and treasury actions. The system couples ensemble model outputs with treasury-aware guardrails so strategy conviction, capital allocation, and compliance checks stay aligned.
+Dynamic AI (DAI) is the "Brain" of the Dynamic Capital organism. It fuses market perception, reinforcement signals, and treasury limits into governed trading recommendations that the automation stack can trust. Treat this page as a system primer for new contributors and a checklist for operators validating that the Brain remains aligned with execution, memory, and governance surfaces.
 
-## Core Responsibilities
+## 1. System Snapshot
 
-- **Signal fusion** – Multiple specialised "lobes" analyse price deviation, trend momentum, sentiment, and treasury health before emitting bounded signals in the range [-1, 1].【F:dynamic_ai/fusion.py†L11-L92】
-- **Risk mediation** – Lobes expose confidence scores and rationales that are routed into risk utilities, allowing Dynamic Risk Algo components to veto or attenuate trades when guardrails are breached.【F:dynamic_ai/fusion.py†L59-L92】【F:docs/dynamic-capital-ecosystem-anatomy.md†L16-L43】
-- **Learning loop** – Training utilities calibrate Lorentzian distance lobes from retrained models so sensitivity thresholds adapt as market regimes shift.【F:dynamic_ai/training.py†L1-L43】【F:docs/dynamic-capital-ecosystem-anatomy.md†L16-L43】
+| Capability | What it does | Key implementation source |
+| --- | --- | --- |
+| Multi-lobe fusion | Normalises directional, momentum, sentiment, and treasury lobes into a bounded signal with rationale + confidence payloads. | `dynamic_ai/fusion.py`【F:dynamic_ai/fusion.py†L13-L167】 |
+| Regime-aware weighting | Adjusts each lobe’s influence based on volatility, session, and risk-off signals before mapping to BUY/SELL/NEUTRAL actions. | `dynamic_ai/fusion.py`【F:dynamic_ai/fusion.py†L169-L214】 |
+| Lorentzian calibration | Rebuilds Lorentzian lobes from serialized models, enforcing sane sensitivity thresholds for new market regimes. | `dynamic_ai/training.py`【F:dynamic_ai/training.py†L14-L48】 |
+| Automation feedback | Routes telemetry, governance hooks, and integration payloads through the broader ecosystem so retraining and compliance stay in lockstep. | `docs/dynamic-capital-ecosystem-anatomy.md`【F:docs/dynamic-capital-ecosystem-anatomy.md†L16-L288】 |
 
-## Architecture Touchpoints
+## 2. Signal Lifecycle
 
-- **Brain to Hands** – Dynamic Trading, Execution, Risk, Allocation, and Scalper algos (Hands layer) consume DAI outputs to route orders, enforce guardrails, and track realised vs. expected performance.【F:docs/dynamic-capital-ecosystem-anatomy.md†L45-L103】
-- **Telemetry feedback** – Trade receipts and TradingView backtests flow back into Supabase (Memory layer), closing the loop for retraining and audit trails.【F:docs/dynamic-capital-ecosystem-anatomy.md†L115-L153】
-- **Integrations** – Dynamic Integration Algo serialises DAI signals for TradingView webhooks, MT5 routing, and governance hooks so capital and communication layers react in near real-time.【F:docs/dynamic-capital-ecosystem-anatomy.md†L155-L214】
+1. **Perception** – Eyes/Ears layers ship tick, sentiment, and macro data into the Brain’s lobes (price, trend, sentiment, treasury health).【F:docs/dynamic-capital-ecosystem-anatomy.md†L65-L170】
+2. **Lobe evaluation** – Each lobe emits a bounded score with a rationale and confidence payload.【F:dynamic_ai/fusion.py†L33-L167】
+3. **Regime weighting** – The fusion engine scales lobe impact based on volatility, sentiment, and session context before averaging scores.【F:dynamic_ai/fusion.py†L181-L214】
+4. **Action routing** – Normalised scores convert into BUY/SELL/NEUTRAL intents with a minimum confidence gate that downstream risk algos read.【F:dynamic_ai/fusion.py†L189-L222】
+5. **Execution & guardrails** – Hands-layer algos accept or veto requests, logging receipts to Supabase for replay and compliance trails.【F:docs/dynamic-capital-ecosystem-anatomy.md†L41-L214】
+6. **Learning loop** – Training utilities recalibrate Lorentzian lobes as new telemetry shifts the underlying sensitivity envelope.【F:dynamic_ai/training.py†L22-L48】
 
-## Evolution Roadmap
+## 3. Lobe Responsibilities
 
-The multi-LLM enhancement roadmap guides how DAI grows in sophistication:
+| Lobe | Signal focus | Implementation notes |
+| --- | --- | --- |
+| **Lorentzian Distance** | Detects outsized price deviations relative to a reference trajectory. | Produces a contrarian score when deviation exceeds calibrated sensitivity, surfacing rationale text for auditability.【F:dynamic_ai/fusion.py†L54-L77】 |
+| **Trend Momentum** | Blends directional bias with measured momentum intensity. | Maintains neutral stance until thresholds are hit, preventing premature flips during sideways regimes.【F:dynamic_ai/fusion.py†L83-L105】 |
+| **Sentiment** | Aggregates qualitative feeds and keyword bias. | Enforces a floor on confidence and weights lexical tone to stabilise noisy social inputs.【F:dynamic_ai/fusion.py†L107-L142】 |
+| **Treasury** | Measures balance, liabilities, and utilisation to determine risk appetite. | Tightens or loosens conviction based on treasury buffer ratios and utilisation caps.【F:dynamic_ai/fusion.py†L145-L167】 |
 
-1. **Provider benchmarking** – Instrument latency, cost, and reasoning depth across model providers to build a capability matrix before orchestration logic goes live.【F:docs/multi-llm-algo-enhancement-roadmap.md†L8-L34】
-2. **Agent graph expansion** – Introduce specialised personas for research, risk, and execution review, mediated by routing policies that escalate low-confidence outputs to humans.【F:docs/multi-llm-algo-enhancement-roadmap.md†L36-L66】
-3. **Guardrail integration** – Align prompt outputs with Dynamic Trading Algo expectations and gate live orders on ensemble consensus thresholds.【F:docs/multi-llm-algo-enhancement-roadmap.md†L68-L94】
-4. **Feedback and compliance** – Replay historical sessions, run A/B experiments, and maintain runbooks for incidents, ensuring governance, security, and audit requirements stay satisfied.【F:docs/multi-llm-algo-enhancement-roadmap.md†L96-L146】
+> **Extending lobes** – New lobes should implement the `SignalLobe` protocol, emit bounded scores, and include rationale strings that can be surfaced to operators.【F:dynamic_ai/fusion.py†L24-L77】
 
-## Operational Best Practices
+## 4. Guardrails & Governance Alignment
 
-- Keep telemetry rich so nightly replays and self-audits can detect reasoning regressions quickly.【F:docs/multi-llm-algo-enhancement-roadmap.md†L36-L66】
-- Version prompt templates and model parameters, storing deltas in Supabase for reproducibility and compliance reviews.【F:docs/multi-llm-algo-enhancement-roadmap.md†L18-L34】【F:docs/dynamic-capital-ecosystem-anatomy.md†L115-L153】
-- Maintain human-in-the-loop review channels for conflicting signals or treasury-impacting decisions before production rollout.【F:docs/multi-llm-algo-enhancement-roadmap.md†L36-L94】【F:docs/dynamic-capital-ecosystem-anatomy.md†L45-L103】
+- **Risk veto chain** – Dynamic Risk, Allocation, and Scalper algos monitor lobe rationales and confidence to halt execution when guardrails breach (drawdown, exposure, treasury buffers).【F:docs/dynamic-capital-ecosystem-anatomy.md†L41-L142】
+- **Telemetry-first** – Execution receipts, backtests, and governance triggers are stored in Supabase so historical playbacks can reproduce every DAI decision.【F:docs/dynamic-capital-ecosystem-anatomy.md†L115-L288】
+- **Compliance hooks** – Skeleton-layer automation consumes the same telemetry to validate incident runbooks, audit trails, and regulatory obligations.【F:docs/dynamic-capital-ecosystem-anatomy.md†L195-L280】
 
-Use this overview to onboard teammates, design new lobes, or align roadmap discussions with the existing automation pillars that keep Dynamic Capital adaptive and governed.
+## 5. Operational Checklist
+
+Use the checklist below when deploying updates or reviewing production health:
+
+1. **Model validation** – Benchmark latency, cost, and reasoning depth across LLM providers before promoting orchestration changes.【F:docs/multi-llm-algo-enhancement-roadmap.md†L8-L34】
+2. **Persona routing** – Keep research, risk, and execution personas calibrated; escalate low-confidence or conflicting outputs to human operators.【F:docs/multi-llm-algo-enhancement-roadmap.md†L36-L66】
+3. **Guardrail rehearsal** – Run ensemble guardrail simulations to verify risk veto chains before enabling new automation flows.【F:docs/multi-llm-algo-enhancement-roadmap.md†L68-L94】
+4. **Replay audits** – Schedule session replays, incident drills, and A/B experiments to validate reasoning quality and compliance posture.【F:docs/multi-llm-algo-enhancement-roadmap.md†L96-L146】
+5. **Versioning hygiene** – Store prompt templates, lobe parameters, and environment toggles in Supabase or Git-backed configs for reproducibility.【F:docs/multi-llm-algo-enhancement-roadmap.md†L18-L34】【F:docs/dynamic-capital-ecosystem-anatomy.md†L115-L288】
+
+## 6. Contributor Quickstart
+
+- Review the ecosystem anatomy guide to understand how Brain outputs travel through Hands, Heart, Voice, and Memory layers.【F:docs/dynamic-capital-ecosystem-anatomy.md†L16-L288】
+- Start new lobes from the `SignalLobe` protocol, keeping score, confidence, and rationale values bounded for consistency.【F:dynamic_ai/fusion.py†L24-L167】
+- Capture evaluation metrics and experiment metadata so the training module can automatically recalibrate sensitivity thresholds over time.【F:dynamic_ai/training.py†L14-L48】
+- Keep telemetry rich and human-in-the-loop channels active to catch regressions before they propagate to live capital flows.【F:docs/multi-llm-algo-enhancement-roadmap.md†L36-L94】
+
+With these practices, Dynamic AI stays transparent, auditable, and responsive as the automation stack scales across strategies and market conditions.
