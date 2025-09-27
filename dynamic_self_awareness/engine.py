@@ -131,6 +131,19 @@ class DynamicSelfAwareness:
     def reset(self) -> None:
         self._signals.clear()
 
+    @property
+    def signal_count(self) -> int:
+        """Return the number of captured signals currently retained."""
+
+        return len(self._signals)
+
+    def latest_signal(self) -> SelfAwarenessSignal | None:
+        """Return the newest self-awareness signal when available."""
+
+        if not self._signals:
+            return None
+        return self._signals[-1]
+
     def _coerce_signal(self, signal: SelfAwarenessSignal | Mapping[str, object]) -> SelfAwarenessSignal:
         if isinstance(signal, SelfAwarenessSignal):
             return signal

@@ -191,6 +191,19 @@ class DynamicConsciousness:
     def reset(self) -> None:
         self._signals.clear()
 
+    @property
+    def signal_count(self) -> int:
+        """Return the number of captured signals currently in memory."""
+
+        return len(self._signals)
+
+    def latest_signal(self) -> ConsciousnessSignal | None:
+        """Return the most recently captured signal if available."""
+
+        if not self._signals:
+            return None
+        return self._signals[-1]
+
     def _coerce_signal(
         self, signal: ConsciousnessSignal | Mapping[str, object]
     ) -> ConsciousnessSignal:

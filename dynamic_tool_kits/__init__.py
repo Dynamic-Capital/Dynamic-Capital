@@ -38,6 +38,7 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_ai": (
         "AISignal",
         "DynamicAnalysis",
+        "DynamicConsciousnessSuite",
         "DynamicFusionAlgo",
         "DynamicHedgePolicy",
         "FusionEngine",
@@ -71,6 +72,9 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "MarketState",
         "NewsEvent",
         "VolatilitySnapshot",
+        "AwarenessContexts",
+        "AwarenessDiagnostics",
+        "IntegratedAwareness",
     ),
     "dynamic_algo": (
         "ORDER_ACTION_BUY",
