@@ -6,36 +6,25 @@ import {
   useTonConnectUI,
 } from "@tonconnect/ui-react";
 import type { WalletsListConfiguration } from "@tonconnect/ui-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   useMiniAppThemeManager,
 } from "../../../../shared/miniapp/use-miniapp-theme";
 import type { MiniAppThemeOption } from "../../../../shared/miniapp/theme-loader";
 
-import type {
-  LiveIntelSnapshot,
-  LiveMetric,
-  LiveTimelineEntry,
-} from "../data/live-intel";
-import { DEFAULT_REFRESH_SECONDS } from "../data/live-intel";
-import { getSupabaseClient } from "../lib/supabase-client";
-
-const PLAN_IDS = [
-  "vip_bronze",
-  "vip_silver",
-  "vip_gold",
-  "mentorship",
-] as const;
-
-type Plan = (typeof PLAN_IDS)[number];
-
-type SectionId =
-  | "overview"
-  | "plans"
-  | "intel"
-  | "activity"
-  | "appearance"
-  | "support";
+import type { LiveMetric } from "../data/live-intel";
+import {
+  ACTIVITY_FEED,
+  OVERVIEW_FEATURES,
+  SUPPORT_OPTIONS,
+} from "../data/static-content";
+import { getFallbackPlans, type Plan } from "../lib/plans";
+import type { SectionId } from "../lib/sections";
+import { formatRelativeTime } from "../lib/time";
+import { useLiveIntel } from "../hooks/useLiveIntel";
+import { usePlanOptions } from "../hooks/usePlanOptions";
+import { LiveIntelligenceSection } from "../components/LiveIntelligenceSection";
+import { StickyNav } from "../components/StickyNav";
 
 type TelegramUser = {
   id?: number;
@@ -45,60 +34,6 @@ type TelegramWebApp = {
   initDataUnsafe?: {
     user?: TelegramUser;
   };
-};
-
-type PlanOption = {
-  id: Plan;
-  name: string;
-  price: string;
-  cadence: string;
-  description: string;
-  highlights: string[];
-  meta: {
-    currency: string;
-    amount: number | null;
-    tonAmount: number | null;
-    dctAmount: number | null;
-    updatedAt: string | null;
-  };
-};
-
-type RawPlan = {
-  id?: string | null;
-  name?: string | null;
-  price?: number | string | null;
-  base_price?: number | string | null;
-  dynamic_price_usdt?: number | string | null;
-  currency?: string | null;
-  duration_months?: number | string | null;
-  is_lifetime?: boolean | null;
-  features?: unknown;
-  last_priced_at?: string | null;
-  ton_amount?: number | string | null;
-  dct_amount?: number | string | null;
-};
-
-type ActivityItem = LiveTimelineEntry;
-
-type SupportOption = {
-  title: string;
-  description: string;
-  action: string;
-};
-
-type NavItem = {
-  id: SectionId;
-  label: string;
-  icon: (props: { active: boolean }) => JSX.Element;
-};
-
-type LiveIntelState = {
-  status: "loading" | "ready" | "error";
-  report?: LiveIntelSnapshot;
-  updatedAt?: string;
-  nextRefreshSeconds?: number;
-  isSyncing: boolean;
-  error?: string;
 };
 
 const RECOMMENDED_WALLETS: NonNullable<
@@ -133,263 +68,13 @@ const RECOMMENDED_WALLETS: NonNullable<
   },
 ];
 
-const FALLBACK_PLAN_OPTIONS: PlanOption[] = [
-  {
-    id: "vip_bronze",
-    name: "VIP Bronze",
-    price: "120 TON",
-    cadence: "3 month horizon",
-    description:
-      "Entry tier that mirrors the desk's base auto-invest strategy.",
-    highlights: [
-      "Desk monitored entries",
-      "Weekly strategy calls",
-      "Capital preservation guardrails",
-    ],
-    meta: {
-      currency: "TON",
-      amount: 120,
-      tonAmount: 120,
-      dctAmount: null,
-      updatedAt: null,
-    },
-  },
-  {
-    id: "vip_silver",
-    name: "VIP Silver",
-    price: "220 TON",
-    cadence: "6 month horizon",
-    description:
-      "Expanded allocation with leverage-managed exposure and mid-cycle rotations.",
-    highlights: [
-      "Dual momentum + carry blend",
-      "Priority support window",
-      "Quarterly performance briefing",
-    ],
-    meta: {
-      currency: "TON",
-      amount: 220,
-      tonAmount: 220,
-      dctAmount: null,
-      updatedAt: null,
-    },
-  },
-  {
-    id: "vip_gold",
-    name: "VIP Gold",
-    price: "420 TON",
-    cadence: "12 month horizon",
-    description:
-      "Full desk collaboration with access to structured products and vault strategies.",
-    highlights: [
-      "Structured product desk",
-      "Liquidity provisioning slots",
-      "Desk escalation on demand",
-    ],
-    meta: {
-      currency: "TON",
-      amount: 420,
-      tonAmount: 420,
-      dctAmount: null,
-      updatedAt: null,
-    },
-  },
-  {
-    id: "mentorship",
-    name: "Mentorship Circle",
-    price: "650 TON",
-    cadence: "12 month horizon",
-    description:
-      "One-on-one mentorship with the desk's senior PMs and quarterly onsite reviews.",
-    highlights: [
-      "Dedicated mentor queue",
-      "Quarterly onsite review",
-      "Capital introduction pathway",
-    ],
-    meta: {
-      currency: "TON",
-      amount: 650,
-      tonAmount: 650,
-      dctAmount: null,
-      updatedAt: null,
-    },
-  },
-];
-
-const FALLBACK_PLAN_LOOKUP: Record<Plan, PlanOption> = Object.fromEntries(
-  FALLBACK_PLAN_OPTIONS.map((option) => [option.id, option]),
-) as Record<Plan, PlanOption>;
-
-function isSupportedPlan(value: string | null | undefined): value is Plan {
-  if (!value) return false;
-  return PLAN_IDS.includes(value as Plan);
-}
-
-function coerceNumber(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
-}
-
-function formatPlanLabel(
-  currency: string,
-  amount: number,
-  isLifetime: boolean,
-  durationMonths: number,
-): string {
-  const formatter = new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency,
-    maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
-  });
-  const formatted = formatter.format(amount);
-  if (isLifetime) {
-    return `${formatted} lifetime`;
-  }
-  if (durationMonths <= 1) {
-    return `${formatted} / month`;
-  }
-  if (durationMonths >= 12 && durationMonths % 12 === 0) {
-    const years = durationMonths / 12;
-    return `${formatted} / ${years} yr${years > 1 ? "s" : ""}`;
-  }
-  return `${formatted} / ${durationMonths} mo`;
-}
-
-function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
-  const nextOptions: PlanOption[] = [];
-
-  for (const raw of plans) {
-    if (!raw || !isSupportedPlan(raw.id ?? undefined)) {
-      continue;
-    }
-
-    const fallback = FALLBACK_PLAN_LOOKUP[raw.id];
-    const name = typeof raw.name === "string" && raw.name.trim().length > 0
-      ? raw.name
-      : fallback.name;
-    const currency =
-      typeof raw.currency === "string" && raw.currency.trim().length > 0
-        ? raw.currency.toUpperCase()
-        : fallback.meta.currency ?? "USD";
-    const amount = coerceNumber(raw.price) ??
-      coerceNumber(raw.base_price) ??
-      coerceNumber(raw.dynamic_price_usdt);
-    const isLifetime = raw.is_lifetime === true;
-    const duration = coerceNumber(raw.duration_months) ?? 0;
-    const priceLabel = amount !== null
-      ? formatPlanLabel(currency, amount, isLifetime, duration)
-      : fallback.price;
-    const highlights = Array.isArray(raw.features)
-      ? raw.features.filter((feature): feature is string =>
-        typeof feature === "string" && feature.trim().length > 0
-      )
-      : fallback.highlights;
-
-    const tonAmount = coerceNumber(raw.ton_amount);
-    const dctAmount = coerceNumber(raw.dct_amount);
-    const cadence = isLifetime
-      ? "Lifetime access"
-      : duration >= 12 && duration % 12 === 0
-      ? `${duration / 12} year${duration / 12 > 1 ? "s" : ""} runway`
-      : duration > 1
-      ? `${duration} month${duration > 1 ? "s" : ""} runway`
-      : fallback.cadence;
-
-    nextOptions.push({
-      id: raw.id,
-      name,
-      price: priceLabel,
-      cadence,
-      description: fallback.description,
-      highlights: highlights.length > 0 ? highlights : fallback.highlights,
-      meta: {
-        currency,
-        amount,
-        tonAmount,
-        dctAmount,
-        updatedAt: raw.last_priced_at ?? fallback.meta.updatedAt,
-      },
-    });
-  }
-
-  return nextOptions.length > 0 ? nextOptions : [...FALLBACK_PLAN_OPTIONS];
-}
-
-function resolvePlanUpdatedAt(options: PlanOption[]): string | undefined {
-  let latest: Date | undefined;
-  for (const option of options) {
-    const timestamp = option.meta.updatedAt;
-    if (!timestamp) continue;
-    const parsed = new Date(timestamp);
-    if (Number.isNaN(parsed.getTime())) continue;
-    if (!latest || parsed > latest) {
-      latest = parsed;
-    }
-  }
-
-  return latest?.toISOString();
-}
+const FALLBACK_PLAN_OPTIONS = getFallbackPlans();
+const DEFAULT_PLAN_ID: Plan = FALLBACK_PLAN_OPTIONS[0]?.id ?? "vip_bronze";
 
 declare global {
   interface Window {
     Telegram?: { WebApp?: TelegramWebApp };
   }
-}
-
-function formatRelativeTime(iso?: string): string {
-  if (!iso) {
-    return "just now";
-  }
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) {
-    return "just now";
-  }
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  if (diffMs <= 0) {
-    return "just now";
-  }
-  const diffSeconds = Math.floor(diffMs / 1000);
-  if (diffSeconds < 60) {
-    return `${diffSeconds}s ago`;
-  }
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  if (diffMinutes < 60) {
-    return `${diffMinutes}m ago`;
-  }
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) {
-    return `${diffHours}h ago`;
-  }
-  const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
-}
-
-function formatConfidence(value?: number): string | null {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return null;
-  }
-  const bounded = Math.min(Math.max(value, 0), 1);
-  return `${Math.round(bounded * 100)}% confidence`;
-}
-
-function riskSeverity(score?: number): "low" | "medium" | "high" {
-  if (typeof score !== "number" || Number.isNaN(score)) {
-    return "low";
-  }
-  if (score < 0.34) {
-    return "low";
-  }
-  if (score < 0.67) {
-    return "medium";
-  }
-  return "high";
 }
 
 const FALLBACK_METRICS: LiveMetric[] = [
@@ -410,145 +95,6 @@ const FALLBACK_METRICS: LiveMetric[] = [
     value: "4 hour SLA",
     change: "Standard",
     trend: "steady",
-  },
-];
-
-type LiveIntelResponse = {
-  generatedAt: string;
-  nextUpdateInSeconds?: number;
-  report: LiveIntelSnapshot;
-};
-
-function useLiveIntel(
-  pollMs: number = DEFAULT_REFRESH_SECONDS * 1000,
-): LiveIntelState & { refresh: () => void } {
-  const [state, setState] = useState<LiveIntelState>({
-    status: "loading",
-    isSyncing: true,
-  });
-  const isUnmounted = useRef(false);
-
-  const fetchIntel = useCallback(async () => {
-    setState((previous) => ({
-      ...previous,
-      status: previous.report ? previous.status : "loading",
-      isSyncing: true,
-      error: previous.report ? previous.error : undefined,
-    }));
-
-    try {
-      const response = await fetch("/api/live-intel", { cache: "no-store" });
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-      const payload: LiveIntelResponse = await response.json();
-      if (isUnmounted.current) {
-        return;
-      }
-      setState({
-        status: "ready",
-        report: payload.report,
-        updatedAt: payload.generatedAt,
-        nextRefreshSeconds: payload.nextUpdateInSeconds ??
-          Math.floor(pollMs / 1000),
-        isSyncing: false,
-        error: undefined,
-      });
-    } catch (error) {
-      if (isUnmounted.current) {
-        return;
-      }
-      const message = error instanceof Error
-        ? error.message
-        : "Unknown sync error";
-      setState((previous) => ({
-        ...previous,
-        status: previous.report ? "ready" : "error",
-        isSyncing: false,
-        error: message,
-      }));
-    }
-  }, [pollMs]);
-
-  useEffect(() => {
-    isUnmounted.current = false;
-    void fetchIntel();
-    const intervalId = setInterval(() => {
-      void fetchIntel();
-    }, pollMs);
-
-    return () => {
-      isUnmounted.current = true;
-      clearInterval(intervalId);
-    };
-  }, [fetchIntel, pollMs]);
-
-  return {
-    ...state,
-    refresh: fetchIntel,
-  };
-}
-
-const OVERVIEW_FEATURES = [
-  {
-    title: "Live Signal Desk",
-    description:
-      "High-conviction execution with 24/7 desk monitoring across majors, TON ecosystem, and DeFi rotations.",
-  },
-  {
-    title: "Auto-Invest Vaults",
-    description:
-      "Deploy into curated baskets that rebalance automatically with transparent on-chain attestations.",
-  },
-  {
-    title: "Risk Controls",
-    description:
-      "Dynamic guardrails, circuit breakers, and managed drawdown ceilings purpose-built for active traders.",
-  },
-];
-
-const ACTIVITY_FEED: ActivityItem[] = [
-  {
-    title: "Desk sync complete",
-    status: "complete",
-    timestamp: "12:04",
-    description:
-      "Wallet authorized with trading desk. Next rebalancing cycle triggers at 18:00 UTC.",
-  },
-  {
-    title: "Strategy review",
-    status: "pending",
-    timestamp: "Today",
-    description:
-      "Bronze plan summary ready. Confirm subscription to unlock full auto-invest routing.",
-  },
-  {
-    title: "Capital deployment window",
-    status: "upcoming",
-    timestamp: "Tomorrow",
-    description:
-      "Desk will open a short deployment window for high-volume TON liquidity pairs.",
-  },
-];
-
-const SUPPORT_OPTIONS: SupportOption[] = [
-  {
-    title: "Concierge chat",
-    description:
-      "Direct line to our desk managers for allocation or compliance questions.",
-    action: "Open Telegram thread",
-  },
-  {
-    title: "Trading playbook",
-    description:
-      "Step-by-step frameworks and risk tooling to mirror the Dynamic Capital approach.",
-    action: "View docs",
-  },
-  {
-    title: "Status center",
-    description:
-      "Check live uptime for deposits, OCR, and auto-invest execution engines.",
-    action: "Launch status page",
   },
 ];
 
@@ -586,21 +132,12 @@ function resolveThemeSwatches(theme: MiniAppThemeOption): string[] {
 
 function HomeInner() {
   const [tonConnectUI] = useTonConnectUI();
-  const [planOptions, setPlanOptions] = useState<PlanOption[]>(
-    () => [...FALLBACK_PLAN_OPTIONS],
-  );
-  const [plan, setPlan] = useState<Plan>(FALLBACK_PLAN_OPTIONS[0].id);
-  const [planSyncStatus, setPlanSyncStatus] = useState<{
-    isLoading: boolean;
-    isRealtimeSyncing: boolean;
-    updatedAt?: string;
-    error?: string | null;
-  }>({
-    isLoading: true,
-    isRealtimeSyncing: false,
-    updatedAt: undefined,
-    error: null,
-  });
+  const {
+    planOptions,
+    selectedPlan: selectedPlanId,
+    setSelectedPlan,
+    status: planSyncStatus,
+  } = usePlanOptions(DEFAULT_PLAN_ID);
   const [txHash, setTxHash] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<SectionId>("overview");
@@ -614,8 +151,8 @@ function HomeInner() {
   );
 
   const selectedPlan = useMemo(
-    () => planOptions.find((option) => option.id === plan),
-    [plan, planOptions],
+    () => planOptions.find((option) => option.id === selectedPlanId),
+    [planOptions, selectedPlanId],
   );
   const wallet = tonConnectUI?.account;
   const walletAddress = wallet?.address;
@@ -698,150 +235,6 @@ function HomeInner() {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
-    let pendingController: AbortController | null = null;
-    let refreshTimeout: ReturnType<typeof setTimeout> | null = null;
-
-    const loadPlans = async (options: { showSpinner: boolean }) => {
-      if (!isMounted) {
-        return;
-      }
-
-      if (pendingController) {
-        pendingController.abort();
-      }
-
-      const controller = new AbortController();
-      pendingController = controller;
-
-      setPlanSyncStatus((previous) => ({
-        ...previous,
-        isLoading: options.showSpinner,
-        isRealtimeSyncing: !options.showSpinner,
-      }));
-
-      try {
-        const response = await fetch("/api/plans", {
-          cache: "no-store",
-          signal: controller.signal,
-        });
-        if (!response.ok) {
-          throw new Error(`Unexpected status ${response.status}`);
-        }
-
-        const payload = await response.json() as { plans?: RawPlan[] | null };
-        if (!isMounted || controller.signal.aborted) {
-          return;
-        }
-
-        const normalized = Array.isArray(payload?.plans)
-          ? normalisePlanOptions(payload.plans as RawPlan[])
-          : [...FALLBACK_PLAN_OPTIONS];
-
-        setPlanOptions(normalized);
-        setPlan((current) =>
-          normalized.some((option) => option.id === current)
-            ? current
-            : normalized[0]?.id ?? current
-        );
-        setPlanSyncStatus({
-          isLoading: false,
-          isRealtimeSyncing: false,
-          updatedAt: resolvePlanUpdatedAt(normalized),
-          error: null,
-        });
-      } catch (error) {
-        if (controller.signal.aborted) {
-          return;
-        }
-
-        console.error("[miniapp] Failed to load plans", error);
-        if (!isMounted) {
-          return;
-        }
-
-        setPlanOptions((previous) =>
-          previous.length ? previous : [...FALLBACK_PLAN_OPTIONS]
-        );
-        setPlanSyncStatus((previous) => ({
-          isLoading: false,
-          isRealtimeSyncing: false,
-          updatedAt: previous.updatedAt,
-          error: error instanceof Error
-            ? error.message
-            : "Unable to load plans",
-        }));
-      } finally {
-        if (pendingController === controller) {
-          pendingController = null;
-        }
-      }
-    };
-
-    void loadPlans({ showSpinner: true });
-
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      setPlanSyncStatus((previous) => ({
-        ...previous,
-        isLoading: false,
-        isRealtimeSyncing: false,
-        error: previous.error ??
-          "Realtime sync unavailable (missing Supabase env)",
-      }));
-      return () => {
-        isMounted = false;
-        if (pendingController) {
-          pendingController.abort();
-        }
-        if (refreshTimeout) {
-          clearTimeout(refreshTimeout);
-        }
-      };
-    }
-
-    const scheduleRealtimeRefresh = () => {
-      setPlanSyncStatus((previous) => ({
-        ...previous,
-        isRealtimeSyncing: true,
-      }));
-
-      if (refreshTimeout) {
-        clearTimeout(refreshTimeout);
-      }
-
-      refreshTimeout = setTimeout(() => {
-        refreshTimeout = null;
-        void loadPlans({ showSpinner: false });
-      }, 250);
-    };
-
-    const channel = supabase
-      .channel("miniapp-subscription-plans")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "subscription_plans" },
-        () => {
-          if (!isMounted) {
-            return;
-          }
-          scheduleRealtimeRefresh();
-        },
-      )
-      .subscribe();
-
-    return () => {
-      isMounted = false;
-      if (pendingController) {
-        pendingController.abort();
-      }
-      if (refreshTimeout) {
-        clearTimeout(refreshTimeout);
-      }
-      supabase.removeChannel(channel);
-    };
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -930,7 +323,7 @@ function HomeInner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           telegram_id: telegramId,
-          plan,
+          plan: selectedPlanId,
           tx_hash: fakeHash,
         }),
       });
@@ -1140,12 +533,13 @@ function HomeInner() {
 
           <div className="plan-grid">
             {planOptions.map((option) => {
-              const isActive = option.id === plan;
+              const isActive = option.id === selectedPlanId;
               return (
                 <button
                   key={option.id}
                   className={`plan-card${isActive ? " plan-card--active" : ""}`}
-                  onClick={() => setPlan(option.id)}
+                  onClick={() => setSelectedPlan(option.id)}
+                  disabled={isProcessing}
                 >
                   <div className="plan-card-header">
                     <span className="plan-name">{option.name}</span>
@@ -1360,430 +754,15 @@ function HomeInner() {
         {statusMessage && <div className="status-banner">{statusMessage}</div>}
       </main>
 
-      <nav
-        aria-label="Breadcrumb"
-        className="fixed bottom-8 left-1/2 z-50 flex w-full max-w-xl -translate-x-1/2 justify-center px-4"
-      >
-        <div className="flex w-full items-center justify-center rounded-full border border-slate-500/50 bg-slate-900/80 px-4 py-3 text-[0.78rem] font-medium text-slate-300 shadow-[0_18px_46px_rgba(7,12,24,0.45)] backdrop-blur">
-          <ol className="flex w-full items-center gap-1">
-            {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-              const isActive = activeSection === id;
-              return (
-                <li
-                  key={id}
-                  className="flex min-w-0 flex-1 items-center after:mx-1 after:text-slate-600/70 after:content-['/'] last:after:hidden"
-                >
-                  <button
-                    type="button"
-                    onClick={() => scrollToSection(id)}
-                    aria-current={isActive ? "page" : undefined}
-                    className={`group flex w-full items-center gap-2 rounded-full px-3 py-2 transition-colors duration-150 ${
-                      isActive
-                        ? "bg-sky-500/20 text-sky-100"
-                        : "text-slate-300/70 hover:bg-white/5 hover:text-sky-100"
-                    }`}
-                  >
-                    <Icon active={isActive} />
-                    <span className="truncate">{label}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      </nav>
+      <StickyNav
+        activeSection={activeSection}
+        onNavigate={scrollToSection}
+      />
     </div>
   );
 }
 
-function LiveIntelligenceSection({
-  intel,
-  status,
-  isSyncing,
-  updatedAt,
-  countdown,
-  error,
-  onRefresh,
-}: {
-  intel?: LiveIntelSnapshot;
-  status: LiveIntelState["status"];
-  isSyncing: boolean;
-  updatedAt?: string;
-  countdown: number | null;
-  error?: string;
-  onRefresh: () => void;
-}) {
-  const confidenceLabel = formatConfidence(intel?.confidence);
-  const alerts = intel?.alerts ?? [];
-  const opportunities = intel?.opportunities ?? [];
-  const risks = intel?.risks ?? [];
-  const hasIntel = Boolean(intel);
 
-  return (
-    <section className="section-card" id="intel">
-      <div className="section-header">
-        <div>
-          <h2 className="section-title">Live desk intelligence</h2>
-          <p className="section-description">
-            Grok-1 strategy briefs are auto-synced with DeepSeek-V2 risk
-            arbitration so every decision stays in lockstep with the desk.
-          </p>
-        </div>
-        <div className="selected-plan-pill">
-          {isSyncing
-            ? "Syncing…"
-            : countdown !== null
-            ? `Next sync in ${countdown}s`
-            : updatedAt
-            ? `Updated ${formatRelativeTime(updatedAt)}`
-            : "Awaiting sync"}
-        </div>
-      </div>
-
-      {error && status === "error" && (
-        <div className="status-banner status-banner--error">
-          Unable to reach the intelligence feed right now. We'll retry
-          automatically.
-          <button
-            type="button"
-            className="button button-ghost"
-            onClick={onRefresh}
-          >
-            Retry now
-          </button>
-        </div>
-      )}
-
-      <div className="intel-grid">
-        <div className="intel-card intel-card--primary">
-          <div className="intel-meta">
-            <span className="intel-updated">
-              {isSyncing
-                ? "Streaming Grok-1 update…"
-                : updatedAt
-                ? `Last sync ${formatRelativeTime(updatedAt)}`
-                : "Waiting for first sync"}
-            </span>
-            {confidenceLabel && (
-              <span className="confidence-chip">{confidenceLabel}</span>
-            )}
-          </div>
-          {hasIntel
-            ? (
-              <>
-                <p className="intel-narrative">{intel?.narrative}</p>
-                {alerts.length > 0
-                  ? (
-                    <ul className="alert-list">
-                      {alerts.map((alert) => (
-                        <li key={alert} className="alert-pill">
-                          <span aria-hidden>⚠️</span>
-                          {alert}
-                        </li>
-                      ))}
-                    </ul>
-                  )
-                  : (
-                    <p className="intel-muted">
-                      No blocking alerts flagged by DeepSeek-V2 sentinel.
-                    </p>
-                  )}
-              </>
-            )
-            : (
-              <div className="skeleton-group">
-                <div className="skeleton skeleton--text skeleton--wide" />
-                <div className="skeleton skeleton--text skeleton--wide" />
-                <div className="skeleton skeleton--text skeleton--medium" />
-              </div>
-            )}
-        </div>
-
-        <div className="intel-card">
-          <h3>Opportunities</h3>
-          {hasIntel
-            ? (
-              <ul className="intel-list">
-                {opportunities.map((item) => (
-                  <li key={item}>
-                    <span
-                      className="intel-bullet intel-bullet--opportunity"
-                      aria-hidden
-                    />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            )
-            : <IntelListSkeleton />}
-        </div>
-
-        <div className="intel-card">
-          <h3>Risks</h3>
-          {hasIntel
-            ? (
-              <ul className="intel-list">
-                {risks.map((item) => (
-                  <li key={item}>
-                    <span
-                      className="intel-bullet intel-bullet--risk"
-                      aria-hidden
-                    />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            )
-            : <IntelListSkeleton />}
-        </div>
-      </div>
-
-      {intel ? <ModelBreakdown intel={intel} /> : (
-        <div className="model-grid">
-          <div className="model-card">
-            <div className="skeleton skeleton--text skeleton--medium" />
-            <div className="skeleton skeleton--block" />
-            <div className="skeleton skeleton--text skeleton--medium" />
-          </div>
-          <div className="model-card">
-            <div className="skeleton skeleton--text skeleton--medium" />
-            <div className="skeleton skeleton--block" />
-            <div className="skeleton skeleton--text skeleton--medium" />
-          </div>
-        </div>
-      )}
-
-      {error && status !== "error" && (
-        <div className="status-banner status-banner--error">
-          Brief network hiccup detected. Showing the last Grok-1 + DeepSeek-V2
-          sync while we refresh in the background.
-        </div>
-      )}
-    </section>
-  );
-}
-
-function IntelListSkeleton({ count = 3 }: { count?: number }) {
-  return (
-    <div className="skeleton-group">
-      {Array.from({ length: count }).map((_, index) => (
-        <div
-          key={`intel-skeleton-${index}`}
-          className="skeleton skeleton--text skeleton--wide"
-        />
-      ))}
-    </div>
-  );
-}
-
-function ModelBreakdown({ intel }: { intel: LiveIntelSnapshot }) {
-  const grok = intel.models.grok;
-  const deepseek = intel.models.deepseek;
-  const riskScore = typeof deepseek.riskScore === "number"
-    ? Math.min(Math.max(deepseek.riskScore, 0), 1)
-    : null;
-  const riskLevel = riskSeverity(riskScore ?? undefined);
-  const riskLabel = riskScore === null
-    ? "Risk scan"
-    : `${Math.round(riskScore * 100)}% risk`;
-
-  return (
-    <div className="model-grid">
-      <div className="model-card">
-        <div className="model-header">
-          <span className="model-name">Grok-1 strategist</span>
-          <span className="model-tag">{grok.focus}</span>
-        </div>
-        <p className="model-summary">{grok.summary}</p>
-        <ul className="model-highlights">
-          {grok.highlights.map((item) => <li key={item}>{item}</li>)}
-        </ul>
-      </div>
-      <div className="model-card">
-        <div className="model-header">
-          <span className="model-name">DeepSeek-V2 sentinel</span>
-          <span className={`model-risk model-risk--${riskLevel}`}>
-            {riskLabel}
-          </span>
-        </div>
-        <p className="model-summary">{deepseek.summary}</p>
-        <ul className="model-highlights">
-          {deepseek.highlights.map((item) => <li key={item}>{item}</li>)}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-function HomeIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
-      viewBox="0 0 24 24"
-      role="presentation"
-      aria-hidden
-    >
-      <path
-        d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-5.5h-5V21H5a1 1 0 0 1-1-1z"
-        fill={active ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function SparkIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
-      viewBox="0 0 24 24"
-      role="presentation"
-      aria-hidden
-    >
-      <path
-        d="M12 2.5 13.6 8h5.4l-4.3 3.2L16.3 17 12 13.9 7.7 17l1.3-5.8L4.7 8h5.4z"
-        fill={active ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function RadarIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
-      viewBox="0 0 24 24"
-      role="presentation"
-      aria-hidden
-    >
-      <circle
-        cx="12"
-        cy="12"
-        r="8"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        opacity={active ? 1 : 0.8}
-      />
-      <path
-        d="M12 4v4m0 4 4 4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-      <circle
-        cx="12"
-        cy="12"
-        r="2.2"
-        fill={active ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-    </svg>
-  );
-}
-
-function ActivityIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
-      viewBox="0 0 24 24"
-      role="presentation"
-      aria-hidden
-    >
-      <path
-        d="M4 13.5 8 9l3.5 5L14 6l2.5 8.5L20 11"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity={active ? 1 : 0.8}
-      />
-    </svg>
-  );
-}
-
-function PaletteIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
-      viewBox="0 0 24 24"
-      role="presentation"
-      aria-hidden
-    >
-      <path
-        d="M12 3a9 9 0 1 0 0 18c1.6 0 2.6-.92 2.6-2.06 0-1.27-.96-2-2.14-2.3-.94-.25-1.43-.86-1.43-1.62 0-.92.74-1.7 1.7-1.7h1.75c1.43 0 2.52-1.09 2.52-2.52A7 7 0 0 0 12 3Zm-4.4 8a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm2.7-3.9a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm5.4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm1.6 3.9a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Z"
-        fill={active ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function LifebuoyIcon({ active }: { active: boolean }) {
-  return (
-    <svg
-      className={`h-5 w-5 flex-shrink-0 transition-colors duration-150 ${
-        active ? "text-sky-100" : "text-slate-400"
-      }`}
-      viewBox="0 0 24 24"
-      role="presentation"
-      aria-hidden
-    >
-      <circle
-        cx="12"
-        cy="12"
-        r="7.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        opacity={active ? 1 : 0.8}
-      />
-      <circle
-        cx="12"
-        cy="12"
-        r="3.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M5.7 5.7 8.4 8.4M18.3 5.7l-2.7 2.7m2.7 11.6-2.7-2.7M5.7 18.3l2.7-2.7"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { id: "overview", label: "Overview", icon: HomeIcon },
-  { id: "plans", label: "Plans", icon: SparkIcon },
-  { id: "intel", label: "Live intel", icon: RadarIcon },
-  { id: "activity", label: "Timeline", icon: ActivityIcon },
-  { id: "appearance", label: "Themes", icon: PaletteIcon },
-  { id: "support", label: "Support", icon: LifebuoyIcon },
-];
 
 export default function Page() {
   return (
