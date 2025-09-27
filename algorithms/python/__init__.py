@@ -237,6 +237,12 @@ from .dynamic_market_outlook import (
     MarketOutlookTelemetry,
     OutlookSignal,
 )
+from .dynamic_market_snapshot import (
+    DynamicMarketSnapshot,
+    DynamicMarketSnapshotBuilder,
+    FlowSnapshot,
+    SnapshotGauge,
+)
 from .dynamic_question_answer_algo import (
     DQAAnswer,
     DQAContext,
@@ -400,6 +406,10 @@ __all__ = _trade_exports + [
     "MarketOutlookReport",
     "MarketOutlookTelemetry",
     "OutlookSignal",
+    "DynamicMarketSnapshotBuilder",
+    "DynamicMarketSnapshot",
+    "SnapshotGauge",
+    "FlowSnapshot",
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
     "RoutinePrompt",
