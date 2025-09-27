@@ -37,7 +37,7 @@
   "tokenomics": {
     "intro": [
       "DCT tokenomics are meticulously designed to balance protocol liquidity with long-run alignment between traders, contributors, and the treasury. The supply is hard capped at 100,000,000 DCT under a time-locked multi-signature controller; any future adjustments require an on-chain governance vote with delayed execution safeguards. This mirrors the deployment configuration for the jetton, anchoring monetary policy in auditable on-chain parameters.",
-      "At launch, circulating supply is constrained to the public circulation allocation that fuels community growth initiatives alongside the dedicated liquidity provision buffer. Treasury, team, advisor, staking, and liquidity allocations are escrowed in TON vesting contracts with transparent cliffs and drip schedules that mirror the table below. Unlock schedules are published ahead of time, and governance can pause or re-sequence emissions if security or market stability concerns arise."
+      "At launch, 10% of supply unlocks at TGE — 3% for community distribution, 5% to bootstrap liquidity, and 2% for near-term partnerships. The remaining allocations are escrowed in TON vesting contracts with transparent cliffs: investor pool tokens observe a six-month cliff before linearly vesting over the following 24 months, the founding team vests linearly over 36 months after a 12-month cliff, partnerships and liquidity incentives vest over 24 months, and treasury reserves stream out across 60 months. Ecosystem and staking incentives deliver 40,000,000 DCT over five years via decaying annual buckets of 12M, 10M, 8M, 6M, and 4M. Unlock schedules are published ahead of time, and governance can pause or re-sequence emissions if security or market stability concerns arise."
     ],
     "policies": [
       "Treasury policies route a governed share of protocol fees toward buybacks and liquidity programs, reinforcing price stability while re-circulating value to active contributors.",
@@ -94,66 +94,76 @@
   },
   "distributionTable": [
     {
-      "allocation": "Public Circulation",
-      "amount": 50000000,
-      "percent": 50,
-      "schedule": "Sales, airdrops, and ecosystem incentives"
+      "allocation": "Ecosystem & Staking",
+      "amount": 40000000,
+      "percent": 40,
+      "schedule": "Five-year emissions using decaying annual buckets (12M, 10M, 8M, 6M, 4M)"
     },
     {
-      "allocation": "Treasury",
-      "amount": 20000000,
-      "percent": 20,
-      "schedule": "Governance-gated deployments"
+      "allocation": "Investor Pool / Fund Ops",
+      "amount": 25000000,
+      "percent": 25,
+      "schedule": "6-month cliff, then 24-month linear vesting"
     },
     {
-      "allocation": "Team & Advisors",
+      "allocation": "Founders & Team",
       "amount": 15000000,
       "percent": 15,
-      "schedule": "12-month cliff, 36-month vesting"
+      "schedule": "12-month cliff, then 36-month linear vesting"
     },
     {
-      "allocation": "Staking Rewards",
+      "allocation": "Partnerships & Liquidity",
       "amount": 10000000,
       "percent": 10,
-      "schedule": "Programmatic staking emissions"
+      "schedule": "2% unlocked at TGE, remainder vests linearly over 24 months"
     },
     {
-      "allocation": "Liquidity Provision",
-      "amount": 5000000,
-      "percent": 5,
-      "schedule": "TON DEX and CEX liquidity support"
+      "allocation": "Treasury & Emergency",
+      "amount": 10000000,
+      "percent": 10,
+      "schedule": "60-month linear release with governance-controlled pause rights"
     }
   ],
   "emissionNotes": [
-    "Emission events are orchestrated via audited TON smart contracts.",
+    "Ecosystem & staking emissions distribute 40,000,000 DCT across five years in front-loaded annual buckets of 12M, 10M, 8M, 6M, and 4M (with monthly slices).",
+    "10% of subscription spend is automatically burned and treasury buybacks execute quarterly, starting at 250,000 DCT per quarter with 20% year-over-year growth.",
     "Treasury-controlled mint functions are time-locked and require multi-signature authorization to protect against supply shocks."
   ],
   "saleRounds": {
-    "intro": "Token distribution campaigns translate the long-term supply map into milestone-based raises that fund growth while protecting circulating float.",
+    "intro": "Token distribution campaigns translate the long-term supply map into milestone-based raises that fund growth while protecting circulating float. The launch plan delivers 13,000,000 DCT at TGE across community, liquidity, and partnership channels, while long-dated allocations vest via governed cliffs.",
     "rounds": [
       {
-        "name": "Private Sale (Seed Investors)",
-        "allocation": 10000000,
-        "price": 0.02,
-        "priceDenom": "USD",
-        "vesting": "20% at TGE, remaining 80% vests linearly over six months.",
-        "notes": "Anchors early strategic capital with an 18-month participation covenant for network support."
+        "name": "Community Launch (TGE)",
+        "allocation": 3000000,
+        "price": 0.12,
+        "priceDenom": "TON (auction clearing)",
+        "vesting": "Unlocked at TGE with optional 90-day staking boosters.",
+        "notes": "Represents 3% of total supply dedicated to ecosystem activation quests and referrals."
       },
       {
-        "name": "Liquidity Bootstrap",
+        "name": "Liquidity Bootstrap Pools",
         "allocation": 5000000,
         "price": 0.1,
         "priceDenom": "Treasury cost basis USD",
-        "vesting": "Locked in DEX pools.",
-        "notes": "Matches the STON.fi and DeDust deployment plan to guarantee two-sided quotes."
+        "vesting": "Seeded into STON.fi and DeDust pools at TGE.",
+        "notes": "Accounts for 5% of supply and underwrites initial market depth across TON pairs."
       },
       {
-        "name": "Community Sale",
-        "allocation": 15000000,
-        "price": 0.12,
-        "priceDenom": "TON",
-        "vesting": "Immediate delivery with staking bonus multipliers for 90-day lockups.",
-        "notes": "Aligns with quest campaigns and referral programs to expand on-chain membership."
+        "name": "Strategic Partnerships Unlock",
+        "allocation": 2000000,
+        "price": 0.0,
+        "priceDenom": "N/A",
+        "vesting": "2% unlocked at TGE with remaining partnership grants vesting over 24 months.",
+        "notes": "Supports integrations, custodians, and key ecosystem collaborators.",
+        "tge": true
+      },
+      {
+        "name": "Investor Pool / Fund Operations",
+        "allocation": 25000000,
+        "price": 0.08,
+        "priceDenom": "USD",
+        "vesting": "6-month cliff followed by 24-month linear vesting.",
+        "notes": "Aligns strategic capital with fund operation milestones and quarterly reporting covenants."
       }
     ]
   },

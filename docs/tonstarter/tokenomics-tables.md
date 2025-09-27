@@ -6,24 +6,25 @@ hosted in the diligence data room.
 
 ## Allocation Summary
 
-| Bucket              | Amount (DCT) | Percent of Supply | Unlock & Vesting Notes                                                         |
-| ------------------- | ------------ | ----------------- | ------------------------------------------------------------------------------ |
-| Public Circulation  | 50,000,000   | 50%               | IDO, airdrops, and ecosystem incentives unlocked at TGE.                       |
-| Treasury            | 20,000,000   | 20%               | Governance-gated deployments; emissions require multisig + timelock approvals. |
-| Team & Advisors     | 15,000,000   | 15%               | 12-month cliff followed by 36-month linear vesting.                            |
-| Staking Rewards     | 10,000,000   | 10%               | Programmatic staking emissions streamed weekly.                                |
-| Liquidity Provision | 5,000,000    | 5%                | STON.fi / DeDust liquidity inventory with treasury oversight.                  |
+| Bucket                   | Amount (DCT) | Percent of Supply | Unlock & Vesting Notes                                                                                           |
+| ------------------------ | ------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Ecosystem & Staking      | 40,000,000   | 40%               | Five-year emissions with decaying buckets (12M → 4M); 6M seeded across the TGE drop and initial staking tranche. |
+| Investor Pool / Fund Ops | 25,000,000   | 25%               | 6-month cliff followed by 24-month linear vesting.                                                               |
+| Founders & Team          | 15,000,000   | 15%               | 12-month cliff followed by 36-month linear vesting.                                                              |
+| Partnerships & Liquidity | 10,000,000   | 10%               | 5% liquidity buffer and 2% partner grants unlocked at TGE; 3% vests over 24 months.                              |
+| Treasury & Emergency     | 10,000,000   | 10%               | 60-month linear release with governance pause controls.                                                          |
 
 _Source:
 [`docs/dynamic-capital-ton-whitepaper.md`](../dynamic-capital-ton-whitepaper.md)_
 
 ## Sale Round Breakdown
 
-| Round                         | Allocation (DCT) | Price (USD)               | Unlock Schedule                                          | Notes                                                                                                                  |
-| ----------------------------- | ---------------- | ------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Private Sale (Seed Investors) | 10,000,000       | $0.020                    | 20% at TGE, remaining 80% vests linearly over six months | Aligns with the "Private Sale (Seed Investors)" plan in the whitepaper.                                                |
-| Public Sale (Tonstarter IDO)  | 15,000,000       | $0.050                    | 100% at TGE                                              | Tonstarter community sale; no lock-up to accelerate circulation.                                                       |
-| Liquidity Bootstrap           | 5,000,000        | Treasury cost basis $0.10 | Locked in DEX pools                                      | Matches the STON.fi / DeDust plan in [`docs/dynamic-capital-ton-whitepaper.md`](../dynamic-capital-ton-whitepaper.md). |
+| Round                           | Allocation (DCT) | Price / Basis              | Unlock Schedule                                    | Notes                                                                                      |
+| ------------------------------- | ---------------- | -------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Community Launch (TGE)          | 3,000,000        | ≈0.12 TON (Dutch auction)  | 100% at TGE with optional 90-day staking boosters  | Fuels quests and referral campaigns; represents the 3% community unlock.                   |
+| Liquidity Bootstrap Pools       | 5,000,000        | Treasury basis ≈$0.10      | 100% at TGE, deployed to STON.fi and DeDust pools  | Seeds two-sided liquidity across TON pairs and remains treasury-supervised.                |
+| Strategic Partnerships Unlock   | 2,000,000        | N/A                        | 2% unlocked at TGE; remainder vests over 24 months | Supports integrations, custodians, and exchange collaborations tied to milestone delivery. |
+| Investor Pool / Fund Operations | 25,000,000       | $0.08 (funding agreements) | 6-month cliff followed by 24-month linear vesting  | Aligns strategic capital with fund performance reviews and quarterly reporting covenants.  |
 
 The pricing ladder and unlock schedules align with the projections generated by
 the Tonstarter sale planner (`algorithms/python/dct_tonstarter_sale.py`) and
@@ -33,12 +34,13 @@ satisfy Tonstarter’s requirement for reproducible math within the repository.
 
 ```
 Total Supply: 100,000,000 DCT
-Less: Treasury (20,000,000 DCT) — locked behind multisig + timelock
-Less: Team & Advisors (15,000,000 DCT) — subject to cliff/vesting contract
-Less: Staking Rewards (un-emitted portion) — gated by emission scheduler
-Less: Liquidity Provision (5,000,000 DCT) — pooled with TON/USDT, accounted for separately
+Less: Ecosystem & Staking (34,000,000 DCT) — remainder after seeding 3,000,000 DCT to the community drop and 3,000,000 DCT to the initial staking tranche at TGE
+Less: Investor Pool / Fund Ops (25,000,000 DCT) — 6-month cliff + 24-month linear vesting
+Less: Founders & Team (15,000,000 DCT) — 12-month cliff + 36-month linear vesting
+Less: Treasury & Emergency (10,000,000 DCT) — 60-month linear release with governance pause rights
+Less: Partnerships & Liquidity locked remainder (3,000,000 DCT) — balance that vests over 24 months after the 5% liquidity and 2% partnership TGE unlocks
 -------------------------------------------
-Projected Circulating Supply at TGE: 60,000,000 DCT
+Projected Circulating Supply at TGE: 13,000,000 DCT
 ```
 
 The calculations above match the figures shared with Tonstarter reviewers. Any

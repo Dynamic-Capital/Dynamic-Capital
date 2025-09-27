@@ -129,17 +129,31 @@ stability concerns arise.
 
 ## Token Supply & Emissions
 
-| Allocation          | Amount (DCT) | Percent of Supply | Vesting / Unlock Schedule                 |
-| ------------------- | ------------ | ----------------- | ----------------------------------------- |
-| Public Circulation  | 50,000,000   | 50%               | Sales, airdrops, and ecosystem incentives |
-| Treasury            | 20,000,000   | 20%               | Governance-gated deployments              |
-| Team & Advisors     | 15,000,000   | 15%               | 12-month cliff, 36-month vesting          |
-| Staking Rewards     | 10,000,000   | 10%               | Programmatic staking emissions            |
-| Liquidity Provision | 5,000,000    | 5%                | TON DEX and CEX liquidity support         |
+| Allocation               | Amount (DCT) | Percent of Supply | Vesting / Unlock Schedule                                         |
+| ------------------------ | ------------ | ----------------- | ----------------------------------------------------------------- |
+| Ecosystem & Staking      | 40,000,000   | 40%               | Five-year emissions with decaying buckets (12M, 10M, 8M, 6M, 4M)  |
+| Investor Pool / Fund Ops | 25,000,000   | 25%               | 6-month cliff, then 24-month linear vesting                       |
+| Founders & Team          | 15,000,000   | 15%               | 12-month cliff, then 36-month linear vesting                      |
+| Partnerships & Liquidity | 10,000,000   | 10%               | 2% unlocked at TGE, remainder vests over 24 months                |
+| Treasury & Emergency     | 10,000,000   | 10%               | 60-month linear release with governance-controlled pause features |
 
-- Emission events are orchestrated via audited TON smart contracts.
-- Treasury-controlled mint functions are time-locked and require multi-signature
-  authorization to protect against supply shocks.
+- 10% of total supply (13,000,000 DCT) unlocks at TGE, split 3% to community
+  distribution, 5% to liquidity bootstrap pools, and 2% to strategic
+  partnerships.
+- Ecosystem & Staking emissions distribute 40,000,000 DCT across five years in
+  front-loaded annual buckets of 12M, 10M, 8M, 6M, and 4M, streamed monthly to
+  active validators and strategy vaults.
+- Investor Pool / Fund Ops tokens follow a six-month cliff with a 24-month
+  linear vest, aligning capital commitments with fund performance milestones.
+- Founders & Team allocations unlock linearly over 36 months following a
+  12-month cliff to ensure long-term execution incentives.
+- Partnerships & Liquidity grants vest over 24 months after the initial 2%
+  unlock, coordinating with exchange integrations and ecosystem campaigns.
+- Treasury & Emergency reserves stream out over 60 months, with governance
+  controls capable of pausing releases during market stress.
+- 10% of subscription spend is automatically burned, and quarterly buybacks
+  start at 250,000 DCT per quarter with 20% year-over-year growth to reinforce
+  long-run scarcity.
 
 ## Token Valuation Framework
 
