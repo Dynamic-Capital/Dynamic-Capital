@@ -1,5 +1,25 @@
 # Go Live Checklist
 
+## Automation quick start
+
+Run the bundled automation helper to execute the scripted portions of the
+go-live validation. It covers the core checks by default; append
+`--include-optional` when you also need the longer-running smoke tests that
+operators run ahead of production rollouts.
+
+```bash
+npm run go-live
+
+# Include optional smoke tests
+npm run go-live -- --include-optional
+```
+
+> [!NOTE]
+> The automation helper now loads `.env.local` and `.env` before running. Ensure
+> `TELEGRAM_BOT_TOKEN` (and related Telegram secrets) are populated in one of
+> those files or exported in your shell so the webhook check can reach the
+> Telegram API.
+
 - [ ] Webhook set & verified. See the
       [Go-Live Validation Playbook](./go-live-validation-playbook.md#1-telegram-webhook-health)
       for the scripted check and health probe steps.
