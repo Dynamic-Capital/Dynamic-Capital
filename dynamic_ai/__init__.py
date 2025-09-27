@@ -1,5 +1,15 @@
 """Dynamic AI package exposing fusion signal generation utilities."""
 
+from .agents import (
+    Agent,
+    AgentResult,
+    ExecutionAgent,
+    ExecutionAgentResult,
+    ResearchAgent,
+    ResearchAgentResult,
+    RiskAgent,
+    RiskAgentResult,
+)
 from .core import AISignal, DynamicFusionAlgo
 from .analysis import AnalysisComponent, DynamicAnalysis
 from .fusion import (
@@ -26,10 +36,16 @@ from .hedge import (
 )
 
 __all__ = [
+    "Agent",
+    "AgentResult",
     "AISignal",
     "DynamicFusionAlgo",
+    "ExecutionAgent",
+    "ExecutionAgentResult",
     "AnalysisComponent",
     "DynamicAnalysis",
+    "ResearchAgent",
+    "ResearchAgentResult",
     "FusionEngine",
     "LobeSignal",
     "LorentzianDistanceLobe",
@@ -44,6 +60,8 @@ __all__ = [
     "RiskContext",
     "RiskManager",
     "RiskParameters",
+    "RiskAgent",
+    "RiskAgentResult",
     "AccountState",
     "DynamicHedgePolicy",
     "ExposurePosition",
