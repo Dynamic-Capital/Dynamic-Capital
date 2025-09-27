@@ -142,11 +142,12 @@ export const callEdgeFunction = async <T>(
     body?: JsonBody;
     headers?: Record<string, string>;
     token?: string;
+    signal?: AbortSignal;
   } = {},
 ): Promise<
   { data?: T; error?: { status: number; message: string }; status?: number }
 > => {
-  const { method = "GET", body, headers = {}, token } = options;
+  const { method = "GET", body, headers = {}, token, signal } = options;
 
   const requestHeaders: Record<string, string> = {
     "Content-Type": "application/json",
@@ -162,6 +163,7 @@ export const callEdgeFunction = async <T>(
     method,
     headers: requestHeaders,
     body: body ? JSON.stringify(body) : undefined,
+    signal,
   });
 
   let data: T | undefined;
