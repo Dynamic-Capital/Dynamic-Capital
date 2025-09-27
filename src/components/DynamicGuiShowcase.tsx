@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Button,
   Column,
@@ -161,6 +162,7 @@ const WORKFLOW_STEPS: WorkflowStep[] = [
 ];
 
 export function DynamicGuiShowcase() {
+  const navigate = useNavigate();
   const [activePlanId, setActivePlanId] = useState<string>(PLAN_PRESETS[0].id);
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
 
@@ -298,7 +300,7 @@ export function DynamicGuiShowcase() {
                 variant="primary"
                 data-border="rounded"
                 prefixIcon="sparkles"
-                href="/checkout"
+                onClick={() => navigate("/checkout")}
               >
                 Launch checkout
               </Button>
@@ -307,7 +309,7 @@ export function DynamicGuiShowcase() {
                 variant="secondary"
                 data-border="rounded"
                 prefixIcon="calendar"
-                href="/checkout?plan=vip"
+                onClick={() => navigate("/checkout?plan=vip")}
               >
                 Preview VIP flow
               </Button>
@@ -585,7 +587,7 @@ export function DynamicGuiShowcase() {
                 variant="primary"
                 data-border="rounded"
                 prefixIcon="sparkles"
-                href="/checkout"
+                onClick={() => navigate("/checkout")}
               >
                 Start onboarding
               </Button>
@@ -594,7 +596,7 @@ export function DynamicGuiShowcase() {
                 variant="secondary"
                 data-border="rounded"
                 prefixIcon="repeat"
-                href="/checkout?promo=desk-demo"
+                onClick={() => navigate("/checkout?promo=desk-demo")}
               >
                 Request a live walkthrough
               </Button>
