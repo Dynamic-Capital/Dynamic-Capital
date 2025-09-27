@@ -42,8 +42,12 @@ export const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   ProgressProps
 >(
-  (
-    {
+  (componentProps, ref) => {
+    const hasValueProp = Object.prototype.hasOwnProperty.call(
+      componentProps,
+      "value",
+    );
+    const {
       className,
       wrapperClassName,
       indicatorClassName,
@@ -51,12 +55,10 @@ export const Progress = React.forwardRef<
       showLabel = Boolean(label),
       showValue = true,
       formatValue = (percentage) => `${Math.round(percentage)}%`,
-      value = 0,
+      value,
       max = 100,
       ...props
-    },
-    ref,
-  ) => {
+    } = componentProps;
     const {
       ["aria-label"]: ariaLabelProp,
       ["aria-labelledby"]: ariaLabelledbyProp,
@@ -66,20 +68,19 @@ export const Progress = React.forwardRef<
     const labelId = React.useId();
     const fallbackLabel = label ?? "Progress";
     const safeMax = typeof max === "number" && max > 0 ? max : 100;
-    const isIndeterminate = value == null;
+    const isIndeterminate = hasValueProp && value == null;
     const safeValue = isIndeterminate
       ? null
       : Math.min(Math.max(value ?? 0, 0), safeMax);
-    const percentage =
-      safeValue === null || safeMax === 0
-        ? null
-        : (safeValue / safeMax) * 100;
-    const displayValue =
-      typeof percentage === "number" ? formatValue(percentage) : null;
-    const ariaLabelledby =
-      ariaLabelledbyProp ?? (showLabel ? labelId : undefined);
-    const ariaLabel =
-      ariaLabelProp ?? (!showLabel ? fallbackLabel : undefined);
+    const percentage = safeValue === null || safeMax === 0
+      ? null
+      : (safeValue / safeMax) * 100;
+    const displayValue = typeof percentage === "number"
+      ? formatValue(percentage)
+      : null;
+    const ariaLabelledby = ariaLabelledbyProp ??
+      (showLabel ? labelId : undefined);
+    const ariaLabel = ariaLabelProp ?? (!showLabel ? fallbackLabel : undefined);
 
     return (
       <div className={cn("flex flex-col gap-2", wrapperClassName)}>
@@ -110,11 +111,9 @@ export const Progress = React.forwardRef<
               "h-full w-full flex-1 rounded-full bg-gradient-brand transition-transform duration-500 ease-out data-[state=indeterminate]:animate-pulse",
               indicatorClassName,
             )}
-            style={
-              typeof percentage === "number"
-                ? { transform: `translateX(-${100 - percentage}%)` }
-                : undefined
-            }
+            style={typeof percentage === "number"
+              ? { transform: `translateX(-${100 - percentage}%)` }
+              : undefined}
           />
         </ProgressPrimitive.Root>
       </div>

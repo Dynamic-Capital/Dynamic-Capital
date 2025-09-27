@@ -13,5 +13,5 @@ animates instead of relying on a fixed width transform, and the formatted value
 is omitted so the UI does not imply a concrete percentage.
 
 ```tsx
-<Progress label="Loading data" showValue={false} value={null} />
+<Progress label="Loading data" showValue={false} value={null} />;
 ```
