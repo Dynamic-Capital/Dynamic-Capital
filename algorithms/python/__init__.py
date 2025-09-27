@@ -215,6 +215,12 @@ from .dynamic_ai_sync import (
     DynamicAISyncReport,
     DynamicAISynchroniser,
 )
+from .dynamic_market_outlook import (
+    DynamicMarketOutlookEngine,
+    MarketOutlookReport,
+    MarketOutlookTelemetry,
+    OutlookSignal,
+)
 from .trading_psychology_elements import (
     Element,
     ElementProfile,
@@ -356,6 +362,10 @@ __all__ = _trade_exports + [
     "DynamicAISummary",
     "DynamicAISyncReport",
     "DynamicAISynchroniser",
+    "DynamicMarketOutlookEngine",
+    "MarketOutlookReport",
+    "MarketOutlookTelemetry",
+    "OutlookSignal",
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
     "Route",
