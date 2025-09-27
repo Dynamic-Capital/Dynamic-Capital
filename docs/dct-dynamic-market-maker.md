@@ -49,6 +49,18 @@
 - Persist state in low-latency store (Redis) with periodic archival
   (TimescaleDB/Postgres) for analytics.
 
+### Optimization Levers
+
+- **Inventory buffers**: Set `q_soft`/`q_hard` asymmetrically if treasury has a
+  directional preference (e.g., favor accumulating DCT for buyback windows).
+- **Adaptive toxicity gating**: Multiply `toxicity_score` by venue-specific
+  coefficients to prioritize high-slippage venues when throttling quotes.
+- **Dynamic γ ladder**: Lower risk aversion when `|q_total|` < 0.3 × `q_soft` to
+  tighten spreads during balanced inventory periods, then ramp up as exposure
+  grows.
+- **Cost-aware roll-off**: Blend network fees into inventory cost basis so the
+  risk engine accounts for gas when evaluating hedge vs. quote adjustments.
+
 ## Quoting Engine (Avellaneda–Stoikov Core)
 
 1. **Reservation price**: `r_t = S_t - (q_total * γ * σ_eff^2 * T) / 2`.
@@ -64,6 +76,15 @@
 5. **Refresh cadence**: 1–3 s on DEX (adjustable to manage gas); 500 ms on CEX
    where latency allows.
 
+### Quote Optimization Checklist
+
+| Scenario                            | Action                                                             | Target Outcome                                                         |
+| ----------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Calm volatility, balanced inventory | Decrease `γ` bucket, shrink spread floor by 1–2 bps                | Capture passive flow and improve ranking on DEX leaderboards.          |
+| Inventory near soft limit           | Increase `β`, pull best bid/ask 30–50% of spread farther from mid  | Incentivize flow that re-centers exposure without halting quoting.     |
+| Toxic flow detected                 | Apply multiplicative widening `δ_t ← δ_t × (1 + τ)` for `N` cycles | Reduce adverse selection while data feed confirms toxicity has cooled. |
+| Gas spike on TON                    | Lengthen refresh cadence and reduce quote size ladder tiers        | Preserve fee budget without abandoning top-of-book presence.           |
+
 ## Execution & Venue Adapters
 
 - Implement per-venue order managers that track live order IDs, expiry, and
@@ -76,6 +97,15 @@
 - Gracefully degrade when venue connectivity fails: cancel resting orders and
   halt new placements.
 
+### Fill Quality Optimization
+
+- Track quote age percentiles; auto-cancel if > 90th percentile of historical
+  fill time to prevent stale executions.
+- Compare realized spread vs. theoretical `δ_t`; if slippage exceeds 50% of the
+  theoretical edge, reduce quote size for that venue until slippage normalizes.
+- Utilize venue-native batch replace endpoints (where available) to minimize
+  gas/fee overhead when repositioning ladders.
+
 ## Hedging & Rebalancing
 
 - Define hedge threshold `|q_total| > q_hedge`. When exceeded, place IOC/market
@@ -84,6 +114,16 @@
 - Batch hedges to minimize fees while keeping inventory near neutral; prefer
   quoting adjustments before external hedges to avoid churn.
 - Record hedges in treasury ledger for audit and P&L attribution.
+
+### Hedge Optimization
+
+- Maintain venue ranking based on latency, depth, and fee schedule; attempt
+  hedges on the cheapest reliable venue first, fall back according to ranking.
+- Apply slippage-tolerant IOC sizing by simulating order book impact using
+  latest depth snapshots; adjust order size down if projected impact > allowable
+  tolerance.
+- When perp funding is punitive, skew treasury incentives instead of hedging to
+  encourage organic flow correction.
 
 ## Treasury Integration
 
@@ -95,6 +135,16 @@
   config to governance interface.
 - Reporting: publish weekly liquidity metrics (average spread, depth, inventory
   turnover) to treasury dashboard.
+
+### Incentive Optimization
+
+- Use time-weighted rebates: increase DCT rewards during historically thin
+  liquidity windows to flatten depth distribution across the day.
+- Introduce burn accelerators tied to realized profits so that aggressive
+  quoting during low-volatility regimes translates into token scarcity events.
+- Create governance-controlled presets (e.g., "bootstrap", "steady state",
+  "defensive") that adjust reward curves, spread floors, and hedging thresholds
+  in sync.
 
 ## Controls & Circuit Breakers
 
@@ -133,6 +183,17 @@
 - Logging: Structured logs (JSON) with correlation IDs for order lifecycle
   tracing.
 
+### Optimization Metrics
+
+- **Inventory efficiency**: ratio of net inventory change vs. traded volume;
+  target < 15% drift per 24 h.
+- **Spread efficiency**: realized spread / theoretical `2δ_t`; alert if below
+  60% for > 5 refresh windows.
+- **Gas efficiency**: quotes per TON gas unit; use historical baseline to flag
+  abnormal spikes.
+- **Fill quality**: mean adverse selection (post-fill price move) should stay
+  within 1.2 × volatility expectation for the refresh horizon.
+
 ## Simulation & Backtesting
 
 1. Historical market data replay to evaluate strategy performance and inventory
@@ -143,6 +204,15 @@
    production rollout.
 4. Shadow mode: run DMM in observe-only mode capturing hypothetical fills for
    1–2 weeks before enabling live orders.
+
+### Optimization Workflow
+
+1. Parameter grid search on `γ`, `β`, `κ` using replay engine; score by
+   inventory variance, realized spread, and fill ratio.
+2. Stress-test top parameter sets against synthetic volatility shocks and gas
+   surcharges.
+3. Validate with forward walk testing on live but non-posting shadow mode to
+   ensure robustness before promotion.
 
 ## Implementation Roadmap
 
@@ -175,6 +245,15 @@
   parameters during scheduled reviews.
 - End-of-day: archive logs, update treasury ledger with realized P&L, and review
   alerts/incidents.
+
+### Weekly Optimization Cadence
+
+- Mondays: recalibrate volatility bands and refresh `κ` using prior week fill
+  data.
+- Wednesdays: review hedge costs vs. inventory drift; adjust thresholds if
+  treasury utilization deviated > 10% from plan.
+- Fridays: run incident postmortems and incorporate parameter learnings into the
+  governance changelog.
 
 ## Compliance & Governance Considerations
 
