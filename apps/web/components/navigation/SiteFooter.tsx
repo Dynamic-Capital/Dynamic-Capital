@@ -13,6 +13,7 @@ import NAV_ITEMS from "./nav-items";
 const QUICK_LINKS = [
   { label: "Dynamic UI optimizer", href: "/tools/dynamic-ui-optimizer" },
   { label: "Dynamic market review", href: "/tools/dynamic-market-review" },
+  { label: "Dynamic dashboard", href: "/tools/dynamic-dashboard" },
   { label: "Multi-LLM studio", href: "/tools/multi-llm" },
   { label: "Provider matrix", href: "/#provider-matrix" },
   { label: "Routing policies", href: "/#orchestration" },

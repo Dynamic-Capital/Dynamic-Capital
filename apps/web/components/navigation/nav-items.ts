@@ -112,6 +112,19 @@ const extraNavItems: NavItem[] = [
     }: Market review. Track FX strength, volatility, and cross-asset watchlists.`,
     showOnMobile: true,
   },
+  {
+    id: "dynamic-dashboard",
+    step: `Step ${firstExtraStep + 4}`,
+    label: "Dynamic dashboard",
+    description:
+      "Monitor equity, activation velocity, and risk telemetry in one view.",
+    icon: Gauge,
+    path: "/tools/dynamic-dashboard",
+    ariaLabel: `Step ${
+      firstExtraStep + 4
+    }: Dynamic dashboard. Monitor equity, activation velocity, and risk telemetry in one view.`,
+    showOnMobile: true,
+  },
 ];
 
 const onboardingNavItem = createNavItemFromSection(

@@ -108,15 +108,15 @@ const home: Home = {
           onBackground="brand-strong"
           className="ml-4 font-semibold tracking-tight"
         >
-          Launch update: Dynamic UI optimizer
+          Launch update: Dynamic dashboard
         </Text>
         <Line background="brand-alpha-strong" vert height="20" />
         <Text marginRight="4" onBackground="brand-medium">
-          Diagnose readiness velocity and activation channels in real time
+          Monitor equity, activation velocity, and risk telemetry in one pane
         </Text>
       </Row>
     ),
-    href: "/tools/dynamic-ui-optimizer",
+    href: "/tools/dynamic-dashboard",
   },
   subline: (
     <>
