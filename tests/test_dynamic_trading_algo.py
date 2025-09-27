@@ -105,3 +105,59 @@ def test_execute_hedge_normalises_symbol_and_clamps_lot() -> None:
     assert close_result.symbol == "TONUSD"
     assert open_result.lot == pytest.approx(0.1)
     assert close_result.lot == pytest.approx(0.1)
+
+
+def test_execute_trade_scales_lot_with_signal_quality() -> None:
+    connector = StubConnector()
+    algo = DynamicTradingAlgo(connector=connector)
+
+    signal = {
+        "action": ORDER_ACTION_BUY,
+        "confidence": 0.8,
+        "conviction": 0.75,
+        "urgency": 0.5,
+        "risk": 0.3,
+        "volatility": 0.2,
+        "size_multiplier": 1.2,
+    }
+
+    expected = 0.2
+    expected *= 0.6 + 0.4 * 0.8
+    expected *= 0.7 + 0.3 * 0.75
+    expected *= 0.85 + 0.3 * 0.5
+    expected *= 1.0 - 0.5 * 0.3
+    expected *= 1.0 - 0.4 * 0.2
+    expected *= 1.2
+
+    result = algo.execute_trade(signal, lot=0.2, symbol="eurusd")
+
+    assert len(connector.calls) == 1
+    symbol, lot = connector.calls[0]
+    assert symbol == "EURUSD"
+    assert lot == pytest.approx(expected, abs=1e-4)
+    assert result.lot == pytest.approx(expected, abs=1e-4)
+
+
+def test_execute_trade_respects_signal_caps() -> None:
+    connector = StubConnector()
+    algo = DynamicTradingAlgo(connector=connector)
+
+    signal = {
+        "action": ORDER_ACTION_BUY,
+        "size_multiplier": 4.0,
+        "max_position": 0.3,
+        "notional_cap": 450.0,
+    }
+
+    profile = algo.instrument_profiles["XAUUSD"]
+    expected = 0.2 * 4.0
+    expected = min(expected, 0.3)
+    expected = min(expected, 450.0 / profile.reference_price)
+
+    result = algo.execute_trade(signal, lot=0.2, symbol="xauusd")
+
+    assert len(connector.calls) == 1
+    symbol, lot = connector.calls[0]
+    assert symbol == "XAUUSD"
+    assert lot == pytest.approx(expected, abs=1e-4)
+    assert result.lot == pytest.approx(expected, abs=1e-4)
