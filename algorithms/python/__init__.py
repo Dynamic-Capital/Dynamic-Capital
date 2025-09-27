@@ -23,6 +23,12 @@ from .awesome_sync import (
     AwesomeAlgoSyncRequest,
     AwesomeLLMInsights,
 )
+from .data_labeling_algorithm import (
+    AdaptiveLabelingConfig,
+    DynamicAdaptiveLabelingAlgorithm,
+    LiveLabelSyncService,
+    OnlineAdaptiveLabeler,
+)
 from .backtest_analysis import BacktestAnalysis, BacktestSummary, analyze_backtest
 from .backtest_demo import run_mock_backtest
 from .back_to_breakeven import (
@@ -60,8 +66,8 @@ from .economic_catalysts import (
     EconomicCatalystSyncJob,
 )
 from .dex_scanner import (
+    DynamicDexScannerAlgo,
     DexPoolSnapshot,
-    DexScannerAlgo,
     DexScannerSignal,
     build_scanner_for_tokens,
 )
@@ -89,7 +95,7 @@ from .dct_market_maker import (
     DCTMarketMakerQuote,
 )
 from .dct_buyback_algo import (
-    DCTBuybackAlgorithm,
+    DynamicDCTBuybackAlgorithm,
     DCTBuybackInputs,
     DCTBuybackPlan,
     DCTBuybackTranche,
@@ -134,6 +140,14 @@ from .desk_token_hub import (
     TokenHubDevelopmentOrchestrator,
     TokenHubSyncReport,
 )
+from .desk_sync import (
+    DeskSyncReport,
+    DynamicTeamRoleSyncAlgorithm,
+    TeamRolePlaybook,
+    TeamRoleSyncResult,
+    TradingDeskSynchroniser,
+    summarise_trade_logic,
+)
 from .project_faq_generator import (
     FAQEntry,
     FAQRequest,
@@ -170,11 +184,11 @@ from .team_operations import (
     build_team_operations_playbooks,
     build_team_operations_sync_algorithm,
 )
-from .route_keeper import Route, RouteKeeperAlgorithm, RouteKeeperSyncResult
+from .route_keeper import DynamicRouteKeeperAlgorithm, Route, RouteKeeperSyncResult
 from .supabase_edge_functions import (
     EdgeFunctionRunbook,
     EdgeFunctionSpec,
-    SupabaseEdgeFunctionAlgorithm,
+    DynamicSupabaseEdgeFunctionAlgorithm,
     SupabaseEdgeFunctionPlan,
 )
 from .tonkeeper_sync import (
@@ -194,9 +208,9 @@ from .trading_psychology_elements import (
     score_elements,
 )
 from .time_keeper import (
+    DynamicTimeKeeperAlgorithm,
     KillZone,
     MVT_TIMEZONE,
-    TimeKeeperAlgorithm,
     TimeKeeperSyncResult,
     TradingSession,
 )
@@ -234,6 +248,10 @@ __all__ = _trade_exports + [
     "AwesomeAlgoSyncReport",
     "AwesomeAlgoSyncRequest",
     "AwesomeLLMInsights",
+    "AdaptiveLabelingConfig",
+    "DynamicAdaptiveLabelingAlgorithm",
+    "LiveLabelSyncService",
+    "OnlineAdaptiveLabeler",
     "AccountSnapshot",
     "BackToBreakevenCalculator",
     "BreakevenPhase",
@@ -247,12 +265,12 @@ __all__ = _trade_exports + [
     "DCTMarketMakerInputs",
     "DCTMarketMakerModel",
     "DCTMarketMakerQuote",
-    "DCTBuybackAlgorithm",
+    "DynamicDCTBuybackAlgorithm",
     "DCTBuybackInputs",
     "DCTBuybackPlan",
     "DCTBuybackTranche",
     "DexPoolSnapshot",
-    "DexScannerAlgo",
+    "DynamicDexScannerAlgo",
     "DexScannerSignal",
     "build_scanner_for_tokens",
     "EconomicCatalyst",
@@ -304,6 +322,10 @@ __all__ = _trade_exports + [
     "TokenHubDevelopmentContext",
     "TokenHubDevelopmentOrchestrator",
     "TokenHubSyncReport",
+    "EdgeFunctionRunbook",
+    "EdgeFunctionSpec",
+    "DynamicSupabaseEdgeFunctionAlgorithm",
+    "SupabaseEdgeFunctionPlan",
     "FAQEntry",
     "FAQRequest",
     "FAQSource",
@@ -317,7 +339,7 @@ __all__ = _trade_exports + [
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
     "Route",
-    "RouteKeeperAlgorithm",
+    "DynamicRouteKeeperAlgorithm",
     "RouteKeeperSyncResult",
     "StepExecution",
     "StepHandler",
@@ -353,7 +375,7 @@ __all__ = _trade_exports + [
     "score_elements",
     "KillZone",
     "MVT_TIMEZONE",
-    "TimeKeeperAlgorithm",
+    "DynamicTimeKeeperAlgorithm",
     "TimeKeeperSyncResult",
     "TradingSession",
     "EnhancementTask",
@@ -387,6 +409,10 @@ globals().update(
         "AwesomeAlgoSyncReport": AwesomeAlgoSyncReport,
         "AwesomeAlgoSyncRequest": AwesomeAlgoSyncRequest,
         "AwesomeLLMInsights": AwesomeLLMInsights,
+        "AdaptiveLabelingConfig": AdaptiveLabelingConfig,
+        "DynamicAdaptiveLabelingAlgorithm": DynamicAdaptiveLabelingAlgorithm,
+        "LiveLabelSyncService": LiveLabelSyncService,
+        "OnlineAdaptiveLabeler": OnlineAdaptiveLabeler,
         "AccountSnapshot": AccountSnapshot,
         "BackToBreakevenCalculator": BackToBreakevenCalculator,
         "BreakevenPhase": BreakevenPhase,
@@ -397,11 +423,12 @@ globals().update(
         "ElliottWaveReport": ElliottWaveReport,
         "MechanicalAnalysisCalculator": MechanicalAnalysisCalculator,
         "MechanicalMetrics": MechanicalMetrics,
+        "DynamicDCTBuybackAlgorithm": DynamicDCTBuybackAlgorithm,
         "EconomicCatalyst": EconomicCatalyst,
         "EconomicCatalystGenerator": EconomicCatalystGenerator,
         "EconomicCatalystSyncJob": EconomicCatalystSyncJob,
         "DexPoolSnapshot": DexPoolSnapshot,
-        "DexScannerAlgo": DexScannerAlgo,
+        "DynamicDexScannerAlgo": DynamicDexScannerAlgo,
         "DexScannerSignal": DexScannerSignal,
         "build_scanner_for_tokens": build_scanner_for_tokens,
         "CorrelationSeries": CorrelationSeries,
@@ -461,9 +488,22 @@ globals().update(
         "FAQSource": FAQSource,
         "ProjectFAQGenerator": ProjectFAQGenerator,
         "ProjectFAQPackage": ProjectFAQPackage,
+        "Route": Route,
+        "DynamicRouteKeeperAlgorithm": DynamicRouteKeeperAlgorithm,
+        "RouteKeeperSyncResult": RouteKeeperSyncResult,
+        "EdgeFunctionRunbook": EdgeFunctionRunbook,
+        "EdgeFunctionSpec": EdgeFunctionSpec,
+        "DynamicSupabaseEdgeFunctionAlgorithm": DynamicSupabaseEdgeFunctionAlgorithm,
+        "SupabaseEdgeFunctionPlan": SupabaseEdgeFunctionPlan,
+        "DeskSyncReport": DeskSyncReport,
+        "DynamicTeamRoleSyncAlgorithm": DynamicTeamRoleSyncAlgorithm,
+        "TeamRolePlaybook": TeamRolePlaybook,
+        "TeamRoleSyncResult": TeamRoleSyncResult,
+        "TradingDeskSynchroniser": TradingDeskSynchroniser,
+        "summarise_trade_logic": summarise_trade_logic,
         "KillZone": KillZone,
         "MVT_TIMEZONE": MVT_TIMEZONE,
-        "TimeKeeperAlgorithm": TimeKeeperAlgorithm,
+        "DynamicTimeKeeperAlgorithm": DynamicTimeKeeperAlgorithm,
         "TimeKeeperSyncResult": TimeKeeperSyncResult,
         "TradingSession": TradingSession,
         "CEO_PLAYBOOK": CEO_PLAYBOOK,

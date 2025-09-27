@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Sequence
 
-from .desk_sync import TeamRolePlaybook, TeamRoleSyncAlgorithm
+from .desk_sync import DynamicTeamRoleSyncAlgorithm, TeamRolePlaybook
 from .multi_llm import LLMConfig, LLMRun, collect_strings, parse_json_response, serialise_runs
 
 __all__ = [
@@ -697,10 +697,10 @@ def build_team_operations_playbooks(*, include_optional: bool = True) -> Dict[st
     return dict(_aggregate_playbooks(include_optional=include_optional))
 
 
-def build_team_operations_sync_algorithm(*, include_optional: bool = True) -> TeamRoleSyncAlgorithm:
-    """Construct a ``TeamRoleSyncAlgorithm`` for team operations playbooks."""
+def build_team_operations_sync_algorithm(*, include_optional: bool = True) -> DynamicTeamRoleSyncAlgorithm:
+    """Construct a ``DynamicTeamRoleSyncAlgorithm`` for team operations playbooks."""
 
-    return TeamRoleSyncAlgorithm(
+    return DynamicTeamRoleSyncAlgorithm(
         build_team_operations_playbooks(include_optional=include_optional).values()
     )
 

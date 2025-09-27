@@ -37,7 +37,7 @@ class KillZone:
 
 @dataclass(slots=True)
 class TimeKeeperSyncResult:
-    """Structured output of the :class:`TimeKeeperAlgorithm`."""
+    """Structured output of the :class:`DynamicTimeKeeperAlgorithm`."""
 
     desk_time: datetime
     desk_timezone: tzinfo
@@ -94,7 +94,7 @@ class TimeKeeperSyncResult:
         return payload
 
 
-class TimeKeeperAlgorithm:
+class DynamicTimeKeeperAlgorithm:
     """Coordinates trading time windows and multi-LLM narratives."""
 
     def __init__(self, *, desk_timezone: tzinfo = MVT_TIMEZONE) -> None:
@@ -315,5 +315,5 @@ __all__ = [
     "TradingSession",
     "KillZone",
     "TimeKeeperSyncResult",
-    "TimeKeeperAlgorithm",
+    "DynamicTimeKeeperAlgorithm",
 ]

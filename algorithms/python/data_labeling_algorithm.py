@@ -23,7 +23,7 @@ from .trade_logic import FeaturePipeline, LabeledFeature, MarketSnapshot
 
 @dataclass(slots=True)
 class AdaptiveLabelingConfig:
-    """Configuration for :class:`AdaptiveLabelingAlgorithm`.
+    """Configuration for :class:`DynamicAdaptiveLabelingAlgorithm`.
 
     Attributes
     ----------
@@ -50,7 +50,7 @@ class AdaptiveLabelingConfig:
     confidence_slope: float = 1.0
 
 
-class AdaptiveLabelingAlgorithm:
+class DynamicAdaptiveLabelingAlgorithm:
     """Produce labels with a volatility-aware neutral zone."""
 
     def __init__(self, *, pipeline: Optional[FeaturePipeline] = None) -> None:
@@ -158,14 +158,14 @@ class AdaptiveLabelingAlgorithm:
     ) -> LabeledFeature:
         move = (future_snapshot.close - snapshot.close) / snapshot.pip_size
         magnitude = abs(move)
-        threshold = AdaptiveLabelingAlgorithm._calculate_threshold(config, local_vol)
+        threshold = DynamicAdaptiveLabelingAlgorithm._calculate_threshold(config, local_vol)
 
         if magnitude <= threshold:
             label = 0
             confidence = 0.0
         else:
             label = 1 if move > 0 else -1
-            confidence = AdaptiveLabelingAlgorithm._confidence_from_move(
+            confidence = DynamicAdaptiveLabelingAlgorithm._confidence_from_move(
                 magnitude, threshold, config
             )
 
@@ -279,7 +279,7 @@ class OnlineAdaptiveLabeler:
             base = self._buffer.popleft()
             target = self._buffer[self.config.lookahead - 1].snapshot
             emitted.append(
-                AdaptiveLabelingAlgorithm._build_label(
+                DynamicAdaptiveLabelingAlgorithm._build_label(
                     base.snapshot,
                     base.features,
                     base.volatility,
@@ -427,7 +427,7 @@ def _coerce_timestamp(value: object, fallback: Optional[datetime]) -> Optional[d
 
 __all__ = [
     "AdaptiveLabelingConfig",
-    "AdaptiveLabelingAlgorithm",
+    "DynamicAdaptiveLabelingAlgorithm",
     "LiveLabelSyncService",
     "OnlineAdaptiveLabeler",
 ]

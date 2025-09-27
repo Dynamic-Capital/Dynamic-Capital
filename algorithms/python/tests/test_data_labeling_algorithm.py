@@ -12,8 +12,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from algorithms.python.data_labeling_algorithm import (  # noqa: E402
-    AdaptiveLabelingAlgorithm,
     AdaptiveLabelingConfig,
+    DynamicAdaptiveLabelingAlgorithm,
     LiveLabelSyncService,
     OnlineAdaptiveLabeler,
 )
@@ -43,7 +43,7 @@ def _build_snapshots(prices: list[float]) -> list[MarketSnapshot]:
 def test_adaptive_labeling_algorithm_labels_snapshots() -> None:
     snapshots = _build_snapshots([100.0, 100.2, 100.8, 101.5, 102.5, 101.0])
     config = AdaptiveLabelingConfig(lookahead=2, neutral_zone_pips=0.5, volatility_window=3)
-    algo = AdaptiveLabelingAlgorithm()
+    algo = DynamicAdaptiveLabelingAlgorithm()
 
     labelled = algo.label(snapshots, config)
 
@@ -60,7 +60,7 @@ def test_adaptive_labeling_respects_neutral_zone() -> None:
     snapshots = _build_snapshots([100.0, 100.05, 100.1, 100.15, 100.2])
     config = AdaptiveLabelingConfig(lookahead=1, neutral_zone_pips=5.0, volatility_window=2)
 
-    labelled = AdaptiveLabelingAlgorithm().label(snapshots, config)
+    labelled = DynamicAdaptiveLabelingAlgorithm().label(snapshots, config)
 
     assert all(sample.label == 0 for sample in labelled)
 
@@ -68,7 +68,7 @@ def test_adaptive_labeling_respects_neutral_zone() -> None:
 def test_dynamic_threshold_tracks_volatility() -> None:
     snapshots = _build_snapshots([100.0, 105.0, 95.0, 110.0, 90.0, 95.0])
     config = AdaptiveLabelingConfig(lookahead=1, neutral_zone_pips=1.0, volatility_window=3)
-    algo = AdaptiveLabelingAlgorithm()
+    algo = DynamicAdaptiveLabelingAlgorithm()
 
     labelled = algo.label(snapshots, config)
     thresholds = [sample.metadata["threshold_pips"] for sample in labelled]
@@ -76,7 +76,7 @@ def test_dynamic_threshold_tracks_volatility() -> None:
     assert len(thresholds) >= 3
     assert thresholds[2] > thresholds[1] >= config.neutral_zone_pips
 
-    distribution = AdaptiveLabelingAlgorithm.summarise_distribution(labelled)
+    distribution = DynamicAdaptiveLabelingAlgorithm.summarise_distribution(labelled)
     assert pytest.approx(sum(distribution.values()), rel=1e-6) == 1.0
 
 
@@ -84,7 +84,7 @@ def test_online_labeler_matches_offline_labels() -> None:
     snapshots = _build_snapshots([100.0, 100.4, 100.9, 101.6, 102.2, 101.8, 103.0])
     config = AdaptiveLabelingConfig(lookahead=2, neutral_zone_pips=0.5, volatility_window=4)
 
-    offline = AdaptiveLabelingAlgorithm().label(snapshots, config)
+    offline = DynamicAdaptiveLabelingAlgorithm().label(snapshots, config)
     online = OnlineAdaptiveLabeler(config=config)
 
     streamed: list[LabeledFeature] = []
@@ -115,7 +115,7 @@ def test_live_label_sync_service_persists_rows() -> None:
 
     snapshots = _build_snapshots([100.0, 100.4, 100.9, 101.6, 102.2])
     config = AdaptiveLabelingConfig(lookahead=1, neutral_zone_pips=0.3, volatility_window=3)
-    labelled = AdaptiveLabelingAlgorithm().label(snapshots, config)
+    labelled = DynamicAdaptiveLabelingAlgorithm().label(snapshots, config)
     writer = _RecordingWriter()
     synced_at = datetime(2024, 6, 1, 12, 0, tzinfo=timezone.utc)
     service = LiveLabelSyncService(writer, clock=lambda: synced_at)

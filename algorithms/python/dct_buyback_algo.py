@@ -10,7 +10,7 @@ __all__ = [
     "DCTBuybackInputs",
     "DCTBuybackTranche",
     "DCTBuybackPlan",
-    "DCTBuybackAlgorithm",
+    "DynamicDCTBuybackAlgorithm",
 ]
 
 
@@ -114,7 +114,7 @@ class DCTBuybackPlan:
     notes: Tuple[str, ...] = field(default_factory=tuple)
 
 
-class DCTBuybackAlgorithm:
+class DynamicDCTBuybackAlgorithm:
     """Generate structured buyback plans from treasury and market data."""
 
     def generate_plan(self, inputs: DCTBuybackInputs) -> DCTBuybackPlan:
