@@ -1,5 +1,6 @@
 """Dynamic space governance and exploration models."""
 
+from .engine import DynamicSpaceEngine, SpaceNetworkOverview
 from .space import (
     BodyKind,
     CelestialBody,
@@ -20,4 +21,6 @@ __all__ = [
     "SpaceEvent",
     "SpaceSnapshot",
     "DynamicSpace",
+    "SpaceNetworkOverview",
+    "DynamicSpaceEngine",
 ]
