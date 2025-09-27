@@ -1,6 +1,11 @@
 import pytest
 
-from dynamic_agents import AtomAgent, AtomAgentResult
+from dynamic_agents import (
+    AtomAgent,
+    AtomAgentResult,
+    AtomEnsembleAgent,
+    AtomEnsembleAgentResult,
+)
 from dynamic_atom import AtomicComposition, DynamicAtom, ElectronShell
 
 
@@ -65,3 +70,62 @@ def test_atom_agent_infers_atom_from_payload():
 
     with pytest.raises(ValueError):
         AtomAgent().run({"energy_ev": 5.0})
+
+
+def test_atom_ensemble_agent_handles_multiple_atoms():
+    sodium = _build_atom()
+    ensemble = AtomEnsembleAgent({"Na": sodium})
+
+    helium_payload = {
+        "composition": {
+            "symbol": "He",
+            "protons": 2,
+            "neutrons": 2,
+            "electrons": 2,
+        },
+        "shells": [
+            {
+                "name": "K",
+                "principal_quantum_number": 1,
+                "capacity": 2,
+                "energy_ev": -24.6,
+                "electrons": 2,
+            }
+        ],
+    }
+
+    result = ensemble.run(
+        {
+            "atoms": [
+                {"symbol": "He", "payload": helium_payload},
+                {"symbol": "Na", "payload": {"energy_ev": 12.0}},
+            ]
+        }
+    )
+
+    assert isinstance(result, AtomEnsembleAgentResult)
+    assert set(result.atoms.keys()) == {"He", "Na"}
+
+    helium = result.atoms["He"]
+    assert helium.mode == "observation"
+    assert helium.snapshot.shell_occupancy[0]["electrons"] == 2
+
+    sodium_excited = result.atoms["Na"]
+    assert sodium_excited.mode == "excitation"
+    assert sodium_excited.transitions
+
+    follow_up = ensemble.run({})
+    assert set(follow_up.atoms.keys()) == {"He", "Na"}
+    assert follow_up.atoms["Na"].mode == "observation"
+
+
+def test_atom_ensemble_agent_serialises_results():
+    sodium = _build_atom()
+    ensemble = AtomEnsembleAgent([sodium])
+
+    outcome = ensemble.run({})
+    payload = outcome.to_dict()
+
+    assert isinstance(payload["atoms"], dict)
+    assert "Na" in payload["atoms"]
+    assert payload["atoms"]["Na"]["mode"] == outcome.atoms["Na"].mode

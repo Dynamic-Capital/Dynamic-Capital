@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable as IterableCollection
 from dataclasses import asdict, dataclass, field, is_dataclass
 from typing import Any, Dict, Iterable, Mapping, Protocol, Sequence
 
@@ -196,6 +197,21 @@ class AtomAgentResult(AgentResult):
         payload["transitions"] = [transition.as_dict() for transition in self.transitions]
         payload["residual_energy_ev"] = self.residual_energy_ev
         payload["emitted_energy_ev"] = self.emitted_energy_ev
+        return payload
+
+
+@dataclass(slots=True)
+class AtomEnsembleAgentResult(AgentResult):
+    """Aggregated insights produced by coordinating multiple atom personas."""
+
+    atoms: Mapping[str, AtomAgentResult]
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = AgentResult.to_dict(self)
+        payload["atoms"] = {
+            symbol: result.to_dict()
+            for symbol, result in self.atoms.items()
+        }
         return payload
 
 
@@ -877,6 +893,143 @@ class AtomAgent:
         )
 
 
+class AtomEnsembleAgent:
+    """Coordinate multiple :class:`AtomAgent` instances as a collective persona."""
+
+    name = "atom_ensemble"
+
+    def __init__(
+        self,
+        atoms: Mapping[str, DynamicAtom] | Iterable[DynamicAtom] | None = None,
+    ) -> None:
+        self._agents: dict[str, AtomAgent] = {}
+        if atoms:
+            if isinstance(atoms, Mapping):
+                iterator = atoms.items()
+            else:
+                iterator = ((atom.composition.symbol, atom) for atom in atoms)
+            for symbol, atom in iterator:
+                if not isinstance(atom, DynamicAtom):
+                    raise TypeError("atoms must be DynamicAtom instances")
+                agent = AtomAgent(atom)
+                key = agent.atom.composition.symbol if agent.atom else str(symbol)
+                self._agents[key] = agent
+
+    def _prepare_task(
+        self, raw: Any, symbol_hint: str | None = None
+    ) -> tuple[AtomAgent, str | None, Mapping[str, Any]]:
+        if isinstance(raw, AtomAgent):
+            agent = raw
+            symbol = symbol_hint or (agent.atom.composition.symbol if agent.atom else None)
+            return agent, symbol, {}
+
+        if isinstance(raw, DynamicAtom):
+            agent = AtomAgent(raw)
+            return agent, raw.composition.symbol, {}
+
+        if not isinstance(raw, Mapping):
+            raise TypeError("atom definitions must be mappings or DynamicAtom instances")
+
+        payload = dict(raw)
+
+        symbol_candidate = payload.pop("symbol", None) or payload.pop("element", None) or payload.pop("id", None)
+        if symbol_candidate and not symbol_hint:
+            text = str(symbol_candidate).strip()
+            symbol_hint = text or None
+
+        agent_candidate = payload.pop("agent", None)
+        if isinstance(agent_candidate, AtomAgent):
+            agent = agent_candidate
+        else:
+            agent = None
+
+        atom_candidate = payload.pop("atom", None)
+        if isinstance(atom_candidate, DynamicAtom):
+            agent = AtomAgent(atom_candidate)
+            symbol_hint = atom_candidate.composition.symbol
+
+        payload_mapping = payload.pop("payload", None)
+        if payload_mapping is None:
+            payload_mapping = payload
+        else:
+            if not isinstance(payload_mapping, Mapping):
+                raise TypeError("atom payload must be a mapping")
+            payload_mapping = dict(payload_mapping)
+
+        if agent is None and symbol_hint and symbol_hint in self._agents:
+            agent = self._agents[symbol_hint]
+
+        if agent is None:
+            agent = AtomAgent()
+
+        return agent, symbol_hint, payload_mapping
+
+    def run(self, payload: Mapping[str, Any]) -> AtomEnsembleAgentResult:
+        context = dict(payload or {})
+        atoms_payload = context.get("atoms")
+
+        tasks: list[tuple[str | None, AtomAgent, Mapping[str, Any]]] = []
+        if atoms_payload is None:
+            for symbol, agent in self._agents.items():
+                tasks.append((symbol, agent, {}))
+        else:
+            if isinstance(atoms_payload, Mapping):
+                iterator = atoms_payload.items()
+            elif isinstance(atoms_payload, IterableCollection):
+                iterator = ((None, item) for item in atoms_payload)
+            else:
+                raise TypeError("atoms payload must be a mapping or iterable")
+
+            for key, raw in iterator:
+                symbol_hint = None
+                if isinstance(key, str) and key.strip():
+                    symbol_hint = key.strip()
+                agent, hint, task_payload = self._prepare_task(raw, symbol_hint)
+                tasks.append((hint, agent, task_payload))
+
+        results: dict[str, AtomAgentResult] = {}
+        rationales: list[str] = []
+        confidences: list[float] = []
+
+        for hint, agent, agent_payload in tasks:
+            try:
+                result = agent.run(agent_payload)
+            except ValueError as exc:
+                if hint:
+                    raise ValueError(f"{hint}: {exc}") from exc
+                raise
+            symbol = hint or result.snapshot.symbol
+            self._agents[symbol] = agent
+            results[symbol] = result
+            rationales.append(f"{symbol}: {result.rationale}")
+            confidences.append(result.confidence)
+
+        if not results and not self._agents:
+            return AtomEnsembleAgentResult(
+                agent=self.name,
+                rationale="No atoms evaluated.",
+                confidence=0.0,
+                atoms={},
+            )
+
+        if not results:
+            for symbol, agent in self._agents.items():
+                result = agent.run({})
+                results[symbol] = result
+                rationales.append(f"{symbol}: {result.rationale}")
+                confidences.append(result.confidence)
+
+        average_confidence = _clamp(sum(confidences) / len(confidences)) if confidences else 0.0
+        rationale = " | ".join(rationales) if rationales else "Atom ensemble evaluated."
+
+        return AtomEnsembleAgentResult(
+            agent=self.name,
+            rationale=rationale,
+            confidence=average_confidence,
+            atoms=results,
+        )
+
+
 _SEVERITY_RANK = {
     SpaceEventSeverity.INFO: 0,
     SpaceEventSeverity.ADVISORY: 1,
@@ -1215,6 +1368,8 @@ __all__ = [
     "AgentResult",
     "AtomAgent",
     "AtomAgentResult",
+    "AtomEnsembleAgent",
+    "AtomEnsembleAgentResult",
     "ChatAgentResult",
     "ChatTurn",
     "DynamicChatAgent",

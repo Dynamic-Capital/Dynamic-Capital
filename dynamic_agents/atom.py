@@ -5,10 +5,15 @@ from __future__ import annotations
 from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
-__all__ = ["AtomAgent", "AtomAgentResult"]
+__all__ = ["AtomAgent", "AtomAgentResult", "AtomEnsembleAgent", "AtomEnsembleAgentResult"]
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
-    from dynamic_ai.agents import AtomAgent, AtomAgentResult
+    from dynamic_ai.agents import (
+        AtomAgent,
+        AtomAgentResult,
+        AtomEnsembleAgent,
+        AtomEnsembleAgentResult,
+    )
 
 
 def __getattr__(name: str) -> Any:
