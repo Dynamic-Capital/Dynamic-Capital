@@ -2,21 +2,21 @@
 
 from __future__ import annotations
 
-from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
+from ._lazy import LazyNamespace
+
 __all__ = ["ChatAgentResult", "ChatTurn", "DynamicChatAgent"]
+
+_LAZY = LazyNamespace("dynamic_ai.agents", __all__)
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
     from dynamic_ai.agents import ChatAgentResult, ChatTurn, DynamicChatAgent
 
 
 def __getattr__(name: str) -> Any:
-    if name in __all__:
-        module = import_module("dynamic_ai.agents")
-        return getattr(module, name)
-    raise AttributeError(f"module 'dynamic_agents.chat' has no attribute {name!r}")
+    return _LAZY.resolve(name, globals())
 
 
 def __dir__() -> list[str]:  # pragma: no cover - trivial
-    return sorted(set(globals()) | set(__all__))
+    return _LAZY.dir(globals())
