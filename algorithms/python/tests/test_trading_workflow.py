@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import deque
+import math
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import sys
@@ -29,6 +30,7 @@ from algorithms.python.trade_logic import (
     TradeConfig,
     TradeLogic,
     TradeSignal,
+    _lorentzian_distance,
 )
 
 
@@ -1146,3 +1148,18 @@ def test_generate_exit_decisions_prioritises_nearest_level_when_both_hit():
     assert decisions
     assert decisions[0].context["trigger"] == "take_profit"
     assert decisions[0].exit == pytest.approx(1.205)
+def test_lorentzian_distance_supports_modes() -> None:
+    a = (1.0, 2.0, 3.0)
+    b = (0.5, 1.5, 2.0)
+
+    l1_distance = _lorentzian_distance(a, b, mode="l1")
+    expected_l1 = sum(abs(x - y) for x, y in zip(a, b))
+    assert l1_distance == pytest.approx(expected_l1)
+
+    cauchy_default = _lorentzian_distance(a, b)
+    cauchy_high_alpha = _lorentzian_distance(a, b, alpha=2.0)
+    assert cauchy_high_alpha > cauchy_default > 0
+
+    manual_cauchy = sum(math.log1p((x - y) ** 2) for x, y in zip(a, b))
+    assert cauchy_default == pytest.approx(manual_cauchy)
+

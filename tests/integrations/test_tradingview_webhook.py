@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Iterator
+from typing import Iterator, Optional
 
 import pytest
 from flask.testing import FlaskClient
@@ -38,6 +38,22 @@ def stubbed_components(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
             }
 
     class DummyFusion:
+        def dai_lorentzian_params(self, vol: float, news_bias: float, session: object) -> dict[str, object]:
+            return {
+                "window": 10,
+                "alpha": 0.5,
+                "mode": "cauchy",
+                "enter_z": 1.5,
+                "exit_z": 0.5,
+                "style": "mean_rev",
+            }
+
+        def build_lorentzian_component(self, prices, params):
+            return None
+
+        def combine(self, components, *, default_signal: str = "NEUTRAL") -> DummySignal:
+            return DummySignal()
+
         def generate_signal(self, payload: dict[str, object]) -> DummySignal:
             return DummySignal()
 
@@ -55,17 +71,28 @@ def stubbed_components(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
             self,
             ai_signal: DummySignal,
             *,
-            lot: float,
+            base_lot: float,
             symbol: str,
+            context: Optional[dict[str, object]] = None,
         ) -> DummyTradeResult:
-            return DummyTradeResult()
+            result = DummyTradeResult()
+            result.symbol = symbol
+            result.lot = base_lot
+            return result
 
     class DummyTreasury:
-        def update_from_trade(self, trade_result: DummyTradeResult) -> SimpleNamespace:
+        def update_from_trade(
+            self, trade_result: DummyTradeResult, market_context: Optional[dict[str, object]] = None
+        ) -> SimpleNamespace:
             return SimpleNamespace(
                 burned=10.0,
                 rewards_distributed=5.0,
                 profit_retained=2.5,
+                policy_buyback=0.0,
+                policy_burn=0.0,
+                policy_spread_target_bps=6.0,
+                policy_regime="calm",
+                policy_notes=["stub"],
             )
 
     class DummyLogger:

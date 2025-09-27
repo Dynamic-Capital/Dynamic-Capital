@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 try:  # pragma: no cover - optional dependency
     from integrations.mt5_connector import MT5Connector  # type: ignore
@@ -59,21 +59,47 @@ class DynamicTradingAlgo:
     def __init__(self, connector: Optional[Any] = None) -> None:
         self.connector = connector or self._bootstrap_connector()
 
-    def execute_trade(self, signal: Any, *, lot: float, symbol: str) -> TradeExecutionResult:
+    def execute_trade(
+        self,
+        signal: Any,
+        *,
+        base_lot: float,
+        symbol: str,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> TradeExecutionResult:
         action = self._extract_action(signal)
+
+        if action not in {ORDER_ACTION_BUY, ORDER_ACTION_SELL}:
+            return TradeExecutionResult(
+                retcode=0,
+                message="No trade executed for neutral signal",
+                profit=0.0,
+                symbol=symbol,
+                lot=0.0,
+            )
+
+        if not self._should_execute(action, context):
+            return TradeExecutionResult(
+                retcode=0,
+                message="Trade gated by risk controls",
+                profit=0.0,
+                symbol=symbol,
+                lot=0.0,
+            )
+
+        lot = self._determine_lot(base_lot, signal, context)
+        if lot <= 0:
+            return TradeExecutionResult(
+                retcode=0,
+                message="Trade skipped due to insufficient conviction",
+                profit=0.0,
+                symbol=symbol,
+                lot=0.0,
+            )
 
         if action == ORDER_ACTION_BUY:
             return self._buy(symbol, lot)
-        if action == ORDER_ACTION_SELL:
-            return self._sell(symbol, lot)
-
-        return TradeExecutionResult(
-            retcode=0,
-            message="No trade executed for neutral signal",
-            profit=0.0,
-            symbol=symbol,
-            lot=lot,
-        )
+        return self._sell(symbol, lot)
 
     def _buy(self, symbol: str, lot: float) -> TradeExecutionResult:
         if self.connector and hasattr(self.connector, "buy"):
@@ -113,6 +139,85 @@ class DynamicTradingAlgo:
             price=price,
             raw_response=response,
         )
+
+    def _determine_lot(
+        self, base_lot: float, signal: Any, context: Optional[Dict[str, Any]]
+    ) -> float:
+        lot = float(base_lot)
+        confidence = self._extract_confidence(signal)
+        lorentzian = (context or {}).get("lorentzian", {})
+        score = float(lorentzian.get("score", 0.0))
+        enter_z = float(lorentzian.get("enter_z", 2.0))
+        style = str(lorentzian.get("style", "mean_rev"))
+        intensity = abs(score) / max(1.0, enter_z)
+
+        if lorentzian:
+            lot *= self._clamp(intensity, 0.3, 1.5)
+        else:
+            lot *= self._clamp(confidence or 0.5, 0.3, 1.5)
+
+        vol = float((context or {}).get("volatility", 0.0))
+        lot *= self._volatility_sizer(vol)
+
+        action = self._extract_action(signal)
+        score_direction = 1 if score >= 0 else -1
+        aligned = True
+        if lorentzian:
+            if style == "trend":
+                aligned = (score_direction > 0 and action == ORDER_ACTION_BUY) or (
+                    score_direction < 0 and action == ORDER_ACTION_SELL
+                )
+            else:  # mean reversion
+                aligned = (score_direction < 0 and action == ORDER_ACTION_BUY) or (
+                    score_direction > 0 and action == ORDER_ACTION_SELL
+                )
+        if not aligned:
+            lot *= 0.6
+
+        return round(max(lot, 0.0), 3)
+
+    def _should_execute(self, action: str, context: Optional[Dict[str, Any]]) -> bool:
+        if action not in {ORDER_ACTION_BUY, ORDER_ACTION_SELL}:
+            return False
+
+        ctx = context or {}
+        session_controls = ctx.get("session", {})
+        if session_controls.get("halt"):
+            return False
+
+        lorentzian = ctx.get("lorentzian") or {}
+        exit_z = float(lorentzian.get("exit_z", 0.5))
+        score = float(lorentzian.get("score", 0.0))
+        if lorentzian and abs(score) < exit_z:
+            return False
+
+        return True
+
+    def _volatility_sizer(self, volatility: float) -> float:
+        if volatility <= 0:
+            return 1.0
+        if volatility > 0.05:
+            return 0.75
+        if volatility < 0.02:
+            return 1.2
+        return 1.0
+
+    def _extract_confidence(self, signal: Any) -> float:
+        if hasattr(signal, "confidence"):
+            try:
+                return float(signal.confidence)
+            except (TypeError, ValueError):
+                return 0.0
+        if isinstance(signal, dict) and "confidence" in signal:
+            try:
+                return float(signal["confidence"])
+            except (TypeError, ValueError):
+                return 0.0
+        return 0.0
+
+    @staticmethod
+    def _clamp(value: float, lower: float, upper: float) -> float:
+        return max(lower, min(upper, value))
 
     def _extract_action(self, signal: Any) -> str:
         if hasattr(signal, "action"):

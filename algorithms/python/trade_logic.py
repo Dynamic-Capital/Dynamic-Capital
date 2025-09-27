@@ -27,7 +27,7 @@ from collections import OrderedDict, deque
 from dataclasses import asdict, dataclass, field, fields
 from datetime import UTC, date, datetime, timedelta
 from types import ModuleType, SimpleNamespace
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator, List, Literal, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator, List, Literal, Optional, Sequence, Tuple, cast
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -1091,13 +1091,52 @@ class _SklearnLikeScaler:
 # ---------------------------------------------------------------------------
 
 
-def _lorentzian_distance(a: Sequence[float], b: Sequence[float]) -> float:
-    return float(sum(math.log1p(abs(x - y)) for x, y in zip(a, b)))
+def _lorentzian_distance(
+    a: Sequence[float],
+    b: Sequence[float],
+    *,
+    mode: Literal["cauchy", "l1"] = "cauchy",
+    alpha: float = 1.0,
+) -> float:
+    """Return a Lorentzian-inspired distance between two feature vectors."""
+
+    mode_key = str(mode).lower()
+    if mode_key not in {"cauchy", "l1"}:
+        raise ValueError(f"Unsupported Lorentzian mode: {mode}")
+
+    if mode_key == "l1":
+        return float(sum(abs(float(x) - float(y)) for x, y in zip(a, b)))
+
+    alpha_value = float(alpha)
+    if alpha_value <= 0:
+        raise ValueError("alpha must be positive for Cauchy Lorentzian distance")
+
+    return float(
+        sum(math.log1p(alpha_value * (float(x) - float(y)) ** 2) for x, y in zip(a, b))
+    )
 
 
-def _resolve_distance_function() -> Callable[[Sequence[float], Sequence[float]], float]:
+def _resolve_distance_function(
+    *, mode: Literal["cauchy", "l1"] = "cauchy", alpha: float = 1.0
+) -> Callable[[Sequence[float], Sequence[float]], float]:
+    mode_key = str(mode).lower()
+    if mode_key not in {"cauchy", "l1"}:
+        raise ValueError(f"Unsupported Lorentzian mode: {mode}")
+
+    alpha_value = float(alpha)
+    if mode_key == "cauchy" and alpha_value <= 0:
+        raise ValueError("alpha must be positive for Cauchy Lorentzian distance")
+
+    def _fallback_distance() -> Callable[[Sequence[float], Sequence[float]], float]:
+        return lambda a, b, _mode=mode_key, _alpha=alpha_value: _lorentzian_distance(
+            a, b, mode=_mode, alpha=_alpha
+        )
+
+    if mode_key != "cauchy" or not math.isclose(alpha_value, 1.0):
+        return _fallback_distance()
+
     if not hasattr(kernels, "__dict__"):
-        return _lorentzian_distance
+        return _fallback_distance()
 
     candidate_names = [
         "lorentzian_distance",
@@ -1126,7 +1165,7 @@ def _resolve_distance_function() -> Callable[[Sequence[float], Sequence[float]],
             logger.info("Using %s.%s as distance function", module_name, name)
             return lambda a, b, _fn=fn: float(_fn(tuple(a), tuple(b)))
 
-    return _lorentzian_distance
+    return _fallback_distance()
 
 
 # ---------------------------------------------------------------------------
@@ -1143,6 +1182,8 @@ class LorentzianKNNModel:
         neighbors: int,
         max_samples: Optional[int] = None,
         distance_fn: Optional[Callable[[Sequence[float], Sequence[float]], float]] = None,
+        distance_mode: Literal["cauchy", "l1"] = "cauchy",
+        distance_alpha: float = 1.0,
         grok_weight: float = 0.6,
         deepseek_weight: float = 0.4,
         recency_halflife_minutes: Optional[float] = None,
@@ -1158,7 +1199,19 @@ class LorentzianKNNModel:
             raise ValueError("recency_halflife_minutes must be positive")
         self.neighbors = neighbors
         self.max_samples = max_samples
-        self.distance_fn = distance_fn or _resolve_distance_function()
+        mode_key = str(distance_mode).lower()
+        if mode_key not in {"cauchy", "l1"}:
+            raise ValueError(f"Unsupported Lorentzian mode: {distance_mode}")
+        alpha_value = float(distance_alpha)
+        if mode_key == "cauchy" and alpha_value <= 0:
+            raise ValueError("distance_alpha must be positive for Cauchy distance")
+
+        self.distance_mode: Literal["cauchy", "l1"] = cast(Literal["cauchy", "l1"], mode_key)
+        self.distance_alpha = alpha_value
+        self._custom_distance_fn = distance_fn is not None
+        self.distance_fn = distance_fn or _resolve_distance_function(
+            mode=self.distance_mode, alpha=self.distance_alpha
+        )
         self.grok_weight = float(grok_weight)
         self.deepseek_weight = float(deepseek_weight)
         self._weight_total = self.grok_weight + self.deepseek_weight
@@ -1355,6 +1408,11 @@ class LorentzianKNNModel:
         return {
             "neighbors": self.neighbors,
             "max_samples": self.max_samples,
+            "distance": {
+                "mode": self.distance_mode,
+                "alpha": self.distance_alpha,
+                "custom": self._custom_distance_fn,
+            },
             "weights": {
                 "grok": self.grok_weight,
                 "deepseek": self.deepseek_weight,
@@ -1380,9 +1438,14 @@ class LorentzianKNNModel:
         grok_weight = float(weights.get("grok", 0.6))
         deepseek_weight = float(weights.get("deepseek", 0.4))
         recency_halflife = state.get("recency_halflife_minutes")
+        distance_config = state.get("distance", {})
+        distance_mode = distance_config.get("mode", "cauchy")
+        distance_alpha = float(distance_config.get("alpha", 1.0))
         model = cls(
             neighbors=neighbors,
             max_samples=max_samples,
+            distance_mode=cast(Literal["cauchy", "l1"], str(distance_mode)),
+            distance_alpha=distance_alpha,
             grok_weight=grok_weight,
             deepseek_weight=deepseek_weight,
             recency_halflife_minutes=recency_halflife,
@@ -1398,6 +1461,8 @@ class LorentzianKNNModel:
                 metadata=dict(payload.get("metadata", {})),
             )
             model.add_sample(sample)
+        if distance_config.get("custom"):
+            model._custom_distance_fn = True
         return model
 
 
