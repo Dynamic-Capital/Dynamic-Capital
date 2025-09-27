@@ -1,0 +1,126 @@
+"""Flask webhook that drives the Dynamic Capital trading loop."""
+
+from __future__ import annotations
+
+import logging
+from typing import Any, Dict, Optional
+
+from flask import Flask, jsonify, request
+
+from dynamic_ai.core import DynamicFusionAlgo
+from dynamic_algo.trading_core import DynamicTradingAlgo
+from dynamic_token.treasury import DynamicTreasuryAlgo
+from integrations.supabase_logger import SupabaseLogger
+from integrations.telegram_bot import DynamicTelegramBot
+
+logger = logging.getLogger(__name__)
+
+app = Flask(__name__)
+
+fusion = DynamicFusionAlgo()
+trader = DynamicTradingAlgo()
+treasury = DynamicTreasuryAlgo()
+supabase_logger = SupabaseLogger()
+telegram_bot = DynamicTelegramBot.from_env()
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook() -> Any:
+    payload = request.get_json(silent=True) or {}
+    logger.info("TradingView alert received: %s", payload)
+
+    symbol = str(payload.get("symbol", "XAUUSD"))
+    lot = float(payload.get("lot", 0.1))
+
+    ai_signal = fusion.generate_signal(payload)
+    trade_result = trader.execute_trade(ai_signal, lot=lot, symbol=symbol)
+    treasury_event = treasury.update_from_trade(trade_result)
+
+    supabase_logger.log_trade(_build_supabase_payload(payload, ai_signal, trade_result, treasury_event))
+
+    message = _format_telegram_message(symbol, ai_signal.to_dict(), trade_result, treasury_event)
+    if telegram_bot and message:
+        telegram_bot.notify(message)
+
+    status = "executed" if trade_result.ok else "skipped"
+
+    return jsonify(
+        {
+            "status": status,
+            "raw_signal": payload.get("signal", "NEUTRAL"),
+            "ai_signal": ai_signal.to_dict(),
+            "trade": {
+                "retcode": trade_result.retcode,
+                "profit": trade_result.profit,
+                "ticket": trade_result.ticket,
+                "symbol": trade_result.symbol or symbol,
+                "lot": trade_result.lot or lot,
+            },
+            "treasury_event": _treasury_event_to_dict(treasury_event),
+        }
+    )
+
+
+def _build_supabase_payload(
+    payload: Dict[str, Any],
+    ai_signal,
+    trade_result,
+    treasury_event,
+) -> Dict[str, Any]:
+    supabase_payload = {
+        "symbol": trade_result.symbol or payload.get("symbol"),
+        "lot": trade_result.lot or payload.get("lot", 0.1),
+        "raw_signal": payload.get("signal", "NEUTRAL"),
+        "ai_signal": ai_signal.action,
+        "ai_confidence": ai_signal.confidence,
+        "ai_reasoning": ai_signal.reasoning,
+        "retcode": trade_result.retcode,
+        "profit": trade_result.profit,
+        "ticket": trade_result.ticket,
+        "status": "executed" if trade_result.ok else "skipped",
+    }
+    if treasury_event:
+        supabase_payload.update(
+            {
+                "burned": treasury_event.burned,
+                "rewards_distributed": treasury_event.rewards_distributed,
+                "profit_retained": treasury_event.profit_retained,
+            }
+        )
+    return supabase_payload
+
+
+def _format_telegram_message(
+    symbol: str,
+    ai_signal: Dict[str, Any],
+    trade_result,
+    treasury_event,
+) -> Optional[str]:
+    if trade_result.retcode == 0:
+        return None
+
+    lines = [
+        f"✅ Trade Executed: {ai_signal['action']} {symbol}",
+        f"Confidence: {ai_signal['confidence']}",
+        f"Profit: {trade_result.profit}",
+    ]
+
+    if treasury_event:
+        lines.append(f"🔥 Burned {treasury_event.burned} DCT")
+        lines.append(f"💰 Rewards Distributed: {treasury_event.rewards_distributed} DCT")
+
+    return "\n".join(lines)
+
+
+def _treasury_event_to_dict(event) -> Optional[Dict[str, Any]]:
+    if not event:
+        return None
+    return {
+        "burned": event.burned,
+        "rewards_distributed": event.rewards_distributed,
+        "profit_retained": event.profit_retained,
+    }
+
+
+if __name__ == "__main__":  # pragma: no cover
+    app.run(host="0.0.0.0", port=8000, debug=True)
