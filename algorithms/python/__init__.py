@@ -213,10 +213,20 @@ from .backend_keeper import (
     BackendService,
     DynamicBackendKeeperAlgorithm,
 )
+from .channel_keeper import (
+    BroadcastChannel,
+    ChannelKeeperSyncResult,
+    DynamicChannelKeeperAlgorithm,
+)
 from .frontend_keeper import (
     DynamicFrontendKeeperAlgorithm,
     FrontendKeeperSyncResult,
     FrontendSurface,
+)
+from .group_keeper import (
+    CommunityGroup,
+    DynamicGroupKeeperAlgorithm,
+    GroupKeeperSyncResult,
 )
 from .route_keeper import DynamicRouteKeeperAlgorithm, Route, RouteKeeperSyncResult
 from .supabase_edge_functions import (
@@ -429,9 +439,15 @@ __all__ = _trade_exports + [
     "BackendKeeperSyncResult",
     "BackendService",
     "DynamicBackendKeeperAlgorithm",
+    "BroadcastChannel",
+    "ChannelKeeperSyncResult",
+    "DynamicChannelKeeperAlgorithm",
     "DynamicFrontendKeeperAlgorithm",
+    "CommunityGroup",
+    "DynamicGroupKeeperAlgorithm",
     "FrontendKeeperSyncResult",
     "FrontendSurface",
+    "GroupKeeperSyncResult",
     "StepExecution",
     "StepHandler",
     "StepResult",
