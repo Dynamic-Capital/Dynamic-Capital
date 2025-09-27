@@ -200,6 +200,13 @@ from .tonkeeper_sync import (
     TonkeeperSyncEngine,
     TonkeeperSyncPlan,
 )
+from .dynamic_ai_sync import (
+    AlgorithmSyncAdapter,
+    AlgorithmSyncResult,
+    DynamicAISummary,
+    DynamicAISyncReport,
+    DynamicAISynchroniser,
+)
 from .trading_psychology_elements import (
     Element,
     ElementProfile,
@@ -336,6 +343,11 @@ __all__ = _trade_exports + [
     "TonkeeperSyncContext",
     "TonkeeperSyncEngine",
     "TonkeeperSyncPlan",
+    "AlgorithmSyncAdapter",
+    "AlgorithmSyncResult",
+    "DynamicAISummary",
+    "DynamicAISyncReport",
+    "DynamicAISynchroniser",
     "ProjectFAQGenerator",
     "ProjectFAQPackage",
     "Route",
