@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,15 +11,20 @@ import {
   MotionStagger,
 } from "@/components/ui/motion-components";
 import {
+  Activity,
   ArrowRight,
   Bot,
+  CandlestickChart,
+  Cpu,
+  Database,
   ExternalLink,
   Globe,
-  HelpCircle,
+  LayoutDashboard,
   MessageCircle,
   Shield,
-  Smartphone,
-  User,
+  ShieldCheck,
+  Users,
+  Zap,
 } from "lucide-react";
 import { callEdgeFunction } from "@/config/supabase";
 
@@ -30,75 +36,241 @@ interface IntegrationSectionProps {
   onContactSupport?: () => void;
 }
 
-const IntegrationSection = (
-  { onOpenTelegram, onViewAccount, onContactSupport }: IntegrationSectionProps,
-) => {
-  const defaultContent = useMemo(
+interface IntegrationCardConfig {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  link: string;
+  color: string;
+  primary?: boolean;
+  action?: () => void;
+  href?: string;
+  buttonLabel?: string;
+}
+
+interface FeatureConfig {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}
+
+interface ExecutionOption {
+  badge: string;
+  title: string;
+  description: string;
+  highlights: string[];
+  footer?: string;
+}
+
+interface FlowStep {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}
+
+interface SupabaseTableSummary {
+  name: string;
+  description: string;
+}
+
+interface IntegrationContent {
+  badge: string;
+  title: string;
+  description: string;
+  integrations: IntegrationCardConfig[];
+  botTitle: string;
+  botDescription: string;
+  botPrimaryButton: string;
+  botSecondaryButton: string;
+  featuresTitle: string;
+  featuresDescription: string;
+  features: FeatureConfig[];
+  executionIntroTitle: string;
+  executionIntroDescription: string;
+  executionOptions: ExecutionOption[];
+  flowTitle: string;
+  flowDescription: string;
+  flow: FlowStep[];
+  supabaseTitle: string;
+  supabaseDescription: string;
+  supabaseTables: SupabaseTableSummary[];
+}
+
+const IntegrationSection = ({ onOpenTelegram }: IntegrationSectionProps) => {
+  const buildScrollAction = useCallback((id: string) => {
+    return () => {
+      if (typeof window === "undefined") return;
+      const element = document.getElementById(id);
+      element?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+  }, []);
+
+  const defaultContent = useMemo<IntegrationContent>(
     () => ({
-      badge: "Platform Integration",
-      title: "Seamless Trading Experience",
+      badge: "Trading Infrastructure",
+      title: "MT5 Execution + Supabase Memory",
       description:
-        "Connect with our ecosystem of tools and platforms designed for professional traders",
+        "The Universal Website is the face of the stack, while Supabase keeps the memory and MetaTrader 5 executes every validated move.",
       integrations: [
         {
-          title: "Telegram Bot",
+          title: "MetaTrader 5 Executor",
           description:
-            "Access premium signals and commands through our official bot",
-          icon: Bot,
-          link: "@DynamicCapital_Support",
+            "Route TradingView alerts into MT5 through the Dynamic Fusion Algo and place trades with any connected broker.",
+          icon: Cpu,
+          link: "FastAPI bridge or autonomous EA",
           color: "from-[hsl(var(--telegram))] to-[hsl(var(--telegram-dark))]",
-          action: onOpenTelegram,
           primary: true,
+          buttonLabel: "Review Execution Options",
+          action: buildScrollAction("mt5-execution"),
         },
         {
-          title: "Account Portal",
-          description: "Manage your subscription and view payment status",
-          icon: User,
-          link: "Account Dashboard",
+          title: "Supabase Control Center",
+          description:
+            "Signals, trades, treasury updates, and governance logs stream into Supabase for bots, admins, and investors.",
+          icon: Database,
+          link: "Realtime tables + auth + storage",
           color: "from-[hsl(var(--dc-secondary))] to-[hsl(var(--accent-teal))]",
-          action: onViewAccount,
-          primary: false,
+          buttonLabel: "See Data Model",
+          action: buildScrollAction("supabase-memory"),
         },
         {
-          title: "Support Center",
-          description: "Get help from our expert trading support team",
-          icon: HelpCircle,
-          link: "Contact Support",
+          title: "Universal Website APIs",
+          description:
+            "Public webhooks, admin controls, and the Telegram mini app sit on top of Supabase auth and REST APIs.",
+          icon: Globe,
+          link: "Webhook, admin, and mini app surfaces",
           color: "from-[hsl(var(--dc-accent))] to-[hsl(var(--accent-pink))]",
-          action: onContactSupport,
-          primary: false,
+          buttonLabel: "Follow the Flow",
+          action: buildScrollAction("universal-face"),
         },
       ],
-      botTitle: "@DynamicCapital_Support",
+      botTitle: "Telegram Bot + Mini App",
       botDescription:
-        "Your personal trading assistant with instant access to premium signals, market analysis, and VIP community features. Start receiving professional trading alerts directly in Telegram.",
-      botPrimaryButton: "Open Telegram Bot",
-      botSecondaryButton: "Copy Bot Link",
-      featuresTitle: "Platform Features",
+        "Supabase-authenticated Telegram experiences deliver instant trade alerts, treasury snapshots, and governance votes to investors.",
+      botPrimaryButton: "Launch Telegram Hub",
+      botSecondaryButton: "Open Bot in Telegram",
+      featuresTitle: "Why the Universal Website Matters",
       featuresDescription:
-        "Built for professional traders with modern tools and security",
+        "A single interface connects the AI brain, MT5 execution, and the community so every trade is traceable.",
       features: [
         {
-          icon: Smartphone,
-          title: "Mobile Optimized",
-          description: "Access signals on any device, anywhere",
+          icon: Activity,
+          title: "End-to-End Automation",
+          description:
+            "TradingView alerts flow into MT5 with millisecond logging while Supabase captures every state change.",
         },
         {
           icon: Shield,
-          title: "Secure Platform",
-          description: "Your data protected with enterprise security",
+          title: "Transparent Oversight",
+          description:
+            "Row-level security and realtime feeds give admins, investors, and auditors a shared source of truth.",
         },
         {
-          icon: Globe,
-          title: "Global Access",
-          description: "Available worldwide, 24/7 market coverage",
+          icon: LayoutDashboard,
+          title: "Multi-surface Experience",
+          description:
+            "Telegram bots, admin portals, and investor dashboards all consume the same Supabase APIs.",
+        },
+      ],
+      executionIntroTitle: "How MetaTrader 5 Executes Orders",
+      executionIntroDescription:
+        "MetaTrader 5 is the hands of the operation. Choose the connector that matches your infrastructure and redundancy requirements.",
+      executionOptions: [
+        {
+          badge: "Option A",
+          title: "Python Connector + MetaTrader5 Library",
+          description:
+            "Run the FastAPI webhook processor on the same host as the MT5 terminal and call the official MetaTrader5 Python package.",
+          highlights: [
+            "TradingView → /api/tradingview/webhook → Dynamic Fusion Algo → MetaTrader5.order_send().",
+            "Ideal when you want AI validation, logging, and execution in a single Python runtime.",
+          ],
+          footer:
+            "Requires a Windows VPS (or Wine) with the MT5 terminal kept online.",
+        },
+        {
+          badge: "Option B",
+          title: "Autonomous MQL5 Expert Advisor",
+          description:
+            "Deploy a lightweight EA that polls Supabase REST/realtime endpoints for new signals and fires trades inside MT5 without waiting on Python services.",
+          highlights: [
+            "EA checks the /api/signals endpoint or Supabase subscriptions for pending orders.",
+            "Best when MetaTrader 5 must keep executing even if the FastAPI server restarts.",
+          ],
+          footer:
+            "Heartbeat updates let Supabase know the EA is healthy before releasing more trades.",
+        },
+      ],
+      flowTitle: "Unified Trading Loop",
+      flowDescription:
+        "Every alert follows the same transparent journey from signal to community notification.",
+      flow: [
+        {
+          title: "TradingView Alert Captured",
+          description:
+            "Webhook payloads hit /api/tradingview/webhook where they are normalized and stored in Supabase.",
+          icon: CandlestickChart,
+        },
+        {
+          title: "Dynamic Fusion Validation",
+          description:
+            "The AI brain scores the signal, enforces risk policies, and tags metadata for downstream services.",
+          icon: ShieldCheck,
+        },
+        {
+          title: "MetaTrader 5 Execution",
+          description:
+            "Python connector or MQL5 EA pushes BUY/SELL orders to your preferred broker in MetaTrader 5.",
+          icon: Zap,
+        },
+        {
+          title: "Supabase Logging & Treasury",
+          description:
+            "signals, trades, treasury, and governance tables capture execution results and treasury adjustments in realtime.",
+          icon: Database,
+        },
+        {
+          title: "Community Notifications",
+          description:
+            "Telegram bots and the mini app stream updates using Supabase auth and realtime subscriptions.",
+          icon: Users,
+        },
+      ],
+      supabaseTitle: "Supabase Memory & Transparency Layer",
+      supabaseDescription:
+        "Supabase keeps institutional memory for traders, investors, and governance. Bots, mini apps, and dashboards all read from the same tables.",
+      supabaseTables: [
+        {
+          name: "users",
+          description:
+            "Investor profiles linked to Telegram IDs, access roles, and subscription states.",
+        },
+        {
+          name: "signals",
+          description:
+            "Raw TradingView alerts plus AI-processed payloads awaiting execution.",
+        },
+        {
+          name: "trades",
+          description:
+            "Executed MT5 orders with ticket IDs, fill prices, and P&L tracking.",
+        },
+        {
+          name: "treasury",
+          description:
+            "Dynamic Capital Treasury burns, rewards, and balance movements for DCT.",
+        },
+        {
+          name: "governance",
+          description:
+            "Community proposals, votes, and programmable policy actions.",
         },
       ],
     }),
-    [onOpenTelegram, onViewAccount, onContactSupport],
+    [buildScrollAction],
   );
 
-  const [content, setContent] = useState(defaultContent);
+  const [content, setContent] = useState<IntegrationContent>(defaultContent);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -140,33 +312,23 @@ const IntegrationSection = (
           });
 
           setContent({
+            ...defaultContent,
             badge: lookup.integration_badge ?? defaultContent.badge,
             title: lookup.integration_title ?? defaultContent.title,
             description: lookup.integration_description ??
               defaultContent.description,
-            integrations: [
-              {
-                ...defaultContent.integrations[0],
-                title: lookup.integration_card1_title ??
-                  defaultContent.integrations[0].title,
-                description: lookup.integration_card1_description ??
-                  defaultContent.integrations[0].description,
+            integrations: defaultContent.integrations.map(
+              (integration, index) => {
+                const titleKey = lookup[`integration_card${index + 1}_title`];
+                const descriptionKey =
+                  lookup[`integration_card${index + 1}_description`];
+                return {
+                  ...integration,
+                  title: titleKey ?? integration.title,
+                  description: descriptionKey ?? integration.description,
+                };
               },
-              {
-                ...defaultContent.integrations[1],
-                title: lookup.integration_card2_title ??
-                  defaultContent.integrations[1].title,
-                description: lookup.integration_card2_description ??
-                  defaultContent.integrations[1].description,
-              },
-              {
-                ...defaultContent.integrations[2],
-                title: lookup.integration_card3_title ??
-                  defaultContent.integrations[2].title,
-                description: lookup.integration_card3_description ??
-                  defaultContent.integrations[2].description,
-              },
-            ],
+            ),
             botTitle: lookup.integration_bot_title ?? defaultContent.botTitle,
             botDescription: lookup.integration_bot_description ??
               defaultContent.botDescription,
@@ -178,29 +340,14 @@ const IntegrationSection = (
               defaultContent.featuresTitle,
             featuresDescription: lookup.integration_features_description ??
               defaultContent.featuresDescription,
-            features: [
-              {
-                ...defaultContent.features[0],
-                title: lookup.integration_feature1_title ??
-                  defaultContent.features[0].title,
-                description: lookup.integration_feature1_description ??
-                  defaultContent.features[0].description,
-              },
-              {
-                ...defaultContent.features[1],
-                title: lookup.integration_feature2_title ??
-                  defaultContent.features[1].title,
-                description: lookup.integration_feature2_description ??
-                  defaultContent.features[1].description,
-              },
-              {
-                ...defaultContent.features[2],
-                title: lookup.integration_feature3_title ??
-                  defaultContent.features[2].title,
-                description: lookup.integration_feature3_description ??
-                  defaultContent.features[2].description,
-              },
-            ],
+            features: defaultContent.features.map((feature, index) => ({
+              ...feature,
+              title: lookup[`integration_feature${index + 1}_title`] ??
+                feature.title,
+              description:
+                lookup[`integration_feature${index + 1}_description`] ??
+                  feature.description,
+            })),
           });
         } else if (error) {
           console.error("Failed to fetch integration content:", error.message);
@@ -213,9 +360,25 @@ const IntegrationSection = (
     fetchContent();
   }, [defaultContent]);
 
+  const handleIntegrationClick = (integration: IntegrationCardConfig) => {
+    if (integration.action) {
+      integration.action();
+      return;
+    }
+
+    if (integration.href) {
+      if (integration.href.startsWith("#")) {
+        const id = integration.href.slice(1);
+        const element = document.getElementById(id);
+        element?.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (typeof window !== "undefined") {
+        window.open(integration.href, "_blank", "noopener,noreferrer");
+      }
+    }
+  };
+
   return (
     <section className="py-20 bg-gradient-to-b from-background via-muted/10 to-background relative">
-      {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 right-20 w-72 h-72 bg-gradient-to-r from-[hsl(var(--telegram)/0.1)] to-[hsl(var(--dc-accent)/0.1)] rounded-full blur-3xl animate-pulse" />
         <div
@@ -243,12 +406,11 @@ const IntegrationSection = (
           </div>
         </MotionScrollReveal>
 
-        {/* Main Integration Cards */}
         <MotionStagger
           staggerDelay={0.2}
           className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 mb-16"
         >
-          {content.integrations.map((integration, index) => (
+          {content.integrations.map((integration) => (
             <MotionHoverCard
               key={integration.title}
               hoverScale={integration.primary ? 1.08 : 1.05}
@@ -258,11 +420,11 @@ const IntegrationSection = (
                 className={`relative overflow-hidden ${
                   integration.primary ? "ring-2 ring-telegram scale-105" : ""
                 } hover:shadow-2xl transition-all duration-500 cursor-pointer`}
-                onClick={integration.action}
+                onClick={() => handleIntegrationClick(integration)}
               >
                 {integration.primary && (
                   <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-telegram to-telegram-dark text-white text-center py-2 text-sm font-bold">
-                    MAIN PLATFORM
+                    CORE EXECUTION
                   </div>
                 )}
 
@@ -297,9 +459,9 @@ const IntegrationSection = (
                         ? "bg-telegram hover:bg-telegram/90"
                         : "bg-muted hover:bg-muted/80"
                     } font-semibold`}
-                    onClick={integration.action}
+                    onClick={() => handleIntegrationClick(integration)}
                   >
-                    {integration.primary ? content.botPrimaryButton : "Access"}
+                    {integration.buttonLabel ?? "Explore"}
                     <ExternalLink className="w-4 h-4 ml-2" />
                   </Button>
                 </CardContent>
@@ -308,7 +470,174 @@ const IntegrationSection = (
           ))}
         </MotionStagger>
 
-        {/* Telegram Bot Feature Highlight */}
+        <MotionScrollReveal>
+          <Card
+            id="mt5-execution"
+            className="bg-gradient-to-r from-telegram/10 via-background to-telegram/10 border-telegram/20 mb-16"
+          >
+            <CardContent className="p-6 sm:p-8 text-center">
+              <div className="max-w-4xl mx-auto">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-telegram to-telegram-dark rounded-full flex items-center justify-center">
+                  <Cpu className="w-10 h-10 text-white" />
+                </div>
+
+                <h3 className="text-2xl sm:text-3xl font-bold mb-4 font-poppins">
+                  {content.executionIntroTitle}
+                </h3>
+                <p className="text-base sm:text-lg text-muted-foreground mb-6 font-inter max-w-2xl mx-auto">
+                  {content.executionIntroDescription}
+                </p>
+
+                <MotionStagger
+                  staggerDelay={0.25}
+                  className="grid gap-6 md:grid-cols-2 text-left"
+                >
+                  {content.executionOptions.map((option) => (
+                    <MotionHoverCard
+                      key={option.title}
+                      hoverScale={1.04}
+                      hoverY={-6}
+                    >
+                      <Card className="h-full border border-telegram/30 bg-background/80 backdrop-blur-sm">
+                        <CardContent className="p-6 flex flex-col h-full">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Badge className="bg-telegram/10 text-telegram border-telegram/30">
+                              {option.badge}
+                            </Badge>
+                            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                              MT5 HANDS
+                            </span>
+                          </div>
+                          <h4 className="text-xl font-semibold font-poppins mb-3">
+                            {option.title}
+                          </h4>
+                          <p className="text-sm text-muted-foreground font-inter mb-4">
+                            {option.description}
+                          </p>
+                          <ul className="space-y-3 text-sm text-muted-foreground/90 font-inter flex-1">
+                            {option.highlights.map((highlight) => (
+                              <li
+                                key={highlight}
+                                className="flex items-start gap-2"
+                              >
+                                <ArrowRight className="w-4 h-4 mt-1 text-telegram" />
+                                <span>{highlight}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          {option.footer && (
+                            <p className="mt-4 text-xs text-muted-foreground/80">
+                              {option.footer}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </MotionHoverCard>
+                  ))}
+                </MotionStagger>
+              </div>
+            </CardContent>
+          </Card>
+        </MotionScrollReveal>
+
+        <MotionScrollReveal>
+          <div
+            id="universal-face"
+            className="text-center mb-12 max-w-3xl mx-auto"
+          >
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/30">
+              Unified Workflow
+            </Badge>
+            <h3 className="text-2xl sm:text-3xl font-bold mb-4 font-poppins text-foreground">
+              {content.flowTitle}
+            </h3>
+            <p className="text-base sm:text-lg text-muted-foreground font-inter">
+              {content.flowDescription}
+            </p>
+          </div>
+        </MotionScrollReveal>
+
+        <MotionStagger
+          staggerDelay={0.2}
+          className="grid gap-6 md:grid-cols-2 xl:grid-cols-5 mb-16"
+        >
+          {content.flow.map((step, index) => (
+            <MotionHoverCard key={step.title} hoverScale={1.05} hoverY={-8}>
+              <Card className="h-full border border-primary/20 bg-background/80 backdrop-blur-sm">
+                <CardContent className="p-6 flex flex-col h-full">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <step.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <span className="text-sm font-semibold text-primary">
+                      Step {index + 1}
+                    </span>
+                  </div>
+                  <h4 className="text-lg font-semibold font-poppins mb-2">
+                    {step.title}
+                  </h4>
+                  <p className="text-sm text-muted-foreground font-inter">
+                    {step.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </MotionHoverCard>
+          ))}
+        </MotionStagger>
+
+        <MotionScrollReveal>
+          <Card
+            id="supabase-memory"
+            className="border border-primary/20 bg-gradient-to-r from-primary/5 via-background to-primary/5 mb-16"
+          >
+            <CardContent className="p-6 sm:p-8">
+              <div className="text-center mb-10 max-w-3xl mx-auto">
+                <Badge className="mb-4 bg-primary/10 text-primary border-primary/30">
+                  Supabase Memory
+                </Badge>
+                <h3 className="text-2xl sm:text-3xl font-bold mb-4 font-poppins text-foreground">
+                  {content.supabaseTitle}
+                </h3>
+                <p className="text-base sm:text-lg text-muted-foreground font-inter">
+                  {content.supabaseDescription}
+                </p>
+              </div>
+
+              <MotionStagger
+                staggerDelay={0.2}
+                className="grid gap-5 md:grid-cols-2"
+              >
+                {content.supabaseTables.map((table) => (
+                  <MotionHoverCard
+                    key={table.name}
+                    hoverScale={1.03}
+                    hoverY={-6}
+                  >
+                    <Card className="h-full border border-muted/40 bg-background/90">
+                      <CardContent className="p-5 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-semibold uppercase tracking-wider text-primary">
+                            {table.name}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-xs uppercase"
+                          >
+                            Table
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground font-inter flex-1">
+                          {table.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </MotionHoverCard>
+                ))}
+              </MotionStagger>
+            </CardContent>
+          </Card>
+        </MotionScrollReveal>
+
         <MotionScrollReveal>
           <Card className="bg-gradient-to-r from-telegram/10 via-background to-telegram/10 border-telegram/20 mb-16">
             <CardContent className="p-6 sm:p-8 text-center">
@@ -353,7 +682,6 @@ const IntegrationSection = (
           </Card>
         </MotionScrollReveal>
 
-        {/* Platform Features */}
         <MotionScrollReveal>
           <div className="text-center mb-12">
             <h3 className="text-2xl sm:text-3xl font-bold mb-4 font-poppins text-foreground">
@@ -369,7 +697,7 @@ const IntegrationSection = (
           staggerDelay={0.3}
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {content.features.map((feature, index) => (
+          {content.features.map((feature) => (
             <MotionHoverCard key={feature.title} hoverScale={1.05} hoverY={-8}>
               <Card className="bot-card group hover:shadow-xl transition-all duration-300 text-center">
                 <CardContent className="p-5 sm:p-6">
