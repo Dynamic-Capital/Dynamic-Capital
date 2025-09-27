@@ -11,6 +11,13 @@ from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 from typing_extensions import Literal
 
 from dynamic_ai import ExecutionAgent, ResearchAgent, RiskAgent
+from dynamic_algo.trading_core import DynamicTradingAlgo, TradeExecutionResult
+
+try:  # pragma: no cover - optional dependency for treasury actions
+    from dynamic_token.treasury import DynamicTreasuryAlgo, TreasuryEvent
+except Exception:  # pragma: no cover - keep alignment logic usable without treasury module
+    DynamicTreasuryAlgo = None  # type: ignore[assignment]
+    TreasuryEvent = None  # type: ignore[assignment]
 
 from .multi_llm import LLMConfig, LLMRun, collect_strings, parse_json_response, serialise_runs
 
@@ -148,6 +155,152 @@ def run_dynamic_agent_cycle(context: Mapping[str, Any]) -> Dict[str, Any]:
             "risk": risk_dict,
         },
         "decision": decision_payload,
+    }
+
+
+def _coerce_symbol(value: Any, default: str = "XAUUSD") -> str:
+    symbol = str(value or "").strip().upper()
+    return symbol or default
+
+
+def _coerce_lot(value: Any, default: float = 0.1) -> float:
+    try:
+        lot = float(value)
+    except (TypeError, ValueError):
+        return default
+    return lot if lot > 0 else default
+
+
+def _select_trade_signal(agent_cycle: Mapping[str, Any]) -> Mapping[str, Any]:
+    decision = agent_cycle.get("decision")
+    if isinstance(decision, Mapping) and decision.get("action"):
+        return dict(decision)
+
+    agents = agent_cycle.get("agents")
+    if isinstance(agents, Mapping):
+        execution = agents.get("execution")
+        if isinstance(execution, Mapping):
+            signal = execution.get("signal")
+            if isinstance(signal, Mapping) and signal.get("action"):
+                return dict(signal)
+    return {"action": "NEUTRAL", "confidence": 0.0}
+
+
+def _ensure_trade_algo(candidate: Any) -> DynamicTradingAlgo:
+    if isinstance(candidate, DynamicTradingAlgo):
+        return candidate
+    if hasattr(candidate, "execute_trade"):
+        return candidate  # type: ignore[return-value]
+    return DynamicTradingAlgo()
+
+
+def _apply_treasury_updates(
+    trade: TradeExecutionResult,
+    treasury_candidate: Any,
+) -> Mapping[str, Any] | None:
+    treasury = treasury_candidate
+    if treasury is None and DynamicTreasuryAlgo is not None:
+        try:
+            treasury = DynamicTreasuryAlgo()
+        except Exception:  # pragma: no cover - constructor guard
+            treasury = None
+
+    if treasury is None or not hasattr(treasury, "update_from_trade"):
+        return None
+
+    try:
+        event = treasury.update_from_trade(trade)
+    except Exception:  # pragma: no cover - downstream failures should not abort sync
+        return None
+
+    if event is None:
+        return None
+
+    normalised = _coerce_payload(event)
+    if not normalised and TreasuryEvent is not None and isinstance(event, TreasuryEvent):
+        normalised = asdict(event)
+    return normalised
+
+
+def _summarise_optimisation(
+    agent_cycle: Mapping[str, Any],
+    trade_payload: Mapping[str, Any],
+) -> Dict[str, Any]:
+    agents = agent_cycle.get("agents") if isinstance(agent_cycle, Mapping) else {}
+    risk_agent = agents.get("risk") if isinstance(agents, Mapping) else {}
+
+    escalations: Sequence[str] = ()
+    hedge_count = 0
+    risk_notes: list[str] = []
+
+    if isinstance(risk_agent, Mapping):
+        raw_escalations = risk_agent.get("escalations")
+        if isinstance(raw_escalations, Sequence) and not isinstance(raw_escalations, (str, bytes)):
+            escalations = tuple(str(item) for item in raw_escalations if str(item))
+        hedge_decisions = risk_agent.get("hedge_decisions")
+        if isinstance(hedge_decisions, Sequence):
+            hedge_count = len(tuple(hedge_decisions))
+        adjusted_signal = risk_agent.get("adjusted_signal")
+        if isinstance(adjusted_signal, Mapping):
+            notes = adjusted_signal.get("risk_notes")
+            if isinstance(notes, Sequence) and not isinstance(notes, (str, bytes)):
+                risk_notes = [str(note) for note in notes if str(note)]
+
+    status = trade_payload.get("status") if isinstance(trade_payload, Mapping) else None
+    decision = agent_cycle.get("decision") if isinstance(agent_cycle, Mapping) else {}
+    confidence = decision.get("confidence") if isinstance(decision, Mapping) else None
+
+    return {
+        "status": status,
+        "confidence": confidence,
+        "risk_flags": tuple(escalations),
+        "hedges_recommended": hedge_count,
+        "risk_notes": tuple(risk_notes),
+    }
+
+
+def run_dynamic_algo_alignment(context: Mapping[str, Any]) -> Dict[str, Any]:
+    """Bridge Dynamic AI personas with the Dynamic Algo executor."""
+
+    base_context: Dict[str, Any] = dict(context or {})
+    provided_cycle = base_context.get("agent_cycle")
+    if isinstance(provided_cycle, Mapping) and provided_cycle.get("decision"):
+        agent_cycle = dict(provided_cycle)
+    else:
+        agent_cycle = run_dynamic_agent_cycle(base_context)
+
+    symbol = _coerce_symbol(
+        base_context.get("symbol")
+        or base_context.get("market_symbol")
+        or base_context.get("instrument"),
+    )
+    lot = _coerce_lot(base_context.get("lot") or base_context.get("order_size"))
+
+    trade_signal = _select_trade_signal(agent_cycle)
+    trader = _ensure_trade_algo(
+        base_context.get("trader")
+        or base_context.get("trade_algo")
+        or base_context.get("executor"),
+    )
+
+    trade_result = trader.execute_trade(trade_signal, lot=lot, symbol=symbol)
+    trade_payload = _coerce_payload(trade_result)
+    trade_payload.setdefault("symbol", symbol)
+    trade_payload.setdefault("lot", lot)
+    trade_payload.setdefault("message", getattr(trade_result, "message", ""))
+    trade_payload["status"] = "executed" if getattr(trade_result, "ok", False) else "skipped"
+
+    treasury_event = _apply_treasury_updates(trade_result, base_context.get("treasury"))
+    optimisation = _summarise_optimisation(agent_cycle, trade_payload)
+
+    return {
+        "symbol": symbol,
+        "lot": lot,
+        "agents": agent_cycle.get("agents", {}),
+        "decision": agent_cycle.get("decision", {}),
+        "trade": trade_payload,
+        "treasury_event": treasury_event,
+        "optimisation": optimisation,
     }
 
 
@@ -450,13 +603,25 @@ dynamic_agent_cycle_adapter = AlgorithmSyncAdapter(
 )
 
 
+dynamic_algo_sync_adapter = AlgorithmSyncAdapter(
+    name="dynamic_algo_alignment",
+    runner=run_dynamic_algo_alignment,
+    description="Align Dynamic AI persona outputs with Dynamic Algo execution",
+    metadata={"chain": ("research", "execution", "risk", "trading")},
+    tags=("dynamic_ai", "dynamic_algo", "execution"),
+    notes=("Runs the persona cycle, executes via paper trading, and surfaces optimisation cues.",),
+)
+
+
 __all__ = [
     "dynamic_agent_cycle_adapter",
+    "dynamic_algo_sync_adapter",
     "AlgorithmSyncAdapter",
     "AlgorithmSyncResult",
     "DynamicAISummary",
     "DynamicAISyncReport",
     "DynamicAISynchroniser",
+    "run_dynamic_algo_alignment",
     "run_dynamic_agent_cycle",
 ]
 
