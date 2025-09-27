@@ -23,7 +23,7 @@ DEFAULT_SYMBOLS: Mapping[str, str] = {
     "SI=F": "Silver futures",
     "CL=F": "WTI crude",
     "^GSPC": "S&P 500",
-    "^IXIC": "Nasdaq 100",
+    "^NDX": "Nasdaq 100",
     "^RUT": "Russell 2000",
     "BTC-USD": "Bitcoin",
     "ETH-USD": "Ethereum",
