@@ -50,7 +50,7 @@ class DynamicFusionAlgo:
         return AISignal(action=ai_action, confidence=confidence, reasoning=reasoning, original_signal=raw_signal)
 
     def _refine_action(self, raw_signal: str, market_data: Dict[str, Any]) -> str:
-        momentum = float(market_data.get("momentum", 0.0))
+        momentum = self._coerce_float(market_data.get("momentum"), default=0.0)
         trend = str(market_data.get("trend", "")).lower()
 
         if momentum > 0.6 and raw_signal == "BUY":
@@ -66,9 +66,9 @@ class DynamicFusionAlgo:
         return raw_signal
 
     def _calculate_confidence(self, raw_signal: str, market_data: Dict[str, Any]) -> float:
-        base_confidence = float(market_data.get("confidence", self.neutral_confidence))
-        volatility = float(market_data.get("volatility", 0.0))
-        news_topics = [str(topic).lower() for topic in market_data.get("news", [])]
+        base_confidence = self._coerce_float(market_data.get("confidence"), default=self.neutral_confidence)
+        volatility = self._coerce_float(market_data.get("volatility"), default=0.0)
+        news_topics = [str(topic).lower() for topic in self._normalise_news_topics(market_data.get("news"))]
 
         confidence = max(0.0, min(1.0, base_confidence))
 
@@ -111,3 +111,29 @@ class DynamicFusionAlgo:
             comments.append("Signal defaulted to neutral heuristics due to limited context.")
 
         return " ".join(comments)
+
+    @staticmethod
+    def _coerce_float(value: Any, *, default: float) -> float:
+        """Attempt to cast a value to float, falling back to a default on failure."""
+
+        if value is None:
+            return default
+
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def _normalise_news_topics(raw_topics: Any) -> Iterable[Any]:
+        """Return an iterable of news topics regardless of the incoming payload shape."""
+
+        if raw_topics is None:
+            return []
+        if isinstance(raw_topics, str):
+            return [raw_topics]
+        if isinstance(raw_topics, (bytes, bytearray)):
+            return [raw_topics]
+        if isinstance(raw_topics, Iterable):
+            return raw_topics
+        return [raw_topics]
