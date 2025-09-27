@@ -217,7 +217,7 @@
     background-size: 220% 100%;
     mix-blend-mode: screen;
     opacity: 0.52;
-    animation: ascii-shader-pan 14s linear infinite;
+    animation: ascii-shader-pan var(--ascii-pan-duration, 14s) linear infinite;
     mask-image: var(--ascii-shader-texture);
     mask-repeat: repeat;
     mask-size: var(--ascii-mask-size, 260px 140%);
@@ -225,6 +225,11 @@
     -webkit-mask-repeat: repeat;
     -webkit-mask-size: var(--ascii-mask-size, 260px 140%);
     filter: saturate(1.25) contrast(1.05);
+  }
+
+  .ascii-shader-text[data-ascii-animated="false"]::after {
+    animation: none;
+    background-position: 0% 50%;
   }
 
   .ascii-shader-text[data-ascii-intensity="subtle"]::before {
@@ -254,8 +259,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .ascii-shader-text::after {
-      animation-duration: 0.01s;
-      animation-iteration-count: 1;
+      animation: none;
     }
   }
 
