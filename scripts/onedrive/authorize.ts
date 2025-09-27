@@ -1,5 +1,4 @@
 import { spawn } from "node:child_process";
-import { promises as fs } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -31,6 +30,7 @@ function printHelp(): void {
       `                        Defaults to the provided Dynamic tenant payload.\n` +
       `  --token <json>         Skip the authorization flow and use the provided token JSON.\n` +
       `  --dry-run              Perform all steps without writing to the config file.\n` +
+      `                        The remote must already exist (create it with 'rclone config').\n` +
       `  --help                 Show this help message.\n`,
   );
 }
@@ -85,19 +85,32 @@ function parseArgs(argv: string[]): CliOptions {
   return options;
 }
 
-async function runRcloneAuthorize(authConfig: string): Promise<string> {
+async function runRclone(
+  args: string[],
+  { captureStdout = false }: { captureStdout?: boolean } = {},
+): Promise<string> {
   return await new Promise((resolve, reject) => {
-    const child = spawn("rclone", ["authorize", "onedrive", authConfig], {
+    const child = spawn("rclone", args, {
       stdio: ["ignore", "pipe", "inherit"],
     });
 
     let stdout = "";
 
-    child.stdout.on("data", (chunk: Buffer) => {
-      stdout += chunk.toString();
+    child.stdout?.on("data", (chunk: Buffer) => {
+      if (captureStdout) {
+        stdout += chunk.toString();
+      }
     });
 
-    child.on("error", (error) => {
+    child.on("error", (error: NodeJS.ErrnoException) => {
+      if (error.code === "ENOENT") {
+        reject(
+          new Error(
+            "rclone executable not found. Install rclone and ensure it is on your PATH.",
+          ),
+        );
+        return;
+      }
       reject(error);
     });
 
@@ -107,15 +120,23 @@ async function runRcloneAuthorize(authConfig: string): Promise<string> {
         return;
       }
 
-      const token = extractToken(stdout);
-      if (!token) {
-        reject(new Error("Failed to parse token from rclone output"));
-        return;
-      }
-
-      resolve(token);
+      resolve(stdout.trim());
     });
   });
+}
+
+async function runRcloneAuthorize(authConfig: string): Promise<string> {
+  const output = await runRclone(
+    ["authorize", "onedrive", authConfig],
+    { captureStdout: true },
+  );
+
+  const token = extractToken(output);
+  if (!token) {
+    throw new Error("Failed to parse token from rclone output");
+  }
+
+  return token;
 }
 
 function extractToken(output: string): string | null {
@@ -137,113 +158,80 @@ function extractToken(output: string): string | null {
   return null;
 }
 
-async function loadConfig(configPath: string): Promise<string> {
-  try {
-    return await fs.readFile(configPath, "utf8");
-  } catch (error) {
-    const err = error as NodeJS.ErrnoException;
-    if (err.code === "ENOENT") {
-      throw new Error(`rclone config not found at ${configPath}`);
-    }
-    throw error;
-  }
-}
-
-function updateToken(
-  config: string,
+async function remoteExists(
   remote: string,
-  token: string,
-): { updatedConfig: string; replaced: boolean } {
-  const lines = config.split(/\r?\n/);
-  let inTargetSection = false;
-  let remoteFound = false;
-  let tokenReplaced = false;
-  let insertIndex = -1;
+  configPath: string,
+): Promise<boolean> {
+  const output = await runRclone([
+    "listremotes",
+    "--config",
+    configPath,
+  ], { captureStdout: true });
 
-  for (let index = 0; index < lines.length; index++) {
-    const line = lines[index];
-    const trimmed = line.trim();
-
-    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-      const sectionName = trimmed.slice(1, -1);
-      if (sectionName === remote) {
-        inTargetSection = true;
-        remoteFound = true;
-        insertIndex = index + 1;
-      } else if (inTargetSection) {
-        // We reached the next section.
-        insertIndex = index;
-        inTargetSection = false;
-      } else if (!remoteFound) {
-        insertIndex = index + 1;
-      }
-      continue;
-    }
-
-    if (inTargetSection) {
-      if (trimmed.startsWith("token")) {
-        lines[index] = `token = ${token}`;
-        tokenReplaced = true;
-      }
-      insertIndex = index + 1;
-    }
-  }
-
-  if (!remoteFound) {
-    throw new Error(`Remote '${remote}' not found in ${"rclone.conf"}`);
-  }
-
-  if (!tokenReplaced) {
-    if (insertIndex === -1) {
-      insertIndex = lines.length;
-    }
-    lines.splice(insertIndex, 0, `token = ${token}`);
-  }
-
-  return {
-    updatedConfig: lines.join("\n").replace(/\n+$/u, "") + "\n",
-    replaced: tokenReplaced,
-  };
+  return output
+    .split(/\r?\n/)
+    .map((line) => line.trim().replace(/:$/, ""))
+    .filter(Boolean)
+    .includes(remote);
 }
 
-async function writeConfig(
+async function updateRemoteToken(
+  remote: string,
   configPath: string,
-  updatedConfig: string,
+  token: string,
 ): Promise<void> {
-  const directory = path.dirname(configPath);
-  await fs.mkdir(directory, { recursive: true });
-  await fs.writeFile(configPath, updatedConfig, "utf8");
+  await runRclone([
+    "config",
+    "update",
+    remote,
+    "token",
+    token,
+    "--config",
+    configPath,
+    "--non-interactive",
+  ]);
+}
+
+function expandConfigPath(configPath: string): string {
+  if (configPath.startsWith("~/")) {
+    return path.join(homedir(), configPath.slice(2));
+  }
+  return path.isAbsolute(configPath)
+    ? configPath
+    : path.resolve(process.cwd(), configPath);
 }
 
 async function main(): Promise<void> {
   try {
     const options = parseArgs(process.argv.slice(2));
-    const token = options.token ?? await runRcloneAuthorize(options.authConfig);
+    const configPath = expandConfigPath(options.configPath);
+    const token = (
+      options.token ?? await runRcloneAuthorize(options.authConfig)
+    ).trim();
 
     console.log("✔ Token retrieved successfully");
-
-    const configContents = await loadConfig(options.configPath);
-    const { updatedConfig, replaced } = updateToken(
-      configContents,
-      options.remote,
-      token,
-    );
 
     if (options.dryRun) {
       console.log("ℹ Dry run enabled - not writing changes to disk.");
       console.log(
-        replaced
-          ? `Existing token for remote '${options.remote}' would be updated.`
-          : `Token entry would be added to remote '${options.remote}'.`,
+        `Would run: rclone config update ${options.remote} token <redacted> --config ${configPath}`,
+      );
+      console.log(
+        "Ensure the remote exists by running 'rclone config' before executing without --dry-run.",
       );
       return;
     }
 
-    await writeConfig(options.configPath, updatedConfig);
+    const exists = await remoteExists(options.remote, configPath);
+    if (!exists) {
+      throw new Error(
+        `Remote '${options.remote}' not found. Run 'rclone config' to create it before updating the token.`,
+      );
+    }
+
+    await updateRemoteToken(options.remote, configPath, token);
     console.log(
-      replaced
-        ? `✔ Updated token for remote '${options.remote}' in ${options.configPath}`
-        : `✔ Added token for remote '${options.remote}' in ${options.configPath}`,
+      `✔ Updated token for remote '${options.remote}' via rclone config in ${configPath}`,
     );
   } catch (error) {
     if (error instanceof Error) {

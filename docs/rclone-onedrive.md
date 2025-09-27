@@ -30,15 +30,29 @@ terminal. Copy the entire JSON block that looks similar to:
 
 This token will be used to update your `rclone.conf`.
 
-## Update `rclone.conf`
+## Ensure the OneDrive Remote Exists
 
-1. Run `rclone config`.
-2. Choose the remote corresponding to OneDrive or create a new remote.
-3. When prompted for advanced configuration, select **Yes** to edit the config
-   manually.
-4. Paste the JSON token you copied into the `token` field of your OneDrive
-   remote configuration.
-5. Save and exit the config tool.
+If you have not already configured the OneDrive remote on the machine, run the
+interactive tool:
+
+```bash
+rclone config
+```
+
+Select the existing OneDrive remote or create a new one with the `onedrive`
+backend. Accept the default options unless you have custom requirements, then
+quit the tool to save your changes.
+
+## Update the Token Manually
+
+To paste the token without the helper script, run:
+
+```bash
+rclone config update onedrive token '{"access_token":"..."}' --config ~/.config/rclone/rclone.conf --non-interactive
+```
+
+Replace `onedrive` with your remote name and update the config path if you keep
+`rclone.conf` elsewhere.
 
 ## Automate the Token Update
 
@@ -49,12 +63,16 @@ tsx scripts/onedrive/authorize.ts --remote onedrive --config ~/.config/rclone/rc
 ```
 
 The script calls `rclone authorize` with the Dynamic tenant payload, parses the
-token output, and writes it to the specified remote in your `rclone.conf`. If
-you already have a token from another machine, pass it directly and perform a
-dry run:
+token output, and updates the chosen remote using `rclone config update`. Ensure
+the remote already exists (see above). If you already have a token from another
+machine, pass it directly and perform a dry run:
 
 ```bash
-tsx scripts/onedrive/authorize.ts --token '{"access_token":"..."}' --remote onedrive --config ~/.config/rclone/rclone.conf --dry-run
+tsx scripts/onedrive/authorize.ts \
+  --token '{"access_token":"..."}' \
+  --remote onedrive \
+  --config ~/.config/rclone/rclone.conf \
+  --dry-run
 ```
 
 ## Verify the Configuration
