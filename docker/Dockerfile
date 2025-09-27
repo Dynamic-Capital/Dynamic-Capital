@@ -1,6 +1,15 @@
 # syntax=docker/dockerfile:1.4
 # Stage 1: build
-FROM node:22-alpine AS builder
+FROM node:22-alpine AS base
+
+ENV TZ=UTC
+
+# Install timezone database and ensure the container clock uses UTC
+RUN apk add --no-cache tzdata \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone
+
+FROM base AS builder
 WORKDIR /app
 
 # Install dependencies for root and web app
@@ -14,7 +23,7 @@ RUN --mount=type=cache,target=/app/apps/web/.next/cache npm run build
 RUN npm prune --omit=dev
 
 # Stage 2: runtime
-FROM node:22-alpine
+FROM base
 WORKDIR /app
 
 ENV NODE_ENV=production
