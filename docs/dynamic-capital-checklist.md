@@ -40,31 +40,32 @@ in your PR/issue notes so reviewers can see the evidence.
 - [x] Sync `.env` and `.env.local` with `.env.example` (`npm run sync-env`) to
       ensure new environment keys are captured locally. _Ran on 2025-09-27; both
       files already contained the expected keys so no changes were needed._
-- [ ] Run the repository test suite (`npm run test`) so Deno and Next.js smoke
-      tests cover the latest changes. _Blocked: the suite aborts with syntax
-      errors from placeholder `await Promise.resolve();` statements in multiple
-      Supabase function modules (for example
-      `supabase/functions/_shared/config.ts:196` and
-      `supabase/functions/telegram-bot/index.ts:229`), causing 18 tests to fail
-      immediately._
+- [x] Run the repository test suite (`npm run test`) so Deno and Next.js smoke
+      tests cover the latest changes. _Completed on 2025-09-27; all 90 tests
+      passed alongside the static homepage regression check._
 - [ ] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to
-      apply formatting and rerun Deno format/lint/type checks. _Not attempted in
-      this run because the failing test suite must be addressed first; the
-      underlying syntax issue will also surface during the lint phase._
+      apply formatting and rerun Deno format/lint/type checks. _Blocked: the
+      first lint pass fails immediately with existing violations, including_
+      `scripts/import-vip-csv.ts` _importing `https://deno.land/std@0.224.0/csv`
+      directly (violates **no-import-prefix**) and
+      `scripts/build-landing.mjs`_ `runCopyStatic` _/ `landingSnapshotExists`
+      declared `async` without awaits (violates **require-await**). The run also
+      surfaces unused variables such as `err` in `scripts/predeploy.js`._
 - [ ] Run the aggregated verification suite (`npm run verify`) for the bundled
-      static, runtime, and integration safety checks. _Pending a green repository
-      test suite so the verification harness can complete._
+      static, runtime, and integration safety checks. _Pending until the
+      lint/type gate in `fix_and_check.sh` succeeds._
 - [ ] Audit Supabase Edge function hosts
       (`deno run -A scripts/audit-edge-hosts.ts`) to detect environment drift
       between deployments. _Not executed in this attempt; schedule after the
-      blocking test failures are resolved._
+      lint blockers above are addressed._
 - [ ] Check linkage across environment variables and outbound URLs
       (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Not yet
-      run in this session because automation halted at the failing test step._
+      run in this session because automation halted during the fix-and-check
+      stage._
 - [ ] Verify the Telegram webhook configuration
       (`deno run -A scripts/check-webhook.ts`) so bot traffic hits the expected
-      endpoint. _Requires rerunning the checklist after test and lint blockers
-      are fixed._
+      endpoint. _Requires rerunning the checklist after the lint blockers are
+      fixed._
 - [ ] _Optional:_ Run the mini app smoke test
       (`deno run -A scripts/smoke-miniapp.ts`) to mirror the go-live walkthrough
       end-to-end. _Still pending; hold until the required tasks above succeed._
@@ -72,17 +73,19 @@ in your PR/issue notes so reviewers can see the evidence.
 ### Latest automation run (2025-09-27)
 
 - Command: `npm run checklists -- --checklist dynamic-capital`
-- Outcome: Halted at task **repo-test** because `npm run test` surfaced syntax
-  errors tied to placeholder `await Promise.resolve();` lines injected to bypass
-  `require-await` linting in Supabase function handlers. Representative
-  failures:
-  - `supabase/functions/_shared/config.ts:196`
-  - `supabase/functions/telegram-bot/index.ts:229`
-  - `supabase/functions/_shared/jwt.ts:14`
-- Next steps: Remove the placeholder `await Promise.resolve();` statements (or
-  replace them with real async work) so the modules parse correctly, then rerun
-  the checklist to progress through linting, verification, and Supabase health
-  checks.
+- Outcome: Completed **sync-env** and **repo-test** (all 90 tests passed), then
+  halted during **fix-and-check** because Deno lint surfaced existing issues.
+  Representative errors:
+  - `scripts/import-vip-csv.ts` – `no-import-prefix` flagged the direct
+    `https://deno.land/std@0.224.0/csv/mod.ts` import.
+  - `scripts/build-landing.mjs` – `runCopyStatic`/`landingSnapshotExists` are
+    marked `async` without awaits (`require-await`).
+  - `scripts/predeploy.js` – unused `err` variable (`no-unused-vars`).
+- Next steps: Convert external module imports to use the shared import map or
+  vendored utilities, drop unnecessary `async` keywords (or add awaited work),
+  and rename/underscore unused variables so the lint phase can complete. Once
+  `fix_and_check.sh` exits cleanly, rerun the checklist to unblock verification
+  and Supabase health checks.
 
 ## Setup Follow-Ups
 
