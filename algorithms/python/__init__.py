@@ -250,6 +250,8 @@ from .dynamic_ai_sync import (
     DynamicAISummary,
     DynamicAISyncReport,
     DynamicAISynchroniser,
+    dynamic_agent_cycle_adapter,
+    run_dynamic_agent_cycle,
 )
 from .dynamic_market_outlook import (
     DynamicMarketOutlookEngine,
@@ -421,6 +423,8 @@ __all__ = _trade_exports + [
     "DynamicAISummary",
     "DynamicAISyncReport",
     "DynamicAISynchroniser",
+    "dynamic_agent_cycle_adapter",
+    "run_dynamic_agent_cycle",
     "DailyRoutineAllocator",
     "DynamicMarketOutlookEngine",
     "MarketOutlookReport",

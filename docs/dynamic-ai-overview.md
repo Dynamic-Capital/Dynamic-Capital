@@ -9,6 +9,7 @@ Dynamic AI (DAI) is the "Brain" of the Dynamic Capital organism. It fuses market
 | Multi-lobe fusion | Normalises directional, momentum, sentiment, and treasury lobes into a bounded signal with rationale + confidence payloads. | `dynamic_ai/fusion.py`【F:dynamic_ai/fusion.py†L13-L167】 |
 | Regime-aware weighting | Adjusts each lobe’s influence based on volatility, session, and risk-off signals before mapping to BUY/SELL/NEUTRAL actions. | `dynamic_ai/fusion.py`【F:dynamic_ai/fusion.py†L169-L214】 |
 | Lorentzian calibration | Rebuilds Lorentzian lobes from serialized models, enforcing sane sensitivity thresholds for new market regimes. | `dynamic_ai/training.py`【F:dynamic_ai/training.py†L14-L48】 |
+| Persona agents | Packages research, execution, and risk personas with consistent payloads so orchestration can route requests through a reusable chain. | `dynamic_ai/agents.py`【F:dynamic_ai/agents.py†L1-L382】 |
 | Automation feedback | Routes telemetry, governance hooks, and integration payloads through the broader ecosystem so retraining and compliance stay in lockstep. | `docs/dynamic-capital-ecosystem-anatomy.md`【F:docs/dynamic-capital-ecosystem-anatomy.md†L16-L288】 |
 
 ## 2. Signal Lifecycle
@@ -55,3 +56,16 @@ Use the checklist below when deploying updates or reviewing production health:
 - Keep telemetry rich and human-in-the-loop channels active to catch regressions before they propagate to live capital flows.【F:docs/multi-llm-algo-enhancement-roadmap.md†L36-L94】
 
 With these practices, Dynamic AI stays transparent, auditable, and responsive as the automation stack scales across strategies and market conditions.
+
+## 7. Persona Agent Chain
+
+Dynamic AI now exposes a persona chain that mirrors the roadmap’s research → execution → risk flow. The `ResearchAgent`, `ExecutionAgent`, and `RiskAgent` share a common result contract so orchestration can serialise outcomes without bespoke glue.【F:dynamic_ai/agents.py†L22-L365】 The sync helper `run_dynamic_agent_cycle` wires the personas together, expecting the following context keys when executed manually or via `AlgorithmSyncAdapter`:
+
+1. `research_payload` – optional research inputs (technical/fundamental/sentiment/macro) consumed by the analysis persona.
+2. `market_payload` – market snapshot for signal fusion (raw signal, confidence, momentum, etc.).
+3. `risk_context` – drawdown, treasury utilisation, treasury health, and volatility metrics feeding guardrails.
+4. `market_state` – hedging telemetry (`volatility`, optional `correlations`, `news`) for the hedge policy.
+5. `account_state` – open exposures/hedges and high-level account limits.
+6. Optional `risk_parameters` to override guardrail tolerances per run.
+
+The helper returns the persona outputs plus a consolidated decision payload combining the fused action, risk adjustments, and hedge directives so downstream systems ingest a single, structured packet.【F:algorithms/python/dynamic_ai_sync.py†L64-L143】【F:algorithms/python/dynamic_ai_sync.py†L284-L292】

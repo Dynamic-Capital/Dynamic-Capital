@@ -10,6 +10,8 @@ from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 
 from typing_extensions import Literal
 
+from dynamic_ai import ExecutionAgent, ResearchAgent, RiskAgent
+
 from .multi_llm import LLMConfig, LLMRun, collect_strings, parse_json_response, serialise_runs
 
 AlgorithmStatus = Literal["success", "error"]
@@ -80,6 +82,73 @@ def _flatten_strings(value: Any) -> list[str]:
     if text:
         results.append(text)
     return results
+
+
+def _first_mapping(context: Mapping[str, Any], *keys: str) -> Mapping[str, Any]:
+    for key in keys:
+        value = context.get(key)
+        if isinstance(value, Mapping):
+            return value
+    return {}
+
+
+def run_dynamic_agent_cycle(context: Mapping[str, Any]) -> Dict[str, Any]:
+    """Execute the research → execution → risk persona chain."""
+
+    base_context: Dict[str, Any] = dict(context or {})
+
+    research_agent = base_context.get("research_agent")
+    if not isinstance(research_agent, ResearchAgent):
+        research_agent = ResearchAgent()
+
+    execution_agent = base_context.get("execution_agent")
+    if not isinstance(execution_agent, ExecutionAgent):
+        execution_agent = ExecutionAgent()
+
+    risk_agent = base_context.get("risk_agent")
+    if not isinstance(risk_agent, RiskAgent):
+        risk_agent = RiskAgent()
+
+    research_payload = dict(_first_mapping(base_context, "research_payload", "research", "analysis_payload"))
+    research_result = research_agent.run(research_payload)
+    research_dict = research_result.to_dict()
+
+    market_payload = dict(_first_mapping(base_context, "market_payload", "market", "signal_payload"))
+    execution_result = execution_agent.run({"market": market_payload, "analysis": research_dict.get("analysis", {})})
+    execution_dict = execution_result.to_dict()
+
+    risk_section = _first_mapping(base_context, "risk_payload", "risk")
+    risk_payload: Dict[str, Any] = {
+        "signal": execution_result.signal,
+        "risk_context": risk_section.get("risk_context") or base_context.get("risk_context"),
+        "risk_parameters": risk_section.get("risk_parameters") or base_context.get("risk_parameters"),
+        "account_state": risk_section.get("account_state") or base_context.get("account_state"),
+        "market_state": risk_section.get("market_state") or base_context.get("market_state"),
+    }
+
+    risk_result = risk_agent.run(risk_payload)
+    risk_dict = risk_result.to_dict()
+
+    adjusted_signal = risk_dict.get("adjusted_signal", {})
+    decision_payload: Dict[str, Any] = {
+        "action": adjusted_signal.get("action", execution_dict["signal"]["action"]),
+        "confidence": adjusted_signal.get("confidence", execution_dict["signal"].get("confidence")),
+        "rationale": risk_result.rationale or execution_result.rationale,
+        "hedge_decisions": risk_dict.get("hedge_decisions", []),
+    }
+    if sizing := risk_dict.get("sizing"):
+        decision_payload["sizing"] = sizing
+    if escalations := risk_dict.get("escalations"):
+        decision_payload["escalations"] = escalations
+
+    return {
+        "agents": {
+            "research": research_dict,
+            "execution": execution_dict,
+            "risk": risk_dict,
+        },
+        "decision": decision_payload,
+    }
 
 
 @dataclass(slots=True)
@@ -371,11 +440,23 @@ class DynamicAISynchroniser:
         )
 
 
+dynamic_agent_cycle_adapter = AlgorithmSyncAdapter(
+    name="dynamic_agent_cycle",
+    runner=run_dynamic_agent_cycle,
+    description="Run the Dynamic AI research → execution → risk agents",
+    metadata={"agents": ("research", "execution", "risk")},
+    tags=("dynamic_ai", "agents"),
+    notes=("Includes fused signal, guardrails, and hedge directives.",),
+)
+
+
 __all__ = [
+    "dynamic_agent_cycle_adapter",
     "AlgorithmSyncAdapter",
     "AlgorithmSyncResult",
     "DynamicAISummary",
     "DynamicAISyncReport",
     "DynamicAISynchroniser",
+    "run_dynamic_agent_cycle",
 ]
 
