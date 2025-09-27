@@ -172,6 +172,14 @@ from .human_resources_playbooks import (
     build_human_resources_playbooks,
     build_human_resources_sync_algorithm,
 )
+from .playbook_training import (
+    DEFAULT_TRAINING_INSTRUCTION,
+    PlaybookTrainingExample,
+    build_playbook_training_dataset,
+    normalise_statements,
+    optimise_playbook,
+    optimise_playbook_catalogue,
+)
 from .team_operations import (
     COMMUNITY_PLAYBOOKS as TEAM_COMMUNITY_PLAYBOOKS,
     DEVELOPMENT_PLAYBOOKS as TEAM_DEVELOPMENT_PLAYBOOKS,
@@ -358,6 +366,12 @@ __all__ = _trade_exports + [
     "HUMAN_RESOURCES_PLAYBOOKS",
     "build_human_resources_playbooks",
     "build_human_resources_sync_algorithm",
+    "DEFAULT_TRAINING_INSTRUCTION",
+    "PlaybookTrainingExample",
+    "build_playbook_training_dataset",
+    "normalise_statements",
+    "optimise_playbook",
+    "optimise_playbook_catalogue",
     "TEAM_MARKETING_PLAYBOOKS",
     "TEAM_COMMUNITY_PLAYBOOKS",
     "TEAM_DEVELOPMENT_PLAYBOOKS",

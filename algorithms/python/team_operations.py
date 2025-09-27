@@ -4,10 +4,21 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Sequence
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
 from .desk_sync import DynamicTeamRoleSyncAlgorithm, TeamRolePlaybook
-from .multi_llm import LLMConfig, LLMRun, collect_strings, parse_json_response, serialise_runs
+from .multi_llm import (
+    LLMConfig,
+    LLMRun,
+    collect_strings,
+    parse_json_response,
+    serialise_runs,
+)
+from .playbook_training import (
+    PlaybookTrainingExample,
+    build_playbook_training_dataset,
+    optimise_playbook,
+)
 
 __all__ = [
     "MARKETING_PLAYBOOKS",
@@ -682,9 +693,11 @@ def _aggregate_playbooks(include_optional: bool = True) -> Dict[str, TeamRolePla
         DEVELOPMENT_PLAYBOOKS,
         OPERATIONS_PLAYBOOKS,
     ):
-        playbooks.update(catalogue)
+        for name, playbook in catalogue.items():
+            playbooks[name] = optimise_playbook(playbook)
     if include_optional:
-        playbooks.update(OPTIONAL_PLAYBOOKS)
+        for name, playbook in OPTIONAL_PLAYBOOKS.items():
+            playbooks[name] = optimise_playbook(playbook)
     return playbooks
 
 
@@ -860,6 +873,46 @@ class TeamOperationsLLMPlanner:
             runs=runs,
             raw_response=serialise_runs(runs),
         )
+
+    def prepare_training_dataset(
+        self,
+        playbooks: Mapping[str, TeamRolePlaybook],
+        *,
+        focus: Optional[Iterable[str]] = None,
+        context: Optional[Mapping[str, Any]] = None,
+        instructions: Optional[str] = None,
+        include_cohort_example: bool = True,
+    ) -> list[PlaybookTrainingExample]:
+        """Return optimised training samples annotated with planner metadata."""
+
+        dataset = build_playbook_training_dataset(
+            playbooks,
+            focus=focus,
+            instructions=instructions,
+            include_cohort_example=include_cohort_example,
+        )
+
+        model_names = collect_strings(
+            self._strategy.name,
+            getattr(self._operations, "name", None),
+            getattr(self._risk, "name", None),
+        )
+        context_payload = dict(context or {})
+
+        focus_list = list(focus) if focus is not None else []
+
+        for example in dataset:
+            metadata = dict(example.metadata)
+            metadata.setdefault("models", model_names)
+            if context_payload:
+                existing_context = dict(metadata.get("context", {}))
+                existing_context.update(context_payload)
+                metadata["context"] = existing_context
+            if focus_list:
+                metadata.setdefault("focus", focus_list)
+            example.metadata = metadata
+
+        return dataset
 
     def _build_strategy_prompt(
         self,

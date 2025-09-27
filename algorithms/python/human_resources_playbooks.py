@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Dict
 
 from .desk_sync import DynamicTeamRoleSyncAlgorithm, TeamRolePlaybook
+from .playbook_training import optimise_playbook
 
 __all__ = [
     "PEOPLE_OPERATIONS_PLAYBOOK",
@@ -130,7 +131,7 @@ PEOPLE_DEVELOPMENT_PLAYBOOK = TeamRolePlaybook(
 
 
 HUMAN_RESOURCES_PLAYBOOKS = {
-    playbook.name: playbook
+    playbook.name: optimise_playbook(playbook)
     for playbook in (
         PEOPLE_OPERATIONS_PLAYBOOK,
         TALENT_ACQUISITION_PLAYBOOK,
