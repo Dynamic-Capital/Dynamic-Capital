@@ -26,6 +26,8 @@ __all__ = [
     "ResearchAgentResult",
     "RiskAgent",
     "RiskAgentResult",
+    "SpaceAgent",
+    "SpaceAgentResult",
     "run_dynamic_agent_cycle",
 ]
 
@@ -41,6 +43,8 @@ _AGENT_EXPORTS = {
     "ResearchAgentResult",
     "RiskAgent",
     "RiskAgentResult",
+    "SpaceAgent",
+    "SpaceAgentResult",
 }
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
@@ -57,6 +61,8 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
         ResearchAgentResult,
         RiskAgent,
         RiskAgentResult,
+        SpaceAgent,
+        SpaceAgentResult,
     )
 
 

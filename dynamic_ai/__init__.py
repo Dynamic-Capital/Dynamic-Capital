@@ -12,6 +12,8 @@ from .agents import (
     ResearchAgentResult,
     RiskAgent,
     RiskAgentResult,
+    SpaceAgent,
+    SpaceAgentResult,
 )
 from .core import AISignal, DynamicFusionAlgo
 from .dolphin_adapter import (
@@ -89,6 +91,8 @@ __all__ = [
     "RiskParameters",
     "RiskAgent",
     "RiskAgentResult",
+    "SpaceAgent",
+    "SpaceAgentResult",
     "AccountState",
     "DynamicHedgePolicy",
     "ExposurePosition",

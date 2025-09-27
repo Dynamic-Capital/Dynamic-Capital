@@ -18,6 +18,13 @@ from .hedge import (
     VolatilitySnapshot,
 )
 from .risk import PositionSizing, RiskContext, RiskManager, RiskParameters
+from dynamic_space import (
+    DynamicSpace,
+    SpaceEvent,
+    SpaceEventSeverity,
+    SpaceSector,
+    SpaceSnapshot,
+)
 
 
 @dataclass(slots=True)
@@ -123,6 +130,26 @@ class ChatAgentResult(AgentResult):
         return payload
 
 
+@dataclass(slots=True)
+class SpaceAgentResult(AgentResult):
+    """Operational insight produced by the Dynamic Space persona."""
+
+    sector: str
+    snapshot: SpaceSnapshot
+    events: tuple[SpaceEvent, ...] = field(default_factory=tuple)
+    recommendations: tuple[str, ...] = field(default_factory=tuple)
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = AgentResult.to_dict(self)
+        payload["sector"] = self.sector
+        payload["snapshot"] = _space_snapshot_to_dict(self.snapshot)
+        if self.events:
+            payload["events"] = [_space_event_to_dict(event) for event in self.events]
+        if self.recommendations:
+            payload["recommendations"] = list(self.recommendations)
+        return payload
+
+
 def _coerce_float(value: Any, default: float = 0.0) -> float:
     try:
         return float(value)
@@ -205,6 +232,73 @@ def _coerce_hedges(values: Iterable[Any] | None) -> Sequence[HedgePosition]:
                 )
             )
     return hedges
+
+
+def _coerce_sectors(values: Iterable[Any] | Any | None) -> Sequence[SpaceSector]:
+    if values is None:
+        return ()
+    if isinstance(values, (SpaceSector, Mapping)):
+        values = (values,)
+    if isinstance(values, (str, bytes)):
+        raise TypeError("sector definitions must not be strings")
+    sectors: list[SpaceSector] = []
+    for item in values:  # type: ignore[assignment]
+        if isinstance(item, SpaceSector):
+            sectors.append(item)
+        elif isinstance(item, Mapping):
+            sectors.append(SpaceSector(**item))
+        else:
+            raise TypeError("sector definitions must be SpaceSector instances or mappings")
+    return tuple(sectors)
+
+
+def _coerce_events(values: Iterable[Any] | Any | None) -> Sequence[SpaceEvent]:
+    if values is None:
+        return ()
+    if isinstance(values, (SpaceEvent, Mapping)):
+        values = (values,)
+    if isinstance(values, (str, bytes)):
+        raise TypeError("event definitions must not be strings")
+    events: list[SpaceEvent] = []
+    for item in values:  # type: ignore[assignment]
+        if isinstance(item, SpaceEvent):
+            events.append(item)
+        elif isinstance(item, Mapping):
+            events.append(SpaceEvent(**item))
+        else:
+            raise TypeError("events must be SpaceEvent instances or mappings")
+    return tuple(events)
+
+
+def _space_event_to_dict(event: SpaceEvent) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "sector_name": event.sector_name,
+        "description": event.description,
+        "impact_score": event.impact_score,
+        "severity": event.severity.value
+        if isinstance(event.severity, SpaceEventSeverity)
+        else str(event.severity),
+        "timestamp": event.timestamp.isoformat(),
+    }
+    metadata = getattr(event, "metadata", None)
+    if isinstance(metadata, Mapping) and metadata:
+        payload["metadata"] = dict(metadata)
+    return payload
+
+
+def _space_snapshot_to_dict(snapshot: SpaceSnapshot) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "sector_name": snapshot.sector_name,
+        "timestamp": snapshot.timestamp.isoformat(),
+        "stability_score": snapshot.stability_score,
+        "traffic_load": snapshot.traffic_load,
+        "hazard_index": snapshot.hazard_index,
+        "energy_output_gw": snapshot.energy_output_gw,
+    }
+    events = getattr(snapshot, "recent_events", ())
+    if events:
+        payload["recent_events"] = [_space_event_to_dict(event) for event in events]
+    return payload
 
 
 def _coerce_news(values: Iterable[Any] | None) -> Sequence[NewsEvent]:
@@ -418,6 +512,131 @@ class RiskAgent:
             sizing=sizing,
             hedge_decisions=tuple(hedge_decisions),
             escalations=tuple(escalations),
+        )
+
+
+_SEVERITY_RANK = {
+    SpaceEventSeverity.INFO: 0,
+    SpaceEventSeverity.ADVISORY: 1,
+    SpaceEventSeverity.ALERT: 2,
+    SpaceEventSeverity.CRITICAL: 3,
+}
+
+
+class SpaceAgent:
+    """Persona orchestrating :class:`dynamic_space.DynamicSpace` operations."""
+
+    name = "space"
+
+    def __init__(self, manager: DynamicSpace | None = None) -> None:
+        self.space = manager or DynamicSpace()
+
+    def run(self, payload: Mapping[str, Any]) -> SpaceAgentResult:
+        context = dict(payload or {})
+
+        sectors_payload = context.get("sectors")
+        try:
+            sectors = _coerce_sectors(sectors_payload)
+        except TypeError as exc:
+            raise ValueError(str(exc)) from exc
+        for sector in sectors:
+            self.space.register_sector(sector)
+
+        events_payload = context.get("events") or context.get("event")
+        try:
+            events = _coerce_events(events_payload)
+        except TypeError as exc:
+            raise ValueError(str(exc)) from exc
+        recorded_events: list[SpaceEvent] = []
+        if events:
+            if len(events) == 1:
+                recorded_events.append(self.space.record_event(events[0]))
+            else:
+                recorded_events.extend(self.space.ingest_events(events))
+
+        sector_name = None
+        for key in ("sector", "sector_name", "target", "focus"):
+            candidate = context.get(key)
+            if isinstance(candidate, str) and candidate.strip():
+                sector_name = candidate.strip()
+                break
+        if sector_name is None and recorded_events:
+            sector_name = recorded_events[-1].sector_name
+        if sector_name is None and self.space.sectors:
+            sector_name = self.space.sectors[0].name
+        if not sector_name:
+            raise ValueError("SpaceAgent requires a sector definition or prior events to operate.")
+
+        rebalance_requested = bool(context.get("rebalance") or context.get("rebalance_routes"))
+        congestion_threshold = _coerce_float(context.get("congestion_threshold"), 0.65)
+        damping_factor = _coerce_float(context.get("damping_factor"), 0.85)
+
+        if rebalance_requested:
+            sector_state = self.space.rebalance_routes(
+                sector_name,
+                congestion_threshold=congestion_threshold,
+                damping_factor=damping_factor,
+            )
+        else:
+            sector_state = self.space.get_sector(sector_name)
+
+        horizon_value = context.get("horizon") or context.get("lookahead")
+        try:
+            horizon = max(1, int(horizon_value)) if horizon_value is not None else 5
+        except (TypeError, ValueError):
+            horizon = 5
+
+        snapshot = self.space.snapshot(sector_state.name, horizon=horizon)
+        recent_events = tuple(snapshot.recent_events)
+
+        hazard_penalty = max(0.0, sector_state.hazard_index - 0.5) * 0.3
+        confidence = snapshot.stability_score - hazard_penalty
+        confidence = max(0.0, min(1.0, confidence))
+
+        narrative = (
+            f"Sector {snapshot.sector_name} stability {snapshot.stability_score:.2f}, "
+            f"traffic load {snapshot.traffic_load:.2f}, hazard {snapshot.hazard_index:.2f}."
+        )
+        if recent_events:
+            latest = recent_events[-1]
+            severity_value = (
+                latest.severity.value
+                if isinstance(latest.severity, SpaceEventSeverity)
+                else str(latest.severity)
+            )
+            narrative += f" Latest event: {latest.description} ({severity_value})."
+
+        recommendations: list[str] = []
+        if snapshot.stability_score < 0.45:
+            recommendations.append("Stability degraded; allocate support assets.")
+        if snapshot.traffic_load > congestion_threshold:
+            recommendations.append("Traffic congestion elevated; consider route rebalancing.")
+        if sector_state.hazard_index > 0.5:
+            recommendations.append("Hazard index elevated; deploy mitigation protocols.")
+        if recent_events:
+            highest_event = max(
+                recent_events,
+                key=lambda event: _SEVERITY_RANK.get(
+                    event.severity, _SEVERITY_RANK[SpaceEventSeverity.INFO]
+                ),
+            )
+            highest_rank = _SEVERITY_RANK.get(
+                highest_event.severity, _SEVERITY_RANK[SpaceEventSeverity.INFO]
+            )
+            if highest_rank >= _SEVERITY_RANK[SpaceEventSeverity.ALERT]:
+                recommendations.append("Alert-level events detected; maintain heightened monitoring.")
+
+        if not recommendations:
+            recommendations.append("Sector operating within nominal parameters.")
+
+        return SpaceAgentResult(
+            agent=self.name,
+            rationale=narrative,
+            confidence=confidence,
+            sector=snapshot.sector_name,
+            snapshot=snapshot,
+            events=recent_events,
+            recommendations=tuple(dict.fromkeys(recommendations)),
         )
 
 
@@ -641,4 +860,6 @@ __all__ = [
     "ResearchAgentResult",
     "RiskAgent",
     "RiskAgentResult",
+    "SpaceAgent",
+    "SpaceAgentResult",
 ]
