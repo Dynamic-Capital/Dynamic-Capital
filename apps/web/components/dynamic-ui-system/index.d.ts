@@ -1,1 +1,2 @@
-export * from "@once-ui-system/core";
+export * from "./internal/index";
+export { Pulse } from "./Pulse";

@@ -1,0 +1,133 @@
+"use client";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { forwardRef, useEffect, useState } from "react";
+import classNames from "classnames";
+import { Flex, Icon, InteractiveDetails } from ".";
+import styles from "./SharedInteractiveStyles.module.scss";
+const generateId = () =>
+  `checkbox-${Math.random().toString(36).substring(2, 9)}`;
+const Checkbox = forwardRef(
+  (
+    {
+      style,
+      className,
+      isChecked: controlledIsChecked,
+      isIndeterminate = false,
+      onToggle,
+      disabled,
+      ...props
+    },
+    ref,
+  ) => {
+    const [isChecked, setIsChecked] = useState(controlledIsChecked || false);
+    const [checkboxId] = useState(generateId());
+    useEffect(() => {
+      if (controlledIsChecked !== undefined) {
+        setIsChecked(controlledIsChecked);
+      }
+    }, [controlledIsChecked]);
+    const toggleItem = () => {
+      if (disabled) {
+        return;
+      }
+      if (onToggle) {
+        onToggle();
+      } else {
+        setIsChecked(!isChecked);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (disabled) {
+        return;
+      }
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggleItem();
+      }
+    };
+    return (_jsxs(Flex, {
+      vertical: "center",
+      gap: "16",
+      className: classNames(styles.container, className, {
+        [styles.disabled]: disabled,
+      }),
+      style: style,
+      children: [
+        _jsx("input", {
+          type: "checkbox",
+          ref: ref,
+          "aria-checked": isIndeterminate
+            ? "mixed"
+            : controlledIsChecked !== undefined
+            ? controlledIsChecked
+            : isChecked,
+          checked: controlledIsChecked !== undefined
+            ? controlledIsChecked
+            : isChecked,
+          onChange: toggleItem,
+          disabled: disabled,
+          className: styles.hidden,
+          tabIndex: -1,
+        }),
+        _jsxs(Flex, {
+          style: {
+            borderRadius: "min(var(--static-space-4), var(--radius-xs))",
+          },
+          role: "checkbox",
+          tabIndex: 0,
+          cursor: disabled ? "not-allowed" : undefined,
+          horizontal: "center",
+          vertical: "center",
+          radius: "xs",
+          "aria-checked": isIndeterminate
+            ? "mixed"
+            : controlledIsChecked !== undefined
+            ? controlledIsChecked
+            : isChecked,
+          "aria-labelledby": checkboxId,
+          onClick: toggleItem,
+          onKeyDown: handleKeyDown,
+          className: classNames(styles.element, {
+            [styles.checked]: controlledIsChecked !== undefined
+              ? controlledIsChecked || isIndeterminate
+              : isChecked,
+            [styles.disabled]: disabled,
+          }),
+          children: [
+            (controlledIsChecked !== undefined
+              ? controlledIsChecked
+              : isChecked) &&
+            !isIndeterminate &&
+            (_jsx(Flex, {
+              className: styles.icon,
+              children: _jsx(Icon, {
+                onSolid: "brand-strong",
+                name: "checkbox",
+                size: "xs",
+              }),
+            })),
+            isIndeterminate &&
+            (_jsx(Flex, {
+              className: styles.icon,
+              children: _jsx(Icon, {
+                onSolid: "brand-strong",
+                name: "minus",
+                size: "xs",
+              }),
+            })),
+          ],
+        }),
+        props.label &&
+        (_jsx(InteractiveDetails, {
+          disabled: disabled,
+          id: checkboxId,
+          ...props,
+          onClick: toggleItem,
+        })),
+      ],
+    }));
+  },
+);
+Checkbox.displayName = "Checkbox";
+export { Checkbox };
+//# sourceMappingURL=Checkbox.js.map

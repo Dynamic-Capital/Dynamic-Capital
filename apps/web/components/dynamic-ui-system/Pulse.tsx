@@ -1,11 +1,14 @@
+import clsx from "clsx";
 import { type ComponentProps, forwardRef, type ReactNode } from "react";
-import { Row } from "@once-ui-system/core/components";
-import styles from "@once-ui-system/core/dist/components/Pulse.module.scss";
+
+import { Row } from "./internal/components/Row";
 import type {
   Colors,
   ColorScheme,
   CondensedTShirtSizes,
-} from "@once-ui-system/core";
+} from "./internal/types";
+
+import styles from "./Pulse.module.scss";
 
 interface PulseProps extends ComponentProps<typeof Row> {
   variant?: ColorScheme;
@@ -41,11 +44,15 @@ const Pulse = forwardRef<HTMLDivElement, PulseProps>(
         minHeight={containerSize}
         center
         data-solid="color"
-        className={className}
+        className={clsx(styles.container, className)}
         style={style}
         {...flex}
       >
-        <Row position="absolute" className={styles.position}>
+        <Row
+          position="absolute"
+          className={styles.position}
+          pointerEvents="none"
+        >
           <Row
             solid={mediumSolid}
             radius="full"

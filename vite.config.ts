@@ -41,14 +41,6 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'apps/web'),
-      '@once-ui-system/core/css': path.resolve(
-        __dirname,
-        'node_modules/@once-ui-system/core/dist/css',
-      ),
-      '@once-ui-system/core': path.resolve(
-        __dirname,
-        'node_modules/@once-ui-system/core',
-      ),
       'next/font/google': path.resolve(
         __dirname,
         'src/stubs/next-font-google.ts',

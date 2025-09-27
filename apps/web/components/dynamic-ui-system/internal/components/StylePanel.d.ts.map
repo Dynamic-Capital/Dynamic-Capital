@@ -1,0 +1,1 @@
+{"version":3,"file":"StylePanel.d.ts","sourceRoot":"","sources":["../../src/components/StylePanel.tsx"],"names":[],"mappings":"AAGA,OAAO,EAAE,IAAI,EAAuE,MAAM,GAAG,CAAC;AAiB9F,UAAU,eAAgB,SAAQ,KAAK,CAAC,cAAc,CAAC,OAAO,IAAI,CAAC;IACjE,KAAK,CAAC,EAAE,KAAK,CAAC,aAAa,CAAC;IAC5B,SAAS,CAAC,EAAE,MAAM,CAAC;CACpB;AAUD,QAAA,MAAM,UAAU,yHA+ed,CAAC;AAGH,OAAO,EAAE,UAAU,EAAE,CAAC"}

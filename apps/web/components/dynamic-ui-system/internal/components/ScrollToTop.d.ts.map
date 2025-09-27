@@ -1,0 +1,1 @@
+{"version":3,"file":"ScrollToTop.d.ts","sourceRoot":"","sources":["../../src/components/ScrollToTop.tsx"],"names":[],"mappings":"AAGA,OAAO,EAAE,IAAI,EAAE,MAAM,GAAG,CAAC;AAIzB,UAAU,gBAAiB,SAAQ,KAAK,CAAC,cAAc,CAAC,OAAO,IAAI,CAAC;IAClE,MAAM,CAAC,EAAE,MAAM,CAAC;CACjB;AAED,eAAO,MAAM,WAAW,GAAI,0CAAgD,gBAAgB,4CAoC3F,CAAC"}
