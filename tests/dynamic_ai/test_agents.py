@@ -39,6 +39,15 @@ def test_dynamic_analysis_handles_generator_alignment() -> None:
     assert component.score == pytest.approx(0.05, abs=1e-6)
 
 
+def test_dynamic_analysis_handles_string_sentiment_sources() -> None:
+    analysis = DynamicAnalysis()
+
+    component = analysis._analyse_sentiment({"sources": "Breaking headline"})
+
+    assert component.score == pytest.approx(0.0, abs=1e-6)
+    assert component.signals["feed_count"] == 0
+
+
 def test_research_agent_generates_structured_analysis(research_payload: dict) -> None:
     agent = ResearchAgent()
 

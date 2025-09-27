@@ -11,6 +11,7 @@ from typing import (
     Dict,
     Iterable,
     List,
+    Mapping,
     Optional,
     Protocol,
     Sequence,
@@ -254,9 +255,18 @@ class DynamicFusionAlgo:
 
         composite_source = market_data.get("composite_scores") or market_data.get("model_scores")
         composite_scores: Tuple[float, ...] = ()
-        if isinstance(composite_source, Iterable) and not isinstance(composite_source, (str, bytes, bytearray)):
+
+        iterable_source: Iterable[Any] | None = None
+        if isinstance(composite_source, Mapping):
+            iterable_source = composite_source.values()
+        elif isinstance(composite_source, Iterable) and not isinstance(
+            composite_source, (str, bytes, bytearray)
+        ):
+            iterable_source = composite_source
+
+        if iterable_source is not None:
             scores: List[float] = []
-            for value in composite_source:
+            for value in iterable_source:
                 coerced = self._safe_float(value)
                 if coerced is not None:
                     scores.append(_clamp(coerced, -1.0, 1.0))
