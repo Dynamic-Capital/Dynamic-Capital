@@ -48,6 +48,9 @@ def test_update_from_trade_happy_path(
         SimpleNamespace(retcode=SUCCESS_RETCODE, profit=0.0),
         SimpleNamespace(retcode=SUCCESS_RETCODE, profit=-10.0),
         SimpleNamespace(retcode=SUCCESS_RETCODE, profit=None),
+        SimpleNamespace(retcode=SUCCESS_RETCODE, profit="not-a-number"),
+        SimpleNamespace(retcode=SUCCESS_RETCODE, profit=float("nan")),
+        SimpleNamespace(retcode=SUCCESS_RETCODE, profit=float("inf")),
     ],
 )
 def test_update_from_trade_failure_cases(

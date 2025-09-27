@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import isfinite
 from typing import Optional
 
 
@@ -37,7 +38,7 @@ class DynamicTreasuryAlgo:
         except (TypeError, ValueError):
             return None
 
-        if profit <= 0:
+        if not isfinite(profit) or profit <= 0:
             return None
 
         burn_amount = round(profit * 0.2, 2)
