@@ -31,6 +31,7 @@ from .ollama_adapter import OllamaAdapter, OllamaConfig, OllamaPromptTemplate
 from .analysis import AnalysisComponent, DynamicAnalysis
 from .consciousness_suite import (
     AwarenessContexts,
+    AwarenessDiagnostics,
     DynamicConsciousnessSuite,
     IntegratedAwareness,
 )
@@ -82,6 +83,7 @@ __all__ = [
     "AnalysisComponent",
     "DynamicAnalysis",
     "AwarenessContexts",
+    "AwarenessDiagnostics",
     "DynamicConsciousnessSuite",
     "IntegratedAwareness",
     "ResearchAgent",

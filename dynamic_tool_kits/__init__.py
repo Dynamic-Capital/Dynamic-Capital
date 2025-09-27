@@ -73,6 +73,7 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "NewsEvent",
         "VolatilitySnapshot",
         "AwarenessContexts",
+        "AwarenessDiagnostics",
         "IntegratedAwareness",
     ),
     "dynamic_algo": (

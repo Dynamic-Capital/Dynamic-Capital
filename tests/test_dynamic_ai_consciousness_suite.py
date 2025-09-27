@@ -1,11 +1,18 @@
 import pytest
 
-from dynamic_ai import AwarenessContexts, DynamicConsciousnessSuite
+from dynamic_ai import (
+    AwarenessContexts,
+    AwarenessDiagnostics,
+    DynamicConsciousnessSuite,
+)
 from dynamic_consciousness import ConsciousnessContext, DynamicConsciousness
 from dynamic_self_awareness import AwarenessContext, DynamicSelfAwareness
 from dynamic_ultimate_reality import NonDualContext, DynamicUltimateReality
 from dynamic_engines import DynamicConsciousnessSuite as EnginesSuite
-from dynamic_tool_kits import AwarenessContexts as ToolkitAwarenessContexts
+from dynamic_tool_kits import (
+    AwarenessContexts as ToolkitAwarenessContexts,
+    AwarenessDiagnostics as ToolkitAwarenessDiagnostics,
+)
 
 
 def test_consciousness_suite_integration_snapshot() -> None:
@@ -73,7 +80,7 @@ def test_consciousness_suite_integration_snapshot() -> None:
         ],
     )
 
-    integrated = suite.synthesise_from_payloads(
+    contexts = AwarenessContexts.from_payloads(
         consciousness={
             "mission": "Compound deliberate reps",
             "time_horizon": "90-day sprint",
@@ -110,6 +117,7 @@ def test_consciousness_suite_integration_snapshot() -> None:
         },
     )
 
+    integrated = suite.synthesise(contexts)
     assert 0.0 <= integrated.composite_readiness <= 1.0
     assert 0.0 <= integrated.harmonised_groundedness <= 1.0
     assert any("grounding" in theme.lower() for theme in integrated.recommended_themes)
@@ -123,6 +131,32 @@ def test_consciousness_suite_integration_snapshot() -> None:
     assert snapshot["self_awareness"]["reflection_prompts"]
     assert snapshot["ultimate_reality"]["guiding_principles"]
     assert 0.0 <= snapshot["composite_readiness"] <= 1.0
+
+    integrated_from_payloads, diagnostics = (
+        suite.synthesise_from_payloads_with_diagnostics(
+            consciousness=contexts.consciousness,
+            self_awareness=contexts.self_awareness,
+            ultimate_reality=contexts.ultimate_reality,
+        )
+    )
+    assert integrated_from_payloads.narrative == integrated.narrative
+    assert diagnostics.signal_counts["consciousness"] == 2
+    assert diagnostics.signal_counts["self_awareness"] == 2
+    assert diagnostics.signal_counts["ultimate_reality"] == 2
+    assert (
+        diagnostics.latest_observations["consciousness"]
+        == "Pulse elevated before execution."
+    )
+    assert diagnostics.latest_observations["ultimate_reality"].startswith("Remember")
+    assert diagnostics.imbalance_alerts
+    assert "readiness_vs_action" in diagnostics.momentum_trends
+    diag_snapshot = diagnostics.as_dict()
+    assert set(diag_snapshot.keys()) == {
+        "signal_counts",
+        "latest_observations",
+        "imbalance_alerts",
+        "momentum_trends",
+    }
 
 
 def test_consciousness_suite_requires_positive_history() -> None:
@@ -208,3 +242,4 @@ def test_suite_accepts_custom_engines_and_toolkit_exports() -> None:
     assert integrated.harmonised_groundedness > 0.0
     assert EnginesSuite is DynamicConsciousnessSuite
     assert ToolkitAwarenessContexts is AwarenessContexts
+    assert ToolkitAwarenessDiagnostics is AwarenessDiagnostics

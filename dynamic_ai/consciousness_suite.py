@@ -26,6 +26,7 @@ from dynamic_ultimate_reality import (
 
 __all__ = [
     "AwarenessContexts",
+    "AwarenessDiagnostics",
     "IntegratedAwareness",
     "DynamicConsciousnessSuite",
 ]
@@ -131,6 +132,24 @@ class IntegratedAwareness:
             "harmonised_groundedness": self.harmonised_groundedness,
             "recommended_themes": list(self.recommended_themes),
             "narrative": self.narrative,
+        }
+
+
+@dataclass(slots=True)
+class AwarenessDiagnostics:
+    """Operational diagnostics that contextualise an integrated awareness read."""
+
+    signal_counts: dict[str, int]
+    latest_observations: dict[str, str]
+    imbalance_alerts: tuple[str, ...]
+    momentum_trends: dict[str, float]
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "signal_counts": dict(self.signal_counts),
+            "latest_observations": dict(self.latest_observations),
+            "imbalance_alerts": list(self.imbalance_alerts),
+            "momentum_trends": dict(self.momentum_trends),
         }
 
 
@@ -247,6 +266,15 @@ class DynamicConsciousnessSuite:
             narrative=narrative,
         )
 
+    def synthesise_with_diagnostics(
+        self, contexts: AwarenessContexts
+    ) -> tuple[IntegratedAwareness, AwarenessDiagnostics]:
+        """Synthesize an awareness snapshot while returning diagnostic metadata."""
+
+        integrated = self.synthesise(contexts)
+        diagnostics = self._build_diagnostics(contexts, integrated)
+        return integrated, diagnostics
+
     def synthesise_from_payloads(
         self,
         *,
@@ -262,6 +290,22 @@ class DynamicConsciousnessSuite:
             ultimate_reality=ultimate_reality,
         )
         return self.synthesise(contexts)
+
+    def synthesise_from_payloads_with_diagnostics(
+        self,
+        *,
+        consciousness: ConsciousnessContext | Mapping[str, object],
+        self_awareness: AwarenessContext | Mapping[str, object],
+        ultimate_reality: NonDualContext | Mapping[str, object],
+    ) -> tuple[IntegratedAwareness, AwarenessDiagnostics]:
+        """Normalise payloads and provide diagnostics alongside synthesis."""
+
+        contexts = AwarenessContexts.from_payloads(
+            consciousness=consciousness,
+            self_awareness=self_awareness,
+            ultimate_reality=ultimate_reality,
+        )
+        return self.synthesise_with_diagnostics(contexts)
 
     # ------------------------------------------------------------- helper logic
     def _recommended_themes(
@@ -300,3 +344,76 @@ class DynamicConsciousnessSuite:
         )
         sections.append(anchor)
         return "\n".join(section for section in sections if section)
+
+    def _build_diagnostics(
+        self,
+        contexts: AwarenessContexts,
+        integrated: IntegratedAwareness,
+    ) -> AwarenessDiagnostics:
+        signal_counts = {
+            "consciousness": self._consciousness.signal_count,
+            "self_awareness": self._self_awareness.signal_count,
+            "ultimate_reality": self._ultimate_reality.signal_count,
+        }
+        latest_observations = self._latest_observations()
+        imbalance_alerts = self._imbalance_alerts(
+            contexts, integrated.self_awareness, integrated.ultimate_reality
+        )
+        momentum_trends = self._momentum_trends(contexts, integrated)
+
+        return AwarenessDiagnostics(
+            signal_counts=signal_counts,
+            latest_observations=latest_observations,
+            imbalance_alerts=imbalance_alerts,
+            momentum_trends=momentum_trends,
+        )
+
+    def _latest_observations(self) -> dict[str, str]:
+        observations: dict[str, str] = {}
+        last_consciousness = self._consciousness.latest_signal()
+        if last_consciousness is not None:
+            observations["consciousness"] = last_consciousness.observation
+        last_self = self._self_awareness.latest_signal()
+        if last_self is not None:
+            observations["self_awareness"] = last_self.observation
+        last_ultimate = self._ultimate_reality.latest_signal()
+        if last_ultimate is not None:
+            observations["ultimate_reality"] = last_ultimate.insight
+        return observations
+
+    def _imbalance_alerts(
+        self,
+        contexts: AwarenessContexts,
+        self_awareness: SelfAwarenessReport,
+        ultimate: UltimateRealityState,
+    ) -> tuple[str, ...]:
+        alerts: list[str] = []
+        if contexts.self_awareness.readiness_for_action > 0.6 and self_awareness.overthinking_risk > 0.55:
+            alerts.append(
+                "Readiness for action is high while overthinking risk remains elevated — translate clarity into decisive movement."
+            )
+        if ultimate.groundedness_index < 0.45 and contexts.ultimate_reality.integration_capacity > 0.6:
+            alerts.append(
+                "Integration capacity outpaces groundedness — slow down assimilation and return to somatic anchors."
+            )
+        if self_awareness.emotional_equilibrium < 0.45 or contexts.self_awareness.bodily_tension > 0.65:
+            alerts.append(
+                "Emotional regulation is strained — prioritise nervous-system stabilisation before complex problem solving."
+            )
+        if not alerts:
+            alerts.append(
+                "Signals are balanced across systems — continue current cadence while monitoring for subtle drift."
+            )
+        return tuple(dict.fromkeys(alerts))
+
+    def _momentum_trends(
+        self, contexts: AwarenessContexts, integrated: IntegratedAwareness
+    ) -> dict[str, float]:
+        return {
+            "readiness_vs_action": integrated.composite_readiness
+            - contexts.self_awareness.readiness_for_action,
+            "groundedness_vs_regulation": integrated.harmonised_groundedness
+            - contexts.ultimate_reality.nervous_system_regulation,
+            "awareness_vs_opportunity": integrated.consciousness.awareness_index
+            - contexts.consciousness.opportunity_level,
+        }
