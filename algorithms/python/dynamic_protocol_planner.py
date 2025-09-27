@@ -42,6 +42,10 @@ CATEGORY_KEYS: tuple[str, ...] = (
     "review",
 )
 
+CATEGORY_EXECUTORS: Dict[str, Tuple[str, ...]] = {
+    "market_outlook": ("DynamicTradingAlgo",),
+}
+
 HORIZON_ALIASES: Dict[str, str] = {
     "annual": "yearly",
     "year": "yearly",
@@ -422,6 +426,13 @@ class DynamicProtocolPlanner:
             "horizons": HORIZON_KEYS,
             "categories": CATEGORY_KEYS,
         }
+        category_assignments = {
+            category: list(owners)
+            for category, owners in CATEGORY_EXECUTORS.items()
+            if category in CATEGORY_KEYS and owners
+        }
+        if category_assignments:
+            annotations["category_assignments"] = category_assignments
         if context:
             annotations["context_supplied"] = True
         if trade_logic_summary:
@@ -555,6 +566,7 @@ class DynamicProtocolPlanner:
 
 __all__ = [
     "CATEGORY_KEYS",
+    "CATEGORY_EXECUTORS",
     "DynamicProtocolPlanner",
     "HORIZON_KEYS",
     "ProtocolDraft",
