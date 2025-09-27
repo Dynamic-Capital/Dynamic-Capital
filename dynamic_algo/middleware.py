@@ -20,6 +20,7 @@ __all__ = [
 
 MiddlewareNext = Callable[[], Any]
 MiddlewareHandler = Callable[["MiddlewareContext", MiddlewareNext], Any]
+MiddlewareRegistration = MiddlewareHandler | tuple[MiddlewareHandler, Mapping[str, Any]]
 
 
 @dataclass(slots=True)
@@ -78,14 +79,35 @@ class _MiddlewareEntry:
 class DynamicMiddlewareAlgo:
     """Composable middleware pipeline with priority-aware execution."""
 
-    def __init__(self, handlers: Optional[Iterable[MiddlewareHandler]] = None) -> None:
+    def __init__(
+        self, handlers: Optional[Iterable[MiddlewareRegistration]] = None
+    ) -> None:
         self._entries: List[_MiddlewareEntry] = []
         self._registry: Dict[str, _MiddlewareEntry] = {}
         self._order_counter = 0
 
         if handlers:
-            for handler in handlers:
-                self.register(handler)
+            for registration in handlers:
+                self._register_from_spec(registration)
+
+    def _register_from_spec(self, registration: MiddlewareRegistration) -> None:
+        """Normalize different registration shapes into ``register`` calls."""
+
+        if isinstance(registration, tuple):
+            if len(registration) != 2:
+                raise ValueError(
+                    "Tuple registrations must be ``(handler, options)``"
+                )
+
+            handler, options = registration
+
+            if not isinstance(options, Mapping):  # pragma: no cover - defensive
+                raise TypeError("Handler options must be a mapping of keyword args")
+
+            self.register(handler, **dict(options))
+            return
+
+        self.register(registration)
 
     # ---------------------------------------------------------------- register
     def register(
@@ -103,11 +125,13 @@ class DynamicMiddlewareAlgo:
 
         resolved_name = name or getattr(handler, "__name__", None) or "handler"
 
-        if resolved_name in self._registry and not replace:
-            raise ValueError(f"Middleware '{resolved_name}' already registered")
-
-        if replace and resolved_name in self._registry:
-            self.unregister(resolved_name)
+        if resolved_name in self._registry:
+            if replace:
+                self.unregister(resolved_name)
+            elif name is None:
+                resolved_name = self._generate_unique_name(resolved_name)
+            else:
+                raise ValueError(f"Middleware '{resolved_name}' already registered")
 
         entry = _MiddlewareEntry(
             priority=-int(priority),  # negative for ascending order sorting
@@ -193,3 +217,14 @@ class DynamicMiddlewareAlgo:
             return entry.handler(context, next_handler)
         except Exception as exc:  # pragma: no cover - error path covered via execute
             raise MiddlewareExecutionError(entry.name, exc) from exc
+
+    def _generate_unique_name(self, base_name: str) -> str:
+        sanitized = base_name.strip() or "handler"
+        counter = 2
+        candidate = f"{sanitized}_{counter}"
+
+        while candidate in self._registry:
+            counter += 1
+            candidate = f"{sanitized}_{counter}"
+
+        return candidate
