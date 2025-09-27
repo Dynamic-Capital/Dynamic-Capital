@@ -3,7 +3,7 @@
 Use this list when spinning up the TradingView webhook to MetaTrader 5 automation flow. It mirrors the onboarding roadmap so cross-functional contributors can work in parallel while keeping hand-offs explicit. When reusing the `tradingview-to-metatrader5` bridge, pair this guide with the dedicated [TradingView→MT5 Bridge Integration Checklist](./TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md).
 
 ## 1. Align scope & shared artifacts
-- [ ] Document the end-to-end architecture (TradingView → webhook → Supabase → MT5 EA) in the project tracker.
+- [ ] Document the end-to-end architecture (TradingView → webhook → Supabase → MT5 EA) in the project tracker (see [Unified Webhook Sync Architecture](./unified-webhook-sync.md)).
 - [ ] Inventory existing Pine Script, webhook handlers, Supabase schema, and EA code so owners know baseline maturity.
 - [ ] Capture sample TradingView alert payloads (JSON) and share with downstream teams.
 - [ ] Centralize documentation in the `algorithms/` workspace to keep scripts, webhook logic, and EA tasks discoverable.
