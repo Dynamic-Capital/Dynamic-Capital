@@ -172,6 +172,20 @@ class DynamicNodeRegistry:
 
         if isinstance(node, Mapping):
             dynamic_node = DynamicNode(**node)  # type: ignore[arg-type]
+            existing = self._nodes.get(dynamic_node.node_id)
+            if existing is not None:
+                if existing.node_id != dynamic_node.node_id:  # pragma: no cover - defensive
+                    raise NodeConfigError("node_id cannot be changed for existing nodes")
+
+                existing.type = dynamic_node.type
+                existing.interval_sec = dynamic_node.interval_sec
+                existing.enabled = dynamic_node.enabled
+                existing.dependencies = dynamic_node.dependencies
+                existing.outputs = dynamic_node.outputs
+                existing.metadata = dynamic_node.metadata
+                existing.weight = dynamic_node.weight
+
+                dynamic_node = existing
         elif isinstance(node, DynamicNode):
             dynamic_node = node
         else:  # pragma: no cover - defensive guardrail
