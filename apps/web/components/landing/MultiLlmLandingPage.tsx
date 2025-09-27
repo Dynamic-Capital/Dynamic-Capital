@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import {
   Button,
@@ -195,12 +195,14 @@ interface TradingViewWidgetProps {
 function TradingViewWidget(
   { symbol, title, description, interval = "60" }: TradingViewWidgetProps,
 ) {
-  const containerId = useMemo(
-    () =>
-      `tradingview-${symbol.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-${
-        Math.random().toString(36).slice(2, 8)
-      }`,
+  const slug = useMemo(
+    () => symbol.replace(/[^a-z0-9]/gi, "-").toLowerCase(),
     [symbol],
+  );
+  const reactId = useId();
+  const containerId = useMemo(
+    () => `tradingview-${slug}-${reactId.replace(/[:]/g, "-")}`,
+    [reactId, slug],
   );
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
