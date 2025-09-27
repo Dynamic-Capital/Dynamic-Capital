@@ -6,6 +6,8 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, Mapping, Protocol, Sequence
 
+from .core import ACTION_THRESHOLD, ACTION_TOLERANCE, score_to_action
+
 
 SignalAction = str
 
@@ -215,8 +217,9 @@ class FusionEngine:
 
     @staticmethod
     def _score_to_action(score: float) -> SignalAction:
-        if score > 0.2:
-            return "BUY"
-        if score < -0.2:
-            return "SELL"
-        return "NEUTRAL"
+        return score_to_action(
+            score,
+            neutral_action="NEUTRAL",
+            threshold=ACTION_THRESHOLD,
+            tolerance=ACTION_TOLERANCE,
+        )
