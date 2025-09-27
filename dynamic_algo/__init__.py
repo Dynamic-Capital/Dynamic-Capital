@@ -15,6 +15,7 @@ from .dynamic_pool import (
     PoolSnapshot,
     PoolWithdrawal,
 )
+from .dynamic_metadata import DynamicMetadataAlgo, MetadataAttribute
 
 __all__ = [
     "ORDER_ACTION_BUY",
@@ -30,4 +31,6 @@ __all__ = [
     "PoolDeposit",
     "PoolSnapshot",
     "PoolWithdrawal",
+    "DynamicMetadataAlgo",
+    "MetadataAttribute",
 ]
