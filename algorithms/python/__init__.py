@@ -208,6 +208,11 @@ from .team_operations import (
     build_team_operations_playbooks,
     build_team_operations_sync_algorithm,
 )
+from .api_keeper import (
+    ApiEndpoint,
+    ApiKeeperSyncResult,
+    DynamicAPIKeeperAlgorithm,
+)
 from .backend_keeper import (
     BackendKeeperSyncResult,
     BackendService,
@@ -440,6 +445,9 @@ __all__ = _trade_exports + [
     "Route",
     "DynamicRouteKeeperAlgorithm",
     "RouteKeeperSyncResult",
+    "ApiEndpoint",
+    "ApiKeeperSyncResult",
+    "DynamicAPIKeeperAlgorithm",
     "BackendKeeperSyncResult",
     "BackendService",
     "DynamicBackendKeeperAlgorithm",
