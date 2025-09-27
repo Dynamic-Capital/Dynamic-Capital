@@ -21,6 +21,12 @@ from .dynamic_pool import (
     PoolWithdrawal,
 )
 from .dynamic_metadata import DynamicMetadataAlgo, MetadataAttribute
+from .dynamic_marketing import (
+    CampaignSnapshot,
+    ChannelPerformance,
+    DynamicMarketingAlgo,
+    MarketingTouchpoint,
+)
 from .dynamic_psychology import (
     DynamicPsychologyAlgo,
     ElementAggregate,
@@ -54,6 +60,10 @@ __all__ = [
     "PoolWithdrawal",
     "DynamicMetadataAlgo",
     "MetadataAttribute",
+    "DynamicMarketingAlgo",
+    "MarketingTouchpoint",
+    "ChannelPerformance",
+    "CampaignSnapshot",
     "DynamicPsychologyAlgo",
     "PsychologyEntry",
     "PsychologySnapshot",
