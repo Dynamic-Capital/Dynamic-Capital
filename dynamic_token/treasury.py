@@ -28,7 +28,15 @@ class DynamicTreasuryAlgo:
         if not trade_result or getattr(trade_result, "retcode", None) != SUCCESS_RETCODE:
             return None
 
-        profit = float(getattr(trade_result, "profit", 0.0))
+        raw_profit = getattr(trade_result, "profit", 0.0)
+        if raw_profit in (None, ""):
+            return None
+
+        try:
+            profit = float(raw_profit)
+        except (TypeError, ValueError):
+            return None
+
         if profit <= 0:
             return None
 

@@ -47,6 +47,7 @@ def test_update_from_trade_happy_path(
         SimpleNamespace(retcode=0, profit=200.0),
         SimpleNamespace(retcode=SUCCESS_RETCODE, profit=0.0),
         SimpleNamespace(retcode=SUCCESS_RETCODE, profit=-10.0),
+        SimpleNamespace(retcode=SUCCESS_RETCODE, profit=None),
     ],
 )
 def test_update_from_trade_failure_cases(
