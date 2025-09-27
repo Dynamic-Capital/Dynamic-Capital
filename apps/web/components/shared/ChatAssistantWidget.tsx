@@ -34,25 +34,19 @@ import {
   Spinner,
   Text,
 } from "@/components/dynamic-ui-system";
+import { useDynamicChat } from "@/hooks/useDynamicChat";
 import { useToast } from "@/hooks/useToast";
-import { supabase } from "@/integrations/supabase/client";
-import { logChatMessage } from "@/integrations/supabase/queries";
+import { MAX_HISTORY } from "@/services/dynamic-ai/constants";
+import type {
+  ChatMessage,
+  TelegramAuthData,
+} from "@/services/dynamic-ai/schema";
 import { cn } from "@/utils";
-
-export interface TelegramAuthData {
-  id: number;
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-}
 
 interface ChatAssistantWidgetProps {
   telegramData?: TelegramAuthData;
   className?: string;
 }
-
-const MAX_HISTORY = 50;
-const MAX_REQUEST_HISTORY = 20;
 const SUGGESTION_PAGE_SIZE = 3;
 const MAX_SUGGESTION_DECK = 12;
 
@@ -150,16 +144,6 @@ const DESK_PLAYBOOK = [
   "Automation templates for scalps, swings, and treasury flows.",
   "Risk dashboards, journaling prompts, and daily debriefs included.",
 ] as const;
-
-interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-interface ChatRequestMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
-}
 
 interface SuggestionContext {
   history: ChatMessage[];
@@ -288,9 +272,6 @@ function buildSuggestionDeck({
 
   return filtered.slice(0, MAX_SUGGESTION_DECK);
 }
-
-const SYSTEM_PROMPT =
-  `You are the Dynamic Capital desk assistant. Answer like an elite trading desk lead: confident, structured, and concise. Use short paragraphs or bullet points when useful, keep replies under 180 words, and highlight VIP access, execution support, automation templates, and 24/7 desk coverage when relevant. Always include a short risk disclaimer and finish with: "💡 Need more help? Contact @DynamicCapital_Support or check our VIP plans!"`;
 
 type StatusBadgeProps = Partial<ComponentPropsWithoutRef<typeof Badge>>;
 
@@ -425,6 +406,10 @@ export function ChatAssistantWidget(
     }
     return stored;
   });
+  const { fetchHistory, sendMessage } = useDynamicChat({
+    sessionId,
+    telegramData,
+  });
   const { toast } = useToast();
   const messageContainerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -523,25 +508,13 @@ export function ChatAssistantWidget(
 
     const loadHistory = async () => {
       try {
-        const { data, error } = await supabase
-          .from("user_interactions")
-          .select("interaction_data")
-          .eq("interaction_type", "ai_chat")
-          .eq("session_id", sessionId)
-          .order("created_at", { ascending: true })
-          .limit(MAX_HISTORY);
-
-        if (!active || error || !data) {
+        const { messages: history } = await fetchHistory();
+        if (!active) {
           return;
         }
-
-        const loaded = data
-          .map((row) => row.interaction_data as ChatMessage | null)
-          .filter((item): item is ChatMessage => Boolean(item));
-
-        if (loaded.length > 0) {
-          setMessages(loaded.slice(-MAX_HISTORY));
-          if (loaded.some((message) => message.role === "assistant")) {
+        if (history.length > 0) {
+          setMessages(history.slice(-MAX_HISTORY));
+          if (history.some((message) => message.role === "assistant")) {
             setSyncStatus("connected");
           }
         }
@@ -555,7 +528,7 @@ export function ChatAssistantWidget(
     return () => {
       active = false;
     };
-  }, [sessionId]);
+  }, [sessionId, fetchHistory]);
 
   useEffect(() => {
     if (!messageContainerRef.current) {
@@ -578,41 +551,6 @@ export function ChatAssistantWidget(
       focusInput();
     },
     [focusInput],
-  );
-
-  const buildChatPayload = useCallback(
-    (history: ChatMessage[]): ChatRequestMessage[] => {
-      const trimmedHistory = history.slice(-MAX_REQUEST_HISTORY);
-      const conversation: ChatRequestMessage[] = [
-        { role: "system", content: SYSTEM_PROMPT },
-      ];
-
-      if (telegramData) {
-        const fullName = [telegramData.first_name, telegramData.last_name]
-          .filter(Boolean)
-          .join(" ")
-          .trim();
-        const username = telegramData.username
-          ? `@${telegramData.username}`
-          : "not provided";
-        const displayName = fullName || "Unknown";
-        conversation.push({
-          role: "system",
-          content:
-            `User context: Telegram ID ${telegramData.id}. Display name: ${displayName}. Username: ${username}. Use this context only when it improves the answer.`,
-        });
-      }
-
-      for (const entry of trimmedHistory) {
-        conversation.push({
-          role: entry.role,
-          content: entry.content,
-        });
-      }
-
-      return conversation.slice(-MAX_REQUEST_HISTORY - 4);
-    },
-    [telegramData],
   );
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -638,38 +576,22 @@ export function ChatAssistantWidget(
     setSyncStatus("syncing");
 
     appendMessages(userMessage);
-    void logChatMessage({
-      telegramUserId: telegramData?.id,
-      sessionId,
-      role: userMessage.role,
-      content: userMessage.content,
-    });
 
     try {
-      const payload = buildChatPayload(nextHistory);
-      const { data, error } = await supabase.functions.invoke("chatgpt-proxy", {
-        body: {
-          messages: payload,
-          temperature: 0.65,
-        },
+      const response = await sendMessage({
+        message: userQuestion,
+        history: nextHistory,
       });
 
-      if (error) {
-        throw new Error(error.message || "AI service unavailable");
-      }
-
-      const assistantReply = typeof data?.answer === "string"
-        ? data.answer.trim()
-        : "";
-
-      if (assistantReply) {
-        appendMessages({ role: "assistant", content: assistantReply });
-        void logChatMessage({
-          telegramUserId: telegramData?.id,
-          sessionId,
-          role: "assistant",
-          content: assistantReply,
-        });
+      if (response.history.length > 0) {
+        setMessages(response.history.slice(-MAX_HISTORY));
+        if (
+          response.history.some((entry) => entry.role === "assistant")
+        ) {
+          setSyncStatus("connected");
+        }
+      } else if (response.assistantMessage) {
+        appendMessages(response.assistantMessage);
         setSyncStatus("connected");
       } else {
         throw new Error("No answer returned");
@@ -690,12 +612,6 @@ export function ChatAssistantWidget(
         title: "Assistant temporarily offline",
         description: "We saved your message and loaded the fallback playbook.",
         variant: "destructive",
-      });
-      void logChatMessage({
-        telegramUserId: telegramData?.id,
-        sessionId,
-        role: "assistant",
-        content: fallbackMessage,
       });
     } finally {
       setIsLoading(false);

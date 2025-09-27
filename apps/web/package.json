@@ -8,7 +8,7 @@
     "start": "NODE_ENV=production node .next/standalone/apps/web/server.js",
     "copy-static": "tsx ../../scripts/copy-static.ts --copy-only",
     "lint": "eslint .",
-    "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check",
+    "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check && vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -109,6 +109,9 @@
     "@next/bundle-analyzer": "^15.5.4",
     "@next/eslint-plugin-next": "^15.5.4",
     "@playwright/test": "^1.55.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.6.1",
     "@tailwindcss/postcss": "^4.1.13",
     "@tailwindcss/typography": "^0.5.15",
     "@types/next": "^8.0.7",
@@ -130,7 +133,8 @@
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.0.1",
-    "vite": "^7.1.5"
+    "vite": "^7.1.5",
+    "vitest": "^2.1.4"
   },
   "overrides": {
     "@esbuild-kit/core-utils": {
