@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { serve } from "std/http/server.ts";
 import { json, mna } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 const must = (k: string) =>

@@ -38,37 +38,54 @@ repo health checks before audits, launches, or large merges. Track the results
 in your PR/issue notes so reviewers can see the evidence.
 
 - [x] Sync `.env` and `.env.local` with `.env.example` (`npm run sync-env`) to
-      ensure new environment keys are captured locally. _Ran on this branch;
-      both files were created and populated from the template._
+      ensure new environment keys are captured locally. _Ran on 2025-09-27; both
+      files already contained the expected keys so no changes were needed._
 - [x] Run the repository test suite (`npm run test`) so Deno and Next.js smoke
-      tests cover the latest changes. _All 51 checks passed, matching the CI
-      suite._
+      tests cover the latest changes. _Completed on 2025-09-27; all 90 tests
+      passed alongside the static homepage regression check._
 - [ ] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to
-      apply formatting and rerun Deno format/lint/type checks. _Attempt on this
-      branch surfaced pre-existing Deno lint violations (for example unused
-      variables in `scripts/predeploy.js` and bare `https:` imports in the
-      Drizzle tooling) that require follow-up patches before the script can
-      succeed._
-- [x] Run the aggregated verification suite (`npm run verify`) for the bundled
-      static, runtime, and integration safety checks. _Ran successfully via the
-      `verify_all.sh` harness; the generated report is available at
-      `.out/verify_report.md` for review._
-- [x] Audit Supabase Edge function hosts
+      apply formatting and rerun Deno format/lint/type checks. _Blocked: the
+      first lint pass fails immediately with existing violations, including_
+      `scripts/import-vip-csv.ts` _importing `https://deno.land/std@0.224.0/csv`
+      directly (violates **no-import-prefix**) and
+      `scripts/build-landing.mjs`_ `runCopyStatic` _/ `landingSnapshotExists`
+      declared `async` without awaits (violates **require-await**). The run also
+      surfaces unused variables such as `err` in `scripts/predeploy.js`._
+- [ ] Run the aggregated verification suite (`npm run verify`) for the bundled
+      static, runtime, and integration safety checks. _Pending until the
+      lint/type gate in `fix_and_check.sh` succeeds._
+- [ ] Audit Supabase Edge function hosts
       (`deno run -A scripts/audit-edge-hosts.ts`) to detect environment drift
-      between deployments. _Script executed successfully with no mismatched
-      hosts detected._
-- [x] Check linkage across environment variables and outbound URLs
-      (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Script
-      ran with warnings only for missing local secrets (e.g.,
-      `TELEGRAM_BOT_TOKEN`)._
+      between deployments. _Not executed in this attempt; schedule after the
+      lint blockers above are addressed._
+- [ ] Check linkage across environment variables and outbound URLs
+      (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Not yet
+      run in this session because automation halted during the fix-and-check
+      stage._
 - [ ] Verify the Telegram webhook configuration
       (`deno run -A scripts/check-webhook.ts`) so bot traffic hits the expected
-      endpoint. _Still blocked—the script exits immediately without a
-      `TELEGRAM_BOT_TOKEN` secret in the environment._
+      endpoint. _Requires rerunning the checklist after the lint blockers are
+      fixed._
 - [ ] _Optional:_ Run the mini app smoke test
       (`deno run -A scripts/smoke-miniapp.ts`) to mirror the go-live walkthrough
-      end-to-end. _Requires `FUNCTIONS_BASE` to target a deployed Supabase Edge
-      host; not available in this environment._
+      end-to-end. _Still pending; hold until the required tasks above succeed._
+
+### Latest automation run (2025-09-27)
+
+- Command: `npm run checklists -- --checklist dynamic-capital`
+- Outcome: Completed **sync-env** and **repo-test** (all 90 tests passed), then
+  halted during **fix-and-check** because Deno lint surfaced existing issues.
+  Representative errors:
+  - `scripts/import-vip-csv.ts` – `no-import-prefix` flagged the direct
+    `https://deno.land/std@0.224.0/csv/mod.ts` import.
+  - `scripts/build-landing.mjs` – `runCopyStatic`/`landingSnapshotExists` are
+    marked `async` without awaits (`require-await`).
+  - `scripts/predeploy.js` – unused `err` variable (`no-unused-vars`).
+- Next steps: Convert external module imports to use the shared import map or
+  vendored utilities, drop unnecessary `async` keywords (or add awaited work),
+  and rename/underscore unused variables so the lint phase can complete. Once
+  `fix_and_check.sh` exits cleanly, rerun the checklist to unblock verification
+  and Supabase health checks.
 
 ## Setup Follow-Ups
 

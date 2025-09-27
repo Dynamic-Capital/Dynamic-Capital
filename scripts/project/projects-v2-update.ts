@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import process from "node:process";
 
 interface CommitRecord {
   hash: string;
@@ -50,6 +51,35 @@ interface ProjectData {
   items: ProjectItem[];
 }
 
+interface ProjectFieldNode {
+  id: string;
+  name: string;
+  dataType: string;
+  options?: ProjectFieldOption[] | null;
+}
+
+interface ProjectItemNode {
+  id: string;
+  title?: string | null;
+  updatedAt?: string | null;
+  content?: {
+    __typename?: string;
+    number?: number | null;
+  } | null;
+}
+
+interface ProjectGraphqlPayload {
+  id: string;
+  title: string;
+  fields?: { nodes?: ProjectFieldNode[] | null } | null;
+  items?: { nodes?: ProjectItemNode[] | null } | null;
+}
+
+type ProjectQueryResult = {
+  user?: { projectV2?: ProjectGraphqlPayload | null } | null;
+  organization?: { projectV2?: ProjectGraphqlPayload | null } | null;
+};
+
 function runGh(args: string[]): string {
   const result = spawnSync('gh', args, { encoding: 'utf8' });
   if (result.status !== 0) {
@@ -58,21 +88,21 @@ function runGh(args: string[]): string {
   return result.stdout.trim();
 }
 
-function ghGraphql(query: string, variables: Record<string, unknown>): any {
+function ghGraphql<T>(query: string, variables: Record<string, unknown>): T {
   const cleanedQuery = query.replace(/\s+/g, ' ').trim();
   const args = ['api', 'graphql', '-f', `query=${cleanedQuery}`];
   if (Object.keys(variables).length) {
     args.push('-f', `variables=${JSON.stringify(variables)}`);
   }
   const output = runGh(args);
-  return JSON.parse(output);
+  return JSON.parse(output) as T;
 }
 
 function ensureGhAvailable(): boolean {
   try {
     runGh(['--version']);
     return true;
-  } catch (error) {
+  } catch (_error) {
     console.warn('[projects-v2-update] gh CLI not available; skipping project sync.');
     return false;
   }
@@ -96,25 +126,35 @@ function resolveProject(owner: string, number: number, ownerType: 'organization'
   const query = ownerType === 'user'
     ? `query($login: String!, $number: Int!) { user(login: $login) { projectV2(number: $number) { id title fields(first: 50) { nodes { ... on ProjectV2SingleSelectField { id name dataType options { id name } } ... on ProjectV2FieldCommon { id name dataType } } } items(first: 200) { nodes { id title updatedAt content { __typename ... on PullRequest { number } ... on Issue { number } } } } } } }`
     : `query($login: String!, $number: Int!) { organization(login: $login) { projectV2(number: $number) { id title fields(first: 50) { nodes { ... on ProjectV2SingleSelectField { id name dataType options { id name } } ... on ProjectV2FieldCommon { id name dataType } } } items(first: 200) { nodes { id title updatedAt content { __typename ... on PullRequest { number } ... on Issue { number } } } } } } }`;
-  const data = ghGraphql(query, { login: owner, number });
+  const data = ghGraphql<ProjectQueryResult>(query, { login: owner, number });
   const container = ownerType === 'user' ? data.user : data.organization;
   if (!container?.projectV2) {
     throw new Error(`Project number ${number} not found for ${ownerType} ${owner}.`);
   }
   const project = container.projectV2;
-  const fields: ProjectField[] = (project.fields?.nodes ?? []).map((node: any) => ({
-    id: node.id,
-    name: node.name,
-    dataType: node.dataType,
-    options: node.options,
-  }));
-  const items: ProjectItem[] = (project.items?.nodes ?? []).map((node: any) => ({
-    id: node.id,
-    title: node.title ?? undefined,
-    updatedAt: node.updatedAt ?? undefined,
-    type: node.content?.__typename === 'PullRequest' ? 'PULL_REQUEST' : node.content?.__typename === 'Issue' ? 'ISSUE' : undefined,
-    number: node.content?.number,
-  }));
+  const fieldNodes = project.fields?.nodes ?? [];
+  const itemNodes = project.items?.nodes ?? [];
+  const fields: ProjectField[] = fieldNodes
+    .filter((node): node is ProjectFieldNode => Boolean(node))
+    .map((node) => ({
+      id: node.id,
+      name: node.name,
+      dataType: node.dataType,
+      options: node.options ?? undefined,
+    }));
+  const items: ProjectItem[] = itemNodes
+    .filter((node): node is ProjectItemNode => Boolean(node))
+    .map((node) => ({
+      id: node.id,
+      title: node.title ?? undefined,
+      updatedAt: node.updatedAt ?? undefined,
+      type: node.content?.__typename === 'PullRequest'
+        ? 'PULL_REQUEST'
+        : node.content?.__typename === 'Issue'
+        ? 'ISSUE'
+        : undefined,
+      number: node.content?.number ?? undefined,
+    }));
   return {
     id: project.id,
     title: project.title,

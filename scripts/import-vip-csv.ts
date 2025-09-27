@@ -1,4 +1,4 @@
-import { parse } from "https://deno.land/std@0.224.0/csv/mod.ts";
+import { parse } from "std/csv/mod.ts";
 
 const file = Deno.args[0];
 if (!file) {

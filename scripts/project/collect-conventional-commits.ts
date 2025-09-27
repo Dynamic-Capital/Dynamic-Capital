@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import process from "node:process";
 
 interface CommitRecord {
   hash: string;
@@ -37,7 +38,7 @@ function runGit(args: string[]): string {
 function safeGit(args: string[]): string | undefined {
   try {
     return runGit(args);
-  } catch (error) {
+  } catch (_error) {
     return undefined;
   }
 }
@@ -83,7 +84,7 @@ function extractMetadata(summary: string): {
   return { type, scope, breaking, prNumber, issues };
 }
 
-async function main(): Promise<void> {
+function main(): void {
   const args = parseArgs(process.argv);
   const cwd = process.cwd();
   const cacheDir = join(cwd, '.project-cache');
@@ -153,8 +154,10 @@ async function main(): Promise<void> {
   writeFileSync(join(cacheDir, 'commits.json'), JSON.stringify(payload, null, 2));
 }
 
-main().catch((error) => {
+try {
+  main();
+} catch (error) {
   console.error('[collect-conventional-commits] Failed to collect commits');
   console.error(error);
   process.exitCode = 1;
-});
+}
