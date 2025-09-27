@@ -1,0 +1,82 @@
+name: Train + Deploy Dynamic AI
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  train-ai:
+    name: Train models
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Lorentzian trainer
+        run: python ml/lorentzian_train.py --output models/lorentzian_v1.json
+
+      - name: Run Fusion trainer
+        run: python ml/fusion_train.py --output models/fusion_v1.json
+
+      - name: Run backtest summary
+        run: python ml/backtest.py --models models
+
+      - name: Set up Node.js for Supabase CLI
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Supabase CLI
+        run: npm install --global supabase
+
+      - name: Upload models to Supabase storage
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          supabase storage upload --bucket ai-models --path lorentzian/latest.json --file models/lorentzian_v1.json --project-ref "$SUPABASE_PROJECT_ID" --replace
+          supabase storage upload --bucket ai-models --path fusion/latest.json --file models/fusion_v1.json --project-ref "$SUPABASE_PROJECT_ID" --replace
+
+  deploy-api:
+    name: Deploy Supabase functions
+    needs: train-ai
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Supabase CLI
+        run: npm install --global supabase
+
+      - name: Deploy Edge Functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          supabase functions deploy lorentzian-eval --project-ref "$SUPABASE_PROJECT_ID"
+          supabase functions deploy fusion --project-ref "$SUPABASE_PROJECT_ID"
+          supabase functions deploy policy-eval --project-ref "$SUPABASE_PROJECT_ID"

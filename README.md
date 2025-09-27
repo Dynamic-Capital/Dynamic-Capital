@@ -96,6 +96,8 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 - Step through the
   [Dynamic AI & Dynamic Trading Algo Enhancement Roadmap](docs/multi-llm-algo-enhancement-roadmap.md)
   to align provider orchestration with the trading automation stack.
+- Automated AI training + deployment loop powered by Supabase CLI and GitHub
+  Actions (see [Dynamic AI DevOps Playbook](docs/ai-devops-playbook.md)).
 
 ## Dynamic Theme System
 
