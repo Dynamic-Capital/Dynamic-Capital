@@ -42,8 +42,12 @@ export const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   ProgressProps
 >(
-  (
-    {
+  (componentProps, ref) => {
+    const hasValueProp = Object.prototype.hasOwnProperty.call(
+      componentProps,
+      "value",
+    );
+    const {
       className,
       wrapperClassName,
       indicatorClassName,
@@ -51,23 +55,39 @@ export const Progress = React.forwardRef<
       showLabel = Boolean(label),
       showValue = true,
       formatValue = (percentage) => `${Math.round(percentage)}%`,
-      value = 0,
+      value,
       max = 100,
       ...props
-    },
-    ref,
-  ) => {
+    } = componentProps;
+    const {
+      ["aria-label"]: ariaLabelProp,
+      ["aria-labelledby"]: ariaLabelledbyProp,
+      ...rootProps
+    } = props;
+
+    const labelId = React.useId();
+    const fallbackLabel = label ?? "Progress";
     const safeMax = typeof max === "number" && max > 0 ? max : 100;
-    const safeValue = Math.min(Math.max(value ?? 0, 0), safeMax);
-    const percentage = safeMax === 0 ? 0 : (safeValue / safeMax) * 100;
-    const displayValue = formatValue(percentage);
+    const isIndeterminate = hasValueProp && value == null;
+    const safeValue = isIndeterminate
+      ? null
+      : Math.min(Math.max(value ?? 0, 0), safeMax);
+    const percentage = safeValue === null || safeMax === 0
+      ? null
+      : (safeValue / safeMax) * 100;
+    const displayValue = typeof percentage === "number"
+      ? formatValue(percentage)
+      : null;
+    const ariaLabelledby = ariaLabelledbyProp ??
+      (showLabel ? labelId : undefined);
+    const ariaLabel = ariaLabelProp ?? (!showLabel ? fallbackLabel : undefined);
 
     return (
       <div className={cn("flex flex-col gap-2", wrapperClassName)}>
-        {(showLabel || showValue) && (
+        {(showLabel || (showValue && displayValue !== null)) && (
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
-            {showLabel && <span>{label ?? "Progress"}</span>}
-            {showValue && (
+            {showLabel && <span id={labelId}>{fallbackLabel}</span>}
+            {showValue && displayValue !== null && (
               <span className="tabular-nums text-foreground">
                 {displayValue}
               </span>
@@ -80,16 +100,20 @@ export const Progress = React.forwardRef<
             "relative h-2.5 w-full overflow-hidden rounded-full bg-muted",
             className,
           )}
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledby}
           value={safeValue}
           max={safeMax}
-          {...props}
+          {...rootProps}
         >
           <ProgressPrimitive.Indicator
             className={cn(
-              "h-full w-full flex-1 rounded-full bg-gradient-brand transition-transform duration-500 ease-out",
+              "h-full w-full flex-1 rounded-full bg-gradient-brand transition-transform duration-500 ease-out data-[state=indeterminate]:animate-pulse",
               indicatorClassName,
             )}
-            style={{ transform: `translateX(-${100 - percentage}%)` }}
+            style={typeof percentage === "number"
+              ? { transform: `translateX(-${100 - percentage}%)` }
+              : undefined}
           />
         </ProgressPrimitive.Root>
       </div>
