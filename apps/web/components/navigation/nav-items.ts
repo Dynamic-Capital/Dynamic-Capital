@@ -1,8 +1,8 @@
 import {
   LayoutDashboard,
   LineChart,
-  PieChart,
   type LucideIcon,
+  PieChart,
 } from "lucide-react";
 
 import {
@@ -25,6 +25,7 @@ export interface NavItem {
 const DESK_NAV_SECTION_ORDER: HomeNavSectionId[] = [
   "overview",
   "token",
+  "wallet",
   "markets",
   "community",
   "miniApp",
