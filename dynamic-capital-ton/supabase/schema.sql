@@ -81,10 +81,10 @@ insert into app_config (id, operations_pct, autoinvest_pct, buyback_burn_pct,
                         min_ops_pct, max_ops_pct, min_invest_pct, max_invest_pct,
                         min_burn_pct, max_burn_pct, ops_treasury, dct_master, dex_router)
 values (1, 60, 30, 10, 40, 75, 15, 45, 5, 20,
-        -- Replace with the Tonstarter treasury multisig when seeding production.
-        'EQOpsTreasuryXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-        'EQDCTMasterXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-        'EQDexRouterXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX')
+        -- Tonstarter mainnet addresses.
+        'EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD',
+        'EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6',
+        'EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3')
 on conflict (id) do update set
   operations_pct = excluded.operations_pct,
   autoinvest_pct = excluded.autoinvest_pct,
