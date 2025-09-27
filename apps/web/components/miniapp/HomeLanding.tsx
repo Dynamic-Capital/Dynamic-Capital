@@ -1,8 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Clock, Gift, Megaphone, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  Clock,
+  Gift,
+  Megaphone,
+  RefreshCw,
+  Send,
+  Sparkles,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -94,6 +104,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
   const [loading, setLoading] = useState(true);
 
   const deskClock = useDeskClock();
+  const router = useRouter();
   const isInTelegram = typeof window !== "undefined" &&
     Boolean(window.Telegram?.WebApp);
 
@@ -242,6 +253,23 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     [services],
   );
 
+  const primaryInsight = useMemo(() => {
+    if (insights.length === 0) return null;
+    return (
+      insights.find((insight) => insight.emphasis === "popularity") ??
+        insights[0]
+    );
+  }, [insights]);
+
+  const handleExplorePlans = useCallback(() => {
+    router.push("/miniapp/fund");
+  }, [router]);
+
+  const handleTalkToDesk = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.open("https://t.me/DynamicCapital_Support", "_blank", "noopener");
+  }, []);
+
   const lastSyncedLabel = useMemo(() => {
     if (!lastSyncedAt) {
       return "just now";
@@ -262,6 +290,30 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
     return `${days} day${days === 1 ? "" : "s"} ago`;
   }, [deskClock.now, lastSyncedAt]);
 
+  const heroHighlights = useMemo(
+    () => [
+      {
+        id: "session",
+        label: "Session",
+        value: isInTelegram ? "Telegram" : "Web",
+        Icon: Send,
+      },
+      {
+        id: "desk-time",
+        label: "Desk time",
+        value: deskClock.formatted,
+        Icon: Clock,
+      },
+      {
+        id: "sync",
+        label: "Last sync",
+        value: lastSyncedLabel,
+        Icon: RefreshCw,
+      },
+    ],
+    [deskClock.formatted, isInTelegram, lastSyncedLabel],
+  );
+
   if (loading) {
     return (
       <div className="space-y-5 py-10">
@@ -278,34 +330,101 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-primary/15 via-background to-background px-5 py-6 text-left shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
+        className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-primary/20 via-background/95 to-background px-5 py-6 text-left shadow-[0_26px_70px_rgba(15,23,42,0.55)]"
       >
-        <div className="absolute inset-y-0 right-0 w-1/2 translate-x-1/4 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)]" />
-        <div className="space-y-4 relative z-10">
-          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.28),_transparent_55%)]" />
+        <div className="relative z-10 space-y-6">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Badge variant="outline" className="bg-primary/15 text-primary">
               <Sparkles className="mr-1 h-3 w-3" /> Live trading desk
+            </Badge>
+            <Badge
+              variant="outline"
+              className="border-border/40 bg-background/40"
+            >
+              <Megaphone className="mr-1 h-3 w-3" />{" "}
+              {announcement.split(" ")[0] ?? "Announcement"}
             </Badge>
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" /> Desk time {deskClock.formatted}
             </span>
-            <span className="flex items-center gap-1">
-              <Megaphone className="h-3 w-3" />{" "}
-              {isInTelegram ? "Telegram" : "Web"} session
+          </div>
+
+          <div className="space-y-4">
+            <h1 className="text-2xl font-semibold leading-tight text-foreground md:text-3xl">
+              Command your trading edge with Dynamic Capital
+            </h1>
+            <p className="text-sm text-muted-foreground whitespace-pre-line md:text-base">
+              {about}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {serviceHighlights.map((item) => (
+                <Badge
+                  key={item}
+                  variant="secondary"
+                  className="bg-background/80 text-foreground/90"
+                >
+                  {item}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {heroHighlights.map(({ id, label, value, Icon }) => (
+              <div
+                key={id}
+                className="rounded-2xl border border-border/40 bg-background/80 p-4 backdrop-blur"
+              >
+                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  <Icon className="h-3.5 w-3.5 text-primary" /> {label}
+                </div>
+                <p className="mt-2 text-lg font-semibold text-foreground">
+                  {value ?? "just now"}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {primaryInsight && (
+            <Card className="border-primary/20 bg-background/70">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm text-primary">
+                  <BarChart3 className="h-4 w-4" /> Trending market insight
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {primaryInsight.message}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              size="sm"
+              onClick={handleExplorePlans}
+              className="touch-target"
+            >
+              Explore plans
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTalkToDesk}
+              className="touch-target"
+            >
+              Talk to our desk
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {lastSyncedLabel && `Synced ${lastSyncedLabel}`}
             </span>
           </div>
 
-          <div className="space-y-3">
-            <h1 className="text-2xl font-semibold leading-tight text-foreground">
-              Command your trading edge with Dynamic Capital
-            </h1>
-            <p className="text-sm text-muted-foreground whitespace-pre-line">
-              {about}
-            </p>
-          </div>
-
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-border/40 bg-background/70 p-4 backdrop-blur">
+            <div className="rounded-2xl border border-border/40 bg-background/80 p-4 backdrop-blur">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-primary">
@@ -319,7 +438,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border/40 bg-background/70 p-4 backdrop-blur">
+            <div className="rounded-2xl border border-border/40 bg-background/80 p-4 backdrop-blur">
               <p className="text-xs font-semibold uppercase tracking-wide text-primary">
                 Core services
               </p>
@@ -335,7 +454,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           </div>
 
           {activePromo && (
-            <Card className="border-primary/20 bg-primary/10">
+            <Card className="border-primary/25 bg-primary/10">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm text-primary">
                   <Gift className="h-4 w-4" /> Limited-time offer
