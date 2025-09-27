@@ -78,6 +78,11 @@ from .dynamic_scripts import (
     DynamicScriptRegistry,
     ScriptConfigError,
 )
+from .dynamic_checkpoints import (
+    DynamicCheckpoint,
+    DynamicCheckpointRegistry,
+    CheckpointConfigError,
+)
 
 __all__ = [
     "ORDER_ACTION_BUY",
@@ -140,4 +145,7 @@ __all__ = [
     "DynamicScript",
     "DynamicScriptRegistry",
     "ScriptConfigError",
+    "DynamicCheckpoint",
+    "DynamicCheckpointRegistry",
+    "CheckpointConfigError",
 ]
