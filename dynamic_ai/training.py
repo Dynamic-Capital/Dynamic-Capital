@@ -5,9 +5,10 @@ from __future__ import annotations
 import math
 import pickle
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Dict, Iterable, List, Mapping
 
 from .fusion import LorentzianDistanceLobe
+from .core import DynamicFusionAlgo
 from ml.lorentzian_train import LorentzianModel
 
 
@@ -46,4 +47,39 @@ def calibrate_lorentzian_lobe(
         sensitivity = max(sensitivity, minimum_sensitivity)
 
     return LorentzianDistanceLobe(sensitivity=float(sensitivity))
+
+
+def prepare_fusion_training_rows(
+    algo: DynamicFusionAlgo, samples: Iterable[Mapping[str, Any]]
+) -> List[Dict[str, Any]]:
+    """Return flattened training rows for the :class:`DynamicFusionAlgo` pipeline."""
+
+    rows: List[Dict[str, Any]] = []
+
+    for sample in samples:
+        example = algo.prepare_training_example(dict(sample))
+
+        row: Dict[str, Any] = {**example["features"]}
+        row.update(
+            {
+                "source_signal": example["source_signal"],
+                "resolved_signal": example["resolved_signal"],
+                "composite_score": example["composite_score"],
+                "composite_trimmed_mean": example["composite_trimmed_mean"],
+                "base_action": example["base_action"],
+                "base_confidence": example["base_confidence"],
+                "base_consensus": example["base_consensus"],
+                "final_action": example["final_action"],
+                "final_confidence": example["final_confidence"],
+                "final_consensus": example["final_consensus"],
+            }
+        )
+
+        consensus_by_action = example["consensus_by_action"]
+        for action, consensus in consensus_by_action.items():
+            row[f"consensus_{action.lower()}"] = consensus
+
+        rows.append(row)
+
+    return rows
 
