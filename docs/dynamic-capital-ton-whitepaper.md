@@ -141,6 +141,110 @@ stability concerns arise.
 - Treasury-controlled mint functions are time-locked and require multi-signature
   authorization to protect against supply shocks.
 
+## Token Valuation Framework
+
+Dynamic Capital maintains an auditable valuation model so contributors can
+verify how treasury performance, supply policy, and market activity translate
+into tokenholder value.
+
+### Token Supply & Circulation
+
+**Formula**
+
+```
+Circulating Supply = Total Supply - Locked Tokens - Treasury Reserves
+```
+
+Calculates the liquid float that is available to the market after excluding
+long-term locks and treasury-held balances.
+
+- Helps investors see how many tokens are actually in the market.
+
+### Treasury Net Asset Value (NAV)
+
+**Formula**
+
+```
+Treasury NAV = Total Assets (TON, USDT, Profits) - Liabilities
+```
+
+Measures the treasury's net backing so stakeholders can audit collateral
+coverage and solvency.
+
+- Provides the basis for transparency reporting and price floor calculations.
+
+### Price Floor Equation
+
+**Formula**
+
+```
+Price Floor (per DCT) = Treasury NAV / Circulating Supply
+```
+
+Estimates the intrinsic value per token by dividing verifiable treasury assets
+by the circulating float.
+
+- Shows the minimum intrinsic value that is backed by real assets.
+
+### Burn & Deflation Equation
+
+**Formula**
+
+```
+ΔS = -(Tx Volume × Burn Rate)
+```
+
+Represents how transaction-driven burns contract supply over time through
+protocol-level fee mechanics.
+
+- Burn rate can be defined as 50% of a 2–5% transaction fee split.
+
+### Reward Yield (Staking / Algo Performance)
+
+**Formula**
+
+```
+Staking Yield (%) = (Distributed Rewards / Staked Tokens) × 100
+```
+
+Quantifies the return that tokenholders earn for locking DCT into staking
+programs or algorithmic strategy vaults.
+
+- Rewards are funded from treasury inflows and algorithmic trading profits.
+
+### Dynamic Pricing Link to Algo Performance
+
+**Formula**
+
+```
+P_{t+1} = P_t × (1 + Algo ROI / Scaling Factor)
+```
+
+Connects token pricing adjustments to algorithmic returns while smoothing
+volatility through a governance-defined scaling factor.
+
+- Positive strategy performance nudges price targets upward without overreacting
+  to short-term noise.
+
+### Buyback Function
+
+**Formula**
+
+```
+Buyback Amount = α × Monthly Profits
+```
+
+Defines the portion of treasury profits routed to secondary-market buybacks that
+reinforce price support.
+
+- α represents a fixed allocation percentage of profits (e.g., 30%).
+- Tokens acquired via buybacks can be burned or reintroduced into treasury
+  reserves to support future programs.
+
+Together these equations form the mathematical backbone of the whitepaper,
+demonstrating how sustainability, asset backing, and value distribution are
+engineered for DCT holders.
+
 ### Sale Rounds
 
 Token distribution campaigns translate the long-term supply map into

@@ -33,6 +33,13 @@ interface UtilityProgram {
   readonly bullets: readonly string[];
 }
 
+interface EquationSection {
+  readonly title: string;
+  readonly formula: string;
+  readonly explanation: string;
+  readonly notes?: readonly string[];
+}
+
 interface RoadmapPhase {
   readonly phase: string;
   readonly focus: string;
@@ -79,6 +86,11 @@ interface WhitepaperConfig {
     readonly rounds: readonly SaleRound[];
   };
   readonly utilityPrograms: readonly UtilityProgram[];
+  readonly valuationFramework?: {
+    readonly intro?: readonly string[];
+    readonly equations: readonly EquationSection[];
+    readonly closing?: readonly string[];
+  };
   readonly treasury: readonly string[];
   readonly governance: {
     readonly councils: readonly string[];
@@ -237,6 +249,30 @@ function renderUtilityPrograms(programs: readonly UtilityProgram[]): string {
     .join("\n");
 }
 
+function renderEquationSections(sections: readonly EquationSection[]): string {
+  return sections
+    .map((section) => {
+      const parts = [
+        `### ${section.title}`,
+        "",
+        "**Formula**",
+        "",
+        "```",
+        section.formula,
+        "```",
+        "",
+        section.explanation.trim(),
+      ];
+
+      if (section.notes?.length) {
+        parts.push("", renderBullets(section.notes));
+      }
+
+      return parts.join("\n");
+    })
+    .join("\n\n");
+}
+
 function renderRoadmap(phases: readonly RoadmapPhase[]): string {
   return phases
     .map((phase) =>
@@ -301,6 +337,17 @@ function buildDocument(config: WhitepaperConfig): string {
   parts.push("## Token Supply & Emissions");
   parts.push(renderDistributionTable(config.distributionTable));
   parts.push("\n" + renderBullets(config.emissionNotes));
+
+  if (config.valuationFramework) {
+    parts.push("## Token Valuation Framework");
+    if (config.valuationFramework.intro?.length) {
+      parts.push(renderParagraphs(config.valuationFramework.intro));
+    }
+    parts.push(renderEquationSections(config.valuationFramework.equations));
+    if (config.valuationFramework.closing?.length) {
+      parts.push(renderParagraphs(config.valuationFramework.closing));
+    }
+  }
 
   parts.push("### Sale Rounds");
   if (config.saleRounds.intro) {
