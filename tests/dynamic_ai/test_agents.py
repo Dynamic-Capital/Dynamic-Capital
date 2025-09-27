@@ -5,7 +5,13 @@ import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from dynamic_ai import AISignal, ExecutionAgent, ResearchAgent, RiskAgent
+from dynamic_ai import (
+    AISignal,
+    DynamicChatAgent,
+    ExecutionAgent,
+    ResearchAgent,
+    RiskAgent,
+)
 from dynamic_ai.analysis import DynamicAnalysis
 from algorithms.python.dynamic_ai_sync import run_dynamic_agent_cycle
 
@@ -159,3 +165,43 @@ def test_run_dynamic_agent_cycle_aggregates_outputs(research_payload: dict) -> N
     assert result["agents"]["risk"]["agent"] == "risk"
     assert "action" in result["decision"]
     assert "hedge_decisions" in result["decision"]
+
+
+def test_dynamic_chat_agent_produces_transcript(research_payload: dict) -> None:
+    cycle = run_dynamic_agent_cycle(
+        {
+            "research_payload": research_payload,
+            "market_payload": {"signal": "BUY", "confidence": 0.6, "momentum": 0.5},
+            "risk_context": {
+                "daily_drawdown": -0.015,
+                "treasury_utilisation": 0.18,
+                "treasury_health": 1.05,
+                "volatility": 0.45,
+            },
+            "market_state": {
+                "volatility": {
+                    "EURUSD": {"atr": 0.02, "close": 1.1, "median_ratio": 0.01},
+                }
+            },
+            "account_state": {
+                "exposures": [
+                    {"symbol": "EURUSD", "side": "LONG", "quantity": 75_000, "beta": 1.0, "price": 1.1},
+                ]
+            },
+        }
+    )
+
+    agent = DynamicChatAgent()
+    result = agent.run({
+        "agents": cycle["agents"],
+        "decision": cycle["decision"],
+        "user": "What is the latest EURUSD plan?",
+    })
+    payload = result.to_dict()
+
+    assert payload["agent"] == "chat"
+    assert payload["messages"]
+    assert payload["messages"][0]["role"] == "user"
+    assert any(message["role"] == "execution" for message in payload["messages"])
+    assert payload["decision"]["action"] in {"BUY", "SELL", "HOLD", "NEUTRAL"}
+    assert "Final decision" in payload["rationale"]
