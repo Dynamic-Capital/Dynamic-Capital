@@ -29,6 +29,11 @@ import {
 import { home } from "@/resources";
 import { cn } from "@/utils";
 import { useHeroMetrics } from "@/hooks/useHeroMetrics";
+import { useDeskPreviewCards } from "@/hooks/useDeskPreviewCards";
+import {
+  DEFAULT_DESK_PREVIEW_CARDS,
+  type DeskPreviewCard,
+} from "@/services/deskPreviewCards";
 import styles from "./HeroExperience.module.scss";
 
 const ONBOARDING_STEPS = [
@@ -61,43 +66,6 @@ const brandColor = (token: string, alpha?: number) =>
 const clampNormalizedPointer = (value: number) =>
   Math.max(-1, Math.min(1, value));
 
-const PREVIEW_CARDS = [
-  {
-    title: "Desk Signal Feed",
-    subtitle: "Next catalyst in 1h 42m",
-    metricLabel: "Playbook edge",
-    metricValue: "+1.9%",
-    description: "EUR/USD breakout · Risk 0.4% · Targets stacked",
-    gradient: `linear-gradient(135deg, ${brandColor("--dc-brand", 0.95)} 0%, ${
-      brandColor("--dc-secondary", 0.85)
-    } 48%, ${brandColor("--dc-brand-dark", 0.85)} 100%)`,
-  },
-  {
-    title: "Mentor Office Hours",
-    subtitle: "Today · 18:30 GMT",
-    metricLabel: "Seats left",
-    metricValue: "5",
-    description: "Submit your plan for live teardown and adjustments",
-    gradient: `linear-gradient(135deg, ${
-      brandColor("--dc-secondary", 0.9)
-    } 0%, ${brandColor("--dc-accent", 0.78)} 60%, ${
-      brandColor("--dc-brand-dark", 0.82)
-    } 100%)`,
-  },
-  {
-    title: "Risk Automation",
-    subtitle: "Dynamic guardrails armed",
-    metricLabel: "Max draw",
-    metricValue: "0.6%",
-    description: "Auto-pauses trigger if the threshold is breached",
-    gradient: `linear-gradient(135deg, ${brandColor("--dc-accent", 0.88)} 0%, ${
-      brandColor("--dc-secondary", 0.8)
-    } 55%, ${brandColor("--dc-brand-dark", 0.85)} 100%)`,
-  },
-] as const;
-
-type PreviewCard = (typeof PREVIEW_CARDS)[number];
-
 export function HeroExperience() {
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const previewSurfaceRef = useRef<HTMLDivElement | null>(null);
@@ -123,6 +91,15 @@ export function HeroExperience() {
     mass: 0.5,
   });
   const { heroMetrics } = useHeroMetrics();
+  const {
+    cards: previewCards,
+    isLoading: cardsLoading,
+    isError: cardsError,
+    isFallback: cardsFallback,
+  } = useDeskPreviewCards();
+  const skeletonCards = DEFAULT_DESK_PREVIEW_CARDS;
+  const showCardSkeleton = cardsLoading && previewCards.length === 0;
+  const displayedCards = showCardSkeleton ? skeletonCards : previewCards;
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -147,31 +124,32 @@ export function HeroExperience() {
   const backRotateX = useTransform(springY, (value) => `${value * -4}deg`);
   const backRotateY = useTransform(springX, (value) => `${value * 4}deg`);
 
-  const cardCount = PREVIEW_CARDS.length;
+  const cardCount = displayedCards.length;
   const activeCardIndex = cardCount
     ? activeStepIndex % cardCount
     : activeStepIndex;
 
-  const orderedCards = useMemo<PreviewCard[]>(() => {
+  const orderedCards = useMemo<DeskPreviewCard[]>(() => {
     if (!cardCount) {
       return [];
     }
 
-    const primaryCard = PREVIEW_CARDS[activeCardIndex];
+    const primaryCard = displayedCards[activeCardIndex];
 
     if (!primaryCard) {
-      return PREVIEW_CARDS.slice();
+      return displayedCards.slice();
     }
 
     return [
       primaryCard,
-      ...PREVIEW_CARDS.filter((_, index) => index !== activeCardIndex),
+      ...displayedCards.filter((_, index) => index !== activeCardIndex),
     ];
-  }, [activeCardIndex, cardCount]);
+  }, [activeCardIndex, cardCount, displayedCards]);
 
+  const enableCardMotion = !prefersReducedMotion && !showCardSkeleton;
   const cardTransforms = useMemo(
     () => {
-      if (prefersReducedMotion) {
+      if (!enableCardMotion) {
         return orderedCards.map((_, index) => ({
           style: { x: 0, y: 0, rotateX: "0deg", rotateY: "0deg" },
           zIndex: orderedCards.length - index,
@@ -213,12 +191,12 @@ export function HeroExperience() {
       backCardY,
       backRotateX,
       backRotateY,
+      enableCardMotion,
       middleCardX,
       middleCardY,
       middleRotateX,
       middleRotateY,
       orderedCards,
-      prefersReducedMotion,
       primaryCardX,
       primaryCardY,
       primaryRotateX,
@@ -234,7 +212,7 @@ export function HeroExperience() {
 
   const handlePointerMove = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
-      if (prefersReducedMotion) {
+      if (prefersReducedMotion || showCardSkeleton) {
         return;
       }
 
@@ -254,7 +232,13 @@ export function HeroExperience() {
       pointerX.set(Number.isFinite(x) ? clampNormalizedPointer(x) : 0);
       pointerY.set(Number.isFinite(y) ? clampNormalizedPointer(y) : 0);
     },
-    [pointerX, pointerY, prefersReducedMotion, updatePointerBounds],
+    [
+      pointerX,
+      pointerY,
+      prefersReducedMotion,
+      showCardSkeleton,
+      updatePointerBounds,
+    ],
   );
 
   const resetPointer = useCallback(() => {
@@ -286,10 +270,10 @@ export function HeroExperience() {
   }, []);
 
   useEffect(() => {
-    if (prefersReducedMotion) {
+    if (prefersReducedMotion || showCardSkeleton) {
       resetPointer();
     }
-  }, [prefersReducedMotion, resetPointer]);
+  }, [prefersReducedMotion, resetPointer, showCardSkeleton]);
 
   const focusStepButton = useCallback((index: number) => {
     const focus = () => {
@@ -750,10 +734,12 @@ export function HeroExperience() {
               className={styles.previewSurface}
               role="group"
               aria-describedby={`${tablistId}-preview`}
+              aria-busy={showCardSkeleton}
               style={{
                 background: `radial-gradient(circle at top, ${
                   brandColor("--dc-secondary", 0.25)
                 }, transparent 65%)`,
+                pointerEvents: showCardSkeleton ? "none" : undefined,
               }}
             >
               <motion.div
@@ -790,6 +776,7 @@ export function HeroExperience() {
                       background: card.gradient,
                       ...(cardTransforms[index]?.style ?? {}),
                       marginTop: index === 0 ? 0 : undefined,
+                      opacity: showCardSkeleton ? 0.55 : 1,
                     }}
                   >
                     <Column gap="12">
@@ -820,6 +807,28 @@ export function HeroExperience() {
               </div>
             </motion.div>
           </motion.div>
+          {showCardSkeleton
+            ? (
+              <Text
+                variant="label-default-s"
+                onBackground="neutral-medium"
+                align="center"
+              >
+                Loading live desk preview…
+              </Text>
+            )
+            : null}
+          {!showCardSkeleton && (cardsError || cardsFallback)
+            ? (
+              <Text
+                variant="label-default-s"
+                onBackground="neutral-medium"
+                align="center"
+              >
+                We&apos;re showing sample desk cards while the live data syncs.
+              </Text>
+            )
+            : null}
           <Text
             id={`${tablistId}-preview`}
             className="sr-only"
