@@ -1476,6 +1476,54 @@ export type Database = {
           },
         ];
       };
+      hedge_actions: {
+        Row: {
+          id: string;
+          symbol: string;
+          hedge_symbol: string;
+          side: Database["public"]["Enums"]["hedge_action_side_enum"];
+          qty: number;
+          reason: Database["public"]["Enums"]["hedge_action_reason_enum"];
+          status: Database["public"]["Enums"]["hedge_action_status_enum"];
+          entry_price: number | null;
+          close_price: number | null;
+          pnl: number | null;
+          metadata: Json;
+          created_at: string;
+          closed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          symbol: string;
+          hedge_symbol: string;
+          side: Database["public"]["Enums"]["hedge_action_side_enum"];
+          qty: number;
+          reason: Database["public"]["Enums"]["hedge_action_reason_enum"];
+          status?: Database["public"]["Enums"]["hedge_action_status_enum"];
+          entry_price?: number | null;
+          close_price?: number | null;
+          pnl?: number | null;
+          metadata?: Json;
+          created_at?: string;
+          closed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          symbol?: string;
+          hedge_symbol?: string;
+          side?: Database["public"]["Enums"]["hedge_action_side_enum"];
+          qty?: number;
+          reason?: Database["public"]["Enums"]["hedge_action_reason_enum"];
+          status?: Database["public"]["Enums"]["hedge_action_status_enum"];
+          entry_price?: number | null;
+          close_price?: number | null;
+          pnl?: number | null;
+          metadata?: Json;
+          created_at?: string;
+          closed_at?: string | null;
+        };
+        Relationships: [];
+      };
       signals: {
         Row: {
           account_id: string | null;
@@ -2225,6 +2273,9 @@ export type Database = {
       };
     };
     Enums: {
+      hedge_action_reason_enum: "ATR_SPIKE" | "NEWS" | "DD_LIMIT";
+      hedge_action_side_enum: "LONG_HEDGE" | "SHORT_HEDGE";
+      hedge_action_status_enum: "OPEN" | "CLOSED" | "CANCELLED";
       signal_dispatch_status_enum:
         | "pending"
         | "claimed"

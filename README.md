@@ -834,6 +834,20 @@ now modelled end-to-end:
 Set `TRADINGVIEW_LOG_LEVEL=DEBUG` locally to inspect scraping output when
 troubleshooting.
 
+## Dynamic Hedge Model
+
+The automated hedge engine now complements the directional trading pipeline:
+
+- **Database schema** – `public.hedge_actions` records every hedge lifecycle
+  event with enums for side, reason, and status so dashboards and bots can
+  track volatility offsets alongside standard trades.
+- **Policy node** – the `dynamic-hedge` entry in `public.node_configs` runs
+  every five minutes, watching trades, correlations, and risk settings before
+  persisting new hedges and emitting MT5-ready signals.
+- **Edge function** – the `dynamic-hedge` Supabase function evaluates ATR
+  spikes, drawdown breaches, and high-impact news, logs the action, and queues
+  execution orders for the trading core.
+
 ## GitHub Integration
 
 This project features **bidirectional GitHub sync** through Dynamic Codex:

@@ -14,6 +14,16 @@ from .fusion import (
 )
 from .training import calibrate_lorentzian_lobe, load_lorentzian_model
 from .risk import PositionSizing, RiskContext, RiskManager, RiskParameters
+from .hedge import (
+    AccountState,
+    DynamicHedgePolicy,
+    ExposurePosition,
+    HedgeDecision,
+    HedgePosition,
+    MarketState,
+    NewsEvent,
+    VolatilitySnapshot,
+)
 
 __all__ = [
     "AISignal",
@@ -34,4 +44,12 @@ __all__ = [
     "RiskContext",
     "RiskManager",
     "RiskParameters",
+    "AccountState",
+    "DynamicHedgePolicy",
+    "ExposurePosition",
+    "HedgeDecision",
+    "HedgePosition",
+    "MarketState",
+    "NewsEvent",
+    "VolatilitySnapshot",
 ]
