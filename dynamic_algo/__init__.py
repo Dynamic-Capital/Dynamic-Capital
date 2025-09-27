@@ -33,6 +33,12 @@ from .dynamic_psychology import (
     PsychologyEntry,
     PsychologySnapshot,
 )
+from .dynamic_elements import (
+    DynamicElementAlgo,
+    ElementContribution,
+    ElementSnapshot,
+    ElementSummary,
+)
 from .dynamic_nodes import (
     DynamicNode,
     DynamicNodeRegistry,
@@ -68,6 +74,10 @@ __all__ = [
     "PsychologyEntry",
     "PsychologySnapshot",
     "ElementAggregate",
+    "DynamicElementAlgo",
+    "ElementContribution",
+    "ElementSummary",
+    "ElementSnapshot",
     "DynamicNode",
     "DynamicNodeRegistry",
     "DynamicNodeError",
