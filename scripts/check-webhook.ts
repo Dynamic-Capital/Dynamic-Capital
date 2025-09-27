@@ -13,6 +13,8 @@
  *   deno run -A scripts/check-webhook.ts
  */
 
+import { createHttpClientWithEnvCa } from "./utils/http-client.ts";
+
 type TelegramWebhookInfo = {
   url?: string;
   has_custom_certificate?: boolean;
@@ -53,15 +55,36 @@ async function fetchWebhookInfo(): Promise<TelegramWebhookInfo> {
   const apiBase =
     (Deno.env.get("TELEGRAM_API_BASE") ?? "https://api.telegram.org")
       .replace(/\/$/, "");
-  const response = await fetch(`${apiBase}/bot${token}/getWebhookInfo`);
-  const json = (await response.json()) as TelegramWebhookResponse;
-
-  if (!json.ok) {
-    console.error("Telegram API error:", json);
-    Deno.exit(1);
+  const tlsContext = await createHttpClientWithEnvCa();
+  if (tlsContext) {
+    console.log(`[tls] Using ${tlsContext.description}`);
   }
+  try {
+    const response = await fetch(`${apiBase}/bot${token}/getWebhookInfo`, {
+      client: tlsContext?.client,
+    });
+    const json = (await response.json()) as TelegramWebhookResponse;
 
-  return json.result ?? {};
+    if (!json.ok) {
+      console.error("Telegram API error:", json);
+      Deno.exit(1);
+    }
+
+    return json.result ?? {};
+  } catch (error) {
+    if (
+      error instanceof TypeError &&
+      /UnknownIssuer/i.test(error.message ?? String(error))
+    ) {
+      console.error(
+        "TLS validation failed: UnknownIssuer. Provide TELEGRAM_CA_CERT, ",
+        "TELEGRAM_CA_BUNDLE, or set SSL_CERT_FILE to a trusted bundle.",
+      );
+    }
+    throw error;
+  } finally {
+    tlsContext?.client.close();
+  }
 }
 
 const info = await fetchWebhookInfo();
