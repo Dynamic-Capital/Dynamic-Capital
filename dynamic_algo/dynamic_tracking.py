@@ -200,9 +200,19 @@ class DynamicTrackingAlgo:
         if reference_time is None:
             reference_time = _now()
         cutoff = reference_time - self.lookback_window
-        self._events = [event for event in self._events if event.timestamp >= cutoff]
-        if len(self._events) > self.max_events:
-            self._events = self._events[-self.max_events :]
+        events = self._events
+        start_index = 0
+        for event in events:
+            if event.timestamp >= cutoff:
+                break
+            start_index += 1
+
+        if start_index:
+            del events[:start_index]
+
+        excess = len(events) - self.max_events
+        if excess > 0:
+            del events[:excess]
 
     def _ensure_stage(self, stage: str) -> str:
         normalised = _normalise_identifier(stage)
@@ -259,10 +269,25 @@ class DynamicTrackingAlgo:
     def _register(self, event: TrackingEvent) -> TrackingEvent:
         # Ensure canonical stage validation
         event.stage = self._ensure_stage(event.stage)
-        self._events.append(event)
-        self._events.sort(key=lambda e: e.timestamp)
+        self._insert_sorted(event)
         self._trim(event.timestamp)
         return event
+
+    def _insert_sorted(self, event: TrackingEvent) -> None:
+        """Insert ``event`` into ``self._events`` maintaining chronological order."""
+
+        events = self._events
+        lo, hi = 0, len(events)
+        target_timestamp = event.timestamp
+
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if events[mid].timestamp <= target_timestamp:
+                lo = mid + 1
+            else:
+                hi = mid
+
+        events.insert(lo, event)
 
     def snapshot(
         self,
