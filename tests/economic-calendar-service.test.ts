@@ -1,5 +1,5 @@
 import test from "node:test";
-import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
+import { deepStrictEqual, ok, rejects, strictEqual } from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import { freshImport } from "./utils/freshImport.ts";
@@ -209,6 +209,100 @@ test("economic calendar service falls back to desk plan snapshots", async () => 
     strictEqual(event.impact, "Medium");
     strictEqual(event.marketHighlights.length, 1);
     strictEqual(event.marketHighlights[0]?.focus, "USDJPY");
+
+    service.resetEconomicCalendarCache();
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (prevUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_ECONOMIC_CALENDAR_URL;
+    } else {
+      process.env.NEXT_PUBLIC_ECONOMIC_CALENDAR_URL = prevUrl;
+    }
+  }
+});
+
+test("economic calendar service retries after a failed request", async () => {
+  const prevUrl = process.env.NEXT_PUBLIC_ECONOMIC_CALENDAR_URL;
+  process.env.NEXT_PUBLIC_ECONOMIC_CALENDAR_URL =
+    "https://api.example.com/calendar";
+
+  const originalFetch = globalThis.fetch;
+  let restRequestCount = 0;
+  let awesomeRequestCount = 0;
+
+  globalThis.fetch = async (input, _init) => {
+    const url = typeof input === "string"
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : input.url;
+
+    if (url === "https://api.example.com/calendar") {
+      restRequestCount += 1;
+      if (restRequestCount === 1) {
+        return new Response("Internal Server Error", {
+          status: 500,
+          statusText: "Internal Server Error",
+        });
+      }
+
+      const body = JSON.stringify({
+        events: [
+          {
+            id: "cpi",
+            scheduled_at: "2024-03-20T12:30:00Z",
+            title: "Consumer Price Index",
+            impact: "low",
+            market_focus: ["EURUSD"],
+            commentary: "CPI release",
+          },
+        ],
+      });
+      return new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.startsWith("https://economia.awesomeapi.com.br/last/")) {
+      awesomeRequestCount += 1;
+      const body = JSON.stringify({
+        EURUSD: {
+          bid: "1.0800",
+          pctChange: "0.20",
+          high: "1.0820",
+          low: "1.0750",
+          create_date: "2024-03-20 12:25:00",
+        },
+      });
+      return new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  try {
+    const service = await freshImport(
+      "../../apps/web/services/economic-calendar.ts",
+    );
+
+    await rejects(service.fetchEconomicEvents({ source: "rest" }));
+    strictEqual(restRequestCount, 1);
+
+    const events = await service.fetchEconomicEvents({ source: "rest" });
+
+    strictEqual(restRequestCount, 2);
+    strictEqual(awesomeRequestCount, 1);
+    strictEqual(events.length, 1);
+    const [event] = events;
+    strictEqual(event.id, "cpi");
+    strictEqual(event.time, "12:30 GMT");
+    deepStrictEqual(event.marketFocus, ["EURUSD"]);
+    strictEqual(service.getCachedEconomicEvents().length, 1);
+    strictEqual(service.getCachedEconomicEventsError(), null);
 
     service.resetEconomicCalendarCache();
   } finally {
