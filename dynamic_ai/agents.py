@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from statistics import fmean
 from typing import Any, Dict, Iterable, Mapping, Protocol, Sequence
 
 from .analysis import DynamicAnalysis
@@ -120,6 +121,27 @@ class ChatAgentResult(AgentResult):
         payload["messages"] = [message.to_dict() for message in self.messages]
         if self.decision:
             payload["decision"] = dict(self.decision)
+        return payload
+
+
+@dataclass(slots=True)
+class ExecutiveAgentResult(AgentResult):
+    """Executive-ready synthesis of the orchestration cycle."""
+
+    highlights: Sequence[str]
+    risk_flags: Sequence[str] = ()
+    scorecard: Dict[str, float] = field(default_factory=dict)
+    notes: Sequence[str] = ()
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = AgentResult.to_dict(self)
+        payload["highlights"] = list(self.highlights)
+        if self.risk_flags:
+            payload["risk_flags"] = list(self.risk_flags)
+        if self.scorecard:
+            payload["scorecard"] = dict(self.scorecard)
+        if self.notes:
+            payload["notes"] = list(self.notes)
         return payload
 
 
@@ -514,6 +536,18 @@ def _compose_persona_message(name: str, payload: Mapping[str, Any]) -> ChatTurn:
     return ChatTurn(role=name, content=content, metadata=metadata)
 
 
+def _coerce_scorecard(payload: Mapping[str, Any] | None) -> Dict[str, float]:
+    if not isinstance(payload, Mapping):
+        return {}
+    scorecard: Dict[str, float] = {}
+    for key, value in payload.items():
+        try:
+            scorecard[str(key)] = float(value)
+        except (TypeError, ValueError):
+            continue
+    return scorecard
+
+
 class DynamicChatAgent:
     """Persona that shapes agent outputs into a human-friendly transcript."""
 
@@ -629,12 +663,133 @@ class DynamicChatAgent:
         )
 
 
+class ExecutiveAgent:
+    """Persona that distils the orchestration cycle for leadership review."""
+
+    name = "executive"
+
+    def run(self, payload: Mapping[str, Any]) -> ExecutiveAgentResult:
+        context = dict(payload or {})
+
+        agents_mapping = context.get("agents")
+        if not isinstance(agents_mapping, Mapping):
+            agents_mapping = {}
+
+        research_payload = _normalise_agent_payload(
+            context.get("research") or agents_mapping.get("research")
+        )
+        execution_payload = _normalise_agent_payload(
+            context.get("execution") or agents_mapping.get("execution")
+        )
+        risk_payload = _normalise_agent_payload(
+            context.get("risk") or agents_mapping.get("risk")
+        )
+
+        decision_payload = context.get("decision")
+        if not isinstance(decision_payload, Mapping):
+            decision_payload = {}
+        else:
+            decision_payload = dict(decision_payload)
+
+        scorecard = _coerce_scorecard(context.get("scorecard"))
+        if not scorecard:
+            scorecard = _coerce_scorecard(context.get("metrics"))
+        if not scorecard:
+            scorecard = _coerce_scorecard(context.get("telemetry"))
+
+        highlights: list[str] = []
+        notes: list[str] = []
+        risk_flags: list[str] = []
+        confidence_values: list[float] = []
+
+        def _record_confidence(value: Any) -> None:
+            confidence = _optional_float(value)
+            if confidence is not None:
+                confidence_values.append(confidence)
+
+        _record_confidence(context.get("confidence"))
+
+        if research_payload:
+            _record_confidence(research_payload.get("confidence"))
+            analysis_payload = research_payload.get("analysis")
+            if isinstance(analysis_payload, Mapping):
+                action = analysis_payload.get("action")
+                if action:
+                    highlights.append(f"Research favours {action}")
+                primary_driver = analysis_payload.get("primary_driver")
+                if primary_driver:
+                    notes.append(f"Primary driver: {primary_driver}")
+
+        if execution_payload:
+            _record_confidence(execution_payload.get("confidence"))
+            signal_payload = execution_payload.get("signal")
+            if isinstance(signal_payload, Mapping):
+                _record_confidence(signal_payload.get("confidence"))
+                action = signal_payload.get("action")
+                if action:
+                    highlights.append(f"Execution signal: {action}")
+                if "execution_confidence" not in scorecard:
+                    signal_confidence = _optional_float(signal_payload.get("confidence"))
+                    if signal_confidence is not None:
+                        scorecard["execution_confidence"] = signal_confidence
+
+        if risk_payload:
+            _record_confidence(risk_payload.get("confidence"))
+            adjusted_payload = risk_payload.get("adjusted_signal")
+            if isinstance(adjusted_payload, Mapping):
+                action = adjusted_payload.get("action")
+                if action:
+                    highlights.append(f"Risk-adjusted action: {action}")
+                adjusted_confidence = _optional_float(adjusted_payload.get("confidence"))
+                if (
+                    adjusted_confidence is not None
+                    and "risk_confidence" not in scorecard
+                ):
+                    scorecard["risk_confidence"] = adjusted_confidence
+
+            escalations = risk_payload.get("escalations")
+            if isinstance(escalations, Iterable) and not isinstance(escalations, (str, bytes)):
+                risk_flags.extend(str(flag) for flag in escalations if str(flag))
+
+            hedges = risk_payload.get("hedge_decisions")
+            if isinstance(hedges, Iterable) and not isinstance(hedges, (str, bytes)):
+                hedge_list = [hedge for hedge in hedges if hedge]
+                if hedge_list:
+                    notes.append(f"Hedge directives: {len(hedge_list)} active")
+                    if "hedge_count" not in scorecard:
+                        scorecard["hedge_count"] = float(len(hedge_list))
+
+        final_action = decision_payload.get("action")
+        if final_action:
+            highlights.append(f"Final decision: {final_action}")
+            _record_confidence(decision_payload.get("confidence"))
+
+        if not highlights:
+            highlights.append("Operational cycle complete.")
+
+        rationale = " ".join(highlights)
+
+        confidence = fmean(confidence_values) if confidence_values else 0.0
+
+        return ExecutiveAgentResult(
+            agent=self.name,
+            rationale=rationale,
+            confidence=confidence,
+            highlights=tuple(highlights),
+            risk_flags=tuple(dict.fromkeys(risk_flags)),
+            scorecard=scorecard,
+            notes=tuple(dict.fromkeys(notes)),
+        )
+
+
 __all__ = [
     "Agent",
     "AgentResult",
     "ChatAgentResult",
     "ChatTurn",
     "DynamicChatAgent",
+    "ExecutiveAgent",
+    "ExecutiveAgentResult",
     "ExecutionAgent",
     "ExecutionAgentResult",
     "ResearchAgent",

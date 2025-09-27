@@ -24,6 +24,8 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "ChatTurn",
         "ExecutionAgent",
         "ExecutionAgentResult",
+        "ExecutiveAgent",
+        "ExecutiveAgentResult",
         "ResearchAgent",
         "ResearchAgentResult",
         "RiskAgent",

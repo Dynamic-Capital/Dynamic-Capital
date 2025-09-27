@@ -1,13 +1,25 @@
 from pathlib import Path
 import sys
+import types
 
 import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
+requests_stub = types.ModuleType("requests")
+
+
+def _raise_unavailable(*_args, **_kwargs):
+    raise RuntimeError("requests not available in unit test environment")
+
+
+requests_stub.post = _raise_unavailable
+sys.modules.setdefault("requests", requests_stub)
+
 from dynamic_ai import (
     AISignal,
     DynamicChatAgent,
+    ExecutiveAgent,
     ExecutionAgent,
     ResearchAgent,
     RiskAgent,
@@ -129,6 +141,47 @@ def test_risk_agent_produces_hedge_directives() -> None:
     decision = payload["hedge_decisions"][0]
     assert decision["action"] == "OPEN"
     assert decision["symbol"] == "EURUSD"
+
+
+def test_executive_agent_distils_cycle_for_leadership(research_payload: dict) -> None:
+    cycle = run_dynamic_agent_cycle(
+        {
+            "research_payload": research_payload,
+            "market_payload": {"signal": "BUY", "confidence": 0.6, "momentum": 0.5},
+            "risk_context": {
+                "daily_drawdown": -0.015,
+                "treasury_utilisation": 0.18,
+                "treasury_health": 1.05,
+                "volatility": 0.4,
+            },
+            "market_state": {
+                "volatility": {
+                    "EURUSD": {"atr": 0.02, "close": 1.1, "median_ratio": 0.01},
+                }
+            },
+            "account_state": {
+                "exposures": [
+                    {"symbol": "EURUSD", "side": "LONG", "quantity": 75_000, "beta": 1.0, "price": 1.1},
+                ]
+            },
+        }
+    )
+
+    agent = ExecutiveAgent()
+    result = agent.run(
+        {
+            "agents": cycle["agents"],
+            "decision": cycle["decision"],
+            "scorecard": {"treasury_health": 0.94, "automation": 0.82},
+        }
+    )
+
+    payload = result.to_dict()
+
+    assert payload["agent"] == "executive"
+    assert payload["highlights"]
+    assert payload["scorecard"]["treasury_health"] == pytest.approx(0.94, rel=1e-6)
+    assert isinstance(payload.get("confidence"), float)
 
 
 def test_run_dynamic_agent_cycle_aggregates_outputs(research_payload: dict) -> None:
