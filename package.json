@@ -82,6 +82,7 @@
     "@tanstack/react-query": "^5.89.0",
     "@upstash/redis": "^1.35.4",
     "@vercel/otel": "^1.13.0",
+    "compressorjs": "^1.2.1",
     "framer-motion": "^12.23.16",
     "inngest": "^3.40.3",
     "lovable-tagger": "^1.1.9",
@@ -89,6 +90,7 @@
     "mime-types": "^2.1.35",
     "next-auth": "^4.24.11",
     "posthog-js": "^1.266.2",
+    "prismjs": "^1.30.0",
     "sonner": "^2.0.7"
   },
   "overrides": {
