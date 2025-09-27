@@ -74,3 +74,8 @@ The Dynamic AI program tracks work across five epics using a Kanban workflow. Ca
 - Every pull request must link to a card in **Review / Testing**.
 - Weekly sprint planning moves top-priority cards from **Backlog** to **To Do**.
 - Standups focus on the **In Progress** column to unblock work.
+
+## Automation
+- The `.github/workflows/project-board-automation.yml` workflow keeps the GitHub Projects board aligned with column transitions.
+- Set the repository variable `DAI_PROJECT_URL` to the Dynamic AI board URL (for example, `https://github.com/orgs/<org>/projects/<number>`).
+- Optionally, store a fine-grained personal access token in the `PROJECT_BOARD_TOKEN` secret if the default `GITHUB_TOKEN` lacks access to the organization-level project.
