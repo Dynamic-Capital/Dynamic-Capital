@@ -108,15 +108,15 @@ const home: Home = {
           onBackground="brand-strong"
           className="ml-4 font-semibold tracking-tight"
         >
-          Launch update: Multi-LLM Studio 2.0
+          Launch update: Dynamic market review
         </Text>
         <Line background="brand-alpha-strong" vert height="20" />
         <Text marginRight="4" onBackground="brand-medium">
-          Route prompts across OpenAI, Anthropic, and Groq instantly
+          Cross-asset intelligence with live FX, commodity, and index signals
         </Text>
       </Row>
     ),
-    href: "/tools/multi-llm",
+    href: "/tools/dynamic-market-review",
   },
   subline: (
     <>
