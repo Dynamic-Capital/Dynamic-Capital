@@ -2,6 +2,12 @@ import tradingDeskPlan from "@/data/trading-desk-plan.json" with {
   type: "json",
 };
 import {
+  BOND_FEED_CAPABILITIES,
+  BOND_MARKET_COVERAGE,
+  type BondFeedCapability,
+  type BondMarketCoverage,
+} from "@/data/global-bond-yields";
+import {
   type AssetClass,
   DEFAULT_FX_PAIRS,
   findInstrumentMetadata,
@@ -53,6 +59,16 @@ export interface DynamicRestResources {
     plansAvailable: number;
     activePlans: TradingPlanSummary[];
   };
+  bondYields: {
+    totalMarkets: number;
+    totalSeries: number;
+    capabilities: BondFeedCapability[];
+    markets: Array<{
+      code: BondMarketCoverage["code"];
+      market: BondMarketCoverage["market"];
+      tenors: string[];
+    }>;
+  };
 }
 
 export interface DynamicRestResponse {
@@ -81,6 +97,26 @@ type TradingPlan = {
 };
 
 const TRADING_DESK_PLAN = tradingDeskPlan as TradingDeskPlan;
+
+function summariseBondYields(): DynamicRestResources["bondYields"] {
+  const markets = BOND_MARKET_COVERAGE.map((market) => ({
+    code: market.code,
+    market: market.market,
+    tenors: [...market.tenors],
+  }));
+
+  const totalSeries = markets.reduce(
+    (accumulator, market) => accumulator + market.tenors.length,
+    0,
+  );
+
+  return {
+    totalMarkets: markets.length,
+    totalSeries,
+    capabilities: [...BOND_FEED_CAPABILITIES],
+    markets,
+  } satisfies DynamicRestResources["bondYields"];
+}
 
 function toInstrumentSample(metadata: InstrumentMetadata): InstrumentSample {
   return {
@@ -152,6 +188,7 @@ export function buildDynamicRestResponse(
 ): DynamicRestResponse {
   const instruments = summariseInstruments();
   const tradingDesk = summariseTradingDesk();
+  const bondYields = summariseBondYields();
 
   return {
     status: "ok",
@@ -178,10 +215,17 @@ export function buildDynamicRestResponse(
         description:
           "Fetch trading desk plan snapshots with execution context.",
       },
+      {
+        method: "GET",
+        path: "/api/dynamic-rest/resources/bond-yields",
+        description:
+          "Summaries of live sovereign yield coverage and feed capabilities.",
+      },
     ],
     resources: {
       instruments,
       tradingDesk,
+      bondYields,
     },
   } satisfies DynamicRestResponse;
 }

@@ -16,6 +16,13 @@ type TradingDeskResource = {
   activePlans: Array<{ planSummary: unknown[] }>;
 };
 
+type BondYieldsResource = {
+  totalMarkets: number;
+  totalSeries: number;
+  capabilities: string[];
+  markets: Array<{ tenors: unknown[] }>;
+};
+
 async function run() {
   const { GET } = await import(
     /* @vite-ignore */ "../../apps/web/app/api/dynamic-rest/route.ts"
@@ -67,6 +74,21 @@ async function run() {
   assert.ok(
     tradingDesk.activePlans.some((plan) => plan.planSummary.length > 0),
     "plan summaries should not be empty",
+  );
+
+  const bondYields = body.resources.bondYields as BondYieldsResource;
+  assert.ok(bondYields.totalMarkets > 0, "expected bond yield market coverage");
+  assert.ok(
+    bondYields.totalSeries >= bondYields.totalMarkets,
+    "bond yield series count should cover every market",
+  );
+  assert.ok(
+    bondYields.capabilities.includes("Live Stream"),
+    "live stream capability should be advertised",
+  );
+  assert.ok(
+    bondYields.markets.some((market) => market.tenors.length > 1),
+    "expected multi-tenor coverage in bond markets",
   );
 }
 
