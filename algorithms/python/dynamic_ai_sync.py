@@ -11,7 +11,7 @@ from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 from typing_extensions import Literal
 
 from dynamic_ai import ExecutionAgent, ResearchAgent, RiskAgent
-from dynamic_algo.trading_core import DynamicTradingAlgo, TradeExecutionResult
+from dynamic_algo.trading_core import DynamicTradingAlgo, TradeExecutionResult, normalise_symbol
 
 try:  # pragma: no cover - optional dependency for treasury actions
     from dynamic_token.treasury import DynamicTreasuryAlgo, TreasuryEvent
@@ -159,8 +159,7 @@ def run_dynamic_agent_cycle(context: Mapping[str, Any]) -> Dict[str, Any]:
 
 
 def _coerce_symbol(value: Any, default: str = "XAUUSD") -> str:
-    symbol = str(value or "").strip().upper()
-    return symbol or default
+    return normalise_symbol(value or default)
 
 
 def _coerce_lot(value: Any, default: float = 0.1) -> float:
