@@ -93,6 +93,36 @@ class RiskAgentResult(AgentResult):
         return payload
 
 
+@dataclass(slots=True)
+class ChatTurn:
+    """Single conversational turn emitted by the Dynamic Chat agent."""
+
+    role: str
+    content: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = {"role": self.role, "content": self.content}
+        if self.metadata:
+            payload["metadata"] = dict(self.metadata)
+        return payload
+
+
+@dataclass(slots=True)
+class ChatAgentResult(AgentResult):
+    """Conversational summary prepared for human-in-the-loop workflows."""
+
+    messages: Sequence[ChatTurn]
+    decision: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = AgentResult.to_dict(self)
+        payload["messages"] = [message.to_dict() for message in self.messages]
+        if self.decision:
+            payload["decision"] = dict(self.decision)
+        return payload
+
+
 def _coerce_float(value: Any, default: float = 0.0) -> float:
     try:
         return float(value)
@@ -391,9 +421,220 @@ class RiskAgent:
         )
 
 
+def _normalise_agent_payload(value: Any) -> Dict[str, Any]:
+    if isinstance(value, AgentResult):
+        return value.to_dict()
+    if hasattr(value, "to_dict"):
+        try:
+            payload = value.to_dict()
+        except Exception:
+            payload = value
+        else:
+            if isinstance(payload, Mapping):
+                return dict(payload)
+            return {"value": payload}
+    if isinstance(value, Mapping):
+        return dict(value)
+    return {}
+
+
+def _extract_text(*candidates: Any) -> str | None:
+    for value in candidates:
+        if value is None:
+            continue
+        if isinstance(value, Mapping):
+            text = value.get("content") or value.get("message") or value.get("text")
+        else:
+            text = value
+        if text is None:
+            continue
+        rendered = str(text).strip()
+        if rendered:
+            return rendered
+    return None
+
+
+def _compose_persona_message(name: str, payload: Mapping[str, Any]) -> ChatTurn:
+    confidence_value = _optional_float(payload.get("confidence"))
+    metadata: Dict[str, Any] = {}
+    if confidence_value is not None:
+        metadata["confidence"] = round(confidence_value, 4)
+
+    summary_parts: list[str] = []
+    rationale = _extract_text(payload.get("rationale"))
+    if rationale:
+        summary_parts.append(rationale)
+
+    if name == "research":
+        analysis = payload.get("analysis")
+        if isinstance(analysis, Mapping):
+            action = analysis.get("action")
+            if action:
+                summary_parts.append(f"Proposed action: {action}")
+            primary = analysis.get("primary_driver")
+            if primary:
+                metadata["primary_driver"] = primary
+            notes = analysis.get("notes")
+            if isinstance(notes, Iterable) and not isinstance(notes, (str, bytes)):
+                joined = ", ".join(str(note) for note in notes if str(note))
+                if joined:
+                    metadata["notes"] = joined
+
+    if name == "execution":
+        signal = payload.get("signal")
+        if isinstance(signal, Mapping):
+            metadata["signal"] = dict(signal)
+            action = signal.get("action")
+            if action:
+                summary_parts.append(f"Signal action: {action}")
+            confidence_note = signal.get("confidence")
+            if confidence_note is not None and "confidence" not in metadata:
+                try:
+                    metadata["confidence"] = round(float(confidence_note), 4)
+                except (TypeError, ValueError):
+                    pass
+
+    if name == "risk":
+        adjusted = payload.get("adjusted_signal")
+        if isinstance(adjusted, Mapping):
+            metadata["adjusted_signal"] = dict(adjusted)
+            action = adjusted.get("action")
+            if action:
+                summary_parts.append(f"Risk-adjusted action: {action}")
+        hedges = payload.get("hedge_decisions")
+        if isinstance(hedges, Iterable) and not isinstance(hedges, (str, bytes)):
+            hedge_list = [dict(decision) if isinstance(decision, Mapping) else decision for decision in hedges]
+            if hedge_list:
+                metadata["hedge_decisions"] = hedge_list
+        escalations = payload.get("escalations")
+        if escalations:
+            metadata["escalations"] = list(escalations)
+
+    content = " ".join(part for part in summary_parts if part) or f"{name.title()} review completed."
+    return ChatTurn(role=name, content=content, metadata=metadata)
+
+
+class DynamicChatAgent:
+    """Persona that shapes agent outputs into a human-friendly transcript."""
+
+    name = "chat"
+
+    def run(self, payload: Mapping[str, Any]) -> ChatAgentResult:
+        context = dict(payload or {})
+
+        agents_mapping = context.get("agents")
+        if not isinstance(agents_mapping, Mapping):
+            agents_mapping = {}
+
+        research_payload = _normalise_agent_payload(
+            context.get("research") or agents_mapping.get("research")
+        )
+        execution_payload = _normalise_agent_payload(
+            context.get("execution") or agents_mapping.get("execution")
+        )
+        risk_payload = _normalise_agent_payload(
+            context.get("risk") or agents_mapping.get("risk")
+        )
+
+        decision_payload = context.get("decision")
+        if not isinstance(decision_payload, Mapping):
+            decision_payload = {}
+        else:
+            decision_payload = dict(decision_payload)
+
+        user_prompt = _extract_text(
+            context.get("user"),
+            context.get("user_message"),
+            context.get("prompt"),
+            context.get("query"),
+            context.get("question"),
+        )
+
+        messages: list[ChatTurn] = []
+        if user_prompt:
+            messages.append(ChatTurn(role="user", content=user_prompt))
+
+        if research_payload:
+            messages.append(_compose_persona_message("research", research_payload))
+        if execution_payload:
+            messages.append(_compose_persona_message("execution", execution_payload))
+        if risk_payload:
+            messages.append(_compose_persona_message("risk", risk_payload))
+
+        action_text = decision_payload.get("action")
+        confidence_value = _optional_float(decision_payload.get("confidence"))
+
+        if not action_text and risk_payload:
+            adjusted = risk_payload.get("adjusted_signal", {})
+            if isinstance(adjusted, Mapping):
+                action_text = adjusted.get("action")
+                if confidence_value is None:
+                    confidence_value = _optional_float(adjusted.get("confidence"))
+
+        if confidence_value is None and execution_payload:
+            signal = execution_payload.get("signal", {})
+            if isinstance(signal, Mapping):
+                confidence_value = _optional_float(signal.get("confidence"))
+
+        narrative_parts: list[str] = []
+        if user_prompt:
+            narrative_parts.append(f"User query: {user_prompt}")
+        if research_payload:
+            narrative_parts.append(
+                f"Research: {research_payload.get('rationale') or 'analysis completed.'}"
+            )
+        if execution_payload:
+            execution_action = None
+            signal_payload = execution_payload.get("signal")
+            if isinstance(signal_payload, Mapping):
+                execution_action = signal_payload.get("action")
+            narrative_parts.append(
+                "Execution: "
+                + (
+                    execution_payload.get("rationale")
+                    or (f"signal {execution_action}" if execution_action else "decision ready.")
+                )
+            )
+        if risk_payload:
+            narrative_parts.append(
+                f"Risk: {risk_payload.get('rationale') or 'guardrails reviewed.'}"
+            )
+        if action_text:
+            action_summary = f"Final decision: {action_text}"
+            if confidence_value is not None:
+                action_summary += f" (confidence {round(confidence_value, 4)})"
+            narrative_parts.append(action_summary)
+
+            decision_message = ChatTurn(
+                role="assistant",
+                content=action_summary,
+                metadata={
+                    "confidence": round(confidence_value, 4) if confidence_value is not None else None,
+                },
+            )
+            if decision_message.metadata.get("confidence") is None:
+                decision_message.metadata.pop("confidence", None)
+            messages.append(decision_message)
+
+        rationale = " ".join(part for part in narrative_parts if part) or "Dynamic chat summary generated."
+
+        final_confidence = confidence_value if confidence_value is not None else 0.0
+
+        return ChatAgentResult(
+            agent=self.name,
+            rationale=rationale,
+            confidence=final_confidence,
+            messages=tuple(messages),
+            decision=decision_payload,
+        )
+
+
 __all__ = [
     "Agent",
     "AgentResult",
+    "ChatAgentResult",
+    "ChatTurn",
+    "DynamicChatAgent",
     "ExecutionAgent",
     "ExecutionAgentResult",
     "ResearchAgent",

@@ -3,6 +3,9 @@
 from .agents import (
     Agent,
     AgentResult,
+    ChatAgentResult,
+    ChatTurn,
+    DynamicChatAgent,
     ExecutionAgent,
     ExecutionAgentResult,
     ResearchAgent,
@@ -38,6 +41,9 @@ from .hedge import (
 __all__ = [
     "Agent",
     "AgentResult",
+    "ChatAgentResult",
+    "ChatTurn",
+    "DynamicChatAgent",
     "AISignal",
     "DynamicFusionAlgo",
     "ExecutionAgent",
