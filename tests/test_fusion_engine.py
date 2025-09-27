@@ -1,5 +1,13 @@
 """Unit tests for the multi-lobe FusionEngine."""
 
+from pathlib import Path
+from typing import Iterable
+import sys
+
+import pytest
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+
 from dynamic_ai.fusion import (
     FusionEngine,
     LorentzianDistanceLobe,
@@ -63,3 +71,16 @@ def test_fusion_engine_guarded_by_treasury() -> None:
 
     assert fused["action"] in {"NEUTRAL", "SELL"}
     assert fused["confidence"] <= 0.7
+
+
+def test_sentiment_lobe_handles_generators() -> None:
+    lobe = SentimentLobe()
+
+    def sentiment_feed() -> Iterable[dict[str, float | str]]:
+        yield {"score": 0.4, "summary": "Bullish growth prospects"}
+        yield {"score": -0.2, "summary": "Bearish risk warnings"}
+
+    signal = lobe.evaluate({"sentiment_feeds": sentiment_feed()})
+
+    assert signal.score == pytest.approx(0.1)
+    assert signal.confidence == pytest.approx(0.2)

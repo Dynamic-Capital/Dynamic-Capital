@@ -180,8 +180,15 @@ class DynamicAnalysis:
 
         if ma_alignment:
             if isinstance(ma_alignment, Iterable) and not isinstance(ma_alignment, (str, bytes)):
-                aligned = sum(1 for entry in ma_alignment if str(entry).lower() in {"bullish", "up"})
-                total = max(len(list(ma_alignment)), 1)
+                ma_entries = list(ma_alignment)
+                if ma_entries:
+                    aligned = sum(
+                        1 for entry in ma_entries if str(entry).lower() in {"bullish", "up"}
+                    )
+                    total = len(ma_entries)
+                else:
+                    aligned = 0
+                    total = 1
                 score += (aligned / total - 0.5) * 0.3
                 rationale_parts.append("Moving averages alignment processed.")
             elif isinstance(ma_alignment, str):
