@@ -1,29 +1,25 @@
-"""Entrypoint for capturing order book depth snapshots via Cryptofeed."""
+"""Entrypoint for capturing order book depth snapshots via multiple providers."""
 
 from __future__ import annotations
 
 import importlib
 import logging
 import os
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Iterable, Mapping, Sequence
+from typing import Iterable, Mapping, MutableMapping, Sequence
 
+from ..providers import (
+    MarketDepthProvider,
+    MarketDepthSnapshot,
+    ProviderError,
+    create_snapshot,
+    parse_timestamp,
+)
+from ..providers.cryptocompare import CryptoCompareProvider
+from ..providers.kaiko import KaikoProvider
+from ..providers.polygon import PolygonProvider
 from ..supabase_sync import SupabaseTableWriter
 
 LOGGER = logging.getLogger(__name__)
-
-
-@dataclass(slots=True)
-class _OrderBookSnapshot:
-    symbol: str
-    bid_price: float
-    ask_price: float
-    mid_price: float
-    spread_bps: float
-    depth_usd: float
-    observed_at: datetime
-    source: str
 
 
 def _load_cryptofeed() -> object:
@@ -46,68 +42,34 @@ def _initialise_rest_client(module: object, exchange_id: str) -> object:
     return factory()
 
 
-def _normalise_symbol(symbol: str) -> str:
-    return symbol.replace("/", "").replace("-", "")
-
-
-def _best_price(levels: Sequence[Sequence[object]]) -> float | None:
-    if not levels:
-        return None
-    price = levels[0][0]
-    return float(price) if isinstance(price, (int, float)) else None
-
-
-def _depth_notional(levels: Sequence[Sequence[object]], depth: int) -> float:
-    notionals = []
-    for price, size in levels[:depth]:
-        if isinstance(price, (int, float)) and isinstance(size, (int, float)):
-            notionals.append(float(price) * float(size))
-    return sum(notionals)
-
-
 def _normalise_orderbook(
     *,
     symbol: str,
     exchange_id: str,
     depth: int,
     payload: Mapping[str, object],
-) -> _OrderBookSnapshot | None:
+) -> MarketDepthSnapshot | None:
     bids = payload.get("bids") or payload.get("bid")
     asks = payload.get("asks") or payload.get("ask")
     if not isinstance(bids, Sequence) or not isinstance(asks, Sequence):
         LOGGER.debug("Skipping %s due to missing depth data", symbol)
         return None
 
-    bid_price = _best_price(bids)
-    ask_price = _best_price(asks)
-    if bid_price is None or ask_price is None:
-        LOGGER.debug("Skipping %s due to incomplete best prices", symbol)
-        return None
-
-    mid_price = (bid_price + ask_price) / 2
-    spread_bps = ((ask_price - bid_price) / mid_price * 10_000) if mid_price else 0.0
-    depth_usd = _depth_notional(bids, depth) + _depth_notional(asks, depth)
-
     timestamp = payload.get("timestamp")
-    if isinstance(timestamp, (int, float)):
-        observed_at = datetime.fromtimestamp(timestamp, tz=timezone.utc)
-    else:
-        observed_at = datetime.now(tz=timezone.utc)
+    observed_at = parse_timestamp(timestamp)
 
-    return _OrderBookSnapshot(
-        symbol=_normalise_symbol(symbol),
-        bid_price=bid_price,
-        ask_price=ask_price,
-        mid_price=mid_price,
-        spread_bps=spread_bps,
-        depth_usd=depth_usd,
+    return create_snapshot(
+        symbol=symbol,
+        provider=f"cryptofeed-{exchange_id.lower()}",
+        bids=bids,
+        asks=asks,
+        depth=depth,
         observed_at=observed_at,
-        source=exchange_id,
     )
 
 
 def _serialise_rows(
-    snapshots: Iterable[_OrderBookSnapshot],
+    snapshots: Iterable[MarketDepthSnapshot],
 ) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     for snapshot in snapshots:
@@ -119,11 +81,26 @@ def _serialise_rows(
                 "mid_price": snapshot.mid_price,
                 "spread_bps": snapshot.spread_bps,
                 "depth_usd": snapshot.depth_usd,
+                "bid_volume": snapshot.bid_volume,
+                "ask_volume": snapshot.ask_volume,
+                "tick_volume": snapshot.tick_volume,
                 "observed_at": snapshot.observed_at,
-                "source": snapshot.source,
+                "provider": snapshot.provider,
+                "source": snapshot.provider,
             }
         )
     return rows
+
+
+def _build_provider(name: str) -> MarketDepthProvider:
+    lowered = name.lower()
+    if lowered == "cryptocompare":
+        return CryptoCompareProvider(api_key=os.getenv("CRYPTOCOMPARE_API_KEY"))
+    if lowered == "kaiko":
+        return KaikoProvider(api_key=os.getenv("KAIKO_API_KEY"))
+    if lowered == "polygon":
+        return PolygonProvider(api_key=os.getenv("POLYGON_API_KEY"))
+    raise ValueError(f"Unknown market depth provider '{name}'")
 
 
 def sync_cryptofeed_orderbooks(
@@ -133,6 +110,9 @@ def sync_cryptofeed_orderbooks(
     depth: int = 5,
     base_url: str | None = None,
     service_role_key: str | None = None,
+    provider_overrides: Mapping[str, str] | None = None,
+    default_provider: str = "cryptofeed",
+    providers: Mapping[str, MarketDepthProvider] | None = None,
 ) -> int:
     markets = markets or (
         "BTC-USDT",
@@ -140,43 +120,103 @@ def sync_cryptofeed_orderbooks(
         "SOL-USDT",
     )
 
-    module = _load_cryptofeed()
-    client = _initialise_rest_client(module, exchange_id)
+    snapshots: list[MarketDepthSnapshot] = []
+    provider_cache: MutableMapping[str, MarketDepthProvider] = {
+        key.lower(): value for key, value in (providers or {}).items()
+    }
+    overrides = {key: value for key, value in (provider_overrides or {}).items()}
 
-    snapshots: list[_OrderBookSnapshot] = []
+    cryptofeed_client: object | None = None
+
     for market in markets:
-        try:
-            payload = client.l2_book(symbol=market, depth=depth)
-        except AttributeError:
-            payload = client.book(symbol=market, depth=depth)
-        except Exception as exc:  # pragma: no cover - defensive guard
-            LOGGER.warning("Failed to fetch order book for %s: %s", market, exc)
-            continue
-        snapshot = _normalise_orderbook(
-            symbol=market,
-            exchange_id=exchange_id,
-            depth=depth,
-            payload=payload,
-        )
+        provider_name = overrides.get(market, default_provider)
+        if provider_name.lower() == "cryptofeed":
+            if cryptofeed_client is None:
+                module = _load_cryptofeed()
+                cryptofeed_client = _initialise_rest_client(module, exchange_id)
+            snapshot = _fetch_cryptofeed_snapshot(
+                client=cryptofeed_client,
+                market=market,
+                exchange_id=exchange_id,
+                depth=depth,
+            )
+        else:
+            snapshot = _fetch_external_snapshot(
+                provider_name=provider_name,
+                cache=provider_cache,
+                market=market,
+                depth=depth,
+            )
         if snapshot:
             snapshots.append(snapshot)
 
-    shutdown = getattr(client, "close", None)
-    if callable(shutdown):  # pragma: no cover - external resource cleanup
-        try:
-            shutdown()
-        except Exception:  # pragma: no cover - best-effort cleanup
-            LOGGER.debug("Failed to close cryptofeed client %s", exchange_id)
+    if cryptofeed_client is not None:
+        _shutdown_client(cryptofeed_client)
 
     writer = SupabaseTableWriter(
-        table="orderbook_snapshots",
-        conflict_column="symbol,observed_at",
+        table="market_depth_snapshots",
+        conflict_column="symbol,observed_at,provider",
         base_url=base_url,
         service_role_key=service_role_key,
     )
 
     rows = _serialise_rows(snapshots)
     return writer.upsert(rows)
+
+
+def _fetch_external_snapshot(
+    *,
+    provider_name: str,
+    cache: MutableMapping[str, MarketDepthProvider],
+    market: str,
+    depth: int,
+) -> MarketDepthSnapshot | None:
+    lowered = provider_name.lower()
+    provider = cache.get(lowered)
+    if provider is None:
+        try:
+            provider = _build_provider(lowered)
+        except ValueError as error:
+            LOGGER.warning("Skipping %s due to %s", market, error)
+            return None
+        cache[lowered] = provider
+    try:
+        return provider.snapshot(market, depth=depth)
+    except ProviderError as error:
+        LOGGER.warning("Provider %s failed for %s: %s", lowered, market, error)
+        return None
+
+
+def _fetch_cryptofeed_snapshot(
+    *,
+    client: object,
+    market: str,
+    exchange_id: str,
+    depth: int,
+) -> MarketDepthSnapshot | None:
+    try:
+        payload = client.l2_book(symbol=market, depth=depth)
+    except AttributeError:
+        payload = client.book(symbol=market, depth=depth)
+    except Exception as exc:  # pragma: no cover - defensive guard
+        LOGGER.warning("Failed to fetch order book for %s: %s", market, exc)
+        return None
+    snapshot = _normalise_orderbook(
+        symbol=market,
+        exchange_id=exchange_id,
+        depth=depth,
+        payload=payload,
+    )
+    return snapshot
+
+
+def _shutdown_client(client: object) -> None:
+    shutdown = getattr(client, "close", None)
+    if callable(shutdown):  # pragma: no cover - external resource cleanup
+        try:
+            shutdown()
+        except Exception as error:  # pragma: no cover - best-effort cleanup
+            LOGGER.debug("Failed to close cryptofeed client: %s", error)
 
 
 def main() -> None:  # pragma: no cover - CLI helper
