@@ -2,6 +2,14 @@
 
 The Private Fund Pool enables share-based USDT investment cycles for Dynamic Capital members. Investors can deposit to join the active cycle, request withdrawals that obey the 7-day notice and 16% reinvestment rule, and participate in monthly settlements where profits are split across payout, reinvestment, and performance fees.
 
+## Regulatory Structure
+
+- **Dynamic Capital Asset Management Ltd.** operates the pooled investment vehicle and is the sole counterparty for investor capital. It maintains the jurisdictional fund management or investment adviser licence required for discretionary trading and files attestations in the [compliance register](./compliance/README.md).
+- **Dynamic Capital Token Issuer Ltd.** mints, redeems, and provides utility services for DCT under a virtual asset service provider (VASP) registration. A standing distribution agreement grants the issuer read-only access to fund performance data while keeping custody, settlement, and liquidity decisions inside the licensed fund manager.
+- **Dynamic Capital Platform Services Ltd.** runs the treasury, settlement automation, and customer platform infrastructure. A technology services contract between Platform Services and Asset Management defines SLAs for data delivery, NAV calculations, and investor reporting. Token Issuer Ltd. maintains an interface agreement with Platform Services to route utility redemptions without touching client capital or managed assets.
+
+The fund manager renews the operating agreements annually, documenting any regulator correspondence or licence updates under [`docs/compliance`](./compliance/README.md) so operations teams can evidence separation of duties during audits.
+
 ## Database schema
 
 The service introduces the following tables (all in the `public` schema).
