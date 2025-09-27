@@ -1,68 +1,162 @@
 # Dynamic Capital Security Playbook
 
-## Purpose & Scope
-This playbook codifies Dynamic Capital's endpoint and user protection strategy. It is designed for security engineering, IT operations, and procurement teams that deploy, monitor, and continually tune the control stack safeguarding trading and research environments.
+## Executive Summary
+Dynamic Capital protects high-sensitivity trading and research platforms that require near-zero downtime and rigorous regulatory compliance. This playbook defines the process to deploy, operate, and continually improve the enterprise endpoint security stack with emphasis on automation, low-latency performance, and rapid incident containment. It translates strategic objectives into concrete implementation steps, checklists, and accountability measures so that security engineering, IT operations, and governance stakeholders can act in lockstep.
 
-## Playbook at a Glance
-| Objective | Primary Owner | Cadence |
+## Scope, Goals, and Principles
+- **Scope:** User workstations, research laptops, trading desktops, jump hosts, and supported mobile devices (iOS, Android). Linux servers that host trading algorithms consume the same monitoring stack but follow separate hardening guides.
+- **Primary Goals:**
+  - Maintain real-time protection coverage with <2% non-compliant endpoints at any time.
+  - Detect and contain endpoint-driven attacks within 15 minutes; restore to steady state within 2 hours.
+  - Preserve trading performance by keeping agent CPU <5% and memory <300 MB outside of full-scan windows.
+- **Guiding Principles:** Least privilege by default, automation-first operations, tamper-resistant configurations, and evidence-driven tuning.
+
+## Stakeholders & Responsibilities (RACI)
+| Activity | Security Engineering | Threat Operations | IT Operations | Compliance & Risk | Procurement |
+| --- | --- | --- | --- | --- | --- |
+| Platform selection & vendor negotiation | A | C | C | C | R |
+| Policy design & maintenance | R | C | C | I | I |
+| Agent deployment & lifecycle | C | I | R | I | I |
+| Alert triage & escalation | C | R | C | I | I |
+| Automation & SOAR integration | R | C | C | I | I |
+| Metrics & reporting | R | C | C | A | I |
+| Governance reviews & audits | C | C | C | R | I |
+
+> **Legend:** R = Responsible, A = Accountable, C = Consulted, I = Informed.
+
+## Technology Stack & Coverage
+| Platform / Persona | Primary Control | Key Capabilities | Integrations | Owner |
+| --- | --- | --- | --- | --- |
+| Trading desktops (Windows) | Kaspersky Endpoint Security + Kaspersky EDR Expert | Real-time/on-access scanning, behavioral detection, exploit prevention, network attack blocking, ransomware rollback | SIEM (Chronicle), SOAR (Tines), MDM (Intune), ServiceNow | Security Engineering |
+| Research laptops (macOS) | Kaspersky Security for Mac | Behavioral analytics, web protection, device control | Jamf Pro, Chronicle, ServiceNow | IT Operations |
+| Back-office endpoints (Windows) | Kaspersky Endpoint Security Cloud | Smart updates, anti-phishing, firewall policies | Intune, Chronicle, ServiceNow | IT Operations |
+| Mobile devices (iOS/Android) | Kaspersky Endpoint Security for Business Mobile | Mobile AV, phishing defense, VPN, compliance posture | Intune, MobileIron, ServiceNow | Security Engineering |
+| Linux research servers | Kaspersky Endpoint Security for Linux | Real-time scanning, exploit mitigation, tamper protection | Ansible, Chronicle, ServiceNow | Security Engineering |
+
+## Control Objectives & Implementation Notes
+| Feature | Objective | Implementation Actions |
 | --- | --- | --- |
-| Maintain full endpoint coverage across supported platforms | Security Engineering | Continuous monitoring |
-| Validate control efficacy against emerging threats | Threat Operations | Quarterly purple-team and tabletop testing |
-| Optimize performance impact on trading workstations | IT Operations | Monthly capacity reviews |
+| Real-time protection / on-access scanning | Block malicious activity as it executes. | Enable default real-time scanning with policy-based exclusions for trading software; deploy health-check script to verify service status every 5 minutes. |
+| Behavioral / heuristic / anomaly detection | Catch zero-day and unknown threats. | Enable adaptive anomaly detection; ingest detections into SIEM with enriched process lineage; review alerts daily via SOAR task queue. |
+| Exploit / vulnerability protection | Thwart attacks leveraging unpatched vulnerabilities. | Enforce exploit prevention module for browsers, Office, and proprietary tools; integrate with patch SLAs (critical ≤48h, high ≤7d); run monthly controlled exploit simulations. |
+| Firewall / network protection | Control inbound/outbound network flows. | Apply zero-trust outbound policies, auto-quarantine on command-and-control detection; log to firewall analytics dashboard. |
+| Ransomware / anti-tampering | Prevent data encryption and unauthorized changes. | Lock critical file paths in protected folders; enable rollback snapshots; configure tamper password rotation every 90 days with HSM storage. |
+| Anti-phishing / web protection | Reduce credential theft and drive-by attacks. | Enforce safe browsing module, integrate with secure web gateways; block malicious URLs via shared threat feed updated hourly. |
+| Smart updates / frequent signatures | Ensure near-real-time intelligence. | Set update frequency to hourly with randomized jitter; track compliance via daily report; fail non-compliant endpoints into remediation queue. |
+| Cross-platform / multi-device support | Provide consistent protections. | Automate enrollment via Intune/Jamf APIs; reconcile CMDB inventory weekly; require compliance before granting VPN access. |
+| Additional value-add (VPN, password manager, DLP) | Extend coverage to user data and privacy. | Enable password vault for privileged users, integrate VPN with identity provider for MFA, roll out lightweight DLP policies for PCI/PII datasets. |
+| Low system impact / performance optimization | Maintain trading workstation responsiveness. | Baseline CPU/RAM impact per persona; run synthetic trading workload tests pre-rollout; adjust scan windows to off-market hours. |
 
-## Core Protection Layers
-| Feature | Why it Matters | Operational Focus |
-| --- | --- | --- |
-| Real-time protection / on-access scanning | Blocks malicious activity the moment it executes. | Favor engines with low false positives and tunable exclusion lists for trading software. |
-| Behavioral / heuristic / anomaly detection | Detects zero-day threats through suspicious behavior patterns. | Maintain allowlists for sanctioned automation; review heuristic alerts daily. |
-| Exploit / vulnerability protection | Stops attacks that weaponize unpatched software flaws. | Pair with patch SLAs; validate coverage on browsers, productivity suites, and trading tools. |
-| Firewall / network attack blocking | Prevents command-and-control traffic and lateral movement. | Enforce zero-trust egress policies and auto-quarantine on policy violations. |
-| Ransomware / tamper protection | Guards critical data paths from unauthorized encryption or modification. | Test rollback and isolation workflows quarterly; secure policies with admin-only tamper controls. |
-| Anti-phishing / web protection | Defends against credential theft and drive-by downloads. | Integrate with secure email/web gateways and user awareness campaigns. |
-| Smart updates / cloud-assisted intelligence | Delivers near-real-time protection signatures and heuristics. | Stagger updates to avoid market-hours disruption; monitor update compliance daily. |
-| Cross-platform / mobile support | Ensures consistent coverage across Windows, macOS, Linux, and mobile devices. | Reconcile asset inventory quarterly; automate enrollment for new devices. |
-| Value-add capabilities (VPN, password vault, DLP, etc.) | Extends protection and compliance coverage. | Enable only modules that align with policy; document any compensating controls. |
-| Low system impact / resource governance | Preserves workstation performance for latency-sensitive workflows. | Benchmark CPU/RAM impact before rollout; track variances in monthly reviews. |
+## Implementation Program
+### Phase 0 – Readiness (Weeks 0–1)
+- Finalize asset inventory, segment by persona, and identify unsupported OS versions.
+- Confirm procurement terms, licensing counts, and support SLAs.
+- Configure staging environments mirroring trading and research workloads.
+- Define rollback and communication plan; schedule change windows with trading leadership.
 
-## Implementation Blueprint
-1. **Requirements Definition (Week 0–1):** Document regulatory, latency, and resilience requirements. Map features in the table above to mandatory, preferred, and optional categories.
-2. **Vendor Evaluation (Week 1–3):** Score candidate platforms against requirements, integrating results from third-party evaluations and red-team simulations.
-3. **Pilot & Baseline (Week 3–5):** Deploy to 10% of representative endpoints. Collect baseline telemetry (CPU, memory, network usage, alert fidelity) and validate SIEM ingestion.
-4. **Policy Hardening (Week 5–6):** Customize profiles for trading, research, and back-office personas. Apply tamper protection and role-based admin separation.
-5. **Phased Rollout (Week 6–8):** Expand coverage in weekly cohorts with rollback checkpoints. Automate enrollment through MDM and configuration management.
-6. **Automation & Integration (Week 8+):** Enable API-driven containment and remediation. Feed detections into SOAR playbooks and ensure ticketing integration for exception handling.
+**Exit Criteria:** Inventory accuracy ≥99%, change plan approved by CISO and CTO.
 
-## Operational Runbook
-### Daily
-- Review high-severity alerts and behavioral detections; confirm automatic containment executed as designed.
-- Verify last update timestamp for all endpoints via the management console; remediate gaps within 4 hours.
+### Phase 1 – Baseline Configuration (Weeks 1–2)
+- Install management consoles (Kaspersky Security Center & EDR) in HA mode.
+- Build gold policy templates for each persona with tamper protection enabled.
+- Integrate authentication with Okta SSO and set up role-based access control.
+- Connect consoles to SIEM, SOAR, and ticketing via API service accounts.
 
-### Weekly
-- Inspect medium-severity and network-layer alerts, tuning policies to reduce noise without sacrificing coverage.
-- Audit newly onboarded devices for correct policy assignment and SIEM telemetry.
+**Exit Criteria:** Policies peer-reviewed, integrations verified with test events, RBAC validated.
 
-### Monthly
-- Present metrics to security leadership, highlighting control efficacy, false-positive trends, and performance impact.
-- Refresh threat intelligence feeds and confirm update channels are synchronized with vendor advisories.
+### Phase 2 – Pilot Deployment (Weeks 2–4)
+- Select 10% representative endpoints per persona; obtain user consent and scheduling.
+- Deploy agents via Intune/Jamf/Ansible; verify connectivity and telemetry.
+- Run performance benchmarks versus baseline; gather user feedback within 48 hours.
+- Execute simulated malware, phishing, exploit, and ransomware scenarios.
 
-### Quarterly
-- Conduct tabletop and purple-team exercises focused on phishing, ransomware, and exploit vectors.
-- Validate backup restoration and ransomware rollback capabilities end-to-end.
+**Exit Criteria:** ≥95% pilot endpoints healthy, zero critical issues, performance impact ≤ target.
 
-## Incident Response Workflow
-1. **Detection & Triage:** Confirm detection fidelity, gather endpoint telemetry, and determine blast radius.
-2. **Containment:** Isolate affected assets via EDR network controls or MDM quarantine. Coordinate with network team for macro-level blocking.
-3. **Eradication & Recovery:** Execute vendor playbooks for malware removal, restore from known-good backups, and verify endpoint health checks.
-4. **Post-Incident Review:** Within 48 hours, document root cause, control gaps, and remediation owners. Update policies or automations accordingly.
+### Phase 3 – Controlled Rollout (Weeks 4–7)
+- Expand deployment in weekly cohorts (30%, 60%, 100%) with automated enrollment scripts.
+- Monitor health dashboard hourly; trigger rollback for failure rate >3% in any cohort.
+- Conduct weekly go/no-go meetings with stakeholders; communicate status to trading desks.
+- Update CMDB and asset compliance tags automatically via API.
 
-## Metrics & Continuous Improvement
-- **Coverage:** Percentage of managed endpoints reporting healthy status within the last 24 hours (target ≥ 98%).
-- **Response:** Mean time to detect (MTTD) and mean time to respond (MTTR) for endpoint incidents (targets ≤ 15 minutes and ≤ 2 hours, respectively).
-- **Prevention:** Count of blocked phishing, ransomware, and exploit attempts per quarter, correlated with upstream email/web defenses.
-- **Performance:** Average CPU/RAM impact across trading and research workstations, with thresholds defined in latency SLAs.
-- **Program Health:** Number of outstanding policy exceptions older than 30 days.
+**Exit Criteria:** 100% in-scope endpoints onboarded, compliance ≥98%, no unresolved P1 incidents.
 
-## Review & Governance
-- **Cadence:** Reassess this playbook every six months or following major tooling changes.
-- **Stakeholders:** Include representatives from Security Engineering, IT Operations, Threat Operations, and Compliance.
-- **Documentation:** Store approvals and revisions in the GRC platform; link to audit evidence for vendor assessments and tabletop outcomes.
+### Phase 4 – Automation & Hardening (Week 7 onward)
+- Enable auto-isolation workflows in SOAR leveraging EDR APIs.
+- Build remediation scripts for common alerts (malicious doc, lateral movement attempt, ransomware encryption attempt).
+- Set up data leak monitoring and VPN enforcement modules for privileged users.
+- Transition project artifacts to steady-state operations with documented SOPs.
+
+**Exit Criteria:** Automation playbooks tested, SOPs signed off, ownership transitioned to operations teams.
+
+## Integrations & Automation Blueprint
+- **SIEM (Chronicle):** Centralize alerts, annotate with asset criticality, forward to SOAR.
+- **SOAR (Tines):** Automate containment, enrichment (VirusTotal, GreyNoise), and ticket creation.
+- **MDM / Configuration Management:** Enforce agent presence; non-compliant devices lose VPN access via conditional access policies.
+- **ServiceNow:** Auto-generate incident and change tickets tied to playbook workflows.
+- **ChatOps (Slack):** Real-time notifications for high-severity detections with acknowledgment tracking.
+
+## Operational Runbooks
+### Daily Operations Checklist
+1. Review high and critical alerts in SOAR queue; confirm auto-containment results.
+2. Validate endpoint update compliance report; remediate stale signatures within 4 hours.
+3. Spot-check 5 random trading endpoints for performance metrics and policy adherence.
+4. Verify last successful backup snapshot for ransomware-protected assets.
+
+### Weekly Tasks
+- Tune behavioral detection thresholds based on false positives; document rationale.
+- Audit newly onboarded assets to confirm correct persona policy and SIEM telemetry.
+- Review quarantine inventory, releasing or reimaging devices as necessary.
+- Update ChatOps on notable trends and remediation actions.
+
+### Monthly Tasks
+- Present control effectiveness metrics to security steering committee.
+- Reconcile CMDB vs. management console inventory; investigate deltas >1%.
+- Conduct phishing simulation; ensure anti-phishing modules block malicious links.
+- Test rollback and recovery workflow on one non-production asset.
+
+### Quarterly Tasks
+- Execute purple-team exercises targeting phishing, ransomware, and exploit vectors.
+- Validate full incident response end-to-end, including SOAR automation and backup restoration.
+- Rotate tamper protection passwords and service account credentials.
+- Review vendor roadmap and apply relevant feature updates or policy adjustments.
+
+### Endpoint Onboarding Runbook
+1. Asset created in CMDB → triggers ServiceNow task.
+2. IT Ops assigns persona and installs base image with agent pre-packaged.
+3. MDM enrollment applies policy, verifies tamper protection, and registers health check.
+4. Automation posts onboarding summary in Slack; Threat Operations validates telemetry within 24 hours.
+
+### Exception Handling Runbook
+- User submits exception via ServiceNow form with business justification and duration.
+- Security Engineering reviews within 1 business day; Threat Ops validates risk and compensating controls.
+- Approved exceptions auto-expire after set duration with reminder notifications 3 days prior.
+- Exceptions older than 30 days are escalated to Compliance and flagged in monthly report.
+
+## Incident Response Play
+1. **Detection:** SOAR receives alert, auto-enriches with process lineage, MITRE mapping, and asset criticality.
+2. **Triage:** Threat Operations validates severity within 10 minutes. If confirmed malicious, they trigger containment.
+3. **Containment:** SOAR isolates device (network quarantine, VPN revocation) and collects triage artifacts (memory dump, volatile logs).
+4. **Eradication:** Security Engineering runs vendor removal toolkit; IT Ops restores from last clean snapshot if required.
+5. **Recovery:** Reconnect network access post-health check, force password resets for impacted identities, and monitor for recurrence for 72 hours.
+6. **Post-Incident Review:** Within 48 hours, run RCA session, capture lessons learned, update detections/policies, and close in GRC system.
+
+## Metrics & Reporting
+| Metric | Definition | Target | Data Source | Owner |
+| --- | --- | --- | --- | --- |
+| Endpoint coverage | % of in-scope assets reporting healthy status in last 24h | ≥98% | Kaspersky console, CMDB | IT Operations |
+| MTTD / MTTR | Minutes to detect/respond to confirmed endpoint incidents | MTTD ≤15, MTTR ≤120 | SOAR, ServiceNow | Threat Operations |
+| False-positive rate | % of alerts downgraded after triage | ≤5% | SOAR analytics | Threat Operations |
+| Performance impact | Avg CPU/RAM usage per persona outside scans | CPU ≤5%, RAM ≤300 MB | Endpoint telemetry | Security Engineering |
+| Exception backlog | # of exceptions >30 days old | 0 | ServiceNow | Compliance |
+| Patch alignment | % of exploitable CVEs remediated within SLA | ≥95% | Vulnerability scanner, patch dashboard | IT Operations |
+
+## Governance & Review
+- **Playbook Review Cadence:** Every six months or after material incidents/tooling changes; chaired by CISO.
+- **Documentation:** Store signed approvals, risk assessments, pilot results, and exercise reports in the GRC platform under "Endpoint Security Program" collection.
+- **Training:** Annual refresher for operators on console usage, SOAR workflows, and tamper protection protocols.
+- **Continuous Improvement:** Feed lessons learned from incidents and exercises into backlog; prioritize automation opportunities and control enhancements quarterly.
+
+## Appendices
+- **Reference Architecture Diagram:** Maintain updated network and data flow diagram in the shared architecture repository (link referenced in CMDB).
+- **Change Calendar Template:** Include maintenance windows, responsible contacts, and rollback criteria for each rollout wave.
+- **Checklist Repository:** Store detailed SOP checklists in Confluence, synchronized with this playbook and linked in ServiceNow runbooks.
