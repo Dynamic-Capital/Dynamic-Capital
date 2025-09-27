@@ -143,7 +143,7 @@ def _format_telegram_message(
     trade_result,
     treasury_event,
 ) -> Optional[str]:
-    if trade_result.retcode == 0:
+    if not getattr(trade_result, "ok", False):
         return None
 
     lines = [

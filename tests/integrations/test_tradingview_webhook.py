@@ -11,6 +11,7 @@ from flask.testing import FlaskClient
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from integrations import tradingview
+from dynamic_algo.trading_core import SUCCESS_RETCODE
 
 
 SECRET_HEADER = "X-Tradingview-Secret"
@@ -44,7 +45,7 @@ def stubbed_components(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     class DummyTradeResult:
         def __init__(self, lot: float) -> None:
             self.ok = True
-            self.retcode = 1
+            self.retcode = SUCCESS_RETCODE
             self.profit = 42.0
             self.ticket = 1001
             self.symbol = "XAUUSD"
@@ -177,3 +178,46 @@ def test_webhook_defaults_to_minimum_lot(
     logged_payload = stubbed_components.supabase_logger.logged_payloads[-1]
     assert logged_payload["lot"] == pytest.approx(0.1)
     assert data["trade"]["lot"] == pytest.approx(0.1)
+
+
+def test_webhook_skips_notifications_for_failed_trade(
+    monkeypatch: pytest.MonkeyPatch,
+    client,
+    stubbed_components: SimpleNamespace,
+) -> None:
+    monkeypatch.setenv("TRADINGVIEW_WEBHOOK_SECRET", "top-secret")
+
+    class FailedTradeResult:
+        def __init__(self) -> None:
+            self.ok = False
+            self.retcode = 10004
+            self.profit = -5.0
+            self.ticket = None
+            self.symbol = "XAUUSD"
+            self.lot = 0.5
+
+    def fail_execute_trade(*_, **__) -> FailedTradeResult:
+        return FailedTradeResult()
+
+    stubbed_components.trader.execute_trade = fail_execute_trade  # type: ignore[assignment]
+
+    treasury_calls: list[FailedTradeResult] = []
+
+    def record_treasury(trade_result: FailedTradeResult):
+        treasury_calls.append(trade_result)
+        return None
+
+    stubbed_components.treasury.update_from_trade = record_treasury  # type: ignore[assignment]
+
+    payload = {"symbol": "XAUUSD", "lot": 0.5, "signal": "SELL"}
+    response = client.post(
+        "/webhook",
+        json=payload,
+        headers={SECRET_HEADER: "top-secret"},
+    )
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["status"] == "skipped"
+    assert stubbed_components.bot.messages == []
+    assert treasury_calls
