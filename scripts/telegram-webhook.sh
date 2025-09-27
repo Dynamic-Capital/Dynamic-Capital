@@ -9,7 +9,8 @@ Environment variables required:
   TELEGRAM_BOT_TOKEN          # BotFather token
   TELEGRAM_WEBHOOK_SECRET     # Secret token for X-Telegram-Bot-Api-Secret-Token (only for 'set')
 
-Optional (one of):
+Optional (provide either TELEGRAM_WEBHOOK_URL or a project reference):
+  TELEGRAM_WEBHOOK_URL        # Explicit webhook endpoint (preferred when overriding)
   PROJECT_REF                 # Supabase project ref (e.g. your-project-ref)
   SUPABASE_URL                # e.g. https://your-project-ref.supabase.co
 
@@ -26,19 +27,24 @@ fi
 
 : "${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN is required}"
 
-# Derive PROJECT_REF from SUPABASE_URL if not given
-PROJECT_REF=${PROJECT_REF:-}
-if [[ -z "$PROJECT_REF" && -n "${SUPABASE_URL:-}" ]]; then
-  # SUPABASE_URL format: https://<project-ref>.supabase.co
-  PROJECT_REF=$(printf "%s" "$SUPABASE_URL" | sed -E 's#https?://([^.]+)\.supabase\.co.*#\1#') || true
-fi
+# Derive webhook URL (override wins)
+FUNCTION_URL=${TELEGRAM_WEBHOOK_URL:-}
 
-if [[ -z "$PROJECT_REF" ]]; then
-  echo "[!] PROJECT_REF or SUPABASE_URL must be set to build the webhook URL" >&2
-  exit 1
-fi
+if [[ -z "$FUNCTION_URL" ]]; then
+  # Derive PROJECT_REF from SUPABASE_URL if not given
+  PROJECT_REF=${PROJECT_REF:-}
+  if [[ -z "$PROJECT_REF" && -n "${SUPABASE_URL:-}" ]]; then
+    # SUPABASE_URL format: https://<project-ref>.supabase.co
+    PROJECT_REF=$(printf "%s" "$SUPABASE_URL" | sed -E 's#https?://([^.]+)\.supabase\.co.*#\1#') || true
+  fi
 
-FUNCTION_URL="https://${PROJECT_REF}.functions.supabase.co/telegram-bot"
+  if [[ -z "$PROJECT_REF" ]]; then
+    echo "[!] Provide TELEGRAM_WEBHOOK_URL or PROJECT_REF/SUPABASE_URL to build the webhook URL" >&2
+    exit 1
+  fi
+
+  FUNCTION_URL="https://${PROJECT_REF}.functions.supabase.co/telegram-bot"
+fi
 API_BASE="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}"
 
 cmd=${1}

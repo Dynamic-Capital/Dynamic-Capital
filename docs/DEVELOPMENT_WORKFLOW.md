@@ -1,9 +1,11 @@
 # Development Workflow
 
-This guide outlines eight high-level steps to run, build, and deploy the Telegram bot and optional Mini App.
+This guide outlines eight high-level steps to run, build, and deploy the
+Telegram bot and optional Mini App.
 
 1. **Understand the project scope**
-   - Telegram bot for deposit workflows with optional Mini App for richer interactions.
+   - Telegram bot for deposit workflows with optional Mini App for richer
+     interactions.
 
 2. **Set up prerequisites**
    - Install Node.js 22.x (LTS), Deno, and the Supabase CLI.
@@ -47,14 +49,20 @@ This guide outlines eight high-level steps to run, build, and deploy the Telegra
    - Configure the Telegram webhook via BotFather.
 
 8. **Post-deployment smoke tests**
-   - Verify deployed endpoints respond as expected:
-   ```bash
-   curl -s https://<PROJECT>.functions.supabase.co/miniapp/version
-  curl -s https://<PROJECT>.functions.supabase.co/telegram-bot/version
-  curl -s -X POST https://<PROJECT>.functions.supabase.co/telegram-bot \
-    -H 'x-telegram-bot-api-secret-token: <TELEGRAM_WEBHOOK_SECRET>' \
-    -H 'content-type: application/json' -d '{"test":"ping"}'
-  ```
+
+- Verify deployed endpoints respond as expected. Replace `<PROJECT>` with your
+  Supabase project ref, or use `TELEGRAM_WEBHOOK_URL` for the Telegram webhook
+  if you've overridden the default host:
+
+```bash
+curl -s https://<PROJECT>.functions.supabase.co/miniapp/version
+WEBHOOK_BASE=${TELEGRAM_WEBHOOK_URL:-https://<PROJECT>.functions.supabase.co/telegram-bot}
+WEBHOOK_BASE=${WEBHOOK_BASE%/}
+curl -s "$WEBHOOK_BASE/version"
+curl -s -X POST "$WEBHOOK_BASE" \
+  -H 'x-telegram-bot-api-secret-token: <TELEGRAM_WEBHOOK_SECRET>' \
+  -H 'content-type: application/json' -d '{"test":"ping"}'
+```
 
 ## Local static + API development
 
@@ -77,4 +85,3 @@ can mirror that setup locally:
 
 Open `http://localhost:3001` and the static page will forward any `/api/*`
 requests to the running Next.js service without CORS issues.
-

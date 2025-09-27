@@ -1,11 +1,10 @@
 import { optionalEnv } from "../_shared/env.ts";
 import { expectedSecret } from "../_shared/telegram_secret.ts";
 import { registerHandler } from "../_shared/serve.ts";
+import { telegramWebhookUrl } from "../_shared/edge.ts";
 
 const BOT = optionalEnv("TELEGRAM_BOT_TOKEN") || "";
-const BASE = (optionalEnv("SUPABASE_URL") || "").replace(/\/$/, "");
-const FN = "telegram-webhook";
-const expected = BASE ? `${BASE}/functions/v1/${FN}` : null;
+const expected = telegramWebhookUrl();
 
 function red(s: string, keep = 4) {
   return s ? s.slice(0, keep) + "...redacted" : "";

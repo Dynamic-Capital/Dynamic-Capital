@@ -93,7 +93,8 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 - **Multi-LLM Studio tool** (`apps/web/app/tools/multi-llm`) for comparing
   OpenAI, Anthropic, and Groq chat completions side by side with configurable
   temperature and token limits directly inside the main Next.js app.
-- Step through the [Dynamic AI & Dynamic Trading Algo Enhancement Roadmap](docs/multi-llm-algo-enhancement-roadmap.md)
+- Step through the
+  [Dynamic AI & Dynamic Trading Algo Enhancement Roadmap](docs/multi-llm-algo-enhancement-roadmap.md)
   to align provider orchestration with the trading automation stack.
 
 ## Dynamic Theme System
@@ -178,8 +179,8 @@ platform's configuration for each component.
 > `node scripts/npm-safe.mjs run dev`) to strip the deprecated proxy keys and
 > silence the warning while preserving HTTP/HTTPS proxy support.
 
-If you regularly invoke bare `npm` commands (such as `npm audit --omit=dev`)
-and want to clean your current shell once per session, run:
+If you regularly invoke bare `npm` commands (such as `npm audit --omit=dev`) and
+want to clean your current shell once per session, run:
 
 ```bash
 eval "$(node scripts/env/clean-legacy-npm-proxy.mjs)"
@@ -393,7 +394,9 @@ Before making changes, verify these connections work:
 
 ```bash
 # 1. Bot webhook responds
-curl -X POST https://your-project-ref.functions.supabase.co/telegram-bot \
+WEBHOOK_BASE=${TELEGRAM_WEBHOOK_URL:-https://your-project-ref.functions.supabase.co/telegram-bot}
+WEBHOOK_BASE=${WEBHOOK_BASE%/}
+curl -X POST "$WEBHOOK_BASE" \
   -H "content-type: application/json" \
   -H "X-Telegram-Bot-Api-Secret-Token: SECRET" \
   -d '{"test":"ping"}'
@@ -755,8 +758,10 @@ docker run --rm -p 8080:8080 go-service
 
 ```bash
 curl -s https://your-project-ref.functions.supabase.co/miniapp/version
-curl -s https://your-project-ref.functions.supabase.co/telegram-bot/version
-curl -s -X POST https://your-project-ref.functions.supabase.co/telegram-bot \
+WEBHOOK_BASE=${TELEGRAM_WEBHOOK_URL:-https://your-project-ref.functions.supabase.co/telegram-bot}
+WEBHOOK_BASE=${WEBHOOK_BASE%/}
+curl -s "$WEBHOOK_BASE/version"
+curl -s -X POST "$WEBHOOK_BASE" \
   -H 'x-telegram-bot-api-secret-token: <TELEGRAM_WEBHOOK_SECRET>' \
   -H 'content-type: application/json' -d '{"test":"ping"}'
 ```

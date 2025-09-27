@@ -458,7 +458,7 @@ graph TB
 
 ```bash
 # Before UI changes - verify core functions work
-curl -X POST https://your-project-ref.functions.supabase.co/telegram-bot \
+curl -X POST ${TELEGRAM_WEBHOOK_URL:-https://your-project-ref.functions.supabase.co/telegram-bot} \
   -H "content-type: application/json" \
   -d '{"test":"ping"}'
 

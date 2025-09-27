@@ -1,7 +1,12 @@
 // supabase/functions/linkage-audit/index.ts
 // Reports whether bot webhook, Mini App URL, and project ref align.
 // Also lists which envs are present inside the Edge runtime (source of truth).
-import { functionsHost, functionUrl, getProjectRef } from "../_shared/edge.ts";
+import {
+  functionsHost,
+  functionUrl,
+  getProjectRef,
+  telegramWebhookUrl,
+} from "../_shared/edge.ts";
 import { EnvKey, optionalEnv } from "../_shared/env.ts";
 
 type J = Record<string, unknown>;
@@ -12,7 +17,9 @@ function env(k: EnvKey) {
   return optionalEnv(k) ?? "";
 }
 
-async function getWebhookInfo(token?: string): Promise<Record<string, unknown>> {
+async function getWebhookInfo(
+  token?: string,
+): Promise<Record<string, unknown>> {
   if (!token) return { ok: false, error: "missing_token" };
   try {
     const r = await fetch(
@@ -43,7 +50,7 @@ export default async function handler(_req: Request): Promise<Response> {
   const expectedHost = functionsHost();
   const botToken = env("TELEGRAM_BOT_TOKEN");
   const miniUrl = normalizeSlash(env("MINI_APP_URL"));
-  const botWebhookUrlExpected = functionUrl("telegram-bot"); // expected
+  const botWebhookUrlExpected = telegramWebhookUrl(); // expected
   const healthUrl = functionUrl("miniapp-health"); // optional if you added it
 
   // Telegram: where the webhook is actually pointing
