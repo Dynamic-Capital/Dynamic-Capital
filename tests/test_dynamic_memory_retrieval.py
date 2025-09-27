@@ -151,3 +151,47 @@ def test_memory_retriever_limit_guard(limit: int) -> None:
 
     assert matches == []
     assert all(isinstance(match, MemoryMatch) for match in retriever.retrieve(MemoryQuery(reference_time=_ts(0))))
+
+
+def test_memory_retriever_prefers_recent_for_equal_scores() -> None:
+    half_life = 10.0
+    retriever = DynamicMemoryRetriever(time_decay_half_life_days=half_life)
+    reference = _ts(0)
+    older = _ts(-10)
+    newer = _ts(-2)
+
+    def recency_factor(ts: datetime) -> float:
+        elapsed = (reference - ts).total_seconds()
+        if elapsed <= 0:
+            return 1.0
+        half_life_seconds = half_life * 86400.0
+        decay = 0.5 ** (elapsed / half_life_seconds)
+        return 0.5 + 0.5 * decay
+
+    base_weight = 1.0
+    older_weight = base_weight
+    newer_weight = older_weight * recency_factor(older) / recency_factor(newer)
+
+    retriever.extend(
+        [
+            MemoryRecord(
+                record_id="older",
+                domain="memory",
+                summary="Older insight",
+                weight=older_weight,
+                timestamp=older,
+            ),
+            MemoryRecord(
+                record_id="newer",
+                domain="memory",
+                summary="Newer insight",
+                weight=newer_weight,
+                timestamp=newer,
+            ),
+        ]
+    )
+
+    matches = retriever.retrieve(MemoryQuery(reference_time=reference))
+
+    assert [match.record.record_id for match in matches] == ["newer", "older"]
+    assert matches[0].score == pytest.approx(matches[1].score, rel=1e-6)

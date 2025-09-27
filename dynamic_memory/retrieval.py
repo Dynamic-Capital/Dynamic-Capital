@@ -181,7 +181,7 @@ class DynamicMemoryRetriever:
         matches.sort(
             key=lambda match: (
                 -match.score,
-                match.record.timestamp,
+                -match.record.timestamp.timestamp(),
                 match.record.record_id,
             )
         )
