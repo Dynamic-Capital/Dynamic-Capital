@@ -1,14 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+"use client";
+
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import {
   Button,
   Column,
   Heading,
   Icon,
   Line,
+  Pulse,
   Row,
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
+import { dynamicBranding } from "@/resources";
 
 interface MetricHighlight {
   icon: string;
@@ -39,12 +43,17 @@ interface WorkflowStep {
   tip: string;
 }
 
+const BRAND_METADATA = dynamicBranding.metadata;
+const BRAND_GRADIENTS = dynamicBranding.gradients;
+const BRAND_GLASS = BRAND_GRADIENTS.glass;
+
 const METRIC_HIGHLIGHTS: MetricHighlight[] = [
   {
     icon: "shield",
     value: "99.9%",
     label: "desk uptime",
-    description: "Redundant guardrails keep deposits safe and auditable.",
+    description:
+      "Redundant guardrails keep deposits safe and auditable for every cohort.",
   },
   {
     icon: "zap",
@@ -155,6 +164,36 @@ export function DynamicGuiShowcase() {
   const [activePlanId, setActivePlanId] = useState<string>(PLAN_PRESETS[0].id);
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
 
+  const heroSurfaceStyle = useMemo<CSSProperties>(
+    () => ({
+      backgroundImage: BRAND_GRADIENTS.hero,
+      border: "1px solid hsl(var(--dc-brand) / 0.16)",
+      boxShadow: BRAND_GLASS.motionShadow,
+      backdropFilter: BRAND_GLASS.motionBlur,
+      position: "relative",
+      overflow: "hidden",
+    }),
+    [],
+  );
+
+  const planPanelStyle = useMemo<CSSProperties>(
+    () => ({
+      backgroundImage: BRAND_GRADIENTS.motion.card,
+      border: "1px solid hsl(var(--dc-brand) / 0.12)",
+      backdropFilter: BRAND_GLASS.motionBlur,
+    }),
+    [],
+  );
+
+  const timelinePanelStyle = useMemo<CSSProperties>(
+    () => ({
+      backgroundImage: BRAND_GRADIENTS.card,
+      border: "1px solid hsl(var(--dc-brand) / 0.08)",
+      backdropFilter: BRAND_GLASS.motionBlur,
+    }),
+    [],
+  );
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -191,7 +230,7 @@ export function DynamicGuiShowcase() {
       >
         <Column
           background="surface"
-          border="neutral-alpha-medium"
+          border="transparent"
           radius="xl"
           shadow="xl"
           padding="xl"
@@ -199,17 +238,53 @@ export function DynamicGuiShowcase() {
           fillWidth
           align="center"
           horizontal="center"
+          style={heroSurfaceStyle}
         >
+          <Row
+            position="absolute"
+            pointerEvents="none"
+            style={{
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              backgroundImage: BRAND_GRADIENTS.motion.backgroundLight,
+              opacity: 0.55,
+            }}
+          />
+          <Row
+            position="absolute"
+            pointerEvents="none"
+            style={{
+              top: "-40%",
+              right: "-40%",
+              bottom: "-40%",
+              left: "-40%",
+              backgroundImage: BRAND_GRADIENTS.brand,
+              opacity: 0.08,
+            }}
+          />
           <Column gap="16" align="center">
-            <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
-              Dynamic GUI launchpad
-            </Tag>
+            <Row gap="12" vertical="center" horizontal="center">
+              <Pulse size="s" variant="brand" aria-hidden="true" />
+              <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
+                {BRAND_METADATA.name} · Dynamic GUI
+              </Tag>
+            </Row>
             <Heading variant="display-strong-s" align="center" wrap="balance">
               Compose deposit flows without touching a single spreadsheet.
             </Heading>
             <Text
               variant="body-default-m"
               onBackground="neutral-weak"
+              align="center"
+              wrap="balance"
+            >
+              {BRAND_METADATA.tagline}
+            </Text>
+            <Text
+              variant="label-default-s"
+              onBackground="neutral-medium"
               align="center"
               wrap="balance"
             >
@@ -245,7 +320,7 @@ export function DynamicGuiShowcase() {
                 key={metric.label}
                 gap="12"
                 background="surface"
-                border="neutral-alpha-weak"
+                border="brand-alpha-weak"
                 radius="l"
                 paddingX="20"
                 paddingY="16"
@@ -355,11 +430,12 @@ export function DynamicGuiShowcase() {
 
             <Column
               background="surface"
-              border="brand-alpha-medium"
+              border="transparent"
               radius="xl"
               padding="l"
               gap="16"
               fillWidth
+              style={planPanelStyle}
             >
               <Row gap="12" vertical="center">
                 <Icon name={selectedPlan.icon} onBackground="brand-medium" />
@@ -455,11 +531,12 @@ export function DynamicGuiShowcase() {
 
             <Column
               background="surface"
-              border="neutral-alpha-medium"
+              border="transparent"
               radius="xl"
               padding="l"
               gap="16"
               fillWidth
+              style={timelinePanelStyle}
             >
               <Row gap="12" vertical="center">
                 <Icon name={activeStep.icon} onBackground="brand-medium" />
