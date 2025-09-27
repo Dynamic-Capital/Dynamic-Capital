@@ -399,6 +399,36 @@ BLOCKCHAIN_DEVELOPER_PLAYBOOK = TeamRolePlaybook(
 )
 
 
+DYNAMIC_LANGUAGES_EXPERT_PLAYBOOK = TeamRolePlaybook(
+    name="Dynamic Languages Expert",
+    objectives=(
+        "Bridge product requirements across TypeScript, Python, JavaScript, HTML, PL/pgSQL, CSS, Pine Script, and MQL5 stacks.",
+        "Codify reusable patterns, linting, and testing strategies that maintain parity across dynamic runtimes.",
+        "Coach teams on interoperability, deployment readiness, and documentation for multi-language features.",
+    ),
+    workflow=(
+        "Review upcoming initiatives for cross-language touchpoints and draft implementation plans covering each runtime and datastore.",
+        "Prototype shared utilities or bindings that harmonise data contracts between browser clients, Python services, and PL/pgSQL procedures.",
+        "Pair with front-end contributors to align TypeScript, JavaScript, HTML, and CSS changes with accessibility and performance budgets.",
+        "Audit algorithmic updates for Python, Pine Script, and MQL5 to ensure indicator parity, risk controls, and backtest reproducibility.",
+        "Run automated lint, type, and unit suites across all affected codebases; raise defects and patch gaps before review.",
+        "Document interoperability guidelines, deployment runbooks, and language-specific caveats for the knowledge base.",
+    ),
+    outputs=(
+        "Cross-language implementation plans",
+        "Shared utility modules and templates",
+        "Test and lint reports spanning dynamic runtimes",
+        "Knowledge base updates on interoperability patterns",
+    ),
+    kpis=(
+        "Cross-language feature cycle time",
+        "Defect rate across coordinated releases",
+        "Automation coverage for dynamic language stacks",
+        "Adoption of shared utilities and playbooks",
+    ),
+)
+
+
 UI_UX_DESIGNER_PLAYBOOK = TeamRolePlaybook(
     name="UI/UX Designer",
     objectives=(
@@ -465,6 +495,7 @@ DEVELOPMENT_PLAYBOOKS = {
         FRONTEND_DEVELOPER_PLAYBOOK,
         BACKEND_DEVELOPER_PLAYBOOK,
         BLOCKCHAIN_DEVELOPER_PLAYBOOK,
+        DYNAMIC_LANGUAGES_EXPERT_PLAYBOOK,
         UI_UX_DESIGNER_PLAYBOOK,
         DEVOPS_ENGINEER_PLAYBOOK,
     )

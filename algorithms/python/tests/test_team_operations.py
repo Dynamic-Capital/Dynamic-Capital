@@ -24,6 +24,7 @@ def test_build_team_operations_playbooks_includes_expected_roles() -> None:
         "Marketing Strategist",
         "Content Creator / Copywriter",
         "Front-End Developer",
+        "Dynamic Languages Expert",
         "Project Manager",
         "Growth Hacker",
     }
