@@ -174,6 +174,15 @@ For local work, create `.env`/`.env.local` at the repository root and run
 `npm run dev` to load the variables. In production, manage secrets through your
 platform's configuration for each component.
 
+### Timezone configuration
+
+Build tooling and scheduled jobs assume all services run in UTC. When bringing
+up the Docker stack or configuring CI runners, make sure the host OS has the
+correct timezone database installed and the `TZ` environment variable set to
+`UTC`. The provided Docker image now installs `tzdata` and exports `TZ=UTC`, so
+matching the same setting locally keeps timestamps consistent across build
+artifacts and logs.
+
 > **Proxy-friendly npm wrapper:** if your terminal session provides legacy
 > `npm_config_http_proxy` variables you may see
 > `npm warn Unknown env config
