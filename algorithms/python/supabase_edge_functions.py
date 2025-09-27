@@ -9,7 +9,7 @@ __all__ = [
     "EdgeFunctionSpec",
     "EdgeFunctionRunbook",
     "SupabaseEdgeFunctionPlan",
-    "SupabaseEdgeFunctionAlgorithm",
+    "DynamicSupabaseEdgeFunctionAlgorithm",
 ]
 
 
@@ -103,7 +103,7 @@ class SupabaseEdgeFunctionPlan:
         }
 
 
-class SupabaseEdgeFunctionAlgorithm:
+class DynamicSupabaseEdgeFunctionAlgorithm:
     """Build structured runbooks for deploying Supabase Edge Functions."""
 
     def __init__(self, specs: Iterable[EdgeFunctionSpec]):

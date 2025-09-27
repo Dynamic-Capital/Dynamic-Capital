@@ -12,8 +12,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from algorithms.python.route_keeper import (  # noqa: E402
+    DynamicRouteKeeperAlgorithm,
     Route,
-    RouteKeeperAlgorithm,
 )
 from algorithms.python.multi_llm import LLMConfig  # noqa: E402
 
@@ -33,7 +33,7 @@ class DummyClient:
 
 
 def test_route_keeper_sync_manages_routes_and_conflicts() -> None:
-    keeper = RouteKeeperAlgorithm()
+    keeper = DynamicRouteKeeperAlgorithm()
     fx_route = Route(
         name="fx-core",
         entrypoint="market_advisory.scan",
@@ -123,6 +123,6 @@ def test_route_keeper_sync_manages_routes_and_conflicts() -> None:
 
 
 def test_route_keeper_requires_routes() -> None:
-    keeper = RouteKeeperAlgorithm()
+    keeper = DynamicRouteKeeperAlgorithm()
     with pytest.raises(ValueError):
         keeper.sync()

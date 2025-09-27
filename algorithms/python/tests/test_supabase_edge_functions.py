@@ -10,12 +10,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from algorithms.python.supabase_edge_functions import (  # noqa: E402
+    DynamicSupabaseEdgeFunctionAlgorithm,
     EdgeFunctionSpec,
-    SupabaseEdgeFunctionAlgorithm,
 )
 
 
-def build_algorithm() -> SupabaseEdgeFunctionAlgorithm:
+def build_algorithm() -> DynamicSupabaseEdgeFunctionAlgorithm:
     specs = [
         EdgeFunctionSpec(
             name="shared-utils",
@@ -41,7 +41,7 @@ def build_algorithm() -> SupabaseEdgeFunctionAlgorithm:
             schedule="*/5 * * * *",
         ),
     ]
-    return SupabaseEdgeFunctionAlgorithm(specs)
+    return DynamicSupabaseEdgeFunctionAlgorithm(specs)
 
 
 def test_supabase_edge_function_plan_orders_dependencies() -> None:
@@ -80,7 +80,7 @@ def test_supabase_edge_function_unknown_dependency() -> None:
         owners=("platform",),
         dependencies=("missing",),
     )
-    algo = SupabaseEdgeFunctionAlgorithm([spec])
+    algo = DynamicSupabaseEdgeFunctionAlgorithm([spec])
 
     with pytest.raises(KeyError):
         algo.build_plan(environment="staging")
@@ -102,7 +102,7 @@ def test_supabase_edge_function_cycle_detection() -> None:
         dependencies=("a",),
     )
 
-    algo = SupabaseEdgeFunctionAlgorithm([a, b])
+    algo = DynamicSupabaseEdgeFunctionAlgorithm([a, b])
 
     with pytest.raises(ValueError):
         algo.build_plan(environment="dev")

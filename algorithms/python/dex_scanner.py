@@ -38,7 +38,7 @@ class DexScannerSignal:
     notes: tuple[str, ...]
 
 
-class DexScannerAlgo:
+class DynamicDexScannerAlgo:
     """Scores TON DEX pools to help prioritise monitoring."""
 
     def __init__(
@@ -180,8 +180,8 @@ class DexScannerAlgo:
         return max(0.0, min(momentum, 1.0)), volatility_penalty
 
 
-def build_scanner_for_tokens(tokens: Sequence[str]) -> DexScannerAlgo:
+def build_scanner_for_tokens(tokens: Sequence[str]) -> DynamicDexScannerAlgo:
     """Convenience factory for constructing a TON DEX scanner."""
 
-    return DexScannerAlgo(tracked_tokens=tokens)
+    return DynamicDexScannerAlgo(tracked_tokens=tokens)
 

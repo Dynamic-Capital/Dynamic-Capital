@@ -16,7 +16,7 @@ __all__ = [
     "PartnershipTask",
     "PartnershipPhase",
     "ExnessPartnershipPlan",
-    "ExnessPartnershipAlgorithm",
+    "DynamicExnessPartnershipAlgorithm",
 ]
 
 
@@ -140,7 +140,7 @@ class ExnessPartnershipPlan:
         }
 
 
-class ExnessPartnershipAlgorithm:
+class DynamicExnessPartnershipAlgorithm:
     """Construct a deterministic plan for executing the Exness partnership."""
 
     def __init__(

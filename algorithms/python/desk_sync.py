@@ -24,7 +24,7 @@ from .trade_logic import PerformanceMetrics, TradeLogic
 __all__ = [
     "TeamRolePlaybook",
     "TeamRoleSyncResult",
-    "TeamRoleSyncAlgorithm",
+    "DynamicTeamRoleSyncAlgorithm",
     "summarise_trade_logic",
     "DeskSyncReport",
     "TradingDeskSynchroniser",
@@ -55,7 +55,7 @@ class TeamRolePlaybook:
 
 @dataclass(slots=True)
 class TeamRoleSyncResult:
-    """Result of running :class:`TeamRoleSyncAlgorithm`."""
+    """Result of running :class:`DynamicTeamRoleSyncAlgorithm`."""
 
     playbooks: Dict[str, TeamRolePlaybook]
     generated_at: datetime
@@ -83,7 +83,7 @@ class TeamRoleSyncResult:
         }
 
 
-class TeamRoleSyncAlgorithm:
+class DynamicTeamRoleSyncAlgorithm:
     """Deterministic registry that exposes trading desk playbooks."""
 
     def __init__(self, playbooks: Iterable[TeamRolePlaybook]):
@@ -190,7 +190,7 @@ class TradingDeskSynchroniser:
     def __init__(
         self,
         *,
-        team_sync: TeamRoleSyncAlgorithm,
+        team_sync: DynamicTeamRoleSyncAlgorithm,
         protocol_planner,
         trade_logic: TradeLogic,
     ) -> None:

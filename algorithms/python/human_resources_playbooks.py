@@ -4,7 +4,7 @@ This module packages the operational cadence for the people organisation so
 team orchestration services can deliver consistent enablement across the desk.
 Each playbook documents why the function exists, how the work happens, and what
 value signals leaders should monitor.  The intent is to mirror the structure of
-``TeamRoleSyncAlgorithm`` integrations already available for the executive team
+``DynamicTeamRoleSyncAlgorithm`` integrations already available for the executive team
 while focusing on workforce health and compensation governance.
 """
 
@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Dict
 
-from .desk_sync import TeamRolePlaybook, TeamRoleSyncAlgorithm
+from .desk_sync import DynamicTeamRoleSyncAlgorithm, TeamRolePlaybook
 
 __all__ = [
     "PEOPLE_OPERATIONS_PLAYBOOK",
@@ -146,7 +146,7 @@ def build_human_resources_playbooks() -> Dict[str, TeamRolePlaybook]:
     return dict(HUMAN_RESOURCES_PLAYBOOKS)
 
 
-def build_human_resources_sync_algorithm() -> TeamRoleSyncAlgorithm:
-    """Return a ``TeamRoleSyncAlgorithm`` configured with HR playbooks."""
+def build_human_resources_sync_algorithm() -> DynamicTeamRoleSyncAlgorithm:
+    """Return a ``DynamicTeamRoleSyncAlgorithm`` configured with HR playbooks."""
 
-    return TeamRoleSyncAlgorithm(HUMAN_RESOURCES_PLAYBOOKS.values())
+    return DynamicTeamRoleSyncAlgorithm(HUMAN_RESOURCES_PLAYBOOKS.values())

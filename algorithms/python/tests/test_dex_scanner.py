@@ -1,18 +1,18 @@
-"""Tests for the DexScannerAlgo TON DEX scoring engine."""
+"""Tests for the DynamicDexScannerAlgo TON DEX scoring engine."""
 
 from __future__ import annotations
 
 import pytest
 
 from algorithms.python.dex_scanner import (
+    DynamicDexScannerAlgo,
     DexPoolSnapshot,
-    DexScannerAlgo,
     build_scanner_for_tokens,
 )
 
 
 def test_prime_pool_scores_high() -> None:
-    algo = DexScannerAlgo()
+    algo = DynamicDexScannerAlgo()
     snapshot = DexPoolSnapshot(
         dex="DeDust",
         pool_address="0:pool",
@@ -35,7 +35,7 @@ def test_prime_pool_scores_high() -> None:
 
 
 def test_low_liquidity_and_volume_flagged() -> None:
-    algo = DexScannerAlgo(min_liquidity_usd=10_000.0, min_volume_24h_usd=5_000.0, min_transactions_24h=10)
+    algo = DynamicDexScannerAlgo(min_liquidity_usd=10_000.0, min_volume_24h_usd=5_000.0, min_transactions_24h=10)
     snapshot = DexPoolSnapshot(
         dex="STON.fi",
         pool_address="0:thin",
@@ -57,7 +57,7 @@ def test_low_liquidity_and_volume_flagged() -> None:
 
 
 def test_high_volatility_penalty_applied() -> None:
-    algo = DexScannerAlgo(high_volatility_threshold_pct=10.0)
+    algo = DynamicDexScannerAlgo(high_volatility_threshold_pct=10.0)
     snapshot = DexPoolSnapshot(
         dex="DeDust",
         pool_address="0:volatile",
@@ -77,7 +77,7 @@ def test_high_volatility_penalty_applied() -> None:
 
 
 def test_untracked_pool_raises_error() -> None:
-    algo = DexScannerAlgo(tracked_tokens=("DCT",))
+    algo = DynamicDexScannerAlgo(tracked_tokens=("DCT",))
     snapshot = DexPoolSnapshot(
         dex="DeDust",
         pool_address="0:ignored",

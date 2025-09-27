@@ -7,7 +7,7 @@ import math
 import pytest
 
 from algorithms.python.dct_buyback_algo import (
-    DCTBuybackAlgorithm,
+    DynamicDCTBuybackAlgorithm,
     DCTBuybackInputs,
 )
 
@@ -35,7 +35,7 @@ def _build_inputs(**overrides: float) -> DCTBuybackInputs:
 
 
 def test_profit_driven_allocation_creates_balanced_tranches() -> None:
-    algo = DCTBuybackAlgorithm()
+    algo = DynamicDCTBuybackAlgorithm()
     inputs = _build_inputs()
 
     plan = algo.generate_plan(inputs)
@@ -59,7 +59,7 @@ def test_profit_driven_allocation_creates_balanced_tranches() -> None:
 
 
 def test_discounted_market_triggers_accelerated_buybacks() -> None:
-    algo = DCTBuybackAlgorithm()
+    algo = DynamicDCTBuybackAlgorithm()
     inputs = _build_inputs(
         liquid_reserves=600_000.0,
         monthly_profit=300_000.0,
@@ -82,7 +82,7 @@ def test_discounted_market_triggers_accelerated_buybacks() -> None:
 
 
 def test_invalid_inputs_raise_errors() -> None:
-    algo = DCTBuybackAlgorithm()
+    algo = DynamicDCTBuybackAlgorithm()
     inputs = _build_inputs(circulating_supply=0.0)
 
     with pytest.raises(ValueError):

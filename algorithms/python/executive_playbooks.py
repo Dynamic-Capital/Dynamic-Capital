@@ -1,7 +1,7 @@
 """Executive leadership coordination playbooks.
 
 This module captures the operating rhythm for the executive team so the
-``TeamRoleSyncAlgorithm`` can expose consistent guidance to upstream
+``DynamicTeamRoleSyncAlgorithm`` can expose consistent guidance to upstream
 orchestrators.  Each playbook is intentionally verbose: the objectives focus on
 why the role exists, the workflow documents how each leader executes, and the
 outputs/KPIs provide tangible checkpoints for governance and automation.
@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Dict
 
-from .desk_sync import TeamRolePlaybook, TeamRoleSyncAlgorithm
+from .desk_sync import DynamicTeamRoleSyncAlgorithm, TeamRolePlaybook
 
 __all__ = [
     "CEO_PLAYBOOK",
@@ -113,7 +113,7 @@ def build_executive_playbooks() -> Dict[str, TeamRolePlaybook]:
     return dict(EXECUTIVE_PLAYBOOKS)
 
 
-def build_executive_sync_algorithm() -> TeamRoleSyncAlgorithm:
-    """Return a ``TeamRoleSyncAlgorithm`` configured with executive playbooks."""
+def build_executive_sync_algorithm() -> DynamicTeamRoleSyncAlgorithm:
+    """Return a ``DynamicTeamRoleSyncAlgorithm`` configured with executive playbooks."""
 
-    return TeamRoleSyncAlgorithm(EXECUTIVE_PLAYBOOKS.values())
+    return DynamicTeamRoleSyncAlgorithm(EXECUTIVE_PLAYBOOKS.values())

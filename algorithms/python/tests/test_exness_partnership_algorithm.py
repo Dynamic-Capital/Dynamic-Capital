@@ -10,13 +10,13 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from algorithms.python.exness_partnership_algorithm import (  # noqa: E402  (import after path fix)
-    ExnessPartnershipAlgorithm,
+    DynamicExnessPartnershipAlgorithm,
     ExnessPartnershipPlan,
 )
 
 
 def build_plan(include_white_label: bool = True) -> ExnessPartnershipPlan:
-    algorithm = ExnessPartnershipAlgorithm(
+    algorithm = DynamicExnessPartnershipAlgorithm(
         ib_tracking_url="https://one.exnessonelink.com/a/s58ps2kc",
         jurisdictions=("Maldives", "Seychelles"),
         partner_brand="Dynamic Capital",
@@ -73,7 +73,7 @@ def test_plan_excludes_white_label_when_disabled() -> None:
 
 def test_missing_inputs_raise_value_error() -> None:
     with pytest.raises(ValueError):
-        ExnessPartnershipAlgorithm(ib_tracking_url="", jurisdictions=("Maldives",))
+        DynamicExnessPartnershipAlgorithm(ib_tracking_url="", jurisdictions=("Maldives",))
 
     with pytest.raises(ValueError):
-        ExnessPartnershipAlgorithm(ib_tracking_url="https://example.com", jurisdictions=())
+        DynamicExnessPartnershipAlgorithm(ib_tracking_url="https://example.com", jurisdictions=())

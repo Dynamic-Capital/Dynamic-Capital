@@ -12,8 +12,8 @@ import pytest
 
 from algorithms.python.desk_sync import (
     DeskSyncReport,
+    DynamicTeamRoleSyncAlgorithm,
     TeamRolePlaybook,
-    TeamRoleSyncAlgorithm,
     summarise_trade_logic,
     TradingDeskSynchroniser,
 )
@@ -53,7 +53,7 @@ def _build_playbooks() -> list[TeamRolePlaybook]:
 
 def test_team_role_sync_filters_and_serialises() -> None:
     playbooks = _build_playbooks()
-    sync = TeamRoleSyncAlgorithm(playbooks)
+    sync = DynamicTeamRoleSyncAlgorithm(playbooks)
 
     result = sync.synchronise(focus=("Strategist",), context={"shift": "nyc"})
 
@@ -86,7 +86,7 @@ class _StubPlanner:
 
 def test_trading_desk_synchroniser_builds_report() -> None:
     playbooks = _build_playbooks()
-    sync = TeamRoleSyncAlgorithm(playbooks)
+    sync = DynamicTeamRoleSyncAlgorithm(playbooks)
     planner = _StubPlanner()
     trade_logic = TradeLogic()
 
@@ -119,7 +119,7 @@ def test_trading_desk_synchroniser_builds_report() -> None:
 
 
 def test_team_role_sync_errors_on_unknown_focus() -> None:
-    sync = TeamRoleSyncAlgorithm(_build_playbooks())
+    sync = DynamicTeamRoleSyncAlgorithm(_build_playbooks())
     with pytest.raises(KeyError):
         sync.synchronise(focus=("Unknown",))
 

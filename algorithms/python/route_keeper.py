@@ -9,7 +9,7 @@ from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Seque
 from .multi_llm import LLMConfig, LLMRun
 
 
-__all__ = ["Route", "RouteKeeperAlgorithm", "RouteKeeperSyncResult"]
+__all__ = ["Route", "DynamicRouteKeeperAlgorithm", "RouteKeeperSyncResult"]
 
 
 def _normalise_tuple(values: Iterable[Any]) -> Tuple[str, ...]:
@@ -61,7 +61,7 @@ class Route:
 
 @dataclass(slots=True)
 class RouteKeeperSyncResult:
-    """Structured output produced by :class:`RouteKeeperAlgorithm`."""
+    """Structured output produced by :class:`DynamicRouteKeeperAlgorithm`."""
 
     timestamp: datetime
     theme: Optional[str]
@@ -103,7 +103,7 @@ class RouteKeeperSyncResult:
         return payload
 
 
-class RouteKeeperAlgorithm:
+class DynamicRouteKeeperAlgorithm:
     """Coordinates route definitions and cross-algorithm synchronisation."""
 
     def __init__(self) -> None:
@@ -376,7 +376,7 @@ class RouteKeeperAlgorithm:
             for key, value in sorted(context.items()):
                 if key == "prompt" or value is None:
                     continue
-                lines.append(f"- {key}: {RouteKeeperAlgorithm._format_context_value(value)}")
+                lines.append(f"- {key}: {DynamicRouteKeeperAlgorithm._format_context_value(value)}")
         lines.append("")
         lines.append("Routes:")
         for route in routes:
@@ -426,8 +426,12 @@ class RouteKeeperAlgorithm:
     @staticmethod
     def _format_context_value(value: Any) -> str:
         if isinstance(value, Mapping):
-            pairs = ", ".join(f"{key}={RouteKeeperAlgorithm._format_context_value(val)}" for key, val in value.items())
+            pairs = ", ".join(
+                f"{key}={DynamicRouteKeeperAlgorithm._format_context_value(val)}" for key, val in value.items()
+            )
             return f"{{{pairs}}}"
         if isinstance(value, (Sequence, set)) and not isinstance(value, (str, bytes, bytearray)):
-            return ", ".join(RouteKeeperAlgorithm._format_context_value(item) for item in value)
+            return ", ".join(
+                DynamicRouteKeeperAlgorithm._format_context_value(item) for item in value
+            )
         return str(value)

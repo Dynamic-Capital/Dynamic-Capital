@@ -12,9 +12,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from algorithms.python.time_keeper import (  # noqa: E402
+    DynamicTimeKeeperAlgorithm,
     KillZone,
     MVT_TIMEZONE,
-    TimeKeeperAlgorithm,
     TradingSession,
 )
 from algorithms.python.multi_llm import LLMConfig  # noqa: E402
@@ -36,7 +36,7 @@ class DummyClient:
 
 
 def test_time_keeper_sync_tracks_sessions_and_llm_runs() -> None:
-    algo = TimeKeeperAlgorithm()
+    algo = DynamicTimeKeeperAlgorithm()
     london = TradingSession(
         market="London",
         open_time=time(7, 0),
@@ -107,6 +107,6 @@ def test_time_keeper_sync_tracks_sessions_and_llm_runs() -> None:
 
 
 def test_time_keeper_requires_sessions() -> None:
-    algo = TimeKeeperAlgorithm()
+    algo = DynamicTimeKeeperAlgorithm()
     with pytest.raises(ValueError):
         algo.sync()

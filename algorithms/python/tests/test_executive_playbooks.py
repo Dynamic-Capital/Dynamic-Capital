@@ -8,7 +8,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from algorithms.python.executive_playbooks import build_executive_playbooks
-from algorithms.python.desk_sync import TeamRoleSyncAlgorithm
+from algorithms.python.desk_sync import DynamicTeamRoleSyncAlgorithm
 
 
 EXPECTED_ROLES = ("CEO", "CFO", "COO")
@@ -27,7 +27,7 @@ def test_builder_returns_all_executive_roles():
 
 def test_builder_integrates_with_team_role_sync_algorithm():
     playbooks = build_executive_playbooks()
-    algorithm = TeamRoleSyncAlgorithm(playbooks.values())
+    algorithm = DynamicTeamRoleSyncAlgorithm(playbooks.values())
 
     result = algorithm.synchronise()
     assert result.context["role_count"] == len(playbooks)
