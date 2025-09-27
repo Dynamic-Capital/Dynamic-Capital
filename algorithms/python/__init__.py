@@ -184,6 +184,12 @@ from .team_operations import (
     build_team_operations_playbooks,
     build_team_operations_sync_algorithm,
 )
+from .organizational_models import (
+    MANAGEMENT_STYLES as OPERATING_MANAGEMENT_STYLES,
+    STRUCTURES as OPERATING_STRUCTURES,
+    build_playbook_overlay,
+    resolve_operating_model_context,
+)
 from .route_keeper import DynamicRouteKeeperAlgorithm, Route, RouteKeeperSyncResult
 from .supabase_edge_functions import (
     EdgeFunctionRunbook,
@@ -380,6 +386,10 @@ __all__ = _trade_exports + [
     "build_team_operations_sync_algorithm",
     "TeamOperationsAlignmentReport",
     "TeamOperationsLLMPlanner",
+    "OPERATING_MANAGEMENT_STYLES",
+    "OPERATING_STRUCTURES",
+    "build_playbook_overlay",
+    "resolve_operating_model_context",
     "Element",
     "ElementProfile",
     "ElementSignal",

@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Seque
 
 from .desk_sync import DynamicTeamRoleSyncAlgorithm, TeamRolePlaybook
 from .multi_llm import LLMConfig, LLMRun, collect_strings, parse_json_response, serialise_runs
+from .organizational_models import resolve_operating_model_context
 
 __all__ = [
     "MARKETING_PLAYBOOKS",
@@ -754,6 +755,8 @@ class TeamOperationsLLMPlanner:
         *,
         focus: Optional[Iterable[str]] = None,
         context: Optional[Mapping[str, Any]] = None,
+        structure: Optional[str] = None,
+        management_style: Optional[str] = None,
     ) -> TeamOperationsAlignmentReport:
         """Return a cross-team alignment summary for the supplied playbooks."""
 
@@ -770,6 +773,12 @@ class TeamOperationsLLMPlanner:
         context_payload.setdefault("role_count", len(selected))
         context_payload.setdefault("roles", list(selected))
 
+        operating_model = resolve_operating_model_context(
+            structure=structure, management_style=management_style
+        )
+        if operating_model:
+            context_payload.setdefault("operating_model", operating_model)
+
         playbook_payload = [
             {
                 "name": playbook.name,
@@ -777,6 +786,7 @@ class TeamOperationsLLMPlanner:
                 "workflow": list(playbook.workflow),
                 "outputs": list(playbook.outputs),
                 "kpis": list(playbook.kpis),
+                "annotations": dict(playbook.annotations),
             }
             for playbook in selected.values()
         ]

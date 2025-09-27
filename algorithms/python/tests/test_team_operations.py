@@ -131,6 +131,32 @@ def test_team_operations_planner_coalesces_multi_llm_outputs() -> None:
     assert report.metadata["context"]["initiative"] == "Product launch"
 
 
+def test_team_operations_planner_enriches_operating_model_context() -> None:
+    strategy_response = """{"summary": "Alignment", "priorities": []}"""
+    client = _StubClient((strategy_response,))
+    strategy = LLMConfig(
+        name="strategy",
+        client=client,
+        temperature=0.0,
+        nucleus_p=1.0,
+        max_tokens=256,
+    )
+
+    planner = TeamOperationsLLMPlanner(strategy=strategy)
+    playbooks = {"Marketing Strategist": TEAM_OPERATIONS_PLAYBOOKS["Marketing Strategist"]}
+
+    report = planner.generate(
+        playbooks,
+        structure="Matrix",
+        management_style="Participative",
+    )
+
+    operating_model = report.metadata["context"]["operating_model"]
+    assert operating_model["structure"]["name"] == "matrix"
+    assert operating_model["management_style"]["name"] == "participative"
+    assert operating_model["alignment_notes"]
+
+
 def test_team_operations_planner_handles_single_llm() -> None:
     strategy_response = """
     {

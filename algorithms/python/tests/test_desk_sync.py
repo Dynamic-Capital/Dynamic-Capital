@@ -67,6 +67,23 @@ def test_team_role_sync_filters_and_serialises() -> None:
     assert generated.tzinfo is not None
 
 
+def test_team_role_sync_applies_operating_model_overlays() -> None:
+    playbooks = _build_playbooks()
+    sync = DynamicTeamRoleSyncAlgorithm(playbooks)
+
+    result = sync.synchronise(structure="Functional", management_style="Transformational")
+
+    assert "operating_model" in result.context
+    strategist = result.playbooks["Strategist"]
+    assert any("cross-functional" in step for step in strategist.workflow)
+    assert any("vision" in step.lower() for step in strategist.workflow)
+    assert "structure_guidance" in strategist.annotations
+    assert "management_guidance" in strategist.annotations
+    overlay_context = result.context["applied_playbook_overlays"]["Strategist"]
+    assert overlay_context["structure"] == "functional"
+    assert overlay_context["management_style"] == "transformational"
+
+
 class _StubPlanner:
     def __init__(self) -> None:
         self.calls: list[dict[str, object]] = []

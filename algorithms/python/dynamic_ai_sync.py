@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 from typing_extensions import Literal
 
 from .multi_llm import LLMConfig, LLMRun, collect_strings, parse_json_response, serialise_runs
+from .organizational_models import resolve_operating_model_context
 
 AlgorithmStatus = Literal["success", "error"]
 
@@ -247,11 +248,18 @@ class DynamicAISynchroniser:
         *,
         context: Optional[Mapping[str, Any]] = None,
         notes: Optional[Sequence[str]] = None,
+        structure: Optional[str] = None,
+        management_style: Optional[str] = None,
     ) -> DynamicAISyncReport:
         """Run every registered sync adapter and summarise via Dynamic AI."""
 
         generated_at = datetime.now(tz=UTC)
         base_context: Dict[str, Any] = dict(context or {})
+        operating_model = resolve_operating_model_context(
+            structure=structure, management_style=management_style
+        )
+        if operating_model:
+            base_context.setdefault("operating_model", operating_model)
         collected_notes = tuple(collect_strings(notes) if notes else ())
 
         results: list[AlgorithmSyncResult] = []

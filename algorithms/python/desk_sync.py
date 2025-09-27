@@ -19,6 +19,10 @@ from datetime import UTC, datetime
 from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Sequence
 
 from .dynamic_protocol_planner import ProtocolDraft, summarise_trade_logic as protocol_trade_logic_summary
+from .organizational_models import (
+    build_playbook_overlay,
+    resolve_operating_model_context,
+)
 from .trade_logic import PerformanceMetrics, TradeLogic
 
 __all__ = [
@@ -40,6 +44,7 @@ class TeamRolePlaybook:
     workflow: Sequence[str]
     outputs: Sequence[str] = field(default_factory=tuple)
     kpis: Sequence[str] = field(default_factory=tuple)
+    annotations: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         """Return a serialisable representation of the playbook."""
@@ -50,7 +55,41 @@ class TeamRolePlaybook:
             "workflow": list(self.workflow),
             "outputs": list(self.outputs),
             "kpis": list(self.kpis),
+            "annotations": dict(self.annotations),
         }
+
+    def with_operating_model(
+        self,
+        *,
+        structure: Optional[str] = None,
+        management_style: Optional[str] = None,
+    ) -> tuple["TeamRolePlaybook", Dict[str, Any]]:
+        """Return a playbook adjusted for the supplied operating model."""
+
+        overlay = build_playbook_overlay(
+            structure=structure, management_style=management_style
+        )
+        if not overlay:
+            return self, {}
+
+        objectives = tuple((*self.objectives, *overlay.get("objectives", ())))
+        workflow = tuple((*self.workflow, *overlay.get("workflow", ())))
+        outputs = tuple((*self.outputs, *overlay.get("outputs", ())))
+        kpis = tuple((*self.kpis, *overlay.get("kpis", ())))
+        annotations = dict(self.annotations)
+        annotations.update(overlay.get("annotations", {}))
+
+        adjusted = TeamRolePlaybook(
+            name=self.name,
+            objectives=objectives,
+            workflow=workflow,
+            outputs=outputs,
+            kpis=kpis,
+            annotations=annotations,
+        )
+
+        applied = overlay.get("applied", {})
+        return adjusted, dict(applied)
 
 
 @dataclass(slots=True)
@@ -100,6 +139,8 @@ class DynamicTeamRoleSyncAlgorithm:
         *,
         focus: Optional[Iterable[str]] = None,
         context: Optional[Mapping[str, Any]] = None,
+        structure: Optional[str] = None,
+        management_style: Optional[str] = None,
     ) -> TeamRoleSyncResult:
         """Return the playbooks that match the optional focus set."""
 
@@ -115,8 +156,27 @@ class DynamicTeamRoleSyncAlgorithm:
         payload_context: Dict[str, Any] = dict(context or {})
         payload_context.setdefault("role_count", len(selected))
 
+        operating_model = resolve_operating_model_context(
+            structure=structure, management_style=management_style
+        )
+        if operating_model:
+            payload_context.setdefault("operating_model", operating_model)
+
+        resolved_playbooks: Dict[str, TeamRolePlaybook] = {}
+        applied_overlays: Dict[str, Dict[str, Any]] = {}
+        for name, playbook in selected.items():
+            resolved, applied = playbook.with_operating_model(
+                structure=structure, management_style=management_style
+            )
+            resolved_playbooks[name] = resolved
+            if applied:
+                applied_overlays[name] = applied
+
+        if applied_overlays:
+            payload_context.setdefault("applied_playbook_overlays", applied_overlays)
+
         return TeamRoleSyncResult(
-            playbooks=selected,
+            playbooks=resolved_playbooks,
             generated_at=datetime.now(tz=UTC),
             focus=focus_tuple,
             context=payload_context,
