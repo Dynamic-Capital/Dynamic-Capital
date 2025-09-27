@@ -9,14 +9,15 @@ Tonstarter production review.
 | Item                  | Value                                              | Reference                                                                                                                                                                     |
 | --------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Jetton master address | `EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6` | [tonviewer](https://tonviewer.com/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) · [tonscan](https://tonscan.org/address/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6) |
-| Treasury multisig     | `EQBURNFundTreasury•••••••••••••••••••••••`        | Governance config in [`dynamic-capital-ton/config.yaml`](../../dynamic-capital-ton/config.yaml) (redacted for public release)                                                 |
-| DEX router            | `EQDEXRouterPreferred•••••••••••••••••••`          | Governance config in [`dynamic-capital-ton/config.yaml`](../../dynamic-capital-ton/config.yaml) (redacted for public release)                                                 |
+| Treasury multisig     | `EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD` | [tonviewer](https://tonviewer.com/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) · [tonscan](https://tonscan.org/address/EQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOPDD) |
+| DEX router            | `EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3` | [tonviewer](https://tonviewer.com/EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3) · [tonscan](https://tonscan.org/address/EQ7_nN5u5uv_HFwnGSsGYnTl_dhZeQmEBhWpDV8Al_yX8zn3) |
 | Symbol / Decimals     | `DCT`, `9`                                         | [`dynamic-capital-ton/contracts/jetton/metadata.json`](../../dynamic-capital-ton/contracts/jetton/metadata.json)                                                              |
 | Max supply            | `100,000,000 DCT`                                  | [`dynamic-capital-ton/config.yaml`](../../dynamic-capital-ton/config.yaml)                                                                                                    |
 
-> **Note:** The treasury multisig and router placeholders above match the
-> deployment template committed alongside the production build; replace with
-> finalized addresses during mainnet deployment.
+> **Note:** The deployment templates (`dynamic-capital-ton/config.yaml`,
+> `dynamic-capital-ton/supabase/schema.sql`) now ship with the Tonstarter
+> treasury multisig and STON.fi router listed above. Rotate the entries if the
+> governance wallet or liquidity endpoint changes before redeploying.
 
 ## Explorer Snapshots
 

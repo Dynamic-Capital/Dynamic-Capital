@@ -12,7 +12,7 @@ Block: 13458923000002 (2025-05-10T14:03:29Z)
 Symbol: DCT
 Decimals: 9
 Total Supply: 100,000,000 DCT
-Owner: EQBURNFundTreasury•••••••••••••••••••••••
+Owner: EQD1zAJPYZMY•••••••••••••••••••••••
 Jetton Wallets: 142
 Recent Operations:
   - 2025-05-09: burn 12,450 DCT (EQBNSubscriptBurn••••••••••••••••••••)
@@ -22,7 +22,7 @@ Recent Operations:
 ## jetton-wallet-treasury.txt
 
 ```
-URL: https://tonviewer.com/jetton/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6/EQBURNFundTreasury•••••••••••••••••••••••
+URL: https://tonviewer.com/jetton/EQAHMNCDJmEK8yEt1IbaJP1xl2-wd21f1Gpt_57Z1uCPPzE6/EQD1zAJPYZMY•••••••••••••••••••••••
 Balance: 28,400,000 DCT
 Transactions:
   - 2025-05-10: Transfer 250,000 DCT to EQBSTONLiquidity••••••••••••••••••
