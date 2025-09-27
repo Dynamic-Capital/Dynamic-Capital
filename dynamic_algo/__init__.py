@@ -59,6 +59,12 @@ from .dynamic_nodes import (
     NodeConfigError,
     NodeDependencyError,
 )
+from .dynamic_research import (
+    DynamicResearchAlgo,
+    ResearchIdeaSummary,
+    ResearchSignal,
+    ResearchSnapshot,
+)
 
 __all__ = [
     "ORDER_ACTION_BUY",
@@ -108,4 +114,8 @@ __all__ = [
     "DynamicNodeError",
     "NodeConfigError",
     "NodeDependencyError",
+    "DynamicResearchAlgo",
+    "ResearchSignal",
+    "ResearchIdeaSummary",
+    "ResearchSnapshot",
 ]
