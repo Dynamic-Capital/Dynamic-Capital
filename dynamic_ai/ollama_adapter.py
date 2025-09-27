@@ -6,8 +6,6 @@ from dataclasses import dataclass, field
 import json
 from typing import Any, Dict, Mapping, MutableMapping, Sequence
 
-import requests
-
 from .dolphin_adapter import LLMIntegrationError
 
 
@@ -85,6 +83,17 @@ class OllamaAdapter:
     ) -> str:
         """Call the Ollama generate endpoint and return enhanced reasoning."""
 
+        try:  # Deferred import keeps optional dependency truly optional.
+            import requests  # type: ignore[import-not-found]
+        except ModuleNotFoundError as exc:  # pragma: no cover - import path
+            raise LLMIntegrationError(
+                "OllamaAdapter requires the 'requests' package. Install the optional HTTP dependency."
+            ) from exc
+        except Exception as exc:  # pragma: no cover - defensive safety net
+            raise LLMIntegrationError("Failed to import requests for OllamaAdapter") from exc
+
+        RequestException = getattr(requests, "RequestException", Exception)
+
         payload: Dict[str, Any] = {
             "model": self.config.model,
             "prompt": self.prompt_template.build_prompt(
@@ -113,7 +122,7 @@ class OllamaAdapter:
                 timeout=self.timeout,
             )
             response.raise_for_status()
-        except requests.RequestException as exc:  # pragma: no cover - network failure path
+        except RequestException as exc:  # pragma: no cover - network failure path
             raise LLMIntegrationError(f"Failed to call Ollama generate endpoint at {url}") from exc
 
         try:
