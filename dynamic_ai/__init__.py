@@ -33,7 +33,11 @@ from .fusion import (
     TrendMomentumLobe,
     TreasuryLobe,
 )
-from .training import calibrate_lorentzian_lobe, load_lorentzian_model
+from .training import (
+    calibrate_lorentzian_lobe,
+    load_lorentzian_model,
+    prepare_fusion_training_rows,
+)
 from .risk import PositionSizing, RiskContext, RiskManager, RiskParameters
 from .hedge import (
     AccountState,
@@ -78,6 +82,7 @@ __all__ = [
     "TreasuryLobe",
     "calibrate_lorentzian_lobe",
     "load_lorentzian_model",
+    "prepare_fusion_training_rows",
     "PositionSizing",
     "RiskContext",
     "RiskManager",

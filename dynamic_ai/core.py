@@ -3,7 +3,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Protocol, Sequence, Set, Tuple
+from statistics import fmean
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Protocol,
+    Sequence,
+    Set,
+    Tuple,
+)
 
 from .dolphin_adapter import LLMIntegrationError
 
@@ -90,6 +103,8 @@ class PreparedMarketContext:
     trend: Optional[str]
     sentiment_value: Optional[float]
     composite_scores: Tuple[float, ...]
+    composite_trimmed_mean: Optional[float]
+    indicator_panel: Tuple[Tuple[str, float], ...]
     volatility: float
     news_topics: Tuple[str, ...]
     alignment: Optional[float]
@@ -138,8 +153,11 @@ class DynamicFusionAlgo:
 
         extra_notes: List[str] = []
 
+        consensus_lookup = self._build_consensus_provider(context)
+
         ai_action = self._refine_action(context)
-        confidence = self._calculate_confidence(context)
+        confidence, consensus = self._calculate_confidence(context, ai_action, consensus_lookup)
+        consensus_action = ai_action
 
         ai_action, confidence, risk_note = self._apply_risk_overrides(ai_action, confidence, context)
         if risk_note:
@@ -153,7 +171,11 @@ class DynamicFusionAlgo:
         if post_human_risk_note and post_human_risk_note not in extra_notes:
             extra_notes.append(post_human_risk_note)
 
-        reasoning = self._build_reasoning(ai_action, confidence, context, extra_notes)
+        if ai_action != consensus_action:
+            consensus = consensus_lookup(ai_action)
+            consensus_action = ai_action
+
+        reasoning = self._build_reasoning(ai_action, confidence, context, extra_notes, consensus)
         reasoning = self._maybe_enhance_reasoning(
             action=ai_action,
             confidence=confidence,
@@ -162,6 +184,64 @@ class DynamicFusionAlgo:
         )
 
         return AISignal(action=ai_action, confidence=confidence, reasoning=reasoning, original_signal=raw_signal)
+
+    def prepare_training_example(self, market_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Return feature payloads describing how a signal decision was derived."""
+
+        context = self._prepare_context(market_data)
+        composite_score = self._derive_composite_score(context)
+        consensus_lookup = self._build_consensus_provider(context)
+
+        base_action = self._refine_action(context)
+        base_confidence, base_consensus = self._calculate_confidence(
+            context, base_action, consensus_lookup
+        )
+
+        annotations: List[str] = []
+        final_action = base_action
+        final_confidence = base_confidence
+
+        final_action, final_confidence, risk_note = self._apply_risk_overrides(
+            final_action, final_confidence, context
+        )
+        if risk_note:
+            annotations.append(risk_note)
+
+        final_action, final_confidence, human_note = self._blend_with_human_bias(
+            final_action, final_confidence, context
+        )
+        if human_note:
+            annotations.append(human_note)
+
+        final_action, final_confidence, post_human_risk_note = self._apply_risk_overrides(
+            final_action, final_confidence, context
+        )
+        if post_human_risk_note and post_human_risk_note not in annotations:
+            annotations.append(post_human_risk_note)
+
+        final_consensus = consensus_lookup(final_action)
+
+        features = self._training_features_from_context(context)
+
+        consensus_by_action = {
+            action: consensus_lookup(action) for action in sorted(VALID_SIGNALS)
+        }
+
+        return {
+            "features": features,
+            "source_signal": context.source_signal,
+            "resolved_signal": context.resolved_signal,
+            "composite_score": composite_score,
+            "composite_trimmed_mean": context.composite_trimmed_mean,
+            "base_action": base_action,
+            "base_confidence": base_confidence,
+            "base_consensus": base_consensus,
+            "final_action": final_action,
+            "final_confidence": final_confidence,
+            "final_consensus": final_consensus,
+            "consensus_by_action": consensus_by_action,
+            "annotations": annotations,
+        }
 
     def _prepare_context(self, market_data: Dict[str, Any]) -> PreparedMarketContext:
         raw_signal = str(market_data.get("signal", "NEUTRAL")).upper()
@@ -182,15 +262,35 @@ class DynamicFusionAlgo:
                     scores.append(_clamp(coerced, -1.0, 1.0))
             composite_scores = tuple(scores)
 
+        composite_trimmed_mean: Optional[float] = None
+        if composite_scores:
+            composite_trimmed_mean = self._trimmed_mean(composite_scores)
+
+        alignment_raw = self._safe_float(market_data.get("signal_alignment"))
+        alignment = _clamp(alignment_raw, -1.0, 1.0) if alignment_raw is not None else None
+
+        indicator_panel: List[Tuple[str, float]] = [
+            ("resolved_signal_bias", self._action_to_score(resolved_signal))
+        ]
+
+        if momentum is not None:
+            indicator_panel.append(("momentum", _clamp(momentum, -1.0, 1.0)))
+
+        if sentiment_value is not None:
+            indicator_panel.append(("sentiment_value", _clamp(sentiment_value, -1.0, 1.0)))
+
+        if alignment is not None:
+            indicator_panel.append(("alignment", alignment))
+
+        if composite_trimmed_mean is not None:
+            indicator_panel.append(("composite_trimmed_mean", composite_trimmed_mean))
+
         volatility = self._coerce_float(market_data.get("volatility"), default=0.0)
         news_topics = tuple(
             _normalise_topic(topic)
             for topic in self._normalise_news_topics(market_data.get("news"))
             if str(topic).strip()
         )
-
-        alignment_raw = self._safe_float(market_data.get("signal_alignment"))
-        alignment = _clamp(alignment_raw, -1.0, 1.0) if alignment_raw is not None else None
 
         data_quality_raw = self._safe_float(market_data.get("data_quality"))
         data_quality = _clamp(data_quality_raw, 0.0, 1.0) if data_quality_raw is not None else None
@@ -231,6 +331,8 @@ class DynamicFusionAlgo:
             trend=trend,
             sentiment_value=sentiment_value,
             composite_scores=composite_scores,
+            composite_trimmed_mean=composite_trimmed_mean,
+            indicator_panel=tuple(indicator_panel),
             volatility=volatility,
             news_topics=news_topics,
             alignment=alignment,
@@ -293,8 +395,8 @@ class DynamicFusionAlgo:
         if context.alignment is not None:
             add_component(context.alignment, 0.2)
 
-        if context.composite_scores:
-            add_component(sum(context.composite_scores) / len(context.composite_scores), 0.3)
+        if context.composite_trimmed_mean is not None:
+            add_component(context.composite_trimmed_mean, 0.3)
 
         if not contributions:
             return None
@@ -306,7 +408,12 @@ class DynamicFusionAlgo:
 
         return numerator / denominator
 
-    def _calculate_confidence(self, context: "PreparedMarketContext") -> float:
+    def _calculate_confidence(
+        self,
+        context: "PreparedMarketContext",
+        action: str,
+        consensus_provider: Callable[[str], float] | None = None,
+    ) -> tuple[float, float]:
         base_confidence = context.base_confidence
         volatility = context.volatility
         news_topics = context.news_topics
@@ -330,6 +437,8 @@ class DynamicFusionAlgo:
 
         if context.data_quality is not None and context.data_quality < 0.5:
             confidence = max(0.0, confidence - (0.5 - context.data_quality) * 0.3)
+            if context.data_quality < 0.3:
+                confidence = max(0.0, confidence - (0.3 - context.data_quality) * 0.5)
 
         if context.risk_score is not None:
             confidence = max(0.0, confidence - context.risk_score * 0.2)
@@ -339,10 +448,56 @@ class DynamicFusionAlgo:
             if drawdown_value > 5:
                 confidence = max(0.0, confidence - min(0.25, (drawdown_value - 5) * 0.01))
 
+        if consensus_provider is None:
+            consensus = self._indicator_consensus(context, action)
+        else:
+            consensus = consensus_provider(action)
+        if consensus > 0.5:
+            confidence = min(1.0, confidence + min(0.12, consensus * 0.1))
+        elif consensus < -0.5:
+            confidence = max(0.0, confidence + max(-0.18, consensus * 0.12))
+
         if context.resolved_signal == "NEUTRAL":
             confidence = min(confidence, 0.5)
 
-        return round(confidence, 2)
+        return round(confidence, 2), consensus
+
+    def _training_features_from_context(self, context: "PreparedMarketContext") -> Dict[str, float]:
+        """Return numeric features suitable for dataset construction."""
+
+        features = {name: float(value) for name, value in context.indicator_panel}
+
+        features["volatility"] = float(context.volatility)
+        features["base_confidence"] = float(context.base_confidence)
+        features["news_topic_count"] = float(len(context.news_topics))
+        features["circuit_breaker"] = 1.0 if context.circuit_breaker else 0.0
+
+        if context.data_quality is not None:
+            features["data_quality"] = float(context.data_quality)
+        else:
+            features.setdefault("data_quality", 0.5)
+
+        if context.risk_score is not None:
+            features["risk_score"] = float(context.risk_score)
+        else:
+            features.setdefault("risk_score", 0.0)
+
+        if context.drawdown is not None:
+            features["drawdown"] = float(context.drawdown)
+        else:
+            features.setdefault("drawdown", 0.0)
+
+        if context.human_weight is not None:
+            features["human_weight"] = float(context.human_weight)
+        else:
+            features.setdefault("human_weight", 0.0)
+
+        if context.human_bias is not None:
+            features["human_bias_alignment"] = self._action_to_score(context.human_bias)
+        else:
+            features.setdefault("human_bias_alignment", 0.0)
+
+        return features
 
     def _maybe_enhance_reasoning(
         self,
@@ -371,6 +526,7 @@ class DynamicFusionAlgo:
         confidence: float,
         context: "PreparedMarketContext",
         annotations: Iterable[str] | None,
+        consensus: float,
     ) -> str:
         comments: List[str] = []
 
@@ -395,6 +551,13 @@ class DynamicFusionAlgo:
 
         if annotations:
             comments.extend(note for note in annotations if note)
+        if consensus > 0.5:
+            comments.append("Multiple indicators reinforced the action bias.")
+        elif consensus < -0.5:
+            comments.append("Indicators diverged materially, keeping conviction restrained.")
+
+        if context.data_quality is not None and context.data_quality < 0.5:
+            comments.append("Data quality concerns prompted tighter safeguards.")
 
         if not comments:
             comments.append("Signal defaulted to neutral heuristics due to limited context.")
@@ -521,6 +684,23 @@ class DynamicFusionAlgo:
             return None
 
     @staticmethod
+    def _trimmed_mean(values: Sequence[float], *, trim_ratio: float = 0.2) -> float:
+        """Return a trimmed mean to reduce outlier influence."""
+
+        if not values:
+            raise ValueError("_trimmed_mean requires at least one value")
+
+        bounded = [max(-1.0, min(1.0, value)) for value in values]
+        ordered = sorted(bounded)
+        trim_count = int(len(ordered) * trim_ratio)
+        if trim_count:
+            trimmed = ordered[trim_count:-trim_count] or ordered
+        else:
+            trimmed = ordered
+
+        return fmean(trimmed)
+
+    @staticmethod
     def _sentiment_to_scalar(sentiment: Any) -> Optional[float]:
         if sentiment is None:
             return None
@@ -538,6 +718,47 @@ class DynamicFusionAlgo:
         except ValueError:
             return None
         return max(-1.0, min(1.0, value))
+
+    def _indicator_consensus(self, context: "PreparedMarketContext", action: str) -> float:
+        """Quantify how well independent indicators agree with the action."""
+
+        if not context.indicator_panel:
+            return 0.0
+
+        action_score = self._action_to_score(action)
+        threshold = 0.15
+
+        values = [value for _, value in context.indicator_panel]
+
+        if action_score == 0.0:
+            strong_bias = sum(1 for value in values if abs(value) > 0.4)
+            neutral_support = sum(1 for value in values if abs(value) <= threshold)
+            return (neutral_support - strong_bias) / len(values)
+
+        aligned = sum(1 for value in values if value * action_score > threshold)
+        conflicting = sum(1 for value in values if value * action_score < -threshold)
+
+        return (aligned - conflicting) / len(values)
+
+    def _build_consensus_provider(
+        self, context: "PreparedMarketContext"
+    ) -> Callable[[str], float]:
+        """Return a cached lookup to reuse consensus calculations during a run."""
+
+        cache: Dict[str, float] = {}
+
+        def lookup(action: str) -> float:
+            key = action.upper()
+            if key not in VALID_SIGNALS:
+                key = "NEUTRAL"
+            cached = cache.get(key)
+            if cached is not None:
+                return cached
+            value = self._indicator_consensus(context, key)
+            cache[key] = value
+            return value
+
+        return lookup
 
     def _apply_risk_overrides(
         self,
