@@ -38,37 +38,51 @@ repo health checks before audits, launches, or large merges. Track the results
 in your PR/issue notes so reviewers can see the evidence.
 
 - [x] Sync `.env` and `.env.local` with `.env.example` (`npm run sync-env`) to
-      ensure new environment keys are captured locally. _Ran on this branch;
-      both files were created and populated from the template._
-- [x] Run the repository test suite (`npm run test`) so Deno and Next.js smoke
-      tests cover the latest changes. _All 51 checks passed, matching the CI
-      suite._
+      ensure new environment keys are captured locally. _Ran on 2025-09-27; both
+      files already contained the expected keys so no changes were needed._
+- [ ] Run the repository test suite (`npm run test`) so Deno and Next.js smoke
+      tests cover the latest changes. _Blocked: the suite aborts with syntax
+      errors from placeholder `await Promise.resolve();` statements in multiple
+      Supabase function modules (for example
+      `supabase/functions/_shared/config.ts:196` and
+      `supabase/functions/telegram-bot/index.ts:229`), causing 18 tests to fail
+      immediately._
 - [ ] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to
-      apply formatting and rerun Deno format/lint/type checks. _Attempt on this
-      branch surfaced pre-existing Deno lint violations (for example unused
-      variables in `scripts/predeploy.js` and bare `https:` imports in the
-      Drizzle tooling) that require follow-up patches before the script can
-      succeed._
-- [x] Run the aggregated verification suite (`npm run verify`) for the bundled
-      static, runtime, and integration safety checks. _Ran successfully via the
-      `verify_all.sh` harness; the generated report is available at
-      `.out/verify_report.md` for review._
-- [x] Audit Supabase Edge function hosts
+      apply formatting and rerun Deno format/lint/type checks. _Not attempted in
+      this run because the failing test suite must be addressed first; the
+      underlying syntax issue will also surface during the lint phase._
+- [ ] Run the aggregated verification suite (`npm run verify`) for the bundled
+      static, runtime, and integration safety checks. _Pending a green repository
+      test suite so the verification harness can complete._
+- [ ] Audit Supabase Edge function hosts
       (`deno run -A scripts/audit-edge-hosts.ts`) to detect environment drift
-      between deployments. _Script executed successfully with no mismatched
-      hosts detected._
-- [x] Check linkage across environment variables and outbound URLs
-      (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Script
-      ran with warnings only for missing local secrets (e.g.,
-      `TELEGRAM_BOT_TOKEN`)._
+      between deployments. _Not executed in this attempt; schedule after the
+      blocking test failures are resolved._
+- [ ] Check linkage across environment variables and outbound URLs
+      (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Not yet
+      run in this session because automation halted at the failing test step._
 - [ ] Verify the Telegram webhook configuration
       (`deno run -A scripts/check-webhook.ts`) so bot traffic hits the expected
-      endpoint. _Still blocked—the script exits immediately without a
-      `TELEGRAM_BOT_TOKEN` secret in the environment._
+      endpoint. _Requires rerunning the checklist after test and lint blockers
+      are fixed._
 - [ ] _Optional:_ Run the mini app smoke test
       (`deno run -A scripts/smoke-miniapp.ts`) to mirror the go-live walkthrough
-      end-to-end. _Requires `FUNCTIONS_BASE` to target a deployed Supabase Edge
-      host; not available in this environment._
+      end-to-end. _Still pending; hold until the required tasks above succeed._
+
+### Latest automation run (2025-09-27)
+
+- Command: `npm run checklists -- --checklist dynamic-capital`
+- Outcome: Halted at task **repo-test** because `npm run test` surfaced syntax
+  errors tied to placeholder `await Promise.resolve();` lines injected to bypass
+  `require-await` linting in Supabase function handlers. Representative
+  failures:
+  - `supabase/functions/_shared/config.ts:196`
+  - `supabase/functions/telegram-bot/index.ts:229`
+  - `supabase/functions/_shared/jwt.ts:14`
+- Next steps: Remove the placeholder `await Promise.resolve();` statements (or
+  replace them with real async work) so the modules parse correctly, then rerun
+  the checklist to progress through linting, verification, and Supabase health
+  checks.
 
 ## Setup Follow-Ups
 
