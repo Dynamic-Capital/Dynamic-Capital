@@ -33,6 +33,7 @@ documenting which assets were consulted.
 | 1.11 | [CHANGELOG.md](./CHANGELOG.md)                                                 | Chronological release notes maintained by the release automation.                                                          |
 | 1.12 | [dynamic-capital-ecosystem-anatomy.md](./dynamic-capital-ecosystem-anatomy.md) | Biological metaphor guide detailing how every subsystem, feedback loop, and TradingView bridge maps to automation pillars. |
 | 1.13 | [dynamic-capital-code-of-conduct.md](./dynamic-capital-code-of-conduct.md)     | Community behavior expectations, reporting paths, and enforcement process.                                                 |
+| 1.14 | [dynamic-capital-milestones.md](./dynamic-capital-milestones.md)               | Stage-by-stage milestone ladder aligning infrastructure, treasury, governance, and community outcomes.                      |
 
 ## 2. Development Workflow & Standards
 
