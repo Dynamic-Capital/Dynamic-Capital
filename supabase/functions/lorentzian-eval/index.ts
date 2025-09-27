@@ -21,6 +21,8 @@ interface LorentzianModel {
   mean: number;
   std: number;
   z_thresh: number;
+  sensitivity: number;
+  alpha: number;
 }
 
 interface EvalRequestBody {
@@ -78,15 +80,42 @@ function parsePrices(prices: unknown): number[] {
   return parsed;
 }
 
-function isLorentzianModel(model: unknown): model is LorentzianModel {
-  if (!model || typeof model !== "object") return false;
+function normaliseModel(model: unknown): LorentzianModel {
+  if (!model || typeof model !== "object") {
+    throw new Error("Downloaded model has invalid structure");
+  }
+
   const candidate = model as Record<string, unknown>;
-  return (
-    typeof candidate.window === "number" &&
-    typeof candidate.mean === "number" &&
-    typeof candidate.std === "number" &&
-    typeof candidate.z_thresh === "number"
-  );
+
+  const window = Number(candidate.window ?? 0);
+  const mean = Number(candidate.mean ?? 0);
+  const std = Number(candidate.std ?? 0);
+  const zThresh = Number(candidate.z_thresh ?? 0);
+  const alpha = Number(candidate.alpha ?? 0);
+
+  if (
+    !Number.isFinite(window) ||
+    !Number.isFinite(mean) ||
+    !Number.isFinite(std) ||
+    !Number.isFinite(zThresh)
+  ) {
+    throw new Error("Lorentzian model contains non-numeric parameters");
+  }
+
+  const rawSensitivity = Number(candidate.sensitivity ?? NaN);
+  const fallback = Math.abs(mean + Math.abs(zThresh) * std) || 1e-9;
+  const sensitivity = Number.isFinite(rawSensitivity) && rawSensitivity > 0
+    ? rawSensitivity
+    : fallback;
+
+  return {
+    window: Math.max(Math.floor(window), 1),
+    mean,
+    std,
+    z_thresh: zThresh,
+    sensitivity,
+    alpha: Number.isFinite(alpha) ? alpha : 0,
+  };
 }
 
 async function getLatestModelPath(): Promise<string> {
@@ -143,15 +172,11 @@ async function loadModel(): Promise<LorentzianModel> {
   const buffer = await data.arrayBuffer();
   const parsed = pickle.loads(new Uint8Array(buffer)) as unknown;
 
-  if (!isLorentzianModel(parsed)) {
-    throw new Error("Downloaded model has invalid structure");
-  }
-
-  return parsed;
+  return normaliseModel(parsed);
 }
 
 function evaluateSignal(model: LorentzianModel, prices: number[]) {
-  const { window, mean, std, z_thresh } = model;
+  const { window, mean, std, z_thresh, sensitivity } = model;
 
   if (prices.length < window) {
     throw new Error(`Not enough price history; need at least ${window} points`);
@@ -170,7 +195,10 @@ function evaluateSignal(model: LorentzianModel, prices: number[]) {
   }
 
   const safeThreshold = Math.max(Math.abs(z_thresh), 1e-9);
-  const confidence = Math.min(Math.abs(z) / safeThreshold, 1);
+  const zConfidence = Math.min(Math.abs(z) / safeThreshold, 1);
+  const deviation = Math.abs(distance - mean);
+  const calibrated = Math.min(deviation / (Math.abs(sensitivity) + 1e-9), 1);
+  const confidence = Math.max(zConfidence, calibrated);
 
   return { signal, confidence, score: z };
 }

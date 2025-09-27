@@ -12,6 +12,7 @@ from .fusion import (
     TrendMomentumLobe,
     TreasuryLobe,
 )
+from .training import calibrate_lorentzian_lobe, load_lorentzian_model
 from .risk import PositionSizing, RiskContext, RiskManager, RiskParameters
 
 __all__ = [
@@ -27,6 +28,8 @@ __all__ = [
     "SignalLobe",
     "TrendMomentumLobe",
     "TreasuryLobe",
+    "calibrate_lorentzian_lobe",
+    "load_lorentzian_model",
     "PositionSizing",
     "RiskContext",
     "RiskManager",

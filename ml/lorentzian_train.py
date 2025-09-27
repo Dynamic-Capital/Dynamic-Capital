@@ -21,7 +21,7 @@ import pickle
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, List, Sequence
+from typing import Any, Iterable, List, Mapping, Sequence
 
 try:  # Optional dependency used when available for CSV parsing ergonomics
     import pandas as pd  # type: ignore
@@ -39,6 +39,27 @@ def lorentzian_distance(x: Sequence[float], y: Sequence[float]) -> float:
     return sum(math.log1p(abs(x[i] - y[i])) for i in range(x_len))
 
 
+def _coerce_int(value: Any, default: int = 0) -> int:
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        try:
+            return int(float(value))
+        except (TypeError, ValueError):
+            return default
+
+
+def _coerce_float(value: Any, default: float = 0.0) -> float:
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
 @dataclass
 class LorentzianModel:
     window: int
@@ -47,9 +68,24 @@ class LorentzianModel:
     mean: float
     std: float
     trained_at: str
+    sensitivity: float
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> "LorentzianModel":
+        """Hydrate a :class:`LorentzianModel` from a mapping."""
+
+        return cls(
+            window=_coerce_int(payload.get("window"), 0),
+            alpha=_coerce_float(payload.get("alpha"), 0.0),
+            z_thresh=_coerce_float(payload.get("z_thresh"), 0.0),
+            mean=_coerce_float(payload.get("mean"), 0.0),
+            std=_coerce_float(payload.get("std"), 0.0),
+            trained_at=str(payload.get("trained_at", "")),
+            sensitivity=_coerce_float(payload.get("sensitivity"), 0.0),
+        )
 
 
 def _ensure_numeric_close(values: Iterable[object]) -> List[float]:
@@ -128,6 +164,11 @@ def train_lorentzian(
     variance = max(ema_squared[-1] - mean**2, 0.0)
     std = math.sqrt(variance)
 
+    sensitivity = mean + abs(z_thresh) * std
+    if not math.isfinite(sensitivity) or sensitivity <= 0:
+        baseline = abs(mean) + abs(z_thresh) * std
+        sensitivity = max(baseline, 1e-6)
+
     trained_at = datetime.now(timezone.utc).isoformat()
 
     return LorentzianModel(
@@ -135,8 +176,9 @@ def train_lorentzian(
         alpha=alpha,
         z_thresh=z_thresh,
         mean=float(mean),
-        std=std,
+        std=float(std),
         trained_at=trained_at,
+        sensitivity=float(sensitivity),
     )
 
 
