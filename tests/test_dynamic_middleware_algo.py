@@ -81,3 +81,47 @@ def test_execute_captures_handler_errors() -> None:
 
     with pytest.raises(MiddlewareExecutionError):
         algo.execute({"payload": False}, raise_errors=True)
+
+
+def test_constructor_accepts_registration_tuples() -> None:
+    execution_log: List[str] = []
+
+    def first(ctx: MiddlewareContext, nxt) -> Any:
+        execution_log.append("first")
+        return nxt()
+
+    def second(ctx: MiddlewareContext, nxt) -> Any:
+        execution_log.append("second")
+        ctx.halt({"done": True})
+        return ctx.response
+
+    algo = DynamicMiddlewareAlgo(
+        [
+            (first, {"priority": 1}),
+            (second, {"name": "stopper", "priority": 5}),
+        ]
+    )
+
+    context = algo.execute({"payload": True})
+
+    assert context.response == {"done": True}
+    assert execution_log == ["second"]
+    assert algo.handlers() == ["stopper", "first"]
+
+
+def test_auto_generates_unique_names_when_omitted() -> None:
+    algo = DynamicMiddlewareAlgo()
+
+    def handler_a(ctx: MiddlewareContext, nxt) -> Any:
+        return nxt()
+
+    def handler_b(ctx: MiddlewareContext, nxt) -> Any:
+        return nxt()
+
+    handler_a.__name__ = "duplicate"
+    handler_b.__name__ = "duplicate"
+
+    algo.register(handler_a)
+    algo.register(handler_b)
+
+    assert algo.handlers() == ["duplicate", "duplicate_2"]
