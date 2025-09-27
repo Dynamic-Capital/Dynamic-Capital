@@ -181,6 +181,13 @@ from .human_resources_playbooks import (
     build_human_resources_playbooks,
     build_human_resources_sync_algorithm,
 )
+from .human_resources_algorithm import (
+    DynamicHRAlignmentAlgorithm,
+    HRAction,
+    HRAlignmentPlan,
+    HRInsight,
+    HRMetricSnapshot,
+)
 from .playbook_training import (
     DEFAULT_TRAINING_INSTRUCTION,
     PlaybookTrainingExample,
@@ -404,6 +411,11 @@ __all__ = _trade_exports + [
     "HUMAN_RESOURCES_PLAYBOOKS",
     "build_human_resources_playbooks",
     "build_human_resources_sync_algorithm",
+    "DynamicHRAlignmentAlgorithm",
+    "HRAlignmentPlan",
+    "HRAction",
+    "HRInsight",
+    "HRMetricSnapshot",
     "DEFAULT_TRAINING_INSTRUCTION",
     "PlaybookTrainingExample",
     "build_playbook_training_dataset",
@@ -571,6 +583,11 @@ globals().update(
         "EXECUTIVE_PLAYBOOKS": EXECUTIVE_PLAYBOOKS,
         "build_executive_playbooks": build_executive_playbooks,
         "build_executive_sync_algorithm": build_executive_sync_algorithm,
+        "DynamicHRAlignmentAlgorithm": DynamicHRAlignmentAlgorithm,
+        "HRAlignmentPlan": HRAlignmentPlan,
+        "HRAction": HRAction,
+        "HRInsight": HRInsight,
+        "HRMetricSnapshot": HRMetricSnapshot,
         "Element": Element,
         "ElementProfile": ElementProfile,
         "ElementSignal": ElementSignal,
