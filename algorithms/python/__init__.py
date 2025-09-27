@@ -34,6 +34,11 @@ from .back_to_breakeven import (
 )
 from .elliott_wave import ElliottSwing, ElliottWaveAnalyzer, ElliottWaveReport
 from .mechanical_analysis import MechanicalAnalysisCalculator, MechanicalMetrics
+from .situational_analysis import (
+    SituationalAnalysisEngine,
+    SituationalAnalysisReport,
+    SituationalAnalysisRequest,
+)
 from .core_orchestration import (
     ObserverEvent,
     OrchestrationBuilder,
