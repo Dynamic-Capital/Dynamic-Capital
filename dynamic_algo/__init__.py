@@ -8,6 +8,11 @@ from .trading_core import (
     DynamicTradingAlgo,
 )
 from .market_flow import DynamicMarketFlow, MarketFlowSnapshot, MarketFlowTrade
+from .middleware import (
+    DynamicMiddlewareAlgo,
+    MiddlewareContext,
+    MiddlewareExecutionError,
+)
 from .dynamic_pool import (
     DynamicPoolAlgo,
     InvestorAllocation,
@@ -26,6 +31,9 @@ __all__ = [
     "DynamicMarketFlow",
     "MarketFlowSnapshot",
     "MarketFlowTrade",
+    "DynamicMiddlewareAlgo",
+    "MiddlewareContext",
+    "MiddlewareExecutionError",
     "DynamicPoolAlgo",
     "InvestorAllocation",
     "PoolDeposit",
