@@ -8,18 +8,18 @@ import {
   Text,
 } from "@/components/dynamic-ui-system";
 
-import { HeroExperience } from "@/components/magic-portfolio/home/HeroExperience";
-import { ValuePropositionSection } from "@/components/magic-portfolio/home/ValuePropositionSection";
-import { PerformanceInsightsSection } from "@/components/magic-portfolio/home/PerformanceInsightsSection";
-import { MentorshipProgramsSection } from "@/components/magic-portfolio/home/MentorshipProgramsSection";
-import { LossRecoveryProgrammeSection } from "@/components/magic-portfolio/home/LossRecoveryProgrammeSection";
-import { PoolTradingSection } from "@/components/magic-portfolio/home/PoolTradingSection";
-import { VipPlansPricingSection } from "@/components/magic-portfolio/home/VipPlansPricingSection";
-import { VipPackagesSection } from "@/components/magic-portfolio/home/VipPackagesSection";
-import { CheckoutCallout } from "@/components/magic-portfolio/home/CheckoutCallout";
-import { Projects } from "@/components/magic-portfolio/work/Projects";
+import { HeroExperience } from "@/components/dynamic-portfolio/home/HeroExperience";
+import { ValuePropositionSection } from "@/components/dynamic-portfolio/home/ValuePropositionSection";
+import { PerformanceInsightsSection } from "@/components/dynamic-portfolio/home/PerformanceInsightsSection";
+import { MentorshipProgramsSection } from "@/components/dynamic-portfolio/home/MentorshipProgramsSection";
+import { LossRecoveryProgrammeSection } from "@/components/dynamic-portfolio/home/LossRecoveryProgrammeSection";
+import { PoolTradingSection } from "@/components/dynamic-portfolio/home/PoolTradingSection";
+import { VipPlansPricingSection } from "@/components/dynamic-portfolio/home/VipPlansPricingSection";
+import { VipPackagesSection } from "@/components/dynamic-portfolio/home/VipPackagesSection";
+import { CheckoutCallout } from "@/components/dynamic-portfolio/home/CheckoutCallout";
+import { Projects } from "@/components/dynamic-portfolio/work/Projects";
 import { about, baseURL, person, toAbsoluteUrl } from "@/resources";
-import styles from "@/components/magic-portfolio/DynamicCapitalLandingPage.module.scss";
+import styles from "@/components/dynamic-portfolio/DynamicCapitalLandingPage.module.scss";
 import { cn } from "@/utils";
 
 const pageTitle = "Dynamic portfolio – Dynamic Capital";
