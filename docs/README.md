@@ -101,6 +101,7 @@ documenting which assets were consulted.
 | 6.8 | [WRAPPERS_INTEGRATION.md](./WRAPPERS_INTEGRATION.md)                                 | How to connect external services via Postgres foreign data wrappers.                     |
 | 6.9 | [trading-data-organization.md](./trading-data-organization.md)                       | Folder taxonomy for templates, journals, KPIs, and backtests across each horizon bucket. |
 | 6.10 | [dai-webhook-routing.md](./dai-webhook-routing.md)                                   | Options for single-endpoint vs. auto-provisioned TradingView webhook routes managed by DAI. |
+| 6.11 | [tradingview-lorentzian-webhook.md](./tradingview-lorentzian-webhook.md)             | How to stream TradingView closes into the Lorentzian Supabase function via webhooks.        |
 
 ## 7. Operational Runbooks & Launch Phases
 
