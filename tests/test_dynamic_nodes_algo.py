@@ -116,6 +116,38 @@ def test_registry_skips_nodes_not_due() -> None:
     assert [node.node_id for node in ready] == ["market-data", "fusion"]
 
 
+def test_registry_updates_existing_node_configuration() -> None:
+    registry = DynamicNodeRegistry(
+        [
+            {
+                "node_id": "market-data",
+                "type": "ingestion",
+                "interval_sec": 60,
+                "outputs": ["ticks"],
+            }
+        ]
+    )
+
+    original = registry.get("market-data")
+    registry.record_result("market-data", completed_at=_ts(0), outputs=["ticks"])
+
+    updated = registry.register(
+        {
+            "node_id": "market-data",
+            "type": "ingestion",
+            "interval_sec": 120,
+            "outputs": ["ticks", "quotes"],
+            "enabled": False,
+        }
+    )
+
+    assert updated is original
+    assert updated.interval_sec == 120
+    assert updated.outputs == ("ticks", "quotes")
+    assert updated.enabled is False
+    assert updated.last_outputs == ("ticks",)
+
+
 def test_registry_detects_dependency_cycles() -> None:
     registry = DynamicNodeRegistry(
         [
