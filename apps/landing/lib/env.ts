@@ -48,9 +48,14 @@ function validatePublicEnv(): MissingMap['public'] {
 }
 
 function validateServerEnv(): MissingMap['server'] {
+  const resolvedSiteUrl = process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? undefined;
   const result = serverSchema.safeParse({
-    SITE_URL: process.env.SITE_URL,
+    SITE_URL: resolvedSiteUrl,
   });
+
+  if (result.success && typeof resolvedSiteUrl === 'string' && process.env.SITE_URL === undefined) {
+    process.env.SITE_URL = resolvedSiteUrl;
+  }
 
   return result.success ? [] : extractMissing(result.error);
 }
