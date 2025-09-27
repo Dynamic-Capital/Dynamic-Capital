@@ -162,6 +162,7 @@ documenting which assets were consulted.
 | 10.2 | [MENTORSHIP — Pricing Strategy](./mentorship/pricing-strategy.md) | Pricing, positioning, and enrollment plan for the mentorship offering.      |
 | 10.3 | [ict-terminology-cheatsheet.md](./ict-terminology-cheatsheet.md)  | Glossary of ICT/market structure terminology used across docs.              |
 | 10.4 | [api-documentation.md](./api-documentation.md)                    | Supabase edge function API reference optimised for AI-assisted development. |
+| 10.5 | [dynamic-mental-operating-system.md](./dynamic-mental-operating-system.md) | Daily algorithm for aligning purpose, decisions, and compounding action.    |
 
 ## 11. Human Resources & Compensation
 
