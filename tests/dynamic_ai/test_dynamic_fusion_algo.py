@@ -40,6 +40,37 @@ def test_confidence_boosts_for_single_string_news(algo: DynamicFusionAlgo) -> No
     assert signal.confidence == pytest.approx(0.6)
 
 
+def test_human_bias_alignment_boosts_confidence(algo: DynamicFusionAlgo) -> None:
+    payload = {
+        "signal": "BUY",
+        "confidence": 0.55,
+        "volatility": 1.0,
+        "human_bias": "BUY",
+    }
+
+    signal = algo.generate_signal(payload)
+
+    assert signal.action == "BUY"
+    assert signal.confidence > 0.55
+    assert "Human analysis" in signal.reasoning
+
+
+def test_human_bias_override_when_divergent(algo: DynamicFusionAlgo) -> None:
+    payload = {
+        "signal": "SELL",
+        "confidence": 0.6,
+        "volatility": 1.0,
+        "human_bias": "BUY",
+        "human_weight": 0.6,
+    }
+
+    signal = algo.generate_signal(payload)
+
+    assert signal.action == "BUY"
+    assert signal.confidence >= 0.6
+    assert "adjusted action" in signal.reasoning
+
+
 def test_news_none_is_treated_as_empty_iterable(algo: DynamicFusionAlgo) -> None:
     payload = {
         "signal": "SELL",

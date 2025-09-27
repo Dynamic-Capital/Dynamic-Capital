@@ -862,6 +862,36 @@ export type Database = {
           },
         ];
       };
+      analyst_insights: {
+        Row: {
+          author: string;
+          bias: "BUY" | "NEUTRAL" | "SELL";
+          chart_url: string | null;
+          content: string | null;
+          created_at: string;
+          id: string;
+          symbol: string;
+        };
+        Insert: {
+          author?: string;
+          bias?: "BUY" | "NEUTRAL" | "SELL";
+          chart_url?: string | null;
+          content?: string | null;
+          created_at?: string;
+          id?: string;
+          symbol: string;
+        };
+        Update: {
+          author?: string;
+          bias?: "BUY" | "NEUTRAL" | "SELL";
+          chart_url?: string | null;
+          content?: string | null;
+          created_at?: string;
+          id?: string;
+          symbol?: string;
+        };
+        Relationships: [];
+      };
       kv_config: {
         Row: {
           created_at: string;
@@ -943,6 +973,39 @@ export type Database = {
           id?: number;
           impact?: string | null;
           source?: string | null;
+        };
+        Relationships: [];
+      };
+      node_configs: {
+        Row: {
+          dependencies: Json;
+          enabled: boolean;
+          interval_sec: number;
+          metadata: Json;
+          node_id: string;
+          outputs: Json;
+          type: string;
+          weight: number | null;
+        };
+        Insert: {
+          dependencies?: Json;
+          enabled?: boolean;
+          interval_sec: number;
+          metadata?: Json;
+          node_id: string;
+          outputs?: Json;
+          type: string;
+          weight?: number | null;
+        };
+        Update: {
+          dependencies?: Json;
+          enabled?: boolean;
+          interval_sec?: number;
+          metadata?: Json;
+          node_id?: string;
+          outputs?: Json;
+          type?: string;
+          weight?: number | null;
         };
         Relationships: [];
       };

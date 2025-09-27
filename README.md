@@ -801,6 +801,39 @@ supabase functions deploy telegram-bot --project-ref <PROJECT_REF>
 Set Telegram webhook (with secret): use BotFather or API; do not paste secrets
 in README.
 
+## Analyst Insights Collector
+
+The discretionary research feed from the Dynamic Capital TradingView profile is
+now modelled end-to-end:
+
+- **Database schema** – `public.analyst_insights` stores each idea with
+  `symbol`, `bias`, `content`, and `chart_url`. The DAG configuration lives in
+  `public.node_configs`; the `human-analysis` node is pre-seeded with a weight
+  of `0.25` and points Fusion Brain to this table via
+  `metadata.source = "analyst_insights"`.
+- **Edge function** – `analysis-ingest` accepts JSON payloads containing the
+  fields above. It validates the payload, normalises bias values, and upserts
+  rows so duplicate chart URLs can be reprocessed safely.
+- **Python scraper** – `collect_tradingview.py` scrapes the public Ideas feed
+  and forwards posts to the edge function. Provide credentials via environment
+  variables:
+
+  ```bash
+  export TRADINGVIEW_USERNAME=DynamicCapital-FX
+  export SUPABASE_ANALYSIS_FN_URL="https://<PROJECT_REF>.functions.supabase.co/analysis-ingest"
+  export SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
+  pip install --upgrade requests beautifulsoup4
+  python collect_tradingview.py --dry-run  # verify locally
+  ```
+
+- **Automation** – `.github/workflows/tradingview-ideas.yml` runs every six
+  hours (and on demand) using the secrets `TRADINGVIEW_USERNAME`,
+  `SUPABASE_ANALYSIS_FN_URL`, and `SUPABASE_ANON_KEY`. The workflow installs the
+  lightweight Python dependencies and executes the collector script.
+
+Set `TRADINGVIEW_LOG_LEVEL=DEBUG` locally to inspect scraping output when
+troubleshooting.
+
 ## GitHub Integration
 
 This project features **bidirectional GitHub sync** through Dynamic Codex:

@@ -61,6 +61,14 @@ The optional `metadata` field is a catch-all for node-specific parameters
 (thresholds, exchange symbols, webhook secrets) without having to change the
 schema each time.
 
+### Human Analysis Node
+
+The `human-analysis` processing node is provisioned in the migration alongside
+the schema. It is enabled by default, depends on no upstream nodes, emits to the
+`fusion` channel, and carries a weight of `0.25`. The node's metadata specifies
+`{"source": "analyst_insights"}` so Fusion Brain can look up the discretionary
+ideas persisted by the analyst collector.
+
 ### Step-by-Step Node Configuration Workflow
 
 1. **Model the node contract**

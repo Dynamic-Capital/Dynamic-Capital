@@ -159,6 +159,37 @@ export const marketMovers = pgTable("market_movers", {
 export type MarketMover = typeof marketMovers.$inferSelect;
 export type NewMarketMover = typeof marketMovers.$inferInsert;
 
+export const analystInsights = pgTable("analyst_insights", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  symbol: text("symbol").notNull(),
+  bias: text("bias").notNull().default("NEUTRAL"),
+  content: text("content"),
+  chartUrl: text("chart_url"),
+  author: text("author").notNull().default("DynamicCapital-FX"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+});
+
+export type AnalystInsight = typeof analystInsights.$inferSelect;
+export type NewAnalystInsight = typeof analystInsights.$inferInsert;
+
+export const nodeConfigs = pgTable("node_configs", {
+  nodeId: text("node_id").primaryKey(),
+  type: text("type").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  intervalSec: integer("interval_sec").notNull(),
+  dependencies: jsonb("dependencies").$type<string[]>().notNull()
+    .default([] as string[]),
+  outputs: jsonb("outputs").$type<string[]>().notNull()
+    .default([] as string[]),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull()
+    .default({} as Record<string, unknown>),
+  weight: numeric("weight", { precision: 6, scale: 3, mode: "number" }),
+});
+
+export type NodeConfig = typeof nodeConfigs.$inferSelect;
+export type NewNodeConfig = typeof nodeConfigs.$inferInsert;
+
 export const mentorFeedback = pgTable("mentor_feedback", {
   id: uuid("id").primaryKey().defaultRandom(),
   mentorId: uuid("mentor_id"),
