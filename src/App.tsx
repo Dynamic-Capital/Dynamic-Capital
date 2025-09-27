@@ -1,5 +1,11 @@
 import { type ReactNode } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
+import { DynamicButton } from "./components/DynamicButton";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
@@ -9,6 +15,8 @@ function AppProviders({ children }: { children: ReactNode }) {
 }
 
 function HomePage() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto px-4 py-8">
@@ -19,12 +27,9 @@ function HomePage() {
           Fast deposits for traders. Bank & crypto, verified.
         </p>
         <div className="text-center">
-          <a 
-            href="/checkout" 
-            className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
-          >
+          <DynamicButton onClick={() => navigate("/checkout")}>
             Get Started
-          </a>
+          </DynamicButton>
         </div>
       </div>
     </div>
