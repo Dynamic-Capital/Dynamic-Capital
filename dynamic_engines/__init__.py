@@ -45,6 +45,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     ),
     "dynamic_analytical_thinking": ("DynamicAnalyticalThinking",),
     "dynamic_arrow": ("DynamicArrow",),
+    "dynamic_astronomy": ("DynamicAstronomy",),
     "dynamic_bots": ("DynamicTelegramBot",),
     "dynamic_branch": ("DynamicBranchPlanner",),
     "dynamic_bridge": ("DynamicBridgeOrchestrator",),
