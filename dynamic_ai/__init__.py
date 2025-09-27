@@ -21,6 +21,7 @@ from .dolphin_adapter import (
     DolphinSamplingConfig,
     LLMIntegrationError,
 )
+from .ollama_adapter import OllamaAdapter, OllamaConfig, OllamaPromptTemplate
 from .analysis import AnalysisComponent, DynamicAnalysis
 from .fusion import (
     FusionEngine,
@@ -58,6 +59,9 @@ __all__ = [
     "DolphinPromptTemplate",
     "DolphinSamplingConfig",
     "LLMIntegrationError",
+    "OllamaAdapter",
+    "OllamaConfig",
+    "OllamaPromptTemplate",
     "ExecutionAgent",
     "ExecutionAgentResult",
     "AnalysisComponent",
