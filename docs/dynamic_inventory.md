@@ -8,7 +8,7 @@ experiments that complement the core Dynamic Capital platform.
 
 ## Snapshot metrics
 
-- Total directories: 130
+- Total directories: 154
 - Generation command: `ls -d dynamic_* | sort`
 
 ## Index of `dynamic_` directories
@@ -22,6 +22,8 @@ experiments that complement the core Dynamic Capital platform.
 - `dynamic_analytical_thinking`
 - `dynamic_architect`
 - `dynamic_arrow`
+- `dynamic_ascii`
+- `dynamic_assign`
 - `dynamic_astronomy`
 - `dynamic_atmosphere`
 - `dynamic_atom`
@@ -49,6 +51,7 @@ experiments that complement the core Dynamic Capital platform.
 - `dynamic_critical_thinking`
 - `dynamic_cycle`
 - `dynamic_database`
+- `dynamic_demand`
 - `dynamic_dependency`
 - `dynamic_development_team`
 - `dynamic_dimensions`
@@ -61,16 +64,21 @@ experiments that complement the core Dynamic Capital platform.
 - `dynamic_energy`
 - `dynamic_engineer`
 - `dynamic_engines`
+- `dynamic_event`
 - `dynamic_exosphere`
 - `dynamic_expressions`
 - `dynamic_firewall`
 - `dynamic_forecast`
+- `dynamic_framework`
 - `dynamic_fuel`
 - `dynamic_generator`
 - `dynamic_glossary`
 - `dynamic_graphql`
+- `dynamic_hashtag`
+- `dynamic_heal`
 - `dynamic_helpers`
 - `dynamic_http`
+- `dynamic_human_resources`
 - `dynamic_idempotency`
 - `dynamic_implicit_memory`
 - `dynamic_index`
@@ -84,12 +92,18 @@ experiments that complement the core Dynamic Capital platform.
 - `dynamic_letter_index`
 - `dynamic_library`
 - `dynamic_load_balancer`
+- `dynamic_logging`
+- `dynamic_loop`
+- `dynamic_mantra`
+- `dynamic_mapping`
 - `dynamic_memory`
 - `dynamic_memory_reconsolidation`
+- `dynamic_mentorship`
 - `dynamic_mesosphere`
 - `dynamic_message_queue`
 - `dynamic_metacognition`
 - `dynamic_metadata`
+- `dynamic_method`
 - `dynamic_microservices`
 - `dynamic_mindset`
 - `dynamic_numbers`
@@ -97,7 +111,9 @@ experiments that complement the core Dynamic Capital platform.
 - `dynamic_package`
 - `dynamic_physics`
 - `dynamic_pillars`
+- `dynamic_playbook`
 - `dynamic_point_in_time`
+- `dynamic_predictive`
 - `dynamic_proof`
 - `dynamic_proof_of_authority`
 - `dynamic_proof_of_burn`
@@ -112,9 +128,11 @@ experiments that complement the core Dynamic Capital platform.
 - `dynamic_reference`
 - `dynamic_review`
 - `dynamic_routine`
+- `dynamic_script`
 - `dynamic_self_awareness`
 - `dynamic_skeleton`
 - `dynamic_skills`
+- `dynamic_source`
 - `dynamic_space`
 - `dynamic_spheres`
 - `dynamic_stake`
@@ -124,22 +142,28 @@ experiments that complement the core Dynamic Capital platform.
 - `dynamic_suites`
 - `dynamic_summary`
 - `dynamic_superclusters`
+- `dynamic_supply`
 - `dynamic_syncronization`
 - `dynamic_synonym`
 - `dynamic_tag`
 - `dynamic_task_manager`
 - `dynamic_teaching`
+- `dynamic_team`
 - `dynamic_text`
 - `dynamic_thermosphere`
 - `dynamic_thinking`
 - `dynamic_token`
+- `dynamic_ton`
 - `dynamic_tool_kits`
 - `dynamic_troposphere`
 - `dynamic_ultimate_reality`
 - `dynamic_validator`
+- `dynamic_version`
 - `dynamic_vocabulary`
 - `dynamic_volume`
+- `dynamic_wallet`
 - `dynamic_wave`
 - `dynamic_web`
+- `dynamic_web3`
 - `dynamic_wisdom`
 - `dynamic_zone`
