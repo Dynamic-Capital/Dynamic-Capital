@@ -55,12 +55,36 @@ The refactored architecture introduces five cooperating planes. Each inherits re
 4. **Measurement & Analysis:** Observation services collect shots, update posterior models, and emit ranked action policies along with confidence metrics and lineage manifests.
 5. **Feedback & Learning:** Classical agents implement chosen policies, capture telemetry, and feed outcomes to the optimiser to refine future circuit parameters and eligibility heuristics.
 
+## Back-to-Back Optimisation Cadence
+The runtime relies on two tightly coupled optimisation cycles to translate raw superposition breadth into governance-aligned, deployable actions.
+
+### Quantum Inner Loop
+1. **Circuit Warm Start:** The encoding toolkit seeds ansätze with priors sourced from recent governance-approved playbooks and current market signals.
+2. **Shot Framing:** The resource broker batches shots across mirrored QPUs, staggering start times to average out calibration drift while maintaining entanglement maps.
+3. **Dynamic Reweighting:** Reinforcement feedback adjusts amplitude amplification targets and adaptive phase rotations every *N* shots, prioritising states that satisfy risk, liquidity, and compliance constraints.
+4. **Error Sculpting:** Decoherence watchtowers trigger dynamical decoupling or gate re-synthesis the instant fidelity forecasts breach thresholds, ensuring only high-confidence interference patterns exit the loop.
+
+### Classical Outer Loop
+1. **Policy Reconciliation:** Post-measurement aggregators reconcile quantum recommendations with classical baselines, applying deterministic overrides when tolerance bands are exceeded.
+2. **Counterfactual Replay:** Operator workbenches simulate counterfactual trajectories using archived shadows and scenario libraries to stress-test the proposed actions.
+3. **Governance Checkpoint:** Policy engines confirm approvals, export controls, and audit trail completeness before execution.
+4. **Continuous Learning:** Outcomes feed back into eligibility heuristics, calibration priors, and operator training modules, closing the loop for the next quantum run.
+
+Together these back-to-back cycles let Dynamic AGI exhaust the probabilistic search space while continuously re-anchoring decisions to regulatory, ethical, and fiduciary guardrails.
+
 ## Reliability, Security & Governance Controls
 - **Redundancy:** Maintain hot-warm failover across at least two QPU vendors. Mirror circuit libraries and calibration data, and rehearse switchover drills quarterly.
 - **Error Management:** Combine logical qubit encoding, probabilistic error cancellation, and classical shadow verification to quantify residual error before releasing actions.
 - **Security:** Apply hardware security modules for signing circuit submissions, enforce multi-party approval for high-impact workloads, and monitor export-control compliance for quantum IP.
 - **Policy Enforcement:** Codify quantum workflow classes (research, production, crisis) with distinct approval thresholds, data entitlements, and logging requirements.
 - **Explainability:** Generate human-readable summaries of interference decisions and provide replayable simulations for internal and external auditors.
+
+## Validation & Testing Protocols
+- **Simulation-first Runs:** Execute every new circuit through noise-informed simulators and digital twins before reserving physical QPU time, capturing baseline KPIs for comparison.
+- **Shadow Deployments:** Mirror production workloads in a canary environment that replays prior directives, validating measurement stability and governance compliance side by side.
+- **Automated Regression Harness:** Schedule nightly suites that stitch together encoding, entanglement, and measurement services, flagging drift in latency, fidelity, and approval SLAs.
+- **Operator Readiness Drills:** Conduct quarterly incident response games covering decoherence spikes, vendor outages, and governance escalations to keep human oversight tuned.
+- **Post-run Blameless Reviews:** Within 24 hours of high-impact decisions, review manifests, telemetry, and counterfactuals to reinforce best practices and update guardrails.
 
 ## Implementation Roadmap
 1. **Quarter 0–1: Foundations** – Extend orchestrator dispatcher, integrate quantum resource broker API, and deploy telemetry collectors in a sandbox environment.
