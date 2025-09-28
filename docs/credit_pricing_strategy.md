@@ -1,7 +1,12 @@
 # Credit and Pricing Optimization Playbook
 
 ## Overview
-This guide explains how to translate the Dynamic Credit Model into pricing and product decisions for your project, including VIP and mentorship offerings. It outlines how to plan feature work, bundle services, and allocate credits when using AI chat and tooling.
+This guide explains how to translate the Dynamic Credit Model into pricing and product decisions for your project, including VIP and mentorship offerings. It integrates the efficient-playbook guidance for using credits in both Chat and Agent modes so you can plan feature work, bundle services, and allocate credits when working with AI tooling.
+
+## 0. Understand the Credit System
+- **Credit definition**: Treat each AI interaction as a credit. Standard chat replies, quick brainstorms, or short debugging exchanges typically consume 1 credit. Autonomous agent runs that coordinate multiple file edits or complex workflows can consume several credits per request.
+- **Plan tiers and rollover**: A free plan generally provides ~5 credits per day, while paid plans (e.g., Pro) offer ~100 credits per month with partial rollover for unused credits. Adjust the numbers to your actual provider agreement but keep the ratios consistent when estimating budgets.
+- **Track real usage**: Log the credit draw for every significant request—especially multi-step agent executions—to refine forecasts and catch burn spikes early.
 
 ## 1. Map Project Scope to Credit Usage
 - **Inventory feature areas**: list all planned pages, integrations, and automation tasks. Group them into milestones (e.g., MVP, VIP enhancements, mentorship portal).
@@ -20,7 +25,13 @@ This guide explains how to translate the Dynamic Credit Model into pricing and p
 
 Use the worksheet as a living document to track scope changes and prevent starting milestones without adequate credit coverage.
 
-## 2. Build a Credit-to-Cash Pricing Model
+## 2. Consider Mode Selection and Credit Impact
+- **Chat Mode**: Best for direct Q&A, planning, or scoped debugging. Expect 1 credit per exchange, so batch clarifications into a single, well-structured prompt.
+- **Agent Mode**: Reserved for autonomous execution across multiple files or complex deployments. Cost scales with task size; plan for 2–5 credits per coordinated run.
+- **Manual interventions**: When the change is trivial (typos, spacing, renames), edit the code manually to conserve credits.
+- **Iterative planning**: Draft an overall feature outline in Chat Mode, gather confirmations, and then move to an Agent request so refinement happens in one larger execution instead of several micro iterations.
+
+## 3. Build a Credit-to-Cash Pricing Model
 - **Set an internal credit cost**: divide your monthly platform fee (or opportunity cost) by the credits available. Example: $120/month ÷ 100 credits = **$1.20 internal cost per credit**.
 - **Choose a margin target**: apply a markup that reflects your expertise and delivery risk. A 2.5× multiplier yields a **$3.00+ price per credit** in the example above.
 - **Translate credits to packages**: multiply the priced credit rate by the credit allocation in the worksheet to generate baseline package prices.
@@ -34,7 +45,7 @@ Package price = (Allocated credits × Price per credit) + Service premiums - Inc
 
 Maintain a shared spreadsheet that auto-updates package pricing when credit allocations shift.
 
-## 3. Create Tiered Offers Anchored to Credits
+## 4. Create Tiered Offers Anchored to Credits
 - **Define service tiers**: align each package (Core, VIP, Mentorship) to the credits required to deliver its features. Use higher credit tasks (e.g., custom automation, integrations) as justification for premium pricing.
 - **Show value transparency**: communicate how many AI build cycles, QA checks, or automation scripts are included. This positions higher tiers as covering more intensive credit usage.
 - **Bundle support intelligently**: include a set number of chat-based consulting sessions in each tier, pegged to the 1-credit-per-exchange baseline.
@@ -49,7 +60,7 @@ Maintain a shared spreadsheet that auto-updates package pricing when credit allo
 | VIP | Core + automation scripts, analytics, daily chat, 48h turnaround | 55 credits | Premium execution |
 | Mentorship | Weekly coaching, code reviews, curriculum drops, optional build boosts | 24 credits (base) + add-on bundles | Growth-focused |
 
-## 4. Design VIP Pricing Strategy
+## 5. Design VIP Pricing Strategy
 - **Premium deliverables**: allocate credits for advanced features—analytics dashboards, multi-environment deployments, or automations requiring Agent Mode.
 - **Expedited turnaround**: dedicate credits to parallelized prompts (e.g., simultaneous backend and frontend updates) to support faster delivery, and price VIP tiers accordingly.
 - **Exclusive support**: set aside credits for daily chat check-ins, architecture reviews, and emergency fixes. Factor the cumulative credit load into the VIP premium.
@@ -63,7 +74,7 @@ Maintain a shared spreadsheet that auto-updates package pricing when credit allo
 4. **Executive summary (0.5–1 credit)** → generate client-ready status updates.
 5. **Reserve** → keep 1–2 credits unallocated for urgent hotfixes.
 
-## 5. Structure Mentorship Pricing
+## 6. Structure Mentorship Pricing
 - **Curriculum planning**: estimate credits for lesson material generation, code reviews, and walkthroughs. Each targeted lesson or code audit typically fits in a single credit if batched.
 - **Session cadences**: package mentorship offerings around weekly or biweekly sessions, each with pre-session prep (1 credit) and follow-up materials (1 credit).
 - **Self-serve resources**: invest credits once to produce reusable guides and templates. Reuse them across mentees to keep per-mentee credit costs low and margins high.
@@ -77,22 +88,23 @@ Maintain a shared spreadsheet that auto-updates package pricing when credit allo
 - **T+1 day**: Send follow-up assets, record ledger entry (1 credit).
 - **End of month**: Summarize progress + recommend next steps (0.5 credit, reusable template).
 
-## 6. Optimize Daily Credit Usage
+## 7. Optimize Daily Credit Usage
+- **Prompt engineering**: Combine related requests into one clear message. Use structured prompts such as “Goal → Context → Desired Output → Constraints” and include all acceptance criteria for a milestone.
+- **Scaffold once, iterate thoughtfully**: Ask for scaffolding (framework setup, base components) in one prompt (1–2 credits), then follow with broader feature requests (2–5 credits) that cover multiple user stories, and end with batched UI refinements (1–3 credits).
 - **Plan prompts ahead**: outline objectives, inputs, and expected outputs before engaging Chat Mode so each exchange is high value.
-- **Use structured templates**: e.g., “Goal → Context → Desired Output → Constraints.” This reduces clarification loops.
-- **Leverage free credits**: apply daily free interactions for ideation, roadmap validation, or refining prompts before executing Agent Mode runs.
+- **Leverage free credits**: apply daily free interactions for ideation, roadmap validation, or refining prompts before executing Agent Mode runs. Save monthly pooled credits for heavier Agent Mode builds.
 - **Track in a ledger**: maintain a simple spreadsheet recording date, prompt, credits used, and deliverable. Review weekly to adjust pacing.
-- **Institute daily caps**: set soft limits (e.g., ≤6 credits/day outside of launches) to ensure runway lasts the entire billing cycle.
-- **Create a prompt library**: store high-performing prompts with expected outputs so team members reuse instead of reinventing them.
+- **Institute daily caps**: set soft limits (e.g., ≤6 credits/day outside of launches) to ensure runway lasts the entire billing cycle. Avoid starting major features when you have <5 credits left unless you can top up.
+- **Create a prompt library**: store high-performing prompts with expected outputs so team members reuse instead of reinventing them, and export generated code often so you can continue iterating offline without spending additional credits.
 
-## 7. Operational Best Practices
+## 8. Operational Best Practices
 - **Export deliverables regularly**: archive generated code, docs, and assets after each major prompt to avoid re-spending credits on retrieval.
-- **Set milestone gates**: only trigger high-credit tasks (deployments, test suites) when prerequisites are complete to prevent waste.
+- **Set milestone gates**: only trigger high-credit tasks (deployments, test suites) when prerequisites are complete to prevent waste. When a task feels uncertain, draft the plan in Chat Mode before commissioning an Agent run.
 - **Review burn-down**: compare remaining credits against upcoming milestones; if the ratio is low, adjust scope or upgrade plan preemptively.
 - **Continuous improvement**: after each sprint, analyze which prompts delivered the highest ROI. Refine your prompt templates and batching strategy based on outcomes.
 - **Feedback loop**: pair the monthly audit with team retrospectives to convert insights into updated pricing tiers, SOPs, and prompt guides.
 
-## 8. Audit Workflow
+## 9. Audit Workflow
 Conduct a monthly or post-project audit to confirm your credit usage and pricing remain aligned. Use the following steps:
 
 1. **Collect data**
@@ -108,7 +120,7 @@ Conduct a monthly or post-project audit to confirm your credit usage and pricing
    - Capture lessons learned for prompt templates, batching approaches, and scope sequencing.
    - Outline adjustments for the next planning cycle.
 
-## 9. Quick Reference Checklists
+## 10. Quick Reference Checklists
 
 ### Credit Planning & Execution
 - [ ] Batch related feature requests into comprehensive prompts.
