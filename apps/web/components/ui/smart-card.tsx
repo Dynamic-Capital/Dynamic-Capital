@@ -72,9 +72,13 @@ const smartCardVariants = cva(
   }
 );
 
+type MotionDivProps = React.ComponentPropsWithoutRef<typeof motion.div>;
+
 export interface SmartCardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof smartCardVariants> {
+  extends VariantProps<typeof smartCardVariants>,
+    Omit<MotionDivProps, "className" | "children"> {
+  className?: string;
+  children?: React.ReactNode;
   header?: React.ReactNode;
   footer?: React.ReactNode;
   loading?: boolean;
@@ -98,6 +102,8 @@ export const SmartCard = React.forwardRef<HTMLDivElement, SmartCardProps>(
     contentPadding = true,
     children,
     onClick,
+    onMouseEnter: onMouseEnterProp,
+    onMouseLeave: onMouseLeaveProp,
     ...props
   }, ref) => {
     const [isHovered, setIsHovered] = React.useState(false);
@@ -124,8 +130,14 @@ export const SmartCard = React.forwardRef<HTMLDivElement, SmartCardProps>(
           interactive && "cursor-pointer",
           className
         )}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={event => {
+          setIsHovered(true);
+          onMouseEnterProp?.(event);
+        }}
+        onMouseLeave={event => {
+          setIsHovered(false);
+          onMouseLeaveProp?.(event);
+        }}
         onClick={onClick}
         {...motionProps}
         {...props}

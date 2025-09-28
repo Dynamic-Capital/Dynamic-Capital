@@ -88,9 +88,13 @@ const enhancedInteractionButtonVariants = cva(
   }
 );
 
+type MotionButtonProps = React.ComponentPropsWithoutRef<typeof motion.button>;
+
 export interface EnhancedInteractionButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof enhancedInteractionButtonVariants> {
+  extends VariantProps<typeof enhancedInteractionButtonVariants>,
+    Omit<MotionButtonProps, "className" | "children"> {
+  className?: string;
+  children?: React.ReactNode;
   loading?: boolean;
   loadingText?: string;
   icon?: React.ReactNode;
@@ -116,15 +120,29 @@ export const EnhancedInteractionButton = React.forwardRef<
   children,
   disabled,
   onClick,
+  onMouseDown: onMouseDownProp,
+  onMouseUp: onMouseUpProp,
+  onMouseLeave: onMouseLeaveProp,
   ...props
 }, ref) => {
   const [isPressed, setIsPressed] = React.useState(false);
   const [ripples, setRipples] = React.useState<Array<{ id: number; x: number; y: number }>>([]);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
 
-  React.useImperativeHandle(ref, () => buttonRef.current!);
+  const setButtonRef = React.useCallback(
+    (node: HTMLButtonElement | null) => {
+      buttonRef.current = node;
 
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref && "current" in ref) {
+        ref.current = node;
+      }
+    },
+    [ref]
+  );
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled || loading) return;
 
     // Haptic feedback for mobile
@@ -133,40 +151,49 @@ export const EnhancedInteractionButton = React.forwardRef<
     }
 
     // Ripple effect
-    if (ripple && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+    const currentButton = buttonRef.current;
+
+    if (ripple && currentButton) {
+      const rect = currentButton.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
       const id = Date.now();
-      
+
       setRipples(prev => [...prev, { id, x, y }]);
-      
+
       // Remove ripple after animation
       setTimeout(() => {
         setRipples(prev => prev.filter(r => r.id !== id));
       }, 600);
     }
 
-    onClick?.(e);
+    onClick?.(event);
   };
 
-  const handleMouseDown = () => {
+  const handleMouseDown = (event: React.MouseEvent<HTMLButtonElement>) => {
     setIsPressed(true);
+    onMouseDownProp?.(event);
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (event: React.MouseEvent<HTMLButtonElement>) => {
     setIsPressed(false);
+    onMouseUpProp?.(event);
+  };
+
+  const handleMouseLeave = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setIsPressed(false);
+    onMouseLeaveProp?.(event);
   };
 
   return (
     <motion.button
-      ref={buttonRef}
+      ref={setButtonRef}
       className={cn(enhancedInteractionButtonVariants({ variant, size, feedback }), className)}
       disabled={disabled || loading}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
       whileTap={{ scale: 0.95 }}
       transition={{ duration: 0.1 }}
       {...props}
