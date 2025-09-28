@@ -333,7 +333,9 @@ function parseRecommendation(
     return { title: fallbackTitle };
   }
 
-  const delimiterMatch = trimmed.match(/^(.*?)[\s]*[:\u2013\u2014-][\s]*(.+)$/);
+  const delimiterMatch = trimmed.match(
+    /^(.*?\S)(?:\s*:\s*|\s+[\u2013\u2014-]\s+)(.+)$/,
+  );
   if (delimiterMatch) {
     const [, rawTitle, rawDescription] = delimiterMatch;
     return {
