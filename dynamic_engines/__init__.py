@@ -202,6 +202,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "TonNetworkTelemetry",
         "TonTreasuryPosture",
     ),
+    "dynamic_trainer.engine": (
+        "DynamicTrainerEngine",
+        "DynamicTrainerModel",
+        "TrainerContext",
+        "TrainingSignal",
+    ),
     "dynamic_ultimate_reality": ("DynamicUltimateReality",),
     "dynamic_volume": ("DynamicVolumeAlgo",),
     "dynamic_wisdom": ("DynamicWisdomEngine",),
