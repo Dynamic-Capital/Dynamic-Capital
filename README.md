@@ -191,6 +191,7 @@ Explore the broader platform anatomy and contributor guides:
 - [Dynamic Capital ecosystem anatomy](docs/dynamic-capital-ecosystem-anatomy.md)
 - [Dynamic AI overview](docs/dynamic-ai-overview.md)
 - [Dynamic Trading ALGO vs LOGIC](docs/dynamic-trading-algo-vs-logic.md)
+- [Model intelligence & infrastructure reference](docs/model-intelligence-infrastructure-reference.md)
 
 ### Dynamic AGI self-improvement loop
 
