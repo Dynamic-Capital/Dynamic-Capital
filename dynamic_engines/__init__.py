@@ -123,6 +123,13 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicTimeKeeperAlgorithm",
     ),
     "dynamic_kyc": ("DynamicKycRegistry",),
+    "dynamic_language": (
+        "LanguageCapability",
+        "LanguageProfile",
+        "DynamicLanguageModel",
+        "LanguageAssessment",
+        "DynamicLanguageEngine",
+    ),
     "dynamic_library": ("DynamicLibrary",),
     "dynamic_logging": (
         "DynamicLoggingEngine",
