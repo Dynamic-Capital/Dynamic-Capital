@@ -79,6 +79,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "EventFrame",
     ),
     "dynamic_emoticon": ("DynamicEmoticon",),
+    "dynamic_framework": ("DynamicFrameworkEngine",),
     "dynamic_heal": ("DynamicHealEngine",),
     "dynamic_encryption": ("DynamicEncryptionEngine",),
     "dynamic_engineer": (
