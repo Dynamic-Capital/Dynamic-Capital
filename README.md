@@ -187,6 +187,7 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 
 Explore the broader platform anatomy and contributor guides:
 
+- [Master meta-model reference](models/meta_model.md) — shared state/control/dynamics grammar with module index.
 - [Dynamic Capital ecosystem anatomy](docs/dynamic-capital-ecosystem-anatomy.md)
 - [Dynamic AI overview](docs/dynamic-ai-overview.md)
 - [Dynamic Trading ALGO vs LOGIC](docs/dynamic-trading-algo-vs-logic.md)
