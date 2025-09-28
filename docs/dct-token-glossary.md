@@ -11,6 +11,21 @@ assumptions.
 - **Dynamic Capital Token (DCT)** — Primary utility and governance jetton on The
   Open Network (TON); required for product access, fee settlement, and incentive
   payouts across Dynamic Capital services.
+- **DCT Mnemonic Expansion** — "Driving Yield of New Advancements in Markets,
+  Investing & Creation — Creating Asset Profitability through Intelligent
+  Trading, Algorithms & Leverage, powered by a Trusted On-chain Knowledge for
+  Economic Networks." Use this long-form phrase in narrative materials to
+  reinforce the token's mission around yield innovation, intelligent trading,
+  and governed knowledge flows.
+  - Emphasize **Driving Yield** when communicating treasury performance,
+    structured products, or liquidity incentives to highlight DCT's revenue
+    focus.
+  - Highlight **Intelligent Trading, Algorithms & Leverage** in technical
+    explainers to connect product mechanics back to the mnemonic and reduce
+    messaging drift.
+  - Reference **Trusted On-chain Knowledge for Economic Networks** in brand or
+    governance communications to anchor the ecosystem's data transparency
+    commitments.
 - **Jetton Standard** — TON-compliant fungible token interface that governs how
   DCT balances are minted, transferred, and queried across wallets and smart
   contracts.
