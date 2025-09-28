@@ -139,6 +139,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_script": ("DynamicScriptEngine",),
     "dynamic_self_awareness": ("DynamicSelfAwareness",),
     "dynamic_skeleton": ("DynamicGovernanceAlgo", "DynamicComplianceAlgo"),
+    "dynamic_source": ("DynamicSourceEngine",),
     "dynamic_space.engine": ("DynamicSpaceEngine",),
     "dynamic_spheres": ("DynamicSpheresEngine",),
     "dynamic_states": ("DynamicStateEngine",),
