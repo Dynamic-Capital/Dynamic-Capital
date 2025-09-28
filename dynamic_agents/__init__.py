@@ -18,6 +18,8 @@ from ._lazy import LazyNamespace
 __all__ = [
     "Agent",
     "AgentResult",
+    "BloodAgent",
+    "BloodAgentResult",
     "ChatAgentResult",
     "ChatTurn",
     "DynamicChatAgent",
@@ -57,6 +59,8 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
     from dynamic_ai import (
         Agent,
         AgentResult,
+        BloodAgent,
+        BloodAgentResult,
         ChatAgentResult,
         ChatTurn,
         DynamicChatAgent,

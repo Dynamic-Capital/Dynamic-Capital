@@ -19,6 +19,7 @@ from .hedge import (
     VolatilitySnapshot,
 )
 from .risk import PositionSizing, RiskContext, RiskManager, RiskParameters
+from dynamic_blood import BloodContext, BloodInsight, BloodSample, DynamicBlood
 from dynamic_wave import (
     DynamicWaveField,
     WaveEvent,
@@ -200,6 +201,40 @@ class TradingAgentResult(AgentResult):
         return payload
 
 
+@dataclass(slots=True)
+class BloodAgentResult(AgentResult):
+    """Blood-state inference emitted by the Dynamic Blood persona."""
+
+    insight: BloodInsight
+    algorithm: str
+    latest_sample: BloodSample | None = None
+    context: BloodContext | None = None
+    samples_recorded: int = 0
+    window: int = 0
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = AgentResult.to_dict(self)
+        payload["insight"] = self.insight.as_dict()
+        payload["algorithm"] = self.algorithm
+        payload["window"] = self.window
+        payload["samples_recorded"] = self.samples_recorded
+        if self.latest_sample is not None:
+            payload["latest_sample"] = self.latest_sample.as_dict()
+        if self.context is not None:
+            payload["context"] = {
+                "hydration_level": self.context.hydration_level,
+                "stress_index": self.context.stress_index,
+                "altitude_meters": self.context.altitude_meters,
+                "recent_activity": self.context.recent_activity,
+                "sleep_quality": self.context.sleep_quality,
+                "temperature_exposure": self.context.temperature_exposure,
+                "medications": list(self.context.medications),
+                "conditions": list(self.context.conditions),
+                "notes": self.context.notes,
+            }
+        return payload
+
+
 def _coerce_float(value: Any, default: float = 0.0) -> float:
     try:
         return float(value)
@@ -255,6 +290,107 @@ def _coerce_risk_parameters(payload: Mapping[str, Any] | None) -> RiskParameters
         max_daily_drawdown=_coerce_float(mapping.get("max_daily_drawdown"), 0.08),
         treasury_utilisation_cap=_coerce_float(mapping.get("treasury_utilisation_cap"), 0.6),
         circuit_breaker_drawdown=_coerce_float(mapping.get("circuit_breaker_drawdown"), 0.12),
+    )
+
+
+def _coerce_str_tuple(value: Any) -> tuple[str, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, (str, bytes)):
+        text = str(value).strip()
+        return (text,) if text else ()
+    if isinstance(value, Iterable):
+        result: list[str] = []
+        for item in value:
+            if item is None:
+                continue
+            text = str(item).strip()
+            if text and text not in result:
+                result.append(text)
+        return tuple(result)
+    raise TypeError("iterable of strings expected")
+
+
+def _coerce_numeric_mapping(value: Any) -> Mapping[str, float]:
+    if value is None:
+        return {}
+    if isinstance(value, Mapping):
+        result: Dict[str, float] = {}
+        for key, raw in value.items():
+            if key is None:
+                continue
+            label = str(key).strip()
+            if not label:
+                continue
+            try:
+                result[label] = float(raw)
+            except (TypeError, ValueError):
+                continue
+        return result
+    raise TypeError("mapping of numeric values expected")
+
+
+def _coerce_blood_sample(payload: Mapping[str, Any] | BloodSample | None) -> BloodSample:
+    if isinstance(payload, BloodSample):
+        return payload
+    if not isinstance(payload, Mapping):
+        raise TypeError("blood samples must be provided as mappings")
+    mapping = dict(payload)
+    timestamp = _coerce_timestamp(mapping.get("timestamp"))
+    tags = _coerce_str_tuple(mapping.get("tags"))
+    metadata = mapping.get("metadata")
+    metadata_mapping = dict(metadata) if isinstance(metadata, Mapping) else None
+    inflammatory = _coerce_numeric_mapping(mapping.get("inflammatory_markers"))
+    micronutrients = _coerce_numeric_mapping(mapping.get("micronutrients"))
+    sample = BloodSample(
+        rbc_count=_coerce_float(mapping.get("rbc_count"), 0.0),
+        wbc_count=_coerce_float(mapping.get("wbc_count"), 0.0),
+        platelet_count=_coerce_float(mapping.get("platelet_count"), 0.0),
+        hemoglobin=_coerce_float(mapping.get("hemoglobin"), 0.0),
+        hematocrit=_coerce_float(mapping.get("hematocrit"), 0.0),
+        plasma_volume=_coerce_float(mapping.get("plasma_volume"), 0.0),
+        lactate=_coerce_float(mapping.get("lactate"), 1.2),
+        ferritin=mapping.get("ferritin"),
+        inflammatory_markers=inflammatory,
+        micronutrients=micronutrients,
+        timestamp=timestamp or datetime.now(timezone.utc),
+        tags=tags,
+        metadata=metadata_mapping,
+    )
+    return sample
+
+
+def _coerce_blood_samples(values: Any) -> Sequence[BloodSample]:
+    if values is None:
+        return ()
+    if isinstance(values, (BloodSample, Mapping)):
+        return (_coerce_blood_sample(values),)
+    if isinstance(values, Iterable) and not isinstance(values, (str, bytes)):
+        samples: list[BloodSample] = []
+        for item in values:
+            samples.append(_coerce_blood_sample(item))
+        return tuple(samples)
+    raise TypeError("blood samples payload must be a mapping or iterable of mappings")
+
+
+def _coerce_blood_context(payload: Mapping[str, Any] | BloodContext | None) -> BloodContext | None:
+    if payload is None:
+        return None
+    if isinstance(payload, BloodContext):
+        return payload
+    if not isinstance(payload, Mapping):
+        raise TypeError("blood context must be provided as a mapping")
+    mapping = dict(payload)
+    return BloodContext(
+        hydration_level=_coerce_float(mapping.get("hydration_level"), 0.5),
+        stress_index=_coerce_float(mapping.get("stress_index"), 0.5),
+        altitude_meters=_coerce_float(mapping.get("altitude_meters"), 0.0),
+        recent_activity=_coerce_float(mapping.get("recent_activity"), 0.0),
+        sleep_quality=_coerce_float(mapping.get("sleep_quality"), 0.6),
+        temperature_exposure=_coerce_float(mapping.get("temperature_exposure"), 0.5),
+        medications=_coerce_str_tuple(mapping.get("medications")),
+        conditions=_coerce_str_tuple(mapping.get("conditions")),
+        notes=_extract_text(mapping.get("notes"), mapping.get("note")),
     )
 
 
@@ -1018,6 +1154,103 @@ class SpaceAgent:
             snapshot=snapshot,
             events=recent_events,
             recommendations=tuple(dict.fromkeys(recommendations)),
+        )
+
+
+class BloodAgent:
+    """Persona orchestrating Dynamic Blood state insights."""
+
+    name = "blood"
+
+    def __init__(self, engine: DynamicBlood | None = None) -> None:
+        self.engine = engine or DynamicBlood()
+
+    def run(self, payload: Mapping[str, Any]) -> BloodAgentResult:
+        context = dict(payload or {})
+
+        window_value = context.get("window")
+        if window_value is not None:
+            try:
+                window = int(window_value)
+            except (TypeError, ValueError) as exc:  # pragma: no cover - defensive
+                raise ValueError("window must be an integer value") from exc
+            if window <= 0:
+                raise ValueError("window must be positive")
+            if window != self.engine.rolling_window():
+                self.engine = DynamicBlood(window=window)
+
+        if context.get("clear") or context.get("reset"):
+            self.engine.clear()
+
+        replace_history = bool(context.get("replace_history") or context.get("reset_history"))
+
+        samples_payload = context.get("samples")
+        if samples_payload is None and "sample" in context:
+            samples_payload = context.get("sample")
+
+        if samples_payload is not None:
+            samples = _coerce_blood_samples(samples_payload)
+        else:
+            samples = ()
+
+        if replace_history and samples:
+            self.engine.clear()
+
+        algorithm_value = context.get("algorithm") or context.get("algo") or context.get("dct_algo")
+        algorithm = str(algorithm_value or "dct_to_dct").strip().lower() or "dct_to_dct"
+
+        if algorithm not in {"dct_to_dct", "assess_only"}:
+            raise ValueError(f"Unsupported blood algorithm '{algorithm}'")
+
+        if algorithm == "dct_to_dct":
+            if not samples and not self.engine.history:
+                raise ValueError("BloodAgent requires at least one sample to ingest")
+            for sample in samples:
+                self.engine.ingest(sample)
+        else:  # assess_only
+            if samples:
+                for sample in samples:
+                    self.engine.ingest(sample)
+
+        if not self.engine.history:
+            raise ValueError("BloodAgent cannot assess without historical samples")
+
+        blood_context_payload = context.get("context") or context.get("blood_context")
+        if blood_context_payload is None:
+            context_fields = {
+                key: context.get(key)
+                for key in (
+                    "hydration_level",
+                    "stress_index",
+                    "altitude_meters",
+                    "recent_activity",
+                    "sleep_quality",
+                    "temperature_exposure",
+                    "medications",
+                    "conditions",
+                    "notes",
+                )
+            }
+            if any(value is not None for value in context_fields.values()):
+                blood_context_payload = context_fields
+
+        blood_context = _coerce_blood_context(blood_context_payload)
+
+        insight = self.engine.assess(context=blood_context)
+        latest_sample = self.engine.history[-1]
+        samples_recorded = len(self.engine.history)
+        confidence = max(0.0, min(1.0, insight.stability_index))
+
+        return BloodAgentResult(
+            agent=self.name,
+            rationale=insight.narrative,
+            confidence=confidence,
+            insight=insight,
+            algorithm=algorithm,
+            latest_sample=latest_sample,
+            context=blood_context,
+            samples_recorded=samples_recorded,
+            window=self.engine.rolling_window(),
         )
 
 
