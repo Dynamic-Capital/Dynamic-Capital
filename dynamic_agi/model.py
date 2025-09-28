@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, Mapping, Optional
 
@@ -243,6 +243,52 @@ class DynamicAGIModel:
     ) -> AGIOutput:
         """Run the end-to-end AGI workflow for the supplied payloads."""
 
+        artifacts = self._execute_pipeline(
+            market_data=market_data,
+            research=research,
+            risk_context=risk_context,
+            treasury=treasury,
+            inventory=inventory,
+        )
+
+        diagnostics = self._build_diagnostics(artifacts)
+        output = self._build_output(artifacts, diagnostics, improvement=None)
+
+        improvement_payload = self._record_self_improvement(
+            output,
+            performance=performance,
+            feedback_notes=feedback_notes,
+            introspection_inputs=introspection_inputs,
+        )
+        if improvement_payload is not None:
+            output = replace(output, improvement=improvement_payload)
+
+        return output
+
+    # ------------------------------------------------------------------
+    # internal helpers
+
+    @dataclass(slots=True)
+    class _EvaluationArtifacts:
+        context: PreparedMarketContext
+        composite: Dict[str, Any]
+        consensus: Dict[str, float]
+        signal: AISignal
+        research: Dict[str, Any]
+        risk_ctx: RiskContext
+        risk_adjusted: Dict[str, Any]
+        sizing: Optional[PositionSizing]
+        market_making: Dict[str, float]
+
+    def _execute_pipeline(
+        self,
+        *,
+        market_data: Mapping[str, Any],
+        research: Optional[Mapping[str, Any]],
+        risk_context: RiskContext | Mapping[str, Any] | None,
+        treasury: Optional[Mapping[str, Any]],
+        inventory: float,
+    ) -> "DynamicAGIModel._EvaluationArtifacts":
         market_payload = dict(market_data)
         context = self.fusion.prepare_context(market_payload)
         composite = self.fusion.composite_diagnostics(context)
@@ -267,43 +313,64 @@ class DynamicAGIModel:
             inventory,
         )
 
-        diagnostics = AGIDiagnostics(
-            context=_context_snapshot(context),
+        return DynamicAGIModel._EvaluationArtifacts(
+            context=context,
             composite=composite,
             consensus=consensus,
-        )
-
-        improvement_payload: Optional[Dict[str, Any]] = None
-        if self.self_improvement is not None:
-            self.self_improvement.record_session(
-                output=AGIOutput(
-                    signal=signal,
-                    research=research_payload,
-                    risk_adjusted=risk_adjusted,
-                    sizing=sizing,
-                    market_making=market_making,
-                    diagnostics=diagnostics,
-                    version=self.version,
-                    version_info=self.version_metadata,
-                ),
-                performance=performance,
-                feedback_notes=feedback_notes,
-                introspection_inputs=introspection_inputs,
-            )
-            try:
-                plan = self.self_improvement.generate_plan()
-            except RuntimeError:
-                improvement_payload = None
-            else:
-                improvement_payload = plan.to_dict()
-        return AGIOutput(
             signal=signal,
             research=research_payload,
+            risk_ctx=risk_ctx,
             risk_adjusted=risk_adjusted,
             sizing=sizing,
             market_making=market_making,
+        )
+
+    def _build_diagnostics(
+        self, artifacts: "DynamicAGIModel._EvaluationArtifacts"
+    ) -> AGIDiagnostics:
+        return AGIDiagnostics(
+            context=_context_snapshot(artifacts.context),
+            composite=artifacts.composite,
+            consensus=artifacts.consensus,
+        )
+
+    def _build_output(
+        self,
+        artifacts: "DynamicAGIModel._EvaluationArtifacts",
+        diagnostics: AGIDiagnostics,
+        improvement: Optional[Dict[str, Any]],
+    ) -> AGIOutput:
+        return AGIOutput(
+            signal=artifacts.signal,
+            research=artifacts.research,
+            risk_adjusted=artifacts.risk_adjusted,
+            sizing=artifacts.sizing,
+            market_making=artifacts.market_making,
             diagnostics=diagnostics,
-            improvement=improvement_payload,
+            improvement=improvement,
             version=self.version,
             version_info=self.version_metadata,
         )
+
+    def _record_self_improvement(
+        self,
+        output: AGIOutput,
+        *,
+        performance: Optional[Mapping[str, Any]],
+        feedback_notes: Optional[Iterable[str]],
+        introspection_inputs: Optional[Mapping[str, Any]],
+    ) -> Optional[Dict[str, Any]]:
+        if self.self_improvement is None:
+            return None
+
+        self.self_improvement.record_session(
+            output=output,
+            performance=performance,
+            feedback_notes=feedback_notes,
+            introspection_inputs=introspection_inputs,
+        )
+        try:
+            plan = self.self_improvement.generate_plan()
+        except RuntimeError:
+            return None
+        return plan.to_dict()

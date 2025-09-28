@@ -3,18 +3,19 @@
 Only a handful of helper functions and constants were historically routed
 through ``dynamic_helpers``.  Rather than duplicating implementations, this
 module proxies access to the canonical locations and loads them on demand.
+The original implementation eagerly walked a module map and imported the
+target as soon as :data:`__getattr__` was invoked.  We now leverage the
+shared :func:`dynamic_agents._lazy.build_lazy_namespace` helper so the
+implementation mirrors other shim packages and centralises caching.
 """
 
 from __future__ import annotations
 
-from importlib import import_module
-from typing import Dict, Iterable, Tuple
+from typing import Any
 
-_HELPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
-    "dynamic_agents": ("run_dynamic_agent_cycle",),
-    "dynamic_ai": ("calibrate_lorentzian_lobe", "load_lorentzian_model"),
-    "dynamic_algo": ("normalise_symbol", "ORDER_ACTION_BUY", "ORDER_ACTION_SELL", "SUCCESS_RETCODE"),
-    "dynamic_bridge": ("create_dynamic_mt5_bridge",),
+from dynamic_agents._lazy import build_lazy_namespace
+
+_HELPER_EXPORTS = {
     "dynamic_helpers.recycling": (
         "build_material_stream",
         "build_recycling_event",
@@ -37,24 +38,24 @@ _HELPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "get_element_helper",
         "search_element_helpers",
     ),
+    "dynamic_agents": ("run_dynamic_agent_cycle",),
+    "dynamic_ai": ("calibrate_lorentzian_lobe", "load_lorentzian_model"),
+    "dynamic_algo": (
+        "normalise_symbol",
+        "ORDER_ACTION_BUY",
+        "ORDER_ACTION_SELL",
+        "SUCCESS_RETCODE",
+    ),
+    "dynamic_bridge": ("create_dynamic_mt5_bridge",),
 }
 
-__all__ = sorted({symbol for symbols in _HELPER_EXPORTS.values() for symbol in symbols})
+_LAZY = build_lazy_namespace(_HELPER_EXPORTS, default_module="dynamic_helpers.recycling")
+__all__ = list(_LAZY.exports)
 
 
-def _load_symbol(module_name: str, symbol: str) -> object:
-    module = import_module(module_name)
-    value = getattr(module, symbol)
-    globals()[symbol] = value
-    return value
+def __getattr__(name: str) -> Any:
+    return _LAZY.resolve(name, globals())
 
 
-def __getattr__(name: str) -> object:
-    for module_name, symbols in _HELPER_EXPORTS.items():
-        if name in symbols:
-            return _load_symbol(module_name, name)
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def __dir__() -> Iterable[str]:
-    return sorted(__all__)
+def __dir__() -> list[str]:  # pragma: no cover - trivial wrapper
+    return _LAZY.dir(globals())

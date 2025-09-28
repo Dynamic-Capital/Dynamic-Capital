@@ -16,7 +16,7 @@ differs from the default.
 from __future__ import annotations
 
 from importlib import import_module
-from typing import Any, Iterable, Mapping
+from typing import Any, Iterable, Mapping, MutableMapping
 
 
 class LazyNamespace:
@@ -61,3 +61,36 @@ class LazyNamespace:
         """Return the ordered exports for convenience."""
 
         return self._exports
+
+
+def build_lazy_namespace(
+    exports: Mapping[str, Iterable[str]],
+    *,
+    default_module: str | None = None,
+) -> LazyNamespace:
+    """Construct a :class:`LazyNamespace` from a module → symbols mapping."""
+
+    if not exports:
+        raise ValueError("exports mapping must not be empty")
+
+    modules: MutableMapping[str, Iterable[str]] = (
+        exports if isinstance(exports, dict) else dict(exports)
+    )
+    if default_module is None:
+        default_module = next(iter(modules))
+
+    ordered_exports: list[str] = []
+    overrides: dict[str, str] = {}
+    seen: set[str] = set()
+    for module_name, symbols in modules.items():
+        for symbol in symbols:
+            if module_name != default_module:
+                overrides[symbol] = module_name
+            elif symbol in overrides:
+                overrides.pop(symbol, None)
+
+            if symbol not in seen:
+                ordered_exports.append(symbol)
+                seen.add(symbol)
+
+    return LazyNamespace(default_module, ordered_exports, overrides)
