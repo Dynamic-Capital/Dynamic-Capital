@@ -61,6 +61,17 @@ MODEL_VERSION_INFO = MODEL_VERSION_PLAN.to_model_version(
 )
 MODEL_VERSION = MODEL_VERSION_INFO.tag
 
+__all__ = [
+    "AGIDiagnostics",
+    "AGIOutput",
+    "DynamicAGIIdentity",
+    "DynamicAGIModel",
+    "MODEL_VERSION",
+    "MODEL_VERSION_INFO",
+    "MODEL_VERSION_PLAN",
+    "DYNAMIC_AGI_EXPANSION",
+]
+
 
 def _default_version_info() -> Dict[str, Any]:
     return MODEL_VERSION_INFO.as_dict()
