@@ -51,6 +51,7 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_exosphere`
 - `dynamic_expressions`
 - `dynamic_firewall`
+- `dynamic_fuel`
 - `dynamic_forecast`
 - `dynamic_generator`
 - `dynamic_glossary`
