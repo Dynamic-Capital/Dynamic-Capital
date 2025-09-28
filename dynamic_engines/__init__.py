@@ -142,6 +142,13 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_mentorship": ("DynamicMentorshipEngine",),
     "dynamic_numbers": ("DynamicNumberComposer",),
     "dynamic_mapping": ("DynamicMappingEngine",),
+    "dynamic_mass": (
+        "DynamicMassEngine",
+        "StarProfile",
+        "StellarMassModel",
+        "SpectralType",
+        "SOLAR_MASS_KG",
+    ),
     "dynamic_package": ("DynamicPackageDesigner",),
     "dynamic_playbook": (
         "DynamicPlaybookAgent",
