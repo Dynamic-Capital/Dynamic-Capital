@@ -173,6 +173,7 @@ class FrameworkReport:
     focus_areas: tuple[str, ...]
     alerts: tuple[str, ...]
     summary: str
+    snapshots: tuple[FrameworkSnapshot, ...] = ()
 
 
 class DynamicFrameworkEngine:
@@ -360,12 +361,14 @@ class DynamicFrameworkEngine:
     def report(self) -> FrameworkReport:
         if not self._nodes:
             raise RuntimeError("no framework nodes registered")
-        snapshots: list[FrameworkSnapshot] = []
+        snapshot_list: list[FrameworkSnapshot] = []
         weights: dict[str, float] = {}
         for key, node in self._nodes.items():
             snapshot = self.snapshot(key)
-            snapshots.append(snapshot)
+            snapshot_list.append(snapshot)
             weights[snapshot.key] = node.weight
+
+        snapshots = tuple(snapshot_list)
 
         total_weight = sum(weights.values()) or 1.0
         overall_maturity = (
@@ -414,4 +417,5 @@ class DynamicFrameworkEngine:
             focus_areas=focus_areas,
             alerts=tuple(dict.fromkeys(alerts)),
             summary=summary,
+            snapshots=snapshots,
         )

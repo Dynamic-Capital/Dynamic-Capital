@@ -181,6 +181,18 @@ def test_serialise_report_matches_json_rendering() -> None:
     assert rendered["alerts"] == payload["alerts"]
 
 
+def test_report_exposes_snapshots_for_serialisation() -> None:
+    engine = build_engine(DEFAULT_SCENARIO)
+    report = engine.report()
+
+    assert len(report.snapshots) == 3
+    keys = [snapshot.key for snapshot in report.snapshots]
+    assert set(keys) == {"automation", "orchestration", "platform"}
+
+    payload = serialise_report(engine)
+    assert [node["key"] for node in payload["nodes"]] == sorted(keys)
+
+
 def test_load_scenario_accepts_stdin_payload() -> None:
     scenario_data = {
         "history": 8,

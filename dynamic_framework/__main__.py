@@ -226,7 +226,10 @@ def _serialise_snapshot(snapshot: FrameworkSnapshot) -> dict[str, Any]:
 
 def serialise_report(engine: DynamicFrameworkEngine) -> dict[str, Any]:
     report = engine.report()
-    nodes = [_serialise_snapshot(engine.snapshot(key)) for key in sorted(engine.nodes)]
+    snapshots = report.snapshots
+    if not snapshots:
+        snapshots = tuple(engine.snapshot(key) for key in sorted(engine.nodes))
+    nodes = [_serialise_snapshot(snapshot) for snapshot in sorted(snapshots, key=lambda snap: snap.key)]
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     return {
         "generated_at": now,
