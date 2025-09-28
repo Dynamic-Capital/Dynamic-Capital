@@ -21,10 +21,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        'poppins': ['Poppins', 'system-ui', '-apple-system', 'sans-serif'],
-        'sf-pro': ['SF Pro Text', 'system-ui', '-apple-system', 'sans-serif'],
-        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        'sans': ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        'mono': ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+        'display': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        'body': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       fontSize: {
         'xs': ['0.75rem', { lineHeight: '1.5' }],      // 12px
