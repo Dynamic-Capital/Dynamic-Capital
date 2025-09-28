@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from typing import Mapping, MutableMapping, Sequence
 
 from .engine import PlaybookContext, PlaybookEntry
@@ -13,7 +14,31 @@ __all__ = [
 ]
 
 
-DEFAULT_DYNAMIC_NFY_ENTRIES: tuple[Mapping[str, object], ...] = (
+_DEFAULT_CONTEXT: Mapping[str, object] = {
+    "mission": "Dynamic NFY Market Dimensions Launch",
+    "cadence": "Bi-weekly build and review",
+    "risk_tolerance": 0.5,
+    "automation_expectation": 0.55,
+    "readiness_pressure": 0.65,
+    "oversight_level": 0.68,
+    "escalation_channels": (
+        "Telegram VIP Council",
+        "Core Ops",
+    ),
+    "scenario_focus": (
+        "concept",
+        "technical",
+        "launch",
+        "utility",
+    ),
+    "highlight_limit": 4,
+}
+
+
+_BASE_TIMESTAMP = datetime(2024, 1, 1, tzinfo=timezone.utc)
+
+
+_ENTRY_SPECS: tuple[Mapping[str, object], ...] = (
     {
         "title": "Define Market Spirit Trait Layers",
         "objective": "Draft the primary art layers covering Market Spirits, Algorithmic Avatars, and Time Shards.",
@@ -251,6 +276,18 @@ DEFAULT_DYNAMIC_NFY_ENTRIES: tuple[Mapping[str, object], ...] = (
 )
 
 
+def _build_default_entries() -> tuple[PlaybookEntry, ...]:
+    entries: list[PlaybookEntry] = []
+    for index, spec in enumerate(_ENTRY_SPECS):
+        payload = dict(spec)
+        payload.setdefault("timestamp", _BASE_TIMESTAMP + timedelta(minutes=index))
+        entries.append(PlaybookEntry(**payload))
+    return tuple(entries)
+
+
+DEFAULT_DYNAMIC_NFY_ENTRIES: tuple[PlaybookEntry, ...] = _build_default_entries()
+
+
 def build_dynamic_nfy_market_dimensions_playbook(
     *,
     synchronizer: PlaybookSynchronizer | None = None,
@@ -275,25 +312,7 @@ def build_dynamic_nfy_market_dimensions_playbook(
     if additional_entries:
         sync.implement_many(additional_entries)
 
-    context_kwargs: MutableMapping[str, object] = {
-        "mission": "Dynamic NFY Market Dimensions Launch",
-        "cadence": "Bi-weekly build and review",
-        "risk_tolerance": 0.5,
-        "automation_expectation": 0.55,
-        "readiness_pressure": 0.65,
-        "oversight_level": 0.68,
-        "escalation_channels": (
-            "Telegram VIP Council",
-            "Core Ops",
-        ),
-        "scenario_focus": (
-            "concept",
-            "technical",
-            "launch",
-            "utility",
-        ),
-        "highlight_limit": 4,
-    }
+    context_kwargs: MutableMapping[str, object] = dict(_DEFAULT_CONTEXT)
     if context_overrides:
         context_kwargs.update(context_overrides)
 
