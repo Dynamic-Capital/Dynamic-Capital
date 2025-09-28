@@ -278,10 +278,9 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-primary/15 via-background to-background px-5 py-6 text-left shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
+        className="miniapp-hero px-5 py-6 text-left"
       >
-        <div className="absolute inset-y-0 right-0 w-1/2 translate-x-1/4 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_55%)]" />
-        <div className="space-y-4 relative z-10">
+        <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <Badge variant="outline" className="bg-primary/15 text-primary">
               <Sparkles className="mr-1 h-3 w-3" /> Live trading desk
@@ -305,7 +304,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-border/40 bg-background/70 p-4 backdrop-blur">
+            <div className="miniapp-panel p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-primary">
@@ -319,7 +318,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border/40 bg-background/70 p-4 backdrop-blur">
+            <div className="miniapp-panel p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-primary">
                 Core services
               </p>
@@ -335,7 +334,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
           </div>
 
           {activePromo && (
-            <Card className="border-primary/20 bg-primary/10">
+            <Card className="glass-motion-card border border-primary/25">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm text-primary">
                   <Gift className="h-4 w-4" /> Limited-time offer
@@ -378,7 +377,7 @@ export default function HomeLanding({ telegramData }: HomeLandingProps) {
 
       <PlanSection />
 
-      <Card className="border-border/40 bg-background/70">
+      <Card className="glass-motion-card">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-foreground">
             What you get with VIP access

@@ -397,7 +397,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
               <div className="space-y-2 text-left">
                 <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                   <Shield className="h-4 w-4 text-primary" />
-                  Dynamic UI admin cockpit
+                  Dynamic GUI admin cockpit
                 </span>
                 <h1 className="text-3xl font-bold text-foreground sm:text-4xl">
                   Dynamic Capital operations
@@ -405,7 +405,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                 <p className="text-sm text-muted-foreground">
                   Welcome back,{" "}
                   {adminName}. Review deposits, broadcast updates, and inspect
-                  bot health without leaving the Dynamic UI workspace.
+                  bot health without leaving the Dynamic GUI workspace.
                 </p>
               </div>
               <div className="flex flex-col items-start gap-2 sm:items-end">
@@ -465,7 +465,7 @@ export const AdminDashboard = ({ telegramData }: AdminDashboardProps) => {
                 <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
                   <p>
                     Monitor realtime metrics across the Dynamic Capital stack
-                    with Dynamic UI automation.
+                    with Dynamic GUI automation.
                   </p>
                   <Badge
                     variant="outline"
