@@ -1,4 +1,4 @@
-"""Dynamic physics simulation toolkit."""
+"""High-level accessors for the dynamic physics toolkit."""
 
 from .physics import (
     DynamicPhysicsEngine,
@@ -6,20 +6,7 @@ from .physics import (
     PhysicsBody,
     PhysicsSnapshot,
     Vector3,
-)
-from .quantum import (
-    H_BAR,
-    PAULI_MATRICES,
-    Operator,
-    QuantumState,
-    bell_state_phi_plus,
-    commutator,
-    harmonic_oscillator_energy,
-    heisenberg_uncertainty_limit,
-    minimal_coupling_momentum,
-    normalise_amplitudes,
-    schrodinger_time_derivative,
-    stationary_state_residual,
+    compute_energy_breakdown,
 )
 
 __all__ = [
@@ -28,16 +15,5 @@ __all__ = [
     "PhysicsBody",
     "PhysicsSnapshot",
     "Vector3",
-    "H_BAR",
-    "PAULI_MATRICES",
-    "Operator",
-    "QuantumState",
-    "bell_state_phi_plus",
-    "commutator",
-    "harmonic_oscillator_energy",
-    "heisenberg_uncertainty_limit",
-    "minimal_coupling_momentum",
-    "normalise_amplitudes",
-    "schrodinger_time_derivative",
-    "stationary_state_residual",
+    "compute_energy_breakdown",
 ]

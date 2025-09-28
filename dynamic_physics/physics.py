@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass, field
-from math import sqrt
+from math import fsum, sqrt
 from types import MappingProxyType
 from typing import Deque, Dict, Iterable, Mapping, MutableMapping
 
@@ -14,6 +14,7 @@ __all__ = [
     "PhysicsBody",
     "PhysicsSnapshot",
     "Vector3",
+    "compute_energy_breakdown",
 ]
 
 
@@ -270,15 +271,8 @@ class DynamicPhysicsEngine:
         return self.snapshot()
 
     def snapshot(self) -> PhysicsSnapshot:
-        kinetic = 0.0
-        potential = 0.0
         state: Dict[str, Mapping[str, object]] = {}
-        gravity_direction = self.gravity.normalised()
         for identifier, body in self._bodies.items():
-            speed = body.velocity.magnitude()
-            kinetic += 0.5 * body.mass * (speed**2)
-            height = body.position.dot(gravity_direction.scale(-1.0))
-            potential += body.mass * self.gravity.magnitude() * max(height, 0.0)
             state[identifier] = MappingProxyType(
                 {
                     "mass": body.mass,
@@ -288,6 +282,7 @@ class DynamicPhysicsEngine:
                     "metadata": dict(body.metadata) if body.metadata is not None else None,
                 }
             )
+        kinetic, potential = compute_energy_breakdown(self._bodies.values(), gravity=self.gravity)
         return PhysicsSnapshot(
             time=self._time,
             bodies=MappingProxyType(state),
@@ -313,3 +308,27 @@ class DynamicPhysicsEngine:
         for event in events:
             self.queue_force(event)
         return self.step(dt)
+
+
+def compute_energy_breakdown(
+    bodies: Iterable[PhysicsBody],
+    *,
+    gravity: Vector3,
+) -> tuple[float, float]:
+    """Return aggregate kinetic and potential energy for a set of bodies.
+
+    This helper mirrors the calculations performed in :meth:`DynamicPhysicsEngine.snapshot`
+    so teams can evaluate energy trends without instantiating an engine.  It also keeps the
+    energy accounting logic in one place, which makes the project easier to maintain.
+    """
+
+    gravity_direction = gravity.normalised()
+    gravity_magnitude = gravity.magnitude()
+    kinetic_terms: list[float] = []
+    potential_terms: list[float] = []
+    for body in bodies:
+        speed = body.velocity.magnitude()
+        kinetic_terms.append(0.5 * body.mass * (speed**2))
+        height = body.position.dot(gravity_direction.scale(-1.0))
+        potential_terms.append(body.mass * gravity_magnitude * max(height, 0.0))
+    return fsum(kinetic_terms), fsum(potential_terms)
