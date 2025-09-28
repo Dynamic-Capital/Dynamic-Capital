@@ -900,6 +900,22 @@ npm run serve:functions
 Then POST to `http://localhost:54321/functions/v1/telegram-webhook` with
 `X-Telegram-Bot-Api-Secret-Token`.
 
+### Public tunnel for remote QA
+
+If teammates need to validate the webhook or Mini App from outside your
+network, expose the local Supabase functions port through a trusted tunnel
+provider such as ngrok:
+
+```bash
+ngrok http 54321
+```
+
+Share the resulting HTTPS endpoint with reviewers and map requests to the
+appropriate function path. For instance,
+`https://exosporal-ezequiel-semibiographically.ngrok-free.dev/` has been used
+to proxy the local Telegram webhook during QA sessions—replace it with your own
+ephemeral domain and rotate the tunnel token regularly.
+
 ## Deployment
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment vars, tests,
