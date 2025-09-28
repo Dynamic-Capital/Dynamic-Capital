@@ -2,9 +2,12 @@
 import { spawn } from "node:child_process";
 
 const DEFAULT_PORT = process.env.NGROK_PORT ?? "54321";
+const DEFAULT_BIN = process.env.NGROK_BIN ?? "ngrok";
 
 const rawArgs = process.argv.slice(2);
 let port = DEFAULT_PORT;
+let dryRun = false;
+let bin = DEFAULT_BIN;
 const forwardedArgs = [];
 
 for (let i = 0; i < rawArgs.length; i += 1) {
@@ -25,12 +28,43 @@ for (let i = 0; i < rawArgs.length; i += 1) {
     continue;
   }
 
+  if (arg === "--dry-run") {
+    dryRun = true;
+    continue;
+  }
+
+  if (arg === "--bin") {
+    const next = rawArgs[i + 1];
+    if (!next) {
+      console.error("Expected a value after --bin");
+      process.exit(1);
+    }
+    bin = next;
+    i += 1;
+    continue;
+  }
+
+  if (arg.startsWith("--bin=")) {
+    bin = arg.slice("--bin=".length);
+    continue;
+  }
+
   forwardedArgs.push(arg);
 }
 
 const ngrokArgs = ["http", port, ...forwardedArgs];
 
-const child = spawn("ngrok", ngrokArgs, {
+if (dryRun) {
+  console.log(
+    JSON.stringify({
+      bin,
+      args: ngrokArgs,
+    }),
+  );
+  process.exit(0);
+}
+
+const child = spawn(bin, ngrokArgs, {
   stdio: "inherit",
 });
 

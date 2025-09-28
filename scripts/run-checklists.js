@@ -162,6 +162,16 @@ const TASK_LIBRARY = {
       'Executes scripted flows that mirror the production sanity checklist for the Telegram mini app.',
     ],
   },
+  'smoke-tunnel': {
+    id: 'smoke-tunnel',
+    label: 'Run tunnel smoke test (node scripts/smoke-tunnel.mjs)',
+    command: 'node scripts/smoke-tunnel.mjs',
+    optional: true,
+    docs: ['docs/ngrok-troubleshooting.md'],
+    notes: [
+      'Confirms the ngrok helper wiring by inspecting dry-run output and forwarded flags.',
+    ],
+  },
   'supabase-cli-workflow': {
     id: 'supabase-cli-workflow',
     label: 'Run Supabase CLI workflow (bash scripts/supabase-cli-workflow.sh)',
@@ -277,6 +287,11 @@ const CHECKLISTS = {
         optional: true,
         note: 'Complements manual go-live validation with scripted coverage.',
       },
+      {
+        task: 'smoke-tunnel',
+        optional: true,
+        note: 'Verifies tunnel arguments before allowing remote QA access.',
+      },
     ],
   },
   'setup-followups': {
@@ -305,6 +320,7 @@ const CHECKLISTS = {
       'check-linkage',
       'check-webhook',
       { task: 'smoke-miniapp', optional: true },
+      { task: 'smoke-tunnel', optional: true },
     ],
   },
   'nft-collectible': {

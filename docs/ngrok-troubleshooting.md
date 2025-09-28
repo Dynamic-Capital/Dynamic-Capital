@@ -26,6 +26,8 @@ ngrok http --url=exosporal-ezequiel-semibiographically.ngrok-free.dev 80
 2. **Authenticate.** Run `ngrok config add-authtoken <token>` with a token from the ngrok dashboard to link the binary to your account. Confirm configuration with `ngrok config check`.
 3. **Reserve or verify the custom domain.** From the ngrok dashboard go to **Domains** and ensure `exosporal-ezequiel-semibiographically.ngrok-free.dev` is reserved for your account. If not, reserve it before starting the tunnel.
 4. **Start the tunnel.** Execute the requested command once the CLI is installed and authenticated. If you encounter an error about an unknown flag, upgrade to the latest ngrok v3 release (`ngrok update`) because the `--url` flag is only available in v3.
+   - Need to confirm the generated arguments before connecting? Append `-- --dry-run` to the npm script (`npm run tunnel:functions -- --dry-run`) to print the command without launching ngrok. This is helpful when validating custom ports or flags in automation.
+   - For a stricter smoke test that validates overrides, run `npm run smoke:tunnel -- --port 8000 --bin ./bin/ngrok`. The script parses the dry-run JSON, checks that the helper honors each override, and prints the command that would be executed.
 
 If you cannot install software on the current machine, run the command from a workstation that already has `ngrok` installed.
 
