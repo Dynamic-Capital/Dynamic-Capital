@@ -1,0 +1,81 @@
+.frame {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 1.5rem;
+  pointer-events: none;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  overflow: visible;
+}
+
+.glow {
+  position: absolute;
+  inset: -25%;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 240, 255, 0.38),
+    rgba(0, 152, 234, 0.08) 55%,
+    rgba(0, 152, 234, 0) 85%
+  );
+  filter: blur(12px);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.animation,
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+.placeholder {
+  background: linear-gradient(
+    120deg,
+    rgba(0, 152, 234, 0.22) 0%,
+    rgba(0, 240, 255, 0.45) 50%,
+    rgba(0, 152, 234, 0.25) 100%
+  );
+  background-size: 180% 180%;
+  box-shadow: 0 0 12px rgba(0, 152, 234, 0.35);
+  animation: tonSweep 1.6s ease-in-out infinite;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  opacity: 0.92;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 10px rgba(0, 152, 234, 0.35));
+}
+
+@keyframes tonSweep {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.5;
+    transform: scale(0.94);
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.95;
+    transform: scale(1);
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.5;
+    transform: scale(0.94);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placeholder {
+    animation: none;
+  }
+}
