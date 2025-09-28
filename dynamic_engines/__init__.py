@@ -22,6 +22,11 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicArchitectAgent",
         "DynamicArchitectBot",
     ),
+    "dynamic_atmosphere": (
+        "DynamicAtmosphere",
+        "DynamicAtmosphericEngine",
+        "AtmosphericSystemOverview",
+    ),
     "dynamic_agents": ("DynamicChatAgent",),
     "dynamic_ai": (
         "DynamicFusionAlgo",
