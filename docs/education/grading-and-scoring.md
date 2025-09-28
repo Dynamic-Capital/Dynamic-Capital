@@ -84,13 +84,13 @@ underlying goal is consistent: communicate performance in a standardized way.
 Rubrics for written assignments often assign weight to research rigor,
 structure, and citation practices.
 
-| Criterion                   | Typical Weight | Description                                                                                                       |
-| --------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Content & Analysis          | 40–50%         | Depth of research, quality of arguments, alignment with the prompt.                                               |
-| Organization & Structure    | 20–30%         | Logical flow, clarity of headings, effectiveness of indexing.                                                     |
-| Referencing & Citation      | 10–20%         | Accuracy of in-text citations, completeness of reference lists, adherence to styles such as APA, MLA, or Chicago. |
-| Language & Presentation     | 10–15%         | Grammar, tone, formatting, and readability.                                                                       |
-| Index Quality (if required) | 5–10%          | Precision of index entries, cross-referencing coverage, and alphabetization consistency.                          |
+| Criterion                   | Typical Weight | Focus of evaluation                                   |
+| --------------------------- | -------------- | ----------------------------------------------------- |
+| Content & Analysis          | 40–50%         | Depth of research and argument quality.               |
+| Organization & Structure    | 20–30%         | Logical flow, headings, and indexing clarity.         |
+| Referencing & Citation      | 10–20%         | Accuracy of citations and completeness of references. |
+| Language & Presentation     | 10–15%         | Grammar, tone, formatting, and readability.           |
+| Index Quality (if required) | 5–10%          | Precision of entries and cross-references.            |
 
 Rubrics may also award discrete marks for:
 
@@ -259,6 +259,15 @@ optimisation loops are fully prepared before an assessment cycle begins.
       how referencing and indexing emphasis may shift.
 - [ ] Archive final scores, feedback, and adjustment logs to support
       accreditation reviews and continuous improvement.
+
+## In Simple Terms
+
+- Referencing and indexing organise knowledge so others can locate and verify
+  the ideas you cite.
+- Grading turns that performance into letters, percentages, GPAs, or divisions
+  that stakeholders understand.
+- Scores summarise how well each requirement was met, and many rubrics reserve
+  explicit marks for referencing accuracy and index quality when they matter.
 
 ## Key Takeaways
 
