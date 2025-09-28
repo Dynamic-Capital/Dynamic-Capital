@@ -29,6 +29,7 @@ _HELPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicAbyssopelagicHelper",
         "DynamicHadalpelagicHelper",
     ),
+    "dynamic_helpers.rib": ("DynamicRibHelper",),
     "dynamic_helpers.elements": (
         "ElementHelperPersona",
         "ELEMENT_HELPERS",

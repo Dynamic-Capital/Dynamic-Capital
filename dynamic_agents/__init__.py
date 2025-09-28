@@ -41,10 +41,12 @@ __all__ = [
     "get_default_research_agent",
     "get_default_risk_agent",
     "get_dynamic_start_agents",
+    "DynamicSkullAgent",
     "ResearchAgent",
     "ResearchAgentResult",
     "RiskAgent",
     "RiskAgentResult",
+    "SkullAgentInsight",
     "prime_dynamic_start_agents",
     "reset_dynamic_start_agents",
     "RecyclingAgentConfig",
@@ -90,6 +92,8 @@ _LAZY = LazyNamespace(
         "iter_element_agents": "dynamic_agents.elements",
         "get_element_agent": "dynamic_agents.elements",
         "search_element_agents": "dynamic_agents.elements",
+        "DynamicSkullAgent": "dynamic_agents.skull",
+        "SkullAgentInsight": "dynamic_agents.skull",
     },
 )
 
@@ -143,6 +147,7 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
         get_element_agent,
         search_element_agents,
     )
+    from dynamic_agents.skull import DynamicSkullAgent, SkullAgentInsight
 
 
 def __getattr__(name: str) -> Any:

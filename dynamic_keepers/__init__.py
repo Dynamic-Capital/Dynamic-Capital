@@ -66,6 +66,7 @@ _KEEPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicHadalpelagicKeeper",
         "KeeperTrendSnapshot",
     ),
+    "dynamic_keepers.vertebrae": ("DynamicVertebraeKeeper",),
     "dynamic_keepers.elements": (
         "ElementKeeperPersona",
         "ELEMENT_KEEPERS",

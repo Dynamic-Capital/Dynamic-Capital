@@ -11,6 +11,7 @@ structure.
 from integrations.telegram_bot import DynamicTelegramBot
 
 from .recycling import DynamicRecyclingBot
+from .pelvis import DynamicPelvisBot
 from .ocean import (
     DynamicOceanLayerBot,
     DynamicEpipelagicBot,
@@ -31,6 +32,7 @@ from .elements import (
 __all__ = [
     "DynamicTelegramBot",
     "DynamicRecyclingBot",
+    "DynamicPelvisBot",
     "DynamicOceanLayerBot",
     "DynamicEpipelagicBot",
     "DynamicMesopelagicBot",
