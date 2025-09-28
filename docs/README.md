@@ -105,6 +105,13 @@ documenting which assets were consulted.
 | 6.9  | [trading-data-organization.md](./trading-data-organization.md)                       | Folder taxonomy for templates, journals, KPIs, and backtests across each horizon bucket.                |
 | 6.10 | [dai-webhook-routing.md](./dai-webhook-routing.md)                                   | Options for single-endpoint vs. auto-provisioned TradingView webhook routes managed by DAI.             |
 | 6.11 | [dynamic-market-notes.md](./dynamic-market-notes.md)                                 | Dynamic Market stack overview covering DMDA feeds, DMM quoting levers, and treasury coordination notes. |
+| 6.12 | [onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.md](./onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.md) | Share metadata, Graph helpers, and access notes for the trading PDF OneDrive folder. |
+| 6.13 | [onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.md](./onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.md) | Datasets share identifiers and Graph commands for refreshing training corpora. |
+| 6.14 | [onedrive-shares/eiqlwt1h9xpjk-7gpxzswqubhctetgb-e1khqcgjdyowjw-folder.md](./onedrive-shares/eiqlwt1h9xpjk-7gpxzswqubhctetgb-e1khqcgjdyowjw-folder.md) | Documentation PDFs share metadata and retrieval notes for the trading agent. |
+| 6.15 | [onedrive-shares/eq5pnm_tcvdnggzwqer7mzubpqvlwljacc8dt8ike04u9a-folder.md](./onedrive-shares/eq5pnm_tcvdnggzwqer7mzubpqvlwljacc8dt8ike04u9a-folder.md) | Knowledge base share identifiers for syncing reference materials. |
+| 6.16 | [onedrive-shares/ejhj6-c4fjdopaw-phw5zl8bwumo2lyzhwbrhbknd4gvbq-folder.md](./onedrive-shares/ejhj6-c4fjdopaw-phw5zl8bwumo2lyzhwbrhbknd4gvbq-folder.md) | Combined logs and model artifacts share metadata for telemetry/model reconciliation. |
+| 6.17 | [onedrive-shares/eskwdphqepxihqmatzjdduubkm_lsdxt-jvm-1smjjgfea-folder.md](./onedrive-shares/eskwdphqepxihqmatzjdduubkm_lsdxt-jvm-1smjjgfea-folder.md) | Trading reports share identifiers for ingesting supplemental analytics. |
+| 6.18 | [onedrive-shares/etoelnepqhhhiis2vl7qe_abz618nqf2vgnrykcx0prhwa-file.md](./onedrive-shares/etoelnepqhhhiis2vl7qe_abz618nqf2vgnrykcx0prhwa-file.md) | Standalone `read_me.md` text share metadata for onboarding notes. |
 
 ## 7. Operational Runbooks & Launch Phases
 
