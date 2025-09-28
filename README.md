@@ -822,6 +822,18 @@ on images.
    - Ensure required environment variables are present; missing values may cause
      runtime errors.
 
+### GitHub Actions Docker smoke test
+
+- The `Docker local smoke test` workflow builds the Compose `app` service image
+  and runs a lightweight command inside the resulting container to ensure Docker
+  remains functional in CI.
+- It runs automatically for pull requests or pushes that touch the `docker/`
+  directory (or the workflow file itself) and is also available through the
+  **Run workflow** button on the Actions tab for ad-hoc verification.
+- To reproduce the same check locally, run `docker compose -f
+  docker/docker-compose.yml build app` followed by `docker compose -f
+  docker/docker-compose.yml run --rm --entrypoint node app --version`.
+
 ## Mini App
 
 - Set `MINI_APP_URL` in env (example domain only, do not hardcode).
