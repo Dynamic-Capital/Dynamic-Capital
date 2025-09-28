@@ -1,27 +1,61 @@
 import { formatIsoDate } from "@/utils/isoFormat";
 
-export function formatDate(date: string, includeRelative = false) {
-  const currentDate = new Date();
+const MINUTE_IN_MS = 60_000;
+const HOUR_IN_MS = 60 * MINUTE_IN_MS;
+const DAY_IN_MS = 24 * HOUR_IN_MS;
+const WEEK_IN_MS = 7 * DAY_IN_MS;
+const MONTH_IN_MS = 30 * DAY_IN_MS;
+const YEAR_IN_MS = 365 * DAY_IN_MS;
 
-  if (!date.includes("T")) {
-    date = `${date}T00:00:00`;
+const RELATIVE_UNITS = [
+  { divisor: YEAR_IN_MS, suffix: "y" },
+  { divisor: MONTH_IN_MS, suffix: "mo" },
+  { divisor: WEEK_IN_MS, suffix: "w" },
+  { divisor: DAY_IN_MS, suffix: "d" },
+  { divisor: HOUR_IN_MS, suffix: "h" },
+  { divisor: MINUTE_IN_MS, suffix: "m" },
+] as const;
+
+function normaliseDateInput(rawDate: string): string {
+  if (rawDate.includes("T")) {
+    return rawDate;
+  }
+  return `${rawDate}T00:00:00`;
+}
+
+function buildRelativeLabel(currentDate: Date, targetDate: Date): string {
+  const diffMs = targetDate.getTime() - currentDate.getTime();
+  const direction = diffMs >= 0 ? 1 : -1;
+  const absMs = Math.abs(diffMs);
+
+  if (absMs < MINUTE_IN_MS) {
+    return direction >= 0 ? "in moments" : "just now";
   }
 
-  const targetDate = new Date(date);
-  const yearsAgo = currentDate.getFullYear() - targetDate.getFullYear();
-  const monthsAgo = currentDate.getMonth() - targetDate.getMonth();
-  const daysAgo = currentDate.getDate() - targetDate.getDate();
+  for (const { divisor, suffix } of RELATIVE_UNITS) {
+    if (absMs >= divisor) {
+      const amount = Math.floor(absMs / divisor);
+      if (amount >= 1) {
+        return direction >= 0
+          ? `in ${amount}${suffix}`
+          : `${amount}${suffix} ago`;
+      }
+    }
+  }
 
-  let formattedDate = "";
+  return direction >= 0 ? "in moments" : "just now";
+}
 
-  if (yearsAgo > 0) {
-    formattedDate = `${yearsAgo}y ago`;
-  } else if (monthsAgo > 0) {
-    formattedDate = `${monthsAgo}mo ago`;
-  } else if (daysAgo > 0) {
-    formattedDate = `${daysAgo}d ago`;
-  } else {
-    formattedDate = "Today";
+export function formatDate(
+  date: string,
+  includeRelative = false,
+  referenceDate: Date = new Date(),
+) {
+  const currentDate = new Date(referenceDate.getTime());
+  const targetDate = new Date(normaliseDateInput(date));
+
+  if (Number.isNaN(targetDate.getTime())) {
+    return "Invalid Date";
   }
 
   const fullDate = formatIsoDate(targetDate);
@@ -30,5 +64,7 @@ export function formatDate(date: string, includeRelative = false) {
     return fullDate;
   }
 
-  return `${fullDate} (${formattedDate})`;
+  const relativeLabel = buildRelativeLabel(currentDate, targetDate);
+
+  return `${fullDate} (${relativeLabel})`;
 }
