@@ -11,6 +11,7 @@ __all__ = [
     "LoopSignal",
     "LoopState",
     "LoopRecommendation",
+    "LoopParameters",
     "DynamicLoopEngine",
 ]
 
@@ -39,6 +40,34 @@ def _normalise_tuple(items: Iterable[str] | None) -> tuple[str, ...]:
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+@dataclass(frozen=True, slots=True)
+class LoopParameters:
+    """Thresholds and defaults used when deriving loop health."""
+
+    stability_floor: float = 0.4
+    momentum_floor: float = 0.5
+    fatigue_ceiling: float = 0.6
+    default_momentum: float = 0.3
+    default_fatigue: float = 0.2
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "stability_floor", _clamp(self.stability_floor))
+        object.__setattr__(self, "momentum_floor", _clamp(self.momentum_floor))
+        object.__setattr__(self, "fatigue_ceiling", _clamp(self.fatigue_ceiling))
+        object.__setattr__(self, "default_momentum", _clamp(self.default_momentum))
+        object.__setattr__(self, "default_fatigue", _clamp(self.default_fatigue))
+
+
+@dataclass(slots=True)
+class _LoopMetrics:
+    """Intermediate aggregation details used to build the public state."""
+
+    stability: float
+    momentum: float
+    fatigue: float
+    insights: tuple[str, ...]
 
 
 @dataclass(slots=True)
@@ -103,11 +132,18 @@ class LoopRecommendation:
 class DynamicLoopEngine:
     """Aggregate loop signals and highlight interventions."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, parameters: LoopParameters | None = None) -> None:
+        self._parameters = parameters or LoopParameters()
         self._states: list[LoopState] = []
         self._recommendations: list[LoopRecommendation] = []
 
-    def _compute_state(self, signals: Sequence[LoopSignal]) -> LoopState:
+    @property
+    def parameters(self) -> LoopParameters:
+        """Return the configuration driving evaluation thresholds."""
+
+        return self._parameters
+
+    def _aggregate_signals(self, signals: Sequence[LoopSignal]) -> _LoopMetrics:
         if not signals:
             raise ValueError("loop signals are required to compute state")
 
@@ -118,14 +154,16 @@ class DynamicLoopEngine:
 
         positive_trends = [signal.trend for signal in signals if signal.value >= 0]
         negative_trends = [signal.trend for signal in signals if signal.value < 0]
+
         if positive_trends:
             momentum = _clamp(fmean(positive_trends))
         else:
-            momentum = 0.3
+            momentum = self._parameters.default_momentum
+
         if negative_trends:
             fatigue = _clamp(fmean(negative_trends))
         else:
-            fatigue = 0.2
+            fatigue = self._parameters.default_fatigue
 
         metric_groups: dict[str, list[float]] = {}
         for signal in signals:
@@ -136,16 +174,25 @@ class DynamicLoopEngine:
             for metric, values in sorted(metric_groups.items())
         )
 
-        return LoopState(
+        return _LoopMetrics(
             stability=stability,
             momentum=momentum,
             fatigue=fatigue,
             insights=insights,
         )
 
+    def _compute_state(self, signals: Sequence[LoopSignal]) -> LoopState:
+        metrics = self._aggregate_signals(signals)
+        return LoopState(
+            stability=metrics.stability,
+            momentum=metrics.momentum,
+            fatigue=metrics.fatigue,
+            insights=metrics.insights,
+        )
+
     def _derive_recommendations(self, state: LoopState) -> list[LoopRecommendation]:
         recommendations: list[LoopRecommendation] = []
-        if state.stability < 0.4:
+        if state.stability < self._parameters.stability_floor:
             recommendations.append(
                 LoopRecommendation(
                     focus="stabilise",
@@ -154,7 +201,7 @@ class DynamicLoopEngine:
                     tags=("stability", "incident"),
                 )
             )
-        if state.momentum < 0.5:
+        if state.momentum < self._parameters.momentum_floor:
             recommendations.append(
                 LoopRecommendation(
                     focus="momentum",
@@ -163,7 +210,7 @@ class DynamicLoopEngine:
                     tags=("experimentation", "loop"),
                 )
             )
-        if state.fatigue > 0.6:
+        if state.fatigue > self._parameters.fatigue_ceiling:
             recommendations.append(
                 LoopRecommendation(
                     focus="recovery",
