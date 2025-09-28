@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass
+import json
 from statistics import fmean
 from typing import (
     TYPE_CHECKING,
@@ -169,10 +171,13 @@ class DynamicFusionAlgo:
         neutral_confidence: float = 0.55,
         boost_topics: Optional[Iterable[str]] = None,
         llm_adapter: Optional[ReasoningAdapter] = None,
+        reasoning_cache_size: int = 16,
     ) -> None:
         self.neutral_confidence = neutral_confidence
         self.boost_topics: Set[str] = {topic.lower() for topic in boost_topics} if boost_topics else set()
         self.llm_adapter: Optional[ReasoningAdapter] = llm_adapter
+        self.reasoning_cache_size = max(0, reasoning_cache_size)
+        self._reasoning_cache: "OrderedDict[str, str]" = OrderedDict()
 
     def prepare_context(self, market_data: Mapping[str, Any]) -> "PreparedMarketContext":
         """Public helper exposing the normalised market context."""
@@ -595,8 +600,20 @@ class DynamicFusionAlgo:
         if not self.llm_adapter:
             return base_reasoning
 
+        cache_key = self._reasoning_cache_key(
+            action=action,
+            confidence=confidence,
+            market_data=market_data,
+            base_reasoning=base_reasoning,
+        )
+        if cache_key is not None:
+            cached = self._reasoning_cache.get(cache_key)
+            if cached is not None:
+                self._reasoning_cache.move_to_end(cache_key)
+                return cached
+
         try:
-            return self.llm_adapter.enhance_reasoning(
+            enhanced = self.llm_adapter.enhance_reasoning(
                 action=action,
                 confidence=confidence,
                 base_reasoning=base_reasoning,
@@ -604,6 +621,40 @@ class DynamicFusionAlgo:
             )
         except LLMIntegrationError:
             return base_reasoning
+
+        if cache_key is not None:
+            self._reasoning_cache[cache_key] = enhanced
+            if len(self._reasoning_cache) > self.reasoning_cache_size:
+                self._reasoning_cache.popitem(last=False)
+
+        return enhanced
+
+    def _reasoning_cache_key(
+        self,
+        *,
+        action: str,
+        confidence: float,
+        market_data: Dict[str, Any],
+        base_reasoning: str,
+    ) -> str | None:
+        if self.reasoning_cache_size <= 0:
+            return None
+
+        payload = {
+            "action": action,
+            "confidence": round(confidence, 4),
+            "base_reasoning": base_reasoning,
+            "market_data": market_data,
+        }
+
+        try:
+            return json.dumps(payload, sort_keys=True, default=self._serialise_cache_value)
+        except TypeError:
+            return None
+
+    @staticmethod
+    def _serialise_cache_value(value: Any) -> str:
+        return str(value)
 
     def _build_reasoning(
         self,

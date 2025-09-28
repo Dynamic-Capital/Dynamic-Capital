@@ -11,11 +11,13 @@ from dynamic_ai import (
     AISignal,
     DynamicAnalysis,
     DynamicFusionAlgo,
+    OllamaAdapter,
+    OllamaConfig,
     PositionSizing,
     RiskContext,
     RiskManager,
 )
-from dynamic_ai.core import PreparedMarketContext
+from dynamic_ai.core import PreparedMarketContext, ReasoningAdapter
 from dynamic_agi.self_improvement import DynamicSelfImprovement
 from dynamic_metadata import ModelVersion
 from dynamic_version import (
@@ -60,6 +62,7 @@ MODEL_VERSION_INFO = MODEL_VERSION_PLAN.to_model_version(
     "Dynamic AGI", source="dynamic_agi.model"
 )
 MODEL_VERSION = MODEL_VERSION_INFO.tag
+_DEFAULT_LLAMA_MODEL = "llama3.3"
 
 __all__ = [
     "AGIDiagnostics",
@@ -82,6 +85,18 @@ def _coerce_float(value: Any, default: float = 0.0) -> float:
         return float(value)
     except (TypeError, ValueError):
         return default
+
+
+def _coerce_options(options: Mapping[str, Any] | None) -> Dict[str, Any]:
+    if not options:
+        return {}
+    return {str(key): value for key, value in options.items()}
+
+
+def _coerce_headers(headers: Mapping[str, Any] | None) -> Dict[str, str] | None:
+    if not headers:
+        return None
+    return {str(key): str(value) for key, value in headers.items()}
 
 
 def _context_snapshot(context: PreparedMarketContext) -> Dict[str, Any]:
@@ -122,6 +137,32 @@ def _normalise_risk_context(
         treasury_health=_coerce_float(context.get("treasury_health"), 1.0),
         volatility=_coerce_float(context.get("volatility"), 0.0),
     )
+
+
+def _build_ollama_adapter(
+    *,
+    model: str,
+    host: str | None,
+    options: Mapping[str, Any] | None,
+    headers: Mapping[str, Any] | None,
+    keep_alive: float | None,
+    timeout: float | None,
+) -> OllamaAdapter:
+    config = OllamaConfig(model=model)
+    if host is not None:
+        config.host = host
+    if keep_alive is not None:
+        config.keep_alive = keep_alive
+    extra_options = _coerce_options(options)
+    if extra_options:
+        config.options.update(extra_options)
+    coerced_headers = _coerce_headers(headers)
+    if coerced_headers is not None:
+        config.headers = coerced_headers
+    adapter = OllamaAdapter(config=config)
+    if timeout is not None:
+        adapter.timeout = timeout
+    return adapter
 
 
 @dataclass(slots=True)
@@ -207,8 +248,33 @@ class DynamicAGIModel:
         analysis: Optional[DynamicAnalysis] = None,
         risk_manager: Optional[RiskManager] = None,
         self_improvement: Optional[DynamicSelfImprovement] = None,
+        llm_adapter: ReasoningAdapter | None = None,
+        llama_model: str | None = _DEFAULT_LLAMA_MODEL,
+        ollama_host: str | None = None,
+        ollama_options: Mapping[str, Any] | None = None,
+        ollama_headers: Mapping[str, Any] | None = None,
+        ollama_keep_alive: float | None = None,
+        ollama_timeout: float | None = None,
+        reasoning_cache_size: int | None = None,
     ) -> None:
-        self.fusion = fusion or DynamicFusionAlgo()
+        if fusion is None:
+            adapter = llm_adapter
+            if adapter is None and llama_model:
+                adapter = _build_ollama_adapter(
+                    model=llama_model,
+                    host=ollama_host,
+                    options=ollama_options,
+                    headers=ollama_headers,
+                    keep_alive=ollama_keep_alive,
+                    timeout=ollama_timeout,
+                )
+            cache_size = reasoning_cache_size if reasoning_cache_size is not None else 64
+            fusion = DynamicFusionAlgo(
+                llm_adapter=adapter,
+                reasoning_cache_size=cache_size,
+            )
+
+        self.fusion = fusion
         self.analysis = analysis or DynamicAnalysis()
         self.risk_manager = risk_manager or RiskManager()
         self.self_improvement = self_improvement
