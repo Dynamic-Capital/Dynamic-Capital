@@ -27,6 +27,12 @@ __all__ = [
     "DynamicArchitectAgentResult",
     "DynamicEngineerAgent",
     "DynamicEngineerAgentResult",
+    "DynamicOceanLayerAgent",
+    "DynamicEpipelagicAgent",
+    "DynamicMesopelagicAgent",
+    "DynamicBathypelagicAgent",
+    "DynamicAbyssopelagicAgent",
+    "DynamicHadalpelagicAgent",
     "DynamicRecyclingAgent",
     "configure_dynamic_start_agents",
     "ExecutionAgent",
@@ -43,6 +49,7 @@ __all__ = [
     "reset_dynamic_start_agents",
     "RecyclingAgentConfig",
     "RecyclingAgentReport",
+    "OceanLayerAgentSummary",
     "SpaceAgent",
     "SpaceAgentResult",
     "TradingAgent",
@@ -64,6 +71,13 @@ _LAZY = LazyNamespace(
         "DynamicRecyclingAgent": "dynamic_agents.recycling",
         "RecyclingAgentConfig": "dynamic_agents.recycling",
         "RecyclingAgentReport": "dynamic_agents.recycling",
+        "DynamicOceanLayerAgent": "dynamic_agents.ocean",
+        "DynamicEpipelagicAgent": "dynamic_agents.ocean",
+        "DynamicMesopelagicAgent": "dynamic_agents.ocean",
+        "DynamicBathypelagicAgent": "dynamic_agents.ocean",
+        "DynamicAbyssopelagicAgent": "dynamic_agents.ocean",
+        "DynamicHadalpelagicAgent": "dynamic_agents.ocean",
+        "OceanLayerAgentSummary": "dynamic_agents.ocean",
     },
 )
 
@@ -99,6 +113,15 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
         DynamicRecyclingAgent,
         RecyclingAgentConfig,
         RecyclingAgentReport,
+    )
+    from dynamic_agents.ocean import (
+        DynamicOceanLayerAgent,
+        DynamicEpipelagicAgent,
+        DynamicMesopelagicAgent,
+        DynamicBathypelagicAgent,
+        DynamicAbyssopelagicAgent,
+        DynamicHadalpelagicAgent,
+        OceanLayerAgentSummary,
     )
 
 

@@ -11,5 +11,22 @@ structure.
 from integrations.telegram_bot import DynamicTelegramBot
 
 from .recycling import DynamicRecyclingBot
+from .ocean import (
+    DynamicOceanLayerBot,
+    DynamicEpipelagicBot,
+    DynamicMesopelagicBot,
+    DynamicBathypelagicBot,
+    DynamicAbyssopelagicBot,
+    DynamicHadalpelagicBot,
+)
 
-__all__ = ["DynamicTelegramBot", "DynamicRecyclingBot"]
+__all__ = [
+    "DynamicTelegramBot",
+    "DynamicRecyclingBot",
+    "DynamicOceanLayerBot",
+    "DynamicEpipelagicBot",
+    "DynamicMesopelagicBot",
+    "DynamicBathypelagicBot",
+    "DynamicAbyssopelagicBot",
+    "DynamicHadalpelagicBot",
+]

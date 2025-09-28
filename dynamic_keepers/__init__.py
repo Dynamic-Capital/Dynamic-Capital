@@ -57,6 +57,15 @@ _KEEPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicRecyclingKeeper",
         "RecyclingKeeperSnapshot",
     ),
+    "dynamic_keepers.ocean": (
+        "DynamicOceanLayerKeeper",
+        "DynamicEpipelagicKeeper",
+        "DynamicMesopelagicKeeper",
+        "DynamicBathypelagicKeeper",
+        "DynamicAbyssopelagicKeeper",
+        "DynamicHadalpelagicKeeper",
+        "KeeperTrendSnapshot",
+    ),
 }
 
 __all__ = sorted({symbol for symbols in _KEEPER_EXPORTS.values() for symbol in symbols})
