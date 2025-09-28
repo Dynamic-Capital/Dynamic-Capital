@@ -567,6 +567,233 @@ export const resourcePlan: ResourcePlan = {
         "CREATE TRIGGER course_progress_set_updated_at\nBEFORE UPDATE ON public.course_progress\nFOR EACH ROW EXECUTE FUNCTION public.set_course_progress_updated_at();",
       ],
     },
+    {
+      schema: "public",
+      name: "agi_evaluations",
+      comment:
+        "Captures Dynamic AGI model outputs, diagnostics, and market synthesis telemetry.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary key for the AGI evaluation entry.",
+        },
+        {
+          name: "generated_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the Dynamic AGI output was generated.",
+        },
+        {
+          name: "version",
+          type: "text",
+          nullable: false,
+          comment:
+            "Version tag of the Dynamic AGI model responsible for the output.",
+        },
+        {
+          name: "version_info",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment:
+            "Structured metadata describing the AGI release plan snapshot.",
+        },
+        {
+          name: "signal",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment: "Serialized market signal payload emitted by Dynamic AGI.",
+        },
+        {
+          name: "research",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment:
+            "Research synthesis bundle supporting the model recommendation.",
+        },
+        {
+          name: "risk_adjusted",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment:
+            "Risk adjusted perspective for execution and treasury management.",
+        },
+        {
+          name: "market_making",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment:
+            "Market making posture recommended by the Dynamic AGI stack.",
+        },
+        {
+          name: "diagnostics",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment:
+            "Diagnostic signals including consensus and composite scoring.",
+        },
+        {
+          name: "improvement",
+          type: "jsonb",
+          comment:
+            "Optional improvement guidance from self-improvement subsystem.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "agi_evaluations_generated_idx",
+          expression: "(generated_at DESC)",
+        },
+        {
+          name: "agi_evaluations_version_idx",
+          expression: "(version)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+        force: true,
+      },
+      policies: [
+        {
+          name: "agi_evaluations_service_manage",
+          command: "ALL",
+          roles: ["service_role"],
+          using: "true",
+          withCheck: "true",
+          comment: "Allow orchestration jobs to manage AGI evaluation records.",
+        },
+        {
+          name: "agi_evaluations_authenticated_read",
+          command: "SELECT",
+          roles: ["authenticated"],
+          using: "true",
+          comment:
+            "Permit authenticated analysts to review Dynamic AGI evaluations.",
+        },
+      ],
+    },
+    {
+      schema: "public",
+      name: "agi_learning_snapshots",
+      comment:
+        "Telemetry snapshots from Dynamic AGI self-improvement and oversight loops.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary key for the learning snapshot entry.",
+        },
+        {
+          name: "evaluation_id",
+          type: "uuid",
+          nullable: true,
+          references: {
+            schema: "public",
+            table: "agi_evaluations",
+            column: "id",
+            onDelete: "CASCADE",
+          },
+          comment:
+            "Optional link to the AGI evaluation that produced the snapshot.",
+        },
+        {
+          name: "observed_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the snapshot was recorded.",
+        },
+        {
+          name: "output",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment: "Observed AGI output payload captured for fine-tuning.",
+        },
+        {
+          name: "performance",
+          type: "jsonb",
+          nullable: false,
+          default: "'{}'::jsonb",
+          comment: "Performance metrics summarising the evaluation cycle.",
+        },
+        {
+          name: "feedback",
+          type: "jsonb",
+          nullable: false,
+          default: "'[]'::jsonb",
+          comment: "Human or automated feedback items used for reflection.",
+        },
+        {
+          name: "signals",
+          type: "jsonb",
+          nullable: false,
+          default: "'[]'::jsonb",
+          comment: "Structured improvement signals emitted during the cycle.",
+        },
+        {
+          name: "awareness_report",
+          type: "jsonb",
+          comment: "Optional awareness diagnostics captured for the snapshot.",
+        },
+        {
+          name: "metacognition_report",
+          type: "jsonb",
+          comment:
+            "Optional metacognition diagnostics captured for the snapshot.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "agi_learning_snapshots_observed_idx",
+          expression: "(observed_at DESC)",
+        },
+        {
+          name: "agi_learning_snapshots_evaluation_idx",
+          expression: "(evaluation_id)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+        force: true,
+      },
+      policies: [
+        {
+          name: "agi_learning_snapshots_service_manage",
+          command: "ALL",
+          roles: ["service_role"],
+          using: "true",
+          withCheck: "true",
+          comment:
+            "Allow automation to maintain AGI learning telemetry records.",
+        },
+        {
+          name: "agi_learning_snapshots_authenticated_read",
+          command: "SELECT",
+          roles: ["authenticated"],
+          using: "true",
+          comment:
+            "Permit authenticated analysts to inspect learning telemetry snapshots.",
+        },
+      ],
+    },
   ],
   storage: {
     enableRowLevelSecurity: true,
@@ -585,6 +812,19 @@ export const resourcePlan: ResourcePlan = {
       ],
       fileSizeLimit: 10485760,
       comment: "Artifacts, logs, and exports generated by automation jobs.",
+    },
+    {
+      name: "agi-artifacts",
+      public: false,
+      allowedMimeTypes: [
+        "application/json",
+        "application/pdf",
+        "text/csv",
+        "image/png",
+      ],
+      fileSizeLimit: 52428800,
+      comment:
+        "Dynamic AGI model cards, evaluation packs, and governance review material.",
     },
   ],
   storagePolicies: [
@@ -606,6 +846,25 @@ export const resourcePlan: ResourcePlan = {
         "storage.foldername(name) = 'public' OR storage.foldername(name) = auth.uid()::text",
       comment:
         "Authenticated users can read their own folder or shared public assets.",
+    },
+    {
+      name: "agi_artifacts_service_manage",
+      bucket: "agi-artifacts",
+      command: "ALL",
+      roles: ["service_role"],
+      using: "true",
+      withCheck: "true",
+      comment:
+        "Allow orchestration workers to manage AGI governance artifacts.",
+    },
+    {
+      name: "agi_artifacts_authenticated_read",
+      bucket: "agi-artifacts",
+      command: "SELECT",
+      roles: ["authenticated"],
+      using: "storage.foldername(name) = 'shared'",
+      comment:
+        "Authenticated analysts may read shared AGI evaluation and audit exports.",
     },
   ],
 };

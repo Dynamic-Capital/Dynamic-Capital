@@ -1,6 +1,7 @@
 """High-level Supabase orchestration primitives."""
 
 from .engine import (
+    SupabaseConnectivityError,
     SupabaseBucketBlueprint,
     SupabaseFunctionBlueprint,
     SupabaseQueryProfile,
@@ -16,4 +17,5 @@ __all__ = [
     "SupabaseResourceHealth",
     "SupabaseTableBlueprint",
     "DynamicSupabaseEngine",
+    "SupabaseConnectivityError",
 ]

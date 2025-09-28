@@ -5,12 +5,15 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
+from typing import Callable, Deque, Iterable, Mapping, MutableMapping, Sequence
+from urllib import error as urllib_error
+from urllib import request as urllib_request
 
 __all__ = [
     "SupabaseTableBlueprint",
     "SupabaseFunctionBlueprint",
     "SupabaseBucketBlueprint",
+    "SupabaseConnectivityError",
     "SupabaseQueryProfile",
     "SupabaseResourceHealth",
     "DynamicSupabaseEngine",
@@ -73,6 +76,24 @@ def _ensure_datetime(timestamp: datetime) -> datetime:
     if timestamp.tzinfo is None:
         return timestamp.replace(tzinfo=timezone.utc)
     return timestamp.astimezone(timezone.utc)
+
+
+def _default_connectivity_probe(
+    url: str, headers: Mapping[str, str], timeout: float
+) -> int:
+    request = urllib_request.Request(url, headers=dict(headers))
+    with urllib_request.urlopen(request, timeout=timeout) as response:  # type: ignore[arg-type]
+        status = getattr(response, "status", None)
+        if status is None:
+            status = response.getcode()
+        return int(status)
+
+
+ConnectivityProbe = Callable[[str, Mapping[str, str], float], int]
+
+
+class SupabaseConnectivityError(RuntimeError):
+    """Raised when Supabase connectivity verification fails."""
 
 
 # ---------------------------------------------------------------------------
@@ -509,3 +530,70 @@ class DynamicSupabaseEngine:
             dashboard["buckets"][bucket.canonical_name] = health.as_dict()
 
         return dashboard
+
+    def verify_connectivity(
+        self,
+        *,
+        base_url: str,
+        anon_key: str,
+        timeout: float = 5.0,
+        probe: ConnectivityProbe | None = None,
+    ) -> bool:
+        """Check whether the Supabase REST endpoint is reachable.
+
+        Parameters
+        ----------
+        base_url:
+            The Supabase project URL, e.g. ``https://xyzcompany.supabase.co``.
+        anon_key:
+            The Supabase anon or service key used for the connectivity probe.
+        timeout:
+            Maximum number of seconds to wait for the HTTP probe to complete.
+        probe:
+            Optional callable used to override the default HTTP probe implementation.
+
+        Returns
+        -------
+        bool
+            ``True`` when the endpoint responds with a successful HTTP status code.
+
+        Raises
+        ------
+        SupabaseConnectivityError
+            Raised when the endpoint is unreachable or responds with an error status.
+        """
+
+        cleaned_base_url = _normalise_text(base_url, field_name="base_url").rstrip("/")
+        cleaned_key = _normalise_text(anon_key, field_name="anon_key")
+        if not cleaned_base_url:
+            raise ValueError("base_url must not be empty")
+        if not cleaned_key:
+            raise ValueError("anon_key must not be empty")
+
+        timeout_value = max(float(timeout), 0.1)
+        rest_endpoint = f"{cleaned_base_url}/rest/v1/"
+        headers = {
+            "apikey": cleaned_key,
+            "Authorization": f"Bearer {cleaned_key}",
+        }
+        probe_impl = probe or _default_connectivity_probe
+
+        try:
+            status_code = int(probe_impl(rest_endpoint, headers, timeout_value))
+        except SupabaseConnectivityError:
+            raise
+        except (urllib_error.URLError, TimeoutError) as exc:  # pragma: no cover - network errors
+            raise SupabaseConnectivityError(
+                f"failed to contact Supabase endpoint {rest_endpoint}: {exc}"
+            ) from exc
+        except Exception as exc:  # pragma: no cover - unexpected probe failure
+            raise SupabaseConnectivityError(
+                f"unexpected error probing Supabase endpoint {rest_endpoint}: {exc}"
+            ) from exc
+
+        if not (200 <= status_code < 400):
+            raise SupabaseConnectivityError(
+                f"Supabase endpoint {rest_endpoint} responded with status {status_code}"
+            )
+
+        return True

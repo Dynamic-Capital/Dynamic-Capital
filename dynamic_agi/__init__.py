@@ -25,5 +25,13 @@ from .self_improvement import (
     LearningSnapshot,
     __all__ as _self_improvement_all,
 )
+from .supabase import (
+    DYNAMIC_AGI_SUPABASE_BUCKETS,
+    DYNAMIC_AGI_SUPABASE_FUNCTIONS,
+    DYNAMIC_AGI_SUPABASE_TABLES,
+    build_dynamic_agi_supabase_engine,
+    verify_dynamic_agi_supabase_connectivity,
+    __all__ as _supabase_all,
+)
 
-__all__ = [*_model_all, *_self_improvement_all, *_fine_tune_all]
+__all__ = [*_model_all, *_self_improvement_all, *_fine_tune_all, *_supabase_all]
