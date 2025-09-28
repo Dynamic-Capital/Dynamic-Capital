@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import ClassVar, Iterable, Mapping
 
 from dynamic_agents._insight import AgentInsight, utcnow
+from dynamic_skeleton.anatomy import skeleton_body_overview
 from dynamic_skeleton.compliance import ComplianceCheck, ComplianceReport, DynamicComplianceAlgo
 from dynamic_skeleton.governance import (
     PROPOSAL_STATUS_EXECUTED,
@@ -30,6 +31,7 @@ class SkullAgentInsight:
     compliance_report: ComplianceReport | None
     failing_checks: tuple[ComplianceCheck, ...]
     warning_checks: tuple[ComplianceCheck, ...]
+    body_overview: Mapping[str, object]
 
 
 class DynamicSkullAgent:
@@ -109,12 +111,36 @@ class DynamicSkullAgent:
     def generate_insight(self) -> AgentInsight:
         proposals = self._collect_proposals()
         proposal_metrics, status_counts = self._summarise_proposals(proposals)
+        body_overview = skeleton_body_overview()
 
         report: ComplianceReport | None = None
         failing_checks: tuple[ComplianceCheck, ...] = ()
         warning_checks: tuple[ComplianceCheck, ...] = ()
         metrics = dict(proposal_metrics)
         highlights: list[str] = []
+
+        totals = body_overview.get("totals", {})
+        axial_total = float(totals.get("axial", 0))
+        appendicular_total = float(totals.get("appendicular", 0))
+        combined_total = float(totals.get("combined", axial_total + appendicular_total))
+        ratio = float(body_overview.get("axial_to_appendicular_ratio", 0.0))
+        metrics.update(
+            {
+                "axial_bones_total": axial_total,
+                "appendicular_bones_total": appendicular_total,
+                "skeletal_bones_total": combined_total,
+                "axial_to_appendicular_ratio": ratio,
+            }
+        )
+        core_functions = body_overview.get("core_functions", ())
+        if totals and core_functions:
+            highlights.append(
+                (
+                    f"Skeleton alignment: {int(axial_total)} axial / "
+                    f"{int(appendicular_total)} appendicular bones supporting "
+                    f"{len(tuple(core_functions))} core functions."
+                )
+            )
 
         if self._compliance is not None:
             report = self._compliance.generate_report()
@@ -161,6 +187,7 @@ class DynamicSkullAgent:
             "compliance_report": report,
             "failing_checks": failing_checks,
             "warning_checks": warning_checks,
+            "body_overview": body_overview,
         }
         return AgentInsight(
             domain=self.domain,
@@ -188,6 +215,17 @@ class DynamicSkullAgent:
         report = details.get("compliance_report")
         failing = tuple(details.get("failing_checks", ()))
         warnings = tuple(details.get("warning_checks", ()))
+        body_overview = details.get("body_overview") or {
+            "totals": {
+                "axial": int(raw.metrics.get("axial_bones_total", 0)),
+                "appendicular": int(raw.metrics.get("appendicular_bones_total", 0)),
+                "combined": int(raw.metrics.get("skeletal_bones_total", 0)),
+            },
+            "axial_to_appendicular_ratio": float(
+                raw.metrics.get("axial_to_appendicular_ratio", 0.0)
+            ),
+            "core_functions": (),
+        }
         return SkullAgentInsight(
             raw=raw,
             proposals=proposals,
@@ -196,4 +234,5 @@ class DynamicSkullAgent:
             compliance_report=report if isinstance(report, ComplianceReport) else None,
             failing_checks=failing,
             warning_checks=warnings,
+            body_overview=body_overview,
         )

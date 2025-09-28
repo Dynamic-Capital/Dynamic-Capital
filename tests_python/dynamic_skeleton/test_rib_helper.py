@@ -49,6 +49,8 @@ class DynamicRibHelperTest(unittest.TestCase):
         self.assertIn("Governance outcomes", digest)
         self.assertIn("Compliance posture", digest)
         self.assertIn("Compliance FAIL", digest)
+        self.assertIn("Skeletal totals", digest)
+        self.assertIn("Core functions", digest)
 
     def test_compose_digest_handles_raw_agent_insight(self) -> None:
         helper = DynamicRibHelper()

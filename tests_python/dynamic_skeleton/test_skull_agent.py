@@ -101,9 +101,15 @@ class DynamicSkullAgentTest(unittest.TestCase):
             insight.proposal_status_counts[PROPOSAL_STATUS_REJECTED],
             1,
         )
+        self.assertAlmostEqual(insight.raw.metrics["skeletal_bones_total"], 206.0)
+        self.assertEqual(
+            insight.body_overview["totals"],
+            {"axial": 80, "appendicular": 126, "combined": 206},
+        )
         self.assertIn(PROPOSAL_STATUS_EXECUTED, {p.status for p in insight.proposals})
         self.assertIn(PROPOSAL_STATUS_REJECTED, {p.status for p in insight.proposals})
         highlight_text = "\n".join(insight.raw.highlights)
+        self.assertIn("Skeleton alignment", highlight_text)
         self.assertIn("Compliance FAIL", highlight_text)
         self.assertIn("Compliance WARN", highlight_text)
         self.assertIsNotNone(insight.compliance_report)

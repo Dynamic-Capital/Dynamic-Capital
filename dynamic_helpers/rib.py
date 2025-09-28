@@ -48,6 +48,22 @@ class DynamicRibHelper(InsightHelper):
                     f"Governance outcomes: {executed} executed / {rejected} rejected"
                 )
 
+            totals = insight.body_overview.get("totals", {})
+            if totals:
+                highlights.append(
+                    (
+                        "Skeletal totals: "
+                        f"{int(totals.get('axial', 0))} axial | "
+                        f"{int(totals.get('appendicular', 0))} appendicular"
+                    )
+                )
+            core_functions = insight.body_overview.get("core_functions", ())
+            if core_functions:
+                function_names = ", ".join(fn["name"] for fn in core_functions[:3])
+                if len(core_functions) > 3:
+                    function_names += ", ..."
+                highlights.append(f"Core functions: {function_names}")
+
             if insight.compliance_report is not None and insight.compliance_report.summary:
                 highlights.append(
                     f"Compliance posture: {insight.compliance_report.summary}"
