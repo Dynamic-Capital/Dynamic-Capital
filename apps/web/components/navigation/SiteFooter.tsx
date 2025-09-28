@@ -14,6 +14,7 @@ const QUICK_LINKS = [
   { label: "Dynamic UI optimizer", href: "/tools/dynamic-ui-optimizer" },
   { label: "Dynamic market review", href: "/tools/dynamic-market-review" },
   { label: "Dynamic visual systems", href: "/tools/dynamic-visual" },
+  { label: "Dynamic app builder", href: "/tools/dynamic-app" },
   { label: "Multi-LLM studio", href: "/tools/multi-llm" },
   { label: "Provider matrix", href: "/#provider-matrix" },
   { label: "Routing policies", href: "/#orchestration" },

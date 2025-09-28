@@ -1,4 +1,5 @@
 import {
+  AppWindow,
   Gauge,
   LayoutDashboard,
   LineChart,
@@ -102,26 +103,38 @@ const extraNavItems: NavItem[] = [
     showOnMobile: true,
   },
   {
-    id: "ui-optimizer",
+    id: "dynamic-app",
     step: `Step ${firstExtraStep + 3}`,
+    label: "Dynamic app builder",
+    description: "Compose persona journeys and automation guardrails.",
+    icon: AppWindow,
+    path: "/tools/dynamic-app",
+    ariaLabel: `Step ${
+      firstExtraStep + 3
+    }: Dynamic app builder. Compose persona journeys and automation guardrails.`,
+    showOnMobile: true,
+  },
+  {
+    id: "ui-optimizer",
+    step: `Step ${firstExtraStep + 4}`,
     label: "Dynamic UI optimizer",
     description: "Optimize readiness workflows and activation channels.",
     icon: Gauge,
     path: "/tools/dynamic-ui-optimizer",
     ariaLabel: `Step ${
-      firstExtraStep + 3
+      firstExtraStep + 4
     }: Dynamic UI optimizer. Optimize readiness workflows and activation channels.`,
     showOnMobile: true,
   },
   {
     id: "market-review",
-    step: `Step ${firstExtraStep + 4}`,
+    step: `Step ${firstExtraStep + 5}`,
     label: "Market review",
     description: "Track FX strength, volatility, and cross-asset watchlists.",
     icon: LineChart,
     path: "/tools/dynamic-market-review",
     ariaLabel: `Step ${
-      firstExtraStep + 4
+      firstExtraStep + 5
     }: Market review. Track FX strength, volatility, and cross-asset watchlists.`,
     showOnMobile: true,
   },
