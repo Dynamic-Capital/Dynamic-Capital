@@ -1,15 +1,18 @@
-import http from 'node:http';
-import https from 'node:https';
-import { createReadStream, readFileSync } from 'node:fs';
-import { stat } from 'node:fs/promises';
-import { join, normalize } from 'node:path';
-import { createGzip } from 'node:zlib';
-import { getCacheControl, getContentType } from './scripts/utils/static-assets.js';
+import http from "node:http";
+import https from "node:https";
+import { createReadStream, readFileSync } from "node:fs";
+import { stat } from "node:fs/promises";
+import { join, normalize } from "node:path";
+import { createGzip } from "node:zlib";
+import {
+  getCacheControl,
+  getContentType,
+} from "./scripts/utils/static-assets.js";
 
 const port = process.env.PORT || 3000;
 const root = process.cwd();
-const staticRoot = join(root, '_static');
-const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
+const staticRoot = join(root, "_static");
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
 const LOOPBACK_PATTERNS = [/^127\./, /^::1$/, /^::ffff:127\./];
 
 function coerceSiteUrl(raw) {
@@ -17,7 +20,7 @@ function coerceSiteUrl(raw) {
   const trimmed = `${raw}`.trim();
   if (!trimmed) return undefined;
   try {
-    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    const candidate = trimmed.includes("://") ? trimmed : `https://${trimmed}`;
     return new URL(candidate).origin;
   } catch {
     return undefined;
@@ -29,7 +32,7 @@ function coerceHost(raw) {
   const trimmed = `${raw}`.trim();
   if (!trimmed) return undefined;
   try {
-    const candidate = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+    const candidate = trimmed.includes("://") ? trimmed : `https://${trimmed}`;
     return new URL(candidate).hostname;
   } catch {
     return undefined;
@@ -40,27 +43,29 @@ function coerceCommit(raw) {
   if (!raw) return undefined;
   const trimmed = `${raw}`.trim();
   if (!trimmed) return undefined;
-  if (trimmed.toLowerCase() === 'undefined' || trimmed.toLowerCase() === 'null') {
+  if (
+    trimmed.toLowerCase() === "undefined" || trimmed.toLowerCase() === "null"
+  ) {
     return undefined;
   }
   return trimmed;
 }
 
 const siteUrlSources = [
-  ['SITE_URL', process.env.SITE_URL],
-  ['NEXT_PUBLIC_SITE_URL', process.env.NEXT_PUBLIC_SITE_URL],
-  ['URL', process.env.URL],
-  ['APP_URL', process.env.APP_URL],
-  ['PUBLIC_URL', process.env.PUBLIC_URL],
-  ['DEPLOY_URL', process.env.DEPLOY_URL],
-  ['DEPLOYMENT_URL', process.env.DEPLOYMENT_URL],
-  ['DIGITALOCEAN_APP_URL', process.env.DIGITALOCEAN_APP_URL],
+  ["SITE_URL", process.env.SITE_URL],
+  ["NEXT_PUBLIC_SITE_URL", process.env.NEXT_PUBLIC_SITE_URL],
+  ["URL", process.env.URL],
+  ["APP_URL", process.env.APP_URL],
+  ["PUBLIC_URL", process.env.PUBLIC_URL],
+  ["DEPLOY_URL", process.env.DEPLOY_URL],
+  ["DEPLOYMENT_URL", process.env.DEPLOYMENT_URL],
+  ["DIGITALOCEAN_APP_URL", process.env.DIGITALOCEAN_APP_URL],
   [
-    'DIGITALOCEAN_APP_SITE_DOMAIN',
+    "DIGITALOCEAN_APP_SITE_DOMAIN",
     process.env.DIGITALOCEAN_APP_SITE_DOMAIN,
   ],
   [
-    'VERCEL_URL',
+    "VERCEL_URL",
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
   ],
 ];
@@ -77,16 +82,16 @@ for (const [source, value] of siteUrlSources) {
 }
 
 if (!SITE_URL) {
-  SITE_URL = 'http://localhost:3000';
-  if (process.env.NODE_ENV === 'production') {
+  SITE_URL = "http://localhost:3000";
+  if (process.env.NODE_ENV === "production") {
     console.warn(
-      'SITE_URL is not configured; defaulting to http://localhost:3000. Set SITE_URL or NEXT_PUBLIC_SITE_URL to your canonical domain.',
+      "SITE_URL is not configured; defaulting to http://localhost:3000. Set SITE_URL or NEXT_PUBLIC_SITE_URL to your canonical domain.",
     );
   }
 } else if (
-  process.env.NODE_ENV === 'production' &&
+  process.env.NODE_ENV === "production" &&
   siteUrlSource &&
-  !['SITE_URL', 'NEXT_PUBLIC_SITE_URL'].includes(siteUrlSource)
+  !["SITE_URL", "NEXT_PUBLIC_SITE_URL"].includes(siteUrlSource)
 ) {
   console.warn(
     `SITE_URL not provided. Using ${siteUrlSource} to derive ${SITE_URL}. Set SITE_URL to avoid fallback behaviour.`,
@@ -94,9 +99,9 @@ if (!SITE_URL) {
 }
 
 const canonicalHostSources = [
-  ['PRIMARY_HOST', process.env.PRIMARY_HOST],
-  ['DIGITALOCEAN_APP_SITE_DOMAIN', process.env.DIGITALOCEAN_APP_SITE_DOMAIN],
-  ['DIGITALOCEAN_APP_URL', process.env.DIGITALOCEAN_APP_URL],
+  ["PRIMARY_HOST", process.env.PRIMARY_HOST],
+  ["DIGITALOCEAN_APP_SITE_DOMAIN", process.env.DIGITALOCEAN_APP_SITE_DOMAIN],
+  ["DIGITALOCEAN_APP_URL", process.env.DIGITALOCEAN_APP_URL],
 ];
 
 let CANONICAL_HOST = undefined;
@@ -112,11 +117,11 @@ for (const [source, value] of canonicalHostSources) {
 
 if (!CANONICAL_HOST) {
   CANONICAL_HOST = new URL(SITE_URL).hostname;
-  canonicalHostSource = canonicalHostSource ?? 'SITE_URL';
+  canonicalHostSource = canonicalHostSource ?? "SITE_URL";
 } else {
   const siteUrlHost = new URL(SITE_URL).hostname;
   if (siteUrlHost !== CANONICAL_HOST) {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       console.warn(
         `Overriding SITE_URL host ${siteUrlHost} with ${CANONICAL_HOST} derived from ${canonicalHostSource}.`,
       );
@@ -135,19 +140,22 @@ const defaultOrigin = SITE_URL;
 const rawAllowedOrigins = process.env.ALLOWED_ORIGINS;
 
 const commitSources = [
-  ['COMMIT_SHA', process.env.COMMIT_SHA],
-  ['GIT_COMMIT_SHA', process.env.GIT_COMMIT_SHA],
-  ['GIT_COMMIT', process.env.GIT_COMMIT],
-  ['VERCEL_GIT_COMMIT_SHA', process.env.VERCEL_GIT_COMMIT_SHA],
-  ['SOURCE_VERSION', process.env.SOURCE_VERSION],
-  ['DIGITALOCEAN_GIT_COMMIT_SHA', process.env.DIGITALOCEAN_GIT_COMMIT_SHA],
-  ['DIGITALOCEAN_DEPLOYMENT_ID', process.env.DIGITALOCEAN_DEPLOYMENT_ID],
-  ['DIGITALOCEAN_APP_DEPLOYMENT_SHA', process.env.DIGITALOCEAN_APP_DEPLOYMENT_SHA],
-  ['RENDER_GIT_COMMIT', process.env.RENDER_GIT_COMMIT],
-  ['HEROKU_SLUG_COMMIT', process.env.HEROKU_SLUG_COMMIT],
+  ["COMMIT_SHA", process.env.COMMIT_SHA],
+  ["GIT_COMMIT_SHA", process.env.GIT_COMMIT_SHA],
+  ["GIT_COMMIT", process.env.GIT_COMMIT],
+  ["VERCEL_GIT_COMMIT_SHA", process.env.VERCEL_GIT_COMMIT_SHA],
+  ["SOURCE_VERSION", process.env.SOURCE_VERSION],
+  ["DIGITALOCEAN_GIT_COMMIT_SHA", process.env.DIGITALOCEAN_GIT_COMMIT_SHA],
+  ["DIGITALOCEAN_DEPLOYMENT_ID", process.env.DIGITALOCEAN_DEPLOYMENT_ID],
+  [
+    "DIGITALOCEAN_APP_DEPLOYMENT_SHA",
+    process.env.DIGITALOCEAN_APP_DEPLOYMENT_SHA,
+  ],
+  ["RENDER_GIT_COMMIT", process.env.RENDER_GIT_COMMIT],
+  ["HEROKU_SLUG_COMMIT", process.env.HEROKU_SLUG_COMMIT],
 ];
 
-let COMMIT_SHA = 'unknown';
+let COMMIT_SHA = "unknown";
 for (const [source, value] of commitSources) {
   const normalized = coerceCommit(value);
   if (normalized) {
@@ -171,11 +179,11 @@ if (rawAllowedOrigins === undefined) {
       `[CORS] ALLOWED_ORIGINS is missing; defaulting to ${defaultOrigin}`,
     );
   }
-} else if (rawAllowedOrigins.trim() === '') {
-  allowedOrigins = ['*'];
+} else if (rawAllowedOrigins.trim() === "") {
+  allowedOrigins = ["*"];
 } else {
   allowedOrigins = rawAllowedOrigins
-    .split(',')
+    .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
   if (allowedOrigins.length === 0) {
@@ -186,13 +194,13 @@ if (rawAllowedOrigins === undefined) {
   }
 }
 
-if (!allowedOrigins.includes('*') && !allowedOrigins.includes(defaultOrigin)) {
+if (!allowedOrigins.includes("*") && !allowedOrigins.includes(defaultOrigin)) {
   allowedOrigins.push(defaultOrigin);
 }
 
-const allowAllOrigins = allowedOrigins.includes('*');
+const allowAllOrigins = allowedOrigins.includes("*");
 const allowedOriginSet = new Set(allowedOrigins);
-allowedOriginSet.delete('*');
+allowedOriginSet.delete("*");
 
 // Simple in-memory rate limiting to mitigate basic DDoS attacks
 const rateLimitWindowMs = 60 * 1000; // 1 minute
@@ -211,19 +219,19 @@ setInterval(() => {
 async function streamFile(req, res, filePath, status = 200) {
   const type = getContentType(filePath);
   const headers = {
-    'Content-Type': type,
-    'Cache-Control': getCacheControl(filePath, type),
+    "Content-Type": type,
+    "Cache-Control": getCacheControl(filePath, type),
   };
   let info;
   try {
     info = await stat(filePath);
-    headers['Last-Modified'] = info.mtime.toUTCString();
+    headers["Last-Modified"] = info.mtime.toUTCString();
     const etag = `"${info.size}-${info.mtime.getTime()}"`;
-    headers['ETag'] = etag;
+    headers["ETag"] = etag;
     if (
-      req.headers['if-none-match'] === etag ||
-      (req.headers['if-modified-since'] &&
-        new Date(req.headers['if-modified-since']).getTime() >=
+      req.headers["if-none-match"] === etag ||
+      (req.headers["if-modified-since"] &&
+        new Date(req.headers["if-modified-since"]).getTime() >=
           info.mtime.getTime())
     ) {
       res.writeHead(304, headers);
@@ -231,13 +239,13 @@ async function streamFile(req, res, filePath, status = 200) {
     }
   } catch {}
 
-  const accept = req.headers['accept-encoding'] || '';
-  const stream = createReadStream(filePath).on('error', () => {
-    res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end('Internal Server Error');
+  const accept = req.headers["accept-encoding"] || "";
+  const stream = createReadStream(filePath).on("error", () => {
+    res.writeHead(500, { "Content-Type": "text/plain" });
+    res.end("Internal Server Error");
   });
   if (/\bgzip\b/.test(accept)) {
-    headers['Content-Encoding'] = 'gzip';
+    headers["Content-Encoding"] = "gzip";
     res.writeHead(status, headers);
     stream.pipe(createGzip()).pipe(res);
   } else {
@@ -247,18 +255,18 @@ async function streamFile(req, res, filePath, status = 200) {
 }
 
 function extractRequestPath(rawTarget) {
-  if (!rawTarget) return '/';
+  if (!rawTarget) return "/";
   let end = rawTarget.length;
-  const queryIndex = rawTarget.indexOf('?');
+  const queryIndex = rawTarget.indexOf("?");
   if (queryIndex !== -1) {
     end = Math.min(end, queryIndex);
   }
-  const hashIndex = rawTarget.indexOf('#');
+  const hashIndex = rawTarget.indexOf("#");
   if (hashIndex !== -1) {
     end = Math.min(end, hashIndex);
   }
   const path = rawTarget.slice(0, end);
-  return path || '/';
+  return path || "/";
 }
 
 function containsTraversalAttempt(rawPath) {
@@ -266,14 +274,14 @@ function containsTraversalAttempt(rawPath) {
   let candidate = rawPath;
   for (let i = 0; i < 4; i++) {
     const lower = candidate.toLowerCase();
-    if (lower.includes('../') || lower.includes('..\\')) {
+    if (lower.includes("../") || lower.includes("..\\")) {
       return true;
     }
     const segments = lower.split(/[/\\]+/);
-    if (segments.some((segment) => segment === '..')) {
+    if (segments.some((segment) => segment === "..")) {
       return true;
     }
-    if (!lower.includes('%')) {
+    if (!lower.includes("%")) {
       break;
     }
     try {
@@ -290,36 +298,73 @@ function containsTraversalAttempt(rawPath) {
 }
 
 async function respondNotFound(req, res) {
-  const notFound = join(staticRoot, '404.html');
+  const notFound = join(staticRoot, "404.html");
   try {
     await stat(notFound);
     await streamFile(req, res, notFound, 404);
   } catch {
-    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('404 Not Found');
+    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("404 Not Found");
+  }
+}
+
+async function tryServeSpaFallback(req, res, pathname) {
+  if (req.method !== "GET") {
+    return false;
+  }
+
+  const accept = req.headers["accept"];
+  let acceptsHtml = true;
+  if (typeof accept === "string" && accept.trim() !== "") {
+    const normalized = accept.toLowerCase();
+    acceptsHtml = normalized.split(",").some((value) => {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return false;
+      }
+      const [type] = trimmed.split(";", 1);
+      return type.trim() === "text/html";
+    });
+  }
+  if (!acceptsHtml) {
+    return false;
+  }
+
+  const lastSegment = pathname.split("/").pop() ?? "";
+  if (lastSegment.includes(".")) {
+    return false;
+  }
+
+  const fallbackPath = join(staticRoot, "index.html");
+  try {
+    await stat(fallbackPath);
+    await streamFile(req, res, fallbackPath);
+    return true;
+  } catch {
+    return false;
   }
 }
 
 function resolveStaticCandidates(pathname) {
   let target = pathname;
-  if (target.startsWith('/_static')) {
-    target = target.slice('/_static'.length) || '/';
+  if (target.startsWith("/_static")) {
+    target = target.slice("/_static".length) || "/";
   }
-  if (!target.startsWith('/')) {
+  if (!target.startsWith("/")) {
     target = `/${target}`;
   }
-  const trimmed = target.replace(/^\/+/, '');
+  const trimmed = target.replace(/^\/+/, "");
   const candidates = new Set();
   if (!trimmed) {
-    candidates.add('index.html');
+    candidates.add("index.html");
   } else {
     candidates.add(trimmed);
-    if (trimmed.endsWith('/')) {
+    if (trimmed.endsWith("/")) {
       candidates.add(`${trimmed}index.html`);
     } else {
       candidates.add(`${trimmed}/index.html`);
     }
-    if (!trimmed.endsWith('.html')) {
+    if (!trimmed.endsWith(".html")) {
       candidates.add(`${trimmed}.html`);
     }
   }
@@ -330,7 +375,7 @@ async function tryServeStatic(req, res, pathname) {
   const candidates = resolveStaticCandidates(pathname);
   for (const candidate of candidates) {
     const normalized = normalize(candidate);
-    if (normalized.startsWith('..')) {
+    if (normalized.startsWith("..")) {
       continue;
     }
     const filePath = join(staticRoot, normalized);
@@ -349,7 +394,7 @@ async function tryServeStatic(req, res, pathname) {
 }
 
 async function handler(req, res) {
-  const ip = req.socket.remoteAddress || '';
+  const ip = req.socket.remoteAddress || "";
   const now = Date.now();
   let record = requestCounts.get(ip);
   if (!record || now - record.startTime > rateLimitWindowMs) {
@@ -358,12 +403,12 @@ async function handler(req, res) {
   record.count += 1;
   requestCounts.set(ip, record);
   if (record.count > maxRequestsPerWindow) {
-    res.writeHead(429, { 'Content-Type': 'text/plain' });
-    return res.end('Too Many Requests');
+    res.writeHead(429, { "Content-Type": "text/plain" });
+    return res.end("Too Many Requests");
   }
 
-  const forwardedHost = req.headers['x-forwarded-host'];
-  const rawHost = (forwardedHost || req.headers.host || '').trim();
+  const forwardedHost = req.headers["x-forwarded-host"];
+  const rawHost = (forwardedHost || req.headers.host || "").trim();
   let requestHost;
   if (rawHost) {
     try {
@@ -378,21 +423,21 @@ async function handler(req, res) {
   );
 
   if (requestHost && requestHost !== CANONICAL_HOST && !isLoopbackHost) {
-    let requestPath = req.url || '/';
-    if (!requestPath.startsWith('/')) {
+    let requestPath = req.url || "/";
+    if (!requestPath.startsWith("/")) {
       try {
         const parsed = new URL(requestPath, CANONICAL_ORIGIN);
-        requestPath = `${parsed.pathname}${parsed.search}${parsed.hash}` || '/';
+        requestPath = `${parsed.pathname}${parsed.search}${parsed.hash}` || "/";
       } catch {
-        requestPath = '/';
+        requestPath = "/";
       }
     }
-    const target = `${CANONICAL_ORIGIN}${requestPath || '/'}`;
+    const target = `${CANONICAL_ORIGIN}${requestPath || "/"}`;
     res.writeHead(301, {
       Location: target,
-      'Cache-Control': 'public, max-age=300',
-      'Content-Type': 'text/plain',
-      Vary: 'Host',
+      "Cache-Control": "public, max-age=300",
+      "Content-Type": "text/plain",
+      Vary: "Host",
     });
     return res.end(`Redirecting to ${target}`);
   }
@@ -400,30 +445,36 @@ async function handler(req, res) {
   // Enable CORS and security headers for all requests
   const origin = req.headers.origin;
   if (allowAllOrigins) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader("Access-Control-Allow-Origin", "*");
   } else {
-    res.setHeader('Vary', 'Origin');
+    res.setHeader("Vary", "Origin");
     if (origin && allowedOriginSet.has(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader("Access-Control-Allow-Origin", origin);
     }
   }
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader(
-    'Access-Control-Allow-Headers',
-    'authorization, x-client-info, apikey, content-type, x-admin-secret, x-requested-with, accept, origin',
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,PATCH,DELETE,OPTIONS",
   );
-  res.setHeader('Access-Control-Max-Age', '86400');
-  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
-  res.setHeader('Content-Security-Policy', "default-src 'self'");
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "authorization, x-client-info, apikey, content-type, x-admin-secret, x-requested-with, accept, origin",
+  );
+  res.setHeader("Access-Control-Max-Age", "86400");
+  res.setHeader(
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload",
+  );
+  res.setHeader("Content-Security-Policy", "default-src 'self'");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-Content-Type-Options", "nosniff");
 
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     res.writeHead(204);
     return res.end();
   }
 
-  const requestTarget = req.url || '/';
+  const requestTarget = req.url || "/";
   const rawPath = extractRequestPath(requestTarget);
   if (containsTraversalAttempt(rawPath)) {
     console.warn(`Blocked path traversal attempt: ${rawPath}`);
@@ -431,27 +482,31 @@ async function handler(req, res) {
     return;
   }
 
-  const url = new URL(requestTarget, 'http://localhost');
+  const url = new URL(requestTarget, "http://localhost");
   const { pathname } = url;
   console.log(`${req.method} ${pathname}`);
 
-  if (pathname === '/.well-known/health') {
+  if (pathname === "/.well-known/health") {
     res.writeHead(200, {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'no-store',
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
     });
     return res.end(`ok ${COMMIT_SHA}`);
   }
 
-  if (pathname === '/healthz') {
+  if (pathname === "/healthz") {
     res.writeHead(200, {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'no-store',
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
     });
     return res.end(`ok ${COMMIT_SHA}`);
   }
 
   if (await tryServeStatic(req, res, pathname)) {
+    return;
+  }
+
+  if (await tryServeSpaFallback(req, res, pathname)) {
     return;
   }
 
@@ -465,10 +520,10 @@ if (process.env.SSL_KEY_PATH && process.env.SSL_CERT_PATH) {
   server = https.createServer({
     key,
     cert,
-    minVersion: 'TLSv1.2',
-    maxVersion: 'TLSv1.3',
+    minVersion: "TLSv1.2",
+    maxVersion: "TLSv1.3",
   }, handler);
-  console.log('HTTPS server enabled');
+  console.log("HTTPS server enabled");
 } else {
   server = http.createServer(handler);
 }
