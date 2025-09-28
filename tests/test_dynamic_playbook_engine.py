@@ -259,17 +259,26 @@ def test_playbook_synchronizer_caches_ordering_until_dirty() -> None:
     second = synchronizer.catalogue()
     assert first is second
 
+    serialised_first = synchronizer._serialised_entries()
+    serialised_second = synchronizer._serialised_entries()
+    assert serialised_first is serialised_second
+
     synchronizer.update("Initial Play", readiness=0.75)
     refreshed = synchronizer.catalogue()
     assert refreshed is not second
+
+    serialised_third = synchronizer._serialised_entries()
+    assert serialised_third is not serialised_first
 
     unchanged = synchronizer.update("Initial Play")
     assert unchanged is refreshed[0]
     after_noop = synchronizer.catalogue()
     assert after_noop is refreshed
+    assert synchronizer._serialised_entries() is serialised_third
 
     synchronizer.remove("Initial Play")
     assert synchronizer.catalogue() == ()
+    assert synchronizer._serialised_entries() == ()
 
 
 def test_playbook_discipline_stack_cooperates() -> None:

@@ -44,6 +44,7 @@ class PlaybookSynchronizer:
         self._catalogue: dict[str, PlaybookEntry] = {}
         self._dirty = True
         self._ordered_cache: tuple[PlaybookEntry, ...] | None = None
+        self._serialised_cache: tuple[Mapping[str, object], ...] | None = None
 
     @property
     def engine(self) -> DynamicPlaybookEngine:
@@ -120,7 +121,7 @@ class PlaybookSynchronizer:
         self, context: PlaybookContext, *, limit: int | None = None
     ) -> Mapping[str, object]:
         blueprint = self.sync_blueprint(context, limit=limit)
-        entries = [_serialise_entry(entry) for entry in self._ordered_entries()]
+        entries = [dict(entry) for entry in self._serialised_entries()]
         return {"blueprint": blueprint.as_dict(), "entries": entries}
 
     def _coerce_entry(
@@ -144,6 +145,13 @@ class PlaybookSynchronizer:
             )
         return self._ordered_cache
 
+    def _serialised_entries(self) -> tuple[Mapping[str, object], ...]:
+        if self._serialised_cache is None:
+            self._serialised_cache = tuple(
+                _serialise_entry(entry) for entry in self._ordered_entries()
+            )
+        return self._serialised_cache
+
     def _ensure_engine_current(self) -> None:
         if not self._dirty:
             return
@@ -156,4 +164,5 @@ class PlaybookSynchronizer:
     def _mark_dirty(self) -> None:
         self._dirty = True
         self._ordered_cache = None
+        self._serialised_cache = None
 
