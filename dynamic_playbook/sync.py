@@ -43,6 +43,7 @@ class PlaybookSynchronizer:
         self._engine = engine or DynamicPlaybookEngine()
         self._catalogue: dict[str, PlaybookEntry] = {}
         self._dirty = True
+        self._ordered_cache: tuple[PlaybookEntry, ...] | None = None
 
     @property
     def engine(self) -> DynamicPlaybookEngine:
@@ -53,8 +54,11 @@ class PlaybookSynchronizer:
     ) -> PlaybookEntry:
         resolved = self._coerce_entry(entry)
         key = _normalise_title(resolved.title)
+        existing = self._catalogue.get(key)
+        if existing == resolved:
+            return existing
         self._catalogue[key] = resolved
-        self._dirty = True
+        self._mark_dirty()
         return resolved
 
     def implement_many(
@@ -68,17 +72,30 @@ class PlaybookSynchronizer:
                 self._catalogue[key] = entry
                 updated = True
         if updated:
-            self._dirty = True
+            self._mark_dirty()
         return resolved_entries
 
-    def update(self, title: str, **changes: object) -> PlaybookEntry:
+    def update(self, title: str, /, **changes: object) -> PlaybookEntry:
         key = _normalise_title(title)
         if key not in self._catalogue:
             raise KeyError(f"playbook entry {title!r} not found")
         current = self._catalogue[key]
+        if not changes:
+            return current
         updated = replace(current, **changes)
-        self._catalogue[key] = updated
-        self._dirty = True
+        if updated == current:
+            return current
+        new_key = _normalise_title(updated.title)
+        if new_key != key:
+            if new_key in self._catalogue:
+                raise KeyError(
+                    f"playbook entry {updated.title!r} already exists"
+                )
+            self._catalogue.pop(key)
+            self._catalogue[new_key] = updated
+        else:
+            self._catalogue[key] = updated
+        self._mark_dirty()
         return updated
 
     def remove(self, title: str) -> PlaybookEntry:
@@ -87,7 +104,7 @@ class PlaybookSynchronizer:
             removed = self._catalogue.pop(key)
         except KeyError as exc:  # pragma: no cover - defensive
             raise KeyError(f"playbook entry {title!r} not found") from exc
-        self._dirty = True
+        self._mark_dirty()
         return removed
 
     def catalogue(self) -> tuple[PlaybookEntry, ...]:
@@ -118,18 +135,25 @@ class PlaybookSynchronizer:
         raise TypeError("entry must be PlaybookEntry or mapping")
 
     def _ordered_entries(self) -> tuple[PlaybookEntry, ...]:
-        return tuple(
-            sorted(
-                self._catalogue.values(),
-                key=lambda entry: (entry.timestamp, entry.title.lower()),
+        if self._ordered_cache is None:
+            self._ordered_cache = tuple(
+                sorted(
+                    self._catalogue.values(),
+                    key=lambda entry: (entry.timestamp, entry.title.lower()),
+                )
             )
-        )
+        return self._ordered_cache
 
     def _ensure_engine_current(self) -> None:
         if not self._dirty:
             return
+        ordered = self._ordered_entries()
         self._engine.reset()
-        for entry in self._ordered_entries():
+        for entry in ordered:
             self._engine.capture(entry)
         self._dirty = False
+
+    def _mark_dirty(self) -> None:
+        self._dirty = True
+        self._ordered_cache = None
 
