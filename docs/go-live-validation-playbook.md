@@ -1,7 +1,7 @@
 # Go-Live Validation Playbook
 
-Use this guide to walk through the outstanding launch blockers that remain on the
-[Dynamic Capital checklist](./dynamic-capital-checklist.md). Each section is
+Use this guide to walk through the outstanding launch blockers that remain on
+the [Dynamic Capital checklist](./dynamic-capital-checklist.md). Each section is
 structured as a mini-runbook so operators can collect evidence, unblock missing
 prerequisites, and record results alongside their PR or release notes.
 
@@ -19,13 +19,19 @@ prerequisites, and record results alongside their PR or release notes.
    normal user and an admin (the admin account must appear in `bot_admins`).
 3. **CLI tooling** – Install Deno (for scripts) and the Supabase CLI. Export any
    secrets in your shell before running the commands below.
-4. **Mini app content** – Verify `MINI_APP_URL` _or_ `MINI_APP_SHORT_NAME` is set
-   so `/start` can present the launch button during manual checks.
+4. **Mini app content** – Verify `MINI_APP_URL` _or_ `MINI_APP_SHORT_NAME` is
+   set so `/start` can present the launch button during manual checks.
 
 > [!TIP]
 > When network access is unavailable, capture API responses in JSON fixtures and
 > point scripts at them with helper variables such as
 > `TELEGRAM_WEBHOOK_INFO_PATH`.
+
+> [!NOTE]
+> The `scripts/check-webhook.ts` helper also pings the `/version` liveness
+> endpoint using `TELEGRAM_WEBHOOK_HEALTH_URL`, `TELEGRAM_WEBHOOK_URL`, or the
+> webhook URL reported by Telegram. Override the derived URL by exporting
+> `TELEGRAM_WEBHOOK_HEALTH_URL`.
 
 ## 1. Telegram webhook health
 
