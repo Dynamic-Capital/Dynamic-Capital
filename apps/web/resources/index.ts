@@ -40,3 +40,5 @@ export {
 } from "./assets";
 
 export { getRouteDefinitions, isRouteEnabled } from "./routes";
+
+export { tokenContent, tokenDescriptor } from "./token";
