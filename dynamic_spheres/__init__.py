@@ -11,6 +11,7 @@ from .engine import (
     create_sphere_keeper,
     create_sphere_bot,
     create_sphere_helper,
+    sync_dynamic_agi_collaborators,
 )
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "create_sphere_keeper",
     "create_sphere_bot",
     "create_sphere_helper",
+    "sync_dynamic_agi_collaborators",
 ]

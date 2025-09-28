@@ -5,7 +5,20 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Deque, Iterable, Mapping, MutableMapping, Sequence, Literal, cast
+import re
+from typing import (
+    TYPE_CHECKING,
+    Deque,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    Sequence,
+    Literal,
+    cast,
+)
+
+if TYPE_CHECKING:  # pragma: no cover - import cycle guard
+    from dynamic_agi import DynamicAGIModel
 
 __all__ = [
     "SphereProfile",
@@ -18,6 +31,7 @@ __all__ = [
     "create_sphere_keeper",
     "create_sphere_bot",
     "create_sphere_helper",
+    "sync_dynamic_agi_collaborators",
 ]
 
 
@@ -92,6 +106,14 @@ def _coerce_collaborator(
     if isinstance(value, Mapping):
         return SphereCollaborator(**value)
     raise TypeError("collaborator must be a SphereCollaborator or mapping")
+
+
+def _slugify_identifier(value: str, *, fallback: str = "dynamic-agi") -> str:
+    cleaned = value.strip().lower()
+    if not cleaned:
+        cleaned = fallback
+    slug = re.sub(r"[^a-z0-9]+", "-", cleaned).strip("-")
+    return slug or fallback
 
 
 # ------------------------------------------------------------------------ dataclasses
@@ -374,6 +396,7 @@ class DynamicSpheresEngine:
         self._profiles: dict[str, SphereProfile] = {}
         self._pulses: dict[str, Deque[SpherePulse]] = {}
         self._collaborators: dict[str, SphereCollaborator] = {}
+        self._sphere_assignments: dict[str, set[str]] = {}
         if profiles:
             for profile in profiles:
                 self.upsert_profile(profile)
@@ -403,19 +426,43 @@ class DynamicSpheresEngine:
         key = _normalise_key(resolved.name)
         self._profiles[key] = resolved
         self._pulses.setdefault(key, deque(maxlen=self._history))
+        assignments = self._sphere_assignments.setdefault(key, set())
+        if assignments:
+            assignments.clear()
+        for collaborator in self._collaborators.values():
+            if key in self._active_sphere_keys(collaborator.spheres):
+                assignments.add(collaborator.identifier)
         return resolved
 
     def remove_profile(self, name: str) -> None:
         key = _normalise_key(name)
         self._profiles.pop(key, None)
         self._pulses.pop(key, None)
+        assigned = self._sphere_assignments.pop(key, None)
+        if assigned:
+            for identifier in list(assigned):
+                collaborator = self._collaborators.get(identifier)
+                if collaborator is None:
+                    continue
+                previous = collaborator.spheres
+                collaborator.set_spheres(
+                    tuple(
+                        sphere
+                        for sphere in collaborator.spheres
+                        if _normalise_key(sphere) != key
+                    )
+                )
+                self._sync_assignments(collaborator, previous)
 
     # --------------------------------------------------------------- collaborators
     def upsert_collaborator(
         self, collaborator: SphereCollaborator | Mapping[str, object]
     ) -> SphereCollaborator:
         resolved = _coerce_collaborator(collaborator)
+        previous = self._collaborators.get(resolved.identifier)
+        previous_spheres: Sequence[str] | None = previous.spheres if previous else ()
         self._collaborators[resolved.identifier] = resolved
+        self._sync_assignments(resolved, previous_spheres)
         return resolved
 
     def upsert_agent(
@@ -517,12 +564,67 @@ class DynamicSpheresEngine:
         collaborator = self._collaborators.get(key)
         if collaborator is None:
             raise KeyError(f"collaborator '{identifier}' is not registered")
+        previous = collaborator.spheres
         collaborator.set_spheres(spheres or ())
+        self._sync_assignments(collaborator, previous)
         return collaborator
+
+    def sync_with_dynamic_agi(
+        self,
+        agi: "DynamicAGIModel",
+        *,
+        spheres: Sequence[str] | None = None,
+    ) -> tuple[SphereCollaborator, SphereCollaborator, SphereCollaborator, SphereCollaborator]:
+        """Synchronise AGI collaborators onto the engine."""
+
+        identity = agi.identity
+        display = identity.acronym or identity.name
+        base_identifier = _slugify_identifier(display)
+        assigned = tuple(spheres or (profile.name for profile in self.profiles))
+
+        version_info = agi.version_metadata
+        metadata_base: Mapping[str, object] = {
+            "agi_identity": identity.as_dict(),
+            "agi_version": getattr(agi, "version", None),
+            "agi_version_info": version_info,
+        }
+
+        def _metadata(role: str) -> Mapping[str, object]:
+            payload = dict(metadata_base)
+            payload["agi_role"] = role
+            return payload
+
+        agent = self.upsert_agent(
+            f"{base_identifier}-agent",
+            f"{display} Agent",
+            spheres=assigned,
+            metadata=_metadata("agent"),
+        )
+        keeper = self.upsert_keeper(
+            f"{base_identifier}-keeper",
+            f"{display} Keeper",
+            spheres=assigned,
+            metadata=_metadata("keeper"),
+        )
+        bot = self.upsert_bot(
+            f"{base_identifier}-bot",
+            f"{display} Bot",
+            spheres=assigned,
+            metadata=_metadata("bot"),
+        )
+        helper = self.upsert_helper(
+            f"{base_identifier}-helper",
+            f"{display} Helper",
+            spheres=assigned,
+            metadata=_metadata("helper"),
+        )
+        return agent, keeper, bot, helper
 
     def remove_collaborator(self, identifier: str) -> None:
         key = _normalise_key(identifier)
-        self._collaborators.pop(key, None)
+        collaborator = self._collaborators.pop(key, None)
+        if collaborator is not None:
+            self._clear_assignments(collaborator)
 
     # ---------------------------------------------------------------------- capture
     def capture(self, pulse: SpherePulse | Mapping[str, object]) -> SpherePulse:
@@ -576,6 +678,37 @@ class DynamicSpheresEngine:
         raw_trend = latest - baseline
         return raw_trend * (1.0 - self._smoothing) + history[-1].resonance * self._smoothing
 
+    # -------------------------------------------------------------- assignments util
+    def _active_sphere_keys(self, spheres: Sequence[str] | None) -> set[str]:
+        if not spheres:
+            return set()
+        keys: set[str] = set()
+        for raw in spheres:
+            key = _normalise_key(raw)
+            if key in self._profiles:
+                keys.add(key)
+        return keys
+
+    def _sync_assignments(
+        self, collaborator: SphereCollaborator, previous: Sequence[str] | None
+    ) -> None:
+        previous_keys = self._active_sphere_keys(previous)
+        current_keys = self._active_sphere_keys(collaborator.spheres)
+        removed = previous_keys - current_keys
+        added = current_keys - previous_keys
+        for key in removed:
+            assignments = self._sphere_assignments.get(key)
+            if assignments:
+                assignments.discard(collaborator.identifier)
+        for key in added:
+            self._sphere_assignments.setdefault(key, set()).add(collaborator.identifier)
+
+    def _clear_assignments(self, collaborator: SphereCollaborator) -> None:
+        for key in self._active_sphere_keys(collaborator.spheres):
+            assignments = self._sphere_assignments.get(key)
+            if assignments:
+                assignments.discard(collaborator.identifier)
+
     # ------------------------------------------------------------------- aggregates
     def network_state(self) -> SphereNetworkState:
         snapshots: MutableMapping[str, SphereSnapshot] = {}
@@ -590,17 +723,23 @@ class DynamicSpheresEngine:
             total_energy_output = 0.0
             total_energy_delta = 0.0
         collaboration_scores: dict[str, float] = {key: 0.0 for key in snapshots}
-        for collaborator in self._collaborators.values():
-            if not collaborator.spheres:
+        collaborator_shares: dict[str, float] = {}
+        for identifier, collaborator in self._collaborators.items():
+            active = self._active_sphere_keys(collaborator.spheres)
+            if not active:
                 continue
-            share = collaborator.support_score() / max(len(collaborator.spheres), 1)
-            for sphere_key in collaborator.spheres:
-                if sphere_key in collaboration_scores:
-                    collaboration_scores[sphere_key] = _clamp(
-                        collaboration_scores[sphere_key] + share,
-                        lower=0.0,
-                        upper=1.0,
-                    )
+            collaborator_shares[identifier] = collaborator.support_score() / len(active)
+        for sphere_key in collaboration_scores:
+            assignments = self._sphere_assignments.get(sphere_key)
+            if not assignments:
+                continue
+            score = 0.0
+            for identifier in assignments:
+                share = collaborator_shares.get(identifier)
+                if share is None:
+                    continue
+                score = _clamp(score + share, lower=0.0, upper=1.0)
+            collaboration_scores[sphere_key] = score
         if collaboration_scores:
             collaboration_mean = sum(collaboration_scores.values()) / len(collaboration_scores)
         else:
@@ -667,3 +806,14 @@ class DynamicSpheresEngine:
                 for identifier, collaborator in state.collaborators.items()
             },
         }
+
+
+def sync_dynamic_agi_collaborators(
+    engine: DynamicSpheresEngine,
+    agi: "DynamicAGIModel",
+    *,
+    spheres: Sequence[str] | None = None,
+) -> tuple[SphereCollaborator, SphereCollaborator, SphereCollaborator, SphereCollaborator]:
+    """Synchronise a :class:`DynamicSpheresEngine` with a Dynamic AGI model."""
+
+    return engine.sync_with_dynamic_agi(agi, spheres=spheres)
