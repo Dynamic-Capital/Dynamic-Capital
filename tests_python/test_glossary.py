@@ -40,3 +40,30 @@ def test_search_matches_term_when_keyword_present() -> None:
     results = glossary.search("intelligence")
     assert len(results) == 1
     assert results[0].term == "Dynamic Intelligence"
+
+
+def test_search_reindexes_entry_after_update() -> None:
+    glossary = DynamicGlossary(
+        [
+            GlossaryEntry(
+                term="Adaptive Signal",
+                definition="Initial systems insight.",
+                synonyms=("Alpha Signal",),
+            )
+        ]
+    )
+
+    assert glossary.search("initial")
+
+    glossary.add_or_update(
+        GlossaryEntry(
+            term="Adaptive Signal",
+            definition="Refined intelligence descriptor.",
+            synonyms=("Beta Signal",),
+        )
+    )
+
+    assert glossary.search("initial") == ()
+    results = glossary.search("refined")
+    assert len(results) == 1
+    assert results[0].synonyms == ("Beta Signal",)

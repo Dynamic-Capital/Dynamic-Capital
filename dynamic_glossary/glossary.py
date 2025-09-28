@@ -89,6 +89,17 @@ def _compute_review_age(entry: "GlossaryEntry", *, now: datetime) -> timedelta:
     return now - entry.last_reviewed
 
 
+def _build_search_blob(entry: "GlossaryEntry") -> str:
+    segments = [
+        entry.term.lower(),
+        entry.definition.lower(),
+        " ".join(entry.lookup_synonyms),
+        " ".join(category.lower() for category in entry.categories),
+        " ".join(source.lower() for source in entry.sources),
+    ]
+    return " ".join(segment for segment in segments if segment)
+
+
 # ---------------------------------------------------------------------------
 # dataclasses
 
@@ -202,10 +213,12 @@ class DynamicGlossary:
 
     _entries: MutableMapping[str, GlossaryEntry]
     _synonym_index: MutableMapping[str, str]
+    _search_index: MutableMapping[str, str]
 
     def __init__(self, entries: Iterable[GlossaryEntry] | None = None) -> None:
         self._entries = {}
         self._synonym_index = {}
+        self._search_index = {}
         if entries is not None:
             for entry in entries:
                 self.add_or_update(entry)
@@ -219,6 +232,7 @@ class DynamicGlossary:
         if key in self._entries:
             self._purge_synonyms_for(key)
         self._entries[key] = entry
+        self._search_index[key] = _build_search_blob(entry)
         for token in _as_lookup_tokens(entry):
             self._synonym_index[token] = key
 
@@ -241,20 +255,16 @@ class DynamicGlossary:
         return None
 
     def search(self, keyword: str) -> tuple[GlossaryEntry, ...]:
-        if not keyword or not keyword.strip():
+        stripped = keyword.strip()
+        if not stripped:
             return ()
-        key = _normalise_lower(keyword)
+        key = stripped.lower()
         matches: list[GlossaryEntry] = []
-        for entry in self._entries.values():
-            haystack = " ".join(
-                [
-                    entry.term.lower(),
-                    entry.definition.lower(),
-                    " ".join(token for token in entry.lookup_synonyms),
-                    " ".join(cat.lower() for cat in entry.categories),
-                    " ".join(src.lower() for src in entry.sources),
-                ]
-            )
+        for alias, entry in self._entries.items():
+            haystack = self._search_index.get(alias)
+            if haystack is None:
+                haystack = _build_search_blob(entry)
+                self._search_index[alias] = haystack
             if key in haystack:
                 matches.append(entry)
         matches.sort(key=lambda item: (-item.usage_frequency, item.term.lower()))
@@ -346,6 +356,7 @@ class DynamicGlossary:
         to_remove = [alias for alias, root in self._synonym_index.items() if root == key]
         for alias in to_remove:
             self._synonym_index.pop(alias, None)
+        self._search_index.pop(key, None)
 
     # representation helpers ------------------------------------------------
 
