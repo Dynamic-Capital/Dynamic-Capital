@@ -4,7 +4,19 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, is_dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, Mapping, Protocol, Sequence
+from threading import Lock
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    Protocol,
+    Sequence,
+    TypeVar,
+    cast,
+)
 
 from .analysis import DynamicAnalysis
 from .core import AISignal, DynamicFusionAlgo
@@ -813,6 +825,123 @@ class RiskAgent:
             hedge_decisions=tuple(hedge_decisions),
             escalations=tuple(escalations),
         )
+
+
+_DEFAULT_START_AGENT_LOCK = Lock()
+_DEFAULT_START_AGENT_CACHE: Dict[str, Agent] = {}
+_DEFAULT_START_AGENT_FACTORIES: Dict[str, Callable[[], Agent]] = {}
+_START_AGENT_KEYS = ("research", "execution", "risk")
+_TAgent = TypeVar("_TAgent", bound=Agent)
+
+
+def _get_factory(key: str, default: Callable[[], _TAgent]) -> Callable[[], _TAgent]:
+    factory = _DEFAULT_START_AGENT_FACTORIES.get(key)
+    if factory is None:
+        _DEFAULT_START_AGENT_FACTORIES[key] = default
+        return default
+    return cast(Callable[[], _TAgent], factory)
+
+
+def _get_or_create_start_agent(key: str, default: Callable[[], _TAgent]) -> _TAgent:
+    with _DEFAULT_START_AGENT_LOCK:
+        candidate = _DEFAULT_START_AGENT_CACHE.get(key)
+        if candidate is None:
+            factory = _get_factory(key, default)
+            candidate = factory()
+            _DEFAULT_START_AGENT_CACHE[key] = candidate
+        return cast(_TAgent, candidate)
+
+
+def get_default_research_agent() -> "ResearchAgent":
+    """Return a cached research agent instance, instantiating lazily."""
+
+    return _get_or_create_start_agent("research", ResearchAgent)
+
+
+def get_default_execution_agent() -> "ExecutionAgent":
+    """Return a cached execution agent instance, instantiating lazily."""
+
+    return _get_or_create_start_agent("execution", ExecutionAgent)
+
+
+def get_default_risk_agent() -> "RiskAgent":
+    """Return a cached risk agent instance, instantiating lazily."""
+
+    return _get_or_create_start_agent("risk", RiskAgent)
+
+
+def get_dynamic_start_agents() -> Dict[str, Agent]:
+    """Return the lazily initialised persona chain used for quick starts."""
+
+    return {
+        "research": get_default_research_agent(),
+        "execution": get_default_execution_agent(),
+        "risk": get_default_risk_agent(),
+    }
+
+
+def configure_dynamic_start_agents(
+    *,
+    research: "ResearchAgent" | Callable[[], "ResearchAgent"] | None = None,
+    execution: "ExecutionAgent" | Callable[[], "ExecutionAgent"] | None = None,
+    risk: "RiskAgent" | Callable[[], "RiskAgent"] | None = None,
+) -> None:
+    """Override cached persona instances or their factories.
+
+    Passing a callable updates the factory used when instantiating future agents,
+    while providing an instance replaces the cached object directly.
+    """
+
+    updates: MutableMapping[str, Callable[[], Agent] | Agent] = {}
+    if research is not None:
+        updates["research"] = research
+    if execution is not None:
+        updates["execution"] = execution
+    if risk is not None:
+        updates["risk"] = risk
+
+    if not updates:
+        return
+
+    with _DEFAULT_START_AGENT_LOCK:
+        for key, value in updates.items():
+            if key not in _START_AGENT_KEYS:
+                continue
+            if callable(value):
+                _DEFAULT_START_AGENT_FACTORIES[key] = cast(Callable[[], Agent], value)
+                _DEFAULT_START_AGENT_CACHE.pop(key, None)
+            else:
+                _DEFAULT_START_AGENT_CACHE[key] = value
+
+
+def reset_dynamic_start_agents(*names: str) -> None:
+    """Clear cached persona instances, optionally selecting which ones."""
+
+    requested = {name.lower() for name in names if name}
+    if requested:
+        keys = tuple(name for name in _START_AGENT_KEYS if name in requested)
+    else:
+        keys = _START_AGENT_KEYS
+
+    with _DEFAULT_START_AGENT_LOCK:
+        for key in keys:
+            _DEFAULT_START_AGENT_CACHE.pop(key, None)
+            if key == "research":
+                _DEFAULT_START_AGENT_FACTORIES[key] = ResearchAgent
+            elif key == "execution":
+                _DEFAULT_START_AGENT_FACTORIES[key] = ExecutionAgent
+            elif key == "risk":
+                _DEFAULT_START_AGENT_FACTORIES[key] = RiskAgent
+
+
+def prime_dynamic_start_agents() -> Dict[str, Agent]:
+    """Materialise and return the cached persona chain."""
+
+    agents = get_dynamic_start_agents()
+    with _DEFAULT_START_AGENT_LOCK:
+        for key, agent in agents.items():
+            _DEFAULT_START_AGENT_CACHE[key] = agent
+    return agents
 
 
 def _normalise_payload(value: Any) -> Dict[str, Any]:
@@ -1644,10 +1773,17 @@ __all__ = [
     "DynamicChatAgent",
     "ExecutionAgent",
     "ExecutionAgentResult",
+    "configure_dynamic_start_agents",
     "ResearchAgent",
     "ResearchAgentResult",
     "RiskAgent",
     "RiskAgentResult",
+    "get_default_execution_agent",
+    "get_default_research_agent",
+    "get_default_risk_agent",
+    "get_dynamic_start_agents",
+    "prime_dynamic_start_agents",
+    "reset_dynamic_start_agents",
     "SpaceAgent",
     "SpaceAgentResult",
     "WaveAgent",

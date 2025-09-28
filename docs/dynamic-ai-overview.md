@@ -69,3 +69,5 @@ Dynamic AI now exposes a persona chain that mirrors the roadmap’s research →
 6. Optional `risk_parameters` to override guardrail tolerances per run.
 
 The helper returns the persona outputs plus a consolidated decision payload combining the fused action, risk adjustments, and hedge directives so downstream systems ingest a single, structured packet.【F:algorithms/python/dynamic_ai_sync.py†L64-L143】【F:algorithms/python/dynamic_ai_sync.py†L284-L292】
+
+Cold starts are now optimised through cached persona instances. Call `get_dynamic_start_agents()` to materialise the shared research/execution/risk chain, override factories with `configure_dynamic_start_agents()`, and invoke `reset_dynamic_start_agents()` when you need to swap or reset personas.【F:dynamic_ai/agents.py†L694-L808】 The sync helper also honours an optional `dynamic_start_agents` (alias `start_agents`) mapping inside the context, so orchestration can pass pre-warmed persona objects without incurring new allocations on every cycle.【F:algorithms/python/dynamic_ai_sync.py†L202-L237】
