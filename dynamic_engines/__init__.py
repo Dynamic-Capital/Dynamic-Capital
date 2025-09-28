@@ -72,6 +72,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_creative_thinking": ("DynamicCreativeThinking",),
     "dynamic_critical_thinking": ("DynamicCriticalThinking",),
     "dynamic_effect": ("DynamicEffectEngine",),
+    "dynamic_event": (
+        "DynamicEventEngine",
+        "EventPulse",
+        "EventContext",
+        "EventFrame",
+    ),
     "dynamic_emoticon": ("DynamicEmoticon",),
     "dynamic_heal": ("DynamicHealEngine",),
     "dynamic_encryption": ("DynamicEncryptionEngine",),
