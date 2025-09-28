@@ -9,27 +9,31 @@ export interface NextFontOptions {
   fallback?: string[];
 }
 
+export interface NextFontStyle {
+  fontFamily: string;
+  fontWeight?: number;
+  fontStyle?: string;
+}
+
 export interface NextFontResult {
   className: string;
-  variable?: string;
-  style: Record<string, string>;
+  variable: string;
+  style: NextFontStyle;
 }
 
 function createFont(name: string) {
   const fontFamily = name.replace(/_/g, " ");
 
   return function loadFont(options: NextFontOptions = {}): NextFontResult {
-    const variable = options.variable;
-    const className = variable
-      ? variable.replace(/^--/, "")
-      : `font-${fontFamily.toLowerCase().replace(/\s+/g, "-")}`;
+    const variable = options.variable ?? `--font-${fontFamily.toLowerCase()}`;
+    const className = variable.replace(/^--/, "");
 
     return {
       className,
       variable,
       style: {
         fontFamily,
-        fontDisplay: options.display ?? "swap",
+        fontStyle: options.style,
       },
     };
   };
