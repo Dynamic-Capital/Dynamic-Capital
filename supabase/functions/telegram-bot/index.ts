@@ -171,6 +171,21 @@ const corsHeaders = {
 
 const DEFAULT_PARSE_MODE = "HTML";
 
+function normalizeParseMode(parseMode: unknown): string {
+  if (typeof parseMode !== "string") {
+    return DEFAULT_PARSE_MODE;
+  }
+  const trimmed = parseMode.trim();
+  if (!trimmed) {
+    return DEFAULT_PARSE_MODE;
+  }
+  return trimmed.toLowerCase() === "html" ? "HTML" : trimmed;
+}
+
+function shouldEscapeHtml(parseMode: string): boolean {
+  return parseMode.toLowerCase() === "html";
+}
+
 let ocrTextFromBlobImpl = defaultOcrTextFromBlob;
 let parseBankSlipImpl = defaultParseBankSlip;
 
@@ -234,13 +249,14 @@ async function sendMessage(
     return null;
   }
   try {
-    const { parse_mode = DEFAULT_PARSE_MODE, ...rest } = extra;
+    const { parse_mode: rawParseMode, ...rest } = extra;
+    const parseMode = normalizeParseMode(rawParseMode);
     const r = await telegramFetch("sendMessage", {
       chat_id: chatId,
-      text: parse_mode === "HTML" ? escapeHtml(text) : text,
+      text: shouldEscapeHtml(parseMode) ? escapeHtml(text) : text,
       disable_web_page_preview: true,
       allow_sending_without_reply: true,
-      parse_mode,
+      parse_mode: parseMode,
       ...rest,
     });
     const out = await r.json().catch(() => ({}));
@@ -265,12 +281,13 @@ async function editMessage(
     return null;
   }
   try {
-    const { parse_mode = DEFAULT_PARSE_MODE, ...rest } = extra;
+    const { parse_mode: rawParseMode, ...rest } = extra;
+    const parseMode = normalizeParseMode(rawParseMode);
     const r = await telegramFetch("editMessageText", {
       chat_id: chatId,
       message_id: messageId,
-      text: parse_mode === "HTML" ? escapeHtml(text) : text,
-      parse_mode,
+      text: shouldEscapeHtml(parseMode) ? escapeHtml(text) : text,
+      parse_mode: parseMode,
       ...rest,
     });
     const out = await r.json().catch(() => ({}));

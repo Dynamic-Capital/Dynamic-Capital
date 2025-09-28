@@ -54,3 +54,31 @@ test('sendMessage escapes HTML characters', async () => {
     cleanup();
   }
 });
+
+test('sendMessage normalizes HTML parse mode casing', async () => {
+  setEnv();
+  type TelegramPayload = { text: string; parse_mode?: string } & Record<string, unknown>;
+  const payloads: TelegramPayload[] = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = ((
+    _input: Request | string,
+    init?: RequestInit,
+  ) => {
+    const parsed = JSON.parse(String(init?.body)) as TelegramPayload;
+    payloads.push(parsed);
+    const response = new Response(
+      JSON.stringify({ ok: true, result: { message_id: 1 } }),
+      { status: 200 },
+    );
+    return Promise.resolve(response);
+  }) as typeof globalThis.fetch;
+  try {
+    const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
+    await mod.sendMessage(1, '<b>hi</b>', { parse_mode: 'html' });
+    assertEquals(payloads[0].text, '&lt;b&gt;hi&lt;/b&gt;');
+    assertEquals(payloads[0].parse_mode, 'HTML');
+  } finally {
+    globalThis.fetch = originalFetch;
+    cleanup();
+  }
+});
