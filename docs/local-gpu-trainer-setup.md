@@ -78,24 +78,36 @@ The endpoint will be available at `http://localhost:8000/train`.
 - Reserve cloud GPUs (DigitalOcean, Modal, etc.) for large-scale datasets, high batch sizes, or production retraining schedules.
 - This split keeps experimentation agile while ensuring production workloads have the capacity they need.
 
-## 8. Same-Day Implementation Plan
+## 8. Same-Day Rollout Playbook
 
-Follow this agenda to get the local trainer operational today:
+Move through these back-to-back blocks to bring the workstation online without idle gaps:
 
-1. **09:00 – 09:30 | Environment Validation**
-   - Confirm GPU drivers and CUDA toolkit match the PyTorch wheel (`nvidia-smi`, `nvcc --version`).
-   - Create or update the `trainer` Conda environment, then run `python -c "import torch; print(torch.cuda.is_available())"`.
-2. **09:30 – 10:30 | Code & Data Preparation**
-   - Pull the latest Dynamic Capital training repository and sync Supabase credentials via `.env`.
-   - Download the current MT5/TradingView dataset snapshot to `~/datasets/<date>` for reproducibility.
-3. **10:30 – 11:30 | API Bootstrapping**
-   - Start the FastAPI server (`uvicorn main:app --host 0.0.0.0 --port 8000`).
-   - Hit `http://localhost:8000/health` (or equivalent) to verify readiness; tail logs for runtime errors.
-4. **11:30 – 13:00 | Supabase Integration & Smoke Test**
-   - Update the Supabase Function `TRAINER_URL` to the local endpoint and deploy the function.
-   - Trigger a dry-run training job with a small sample batch to ensure end-to-end connectivity.
-5. **14:00 – 17:00 | Iterative Training Loop**
-   - Iterate on hyperparameters (batch size, learning rate, gradient accumulation) based on GPU utilization.
-   - Log metrics to Supabase Storage or a tracking tool (Weights & Biases) for future comparison.
-   - Package artifacts and upload to remote storage; document configuration in the project notebook.
+1. **09:00 – 09:20 | Preflight Audit**
+   - Run `nvidia-smi` and `nvcc --version` to confirm the CUDA toolchain matches the PyTorch build.
+   - While diagnostics run, refresh the `trainer` Conda environment and upgrade pip: `python -m pip install --upgrade pip`.
+   - Verify GPU visibility with `python -c "import torch; print(torch.cuda.is_available())"`.
+2. **09:20 – 10:10 | Repo & Secrets Sync**
+   - Pull the latest Dynamic Capital training repos and merge any local branches needed for the day.
+   - Use the Supabase CLI or password manager to refresh `.env` secrets; test credentials with a quick `supabase functions list`.
+   - Kick off dataset downloads to `~/datasets/<date>` so they finish while the next block begins.
+3. **10:10 – 11:00 | Data Conditioning Pipeline**
+   - Start preprocessing scripts (feature engineering, normalization) against the newly synced data.
+   - Profile CPU utilization; pin heavy jobs with `taskset` if you need to keep cores free for the API server.
+   - Materialize intermediate Parquet/Arrow files for rapid re-runs.
+4. **11:00 – 11:40 | API Bring-Up & Health Checks**
+   - Launch the FastAPI service: `uvicorn main:app --host 0.0.0.0 --port 8000 --reload`.
+   - Hit `/health` and `/train` with sample payloads using `httpie` or `curl` and monitor `uvicorn` logs for latency spikes.
+   - Capture baseline metrics (GPU memory, response time) in your tracking sheet.
+5. **11:40 – 13:00 | Supabase Handshake**
+   - Point `TRAINER_URL` to the local endpoint, deploy the function, and confirm logs reflect the new target.
+   - Fire a smoke-training job (tiny batch, 3–5 epochs) to validate serialization, artifact upload, and callbacks.
+   - Note tuning levers that will need attention in the afternoon (e.g., gradient accumulation, scheduler choice).
+6. **14:00 – 16:30 | Iteration Sprints**
+   - Cycle through experiment templates: adjust learning rate/batch size, push runs, and record metrics in Supabase or Weights & Biases.
+   - Keep the GPU queue full by staging the next run while the current job backtests.
+   - Snapshot best-performing checkpoints to Supabase Storage or OneDrive immediately after each run.
+7. **16:30 – 17:00 | Wrap & Handoff**
+   - Generate a summary report (config + metrics + artifact locations) and file it in the project notebook.
+   - Archive raw logs, clean temporary data, and schedule the next cloud-scale job if additional horsepower is needed.
+   - Leave the FastAPI service running only if active jobs remain; otherwise stop it and commit config updates.
 
