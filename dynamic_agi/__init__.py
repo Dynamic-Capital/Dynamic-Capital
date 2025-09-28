@@ -20,6 +20,12 @@ from .local_machine import (
     build_local_machine_plan_from_output,
     __all__ as _local_machine_all,
 )
+from .training_models import (
+    AGITrainingExample,
+    DynamicAGITrainingModel,
+    DynamicAGITrainingModelGenerator,
+    __all__ as _training_models_all,
+)
 from .model import (
     AGIDiagnostics,
     AGIOutput,
@@ -45,4 +51,5 @@ __all__ = [
     *_self_improvement_all,
     *_fine_tune_all,
     *_local_machine_all,
+    *_training_models_all,
 ]
