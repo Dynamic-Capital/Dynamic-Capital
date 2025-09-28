@@ -218,6 +218,69 @@ def test_playbook_synchronizer_automates_updates_and_sync() -> None:
     assert refreshed.readiness_alignment > initial_blueprint.readiness_alignment
 
 
+def test_playbook_synchronizer_allows_title_rename() -> None:
+    synchronizer = PlaybookSynchronizer()
+    synchronizer.implement(
+        {
+            "title": "Signal Station",
+            "objective": "Coordinate response streams",
+            "stage": "integration",
+        }
+    )
+
+    renamed = synchronizer.update("Signal Station", title="Signal Tower")
+    assert renamed.title == "Signal Tower"
+    assert synchronizer.catalogue()[0].title == "Signal Tower"
+
+    with pytest.raises(KeyError):
+        synchronizer.update("Signal Station", readiness=0.6)
+
+    updated = synchronizer.update("Signal Tower", readiness=0.6)
+    assert updated.readiness == 0.6
+
+    removed = synchronizer.remove("Signal Tower")
+    assert removed.title == "Signal Tower"
+
+    with pytest.raises(KeyError):
+        synchronizer.remove("Signal Station")
+
+
+def test_playbook_synchronizer_caches_ordering_until_dirty() -> None:
+    synchronizer = PlaybookSynchronizer()
+    synchronizer.implement(
+        {
+            "title": "Initial Play",
+            "objective": "Prime system",
+            "stage": "launch",
+        }
+    )
+
+    first = synchronizer.catalogue()
+    second = synchronizer.catalogue()
+    assert first is second
+
+    serialised_first = synchronizer._serialised_entries()
+    serialised_second = synchronizer._serialised_entries()
+    assert serialised_first is serialised_second
+
+    synchronizer.update("Initial Play", readiness=0.75)
+    refreshed = synchronizer.catalogue()
+    assert refreshed is not second
+
+    serialised_third = synchronizer._serialised_entries()
+    assert serialised_third is not serialised_first
+
+    unchanged = synchronizer.update("Initial Play")
+    assert unchanged is refreshed[0]
+    after_noop = synchronizer.catalogue()
+    assert after_noop is refreshed
+    assert synchronizer._serialised_entries() is serialised_third
+
+    synchronizer.remove("Initial Play")
+    assert synchronizer.catalogue() == ()
+    assert synchronizer._serialised_entries() == ()
+
+
 def test_playbook_discipline_stack_cooperates() -> None:
     agent = DynamicPlaybookAgent()
     context = PlaybookContext(
