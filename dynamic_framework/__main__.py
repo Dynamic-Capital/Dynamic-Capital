@@ -5,11 +5,17 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Iterable, Mapping, Sequence, TextIO
 
-from .engine import DynamicFrameworkEngine, FrameworkNode, FrameworkPulse
+from .engine import (
+    DynamicFrameworkEngine,
+    FrameworkNode,
+    FrameworkPulse,
+    FrameworkSnapshot,
+)
 
 DEFAULT_SCENARIO: Mapping[str, Any] = {
     "history": 12,
@@ -157,10 +163,34 @@ def _build_pulses(definitions: Iterable[Mapping[str, Any] | FrameworkPulse]) -> 
     return pulses
 
 
-def load_scenario(path: Path | None) -> Mapping[str, Any]:
-    if path is None:
+def load_scenario(source: Path | str | None, *, stdin: TextIO | None = None) -> Mapping[str, Any]:
+    """Load a scenario definition from disk or standard input.
+
+    The historical CLI accepted only filesystem paths which made it awkward to
+    pipe generated scenarios (for example, from `jq` or a monitoring agent)
+    directly into the evaluation engine.  Supporting a ``-`` sentinel keeps the
+    original behaviour for real files while enabling `stdin` driven workflows.
+    """
+
+    if source is None:
         return copy.deepcopy(DEFAULT_SCENARIO)
-    data = json.loads(path.read_text(encoding="utf-8"))
+
+    if isinstance(source, Path):
+        path = source
+    else:
+        if source == "-":
+            stream = stdin or sys.stdin
+            payload = stream.read()
+            if not payload.strip():
+                raise ValueError("stdin did not contain any scenario JSON")
+            data = json.loads(payload)
+            if not isinstance(data, Mapping):
+                raise TypeError("scenario JSON must be an object")
+            return data
+        path = Path(source).expanduser()
+
+    payload = path.read_text(encoding="utf-8")
+    data = json.loads(payload)
     if not isinstance(data, Mapping):
         raise TypeError("scenario JSON must be an object")
     return data
@@ -177,7 +207,54 @@ def build_engine(payload: Mapping[str, Any]) -> DynamicFrameworkEngine:
     return engine
 
 
-def render_report(engine: DynamicFrameworkEngine) -> str:
+def _serialise_snapshot(snapshot: FrameworkSnapshot) -> dict[str, Any]:
+    return {
+        "key": snapshot.key,
+        "title": snapshot.title,
+        "maturity": snapshot.maturity,
+        "confidence": snapshot.confidence,
+        "enablement": snapshot.enablement,
+        "resilience": snapshot.resilience,
+        "momentum": snapshot.momentum,
+        "status": snapshot.status,
+        "summary": snapshot.summary,
+        "tags": list(snapshot.tags),
+        "recommendations": list(snapshot.recommendations),
+        "alerts": list(snapshot.alerts),
+    }
+
+
+def serialise_report(engine: DynamicFrameworkEngine) -> dict[str, Any]:
+    report = engine.report()
+    nodes = [_serialise_snapshot(engine.snapshot(key)) for key in sorted(engine.nodes)]
+    now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    return {
+        "generated_at": now,
+        "history": engine.history,
+        "decay": engine.decay,
+        "summary": report.summary,
+        "overall_maturity": report.overall_maturity,
+        "execution_health": report.execution_health,
+        "momentum": report.momentum,
+        "focus_areas": list(report.focus_areas),
+        "alerts": list(report.alerts),
+        "nodes": nodes,
+    }
+
+
+def render_report(
+    engine: DynamicFrameworkEngine,
+    *,
+    format: str = "text",
+    indent: int | None = 2,
+) -> str:
+    if format not in {"text", "json"}:
+        raise ValueError(f"unsupported render format: {format}")
+
+    if format == "json":
+        payload = serialise_report(engine)
+        return json.dumps(payload, indent=indent)
+
     report = engine.report()
     lines: list[str] = [report.summary]
     if report.focus_areas:
@@ -213,20 +290,32 @@ def render_report(engine: DynamicFrameworkEngine) -> str:
 
 def run(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Run the Dynamic Framework engine against a scenario file.",
+        description="Run the Dynamic Framework engine against a scenario file or STDIN.",
     )
     parser.add_argument(
         "--scenario",
-        type=Path,
-        help="Path to a JSON scenario describing nodes and pulses.",
+        type=str,
+        help="Path to a JSON scenario describing nodes and pulses, or '-' for STDIN.",
+    )
+    parser.add_argument(
+        "--format",
+        choices=["text", "json"],
+        default="text",
+        help="Control how the report is rendered (default: text).",
+    )
+    parser.add_argument(
+        "--indent",
+        type=int,
+        default=2,
+        help="Indentation to use for JSON output (ignored for text format).",
     )
     args = parser.parse_args(argv)
     try:
-        scenario = load_scenario(args.scenario)
+        scenario = load_scenario(args.scenario, stdin=sys.stdin)
         engine = build_engine(scenario)
     except Exception as exc:  # pragma: no cover - exercised via CLI
         parser.exit(2, f"error: {exc}\n")
-    print(render_report(engine))
+    print(render_report(engine, format=args.format, indent=args.indent))
     return 0
 
 
@@ -234,7 +323,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     return run(argv)
 
 
-__all__ = ["DEFAULT_SCENARIO", "build_engine", "render_report", "run", "main"]
+__all__ = [
+    "DEFAULT_SCENARIO",
+    "build_engine",
+    "load_scenario",
+    "render_report",
+    "serialise_report",
+    "run",
+    "main",
+]
 
 
 if __name__ == "__main__":  # pragma: no cover - CLI entry point

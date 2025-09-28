@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import io
+import json
 import math
 import pytest
 
@@ -10,7 +12,13 @@ from dynamic_framework import (
     FrameworkNode,
     FrameworkPulse,
 )
-from dynamic_framework.__main__ import DEFAULT_SCENARIO, build_engine, render_report
+from dynamic_framework.__main__ import (
+    DEFAULT_SCENARIO,
+    build_engine,
+    load_scenario,
+    render_report,
+    serialise_report,
+)
 
 
 def _ts(minutes: int) -> datetime:
@@ -139,3 +147,46 @@ def test_cli_render_report_includes_recommendations() -> None:
     assert "Node snapshots:" in output
     assert "Automation" in output
     assert "Recommendations:" in output
+
+
+def test_render_report_supports_json_format() -> None:
+    engine = build_engine(DEFAULT_SCENARIO)
+    output = render_report(engine, format="json", indent=None)
+    payload = json.loads(output)
+
+    assert payload["history"] == engine.history
+    assert payload["decay"] == pytest.approx(engine.decay)
+    assert {node["key"] for node in payload["nodes"]} == {
+        "automation",
+        "orchestration",
+        "platform",
+    }
+
+
+def test_serialise_report_matches_json_rendering() -> None:
+    engine = build_engine(DEFAULT_SCENARIO)
+    payload = serialise_report(engine)
+    rendered = json.loads(render_report(engine, format="json"))
+
+    assert rendered["nodes"] == payload["nodes"]
+    assert rendered["focus_areas"] == payload["focus_areas"]
+    assert rendered["alerts"] == payload["alerts"]
+
+
+def test_load_scenario_accepts_stdin_payload() -> None:
+    scenario_data = {
+        "history": 8,
+        "decay": 0.12,
+        "nodes": [
+            {
+                "key": "insight",
+                "title": "Insight",
+            }
+        ],
+        "pulses": [],
+    }
+
+    scenario = load_scenario("-", stdin=io.StringIO(json.dumps(scenario_data)))
+
+    assert scenario["history"] == 8
+    assert scenario["nodes"][0]["key"] == "insight"
