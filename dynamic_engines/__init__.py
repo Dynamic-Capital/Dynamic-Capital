@@ -97,6 +97,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_memory": ("DynamicMemoryConsolidator",),
     "dynamic_memory_reconsolidation": ("DynamicMemoryReconsolidation",),
     "dynamic_metacognition": ("DynamicMetacognition",),
+    "dynamic_mentorship": ("DynamicMentorshipEngine",),
     "dynamic_numbers": ("DynamicNumberComposer",),
     "dynamic_package": ("DynamicPackageDesigner",),
     "dynamic_pillars": ("DynamicPillarFramework",),
