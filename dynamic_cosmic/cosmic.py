@@ -246,10 +246,14 @@ class DynamicCosmic:
         *,
         phenomena: Sequence[CosmicPhenomenon] | None = None,
         bridges: Sequence[CosmicBridge] | None = None,
+        history_limit: int = 500,
     ) -> None:
+        if history_limit <= 0:
+            raise ValueError("history_limit must be positive")
         self._phenomena: MutableMapping[str, CosmicPhenomenon] = {}
         self._bridges: MutableMapping[tuple[str, str], CosmicBridge] = {}
-        self._events: Deque[CosmicTimelineEvent] = deque(maxlen=500)
+        self._events: Deque[CosmicTimelineEvent] = deque()
+        self._history_limit = int(history_limit)
 
         if phenomena:
             for item in phenomena:
@@ -269,6 +273,14 @@ class DynamicCosmic:
     @property
     def events(self) -> tuple[CosmicTimelineEvent, ...]:
         return tuple(self._events)
+
+    @property
+    def history_limit(self) -> int:
+        return self._history_limit
+
+    @property
+    def history_size(self) -> int:
+        return len(self._events)
 
     def register_phenomenon(self, phenomenon: CosmicPhenomenon | Mapping[str, object]) -> CosmicPhenomenon:
         if not isinstance(phenomenon, CosmicPhenomenon):
@@ -312,7 +324,21 @@ class DynamicCosmic:
         if not isinstance(event, CosmicTimelineEvent):
             event = CosmicTimelineEvent(**event)
         self._events.appendleft(event)
+        self._enforce_history_limit()
         return event
+
+    def clear_events(self) -> None:
+        self._events.clear()
+
+    def set_history_limit(self, limit: int) -> None:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        self._history_limit = int(limit)
+        self._enforce_history_limit()
+
+    def _enforce_history_limit(self) -> None:
+        while len(self._events) > self._history_limit:
+            self._events.pop()
 
     def evaluate_resilience(self) -> float:
         if not self._phenomena:

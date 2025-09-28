@@ -90,23 +90,6 @@ def _normalise_metadata(metadata: Mapping[str, object] | None) -> Mapping[str, o
         raise TypeError("metadata must be a mapping")
     return MappingProxyType(dict(metadata))
 
-
-def _weighted_mean(pairs: Sequence[tuple[float, float]] | None, *, default: float) -> float:
-    if not pairs:
-        return default
-    numerator = 0.0
-    denominator = 0.0
-    for value, weight in pairs:
-        weight = float(weight)
-        if weight <= 0:
-            continue
-        numerator += value * weight
-        denominator += weight
-    if denominator <= 0:
-        return default
-    return numerator / denominator
-
-
 # ---------------------------------------------------------------------------
 # dataclasses
 
@@ -289,6 +272,57 @@ class RecyclingStrategy:
 # engine
 
 
+@dataclass(slots=True)
+class _EventMetrics:
+    input_mass: float
+    recovered_mass: float
+    contamination_mass: float
+    energy_kwh: float
+    labour_hours: float
+    weighted_recovery_numerator: float
+    weighted_recovery_denominator: float
+
+
+@dataclass(slots=True)
+class _Aggregate:
+    input_mass: float = 0.0
+    recovered_mass: float = 0.0
+    contamination_mass: float = 0.0
+    energy_kwh: float = 0.0
+    labour_hours: float = 0.0
+    weighted_recovery_numerator: float = 0.0
+    weighted_recovery_denominator: float = 0.0
+
+    def add(self, metrics: _EventMetrics) -> None:
+        self.input_mass += metrics.input_mass
+        self.recovered_mass += metrics.recovered_mass
+        self.contamination_mass += metrics.contamination_mass
+        self.energy_kwh += metrics.energy_kwh
+        self.labour_hours += metrics.labour_hours
+        self.weighted_recovery_numerator += metrics.weighted_recovery_numerator
+        self.weighted_recovery_denominator += metrics.weighted_recovery_denominator
+
+    def subtract(self, metrics: _EventMetrics) -> None:
+        self.input_mass -= metrics.input_mass
+        self.recovered_mass -= metrics.recovered_mass
+        self.contamination_mass -= metrics.contamination_mass
+        self.energy_kwh -= metrics.energy_kwh
+        self.labour_hours -= metrics.labour_hours
+        self.weighted_recovery_numerator -= metrics.weighted_recovery_numerator
+        self.weighted_recovery_denominator -= metrics.weighted_recovery_denominator
+
+    def copy(self) -> "_Aggregate":
+        return _Aggregate(
+            input_mass=self.input_mass,
+            recovered_mass=self.recovered_mass,
+            contamination_mass=self.contamination_mass,
+            energy_kwh=self.energy_kwh,
+            labour_hours=self.labour_hours,
+            weighted_recovery_numerator=self.weighted_recovery_numerator,
+            weighted_recovery_denominator=self.weighted_recovery_denominator,
+        )
+
+
 class DynamicRecyclingEngine:
     """High-level orchestrator for recycling intelligence flows."""
 
@@ -298,8 +332,12 @@ class DynamicRecyclingEngine:
         facility: RecyclingFacilityProfile | None = None,
         history_limit: int = 240,
     ) -> None:
+        if history_limit <= 0:
+            raise ValueError("history_limit must be positive")
         self._facility = facility
-        self._events: Deque[RecyclingEvent] = deque(maxlen=history_limit)
+        self._events: Deque[RecyclingEvent] = deque()
+        self._metrics: Deque[_EventMetrics] = deque()
+        self._totals = _Aggregate()
         self._history_limit = history_limit
 
     @property
@@ -315,6 +353,10 @@ class DynamicRecyclingEngine:
     @property
     def history_limit(self) -> int:
         return self._history_limit
+
+    @property
+    def history_size(self) -> int:
+        return len(self._events)
 
     def register_event(
         self,
@@ -348,6 +390,10 @@ class DynamicRecyclingEngine:
                 raise TypeError("stream must be a MaterialStream or mapping")
             normalised = RecyclingEvent(stream=stream, **payload)
         self._events.append(normalised)
+        metrics = self._compute_metrics(normalised)
+        self._metrics.append(metrics)
+        self._totals.add(metrics)
+        self._enforce_history_limit()
         return normalised
 
     def bulk_register(
@@ -360,22 +406,51 @@ class DynamicRecyclingEngine:
 
     def clear_history(self) -> None:
         self._events.clear()
+        self._metrics.clear()
+        self._totals = _Aggregate()
 
     def iter_history(self) -> Iterable[RecyclingEvent]:
         return tuple(self._events)
 
-    def _select_events(self, window: int | None = None) -> list[RecyclingEvent]:
-        if window is None or window >= len(self._events):
-            return list(self._events)
+    def _compute_metrics(self, event: RecyclingEvent) -> _EventMetrics:
+        mass = event.stream.mass_kg
+        return _EventMetrics(
+            input_mass=mass,
+            recovered_mass=event.recovered_mass,
+            contamination_mass=event.stream.contamination_mass,
+            energy_kwh=event.energy_used_kwh,
+            labour_hours=event.labour_hours,
+            weighted_recovery_numerator=event.recovery_rate * mass,
+            weighted_recovery_denominator=mass,
+        )
+
+    def _enforce_history_limit(self) -> None:
+        while len(self._events) > self._history_limit:
+            self._discard_oldest()
+
+    def _discard_oldest(self) -> None:
+        if not self._events:
+            return
+        self._events.popleft()
+        metrics = self._metrics.popleft()
+        self._totals.subtract(metrics)
+
+    def _collect_metrics(self, window: int | None) -> tuple[_Aggregate, int]:
+        if not self._metrics:
+            return _Aggregate(), 0
+        if window is None or window >= len(self._metrics):
+            return self._totals.copy(), len(self._metrics)
         if window <= 0:
-            return []
-        # convert to list once for slicing from the right
-        recent = list(self._events)
-        return recent[-window:]
+            return _Aggregate(), 0
+        aggregate = _Aggregate()
+        # ``deque`` does not support slicing so we convert the small tail once
+        for metrics in list(self._metrics)[-window:]:
+            aggregate.add(metrics)
+        return aggregate, min(window, len(self._metrics))
 
     def summarise(self, *, window: int | None = None) -> RecyclingInsight:
-        events = self._select_events(window)
-        if not events:
+        aggregate, count = self._collect_metrics(window)
+        if count == 0:
             return RecyclingInsight(
                 total_input_kg=0.0,
                 total_recovered_kg=0.0,
@@ -388,21 +463,24 @@ class DynamicRecyclingEngine:
                 alerts=(),
             )
 
-        total_input = sum(event.stream.mass_kg for event in events)
-        total_recovered = sum(event.recovered_mass for event in events)
-        total_contamination = sum(event.stream.contamination_mass for event in events)
-        total_energy = sum(event.energy_used_kwh for event in events)
-        total_labour = sum(event.labour_hours for event in events)
+        total_input = aggregate.input_mass
+        total_recovered = aggregate.recovered_mass
+        total_contamination = aggregate.contamination_mass
+        total_energy = aggregate.energy_kwh
+        total_labour = aggregate.labour_hours
 
         recycling_rate = total_recovered / total_input if total_input else 0.0
         contamination_index = total_contamination / total_input if total_input else 0.0
         energy_intensity = total_energy / total_input if total_input else 0.0
         labour_intensity = (total_labour / (total_input / 1000.0)) if total_input else 0.0
 
-        recovery_pairs = [
-            (event.recovery_rate, event.stream.mass_kg) for event in events
-        ]
-        avg_recovery_rate = _weighted_mean(recovery_pairs, default=recycling_rate)
+        if aggregate.weighted_recovery_denominator > 0:
+            avg_recovery_rate = _clamp(
+                aggregate.weighted_recovery_numerator
+                / aggregate.weighted_recovery_denominator
+            )
+        else:
+            avg_recovery_rate = recycling_rate
 
         projected_emissions = 0.0
         alerts: list[str] = []
