@@ -81,10 +81,16 @@ def build_lazy_namespace(
 
     ordered_exports: list[str] = []
     overrides: dict[str, str] = {}
+    seen: set[str] = set()
     for module_name, symbols in modules.items():
         for symbol in symbols:
-            ordered_exports.append(symbol)
             if module_name != default_module:
                 overrides[symbol] = module_name
+            elif symbol in overrides:
+                overrides.pop(symbol, None)
+
+            if symbol not in seen:
+                ordered_exports.append(symbol)
+                seen.add(symbol)
 
     return LazyNamespace(default_module, ordered_exports, overrides)
