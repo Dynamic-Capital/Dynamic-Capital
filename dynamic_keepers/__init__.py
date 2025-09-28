@@ -7,15 +7,17 @@ number of callers – especially orchestration scripts – still import from the
 legacy path.  To keep those integrations working we lazily forward attribute
 access to the modern modules.  This mirrors the approach used by
 ``dynamic_engines`` and avoids importing heavy dependencies until a symbol is
-first accessed.
+first accessed.  The shims now reuse :func:`dynamic_agents._lazy.build_lazy_namespace`
+so their caching behaviour matches the other compatibility packages.
 """
 
 from __future__ import annotations
 
-from importlib import import_module
-from typing import Dict, Iterable, Tuple
+from typing import Any
 
-_KEEPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
+from dynamic_agents._lazy import build_lazy_namespace
+
+_KEEPER_EXPORTS = {
     "algorithms.python.api_keeper": (
         "ApiEndpoint",
         "ApiKeeperSyncResult",
@@ -76,22 +78,13 @@ _KEEPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
     ),
 }
 
-__all__ = sorted({symbol for symbols in _KEEPER_EXPORTS.values() for symbol in symbols})
+_LAZY = build_lazy_namespace(_KEEPER_EXPORTS, default_module="algorithms.python.api_keeper")
+__all__ = list(_LAZY.exports)
 
 
-def _load_symbol(module_name: str, symbol: str) -> object:
-    module = import_module(module_name)
-    value = getattr(module, symbol)
-    globals()[symbol] = value
-    return value
+def __getattr__(name: str) -> Any:
+    return _LAZY.resolve(name, globals())
 
 
-def __getattr__(name: str) -> object:
-    for module_name, symbols in _KEEPER_EXPORTS.items():
-        if name in symbols:
-            return _load_symbol(module_name, name)
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def __dir__() -> Iterable[str]:
-    return sorted(__all__)
+def __dir__() -> list[str]:  # pragma: no cover - trivial wrapper
+    return _LAZY.dir(globals())

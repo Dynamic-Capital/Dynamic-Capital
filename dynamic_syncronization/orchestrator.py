@@ -280,6 +280,7 @@ class DynamicSyncronizationOrchestrator:
         self._events: dict[str, Deque[SyncEvent]] = {}
         self._incidents: dict[str, list[SyncIncident]] = {}
         self._incident_index: dict[str, SyncIncident] = {}
+        self._status_cache: dict[str, SyncStatusSnapshot] = {}
         if systems:
             for system in systems:
                 self.add_system(system)
@@ -297,6 +298,7 @@ class DynamicSyncronizationOrchestrator:
         self._events.setdefault(key, deque(maxlen=self._history))
         self._incidents.setdefault(key, [])
         self._dependencies.setdefault(key, set())
+        self._invalidate_status(key)
         return coerced
 
     def add_dependency(
@@ -310,6 +312,7 @@ class DynamicSyncronizationOrchestrator:
         if upstream_key not in self._systems:
             raise KeyError(f"unknown system: {coerced.upstream}")
         self._dependencies.setdefault(downstream_key, set()).add(coerced.upstream)
+        self._invalidate_status(downstream_key)
         return coerced
 
     # ------------------------------------------------------------------
@@ -321,6 +324,7 @@ class DynamicSyncronizationOrchestrator:
         if key not in self._systems:
             raise KeyError(f"unknown system: {coerced.system}")
         self._events.setdefault(key, deque(maxlen=self._history)).append(coerced)
+        self._invalidate_status(key)
         return self.status(coerced.system)
 
     def open_incident(self, incident: SyncIncident | Mapping[str, object]) -> SyncIncident:
@@ -332,6 +336,7 @@ class DynamicSyncronizationOrchestrator:
             raise ValueError(f"incident already exists: {coerced.identifier}")
         self._incidents.setdefault(key, []).append(coerced)
         self._incident_index[coerced.identifier] = coerced
+        self._invalidate_status(key)
         return coerced
 
     def resolve_incident(
@@ -348,6 +353,7 @@ class DynamicSyncronizationOrchestrator:
         if system is not None and _normalise_key(system) != _normalise_key(incident.system):
             return False
         incident.resolve(resolved_at=resolved_at)
+        self._invalidate_status(_normalise_key(incident.system))
         return True
 
     # ------------------------------------------------------------------
@@ -357,6 +363,10 @@ class DynamicSyncronizationOrchestrator:
         key = _normalise_key(system)
         if key not in self._systems:
             raise KeyError(f"unknown system: {system}")
+        cached = self._status_cache.get(key)
+        if cached is not None:
+            return cached
+
         system_definition = self._systems[key]
         events = tuple(self._events.get(key, ()))
         open_incidents = tuple(
@@ -391,7 +401,7 @@ class DynamicSyncronizationOrchestrator:
             metadata["last_notes"] = last_event.notes
         if system_definition.metadata:
             metadata.update(system_definition.metadata)
-        return SyncStatusSnapshot(
+        snapshot = SyncStatusSnapshot(
             system=system_definition.name,
             status=status,
             health_score=health_score,
@@ -404,6 +414,8 @@ class DynamicSyncronizationOrchestrator:
             summary=summary,
             metadata=metadata,
         )
+        self._status_cache[key] = snapshot
+        return snapshot
 
     def iter_status(self) -> Iterator[SyncStatusSnapshot]:
         for system in sorted(self._systems.values(), key=lambda item: item.name.lower()):
@@ -530,3 +542,6 @@ class DynamicSyncronizationOrchestrator:
         if isinstance(incident, Mapping):
             return SyncIncident(**incident)
         raise TypeError("incident must be SyncIncident or mapping")
+
+    def _invalidate_status(self, key: str) -> None:
+        self._status_cache.pop(key, None)
