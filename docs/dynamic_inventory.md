@@ -12,6 +12,7 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_ai`
 - `dynamic_algo`
 - `dynamic_analytical_thinking`
+- `dynamic_architect`
 - `dynamic_arrow`
 - `dynamic_astronomy`
 - `dynamic_atmosphere`
@@ -40,6 +41,7 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_database`
 - `dynamic_dependency`
 - `dynamic_development_team`
+- `dynamic_dimensions`
 - `dynamic_domain`
 - `dynamic_domain_name_system`
 - `dynamic_domain_names`
@@ -47,6 +49,7 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_emoticon`
 - `dynamic_encryption`
 - `dynamic_energy`
+- `dynamic_engineer`
 - `dynamic_engines`
 - `dynamic_exosphere`
 - `dynamic_expressions`
@@ -93,8 +96,11 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_proxy`
 - `dynamic_quote`
 - `dynamic_reference`
+- `dynamic_review`
+- `dynamic_routine`
 - `dynamic_self_awareness`
 - `dynamic_skeleton`
+- `dynamic_skills`
 - `dynamic_space`
 - `dynamic_spheres`
 - `dynamic_stake`
@@ -106,6 +112,8 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_superclusters`
 - `dynamic_syncronization`
 - `dynamic_tag`
+- `dynamic_task_manager`
+- `dynamic_teaching`
 - `dynamic_text`
 - `dynamic_thermosphere`
 - `dynamic_thinking`
