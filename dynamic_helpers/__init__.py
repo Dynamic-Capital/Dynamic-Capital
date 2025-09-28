@@ -21,6 +21,14 @@ _HELPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "summarise_recycling_events",
         "format_recycling_digest",
     ),
+    "dynamic_helpers.ocean": (
+        "DynamicOceanLayerHelper",
+        "DynamicEpipelagicHelper",
+        "DynamicMesopelagicHelper",
+        "DynamicBathypelagicHelper",
+        "DynamicAbyssopelagicHelper",
+        "DynamicHadalpelagicHelper",
+    ),
 }
 
 __all__ = sorted({symbol for symbols in _HELPER_EXPORTS.values() for symbol in symbols})
