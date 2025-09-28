@@ -345,9 +345,30 @@ def run_dynamic_algo_alignment(context: Mapping[str, Any]) -> Dict[str, Any]:
 
     helper_algo: Optional[DynamicTradingAlgo] = None
 
+    auto_sizing_enabled = bool(
+        base_context.get("apply_risk_sizing") or base_context.get("apply_sizing")
+    )
+
+    sizing_candidate: Any | None = None
     sizing_payload: Mapping[str, Any] = {}
+    apply_sizing = False
     if isinstance(trade_signal, Mapping):
         sizing_candidate = trade_signal.get("sizing")
+        if sizing_candidate is not None:
+            if is_dataclass(sizing_candidate):
+                apply_sizing = True
+            elif hasattr(sizing_candidate, "to_dict"):
+                apply_sizing = True
+            elif hasattr(sizing_candidate, "notional") and hasattr(
+                sizing_candidate, "leverage"
+            ):
+                apply_sizing = True
+            elif isinstance(sizing_candidate, Mapping):
+                if "lot" in sizing_candidate or sizing_candidate.get("apply") is True:
+                    apply_sizing = True
+                elif auto_sizing_enabled:
+                    apply_sizing = True
+    if apply_sizing and sizing_candidate is not None:
         sizing_payload = _coerce_payload(sizing_candidate)
 
     applied_sizing: Dict[str, Any] | None = None
