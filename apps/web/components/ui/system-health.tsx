@@ -9,13 +9,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   DynamicBadge,
   type DynamicBadgeEmphasis,
   type DynamicBadgeSize,
   type DynamicBadgeTone,
 } from "@/components/ui/dynamic-badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Activity,
@@ -316,31 +316,111 @@ export function SystemHealthCheckItem({
   );
 }
 
+const RECOMMENDATION_ICON_META = [
+  { icon: TrendingUp, label: "Performance" },
+  { icon: Shield, label: "Reliability" },
+  { icon: Zap, label: "Responsiveness" },
+] as const;
+
+const RECOMMENDATION_DELIMITER = /^(.*?)[\s]*(?::|\u2013|\u2014|-)\s+(.+)$/;
+
+interface RecommendationViewModel {
+  key: string;
+  title: string;
+  description?: string;
+  icon: LucideIcon;
+  iconLabel: string;
+}
+
+function toRecommendationViewModel(
+  recommendation: string,
+  index: number,
+): RecommendationViewModel {
+  const fallbackTitle = `Recommendation ${index + 1}`;
+  const trimmed = recommendation.trim();
+  const { icon, label } =
+    RECOMMENDATION_ICON_META[index % RECOMMENDATION_ICON_META.length];
+
+  if (!trimmed) {
+    return {
+      key: `${index}-fallback`,
+      title: fallbackTitle,
+      icon,
+      iconLabel: label,
+    };
+  }
+
+  const delimiterMatch = trimmed.match(RECOMMENDATION_DELIMITER);
+
+  if (delimiterMatch) {
+    const [, rawTitle, rawDescription] = delimiterMatch;
+    const title = rawTitle.trim() || fallbackTitle;
+    const description = rawDescription.trim();
+
+    return {
+      key: `${index}-${title}`,
+      title,
+      description,
+      icon,
+      iconLabel: label,
+    };
+  }
+
+  return {
+    key: `${index}-${trimmed}`,
+    title: trimmed,
+    icon,
+    iconLabel: label,
+  };
+}
+
 export function SystemHealthRecommendations({
   recommendations,
 }: {
   recommendations: string[];
 }) {
-  if (!recommendations.length) {
+  const items = useMemo(
+    () => recommendations.map(toRecommendationViewModel),
+    [recommendations],
+  );
+
+  if (!items.length) {
     return null;
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <p className="text-sm font-medium">Recommendations</p>
-      <div className="space-y-2">
-        {recommendations.map((rec, index) => (
-          <Alert
-            key={`${index}-${rec}`}
-            className="border-warning/20 bg-warning/10"
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map(({ key, icon: Icon, iconLabel, title, description }) => (
+          <li
+            key={key}
+            className="flex h-full flex-col gap-2 rounded-lg border border-border/40 bg-card/80 p-3"
           >
-            <TrendingUp className="h-4 w-4 text-warning" />
-            <AlertDescription className="text-sm text-warning">
-              {rec}
-            </AlertDescription>
-          </Alert>
+            <div className="flex items-start gap-2">
+              <div
+                aria-hidden
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-border/40 bg-muted/40"
+              >
+                <Icon className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold leading-tight">
+                  <span className="sr-only">{iconLabel}: </span>
+                  {title}
+                </p>
+                {description
+                  ? (
+                    <p className="text-xs text-muted-foreground">
+                      {description}
+                    </p>
+                  )
+                  : null}
+              </div>
+            </div>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
