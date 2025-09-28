@@ -177,3 +177,43 @@ def test_sentiment_lobe_handles_generator_feeds() -> None:
 
     assert signal.score == pytest.approx(0.4666666, rel=1e-6)
     assert signal.confidence == pytest.approx(0.4666666, rel=1e-6)
+
+
+class DummyAdapter:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def enhance_reasoning(
+        self,
+        *,
+        action: str,
+        confidence: float,
+        base_reasoning: str,
+        market_context: dict[str, Any],
+        prior_dialogue: Iterable[tuple[str, str]] | None = None,
+    ) -> str:
+        self.calls += 1
+        return f"enhanced-{self.calls}-{action}-{confidence:.2f}"
+
+
+def test_reasoning_cache_reuses_adapter_output() -> None:
+    adapter = DummyAdapter()
+    algo = DynamicFusionAlgo(llm_adapter=adapter, reasoning_cache_size=4)
+    payload = {"signal": "BUY", "confidence": 0.6, "volatility": 1.0}
+
+    first = algo.generate_signal(payload)
+    second = algo.generate_signal(payload)
+
+    assert adapter.calls == 1
+    assert second.reasoning == first.reasoning
+
+
+def test_reasoning_cache_respects_disabled_configuration() -> None:
+    adapter = DummyAdapter()
+    algo = DynamicFusionAlgo(llm_adapter=adapter, reasoning_cache_size=0)
+    payload = {"signal": "BUY", "confidence": 0.6, "volatility": 1.0}
+
+    algo.generate_signal(payload)
+    algo.generate_signal(payload)
+
+    assert adapter.calls == 2
