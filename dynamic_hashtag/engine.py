@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from heapq import nlargest
 from itertools import islice
 from math import exp
 from statistics import fmean
@@ -98,6 +99,20 @@ def _ensure_timezone(value: datetime) -> datetime:
     return value.astimezone(timezone.utc)
 
 
+def _compute_quality(
+    signal: "HashtagSignal", *, volume_normaliser: float, conversion_normaliser: float
+) -> float:
+    volume_component = min(signal.volume / volume_normaliser, 1.0)
+    conversion_component = min(signal.conversions / conversion_normaliser, 1.0)
+    return _clamp(
+        volume_component * 0.32
+        + signal.velocity * 0.24
+        + signal.resonance * 0.2
+        + conversion_component * 0.12
+        + signal.sentiment * 0.12
+    )
+
+
 # ---------------------------------------------------------------------------
 # dataclasses
 
@@ -133,16 +148,10 @@ class HashtagSignal:
     def quality(self) -> float:
         """Composite strength metric representing signal quality."""
 
-        volume_component = min(self.volume / _DEFAULT_VOLUME_NORMALISER, 1.0)
-        conversion_component = min(
-            self.conversions / _DEFAULT_CONVERSION_NORMALISER, 1.0
-        )
-        return _clamp(
-            volume_component * 0.32
-            + self.velocity * 0.24
-            + self.resonance * 0.2
-            + conversion_component * 0.12
-            + self.sentiment * 0.12
+        return _compute_quality(
+            self,
+            volume_normaliser=_DEFAULT_VOLUME_NORMALISER,
+            conversion_normaliser=_DEFAULT_CONVERSION_NORMALISER,
         )
 
 
@@ -271,6 +280,10 @@ class HashtagDigest:
     _highlight_index: MutableMapping[str, HashtagHighlight] = field(
         init=False, repr=False
     )
+    _ordered_cache: tuple[tuple[str, float], ...] | None = field(
+        init=False, repr=False, default=None
+    )
+    _rank_cache: tuple[str, ...] | None = field(init=False, repr=False, default=None)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "_highlight_index", {})
@@ -284,12 +297,34 @@ class HashtagDigest:
         highlight = HashtagHighlight.from_signals(hashtag, score, bundled)
         self.highlights.append(highlight)
         self._highlight_index[hashtag] = highlight
+        object.__setattr__(self, "_ordered_cache", None)
+        object.__setattr__(self, "_rank_cache", None)
+
+    def _seed_ranking(
+        self, ordered: Sequence[tuple[str, float]]
+    ) -> None:  # pragma: no cover - internal helper
+        cached = tuple(ordered)
+        object.__setattr__(self, "_ordered_cache", cached)
+        object.__setattr__(
+            self, "_rank_cache", tuple(tag for tag, _ in cached)
+        )
 
     def ranked_hashtags(self) -> tuple[str, ...]:
-        ordered = sorted(
-            self.hashtag_scores.items(), key=lambda item: item[1], reverse=True
-        )
-        return tuple(hashtag for hashtag, _ in ordered)
+        if self._rank_cache is None:
+            if not self.hashtag_scores:
+                return ()
+            ordered = tuple(
+                sorted(
+                    self.hashtag_scores.items(),
+                    key=lambda item: item[1],
+                    reverse=True,
+                )
+            )
+            object.__setattr__(self, "_ordered_cache", ordered)
+            object.__setattr__(
+                self, "_rank_cache", tuple(hashtag for hashtag, _ in ordered)
+            )
+        return self._rank_cache
 
     def top_hashtags(self) -> tuple[str, ...]:
         ordered = self.ranked_hashtags()
@@ -299,9 +334,19 @@ class HashtagDigest:
         return self._highlight_index.get(hashtag)
 
     def as_payload(self) -> Mapping[str, object]:
-        ordered = sorted(
-            self.hashtag_scores.items(), key=lambda item: item[1], reverse=True
-        )
+        ordered = self._ordered_cache
+        if ordered is None:
+            ordered = tuple(
+                sorted(
+                    self.hashtag_scores.items(),
+                    key=lambda item: item[1],
+                    reverse=True,
+                )
+            )
+            object.__setattr__(self, "_ordered_cache", ordered)
+            object.__setattr__(
+                self, "_rank_cache", tuple(hashtag for hashtag, _ in ordered)
+            )
         highlight_map = self._highlight_index
         highlights = [
             highlight_map[tag].to_dict()
@@ -378,7 +423,11 @@ class DynamicHashtagEngine:
         candidates = self._recent_signals(sample_size)
         hashtag_signals: dict[str, list[HashtagSignal]] = defaultdict(list)
         hashtag_scores: dict[str, float] = {}
-        effective_signals: list[HashtagSignal] = []
+        effective_count = 0
+        total_velocity = 0.0
+        total_sentiment = 0.0
+        total_quality = 0.0
+        unique_platforms: set[str] = set()
         blocked_platforms = context.blocked_platform_set
 
         for signal in candidates:
@@ -387,42 +436,50 @@ class DynamicHashtagEngine:
             score = self._score_signal(signal, context, anchor)
             if score <= 0.0:
                 continue
-            effective_signals.append(signal)
+            effective_count += 1
+            total_velocity += signal.velocity
+            total_sentiment += signal.sentiment
+            total_quality += self._signal_quality(signal)
+            unique_platforms.add(signal.platform)
             current = hashtag_scores.get(signal.hashtag, 0.0)
             if score > current:
                 hashtag_scores[signal.hashtag] = score
             hashtag_signals[signal.hashtag].append(signal)
 
-        ordered = sorted(
-            hashtag_scores.items(), key=lambda item: item[1], reverse=True
-        )
-        top_hashtags: list[str] = []
-        for hashtag, score in ordered[: context.highlight_limit]:
+        if not hashtag_scores:
+            digest.metrics.update(
+                {
+                    "history_size": float(len(self._history)),
+                    "available_signals": float(len(candidates)),
+                    "effective_signals": 0.0,
+                    "mean_velocity": 0.0,
+                    "mean_sentiment": 0.0,
+                    "mean_quality": 0.0,
+                    "platform_diversity": 0.0,
+                    "target_alignment": 0.0,
+                }
+            )
+            return digest
+
+        limit = context.highlight_limit
+        top_entries = nlargest(limit, hashtag_scores.items(), key=lambda item: item[1])
+        for hashtag, score in top_entries:
             digest.add(hashtag, score, hashtag_signals[hashtag])
-            top_hashtags.append(hashtag)
+        digest._seed_ranking(top_entries)
 
-        unique_platforms = {signal.platform for signal in effective_signals}
+        top_hashtags = [hashtag for hashtag, _ in top_entries]
 
-        if effective_signals:
-            mean_quality = fmean(signal.quality for signal in effective_signals)
-        else:
-            mean_quality = 0.0
+        mean_velocity = total_velocity / effective_count if effective_count else 0.0
+        mean_sentiment = total_sentiment / effective_count if effective_count else 0.0
+        mean_quality = total_quality / effective_count if effective_count else 0.0
 
         digest.metrics.update(
             {
                 "history_size": float(len(self._history)),
                 "available_signals": float(len(candidates)),
-                "effective_signals": float(len(effective_signals)),
-                "mean_velocity": (
-                    fmean(signal.velocity for signal in effective_signals)
-                    if effective_signals
-                    else 0.0
-                ),
-                "mean_sentiment": (
-                    fmean(signal.sentiment for signal in effective_signals)
-                    if effective_signals
-                    else 0.0
-                ),
+                "effective_signals": float(effective_count),
+                "mean_velocity": mean_velocity,
+                "mean_sentiment": mean_sentiment,
                 "mean_quality": mean_quality,
                 "platform_diversity": (
                     len(unique_platforms) / max(len(top_hashtags), 1)
@@ -487,6 +544,13 @@ class DynamicHashtagEngine:
 
         score = base * recency_factor
         return _clamp(score)
+
+    def _signal_quality(self, signal: HashtagSignal) -> float:
+        return _compute_quality(
+            signal,
+            volume_normaliser=self._volume_normaliser,
+            conversion_normaliser=self._conversion_normaliser,
+        )
 
     def _calculate_alignment(
         self,
