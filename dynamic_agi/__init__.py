@@ -7,6 +7,7 @@ from .model import (
     DynamicAGIModel,
     MODEL_VERSION,
     MODEL_VERSION_INFO,
+    MODEL_VERSION_PLAN,
     DYNAMIC_AGI_EXPANSION,
 )
 from .self_improvement import (
@@ -23,6 +24,7 @@ __all__ = [
     "DynamicAGIModel",
     "MODEL_VERSION",
     "MODEL_VERSION_INFO",
+    "MODEL_VERSION_PLAN",
     "DYNAMIC_AGI_EXPANSION",
     "DynamicSelfImprovement",
     "ImprovementPlan",
