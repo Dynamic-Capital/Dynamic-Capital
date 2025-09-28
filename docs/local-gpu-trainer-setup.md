@@ -44,8 +44,11 @@ The endpoint will be available at `http://localhost:8000/train`.
 ## 4. Connect Supabase Functions
 
 - Update the `TRAINER_URL` in your Supabase `/train` function to point at the local server, e.g. `http://<local-ip>:8000` or `http://host.docker.internal:8000` when running inside Docker.
-- To expose the trainer to Supabase Cloud, tunnel the port with ngrok or Cloudflare Tunnel:
+- To expose the trainer to Supabase Cloud, tunnel the port with ngrok or Cloudflare Tunnel.
+  For ngrok you can either run the binary directly or leverage the project script:
   ```bash
+  npm run tunnel:functions -- --port=8000
+  # or run ngrok manually if you prefer
   ngrok http 8000
   ```
   Use the issued HTTPS URL as the remote `TRAINER_URL`.

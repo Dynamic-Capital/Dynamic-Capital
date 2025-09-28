@@ -904,10 +904,11 @@ Then POST to `http://localhost:54321/functions/v1/telegram-webhook` with
 
 If teammates need to validate the webhook or Mini App from outside your
 network, expose the local Supabase functions port through a trusted tunnel
-provider such as ngrok:
+provider such as ngrok. A convenience script is available to start the
+standard tunnel:
 
 ```bash
-ngrok http 54321
+npm run tunnel:functions
 ```
 
 Share the resulting HTTPS endpoint with reviewers and map requests to the
