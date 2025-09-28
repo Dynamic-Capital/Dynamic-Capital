@@ -1114,6 +1114,81 @@ def _compose_persona_message(name: str, payload: Mapping[str, Any]) -> ChatTurn:
     return ChatTurn(role=name, content=content, metadata=metadata)
 
 
+def _compose_agi_message(payload: Mapping[str, Any]) -> ChatTurn | None:
+    if not isinstance(payload, Mapping):
+        return None
+
+    metadata: Dict[str, Any] = {}
+    summary_parts: list[str] = []
+
+    signal = payload.get("signal")
+    if isinstance(signal, Mapping):
+        signal_payload = dict(signal)
+        metadata["signal"] = signal_payload
+        action = signal_payload.get("action")
+        if action:
+            summary_parts.append(f"AGI signal: {action}")
+        reasoning = _extract_text(signal_payload.get("reasoning"), signal_payload.get("narrative"))
+        if reasoning:
+            summary_parts.append(reasoning)
+        confidence_note = _optional_float(signal_payload.get("confidence"))
+        if confidence_note is not None:
+            metadata["signal_confidence"] = round(confidence_note, 4)
+
+    risk_adjusted = payload.get("risk_adjusted")
+    if isinstance(risk_adjusted, Mapping):
+        risk_payload = dict(risk_adjusted)
+        metadata["risk_adjusted"] = risk_payload
+        action = risk_payload.get("action")
+        if action:
+            summary_parts.append(f"Risk overlay: {action}")
+        confidence_note = _optional_float(risk_payload.get("confidence"))
+        if confidence_note is not None:
+            metadata["confidence"] = round(confidence_note, 4)
+        rationale = _extract_text(risk_payload.get("rationale"))
+        if rationale:
+            summary_parts.append(rationale)
+        if risk_payload.get("hedge_decisions"):
+            metadata["hedge_decisions"] = risk_payload["hedge_decisions"]
+        if risk_payload.get("escalations"):
+            metadata["escalations"] = risk_payload["escalations"]
+
+    sizing = payload.get("sizing")
+    if isinstance(sizing, Mapping):
+        metadata["sizing"] = dict(sizing)
+
+    market_making = payload.get("market_making")
+    if isinstance(market_making, Mapping):
+        metadata["market_making"] = dict(market_making)
+
+    diagnostics = payload.get("diagnostics")
+    if isinstance(diagnostics, Mapping):
+        metadata["diagnostics"] = {
+            "context": dict(diagnostics.get("context") or {}),
+            "composite": dict(diagnostics.get("composite") or {}),
+            "consensus": dict(diagnostics.get("consensus") or {}),
+        }
+
+    improvement = payload.get("improvement")
+    if isinstance(improvement, Mapping):
+        metadata["improvement"] = dict(improvement)
+        improvement_summary = _extract_text(
+            improvement.get("summary"),
+            improvement.get("focus"),
+            improvement.get("headline"),
+        )
+        if improvement_summary:
+            summary_parts.append(f"Improvement focus: {improvement_summary}")
+    elif improvement is not None:
+        metadata["improvement"] = improvement
+
+    if not metadata and not summary_parts:
+        return None
+
+    content = " ".join(part for part in summary_parts if part) or "Dynamic AGI evaluation completed."
+    return ChatTurn(role="agi", content=content, metadata=metadata)
+
+
 class DynamicChatAgent:
     """Persona that shapes agent outputs into a human-friendly transcript."""
 
@@ -1126,14 +1201,14 @@ class DynamicChatAgent:
         if not isinstance(agents_mapping, Mapping):
             agents_mapping = {}
 
-        research_payload = _normalise_agent_payload(
-            context.get("research") or agents_mapping.get("research")
+        research_payload = dict(
+            _normalise_agent_payload(context.get("research") or agents_mapping.get("research"))
         )
-        execution_payload = _normalise_agent_payload(
-            context.get("execution") or agents_mapping.get("execution")
+        execution_payload = dict(
+            _normalise_agent_payload(context.get("execution") or agents_mapping.get("execution"))
         )
-        risk_payload = _normalise_agent_payload(
-            context.get("risk") or agents_mapping.get("risk")
+        risk_payload = dict(
+            _normalise_agent_payload(context.get("risk") or agents_mapping.get("risk"))
         )
 
         decision_payload = context.get("decision")
@@ -1141,6 +1216,99 @@ class DynamicChatAgent:
             decision_payload = {}
         else:
             decision_payload = dict(decision_payload)
+
+        agi_payload: Dict[str, Any] = {}
+        for candidate in (
+            context.get("agi"),
+            context.get("agi_output"),
+            context.get("agi_result"),
+            agents_mapping.get("agi"),
+            agents_mapping.get("agi_output"),
+        ):
+            candidate_payload = _normalise_agent_payload(candidate)
+            if candidate_payload:
+                agi_payload = candidate_payload
+                break
+
+        if agi_payload:
+            agi_research = agi_payload.get("research")
+            if isinstance(agi_research, Mapping):
+                research_payload.setdefault("analysis", dict(agi_research))
+                research_confidence = _optional_float(agi_research.get("confidence"))
+                if research_confidence is not None and "confidence" not in research_payload:
+                    research_payload["confidence"] = research_confidence
+                research_rationale = _extract_text(
+                    research_payload.get("rationale"),
+                    agi_research.get("summary"),
+                    agi_research.get("headline"),
+                    agi_research.get("insight"),
+                    agi_payload.get("research_summary"),
+                )
+                if research_rationale:
+                    research_payload["rationale"] = research_rationale
+
+            agi_signal = agi_payload.get("signal")
+            if isinstance(agi_signal, Mapping):
+                execution_payload.setdefault("signal", dict(agi_signal))
+                exec_confidence = _optional_float(agi_signal.get("confidence"))
+                if exec_confidence is not None and "confidence" not in execution_payload:
+                    execution_payload["confidence"] = exec_confidence
+                exec_rationale = _extract_text(
+                    execution_payload.get("rationale"),
+                    agi_signal.get("reasoning"),
+                    agi_signal.get("narrative"),
+                    agi_payload.get("signal_summary"),
+                )
+                if exec_rationale:
+                    execution_payload["rationale"] = exec_rationale
+
+            agi_risk = agi_payload.get("risk_adjusted")
+            agi_risk_dict = dict(agi_risk) if isinstance(agi_risk, Mapping) else {}
+            if agi_risk_dict:
+                risk_payload.setdefault("adjusted_signal", dict(agi_risk_dict))
+                risk_confidence = _optional_float(agi_risk_dict.get("confidence"))
+                if risk_confidence is not None and "confidence" not in risk_payload:
+                    risk_payload["confidence"] = risk_confidence
+                risk_rationale = _extract_text(
+                    risk_payload.get("rationale"),
+                    agi_risk_dict.get("rationale"),
+                    agi_payload.get("risk_summary"),
+                )
+                if risk_rationale:
+                    risk_payload["rationale"] = risk_rationale
+                if agi_risk_dict.get("hedge_decisions") and "hedge_decisions" not in risk_payload:
+                    risk_payload["hedge_decisions"] = agi_risk_dict["hedge_decisions"]
+                if agi_risk_dict.get("escalations") and "escalations" not in risk_payload:
+                    risk_payload["escalations"] = agi_risk_dict["escalations"]
+
+                if "action" not in decision_payload and agi_risk_dict.get("action"):
+                    decision_payload["action"] = agi_risk_dict["action"]
+                risk_confidence_value = _optional_float(agi_risk_dict.get("confidence"))
+                if risk_confidence_value is not None and "confidence" not in decision_payload:
+                    decision_payload["confidence"] = risk_confidence_value
+                if agi_risk_dict.get("hedge_decisions") and "hedge_decisions" not in decision_payload:
+                    decision_payload["hedge_decisions"] = agi_risk_dict["hedge_decisions"]
+                if agi_risk_dict.get("rationale") and "rationale" not in decision_payload:
+                    decision_payload["rationale"] = agi_risk_dict["rationale"]
+
+            if isinstance(agi_signal, Mapping):
+                if "action" not in decision_payload and agi_signal.get("action"):
+                    decision_payload["action"] = agi_signal["action"]
+                signal_confidence = _optional_float(agi_signal.get("confidence"))
+                if signal_confidence is not None and "confidence" not in decision_payload:
+                    decision_payload["confidence"] = signal_confidence
+                if "rationale" not in decision_payload:
+                    decision_payload["rationale"] = _extract_text(
+                        agi_signal.get("reasoning"),
+                        agi_signal.get("narrative"),
+                    )
+
+            sizing_payload = agi_payload.get("sizing")
+            if isinstance(sizing_payload, Mapping) and "sizing" not in decision_payload:
+                decision_payload["sizing"] = dict(sizing_payload)
+
+            if "rationale" not in decision_payload:
+                decision_payload["rationale"] = research_payload.get("rationale") or execution_payload.get("rationale")
 
         user_prompt = _extract_text(
             context.get("user"),
@@ -1160,6 +1328,10 @@ class DynamicChatAgent:
             messages.append(_compose_persona_message("execution", execution_payload))
         if risk_payload:
             messages.append(_compose_persona_message("risk", risk_payload))
+
+        agi_message = _compose_agi_message(agi_payload)
+        if agi_message is not None:
+            messages.append(agi_message)
 
         action_text = decision_payload.get("action")
         confidence_value = _optional_float(decision_payload.get("confidence"))
@@ -1199,6 +1371,8 @@ class DynamicChatAgent:
             narrative_parts.append(
                 f"Risk: {risk_payload.get('rationale') or 'guardrails reviewed.'}"
             )
+        if agi_message is not None:
+            narrative_parts.append(f"Dynamic AGI: {agi_message.content}")
         if action_text:
             action_summary = f"Final decision: {action_text}"
             if confidence_value is not None:

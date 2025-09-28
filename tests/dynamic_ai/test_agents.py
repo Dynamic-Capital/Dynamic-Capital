@@ -214,3 +214,51 @@ def test_dynamic_chat_agent_produces_transcript(research_payload: dict) -> None:
     assert any(message["role"] == "execution" for message in payload["messages"])
     assert payload["decision"]["action"] in {"BUY", "SELL", "HOLD", "NEUTRAL"}
     assert "Final decision" in payload["rationale"]
+
+
+def test_dynamic_chat_agent_blends_dynamic_agi_payload() -> None:
+    agent = DynamicChatAgent()
+    result = agent.run(
+        {
+            "user": "Share the AGI verdict.",
+            "agi": {
+                "signal": {
+                    "action": "BUY",
+                    "confidence": 0.72,
+                    "reasoning": "Momentum, flow, and sentiment align on upside continuation.",
+                },
+                "research": {
+                    "summary": "Liquidity inflows and resilient macro data back the long bias.",
+                    "confidence": 0.68,
+                },
+                "risk_adjusted": {
+                    "action": "BUY",
+                    "confidence": 0.66,
+                    "rationale": "Risk within guardrails; hedge to cap tail risk.",
+                    "hedge_decisions": [
+                        {"symbol": "EURUSD", "action": "HOLD", "size": 0.25},
+                    ],
+                },
+                "sizing": {"base": 100000, "adjusted": 75000},
+                "market_making": {"spread_bps": 1.2, "skew": -0.15},
+                "diagnostics": {
+                    "context": {"momentum": 0.6, "volatility": 0.2},
+                    "composite": {"score": 0.71},
+                    "consensus": {"fusion": 0.68},
+                },
+                "improvement": {"summary": "Track treasury stress signals nightly."},
+            },
+        }
+    )
+
+    payload = result.to_dict()
+
+    assert payload["agent"] == "chat"
+    agi_messages = [message for message in payload["messages"] if message["role"] == "agi"]
+    assert agi_messages, "expected AGI summary message"
+    agi_metadata = agi_messages[0].get("metadata", {})
+    assert agi_metadata.get("market_making") == {"spread_bps": 1.2, "skew": -0.15}
+    assert agi_metadata.get("diagnostics", {}).get("consensus", {}).get("fusion") == pytest.approx(0.68)
+    assert payload["decision"]["action"] == "BUY"
+    assert payload["decision"]["confidence"] == pytest.approx(0.66)
+    assert "Dynamic AGI" in payload["rationale"]
