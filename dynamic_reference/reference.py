@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import heapq
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -274,7 +275,11 @@ class DynamicReference:
         retire_tags = set(context.retire_tags)
 
         focus_hits = (
-            sum(1 for entry in entries if focus_tags.intersection(entry.tags))
+            sum(
+                1
+                for entry in entries
+                if any(tag in focus_tags for tag in entry.tags)
+            )
             if focus_tags
             else 0
         )
@@ -284,18 +289,20 @@ class DynamicReference:
         confidence_health = fmean(entry.accuracy for entry in entries)
         refresh_pressure = fmean(1.0 - entry.freshness for entry in entries)
 
-        scored = sorted(
+        highlight_slice = heapq.nlargest(
+            highlight_limit,
             entries,
             key=lambda entry: self._score_entry(entry, focus_tags),
-            reverse=True,
         )
-        highlight_slice = scored[:highlight_limit]
         highlight_references = tuple(entry.title for entry in highlight_slice)
 
         prompts: list[str] = []
         for entry in highlight_slice:
-            if focus_tags.intersection(entry.tags):
-                focus_clause = ", ".join(sorted(focus_tags.intersection(entry.tags)))
+            focus_hits_for_entry = sorted(
+                tag for tag in entry.tags if tag in focus_tags
+            )
+            if focus_hits_for_entry:
+                focus_clause = ", ".join(focus_hits_for_entry)
             else:
                 focus_clause = entry.domain
             prompts.append(
