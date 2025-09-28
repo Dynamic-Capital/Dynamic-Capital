@@ -6,6 +6,10 @@ from dynamic_playbook import (
     DynamicPlaybookEngine,
     DynamicPlaybookHelper,
     DynamicPlaybookKeeper,
+    build_dynamic_capital_blueprint,
+    dynamic_capital_context,
+    dynamic_capital_entries,
+    dynamic_capital_payload,
     PlaybookBlueprint,
     PlaybookContext,
     PlaybookDisciplineInsight,
@@ -341,3 +345,23 @@ def test_playbook_discipline_stack_cooperates() -> None:
     bot = DynamicPlaybookBot(agent=agent, helper=helper, keeper=keeper)
     report = bot.discipline(context=context)
     assert report.count("Blueprint Summary") >= 1
+
+
+def test_dynamic_capital_playbook_blueprint_alignment() -> None:
+    entries = dynamic_capital_entries()
+    assert len(entries) >= 30
+
+    context = dynamic_capital_context()
+    assert "Dynamic Capital" in context.mission
+
+    blueprint = build_dynamic_capital_blueprint()
+    assert blueprint.total_entries == len(entries)
+    assert blueprint.risk_outlook in {"Comfortable", "Aligned", "Elevated risk", "Critical risk"}
+    assert any(
+        stream in {"governance", "risk", "alliances", "treasury", "legacy"}
+        for stream in blueprint.focus_streams
+    )
+
+    payload = dynamic_capital_payload()
+    assert payload["blueprint"]["total_entries"] == len(entries)
+    assert len(payload["entries"]) == len(entries)
