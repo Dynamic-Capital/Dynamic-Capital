@@ -16,6 +16,12 @@ from typing import Dict, Iterable, Tuple
 # Symbols are imported lazily so optional dependencies from the source modules
 # do not trigger import errors until the attribute is accessed.
 _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
+    "dynamic_architect": (
+        "DynamicArchitect",
+        "DynamicArchitectEngine",
+        "DynamicArchitectAgent",
+        "DynamicArchitectBot",
+    ),
     "dynamic_agents": ("DynamicChatAgent",),
     "dynamic_ai": (
         "DynamicFusionAlgo",
@@ -67,6 +73,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_effect": ("DynamicEffectEngine",),
     "dynamic_emoticon": ("DynamicEmoticon",),
     "dynamic_encryption": ("DynamicEncryptionEngine",),
+    "dynamic_engineer": (
+        "DynamicEngineer",
+        "DynamicEngineerEngine",
+        "DynamicEngineerAgent",
+        "DynamicEngineerBot",
+    ),
     "dynamic_implicit_memory": ("DynamicImplicitMemory",),
     "dynamic_index": ("DynamicIndex",),
     "dynamic_letter_index": ("DynamicLetterIndex",),
