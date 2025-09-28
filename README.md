@@ -325,6 +325,11 @@ run without the deprecation warning.
 - **File organizer** – Run `npm run docs:organize` to regenerate
   `docs/REPO_FILE_ORGANIZER.md`, which groups top-level files by domain so
   contributors can quickly find the right surface.
+- **Dynamic experiment catalog** – The experimental `dynamic_*` workspaces in
+  the repository root are indexed in
+  [`docs/dynamic_inventory.md`](docs/dynamic_inventory.md). Regenerate the list
+  after adding or archiving a module so the documentation matches the on-disk
+  layout.
 
 ## Project starters
 
