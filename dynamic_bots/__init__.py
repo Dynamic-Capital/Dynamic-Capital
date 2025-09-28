@@ -9,5 +9,6 @@ structure.
 """
 
 from integrations.telegram_bot import DynamicTelegramBot
+from dynamic_metadata.bot import DynamicMetadataBot
 
-__all__ = ["DynamicTelegramBot"]
+__all__ = ["DynamicTelegramBot", "DynamicMetadataBot"]

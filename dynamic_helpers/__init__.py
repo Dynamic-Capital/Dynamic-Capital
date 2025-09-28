@@ -15,6 +15,7 @@ _HELPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_ai": ("calibrate_lorentzian_lobe", "load_lorentzian_model"),
     "dynamic_algo": ("normalise_symbol", "ORDER_ACTION_BUY", "ORDER_ACTION_SELL", "SUCCESS_RETCODE"),
     "dynamic_bridge": ("create_dynamic_mt5_bridge",),
+    "dynamic_metadata.helper": ("ensure_metadata_mapping", "merge_metadata"),
 }
 
 __all__ = sorted({symbol for symbols in _HELPER_EXPORTS.values() for symbol in symbols})

@@ -14,6 +14,7 @@ from typing import (
     MutableMapping,
     Protocol,
     Sequence,
+    Tuple,
     TypeVar,
     cast,
 )
@@ -47,6 +48,15 @@ from dynamic_space import (
     SpaceSector,
     SpaceSnapshot,
 )
+from dynamic_metadata.engine import (
+    MetadataEntry,
+    MetadataLedger,
+    coerce_entries,
+    coerce_filters,
+    coerce_focus_terms,
+    summarise_records,
+)
+from dynamic_metadata.helper import merge_metadata
 
 
 @dataclass(slots=True)
@@ -244,6 +254,25 @@ class BloodAgentResult(AgentResult):
                 "conditions": list(self.context.conditions),
                 "notes": self.context.notes,
             }
+        return payload
+
+
+@dataclass(slots=True)
+class MetadataAgentResult(AgentResult):
+    """Metadata digest curated by the metadata persona."""
+
+    focus: Tuple[str, ...]
+    records: Tuple[MetadataEntry, ...]
+    ledger_size: int
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = AgentResult.to_dict(self)
+        payload["focus"] = list(self.focus)
+        payload["records"] = [record.to_dict() for record in self.records]
+        payload["ledger_size"] = self.ledger_size
+        if self.metadata:
+            payload["metadata"] = dict(self.metadata)
         return payload
 
 
@@ -1383,6 +1412,102 @@ class BloodAgent:
         )
 
 
+class MetadataAgent:
+    """Persona curating metadata coverage across desks."""
+
+    name = "metadata"
+
+    def __init__(self, ledger: MetadataLedger | None = None) -> None:
+        self.ledger = ledger or MetadataLedger()
+        self._lock = Lock()
+
+    def run(self, payload: Mapping[str, Any]) -> MetadataAgentResult:
+        context = dict(payload or {})
+
+        with self._lock:
+            if context.get("clear") or context.get("reset"):
+                self.ledger.clear()
+
+            entries_payload = context.get("entries")
+            if entries_payload is None and "entry" in context:
+                entries_payload = context.get("entry")
+
+            ingested: Tuple[MetadataEntry, ...] = ()
+            if entries_payload:
+                try:
+                    new_entries = coerce_entries(entries_payload)
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(
+                        "MetadataAgent entries must be mappings or MetadataEntry instances"
+                    ) from exc
+                ingested = self.ledger.register_many(new_entries)
+
+            ledger_size = len(self.ledger)
+            if ledger_size == 0:
+                raise ValueError("MetadataAgent requires at least one metadata entry in the ledger")
+
+            try:
+                focus_terms = coerce_focus_terms(context.get("focus") or context.get("query"))
+            except TypeError as exc:
+                raise ValueError("MetadataAgent focus terms must be strings or iterables") from exc
+
+            try:
+                filter_map = coerce_filters(context.get("filters"))
+            except TypeError as exc:
+                raise ValueError("MetadataAgent filters must be provided as a mapping") from exc
+
+            records = self.ledger.search(focus_terms=focus_terms, filters=filter_map)
+
+            if not focus_terms and records:
+                inferred: list[str] = []
+                for record in records:
+                    for candidate in (record.kind.lower(), record.owner.lower()):
+                        if candidate and candidate not in inferred:
+                            inferred.append(candidate)
+                    for tag in record.tags:
+                        tag_lower = tag.lower()
+                        if tag_lower and tag_lower not in inferred:
+                            inferred.append(tag_lower)
+                    if len(inferred) >= 4:
+                        break
+                if inferred:
+                    focus_terms = tuple(inferred)
+
+            focus_terms = tuple(focus_terms)
+            summary = summarise_records(records, focus_terms)
+
+            if records:
+                coverage = len(records) / max(ledger_size, 1)
+                confidence = 0.6 + min(0.3, coverage * 0.4)
+            else:
+                confidence = 0.3
+            if filter_map:
+                confidence = min(0.95, confidence + 0.05)
+            confidence = max(0.1, min(confidence, 0.99))
+
+            filter_payload = {key: list(values) for key, values in filter_map.items()} if filter_map else None
+            metadata_payload = merge_metadata(
+                context.get("metadata"),
+                {"filters": filter_payload} if filter_payload else None,
+                {"ingested": len(ingested), "ingested_identifiers": [entry.identifier for entry in ingested]}
+                if ingested
+                else None,
+            )
+
+            if context.get("include_snapshot"):
+                metadata_payload["snapshot"] = [entry.to_dict() for entry in self.ledger.snapshot()]
+
+            return MetadataAgentResult(
+                agent=self.name,
+                rationale=summary,
+                confidence=confidence,
+                focus=focus_terms,
+                records=records,
+                ledger_size=ledger_size,
+                metadata=metadata_payload,
+            )
+
+
 def _normalise_agent_payload(value: Any) -> Dict[str, Any]:
     if isinstance(value, AgentResult):
         return value.to_dict()
@@ -1771,13 +1896,19 @@ __all__ = [
     "ChatAgentResult",
     "ChatTurn",
     "DynamicChatAgent",
+    "MetadataAgent",
+    "MetadataAgentResult",
     "ExecutionAgent",
     "ExecutionAgentResult",
     "configure_dynamic_start_agents",
+    "BloodAgent",
+    "BloodAgentResult",
     "ResearchAgent",
     "ResearchAgentResult",
     "RiskAgent",
     "RiskAgentResult",
+    "TradingAgent",
+    "TradingAgentResult",
     "get_default_execution_agent",
     "get_default_research_agent",
     "get_default_risk_agent",

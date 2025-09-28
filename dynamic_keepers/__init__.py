@@ -36,6 +36,10 @@ _KEEPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "FrontendKeeperSyncResult",
         "DynamicFrontendKeeperAlgorithm",
     ),
+    "dynamic_metadata.keeper": (
+        "MetadataKeeperSyncResult",
+        "DynamicMetadataKeeperAlgorithm",
+    ),
     "algorithms.python.group_keeper": (
         "CommunityGroup",
         "GroupKeeperSyncResult",
