@@ -186,7 +186,8 @@ function parseColor(color: string | undefined): RGBA {
     return { r: 255, g: 255, b: 255, a: 1 };
   }
 
-  const hexMatch = color.trim().match(/^#([0-9a-f]{3,8})$/i);
+  const trimmed = color.trim();
+  const hexMatch = trimmed.match(/^#([0-9a-f]{3,8})$/i);
   if (hexMatch) {
     let value = hexMatch[1];
     if (value.length === 3 || value.length === 4) {
@@ -203,8 +204,9 @@ function parseColor(color: string | undefined): RGBA {
     return { r, g, b, a };
   }
 
-  const rgbaMatch =
-    color.trim().match(/^rgba?\((\d+),(\d+),(\d+)(?:,(\d*\.?\d+))?\)$/i);
+  const rgbaMatch = trimmed.match(
+    /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+))?\s*\)$/i
+  );
   if (rgbaMatch) {
     return {
       r: clamp(parseInt(rgbaMatch[1], 10), 0, 255),
@@ -426,7 +428,9 @@ function generateAscii(
   const ignoreWhite = props.whiteMode === "ignore";
   let ascii = "";
 
-  if (props.ditheringMode === "floyd") {
+  const canDiffuse = levels > 1;
+
+  if (props.ditheringMode === "floyd" && canDiffuse) {
     for (let y = 0; y < asciiHeight; y++) {
       let line = "";
       for (let x = 0; x < props.outputWidth; x++) {
@@ -466,7 +470,7 @@ function generateAscii(
       }
       ascii += `${line}\n`;
     }
-  } else if (props.ditheringMode === "atkinson") {
+  } else if (props.ditheringMode === "atkinson" && canDiffuse) {
     for (let y = 0; y < asciiHeight; y++) {
       let line = "";
       for (let x = 0; x < props.outputWidth; x++) {
