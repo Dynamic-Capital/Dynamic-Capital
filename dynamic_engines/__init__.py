@@ -105,6 +105,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_library": ("DynamicLibrary",),
     "dynamic_memory": ("DynamicMemoryConsolidator",),
     "dynamic_memory_reconsolidation": ("DynamicMemoryReconsolidation",),
+    "dynamic_memoryless_property": ("DynamicMemorylessPropertyEngine",),
     "dynamic_method": (
         "DynamicMethodEngine",
         "MethodSignal",
@@ -116,6 +117,11 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_numbers": ("DynamicNumberComposer",),
     "dynamic_package": ("DynamicPackageDesigner",),
     "dynamic_pillars": ("DynamicPillarFramework",),
+    "dynamic_property": (
+        "PropertySnapshot",
+        "PropertyProfile",
+        "DynamicPropertyEngine",
+    ),
     "dynamic_quote": ("DynamicQuote",),
     "dynamic_reference": ("DynamicReference",),
     "dynamic_script": ("DynamicScriptEngine",),
