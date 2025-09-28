@@ -13,6 +13,8 @@ services:
       timeout: 10s
       retries: 3
     restart: unless-stopped
+    networks:
+      - dynamic-engine
     # scale with: docker compose up --scale app=3
 
   nginx:
@@ -27,6 +29,8 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
+    networks:
+      - dynamic-engine
 
   certbot:
     image: certbot/certbot
@@ -34,6 +38,8 @@ services:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
     entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/lib/letsencrypt; sleep 12h & wait $${!}; done;'
+    networks:
+      - dynamic-engine
 
   llama-server:
     build:
@@ -55,7 +61,18 @@ services:
     ports:
       - "8081:8081"
     profiles: ["llama"]
+    networks:
+      - dynamic-engine
 
 volumes:
   certbot-etc:
   certbot-var:
+
+networks:
+  dynamic-engine:
+    name: dynamic-engine
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.65.0/24
