@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import Counter, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from operator import itemgetter
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
 __all__ = [
@@ -266,20 +267,20 @@ class DynamicIndex:
         constituents = list(self._constituents.values())
         raw_weights = [constituent.weight for constituent in constituents]
         weights = _normalise_weights(raw_weights)
+        weighted_constituents = list(zip(weights, constituents))
 
         net_exposure = sum(
-            weight * constituent.exposure
-            for weight, constituent in zip(weights, constituents)
+            weight * constituent.exposure for weight, constituent in weighted_constituents
         )
         momentum = sum(
-            weight * constituent.momentum for weight, constituent in zip(weights, constituents)
+            weight * constituent.momentum for weight, constituent in weighted_constituents
         )
         liquidity = sum(
-            weight * constituent.liquidity for weight, constituent in zip(weights, constituents)
+            weight * constituent.liquidity for weight, constituent in weighted_constituents
         )
         stress_components = [
             weight * constituent.volatility * (1.0 - constituent.conviction)
-            for weight, constituent in zip(weights, constituents)
+            for weight, constituent in weighted_constituents
         ]
         stress = _clamp(sum(stress_components), lower=0.0, upper=5.0)
 
@@ -287,23 +288,27 @@ class DynamicIndex:
         breadth = max(0.0, 1.0 - concentration)
 
         value_components = [
-            1.0 + 0.35 * constituent.momentum + 0.25 * constituent.exposure
+            1.0
+            + 0.35 * constituent.momentum
+            + 0.25 * constituent.exposure
             - 0.15 * constituent.volatility
             + 0.1 * constituent.conviction
-            for constituent in constituents
+            for _, constituent in weighted_constituents
         ]
         value = _weighted_mean(value_components, weights)
 
         top_symbols = tuple(
             symbol
             for symbol, _ in sorted(
-                ((constituent.symbol, weight) for weight, constituent in zip(weights, constituents)),
-                key=lambda item: item[1],
+                ((constituent.symbol, weight) for weight, constituent in weighted_constituents),
+                key=itemgetter(1),
                 reverse=True,
             )[:5]
         )
 
-        notes = self._diagnostics(constituents, weights, net_exposure, stress)
+        notes = self._diagnostics(
+            weighted_constituents, net_exposure, stress, concentration
+        )
 
         return IndexSnapshot(
             timestamp=_utcnow(),
@@ -324,10 +329,10 @@ class DynamicIndex:
     # ------------------------------------------------------------------ internals
     def _diagnostics(
         self,
-        constituents: Sequence[IndexConstituent],
-        weights: Sequence[float],
+        weighted_constituents: Sequence[tuple[float, IndexConstituent]],
         net_exposure: float,
         stress: float,
+        concentration: float,
     ) -> tuple[str, ...]:
         notes: list[str] = []
         if abs(net_exposure) > 0.35:
@@ -337,12 +342,11 @@ class DynamicIndex:
         if stress > 1.5:
             notes.append(f"elevated stress {stress:.2f}")
 
-        concentration = sum(weight * weight for weight in weights)
         if concentration > 0.3:
             notes.append(f"concentration high {concentration:.2f}")
 
         tag_counter: Counter[str] = Counter()
-        for weight, constituent in zip(weights, constituents):
+        for weight, constituent in weighted_constituents:
             for tag in constituent.tags:
                 tag_counter[tag] += weight
 
@@ -352,7 +356,7 @@ class DynamicIndex:
 
         high_exposure = [
             f"{constituent.symbol} {constituent.exposure:+.2f}"
-            for constituent in constituents
+            for _, constituent in weighted_constituents
             if abs(constituent.exposure) > 0.6
         ]
         if high_exposure:
