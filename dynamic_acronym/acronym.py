@@ -11,6 +11,8 @@ __all__ = [
     "AcronymSnapshot",
     "AcronymDigest",
     "DynamicAcronym",
+    "DEFAULT_ACRONYMS",
+    "create_default_acronym_registry",
 ]
 
 
@@ -350,3 +352,82 @@ class DynamicAcronym:
             ambiguous_acronyms=top_ambiguous,
             last_reviewed=last_reviewed,
         )
+
+
+# ---------------------------------------------------------------------------
+# curated defaults
+
+
+DEFAULT_ACRONYMS: tuple[AcronymEntry, ...] = (
+    AcronymEntry(
+        acronym="DYNAMIC",
+        expansions=(
+            "Driving Yield of New Advancements in Markets, Investing & Capital",
+        ),
+        description=(
+            "Defines the D.Y.N.A.M.I.C. base — a relentless push to uncover "
+            "fresh advantages across markets, investing, and capital strategy."
+        ),
+        categories=("vision", "markets", "innovation"),
+        usage_notes=(
+            "D.Y.N.A.M.I.C.",
+            "Use when highlighting the discovery engine that fuels Dynamic Capital.",
+        ),
+        metadata={
+            "source": "community",
+            "context": "Updated Dynamic Capital prefix expansion shared by the user.",
+        },
+        confidence=0.85,
+        familiarity=0.65,
+    ),
+    AcronymEntry(
+        acronym="CAPITAL",
+        expansions=(
+            "Creating Asset Profitability through Intelligent Trading, Algorithms & Leverage",
+        ),
+        description=(
+            "Captures the C.A.P.I.T.A.L. foundation — disciplined systems that "
+            "translate insight into compounding performance."
+        ),
+        categories=("strategy", "finance", "execution"),
+        usage_notes=(
+            "C.A.P.I.T.A.L.",
+            "Use when focusing on the intelligent trading stack that scales returns.",
+        ),
+        metadata={
+            "source": "community",
+            "context": "Companion acronym completing the Dynamic Capital formula.",
+        },
+        confidence=0.83,
+        familiarity=0.62,
+    ),
+    AcronymEntry(
+        acronym="DYNAMIC CAPITAL",
+        expansions=(
+            "Dynamic Capital = Driving Yield of New Advancements in Markets, Investing & Capital — "
+            "Creating Asset Profitability through Intelligent Trading, Algorithms & Leverage",
+        ),
+        description=(
+            "Final form statement that unifies the D.Y.N.A.M.I.C. discovery engine with the "
+            "C.A.P.I.T.A.L. execution layer."
+        ),
+        categories=("vision", "strategy", "identity"),
+        usage_notes=(
+            "D.Y.N.A.M.I.C.",
+            "C.A.P.I.T.A.L.",
+            "Use for the complete Dynamic Capital mantra.",
+        ),
+        metadata={
+            "source": "community",
+            "context": "Combined articulation aligning the two companion acronyms.",
+        },
+        confidence=0.88,
+        familiarity=0.7,
+    ),
+)
+
+
+def create_default_acronym_registry() -> DynamicAcronym:
+    """Return a registry pre-populated with curated acronym entries."""
+
+    return DynamicAcronym(DEFAULT_ACRONYMS)
