@@ -5,19 +5,35 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Deque, Iterable, Mapping, MutableMapping, Sequence, Literal, cast
+import re
+from typing import (
+    TYPE_CHECKING,
+    Deque,
+    Iterable,
+    Mapping,
+    MutableMapping,
+    Sequence,
+    Literal,
+    cast,
+)
+
+if TYPE_CHECKING:  # pragma: no cover - import cycle guard
+    from dynamic_agi import DynamicAGIModel
 
 __all__ = [
     "SphereProfile",
     "SpherePulse",
+    "SphereResponsibility",
     "SphereSnapshot",
     "SphereNetworkState",
     "SphereCollaborator",
+    "SphereRoleManifestEntry",
     "DynamicSpheresEngine",
     "create_sphere_agent",
     "create_sphere_keeper",
     "create_sphere_bot",
     "create_sphere_helper",
+    "sync_dynamic_agi_collaborators",
 ]
 
 
@@ -68,6 +84,23 @@ def _normalise_tags(tags: Sequence[str] | None) -> tuple[str, ...]:
     return tuple(ordered)
 
 
+def _normalise_sequence(values: Sequence[str] | None) -> tuple[str, ...]:
+    if not values:
+        return ()
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for raw in values:
+        cleaned = str(raw).strip()
+        if not cleaned:
+            continue
+        marker = cleaned.lower()
+        if marker in seen:
+            continue
+        seen.add(marker)
+        ordered.append(cleaned)
+    return tuple(ordered)
+
+
 def _coerce_profile(value: SphereProfile | Mapping[str, object]) -> SphereProfile:
     if isinstance(value, SphereProfile):
         return value
@@ -92,6 +125,24 @@ def _coerce_collaborator(
     if isinstance(value, Mapping):
         return SphereCollaborator(**value)
     raise TypeError("collaborator must be a SphereCollaborator or mapping")
+
+
+def _coerce_responsibility(
+    value: "SphereResponsibility" | Mapping[str, object]
+) -> "SphereResponsibility":
+    if isinstance(value, SphereResponsibility):
+        return value
+    if isinstance(value, Mapping):
+        return SphereResponsibility(**value)
+    raise TypeError("responsibility must be a SphereResponsibility or mapping")
+
+
+def _slugify_identifier(value: str, *, fallback: str = "dynamic-agi") -> str:
+    cleaned = value.strip().lower()
+    if not cleaned:
+        cleaned = fallback
+    slug = re.sub(r"[^a-z0-9]+", "-", cleaned).strip("-")
+    return slug or fallback
 
 
 # ------------------------------------------------------------------------ dataclasses
@@ -144,6 +195,34 @@ class SpherePulse:
             self.timestamp = self.timestamp.astimezone(timezone.utc)
         self.tags = _normalise_tags(self.tags)
         self.metadata = _coerce_metadata(self.metadata)
+
+
+@dataclass(slots=True)
+class SphereResponsibility:
+    """Responsibilities a collaborator upholds for a sphere."""
+
+    tasks: tuple[str, ...] = field(default_factory=tuple)
+    permissions: tuple[str, ...] = field(default_factory=tuple)
+    priority: float = 0.5
+    notes: str | None = None
+
+    def __post_init__(self) -> None:
+        self.tasks = _normalise_sequence(self.tasks)
+        self.permissions = _normalise_sequence(self.permissions)
+        self.priority = _clamp(float(self.priority), lower=0.0, upper=1.0)
+        if self.notes is not None:
+            note = self.notes.strip()
+            self.notes = note or None
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        payload: MutableMapping[str, object] = {
+            "tasks": list(self.tasks),
+            "permissions": list(self.permissions),
+            "priority": self.priority,
+        }
+        if self.notes is not None:
+            payload["notes"] = self.notes
+        return payload
 
 
 @dataclass(slots=True)
@@ -202,6 +281,7 @@ class SphereCollaborator:
     influence: float = 0.5
     spheres: tuple[str, ...] = field(default_factory=tuple)
     metadata: Mapping[str, object] | None = None
+    responsibilities: Mapping[str, SphereResponsibility] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self.identifier = _normalise_key(self.identifier)
@@ -214,7 +294,11 @@ class SphereCollaborator:
         self.stability = _clamp(float(self.stability), lower=0.0, upper=1.0)
         self.influence = _clamp(float(self.influence), lower=0.0, upper=1.0)
         self.metadata = _coerce_metadata(self.metadata)
+        current_responsibilities = self.responsibilities
+        self.responsibilities = {}
         self.set_spheres(self.spheres)
+        if current_responsibilities:
+            self.set_responsibilities(current_responsibilities)
 
     def set_spheres(self, spheres: Sequence[str] | None) -> None:
         seen: set[str] = set()
@@ -233,6 +317,31 @@ class SphereCollaborator:
     def support_score(self) -> float:
         return (self.affinity * 0.5) + (self.stability * 0.3) + (self.influence * 0.2)
 
+    def set_responsibilities(
+        self,
+        responsibilities: Mapping[str, SphereResponsibility | Mapping[str, object]] | None,
+        *,
+        merge: bool = False,
+    ) -> None:
+        if responsibilities:
+            prepared: dict[str, SphereResponsibility] = {
+                _normalise_key(sphere): _coerce_responsibility(payload)
+                for sphere, payload in responsibilities.items()
+            }
+            if merge and self.responsibilities:
+                merged = dict(self.responsibilities)
+                merged.update(prepared)
+                prepared = merged
+            self.responsibilities = prepared
+            if prepared:
+                combined: list[str] = list(self.spheres)
+                for sphere in prepared:
+                    if sphere not in combined:
+                        combined.append(sphere)
+                self.set_spheres(combined)
+        elif not merge:
+            self.responsibilities = {}
+
     def as_dict(self) -> MutableMapping[str, object]:
         return {
             "identifier": self.identifier,
@@ -243,6 +352,32 @@ class SphereCollaborator:
             "influence": self.influence,
             "spheres": list(self.spheres),
             "metadata": dict(self.metadata or {}),
+            "responsibilities": {
+                sphere: responsibility.as_dict()
+                for sphere, responsibility in self.responsibilities.items()
+            },
+        }
+
+
+@dataclass(slots=True)
+class SphereRoleManifestEntry:
+    """Role-specific manifest for collaborators active on a sphere."""
+
+    collaborator_id: str
+    collaborator_name: str
+    role: Literal["agent", "keeper", "bot", "helper"]
+    tasks: tuple[str, ...]
+    permissions: tuple[str, ...]
+    priority: float
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "collaborator_id": self.collaborator_id,
+            "collaborator_name": self.collaborator_name,
+            "role": self.role,
+            "tasks": list(self.tasks),
+            "permissions": list(self.permissions),
+            "priority": self.priority,
         }
 
 
@@ -258,6 +393,9 @@ class SphereNetworkState:
     collaborators: Mapping[str, SphereCollaborator] = field(default_factory=dict)
     consciousness_resilience: float = 0.0
     collaboration_health: Mapping[str, float] = field(default_factory=dict)
+    role_manifest: Mapping[str, tuple[SphereRoleManifestEntry, ...]] = field(
+        default_factory=dict
+    )
 
 
 # --------------------------------------------------------------------- factories
@@ -374,6 +512,7 @@ class DynamicSpheresEngine:
         self._profiles: dict[str, SphereProfile] = {}
         self._pulses: dict[str, Deque[SpherePulse]] = {}
         self._collaborators: dict[str, SphereCollaborator] = {}
+        self._sphere_assignments: dict[str, set[str]] = {}
         if profiles:
             for profile in profiles:
                 self.upsert_profile(profile)
@@ -403,19 +542,43 @@ class DynamicSpheresEngine:
         key = _normalise_key(resolved.name)
         self._profiles[key] = resolved
         self._pulses.setdefault(key, deque(maxlen=self._history))
+        assignments = self._sphere_assignments.setdefault(key, set())
+        if assignments:
+            assignments.clear()
+        for collaborator in self._collaborators.values():
+            if key in self._active_sphere_keys(collaborator.spheres):
+                assignments.add(collaborator.identifier)
         return resolved
 
     def remove_profile(self, name: str) -> None:
         key = _normalise_key(name)
         self._profiles.pop(key, None)
         self._pulses.pop(key, None)
+        assigned = self._sphere_assignments.pop(key, None)
+        if assigned:
+            for identifier in list(assigned):
+                collaborator = self._collaborators.get(identifier)
+                if collaborator is None:
+                    continue
+                previous = collaborator.spheres
+                collaborator.set_spheres(
+                    tuple(
+                        sphere
+                        for sphere in collaborator.spheres
+                        if _normalise_key(sphere) != key
+                    )
+                )
+                self._sync_assignments(collaborator, previous)
 
     # --------------------------------------------------------------- collaborators
     def upsert_collaborator(
         self, collaborator: SphereCollaborator | Mapping[str, object]
     ) -> SphereCollaborator:
         resolved = _coerce_collaborator(collaborator)
+        previous = self._collaborators.get(resolved.identifier)
+        previous_spheres: Sequence[str] | None = previous.spheres if previous else ()
         self._collaborators[resolved.identifier] = resolved
+        self._sync_assignments(resolved, previous_spheres)
         return resolved
 
     def upsert_agent(
@@ -517,12 +680,155 @@ class DynamicSpheresEngine:
         collaborator = self._collaborators.get(key)
         if collaborator is None:
             raise KeyError(f"collaborator '{identifier}' is not registered")
+        previous = collaborator.spheres
         collaborator.set_spheres(spheres or ())
+        self._sync_assignments(collaborator, previous)
         return collaborator
+
+    def configure_responsibilities(
+        self,
+        identifier: str,
+        responsibilities: Mapping[str, SphereResponsibility | Mapping[str, object]] | None,
+        *,
+        merge: bool = False,
+    ) -> SphereCollaborator:
+        key = _normalise_key(identifier)
+        collaborator = self._collaborators.get(key)
+        if collaborator is None:
+            raise KeyError(f"collaborator '{identifier}' is not registered")
+        previous = collaborator.spheres
+        collaborator.set_responsibilities(responsibilities, merge=merge)
+        self._sync_assignments(collaborator, previous)
+        return collaborator
+
+    def sync_with_dynamic_agi(
+        self,
+        agi: "DynamicAGIModel",
+        *,
+        spheres: Sequence[str] | None = None,
+    ) -> tuple[SphereCollaborator, SphereCollaborator, SphereCollaborator, SphereCollaborator]:
+        """Synchronise AGI collaborators onto the engine."""
+
+        identity = agi.identity
+        display = identity.acronym or identity.name
+        base_identifier = _slugify_identifier(display)
+        assigned = tuple(spheres or (profile.name for profile in self.profiles))
+
+        version_info = agi.version_metadata
+        metadata_base: Mapping[str, object] = {
+            "agi_identity": identity.as_dict(),
+            "agi_version": getattr(agi, "version", None),
+            "agi_version_info": version_info,
+        }
+
+        def _metadata(role: str) -> Mapping[str, object]:
+            payload = dict(metadata_base)
+            payload["agi_role"] = role
+            return payload
+
+        responsibility_templates: Mapping[str, Mapping[str, object]] = {
+            "agent": {
+                "tasks": (
+                    "Coordinate resonance strategy",
+                    "Activate stabilization pulses",
+                ),
+                "permissions": (
+                    "adjust-resonance",
+                    "deploy-harmonics",
+                    "access-diagnostics",
+                ),
+                "priority": 0.9,
+            },
+            "keeper": {
+                "tasks": (
+                    "Audit resonance baselines",
+                    "Validate collaborator cohesion",
+                ),
+                "permissions": (
+                    "read-state",
+                    "raise-alerts",
+                ),
+                "priority": 0.8,
+            },
+            "bot": {
+                "tasks": (
+                    "Stream telemetry into network",
+                    "Automate pulse balancing",
+                ),
+                "permissions": (
+                    "ingest-telemetry",
+                    "apply-auto-adjustments",
+                ),
+                "priority": 0.7,
+            },
+            "helper": {
+                "tasks": (
+                    "Support human operators",
+                    "Document resonance insights",
+                ),
+                "permissions": (
+                    "read-state",
+                    "annotate-findings",
+                ),
+                "priority": 0.6,
+            },
+        }
+
+        def _responsibilities(role: str) -> Mapping[str, SphereResponsibility]:
+            template = responsibility_templates[role]
+            return {
+                sphere: SphereResponsibility(
+                    tasks=template["tasks"],
+                    permissions=template["permissions"],
+                    priority=float(template["priority"]),
+                    notes=f"Dynamic AGI {role} duties for {display}",
+                )
+                for sphere in assigned
+            }
+
+        agent = self.upsert_agent(
+            f"{base_identifier}-agent",
+            f"{display} Agent",
+            spheres=assigned,
+            metadata=_metadata("agent"),
+        )
+        self.configure_responsibilities(
+            agent.identifier, _responsibilities("agent"), merge=False
+        )
+        keeper = self.upsert_keeper(
+            f"{base_identifier}-keeper",
+            f"{display} Keeper",
+            spheres=assigned,
+            metadata=_metadata("keeper"),
+        )
+        self.configure_responsibilities(
+            keeper.identifier, _responsibilities("keeper"), merge=False
+        )
+        bot = self.upsert_bot(
+            f"{base_identifier}-bot",
+            f"{display} Bot",
+            spheres=assigned,
+            metadata=_metadata("bot"),
+        )
+        self.configure_responsibilities(
+            bot.identifier, _responsibilities("bot"), merge=False
+        )
+        helper = self.upsert_helper(
+            f"{base_identifier}-helper",
+            f"{display} Helper",
+            spheres=assigned,
+            metadata=_metadata("helper"),
+        )
+        self.configure_responsibilities(
+            helper.identifier, _responsibilities("helper"), merge=False
+        )
+        return agent, keeper, bot, helper
 
     def remove_collaborator(self, identifier: str) -> None:
         key = _normalise_key(identifier)
-        self._collaborators.pop(key, None)
+        collaborator = self._collaborators.pop(key, None)
+        if collaborator is not None:
+            self._clear_assignments(collaborator)
 
     # ---------------------------------------------------------------------- capture
     def capture(self, pulse: SpherePulse | Mapping[str, object]) -> SpherePulse:
@@ -576,6 +882,37 @@ class DynamicSpheresEngine:
         raw_trend = latest - baseline
         return raw_trend * (1.0 - self._smoothing) + history[-1].resonance * self._smoothing
 
+    # -------------------------------------------------------------- assignments util
+    def _active_sphere_keys(self, spheres: Sequence[str] | None) -> set[str]:
+        if not spheres:
+            return set()
+        keys: set[str] = set()
+        for raw in spheres:
+            key = _normalise_key(raw)
+            if key in self._profiles:
+                keys.add(key)
+        return keys
+
+    def _sync_assignments(
+        self, collaborator: SphereCollaborator, previous: Sequence[str] | None
+    ) -> None:
+        previous_keys = self._active_sphere_keys(previous)
+        current_keys = self._active_sphere_keys(collaborator.spheres)
+        removed = previous_keys - current_keys
+        added = current_keys - previous_keys
+        for key in removed:
+            assignments = self._sphere_assignments.get(key)
+            if assignments:
+                assignments.discard(collaborator.identifier)
+        for key in added:
+            self._sphere_assignments.setdefault(key, set()).add(collaborator.identifier)
+
+    def _clear_assignments(self, collaborator: SphereCollaborator) -> None:
+        for key in self._active_sphere_keys(collaborator.spheres):
+            assignments = self._sphere_assignments.get(key)
+            if assignments:
+                assignments.discard(collaborator.identifier)
+
     # ------------------------------------------------------------------- aggregates
     def network_state(self) -> SphereNetworkState:
         snapshots: MutableMapping[str, SphereSnapshot] = {}
@@ -590,17 +927,44 @@ class DynamicSpheresEngine:
             total_energy_output = 0.0
             total_energy_delta = 0.0
         collaboration_scores: dict[str, float] = {key: 0.0 for key in snapshots}
-        for collaborator in self._collaborators.values():
-            if not collaborator.spheres:
+        collaborator_shares: dict[str, float] = {}
+        for identifier, collaborator in self._collaborators.items():
+            active = self._active_sphere_keys(collaborator.spheres)
+            if not active:
                 continue
-            share = collaborator.support_score() / max(len(collaborator.spheres), 1)
-            for sphere_key in collaborator.spheres:
-                if sphere_key in collaboration_scores:
-                    collaboration_scores[sphere_key] = _clamp(
-                        collaboration_scores[sphere_key] + share,
-                        lower=0.0,
-                        upper=1.0,
+            collaborator_shares[identifier] = collaborator.support_score() / len(active)
+        role_manifest_builder: dict[str, list[SphereRoleManifestEntry]] = {}
+        for collaborator in self._collaborators.values():
+            if not collaborator.responsibilities:
+                continue
+            for sphere_key, responsibility in collaborator.responsibilities.items():
+                snapshot = snapshots.get(sphere_key)
+                if snapshot is None:
+                    continue
+                manifest_entries = role_manifest_builder.setdefault(
+                    snapshot.sphere.name, []
+                )
+                manifest_entries.append(
+                    SphereRoleManifestEntry(
+                        collaborator_id=collaborator.identifier,
+                        collaborator_name=collaborator.name,
+                        role=collaborator.role,
+                        tasks=responsibility.tasks,
+                        permissions=responsibility.permissions,
+                        priority=responsibility.priority,
                     )
+                )
+        for sphere_key in collaboration_scores:
+            assignments = self._sphere_assignments.get(sphere_key)
+            if not assignments:
+                continue
+            score = 0.0
+            for identifier in assignments:
+                share = collaborator_shares.get(identifier)
+                if share is None:
+                    continue
+                score = _clamp(score + share, lower=0.0, upper=1.0)
+            collaboration_scores[sphere_key] = score
         if collaboration_scores:
             collaboration_mean = sum(collaboration_scores.values()) / len(collaboration_scores)
         else:
@@ -623,6 +987,18 @@ class DynamicSpheresEngine:
             )
             if snapshot.resonance_index < self._attention_threshold
         )
+        role_manifest: dict[str, tuple[SphereRoleManifestEntry, ...]] = {}
+        for sphere_name, entries in role_manifest_builder.items():
+            role_manifest[sphere_name] = tuple(
+                sorted(
+                    entries,
+                    key=lambda entry: (
+                        -entry.priority,
+                        entry.collaborator_name.lower(),
+                        entry.collaborator_id,
+                    ),
+                )
+            )
         collaboration_health = {
             snapshots[key].sphere.name: collaboration_scores.get(key, 0.0)
             for key in snapshots
@@ -636,6 +1012,7 @@ class DynamicSpheresEngine:
             collaborators=dict(self._collaborators),
             consciousness_resilience=consciousness_resilience,
             collaboration_health=collaboration_health,
+            role_manifest=role_manifest,
         )
 
     def export_state(self) -> dict[str, object]:
@@ -655,6 +1032,10 @@ class DynamicSpheresEngine:
                 key: snapshot.as_dict()
                 for key, snapshot in state.snapshots.items()
             },
+            "role_manifest": {
+                sphere: [entry.as_dict() for entry in entries]
+                for sphere, entries in state.role_manifest.items()
+            },
         }
 
     def collaboration_manifest(self) -> dict[str, object]:
@@ -666,4 +1047,19 @@ class DynamicSpheresEngine:
                 identifier: collaborator.as_dict()
                 for identifier, collaborator in state.collaborators.items()
             },
+            "role_manifest": {
+                sphere: [entry.as_dict() for entry in entries]
+                for sphere, entries in state.role_manifest.items()
+            },
         }
+
+
+def sync_dynamic_agi_collaborators(
+    engine: DynamicSpheresEngine,
+    agi: "DynamicAGIModel",
+    *,
+    spheres: Sequence[str] | None = None,
+) -> tuple[SphereCollaborator, SphereCollaborator, SphereCollaborator, SphereCollaborator]:
+    """Synchronise a :class:`DynamicSpheresEngine` with a Dynamic AGI model."""
+
+    return engine.sync_with_dynamic_agi(agi, spheres=spheres)
