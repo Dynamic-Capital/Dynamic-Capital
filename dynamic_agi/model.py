@@ -5,12 +5,14 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, Mapping, Optional
+from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
 
 from dynamic_ai import (
     AISignal,
     DynamicAnalysis,
     DynamicFusionAlgo,
+    GPT2Config,
+    GPT2ReasoningAdapter,
     OllamaAdapter,
     OllamaConfig,
     PositionSizing,
@@ -26,6 +28,7 @@ from dynamic_version import (
     SemanticVersion,
     VersionPolicy,
 )
+from .cores import AGICoreProfile, CollaborativeReasoningCluster
 
 
 def _utcnow() -> datetime:
@@ -165,6 +168,93 @@ def _build_ollama_adapter(
     return adapter
 
 
+def _build_gpt2_adapter(
+    *,
+    model_name: str,
+    device: str | int | None,
+    generation_options: Mapping[str, Any] | None,
+) -> GPT2ReasoningAdapter:
+    config = GPT2Config(model_name=model_name)
+    if device is not None:
+        config.device = device
+    if generation_options:
+        config.additional_kwargs.update({str(key): value for key, value in generation_options.items()})
+    return GPT2ReasoningAdapter(config=config)
+
+
+def _ensure_core_profile(profile: AGICoreProfile | Mapping[str, Any]) -> AGICoreProfile:
+    if isinstance(profile, AGICoreProfile):
+        return profile
+    if not isinstance(profile, Mapping):
+        raise TypeError("Core profile must be an AGICoreProfile or a mapping definition")
+
+    adapter = profile.get("adapter")
+    if adapter is None:
+        raise ValueError("Core profile mapping requires an 'adapter' entry")
+    name = str(profile.get("name") or getattr(adapter, "__class__", type(adapter)).__name__)
+    specialties = frozenset(str(tag).strip().upper() for tag in profile.get("specialties", ()) if str(tag).strip())
+    focus_topics = frozenset(str(topic).strip().lower() for topic in profile.get("focus_topics", ()) if str(topic).strip())
+    weight = float(profile.get("weight", 1.0))
+    metadata = dict(profile.get("metadata", {}))
+    return AGICoreProfile(
+        name=name,
+        adapter=adapter,
+        specialties=specialties,
+        focus_topics=focus_topics,
+        weight=weight,
+        metadata=metadata,
+    )
+
+
+def _default_specialised_profiles(
+    *,
+    gpt2_model: str | None,
+    gpt2_device: str | int | None,
+    gpt2_generation_options: Mapping[str, Any] | None,
+    llama_model: str | None,
+    ollama_host: str | None,
+    ollama_options: Mapping[str, Any] | None,
+    ollama_headers: Mapping[str, Any] | None,
+    ollama_keep_alive: float | None,
+    ollama_timeout: float | None,
+) -> list[AGICoreProfile]:
+    profiles: list[AGICoreProfile] = []
+    if gpt2_model:
+        gpt2_adapter = _build_gpt2_adapter(
+            model_name=gpt2_model,
+            device=gpt2_device,
+            generation_options=gpt2_generation_options,
+        )
+        profiles.append(
+            AGICoreProfile(
+                name="gpt2-core",
+                adapter=gpt2_adapter,
+                specialties=frozenset({"HOLD", "NEUTRAL"}),
+                focus_topics=frozenset({"sentiment", "narrative", "context"}),
+                weight=0.9,
+            )
+        )
+    if llama_model:
+        llama_adapter = _build_ollama_adapter(
+            model=llama_model,
+            host=ollama_host,
+            options=ollama_options,
+            headers=ollama_headers,
+            keep_alive=ollama_keep_alive,
+            timeout=ollama_timeout,
+        )
+        profiles.append(
+            AGICoreProfile(
+                name=f"ollama-{llama_model}",
+                adapter=llama_adapter,
+                specialties=frozenset({"BUY", "SELL"}),
+                focus_topics=frozenset({"momentum", "trend", "volatility"}),
+                weight=1.1,
+            )
+        )
+    return profiles
+
+
 @dataclass(slots=True)
 class AGIDiagnostics:
     """Structured diagnostic payload emitted by the AGI model."""
@@ -256,18 +346,59 @@ class DynamicAGIModel:
         ollama_keep_alive: float | None = None,
         ollama_timeout: float | None = None,
         reasoning_cache_size: int | None = None,
+        gpt2_model: str | None = None,
+        gpt2_device: str | int | None = None,
+        gpt2_generation_options: Mapping[str, Any] | None = None,
+        core_profiles: Sequence[AGICoreProfile | Mapping[str, Any]] | None = None,
+        core_cluster: CollaborativeReasoningCluster | None = None,
+        core_cache_size: int | None = None,
     ) -> None:
         if fusion is None:
             adapter = llm_adapter
-            if adapter is None and llama_model:
-                adapter = _build_ollama_adapter(
-                    model=llama_model,
-                    host=ollama_host,
-                    options=ollama_options,
-                    headers=ollama_headers,
-                    keep_alive=ollama_keep_alive,
-                    timeout=ollama_timeout,
-                )
+            if adapter is None:
+                resolved_profiles: list[AGICoreProfile] = []
+                if core_profiles:
+                    resolved_profiles.extend(_ensure_core_profile(profile) for profile in core_profiles)
+
+                if not resolved_profiles:
+                    resolved_profiles.extend(
+                        _default_specialised_profiles(
+                            gpt2_model=gpt2_model,
+                            gpt2_device=gpt2_device,
+                            gpt2_generation_options=gpt2_generation_options,
+                            llama_model=llama_model,
+                            ollama_host=ollama_host,
+                            ollama_options=ollama_options,
+                            ollama_headers=ollama_headers,
+                            ollama_keep_alive=ollama_keep_alive,
+                            ollama_timeout=ollama_timeout,
+                        )
+                    )
+
+                cluster = core_cluster
+                if cluster is None and resolved_profiles:
+                    cluster = CollaborativeReasoningCluster(
+                        resolved_profiles,
+                        cache_size=core_cache_size if core_cache_size is not None else 48,
+                    )
+
+                if cluster is not None:
+                    adapter = cluster
+                elif gpt2_model:
+                    adapter = _build_gpt2_adapter(
+                        model_name=gpt2_model,
+                        device=gpt2_device,
+                        generation_options=gpt2_generation_options,
+                    )
+                elif llama_model:
+                    adapter = _build_ollama_adapter(
+                        model=llama_model,
+                        host=ollama_host,
+                        options=ollama_options,
+                        headers=ollama_headers,
+                        keep_alive=ollama_keep_alive,
+                        timeout=ollama_timeout,
+                    )
             cache_size = reasoning_cache_size if reasoning_cache_size is not None else 64
             fusion = DynamicFusionAlgo(
                 llm_adapter=adapter,

@@ -58,6 +58,7 @@ from .dolphin_adapter import (
     LLMIntegrationError,
 )
 from .ollama_adapter import OllamaAdapter, OllamaConfig, OllamaPromptTemplate
+from .gpt2_adapter import GPT2Config, GPT2PromptTemplate, GPT2ReasoningAdapter
 from .analysis import AnalysisComponent, DynamicAnalysis
 from .consciousness_suite import (
     AwarenessContexts,
@@ -113,6 +114,9 @@ __all__ = [
     "OllamaAdapter",
     "OllamaConfig",
     "OllamaPromptTemplate",
+    "GPT2Config",
+    "GPT2PromptTemplate",
+    "GPT2ReasoningAdapter",
     "ExecutionAgent",
     "ExecutionAgentResult",
     "AnalysisComponent",

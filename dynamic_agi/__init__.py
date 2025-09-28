@@ -26,6 +26,11 @@ from .training_models import (
     DynamicAGITrainingModelGenerator,
     __all__ as _training_models_all,
 )
+from .cores import (
+    AGICoreProfile,
+    CollaborativeReasoningCluster,
+    __all__ as _cores_all,
+)
 from .model import (
     AGIDiagnostics,
     AGIOutput,
@@ -52,4 +57,5 @@ __all__ = [
     *_fine_tune_all,
     *_local_machine_all,
     *_training_models_all,
+    *_cores_all,
 ]
