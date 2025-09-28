@@ -49,6 +49,34 @@ ACTION_TOLERANCE = 1e-6
 _ACTION_TO_SCORE = {"BUY": 1.0, "SELL": -1.0}
 
 
+@dataclass(frozen=True)
+class CompositeComponent:
+    """Weighted contributor participating in the composite score blend."""
+
+    name: str
+    value: float
+    weight: float
+
+    @property
+    def contribution(self) -> float:
+        """Return the weighted influence of the component."""
+
+        return self.value * self.weight
+
+    def to_dict(self, *, total_weight: float | None = None) -> Dict[str, Any]:
+        """Serialise the component for downstream diagnostics."""
+
+        payload: Dict[str, Any] = {
+            "name": self.name,
+            "value": round(self.value, 4),
+            "weight": round(self.weight, 4),
+            "contribution": round(self.contribution, 4),
+        }
+        if total_weight and total_weight > 0:
+            payload["weight_share"] = round(self.weight / total_weight, 4)
+        return payload
+
+
 def score_to_action(
     score: float,
     *,
@@ -146,29 +174,45 @@ class DynamicFusionAlgo:
         self.boost_topics: Set[str] = {topic.lower() for topic in boost_topics} if boost_topics else set()
         self.llm_adapter: Optional[ReasoningAdapter] = llm_adapter
 
-    def generate_signal(self, market_data: Dict[str, Any]) -> AISignal:
-        """Derive an actionable signal from the provided market payload."""
+    def prepare_context(self, market_data: Mapping[str, Any]) -> "PreparedMarketContext":
+        """Public helper exposing the normalised market context."""
 
-        context = self._prepare_context(market_data)
-        raw_signal = context.resolved_signal
+        return self._prepare_context(dict(market_data))
+
+    def generate_signal(
+        self,
+        market_data: Mapping[str, Any],
+        *,
+        context: "PreparedMarketContext" | None = None,
+    ) -> AISignal:
+        """Derive an actionable signal from the provided market payload.
+
+        Callers that already computed a :class:`PreparedMarketContext` can
+        reuse it via the ``context`` keyword to avoid recomputing the
+        normalisation pipeline.
+        """
+
+        payload = dict(market_data)
+        prepared = context or self._prepare_context(payload)
+        raw_signal = prepared.resolved_signal
 
         extra_notes: List[str] = []
 
-        consensus_lookup = self._build_consensus_provider(context)
+        consensus_lookup = self._build_consensus_provider(prepared)
 
-        ai_action = self._refine_action(context)
-        confidence, consensus = self._calculate_confidence(context, ai_action, consensus_lookup)
+        ai_action = self._refine_action(prepared)
+        confidence, consensus = self._calculate_confidence(prepared, ai_action, consensus_lookup)
         consensus_action = ai_action
 
-        ai_action, confidence, risk_note = self._apply_risk_overrides(ai_action, confidence, context)
+        ai_action, confidence, risk_note = self._apply_risk_overrides(ai_action, confidence, prepared)
         if risk_note:
             extra_notes.append(risk_note)
 
-        ai_action, confidence, human_note = self._blend_with_human_bias(ai_action, confidence, context)
+        ai_action, confidence, human_note = self._blend_with_human_bias(ai_action, confidence, prepared)
         if human_note:
             extra_notes.append(human_note)
 
-        ai_action, confidence, post_human_risk_note = self._apply_risk_overrides(ai_action, confidence, context)
+        ai_action, confidence, post_human_risk_note = self._apply_risk_overrides(ai_action, confidence, prepared)
         if post_human_risk_note and post_human_risk_note not in extra_notes:
             extra_notes.append(post_human_risk_note)
 
@@ -176,11 +220,11 @@ class DynamicFusionAlgo:
             consensus = consensus_lookup(ai_action)
             consensus_action = ai_action
 
-        reasoning = self._build_reasoning(ai_action, confidence, context, extra_notes, consensus)
+        reasoning = self._build_reasoning(ai_action, confidence, prepared, extra_notes, consensus)
         reasoning = self._maybe_enhance_reasoning(
             action=ai_action,
             confidence=confidence,
-            market_data=market_data,
+            market_data=payload,
             base_reasoning=reasoning,
         )
 
@@ -379,6 +423,32 @@ class DynamicFusionAlgo:
 
         return context.resolved_signal
 
+    def _composite_components(self, context: "PreparedMarketContext") -> Tuple[CompositeComponent, ...]:
+        components: List[CompositeComponent] = []
+
+        def add(name: str, value: Optional[float], weight: float) -> None:
+            if value is None or weight <= 0:
+                return
+            components.append(
+                CompositeComponent(
+                    name=name,
+                    value=_clamp(value, -1.0, 1.0),
+                    weight=weight,
+                )
+            )
+
+        add("resolved_signal_bias", self._action_to_score(context.resolved_signal), 0.4)
+        add("momentum", context.momentum, 0.35)
+        add("sentiment_value", context.sentiment_value, 0.25)
+
+        if context.alignment is not None:
+            add("alignment", context.alignment, 0.2)
+
+        if context.composite_trimmed_mean is not None:
+            add("composite_trimmed_mean", context.composite_trimmed_mean, 0.3)
+
+        return tuple(components)
+
     def _derive_composite_score(self, context: "PreparedMarketContext") -> float | None:
         """Blend structured indicators into a directional score in ``[-1, 1]``.
 
@@ -388,35 +458,40 @@ class DynamicFusionAlgo:
         present the method returns ``None`` to preserve prior behaviour.
         """
 
-        contributions: List[tuple[float, float]] = []
+        components = self._composite_components(context)
 
-        def add_component(value: Optional[float], weight: float) -> None:
-            if value is None or weight <= 0:
-                return
-            clamped = max(-1.0, min(1.0, value))
-            contributions.append((clamped, weight))
-
-        add_component(self._action_to_score(context.resolved_signal), 0.4)
-
-        add_component(context.momentum, 0.35)
-
-        add_component(context.sentiment_value, 0.25)
-
-        if context.alignment is not None:
-            add_component(context.alignment, 0.2)
-
-        if context.composite_trimmed_mean is not None:
-            add_component(context.composite_trimmed_mean, 0.3)
-
-        if not contributions:
+        if not components:
             return None
 
-        numerator = sum(value * weight for value, weight in contributions)
-        denominator = sum(weight for _, weight in contributions)
+        numerator = sum(component.contribution for component in components)
+        denominator = sum(component.weight for component in components)
         if denominator == 0:
             return None
 
         return numerator / denominator
+
+    def composite_diagnostics(self, context: "PreparedMarketContext") -> Dict[str, Any]:
+        """Return a structured breakdown of the composite blend."""
+
+        components = self._composite_components(context)
+        total_weight = sum(component.weight for component in components)
+        numerator = sum(component.contribution for component in components)
+        score = numerator / total_weight if total_weight else None
+
+        component_payload = [
+            component.to_dict(total_weight=total_weight) for component in components
+        ]
+        dominant = None
+        if component_payload:
+            dominant = max(component_payload, key=lambda item: abs(item["contribution"]))
+            dominant = dict(dominant)
+
+        return {
+            "score": round(score, 4) if score is not None else None,
+            "components": component_payload,
+            "total_weight": round(total_weight, 4),
+            "dominant_component": dominant,
+        }
 
     def _calculate_confidence(
         self,
@@ -782,6 +857,12 @@ class DynamicFusionAlgo:
             return value
 
         return lookup
+
+    def consensus_matrix(self, context: "PreparedMarketContext") -> Dict[str, float]:
+        """Return consensus scores for all valid signals."""
+
+        lookup = self._build_consensus_provider(context)
+        return {action: round(lookup(action), 4) for action in sorted(VALID_SIGNALS)}
 
     def _apply_risk_overrides(
         self,
