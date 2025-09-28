@@ -7,6 +7,7 @@ from .engine import (
     GrammarRule,
     GrammarSuggestion,
 )
+from .space_grade import SpaceGradeModel, SpaceGradeReport
 
 __all__ = [
     "DynamicGrammarEngine",
@@ -14,4 +15,6 @@ __all__ = [
     "GrammarIssue",
     "GrammarRule",
     "GrammarSuggestion",
+    "SpaceGradeModel",
+    "SpaceGradeReport",
 ]
