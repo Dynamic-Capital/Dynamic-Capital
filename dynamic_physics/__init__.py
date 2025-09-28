@@ -8,6 +8,16 @@ from .physics import (
     Vector3,
     compute_energy_breakdown,
 )
+from .pns import (
+    C,
+    G,
+    M_SUN,
+    NeutrinoCoolingModel,
+    ProtoNeutronStar,
+    SimulationConfig,
+    SimulationResult,
+    fallback_power_law_mdot,
+)
 
 __all__ = [
     "DynamicPhysicsEngine",
@@ -16,4 +26,12 @@ __all__ = [
     "PhysicsSnapshot",
     "Vector3",
     "compute_energy_breakdown",
+    "G",
+    "C",
+    "M_SUN",
+    "NeutrinoCoolingModel",
+    "ProtoNeutronStar",
+    "SimulationConfig",
+    "SimulationResult",
+    "fallback_power_law_mdot",
 ]
