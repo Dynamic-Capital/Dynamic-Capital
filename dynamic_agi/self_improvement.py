@@ -155,6 +155,166 @@ class LearningSnapshot:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class BlueprintCategory:
+    """Domain-aligned focus area for the self-improvement blueprint."""
+
+    key: str
+    title: str
+    description: str
+    default_habits: tuple[str, ...]
+    keywords: tuple[str, ...]
+
+    def matches(self, metric_name: str) -> bool:
+        metric_lower = metric_name.lower()
+        return any(keyword in metric_lower for keyword in self.keywords)
+
+
+_BLUEPRINT_CATEGORIES: tuple[BlueprintCategory, ...] = (
+    BlueprintCategory(
+        key="foundations",
+        title="Mind & Body Foundations",
+        description=(
+            "Stabilise sleep, nutrition, movement, mindfulness, and spiritual alignment before layering advanced tactics."
+        ),
+        default_habits=(
+            "Protect 7–8 hours of consistent sleep",
+            "Plan balanced meals and 3L hydration",
+            "Schedule 4–5 weekly training blocks",
+            "Reserve 10–20 minutes for mindfulness",
+            "Anchor daily gratitude or prayer",
+        ),
+        keywords=(
+            "sleep",
+            "nutrition",
+            "fitness",
+            "movement",
+            "mindfulness",
+            "meditation",
+            "hydration",
+            "spiritual",
+        ),
+    ),
+    BlueprintCategory(
+        key="daily_operating_system",
+        title="Daily Operating System",
+        description=(
+            "Design structured mornings, deep-work blocks, and an intentional evening wind-down."
+        ),
+        default_habits=(
+            "Run a 90-minute priming routine (hydrate → move → journal → priority work)",
+            "Batch deep work into 60–90 minute focus cycles",
+            "Plan the next day during an evening shutdown",
+        ),
+        keywords=(
+            "routine",
+            "focus",
+            "morning",
+            "evening",
+            "workflow",
+            "time",
+            "productivity",
+        ),
+    ),
+    BlueprintCategory(
+        key="skill_growth",
+        title="Skill Growth & Knowledge",
+        description="Allocate protected time for core craft mastery and supporting capabilities.",
+        default_habits=(
+            "Invest 1–2 hours in deliberate practice of the core skill",
+            "Study 30 minutes from books, research, or case studies",
+            "Teach or publish a daily insight to reinforce learning",
+        ),
+        keywords=(
+            "skill",
+            "learning",
+            "practice",
+            "reading",
+            "education",
+            "knowledge",
+        ),
+    ),
+    BlueprintCategory(
+        key="wealth_career",
+        title="Wealth & Career",
+        description=(
+            "Balance resources across needs, investments, and lifestyle while engineering leverage in your career."
+        ),
+        default_habits=(
+            "Use the 50/30/20 budget snapshot weekly",
+            "Review and grow diversified income streams",
+            "Build relationships that unlock leverage or opportunity",
+        ),
+        keywords=(
+            "wealth",
+            "finance",
+            "budget",
+            "career",
+            "income",
+            "investment",
+        ),
+    ),
+    BlueprintCategory(
+        key="relationships_environment",
+        title="Relationships & Environment",
+        description="Curate uplifting relationships and a workspace that cues desired habits.",
+        default_habits=(
+            "Book weekly deep-time with family or partner",
+            "Connect with one growth-minded person each week",
+            "Declutter and optimise the workspace for focus cues",
+        ),
+        keywords=(
+            "relationship",
+            "family",
+            "partner",
+            "social",
+            "environment",
+            "workspace",
+        ),
+    ),
+    BlueprintCategory(
+        key="personal_growth",
+        title="Personal Growth & Vision",
+        description="Keep the long-term identity and vision vivid through journaling and experiential learning.",
+        default_habits=(
+            "Document the identity you are stepping into",
+            "Refresh 1-, 3-, and 10-year vision milestones",
+            "Journal gratitude, lessons, and progress toward the vision",
+        ),
+        keywords=(
+            "identity",
+            "vision",
+            "journaling",
+            "gratitude",
+            "experience",
+        ),
+    ),
+    BlueprintCategory(
+        key="execution_feedback",
+        title="Execution & Feedback Loop",
+        description="Continuously measure habits, review progress, and adapt with kaizen iterations.",
+        default_habits=(
+            "Track sleep, training, learning, and gratitude daily",
+            "Run a Sunday review and monthly reset",
+            "Hold accountability with a mentor, peer, or AI companion",
+        ),
+        keywords=(
+            "habit",
+            "feedback",
+            "tracking",
+            "reset",
+            "kaizen",
+            "review",
+        ),
+    ),
+)
+
+
+_BLUEPRINT_BY_KEY: Dict[str, BlueprintCategory] = {
+    category.key: category for category in _BLUEPRINT_CATEGORIES
+}
+
+
 @dataclass(slots=True)
 class ImprovementPlan:
     """Synthesised strategy for improving the AGI across sessions."""
@@ -165,6 +325,7 @@ class ImprovementPlan:
     feedback: tuple[str, ...]
     introspection: Dict[str, Any]
     summary: Dict[str, Any]
+    roadmap: tuple[Dict[str, Any], ...]
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -174,6 +335,7 @@ class ImprovementPlan:
             "feedback": list(self.feedback),
             "introspection": self.introspection,
             "summary": self.summary,
+            "roadmap": [dict(step) for step in self.roadmap],
         }
 
     @classmethod
@@ -185,6 +347,9 @@ class ImprovementPlan:
             feedback=tuple(payload.get("feedback", ())),
             introspection=dict(payload.get("introspection", {})),
             summary=dict(payload.get("summary", {})),
+            roadmap=tuple(
+                dict(step) for step in payload.get("roadmap", ())
+            ),
         )
 
 
@@ -276,11 +441,19 @@ class DynamicSelfImprovement:
         actions = self._actions_for_focus(focus, aggregated_metrics)
         feedback = self._collate_feedback(snapshots)
         introspection = self._latest_introspection(snapshots)
+        roadmap = self._build_roadmap(focus, aggregated_metrics, feedback)
+
+        blueprint_focus = [
+            category.title
+            for category in _BLUEPRINT_CATEGORIES
+            if any(self._resolve_category(metric) == category.key for metric in focus)
+        ]
 
         summary = {
             "sessions_considered": len(snapshots),
             "snapshot_range": [snapshots[0].timestamp.isoformat(), snapshots[-1].timestamp.isoformat()],
             "average_metric_score": mean(aggregated_metrics.values()) if aggregated_metrics else 0.0,
+            "blueprint_focus": blueprint_focus,
         }
 
         return ImprovementPlan(
@@ -290,6 +463,7 @@ class DynamicSelfImprovement:
             feedback=feedback,
             introspection=introspection,
             summary=summary,
+            roadmap=roadmap,
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -429,6 +603,83 @@ class DynamicSelfImprovement:
         if metacognition is not None:
             payload["metacognition"] = metacognition
         return payload
+
+    def _build_roadmap(
+        self,
+        focus: Sequence[str],
+        metrics: Mapping[str, float],
+        feedback: Sequence[str],
+    ) -> tuple[Dict[str, Any], ...]:
+        if not focus:
+            default_category = _BLUEPRINT_BY_KEY["foundations"]
+            return (
+                {
+                    "step": 1,
+                    "category": default_category.title,
+                    "description": default_category.description,
+                    "focus_metric": None,
+                    "intent": "Stabilise fundamentals before expanding",
+                    "suggested_habits": list(default_category.default_habits),
+                },
+            )
+
+        steps: list[Dict[str, Any]] = []
+        used_categories: set[str] = set()
+
+        for category in _BLUEPRINT_CATEGORIES:
+            relevant_metrics = [
+                metric
+                for metric in focus
+                if self._resolve_category(metric) == category.key
+            ]
+            if not relevant_metrics:
+                continue
+
+            blueprint = category
+            for metric in relevant_metrics:
+                score = metrics.get(metric, 0.0)
+                intent = (
+                    "Stabilise and close performance gaps"
+                    if score < 0
+                    else "Amplify what is already working"
+                )
+                if category.key == "execution_feedback" and feedback:
+                    intent = "Integrate feedback loops and address noted friction points"
+
+                steps.append(
+                    {
+                        "step": len(steps) + 1,
+                        "category": blueprint.title,
+                        "description": blueprint.description,
+                        "focus_metric": metric,
+                        "intent": intent,
+                        "suggested_habits": list(blueprint.default_habits),
+                    }
+                )
+                used_categories.add(category.key)
+
+        for category in _BLUEPRINT_CATEGORIES:
+            if category.key in used_categories:
+                continue
+            steps.append(
+                {
+                    "step": len(steps) + 1,
+                    "category": category.title,
+                    "description": category.description,
+                    "focus_metric": None,
+                    "intent": "Lay groundwork for upcoming growth phase",
+                    "suggested_habits": list(category.default_habits),
+                }
+            )
+
+        return tuple(steps)
+
+    def _resolve_category(self, metric: str) -> str:
+        metric_lower = metric.lower()
+        for category in _BLUEPRINT_CATEGORIES:
+            if category.matches(metric_lower):
+                return category.key
+        return "execution_feedback"
 
 
 def _is_number(value: Any) -> bool:
