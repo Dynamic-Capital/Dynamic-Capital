@@ -112,6 +112,7 @@ documenting which assets were consulted.
 | 6.16 | [onedrive-shares/ejhj6-c4fjdopaw-phw5zl8bwumo2lyzhwbrhbknd4gvbq-folder.md](./onedrive-shares/ejhj6-c4fjdopaw-phw5zl8bwumo2lyzhwbrhbknd4gvbq-folder.md) | Combined logs and model artifacts share metadata for telemetry/model reconciliation. |
 | 6.17 | [onedrive-shares/eskwdphqepxihqmatzjdduubkm_lsdxt-jvm-1smjjgfea-folder.md](./onedrive-shares/eskwdphqepxihqmatzjdduubkm_lsdxt-jvm-1smjjgfea-folder.md) | Trading reports share identifiers for ingesting supplemental analytics. |
 | 6.18 | [onedrive-shares/etoelnepqhhhiis2vl7qe_abz618nqf2vgnrykcx0prhwa-file.md](./onedrive-shares/etoelnepqhhhiis2vl7qe_abz618nqf2vgnrykcx0prhwa-file.md) | Standalone `read_me.md` text share metadata for onboarding notes. |
+| 6.19 | [agi_integration_strategies.md](./agi_integration_strategies.md) | AGI-driven integration plan aligning DTL, DTA, execution, and learning loops. |
 
 ## 7. Operational Runbooks & Launch Phases
 
