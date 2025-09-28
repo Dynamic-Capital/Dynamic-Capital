@@ -15,9 +15,11 @@ from dynamic_framework import (
 from dynamic_framework.__main__ import (
     DEFAULT_SCENARIO,
     build_engine,
+    build_fine_tune_dataset,
     load_scenario,
     render_report,
     serialise_report,
+    run,
 )
 
 
@@ -151,7 +153,8 @@ def test_cli_render_report_includes_recommendations() -> None:
 
 def test_render_report_supports_json_format() -> None:
     engine = build_engine(DEFAULT_SCENARIO)
-    output = render_report(engine, format="json", indent=None)
+    report = engine.report()
+    output = render_report(engine, format="json", indent=None, report=report)
     payload = json.loads(output)
 
     assert payload["history"] == engine.history
@@ -165,7 +168,8 @@ def test_render_report_supports_json_format() -> None:
 
 def test_render_report_normalises_negative_indent() -> None:
     engine = build_engine(DEFAULT_SCENARIO)
-    output = render_report(engine, format="json", indent=-1)
+    report = engine.report()
+    output = render_report(engine, format="json", indent=-1, report=report)
 
     assert "\n" not in output
     assert json.loads(output)["history"] == engine.history
@@ -173,12 +177,85 @@ def test_render_report_normalises_negative_indent() -> None:
 
 def test_serialise_report_matches_json_rendering() -> None:
     engine = build_engine(DEFAULT_SCENARIO)
-    payload = serialise_report(engine)
-    rendered = json.loads(render_report(engine, format="json"))
+    report = engine.report()
+    payload = serialise_report(engine, report=report)
+    rendered = json.loads(render_report(engine, format="json", report=report))
 
     assert rendered["nodes"] == payload["nodes"]
     assert rendered["focus_areas"] == payload["focus_areas"]
     assert rendered["alerts"] == payload["alerts"]
+
+
+def test_report_exposes_snapshots_for_serialisation() -> None:
+    engine = build_engine(DEFAULT_SCENARIO)
+    report = engine.report()
+
+    assert len(report.snapshots) == 3
+    keys = [snapshot.key for snapshot in report.snapshots]
+    assert set(keys) == {"automation", "orchestration", "platform"}
+
+    payload = serialise_report(engine, report=report)
+    assert [node["key"] for node in payload["nodes"]] == sorted(keys)
+
+
+def test_build_fine_tune_dataset_generates_examples() -> None:
+    engine = build_engine(DEFAULT_SCENARIO)
+    report = engine.report()
+
+    payload = build_fine_tune_dataset(
+        engine,
+        report=report,
+        default_tags=["dynamic-agi"],
+    )
+
+    dataset = payload["dataset"]
+    assert dataset["summary"]["count"] == len(report.snapshots)
+    assert dataset["summary"]["default_tags"] == ["dynamic-agi"]
+    assert dataset["summary"]["tag_histogram"]["dynamic-agi"] == len(report.snapshots)
+    assert len(dataset["examples"]) == len(report.snapshots)
+    first = dataset["examples"][0]
+    assert first["tags"] == ["dynamic-agi"]
+    assert first["metadata"]["signals"]
+
+
+def test_build_fine_tune_dataset_orders_examples_by_node_key() -> None:
+    engine = DynamicFrameworkEngine(
+        nodes=[
+            FrameworkNode(key="platform", title="Platform"),
+            FrameworkNode(key="automation", title="Automation"),
+        ]
+    )
+
+    report = engine.report()
+    payload = build_fine_tune_dataset(engine, report=report)
+
+    example_keys = [
+        example["metadata"]["signals"][0]["metric"].split(".", 1)[0]
+        for example in payload["dataset"]["examples"]
+    ]
+
+    assert example_keys == sorted(example_keys)
+
+
+def test_cli_writes_fine_tune_dataset_creating_parent_dirs(tmp_path, capsys) -> None:
+    destination = tmp_path / "nested" / "fine-tune" / "dataset.json"
+
+    exit_code = run([
+        "--format",
+        "json",
+        "--fine-tune-dataset",
+        str(destination),
+        "--indent",
+        "0",
+    ])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out  # ensure the CLI emitted a report
+    assert destination.exists()
+
+    dataset_payload = json.loads(destination.read_text())
+    assert dataset_payload["dataset"]["summary"]["count"] > 0
 
 
 def test_load_scenario_accepts_stdin_payload() -> None:

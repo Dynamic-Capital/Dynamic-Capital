@@ -72,11 +72,13 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 
 ### Core Flags
 
-| Flag                   | Default      | Purpose                                               | Synonymous terminology                         |
-| ---------------------- | ------------ | ----------------------------------------------------- | ---------------------------------------------- |
-| `--scenario PATH`      | _(optional)_ | Load scenario JSON from a file path or `-` for STDIN. | context file, input manifest, blueprint source |
-| `--format {text,json}` | `text`       | Choose plain text or JSON report format.              | output mode, rendering style, representation   |
-| `--indent N`           | `2`          | Number of spaces applied to JSON pretty-printing.     | spacing, padding, indentation depth            |
+| Flag                             | Default        | Purpose                                                                | Synonymous terminology                         |
+| -------------------------------- | -------------- | ---------------------------------------------------------------------- | ---------------------------------------------- |
+| `--scenario PATH`                | _(optional)_   | Load scenario JSON from a file path or '-' for STDIN.                  | context file, input manifest, blueprint source |
+| `--format {text,json,fine-tune}` | `text`         | Choose plain text, JSON, or fine-tune dataset output.                  | output mode, rendering style, representation   |
+| `--indent N`                     | `2`            | Number of spaces applied to JSON pretty-printing.                      | spacing, padding, indentation depth            |
+| `--fine-tune-dataset PATH`       | _(optional)_   | Write the Dynamic AGI training payload to `PATH` (use `-` for stdout). Parent directories are created automatically. | dataset export, training payload, AGI corpus   |
+| `--fine-tune-tag TAG`            | _(repeatable)_ | Apply default tags to generated fine-tune examples.                    | label, classification marker, taxonomy token   |
 
 ---
 
@@ -158,6 +160,22 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 - _Text mode_ ⇔ _Narrative view_, _Console summary_.
 - _JSON mode_ ⇔ _Structured view_, _Machine representation_.
 - _Indentation_ ⇔ _Spacing_, _Padding_, _Tabulation_.
+
+### Fine-tune Mode (`--format fine-tune`)
+
+- Streams the Dynamic AGI training dataset derived from the current report.
+- Mirrors the structure returned by `build_fine_tune_dataset`, embedding the
+  report payload alongside fine-tune examples and a dataset summary.
+- Combine with `--fine-tune-dataset PATH` to persist the JSON for ingestion by
+  the `DynamicAGIFineTuner` utility or orchestration pipelines.
+- Examples are ordered by node key so successive runs remain deterministic
+  when the scenario input is unchanged.
+
+**Related terminology:**
+
+- _Fine-tune dataset_ ⇔ _Training payload_, _Curriculum bundle_.
+- _Examples_ ⇔ _Prompt-completion pairs_, _Learning samples_.
+- _Tags_ ⇔ _Labels_, _Facets_, _Taxonomy markers_.
 
 ---
 
