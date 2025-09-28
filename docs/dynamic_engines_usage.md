@@ -2,6 +2,18 @@
 
 This guide summarises how to compose the orchestration engines that power Dynamic Capital, focusing on linking modules, coordinating zones/levels, and matching agents to tasks.
 
+## Audit checklist & task planner
+
+Use this checklist when auditing an environment or planning improvements. Each subsection maps to the detailed guidance later in the document.
+
+- [ ] **Shim coverage** – inventory which orchestration engines are needed, confirm they are exported via `dynamic_engines`, and document any new modules that must be registered in `_ENGINE_EXPORTS`.
+- [ ] **Persona chain fit** – review the existing research → execution → risk flow, note where persona overrides are required, and schedule updates through `configure_dynamic_start_agents`.
+- [ ] **Zone hygiene** – catalogue current zones/levels, check that boundaries and capacities are accurate, and log follow-up tasks for missing `ZoneEvent` instrumentation.
+- [ ] **Sector resilience** – examine `DynamicSpaceEngine` sector snapshots, flag sectors exceeding the intervention threshold, and create remediation tasks for route balancing or data quality issues.
+- [ ] **Assignment quality** – audit `DynamicAssignEngine` scoring inputs (skills, availability, confidence), list data refresh actions, and capture decisions that should be persisted or escalated.
+
+Document the owner, deadline, and status for each item so audits feed directly into the team backlog.
+
 ## 1. Import engines through the `dynamic_engines` shim
 
 The legacy-compatible `dynamic_engines` module forwards attributes to the domain packages on demand, so you can keep call sites stable while implementations live beside their data models. Update `_ENGINE_EXPORTS` if you add a new engine so it becomes available via a single import path.
