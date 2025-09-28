@@ -24,6 +24,17 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+DYNAMIC_AGI_EXPANSION = (
+    "Driving Yield of New Advancements in Minds, Intelligence & Creation — "
+    "Adapting Global Intelligence"
+)
+
+_DEFAULT_IDENTITY_PILLARS = (
+    "Driving Yield of New Advancements in Minds",
+    "Intelligence & Creation",
+    "Adapting Global Intelligence",
+)
+
 MODEL_VERSION_INFO = ModelVersion(
     name="Dynamic AGI",
     number=VersionNumber(major=0, minor=1),
@@ -98,6 +109,24 @@ class AGIDiagnostics:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class DynamicAGIIdentity:
+    """Identity metadata describing the Dynamic AGI expansion."""
+
+    name: str = "Dynamic AGI"
+    acronym: str = "Dynamic AGI"
+    expansion: str = DYNAMIC_AGI_EXPANSION
+    pillars: tuple[str, ...] = _DEFAULT_IDENTITY_PILLARS
+
+    def as_dict(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "acronym": self.acronym,
+            "expansion": self.expansion,
+            "pillars": list(self.pillars),
+        }
+
+
 @dataclass(slots=True)
 class AGIOutput:
     """Aggregated response combining signal, research, and risk views."""
@@ -154,12 +183,19 @@ class DynamicAGIModel:
         self.self_improvement = self_improvement
         self.version = MODEL_VERSION
         self.version_info = _default_version_info()
+        self._identity = DynamicAGIIdentity()
 
     @property
     def version_metadata(self) -> Dict[str, Any]:
         """Return a copy of the model version metadata."""
 
         return deepcopy(self.version_info)
+
+    @property
+    def identity(self) -> DynamicAGIIdentity:
+        """Expose the canonical Dynamic AGI naming expansion."""
+
+        return self._identity
 
     def evaluate(
         self,

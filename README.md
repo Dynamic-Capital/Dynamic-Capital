@@ -201,6 +201,14 @@ ranked focus areas, aggregated metrics, and the latest introspection reports.
 See `tests/dynamic_agi/test_dynamic_self_improvement.py` for an end-to-end
 example.
 
+**Dynamic AGI** abbreviates **Driving Yield of New Advancements in Minds,
+Intelligence & Creation — Adapting Global Intelligence**. The
+`dynamic_agi.DynamicAGIModel.identity` helper exposes this expansion and its
+three pillars (`Driving Yield of New Advancements in Minds`, `Intelligence &
+Creation`, `Adapting Global Intelligence`) so downstream services can surface
+consistent branding while reinforcing the platform's mandate to compound
+innovation under adaptive intelligence safeguards.
+
 ## Dynamic Theme System
 
 The web console and Mini App share a synchronized theming pipeline so traders
