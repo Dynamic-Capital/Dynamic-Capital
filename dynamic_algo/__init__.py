@@ -1,6 +1,8 @@
 """Trading algorithm utilities for orchestrating MT5/Exness execution."""
 
 from .trading_core import (
+    ALGO_VERSION,
+    ALGO_VERSION_INFO,
     ORDER_ACTION_BUY,
     ORDER_ACTION_SELL,
     SUCCESS_RETCODE,
@@ -109,6 +111,8 @@ from .dynamic_problem_solving import (
 )
 
 __all__ = [
+    "ALGO_VERSION",
+    "ALGO_VERSION_INFO",
     "ORDER_ACTION_BUY",
     "ORDER_ACTION_SELL",
     "SUCCESS_RETCODE",
