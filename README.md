@@ -190,6 +190,17 @@ Explore the broader platform anatomy and contributor guides:
 - [Dynamic Capital ecosystem anatomy](docs/dynamic-capital-ecosystem-anatomy.md)
 - [Dynamic AI overview](docs/dynamic-ai-overview.md)
 
+### Dynamic AGI self-improvement loop
+
+`dynamic_agi.DynamicAGIModel` now accepts an optional
+`DynamicSelfImprovement` manager that records each evaluation and emits an
+iterative improvement plan. Provide realised performance telemetry or human
+feedback when calling `evaluate()` so the manager can accumulate session
+snapshots. The returned `AGIOutput` includes an `improvement` payload with
+ranked focus areas, aggregated metrics, and the latest introspection reports.
+See `tests/dynamic_agi/test_dynamic_self_improvement.py` for an end-to-end
+example.
+
 ## Dynamic Theme System
 
 The web console and Mini App share a synchronized theming pipeline so traders

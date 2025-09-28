@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Dict, Iterable, Mapping, Optional
 
 from dynamic_ai import (
     AISignal,
@@ -14,6 +14,7 @@ from dynamic_ai import (
     RiskManager,
 )
 from dynamic_ai.core import PreparedMarketContext
+from dynamic_agi.self_improvement import DynamicSelfImprovement
 
 
 def _coerce_float(value: Any, default: float = 0.0) -> float:
@@ -89,6 +90,7 @@ class AGIOutput:
     sizing: Optional[PositionSizing]
     market_making: Dict[str, float]
     diagnostics: AGIDiagnostics
+    improvement: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         payload = {
@@ -100,6 +102,8 @@ class AGIOutput:
         }
         if self.sizing is not None:
             payload["sizing"] = asdict(self.sizing)
+        if self.improvement is not None:
+            payload["improvement"] = self.improvement
         return payload
 
 
@@ -112,10 +116,12 @@ class DynamicAGIModel:
         fusion: Optional[DynamicFusionAlgo] = None,
         analysis: Optional[DynamicAnalysis] = None,
         risk_manager: Optional[RiskManager] = None,
+        self_improvement: Optional[DynamicSelfImprovement] = None,
     ) -> None:
         self.fusion = fusion or DynamicFusionAlgo()
         self.analysis = analysis or DynamicAnalysis()
         self.risk_manager = risk_manager or RiskManager()
+        self.self_improvement = self_improvement
 
     def evaluate(
         self,
@@ -125,6 +131,9 @@ class DynamicAGIModel:
         risk_context: RiskContext | Mapping[str, Any] | None = None,
         treasury: Optional[Mapping[str, Any]] = None,
         inventory: float = 0.0,
+        performance: Optional[Mapping[str, Any]] = None,
+        feedback_notes: Optional[Iterable[str]] = None,
+        introspection_inputs: Optional[Mapping[str, Any]] = None,
     ) -> AGIOutput:
         """Run the end-to-end AGI workflow for the supplied payloads."""
 
@@ -158,6 +167,27 @@ class DynamicAGIModel:
             consensus=consensus,
         )
 
+        improvement_payload: Optional[Dict[str, Any]] = None
+        if self.self_improvement is not None:
+            self.self_improvement.record_session(
+                output=AGIOutput(
+                    signal=signal,
+                    research=research_payload,
+                    risk_adjusted=risk_adjusted,
+                    sizing=sizing,
+                    market_making=market_making,
+                    diagnostics=diagnostics,
+                ),
+                performance=performance,
+                feedback_notes=feedback_notes,
+                introspection_inputs=introspection_inputs,
+            )
+            try:
+                plan = self.self_improvement.generate_plan()
+            except RuntimeError:
+                improvement_payload = None
+            else:
+                improvement_payload = plan.to_dict()
         return AGIOutput(
             signal=signal,
             research=research_payload,
@@ -165,4 +195,5 @@ class DynamicAGIModel:
             sizing=sizing,
             market_making=market_making,
             diagnostics=diagnostics,
+            improvement=improvement_payload,
         )
