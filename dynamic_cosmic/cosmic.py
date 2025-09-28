@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections import Deque, deque
+from collections import deque
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from math import sqrt
 from statistics import fmean
-from typing import Iterable, Mapping, MutableMapping, Sequence
+from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
 __all__ = [
     "CosmicCoordinate",
