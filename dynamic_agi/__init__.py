@@ -3,9 +3,11 @@
 from .model import (
     AGIDiagnostics,
     AGIOutput,
+    DynamicAGIIdentity,
     DynamicAGIModel,
     MODEL_VERSION,
     MODEL_VERSION_INFO,
+    DYNAMIC_AGI_EXPANSION,
 )
 from .self_improvement import (
     DynamicSelfImprovement,
@@ -17,9 +19,11 @@ from .self_improvement import (
 __all__ = [
     "AGIDiagnostics",
     "AGIOutput",
+    "DynamicAGIIdentity",
     "DynamicAGIModel",
     "MODEL_VERSION",
     "MODEL_VERSION_INFO",
+    "DYNAMIC_AGI_EXPANSION",
     "DynamicSelfImprovement",
     "ImprovementPlan",
     "ImprovementSignal",
