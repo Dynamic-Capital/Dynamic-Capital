@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from collections import deque
+from collections import Counter, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from statistics import mean
+from itertools import islice
+from statistics import fmean
 from typing import Any, Deque, Dict, Iterable, Iterator, List, Mapping, Optional, Sequence, Tuple
 
 from dynamic_agi.self_improvement import LearningSnapshot
@@ -167,7 +168,9 @@ class DynamicFineTuneDataset:
         if capacity <= 0:
             raise ValueError("capacity must be positive")
         self.capacity = capacity
-        self._examples: Deque[FineTuneExample] = deque(maxlen=capacity)
+        self._examples: Deque[FineTuneExample] = deque()
+        self._total_characters: int = 0
+        self._tag_counts: Counter[str] = Counter()
 
     def __len__(self) -> int:  # pragma: no cover - trivial
         return len(self._examples)
@@ -176,7 +179,9 @@ class DynamicFineTuneDataset:
         return iter(self._examples)
 
     def add(self, example: FineTuneExample) -> None:
+        self._evict_if_needed()
         self._examples.append(example)
+        self._register_example(example)
 
     def extend(self, examples: Iterable[FineTuneExample]) -> None:
         for example in examples:
@@ -189,13 +194,40 @@ class DynamicFineTuneDataset:
         return [example.to_dict() for example in self._examples]
 
     def stats(self) -> Dict[str, Any]:
-        lengths = [len(example.prompt) + len(example.completion) for example in self._examples]
-        average_tokens = mean(lengths) if lengths else 0.0
+        count = len(self._examples)
+        average_characters = (self._total_characters / count) if count else 0.0
         return {
-            "count": len(self._examples),
+            "count": count,
             "capacity": self.capacity,
-            "average_characters": average_tokens,
+            "average_characters": average_characters,
+            "total_characters": self._total_characters,
         }
+
+    def tag_histogram(self) -> Dict[str, int]:
+        return dict(sorted(self._tag_counts.items()))
+
+    def _evict_if_needed(self) -> None:
+        while len(self._examples) >= self.capacity:
+            removed = self._examples.popleft()
+            self._forget_example(removed)
+
+    def _register_example(self, example: FineTuneExample) -> None:
+        self._total_characters += self._example_length(example)
+        for tag in example.tags:
+            self._tag_counts[tag] += 1
+
+    def _forget_example(self, example: FineTuneExample) -> None:
+        self._total_characters -= self._example_length(example)
+        for tag in example.tags:
+            current = self._tag_counts.get(tag, 0)
+            if current <= 1:
+                self._tag_counts.pop(tag, None)
+            else:
+                self._tag_counts[tag] = current - 1
+
+    @staticmethod
+    def _example_length(example: FineTuneExample) -> int:
+        return len(example.prompt) + len(example.completion)
 
 
 class DynamicAGIFineTuner:
@@ -221,16 +253,19 @@ class DynamicAGIFineTuner:
     def build_batches(self, *, batch_size: int = 16, notes: Optional[str] = None) -> List[FineTuneBatch]:
         if batch_size <= 0:
             raise ValueError("batch_size must be positive")
-        examples = list(self.dataset.snapshot())
         batches: List[FineTuneBatch] = []
-        for start in range(0, len(examples), batch_size):
-            batch_examples = tuple(examples[start : start + batch_size])
+        iterator = iter(self.dataset)
+        while True:
+            batch_examples = tuple(islice(iterator, batch_size))
+            if not batch_examples:
+                break
             batches.append(FineTuneBatch(examples=batch_examples, notes=notes))
         return batches
 
     def dataset_summary(self) -> Dict[str, Any]:
         summary = self.dataset.stats()
-        summary["tags"] = list(self.default_tags)
+        summary["default_tags"] = list(self.default_tags)
+        summary["tag_histogram"] = self.dataset.tag_histogram()
         return summary
 
     def _example_from_snapshot(self, snapshot: LearningSnapshot) -> FineTuneExample:
@@ -238,7 +273,7 @@ class DynamicAGIFineTuner:
         completion = _render_completion(snapshot)
         metadata = {
             "timestamp": snapshot.timestamp.astimezone(timezone.utc).isoformat(),
-            "performance_score": mean(snapshot.performance.values()) if snapshot.performance else 0.0,
+            "performance_score": fmean(snapshot.performance.values()) if snapshot.performance else 0.0,
             "signals": [signal.to_dict() for signal in snapshot.signals],
         }
         tags: Tuple[str, ...]
