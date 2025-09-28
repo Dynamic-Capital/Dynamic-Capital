@@ -105,6 +105,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_library": ("DynamicLibrary",),
     "dynamic_memory": ("DynamicMemoryConsolidator",),
     "dynamic_memory_reconsolidation": ("DynamicMemoryReconsolidation",),
+    "dynamic_method": (
+        "DynamicMethodEngine",
+        "MethodSignal",
+        "MethodContext",
+        "MethodBlueprint",
+    ),
     "dynamic_metacognition": ("DynamicMetacognition",),
     "dynamic_mentorship": ("DynamicMentorshipEngine",),
     "dynamic_numbers": ("DynamicNumberComposer",),
