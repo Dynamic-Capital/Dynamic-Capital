@@ -913,9 +913,10 @@ npm run tunnel:functions
 
 Share the resulting HTTPS endpoint with reviewers and map requests to the
 appropriate function path. For instance,
-`https://exosporal-ezequiel-semibiographically.ngrok-free.dev/` has been used
-to proxy the local Telegram webhook during QA sessions—replace it with your own
-ephemeral domain and rotate the tunnel token regularly.
+`https://exosporal-ezequiel-semibiographically.ngrok-free.dev/` (endpoint ID
+`ep_33KMRY2qqYoDugxq8JEyLmOPSqM`) has been used to proxy the local Telegram
+webhook during QA sessions—replace it with your own ephemeral domain and rotate
+the tunnel token regularly.
 
 ## Deployment
 
