@@ -61,3 +61,24 @@ class LazyNamespace:
         """Return the ordered exports for convenience."""
 
         return self._exports
+
+
+def install_lazy_module(
+    namespace: dict[str, Any],
+    default_module: str,
+    exports: Iterable[str],
+    overrides: Mapping[str, str] | None = None,
+) -> LazyNamespace:
+    """Attach lazy-loading hooks to ``namespace`` and return the shim."""
+
+    lazy_namespace = LazyNamespace(default_module, exports, overrides)
+
+    def __getattr__(name: str) -> Any:
+        return lazy_namespace.resolve(name, namespace)
+
+    def __dir__() -> list[str]:  # pragma: no cover - trivial
+        return lazy_namespace.dir(namespace)
+
+    namespace["__getattr__"] = __getattr__
+    namespace["__dir__"] = __dir__
+    return lazy_namespace

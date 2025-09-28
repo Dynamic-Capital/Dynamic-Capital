@@ -11,9 +11,9 @@ only when they are first accessed.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from ._lazy import LazyNamespace
+from ._lazy import install_lazy_module
 
 __all__ = [
     "Agent",
@@ -40,7 +40,8 @@ __all__ = [
     "run_dynamic_agent_cycle",
 ]
 
-_LAZY = LazyNamespace(
+_LAZY = install_lazy_module(
+    globals(),
     "dynamic_ai",
     __all__,
     overrides={
@@ -71,13 +72,3 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
         WaveAgent,
         WaveAgentResult,
     )
-
-
-def __getattr__(name: str) -> Any:
-    """Lazily expose objects from the modern implementation modules."""
-
-    return _LAZY.resolve(name, globals())
-
-
-def __dir__() -> list[str]:  # pragma: no cover - trivial
-    return _LAZY.dir(globals())
