@@ -159,6 +159,15 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_ultimate_reality": ("DynamicUltimateReality",),
     "dynamic_volume": ("DynamicVolumeAlgo",),
     "dynamic_wisdom": ("DynamicWisdomEngine",),
+    "dynamic_web3": (
+        "DynamicWeb3Engine",
+        "NetworkTelemetry",
+        "NetworkHealthSummary",
+        "SmartContract",
+        "Web3Action",
+        "Web3Network",
+        "TransactionProfile",
+    ),
     "dynamic_wallet": (
         "DynamicWalletEngine",
         "WalletAccount",
