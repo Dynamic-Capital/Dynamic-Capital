@@ -5,13 +5,15 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta, timezone
-from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
+from typing import Deque, Final, Iterable, Mapping, MutableMapping, Sequence, TypedDict
 
 __all__ = [
     "CycleEvent",
     "CyclePhase",
     "CycleSnapshot",
     "DynamicCycleOrchestrator",
+    "create_dynamic_life_cycle",
+    "LIFE_CYCLE_BLUEPRINT",
 ]
 
 
@@ -95,6 +97,72 @@ def _coerce_event(event: CycleEvent | Mapping[str, object]) -> CycleEvent:
     if not isinstance(event, Mapping):  # pragma: no cover - defensive guard
         raise TypeError("event must be a CycleEvent or mapping")
     return CycleEvent(**event)
+
+
+# ---------------------------------------------------------------------------
+# presets
+
+
+class _LifeCyclePhaseBase(TypedDict):
+    key: str
+    title: str
+
+
+class LifeCyclePhaseBlueprint(_LifeCyclePhaseBase, total=False):
+    description: str
+    entry_criteria: Sequence[str]
+    exit_criteria: Sequence[str]
+    expected_duration_hours: float
+    tags: Sequence[str]
+
+
+LIFE_CYCLE_BLUEPRINT: Final[tuple[LifeCyclePhaseBlueprint, ...]] = (
+    {
+        "key": "emergence",
+        "title": "Emergence",
+        "description": "Spark awareness and articulate the animating purpose.",
+        "entry_criteria": ("vision seeded",),
+        "exit_criteria": ("purpose aligned", "sponsorship secured"),
+        "expected_duration_hours": 168.0,
+        "tags": ("strategy", "alignment", "purpose"),
+    },
+    {
+        "key": "formation",
+        "title": "Formation",
+        "description": "Codify the blueprint, roles, and enabling architecture.",
+        "entry_criteria": ("core team assembled",),
+        "exit_criteria": ("architecture mapped", "resources committed"),
+        "expected_duration_hours": 336.0,
+        "tags": ("design", "architecture", "planning"),
+    },
+    {
+        "key": "expansion",
+        "title": "Expansion",
+        "description": "Execute, scale, and deliver measurable momentum.",
+        "entry_criteria": ("launch milestone achieved",),
+        "exit_criteria": ("traction validated", "feedback integrated"),
+        "expected_duration_hours": 720.0,
+        "tags": ("execution", "delivery", "impact"),
+    },
+    {
+        "key": "resilience",
+        "title": "Resilience",
+        "description": "Stabilise systems, mitigate risk, and reinforce trust.",
+        "entry_criteria": ("operational rhythms established",),
+        "exit_criteria": ("risk posture reviewed", "controls uplifted"),
+        "expected_duration_hours": 504.0,
+        "tags": ("operations", "risk", "trust"),
+    },
+    {
+        "key": "renewal",
+        "title": "Renewal",
+        "description": "Synthesize learning to reimagine the next evolution.",
+        "entry_criteria": ("retrospective complete",),
+        "exit_criteria": ("next cycle chartered",),
+        "expected_duration_hours": 240.0,
+        "tags": ("learning", "strategy", "foresight"),
+    },
+)
 
 
 # ---------------------------------------------------------------------------
@@ -436,3 +504,56 @@ class DynamicCycleOrchestrator:
                 self._phase_completed_at.pop(key, None)
         if self._current_phase and self._current_phase not in self._phase_lookup:
             self._current_phase = None
+
+
+def create_dynamic_life_cycle(
+    *,
+    history: int = 365,
+    overrides: Mapping[str, Mapping[str, object]] | None = None,
+    additional_phases: Iterable[CyclePhase | Mapping[str, object]] | None = None,
+    start_phase: str | None = None,
+) -> DynamicCycleOrchestrator:
+    """Construct an orchestrator seeded with the canonical life cycle phases.
+
+    The preset emphasises the evolution of an idea from inception through
+    long-term renewal. Override dictionaries allow teams to tailor the
+    metadata (for example, durations or criteria) so the preset better reflects
+    project-specific cadence without mutating the shared blueprint.
+
+    Args:
+        history: Number of recent events to retain for rolling analytics.
+        overrides: Optional mapping keyed by phase key that supplies field
+            overrides merged with :data:`LIFE_CYCLE_BLUEPRINT`.
+        additional_phases: Optional iterable of extra phases to append after the
+            canonical blueprint so programmes can extend the lifecycle.
+        start_phase: Explicit starting phase key. Defaults to the first
+            blueprint phase when omitted.
+
+    Returns:
+        A :class:`DynamicCycleOrchestrator` primed with the life cycle phases.
+    """
+
+    overrides_by_key: dict[str, Mapping[str, object]] = {}
+    if overrides:
+        overrides_by_key = {
+            _normalise_key(key): dict(value) for key, value in overrides.items()
+        }
+
+    phase_sequence: list[CyclePhase] = []
+    for template in LIFE_CYCLE_BLUEPRINT:
+        data: dict[str, object] = dict(template)
+        if override := overrides_by_key.get(template["key"]):
+            data.update(override)
+        phase_sequence.append(CyclePhase(**data))
+
+    if additional_phases:
+        for phase in additional_phases:
+            phase_sequence.append(_coerce_phase(phase))
+
+    initial_phase = _normalise_key(start_phase) if start_phase else phase_sequence[0].key
+
+    return DynamicCycleOrchestrator(
+        history=history,
+        phases=tuple(phase_sequence),
+        start_phase=initial_phase,
+    )

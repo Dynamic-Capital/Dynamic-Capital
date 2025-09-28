@@ -4,7 +4,12 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from dynamic_cycle import CycleEvent, CyclePhase, DynamicCycleOrchestrator
+from dynamic_cycle import (
+    CycleEvent,
+    CyclePhase,
+    DynamicCycleOrchestrator,
+    create_dynamic_life_cycle,
+)
 
 
 @pytest.fixture()
@@ -115,7 +120,7 @@ def test_rewind_prunes_old_events(orchestrator: DynamicCycleOrchestrator) -> Non
         CycleEvent(
             phase="discovery",
             category="research",
-            description="Archived", 
+            description="Archived",
             timestamp=old_time,
             progress=0.4,
         )
@@ -126,3 +131,39 @@ def test_rewind_prunes_old_events(orchestrator: DynamicCycleOrchestrator) -> Non
 
     assert snapshot.progress == pytest.approx(0.0)
     assert snapshot.metadata["event_count"] == 0
+
+
+def test_create_dynamic_life_cycle_bootstraps_phases() -> None:
+    orchestrator = create_dynamic_life_cycle(history=42)
+
+    assert orchestrator.current_phase == "emergence"
+    assert len(orchestrator.phases) == 5
+    assert orchestrator.phases[0].title == "Emergence"
+    assert orchestrator.phases[-1].key == "renewal"
+
+
+def test_create_dynamic_life_cycle_supports_overrides_and_extensions() -> None:
+    orchestrator = create_dynamic_life_cycle(
+        overrides={
+            "expansion": {
+                "expected_duration_hours": 360.0,
+                "tags": ("execution", "scale"),
+            }
+        },
+        additional_phases=[
+            {
+                "key": "sunset",
+                "title": "Sunset",
+                "description": "Retire and transition operations",
+                "tags": ("closure",),
+            }
+        ],
+        start_phase="formation",
+    )
+
+    assert orchestrator.current_phase == "formation"
+    assert orchestrator.phases[0].key == "emergence"
+    expansion = next(phase for phase in orchestrator.phases if phase.key == "expansion")
+    assert expansion.expected_duration_hours == pytest.approx(360.0)
+    assert expansion.tags == ("execution", "scale")
+    assert orchestrator.phases[-1].key == "sunset"
