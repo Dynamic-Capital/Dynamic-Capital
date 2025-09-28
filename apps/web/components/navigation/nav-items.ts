@@ -104,13 +104,13 @@ const extraNavItems: NavItem[] = [
   {
     id: "ui-optimizer",
     step: `Step ${firstExtraStep + 3}`,
-    label: "Dynamic UI optimizer",
+    label: "Dynamic GUI optimizer",
     description: "Optimize readiness workflows and activation channels.",
     icon: Gauge,
     path: "/tools/dynamic-ui-optimizer",
     ariaLabel: `Step ${
       firstExtraStep + 3
-    }: Dynamic UI optimizer. Optimize readiness workflows and activation channels.`,
+    }: Dynamic GUI optimizer. Optimize readiness workflows and activation channels.`,
     showOnMobile: true,
   },
   {

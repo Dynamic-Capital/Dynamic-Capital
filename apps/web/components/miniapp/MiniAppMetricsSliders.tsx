@@ -58,7 +58,7 @@ const MiniAppMetricsSlidersComponent = ({
   }, [insights]);
 
   return (
-    <Card className="bg-gradient-to-br from-background/60 via-background to-muted/50 border-primary/10">
+    <Card className="glass-motion-card">
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2 justify-between">
           <CardTitle className="text-subheading font-semibold">
@@ -141,7 +141,7 @@ const MiniAppMetricsSlidersComponent = ({
                 <li
                   key={insight.key}
                   className={cn(
-                    "flex items-start gap-2 rounded-md bg-background/60 p-2 border border-border/30",
+                    "miniapp-panel flex items-start gap-2 p-3 text-xs",
                     insight.emphasis === "marketing" &&
                       "border-amber-500/30 bg-amber-500/5",
                     insight.emphasis === "popularity" &&

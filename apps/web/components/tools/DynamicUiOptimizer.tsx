@@ -203,7 +203,7 @@ export function DynamicUiOptimizer() {
     <Column gap="40" fillWidth>
       <Column gap="16" align="start" maxWidth={48}>
         <Tag size="s" background="brand-alpha-weak" prefixIcon="activity">
-          Dynamic UI activation
+          Dynamic GUI activation
         </Tag>
         <Heading variant="display-strong-xs">
           Optimize onboarding and automation coverage in one dashboard

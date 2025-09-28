@@ -108,7 +108,7 @@ const home: Home = {
           onBackground="brand-strong"
           className="ml-4 font-semibold tracking-tight"
         >
-          Launch update: Dynamic UI optimizer
+          Launch update: Dynamic GUI optimizer
         </Text>
         <Line background="brand-alpha-strong" vert height="20" />
         <Text marginRight="4" onBackground="brand-medium">
