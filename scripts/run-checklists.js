@@ -218,7 +218,6 @@ const TASK_LIBRARY = {
     label:
       'Print NFT checklist tasks (node scripts/checklists/nft-collectible-tasks.mjs)',
     command: 'node scripts/checklists/nft-collectible-tasks.mjs',
-    optional: true,
     docs: ['docs/nft-collectible-launch-checklist.md'],
     notes: [
       'Outputs grouped checklist items for planning docs or project trackers.',
@@ -314,11 +313,7 @@ const CHECKLISTS = {
     description: 'Structural validations and exports for story-driven NFT drops.',
     tasks: [
       'nft-collectible-validate',
-      {
-        task: 'nft-collectible-tasks',
-        optional: true,
-        note: 'Generates a section-organized task list for external trackers.',
-      },
+      'nft-collectible-tasks',
     ],
   },
 };
