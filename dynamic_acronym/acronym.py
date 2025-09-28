@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Iterable, Mapping, MutableMapping, Sequence
 
+from .element_data import ELEMENT_ACRONYM_DATA
+
 __all__ = [
     "AcronymEntry",
     "AcronymSnapshot",
@@ -358,6 +360,21 @@ class DynamicAcronym:
 # curated defaults
 
 
+ELEMENT_ACRONYMS: tuple[AcronymEntry, ...] = tuple(
+    AcronymEntry(
+        acronym=f"Dynamic {record['name']}",
+        expansions=(record["expansion"],),
+        description=record["description"],
+        categories=record["categories"],
+        usage_notes=record["usage_notes"],
+        metadata=record["metadata"],
+        confidence=float(record["confidence"]),
+        familiarity=float(record["familiarity"]),
+    )
+    for record in ELEMENT_ACRONYM_DATA
+)
+
+
 DEFAULT_ACRONYMS: tuple[AcronymEntry, ...] = (
     AcronymEntry(
         acronym="DYNAMIC",
@@ -424,7 +441,7 @@ DEFAULT_ACRONYMS: tuple[AcronymEntry, ...] = (
         confidence=0.88,
         familiarity=0.7,
     ),
-)
+) + ELEMENT_ACRONYMS
 
 
 def create_default_acronym_registry() -> DynamicAcronym:
