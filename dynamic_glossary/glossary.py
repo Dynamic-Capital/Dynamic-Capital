@@ -241,9 +241,9 @@ class DynamicGlossary:
         return None
 
     def search(self, keyword: str) -> tuple[GlossaryEntry, ...]:
-        key = _normalise_lower(keyword)
-        if not key:
+        if not keyword or not keyword.strip():
             return ()
+        key = _normalise_lower(keyword)
         matches: list[GlossaryEntry] = []
         for entry in self._entries.values():
             haystack = " ".join(
