@@ -19,6 +19,14 @@ from .ocean import (
     DynamicAbyssopelagicBot,
     DynamicHadalpelagicBot,
 )
+from .elements import (
+    ElementBotPersona,
+    ELEMENT_BOTS,
+    list_element_bots,
+    iter_element_bots,
+    get_element_bot,
+    search_element_bots,
+)
 
 __all__ = [
     "DynamicTelegramBot",
@@ -29,4 +37,10 @@ __all__ = [
     "DynamicBathypelagicBot",
     "DynamicAbyssopelagicBot",
     "DynamicHadalpelagicBot",
+    "ElementBotPersona",
+    "ELEMENT_BOTS",
+    "list_element_bots",
+    "iter_element_bots",
+    "get_element_bot",
+    "search_element_bots",
 ]
