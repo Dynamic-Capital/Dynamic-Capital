@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/utils";
 
+type MotionButtonProps = React.ComponentPropsWithoutRef<typeof motion.button>;
+
 const enhancedInteractionButtonVariants = cva(
   "relative inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 overflow-hidden group",
   {
@@ -89,10 +91,10 @@ const enhancedInteractionButtonVariants = cva(
 );
 
 export interface EnhancedInteractionButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends MotionButtonProps,
     VariantProps<typeof enhancedInteractionButtonVariants> {
   loading?: boolean;
-  loadingText?: string;
+  loadingText?: React.ReactNode;
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
   ripple?: boolean;
@@ -204,7 +206,7 @@ export const EnhancedInteractionButton = React.forwardRef<
         )}
         
         <span>
-          {loading ? loadingText : children}
+          {loading ? loadingText : (children as React.ReactNode)}
         </span>
         
         {icon && iconPosition === "right" && (
