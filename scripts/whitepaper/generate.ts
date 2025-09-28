@@ -207,7 +207,10 @@ function renderTable(
   return [headerRow, separatorRow, ...dataRows].join("\n");
 }
 
-function renderDistributionTable(rows: readonly DistributionRow[]): string {
+function renderDistributionTable(
+  rows: readonly DistributionRow[],
+  symbol: string,
+): string {
   const tableRows = rows.map((row) => [
     row.allocation,
     formatAmount(row.amount),
@@ -217,13 +220,16 @@ function renderDistributionTable(rows: readonly DistributionRow[]): string {
 
   return renderTable([
     "Allocation",
-    "Amount (DCT)",
+    `Amount (${symbol})`,
     "Percent of Supply",
     "Vesting / Unlock Schedule",
   ], tableRows);
 }
 
-function renderSaleRounds(rounds: readonly SaleRound[]): string {
+function renderSaleRounds(
+  rounds: readonly SaleRound[],
+  symbol: string,
+): string {
   const rows = rounds.map((round) => [
     round.name,
     formatAmount(round.allocation),
@@ -234,7 +240,7 @@ function renderSaleRounds(rounds: readonly SaleRound[]): string {
 
   return renderTable([
     "Round",
-    "Allocation (DCT)",
+    `Allocation (${symbol})`,
     "Price",
     "Vesting / Unlock",
     "Notes",
@@ -335,7 +341,7 @@ function buildDocument(config: WhitepaperConfig): string {
   parts.push(renderNumberedList(config.priceStrategy.transparencyStack));
 
   parts.push("## Token Supply & Emissions");
-  parts.push(renderDistributionTable(config.distributionTable));
+  parts.push(renderDistributionTable(config.distributionTable, config.token.symbol));
   parts.push("\n" + renderBullets(config.emissionNotes));
 
   if (config.valuationFramework) {
@@ -353,7 +359,7 @@ function buildDocument(config: WhitepaperConfig): string {
   if (config.saleRounds.intro) {
     parts.push(config.saleRounds.intro);
   }
-  parts.push(renderSaleRounds(config.saleRounds.rounds));
+  parts.push(renderSaleRounds(config.saleRounds.rounds, config.token.symbol));
 
   parts.push("## Utility Programs");
   parts.push(renderUtilityPrograms(config.utilityPrograms));
