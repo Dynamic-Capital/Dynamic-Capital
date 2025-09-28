@@ -151,6 +151,25 @@ def test_committee_signals_helper_converts_llm_results() -> None:
     assert scaled_plan.final_mint == pytest.approx(plan.final_mint * 1.15)
 
 
+def test_production_plan_scale_respects_zero_cap() -> None:
+    planner = DCTProductionPlanner()
+    plan = planner.plan(
+        DCTProductionInputs(
+            usd_budget=10_000.0,
+            circulating_supply=0.0,
+            previous_epoch_mint=0.0,
+            max_emission=0.0,
+        ),
+        final_price=1.0,
+    )
+
+    assert plan.final_mint == pytest.approx(0.0)
+
+    scaled_plan = plan.scale(3.0)
+    assert scaled_plan.final_mint == pytest.approx(0.0)
+    assert scaled_plan.cap_applied is True
+
+
 def test_treasury_algo_handles_losses_and_shortfall_notes() -> None:
     treasury = DynamicTreasuryAlgo(starting_balance=500.0)
 

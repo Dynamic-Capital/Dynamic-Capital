@@ -1,30 +1,31 @@
 # DCT Tokenomics Tables (Tonstarter Export)
 
-This document mirrors the Tonstarter-approved tokenomics revision v3.2 so the
-production repository carries the same reference tables that were previously
-hosted in the diligence data room.
+This document mirrors the Dynamic Capital Token (DCT) tokenomics blueprint so
+the production repository carries the same reference tables reviewed with the
+Tonstarter diligence team.
 
 ## Allocation Summary
 
-| Bucket                   | Amount (DCT) | Percent of Supply | Unlock & Vesting Notes                                                                                           |
-| ------------------------ | ------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Ecosystem & Staking      | 40,000,000   | 40%               | Five-year emissions with decaying buckets (12M → 4M); 6M seeded across the TGE drop and initial staking tranche. |
-| Investor Pool / Fund Ops | 25,000,000   | 25%               | 6-month cliff followed by 24-month linear vesting.                                                               |
-| Founders & Team          | 15,000,000   | 15%               | 12-month cliff followed by 36-month linear vesting.                                                              |
-| Partnerships & Liquidity | 10,000,000   | 10%               | 5% liquidity buffer and 2% partner grants unlocked at TGE; 3% vests over 24 months.                              |
-| Treasury & Emergency     | 10,000,000   | 10%               | 60-month linear release with governance pause controls.                                                          |
+| Bucket                               | Amount (DCT) | Percent of Supply | Unlock & Vesting Notes |
+| ------------------------------------ | ------------- | ----------------- | ---------------------- |
+| Community Mining (PoTr / PoU / PoI)  | 40,000,000    | 40%               | Phase I (Years 1–2) 20M, Phase II (Years 3–4) 12M, Phase III (Years 5–6) 8M with monthly exponential decay (k ≈ 0.08–0.12). |
+| Ecosystem & Partnerships             | 20,000,000    | 20%               | Milestone-based grants released over 36 months; 2M unlocked at TGE for pilot integrations. |
+| Treasury & R&D                       | 15,000,000    | 15%               | 60-month linear release with governance pause controls. |
+| Team                                 | 10,000,000    | 10%               | 12-month cliff followed by 48-month linear vesting with clawback provisions. |
+| Investors                            | 7,000,000     | 7%                | 6-month cliff followed by 36-month linear vesting tied to quarterly reporting. |
+| Liquidity Bootstrapping              | 5,000,000     | 5%                | Seeded at TGE across TON:DCT and USDT:DCT pools, treasury-rebalanced. |
+| Strategic Reserve                    | 3,000,000     | 3%                | Time-locked emergency buffer governed by a 48-hour activation timelock. |
 
-_Source:
-[`docs/dynamic-capital-ton-whitepaper.md`](../dynamic-capital-ton-whitepaper.md)_
+_Source: [`docs/dynamic-capital-ton-whitepaper.md`](../dynamic-capital-ton-whitepaper.md)_
 
 ## Sale Round Breakdown
 
-| Round                           | Allocation (DCT) | Price / Basis              | Unlock Schedule                                    | Notes                                                                                      |
-| ------------------------------- | ---------------- | -------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Community Launch (TGE)          | 3,000,000        | ≈0.12 TON (Dutch auction)  | 100% at TGE with optional 90-day staking boosters  | Fuels quests and referral campaigns; represents the 3% community unlock.                   |
-| Liquidity Bootstrap Pools       | 5,000,000        | Treasury basis ≈$0.10      | 100% at TGE, deployed to STON.fi and DeDust pools  | Seeds two-sided liquidity across TON pairs and remains treasury-supervised.                |
-| Strategic Partnerships Unlock   | 2,000,000        | N/A                        | 2% unlocked at TGE; remainder vests over 24 months | Supports integrations, custodians, and exchange collaborations tied to milestone delivery. |
-| Investor Pool / Fund Operations | 25,000,000       | $0.08 (funding agreements) | 6-month cliff followed by 24-month linear vesting  | Aligns strategic capital with fund performance reviews and quarterly reporting covenants.  |
+| Round                        | Allocation (DCT) | Price / Basis              | Unlock Schedule                            | Notes                                                                                       |
+| ---------------------------- | ----------------- | -------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Community Genesis Drop       | 3,000,000         | ≈0.12 TON (Dutch auction)  | 100% at TGE with optional 90-day boosters  | Fuels quests and proof-of-training cohorts; represents the 3% Phase I starter pool.         |
+| Liquidity Bootstrapping Pool | 5,000,000         | Treasury basis ≈$0.10      | 100% at TGE, deployed to TON and USDT pools | Seeds two-sided liquidity across TON pairs under treasury supervision.                      |
+| Strategic Partnerships Unlock | 2,000,000         | N/A                        | 3% strategic reserve unlock at TGE         | Supports integrations, custodians, and exchange collaborations tied to milestone delivery.  |
+| Investor Alignment Round     | 7,000,000         | $0.08 (funding agreements) | 6-month cliff followed by 36-month vesting  | Aligns strategic capital with fund performance reviews and quarterly reporting covenants.   |
 
 The pricing ladder and unlock schedules align with the projections generated by
 the Tonstarter sale planner (`algorithms/python/dct_tonstarter_sale.py`) and
@@ -34,12 +35,12 @@ satisfy Tonstarter’s requirement for reproducible math within the repository.
 
 ```
 Total Supply: 100,000,000 DCT
-Less: Ecosystem & Staking (34,000,000 DCT) — remainder after seeding 3,000,000 DCT to the community drop and 3,000,000 DCT to the initial staking tranche at TGE
-Less: Investor Pool / Fund Ops (25,000,000 DCT) — 6-month cliff + 24-month linear vesting
-Less: Founders & Team (15,000,000 DCT) — 12-month cliff + 36-month linear vesting
-Less: Treasury & Emergency (10,000,000 DCT) — 60-month linear release with governance pause rights
-Less: Partnerships & Liquidity locked remainder (3,000,000 DCT) — balance that vests over 24 months after the 5% liquidity and 2% partnership TGE unlocks
--------------------------------------------
+Less: Community Mining locked remainder (37,000,000 DCT) — balance emitted via the three proof-of-contribution phases after the 3,000,000 TGE drop
+Less: Ecosystem & Partnerships locked remainder (18,000,000 DCT) — milestone-triggered vesting over 36 months
+Less: Treasury & R&D (15,000,000 DCT) — 60-month linear release with governance pause rights
+Less: Team (10,000,000 DCT) — 12-month cliff + 48-month linear vesting
+Less: Investor Alignment Round (7,000,000 DCT) — 6-month cliff + 36-month linear vesting
+------------------------------------------------------------
 Projected Circulating Supply at TGE: 13,000,000 DCT
 ```
 

@@ -178,10 +178,8 @@ class DCTProductionPlan:
         buffered = self.buffered_mint * factor
         smoothed = self.smoothed_mint * factor
 
-        cap = self.cap
-        final = smoothed
-        if cap:
-            final = min(final, cap)
+        cap = max(0.0, self.cap)
+        final = min(smoothed, cap)
         cap_applied = final < smoothed
 
         return DCTProductionPlan(
