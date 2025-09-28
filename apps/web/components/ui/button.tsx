@@ -105,21 +105,78 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       );
     }
 
-    const Comp = asChild ? Slot : "button";
+    const baseClassName = cn(
+      buttonVariants({ variant, size, fullWidth, responsive }),
+      className,
+    );
+
+    if (asChild) {
+      type ChildElement = React.ReactElement<{ children?: React.ReactNode }>;
+
+      let onlyChild: ChildElement | null = null;
+
+      try {
+        onlyChild = React.Children.only(children) as ChildElement;
+      } catch {
+        onlyChild = null;
+      }
+
+      if (!onlyChild || !React.isValidElement(onlyChild)) {
+        if (process.env.NODE_ENV !== "production") {
+          console.error(
+            "[Button]: `asChild` requires a single React element child.",
+          );
+        }
+        return null;
+      }
+
+      const childWithLoader = React.cloneElement(
+        onlyChild,
+        {
+          ...(isLoading || disabled
+            ? { disabled: Boolean(disabled || isLoading) }
+            : null),
+          ...(isLoading ? { "aria-busy": true } : null),
+          children: (
+            <>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {onlyChild.props.children}
+            </>
+          ),
+        } as Partial<ChildElement["props"]> & {
+          children: React.ReactNode;
+        },
+      );
+
+      const slotProps: React.ComponentPropsWithoutRef<typeof Slot> & {
+        "aria-busy"?: React.AriaAttributes["aria-busy"];
+      } = {
+        className: baseClassName,
+        ...props,
+      };
+
+      if (isLoading) {
+        slotProps["aria-busy"] = true;
+      }
+
+      return (
+        <Slot {...slotProps} ref={ref}>
+          {childWithLoader}
+        </Slot>
+      );
+    }
+
     return (
-      <Comp
-        className={cn(
-          buttonVariants({ variant, size, fullWidth, responsive }),
-          className
-        )}
+      <button
+        className={baseClassName}
         disabled={disabled || isLoading}
         aria-busy={isLoading}
         ref={ref}
         {...props}
       >
-        {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
         {children}
-      </Comp>
+      </button>
     );
   },
 );

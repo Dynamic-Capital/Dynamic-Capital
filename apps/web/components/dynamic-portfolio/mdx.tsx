@@ -26,6 +26,7 @@ import {
   Text,
   TextProps,
 } from "@/components/dynamic-ui-system";
+import { SchoolCourseList } from "@/components/school/SchoolCourseList";
 
 type CustomLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   href: string;
@@ -210,6 +211,7 @@ const components = {
   Icon,
   Media,
   SmartLink,
+  SchoolCourseList,
 };
 
 type CustomMDXProps = MDXRemoteProps & {

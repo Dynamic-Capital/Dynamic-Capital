@@ -84,30 +84,95 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
     disabled,
     ...props 
   }, ref) => {
-    const Comp = asChild ? Slot : "button";
-    
+    const baseClassName = cn(
+      enhancedButtonVariants({ variant, size, className }),
+    );
+
+    const renderContent = (innerChildren: React.ReactNode) => (
+      <div className={cn("flex items-center gap-2", loading && "opacity-0")}
+      >
+        {icon && iconPosition === "left" ? icon : null}
+        {innerChildren}
+        {icon && iconPosition === "right" ? icon : null}
+      </div>
+    );
+
+    if (asChild) {
+      type ChildElement = React.ReactElement<{ children?: React.ReactNode }>;
+
+      let onlyChild: ChildElement | null = null;
+
+      try {
+        onlyChild = React.Children.only(children) as ChildElement;
+      } catch {
+        onlyChild = null;
+      }
+
+      if (!onlyChild || !React.isValidElement(onlyChild)) {
+        if (process.env.NODE_ENV !== "production") {
+          console.error(
+            "[EnhancedButton]: `asChild` requires a single React element child.",
+          );
+        }
+        return null;
+      }
+
+      const childWithContent = React.cloneElement(
+        onlyChild,
+        {
+          ...(loading || disabled
+            ? { disabled: Boolean(disabled || loading) }
+            : null),
+          ...(loading ? { "aria-busy": true } : null),
+          children: (
+            <>
+              {loading ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                </div>
+              ) : null}
+              {renderContent(onlyChild.props.children)}
+            </>
+          ),
+        } as Partial<ChildElement["props"]> & {
+          children: React.ReactNode;
+        },
+      );
+
+      const slotProps: React.ComponentPropsWithoutRef<typeof Slot> & {
+        "aria-busy"?: React.AriaAttributes["aria-busy"];
+      } = {
+        className: baseClassName,
+        ...props,
+      };
+
+      if (loading) {
+        slotProps["aria-busy"] = true;
+      }
+
+      return (
+        <Slot {...slotProps} ref={ref}>
+          {childWithContent}
+        </Slot>
+      );
+    }
+
     return (
-      <Comp
-        className={cn(enhancedButtonVariants({ variant, size, className }))}
+      <button
+        className={baseClassName}
         ref={ref}
         disabled={disabled || loading}
+        aria-busy={loading}
         {...props}
       >
-        {loading && (
+        {loading ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
           </div>
-        )}
-        
-        <div className={cn(
-          "flex items-center gap-2",
-          loading && "opacity-0"
-        )}>
-          {icon && iconPosition === "left" && icon}
-          {children}
-          {icon && iconPosition === "right" && icon}
-        </div>
-      </Comp>
+        ) : null}
+
+        {renderContent(children)}
+      </button>
     );
   }
 );

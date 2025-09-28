@@ -16,7 +16,7 @@ import { cn } from "@/utils";
 import { CourseCard } from "./CourseCard";
 import { SignInPromptCard } from "./SignInPromptCard";
 
-interface SchoolCourseListProps {
+export interface SchoolCourseListProps {
   variant?: "full" | "compact";
   className?: string;
 }
