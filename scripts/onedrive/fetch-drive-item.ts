@@ -1,35 +1,8 @@
-import { Buffer } from "node:buffer";
 import process from "node:process";
 
+import { fetchDriveItem } from "./share-utils.ts";
+
 const { env, argv } = process;
-
-function toShareId(shareLink: string): string {
-  const base64 = Buffer.from(shareLink, "utf-8").toString("base64");
-  const base64Url = base64.replace(/\+/g, "-").replace(/\//g, "_").replace(
-    /=+$/u,
-    "",
-  );
-  return `u!${base64Url}`;
-}
-
-async function fetchDriveItem(shareLink: string, accessToken: string) {
-  const shareId = toShareId(shareLink);
-  const url = `https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem`;
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(
-      `Microsoft Graph request failed with ${response.status} ${response.statusText}: ${body}`,
-    );
-  }
-
-  return response.json();
-}
 
 async function main() {
   const [, , shareLink] = argv;
@@ -51,7 +24,7 @@ async function main() {
   }
 
   try {
-    const driveItem = await fetchDriveItem(shareLink, accessToken);
+    const driveItem = await fetchDriveItem({ shareLink, accessToken });
     console.log(JSON.stringify(driveItem, null, 2));
   } catch (error) {
     console.error(error instanceof Error ? error.message : error);
