@@ -22,6 +22,14 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicArchitectAgent",
         "DynamicArchitectBot",
     ),
+    "dynamic_ascii": (
+        "DynamicAsciiEngine",
+        "AsciiNFT",
+        "AsciiCanvas",
+        "AsciiPalette",
+        "DEFAULT_ASCII_PALETTE",
+        "AsciiConversionError",
+    ),
     "dynamic_agents": ("DynamicChatAgent",),
     "dynamic_assign": ("DynamicAssignEngine",),
     "dynamic_ai": (
