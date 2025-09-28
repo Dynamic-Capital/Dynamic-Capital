@@ -77,7 +77,7 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 | `--scenario PATH`                | _(optional)_   | Load scenario JSON from a file path or '-' for STDIN.                  | context file, input manifest, blueprint source |
 | `--format {text,json,fine-tune}` | `text`         | Choose plain text, JSON, or fine-tune dataset output.                  | output mode, rendering style, representation   |
 | `--indent N`                     | `2`            | Number of spaces applied to JSON pretty-printing.                      | spacing, padding, indentation depth            |
-| `--fine-tune-dataset PATH`       | _(optional)_   | Write the Dynamic AGI training payload to `PATH` (use `-` for stdout). | dataset export, training payload, AGI corpus   |
+| `--fine-tune-dataset PATH`       | _(optional)_   | Write the Dynamic AGI training payload to `PATH` (use `-` for stdout). Parent directories are created automatically. | dataset export, training payload, AGI corpus   |
 | `--fine-tune-tag TAG`            | _(repeatable)_ | Apply default tags to generated fine-tune examples.                    | label, classification marker, taxonomy token   |
 
 ---
@@ -168,6 +168,8 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
   report payload alongside fine-tune examples and a dataset summary.
 - Combine with `--fine-tune-dataset PATH` to persist the JSON for ingestion by
   the `DynamicAGIFineTuner` utility or orchestration pipelines.
+- Examples are ordered by node key so successive runs remain deterministic
+  when the scenario input is unchanged.
 
 **Related terminology:**
 

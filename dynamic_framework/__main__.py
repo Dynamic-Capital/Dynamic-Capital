@@ -431,6 +431,7 @@ def build_fine_tune_dataset(
     snapshots = report.snapshots
     if not snapshots:
         snapshots = tuple(engine.snapshot(key) for key in sorted(engine.nodes))
+    snapshots = tuple(sorted(snapshots, key=lambda snap: snap.key))
     tuner = DynamicAGIFineTuner(default_tags=default_tags)
     learning_snapshots: list[LearningSnapshot] = []
     for snapshot in snapshots:
@@ -600,9 +601,9 @@ def run(argv: Sequence[str] | None = None) -> int:
                 print("")
                 print(dataset_json)
         else:
-            Path(destination).expanduser().write_text(
-                f"{dataset_json}\n", encoding="utf-8"
-            )
+            destination_path = Path(destination).expanduser()
+            destination_path.parent.mkdir(parents=True, exist_ok=True)
+            destination_path.write_text(f"{dataset_json}\n", encoding="utf-8")
     return 0
 
 

@@ -19,6 +19,7 @@ from dynamic_framework.__main__ import (
     load_scenario,
     render_report,
     serialise_report,
+    run,
 )
 
 
@@ -215,6 +216,46 @@ def test_build_fine_tune_dataset_generates_examples() -> None:
     first = dataset["examples"][0]
     assert first["tags"] == ["dynamic-agi"]
     assert first["metadata"]["signals"]
+
+
+def test_build_fine_tune_dataset_orders_examples_by_node_key() -> None:
+    engine = DynamicFrameworkEngine(
+        nodes=[
+            FrameworkNode(key="platform", title="Platform"),
+            FrameworkNode(key="automation", title="Automation"),
+        ]
+    )
+
+    report = engine.report()
+    payload = build_fine_tune_dataset(engine, report=report)
+
+    example_keys = [
+        example["metadata"]["signals"][0]["metric"].split(".", 1)[0]
+        for example in payload["dataset"]["examples"]
+    ]
+
+    assert example_keys == sorted(example_keys)
+
+
+def test_cli_writes_fine_tune_dataset_creating_parent_dirs(tmp_path, capsys) -> None:
+    destination = tmp_path / "nested" / "fine-tune" / "dataset.json"
+
+    exit_code = run([
+        "--format",
+        "json",
+        "--fine-tune-dataset",
+        str(destination),
+        "--indent",
+        "0",
+    ])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out  # ensure the CLI emitted a report
+    assert destination.exists()
+
+    dataset_payload = json.loads(destination.read_text())
+    assert dataset_payload["dataset"]["summary"]["count"] > 0
 
 
 def test_load_scenario_accepts_stdin_payload() -> None:
