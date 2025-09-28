@@ -114,6 +114,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_metacognition": ("DynamicMetacognition",),
     "dynamic_mentorship": ("DynamicMentorshipEngine",),
     "dynamic_numbers": ("DynamicNumberComposer",),
+    "dynamic_mapping": ("DynamicMappingEngine",),
     "dynamic_package": ("DynamicPackageDesigner",),
     "dynamic_playbook": (
         "DynamicPlaybookAgent",
