@@ -21,6 +21,10 @@ __all__ = [
     "ChatAgentResult",
     "ChatTurn",
     "DynamicChatAgent",
+    "DynamicArchitectAgent",
+    "DynamicArchitectAgentResult",
+    "DynamicEngineerAgent",
+    "DynamicEngineerAgentResult",
     "ExecutionAgent",
     "ExecutionAgentResult",
     "ResearchAgent",
@@ -39,7 +43,13 @@ __all__ = [
 _LAZY = LazyNamespace(
     "dynamic_ai",
     __all__,
-    overrides={"run_dynamic_agent_cycle": "algorithms.python.dynamic_ai_sync"},
+    overrides={
+        "run_dynamic_agent_cycle": "algorithms.python.dynamic_ai_sync",
+        "DynamicEngineerAgent": "dynamic_engineer.agent",
+        "DynamicEngineerAgentResult": "dynamic_engineer.agent",
+        "DynamicArchitectAgent": "dynamic_architect.agent",
+        "DynamicArchitectAgentResult": "dynamic_architect.agent",
+    },
 )
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
