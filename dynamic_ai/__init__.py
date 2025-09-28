@@ -58,6 +58,7 @@ from .dolphin_adapter import (
     LLMIntegrationError,
 )
 from .ollama_adapter import OllamaAdapter, OllamaConfig, OllamaPromptTemplate
+from .qwen_adapter import QwenAdapter, QwenConfig, QwenGenerationConfig, QwenPromptTemplate
 from .analysis import AnalysisComponent, DynamicAnalysis
 from .consciousness_suite import (
     AwarenessContexts,
@@ -113,6 +114,10 @@ __all__ = [
     "OllamaAdapter",
     "OllamaConfig",
     "OllamaPromptTemplate",
+    "QwenAdapter",
+    "QwenConfig",
+    "QwenGenerationConfig",
+    "QwenPromptTemplate",
     "ExecutionAgent",
     "ExecutionAgentResult",
     "AnalysisComponent",
