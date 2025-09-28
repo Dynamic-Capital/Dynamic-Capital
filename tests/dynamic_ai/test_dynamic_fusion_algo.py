@@ -6,7 +6,7 @@ import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from dynamic_ai.core import DynamicFusionAlgo
+from dynamic_ai.core import DynamicFusionAlgo, PreparedMarketContext
 from dynamic_ai.fusion import SentimentLobe
 
 
@@ -57,6 +57,28 @@ def test_composite_scores_mapping_biases_action(algo: DynamicFusionAlgo) -> None
 
     signal = algo.generate_signal(payload)
 
+    assert signal.action == "BUY"
+
+
+def test_generate_signal_reuses_prepared_context(monkeypatch: pytest.MonkeyPatch) -> None:
+    algo = DynamicFusionAlgo()
+    payload = {"signal": "BUY", "confidence": 0.6, "volatility": 1.1}
+
+    original_prepare = algo._prepare_context
+    context = original_prepare(dict(payload))
+
+    calls = 0
+
+    def tracked_prepare(data: dict[str, Any]) -> PreparedMarketContext:
+        nonlocal calls
+        calls += 1
+        return original_prepare(data)
+
+    monkeypatch.setattr(algo, "_prepare_context", tracked_prepare)
+
+    signal = algo.generate_signal(payload, context=context)
+
+    assert calls == 0
     assert signal.action == "BUY"
 
 

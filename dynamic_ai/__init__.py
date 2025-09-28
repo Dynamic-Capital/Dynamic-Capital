@@ -19,7 +19,7 @@ from .agents import (
     WaveAgent,
     WaveAgentResult,
 )
-from .core import AISignal, DynamicFusionAlgo
+from .core import AISignal, CompositeComponent, DynamicFusionAlgo, PreparedMarketContext
 from .dolphin_adapter import (
     DolphinLlamaCppAdapter,
     DolphinModelConfig,
@@ -69,7 +69,9 @@ __all__ = [
     "ChatTurn",
     "DynamicChatAgent",
     "AISignal",
+    "CompositeComponent",
     "DynamicFusionAlgo",
+    "PreparedMarketContext",
     "DolphinLlamaCppAdapter",
     "DolphinModelConfig",
     "DolphinPromptTemplate",
