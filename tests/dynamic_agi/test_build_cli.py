@@ -25,6 +25,13 @@ def test_build_dynamic_agi_payload_json_format() -> None:
     assert "nodes" in payload
 
 
+def test_build_dynamic_agi_payload_negative_indent_defaults() -> None:
+    result = build_dynamic_agi_payload(report_format="json", indent=-4)
+    payload = json.loads(result.report)
+    assert isinstance(payload, dict)
+    assert result.dataset["dataset"]["summary"]["count"] >= 1
+
+
 def test_run_cli_writes_dataset(tmp_path: Path, capsys: "CaptureFixture[str]") -> None:
     destination = tmp_path / "dataset.json"
     exit_code = run_cli(["--format", "json", "--dataset", str(destination)])
@@ -33,3 +40,11 @@ def test_run_cli_writes_dataset(tmp_path: Path, capsys: "CaptureFixture[str]") -
     assert captured.out.strip().startswith("{")
     saved_payload = json.loads(destination.read_text(encoding="utf-8"))
     assert saved_payload["dataset"]["summary"]["count"] >= 1
+
+
+def test_run_cli_dataset_stdout_without_duplication(capsys: "CaptureFixture[str]") -> None:
+    exit_code = run_cli(["--format", "fine-tune", "--dataset", "-"])
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    payload = json.loads(captured.out)
+    assert payload["dataset"]["summary"]["count"] >= 1

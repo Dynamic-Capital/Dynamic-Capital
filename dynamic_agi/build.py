@@ -77,7 +77,7 @@ def build_dynamic_agi_payload(
         report_output = render_report(
             engine,
             format=report_format,
-            indent=indent if indent is not None else 2,
+            indent=indent_value if indent_value is not None else 2,
             report=report,
         )
 
@@ -132,14 +132,15 @@ def run_cli(argv: Sequence[str] | None = None) -> int:
     print(result.report)
 
     if args.dataset:
-        dataset_json = json.dumps(
-            result.dataset,
-            indent=_normalise_indent(args.indent),
-        )
+        dataset_indent = _normalise_indent(args.indent)
+        dataset_json = json.dumps(result.dataset, indent=dataset_indent)
         if args.dataset == "-":
             if args.format != "fine-tune":
                 print("")
-            print(dataset_json)
+                print(dataset_json)
+            else:
+                # Report output already emitted the fine-tune dataset
+                pass
         else:
             destination = Path(args.dataset).expanduser()
             destination.parent.mkdir(parents=True, exist_ok=True)
