@@ -1,4 +1,5 @@
 from pathlib import Path
+import subprocess
 import sys
 
 import pytest
@@ -104,3 +105,46 @@ def test_register_feature_requires_override_for_duplicates() -> None:
 
     engine.register_feature("lint", recipe, override=True)
     assert "lint" in engine.available_features
+
+
+def test_dockerfile_artifact_build_invokes_cli(monkeypatch) -> None:
+    engine = DynamicDockerfileEngine()
+    context = DockerfileContext(runtime="python", multistage=False)
+    artifact = engine.compose(context)
+
+    captured: dict[str, object] = {}
+
+    def fake_run(cmd, *, input=None, check=False):
+        captured["cmd"] = cmd
+        captured["input"] = input
+        captured["check"] = check
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    result = artifact.build_image(
+        "dynamic:test",
+        context_dir="/tmp/project",
+        docker_cli="nerdctl",
+        build_args={"FOO": "bar"},
+        labels={"com.example": "enabled"},
+        additional_flags=["--no-cache"],
+    )
+
+    assert isinstance(result, subprocess.CompletedProcess)
+    assert captured["cmd"] == [
+        "nerdctl",
+        "build",
+        "--tag",
+        "dynamic:test",
+        "--build-arg",
+        "FOO=bar",
+        "--label",
+        "com.example=enabled",
+        "--no-cache",
+        "-f",
+        "-",
+        "/tmp/project",
+    ]
+    assert captured["input"] == artifact.content.encode("utf-8")
+    assert captured["check"] is True

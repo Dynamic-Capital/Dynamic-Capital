@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import subprocess
 from dataclasses import dataclass, field
 import json
 from typing import Dict, Iterable, Mapping, MutableMapping, Sequence, Tuple
@@ -52,6 +54,13 @@ def _normalise_path(value: str) -> str:
     cleaned = value.strip()
     if not cleaned:
         raise ValueError("path must not be empty")
+    return cleaned
+
+
+def _normalise_tag(value: str) -> str:
+    cleaned = value.strip()
+    if not cleaned:
+        raise ValueError("image tag must not be empty")
     return cleaned
 
 
@@ -368,6 +377,44 @@ class DockerfileArtifact:
 
     def as_dict(self) -> MutableMapping[str, object]:
         return {"content": self.content, "metadata": dict(self.metadata)}
+
+    def build_image(
+        self,
+        tag: str,
+        *,
+        context_dir: str | os.PathLike[str] = ".",
+        docker_cli: str = "docker",
+        build_args: Mapping[str, object] | None = None,
+        labels: Mapping[str, object] | None = None,
+        additional_flags: Sequence[str] | None = None,
+    ) -> subprocess.CompletedProcess[bytes]:
+        """Build a container image from this Dockerfile using the local CLI."""
+
+        command: list[str] = [docker_cli, "build", "--tag", _normalise_tag(tag)]
+
+        def _extend_kv(flag: str, values: Mapping[str, object] | None) -> None:
+            if not values:
+                return
+            for key, value in values.items():
+                cleaned_key = key.strip()
+                if not cleaned_key:
+                    raise ValueError(f"{flag} key must not be empty")
+                command.extend([flag, f"{cleaned_key}={value}"])
+
+        _extend_kv("--build-arg", build_args)
+        _extend_kv("--label", labels)
+
+        if additional_flags:
+            command.extend(additional_flags)
+
+        command.extend(["-f", "-", os.fspath(context_dir)])
+
+        result = subprocess.run(
+            command,
+            input=self.content.encode("utf-8"),
+            check=True,
+        )
+        return result
 
 
 # ---------------------------------------------------------------------------
