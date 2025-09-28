@@ -96,6 +96,11 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicEngineerAgent",
         "DynamicEngineerBot",
     ),
+    "dynamic_engines.usage": (
+        "DynamicUsageOrchestrator",
+        "PersonaSignal",
+        "UsageCycleResult",
+    ),
     "dynamic_implicit_memory": ("DynamicImplicitMemory",),
     "dynamic_index": ("DynamicIndex",),
     "dynamic_loop": ("DynamicLoopEngine",),

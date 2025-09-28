@@ -142,6 +142,66 @@ _Optimisation tips:_
 - Pipe `DynamicSpaceEngine.prioritise_interventions()` output into task generation to ensure high-risk sectors receive agents first.
 - Capture rejected assignments and feed them back into the scoring weights to improve future recommendations.
 
+## 6. Automate the loop with `DynamicUsageOrchestrator`
+
+When you want a ready-made loop that links persona insights, zone telemetry, sector coordination, and task routing, use `DynamicUsageOrchestrator` from the shim. It ensures the underlying registry/engines exist, translates persona signals into zone/space events, and produces `AssignableTask`s that flow straight into the assignment planner.
+
+```python
+from dynamic_engines import DynamicUsageOrchestrator, PersonaSignal
+from dynamic_assign.engine import AgentProfile
+from dynamic_zone.zone import ZoneBoundary
+
+orchestrator = DynamicUsageOrchestrator()
+
+# Register environment primitives once.
+orchestrator.register_zone(
+    {
+        "name": "Operations Hub",
+        "boundary": ZoneBoundary(0, 12, 0, 8),
+        "capacity": 6,
+        "tags": ("level-1", "mission-control"),
+    }
+)
+orchestrator.register_sector(
+    {
+        "name": "Lunar Logistics",
+        "hazard_index": 0.45,
+        "supply_level": 0.7,
+        "energy_output_gw": 1.2,
+    }
+)
+
+# Convert persona output into a single usage cycle.
+cycle = orchestrator.plan_cycle(
+    signals=(
+        PersonaSignal(
+            persona="research",
+            summary="Fuel leak risk within the operations hub",
+            zone="Operations Hub",
+            sector="Lunar Logistics",
+            severity=0.82,
+            required_skills=("safety", "engineering"),
+        ),
+    ),
+    agents=(
+        AgentProfile(
+            name="Ava",
+            skills=("safety", "engineering"),
+            available_hours=6,
+            confidence=0.8,
+        ),
+    ),
+)
+
+for decision in cycle.assignments:
+    print(decision.as_dict())
+```
+
+_Optimisation tips:_
+- Provide `zone_configuration` and `sector_configuration` inside each `PersonaSignal` if you have not registered the zone or sector ahead of time; the orchestrator will create them on demand using the supplied payloads. Otherwise the registry/space engine is reused.
+- Use `plan_cycle(..., allow_unassigned=True)` when you want to produce tasks and telemetry without immediately generating assignments (for example, during dry-runs or when feeding a downstream review queue).
+- Call `load_persona_chain()` to bootstrap the default research → execution → risk personas before producing signals so you can pull persona objects straight from the orchestrator cache for data enrichment.
+
 ### Putting it together
 
 1. Persona output (research summary) highlights a risk in a specific zone.
