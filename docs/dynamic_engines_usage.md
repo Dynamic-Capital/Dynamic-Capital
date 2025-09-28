@@ -1,6 +1,16 @@
 # Dynamic Engines – Recommended Usage Patterns
 
-This guide summarises how to compose the orchestration engines that power Dynamic Capital, focusing on linking modules, coordinating zones/levels, and matching agents to tasks.
+This guide summarises how to compose the orchestration engines that power Dynamic Capital, focusing on linking modules, coordinating zones/levels, and matching agents to tasks. The goal is to give teams a repeatable, optimised flow instead of isolated tips.
+
+## Quick-start workflow blueprint
+
+1. **Plan the topology.** Inventory which engines you need (state, space, assignments, custom domains) and confirm they are exported via the shim.
+2. **Prime personas.** Configure the Dynamic AI persona chain so research/execution/risk agents reflect the environment you are about to orchestrate.
+3. **Model the environment.** Register zones and sectors, backfill historical telemetry, and verify intervention thresholds before production routing.
+4. **Route work.** Feed persona outputs and sector alerts into the assignment engine, then persist approved `AssignmentDecision`s alongside zone/sector snapshots for auditability.
+5. **Review metrics.** Track utilisation, intervention frequency, and decision acceptance to inform the next optimisation cycle.
+
+Use the audit checklist below as a control loop after each iteration.
 
 ## Audit checklist & task planner
 
@@ -22,7 +32,10 @@ The legacy-compatible `dynamic_engines` module forwards attributes to the domain
 from dynamic_engines import DynamicSpaceEngine, DynamicStateEngine
 ```
 
-_Why it works:_ `dynamic_engines.__getattr__` lazily imports the source module and caches the symbol, covering engines such as `DynamicAssignEngine`, `DynamicSpaceEngine`, and `DynamicStateEngine`. This keeps optional dependencies dormant until needed and mirrors the historical surface area without duplicating logic.【F:dynamic_engines/__init__.py†L1-L123】【F:dynamic_engines/__init__.py†L168-L212】
+_Optimisation tips:_
+- `dynamic_engines.__getattr__` lazily imports the source module and caches the symbol, covering engines such as `DynamicAssignEngine`, `DynamicSpaceEngine`, and `DynamicStateEngine`. This keeps optional dependencies dormant until needed and mirrors the historical surface area without duplicating logic.【F:dynamic_engines/__init__.py†L1-L123】【F:dynamic_engines/__init__.py†L168-L212】
+- When adding a new engine, expose only the public entry points in `_ENGINE_EXPORTS` to avoid leaking experimental utilities.
+- Pair shim imports with type checking (`reveal_type` in tests or `mypy` stubs) so new exports stay discoverable by IDEs.
 
 ## 2. Chain personas for multi-engine workflows
 
@@ -39,7 +52,10 @@ agents = get_dynamic_start_agents()
 execution_agent = agents["execution"]
 ```
 
-_Best practice:_ Override only the personas you need by passing either an instance or factory into `configure_dynamic_start_agents`; `prime_dynamic_start_agents()` then locks in the replacements and keeps them available for reuse. This pattern mirrors how the production persona chain daisy-chains analysis, execution, and risk evaluations while letting you inject zone- or task-specific variants on demand.【F:dynamic_ai/agents.py†L874-L940】
+_Optimisation tips:_
+- Override only the personas you need by passing either an instance or factory into `configure_dynamic_start_agents`; `prime_dynamic_start_agents()` then locks in the replacements and keeps them available for reuse. This pattern mirrors how the production persona chain daisy-chains analysis, execution, and risk evaluations while letting you inject zone- or task-specific variants on demand.【F:dynamic_ai/agents.py†L874-L940】
+- Share persona caches between services through `prime_dynamic_start_agents()` during boot to reduce cold-start latency.
+- Capture persona output metadata (confidence, latency) so downstream engines can make routing decisions using real-world performance signals.
 
 ## 3. Model levels and zones with `DynamicZoneRegistry`
 
@@ -61,7 +77,10 @@ registry.record_event("Operations Hub", kind="enter")
 status = registry.snapshot("Operations Hub")
 ```
 
-_Best practice:_ Feed all level/zone metrics through `record_event()`; it normalises occupancy changes, clamps metrics, and preserves a rolling history so `snapshot()` and `utilisation()` report consistent telemetry for downstream engines.【F:dynamic_zone/zone.py†L1-L225】【F:dynamic_zone/zone.py†L262-L460】
+_Optimisation tips:_
+- Feed all level/zone metrics through `record_event()`; it normalises occupancy changes, clamps metrics, and preserves a rolling history so `snapshot()` and `utilisation()` report consistent telemetry for downstream engines.【F:dynamic_zone/zone.py†L1-L225】【F:dynamic_zone/zone.py†L262-L460】
+- Define sensitivity tiers in the `tags` field (for example `("level-1", "critical")`) and fan them into persona overrides so high-risk zones automatically pull specialised agents.
+- Use `utilisation()` to trigger `DynamicAssignEngine` refreshes whenever a zone crosses a load threshold.
 
 ## 4. Coordinate sectors with `DynamicSpaceEngine`
 
@@ -81,7 +100,10 @@ overview = space_engine.network_overview(horizon=8)
 critical = space_engine.prioritise_interventions(limit=2)
 ```
 
-_Best practice:_ Keep sectors lightweight by passing mappings—the engine coerces them into `SpaceSector` objects, clamping stability metrics and aggregating snapshots to produce average stability, energy output, and a ranked list of attention-worthy sectors.【F:dynamic_space/engine.py†L1-L119】【F:dynamic_space/space.py†L1-L120】
+_Optimisation tips:_
+- Keep sectors lightweight by passing mappings—the engine coerces them into `SpaceSector` objects, clamping stability metrics and aggregating snapshots to produce average stability, energy output, and a ranked list of attention-worthy sectors.【F:dynamic_space/engine.py†L1-L119】【F:dynamic_space/space.py†L1-L120】
+- Schedule `network_overview()` runs after major zone changes so sector forecasts account for new load patterns.
+- Use `prioritise_interventions()` results to pre-allocate specialised personas or assignment queues before a sector degrades.
 
 ## 5. Assign agents to work with `DynamicAssignEngine`
 
@@ -115,8 +137,18 @@ assignments = engine.recommend_assignments(
 )
 ```
 
-_Best practice:_ The engine clones the agent list internally so it can decrement availability per assignment. Inspect `AssignmentDecision.as_dict()` for downstream storage or analytics; the class captures rationale, confidence, and load factor for every recommendation.【F:dynamic_assign/engine.py†L1-L157】【F:dynamic_assign/engine.py†L172-L200】
+_Optimisation tips:_
+- The engine clones the agent list internally so it can decrement availability per assignment. Inspect `AssignmentDecision.as_dict()` for downstream storage or analytics; the class captures rationale, confidence, and load factor for every recommendation.【F:dynamic_assign/engine.py†L1-L157】【F:dynamic_assign/engine.py†L172-L200】
+- Pipe `DynamicSpaceEngine.prioritise_interventions()` output into task generation to ensure high-risk sectors receive agents first.
+- Capture rejected assignments and feed them back into the scoring weights to improve future recommendations.
+
+### Putting it together
+
+1. Persona output (research summary) highlights a risk in a specific zone.
+2. `DynamicZoneRegistry` marks the zone as saturated, triggering a `DynamicSpaceEngine` intervention for the containing sector.
+3. The intervention generates a high-priority remediation task that `DynamicAssignEngine` routes to the best-fit agent cohort.
+4. Assignment decisions, sector metrics, and persona telemetry are written to a shared log for retrospectives.
 
 ---
 
-Combine these patterns to route persona outputs into zone snapshots, feed sector alerts into task assignments, and keep orchestration modular while sharing a consistent import surface.
+Combine these patterns to route persona outputs into zone snapshots, feed sector alerts into task assignments, and keep orchestration modular while sharing a consistent import surface. Re-run the quick-start blueprint whenever you onboard a new environment or ship a major engine change.
