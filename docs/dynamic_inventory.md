@@ -2,16 +2,25 @@
 
 _Last updated: 2025-09-28 (UTC)_
 
-This reference enumerates top-level directories in the repository that begin with the `dynamic_` prefix. Use it as a quick inventory when exploring the experimental modules that complement the core Dynamic Capital application.
+This reference enumerates the top-level repository directories that begin with
+the `dynamic_` prefix. Use it as a quick inventory when exploring the
+experiments that complement the core Dynamic Capital platform.
+
+## Snapshot metrics
+
+- Total directories: 130
+- Generation command: `ls -d dynamic_* | sort`
 
 ## Index of `dynamic_` directories
 
 - `dynamic_accounting`
+- `dynamic_acronym`
 - `dynamic_agents`
 - `dynamic_agi`
 - `dynamic_ai`
 - `dynamic_algo`
 - `dynamic_analytical_thinking`
+- `dynamic_architect`
 - `dynamic_arrow`
 - `dynamic_astronomy`
 - `dynamic_atmosphere`
@@ -21,6 +30,7 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_blob_storage`
 - `dynamic_block`
 - `dynamic_blockchain`
+- `dynamic_blood`
 - `dynamic_bots`
 - `dynamic_branch`
 - `dynamic_bridge`
@@ -34,12 +44,14 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_clusters`
 - `dynamic_consciousness`
 - `dynamic_contracts`
+- `dynamic_cosmic`
 - `dynamic_creative_thinking`
 - `dynamic_critical_thinking`
 - `dynamic_cycle`
 - `dynamic_database`
 - `dynamic_dependency`
 - `dynamic_development_team`
+- `dynamic_dimensions`
 - `dynamic_domain`
 - `dynamic_domain_name_system`
 - `dynamic_domain_names`
@@ -47,12 +59,13 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_emoticon`
 - `dynamic_encryption`
 - `dynamic_energy`
+- `dynamic_engineer`
 - `dynamic_engines`
 - `dynamic_exosphere`
 - `dynamic_expressions`
 - `dynamic_firewall`
-- `dynamic_fuel`
 - `dynamic_forecast`
+- `dynamic_fuel`
 - `dynamic_generator`
 - `dynamic_glossary`
 - `dynamic_graphql`
@@ -76,9 +89,11 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_mesosphere`
 - `dynamic_message_queue`
 - `dynamic_metacognition`
+- `dynamic_metadata`
 - `dynamic_microservices`
 - `dynamic_mindset`
 - `dynamic_numbers`
+- `dynamic_ocean`
 - `dynamic_package`
 - `dynamic_physics`
 - `dynamic_pillars`
@@ -93,9 +108,13 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_proof_of_work`
 - `dynamic_proxy`
 - `dynamic_quote`
+- `dynamic_recycling`
 - `dynamic_reference`
+- `dynamic_review`
+- `dynamic_routine`
 - `dynamic_self_awareness`
 - `dynamic_skeleton`
+- `dynamic_skills`
 - `dynamic_space`
 - `dynamic_spheres`
 - `dynamic_stake`
@@ -106,7 +125,10 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_summary`
 - `dynamic_superclusters`
 - `dynamic_syncronization`
+- `dynamic_synonym`
 - `dynamic_tag`
+- `dynamic_task_manager`
+- `dynamic_teaching`
 - `dynamic_text`
 - `dynamic_thermosphere`
 - `dynamic_thinking`
@@ -120,5 +142,4 @@ This reference enumerates top-level directories in the repository that begin wit
 - `dynamic_wave`
 - `dynamic_web`
 - `dynamic_wisdom`
-
-For more comprehensive repository context, review [`docs/REPO_INVENTORY.md`](./REPO_INVENTORY.md), which links each major surface to its corresponding documentation and code references.
+- `dynamic_zone`
