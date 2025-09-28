@@ -48,6 +48,35 @@ Each step links to a deeper section in this guide.
 - [ ] Verify headers and footers display the correct numeral style for each
       section break.
 
+#### How to Complete These Tasks
+
+- **Assign Roman numerals to front matter**
+  1. Insert a section break between the cover content and the acknowledgments or
+     abstract.
+  2. Open the page-number formatting dialog and choose Roman numerals (`i, ii,
+     iii`).
+  3. Ensure “Apply to: This section” is selected so later sections can use a
+     different style.
+  4. Confirm the numbering starts at `i` by using the “Set value” option.
+- **Switch to Arabic numerals for the main body**
+  1. Place the cursor on the first page of the introduction.
+  2. Add another section break (next page) to isolate the main content.
+  3. Re-open the page-number formatting dialog, select Arabic numerals, and set
+     the starting number to `1`.
+- **Validate continuous or section-based numbering**
+  1. Review the document requirements or stakeholder guidance.
+  2. In the page-numbering options, choose either “Continue from previous
+     section” (continuous) or “Restart at 1” (section-based).
+  3. Scroll through each section break to ensure the numbering behaves as
+     intended.
+- **Check header/footer numeral styles**
+  1. Toggle the “Link to Previous” option off in headers/footers where styles
+     change.
+  2. Verify the displayed numeral style matches the page-number settings for the
+     current section.
+  3. Update header/footer fields if the numeral style is inherited from the
+     wrong section.
+
 ## Table of Contents (TOC)
 
 The TOC acts as the map of your document and should list the major sections
@@ -81,6 +110,23 @@ publishing environment.
 - [ ] Update page numbers automatically or re-check manual entries after layout
       changes.
 
+#### How to Complete These Tasks
+
+- **Capture top-level sections**
+  1. Apply the correct heading styles (e.g., Heading 1) to each main section.
+  2. Refresh the automatic TOC or, for a manual TOC, type the headings with the
+     corresponding page numbers.
+- **Add subheadings**
+  1. Style subsections with Heading 2/Heading 3.
+  2. Regenerate the TOC and confirm the indentation reflects the hierarchy.
+- **Insert optional lists**
+  1. Label figures and tables with captions so they appear in list generators.
+  2. Use the “Insert Table of Figures/Tables” feature or manually compose the
+     list when automation is unavailable.
+- **Update page numbers after layout changes**
+  1. Right-click the TOC and choose “Update Field → Update Entire Table.”
+  2. For manual TOCs, recheck pagination and edit the numbers directly.
+
 ## Headers and Footers
 
 Headers and footers appear on every page and provide identity and navigation
@@ -107,6 +153,33 @@ cues.
       reports.
 - [ ] Verify section breaks reset header/footer content appropriately (e.g.,
       chapter name updates while the document title remains consistent).
+
+#### How to Complete These Tasks
+
+- **Header identity details**
+  1. Activate the header area and insert a field for the document title or
+     current heading.
+  2. Use styles that match the organization’s branding guidelines.
+- **Author or institution details**
+  1. Determine whether the document requires author attribution in every header.
+  2. If so, insert the text or fields once and use “Link to Previous” to copy
+     them through identical sections.
+- **Footer page numbers**
+  1. Insert page numbers via the footer interface and choose the required
+     alignment.
+  2. Confirm the numbering style matches the current section’s numeral format.
+- **Optional footnotes or dates**
+  1. Add dates or footnotes only when they support the document’s purpose (e.g.,
+     revision history).
+  2. Keep the layout uncluttered by limiting the footer to essential elements.
+- **Mirrored layouts**
+  1. Enable “Different Odd & Even Pages” for double-sided documents.
+  2. Align headers/footers so inner margins carry binding information and outer
+     margins show navigation cues.
+- **Section break resets**
+  1. For each section break, confirm the header updates to the new chapter title
+     while the footer maintains consistent navigation.
+  2. Remove stray “Link to Previous” connections if content should change.
 
 ## Placement within a Document
 
@@ -165,6 +238,28 @@ the report.
       anchors point to the correct pages.
 - [ ] Capture an export (PDF or print preview) that demonstrates numbering and
       navigation accuracy for grading or stakeholder sign-off.
+
+#### How to Complete These Tasks
+
+- **Front matter verification**
+  1. Review the document structure in the navigation pane or outline view.
+  2. Check that all front matter pages use Roman numerals before the TOC.
+- **Content order confirmation**
+  1. Compare the document’s section order to the recommended report structure.
+  2. Move misplaced sections so the narrative flows from overview to appendices.
+- **TOC refresh**
+  1. Update the TOC and any lists of figures/tables to capture late edits.
+  2. Scroll through the document to confirm the page numbers match the TOC.
+- **Header/footer consistency audit**
+  1. Inspect each section break in print preview mode.
+  2. Ensure headers carry the correct chapter names and footers show the right
+     numbering style.
+- **Citation and index alignment**
+  1. Cross-reference in-text citations with the reference list entries.
+  2. Verify index anchors resolve to the correct pages or headings.
+- **Export evidence**
+  1. Produce a PDF or print preview and skim it for numbering or TOC issues.
+  2. Save the export as part of the submission or review evidence.
 
 ## Example Professional Report Structure
 
