@@ -162,3 +162,55 @@ def test_self_improvement_introspection_reports_in_plan() -> None:
     assert "metacognition" in plan.introspection
     assert plan.metrics["pnl"] == -1.0
 
+
+def test_negative_streaks_prioritised_and_reported() -> None:
+    manager = DynamicSelfImprovement(history=4)
+
+    manager.record_session(
+        output={"signal": {"action": "SELL"}},
+        performance={"pnl": -1.2},
+    )
+    manager.record_session(
+        output={"signal": {"action": "SELL"}},
+        performance={"pnl": -0.8},
+    )
+
+    plan = manager.generate_plan()
+
+    assert plan.summary["back_to_back_regressions"]["pnl"] == 2
+    hotspot = next(
+        item
+        for item in plan.summary["regression_hotspots"]
+        if item["metric"] == "pnl"
+    )
+    assert hotspot["severity"] == "sustained"
+    assert hotspot["streak"] == 2
+    assert any(
+        "Sustained priority: Break 2-session negative streak for pnl" in action
+        for action in plan.actions
+    )
+    assert any(
+        step["focus_metric"] == "pnl" and "Sustained recovery: Break 2-session" in step["intent"]
+        for step in plan.roadmap
+    )
+
+
+def test_negative_streak_severity_scales_actions() -> None:
+    manager = DynamicSelfImprovement(history=5)
+
+    for value in (-1.3, -1.1, -0.9):
+        manager.record_session(
+            output={"signal": {"action": "SELL"}},
+            performance={"pnl": value},
+        )
+
+    plan = manager.generate_plan()
+
+    hotspot = plan.summary["regression_hotspots"][0]
+    assert hotspot["metric"] == "pnl"
+    assert hotspot["severity"] == "severe"
+    assert hotspot["streak"] == 3
+    assert plan.actions[0].startswith(
+        "Severe priority: Break 3-session negative streak for pnl"
+    )
+

@@ -14,6 +14,7 @@ from dynamic_metacognition.engine import DynamicMetacognition, ReflectionContext
 __all__ = [
     "ImprovementSignal",
     "LearningSnapshot",
+    "RegressionStreak",
     "ImprovementPlan",
     "DynamicSelfImprovement",
 ]
@@ -153,6 +154,44 @@ class LearningSnapshot:
             metacognition_report=metacognition_report,
             timestamp=timestamp,
         )
+
+
+@dataclass(frozen=True, slots=True)
+class RegressionStreak:
+    """Insight describing a run of consecutive negative metric readings."""
+
+    count: int
+    cumulative_value: float
+    last_value: float
+    last_timestamp: datetime
+
+    @property
+    def average_drop(self) -> float:
+        if not self.count:
+            return 0.0
+        return self.cumulative_value / self.count
+
+    @property
+    def severity(self) -> str:
+        magnitude = abs(self.average_drop)
+        if self.count >= 5 or magnitude >= 2.0:
+            return "critical"
+        if self.count >= 3 or magnitude >= 1.5:
+            return "severe"
+        return "sustained"
+
+    @property
+    def ranking_penalty(self) -> float:
+        return self.count * max(abs(self.average_drop), abs(self.last_value))
+
+    def to_summary(self) -> Dict[str, Any]:
+        return {
+            "streak": self.count,
+            "average_drop": self.average_drop,
+            "last_drop": self.last_value,
+            "last_observed": self.last_timestamp.isoformat(),
+            "severity": self.severity,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -436,12 +475,18 @@ class DynamicSelfImprovement:
             raise RuntimeError("no sessions recorded")
 
         snapshots = list(self._history)[-window:] if window else list(self._history)
+        negative_streaks = self._recent_negative_streaks(snapshots)
         aggregated_metrics = self._aggregate_metrics(snapshots)
-        focus = self._rank_focus(aggregated_metrics)
-        actions = self._actions_for_focus(focus, aggregated_metrics)
+        focus = self._rank_focus(aggregated_metrics, negative_streaks)
+        actions = self._actions_for_focus(focus, aggregated_metrics, negative_streaks)
         feedback = self._collate_feedback(snapshots)
         introspection = self._latest_introspection(snapshots)
-        roadmap = self._build_roadmap(focus, aggregated_metrics, feedback)
+        roadmap = self._build_roadmap(
+            focus,
+            aggregated_metrics,
+            feedback,
+            negative_streaks,
+        )
 
         blueprint_focus = [
             category.title
@@ -454,6 +499,16 @@ class DynamicSelfImprovement:
             "snapshot_range": [snapshots[0].timestamp.isoformat(), snapshots[-1].timestamp.isoformat()],
             "average_metric_score": mean(aggregated_metrics.values()) if aggregated_metrics else 0.0,
             "blueprint_focus": blueprint_focus,
+            "back_to_back_regressions": {
+                metric: streak.count for metric, streak in negative_streaks.items()
+            },
+            "regression_hotspots": [
+                {"metric": metric, **streak.to_summary()}
+                for metric, streak in sorted(
+                    negative_streaks.items(),
+                    key=lambda item: (-item[1].count, -item[1].ranking_penalty),
+                )
+            ],
         }
 
         return ImprovementPlan(
@@ -537,6 +592,54 @@ class DynamicSelfImprovement:
             )
         return tuple(signals)
 
+    def _recent_negative_streaks(
+        self, snapshots: Sequence[LearningSnapshot]
+    ) -> Dict[str, RegressionStreak]:
+        streak_state: Dict[str, tuple[Optional[str], int, float, float, datetime]] = {}
+        for snapshot in snapshots:
+            seen_metrics: set[str] = set()
+            for signal in snapshot.signals:
+                metric = signal.metric
+                direction = "positive" if signal.value >= 0 else "negative"
+                previous_direction, previous_count, cumulative, _, _ = streak_state.get(
+                    metric, (None, 0, 0.0, 0.0, snapshot.timestamp)
+                )
+
+                if direction == previous_direction:
+                    count = previous_count + 1
+                    cumulative_value = cumulative + (signal.value if direction == "negative" else 0.0)
+                else:
+                    count = 1
+                    cumulative_value = signal.value if direction == "negative" else 0.0
+
+                streak_state[metric] = (
+                    direction,
+                    count,
+                    cumulative_value,
+                    signal.value,
+                    snapshot.timestamp,
+                )
+                seen_metrics.add(metric)
+
+            if not streak_state:
+                continue
+
+            for metric in list(streak_state.keys()):
+                if metric not in seen_metrics:
+                    _, _, _, _, last_timestamp = streak_state[metric]
+                    streak_state[metric] = (None, 0, 0.0, 0.0, last_timestamp)
+
+        return {
+            metric: RegressionStreak(
+                count=count,
+                cumulative_value=cumulative,
+                last_value=last_value,
+                last_timestamp=timestamp,
+            )
+            for metric, (direction, count, cumulative, last_value, timestamp) in streak_state.items()
+            if direction == "negative" and count >= 2
+        }
+
     def _aggregate_metrics(
         self, snapshots: Sequence[LearningSnapshot]
     ) -> Dict[str, float]:
@@ -553,20 +656,46 @@ class DynamicSelfImprovement:
             if counts[metric]
         }
 
-    def _rank_focus(self, metrics: Mapping[str, float]) -> tuple[str, ...]:
+    def _rank_focus(
+        self,
+        metrics: Mapping[str, float],
+        negative_streaks: Mapping[str, RegressionStreak] | None = None,
+    ) -> tuple[str, ...]:
         if not metrics:
             return ()
-        sorted_metrics = sorted(metrics.items(), key=lambda item: item[1])
+        streaks = negative_streaks or {}
+
+        def _sort_key(item: tuple[str, float]) -> tuple[int, float, float]:
+            metric, score = item
+            streak = streaks.get(metric)
+            priority = 0 if streak else 1
+            severity = -streak.count if streak else 0
+            penalty = -streak.ranking_penalty if streak else 0.0
+            return (priority, severity, score + penalty)
+
+        sorted_metrics = sorted(metrics.items(), key=_sort_key)
         return tuple(metric for metric, _ in sorted_metrics[:3])
 
     def _actions_for_focus(
         self,
         focus: Sequence[str],
         metrics: Mapping[str, float],
+        negative_streaks: Mapping[str, RegressionStreak] | None = None,
     ) -> tuple[str, ...]:
         actions: list[str] = []
+        streaks = negative_streaks or {}
         for metric in focus:
             score = metrics.get(metric, 0.0)
+            streak = streaks.get(metric)
+            if streak:
+                severity = streak.severity.capitalize()
+                actions.append(
+                    (
+                        f"{severity} priority: Break {streak.count}-session negative streak "
+                        f"for {metric} via focused remediation cycle"
+                        f" (avg drop {abs(streak.average_drop):.2f})"
+                    )
+                )
             if metric == "feedback_sentiment":
                 actions.append("Review human feedback and integrate adjustments into prompts")
             elif score < 0:
@@ -609,6 +738,7 @@ class DynamicSelfImprovement:
         focus: Sequence[str],
         metrics: Mapping[str, float],
         feedback: Sequence[str],
+        negative_streaks: Mapping[str, RegressionStreak] | None = None,
     ) -> tuple[Dict[str, Any], ...]:
         if not focus:
             default_category = _BLUEPRINT_BY_KEY["foundations"]
@@ -625,6 +755,7 @@ class DynamicSelfImprovement:
 
         steps: list[Dict[str, Any]] = []
         used_categories: set[str] = set()
+        streaks = negative_streaks or {}
 
         for category in _BLUEPRINT_CATEGORIES:
             relevant_metrics = [
@@ -638,12 +769,18 @@ class DynamicSelfImprovement:
             blueprint = category
             for metric in relevant_metrics:
                 score = metrics.get(metric, 0.0)
+                streak = streaks.get(metric)
                 intent = (
                     "Stabilise and close performance gaps"
                     if score < 0
                     else "Amplify what is already working"
                 )
-                if category.key == "execution_feedback" and feedback:
+                if streak:
+                    intent = (
+                        f"{streak.severity.capitalize()} recovery: Break {streak.count}-session "
+                        f"negative streak on {metric} before scaling the habit stack"
+                    )
+                if category.key == "execution_feedback" and feedback and not streak:
                     intent = "Integrate feedback loops and address noted friction points"
 
                 steps.append(
