@@ -24,6 +24,11 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicHedgePolicy",
         "DynamicConsciousnessSuite",
     ),
+    "dynamic_agi": (
+        "DynamicAGIModel",
+        "AGIOutput",
+        "AGIDiagnostics",
+    ),
     "dynamic_algo": (
         "DynamicTradingAlgo",
         "DynamicMarketFlow",
