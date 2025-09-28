@@ -25,6 +25,9 @@ _EXPORT_MAP = {
         "DynamicAbyssopelagicBot",
         "DynamicHadalpelagicBot",
     ),
+    "dynamic_bots.nft_engine": (
+        "DynamicNFTBot",
+    ),
     "dynamic_bots.elements": (
         "ElementBotPersona",
         "ELEMENT_BOTS",

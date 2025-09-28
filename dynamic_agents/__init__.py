@@ -34,6 +34,8 @@ __all__ = [
     "DynamicAbyssopelagicAgent",
     "DynamicHadalpelagicAgent",
     "DynamicRecyclingAgent",
+    "DynamicNFTAgent",
+    "NFTAgentInsight",
     "configure_dynamic_start_agents",
     "ExecutionAgent",
     "ExecutionAgentResult",
@@ -75,6 +77,8 @@ _LAZY = LazyNamespace(
         "DynamicArchitectAgent": "dynamic_architect.agent",
         "DynamicArchitectAgentResult": "dynamic_architect.agent",
         "DynamicRecyclingAgent": "dynamic_agents.recycling",
+        "DynamicNFTAgent": "dynamic_agents.nft_engine",
+        "NFTAgentInsight": "dynamic_agents.nft_engine",
         "RecyclingAgentConfig": "dynamic_agents.recycling",
         "RecyclingAgentReport": "dynamic_agents.recycling",
         "DynamicOceanLayerAgent": "dynamic_agents.ocean",
@@ -120,6 +124,10 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
         SpaceAgentResult,
         WaveAgent,
         WaveAgentResult,
+    )
+    from dynamic_agents.nft_engine import (
+        DynamicNFTAgent,
+        NFTAgentInsight,
     )
     from dynamic_agents.recycling import (
         DynamicRecyclingAgent,
