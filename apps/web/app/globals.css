@@ -1,6 +1,8 @@
 @import "./styles/mobile.css";
+@import "../styles/mobile-optimized.css";
 @import "../resources/custom.css";
 @import "../resources/brand-tokens.css";
+@import "../resources/enhanced-status-tokens.css";
 @reference "./theme.css";
 @tailwind base;
 @tailwind components;

@@ -1,0 +1,251 @@
+/* Mobile-First Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch device optimizations */
+  :root {
+    --touch-target-min: 44px;
+    --touch-spacing: 8px;
+  }
+
+  /* Larger touch targets */
+  button, 
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  .touch-target {
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+    padding: var(--touch-spacing) calc(var(--touch-spacing) * 2);
+  }
+
+  /* Enhanced button spacing */
+  .button-group > * + * {
+    margin-left: var(--touch-spacing);
+  }
+
+  /* Improved form controls */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    min-height: var(--touch-target-min);
+    padding: calc(var(--touch-spacing) * 1.5);
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Disable hover effects on touch devices */
+  .hover\:scale-105:hover,
+  .hover\:scale-110:hover,
+  .motion-hover-lift:hover,
+  .motion-hover-scale:hover {
+    transform: none !important;
+  }
+
+  /* Replace hover with focus-visible for better touch UX */
+  .hover\:bg-accent:hover {
+    background-color: initial;
+  }
+  
+  .hover\:bg-accent:focus-visible,
+  .hover\:bg-accent:active {
+    background-color: hsl(var(--accent));
+  }
+}
+
+/* Telegram Mini App Optimizations */
+@media (max-width: 768px) {
+  /* Safe area handling for Telegram */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* Optimized container widths */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Responsive typography */
+  .text-title {
+    font-size: 1.75rem;
+    line-height: 1.25;
+  }
+
+  .text-heading {
+    font-size: 1.25rem;
+    line-height: 1.35;
+  }
+
+  /* Better card layouts */
+  .motion-card,
+  .glass-motion-card {
+    margin: 0.5rem 0;
+    border-radius: 0.75rem;
+  }
+
+  /* Improved navigation for mobile */
+  .nav-mobile {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--gradient-navigation);
+    backdrop-filter: blur(24px);
+    border-top: 1px solid hsl(var(--border) / 0.3);
+    padding: var(--touch-spacing);
+    z-index: 50;
+  }
+
+  /* Enhanced floating action button */
+  .fab-mobile {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem);
+    right: 1rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    box-shadow: 0 8px 24px hsl(var(--primary) / 0.4);
+    z-index: 40;
+  }
+}
+
+/* High density displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Crisp borders and shadows */
+  .border {
+    border-width: 0.5px;
+  }
+  
+  .shadow-sm {
+    box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.05);
+  }
+  
+  .shadow-md {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Landscape orientation optimizations */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Compact header for landscape */
+  .header-landscape {
+    min-height: 3rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Adjust font sizes */
+  .text-title {
+    font-size: 1.5rem;
+  }
+  
+  .text-heading {
+    font-size: 1.125rem;
+  }
+
+  /* Compact spacing */
+  .motion-section {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Keep essential animations for UX */
+  .loading-spinner {
+    animation: spin 1s linear infinite !important;
+  }
+}
+
+/* Dark mode mobile optimizations */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+  /* Darker backgrounds for better battery life on OLED */
+  .mobile-dark-bg {
+    background: hsl(0 0% 3%);
+  }
+
+  /* Higher contrast for readability */
+  .mobile-high-contrast {
+    color: hsl(0 0% 95%);
+  }
+
+  /* Softer shadows for dark mode */
+  .shadow-lg {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Utility classes for mobile optimization */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+.user-select-none {
+  user-select: none;
+}
+
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+.overscroll-contain {
+  overscroll-behavior: contain;
+}
+
+/* Mobile-specific interactive states */
+.mobile-press:active {
+  transform: scale(0.95);
+  transition: transform 0.1s ease-out;
+}
+
+.mobile-highlight:active {
+  background-color: hsl(var(--primary) / 0.1);
+}
+
+/* Better focus indicators for keyboard navigation */
+.focus-ring:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Optimized grid layouts for mobile */
+.mobile-grid-1 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .mobile-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

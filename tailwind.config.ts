@@ -79,18 +79,32 @@ export default {
         success: {
           DEFAULT: "hsl(var(--status-success))",
           foreground: "hsl(var(--status-success-foreground))",
+          muted: "hsl(var(--status-success-muted))",
+          border: "hsl(var(--status-success-border))",
         },
         warning: {
           DEFAULT: "hsl(var(--status-warning))",
           foreground: "hsl(var(--status-warning-foreground))",
+          muted: "hsl(var(--status-warning-muted))",
+          border: "hsl(var(--status-warning-border))",
         },
         info: {
           DEFAULT: "hsl(var(--status-info))",
           foreground: "hsl(var(--status-info-foreground))",
+          muted: "hsl(var(--status-info-muted))",
+          border: "hsl(var(--status-info-border))",
         },
         error: {
           DEFAULT: "hsl(var(--status-error))",
           foreground: "hsl(var(--status-error-foreground))",
+          muted: "hsl(var(--status-error-muted))",
+          border: "hsl(var(--status-error-border))",
+        },
+        market: {
+          bull: "hsl(var(--market-bull))",
+          bear: "hsl(var(--market-bear))",
+          neutral: "hsl(var(--market-neutral))",
+          volatile: "hsl(var(--market-volatile))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -131,6 +145,10 @@ export default {
         "gradient-card": "var(--gradient-card)",
         "gradient-hero": "var(--gradient-hero)",
         "gradient-navigation": "var(--gradient-navigation)",
+        "gradient-success": "var(--gradient-success)",
+        "gradient-warning": "var(--gradient-warning)",
+        "gradient-info": "var(--gradient-info)",
+        "gradient-error": "var(--gradient-error)",
       },
       boxShadow: {
         "telegram": "var(--shadow-telegram)",
