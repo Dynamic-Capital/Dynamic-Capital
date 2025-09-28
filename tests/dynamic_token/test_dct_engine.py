@@ -22,6 +22,7 @@ from dynamic_token.engine import (
     DynamicCapitalTokenEngine,
     committee_signals_from_optimisation,
 )
+from dynamic_token.treasury import DynamicTreasuryAlgo
 
 
 class _TradeResult:
@@ -86,6 +87,7 @@ def test_engine_orchestrates_pricing_production_and_treasury() -> None:
     assert report.treasury_event.burned == pytest.approx(50.0)
     assert report.treasury_event.rewards_distributed == pytest.approx(75.0)
     assert report.treasury_event.profit_retained == pytest.approx(125.0)
+    assert report.treasury_event.loss_covered == pytest.approx(0.0)
     assert report.treasury_balance_before == pytest.approx(50_000.0)
     assert report.treasury_balance_after == pytest.approx(50_125.0)
     assert "Boost staking rewards" in report.notes
@@ -147,3 +149,38 @@ def test_committee_signals_helper_converts_llm_results() -> None:
     )
     scaled_plan = signals.scale_plan(plan)
     assert scaled_plan.final_mint == pytest.approx(plan.final_mint * 1.15)
+
+
+def test_treasury_algo_handles_losses_and_shortfall_notes() -> None:
+    treasury = DynamicTreasuryAlgo(starting_balance=500.0)
+
+    class _LossResult:
+        retcode = 10009
+        profit = -750.0
+
+    event = treasury.update_from_trade(_LossResult())
+    assert event is not None
+    assert event.loss_covered == pytest.approx(500.0)
+    assert event.burned == pytest.approx(0.0)
+    assert event.rewards_distributed == pytest.approx(0.0)
+    assert event.profit_retained == pytest.approx(0.0)
+    assert treasury.treasury_balance == pytest.approx(0.0)
+    assert event.notes and "Loss exceeded treasury reserves" in event.notes[0]
+
+
+def test_treasury_algo_respects_custom_distribution() -> None:
+    treasury = DynamicTreasuryAlgo(
+        starting_balance=0.0, burn_share=0.1, reward_share=0.4
+    )
+
+    class _WinResult:
+        retcode = 10009
+        profit = 1000.0
+
+    event = treasury.update_from_trade(_WinResult())
+    assert event is not None
+    assert event.burned == pytest.approx(100.0)
+    assert event.rewards_distributed == pytest.approx(400.0)
+    assert event.profit_retained == pytest.approx(500.0)
+    assert event.loss_covered == pytest.approx(0.0)
+    assert treasury.treasury_balance == pytest.approx(500.0)
