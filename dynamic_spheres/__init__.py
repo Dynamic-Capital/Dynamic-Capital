@@ -3,9 +3,11 @@
 from .engine import (
     SphereProfile,
     SpherePulse,
+    SphereResponsibility,
     SphereSnapshot,
     SphereNetworkState,
     SphereCollaborator,
+    SphereRoleManifestEntry,
     DynamicSpheresEngine,
     create_sphere_agent,
     create_sphere_keeper,
@@ -17,9 +19,11 @@ from .engine import (
 __all__ = [
     "SphereProfile",
     "SpherePulse",
+    "SphereResponsibility",
     "SphereSnapshot",
     "SphereNetworkState",
     "SphereCollaborator",
+    "SphereRoleManifestEntry",
     "DynamicSpheresEngine",
     "create_sphere_agent",
     "create_sphere_keeper",
