@@ -26,18 +26,17 @@ Each step links to a deeper section in this guide.
 
 ## Page Numbering Strategies
 
-- **Roman numerals (i, ii, iii, …)**
-  - Ideal for front matter such as abstracts, acknowledgments, and the table of
-    contents.
-- **Arabic numerals (1, 2, 3, …)**
-  - Used for the main body starting with the introduction or first chapter.
-- **Continuous numbering**
-  - Page numbers run sequentially across the entire document.
-- **Section-based numbering**
-  - Page numbering restarts for each chapter or section.
-- **Academic tip**
-  - Many academic papers begin Arabic numbering at the introduction while
-    keeping front matter in Roman numerals.
+| Numbering style                    | Where to use it                                                                  | Configuration notes                                                                                                             |
+| ---------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Roman numerals (i, ii, iii, …)** | Front matter (acknowledgments, abstract, TOC, lists of figures/tables)           | Set the start number to `i` and enable separate headers/footers so the style does not bleed into the main body.                 |
+| **Arabic numerals (1, 2, 3, …)**   | Main body (introduction through appendices)                                      | Start at `1` when the main body begins—usually the introduction—and confirm the style is locked for the remaining sections.     |
+| **Continuous numbering**           | Regulatory reports or long-form deliverables that need a single reference stream | Configure the page-numbering dialog to “Continue from previous section” so each break inherits the latest value.                |
+| **Section-based numbering**        | Training manuals or textbooks where each chapter stands alone                    | Enable “Restart each section” and confirm that chapters with appendices still follow the parent chapter’s numbering convention. |
+
+> **Academic tip:** Many academic papers begin Arabic numbering at the
+> introduction while keeping front matter in Roman numerals. Add a section break
+> between the front matter and the first chapter so the numbering styles stay
+> isolated.
 
 ### Page Numbering Checklist
 
@@ -52,7 +51,9 @@ Each step links to a deeper section in this guide.
 ## Table of Contents (TOC)
 
 The TOC acts as the map of your document and should list the major sections
-alongside their page numbers.
+alongside their page numbers. Decide whether the document will live inside a
+word processor, PDF export, or web view so you can match the TOC style to the
+publishing environment.
 
 ### TOC Types
 
@@ -102,6 +103,10 @@ cues.
       audience.
 - [ ] Place page numbers in the footer, centered or aligned per style guide.
 - [ ] Add footnotes or publication dates only when necessary to avoid clutter.
+- [ ] Confirm odd/even pages use mirrored layouts when printing double-sided
+      reports.
+- [ ] Verify section breaks reset header/footer content appropriately (e.g.,
+      chapter name updates while the document title remains consistent).
 
 ## Placement within a Document
 
@@ -110,21 +115,56 @@ cues.
 - **Summary or abstract**
   - Placed in the front matter, commonly before or immediately after the TOC.
 - **Main body**
-  - Contains analysis, findings, and discussion structured according to the TOC.
+  - Contains analysis, findings, discussion, and evidence structured according
+    to the TOC entries.
 - **Referencing and index**
-  - Located at the end of the document after the main content.
+  - Located at the end of the document after the main content and appendices.
+- **Grading or scoring rubrics**
+  - Often reference proper numbering, TOC accuracy, and navigation clarity—keep
+    supporting evidence (screenshots or PDF exports) with submissions.
 - **Headers and footers**
   - Applied consistently across the entire document for continuity.
+
+## Document Element Interactions
+
+Use this reference to keep navigation artifacts aligned while you draft or edit
+the report.
+
+- **Overview → TOC**
+  - Link the overview’s promises to TOC entries so reviewers can jump to the
+    relevant sections.
+- **Summary or abstract → Main body**
+  - Ensure summary insights cite the sections that expand on them. Cross-check
+    page numbers after layout changes.
+- **TOC → Analysis sections**
+  - Every heading in the analysis must appear in the TOC at the appropriate
+    level; regenerate automatic TOCs after structural edits.
+- **Analysis → Referencing**
+  - Footnotes and in-text citations must map to the reference list and share the
+    correct numbering or identifier system.
+- **Referencing → Index**
+  - Use consistent terminology so the index can point readers to both analysis
+    sections and citation details.
+- **Headers/footers → Navigation cues**
+  - Pair the header (identity) and footer (page number/notes) so readers always
+    know where they are in the document.
+- **Grading or scoring → Evidence packet**
+  - Capture PDF exports or screenshots of numbering, TOC, and navigation
+    elements to satisfy academic or professional review requirements.
 
 ### Final Review Checklist
 
 - [ ] Confirm that the front matter precedes the TOC and uses Roman numerals.
-- [ ] Ensure the summary, analysis, references, and index appear in the order
-      outlined below.
+- [ ] Ensure the summary, analysis, references, index, and appendices appear in
+      the order outlined below.
+- [ ] Regenerate automatic TOCs or update manual entries after any content
+      changes.
 - [ ] Scan the document to confirm headers and footers remain consistent across
       section breaks.
-- [ ] Perform a final pass to ensure TOC entries match the document structure
-      and page numbering.
+- [ ] Verify that in-text citations align with the reference list and the index
+      anchors point to the correct pages.
+- [ ] Capture an export (PDF or print preview) that demonstrates numbering and
+      navigation accuracy for grading or stakeholder sign-off.
 
 ## Example Professional Report Structure
 
