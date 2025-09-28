@@ -4,13 +4,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from math import isfinite, pi
 from statistics import fmean
-from typing import Iterable, Mapping, MutableMapping, Sequence
+from typing import Callable, Iterable, Mapping, MutableMapping, Sequence
 
 __all__ = [
     "LoopSignal",
     "LoopState",
     "LoopRecommendation",
+    "CollapseStep",
+    "CollapseResult",
     "DynamicLoopEngine",
 ]
 
@@ -100,12 +103,197 @@ class LoopRecommendation:
         }
 
 
+@dataclass(slots=True)
+class CollapseStep:
+    """Snapshot captured while iterating the collapse loop."""
+
+    time: float
+    mass: float
+    radius: float
+    mdot: float
+    shock_radius: float
+    compactness: float
+
+    def as_dict(self) -> MutableMapping[str, float]:
+        return {
+            "time": self.time,
+            "mass": self.mass,
+            "radius": self.radius,
+            "mdot": self.mdot,
+            "shock_radius": self.shock_radius,
+            "compactness": self.compactness,
+        }
+
+
+@dataclass(slots=True)
+class CollapseResult:
+    """Outcome of integrating the black hole collapse loop."""
+
+    t_bh: float
+    m_bh0: float
+    radius: float
+    compactness: float
+    reason: str
+    steps: tuple[CollapseStep, ...] = ()
+    steps_evaluated: int = 0
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "t_bh": self.t_bh,
+            "M_BH0": self.m_bh0,
+            "radius": self.radius,
+            "compactness": self.compactness,
+            "reason": self.reason,
+            "steps_evaluated": self.steps_evaluated,
+            "steps": [step.as_dict() for step in self.steps],
+        }
+
+
 class DynamicLoopEngine:
     """Aggregate loop signals and highlight interventions."""
 
     def __init__(self) -> None:
         self._states: list[LoopState] = []
         self._recommendations: list[LoopRecommendation] = []
+
+    def solve_collapse_equation(
+        self,
+        *,
+        t_ff_core: float | Callable[[], float],
+        M_core: float,
+        R_PNS0: float,
+        tau_R: float,
+        p: float,
+        M_max: float,
+        dt: float,
+        r_sh: Callable[[float], float],
+        rho: Callable[[float], float],
+        v_ff: Callable[[float], float],
+        G: float = 6.67430e-8,
+        c: float = 299_792_458.0,
+        max_steps: int = 10_000,
+        audit: bool = False,
+    ) -> CollapseResult:
+        """Integrate the black hole formation loop equation.
+
+        The loop follows the collapse prescription:
+
+        ``t = t_ff_core()``
+        ``M = M_core``
+        ``R = R_PNS0``
+        ``while True:``
+        ``    mdot = 4*pi*r_sh(t)^2 * rho(r_sh(t)) * v_ff(r_sh(t))``
+        ``    M += mdot * dt``
+        ``    R = R_PNS0 * (1 + t/tau_R)**(-p)``
+        ``    if (2*G*M)/(c**2*R) >= 1 or M >= M_max:``
+        ``        break``
+        ``    t += dt``
+
+        Args:
+            t_ff_core: The core free-fall time or a callable returning it.
+            M_core: Initial proto-neutron star mass at bounce.
+            R_PNS0: Initial PNS radius.
+            tau_R: Cooling timescale for the radius evolution.
+            p: Power-law index for the radius contraction.
+            M_max: Maximum stable mass threshold.
+            dt: Integration timestep (must be positive).
+            r_sh: Callable returning the shock radius for a given time.
+            rho: Callable returning the density at a given radius.
+            v_ff: Callable returning the free-fall velocity at a given radius.
+            G: Gravitational constant (defaults to SI units).
+            c: Speed of light (defaults to SI units).
+            max_steps: Safety bound on the iteration count.
+            audit: When ``True`` capture the per-step history for diagnostics.
+
+        Returns:
+            CollapseResult containing the black hole formation metrics and,
+            if requested, the detailed step history.
+
+        Raises:
+            ValueError: If invalid parameters are provided.
+            RuntimeError: If the collapse condition is not reached in
+                ``max_steps`` iterations.
+        """
+
+        if callable(t_ff_core):
+            t = float(t_ff_core())
+        else:
+            t = float(t_ff_core)
+        if dt <= 0:
+            raise ValueError("dt must be positive for integration")
+        if tau_R <= 0:
+            raise ValueError("tau_R must be positive to avoid singular radius")
+        if R_PNS0 <= 0:
+            raise ValueError("R_PNS0 must be positive")
+        if M_core <= 0:
+            raise ValueError("M_core must be positive")
+        if M_max <= 0:
+            raise ValueError("M_max must be positive")
+        if max_steps <= 0:
+            raise ValueError("max_steps must be positive")
+        if not isfinite(G) or G <= 0:
+            raise ValueError("G must be a positive finite constant")
+        if not isfinite(c) or c <= 0:
+            raise ValueError("c must be a positive finite constant")
+
+        mass = float(M_core)
+        base_radius = float(R_PNS0)
+        steps_recorded = 0
+        history: list[CollapseStep] | None = [] if audit else None
+
+        for _ in range(int(max_steps)):
+            shock_radius = float(r_sh(t))
+            if shock_radius <= 0 or not isfinite(shock_radius):
+                raise ValueError("r_sh must return a positive finite radius")
+
+            density = float(rho(shock_radius))
+            if not isfinite(density):
+                raise ValueError("rho must return a finite density")
+
+            free_fall_velocity = float(v_ff(shock_radius))
+            if not isfinite(free_fall_velocity):
+                raise ValueError("v_ff must return a finite velocity")
+
+            mdot = 4.0 * pi * shock_radius**2 * density * free_fall_velocity
+            mass += mdot * dt
+            radius = base_radius * (1.0 + (t / tau_R)) ** (-p)
+            compactness = (2.0 * G * mass) / (c**2 * radius)
+            steps_recorded += 1
+
+            if history is not None:
+                history.append(
+                    CollapseStep(
+                        time=float(t),
+                        mass=mass,
+                        radius=radius,
+                        mdot=mdot,
+                        shock_radius=shock_radius,
+                        compactness=compactness,
+                    )
+                )
+
+            reason: str | None = None
+            if compactness >= 1.0:
+                reason = "compactness"
+            elif mass >= M_max:
+                reason = "mass_limit"
+
+            if reason is not None:
+                return CollapseResult(
+                    t_bh=float(t),
+                    m_bh0=mass,
+                    radius=radius,
+                    compactness=compactness,
+                    reason=reason,
+                    steps=tuple(history) if history is not None else (),
+                    steps_evaluated=steps_recorded,
+                )
+
+            t += dt
+
+        raise RuntimeError(
+            "Collapse condition not reached within the maximum allowed steps"
+        )
 
     def _compute_state(self, signals: Sequence[LoopSignal]) -> LoopState:
         if not signals:
