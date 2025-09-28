@@ -10,6 +10,7 @@ from dynamic_framework import (
     FrameworkNode,
     FrameworkPulse,
 )
+from dynamic_framework.__main__ import DEFAULT_SCENARIO, build_engine, render_report
 
 
 def _ts(minutes: int) -> datetime:
@@ -122,3 +123,19 @@ def test_record_unknown_node_raises_key_error() -> None:
 
     with pytest.raises(KeyError):
         engine.record(pulse)
+
+
+def test_cli_build_engine_from_default_scenario() -> None:
+    engine = build_engine(DEFAULT_SCENARIO)
+    assert set(engine.nodes) == {"automation", "orchestration", "platform"}
+    report = engine.report()
+    assert report.overall_maturity > 0.5
+    assert any(focus == "Automation" for focus in report.focus_areas)
+
+
+def test_cli_render_report_includes_recommendations() -> None:
+    engine = build_engine(DEFAULT_SCENARIO)
+    output = render_report(engine)
+    assert "Node snapshots:" in output
+    assert "Automation" in output
+    assert "Recommendations:" in output
