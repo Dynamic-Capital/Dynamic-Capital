@@ -112,6 +112,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     ),
     "dynamic_kyc": ("DynamicKycRegistry",),
     "dynamic_library": ("DynamicLibrary",),
+    "dynamic_logging": (
+        "DynamicLoggingEngine",
+        "LogEvent",
+        "LogSeverity",
+        "LoggingSnapshot",
+    ),
     "dynamic_memory": ("DynamicMemoryConsolidator",),
     "dynamic_memory_reconsolidation": ("DynamicMemoryReconsolidation",),
     "dynamic_method": (
