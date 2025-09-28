@@ -19,6 +19,7 @@ import {
   findInstrumentMetadata,
   getInstrumentMetadata,
 } from "@/data/instruments";
+import { RefreshAnimation } from "./RefreshAnimation";
 
 interface StrategyPlaybook {
   automation: string;
@@ -970,7 +971,24 @@ export function MarketWatchlist() {
           </Row>
         </Column>
         <Row gap="8" vertical="center" wrap>
-          <Tag size="s">{statusLabel}</Tag>
+          <Row gap="4" vertical="center">
+            <Tag
+              size="s"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {statusLabel}
+            </Tag>
+            <RefreshAnimation
+              active={isFetching}
+              ariaLabel={
+                isFetching
+                  ? "Refreshing market watchlist data"
+                  : "Market watchlist data idle"
+              }
+            />
+          </Row>
           {error
             ? (
               <Text variant="label-default-s" onBackground="danger-strong">

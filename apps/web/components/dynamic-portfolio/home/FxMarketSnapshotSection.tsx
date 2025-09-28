@@ -33,6 +33,7 @@ import {
   getInstrumentMetadata,
   PRIMARY_CURRENCY_CODES,
 } from "@/data/instruments";
+import { RefreshAnimation } from "./RefreshAnimation";
 
 type CurrencyStrength = {
   code: string;
@@ -925,23 +926,33 @@ export function FxMarketSnapshotSection() {
       shadow="l"
     >
       <Column gap="12" maxWidth={32}>
-        <Row gap="12" vertical="center">
+        <Row gap="12" vertical="center" wrap>
           <Heading
             id="fx-market-snapshot-heading"
             variant="display-strong-xs"
           >
             Dynamic market snapshot
           </Heading>
-          <Tag
-            size="s"
-            background={statusTone}
-            prefixIcon="clock"
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            {statusLabel}
-          </Tag>
+          <Row gap="4" vertical="center">
+            <Tag
+              size="s"
+              background={statusTone}
+              prefixIcon="clock"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {statusLabel}
+            </Tag>
+            <RefreshAnimation
+              active={isFetching}
+              ariaLabel={
+                isFetching
+                  ? "Refreshing FX market snapshot"
+                  : "FX market snapshot idle"
+              }
+            />
+          </Row>
         </Row>
         <Text variant="body-default-l" onBackground="neutral-weak">
           A desk-level digest of where momentum, volatility, and cross-asset
