@@ -58,6 +58,7 @@ from .dolphin_adapter import (
     LLMIntegrationError,
 )
 from .ollama_adapter import OllamaAdapter, OllamaConfig, OllamaPromptTemplate
+from .kimi_k2_adapter import KimiK2Adapter, KimiK2Config, KimiK2PromptTemplate
 from .analysis import AnalysisComponent, DynamicAnalysis
 from .consciousness_suite import (
     AwarenessContexts,
@@ -110,6 +111,9 @@ __all__ = [
     "DolphinPromptTemplate",
     "DolphinSamplingConfig",
     "LLMIntegrationError",
+    "KimiK2Adapter",
+    "KimiK2Config",
+    "KimiK2PromptTemplate",
     "OllamaAdapter",
     "OllamaConfig",
     "OllamaPromptTemplate",

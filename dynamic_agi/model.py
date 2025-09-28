@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import asdict, dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace, fields
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, Mapping, Optional
 
@@ -11,6 +11,9 @@ from dynamic_ai import (
     AISignal,
     DynamicAnalysis,
     DynamicFusionAlgo,
+    KimiK2Adapter,
+    KimiK2Config,
+    KimiK2PromptTemplate,
     OllamaAdapter,
     OllamaConfig,
     PositionSizing,
@@ -165,6 +168,63 @@ def _build_ollama_adapter(
     return adapter
 
 
+def _coerce_kimi_k2_config(
+    config: KimiK2Config | Mapping[str, Any] | None,
+) -> KimiK2Config:
+    if config is None:
+        return KimiK2Config()
+    if isinstance(config, KimiK2Config):
+        return config
+
+    payload = dict(config)
+    extra_body = payload.pop("extra_body", None)
+    extra_headers = payload.pop("extra_headers", None)
+
+    allowed_fields = {field.name for field in fields(KimiK2Config)}
+    filtered: Dict[str, Any] = {}
+    for key, value in payload.items():
+        if key in {"extra_body", "extra_headers"}:
+            continue
+        if key in allowed_fields:
+            filtered[key] = value
+
+    coerced = KimiK2Config(**filtered)
+    if extra_body:
+        coerced.extra_body.update(dict(extra_body))
+    if extra_headers:
+        coerced.extra_headers = {str(k): str(v) for k, v in dict(extra_headers).items()}
+    return coerced
+
+
+def _build_kimi_k2_adapter(
+    *,
+    config: KimiK2Config | Mapping[str, Any] | None,
+    headers: Mapping[str, Any] | None,
+    api_key: str | None,
+    timeout: float | None,
+    prompt_template: KimiK2PromptTemplate | None,
+) -> KimiK2Adapter:
+    coerced = _coerce_kimi_k2_config(config)
+
+    if api_key is not None:
+        coerced.api_key = api_key
+
+    header_map = _coerce_headers(headers)
+    if header_map:
+        existing_headers = dict(coerced.extra_headers) if coerced.extra_headers else {}
+        existing_headers.update(header_map)
+        coerced.extra_headers = existing_headers
+
+    adapter = KimiK2Adapter(config=coerced)
+
+    if prompt_template is not None:
+        adapter.prompt_template = prompt_template
+    if timeout is not None:
+        adapter.timeout = timeout
+
+    return adapter
+
+
 @dataclass(slots=True)
 class AGIDiagnostics:
     """Structured diagnostic payload emitted by the AGI model."""
@@ -256,18 +316,43 @@ class DynamicAGIModel:
         ollama_keep_alive: float | None = None,
         ollama_timeout: float | None = None,
         reasoning_cache_size: int | None = None,
+        use_kimi_k2: bool = False,
+        kimi_k2_config: KimiK2Config | Mapping[str, Any] | None = None,
+        kimi_k2_headers: Mapping[str, Any] | None = None,
+        kimi_k2_api_key: str | None = None,
+        kimi_k2_timeout: float | None = None,
+        kimi_k2_prompt_template: KimiK2PromptTemplate | None = None,
     ) -> None:
         if fusion is None:
             adapter = llm_adapter
-            if adapter is None and llama_model:
-                adapter = _build_ollama_adapter(
-                    model=llama_model,
-                    host=ollama_host,
-                    options=ollama_options,
-                    headers=ollama_headers,
-                    keep_alive=ollama_keep_alive,
-                    timeout=ollama_timeout,
+            kimi_requested = any(
+                option is not None
+                for option in (
+                    kimi_k2_config,
+                    kimi_k2_headers,
+                    kimi_k2_api_key,
+                    kimi_k2_timeout,
+                    kimi_k2_prompt_template,
                 )
+            )
+            if adapter is None:
+                if use_kimi_k2 or kimi_requested:
+                    adapter = _build_kimi_k2_adapter(
+                        config=kimi_k2_config,
+                        headers=kimi_k2_headers,
+                        api_key=kimi_k2_api_key,
+                        timeout=kimi_k2_timeout,
+                        prompt_template=kimi_k2_prompt_template,
+                    )
+                elif llama_model:
+                    adapter = _build_ollama_adapter(
+                        model=llama_model,
+                        host=ollama_host,
+                        options=ollama_options,
+                        headers=ollama_headers,
+                        keep_alive=ollama_keep_alive,
+                        timeout=ollama_timeout,
+                    )
             cache_size = reasoning_cache_size if reasoning_cache_size is not None else 64
             fusion = DynamicFusionAlgo(
                 llm_adapter=adapter,
