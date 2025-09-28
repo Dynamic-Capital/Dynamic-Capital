@@ -116,6 +116,13 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_numbers": ("DynamicNumberComposer",),
     "dynamic_package": ("DynamicPackageDesigner",),
     "dynamic_pillars": ("DynamicPillarFramework",),
+    "dynamic_property": (
+        "DynamicPropertyEngine",
+        "PropertyAsset",
+        "MarketInsight",
+        "PortfolioSnapshot",
+        "PropertySignal",
+    ),
     "dynamic_quote": ("DynamicQuote",),
     "dynamic_reference": ("DynamicReference",),
     "dynamic_script": ("DynamicScriptEngine",),
