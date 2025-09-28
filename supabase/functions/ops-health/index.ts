@@ -1,12 +1,23 @@
 import { createClient } from "../_shared/client.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
+type HealthReport = {
+  ok: boolean;
+  checks: Record<string, unknown>;
+};
+
+const json = (payload: HealthReport, status: number) =>
+  new Response(JSON.stringify(payload, null, 2), {
+    headers: { "content-type": "application/json" },
+    status,
+  });
+
 export const handler = registerHandler(async (_req) => {
-  const report: Record<string, unknown> = { ok: true, checks: {} };
+  const report: HealthReport = { ok: true, checks: {} };
 
   function checkEnv(name: string, required = true) {
     const ok = !!Deno.env.get(name);
-    report.checks![name] = ok;
+    report.checks[name] = ok;
     if (required && !ok) report.ok = false;
   }
 
@@ -22,23 +33,28 @@ export const handler = registerHandler(async (_req) => {
 
   // DB ping
   try {
-    const supa = createClient();
-    const { error } = await supa.from("bot_users").select("id").limit(1);
-    report.checks!["db"] = !error;
+    const supabase = createClient("service");
+    const { error } = await supabase
+      .from("bot_users")
+      .select("id")
+      .limit(1);
+
+    report.checks["db"] = error
+      ? { ok: false, message: error.message }
+      : { ok: true };
     if (error) report.ok = false;
-  } catch {
+  } catch (error) {
     report.ok = false;
-    report.checks!["db"] = false;
+    report.checks["db"] = {
+      ok: false,
+      message: error instanceof Error ? error.message : String(error),
+    };
   }
 
   // Function reachability (self)
-  report.checks!["self"] = true;
+  report.checks["self"] = true;
 
-  const code = report.ok ? 200 : 500;
-  return new Response(JSON.stringify(report, null, 2), {
-    headers: { "content-type": "application/json" },
-    status: code,
-  });
+  return json(report, report.ok ? 200 : 500);
 });
 
 export default handler;
