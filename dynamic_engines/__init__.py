@@ -86,6 +86,14 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DemandSnapshot",
         "DemandSummary",
     ),
+    "dynamic_dockerfile": (
+        "DynamicDockerfileEngine",
+        "DockerfileContext",
+        "DockerfileArtifact",
+        "DockerStageBlueprint",
+        "StageInstruction",
+        "FeatureRecipe",
+    ),
     "dynamic_effect": ("DynamicEffectEngine",),
     "dynamic_event": (
         "DynamicEventEngine",
