@@ -11,7 +11,7 @@ if (import.meta.main) {
   if (Deno.args.length === 0) {
     console.error("Usage: deno run docker <docker arguments...>");
     console.error(
-      "Example: deno run docker build --push -t dynamiccapital/scout-demo:v1",
+      "Example: deno run docker build --push -t dynamiccapital/dynamic-capital:tagname",
     );
     Deno.exit(1);
   }
