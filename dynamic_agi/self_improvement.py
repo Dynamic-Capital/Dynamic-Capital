@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -684,8 +686,8 @@ class DynamicSelfImprovement:
 
 def _is_number(value: Any) -> bool:
     try:
-        float(value)
+        numeric = float(value)
     except (TypeError, ValueError):
         return False
-    return True
+    return math.isfinite(numeric)
 

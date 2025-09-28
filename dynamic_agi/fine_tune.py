@@ -280,6 +280,6 @@ class DynamicAGIFineTuner:
         if self.default_tags:
             tags = self.default_tags
         else:
-            tags = tuple({signal.metric for signal in snapshot.signals})
+            tags = tuple(dict.fromkeys(signal.metric for signal in snapshot.signals))
         return FineTuneExample(prompt=prompt, completion=completion, tags=tags, metadata=metadata)
 

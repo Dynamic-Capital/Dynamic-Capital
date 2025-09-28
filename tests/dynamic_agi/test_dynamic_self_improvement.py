@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import pytest
 
 from dynamic_agi import DynamicAGIModel, DynamicSelfImprovement
@@ -161,4 +163,26 @@ def test_self_improvement_introspection_reports_in_plan() -> None:
     assert "self_awareness" in plan.introspection
     assert "metacognition" in plan.introspection
     assert plan.metrics["pnl"] == -1.0
+
+
+def test_record_session_filters_non_finite_metrics() -> None:
+    manager = DynamicSelfImprovement(history=2)
+
+    snapshot = manager.record_session(
+        output={"signal": "ok"},
+        performance={
+            "valid": 1.25,
+            "bad_nan": float("nan"),
+            "bad_inf": float("inf"),
+            "bad_ninf": float("-inf"),
+        },
+    )
+
+    assert set(snapshot.performance) == {"valid"}
+
+    plan = manager.generate_plan()
+
+    assert plan.metrics["valid"] == pytest.approx(1.25)
+    assert all(key == "valid" for key in plan.metrics)
+    assert all(math.isfinite(value) for value in plan.metrics.values())
 
