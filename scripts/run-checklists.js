@@ -9,6 +9,10 @@ import { createSanitizedNpmEnv } from './utils/npm-env.mjs';
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(MODULE_DIR, '..');
+const DEFAULT_TELEGRAM_WEBHOOK_FIXTURE = path.join(
+  PROJECT_ROOT,
+  'fixtures/telegram-webhook-info.json',
+);
 
 function loadEnvFile(relativePath) {
   const absolutePath = path.join(PROJECT_ROOT, relativePath);
@@ -408,6 +412,38 @@ function formatTaskRef(ref) {
   };
 }
 
+function applyTelegramFixtureIfNeeded(tasks) {
+  const needsWebhookCheck = tasks.some((task) => task.id === 'check-webhook');
+  if (!needsWebhookCheck) {
+    return;
+  }
+
+  if (
+    process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_WEBHOOK_INFO_PATH
+  ) {
+    return;
+  }
+
+  if (!fs.existsSync(DEFAULT_TELEGRAM_WEBHOOK_FIXTURE)) {
+    console.warn(
+      `[checklists] TELEGRAM_BOT_TOKEN missing and no TELEGRAM_WEBHOOK_INFO_PATH provided. Expected fixture at ${DEFAULT_TELEGRAM_WEBHOOK_FIXTURE}.`,
+    );
+    console.warn(
+      '[checklists] Set TELEGRAM_WEBHOOK_INFO_PATH or TELEGRAM_BOT_TOKEN to run the webhook check.',
+    );
+    return;
+  }
+
+  process.env.TELEGRAM_WEBHOOK_INFO_PATH = DEFAULT_TELEGRAM_WEBHOOK_FIXTURE;
+  const relativeFixturePath = path.relative(
+    PROJECT_ROOT,
+    DEFAULT_TELEGRAM_WEBHOOK_FIXTURE,
+  );
+  console.info(
+    `[checklists] TELEGRAM_BOT_TOKEN missing; using ${relativeFixturePath} for webhook checks.`,
+  );
+}
+
 function resolveTask(
   ref,
   checklistName,
@@ -571,6 +607,8 @@ async function main() {
   const filteredTasks = plannedTasks.filter((task) =>
     !options.skip.has(task.id)
   );
+
+  applyTelegramFixtureIfNeeded(filteredTasks);
 
   if (filteredTasks.length === 0) {
     console.log('No tasks to run after applying filters.');
