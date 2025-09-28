@@ -7,9 +7,9 @@ micro-agent. The cores are grouped into streaming multiprocessors (SMs) that
 schedule and execute large agent batches concurrently. This optimized
 architecture layers in a multi-model intelligence fabric—seamlessly
 orchestrating reasoning adapters such as ChatCPT 2, Grok, Dolphin, Ollama, Kimi
-K2, DeepSeek-V3, Qwen3, MiniMax M1, Zhipu AI, and Hunyuan—to deliver resilient
-trading intelligence with lower latency, higher utilisation, and cleaner
-extensibility.
+K2, DeepSeek-V3, DeepSeek R1, Qwen3, MiniMax M1, Zhipu AI, and Hunyuan—to
+deliver resilient trading intelligence with lower latency, higher utilisation,
+and cleaner extensibility.
 
 ## Design Goals
 
@@ -40,9 +40,9 @@ Each micro-core hosts a minimal agent runtime tuned for peak throughput:
   composite scores into discrete actions via `score_to_action`
   helpers.【F:dynamic_ai/core.py†L46-L103】
 - **Reasoning enhancement** optionally invokes a `ReasoningAdapter` (for example
-  ChatCPT 2, Grok, Dolphin, Ollama, Kimi K2, DeepSeek-V3, Qwen3, MiniMax M1,
-  Zhipu AI, or Hunyuan) via the federated adapter pool to refine narratives
-  without blocking the
+  ChatCPT 2, Grok, Dolphin, Ollama, Kimi K2, DeepSeek-V3, DeepSeek R1, Qwen3,
+  MiniMax M1, Zhipu AI, or Hunyuan) via the federated adapter pool to refine
+  narratives without blocking the
   pipeline.【F:dynamic_ai/core.py†L20-L44】【F:dynamic_ai/core.py†L152-L206】
 - **Signal emission** packages the outcome into an `AISignal` with confidence,
   rationale, and provenance for downstream
@@ -108,6 +108,8 @@ so dispatchers can:
   report generation when signals span blended geographies.
 - Reserve DeepSeek-V3 for deep multi-hop analysis that benefits from its
   research-style chain-of-thought reasoning and extended context window.
+- Pair DeepSeek R1 with Grok or Kimi K2 when SMs need deterministic coding
+  logic, tight tool feedback, or lightweight local deployments.
 - Engage Zhipu AI and Hunyuan when native Chinese market nuance, compliance, or
   culturally adaptive tone is required across regional desks.
 - Fall back to lightweight Ollama personas when premium adapters hit policy
@@ -120,22 +122,107 @@ DeepSeek-V3↔Kimi K2 for exploratory macro narratives).
 
 ### Adapter Cohort Advantages and Trade-offs
 
-| Adapter     | Core Advantages                                             | Key Trade-offs                                            | Ideal Pairings                                 |
-| ----------- | ----------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------- |
-| ChatCPT 2   | Long-form reconciliation, robust guardrail awareness        | Highest token cost and moderate latency                   | DeepSeek-V3 for hypothesis audit trails        |
-| Grok        | Fast situational updates, sarcasm-resistant interpretations | Requires curated prompts to avoid overconfident tone      | MiniMax M1 for rapid tactical hedging          |
-| Dolphin     | Low-latency numerics, deterministic calculations            | Narrow persona catalogue; struggles with narrative nuance | Ollama for cost-effective rationale expansion  |
-| Ollama      | Self-hosted footprint, cost-containment                     | Smaller context window and limited multilingual range     | Qwen3 for multilingual polishing               |
-| Kimi K2     | Balanced multilingual reasoning, grounded citations         | Moderate latency variance under heavy burst loads         | DeepSeek-V3 for macro analysis depth           |
-| DeepSeek-V3 | Extended context, research-grade chain-of-thought           | Requires careful throttling to avoid GPU memory thrash    | ChatCPT 2 or Kimi K2 for narrative surfacing   |
-| Qwen3       | Strong multilingual summarisation, structured output        | Less effective with highly stochastic data                | Ollama or Kimi K2 for persona tailoring        |
-| MiniMax M1  | Ultra-low latency, high-throughput reactive execution       | Limited long-form reasoning capability                    | Grok for sentiment nuance                      |
-| Zhipu AI    | Native Chinese financial vernacular, compliance aware       | Context window smaller than ChatCPT 2 or DeepSeek-V3      | Hunyuan for regional sentiment calibration     |
-| Hunyuan     | Cultural adaptation, strong sentiment shading               | Requires additional calibration for Western market idioms | Zhipu AI for cross-border portfolio narratives |
+| Adapter     | Core Advantages                                             | Key Trade-offs                                             | Ideal Pairings                                  |
+| ----------- | ----------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------- |
+| ChatCPT 2   | Long-form reconciliation, robust guardrail awareness        | Highest token cost and moderate latency                    | DeepSeek-V3 for hypothesis audit trails         |
+| Grok        | Fast situational updates, sarcasm-resistant interpretations | Requires curated prompts to avoid overconfident tone       | MiniMax M1 for rapid tactical hedging           |
+| Dolphin     | Low-latency numerics, deterministic calculations            | Narrow persona catalogue; struggles with narrative nuance  | Ollama for cost-effective rationale expansion   |
+| Ollama      | Self-hosted footprint, cost-containment                     | Smaller context window and limited multilingual range      | Qwen3 for multilingual polishing                |
+| Kimi K2     | Balanced multilingual reasoning, grounded citations         | Moderate latency variance under heavy burst loads          | DeepSeek-V3 for macro analysis depth            |
+| DeepSeek-V3 | Extended context, research-grade chain-of-thought           | Requires careful throttling to avoid GPU memory thrash     | ChatCPT 2 or Kimi K2 for narrative surfacing    |
+| DeepSeek R1 | Efficient local coding workflows, low VRAM requirements     | Needs external context enrichment for narrative reporting  | Grok or Kimi K2 for balanced tool orchestration |
+| Qwen3       | Strong multilingual summarisation, structured output        | Less effective with highly stochastic data                 | Ollama or Kimi K2 for persona tailoring         |
+| MiniMax M1  | Ultra-low latency, high-throughput reactive execution       | Limited long-form reasoning capability                     | Grok for sentiment nuance                       |
+| Zhipu AI    | Native Chinese financial vernacular, compliance aware       | Context window smaller than ChatCPT 2 or DeepSeek variants | Hunyuan for regional sentiment calibration      |
+| Hunyuan     | Cultural adaptation, strong sentiment shading               | Requires additional calibration for Western market idioms  | Zhipu AI for cross-border portfolio narratives  |
 
 SM schedulers monitor these profiles and dynamically weight adapter assignments
 so complementary strengths overlap while conflicts (e.g., token cost spikes or
 overlapping latency troughs) are minimised.
+
+### Capability Benchmarks and Routing Heuristics
+
+To keep the mesh aligned with the latest competitive intelligence, the control
+plane synchronises benchmark scores and routing heuristics on a fixed cadence.
+Operators can inspect the most recent intelligence snapshot to understand why a
+particular adapter mix was scheduled.
+
+#### Intelligence Index (General Reasoning)
+
+| Model            | Intelligence Score | Highlights                                               |
+| ---------------- | ------------------ | -------------------------------------------------------- |
+| Grok-4           | 92.1               | Best in math (AIME 93.3%), science QA, and agentic tasks |
+| GPT-4o (ChatGPT) | 89.4               | Strong in alignment, tool use, and multimodal reasoning  |
+| Kimi K2          | 88.0               | Excellent in structured reasoning and tool calling       |
+| MiniMax M1       | 86.3               | Fast inference, large context, good reasoning balance    |
+| DeepSeek R1      | 85.6               | Distilled 8B model rivaling 235B performance             |
+| Qwen3 8B         | 84.2               | Multilingual, instruction-tuned, solid reasoning         |
+| Zhipu GLM-4.5    | 83.5               | Vision-language leader, strong bilingual QA              |
+| Hunyuan A13B     | 82.7               | Best in Chinese instruction tasks, agentic reasoning     |
+
+#### Coding Benchmarks
+
+| Model          | Coding Score | Notes                                              |
+| -------------- | ------------ | -------------------------------------------------- |
+| Grok-4         | 91.3         | Excels in step-by-step logic and recursion         |
+| Kimi K2        | 89.1         | Great at structured code generation and debugging  |
+| MiniMax M1     | 87.4         | Fast and accurate, good for API-based workflows    |
+| DeepSeek R1    | 86.2         | Efficient for local coding tasks, low VRAM use     |
+| Qwen3-Coder    | 85.9         | Strong in recursion, OOP, and multilingual code    |
+| Zhipu GLM-4.5  | 84.6         | Good at teaching and explaining code concepts      |
+| Hunyuan-TurboS | 83.8         | Balanced performance, excels in Chinese code tasks |
+
+#### Math and Complex Reasoning
+
+| Model         | Math Score | Reasoning Score |
+| ------------- | ---------- | --------------- |
+| Grok-4        | 93.3       | 91.2            |
+| DeepSeek R1   | 96.0       | 88.4            |
+| MiniMax M1    | 83.3       | 87.1            |
+| Kimi K2       | 89.2       | 88.7            |
+| GPT-4o        | 79.0       | 89.4            |
+| Qwen3         | 84.5       | 86.2            |
+| Zhipu GLM-4.5 | 82.1       | 85.3            |
+| Hunyuan A13B  | 81.7       | 86.9            |
+
+#### Speed and Latency
+
+| Model         | Output Speed (tokens/sec) | Time to First Token |
+| ------------- | ------------------------- | ------------------- |
+| MiniMax M1    | 312                       | 0.42s               |
+| DeepSeek R1   | 278                       | 0.48s               |
+| Kimi K2       | 54.4                      | 0.56s               |
+| GPT-4o        | 80–100                    | 0.6s                |
+| Grok-4        | 72                        | 0.7s                |
+| Zhipu GLM-4.5 | 65                        | 0.5s                |
+| Hunyuan A13B  | 60                        | 0.6s                |
+
+#### Context Window and Cost Profiles
+
+| Model         | Context Length | Input Cost (USD / 1M tokens) | Output Cost (USD / 1M tokens) |
+| ------------- | -------------- | ---------------------------- | ----------------------------- |
+| MiniMax M1    | 1M tokens      | 0.30                         | 1.65                          |
+| Kimi K2       | 262K tokens    | 0.38                         | 1.52                          |
+| DeepSeek R1   | 64K tokens     | 0.01                         | 0.02                          |
+| GPT-4o        | 128K tokens    | 5.00                         | 10.00                         |
+| Grok-4        | 128K tokens    | 4.00                         | 8.00                          |
+| Zhipu GLM-4.5 | 64K tokens     | —                            | —                             |
+| Hunyuan A13B  | 32K tokens     | —                            | —                             |
+
+The scheduler folds these numbers into per-queue budgets, preferring local or
+open adapters (DeepSeek R1, Ollama) for ultra-low-cost experimentation while
+reserving premium throughput for high-value trades.
+
+#### Recommended Models by Scenario
+
+- **Trading analysis and coding:** DeepSeek R1, Kimi K2, MiniMax M1.
+- **Multilingual content creation:** Qwen3, Zhipu GLM-4.5.
+- **Real-time commentary:** Grok-4.
+- **Tool use and agentic tasks:** GPT-4o, Kimi K2, Hunyuan.
+- **Local deployment:** Dolphin, DeepSeek R1, and Ollama-hosted personas.
+
+These heuristics surface directly in the SM planners so operators can audit why
+an adapter received preferential routing during a given trading session.
 
 ## Memory and Communication Model
 
