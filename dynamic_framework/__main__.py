@@ -10,10 +10,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, TextIO
 
+from dynamic_agi.fine_tune import DynamicAGIFineTuner
+from dynamic_agi.self_improvement import ImprovementSignal, LearningSnapshot
+
 from .engine import (
     DynamicFrameworkEngine,
     FrameworkNode,
     FrameworkPulse,
+    FrameworkReport,
     FrameworkSnapshot,
 )
 
@@ -224,12 +228,19 @@ def _serialise_snapshot(snapshot: FrameworkSnapshot) -> dict[str, Any]:
     }
 
 
-def serialise_report(engine: DynamicFrameworkEngine) -> dict[str, Any]:
-    report = engine.report()
+def serialise_report(
+    engine: DynamicFrameworkEngine,
+    *,
+    report: FrameworkReport | None = None,
+) -> dict[str, Any]:
+    report = report or engine.report()
     snapshots = report.snapshots
     if not snapshots:
         snapshots = tuple(engine.snapshot(key) for key in sorted(engine.nodes))
-    nodes = [_serialise_snapshot(snapshot) for snapshot in sorted(snapshots, key=lambda snap: snap.key)]
+    nodes = [
+        _serialise_snapshot(snapshot)
+        for snapshot in sorted(snapshots, key=lambda snap: snap.key)
+    ]
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     return {
         "generated_at": now,
@@ -242,6 +253,201 @@ def serialise_report(engine: DynamicFrameworkEngine) -> dict[str, Any]:
         "focus_areas": list(report.focus_areas),
         "alerts": list(report.alerts),
         "nodes": nodes,
+    }
+
+
+def _build_signal(
+    snapshot: FrameworkSnapshot,
+    metric: str,
+    *,
+    value: float,
+    direction: str,
+    weight: float,
+    notes: str,
+) -> ImprovementSignal:
+    return ImprovementSignal(
+        metric=f"{snapshot.key}.{metric}",
+        value=value,
+        direction=direction,
+        weight=weight,
+        notes=notes,
+    )
+
+
+def _maturity_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+    value = snapshot.maturity
+    if value >= node.target_maturity:
+        direction = "positive"
+        notes = (
+            f"Maturity {value:.2f} meets or exceeds target {node.target_maturity:.2f}."
+        )
+    elif value >= node.minimum_maturity:
+        direction = "neutral"
+        notes = (
+            f"Maturity {value:.2f} above guardrail {node.minimum_maturity:.2f} but below "
+            f"target {node.target_maturity:.2f}."
+        )
+    else:
+        direction = "negative"
+        notes = (
+            f"Maturity {value:.2f} below guardrail {node.minimum_maturity:.2f}."
+        )
+    return _build_signal(
+        snapshot,
+        "maturity",
+        value=value,
+        direction=direction,
+        weight=node.weight,
+        notes=notes,
+    )
+
+
+def _confidence_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+    value = snapshot.confidence
+    if value >= 0.7:
+        direction = "positive"
+        notes = f"Confidence {value:.2f} signals strong telemetry reliability."
+    elif value >= 0.5:
+        direction = "neutral"
+        notes = f"Confidence {value:.2f} acceptable but could strengthen."
+    else:
+        direction = "negative"
+        notes = f"Confidence {value:.2f} below healthy guardrail (0.50)."
+    return _build_signal(
+        snapshot,
+        "confidence",
+        value=value,
+        direction=direction,
+        weight=node.weight,
+        notes=notes,
+    )
+
+
+def _enablement_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+    value = snapshot.enablement
+    if value >= 0.6:
+        direction = "positive"
+        notes = f"Enablement {value:.2f} supports integrated workflows."
+    elif value >= 0.55:
+        direction = "neutral"
+        notes = f"Enablement {value:.2f} within guardrails but shy of momentum thresholds."
+    else:
+        direction = "negative"
+        notes = f"Enablement {value:.2f} below healthy threshold (0.55)."
+    return _build_signal(
+        snapshot,
+        "enablement",
+        value=value,
+        direction=direction,
+        weight=node.weight,
+        notes=notes,
+    )
+
+
+def _resilience_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+    value = snapshot.resilience
+    if value >= 0.6:
+        direction = "positive"
+        notes = f"Resilience {value:.2f} buffers platform stability."
+    elif value >= 0.5:
+        direction = "neutral"
+        notes = f"Resilience {value:.2f} meets baseline expectations."
+    else:
+        direction = "negative"
+        notes = f"Resilience {value:.2f} below stability guardrail (0.50)."
+    return _build_signal(
+        snapshot,
+        "resilience",
+        value=value,
+        direction=direction,
+        weight=node.weight,
+        notes=notes,
+    )
+
+
+def _momentum_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+    value = snapshot.momentum
+    if value >= 0.1:
+        direction = "positive"
+        notes = f"Momentum {value:.2f} accelerating integration."
+    elif value <= -0.1:
+        direction = "negative"
+        notes = f"Momentum {value:.2f} signals regression risk."
+    else:
+        direction = "neutral"
+        notes = f"Momentum {value:.2f} within neutral band (-0.10 to 0.10)."
+    return _build_signal(
+        snapshot,
+        "momentum",
+        value=value,
+        direction=direction,
+        weight=node.weight,
+        notes=notes,
+    )
+
+
+def _learning_snapshot_from_framework(
+    snapshot: FrameworkSnapshot,
+    node: FrameworkNode,
+) -> LearningSnapshot:
+    output = {
+        "node": snapshot.key,
+        "title": snapshot.title,
+        "status": snapshot.status,
+        "summary": snapshot.summary,
+        "tags": list(snapshot.tags),
+    }
+    performance = {
+        "maturity": snapshot.maturity,
+        "confidence": snapshot.confidence,
+        "enablement": snapshot.enablement,
+        "resilience": snapshot.resilience,
+        "momentum": snapshot.momentum,
+    }
+    feedback = tuple(dict.fromkeys((*snapshot.recommendations, *snapshot.alerts)))
+    signals = (
+        _maturity_signal(snapshot, node),
+        _confidence_signal(snapshot, node),
+        _enablement_signal(snapshot, node),
+        _resilience_signal(snapshot, node),
+        _momentum_signal(snapshot, node),
+    )
+    return LearningSnapshot(
+        output=output,
+        performance=performance,
+        feedback=feedback,
+        signals=signals,
+    )
+
+
+def build_fine_tune_dataset(
+    engine: DynamicFrameworkEngine,
+    *,
+    report: FrameworkReport | None = None,
+    default_tags: Sequence[str] | None = None,
+) -> dict[str, Any]:
+    report = report or engine.report()
+    serialised = serialise_report(engine, report=report)
+    snapshots = report.snapshots
+    if not snapshots:
+        snapshots = tuple(engine.snapshot(key) for key in sorted(engine.nodes))
+    tuner = DynamicAGIFineTuner(default_tags=default_tags)
+    learning_snapshots: list[LearningSnapshot] = []
+    for snapshot in snapshots:
+        node = engine.nodes.get(snapshot.key)
+        if node is None:
+            continue
+        learning_snapshots.append(_learning_snapshot_from_framework(snapshot, node))
+    if learning_snapshots:
+        tuner.ingest_snapshots(learning_snapshots)
+    dataset_summary = tuner.dataset_summary()
+    return {
+        "generated_at": serialised["generated_at"],
+        "report": serialised,
+        "dataset": {
+            "summary": dataset_summary,
+            "examples": tuner.dataset.export(),
+        },
     }
 
 
@@ -260,11 +466,12 @@ def render_report(
     *,
     format: str = "text",
     indent: int | None = 2,
+    report: FrameworkReport | None = None,
 ) -> str:
     if format not in {"text", "json"}:
         raise ValueError(f"unsupported render format: {format}")
 
-    payload = serialise_report(engine)
+    payload = serialise_report(engine, report=report)
 
     if format == "json":
         return json.dumps(payload, indent=_normalise_indent(indent))
@@ -316,9 +523,12 @@ def run(argv: Sequence[str] | None = None) -> int:
     )
     parser.add_argument(
         "--format",
-        choices=["text", "json"],
+        choices=["text", "json", "fine-tune"],
         default="text",
-        help="Control how the report is rendered (default: text).",
+        help=(
+            "Control how the report is rendered (default: text). Use 'fine-tune' to emit "
+            "a Dynamic AGI training dataset."
+        ),
     )
     parser.add_argument(
         "--indent",
@@ -326,13 +536,73 @@ def run(argv: Sequence[str] | None = None) -> int:
         default=2,
         help="Indentation to use for JSON output (ignored for text format).",
     )
+    parser.add_argument(
+        "--fine-tune-dataset",
+        type=str,
+        help=(
+            "Optional path to write the Dynamic AGI fine-tuning dataset as JSON. Provide '-' "
+            "to stream it to stdout."
+        ),
+    )
+    parser.add_argument(
+        "--fine-tune-tag",
+        dest="fine_tune_tags",
+        action="append",
+        default=None,
+        help="Default tag to apply to generated fine-tuning examples (repeatable).",
+    )
     args = parser.parse_args(argv)
     try:
         scenario = load_scenario(args.scenario, stdin=sys.stdin)
         engine = build_engine(scenario)
     except Exception as exc:  # pragma: no cover - exercised via CLI
         parser.exit(2, f"error: {exc}\n")
-    print(render_report(engine, format=args.format, indent=args.indent))
+    report: FrameworkReport | None = None
+    dataset_payload: dict[str, Any] | None = None
+    indent_value = _normalise_indent(args.indent)
+
+    if args.format == "fine-tune":
+        report = engine.report()
+        dataset_payload = build_fine_tune_dataset(
+            engine,
+            report=report,
+            default_tags=args.fine_tune_tags,
+        )
+        output = json.dumps(dataset_payload, indent=indent_value)
+    else:
+        if args.fine_tune_dataset:
+            report = engine.report()
+        output = render_report(
+            engine,
+            format=args.format,
+            indent=args.indent,
+            report=report,
+        )
+        if args.fine_tune_dataset:
+            dataset_payload = build_fine_tune_dataset(
+                engine,
+                report=report,
+                default_tags=args.fine_tune_tags,
+            )
+
+    print(output)
+
+    if args.fine_tune_dataset:
+        dataset_payload = dataset_payload or build_fine_tune_dataset(
+            engine,
+            report=report,
+            default_tags=args.fine_tune_tags,
+        )
+        dataset_json = json.dumps(dataset_payload, indent=indent_value)
+        destination = args.fine_tune_dataset
+        if destination == "-":
+            if args.format != "fine-tune":
+                print("")
+                print(dataset_json)
+        else:
+            Path(destination).expanduser().write_text(
+                f"{dataset_json}\n", encoding="utf-8"
+            )
     return 0
 
 
@@ -343,6 +613,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 __all__ = [
     "DEFAULT_SCENARIO",
     "build_engine",
+    "build_fine_tune_dataset",
     "load_scenario",
     "render_report",
     "serialise_report",
