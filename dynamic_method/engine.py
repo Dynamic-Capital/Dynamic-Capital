@@ -15,6 +15,23 @@ __all__ = [
 ]
 
 
+_METRIC_FIELDS: tuple[str, ...] = (
+    "urgency",
+    "ambiguity",
+    "risk",
+    "effort",
+    "leverage",
+    "discipline",
+)
+
+
+@dataclass(slots=True)
+class _SignalAggregation:
+    metrics: Mapping[str, float]
+    dominant_drivers: tuple[str, ...]
+    dominant_tags: tuple[str, ...]
+
+
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -176,16 +193,10 @@ class DynamicMethodEngine:
         if not isinstance(context, MethodContext):  # pragma: no cover - defensive guard
             raise TypeError("context must be a MethodContext instance")
 
-        metrics = {
-            "urgency": self._weighted_metric(lambda s: s.urgency),
-            "ambiguity": self._weighted_metric(lambda s: s.ambiguity),
-            "risk": self._weighted_metric(lambda s: s.risk),
-            "effort": self._weighted_metric(lambda s: s.effort),
-            "leverage": self._weighted_metric(lambda s: s.leverage),
-            "discipline": self._weighted_metric(lambda s: s.discipline),
-        }
-        dominant_drivers = self._dominant_drivers()
-        dominant_tags = self._dominant_tags()
+        aggregation = self._aggregate_signals()
+        metrics = aggregation.metrics
+        dominant_drivers = aggregation.dominant_drivers
+        dominant_tags = aggregation.dominant_tags
 
         method_archetype = self._method_archetype(context, metrics)
         cadence = self._cadence(context, metrics)
@@ -212,35 +223,56 @@ class DynamicMethodEngine:
             narrative=narrative,
         )
 
-    def _weighted_metric(self, selector) -> float:
-        total_weight = sum(signal.weight for signal in self._signals)
-        if total_weight <= 0:
-            return 0.0
-        aggregate = sum(selector(signal) * signal.weight for signal in self._signals)
-        return _clamp(aggregate / total_weight)
+    def _aggregate_signals(self) -> _SignalAggregation:
+        total_weight = 0.0
+        metric_totals = {field: 0.0 for field in _METRIC_FIELDS}
+        driver_counter: Counter[str] = Counter()
+        tag_counter: Counter[str] = Counter()
 
-    def _dominant_drivers(self) -> tuple[str, ...]:
-        counter: Counter[str] = Counter()
         for signal in self._signals:
-            if signal.weight <= 0:
+            weight = signal.weight
+            if weight <= 0:
                 continue
-            counter[signal.driver] += signal.weight
-        if not counter:
-            return ()
-        ranked = sorted(counter.items(), key=lambda item: (-item[1], item[0]))
-        return tuple(driver for driver, _ in ranked[:3])
 
-    def _dominant_tags(self) -> tuple[str, ...]:
-        counter: Counter[str] = Counter()
-        for signal in self._signals:
-            if signal.weight <= 0:
-                continue
+            total_weight += weight
+            for field in _METRIC_FIELDS:
+                metric_totals[field] += getattr(signal, field) * weight
+
+            driver_counter[signal.driver] += weight
             for tag in signal.tags:
-                counter[tag.lower()] += signal.weight
-        if not counter:
-            return ()
-        ranked = sorted(counter.items(), key=lambda item: (-item[1], item[0]))
-        return tuple(tag for tag, _ in ranked[:5])
+                tag_counter[tag.lower()] += weight
+
+        if total_weight > 0.0:
+            metrics = {
+                field: _clamp(total / total_weight)
+                for field, total in metric_totals.items()
+            }
+        else:
+            metrics = {field: 0.0 for field in metric_totals}
+
+        dominant_drivers: tuple[str, ...]
+        if driver_counter:
+            ranked_drivers = sorted(
+                driver_counter.items(), key=lambda item: (-item[1], item[0])
+            )
+            dominant_drivers = tuple(driver for driver, _ in ranked_drivers[:3])
+        else:
+            dominant_drivers = ()
+
+        dominant_tags: tuple[str, ...]
+        if tag_counter:
+            ranked_tags = sorted(
+                tag_counter.items(), key=lambda item: (-item[1], item[0])
+            )
+            dominant_tags = tuple(tag for tag, _ in ranked_tags[:5])
+        else:
+            dominant_tags = ()
+
+        return _SignalAggregation(
+            metrics=metrics,
+            dominant_drivers=dominant_drivers,
+            dominant_tags=dominant_tags,
+        )
 
     def _method_archetype(self, context: MethodContext, metrics: Mapping[str, float]) -> str:
         ambiguity = metrics["ambiguity"]
