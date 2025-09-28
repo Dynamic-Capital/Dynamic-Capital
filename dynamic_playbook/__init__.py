@@ -13,6 +13,10 @@ from .engine import (
     PlaybookContext,
     PlaybookEntry,
 )
+from .nfy_market_dimensions import (
+    DEFAULT_DYNAMIC_NFY_ENTRIES,
+    build_dynamic_nfy_market_dimensions_playbook,
+)
 from .sync import PlaybookSynchronizer
 
 __all__ = [
@@ -21,9 +25,11 @@ __all__ = [
     "DynamicPlaybookEngine",
     "DynamicPlaybookHelper",
     "DynamicPlaybookKeeper",
+    "DEFAULT_DYNAMIC_NFY_ENTRIES",
     "PlaybookBlueprint",
     "PlaybookContext",
     "PlaybookDisciplineInsight",
     "PlaybookEntry",
     "PlaybookSynchronizer",
+    "build_dynamic_nfy_market_dimensions_playbook",
 ]
