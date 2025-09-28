@@ -202,6 +202,7 @@ const schema: SchemaConfig = {
 };
 
 const sameAs: SameAsConfig = {
+  x: "https://x.com/DynamicA61",
   telegram: "https://t.me/DynamicCapital_Support",
   instagram: "https://www.instagram.com/dynamic.capital",
   facebook: "https://www.facebook.com/dynamic.capital.fb",

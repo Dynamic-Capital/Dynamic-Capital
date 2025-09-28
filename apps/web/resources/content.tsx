@@ -62,6 +62,11 @@ const social: Social = [
     link: "https://t.me/DynamicCapital_Support",
   },
   {
+    name: "X",
+    icon: "x",
+    link: "https://x.com/DynamicA61",
+  },
+  {
     name: "Instagram",
     icon: "instagram",
     link: "https://www.instagram.com/dynamic.capital",
