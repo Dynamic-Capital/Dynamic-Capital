@@ -25,3 +25,8 @@ The package entrypoint re-exports the orchestrator model, self-improvement loop,
 - **Example and batch wrappers** – `FineTuneExample` and `FineTuneBatch` wrap prompt/completion pairs with metadata, tags, and snapshot timing so that training corpora remain structured and reproducible.【F:dynamic_agi/fine_tune.py†L14-L162】
 - **Rolling dataset management** – `DynamicFineTuneDataset` enforces capacity bounds, tracks character budgets, and maintains tag histograms while supporting snapshot/export operations for auditability.【F:dynamic_agi/fine_tune.py†L164-L231】
 - **Telemetry-to-dataset bridge** – `DynamicAGIFineTuner` converts `LearningSnapshot` telemetry into prompt/completion examples, optionally batches them, and returns dataset summaries with default tag context for downstream fine-tuning jobs.【F:dynamic_agi/fine_tune.py†L233-L285】
+
+## Local machine integration (`local_machine.py`)
+
+- **Task configuration** – `AGILocalMachineTaskConfig` supplies default command templates plus category- or action-specific overrides, keeping working directory, environment, and resource estimates consistent when converting plans into automation tasks.【F:dynamic_agi/local_machine.py†L52-L117】
+- **Plan materialisers** – `build_local_machine_plan_from_improvement` and `build_local_machine_plan_from_output` translate improvement plans or AGI outputs into `LocalMachinePlan` instances so Dynamic AGI recommendations can execute on workstation automation pipelines.【F:dynamic_agi/local_machine.py†L119-L188】

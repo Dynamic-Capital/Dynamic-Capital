@@ -7,6 +7,12 @@ from .fine_tune import (
     FineTuneExample,
     __all__ as _fine_tune_all,
 )
+from .local_machine import (
+    AGILocalMachineTaskConfig,
+    build_local_machine_plan_from_improvement,
+    build_local_machine_plan_from_output,
+    __all__ as _local_machine_all,
+)
 from .model import (
     AGIDiagnostics,
     AGIOutput,
@@ -26,4 +32,9 @@ from .self_improvement import (
     __all__ as _self_improvement_all,
 )
 
-__all__ = [*_model_all, *_self_improvement_all, *_fine_tune_all]
+__all__ = [
+    *_model_all,
+    *_self_improvement_all,
+    *_fine_tune_all,
+    *_local_machine_all,
+]
