@@ -9,13 +9,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   DynamicBadge,
   type DynamicBadgeEmphasis,
   type DynamicBadgeSize,
   type DynamicBadgeTone,
 } from "@/components/ui/dynamic-badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Activity,
@@ -316,6 +316,46 @@ export function SystemHealthCheckItem({
   );
 }
 
+const RECOMMENDATION_ICONS = [TrendingUp, Shield, Zap] as const;
+
+interface ParsedRecommendation {
+  title: string;
+  description?: string;
+}
+
+function parseRecommendation(
+  recommendation: string,
+  index: number,
+): ParsedRecommendation {
+  const fallbackTitle = `Recommendation ${index + 1}`;
+  const trimmed = recommendation.trim();
+  if (!trimmed) {
+    return { title: fallbackTitle };
+  }
+
+  const delimiterMatch = trimmed.match(/^(.*?)[\s]*[:\u2013\u2014-][\s]*(.+)$/);
+  if (delimiterMatch) {
+    const [, rawTitle, rawDescription] = delimiterMatch;
+    return {
+      title: rawTitle.trim() || fallbackTitle,
+      description: rawDescription.trim(),
+    };
+  }
+
+  const sentenceMatch = trimmed.match(/^([^.!?]+)[.!?]\s+(.*)$/);
+  if (sentenceMatch) {
+    const [, rawTitle, rawDescription] = sentenceMatch;
+    return {
+      title: rawTitle.trim() || fallbackTitle,
+      description: rawDescription.trim(),
+    };
+  }
+
+  return {
+    title: trimmed,
+  };
+}
+
 export function SystemHealthRecommendations({
   recommendations,
 }: {
@@ -326,20 +366,37 @@ export function SystemHealthRecommendations({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <p className="text-sm font-medium">Recommendations</p>
-      <div className="space-y-2">
-        {recommendations.map((rec, index) => (
-          <Alert
-            key={`${index}-${rec}`}
-            className="border-warning/20 bg-warning/10"
-          >
-            <TrendingUp className="h-4 w-4 text-warning" />
-            <AlertDescription className="text-sm text-warning">
-              {rec}
-            </AlertDescription>
-          </Alert>
-        ))}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {recommendations.map((rec, index) => {
+          const Icon =
+            RECOMMENDATION_ICONS[index % RECOMMENDATION_ICONS.length];
+          const { title, description } = parseRecommendation(rec, index);
+
+          return (
+            <div
+              key={`${index}-${rec}`}
+              className="flex h-full flex-col gap-2 rounded-lg border border-border/40 bg-card/80 p-3"
+            >
+              <div className="flex items-start gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-md border border-border/40 bg-muted/40">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold leading-tight">{title}</p>
+                  {description
+                    ? (
+                      <p className="text-xs text-muted-foreground">
+                        {description}
+                      </p>
+                    )
+                    : null}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
