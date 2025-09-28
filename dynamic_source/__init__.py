@@ -1,5 +1,10 @@
 """Dynamic source intelligence package."""
 
+from .catalog import (
+    REFERENCE_SOURCE_TAXONOMY,
+    build_reference_descriptors,
+    register_reference_catalog,
+)
 from .engine import (
     DynamicSourceEngine,
     SourceDescriptor,
@@ -12,4 +17,7 @@ __all__ = [
     "SourceSignal",
     "SourceSnapshot",
     "DynamicSourceEngine",
+    "REFERENCE_SOURCE_TAXONOMY",
+    "build_reference_descriptors",
+    "register_reference_catalog",
 ]
