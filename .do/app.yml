@@ -82,7 +82,7 @@ spec:
       routes:
         - path: /
       health_check:
-        http_path: /
+        http_path: /healthz
       envs:
         - key: SITE_URL
           value: https://dynamic-capital-qazf2.ondigitalocean.app

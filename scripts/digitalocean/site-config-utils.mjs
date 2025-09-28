@@ -6,6 +6,8 @@ export const PRODUCTION_ALLOWED_ORIGINS = [
   "https://dynamic-capital.lovable.app",
 ];
 
+const DEFAULT_HEALTH_CHECK_PATH = "/healthz";
+
 function ensureArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -85,6 +87,27 @@ function ensureEnvScope(envs, key, scope, changes, context) {
   if (entry.scope !== scope) {
     changes.add(formatScopeChangeLabel(key, entry.scope, scope, context));
     entry.scope = scope;
+  }
+}
+
+function ensureHealthCheckHttpPath(component, httpPath, changes, context) {
+  if (!component || typeof component !== "object") {
+    return;
+  }
+
+  const label = context && context.length > 0
+    ? `${context}: health_check.http_path → ${httpPath}`
+    : `health_check.http_path → ${httpPath}`;
+
+  if (!component.health_check || typeof component.health_check !== "object") {
+    component.health_check = { http_path: httpPath };
+    changes.add(label);
+    return;
+  }
+
+  if (component.health_check.http_path !== httpPath) {
+    component.health_check.http_path = httpPath;
+    changes.add(label);
   }
 }
 
@@ -256,16 +279,28 @@ export function normalizeAppSpec({
   const service = spec.services.find((svc) =>
     svc && typeof svc === "object" && svc.name === serviceName
   );
+
+  let targetedServices = [];
   if (service) {
-    updateComponentEnvs([service], { label: "service" });
+    targetedServices = updateComponentEnvs([service], { label: "service" });
   } else if (spec.services.length > 0) {
     console.warn(
       `Warning: Service '${serviceName}' not found. Updating all services instead.`,
     );
-    updateComponentEnvs(spec.services, { label: "service" });
+    targetedServices = updateComponentEnvs(spec.services, { label: "service" });
   } else {
     console.warn(
       "Warning: No services defined in the app spec. Only global env vars were updated.",
+    );
+  }
+
+  for (const component of targetedServices) {
+    const context = component?.name ? `service '${component.name}'` : "service";
+    ensureHealthCheckHttpPath(
+      component,
+      DEFAULT_HEALTH_CHECK_PATH,
+      changes,
+      context,
     );
   }
 

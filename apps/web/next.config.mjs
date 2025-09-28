@@ -226,13 +226,22 @@ if (nextConfig.output !== 'export') {
     if (process.env.DISABLE_HTTP_REDIRECTS === 'true') {
       return [];
     }
+    const httpProtoHeader = {
+      type: 'header',
+      key: 'x-forwarded-proto',
+      value: 'http',
+    };
     return [
       {
-        source: '/:path*',
-        has: [
-          { type: 'header', key: 'x-forwarded-proto', value: 'http' },
-        ],
-        destination: `https://${CANONICAL_HOST}/:path*`,
+        source: '/',
+        has: [httpProtoHeader],
+        destination: `https://${CANONICAL_HOST}`,
+        permanent: true,
+      },
+      {
+        source: '/:path((?!healthz$).+)',
+        has: [httpProtoHeader],
+        destination: `https://${CANONICAL_HOST}/:path`,
         permanent: true,
       },
       ...(process.env.LEGACY_HOST
