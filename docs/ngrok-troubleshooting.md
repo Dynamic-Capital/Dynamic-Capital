@@ -10,7 +10,19 @@ ngrok http --url=exosporal-ezequiel-semibiographically.ngrok-free.dev 80
 
 ## Step-by-Step Resolution
 
-1. **Install ngrok.** Download the binary for your platform from <https://ngrok.com/download> and place it on your `PATH`. On macOS you can run `brew install ngrok`, while Windows users can unzip the binary into a folder listed in the `Path` environment variable.
+1. **Install ngrok.**
+   - **Linux (Debian/Ubuntu).**
+
+     ```bash
+     curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+     echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+     sudo apt update && sudo apt install -y ngrok
+     ngrok version
+     ```
+
+     These commands add the official apt repository, install the CLI, and confirm the binary is available.
+   - **macOS.** Run `brew install ngrok` (or download the macOS binary from <https://ngrok.com/download>), then ensure `/usr/local/bin` is on your `PATH`.
+   - **Windows.** Download and unzip the binary, then add the containing folder to the `Path` environment variable so `ngrok` is invocable from any terminal.
 2. **Authenticate.** Run `ngrok config add-authtoken <token>` with a token from the ngrok dashboard to link the binary to your account. Confirm configuration with `ngrok config check`.
 3. **Reserve or verify the custom domain.** From the ngrok dashboard go to **Domains** and ensure `exosporal-ezequiel-semibiographically.ngrok-free.dev` is reserved for your account. If not, reserve it before starting the tunnel.
 4. **Start the tunnel.** Execute the requested command once the CLI is installed and authenticated. If you encounter an error about an unknown flag, upgrade to the latest ngrok v3 release (`ngrok update`) because the `--url` flag is only available in v3.
