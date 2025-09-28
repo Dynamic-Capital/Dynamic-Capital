@@ -45,6 +45,27 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
+const percentageFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+  signDisplay: "exceptZero",
+});
+
+const formatPercentage = (value: number) =>
+  `${percentageFormatter.format(value)}%`;
+
+const getChangeTone = (value: number) => {
+  if (value > 0) {
+    return "text-emerald-400";
+  }
+
+  if (value < 0) {
+    return "text-rose-400";
+  }
+
+  return "text-muted-foreground";
+};
+
 const positions = [
   {
     id: "gm-core",
@@ -245,16 +266,21 @@ export function DynamicTable() {
   }, [filteredPositions, sort.direction, sort.key]);
 
   const metrics = useMemo(() => {
+    if (sortedPositions.length === 0) {
+      return { totalExposure: 0, averageChange: 0, flagged: 0 };
+    }
+
     const totalExposure = sortedPositions.reduce(
       (sum, position) => sum + position.exposure,
       0,
     );
-    const averageChange = sortedPositions.reduce((sum, position) =>
-      sum + position.change, 0) /
-      (sortedPositions.length || 1);
-    const flagged = sortedPositions.filter((position) =>
-      position.flagged
-    ).length;
+    const averageChange =
+      sortedPositions.reduce((sum, position) => sum + position.change, 0) /
+      sortedPositions.length;
+    const flagged = sortedPositions.reduce(
+      (count, position) => count + (position.flagged ? 1 : 0),
+      0,
+    );
 
     return { totalExposure, averageChange, flagged };
   }, [sortedPositions]);
@@ -340,13 +366,10 @@ export function DynamicTable() {
             <div
               className={cn(
                 "mt-2 text-2xl font-semibold",
-                metrics.averageChange >= 0
-                  ? "text-emerald-400"
-                  : "text-rose-400",
+                getChangeTone(metrics.averageChange),
               )}
             >
-              {metrics.averageChange >= 0 ? "+" : ""}
-              {metrics.averageChange.toFixed(1)}%
+              {formatPercentage(metrics.averageChange)}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               Average move across filtered assets
@@ -575,13 +598,10 @@ export function DynamicTable() {
                         <TableCell
                           className={cn(
                             "align-top font-medium",
-                            position.change >= 0
-                              ? "text-emerald-400"
-                              : "text-rose-400",
+                            getChangeTone(position.change),
                           )}
                         >
-                          {position.change >= 0 ? "+" : ""}
-                          {position.change.toFixed(1)}%
+                          {formatPercentage(position.change)}
                         </TableCell>
                         <TableCell className="align-top">
                           <Badge
