@@ -23,6 +23,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicArchitectBot",
     ),
     "dynamic_agents": ("DynamicChatAgent",),
+    "dynamic_assign": ("DynamicAssignEngine",),
     "dynamic_ai": (
         "DynamicFusionAlgo",
         "DynamicAnalysis",
@@ -72,6 +73,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_critical_thinking": ("DynamicCriticalThinking",),
     "dynamic_effect": ("DynamicEffectEngine",),
     "dynamic_emoticon": ("DynamicEmoticon",),
+    "dynamic_heal": ("DynamicHealEngine",),
     "dynamic_encryption": ("DynamicEncryptionEngine",),
     "dynamic_engineer": (
         "DynamicEngineer",
@@ -81,6 +83,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     ),
     "dynamic_implicit_memory": ("DynamicImplicitMemory",),
     "dynamic_index": ("DynamicIndex",),
+    "dynamic_loop": ("DynamicLoopEngine",),
     "dynamic_letter_index": ("DynamicLetterIndex",),
     "dynamic_indicators": ("DynamicIndicators",),
     "dynamic_keepers": (
@@ -102,6 +105,7 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_pillars": ("DynamicPillarFramework",),
     "dynamic_quote": ("DynamicQuote",),
     "dynamic_reference": ("DynamicReference",),
+    "dynamic_script": ("DynamicScriptEngine",),
     "dynamic_self_awareness": ("DynamicSelfAwareness",),
     "dynamic_skeleton": ("DynamicGovernanceAlgo", "DynamicComplianceAlgo"),
     "dynamic_space.engine": ("DynamicSpaceEngine",),
