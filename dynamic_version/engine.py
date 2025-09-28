@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
+from dynamic_metadata import ModelVersion, VersionNumber
+
 __all__ = [
     "ChangeEvent",
     "ReleasePlan",
@@ -84,6 +86,10 @@ class SemanticVersion:
             build=self.build,
         )
 
+    @classmethod
+    def from_version_number(cls, number: VersionNumber) -> "SemanticVersion":
+        return cls(major=number.major, minor=number.minor, patch=number.patch)
+
     def bump(self, kind: str) -> "SemanticVersion":
         normalised = kind.strip().lower()
         version = self.copy()
@@ -124,6 +130,31 @@ class SemanticVersion:
             payload["build"] = self.build
         payload["formatted"] = str(self)
         return payload
+
+    def to_version_number(self, *, width: int | None = None) -> VersionNumber:
+        if self.prerelease is not None or self.build is not None:
+            raise ValueError("cannot convert prerelease/build metadata to VersionNumber")
+        payload = {
+            "major": self.major,
+            "minor": self.minor,
+            "patch": self.patch,
+        }
+        if width is not None:
+            payload["width"] = width
+        return VersionNumber(**payload)
+
+    def to_model_version(
+        self,
+        name: str,
+        *,
+        source: str = "dynamic_version.engine",
+        width: int | None = None,
+        build_timestamp: datetime | None = None,
+    ) -> ModelVersion:
+        number = self.to_version_number(width=width)
+        if build_timestamp is None:
+            return ModelVersion(name=name, number=number, source=source)
+        return ModelVersion(name=name, number=number, build_timestamp=build_timestamp, source=source)
 
     def __str__(self) -> str:  # pragma: no cover - formatting
         version = f"{self.major}.{self.minor}.{self.patch}"
@@ -263,6 +294,21 @@ class ReleasePlan:
             payload["metadata"] = dict(self.metadata)
         return payload
 
+    def to_model_version(
+        self,
+        name: str,
+        *,
+        source: str = "dynamic_version.engine",
+        width: int | None = None,
+        build_timestamp: datetime | None = None,
+    ) -> ModelVersion:
+        return self.target.to_model_version(
+            name,
+            source=source,
+            width=width,
+            build_timestamp=build_timestamp,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Engine
@@ -282,9 +328,15 @@ class DynamicVersionEngine:
         self._changes: Deque[ChangeEvent] = deque(maxlen=self.policy.stability_window)
 
     @staticmethod
-    def _coerce_version(value: SemanticVersion | str | Sequence[int]) -> SemanticVersion:
+    def _coerce_version(
+        value: SemanticVersion | ModelVersion | VersionNumber | str | Sequence[int]
+    ) -> SemanticVersion:
         if isinstance(value, SemanticVersion):
             return value
+        if isinstance(value, ModelVersion):
+            return SemanticVersion.from_version_number(value.number)
+        if isinstance(value, VersionNumber):
+            return SemanticVersion.from_version_number(value)
         if isinstance(value, str):
             base, _, metadata = value.partition("+")
             prerelease: str | None = None
@@ -376,3 +428,26 @@ class DynamicVersionEngine:
         reason = emphasis.get(release_type, "changes recorded")
         score = scores.get(release_type, 0.0)
         return f"Recommend {release_type} release to {target} ({reason}, score={score:.2f})"
+
+    def plan_model_version(
+        self,
+        name: str,
+        *,
+        source: str = "dynamic_version.engine",
+        width: int | None = None,
+        build_timestamp: datetime | None = None,
+        metadata: Mapping[str, object] | None = None,
+    ) -> tuple[ReleasePlan, ModelVersion]:
+        plan = self.plan(metadata=metadata)
+        try:
+            model_version = plan.to_model_version(
+                name,
+                source=source,
+                width=width,
+                build_timestamp=build_timestamp,
+            )
+        except ValueError as error:  # pragma: no cover - defensive guardrail
+            raise ValueError(
+                "release plan contains prerelease/build metadata that cannot be mapped to ModelVersion"
+            ) from error
+        return plan, model_version

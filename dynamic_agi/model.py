@@ -17,7 +17,13 @@ from dynamic_ai import (
 )
 from dynamic_ai.core import PreparedMarketContext
 from dynamic_agi.self_improvement import DynamicSelfImprovement
-from dynamic_metadata import ModelVersion, VersionNumber
+from dynamic_metadata import ModelVersion
+from dynamic_version import (
+    DynamicVersionEngine,
+    ReleasePlan,
+    SemanticVersion,
+    VersionPolicy,
+)
 
 
 def _utcnow() -> datetime:
@@ -35,10 +41,24 @@ _DEFAULT_IDENTITY_PILLARS = (
     "Adapting Global Intelligence",
 )
 
-MODEL_VERSION_INFO = ModelVersion(
-    name="Dynamic AGI",
-    number=VersionNumber(major=0, minor=1),
-).with_source("dynamic_agi.model")
+_AGI_BASELINE_VERSION = SemanticVersion(major=0, minor=1, patch=0)
+_AGI_VERSION_POLICY = VersionPolicy(
+    thresholds={"major": 0.85, "minor": 0.55, "patch": 0.25},
+    weights={"major": 1.2, "minor": 0.7, "patch": 0.4},
+    recency_decay=0.9,
+    stability_window=96,
+    prerelease_label="agi-rc",
+)
+_AGI_VERSION_ENGINE = DynamicVersionEngine(
+    baseline=_AGI_BASELINE_VERSION,
+    policy=_AGI_VERSION_POLICY,
+)
+MODEL_VERSION_PLAN: ReleasePlan = _AGI_VERSION_ENGINE.plan(
+    metadata={"component": "dynamic_agi", "policy": "agi"}
+)
+MODEL_VERSION_INFO = MODEL_VERSION_PLAN.to_model_version(
+    "Dynamic AGI", source="dynamic_agi.model"
+)
 MODEL_VERSION = MODEL_VERSION_INFO.tag
 
 
@@ -183,6 +203,7 @@ class DynamicAGIModel:
         self.self_improvement = self_improvement
         self.version = MODEL_VERSION
         self.version_info = _default_version_info()
+        self.version_plan: ReleasePlan = MODEL_VERSION_PLAN
         self._identity = DynamicAGIIdentity()
 
     @property
