@@ -30,47 +30,136 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+
+      - id: scripts
+        name: Inspect package scripts
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+
+          const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+          const scripts = pkg.scripts ?? {};
+          const checks = ['build', 'typecheck', 'lint', 'test'];
+          const lines = [];
+
+          for (const name of checks) {
+            const value = scripts[name];
+            const present = typeof value === 'string' && value.trim().length > 0;
+            lines.push(`${name}=${present}`);
+          }
+
+          const needsDeno = checks.some((name) => {
+            const value = scripts[name];
+            return typeof value === 'string' && value.trim().length > 0 && /\bdeno\b/.test(value);
+          });
+          lines.push(`needs-deno=${needsDeno}`);
+
+          writeFileSync(process.env.GITHUB_OUTPUT, `${lines.join('\n')}\n`, { flag: 'a' });
+          NODE
 
       - name: Install dependencies
-        run: npm ci
-
-      - id: script-flags
-        name: Detect npm scripts
-        run: |
-          echo "build=$(npm pkg get scripts.build | tr -d '"')" >> "$GITHUB_OUTPUT"
-          echo "typecheck=$(npm pkg get scripts.typecheck | tr -d '"')" >> "$GITHUB_OUTPUT"
-          echo "lint=$(npm pkg get scripts.lint | tr -d '"')" >> "$GITHUB_OUTPUT"
-          echo "test=$(npm pkg get scripts.test | tr -d '"')" >> "$GITHUB_OUTPUT"
+        run: npm ci --no-audit --no-fund
 
       - name: Build
-        if: steps.script-flags.outputs.build != 'undefined'
+        id: build
+        if: steps.scripts.outputs.build == 'true'
         run: npm run build 2>&1 | tee build.log
 
       - name: Typecheck
-        if: steps.script-flags.outputs.typecheck != 'undefined'
+        id: typecheck
+        if: steps.scripts.outputs.typecheck == 'true'
         run: npm run typecheck 2>&1 | tee typecheck.log
 
       - name: Lint
-        if: steps.script-flags.outputs.lint != 'undefined'
+        id: lint
+        if: steps.scripts.outputs.lint == 'true'
         run: npm run lint 2>&1 | tee lint.log
 
       - name: Setup Deno
-        if: steps.script-flags.outputs.test != 'undefined'
+        if: steps.scripts.outputs.needs-deno == 'true'
         uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
 
       - name: Cache Deno dependencies
-        if: steps.script-flags.outputs.test != 'undefined'
+        if: steps.scripts.outputs.needs-deno == 'true'
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/deno
             ~/.deno
-          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock') }}
+          key: ${{ runner.os }}-deno-${{ hashFiles('deno.lock', 'deno.json') }}
           restore-keys: |
             ${{ runner.os }}-deno-
 
       - name: Test
-        if: steps.script-flags.outputs.test != 'undefined'
+        id: test
+        if: steps.scripts.outputs.test == 'true'
         run: npm run test 2>&1 | tee test.log
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-logs
+          path: |
+            build.log
+            typecheck.log
+            lint.log
+            test.log
+          if-no-files-found: ignore
+          retention-days: 5
+
+      - name: Summarize results
+        if: always()
+        env:
+          RUN_BUILD: ${{ steps.scripts.outputs.build }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          RUN_TYPECHECK: ${{ steps.scripts.outputs.typecheck }}
+          TYPECHECK_OUTCOME: ${{ steps.typecheck.outcome }}
+          RUN_LINT: ${{ steps.scripts.outputs.lint }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          RUN_TEST: ${{ steps.scripts.outputs.test }}
+          TEST_OUTCOME: ${{ steps.test.outcome }}
+        run: |
+          set -euo pipefail
+
+          if [ "$RUN_BUILD" != "true" ] && [ "$RUN_TYPECHECK" != "true" ] \
+             && [ "$RUN_LINT" != "true" ] && [ "$RUN_TEST" != "true" ]; then
+            echo "### CI checks" >> "$GITHUB_STEP_SUMMARY"
+            echo "No package scripts were detected for build, typecheck, lint, or test." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "### CI checks" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+
+          summarize() {
+            local label="$1"
+            local outcome="$2"
+            local icon="❌"
+            if [ "$outcome" = "success" ]; then
+              icon="✅"
+            elif [ "$outcome" = "skipped" ]; then
+              icon="⚪️"
+            elif [ "$outcome" = "cancelled" ]; then
+              icon="⏹️"
+            fi
+            echo "| $label | $icon $outcome |" >> "$GITHUB_STEP_SUMMARY"
+          }
+
+          if [ "$RUN_BUILD" = "true" ]; then
+            summarize "Build" "$BUILD_OUTCOME"
+          fi
+          if [ "$RUN_TYPECHECK" = "true" ]; then
+            summarize "Typecheck" "$TYPECHECK_OUTCOME"
+          fi
+          if [ "$RUN_LINT" = "true" ]; then
+            summarize "Lint" "$LINT_OUTCOME"
+          fi
+          if [ "$RUN_TEST" = "true" ]; then
+            summarize "Test" "$TEST_OUTCOME"
+          fi
