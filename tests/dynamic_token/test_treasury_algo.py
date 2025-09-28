@@ -46,7 +46,6 @@ def test_update_from_trade_happy_path(
         None,
         SimpleNamespace(retcode=0, profit=200.0),
         SimpleNamespace(retcode=SUCCESS_RETCODE, profit=0.0),
-        SimpleNamespace(retcode=SUCCESS_RETCODE, profit=-10.0),
         SimpleNamespace(retcode=SUCCESS_RETCODE, profit=None),
         SimpleNamespace(retcode=SUCCESS_RETCODE, profit="not-a-number"),
         SimpleNamespace(retcode=SUCCESS_RETCODE, profit=float("nan")),
@@ -63,3 +62,50 @@ def test_update_from_trade_failure_cases(
 
     assert event is None
     assert treasury.treasury_balance == pytest.approx(starting_balance)
+
+
+def test_update_from_trade_handles_losses(
+    capsys: pytest.CaptureFixture[str],
+    treasury: DynamicTreasuryAlgo,
+) -> None:
+    trade_result = SimpleNamespace(retcode=SUCCESS_RETCODE, profit=-750.0)
+
+    event = treasury.update_from_trade(trade_result)
+
+    assert event == TreasuryEvent(
+        burned=0.0,
+        rewards_distributed=0.0,
+        profit_retained=0.0,
+        loss_covered=750.0,
+        notes=(),
+    )
+    assert treasury.treasury_balance == pytest.approx(250.0)
+
+    captured = capsys.readouterr()
+    assert "🛡️ Absorbing 750.0 DCT loss from treasury reserves" in captured.out
+
+
+def test_update_from_trade_shortfall_notes() -> None:
+    treasury = DynamicTreasuryAlgo(starting_balance=100.0)
+    trade_result = SimpleNamespace(retcode=SUCCESS_RETCODE, profit=-250.0)
+
+    event = treasury.update_from_trade(trade_result)
+
+    assert event is not None
+    assert event.loss_covered == pytest.approx(100.0)
+    assert event.notes and "Loss exceeded treasury reserves" in event.notes[0]
+
+
+def test_update_from_trade_records_rounding_adjustment(
+    capsys: pytest.CaptureFixture[str],
+    treasury: DynamicTreasuryAlgo,
+) -> None:
+    trade_result = SimpleNamespace(retcode=SUCCESS_RETCODE, profit=1.03)
+
+    event = treasury.update_from_trade(trade_result)
+
+    assert event is not None
+    assert event.profit_retained == pytest.approx(0.51)
+    assert event.notes and "Rounding adjustment applied" in event.notes[0]
+
+    capsys.readouterr()  # drain prints for cleanliness

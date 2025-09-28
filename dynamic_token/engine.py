@@ -213,6 +213,8 @@ class DynamicCapitalTokenEngine:
         notes: list[str] = []
         if signals.notes:
             notes.extend(signals.notes)
+        if treasury_event and getattr(treasury_event, "notes", None):
+            notes.extend(treasury_event.notes)
 
         allocation_total = sum(
             allocation.adjusted_allocation for allocation in allocations
