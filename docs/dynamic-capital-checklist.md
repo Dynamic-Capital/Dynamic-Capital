@@ -108,7 +108,8 @@ runbooks, curl commands, and evidence templates.
 > loads the configuration for webhook verification.
 
 1. [ ] Confirm the Telegram webhook is set and returning `200` responses for
-       health pings (see
+       health pings (automation now pings the derived `/version` endpoint; set
+       `TELEGRAM_WEBHOOK_HEALTH_URL` to override) (see
        [playbook §1](./go-live-validation-playbook.md#1-telegram-webhook-health)).
 2. [ ] Walk through the bank happy path to ensure approvals mark
        `current_vip.is_vip` correctly (see
