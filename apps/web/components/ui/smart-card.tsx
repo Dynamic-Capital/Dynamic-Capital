@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/utils";
 
+type MotionDivProps = React.ComponentPropsWithoutRef<typeof motion.div>;
+
 const smartCardVariants = cva(
   "relative rounded-lg border bg-card text-card-foreground transition-all duration-300 overflow-hidden group",
   {
@@ -73,7 +75,7 @@ const smartCardVariants = cva(
 );
 
 export interface SmartCardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends MotionDivProps,
     VariantProps<typeof smartCardVariants> {
   header?: React.ReactNode;
   footer?: React.ReactNode;
