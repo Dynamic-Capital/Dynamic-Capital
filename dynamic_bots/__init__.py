@@ -10,4 +10,6 @@ structure.
 
 from integrations.telegram_bot import DynamicTelegramBot
 
-__all__ = ["DynamicTelegramBot"]
+from .recycling import DynamicRecyclingBot
+
+__all__ = ["DynamicTelegramBot", "DynamicRecyclingBot"]

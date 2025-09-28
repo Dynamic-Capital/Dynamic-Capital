@@ -210,7 +210,16 @@ class DynamicInterstellarSpace:
     bodies: MutableMapping[str, StellarBody] = field(default_factory=dict)
     corridors: MutableMapping[tuple[str, str], WormholeCorridor] = field(default_factory=dict)
     currents: MutableMapping[str, CosmicCurrent] = field(default_factory=dict)
-    events: Deque[InterstellarEvent] = field(default_factory=lambda: deque(maxlen=256))
+    events: Deque[InterstellarEvent] = field(default_factory=deque, repr=False)
+    history_limit: int = 256
+
+    def __post_init__(self) -> None:
+        if self.history_limit <= 0:
+            raise ValueError("history_limit must be positive")
+        self.history_limit = int(self.history_limit)
+        if not isinstance(self.events, deque):  # pragma: no cover - defensive
+            self.events = deque(self.events)
+        self._enforce_history_limit()
 
     def register_body(self, body: StellarBody) -> None:
         key = _normalise_identifier(body.name)
@@ -228,8 +237,27 @@ class DynamicInterstellarSpace:
         key = _normalise_identifier(current.name)
         self.currents[key] = current
 
-    def record_event(self, event: InterstellarEvent) -> None:
+    def record_event(self, event: InterstellarEvent) -> InterstellarEvent:
         self.events.append(event)
+        self._enforce_history_limit()
+        return event
+
+    @property
+    def history_size(self) -> int:
+        return len(self.events)
+
+    def clear_events(self) -> None:
+        self.events.clear()
+
+    def set_history_limit(self, limit: int) -> None:
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        self.history_limit = int(limit)
+        self._enforce_history_limit()
+
+    def _enforce_history_limit(self) -> None:
+        while len(self.events) > self.history_limit:
+            self.events.popleft()
 
     def body_density(self) -> float:
         if not self.bodies:
@@ -294,12 +322,13 @@ class DynamicInterstellarSpace:
         }
 
     def merge(self, other: "DynamicInterstellarSpace") -> "DynamicInterstellarSpace":
-        merged = DynamicInterstellarSpace()
+        merged = DynamicInterstellarSpace(history_limit=max(self.history_limit, other.history_limit))
         merged.bodies = {**self.bodies, **other.bodies}
         merged.corridors = {**self.corridors, **other.corridors}
         merged.currents = {**self.currents, **other.currents}
         merged.events.extend(self.events)
         merged.events.extend(other.events)
+        merged._enforce_history_limit()
         return merged
 
     def __bool__(self) -> bool:  # pragma: no cover - sentinel for misuse

@@ -53,6 +53,10 @@ _KEEPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "TimeKeeperSyncResult",
         "DynamicTimeKeeperAlgorithm",
     ),
+    "dynamic_keepers.recycling": (
+        "DynamicRecyclingKeeper",
+        "RecyclingKeeperSnapshot",
+    ),
 }
 
 __all__ = sorted({symbol for symbols in _KEEPER_EXPORTS.values() for symbol in symbols})

@@ -15,6 +15,12 @@ _HELPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_ai": ("calibrate_lorentzian_lobe", "load_lorentzian_model"),
     "dynamic_algo": ("normalise_symbol", "ORDER_ACTION_BUY", "ORDER_ACTION_SELL", "SUCCESS_RETCODE"),
     "dynamic_bridge": ("create_dynamic_mt5_bridge",),
+    "dynamic_helpers.recycling": (
+        "build_material_stream",
+        "build_recycling_event",
+        "summarise_recycling_events",
+        "format_recycling_digest",
+    ),
 }
 
 __all__ = sorted({symbol for symbols in _HELPER_EXPORTS.values() for symbol in symbols})

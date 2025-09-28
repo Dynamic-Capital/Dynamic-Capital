@@ -27,6 +27,7 @@ __all__ = [
     "DynamicArchitectAgentResult",
     "DynamicEngineerAgent",
     "DynamicEngineerAgentResult",
+    "DynamicRecyclingAgent",
     "configure_dynamic_start_agents",
     "ExecutionAgent",
     "ExecutionAgentResult",
@@ -40,6 +41,8 @@ __all__ = [
     "RiskAgentResult",
     "prime_dynamic_start_agents",
     "reset_dynamic_start_agents",
+    "RecyclingAgentConfig",
+    "RecyclingAgentReport",
     "SpaceAgent",
     "SpaceAgentResult",
     "TradingAgent",
@@ -58,6 +61,9 @@ _LAZY = LazyNamespace(
         "DynamicEngineerAgentResult": "dynamic_engineer.agent",
         "DynamicArchitectAgent": "dynamic_architect.agent",
         "DynamicArchitectAgentResult": "dynamic_architect.agent",
+        "DynamicRecyclingAgent": "dynamic_agents.recycling",
+        "RecyclingAgentConfig": "dynamic_agents.recycling",
+        "RecyclingAgentReport": "dynamic_agents.recycling",
     },
 )
 
@@ -88,6 +94,11 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
         SpaceAgentResult,
         WaveAgent,
         WaveAgentResult,
+    )
+    from dynamic_agents.recycling import (
+        DynamicRecyclingAgent,
+        RecyclingAgentConfig,
+        RecyclingAgentReport,
     )
 
 
