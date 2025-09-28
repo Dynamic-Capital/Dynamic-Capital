@@ -262,3 +262,60 @@ def test_dynamic_chat_agent_blends_dynamic_agi_payload() -> None:
     assert payload["decision"]["action"] == "BUY"
     assert payload["decision"]["confidence"] == pytest.approx(0.66)
     assert "Dynamic AGI" in payload["rationale"]
+
+
+def test_dynamic_chat_agent_derives_action_and_confidence() -> None:
+    agent = DynamicChatAgent()
+
+    result = agent.run(
+        {
+            "risk": {
+                "adjusted_signal": {
+                    "action": "SELL",
+                    "confidence": 0.58,
+                    "rationale": "Volatility breach detected.",
+                }
+            },
+            "execution": {"signal": {"action": "SELL", "confidence": 0.55}},
+        }
+    )
+
+    payload = result.to_dict()
+
+    assert payload["decision"]["action"] == "SELL"
+    assert payload["decision"]["confidence"] == pytest.approx(0.58, rel=1e-6)
+    assistant_messages = [msg for msg in payload["messages"] if msg["role"] == "assistant"]
+    assert assistant_messages, "expected assistant summary"
+    assert "Final decision" in assistant_messages[0]["content"]
+    assert result.confidence == pytest.approx(0.58, rel=1e-6)
+
+
+def test_dynamic_chat_agent_carries_risk_metadata_into_decision() -> None:
+    agent = DynamicChatAgent()
+
+    result = agent.run(
+        {
+            "risk": {
+                "adjusted_signal": {
+                    "action": "SELL",
+                    "confidence": 0.57,
+                    "rationale": "Treasury drawdown breach triggered hedge overlay.",
+                },
+                "hedge_decisions": [
+                    {"symbol": "EURUSD", "action": "OPEN", "size": 0.3},
+                    {"symbol": "GBPUSD", "action": "REDUCE", "size": 0.15},
+                ],
+                "escalations": ["treasury_utilisation"],
+                "sizing": {"base": 100000, "adjusted": 64000},
+            }
+        }
+    )
+
+    payload = result.to_dict()
+
+    assert payload["decision"]["action"] == "SELL"
+    assert payload["decision"]["confidence"] == pytest.approx(0.57, rel=1e-6)
+    hedge_decisions = payload["decision"].get("hedge_decisions")
+    assert hedge_decisions and hedge_decisions[0]["action"] == "OPEN"
+    assert payload["decision"]["escalations"] == ["treasury_utilisation"]
+    assert payload["decision"]["sizing"] == {"base": 100000, "adjusted": 64000}

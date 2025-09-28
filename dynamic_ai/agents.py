@@ -1400,6 +1400,42 @@ def _normalise_agent_payload(value: Any) -> Dict[str, Any]:
     return {}
 
 
+def _resolve_agent_payload(
+    context: Mapping[str, Any],
+    agents: Mapping[str, Any],
+    *keys: str,
+) -> Dict[str, Any]:
+    """Return the first non-empty payload resolved from ``keys``."""
+
+    for key in keys:
+        if key in context:
+            payload = _normalise_agent_payload(context.get(key))
+            if payload:
+                return payload
+        if key in agents:
+            payload = _normalise_agent_payload(agents.get(key))
+            if payload:
+                return payload
+    return {}
+
+
+def _first_float(*values: Any) -> float | None:
+    for value in values:
+        candidate = _optional_float(value)
+        if candidate is not None:
+            return candidate
+    return None
+
+
+def _normalise_action(value: Any) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        rendered = value.strip()
+        return rendered or None
+    return None
+
+
 def _extract_text(*candidates: Any) -> str | None:
     for value in candidates:
         if value is None:
@@ -1563,34 +1599,19 @@ class DynamicChatAgent:
         if not isinstance(agents_mapping, Mapping):
             agents_mapping = {}
 
-        research_payload = dict(
-            _normalise_agent_payload(context.get("research") or agents_mapping.get("research"))
-        )
-        execution_payload = dict(
-            _normalise_agent_payload(context.get("execution") or agents_mapping.get("execution"))
-        )
-        risk_payload = dict(
-            _normalise_agent_payload(context.get("risk") or agents_mapping.get("risk"))
-        )
+        research_payload = _resolve_agent_payload(context, agents_mapping, "research")
+        execution_payload = _resolve_agent_payload(context, agents_mapping, "execution")
+        risk_payload = _resolve_agent_payload(context, agents_mapping, "risk")
 
-        decision_payload = context.get("decision")
-        if not isinstance(decision_payload, Mapping):
-            decision_payload = {}
-        else:
-            decision_payload = dict(decision_payload)
+        decision_payload = _normalise_agent_payload(context.get("decision"))
 
-        agi_payload: Dict[str, Any] = {}
-        for candidate in (
-            context.get("agi"),
-            context.get("agi_output"),
-            context.get("agi_result"),
-            agents_mapping.get("agi"),
-            agents_mapping.get("agi_output"),
-        ):
-            candidate_payload = _normalise_agent_payload(candidate)
-            if candidate_payload:
-                agi_payload = candidate_payload
-                break
+        agi_payload = _resolve_agent_payload(
+            context,
+            agents_mapping,
+            "agi",
+            "agi_output",
+            "agi_result",
+        )
 
         if agi_payload:
             agi_research = agi_payload.get("research")
@@ -1695,20 +1716,70 @@ class DynamicChatAgent:
         if agi_message is not None:
             messages.append(agi_message)
 
-        action_text = decision_payload.get("action")
-        confidence_value = _optional_float(decision_payload.get("confidence"))
+        risk_adjusted_raw = risk_payload.get("adjusted_signal") if isinstance(risk_payload, Mapping) else None
+        risk_adjusted_payload = dict(risk_adjusted_raw) if isinstance(risk_adjusted_raw, Mapping) else {}
+        execution_signal_raw = execution_payload.get("signal") if isinstance(execution_payload, Mapping) else None
+        execution_signal_payload = dict(execution_signal_raw) if isinstance(execution_signal_raw, Mapping) else {}
+        agi_signal_raw = agi_payload.get("signal") if isinstance(agi_payload, Mapping) else None
+        agi_signal_payload = dict(agi_signal_raw) if isinstance(agi_signal_raw, Mapping) else {}
 
+        if isinstance(risk_payload, Mapping):
+            if risk_adjusted_payload and "adjusted_signal" not in decision_payload:
+                decision_payload["adjusted_signal"] = dict(risk_adjusted_payload)
+
+            hedge_payload = risk_payload.get("hedge_decisions")
+            if hedge_payload and "hedge_decisions" not in decision_payload:
+                if isinstance(hedge_payload, Mapping):
+                    decision_payload["hedge_decisions"] = [dict(hedge_payload)]
+                elif isinstance(hedge_payload, Iterable) and not isinstance(hedge_payload, (str, bytes)):
+                    decision_payload["hedge_decisions"] = [
+                        dict(item) if isinstance(item, Mapping) else item for item in hedge_payload
+                    ]
+                else:
+                    decision_payload["hedge_decisions"] = [hedge_payload]
+
+            escalations_payload = risk_payload.get("escalations")
+            if escalations_payload and "escalations" not in decision_payload:
+                if isinstance(escalations_payload, Mapping):
+                    decision_payload["escalations"] = list(escalations_payload.values())
+                elif isinstance(escalations_payload, Iterable) and not isinstance(escalations_payload, (str, bytes)):
+                    decision_payload["escalations"] = [str(item) for item in escalations_payload if str(item).strip()]
+                else:
+                    text = str(escalations_payload).strip()
+                    if text:
+                        decision_payload["escalations"] = [text]
+
+            sizing_payload = risk_payload.get("sizing")
+            if isinstance(sizing_payload, Mapping) and "sizing" not in decision_payload:
+                decision_payload["sizing"] = dict(sizing_payload)
+
+        action_text = _normalise_action(decision_payload.get("action"))
         if not action_text and risk_payload:
-            adjusted = risk_payload.get("adjusted_signal", {})
-            if isinstance(adjusted, Mapping):
-                action_text = adjusted.get("action")
-                if confidence_value is None:
-                    confidence_value = _optional_float(adjusted.get("confidence"))
+            action_text = _normalise_action(risk_payload.get("action"))
+        if not action_text and risk_adjusted_payload:
+            action_text = _normalise_action(risk_adjusted_payload.get("action"))
+        if not action_text and execution_signal_payload:
+            action_text = _normalise_action(execution_signal_payload.get("action"))
+        if not action_text and agi_signal_payload:
+            action_text = _normalise_action(agi_signal_payload.get("action"))
 
-        if confidence_value is None and execution_payload:
-            signal = execution_payload.get("signal", {})
-            if isinstance(signal, Mapping):
-                confidence_value = _optional_float(signal.get("confidence"))
+        if action_text and not _normalise_action(decision_payload.get("action")):
+            decision_payload["action"] = action_text
+
+        decision_confidence = _optional_float(decision_payload.get("confidence"))
+        if decision_confidence is not None:
+            confidence_value = decision_confidence
+        else:
+            confidence_value = _first_float(
+                risk_payload.get("confidence") if isinstance(risk_payload, Mapping) else None,
+                risk_adjusted_payload.get("confidence") if isinstance(risk_adjusted_payload, Mapping) else None,
+                execution_payload.get("confidence") if isinstance(execution_payload, Mapping) else None,
+                execution_signal_payload.get("confidence") if isinstance(execution_signal_payload, Mapping) else None,
+                research_payload.get("confidence") if isinstance(research_payload, Mapping) else None,
+                agi_signal_payload.get("confidence") if isinstance(agi_signal_payload, Mapping) else None,
+            )
+            if confidence_value is not None:
+                decision_payload["confidence"] = confidence_value
 
         narrative_parts: list[str] = []
         if user_prompt:
