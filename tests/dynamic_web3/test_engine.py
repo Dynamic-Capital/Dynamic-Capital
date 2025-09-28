@@ -1,0 +1,96 @@
+from __future__ import annotations
+
+import pytest
+
+from dynamic_web3 import (
+    DynamicWeb3Engine,
+    NetworkTelemetry,
+    SmartContract,
+    TransactionProfile,
+    Web3Network,
+)
+
+
+@pytest.fixture()
+def engine() -> DynamicWeb3Engine:
+    engine = DynamicWeb3Engine(
+        reliability_floor=0.92,
+        congestion_threshold=0.7,
+        latency_target_ms=180.0,
+    )
+    engine.register_network(
+        Web3Network(
+            name="Dynamic Chain",
+            chain_id=2040,
+            rpc_endpoint="https://rpc.dynamic",
+            finality_threshold=8,
+            reliability_target=0.98,
+        )
+    )
+    return engine
+
+
+def _register_contract(engine: DynamicWeb3Engine, *, success_rate: float, latency_ms: float, pending: int) -> None:
+    contract = SmartContract(
+        address="0xabc123",
+        network="Dynamic Chain",
+        category="dex router",
+        owner="Liquidity Ops",
+    )
+    engine.register_contract(contract)
+    engine.ingest_transaction_profile(
+        TransactionProfile(
+            contract_address=contract.address,
+            success_rate=success_rate,
+            average_fee=0.2,
+            volume_24h=5_000_000.0,
+            average_latency_ms=latency_ms,
+            pending_transactions=pending,
+        )
+    )
+
+
+def test_evaluate_network_flags_low_uptime(engine: DynamicWeb3Engine) -> None:
+    _register_contract(engine, success_rate=0.88, latency_ms=210.0, pending=180)
+
+    summary = engine.evaluate_network(
+        "Dynamic Chain",
+        NetworkTelemetry(
+            block_gap=12,
+            uptime_ratio=0.84,
+            utilisation=0.76,
+            latency_ms=190.0,
+            pending_transactions=320,
+        ),
+    )
+
+    assert summary.reliability_score < 0.92
+    assert any(alert.startswith("Reliability score") for alert in summary.alerts)
+    assert any(action.category == "stability" for action in summary.actions)
+    assert summary.finality_gap == 4
+
+
+def test_registering_contract_requires_network(engine: DynamicWeb3Engine) -> None:
+    with pytest.raises(ValueError):
+        engine.register_contract(
+            SmartContract(address="0xfeedface", network="Unknown Network")
+        )
+
+
+def test_contract_success_rate_alert(engine: DynamicWeb3Engine) -> None:
+    _register_contract(engine, success_rate=0.71, latency_ms=140.0, pending=20)
+
+    summary = engine.evaluate_network(
+        "Dynamic Chain",
+        NetworkTelemetry(
+            block_gap=3,
+            uptime_ratio=0.99,
+            utilisation=0.35,
+            latency_ms=120.0,
+            pending_transactions=15,
+        ),
+    )
+
+    assert any("success rate" in alert for alert in summary.alerts)
+    assert any(action.category == "contract" for action in summary.actions)
+    assert summary.metadata["profiled_contracts"] == 1
