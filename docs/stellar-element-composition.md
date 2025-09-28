@@ -48,3 +48,20 @@ This note reframes universal stellar chemistry so Dynamic Capital contributors c
 - Heavier elements emerge through successive stellar generations and catastrophic events, underscoring that nearly every atom heavier than hydrogen in our bodies originated inside a star.
 
 > **Dynamic Capital cue:** Keep the operating model balanced: protect the core value streams (hydrogen/helium) while strategically layering differentiators (metals) that compound community trust and treasury performance.
+
+## Dynamic Capital Implementation Checklist
+- [ ] **Core Fuel Alignment:**
+  - [ ] Validate that liquidity routing, custody, and signal pipelines map to the "hydrogen" narrative in external messaging.
+  - [ ] Confirm foundational telemetry and alerting cover all primary rails before launching auxiliary features.
+- [ ] **Stability Layer Maturation:**
+  - [ ] Audit matured capabilities (e.g., Supabase observability, contributor onboarding) to ensure they operate as the stabilizing "helium" layer.
+  - [ ] Document handoffs and runbooks that keep these subsystems resilient as volume increases.
+- [ ] **Differentiator Deployment:**
+  - [ ] Prioritize specialized modules (advanced analytics, institutional dashboards) only after core KPIs meet agreed thresholds.
+  - [ ] Capture metrics demonstrating how each "metal" feature differentiates Dynamic Capital's value proposition.
+- [ ] **High-Leverage Bet Governance:**
+  - [ ] Gate multi-LLM pipelines, liquidity desks, or other "massive star" initiatives with phase-by-phase readiness reviews.
+  - [ ] Ensure every experimental launch includes telemetry, rollback plans, and post-incident review templates.
+- [ ] **Learning & Recycling Loop:**
+  - [ ] Schedule recurring retrospectives that convert audits, incidents, and market feedback into updated playbooks.
+  - [ ] Publish digestible summaries of major "supernova" events to enrich contributor onboarding and future planning.
