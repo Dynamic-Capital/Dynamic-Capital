@@ -128,6 +128,14 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_ultimate_reality": ("DynamicUltimateReality",),
     "dynamic_volume": ("DynamicVolumeAlgo",),
     "dynamic_wisdom": ("DynamicWisdomEngine",),
+    "dynamic_wallet": (
+        "DynamicWalletEngine",
+        "WalletAccount",
+        "WalletAction",
+        "WalletBalance",
+        "WalletExposure",
+        "WalletSummary",
+    ),
 }
 
 __all__ = sorted({symbol for symbols in _ENGINE_EXPORTS.values() for symbol in symbols})
