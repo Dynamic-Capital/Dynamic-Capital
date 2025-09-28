@@ -29,6 +29,14 @@ _HELPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicAbyssopelagicHelper",
         "DynamicHadalpelagicHelper",
     ),
+    "dynamic_helpers.elements": (
+        "ElementHelperPersona",
+        "ELEMENT_HELPERS",
+        "list_element_helpers",
+        "iter_element_helpers",
+        "get_element_helper",
+        "search_element_helpers",
+    ),
 }
 
 __all__ = sorted({symbol for symbols in _HELPER_EXPORTS.values() for symbol in symbols})

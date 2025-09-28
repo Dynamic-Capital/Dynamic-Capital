@@ -66,6 +66,14 @@ _KEEPER_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DynamicHadalpelagicKeeper",
         "KeeperTrendSnapshot",
     ),
+    "dynamic_keepers.elements": (
+        "ElementKeeperPersona",
+        "ELEMENT_KEEPERS",
+        "list_element_keepers",
+        "iter_element_keepers",
+        "get_element_keeper",
+        "search_element_keepers",
+    ),
 }
 
 __all__ = sorted({symbol for symbols in _KEEPER_EXPORTS.values() for symbol in symbols})
