@@ -10,8 +10,16 @@ export const metadata = {
 
 export default function TradeJournalToolPage() {
   return (
-    <Column gap="32" paddingY="40" align="center" horizontal="center" fillWidth>
-      <Column maxWidth={40} gap="12" align="center" horizontal="center">
+    <Column
+      as="main"
+      fillWidth
+      gap="40"
+      paddingY="40"
+      align="center"
+      horizontal="center"
+      className="px-4 sm:px-6 lg:px-8"
+    >
+      <Column maxWidth={36} gap="12" align="center" horizontal="center">
         <Heading variant="display-strong-s" align="center">
           Dynamic trade journal
         </Heading>
@@ -25,7 +33,7 @@ export default function TradeJournalToolPage() {
           desk.
         </Text>
       </Column>
-      <Column maxWidth={72} fillWidth>
+      <Column maxWidth={72} fillWidth className="w-full">
         <TradeJournalWorkspace />
       </Column>
     </Column>

@@ -6,9 +6,6 @@ import {
   MeterProvider as SDKMeterProvider,
   View,
 } from "@opentelemetry/sdk-metrics";
-import { registerInstrumentations } from "@opentelemetry/instrumentation";
-import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
-import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
 import type { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
 import { Resource } from "@opentelemetry/resources";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
@@ -37,6 +34,62 @@ const telemetryState = globalTelemetryState.__dynamicCapitalTelemetry;
 
 const isNodeRuntime = typeof process !== "undefined" &&
   !!process.versions?.node;
+
+type InstrumentationDependencies = {
+  registerInstrumentations:
+    typeof import("@opentelemetry/instrumentation")["registerInstrumentations"];
+  HttpInstrumentation:
+    typeof import("@opentelemetry/instrumentation-http")["HttpInstrumentation"];
+  FetchInstrumentation: typeof import("@opentelemetry/instrumentation-fetch")[
+    "FetchInstrumentation"
+  ];
+};
+
+let instrumentationDependenciesPromise:
+  | Promise<InstrumentationDependencies | null>
+  | null = null;
+
+async function loadInstrumentationDependencies() {
+  if (!isNodeRuntime) {
+    return null;
+  }
+
+  if (!instrumentationDependenciesPromise) {
+    instrumentationDependenciesPromise = (async () => {
+      try {
+        const [instrumentationModule, httpModule, fetchModule] = await Promise
+          .all([
+            import(
+              /* webpackIgnore: true */ "@opentelemetry/instrumentation"
+            ),
+            import(
+              /* webpackIgnore: true */ "@opentelemetry/instrumentation-http"
+            ),
+            import(
+              /* webpackIgnore: true */ "@opentelemetry/instrumentation-fetch"
+            ),
+          ]);
+
+        return {
+          registerInstrumentations:
+            instrumentationModule.registerInstrumentations,
+          HttpInstrumentation: httpModule.HttpInstrumentation,
+          FetchInstrumentation: fetchModule.FetchInstrumentation,
+        } satisfies InstrumentationDependencies;
+      } catch (error) {
+        if (!isProduction) {
+          console.warn(
+            "[telemetry] Failed to load OpenTelemetry instrumentations",
+            error,
+          );
+        }
+        return null;
+      }
+    })();
+  }
+
+  return instrumentationDependenciesPromise;
+}
 
 async function ensurePrometheusExporter() {
   if (telemetryState.prometheusExporter) {
@@ -78,7 +131,8 @@ async function ensureMeterProvider() {
   }
 
   if (!isNodeRuntime) {
-    telemetryState.meterProvider = metrics.getMeterProvider() as unknown as MeterProvider;
+    telemetryState.meterProvider = metrics
+      .getMeterProvider() as unknown as MeterProvider;
     return;
   }
 
@@ -89,22 +143,32 @@ async function ensureMeterProvider() {
     // Optional dependency not installed; continue without Vercel helper.
   }
 
-  registerInstrumentations({
-    instrumentations: [
-      new HttpInstrumentation({
-        ignoreIncomingRequestHook: (request) => {
-          const url = request.url ?? "";
-          return (
-            url.startsWith("/_next/") ||
-            url.startsWith("/static/") ||
-            url.startsWith("/api/metrics")
-          );
-        },
-        requireParentforOutgoingSpans: false,
-      }),
-      new FetchInstrumentation({ clearTimingResources: true }),
-    ],
-  });
+  const dependencies = await loadInstrumentationDependencies();
+
+  if (dependencies) {
+    const {
+      registerInstrumentations,
+      HttpInstrumentation,
+      FetchInstrumentation,
+    } = dependencies;
+
+    registerInstrumentations({
+      instrumentations: [
+        new HttpInstrumentation({
+          ignoreIncomingRequestHook: (request) => {
+            const url = request.url ?? "";
+            return (
+              url.startsWith("/_next/") ||
+              url.startsWith("/static/") ||
+              url.startsWith("/api/metrics")
+            );
+          },
+          requireParentforOutgoingSpans: false,
+        }),
+        new FetchInstrumentation({ clearTimingResources: true }),
+      ],
+    });
+  }
 
   const resource = Resource.default().merge(
     new Resource({
