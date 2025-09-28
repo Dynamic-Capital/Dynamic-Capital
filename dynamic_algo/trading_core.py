@@ -4,17 +4,36 @@ from __future__ import annotations
 
 import math
 import random
-from dataclasses import dataclass
-from typing import Any, Dict, Mapping, Optional
+from copy import deepcopy
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Dict, Mapping, Optional, Tuple
 
 try:  # pragma: no cover - optional dependency
     from integrations.mt5_connector import MT5Connector  # type: ignore
 except Exception:  # pragma: no cover - keep module importable if MT5 deps missing
     MT5Connector = None  # type: ignore
 
+from dynamic_metadata import ModelVersion, VersionNumber
+
 ORDER_ACTION_BUY = "BUY"
 ORDER_ACTION_SELL = "SELL"
 SUCCESS_RETCODE = 10009
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+ALGO_VERSION_INFO = ModelVersion(
+    name="Dynamic Algo",
+    number=VersionNumber(major=0, minor=1),
+).with_source("dynamic_algo.trading_core")
+ALGO_VERSION = ALGO_VERSION_INFO.tag
+
+
+def _default_version_info() -> Dict[str, Any]:
+    return ALGO_VERSION_INFO.as_dict()
 
 
 @dataclass(slots=True, frozen=True)
@@ -428,10 +447,40 @@ class TradeExecutionResult:
     lot: Optional[float] = None
     price: Optional[float] = None
     raw_response: Any = None
+    version: str = ALGO_VERSION
+    version_info: Dict[str, Any] = field(default_factory=_default_version_info)
+    generated_at: datetime = field(default_factory=_utcnow)
 
     @property
     def ok(self) -> bool:
         return self.retcode == SUCCESS_RETCODE
+
+    def __post_init__(self) -> None:
+        if self.generated_at.tzinfo is None:
+            self.generated_at = self.generated_at.replace(tzinfo=timezone.utc)
+        else:
+            self.generated_at = self.generated_at.astimezone(timezone.utc)
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {
+            "retcode": self.retcode,
+            "message": self.message,
+            "profit": self.profit,
+            "version": self.version,
+            "generated_at": self.generated_at.isoformat(),
+        }
+        if self.ticket is not None:
+            payload["ticket"] = self.ticket
+        if self.symbol is not None:
+            payload["symbol"] = self.symbol
+        if self.lot is not None:
+            payload["lot"] = self.lot
+        if self.price is not None:
+            payload["price"] = self.price
+        if self.raw_response is not None:
+            payload["raw_response"] = self.raw_response
+        payload["version_info"] = deepcopy(self.version_info)
+        return payload
 
 
 class _PaperBroker:
@@ -487,6 +536,7 @@ class DynamicTradingAlgo:
         *,
         instrument_profiles: Mapping[str, InstrumentProfile] | None = None,
         default_symbol: Optional[str] = None,
+        version: ModelVersion | Mapping[str, Any] | str | None = ALGO_VERSION,
     ) -> None:
         base_profiles = dict(DEFAULT_INSTRUMENT_PROFILES)
         if instrument_profiles:
@@ -513,6 +563,51 @@ class DynamicTradingAlgo:
         self.default_symbol = canonical_default
         self._paper_broker = _PaperBroker()
         self.connector = connector or self._bootstrap_connector()
+        self._version, self._version_metadata = self._coerce_version(version)
+
+    @property
+    def version_metadata(self) -> Dict[str, Any]:
+        return deepcopy(self._version_metadata)
+
+    def _coerce_version(
+        self, version: ModelVersion | Mapping[str, Any] | str | None
+    ) -> Tuple[str, Dict[str, Any]]:
+        if isinstance(version, ModelVersion):
+            info = version.as_dict()
+            return version.tag, info
+        if isinstance(version, Mapping):
+            metadata = dict(version)
+            label = str(
+                metadata.get("version")
+                or metadata.get("tag")
+                or metadata.get("label")
+                or ""
+            ).strip()
+            if not label:
+                label = ALGO_VERSION
+            metadata.setdefault("name", metadata.get("name", ALGO_VERSION_INFO.name))
+            metadata.setdefault("number", ALGO_VERSION_INFO.number.to_dict())
+            metadata.setdefault(
+                "build_timestamp",
+                metadata.get("build_timestamp", ALGO_VERSION_INFO.build_timestamp.isoformat()),
+            )
+            metadata.setdefault("source", metadata.get("source", "override"))
+            metadata["version"] = label
+            return label, metadata
+        if isinstance(version, str):
+            label = version.strip() or ALGO_VERSION
+        elif version is None:
+            label = ALGO_VERSION
+        else:
+            label = str(version).strip() or ALGO_VERSION
+        metadata = ALGO_VERSION_INFO.as_dict()
+        if label != ALGO_VERSION:
+            metadata = {**metadata, "version": label, "source": "override"}
+        return label, metadata
+
+    @property
+    def version(self) -> str:
+        return self._version
 
     # ----------------------------------------------------------------- execution
     def execute_trade(self, signal: Any, *, lot: float, symbol: str) -> TradeExecutionResult:
@@ -533,6 +628,8 @@ class DynamicTradingAlgo:
             profit=0.0,
             symbol=canonical_symbol,
             lot=adjusted_lot,
+            version=self._version,
+            version_info=self.version_metadata,
         )
 
     def _buy(
@@ -614,10 +711,15 @@ class DynamicTradingAlgo:
         lot: float,
         profile: InstrumentProfile,
     ) -> TradeExecutionResult:
-        return self._paper_broker.execute(action, symbol, lot, profile)
+        result = self._paper_broker.execute(action, symbol, lot, profile)
+        result.version = self._version
+        result.version_info = self.version_metadata
+        return result
 
     def _normalise_response(self, response: Any, *, symbol: str, lot: float) -> TradeExecutionResult:
         if isinstance(response, TradeExecutionResult):
+            response.version = self._version
+            response.version_info = self.version_metadata
             return response
 
         retcode = getattr(response, "retcode", 0)
@@ -635,6 +737,8 @@ class DynamicTradingAlgo:
             lot=lot,
             price=price,
             raw_response=response,
+            version=self._version,
+            version_info=self.version_metadata,
         )
 
     def _extract_action(self, signal: Any) -> str:

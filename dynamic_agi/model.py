@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from copy import deepcopy
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, Mapping, Optional
 
 from dynamic_ai import (
@@ -15,6 +17,22 @@ from dynamic_ai import (
 )
 from dynamic_ai.core import PreparedMarketContext
 from dynamic_agi.self_improvement import DynamicSelfImprovement
+from dynamic_metadata import ModelVersion, VersionNumber
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+MODEL_VERSION_INFO = ModelVersion(
+    name="Dynamic AGI",
+    number=VersionNumber(major=0, minor=1),
+).with_source("dynamic_agi.model")
+MODEL_VERSION = MODEL_VERSION_INFO.tag
+
+
+def _default_version_info() -> Dict[str, Any]:
+    return MODEL_VERSION_INFO.as_dict()
 
 
 def _coerce_float(value: Any, default: float = 0.0) -> float:
@@ -91,6 +109,9 @@ class AGIOutput:
     market_making: Dict[str, float]
     diagnostics: AGIDiagnostics
     improvement: Optional[Dict[str, Any]] = None
+    version: str = MODEL_VERSION
+    version_info: Dict[str, Any] = field(default_factory=_default_version_info)
+    generated_at: datetime = field(default_factory=_utcnow)
 
     def to_dict(self) -> Dict[str, Any]:
         payload = {
@@ -104,7 +125,16 @@ class AGIOutput:
             payload["sizing"] = asdict(self.sizing)
         if self.improvement is not None:
             payload["improvement"] = self.improvement
+        payload["version"] = self.version
+        payload["version_info"] = deepcopy(self.version_info)
+        payload["generated_at"] = self.generated_at.astimezone(timezone.utc).isoformat()
         return payload
+
+    def __post_init__(self) -> None:
+        if self.generated_at.tzinfo is None:
+            self.generated_at = self.generated_at.replace(tzinfo=timezone.utc)
+        else:
+            self.generated_at = self.generated_at.astimezone(timezone.utc)
 
 
 class DynamicAGIModel:
@@ -122,6 +152,14 @@ class DynamicAGIModel:
         self.analysis = analysis or DynamicAnalysis()
         self.risk_manager = risk_manager or RiskManager()
         self.self_improvement = self_improvement
+        self.version = MODEL_VERSION
+        self.version_info = _default_version_info()
+
+    @property
+    def version_metadata(self) -> Dict[str, Any]:
+        """Return a copy of the model version metadata."""
+
+        return deepcopy(self.version_info)
 
     def evaluate(
         self,
@@ -177,6 +215,8 @@ class DynamicAGIModel:
                     sizing=sizing,
                     market_making=market_making,
                     diagnostics=diagnostics,
+                    version=self.version,
+                    version_info=self.version_metadata,
                 ),
                 performance=performance,
                 feedback_notes=feedback_notes,
@@ -196,4 +236,6 @@ class DynamicAGIModel:
             market_making=market_making,
             diagnostics=diagnostics,
             improvement=improvement_payload,
+            version=self.version,
+            version_info=self.version_metadata,
         )
