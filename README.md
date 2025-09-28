@@ -889,6 +889,16 @@ curl -s -X POST "$WEBHOOK_BASE" \
   -H 'content-type: application/json' -d '{"test":"ping"}'
 ```
 
+Confirm the tunnel helper wiring before exposing a localhost webhook via ngrok:
+
+```bash
+npm run smoke:tunnel -- --port 54321 --log=stdout
+```
+
+The smoke script runs the helper in dry-run mode, surfaces the resolved binary
+and arguments, and fails fast if overrides (such as `--port` or `--bin`) are not
+applied as expected.
+
 ## Local webhook testing
 
 Run Edge Functions locally without JWT verification to exercise webhooks:
@@ -909,6 +919,13 @@ standard tunnel:
 
 ```bash
 npm run tunnel:functions
+```
+
+If you only need to confirm the ngrok arguments or verify custom flags,
+run the command in dry-run mode:
+
+```bash
+npm run tunnel:functions -- --dry-run
 ```
 
 Share the resulting HTTPS endpoint with reviewers and map requests to the
