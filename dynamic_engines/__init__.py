@@ -79,6 +79,13 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_consciousness": ("DynamicConsciousness",),
     "dynamic_creative_thinking": ("DynamicCreativeThinking",),
     "dynamic_critical_thinking": ("DynamicCriticalThinking",),
+    "dynamic_demand": (
+        "DynamicDemandEngine",
+        "DemandProjection",
+        "DemandSignal",
+        "DemandSnapshot",
+        "DemandSummary",
+    ),
     "dynamic_effect": ("DynamicEffectEngine",),
     "dynamic_event": (
         "DynamicEventEngine",
@@ -155,6 +162,13 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     "dynamic_states": ("DynamicStateEngine",),
     "dynamic_stem_cell": ("DynamicStemCell",),
     "dynamic_syncronization": ("DynamicSyncronizationOrchestrator",),
+    "dynamic_supply": (
+        "DynamicSupplyEngine",
+        "SupplyAdjustment",
+        "SupplySignal",
+        "SupplySnapshot",
+        "SupplySummary",
+    ),
     "dynamic_text": ("DynamicTextEngine",),
     "dynamic_thinking": ("DynamicThinkingEngine",),
     "dynamic_token": ("DynamicTreasuryAlgo",),
