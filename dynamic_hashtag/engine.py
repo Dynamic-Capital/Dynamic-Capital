@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from itertools import islice
 from math import exp
 from statistics import fmean
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
@@ -159,6 +160,10 @@ class HashtagContext:
     sentiment_weight: float = 0.12
     topic_emphasis: float = 0.12
     anchor_time: datetime | None = None
+    target_topic_set: frozenset[str] = field(init=False, repr=False)
+    avoid_hashtag_set: frozenset[str] = field(init=False, repr=False)
+    preferred_platform_set: frozenset[str] = field(init=False, repr=False)
+    blocked_platform_set: frozenset[str] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         self.target_topics = _normalise_hashtags(self.target_topics)
@@ -175,10 +180,14 @@ class HashtagContext:
         self.topic_emphasis = _clamp(float(self.topic_emphasis))
         if self.anchor_time is not None:
             self.anchor_time = _ensure_timezone(self.anchor_time)
+        object.__setattr__(self, "target_topic_set", frozenset(self.target_topics))
+        object.__setattr__(self, "avoid_hashtag_set", frozenset(self.avoid_hashtags))
+        object.__setattr__(self, "preferred_platform_set", frozenset(self.preferred_platforms))
+        object.__setattr__(self, "blocked_platform_set", frozenset(self.blocked_platforms))
 
     @property
     def has_targets(self) -> bool:
-        return bool(self.target_topics)
+        return bool(self.target_topic_set)
 
 
 @dataclass(slots=True)
@@ -259,6 +268,12 @@ class HashtagDigest:
     )
     highlights: list[HashtagHighlight] = field(default_factory=list)
     metrics: MutableMapping[str, float] = field(default_factory=dict)
+    _highlight_index: MutableMapping[str, HashtagHighlight] = field(
+        init=False, repr=False
+    )
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "_highlight_index", {})
 
     def add(
         self, hashtag: str, score: float, signals: Iterable[HashtagSignal]
@@ -266,9 +281,9 @@ class HashtagDigest:
         bundled = tuple(signals)
         self.hashtag_scores[hashtag] = score
         self.supporting_signals[hashtag] = bundled
-        self.highlights.append(
-            HashtagHighlight.from_signals(hashtag, score, bundled)
-        )
+        highlight = HashtagHighlight.from_signals(hashtag, score, bundled)
+        self.highlights.append(highlight)
+        self._highlight_index[hashtag] = highlight
 
     def ranked_hashtags(self) -> tuple[str, ...]:
         ordered = sorted(
@@ -281,18 +296,13 @@ class HashtagDigest:
         return ordered[: self.context.highlight_limit]
 
     def highlight_for(self, hashtag: str) -> HashtagHighlight | None:
-        for highlight in self.highlights:
-            if highlight.hashtag == hashtag:
-                return highlight
-        return None
+        return self._highlight_index.get(hashtag)
 
     def as_payload(self) -> Mapping[str, object]:
         ordered = sorted(
             self.hashtag_scores.items(), key=lambda item: item[1], reverse=True
         )
-        highlight_map = {
-            item.hashtag: item for item in self.highlights
-        }
+        highlight_map = self._highlight_index
         highlights = [
             highlight_map[tag].to_dict()
             for tag, _ in ordered[: self.context.highlight_limit]
@@ -347,6 +357,8 @@ class DynamicHashtagEngine:
     def generate(
         self, context: HashtagContext, *, sample_size: int = 180
     ) -> HashtagDigest:
+        if sample_size <= 0:
+            raise ValueError("sample_size must be positive")
         digest = HashtagDigest(context)
         if not self._history:
             digest.metrics.update(
@@ -363,13 +375,14 @@ class DynamicHashtagEngine:
             return digest
 
         anchor = context.anchor_time or _utcnow()
-        candidates = list(self._history)[-sample_size:]
+        candidates = self._recent_signals(sample_size)
         hashtag_signals: dict[str, list[HashtagSignal]] = defaultdict(list)
         hashtag_scores: dict[str, float] = {}
         effective_signals: list[HashtagSignal] = []
+        blocked_platforms = context.blocked_platform_set
 
         for signal in candidates:
-            if signal.platform in context.blocked_platforms:
+            if signal.platform in blocked_platforms:
                 continue
             score = self._score_signal(signal, context, anchor)
             if score <= 0.0:
@@ -423,10 +436,19 @@ class DynamicHashtagEngine:
         )
         return digest
 
+    def _recent_signals(self, sample_size: int) -> tuple[HashtagSignal, ...]:
+        size = len(self._history)
+        if not size:
+            return ()
+        if sample_size >= size:
+            return tuple(self._history)
+        start = size - sample_size
+        return tuple(islice(self._history, start, size))
+
     def _score_signal(
         self, signal: HashtagSignal, context: HashtagContext, anchor: datetime
     ) -> float:
-        if signal.hashtag in context.avoid_hashtags:
+        if signal.hashtag in context.avoid_hashtag_set:
             return 0.0
 
         volume_component = min(signal.volume / self._volume_normaliser, 1.0) * 0.34
@@ -446,12 +468,14 @@ class DynamicHashtagEngine:
             + sentiment_component
         )
 
-        if signal.platform in context.preferred_platforms:
+        if signal.platform in context.preferred_platform_set:
             base += 0.04
 
         if context.has_targets:
-            target_set = set(context.target_topics)
-            if signal.hashtag in target_set or target_set & set(signal.related_hashtags):
+            target_set = context.target_topic_set
+            if signal.hashtag in target_set or any(
+                tag in target_set for tag in signal.related_hashtags
+            ):
                 base += context.topic_emphasis
 
         age_hours = max((anchor - signal.timestamp).total_seconds() / 3600.0, 0.0)
@@ -472,7 +496,7 @@ class DynamicHashtagEngine:
     ) -> float:
         if not highlights or not context.has_targets:
             return 0.0
-        target_set = set(context.target_topics)
+        target_set = context.target_topic_set
         aligned = 0
         for hashtag in highlights:
             if hashtag in target_set:
@@ -480,7 +504,10 @@ class DynamicHashtagEngine:
                 continue
 
             related_sequences = signals.get(hashtag, ())
-            if any(target_set & set(signal.related_hashtags) for signal in related_sequences):
+            if any(
+                any(tag in target_set for tag in signal.related_hashtags)
+                for signal in related_sequences
+            ):
                 aligned += 1
 
         return aligned / len(highlights)
