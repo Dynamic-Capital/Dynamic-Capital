@@ -202,6 +202,28 @@ const TASK_LIBRARY = {
       'Executes the aggregated formatting, linting, and test routine used by the test-and-pr workflow.',
     ],
   },
+  'nft-collectible-validate': {
+    id: 'nft-collectible-validate',
+    label:
+      'Validate NFT checklist structure (node scripts/checklists/nft-collectible-validate.mjs)',
+    command: 'node scripts/checklists/nft-collectible-validate.mjs',
+    optional: false,
+    docs: ['docs/nft-collectible-launch-checklist.md'],
+    notes: [
+      'Ensures required sections and checklist items remain intact for the NFT launch playbook.',
+    ],
+  },
+  'nft-collectible-tasks': {
+    id: 'nft-collectible-tasks',
+    label:
+      'Print NFT checklist tasks (node scripts/checklists/nft-collectible-tasks.mjs)',
+    command: 'node scripts/checklists/nft-collectible-tasks.mjs',
+    optional: true,
+    docs: ['docs/nft-collectible-launch-checklist.md'],
+    notes: [
+      'Outputs grouped checklist items for planning docs or project trackers.',
+    ],
+  },
 };
 
 const CHECKLISTS = {
@@ -284,6 +306,19 @@ const CHECKLISTS = {
       'check-linkage',
       'check-webhook',
       { task: 'smoke-miniapp', optional: true },
+    ],
+  },
+  'nft-collectible': {
+    name: 'NFT Collectible Launch Checklist',
+    doc: 'docs/nft-collectible-launch-checklist.md',
+    description: 'Structural validations and exports for story-driven NFT drops.',
+    tasks: [
+      'nft-collectible-validate',
+      {
+        task: 'nft-collectible-tasks',
+        optional: true,
+        note: 'Generates a section-organized task list for external trackers.',
+      },
     ],
   },
 };

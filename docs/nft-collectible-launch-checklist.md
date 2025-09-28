@@ -5,6 +5,10 @@ actionable tasks. Use it to orchestrate concept development, metadata
 engineering, community activation, and post-mint support so each collectible
 feels unique while belonging to a cohesive universe.
 
+> Automation: `npm run checklists -- --checklist nft-collectible` validates the
+> structure of this guide and prints section-organized task lists for planning
+> docs or project trackers.
+
 ## 1. Concept Foundations
 
 - [ ] Document the project vision, target audience, and long-term roadmap.
