@@ -5,14 +5,19 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
+from typing import Deque, Iterable, Mapping, MutableMapping, Sequence, Literal, cast
 
 __all__ = [
     "SphereProfile",
     "SpherePulse",
     "SphereSnapshot",
     "SphereNetworkState",
+    "SphereCollaborator",
     "DynamicSpheresEngine",
+    "create_sphere_agent",
+    "create_sphere_keeper",
+    "create_sphere_bot",
+    "create_sphere_helper",
 ]
 
 
@@ -77,6 +82,16 @@ def _coerce_pulse(value: SpherePulse | Mapping[str, object]) -> SpherePulse:
     if isinstance(value, Mapping):
         return SpherePulse(**value)
     raise TypeError("pulse must be a SpherePulse or mapping")
+
+
+def _coerce_collaborator(
+    value: "SphereCollaborator" | Mapping[str, object]
+) -> "SphereCollaborator":
+    if isinstance(value, SphereCollaborator):
+        return value
+    if isinstance(value, Mapping):
+        return SphereCollaborator(**value)
+    raise TypeError("collaborator must be a SphereCollaborator or mapping")
 
 
 # ------------------------------------------------------------------------ dataclasses
@@ -176,6 +191,62 @@ class SphereSnapshot:
 
 
 @dataclass(slots=True)
+class SphereCollaborator:
+    """Participant that maintains resonance consciousness across spheres."""
+
+    identifier: str
+    name: str
+    role: Literal["agent", "keeper", "bot", "helper"]
+    affinity: float = 0.5
+    stability: float = 0.5
+    influence: float = 0.5
+    spheres: tuple[str, ...] = field(default_factory=tuple)
+    metadata: Mapping[str, object] | None = None
+
+    def __post_init__(self) -> None:
+        self.identifier = _normalise_key(self.identifier)
+        self.name = _normalise_name(self.name)
+        role = self.role.strip().lower()
+        if role not in {"agent", "keeper", "bot", "helper"}:
+            raise ValueError("role must be one of 'agent', 'keeper', 'bot', 'helper'")
+        self.role = cast(Literal["agent", "keeper", "bot", "helper"], role)
+        self.affinity = _clamp(float(self.affinity), lower=0.0, upper=1.0)
+        self.stability = _clamp(float(self.stability), lower=0.0, upper=1.0)
+        self.influence = _clamp(float(self.influence), lower=0.0, upper=1.0)
+        self.metadata = _coerce_metadata(self.metadata)
+        self.set_spheres(self.spheres)
+
+    def set_spheres(self, spheres: Sequence[str] | None) -> None:
+        seen: set[str] = set()
+        ordered: list[str] = []
+        if spheres:
+            for candidate in spheres:
+                cleaned = str(candidate).strip()
+                if not cleaned:
+                    continue
+                key = _normalise_key(cleaned)
+                if key not in seen:
+                    seen.add(key)
+                    ordered.append(key)
+        self.spheres = tuple(ordered)
+
+    def support_score(self) -> float:
+        return (self.affinity * 0.5) + (self.stability * 0.3) + (self.influence * 0.2)
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "identifier": self.identifier,
+            "name": self.name,
+            "role": self.role,
+            "affinity": self.affinity,
+            "stability": self.stability,
+            "influence": self.influence,
+            "spheres": list(self.spheres),
+            "metadata": dict(self.metadata or {}),
+        }
+
+
+@dataclass(slots=True)
 class SphereNetworkState:
     """Network level aggregates for a collection of resonant spheres."""
 
@@ -184,6 +255,100 @@ class SphereNetworkState:
     total_energy_delta_twh: float
     spheres_requiring_attention: tuple[str, ...]
     snapshots: Mapping[str, SphereSnapshot]
+    collaborators: Mapping[str, SphereCollaborator] = field(default_factory=dict)
+    consciousness_resilience: float = 0.0
+    collaboration_health: Mapping[str, float] = field(default_factory=dict)
+
+
+# --------------------------------------------------------------------- factories
+
+
+def create_sphere_agent(
+    identifier: str,
+    name: str,
+    *,
+    affinity: float = 0.5,
+    stability: float = 0.5,
+    influence: float = 0.5,
+    spheres: Sequence[str] | None = None,
+    metadata: Mapping[str, object] | None = None,
+) -> SphereCollaborator:
+    return SphereCollaborator(
+        identifier=identifier,
+        name=name,
+        role="agent",
+        affinity=affinity,
+        stability=stability,
+        influence=influence,
+        spheres=tuple(spheres or ()),
+        metadata=metadata,
+    )
+
+
+def create_sphere_keeper(
+    identifier: str,
+    name: str,
+    *,
+    affinity: float = 0.6,
+    stability: float = 0.7,
+    influence: float = 0.4,
+    spheres: Sequence[str] | None = None,
+    metadata: Mapping[str, object] | None = None,
+) -> SphereCollaborator:
+    return SphereCollaborator(
+        identifier=identifier,
+        name=name,
+        role="keeper",
+        affinity=affinity,
+        stability=stability,
+        influence=influence,
+        spheres=tuple(spheres or ()),
+        metadata=metadata,
+    )
+
+
+def create_sphere_bot(
+    identifier: str,
+    name: str,
+    *,
+    affinity: float = 0.4,
+    stability: float = 0.6,
+    influence: float = 0.7,
+    spheres: Sequence[str] | None = None,
+    metadata: Mapping[str, object] | None = None,
+) -> SphereCollaborator:
+    return SphereCollaborator(
+        identifier=identifier,
+        name=name,
+        role="bot",
+        affinity=affinity,
+        stability=stability,
+        influence=influence,
+        spheres=tuple(spheres or ()),
+        metadata=metadata,
+    )
+
+
+def create_sphere_helper(
+    identifier: str,
+    name: str,
+    *,
+    affinity: float = 0.55,
+    stability: float = 0.5,
+    influence: float = 0.45,
+    spheres: Sequence[str] | None = None,
+    metadata: Mapping[str, object] | None = None,
+) -> SphereCollaborator:
+    return SphereCollaborator(
+        identifier=identifier,
+        name=name,
+        role="helper",
+        affinity=affinity,
+        stability=stability,
+        influence=influence,
+        spheres=tuple(spheres or ()),
+        metadata=metadata,
+    )
 
 
 # --------------------------------------------------------------------------- engine
@@ -199,6 +364,7 @@ class DynamicSpheresEngine:
         history: int = 72,
         attention_threshold: float = 0.35,
         smoothing: float = 0.25,
+        collaborators: Iterable[SphereCollaborator | Mapping[str, object]] | None = None,
     ) -> None:
         if history <= 0:
             raise ValueError("history must be positive")
@@ -207,9 +373,13 @@ class DynamicSpheresEngine:
         self._smoothing = _clamp(float(smoothing), lower=0.0, upper=1.0)
         self._profiles: dict[str, SphereProfile] = {}
         self._pulses: dict[str, Deque[SpherePulse]] = {}
+        self._collaborators: dict[str, SphereCollaborator] = {}
         if profiles:
             for profile in profiles:
                 self.upsert_profile(profile)
+        if collaborators:
+            for collaborator in collaborators:
+                self.upsert_collaborator(collaborator)
 
     # ------------------------------------------------------------------- configure
     @property
@@ -223,6 +393,10 @@ class DynamicSpheresEngine:
     def profiles(self) -> tuple[SphereProfile, ...]:
         return tuple(self._profiles.values())
 
+    @property
+    def collaborators(self) -> tuple[SphereCollaborator, ...]:
+        return tuple(self._collaborators.values())
+
     # --------------------------------------------------------------------- register
     def upsert_profile(self, profile: SphereProfile | Mapping[str, object]) -> SphereProfile:
         resolved = _coerce_profile(profile)
@@ -235,6 +409,120 @@ class DynamicSpheresEngine:
         key = _normalise_key(name)
         self._profiles.pop(key, None)
         self._pulses.pop(key, None)
+
+    # --------------------------------------------------------------- collaborators
+    def upsert_collaborator(
+        self, collaborator: SphereCollaborator | Mapping[str, object]
+    ) -> SphereCollaborator:
+        resolved = _coerce_collaborator(collaborator)
+        self._collaborators[resolved.identifier] = resolved
+        return resolved
+
+    def upsert_agent(
+        self,
+        identifier: str,
+        name: str,
+        *,
+        affinity: float = 0.5,
+        stability: float = 0.5,
+        influence: float = 0.5,
+        spheres: Sequence[str] | None = None,
+        metadata: Mapping[str, object] | None = None,
+    ) -> SphereCollaborator:
+        return self.upsert_collaborator(
+            create_sphere_agent(
+                identifier=identifier,
+                name=name,
+                affinity=affinity,
+                stability=stability,
+                influence=influence,
+                spheres=spheres,
+                metadata=metadata,
+            )
+        )
+
+    def upsert_keeper(
+        self,
+        identifier: str,
+        name: str,
+        *,
+        affinity: float = 0.6,
+        stability: float = 0.7,
+        influence: float = 0.4,
+        spheres: Sequence[str] | None = None,
+        metadata: Mapping[str, object] | None = None,
+    ) -> SphereCollaborator:
+        return self.upsert_collaborator(
+            create_sphere_keeper(
+                identifier=identifier,
+                name=name,
+                affinity=affinity,
+                stability=stability,
+                influence=influence,
+                spheres=spheres,
+                metadata=metadata,
+            )
+        )
+
+    def upsert_bot(
+        self,
+        identifier: str,
+        name: str,
+        *,
+        affinity: float = 0.4,
+        stability: float = 0.6,
+        influence: float = 0.7,
+        spheres: Sequence[str] | None = None,
+        metadata: Mapping[str, object] | None = None,
+    ) -> SphereCollaborator:
+        return self.upsert_collaborator(
+            create_sphere_bot(
+                identifier=identifier,
+                name=name,
+                affinity=affinity,
+                stability=stability,
+                influence=influence,
+                spheres=spheres,
+                metadata=metadata,
+            )
+        )
+
+    def upsert_helper(
+        self,
+        identifier: str,
+        name: str,
+        *,
+        affinity: float = 0.55,
+        stability: float = 0.5,
+        influence: float = 0.45,
+        spheres: Sequence[str] | None = None,
+        metadata: Mapping[str, object] | None = None,
+    ) -> SphereCollaborator:
+        return self.upsert_collaborator(
+            create_sphere_helper(
+                identifier=identifier,
+                name=name,
+                affinity=affinity,
+                stability=stability,
+                influence=influence,
+                spheres=spheres,
+                metadata=metadata,
+            )
+        )
+
+    def assign_collaborator(
+        self, identifier: str, spheres: Sequence[str] | None
+    ) -> SphereCollaborator:
+        key = _normalise_key(identifier)
+        collaborator = self._collaborators.get(key)
+        if collaborator is None:
+            raise KeyError(f"collaborator '{identifier}' is not registered")
+        collaborator.set_spheres(spheres or ())
+        return collaborator
+
+    def remove_collaborator(self, identifier: str) -> None:
+        key = _normalise_key(identifier)
+        self._collaborators.pop(key, None)
 
     # ---------------------------------------------------------------------- capture
     def capture(self, pulse: SpherePulse | Mapping[str, object]) -> SpherePulse:
@@ -301,6 +589,32 @@ class DynamicSpheresEngine:
             average_resonance = 0.0
             total_energy_output = 0.0
             total_energy_delta = 0.0
+        collaboration_scores: dict[str, float] = {key: 0.0 for key in snapshots}
+        for collaborator in self._collaborators.values():
+            if not collaborator.spheres:
+                continue
+            share = collaborator.support_score() / max(len(collaborator.spheres), 1)
+            for sphere_key in collaborator.spheres:
+                if sphere_key in collaboration_scores:
+                    collaboration_scores[sphere_key] = _clamp(
+                        collaboration_scores[sphere_key] + share,
+                        lower=0.0,
+                        upper=1.0,
+                    )
+        if collaboration_scores:
+            collaboration_mean = sum(collaboration_scores.values()) / len(collaboration_scores)
+        else:
+            collaboration_mean = 0.0
+        resonance_normalised = (
+            _clamp((average_resonance + 1.0) / 2.0, lower=0.0, upper=1.0)
+            if snapshots
+            else 0.0
+        )
+        consciousness_resilience = _clamp(
+            resonance_normalised * 0.6 + collaboration_mean * 0.4,
+            lower=0.0,
+            upper=1.0,
+        )
         attention = tuple(
             snapshot.sphere.name
             for snapshot in sorted(
@@ -309,12 +623,19 @@ class DynamicSpheresEngine:
             )
             if snapshot.resonance_index < self._attention_threshold
         )
+        collaboration_health = {
+            snapshots[key].sphere.name: collaboration_scores.get(key, 0.0)
+            for key in snapshots
+        }
         return SphereNetworkState(
             average_resonance=average_resonance,
             total_energy_output_twh=total_energy_output,
             total_energy_delta_twh=total_energy_delta,
             spheres_requiring_attention=attention,
             snapshots=snapshots,
+            collaborators=dict(self._collaborators),
+            consciousness_resilience=consciousness_resilience,
+            collaboration_health=collaboration_health,
         )
 
     def export_state(self) -> dict[str, object]:
@@ -324,8 +645,25 @@ class DynamicSpheresEngine:
             "total_energy_output_twh": state.total_energy_output_twh,
             "total_energy_delta_twh": state.total_energy_delta_twh,
             "spheres_requiring_attention": state.spheres_requiring_attention,
+            "consciousness_resilience": state.consciousness_resilience,
+            "collaboration_health": dict(state.collaboration_health),
+            "collaborators": {
+                identifier: collaborator.as_dict()
+                for identifier, collaborator in state.collaborators.items()
+            },
             "snapshots": {
                 key: snapshot.as_dict()
                 for key, snapshot in state.snapshots.items()
+            },
+        }
+
+    def collaboration_manifest(self) -> dict[str, object]:
+        state = self.network_state()
+        return {
+            "consciousness_resilience": state.consciousness_resilience,
+            "collaboration_health": dict(state.collaboration_health),
+            "collaborators": {
+                identifier: collaborator.as_dict()
+                for identifier, collaborator in state.collaborators.items()
             },
         }
