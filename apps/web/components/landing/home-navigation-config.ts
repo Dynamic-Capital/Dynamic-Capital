@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Coins,
   Compass,
+  Globe2,
   LayoutDashboard,
   LineChart,
   Rocket,
@@ -16,6 +17,7 @@ export const HOME_NAV_SECTION_IDS = {
   token: "dct-token",
   wallet: "dynamic-wallet",
   markets: "live-markets",
+  forecasts: "global-forecasts",
   community: "community-trust",
   miniApp: "investor-mini-app",
   api: "api-backend",
@@ -64,6 +66,13 @@ export const HOME_NAV_SECTIONS: HomeNavSection[] = [
     description: "Watch Gold, Forex, and Crypto in real time.",
     icon: LineChart,
     href: `/#${HOME_NAV_SECTION_IDS.markets}`,
+  },
+  {
+    id: "forecasts",
+    label: "Forecasts",
+    description: "Plan ahead with macro and market projections.",
+    icon: Globe2,
+    href: `/#${HOME_NAV_SECTION_IDS.forecasts}`,
   },
   {
     id: "community",

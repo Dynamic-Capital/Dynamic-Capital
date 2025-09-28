@@ -98,6 +98,59 @@ const MARKET_WIDGETS = [
   },
 ];
 
+const FORECAST_HERO = {
+  tag: "Global forecasts",
+  heading: "Forecast coverage for 30,000 markets",
+  description:
+    "Access forecasts for 30,000 financial markets and 4,000+ key economic indicators covering the next four quarters or the next three years.",
+  updateNote:
+    "Our proprietary macroeconomic model fuses analyst insight, cross-country correlations, and logical indicator relationships, refreshing forecasts as soon as new data prints.",
+} as const;
+
+const FORECAST_HIGHLIGHTS = [
+  "Quarterly and three-year outlooks across global asset classes.",
+  "4,000+ macro indicators linked through cross-country correlations.",
+  "Continuously updated whenever new economic data is released.",
+] as const;
+
+const FORECAST_CATEGORIES = [
+  {
+    label: "Countries",
+    description:
+      "Growth, inflation, and policy paths for 150+ economies.",
+  },
+  {
+    label: "Indicators",
+    description:
+      "Leading, coincident, and lagging signals that shape strategy.",
+  },
+  {
+    label: "Commodities",
+    description:
+      "Energy, metals, and agricultural curves tied to supply shifts.",
+  },
+  {
+    label: "Indexes",
+    description:
+      "Equity and volatility benchmarks synced to macro drivers.",
+  },
+  {
+    label: "Currencies",
+    description:
+      "FX crosses modeled on rate differentials and trade balances.",
+  },
+  {
+    label: "Crypto",
+    description:
+      "Digital asset trajectories bridging on-chain and macro flows.",
+  },
+  {
+    label: "Bonds",
+    description:
+      "Sovereign and credit curves linked to inflation and growth.",
+  },
+] as const;
+
 const COMMUNITY_MESSAGES = {
   dhivehi:
     "ޑައިނެމިކް ކެޕިޓަލް ކޮމިޔުނިޓީގައި އެންމެންޓްސް، ޓްރެޑިންގް ސިގްނަލްސް، ޓްރެޖަރީ ޑޭޓާ ދުވަހުގެ އިތުރަށް ދިމާދުގައި ބަލާލެއްވުން.",
@@ -592,6 +645,87 @@ export function MultiLlmLandingPage() {
           <Row gap="16" wrap className="gap-6">
             {MARKET_WIDGETS.map((widget) => (
               <TradingViewWidget key={widget.symbol} {...widget} />
+            ))}
+          </Row>
+        </Column>
+      </Section>
+
+      <Section anchor={HOME_NAV_SECTION_IDS.forecasts}>
+        <Column gap="20">
+          <Column gap="12">
+            <Tag variant="brand" size="m">
+              {FORECAST_HERO.tag}
+            </Tag>
+            <Heading variant="heading-strong-m">
+              {FORECAST_HERO.heading}
+            </Heading>
+            <Text
+              variant="body-default-m"
+              onBackground="neutral-weak"
+              wrap="balance"
+              className="max-w-3xl"
+            >
+              {FORECAST_HERO.description}
+            </Text>
+            <Text
+              variant="body-default-s"
+              onBackground="neutral-weak"
+              wrap="balance"
+              className="max-w-3xl"
+            >
+              {FORECAST_HERO.updateNote}
+            </Text>
+          </Column>
+          <Column gap="12" className="max-w-3xl">
+            <Heading variant="heading-strong-s">
+              What sets our forecasts apart
+            </Heading>
+            <Column gap="8" as="ul">
+              {FORECAST_HIGHLIGHTS.map((highlight) => (
+                <Row
+                  key={highlight}
+                  gap="12"
+                  as="li"
+                  horizontal="start"
+                  className="items-start"
+                >
+                  <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
+                    <Icon name="check" size="s" />
+                  </span>
+                  <Text
+                    variant="body-default-m"
+                    onBackground="neutral-strong"
+                    wrap="balance"
+                  >
+                    {highlight}
+                  </Text>
+                </Row>
+              ))}
+            </Column>
+          </Column>
+          <Row gap="16" wrap className="gap-6">
+            {FORECAST_CATEGORIES.map((category) => (
+              <Column
+                key={category.label}
+                gap="12"
+                padding="20"
+                radius="l"
+                background="surface"
+                border="neutral-alpha-weak"
+                data-border="rounded"
+                className="flex-1 min-w-[220px] bg-background/70 shadow-lg shadow-primary/5"
+              >
+                <Heading variant="heading-strong-xs">
+                  {category.label}
+                </Heading>
+                <Text
+                  variant="body-default-s"
+                  onBackground="neutral-weak"
+                  wrap="balance"
+                >
+                  {category.description}
+                </Text>
+              </Column>
             ))}
           </Row>
         </Column>
