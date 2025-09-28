@@ -41,15 +41,24 @@ in your PR/issue notes so reviewers can see the evidence.
       ensure new environment keys are captured locally. _Ran with the automation
       helper; 106 missing keys were appended to both `.env` and `.env.local`
       from the template so local parity is restored._
-- [x] Run the repository test suite (`npm run test`) so Deno and Next.js smoke
-      tests cover the latest changes. _Latest run passed 90 tests with one
-      ignored case, matching the deno-based CI suite._
+- [ ] Run the repository test suite (`npm run test`) so Deno and Next.js smoke
+      tests cover the latest changes. _Hold this run until the fix-and-check
+      loop succeeds; otherwise the lint failures mask any functional
+      regressions the test suite might surface. Once the lint blockers are
+      cleared, capture the command output as evidence in the PR description._
 - [ ] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to
-      apply formatting and rerun Deno format/lint/type checks. _Run surfaced
-      pre-existing lint violations (for example `require-await` on storage
-      helpers in `tests/supabase-client-stub.ts`, `no-import-prefix` in Supabase
-      function entrypoints, and `no-explicit-any` usage in web hooks), so the
-      script still fails pending cleanup._
+      apply formatting and rerun Deno format/lint/type checks. _2025-09-27 run
+      still fails: `deno lint` emits hundreds of existing violations. Burn
+      down the debt in this order so each pass retires an error category:
+      1. Remove redundant `async` keywords flagged by `require-await` across
+         Supabase tests, Telegram handlers, and Next.js config files.
+      2. Replace `any` annotations with concrete interfaces (queue mocks,
+         analytics hooks, Telegram recompute helpers) or prefix unused mocks
+         with `_` to satisfy `no-explicit-any` and `no-unused-vars`.
+      3. Convert inline `https://` imports under `supabase/functions` to bare
+         specifiers declared in `deno.json` so `no-import-prefix` passes.
+      4. Patch empty `catch {}` blocks and dead variables in Node scripts so
+         `no-empty` and `no-unused-vars` stop firing._
 - [x] Run the aggregated verification suite (`npm run verify`) for the bundled
       static, runtime, and integration safety checks. _`verify_all.sh` completed
       successfully and refreshed `.out/verify_report.md` with the latest
@@ -59,21 +68,22 @@ in your PR/issue notes so reviewers can see the evidence.
       between deployments. _Check completed via `npx deno`; 17 URLs were scanned
       and none deviated from the expected host pattern._
 - [ ] Check linkage across environment variables and outbound URLs
-      (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Helper
-      now seeds Deno with the system trust store and proxy bundle so
-      `getWebhookInfo.ok` resolves `true`, reporting the registered webhook as
-      `https://qeejuomcapbdlhnjqjcc.supabase.co/functions/v1/telegram-bot`. The
-      Supabase `linkage-audit` endpoint at
-      `https://qeejuomcapbdlhnjqjcc.functions.supabase.co/linkage-audit`
-      continues to time out, so the host alignment work is still outstanding._
+      (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Latest
+      run (2025-09-27) completes the webhook lookup with the bundled trust
+      stores but still times out hitting
+      `https://qeejuomcapbdlhnjqjcc.functions.supabase.co/linkage-audit`. Work
+      through the timeout by (a) confirming the Supabase project reference and
+      service role in `.env`, (b) manually curling the `linkage-audit` edge
+      function to verify DNS and firewall alignment, and (c) rerunning the
+      script with `DEBUG=1` so the failing request payload and headers are
+      logged for Supabase support._
 - [ ] Verify the Telegram webhook configuration
       (`deno run -A scripts/check-webhook.ts`) so bot traffic hits the expected
-      endpoint. _TLS `UnknownIssuer` is resolved by forcing the helper to trust
-      the system + proxy CA bundles and honoring the proxy env vars; the script
-      now completes without `--unsafely-ignore-certificate-errors` and confirms
-      Telegram reports the webhook URL above with zero pending updates. Host
-      mismatch between the registered URL and the expected functions hostname
-      remains to be addressed._
+      endpoint. _Attempt on 2025-09-27 stops early because `TELEGRAM_BOT_TOKEN`
+      is not populated. To unblock the automation: 1) load the bot token and
+      chat ID secrets into `.env.local`; 2) verify the secrets with
+      `npm run env:validate`; 3) rerun the checker and capture the reported
+      webhook URL plus certificate status for the release notes._
 - [ ] _Optional:_ Run the mini app smoke test
       (`deno run -A scripts/smoke-miniapp.ts`) to mirror the go-live walkthrough
       end-to-end. _Requires `FUNCTIONS_BASE` to target a deployed Supabase Edge
@@ -86,8 +96,11 @@ in your PR/issue notes so reviewers can see the evidence.
 
 1. [ ] Complete the Supabase CLI workflow
        (`npx supabase login && supabase link && supabase db push`) or run
-       `bash scripts/supabase-cli-workflow.sh` with the required credentials
-       exported.
+       `bash scripts/supabase-cli-workflow.sh`. The helper now loads
+       `.env.local`/`.env` for `SUPABASE_ACCESS_TOKEN`,
+       `SUPABASE_DB_PASSWORD`, and `SUPABASE_PROJECT_REF` (when available) and
+       can deploy a comma-separated list of edge functions when
+       `SUPABASE_DEPLOY_FUNCTIONS` is set.
 2. [ ] Refresh or open the pending PR ensuring CI checks pass
        (`deno task typecheck`, `npm run test`, `npm run audit`, `deno task ci`).
 3. [ ] Enable auto-merge with the required branch protections.
