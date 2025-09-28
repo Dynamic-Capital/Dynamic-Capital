@@ -44,6 +44,7 @@ key.
 | 15       | [`Dynamic Trading Algo (DTA) Improvement Checklist`](./dynamic-trading-algo-improvement-checklist.md) | Tune Smart Money Concepts configuration & QA loops                               | Iterate on BOS/liquidity heuristics across config, analyzers, and delivery            | —                     |
 | 16       | [`ISO 9241 Environment Alignment Checklist`](./iso9241_environment_checklist.md)                      | ISO 9241-110-aligned review of environments, branches, builds, and configuration | Audit deployment hygiene against usability principles                                 | —                     |
 | 17       | [`CoinGecko Listing Readiness Checklist`](./coingecko-listing-checklist.md)                           | Token listing evidence, market data, and compliance artifacts                    | Prepare the application package for a CoinGecko listing                               | —                     |
+| 18       | [`NFT Collectible Launch Checklist`](./nft-collectible-launch-checklist.md)                           | End-to-end preparation for story-driven NFT drops                                | Plan concept, metadata, utility, and community execution for a new collection         | —                     |
 
 ## Project delivery (priorities 1–3)
 
@@ -108,6 +109,9 @@ key.
 - **[`CoinGecko Listing Readiness Checklist`](./coingecko-listing-checklist.md)**
   – compiles the evidence, documentation, and market data reviewers request
   during the CoinGecko token listing process.
+- **[`NFT Collectible Launch Checklist`](./nft-collectible-launch-checklist.md)**
+  – orchestrates trait design, storytelling, utility planning, and community
+  activation for new NFT collections.
 
 ## Keep documentation in sync
 
