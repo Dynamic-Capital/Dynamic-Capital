@@ -8,11 +8,13 @@ from algorithms.python.dynamic_ai_sync import (
     AlgorithmSyncAdapter,
     DynamicAISynchroniser,
     dynamic_algo_sync_adapter,
+    run_dynamic_agent_cycle,
     run_dynamic_algo_alignment,
 )
 from algorithms.python.multi_llm import LLMConfig
 from dynamic_algo.trading_core import SUCCESS_RETCODE, TradeExecutionResult
 from dynamic_token.treasury import TreasuryEvent
+from dynamic_ai import AISignal, ExecutionAgentResult, ResearchAgentResult, RiskAgentResult, reset_dynamic_start_agents
 
 
 class StubClient:
@@ -310,3 +312,93 @@ def test_dynamic_algo_sync_adapter_wraps_alignment() -> None:
     assert payload["trade"]["symbol"] == "GBPUSD"
     assert adapter_result.metadata["chain"] == ("research", "execution", "risk", "trading")
 
+
+
+def test_run_dynamic_agent_cycle_uses_dynamic_start_agents() -> None:
+    reset_dynamic_start_agents()
+
+    research_calls = {"count": 0}
+    execution_calls = {"count": 0}
+    risk_calls = {"count": 0}
+
+    def make_research_agent() -> Any:
+        class StubResearch:
+            name = "research"
+
+            def run(self, payload: Mapping[str, Any]) -> ResearchAgentResult:
+                research_calls["count"] += 1
+                return ResearchAgentResult(
+                    agent="research",
+                    rationale="insight",
+                    confidence=0.62,
+                    analysis={"primary_driver": "momentum"},
+                )
+
+        return StubResearch()
+
+    def make_execution_agent() -> Any:
+        class StubExecution:
+            name = "execution"
+
+            def run(self, payload: Mapping[str, Any]) -> ExecutionAgentResult:
+                execution_calls["count"] += 1
+                signal = AISignal(action="BUY", confidence=0.7, reasoning="fusion")
+                return ExecutionAgentResult(
+                    agent="execution",
+                    rationale="fusion",
+                    confidence=signal.confidence,
+                    signal=signal,
+                    context={"analysis_primary_driver": "momentum"},
+                )
+
+        return StubExecution()
+
+    class StubRisk:
+        name = "risk"
+
+        def run(self, payload: Mapping[str, Any]) -> RiskAgentResult:
+            risk_calls["count"] += 1
+            return RiskAgentResult(
+                agent="risk",
+                rationale="guardrails",
+                confidence=0.55,
+                adjusted_signal={"action": "BUY", "confidence": 0.55, "risk_notes": ("hedge",)},
+                sizing=None,
+                hedge_decisions=(),
+                escalations=("treasury",),
+            )
+
+    start_agents = {
+        "research": make_research_agent,
+        "execution": make_execution_agent,
+        "risk": StubRisk(),
+    }
+
+    result = run_dynamic_agent_cycle(
+        {
+            "dynamic_start_agents": start_agents,
+            "research_payload": {"technical": {"trend": "bullish"}},
+            "market_payload": {"signal": "BUY", "confidence": 0.6},
+            "risk_payload": {
+                "risk_parameters": {},
+                "market_state": {},
+                "account_state": {},
+            },
+        }
+    )
+
+    assert research_calls["count"] == 1
+    assert execution_calls["count"] == 1
+    assert risk_calls["count"] == 1
+
+    decision = result["decision"]
+    assert decision["action"] == "BUY"
+    assert decision["confidence"] == 0.55
+    assert decision["hedge_decisions"] == []
+    assert decision["escalations"] == ["treasury"]
+
+    risk_payload = result["agents"]["risk"]
+    assert risk_payload["adjusted_signal"]["risk_notes"] == ("hedge",)
+    assert risk_payload["confidence"] == 0.55
+
+    reset_dynamic_start_agents()

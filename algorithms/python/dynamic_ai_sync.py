@@ -10,7 +10,14 @@ from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Tuple
 
 from typing_extensions import Literal
 
-from dynamic_ai import ExecutionAgent, ResearchAgent, RiskAgent
+from dynamic_ai import (
+    ExecutionAgent,
+    ResearchAgent,
+    RiskAgent,
+    get_default_execution_agent,
+    get_default_research_agent,
+    get_default_risk_agent,
+)
 from dynamic_algo.trading_core import DynamicTradingAlgo, TradeExecutionResult, normalise_symbol
 
 try:  # pragma: no cover - optional dependency for treasury actions
@@ -109,6 +116,45 @@ def _safe_float(value: Any) -> Optional[float]:
     return numeric
 
 
+def _extract_agent_candidate(candidate: Any) -> Any:
+    if isinstance(candidate, Mapping):
+        for key in ("agent", "instance", "value"):
+            if key in candidate:
+                return candidate[key]
+        for key in ("factory", "callable", "builder", "provider"):
+            if key in candidate:
+                return candidate[key]
+    return candidate
+
+
+def _is_agent_like(candidate: Any) -> bool:
+    run_method = getattr(candidate, "run", None)
+    return callable(run_method)
+
+
+def _resolve_agent_candidate(
+    candidate: Any,
+    *,
+    expected_type: type[Any],
+    default_factory: Callable[[], Any],
+) -> Any:
+    candidate = _extract_agent_candidate(candidate)
+    if isinstance(candidate, expected_type):
+        return candidate
+    if _is_agent_like(candidate):
+        return candidate
+    if callable(candidate):
+        try:
+            produced = candidate()
+        except Exception:
+            produced = None
+        else:
+            produced = _extract_agent_candidate(produced)
+            if isinstance(produced, expected_type) or _is_agent_like(produced):
+                return produced
+    return default_factory()
+
+
 def _resolve_instrument(
     trader: Any,
     symbol: str,
@@ -153,17 +199,42 @@ def run_dynamic_agent_cycle(context: Mapping[str, Any]) -> Dict[str, Any]:
 
     base_context: Dict[str, Any] = dict(context or {})
 
-    research_agent = base_context.get("research_agent")
-    if not isinstance(research_agent, ResearchAgent):
-        research_agent = ResearchAgent()
+    start_candidates: Mapping[str, Any] | None = None
+    provided_start_agents = base_context.get("dynamic_start_agents") or base_context.get("start_agents")
+    if callable(provided_start_agents):
+        try:
+            provided_start_agents = provided_start_agents()
+        except Exception:
+            provided_start_agents = None
+    if isinstance(provided_start_agents, Mapping):
+        start_candidates = provided_start_agents
 
-    execution_agent = base_context.get("execution_agent")
-    if not isinstance(execution_agent, ExecutionAgent):
-        execution_agent = ExecutionAgent()
+    research_candidate = base_context.get("research_agent")
+    if research_candidate is None and start_candidates is not None:
+        research_candidate = start_candidates.get("research")
+    research_agent = _resolve_agent_candidate(
+        research_candidate,
+        expected_type=ResearchAgent,
+        default_factory=get_default_research_agent,
+    )
 
-    risk_agent = base_context.get("risk_agent")
-    if not isinstance(risk_agent, RiskAgent):
-        risk_agent = RiskAgent()
+    execution_candidate = base_context.get("execution_agent")
+    if execution_candidate is None and start_candidates is not None:
+        execution_candidate = start_candidates.get("execution")
+    execution_agent = _resolve_agent_candidate(
+        execution_candidate,
+        expected_type=ExecutionAgent,
+        default_factory=get_default_execution_agent,
+    )
+
+    risk_candidate = base_context.get("risk_agent")
+    if risk_candidate is None and start_candidates is not None:
+        risk_candidate = start_candidates.get("risk")
+    risk_agent = _resolve_agent_candidate(
+        risk_candidate,
+        expected_type=RiskAgent,
+        default_factory=get_default_risk_agent,
+    )
 
     research_payload = dict(_first_mapping(base_context, "research_payload", "research", "analysis_payload"))
     research_result = research_agent.run(research_payload)
