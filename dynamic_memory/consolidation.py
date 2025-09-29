@@ -5,7 +5,17 @@ from __future__ import annotations
 from collections import Counter, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Callable, Deque, Iterable, Mapping, MutableMapping, Sequence
+from typing import Callable, Deque, Iterable, Mapping, MutableMapping
+
+from ._utils import (
+    clamp,
+    coerce_mapping,
+    normalise_lower,
+    normalise_optional_text,
+    normalise_tags,
+    normalise_text,
+    utcnow,
+)
 
 __all__ = [
     "MemoryFragment",
@@ -13,58 +23,6 @@ __all__ = [
     "MemoryConsolidationReport",
     "DynamicMemoryConsolidator",
 ]
-
-
-# ---------------------------------------------------------------------------
-# normalisation helpers
-
-
-def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-def _clamp(value: float, *, lower: float = 0.0, upper: float = 1.0) -> float:
-    return max(lower, min(upper, value))
-
-
-def _normalise_text(value: str) -> str:
-    cleaned = value.strip()
-    if not cleaned:
-        raise ValueError("value must not be empty")
-    return cleaned
-
-
-def _normalise_lower(value: str, *, default: str = "") -> str:
-    cleaned = value.strip().lower()
-    return cleaned or default
-
-
-def _normalise_optional_text(value: str | None) -> str | None:
-    if value is None:
-        return None
-    cleaned = value.strip()
-    return cleaned or None
-
-
-def _normalise_tags(tags: Sequence[str] | None) -> tuple[str, ...]:
-    if not tags:
-        return ()
-    normalised: list[str] = []
-    seen: set[str] = set()
-    for tag in tags:
-        cleaned = tag.strip().lower()
-        if cleaned and cleaned not in seen:
-            seen.add(cleaned)
-            normalised.append(cleaned)
-    return tuple(normalised)
-
-
-def _coerce_mapping(mapping: Mapping[str, object] | None) -> Mapping[str, object] | None:
-    if mapping is None:
-        return None
-    if not isinstance(mapping, Mapping):  # pragma: no cover - defensive guard
-        raise TypeError("metadata must be a mapping")
-    return dict(mapping)
 
 
 # ---------------------------------------------------------------------------
@@ -83,27 +41,28 @@ class MemoryFragment:
     emotional_intensity: float = 0.5
     confidence: float = 0.5
     weight: float = 1.0
-    timestamp: datetime = field(default_factory=_utcnow)
+    timestamp: datetime = field(default_factory=utcnow)
     tags: tuple[str, ...] = field(default_factory=tuple)
     source: str | None = None
     metadata: Mapping[str, object] | None = None
 
     def __post_init__(self) -> None:
-        self.domain = _normalise_lower(self.domain, default="general")
-        self.summary = _normalise_text(self.summary)
-        self.recency = _clamp(float(self.recency))
-        self.relevance = _clamp(float(self.relevance))
-        self.novelty = _clamp(float(self.novelty))
-        self.emotional_intensity = _clamp(float(self.emotional_intensity))
-        self.confidence = _clamp(float(self.confidence))
+        self.domain = normalise_lower(self.domain, default="general")
+        self.summary = normalise_text(self.summary)
+        self.recency = clamp(float(self.recency))
+        self.relevance = clamp(float(self.relevance))
+        self.novelty = clamp(float(self.novelty))
+        self.emotional_intensity = clamp(float(self.emotional_intensity))
+        self.confidence = clamp(float(self.confidence))
         self.weight = max(float(self.weight), 0.0)
+        current_tz = utcnow().tzinfo or timezone.utc
         if self.timestamp.tzinfo is None:
-            self.timestamp = self.timestamp.replace(tzinfo=timezone.utc)
+            self.timestamp = self.timestamp.replace(tzinfo=current_tz)
         else:
-            self.timestamp = self.timestamp.astimezone(timezone.utc)
-        self.tags = _normalise_tags(self.tags)
-        self.source = _normalise_optional_text(self.source)
-        self.metadata = _coerce_mapping(self.metadata)
+            self.timestamp = self.timestamp.astimezone(current_tz)
+        self.tags = normalise_tags(self.tags)
+        self.source = normalise_optional_text(self.source)
+        self.metadata = coerce_mapping(self.metadata)
 
 
 @dataclass(slots=True)
@@ -122,16 +81,16 @@ class ConsolidationContext:
     focus_theme: str | None = None
 
     def __post_init__(self) -> None:
-        self.mission = _normalise_text(self.mission)
-        self.retention_horizon = _normalise_text(self.retention_horizon)
-        self.operational_tempo = _clamp(float(self.operational_tempo))
-        self.cognitive_bandwidth = _clamp(float(self.cognitive_bandwidth))
-        self.archive_pressure = _clamp(float(self.archive_pressure))
-        self.environmental_volatility = _clamp(float(self.environmental_volatility))
-        self.support_level = _clamp(float(self.support_level))
-        self.fatigue_level = _clamp(float(self.fatigue_level))
-        self.retrieval_pressure = _clamp(float(self.retrieval_pressure))
-        self.focus_theme = _normalise_optional_text(self.focus_theme)
+        self.mission = normalise_text(self.mission)
+        self.retention_horizon = normalise_text(self.retention_horizon)
+        self.operational_tempo = clamp(float(self.operational_tempo))
+        self.cognitive_bandwidth = clamp(float(self.cognitive_bandwidth))
+        self.archive_pressure = clamp(float(self.archive_pressure))
+        self.environmental_volatility = clamp(float(self.environmental_volatility))
+        self.support_level = clamp(float(self.support_level))
+        self.fatigue_level = clamp(float(self.fatigue_level))
+        self.retrieval_pressure = clamp(float(self.retrieval_pressure))
+        self.focus_theme = normalise_optional_text(self.focus_theme)
 
     @property
     def is_stretched(self) -> bool:
@@ -201,7 +160,7 @@ class DynamicMemoryConsolidator:
         if isinstance(fragment, Mapping):
             payload: MutableMapping[str, object] = dict(fragment)
             if "timestamp" not in payload:
-                payload["timestamp"] = _utcnow()
+                payload["timestamp"] = utcnow()
             return MemoryFragment(**payload)  # type: ignore[arg-type]
         raise TypeError("fragment must be MemoryFragment or mapping")
 
@@ -236,7 +195,7 @@ class DynamicMemoryConsolidator:
         if total_weight <= 0:
             return 0.0
         aggregate = sum(selector(fragment) * fragment.weight for fragment in self._fragments)
-        return _clamp(aggregate / total_weight)
+        return clamp(aggregate / total_weight)
 
     def _retention_strength(self, context: ConsolidationContext) -> float:
         recency = self._weighted_metric(lambda fragment: fragment.recency)
@@ -246,7 +205,7 @@ class DynamicMemoryConsolidator:
         base = 0.35 * recency + 0.3 * relevance + 0.2 * confidence + 0.15 * emotional
         modifier = 0.1 * context.support_level - 0.08 * context.environmental_volatility
         modifier += 0.05 * (1.0 - context.fatigue_level)
-        return _clamp(base + modifier)
+        return clamp(base + modifier)
 
     def _clarity_index(self, context: ConsolidationContext) -> float:
         confidence = self._weighted_metric(lambda fragment: fragment.confidence)
@@ -255,7 +214,7 @@ class DynamicMemoryConsolidator:
         base += 0.2 * context.cognitive_bandwidth + 0.1 * (1.0 - context.operational_tempo)
         base += 0.05 * (1.0 - context.retrieval_pressure)
         base -= 0.05 * context.fatigue_level
-        return _clamp(base)
+        return clamp(base)
 
     def _loss_risk(self, context: ConsolidationContext) -> float:
         novelty = self._weighted_metric(lambda fragment: fragment.novelty)
@@ -265,7 +224,7 @@ class DynamicMemoryConsolidator:
         base += 0.1 * context.archive_pressure
         base += 0.05 * context.fatigue_level
         base -= 0.1 * context.support_level
-        return _clamp(base)
+        return clamp(base)
 
     def _anchor_topics(self) -> tuple[str, ...]:
         counter: Counter[str] = Counter()
