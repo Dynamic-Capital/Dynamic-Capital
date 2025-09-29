@@ -1,0 +1,872 @@
+{
+  "generated_at": "2025-09-29T05:52:22.206590Z",
+  "report": {
+    "generated_at": "2025-09-29T05:52:22.206590Z",
+    "history": 10,
+    "decay": 0.15,
+    "summary": "Overall maturity 0.56; execution health 0.58. Focus on Adaptive Redirection & Optimization, Post-Launch Performance Analysis, Retrospective & Knowledge Synthesis, Iterative Improvement & Strategic Learning, Sustained Engagement & Growth, Dynamic Agent Assignment, Continuous Monitoring & Feedback, Comprehensive Decomposition, Parallel Execution & Collaboration, Strategic Visioning to accelerate integration.",
+    "overall_maturity": 0.558499269305313,
+    "execution_health": 0.5829993265616349,
+    "momentum": 0.09216261346803581,
+    "focus_areas": [
+      "Adaptive Redirection & Optimization",
+      "Post-Launch Performance Analysis",
+      "Retrospective & Knowledge Synthesis",
+      "Iterative Improvement & Strategic Learning",
+      "Sustained Engagement & Growth",
+      "Dynamic Agent Assignment",
+      "Continuous Monitoring & Feedback",
+      "Comprehensive Decomposition",
+      "Parallel Execution & Collaboration",
+      "Strategic Visioning"
+    ],
+    "alerts": [
+      "Strategic Visioning is stabilising below target maturity; reinforce operating rhythms.",
+      "Comprehensive Decomposition is stabilising below target maturity; reinforce operating rhythms.",
+      "Dynamic Agent Assignment is stabilising below target maturity; reinforce operating rhythms.",
+      "Parallel Execution & Collaboration is stabilising below target maturity; reinforce operating rhythms.",
+      "Continuous Monitoring & Feedback is stabilising below target maturity; reinforce operating rhythms.",
+      "Adaptive Redirection & Optimization is stabilising below target maturity; reinforce operating rhythms.",
+      "Adaptive Redirection & Optimization enablement is lagging (0.52).",
+      "Adaptive Redirection & Optimization resilience is fragile (0.50).",
+      "Post-Launch Performance Analysis maturity is below guardrails; deploy a recovery sprint.",
+      "Post-Launch Performance Analysis enablement is lagging (0.54).",
+      "Iterative Improvement & Strategic Learning is stabilising below target maturity; reinforce operating rhythms.",
+      "Sustained Engagement & Growth is stabilising below target maturity; reinforce operating rhythms.",
+      "Sustained Engagement & Growth enablement is lagging (0.54).",
+      "Retrospective & Knowledge Synthesis is stabilising below target maturity; reinforce operating rhythms.",
+      "Retrospective & Knowledge Synthesis enablement is lagging (0.52)."
+    ],
+    "nodes": [
+      {
+        "key": "phase1",
+        "title": "Strategic Visioning",
+        "maturity": 0.7483141503046716,
+        "confidence": 0.7988761002031145,
+        "enablement": 0.7583141503046716,
+        "resilience": 0.6988761002031145,
+        "momentum": 0.20831415030467162,
+        "status": "calibrating",
+        "summary": "Strategic Visioning is calibrating with maturity 0.75 and confidence 0.80. Enablement 0.76; resilience 0.70; momentum 0.21.",
+        "tags": [
+          "alignment",
+          "okr_alignment",
+          "stakeholder_intake",
+          "vision",
+          "vision_brief"
+        ],
+        "recommendations": [
+          "Maintain the current execution loop for Strategic Visioning."
+        ],
+        "alerts": [
+          "Strategic Visioning is stabilising below target maturity; reinforce operating rhythms."
+        ]
+      },
+      {
+        "key": "phase10",
+        "title": "Retrospective & Knowledge Synthesis",
+        "maturity": 0.5036111111111111,
+        "confidence": 0.5841666666666666,
+        "enablement": 0.523611111111111,
+        "resilience": 0.5488888888888889,
+        "momentum": 0.048888888888888885,
+        "status": "calibrating",
+        "summary": "Retrospective & Knowledge Synthesis is calibrating with maturity 0.50 and confidence 0.58. Enablement 0.52; resilience 0.55; momentum 0.05.",
+        "tags": [
+          "knowledge",
+          "knowledge_graph",
+          "playbook_updates",
+          "retrospective",
+          "retrospective_reports"
+        ],
+        "recommendations": [
+          "Invest in enablement rituals for Retrospective & Knowledge Synthesis."
+        ],
+        "alerts": [
+          "Retrospective & Knowledge Synthesis is stabilising below target maturity; reinforce operating rhythms.",
+          "Retrospective & Knowledge Synthesis enablement is lagging (0.52)."
+        ]
+      },
+      {
+        "key": "phase2",
+        "title": "Comprehensive Decomposition",
+        "maturity": 0.5786913982878109,
+        "confidence": 0.6639094985731757,
+        "enablement": 0.6039094985731757,
+        "resilience": 0.5539094985731756,
+        "momentum": 0.11390949857317571,
+        "status": "calibrating",
+        "summary": "Comprehensive Decomposition is calibrating with maturity 0.58 and confidence 0.66. Enablement 0.60; resilience 0.55; momentum 0.11.",
+        "tags": [
+          "dependency_graph",
+          "planning",
+          "raid_log",
+          "risk",
+          "work_breakdown"
+        ],
+        "recommendations": [
+          "Maintain the current execution loop for Comprehensive Decomposition."
+        ],
+        "alerts": [
+          "Comprehensive Decomposition is stabilising below target maturity; reinforce operating rhythms."
+        ]
+      },
+      {
+        "key": "phase3",
+        "title": "Dynamic Agent Assignment",
+        "maturity": 0.5380016934801016,
+        "confidence": 0.6390008467400509,
+        "enablement": 0.5737510584250635,
+        "resilience": 0.5237510584250635,
+        "momentum": 0.09375105842506351,
+        "status": "calibrating",
+        "summary": "Dynamic Agent Assignment is calibrating with maturity 0.54 and confidence 0.64. Enablement 0.57; resilience 0.52; momentum 0.09.",
+        "tags": [
+          "capacity_planning",
+          "communication_matrix",
+          "enablement",
+          "staffing",
+          "talent_graph"
+        ],
+        "recommendations": [
+          "Maintain the current execution loop for Dynamic Agent Assignment."
+        ],
+        "alerts": [
+          "Dynamic Agent Assignment is stabilising below target maturity; reinforce operating rhythms."
+        ]
+      },
+      {
+        "key": "phase4",
+        "title": "Parallel Execution & Collaboration",
+        "maturity": 0.6137051792828686,
+        "confidence": 0.678964143426295,
+        "enablement": 0.5937051792828686,
+        "resilience": 0.5737051792828686,
+        "momentum": 0.12844621513944224,
+        "status": "calibrating",
+        "summary": "Parallel Execution & Collaboration is calibrating with maturity 0.61 and confidence 0.68. Enablement 0.59; resilience 0.57; momentum 0.13.",
+        "tags": [
+          "automated_standups",
+          "blocker_tracking",
+          "collaboration",
+          "execution",
+          "shared_workspaces"
+        ],
+        "recommendations": [
+          "Maintain the current execution loop for Parallel Execution & Collaboration."
+        ],
+        "alerts": [
+          "Parallel Execution & Collaboration is stabilising below target maturity; reinforce operating rhythms."
+        ]
+      },
+      {
+        "key": "phase5",
+        "title": "Continuous Monitoring & Feedback",
+        "maturity": 0.5439696312364426,
+        "confidence": 0.6239696312364426,
+        "enablement": 0.5739696312364425,
+        "resilience": 0.5539696312364426,
+        "momentum": 0.08917570498915403,
+        "status": "calibrating",
+        "summary": "Continuous Monitoring & Feedback is calibrating with maturity 0.54 and confidence 0.62. Enablement 0.57; resilience 0.55; momentum 0.09.",
+        "tags": [
+          "alert_thresholds",
+          "feedback",
+          "monitoring",
+          "sentiment_digests",
+          "telemetry_dashboards"
+        ],
+        "recommendations": [
+          "Maintain the current execution loop for Continuous Monitoring & Feedback."
+        ],
+        "alerts": [
+          "Continuous Monitoring & Feedback is stabilising below target maturity; reinforce operating rhythms."
+        ]
+      },
+      {
+        "key": "phase6",
+        "title": "Adaptive Redirection & Optimization",
+        "maturity": 0.4688802913063268,
+        "confidence": 0.5941602184797451,
+        "enablement": 0.5188802913063268,
+        "resilience": 0.4988802913063268,
+        "momentum": 0.03416021847974511,
+        "status": "calibrating",
+        "summary": "Adaptive Redirection & Optimization is calibrating with maturity 0.47 and confidence 0.59. Enablement 0.52; resilience 0.50; momentum 0.03.",
+        "tags": [
+          "adaptation",
+          "capacity_reallocation",
+          "mitigation_playbooks",
+          "optimization",
+          "scenario_modeling"
+        ],
+        "recommendations": [
+          "Invest in enablement rituals for Adaptive Redirection & Optimization.",
+          "Build resilience buffers within Adaptive Redirection & Optimization workflows."
+        ],
+        "alerts": [
+          "Adaptive Redirection & Optimization is stabilising below target maturity; reinforce operating rhythms.",
+          "Adaptive Redirection & Optimization enablement is lagging (0.52).",
+          "Adaptive Redirection & Optimization resilience is fragile (0.50)."
+        ]
+      },
+      {
+        "key": "phase7",
+        "title": "Post-Launch Performance Analysis",
+        "maturity": 0.48886393659180977,
+        "confidence": 0.6141479524438573,
+        "enablement": 0.5388639365918098,
+        "resilience": 0.5188639365918097,
+        "momentum": 0.04414795244385733,
+        "status": "fragile",
+        "summary": "Post-Launch Performance Analysis is fragile with maturity 0.49 and confidence 0.61. Enablement 0.54; resilience 0.52; momentum 0.04.",
+        "tags": [
+          "analysis",
+          "anomaly_detection",
+          "kpi_scorecard",
+          "performance",
+          "roi_analysis"
+        ],
+        "recommendations": [
+          "Invest in enablement rituals for Post-Launch Performance Analysis."
+        ],
+        "alerts": [
+          "Post-Launch Performance Analysis maturity is below guardrails; deploy a recovery sprint.",
+          "Post-Launch Performance Analysis enablement is lagging (0.54)."
+        ]
+      },
+      {
+        "key": "phase8",
+        "title": "Iterative Improvement & Strategic Learning",
+        "maturity": 0.519020979020979,
+        "confidence": 0.619020979020979,
+        "enablement": 0.5642657342657342,
+        "resilience": 0.5442657342657343,
+        "momentum": 0.06426573426573426,
+        "status": "calibrating",
+        "summary": "Iterative Improvement & Strategic Learning is calibrating with maturity 0.52 and confidence 0.62. Enablement 0.56; resilience 0.54; momentum 0.06.",
+        "tags": [
+          "experiment_ledger",
+          "feedback_pipeline",
+          "improvement",
+          "learning",
+          "roadmap_refresh"
+        ],
+        "recommendations": [
+          "Maintain the current execution loop for Iterative Improvement & Strategic Learning."
+        ],
+        "alerts": [
+          "Iterative Improvement & Strategic Learning is stabilising below target maturity; reinforce operating rhythms."
+        ]
+      },
+      {
+        "key": "phase9",
+        "title": "Sustained Engagement & Growth",
+        "maturity": 0.533803071364047,
+        "confidence": 0.5990424570912376,
+        "enablement": 0.543803071364047,
+        "resilience": 0.5238030713640469,
+        "momentum": 0.06380307136404698,
+        "status": "calibrating",
+        "summary": "Sustained Engagement & Growth is calibrating with maturity 0.53 and confidence 0.60. Enablement 0.54; resilience 0.52; momentum 0.06.",
+        "tags": [
+          "community_programs",
+          "engagement",
+          "growth",
+          "lifecycle_campaigns",
+          "referral_automation"
+        ],
+        "recommendations": [
+          "Invest in enablement rituals for Sustained Engagement & Growth."
+        ],
+        "alerts": [
+          "Sustained Engagement & Growth is stabilising below target maturity; reinforce operating rhythms.",
+          "Sustained Engagement & Growth enablement is lagging (0.54)."
+        ]
+      }
+    ]
+  },
+  "dataset": {
+    "summary": {
+      "count": 10,
+      "capacity": 512,
+      "average_characters": 1576.4,
+      "total_characters": 15764,
+      "default_tags": [],
+      "tag_histogram": {
+        "phase1.confidence": 1,
+        "phase1.enablement": 1,
+        "phase1.maturity": 1,
+        "phase1.momentum": 1,
+        "phase1.resilience": 1,
+        "phase10.confidence": 1,
+        "phase10.enablement": 1,
+        "phase10.maturity": 1,
+        "phase10.momentum": 1,
+        "phase10.resilience": 1,
+        "phase2.confidence": 1,
+        "phase2.enablement": 1,
+        "phase2.maturity": 1,
+        "phase2.momentum": 1,
+        "phase2.resilience": 1,
+        "phase3.confidence": 1,
+        "phase3.enablement": 1,
+        "phase3.maturity": 1,
+        "phase3.momentum": 1,
+        "phase3.resilience": 1,
+        "phase4.confidence": 1,
+        "phase4.enablement": 1,
+        "phase4.maturity": 1,
+        "phase4.momentum": 1,
+        "phase4.resilience": 1,
+        "phase5.confidence": 1,
+        "phase5.enablement": 1,
+        "phase5.maturity": 1,
+        "phase5.momentum": 1,
+        "phase5.resilience": 1,
+        "phase6.confidence": 1,
+        "phase6.enablement": 1,
+        "phase6.maturity": 1,
+        "phase6.momentum": 1,
+        "phase6.resilience": 1,
+        "phase7.confidence": 1,
+        "phase7.enablement": 1,
+        "phase7.maturity": 1,
+        "phase7.momentum": 1,
+        "phase7.resilience": 1,
+        "phase8.confidence": 1,
+        "phase8.enablement": 1,
+        "phase8.maturity": 1,
+        "phase8.momentum": 1,
+        "phase8.resilience": 1,
+        "phase9.confidence": 1,
+        "phase9.enablement": 1,
+        "phase9.maturity": 1,
+        "phase9.momentum": 1,
+        "phase9.resilience": 1
+      }
+    },
+    "examples": [
+      {
+        "prompt": "### Observed Output\nnode: 'phase1'\nstatus: 'calibrating'\nsummary: 'Strategic Visioning is calibrating with maturity 0.75 and confidence 0.80. Enablement 0.76; resilience 0.70; momentum 0.21.'\ntags: ['alignment', 'okr_alignment', 'stakeholder_intake', 'vision', 'vision_brief']\ntitle: 'Strategic Visioning'\n\n### Performance Metrics\nconfidence: 0.7988761002031145\nenablement: 0.7583141503046716\nmaturity: 0.7483141503046716\nmomentum: 0.20831415030467162\nresilience: 0.6988761002031145\n\n### Human Feedback\n- Maintain the current execution loop for Strategic Visioning.\n- Strategic Visioning is stabilising below target maturity; reinforce operating rhythms.\n\n### Recorded Signals\n- phase1.maturity -> neutral (0.748)\n- phase1.confidence -> positive (0.799)\n- phase1.enablement -> positive (0.758)\n- phase1.resilience -> positive (0.699)\n- phase1.momentum -> positive (0.208)",
+        "completion": "- Monitor phase1.maturity (Maturity 0.75 above guardrail 0.45 but below target 0.85.); weight=1.30, score=0.748\n- Continue reinforcing strength in phase1.confidence (Confidence 0.80 signals strong telemetry reliability.); weight=1.30, score=0.799\n- Continue reinforcing strength in phase1.enablement (Enablement 0.76 supports integrated workflows.); weight=1.30, score=0.758\n- Continue reinforcing strength in phase1.resilience (Resilience 0.70 buffers platform stability.); weight=1.30, score=0.699\n- Continue reinforcing strength in phase1.momentum (Momentum 0.21 accelerating integration.); weight=1.30, score=0.208\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "phase1.maturity",
+          "phase1.confidence",
+          "phase1.enablement",
+          "phase1.resilience",
+          "phase1.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T05:52:22.206686+00:00",
+          "performance_score": 0.6425389302640487,
+          "signals": [
+            {
+              "metric": "phase1.maturity",
+              "value": 0.7483141503046716,
+              "direction": "neutral",
+              "weight": 1.3,
+              "notes": "Maturity 0.75 above guardrail 0.45 but below target 0.85."
+            },
+            {
+              "metric": "phase1.confidence",
+              "value": 0.7988761002031145,
+              "direction": "positive",
+              "weight": 1.3,
+              "notes": "Confidence 0.80 signals strong telemetry reliability."
+            },
+            {
+              "metric": "phase1.enablement",
+              "value": 0.7583141503046716,
+              "direction": "positive",
+              "weight": 1.3,
+              "notes": "Enablement 0.76 supports integrated workflows."
+            },
+            {
+              "metric": "phase1.resilience",
+              "value": 0.6988761002031145,
+              "direction": "positive",
+              "weight": 1.3,
+              "notes": "Resilience 0.70 buffers platform stability."
+            },
+            {
+              "metric": "phase1.momentum",
+              "value": 0.20831415030467162,
+              "direction": "positive",
+              "weight": 1.3,
+              "notes": "Momentum 0.21 accelerating integration."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'phase10'\nstatus: 'calibrating'\nsummary: 'Retrospective & Knowledge Synthesis is calibrating with maturity 0.50 and confidence 0.58. Enablement 0.52; resilience 0.55; momentum 0.05.'\ntags: ['knowledge', 'knowledge_graph', 'playbook_updates', 'retrospective', 'retrospective_reports']\ntitle: 'Retrospective & Knowledge Synthesis'\n\n### Performance Metrics\nconfidence: 0.5841666666666666\nenablement: 0.523611111111111\nmaturity: 0.5036111111111111\nmomentum: 0.048888888888888885\nresilience: 0.5488888888888889\n\n### Human Feedback\n- Invest in enablement rituals for Retrospective & Knowledge Synthesis.\n- Retrospective & Knowledge Synthesis is stabilising below target maturity; reinforce operating rhythms.\n- Retrospective & Knowledge Synthesis enablement is lagging (0.52).\n\n### Recorded Signals\n- phase10.maturity -> neutral (0.504)\n- phase10.confidence -> neutral (0.584)\n- phase10.enablement -> negative (0.524)\n- phase10.resilience -> neutral (0.549)\n- phase10.momentum -> neutral (0.049)",
+        "completion": "- Monitor phase10.maturity (Maturity 0.50 above guardrail 0.46 but below target 0.84.); weight=1.08, score=0.504\n- Monitor phase10.confidence (Confidence 0.58 acceptable but could strengthen.); weight=1.08, score=0.584\n- Course-correct by improving phase10.enablement (Enablement 0.52 below healthy threshold (0.55).); weight=1.08, score=0.524\n- Monitor phase10.resilience (Resilience 0.55 meets baseline expectations.); weight=1.08, score=0.549\n- Monitor phase10.momentum (Momentum 0.05 within neutral band (-0.10 to 0.10).); weight=1.08, score=0.049\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "phase10.maturity",
+          "phase10.confidence",
+          "phase10.enablement",
+          "phase10.resilience",
+          "phase10.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T05:52:22.206710+00:00",
+          "performance_score": 0.4418333333333333,
+          "signals": [
+            {
+              "metric": "phase10.maturity",
+              "value": 0.5036111111111111,
+              "direction": "neutral",
+              "weight": 1.08,
+              "notes": "Maturity 0.50 above guardrail 0.46 but below target 0.84."
+            },
+            {
+              "metric": "phase10.confidence",
+              "value": 0.5841666666666666,
+              "direction": "neutral",
+              "weight": 1.08,
+              "notes": "Confidence 0.58 acceptable but could strengthen."
+            },
+            {
+              "metric": "phase10.enablement",
+              "value": 0.523611111111111,
+              "direction": "negative",
+              "weight": 1.08,
+              "notes": "Enablement 0.52 below healthy threshold (0.55)."
+            },
+            {
+              "metric": "phase10.resilience",
+              "value": 0.5488888888888889,
+              "direction": "neutral",
+              "weight": 1.08,
+              "notes": "Resilience 0.55 meets baseline expectations."
+            },
+            {
+              "metric": "phase10.momentum",
+              "value": 0.048888888888888885,
+              "direction": "neutral",
+              "weight": 1.08,
+              "notes": "Momentum 0.05 within neutral band (-0.10 to 0.10)."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'phase2'\nstatus: 'calibrating'\nsummary: 'Comprehensive Decomposition is calibrating with maturity 0.58 and confidence 0.66. Enablement 0.60; resilience 0.55; momentum 0.11.'\ntags: ['dependency_graph', 'planning', 'raid_log', 'risk', 'work_breakdown']\ntitle: 'Comprehensive Decomposition'\n\n### Performance Metrics\nconfidence: 0.6639094985731757\nenablement: 0.6039094985731757\nmaturity: 0.5786913982878109\nmomentum: 0.11390949857317571\nresilience: 0.5539094985731756\n\n### Human Feedback\n- Maintain the current execution loop for Comprehensive Decomposition.\n- Comprehensive Decomposition is stabilising below target maturity; reinforce operating rhythms.\n\n### Recorded Signals\n- phase2.maturity -> neutral (0.579)\n- phase2.confidence -> neutral (0.664)\n- phase2.enablement -> positive (0.604)\n- phase2.resilience -> neutral (0.554)\n- phase2.momentum -> positive (0.114)",
+        "completion": "- Monitor phase2.maturity (Maturity 0.58 above guardrail 0.40 but below target 0.80.); weight=1.25, score=0.579\n- Monitor phase2.confidence (Confidence 0.66 acceptable but could strengthen.); weight=1.25, score=0.664\n- Continue reinforcing strength in phase2.enablement (Enablement 0.60 supports integrated workflows.); weight=1.25, score=0.604\n- Monitor phase2.resilience (Resilience 0.55 meets baseline expectations.); weight=1.25, score=0.554\n- Continue reinforcing strength in phase2.momentum (Momentum 0.11 accelerating integration.); weight=1.25, score=0.114\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "phase2.maturity",
+          "phase2.confidence",
+          "phase2.enablement",
+          "phase2.resilience",
+          "phase2.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T05:52:22.206724+00:00",
+          "performance_score": 0.5028658785161026,
+          "signals": [
+            {
+              "metric": "phase2.maturity",
+              "value": 0.5786913982878109,
+              "direction": "neutral",
+              "weight": 1.25,
+              "notes": "Maturity 0.58 above guardrail 0.40 but below target 0.80."
+            },
+            {
+              "metric": "phase2.confidence",
+              "value": 0.6639094985731757,
+              "direction": "neutral",
+              "weight": 1.25,
+              "notes": "Confidence 0.66 acceptable but could strengthen."
+            },
+            {
+              "metric": "phase2.enablement",
+              "value": 0.6039094985731757,
+              "direction": "positive",
+              "weight": 1.25,
+              "notes": "Enablement 0.60 supports integrated workflows."
+            },
+            {
+              "metric": "phase2.resilience",
+              "value": 0.5539094985731756,
+              "direction": "neutral",
+              "weight": 1.25,
+              "notes": "Resilience 0.55 meets baseline expectations."
+            },
+            {
+              "metric": "phase2.momentum",
+              "value": 0.11390949857317571,
+              "direction": "positive",
+              "weight": 1.25,
+              "notes": "Momentum 0.11 accelerating integration."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'phase3'\nstatus: 'calibrating'\nsummary: 'Dynamic Agent Assignment is calibrating with maturity 0.54 and confidence 0.64. Enablement 0.57; resilience 0.52; momentum 0.09.'\ntags: ['capacity_planning', 'communication_matrix', 'enablement', 'staffing', 'talent_graph']\ntitle: 'Dynamic Agent Assignment'\n\n### Performance Metrics\nconfidence: 0.6390008467400509\nenablement: 0.5737510584250635\nmaturity: 0.5380016934801016\nmomentum: 0.09375105842506351\nresilience: 0.5237510584250635\n\n### Human Feedback\n- Maintain the current execution loop for Dynamic Agent Assignment.\n- Dynamic Agent Assignment is stabilising below target maturity; reinforce operating rhythms.\n\n### Recorded Signals\n- phase3.maturity -> neutral (0.538)\n- phase3.confidence -> neutral (0.639)\n- phase3.enablement -> neutral (0.574)\n- phase3.resilience -> neutral (0.524)\n- phase3.momentum -> neutral (0.094)",
+        "completion": "- Monitor phase3.maturity (Maturity 0.54 above guardrail 0.42 but below target 0.82.); weight=1.20, score=0.538\n- Monitor phase3.confidence (Confidence 0.64 acceptable but could strengthen.); weight=1.20, score=0.639\n- Monitor phase3.enablement (Enablement 0.57 within guardrails but shy of momentum thresholds.); weight=1.20, score=0.574\n- Monitor phase3.resilience (Resilience 0.52 meets baseline expectations.); weight=1.20, score=0.524\n- Monitor phase3.momentum (Momentum 0.09 within neutral band (-0.10 to 0.10).); weight=1.20, score=0.094\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "phase3.maturity",
+          "phase3.confidence",
+          "phase3.enablement",
+          "phase3.resilience",
+          "phase3.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T05:52:22.206737+00:00",
+          "performance_score": 0.4736511430990686,
+          "signals": [
+            {
+              "metric": "phase3.maturity",
+              "value": 0.5380016934801016,
+              "direction": "neutral",
+              "weight": 1.2,
+              "notes": "Maturity 0.54 above guardrail 0.42 but below target 0.82."
+            },
+            {
+              "metric": "phase3.confidence",
+              "value": 0.6390008467400509,
+              "direction": "neutral",
+              "weight": 1.2,
+              "notes": "Confidence 0.64 acceptable but could strengthen."
+            },
+            {
+              "metric": "phase3.enablement",
+              "value": 0.5737510584250635,
+              "direction": "neutral",
+              "weight": 1.2,
+              "notes": "Enablement 0.57 within guardrails but shy of momentum thresholds."
+            },
+            {
+              "metric": "phase3.resilience",
+              "value": 0.5237510584250635,
+              "direction": "neutral",
+              "weight": 1.2,
+              "notes": "Resilience 0.52 meets baseline expectations."
+            },
+            {
+              "metric": "phase3.momentum",
+              "value": 0.09375105842506351,
+              "direction": "neutral",
+              "weight": 1.2,
+              "notes": "Momentum 0.09 within neutral band (-0.10 to 0.10)."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'phase4'\nstatus: 'calibrating'\nsummary: 'Parallel Execution & Collaboration is calibrating with maturity 0.61 and confidence 0.68. Enablement 0.59; resilience 0.57; momentum 0.13.'\ntags: ['automated_standups', 'blocker_tracking', 'collaboration', 'execution', 'shared_workspaces']\ntitle: 'Parallel Execution & Collaboration'\n\n### Performance Metrics\nconfidence: 0.678964143426295\nenablement: 0.5937051792828686\nmaturity: 0.6137051792828686\nmomentum: 0.12844621513944224\nresilience: 0.5737051792828686\n\n### Human Feedback\n- Maintain the current execution loop for Parallel Execution & Collaboration.\n- Parallel Execution & Collaboration is stabilising below target maturity; reinforce operating rhythms.\n\n### Recorded Signals\n- phase4.maturity -> neutral (0.614)\n- phase4.confidence -> neutral (0.679)\n- phase4.enablement -> neutral (0.594)\n- phase4.resilience -> neutral (0.574)\n- phase4.momentum -> positive (0.128)",
+        "completion": "- Monitor phase4.maturity (Maturity 0.61 above guardrail 0.50 but below target 0.88.); weight=1.35, score=0.614\n- Monitor phase4.confidence (Confidence 0.68 acceptable but could strengthen.); weight=1.35, score=0.679\n- Monitor phase4.enablement (Enablement 0.59 within guardrails but shy of momentum thresholds.); weight=1.35, score=0.594\n- Monitor phase4.resilience (Resilience 0.57 meets baseline expectations.); weight=1.35, score=0.574\n- Continue reinforcing strength in phase4.momentum (Momentum 0.13 accelerating integration.); weight=1.35, score=0.128\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "phase4.maturity",
+          "phase4.confidence",
+          "phase4.enablement",
+          "phase4.resilience",
+          "phase4.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T05:52:22.206749+00:00",
+          "performance_score": 0.5177051792828686,
+          "signals": [
+            {
+              "metric": "phase4.maturity",
+              "value": 0.6137051792828686,
+              "direction": "neutral",
+              "weight": 1.35,
+              "notes": "Maturity 0.61 above guardrail 0.50 but below target 0.88."
+            },
+            {
+              "metric": "phase4.confidence",
+              "value": 0.678964143426295,
+              "direction": "neutral",
+              "weight": 1.35,
+              "notes": "Confidence 0.68 acceptable but could strengthen."
+            },
+            {
+              "metric": "phase4.enablement",
+              "value": 0.5937051792828686,
+              "direction": "neutral",
+              "weight": 1.35,
+              "notes": "Enablement 0.59 within guardrails but shy of momentum thresholds."
+            },
+            {
+              "metric": "phase4.resilience",
+              "value": 0.5737051792828686,
+              "direction": "neutral",
+              "weight": 1.35,
+              "notes": "Resilience 0.57 meets baseline expectations."
+            },
+            {
+              "metric": "phase4.momentum",
+              "value": 0.12844621513944224,
+              "direction": "positive",
+              "weight": 1.35,
+              "notes": "Momentum 0.13 accelerating integration."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'phase5'\nstatus: 'calibrating'\nsummary: 'Continuous Monitoring & Feedback is calibrating with maturity 0.54 and confidence 0.62. Enablement 0.57; resilience 0.55; momentum 0.09.'\ntags: ['alert_thresholds', 'feedback', 'monitoring', 'sentiment_digests', 'telemetry_dashboards']\ntitle: 'Continuous Monitoring & Feedback'\n\n### Performance Metrics\nconfidence: 0.6239696312364426\nenablement: 0.5739696312364425\nmaturity: 0.5439696312364426\nmomentum: 0.08917570498915403\nresilience: 0.5539696312364426\n\n### Human Feedback\n- Maintain the current execution loop for Continuous Monitoring & Feedback.\n- Continuous Monitoring & Feedback is stabilising below target maturity; reinforce operating rhythms.\n\n### Recorded Signals\n- phase5.maturity -> neutral (0.544)\n- phase5.confidence -> neutral (0.624)\n- phase5.enablement -> neutral (0.574)\n- phase5.resilience -> neutral (0.554)\n- phase5.momentum -> neutral (0.089)",
+        "completion": "- Monitor phase5.maturity (Maturity 0.54 above guardrail 0.48 but below target 0.83.); weight=1.15, score=0.544\n- Monitor phase5.confidence (Confidence 0.62 acceptable but could strengthen.); weight=1.15, score=0.624\n- Monitor phase5.enablement (Enablement 0.57 within guardrails but shy of momentum thresholds.); weight=1.15, score=0.574\n- Monitor phase5.resilience (Resilience 0.55 meets baseline expectations.); weight=1.15, score=0.554\n- Monitor phase5.momentum (Momentum 0.09 within neutral band (-0.10 to 0.10).); weight=1.15, score=0.089\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "phase5.maturity",
+          "phase5.confidence",
+          "phase5.enablement",
+          "phase5.resilience",
+          "phase5.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T05:52:22.206760+00:00",
+          "performance_score": 0.47701084598698484,
+          "signals": [
+            {
+              "metric": "phase5.maturity",
+              "value": 0.5439696312364426,
+              "direction": "neutral",
+              "weight": 1.15,
+              "notes": "Maturity 0.54 above guardrail 0.48 but below target 0.83."
+            },
+            {
+              "metric": "phase5.confidence",
+              "value": 0.6239696312364426,
+              "direction": "neutral",
+              "weight": 1.15,
+              "notes": "Confidence 0.62 acceptable but could strengthen."
+            },
+            {
+              "metric": "phase5.enablement",
+              "value": 0.5739696312364425,
+              "direction": "neutral",
+              "weight": 1.15,
+              "notes": "Enablement 0.57 within guardrails but shy of momentum thresholds."
+            },
+            {
+              "metric": "phase5.resilience",
+              "value": 0.5539696312364426,
+              "direction": "neutral",
+              "weight": 1.15,
+              "notes": "Resilience 0.55 meets baseline expectations."
+            },
+            {
+              "metric": "phase5.momentum",
+              "value": 0.08917570498915403,
+              "direction": "neutral",
+              "weight": 1.15,
+              "notes": "Momentum 0.09 within neutral band (-0.10 to 0.10)."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'phase6'\nstatus: 'calibrating'\nsummary: 'Adaptive Redirection & Optimization is calibrating with maturity 0.47 and confidence 0.59. Enablement 0.52; resilience 0.50; momentum 0.03.'\ntags: ['adaptation', 'capacity_reallocation', 'mitigation_playbooks', 'optimization', 'scenario_modeling']\ntitle: 'Adaptive Redirection & Optimization'\n\n### Performance Metrics\nconfidence: 0.5941602184797451\nenablement: 0.5188802913063268\nmaturity: 0.4688802913063268\nmomentum: 0.03416021847974511\nresilience: 0.4988802913063268\n\n### Human Feedback\n- Invest in enablement rituals for Adaptive Redirection & Optimization.\n- Build resilience buffers within Adaptive Redirection & Optimization workflows.\n- Adaptive Redirection & Optimization is stabilising below target maturity; reinforce operating rhythms.\n- Adaptive Redirection & Optimization enablement is lagging (0.52).\n- Adaptive Redirection & Optimization resilience is fragile (0.50).\n\n### Recorded Signals\n- phase6.maturity -> neutral (0.469)\n- phase6.confidence -> neutral (0.594)\n- phase6.enablement -> negative (0.519)\n- phase6.resilience -> negative (0.499)\n- phase6.momentum -> neutral (0.034)",
+        "completion": "- Monitor phase6.maturity (Maturity 0.47 above guardrail 0.46 but below target 0.84.); weight=1.10, score=0.469\n- Monitor phase6.confidence (Confidence 0.59 acceptable but could strengthen.); weight=1.10, score=0.594\n- Course-correct by improving phase6.enablement (Enablement 0.52 below healthy threshold (0.55).); weight=1.10, score=0.519\n- Course-correct by improving phase6.resilience (Resilience 0.50 below stability guardrail (0.50).); weight=1.10, score=0.499\n- Monitor phase6.momentum (Momentum 0.03 within neutral band (-0.10 to 0.10).); weight=1.10, score=0.034\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "phase6.maturity",
+          "phase6.confidence",
+          "phase6.enablement",
+          "phase6.resilience",
+          "phase6.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T05:52:22.206773+00:00",
+          "performance_score": 0.42299226217569413,
+          "signals": [
+            {
+              "metric": "phase6.maturity",
+              "value": 0.4688802913063268,
+              "direction": "neutral",
+              "weight": 1.1,
+              "notes": "Maturity 0.47 above guardrail 0.46 but below target 0.84."
+            },
+            {
+              "metric": "phase6.confidence",
+              "value": 0.5941602184797451,
+              "direction": "neutral",
+              "weight": 1.1,
+              "notes": "Confidence 0.59 acceptable but could strengthen."
+            },
+            {
+              "metric": "phase6.enablement",
+              "value": 0.5188802913063268,
+              "direction": "negative",
+              "weight": 1.1,
+              "notes": "Enablement 0.52 below healthy threshold (0.55)."
+            },
+            {
+              "metric": "phase6.resilience",
+              "value": 0.4988802913063268,
+              "direction": "negative",
+              "weight": 1.1,
+              "notes": "Resilience 0.50 below stability guardrail (0.50)."
+            },
+            {
+              "metric": "phase6.momentum",
+              "value": 0.03416021847974511,
+              "direction": "neutral",
+              "weight": 1.1,
+              "notes": "Momentum 0.03 within neutral band (-0.10 to 0.10)."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'phase7'\nstatus: 'fragile'\nsummary: 'Post-Launch Performance Analysis is fragile with maturity 0.49 and confidence 0.61. Enablement 0.54; resilience 0.52; momentum 0.04.'\ntags: ['analysis', 'anomaly_detection', 'kpi_scorecard', 'performance', 'roi_analysis']\ntitle: 'Post-Launch Performance Analysis'\n\n### Performance Metrics\nconfidence: 0.6141479524438573\nenablement: 0.5388639365918098\nmaturity: 0.48886393659180977\nmomentum: 0.04414795244385733\nresilience: 0.5188639365918097\n\n### Human Feedback\n- Invest in enablement rituals for Post-Launch Performance Analysis.\n- Post-Launch Performance Analysis maturity is below guardrails; deploy a recovery sprint.\n- Post-Launch Performance Analysis enablement is lagging (0.54).\n\n### Recorded Signals\n- phase7.maturity -> negative (0.489)\n- phase7.confidence -> neutral (0.614)\n- phase7.enablement -> negative (0.539)\n- phase7.resilience -> neutral (0.519)\n- phase7.momentum -> neutral (0.044)",
+        "completion": "- Course-correct by improving phase7.maturity (Maturity 0.49 below guardrail 0.50.); weight=1.05, score=0.489\n- Monitor phase7.confidence (Confidence 0.61 acceptable but could strengthen.); weight=1.05, score=0.614\n- Course-correct by improving phase7.enablement (Enablement 0.54 below healthy threshold (0.55).); weight=1.05, score=0.539\n- Monitor phase7.resilience (Resilience 0.52 meets baseline expectations.); weight=1.05, score=0.519\n- Monitor phase7.momentum (Momentum 0.04 within neutral band (-0.10 to 0.10).); weight=1.05, score=0.044\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "phase7.maturity",
+          "phase7.confidence",
+          "phase7.enablement",
+          "phase7.resilience",
+          "phase7.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T05:52:22.206803+00:00",
+          "performance_score": 0.4409775429326288,
+          "signals": [
+            {
+              "metric": "phase7.maturity",
+              "value": 0.48886393659180977,
+              "direction": "negative",
+              "weight": 1.05,
+              "notes": "Maturity 0.49 below guardrail 0.50."
+            },
+            {
+              "metric": "phase7.confidence",
+              "value": 0.6141479524438573,
+              "direction": "neutral",
+              "weight": 1.05,
+              "notes": "Confidence 0.61 acceptable but could strengthen."
+            },
+            {
+              "metric": "phase7.enablement",
+              "value": 0.5388639365918098,
+              "direction": "negative",
+              "weight": 1.05,
+              "notes": "Enablement 0.54 below healthy threshold (0.55)."
+            },
+            {
+              "metric": "phase7.resilience",
+              "value": 0.5188639365918097,
+              "direction": "neutral",
+              "weight": 1.05,
+              "notes": "Resilience 0.52 meets baseline expectations."
+            },
+            {
+              "metric": "phase7.momentum",
+              "value": 0.04414795244385733,
+              "direction": "neutral",
+              "weight": 1.05,
+              "notes": "Momentum 0.04 within neutral band (-0.10 to 0.10)."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'phase8'\nstatus: 'calibrating'\nsummary: 'Iterative Improvement & Strategic Learning is calibrating with maturity 0.52 and confidence 0.62. Enablement 0.56; resilience 0.54; momentum 0.06.'\ntags: ['experiment_ledger', 'feedback_pipeline', 'improvement', 'learning', 'roadmap_refresh']\ntitle: 'Iterative Improvement & Strategic Learning'\n\n### Performance Metrics\nconfidence: 0.619020979020979\nenablement: 0.5642657342657342\nmaturity: 0.519020979020979\nmomentum: 0.06426573426573426\nresilience: 0.5442657342657343\n\n### Human Feedback\n- Maintain the current execution loop for Iterative Improvement & Strategic Learning.\n- Iterative Improvement & Strategic Learning is stabilising below target maturity; reinforce operating rhythms.\n\n### Recorded Signals\n- phase8.maturity -> neutral (0.519)\n- phase8.confidence -> neutral (0.619)\n- phase8.enablement -> neutral (0.564)\n- phase8.resilience -> neutral (0.544)\n- phase8.momentum -> neutral (0.064)",
+        "completion": "- Monitor phase8.maturity (Maturity 0.52 above guardrail 0.47 but below target 0.86.); weight=1.18, score=0.519\n- Monitor phase8.confidence (Confidence 0.62 acceptable but could strengthen.); weight=1.18, score=0.619\n- Monitor phase8.enablement (Enablement 0.56 within guardrails but shy of momentum thresholds.); weight=1.18, score=0.564\n- Monitor phase8.resilience (Resilience 0.54 meets baseline expectations.); weight=1.18, score=0.544\n- Monitor phase8.momentum (Momentum 0.06 within neutral band (-0.10 to 0.10).); weight=1.18, score=0.064\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "phase8.maturity",
+          "phase8.confidence",
+          "phase8.enablement",
+          "phase8.resilience",
+          "phase8.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T05:52:22.206815+00:00",
+          "performance_score": 0.46216783216783214,
+          "signals": [
+            {
+              "metric": "phase8.maturity",
+              "value": 0.519020979020979,
+              "direction": "neutral",
+              "weight": 1.18,
+              "notes": "Maturity 0.52 above guardrail 0.47 but below target 0.86."
+            },
+            {
+              "metric": "phase8.confidence",
+              "value": 0.619020979020979,
+              "direction": "neutral",
+              "weight": 1.18,
+              "notes": "Confidence 0.62 acceptable but could strengthen."
+            },
+            {
+              "metric": "phase8.enablement",
+              "value": 0.5642657342657342,
+              "direction": "neutral",
+              "weight": 1.18,
+              "notes": "Enablement 0.56 within guardrails but shy of momentum thresholds."
+            },
+            {
+              "metric": "phase8.resilience",
+              "value": 0.5442657342657343,
+              "direction": "neutral",
+              "weight": 1.18,
+              "notes": "Resilience 0.54 meets baseline expectations."
+            },
+            {
+              "metric": "phase8.momentum",
+              "value": 0.06426573426573426,
+              "direction": "neutral",
+              "weight": 1.18,
+              "notes": "Momentum 0.06 within neutral band (-0.10 to 0.10)."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'phase9'\nstatus: 'calibrating'\nsummary: 'Sustained Engagement & Growth is calibrating with maturity 0.53 and confidence 0.60. Enablement 0.54; resilience 0.52; momentum 0.06.'\ntags: ['community_programs', 'engagement', 'growth', 'lifecycle_campaigns', 'referral_automation']\ntitle: 'Sustained Engagement & Growth'\n\n### Performance Metrics\nconfidence: 0.5990424570912376\nenablement: 0.543803071364047\nmaturity: 0.533803071364047\nmomentum: 0.06380307136404698\nresilience: 0.5238030713640469\n\n### Human Feedback\n- Invest in enablement rituals for Sustained Engagement & Growth.\n- Sustained Engagement & Growth is stabilising below target maturity; reinforce operating rhythms.\n- Sustained Engagement & Growth enablement is lagging (0.54).\n\n### Recorded Signals\n- phase9.maturity -> neutral (0.534)\n- phase9.confidence -> neutral (0.599)\n- phase9.enablement -> negative (0.544)\n- phase9.resilience -> neutral (0.524)\n- phase9.momentum -> neutral (0.064)",
+        "completion": "- Monitor phase9.maturity (Maturity 0.53 above guardrail 0.44 but below target 0.82.); weight=1.12, score=0.534\n- Monitor phase9.confidence (Confidence 0.60 acceptable but could strengthen.); weight=1.12, score=0.599\n- Course-correct by improving phase9.enablement (Enablement 0.54 below healthy threshold (0.55).); weight=1.12, score=0.544\n- Monitor phase9.resilience (Resilience 0.52 meets baseline expectations.); weight=1.12, score=0.524\n- Monitor phase9.momentum (Momentum 0.06 within neutral band (-0.10 to 0.10).); weight=1.12, score=0.064\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "phase9.maturity",
+          "phase9.confidence",
+          "phase9.enablement",
+          "phase9.resilience",
+          "phase9.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T05:52:22.206826+00:00",
+          "performance_score": 0.4528509485094851,
+          "signals": [
+            {
+              "metric": "phase9.maturity",
+              "value": 0.533803071364047,
+              "direction": "neutral",
+              "weight": 1.12,
+              "notes": "Maturity 0.53 above guardrail 0.44 but below target 0.82."
+            },
+            {
+              "metric": "phase9.confidence",
+              "value": 0.5990424570912376,
+              "direction": "neutral",
+              "weight": 1.12,
+              "notes": "Confidence 0.60 acceptable but could strengthen."
+            },
+            {
+              "metric": "phase9.enablement",
+              "value": 0.543803071364047,
+              "direction": "negative",
+              "weight": 1.12,
+              "notes": "Enablement 0.54 below healthy threshold (0.55)."
+            },
+            {
+              "metric": "phase9.resilience",
+              "value": 0.5238030713640469,
+              "direction": "neutral",
+              "weight": 1.12,
+              "notes": "Resilience 0.52 meets baseline expectations."
+            },
+            {
+              "metric": "phase9.momentum",
+              "value": 0.06380307136404698,
+              "direction": "neutral",
+              "weight": 1.12,
+              "notes": "Momentum 0.06 within neutral band (-0.10 to 0.10)."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
