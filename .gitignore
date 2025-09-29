@@ -81,6 +81,7 @@ miniapp/
 
 # Audit reports
 .audit/
+.out/
 
 # Miscellaneous
 *.local
