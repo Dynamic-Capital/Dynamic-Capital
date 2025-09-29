@@ -2,6 +2,10 @@
 import { spawn } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import {
+  applyBrandingEnvDefaults,
+  PRODUCTION_ALLOWED_ORIGIN_LIST,
+} from "./utils/branding-env.mjs";
 import { createSanitizedNpmEnv } from "./utils/npm-env.mjs";
 import { hashDirectory } from "./utils/hash-directory.mjs";
 
@@ -9,6 +13,38 @@ const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const staticDirectory =
   (process.env.DIGITALOCEAN_STATIC_DIR || "_static").trim() || "_static";
 const cacheFileName = "digitalocean-static-fingerprint.json";
+
+const {
+  allowedOrigins,
+  defaultedKeys: brandingDefaults,
+  resolvedOrigin: canonicalOrigin,
+} = applyBrandingEnvDefaults({
+  allowedOrigins: ({ env, resolvedOrigin }) => {
+    const existing = env.ALLOWED_ORIGINS?.trim();
+    if (existing) {
+      return existing;
+    }
+    const defaults = new Set(PRODUCTION_ALLOWED_ORIGIN_LIST);
+    defaults.add(resolvedOrigin);
+    return Array.from(defaults).join(",");
+  },
+  includeSupabasePlaceholders: false,
+});
+
+if (brandingDefaults.length > 0) {
+  console.log(
+    "DigitalOcean build: applied default branding variables.",
+    brandingDefaults.join(", "),
+  );
+} else {
+  console.log(
+    `DigitalOcean build: branding environment already configured (origin: ${canonicalOrigin}).`,
+  );
+}
+
+if (allowedOrigins) {
+  console.log(`DigitalOcean build: ALLOWED_ORIGINS → ${allowedOrigins}`);
+}
 
 function run(command, args, options = {}) {
   const { env: providedEnv, ...rest } = options;
