@@ -14,6 +14,7 @@ bash scripts/verify/runtime_wiring_checks.sh
 bash scripts/verify/miniapp_safety.sh
 bash scripts/verify/tradingview_webhook.sh
 bash scripts/verify/tunnel_checks.sh
+bash scripts/verify/dynamic_modules.sh
 
 # Build markdown report
 OUT=".out/verify_report.md"
@@ -41,6 +42,7 @@ emit_section "C) Runtime Wiring Checks" ".out/runtime_checks.txt"
 emit_section "D) Mini App Safety" ".out/miniapp_safety.txt"
 emit_section "E) TradingView Webhook" ".out/tradingview_webhook.txt"
 emit_section "F) Tunnel CLI Checks" ".out/tunnel_checks.txt"
+emit_section "G) Dynamic Modules" ".out/dynamic_modules.txt"
 
 echo "Report written to $OUT"
 say "Done."
