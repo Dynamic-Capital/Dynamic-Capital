@@ -1,0 +1,281 @@
+{
+  "generated_at": "2025-09-29T04:30:35.487883Z",
+  "report": {
+    "generated_at": "2025-09-29T04:30:35.487883Z",
+    "history": 12,
+    "decay": 0.1,
+    "summary": "Overall maturity 0.62; execution health 0.58. Focus on Automation, Platform to accelerate integration.",
+    "overall_maturity": 0.619363959257621,
+    "execution_health": 0.5840751056649339,
+    "momentum": 0.045099432189703414,
+    "focus_areas": [
+      "Automation",
+      "Platform"
+    ],
+    "alerts": [
+      "Automation is stabilising below target maturity; reinforce operating rhythms.",
+      "Automation enablement is lagging (0.48).",
+      "Automation resilience is fragile (0.42).",
+      "Automation momentum is deteriorating (-0.15).",
+      "Platform is stabilising below target maturity; reinforce operating rhythms.",
+      "Platform enablement is lagging (0.53)."
+    ],
+    "nodes": [
+      {
+        "key": "automation",
+        "title": "Automation",
+        "maturity": 0.43431355181576614,
+        "confidence": 0.5945881310894596,
+        "enablement": 0.48458813108945964,
+        "resilience": 0.4194508414526129,
+        "momentum": -0.15082373782108058,
+        "status": "calibrating",
+        "summary": "Automation is calibrating with maturity 0.43 and confidence 0.59. Enablement 0.48; resilience 0.42; momentum -0.15.",
+        "tags": [
+          "observability",
+          "runbooks",
+          "tooling"
+        ],
+        "recommendations": [
+          "Invest in enablement rituals for Automation.",
+          "Build resilience buffers within Automation workflows.",
+          "Counter negative momentum for Automation with fast wins."
+        ],
+        "alerts": [
+          "Automation is stabilising below target maturity; reinforce operating rhythms.",
+          "Automation enablement is lagging (0.48).",
+          "Automation resilience is fragile (0.42).",
+          "Automation momentum is deteriorating (-0.15)."
+        ]
+      },
+      {
+        "key": "orchestration",
+        "title": "Orchestration",
+        "maturity": 0.7992207792207792,
+        "confidence": 0.7296103896103895,
+        "enablement": 0.7048051948051948,
+        "resilience": 0.6848051948051949,
+        "momentum": 0.19922077922077921,
+        "status": "integrated",
+        "summary": "Orchestration is integrated with maturity 0.80 and confidence 0.73. Enablement 0.70; resilience 0.68; momentum 0.20.",
+        "tags": [
+          "cadence",
+          "governance",
+          "retrospectives",
+          "standups"
+        ],
+        "recommendations": [
+          "Maintain the current execution loop for Orchestration."
+        ],
+        "alerts": []
+      },
+      {
+        "key": "platform",
+        "title": "Platform",
+        "maturity": 0.5896249002394254,
+        "confidence": 0.6596249002394253,
+        "enablement": 0.5344373503591381,
+        "resilience": 0.5096249002394253,
+        "momentum": 0.06443735035913807,
+        "status": "calibrating",
+        "summary": "Platform is calibrating with maturity 0.59 and confidence 0.66. Enablement 0.53; resilience 0.51; momentum 0.06.",
+        "tags": [
+          "discovery",
+          "enablement",
+          "resilience"
+        ],
+        "recommendations": [
+          "Invest in enablement rituals for Platform."
+        ],
+        "alerts": [
+          "Platform is stabilising below target maturity; reinforce operating rhythms.",
+          "Platform enablement is lagging (0.53)."
+        ]
+      }
+    ]
+  },
+  "dataset": {
+    "summary": {
+      "count": 3,
+      "capacity": 512,
+      "average_characters": 1557.0,
+      "total_characters": 4671,
+      "default_tags": [],
+      "tag_histogram": {
+        "automation.confidence": 1,
+        "automation.enablement": 1,
+        "automation.maturity": 1,
+        "automation.momentum": 1,
+        "automation.resilience": 1,
+        "orchestration.confidence": 1,
+        "orchestration.enablement": 1,
+        "orchestration.maturity": 1,
+        "orchestration.momentum": 1,
+        "orchestration.resilience": 1,
+        "platform.confidence": 1,
+        "platform.enablement": 1,
+        "platform.maturity": 1,
+        "platform.momentum": 1,
+        "platform.resilience": 1
+      }
+    },
+    "examples": [
+      {
+        "prompt": "### Observed Output\nnode: 'automation'\nstatus: 'calibrating'\nsummary: 'Automation is calibrating with maturity 0.43 and confidence 0.59. Enablement 0.48; resilience 0.42; momentum -0.15.'\ntags: ['observability', 'runbooks', 'tooling']\ntitle: 'Automation'\n\n### Performance Metrics\nconfidence: 0.5945881310894596\nenablement: 0.48458813108945964\nmaturity: 0.43431355181576614\nmomentum: -0.15082373782108058\nresilience: 0.4194508414526129\n\n### Human Feedback\n- Invest in enablement rituals for Automation.\n- Build resilience buffers within Automation workflows.\n- Counter negative momentum for Automation with fast wins.\n- Automation is stabilising below target maturity; reinforce operating rhythms.\n- Automation enablement is lagging (0.48).\n- Automation resilience is fragile (0.42).\n- Automation momentum is deteriorating (-0.15).\n\n### Recorded Signals\n- automation.maturity -> neutral (0.434)\n- automation.confidence -> neutral (0.595)\n- automation.enablement -> negative (0.485)\n- automation.resilience -> negative (0.419)\n- automation.momentum -> negative (-0.151)",
+        "completion": "- Monitor automation.maturity (Maturity 0.43 above guardrail 0.40 but below target 0.70.); weight=1.20, score=0.434\n- Monitor automation.confidence (Confidence 0.59 acceptable but could strengthen.); weight=1.20, score=0.595\n- Course-correct by improving automation.enablement (Enablement 0.48 below healthy threshold (0.55).); weight=1.20, score=0.485\n- Course-correct by improving automation.resilience (Resilience 0.42 below stability guardrail (0.50).); weight=1.20, score=0.419\n- Course-correct by improving automation.momentum (Momentum -0.15 signals regression risk.); weight=1.20, score=-0.151\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "automation.maturity",
+          "automation.confidence",
+          "automation.enablement",
+          "automation.resilience",
+          "automation.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T04:30:35.488012+00:00",
+          "performance_score": 0.35642338352524355,
+          "signals": [
+            {
+              "metric": "automation.maturity",
+              "value": 0.43431355181576614,
+              "direction": "neutral",
+              "weight": 1.2,
+              "notes": "Maturity 0.43 above guardrail 0.40 but below target 0.70."
+            },
+            {
+              "metric": "automation.confidence",
+              "value": 0.5945881310894596,
+              "direction": "neutral",
+              "weight": 1.2,
+              "notes": "Confidence 0.59 acceptable but could strengthen."
+            },
+            {
+              "metric": "automation.enablement",
+              "value": 0.48458813108945964,
+              "direction": "negative",
+              "weight": 1.2,
+              "notes": "Enablement 0.48 below healthy threshold (0.55)."
+            },
+            {
+              "metric": "automation.resilience",
+              "value": 0.4194508414526129,
+              "direction": "negative",
+              "weight": 1.2,
+              "notes": "Resilience 0.42 below stability guardrail (0.50)."
+            },
+            {
+              "metric": "automation.momentum",
+              "value": -0.15082373782108058,
+              "direction": "negative",
+              "weight": 1.2,
+              "notes": "Momentum -0.15 signals regression risk."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'orchestration'\nstatus: 'integrated'\nsummary: 'Orchestration is integrated with maturity 0.80 and confidence 0.73. Enablement 0.70; resilience 0.68; momentum 0.20.'\ntags: ['cadence', 'governance', 'retrospectives', 'standups']\ntitle: 'Orchestration'\n\n### Performance Metrics\nconfidence: 0.7296103896103895\nenablement: 0.7048051948051948\nmaturity: 0.7992207792207792\nmomentum: 0.19922077922077921\nresilience: 0.6848051948051949\n\n### Human Feedback\n- Maintain the current execution loop for Orchestration.\n\n### Recorded Signals\n- orchestration.maturity -> positive (0.799)\n- orchestration.confidence -> positive (0.730)\n- orchestration.enablement -> positive (0.705)\n- orchestration.resilience -> positive (0.685)\n- orchestration.momentum -> positive (0.199)",
+        "completion": "- Continue reinforcing strength in orchestration.maturity (Maturity 0.80 meets or exceeds target 0.75.); weight=1.40, score=0.799\n- Continue reinforcing strength in orchestration.confidence (Confidence 0.73 signals strong telemetry reliability.); weight=1.40, score=0.730\n- Continue reinforcing strength in orchestration.enablement (Enablement 0.70 supports integrated workflows.); weight=1.40, score=0.705\n- Continue reinforcing strength in orchestration.resilience (Resilience 0.68 buffers platform stability.); weight=1.40, score=0.685\n- Continue reinforcing strength in orchestration.momentum (Momentum 0.20 accelerating integration.); weight=1.40, score=0.199\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "orchestration.maturity",
+          "orchestration.confidence",
+          "orchestration.enablement",
+          "orchestration.resilience",
+          "orchestration.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T04:30:35.488107+00:00",
+          "performance_score": 0.6235324675324675,
+          "signals": [
+            {
+              "metric": "orchestration.maturity",
+              "value": 0.7992207792207792,
+              "direction": "positive",
+              "weight": 1.4,
+              "notes": "Maturity 0.80 meets or exceeds target 0.75."
+            },
+            {
+              "metric": "orchestration.confidence",
+              "value": 0.7296103896103895,
+              "direction": "positive",
+              "weight": 1.4,
+              "notes": "Confidence 0.73 signals strong telemetry reliability."
+            },
+            {
+              "metric": "orchestration.enablement",
+              "value": 0.7048051948051948,
+              "direction": "positive",
+              "weight": 1.4,
+              "notes": "Enablement 0.70 supports integrated workflows."
+            },
+            {
+              "metric": "orchestration.resilience",
+              "value": 0.6848051948051949,
+              "direction": "positive",
+              "weight": 1.4,
+              "notes": "Resilience 0.68 buffers platform stability."
+            },
+            {
+              "metric": "orchestration.momentum",
+              "value": 0.19922077922077921,
+              "direction": "positive",
+              "weight": 1.4,
+              "notes": "Momentum 0.20 accelerating integration."
+            }
+          ]
+        }
+      },
+      {
+        "prompt": "### Observed Output\nnode: 'platform'\nstatus: 'calibrating'\nsummary: 'Platform is calibrating with maturity 0.59 and confidence 0.66. Enablement 0.53; resilience 0.51; momentum 0.06.'\ntags: ['discovery', 'enablement', 'resilience']\ntitle: 'Platform'\n\n### Performance Metrics\nconfidence: 0.6596249002394253\nenablement: 0.5344373503591381\nmaturity: 0.5896249002394254\nmomentum: 0.06443735035913807\nresilience: 0.5096249002394253\n\n### Human Feedback\n- Invest in enablement rituals for Platform.\n- Platform is stabilising below target maturity; reinforce operating rhythms.\n- Platform enablement is lagging (0.53).\n\n### Recorded Signals\n- platform.maturity -> neutral (0.590)\n- platform.confidence -> neutral (0.660)\n- platform.enablement -> negative (0.534)\n- platform.resilience -> neutral (0.510)\n- platform.momentum -> neutral (0.064)",
+        "completion": "- Monitor platform.maturity (Maturity 0.59 above guardrail 0.50 but below target 0.80.); weight=1.00, score=0.590\n- Monitor platform.confidence (Confidence 0.66 acceptable but could strengthen.); weight=1.00, score=0.660\n- Course-correct by improving platform.enablement (Enablement 0.53 below healthy threshold (0.55).); weight=1.00, score=0.534\n- Monitor platform.resilience (Resilience 0.51 meets baseline expectations.); weight=1.00, score=0.510\n- Monitor platform.momentum (Momentum 0.06 within neutral band (-0.10 to 0.10).); weight=1.00, score=0.064\n- Integrate qualitative feedback into revised playbooks",
+        "tags": [
+          "platform.maturity",
+          "platform.confidence",
+          "platform.enablement",
+          "platform.resilience",
+          "platform.momentum"
+        ],
+        "metadata": {
+          "timestamp": "2025-09-29T04:30:35.488132+00:00",
+          "performance_score": 0.47154988028731043,
+          "signals": [
+            {
+              "metric": "platform.maturity",
+              "value": 0.5896249002394254,
+              "direction": "neutral",
+              "weight": 1.0,
+              "notes": "Maturity 0.59 above guardrail 0.50 but below target 0.80."
+            },
+            {
+              "metric": "platform.confidence",
+              "value": 0.6596249002394253,
+              "direction": "neutral",
+              "weight": 1.0,
+              "notes": "Confidence 0.66 acceptable but could strengthen."
+            },
+            {
+              "metric": "platform.enablement",
+              "value": 0.5344373503591381,
+              "direction": "negative",
+              "weight": 1.0,
+              "notes": "Enablement 0.53 below healthy threshold (0.55)."
+            },
+            {
+              "metric": "platform.resilience",
+              "value": 0.5096249002394253,
+              "direction": "neutral",
+              "weight": 1.0,
+              "notes": "Resilience 0.51 meets baseline expectations."
+            },
+            {
+              "metric": "platform.momentum",
+              "value": 0.06443735035913807,
+              "direction": "neutral",
+              "weight": 1.0,
+              "notes": "Momentum 0.06 within neutral band (-0.10 to 0.10)."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
