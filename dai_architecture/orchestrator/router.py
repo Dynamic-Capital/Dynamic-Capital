@@ -64,8 +64,16 @@ class MinimalRouter:
         envelope: TaskEnvelope,
         context: Mapping[str, Any],
     ) -> List[BaseCoreAdapter]:
+        return self._rank_adapters_for(envelope, context, self._adapters)
+
+    def _rank_adapters_for(
+        self,
+        envelope: TaskEnvelope,
+        context: Mapping[str, Any],
+        adapters: Iterable[BaseCoreAdapter],
+    ) -> List[BaseCoreAdapter]:
         scored: List[Tuple[float, BaseCoreAdapter]] = []
-        for adapter in self._adapters:
+        for adapter in adapters:
             score = adapter.score_task(envelope, context)
             scored.append((score, adapter))
         scored.sort(key=lambda item: item[0], reverse=True)

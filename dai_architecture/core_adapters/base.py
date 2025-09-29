@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Mapping, MutableMapping
+from typing import Any, Iterable, Mapping, MutableMapping, Tuple
 
 from ..io_bus.schema import TaskEnvelope
 
@@ -31,9 +31,26 @@ class BaseCoreAdapter(ABC):
     """Minimal interface shared by all Phase 1 adapters."""
 
     name: str
+    data_zones: Tuple[str, ...]
+    privacy: str
 
-    def __init__(self, name: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        *,
+        data_zones: Iterable[str] | None = None,
+        privacy: str = "standard",
+    ) -> None:
         self.name = name
+        zones = tuple(zone.lower() for zone in (data_zones or ("global",)))
+        self.data_zones = zones or ("global",)
+        self.privacy = privacy
+
+    def supports_zone(self, zone: str) -> bool:
+        """Return ``True`` when the adapter can operate in ``zone``."""
+
+        zone = zone.lower()
+        return zone in self.data_zones or "global" in self.data_zones
 
     @abstractmethod
     def score_task(self, envelope: TaskEnvelope, context: Mapping[str, Any]) -> float:
