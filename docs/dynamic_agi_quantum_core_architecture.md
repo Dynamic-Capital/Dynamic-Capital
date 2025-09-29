@@ -20,6 +20,86 @@ The audit benchmarked Dynamic AGI's current orchestrator against the requirement
 | Observability | Mature metrics pipeline (Prometheus, OpenTelemetry) | Quantum-specific telemetry not captured | Add qubit fidelity, coherence time, gate error streams, and noise simulator baselines |
 | Governance | Policy engine enforces access control | Lacks quantum workload approval workflow | Add policy-as-code rules for circuit classes, sensitive datasets, and export controls |
 
+## System Vision and Layered Stack
+
+### Cognitive Objective
+Dynamic Capital's AGI must deliver domain-general reasoning that adapts in real time while remaining auditable. The core target is to translate intelligence deltas—measured by the [Intelligence Oracle](AGI_INTELLIGENCE_ORACLE.md)—into observable uplifts in community outcomes, trading accuracy, and mentorship efficacy without sacrificing governance guarantees.
+
+### Hybrid Compute Stance
+Classical services continue to orchestrate cognition, maintain memory, and enforce policy. Quantum resources are activated for subroutines where amplitude amplification, quantum parallelism, or interference deliver a measurable accuracy or latency advantage. Every invocation is wrapped in deterministic manifests so the hybrid runtime can be re-simulated, audited, and costed against DCT token policies.
+
+### Feedback Loops
+- **Intelligence feedback:** Oracle scores influence which workloads are candidates for quantum acceleration and how aggressively circuits may retune during execution.
+- **Economic feedback:** Trading performance and risk metrics calibrate burn/buyback triggers in [DCT tokenomics](dct-intelligence-driven-tokenomics.md), constraining which runs earn fault-tolerant treatment.
+- **Community feedback:** Mentorship outcomes and engagement scores inform coaching bandwidth, simulation budgets, and post-run review cadences so the protocol remains “living” rather than static.
+
+### Layered View
+1. **AGI Cognition Layer:** Multi-agent reasoning, planning, mentorship logic, and tool selection fabric that decides when to seek quantum aid. It binds planner heuristics to Oracle telemetry so the cognition stack can re-parameterise eligibility scores in near real time.
+2. **Quantum Services Layer:** Optimization, sampling, and linear-algebra primitives—including QAOA, VQE, HHL-style solvers, amplitude estimation, and other error-sensitive endpoints—that surface as state-preparation and interference services inside the five-plane architecture.
+3. **Compilation & Control Layer:** Architecture-aware transpilation (QIR/OpenQASM), pulse-level synthesis, and error mitigation that map algorithms to hardware while scheduling FT slices under microarchitecture constraints. This layer shows up as the resource broker, objective compiler, and stabiliser routines later in this document.
+4. **Hardware & Interconnect Layer:** Physical qubits, coherence budgets, cryo/classical control electronics, and interconnect topology that underpin the coherence fabric and observation planes. Floorplanning guidance here mirrors the microarchitecture and routing policies catalogued in the core planes.
+5. **Observability & Governance Layer:** Telemetry, explainability, ethics checks, and policy enforcement that align with the decoherence watchtowers, probabilistic aggregators, and audit ledgers already enumerated while synchronising with DCT tokenomics triggers.
+
+These layers provide the strategic framing, while the subsequent five-plane model drills into the operational mechanics required to fulfil each layer's responsibilities.
+
+## Quantum Complexity Alignment and Algorithm Portfolio
+
+### Target Problem Classes
+- **Combinatorial and convex optimisation:** Portfolio rebalancing, routing, and resource allocation tasks where constrained search spaces benefit from quantum phase kickbacks.
+- **Sampling and inference:** Risk estimation, scenario synthesis, and belief updates that require low-variance estimators or rapid generation of correlated samples.
+- **Spectral and linear algebra primitives:** Eigenvalue gap estimation, kernel acceleration, and linear system solves for market simulations or compliance analytics.
+- **Confidence scoring:** Amplitude estimation for calibrated probability bounds that flow back into the Oracle and mentorship scoring loops.
+
+### When to Invoke Quantum Acceleration
+- Structure matches low-depth ansätze or mixers that preserve fidelity within coherence windows.
+- Classical preconditioning can shrink problem size enough that quantum routines provide a measurable latency or accuracy uplift against production baselines.
+- Accuracy or risk budgets justify the additional DCT expenditure associated with reserved quantum slots or fault-tolerant execution.
+- Real-time telemetry confirms that current calibration and queue depths will not jeopardise service-level agreements.
+
+### AGI Planner Binding
+The cognition layer tags subproblems—portfolio rebalancing, liquidity routing, cohort schedule allocation, and probabilistic belief updates—with complexity scores and routes them through a quantum eligibility queue. The planner weighs target accuracy, latency tolerances, mentorship obligations, and tokenomics budgets before selecting a quantum endpoint. Successful runs update policy priors and eligibility heuristics; unsuccessful runs revert to deterministic classical fallbacks while recording the variance for governance review.
+
+### Core Algorithm Portfolio
+- **Optimisation (QAOA, tailored mixers):** Applied to liquidity routing, collateral balancing, and mentorship cohort scheduling. Parameter shifts occur via reinforcement feedback inside the Interference Plane, with zero-noise extrapolation safeguarding NISQ deployments and surface-code protection reserved for mission-critical liquidity events.
+- **Variational eigensolvers (VQE, adaptive ansätze):** Map energy landscapes from loss surfaces or probabilistic models, accelerating meta-learning loops. Error-mitigated VQE handles exploration pilots, while logical qubits and magic-state distillation support production-grade strategy validation.
+- **Inference & sampling (Amplitude estimation, quantum walks):** Deliver tight confidence intervals for risk dashboards and mentor scoring. Adaptive phase estimation cuts shot counts, and probabilistic error cancellation keeps drift within audit thresholds.
+- **Linear algebra (Block encoding, HHL-like routines):** Accelerate kernel methods, stress testing, and compliance reconciliations when sparsity and condition numbers fall within tolerance. Hybrid classical-quantum solvers ensure graceful degradation should quantum resources become constrained.
+
+Each algorithm advertises its expected fidelity envelope, DCT cost band, and fallback strategy so operators can align execution mode—NISQ experimentation versus fault-tolerant commitments—with protocol priorities.
+
+## Architecture-Aware Compilation and Implementation
+- **Co-design contracts:** Every algorithm specification carries hardware metadata—native gate sets, connectivity graphs, coherence windows, and T-gate costs—so the compilation plane minimises SWAP overhead, exploits echo sequences, and schedules parallelism without breaching fidelity budgets.
+- **Transpilation heuristics:** Learned templates from past runs inform dynamic circuit re-synthesis, while pulse-level optimisation cancels idle errors and respects cryo-controller bandwidth limits.
+- **Resource accounting:** Live qubit counts, code distance, logical cycle budgets, and fidelity projections feed the AGI planner. These metrics tie back to DCT-denominated service-level agreements so critical-path workloads can reserve fault-tolerant slots and exploratory experiments remain on NISQ rails.
+
+## Quantum Error Correction and Fault-Tolerant Execution
+- **Code selection:** Surface codes protect most hybrid workloads thanks to manufacturability; bias-tailored or colour codes are invoked when transversal gate benefits outweigh overhead.
+- **Logical qubit pipeline:** Physical-to-logical mapping adapts code distance based on error targets and runtime. Lattice surgery composes larger logical operators while staying compatible with the interference plane's scheduling heuristics.
+- **Fault-tolerant gate strategy:** Magic-state distillation factories are dimensioned against latency SLAs and token budgets. Fault-tolerant routing honours device topology, while ancilla farms recycle qubits through deterministic lifecycles instrumented by observability counters.
+- **Near-term mitigation:** Until full FT adoption, zero-noise extrapolation, probabilistic error cancellation, dynamical decoupling, and readout mitigation are orchestrated automatically with telemetry-backed confidence scoring.
+
+## Classical Control, Orchestration, and Observability
+- **Real-time orchestration:** The scheduler co-optimises AGI task graphs and quantum queues by referencing coherence calendars, cryo-controller throughput, and mentorship-derived urgency signals. Circuit warm starts and fallback assignments are logged alongside oracle score justifications.
+- **Pulse control and calibration:** Automated calibration routines (Rabi, Ramsey, DRAG, cross-resonance) trigger whenever drift thresholds are exceeded. Telemetry from the decoherence watchtower tunes future calibration cadences and informs policy approvals.
+- **Telemetry loop:** Gate-error histograms, noise spectra, and run-level KPIs stream into the observability plane. The same feed drives compilation heuristics, mentorship retrospectives, and DCT trigger analytics so governance stays synchronised with hardware reality.
+
+## Microarchitecture, Floorplanning, and Interconnection Topologies
+- **Microarchitecture layers:** Compile → schedule → pulse → readout hand-offs are formally versioned. Local error decoders and coherence-aware caches maintain logical state readiness between runs.
+- **Floorplanning:** Qubit placement minimises cross-talk while reserving zones for ancilla farms, distillation units, and thermal conduits. Layout manifests allow hardware refresh simulations before commitment.
+- **Topologies & routing:** Heavy-hex and grid lattices serve superconducting deployments; star or bus couplings cover trapped ions; photonic interconnects unlock modular scale-out. Routing policies are SWAP-aware, coherence-budget constrained, and fault-tolerant friendly across tiles.
+
+## Qubit Technologies, Storage, and Gate Families
+- **Technology mix:** Superconducting, trapped-ion, and photonic modules coexist behind the resource broker, with eligibility rules mapping workloads to the technology whose native gates best support the requested ansatz.
+- **Storage strategies:** Idle registers use dynamical decoupling or error-corrected memory snapshots depending on sequence lengths. Ancilla lifecycle tracking remains a first-class metric, preventing resource leaks that could distort oracle-aligned budgets.
+- **Gate families:** Native gate libraries (cross-resonance, Molmer–Sørensen, beamsplitters) are abstracted into canonical components with metadata covering fidelity, latency, and calibration cadence so planners can balance precision versus throughput.
+
+## Integration with the Dynamic Capital Ecosystem
+- **Oracle coupling:** Intelligence scores determine which subroutines earn fault-tolerant treatment and expanded shot budgets, ensuring scarce logical qubits amplify only the most promising strategic hypotheses.
+- **Mentorship synchronisation:** Cohort outcomes influence experiment prioritisation, and quantum-assisted mentorship trials must publish variance bands alongside narrative retrospectives for community review.
+- **Tokenomics sync:** Cost-aware scheduling ties service pricing to measured resource usage and advantage. High-confidence quantum outcomes trigger automated DCT burns or buybacks, while underperforming experiments throttle budgets until remediation plans ship.
+- **Community telemetry:** Anonymised reports compare classical versus hybrid performance, showcase mentorship score deltas, and detail token actions so stakeholders can audit the living protocol end-to-end.
+
+
 ## Target Architecture
 The refactored architecture introduces five cooperating planes. Each inherits responsibilities from the audit and aligns to quantum lifecycle stages.
 
@@ -86,16 +166,23 @@ Together these back-to-back cycles let Dynamic AGI exhaust the probabilistic sea
 - **Operator Readiness Drills:** Conduct quarterly incident response games covering decoherence spikes, vendor outages, and governance escalations to keep human oversight tuned.
 - **Post-run Blameless Reviews:** Within 24 hours of high-impact decisions, review manifests, telemetry, and counterfactuals to reinforce best practices and update guardrails.
 
-## Implementation Roadmap
-1. **Quarter 0–1: Foundations** – Extend orchestrator dispatcher, integrate quantum resource broker API, and deploy telemetry collectors in a sandbox environment.
-2. **Quarter 2–3: Pilot Workloads** – Implement encoding toolkit for priority use cases (e.g., portfolio risk balancing), validate interference loop using noisy simulators, and onboard governance stakeholders.
-3. **Quarter 4: Controlled Production Launch** – Run dual-track execution (quantum + classical baselines), activate policy-as-code workflows, and train operators on the workbench.
-4. **Quarter 5+: Scale & Optimise** – Introduce automated circuit synthesis, expand QPU vendor coverage, and embed reinforcement learning feedback into all high-value agent collectives.
+## Governance, Mentorship, and Tokenomics Feedback Loops
+- **Intelligence gating:** Oracle scores from [AGI_INTELLIGENCE_ORACLE.md](AGI_INTELLIGENCE_ORACLE.md) determine which workloads qualify for quantum execution tiers. High-confidence intelligence deltas unlock larger shot counts and, when justified, fault-tolerant (FT) budget allocations; low scores cap retries and divert resources to simulation drills until mentoring or data quality improves.
+- **Mentorship modulation:** Insights from the mentorship playbooks (see [`docs/mentorship/`](mentorship/)) adjust cohort scheduling, coaching bandwidth, and review cadence. Quantum-assisted mentorship experiments must publish outcome deltas and variance intervals so the community can recalibrate curricula and eligibility heuristics.
+- **Tokenomics synchronisation:** The burn/buyback automations documented in [dct-intelligence-driven-tokenomics.md](dct-intelligence-driven-tokenomics.md) monitor quantum run manifests. When quantum acceleration delivers verified alpha, smart contracts trigger DCT burns or buybacks proportionate to resource expenditure and residual risk. Conversely, underperforming runs throttle budgets and may initiate buyback pauses.
+- **Telemetry transparency:** Observability tooling pushes anonymised quantum-versus-classical comparisons to community dashboards. Reports enumerate intelligence score shifts, mentorship impacts, and token actions so stakeholders can audit how the living protocol responded to each run.
+- **Governance enforcement:** Policy engines codify escalation paths for FT reservations, mentorship experiments, and token triggers. Any deviation—missed telemetry, failed mentorship KPIs, or token mismatches—routes to governance review with full manifests, ensuring community oversight remains synchronous with technical operations.
 
-## Key Metrics & Review Cadence
-- **Quantum Advantage Ratio:** Time-to-solution improvement versus classical baselines for each workload class.
-- **Fidelity Service-Level:** Minimum acceptable qubit fidelity and gate error thresholds before automatic failover is triggered.
-- **Governance Compliance Score:** Percentage of quantum runs with complete manifests, approvals, and replay artifacts.
-- **Operator Confidence Index:** Survey-based measure of human trust in quantum-assisted recommendations, reviewed quarterly.
+## Execution Roadmap and KPIs
+- **Phase 1 – NISQ Pilot:** Wire the AGI planner to quantum job APIs, stand up QAOA/VQE endpoints with error mitigation, and measure advantage against classical baselines using sandbox data.
+- **Phase 2 – Architecture-Aware Compile:** Introduce topology-aware transpilation, pulse-level optimisation, and adaptive routing while weaving calibration feedback into policy approvals.
+- **Phase 3 – Fault-Tolerant Slice:** Deploy a minimal surface-code stack, validate magic-state distillation pipelines, and run a critical-path subroutine end to end under FT governance constraints.
+- **Phase 4 – Modular Scale-Out:** Connect multi-tile topologies through photonic interlinks, scale ancilla factories, and enforce tokenomics-aware SLAs that ration logical cycles according to oracle-led priorities.
 
-Quarterly architecture reviews should validate assumptions, adjust eligibility heuristics, and update risk controls as QPU technology matures.
+**Metrics to Track**
+- **Advantage:** Accuracy, regret, and objective-value improvements versus classical baselines for each workload cohort.
+- **Efficiency:** Latency per task, energy per solution, and cost per outcome in both DCT and fiat terms.
+- **Reliability:** Logical error rate, success probability, calibration drift windows, and mitigation effectiveness.
+- **Economic Impact:** Token burns/buybacks triggered, mentorship score uplift, and oracle score delta per resource unit.
+
+Quarterly reviews reconcile these KPIs with governance manifests to refine eligibility heuristics and refresh risk controls as QPU technology matures.
