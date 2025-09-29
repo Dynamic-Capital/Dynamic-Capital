@@ -4,6 +4,7 @@ project_id = "your-project-ref"
   site_url = "https://dynamic-capital-qazf2.ondigitalocean.app"
   additional_redirect_urls = [
     "https://dynamic-capital-qazf2.ondigitalocean.app",
+    "https://dynamic.capital",
     "https://dynamic-capital.vercel.app",
     "https://dynamic-capital.lovable.app",
   ]
@@ -12,6 +13,6 @@ project_id = "your-project-ref"
   [functions.env]
     SITE_URL = "https://dynamic-capital-qazf2.ondigitalocean.app"
     NEXT_PUBLIC_SITE_URL = "https://dynamic-capital-qazf2.ondigitalocean.app"
-    ALLOWED_ORIGINS = "https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app"
+    ALLOWED_ORIGINS = "https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app"
     MINIAPP_ORIGIN = "https://dynamic-capital-qazf2.ondigitalocean.app"
     TELEGRAM_WEBHOOK_URL = "https://dynamic-capital-qazf2.ondigitalocean.app/webhook"
