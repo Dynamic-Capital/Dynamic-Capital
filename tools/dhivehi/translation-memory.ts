@@ -1,7 +1,7 @@
-import {
-  containsThaana,
-  levenshteinSimilarity,
-} from "./utils.ts";
+import translationMemoryData from "./data/translation-memory.json" with {
+  type: "json",
+};
+import { containsThaana, levenshteinSimilarity } from "./utils.ts";
 import {
   transliterateLatinToThaana,
   transliterateThaanaToLatin,
@@ -31,23 +31,40 @@ export interface MatchOptions {
   limit?: number;
 }
 
+type RawTranslationSegment = Omit<TranslationSegment, "updatedAt">;
+
+interface IndexedSegment extends TranslationSegment {
+  normalizedSourceLatin: string;
+  normalizedTargetThaana: string;
+  normalizedTargetLatin: string;
+}
+
+const BASE_SEGMENTS: RawTranslationSegment[] = (
+  translationMemoryData as RawTranslationSegment[]
+).map((segment) => ({
+  ...segment,
+  metadata: {
+    ...segment.metadata,
+    tags: segment.metadata?.tags ? [...segment.metadata.tags] : undefined,
+  },
+}));
+
 export class TranslationMemory {
-  private segments: Map<string, TranslationSegment> = new Map();
+  private segments: Map<string, IndexedSegment> = new Map();
 
-  add(segment: Omit<TranslationSegment, "updatedAt">): TranslationSegment {
-    const enriched: TranslationSegment = {
-      ...segment,
-      updatedAt: new Date(),
-    };
-
-    this.segments.set(segment.id, enriched);
-
-    return enriched;
+  constructor(initialSegments: RawTranslationSegment[] = BASE_SEGMENTS) {
+    if (initialSegments.length) {
+      this.bulkImport(initialSegments);
+    }
   }
 
-  bulkImport(
-    segments: Array<Omit<TranslationSegment, "updatedAt">>,
-  ): TranslationSegment[] {
+  add(segment: RawTranslationSegment): TranslationSegment {
+    const indexed = this.index(segment);
+    this.segments.set(indexed.id, indexed);
+    return this.clone(indexed);
+  }
+
+  bulkImport(segments: RawTranslationSegment[]): TranslationSegment[] {
     return segments.map((segment) => this.add(segment));
   }
 
@@ -56,31 +73,83 @@ export class TranslationMemory {
   }
 
   get(id: string): TranslationSegment | undefined {
-    return this.segments.get(id);
+    const segment = this.segments.get(id);
+    return segment ? this.clone(segment) : undefined;
   }
 
   list(): TranslationSegment[] {
-    return [...this.segments.values()].sort(
-      (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime(),
-    );
+    return [...this.segments.values()]
+      .map((segment) => this.clone(segment))
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
   match(query: string, options: MatchOptions = {}): MatchResult[] {
     const { minimumScore = 0.6, limit = 5 } = options;
+    const prepared = prepareQuery(query);
 
-    const candidates = [...this.segments.values()].map((segment) => {
-      const score = similarity(query, segment);
+    if (!prepared.raw.length) {
+      return [];
+    }
 
-      return {
-        ...segment,
-        score,
-      };
-    });
+    const candidates: Array<{ segment: IndexedSegment; score: number }> = [];
+
+    for (const segment of this.segments.values()) {
+      const score = similarity(prepared, segment);
+
+      if (score >= minimumScore) {
+        candidates.push({
+          segment,
+          score,
+        });
+      }
+    }
+
+    if (!candidates.length) {
+      return [];
+    }
 
     return candidates
-      .filter((candidate) => candidate.score >= minimumScore)
       .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
+      .slice(0, limit)
+      .map(({ segment, score }) => ({
+        ...this.clone(segment),
+        score,
+      }));
+  }
+
+  private index(segment: RawTranslationSegment): IndexedSegment {
+    const metadata: SegmentMetadata = {
+      ...segment.metadata,
+      tags: segment.metadata?.tags ? [...segment.metadata.tags] : undefined,
+    };
+
+    const enriched: TranslationSegment = {
+      ...segment,
+      metadata,
+      updatedAt: new Date(),
+    };
+
+    return {
+      ...enriched,
+      normalizedSourceLatin: normalizeLatin(enriched.source),
+      normalizedTargetThaana: normalizeThaana(enriched.target),
+      normalizedTargetLatin: normalizeLatin(
+        transliterateThaanaToLatin(enriched.target),
+      ),
+    };
+  }
+
+  private clone(segment: IndexedSegment): TranslationSegment {
+    return {
+      id: segment.id,
+      source: segment.source,
+      target: segment.target,
+      metadata: {
+        ...segment.metadata,
+        tags: segment.metadata.tags ? [...segment.metadata.tags] : undefined,
+      },
+      updatedAt: new Date(segment.updatedAt.getTime()),
+    };
   }
 }
 
@@ -92,37 +161,47 @@ function normalizeThaana(value: string): string {
   return value.trim();
 }
 
-function similarity(query: string, segment: TranslationSegment): number {
-  const normalizedQuery = query.trim();
-  if (!normalizedQuery.length) {
-    return 0;
-  }
+interface PreparedQuery {
+  raw: string;
+  containsThaana: boolean;
+  latin: string;
+  thaana: string;
+}
 
-  const queryContainsThaana = containsThaana(normalizedQuery);
-  const queryLatin = queryContainsThaana
-    ? normalizeLatin(transliterateThaanaToLatin(normalizedQuery))
-    : normalizeLatin(normalizedQuery);
-  const queryThaana = queryContainsThaana
-    ? normalizeThaana(normalizedQuery)
-    : normalizeThaana(transliterateLatinToThaana(normalizedQuery));
+function prepareQuery(query: string): PreparedQuery {
+  const trimmed = query.trim();
+  const contains = containsThaana(trimmed);
+  const latin = contains
+    ? normalizeLatin(transliterateThaanaToLatin(trimmed))
+    : normalizeLatin(trimmed);
+  const thaana = contains
+    ? normalizeThaana(trimmed)
+    : normalizeThaana(transliterateLatinToThaana(trimmed));
 
-  const sourceLatin = normalizeLatin(segment.source);
-  const targetThaana = normalizeThaana(segment.target);
-  const targetLatin = normalizeLatin(transliterateThaanaToLatin(segment.target));
+  return {
+    raw: trimmed,
+    containsThaana: contains,
+    latin,
+    thaana,
+  };
+}
 
-  const englishScore = queryLatin.length
-    ? levenshteinSimilarity(queryLatin, sourceLatin)
+function similarity(query: PreparedQuery, segment: IndexedSegment): number {
+  const englishScore = query.latin.length
+    ? levenshteinSimilarity(query.latin, segment.normalizedSourceLatin)
     : 0;
-  const thaanaScore = queryThaana.length
-    ? levenshteinSimilarity(queryThaana, targetThaana)
+  const thaanaScore = query.thaana.length
+    ? levenshteinSimilarity(query.thaana, segment.normalizedTargetThaana)
     : 0;
-  const crossLatinScore = queryContainsThaana && queryLatin.length
-    ? levenshteinSimilarity(queryLatin, targetLatin)
+  const crossLatinScore = query.containsThaana && query.latin.length
+    ? levenshteinSimilarity(query.latin, segment.normalizedTargetLatin)
     : 0;
 
-  if (queryContainsThaana) {
+  if (query.containsThaana) {
     return Math.max(thaanaScore, englishScore, crossLatinScore);
   }
 
   return Math.max(englishScore, thaanaScore);
 }
+
+export const defaultTranslationMemory = new TranslationMemory();
