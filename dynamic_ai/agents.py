@@ -1450,6 +1450,62 @@ def _resolve_action(*values: Any) -> str | None:
     return None
 
 
+def _dict_or_none(value: Any) -> Dict[str, Any] | None:
+    if isinstance(value, Mapping):
+        return dict(value)
+    return None
+
+
+def _normalise_hedge_decisions(value: Any) -> list[Any] | None:
+    if value is None:
+        return None
+    if isinstance(value, Mapping):
+        return [dict(value)]
+    if isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
+        normalised: list[Any] = []
+        for item in value:
+            if item is None:
+                continue
+            normalised.append(dict(item) if isinstance(item, Mapping) else item)
+        return normalised or None
+    return [value]
+
+
+def _normalise_escalations(value: Any) -> list[str] | None:
+    if value is None:
+        return None
+    if isinstance(value, Mapping):
+        candidates = value.values()
+    elif isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
+        candidates = value
+    else:
+        text = str(value).strip()
+        return [text] if text else None
+
+    rendered = [
+        text
+        for text in (str(item).strip() for item in candidates)
+        if text
+    ]
+    return rendered or None
+
+
+def _update_if_missing(
+    target: MutableMapping[str, Any],
+    key: str,
+    value: Any,
+    *,
+    transform: Callable[[Any], Any] | None = None,
+) -> None:
+    if key in target:
+        return
+    if transform is not None:
+        value = transform(value)
+    if value is None:
+        return
+    target[key] = value
+
+
 def _extract_text(*candidates: Any) -> str | None:
     for value in candidates:
         if value is None:
@@ -1739,34 +1795,33 @@ class DynamicChatAgent:
         execution_signal_payload = _as_dict(execution_payload.get("signal"))
 
         if risk_payload:
-            if risk_adjusted_payload and "adjusted_signal" not in decision_payload:
-                decision_payload["adjusted_signal"] = risk_adjusted_payload.copy()
+            if risk_adjusted_payload:
+                _update_if_missing(
+                    decision_payload,
+                    "adjusted_signal",
+                    risk_adjusted_payload.copy(),
+                )
 
-            hedge_payload = risk_payload.get("hedge_decisions")
-            if hedge_payload and "hedge_decisions" not in decision_payload:
-                if isinstance(hedge_payload, Mapping):
-                    decision_payload["hedge_decisions"] = [dict(hedge_payload)]
-                elif isinstance(hedge_payload, Iterable) and not isinstance(hedge_payload, (str, bytes)):
-                    decision_payload["hedge_decisions"] = [
-                        dict(item) if isinstance(item, Mapping) else item for item in hedge_payload
-                    ]
-                else:
-                    decision_payload["hedge_decisions"] = [hedge_payload]
+            _update_if_missing(
+                decision_payload,
+                "hedge_decisions",
+                risk_payload.get("hedge_decisions"),
+                transform=_normalise_hedge_decisions,
+            )
 
-            escalations_payload = risk_payload.get("escalations")
-            if escalations_payload and "escalations" not in decision_payload:
-                if isinstance(escalations_payload, Mapping):
-                    decision_payload["escalations"] = list(escalations_payload.values())
-                elif isinstance(escalations_payload, Iterable) and not isinstance(escalations_payload, (str, bytes)):
-                    decision_payload["escalations"] = [str(item) for item in escalations_payload if str(item).strip()]
-                else:
-                    text = str(escalations_payload).strip()
-                    if text:
-                        decision_payload["escalations"] = [text]
+            _update_if_missing(
+                decision_payload,
+                "escalations",
+                risk_payload.get("escalations"),
+                transform=_normalise_escalations,
+            )
 
-            sizing_payload = risk_payload.get("sizing")
-            if isinstance(sizing_payload, Mapping) and "sizing" not in decision_payload:
-                decision_payload["sizing"] = dict(sizing_payload)
+            _update_if_missing(
+                decision_payload,
+                "sizing",
+                risk_payload.get("sizing"),
+                transform=_dict_or_none,
+            )
 
         action_text = _resolve_action(
             decision_payload.get("action"),
@@ -1779,10 +1834,8 @@ class DynamicChatAgent:
         if action_text and not _normalise_action(decision_payload.get("action")):
             decision_payload["action"] = action_text
 
-        decision_confidence = _optional_float(decision_payload.get("confidence"))
-        if decision_confidence is not None:
-            confidence_value = decision_confidence
-        else:
+        confidence_value = _optional_float(decision_payload.get("confidence"))
+        if confidence_value is None:
             confidence_value = _first_float(
                 risk_payload.get("confidence") if isinstance(risk_payload, Mapping) else None,
                 risk_adjusted_payload.get("confidence"),
@@ -1791,8 +1844,8 @@ class DynamicChatAgent:
                 research_payload.get("confidence") if isinstance(research_payload, Mapping) else None,
                 agi_signal_payload.get("confidence"),
             )
-            if confidence_value is not None:
-                decision_payload["confidence"] = confidence_value
+        if confidence_value is not None:
+            decision_payload["confidence"] = confidence_value
 
         narrative_parts: list[str] = []
         if user_prompt:
