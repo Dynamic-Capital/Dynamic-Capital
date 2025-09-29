@@ -1,0 +1,38 @@
+[
+  {
+    "term": "loan",
+    "thaana": "ލޯން",
+    "definition": "Credit issued to a customer with scheduled repayments.",
+    "variants": ["ލޯނު", "ލޯންތަ"],
+    "domains": ["finance", "support"],
+    "sources": ["Javaabu/laravel-dhivehi-translate", "Radheef"],
+    "notes": "Ensure consistency with repayment calculators and statement exports."
+  },
+  {
+    "term": "repayment",
+    "thaana": "ރިޕޭމެންޓް",
+    "definition": "Scheduled amount owed back to Dynamic Capital.",
+    "variants": ["ރިޕޭމެންޓަށް", "ރިޕޭމެންޓް ޑެޓް"],
+    "domains": ["finance"],
+    "sources": ["DhivehiMVR_excel"],
+    "notes": "Surface in Thaana calculators and payment reminder templates."
+  },
+  {
+    "term": "compliance",
+    "thaana": "ކޮމްޕްލައިންސް",
+    "definition": "Adherence to regulatory and Sharia guidelines.",
+    "variants": ["ކޮމްޕްލައިންސް ޕްރޮސެސް"],
+    "domains": ["governance", "support"],
+    "sources": ["kudanai/Quran-Translation"],
+    "notes": "Link relevant Quran references for ethics escalations."
+  },
+  {
+    "term": "speech transcript",
+    "thaana": "ސްޕީޗް ޓްރާންސްކްރިޕްޓް",
+    "definition": "Dhivehi text generated from hotline recordings.",
+    "variants": ["ވޮއިސް ޕްރޮސެސިންގް"],
+    "domains": ["speech", "support"],
+    "sources": ["beneyraheem/thaanaSTT"],
+    "notes": "Store alongside ticket metadata for retrieval QA."
+  }
+]
