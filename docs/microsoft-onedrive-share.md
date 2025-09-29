@@ -25,3 +25,18 @@ file or folder through the Microsoft Graph API.
 The helper converts the share link to the Base64-URL identifier expected by
 Microsoft Graph before requesting the item. It prints the JSON response to
 `stdout`, matching the behaviour of the original Python snippet.
+
+## Listing folder contents
+
+When the shared item is a folder you can render a readable tree of its contents
+with the `list-drive-contents` helper. The script expands folder children
+automatically when you pass the `--recursive` flag.
+
+```bash
+export ONEDRIVE_ACCESS_TOKEN="<token>"
+tsx scripts/onedrive/list-drive-contents.ts "https://1drv.ms/f/..." --recursive
+```
+
+Each entry shows the item name, whether it is a file or folder, key metadata
+such as size or MIME type, the last modified timestamp, and (when provided by
+Graph) the OneDrive web URL for quick navigation.
