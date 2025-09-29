@@ -4,6 +4,7 @@ project_id = "your-project-ref"
   site_url = "https://dynamic-capital-qazf2.ondigitalocean.app"
   additional_redirect_urls = [
     "https://dynamic-capital-qazf2.ondigitalocean.app",
+    "https://dynamic.capital",
     "https://dynamic-capital.vercel.app",
     "https://dynamic-capital.lovable.app",
   ]
