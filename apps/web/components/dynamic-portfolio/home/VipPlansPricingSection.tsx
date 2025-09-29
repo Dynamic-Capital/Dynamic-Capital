@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -13,130 +13,39 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-import { callEdgeFunction } from "@/config/supabase";
 import { useWalletConnect } from "@/hooks/useWalletConnect";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
+import { usePopularPlanId } from "@/hooks/usePopularPlanId";
 import type { Plan } from "@/types/plan";
 import { formatPrice } from "@/utils";
+import {
+  describePlanFrequency,
+  formatPlanDuration,
+  getMonthlyEquivalent,
+} from "@/utils/plan-format";
 
 import styles from "./VipPlansPricingSection.module.scss";
 
-type ContentBatchResponse = {
-  contents?: Array<{ content_key: string; content_value: string }>;
-};
-
-type PopularPlanContent = {
-  popular_plan_id?: string | null;
-};
-
 const MAX_FEATURES_DISPLAY = 6;
-
-function formatDuration(plan: Plan): string {
-  if (plan.is_lifetime) {
-    return "Lifetime access";
-  }
-
-  const months = plan.duration_months;
-  if (months <= 1) return "Monthly";
-  if (months === 3) return "Quarterly";
-  if (months === 6) return "Semi-annual";
-  if (months === 12) return "Annual";
-  if (months % 12 === 0) {
-    const years = months / 12;
-    return `${years} year${years > 1 ? "s" : ""}`;
-  }
-  return `${months} months`;
-}
-
-function describePlanFrequency(plan: Plan): string {
-  if (plan.is_lifetime) {
-    return "one-time";
-  }
-
-  const months = plan.duration_months;
-  if (months <= 1) return "per month";
-  if (months === 3) return "every quarter";
-  if (months === 6) return "every 6 months";
-  if (months === 12) return "per year";
-  if (months % 12 === 0) {
-    const years = months / 12;
-    return `every ${years} years`;
-  }
-  return `every ${months} months`;
-}
-
-function getMonthlyEquivalent(plan: Plan): number | null {
-  if (plan.is_lifetime) return null;
-  const months = plan.duration_months;
-  if (months <= 1) return null;
-  if (!Number.isFinite(months) || months === 0) return null;
-  const value = plan.price / months;
-  return Number.isFinite(value) ? value : null;
-}
-
-function resolvePopularPlanId(contents?: PopularPlanContent): string | null {
-  if (!contents?.popular_plan_id) {
-    return null;
-  }
-  const id = contents.popular_plan_id.trim();
-  return id.length > 0 ? id : null;
-}
 
 export function VipPlansPricingSection() {
   const { plans, loading, error, hasData, refresh } = useSubscriptionPlans();
-  const [popularPlanId, setPopularPlanId] = useState<string | null>(null);
+  const {
+    popularPlanId,
+    error: popularPlanError,
+  } = usePopularPlanId();
   const reduceMotion = useReducedMotion();
   const connectWallet = useWalletConnect();
   const router = useRouter();
 
   useEffect(() => {
-    let isActive = true;
-
-    const loadPopularPlan = async () => {
-      try {
-        const { data, error: contentError } = await callEdgeFunction<
-          ContentBatchResponse
-        >("CONTENT_BATCH", {
-          method: "POST",
-          body: { keys: ["popular_plan_id"] },
-        });
-
-        if (!isActive) {
-          return;
-        }
-
-        if (contentError) {
-          console.warn(
-            "[VipPlansPricingSection] Unable to load popular plan content:",
-            contentError.message,
-          );
-          return;
-        }
-
-        const contents = data?.contents ?? [];
-        const lookup: PopularPlanContent = {};
-
-        for (const item of contents) {
-          if (item.content_key === "popular_plan_id") {
-            lookup.popular_plan_id = item.content_value;
-          }
-        }
-
-        setPopularPlanId(resolvePopularPlanId(lookup));
-      } catch (err) {
-        console.warn(
-          "[VipPlansPricingSection] Failed to fetch popular plan content",
-          err,
-        );
-      }
-    };
-
-    void loadPopularPlan();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
+    if (popularPlanError) {
+      console.warn(
+        "[VipPlansPricingSection] Failed to fetch popular plan content",
+        popularPlanError,
+      );
+    }
+  }, [popularPlanError]);
 
   const sortedPlans = useMemo(() => {
     if (plans.length === 0) {
@@ -359,7 +268,7 @@ export function VipPlansPricingSection() {
                       size="s"
                       prefixIcon={plan.is_lifetime ? "shield" : "calendar"}
                     >
-                      {formatDuration(plan)}
+                      {formatPlanDuration(plan)}
                     </Tag>
                     <Tag size="s" prefixIcon="rocket">
                       Synced with mini app

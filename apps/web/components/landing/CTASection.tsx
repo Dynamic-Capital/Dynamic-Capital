@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MotionFadeIn } from "@/components/ui/motion-components";
-import { callEdgeFunction } from "@/config/supabase";
 import {
   ArrowRight,
   BadgeCheck,
@@ -21,6 +20,7 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/utils";
+import { useContentBatch } from "@/hooks/useContentBatch";
 
 import { InteractiveSectionContainer } from "./InteractiveSectionContainer";
 
@@ -94,7 +94,6 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
     [],
   );
 
-  const [content, setContent] = useState<CTAContent>(defaultContent);
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<{
@@ -105,78 +104,80 @@ const CTASection = ({ onJoinNow, onOpenTelegram }: CTASectionProps) => {
     message: defaultContent.newsletterPrivacy,
   });
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const { data, error } = await callEdgeFunction("CONTENT_BATCH", {
-          method: "POST",
-          body: {
-            keys: [
-              "cta_badge",
-              "cta_title",
-              "cta_description",
-              "cta_highlight",
-              "cta_primary_button",
-              "cta_secondary_button",
-              "cta_response_time",
-              "cta_capacity",
-              ...TRUST_SIGNAL_KEYS.flat(),
-              "cta_newsletter_title",
-              "cta_newsletter_description",
-              "cta_newsletter_placeholder",
-              "cta_newsletter_button",
-              "cta_newsletter_privacy",
-            ],
-          },
-        });
-
-        if (!error && data) {
-          const items = (data as any).contents || [];
-          const lookup: Record<string, string> = {};
-          items.forEach((c: any) => {
-            lookup[c.content_key] = c.content_value;
-          });
-
-          const trustSignals = TRUST_SIGNAL_KEYS.map(
-            ([numericKey, wordKey], index) =>
-              lookup[numericKey] ?? lookup[wordKey] ??
-                defaultContent.trustSignals[index],
-          ).filter((signal): signal is string => Boolean(signal));
-
-          setContent({
-            badge: lookup.cta_badge ?? defaultContent.badge,
-            title: lookup.cta_title ?? defaultContent.title,
-            description: lookup.cta_description ?? defaultContent.description,
-            highlight: lookup.cta_highlight ?? defaultContent.highlight,
-            primaryButton: lookup.cta_primary_button ??
-              defaultContent.primaryButton,
-            secondaryButton: lookup.cta_secondary_button ??
-              defaultContent.secondaryButton,
-            responseTime: lookup.cta_response_time ??
-              defaultContent.responseTime,
-            capacity: lookup.cta_capacity ?? defaultContent.capacity,
-            trustSignals,
-            newsletterTitle: lookup.cta_newsletter_title ??
-              defaultContent.newsletterTitle,
-            newsletterDescription: lookup.cta_newsletter_description ??
-              defaultContent.newsletterDescription,
-            newsletterPlaceholder: lookup.cta_newsletter_placeholder ??
-              defaultContent.newsletterPlaceholder,
-            newsletterButton: lookup.cta_newsletter_button ??
-              defaultContent.newsletterButton,
-            newsletterPrivacy: lookup.cta_newsletter_privacy ??
-              defaultContent.newsletterPrivacy,
-          });
-        } else if (error) {
-          console.error("Failed to fetch CTA content:", error.message);
-        }
-      } catch (err) {
-        console.error("Failed to fetch CTA content:", err);
-      }
+  const ctaDefaults = useMemo<Record<string, string>>(() => {
+    const base: Record<string, string> = {
+      cta_badge: defaultContent.badge,
+      cta_title: defaultContent.title,
+      cta_description: defaultContent.description,
+      cta_highlight: defaultContent.highlight,
+      cta_primary_button: defaultContent.primaryButton,
+      cta_secondary_button: defaultContent.secondaryButton,
+      cta_response_time: defaultContent.responseTime,
+      cta_capacity: defaultContent.capacity,
+      cta_newsletter_title: defaultContent.newsletterTitle,
+      cta_newsletter_description: defaultContent.newsletterDescription,
+      cta_newsletter_placeholder: defaultContent.newsletterPlaceholder,
+      cta_newsletter_button: defaultContent.newsletterButton,
+      cta_newsletter_privacy: defaultContent.newsletterPrivacy,
     };
 
-    fetchContent();
+    TRUST_SIGNAL_KEYS.forEach(([numericKey, wordKey], index) => {
+      const fallback = defaultContent.trustSignals[index];
+      if (fallback) {
+        base[numericKey] = fallback;
+        base[wordKey] = fallback;
+      }
+    });
+
+    return base;
   }, [defaultContent]);
+
+  const ctaKeys = useMemo(() => Object.keys(ctaDefaults), [ctaDefaults]);
+
+  const {
+    content: contentMap,
+    error: ctaContentError,
+  } = useContentBatch(ctaKeys, ctaDefaults);
+
+  const content = useMemo<CTAContent>(() => {
+    const trustSignals = TRUST_SIGNAL_KEYS.map(
+      ([numericKey, wordKey], index) => {
+        const fallback = defaultContent.trustSignals[index];
+        return contentMap[numericKey] ?? contentMap[wordKey] ?? fallback;
+      },
+    ).filter((signal): signal is string => Boolean(signal));
+
+    return {
+      badge: contentMap["cta_badge"] ?? defaultContent.badge,
+      title: contentMap["cta_title"] ?? defaultContent.title,
+      description: contentMap["cta_description"] ?? defaultContent.description,
+      highlight: contentMap["cta_highlight"] ?? defaultContent.highlight,
+      primaryButton: contentMap["cta_primary_button"] ??
+        defaultContent.primaryButton,
+      secondaryButton: contentMap["cta_secondary_button"] ??
+        defaultContent.secondaryButton,
+      responseTime: contentMap["cta_response_time"] ??
+        defaultContent.responseTime,
+      capacity: contentMap["cta_capacity"] ?? defaultContent.capacity,
+      trustSignals,
+      newsletterTitle: contentMap["cta_newsletter_title"] ??
+        defaultContent.newsletterTitle,
+      newsletterDescription: contentMap["cta_newsletter_description"] ??
+        defaultContent.newsletterDescription,
+      newsletterPlaceholder: contentMap["cta_newsletter_placeholder"] ??
+        defaultContent.newsletterPlaceholder,
+      newsletterButton: contentMap["cta_newsletter_button"] ??
+        defaultContent.newsletterButton,
+      newsletterPrivacy: contentMap["cta_newsletter_privacy"] ??
+        defaultContent.newsletterPrivacy,
+    };
+  }, [contentMap, defaultContent]);
+
+  useEffect(() => {
+    if (ctaContentError) {
+      console.error("Failed to fetch CTA content:", ctaContentError);
+    }
+  }, [ctaContentError]);
 
   useEffect(() => {
     if (status.type === "idle") {
