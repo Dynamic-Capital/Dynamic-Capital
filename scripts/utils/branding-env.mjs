@@ -36,7 +36,7 @@ function hostToOrigin(host) {
   if (!text) {
     return undefined;
   }
-  return coerceOrigin(`https://${text}`);
+  return coerceOrigin(text);
 }
 
 /**
