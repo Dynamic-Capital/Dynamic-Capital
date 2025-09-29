@@ -1,4 +1,4 @@
-import { execSync, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { cp, rm, mkdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -9,24 +9,42 @@ if (!process.env.DISABLE_HTTP_REDIRECTS) {
   process.env.DISABLE_HTTP_REDIRECTS = 'true';
 }
 
-if (!copyOnly) {
-  // Run Next.js build to ensure latest assets
-  try {
-    execSync('next build', { stdio: 'inherit' });
-  } catch (err) {
-    console.error('❌ Next.js build failed:', err);
-    process.exit(1);
-  }
-}
-
 const root = process.cwd();
 const projectRoot = join(root, '..', '..');
+const runNextBuildScript = join(projectRoot, 'scripts', 'run-next-build.mjs');
 const nextStatic = join(root, '.next', 'static');
 const nextStandalone = join(root, '.next', 'standalone', 'apps', 'web', 'server.js');
 const publicDir = join(root, 'public');
 // Copy build output to a repository-level `_static` directory so the site can be
 // served as a regular static site (e.g. on DigitalOcean).
 const destRoot = join(projectRoot, '_static');
+
+async function runNextBuild() {
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn('node', [runNextBuildScript], {
+      cwd: root,
+      env: process.env,
+      stdio: 'inherit',
+    });
+
+    child.once('error', (error) => {
+      reject(error instanceof Error ? error : new Error(String(error)));
+    });
+
+    child.once('exit', (code, signal) => {
+      if (signal) {
+        reject(new Error(`Next.js build terminated with signal ${signal}`));
+        return;
+      }
+
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Next.js build exited with code ${code ?? 'null'}`));
+      }
+    });
+  });
+}
 
 async function exists(path: string) {
   try {
@@ -273,7 +291,20 @@ async function copyAssets() {
   console.log('✅ Exported landing snapshot to', destRoot);
 }
 
-copyAssets().catch((err) => {
+async function main() {
+  if (!copyOnly) {
+    try {
+      await runNextBuild();
+    } catch (err) {
+      console.error('❌ Next.js build failed:', err);
+      process.exit(1);
+    }
+  }
+
+  await copyAssets();
+}
+
+main().catch((err) => {
   console.error('❌ Failed to copy static assets:', err);
   process.exit(1);
 });
