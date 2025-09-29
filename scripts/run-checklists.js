@@ -202,6 +202,41 @@ const TASK_LIBRARY = {
       'Surfaces vulnerable packages to keep parity with the GitHub Actions audit step.',
     ],
   },
+  'knowledge-base-verify': {
+    id: 'knowledge-base-verify',
+    label:
+      'Verify knowledge base mirror scaffolding (node scripts/checklists/knowledge-base-verify.mjs)',
+    command: 'node scripts/checklists/knowledge-base-verify.mjs',
+    optional: false,
+    docs: ['docs/knowledge-base-training-drop.md'],
+    notes: [
+      'Confirms the checklist doc, metadata snapshot, and local mirror structure exist before training.',
+    ],
+  },
+  'knowledge-base-list': {
+    id: 'knowledge-base-list',
+    label:
+      'Enumerate OneDrive knowledge_base folder (tsx scripts/onedrive/list-drive-contents.ts)',
+    command:
+      'tsx scripts/onedrive/list-drive-contents.ts "https://1drv.ms/f/c/2ff0428a2f57c7a4/EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg"',
+    optional: true,
+    docs: ['docs/knowledge-base-training-drop.md'],
+    notes: [
+      'Requires ONEDRIVE_ACCESS_TOKEN. Prints the current tree so you can compare against the local mirror.',
+    ],
+  },
+  'knowledge-base-dump': {
+    id: 'knowledge-base-dump',
+    label:
+      'Snapshot OneDrive metadata (tsx scripts/onedrive/dump-drive-item.ts)',
+    command:
+      'tsx scripts/onedrive/dump-drive-item.ts "https://1drv.ms/f/c/2ff0428a2f57c7a4/EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg" docs/onedrive-shares/evlumlqt-folder.metadata.json',
+    optional: true,
+    docs: ['docs/knowledge-base-training-drop.md'],
+    notes: [
+      'Requires ONEDRIVE_ACCESS_TOKEN. Refreshes docs/onedrive-shares/evlumlqt-folder.metadata.json with the latest manifest.',
+    ],
+  },
   'ci-test-and-pr': {
     id: 'ci-test-and-pr',
     label: 'Run CI parity checks (deno task ci)',
@@ -330,6 +365,26 @@ const CHECKLISTS = {
     tasks: [
       'nft-collectible-validate',
       'nft-collectible-tasks',
+    ],
+  },
+  'knowledge-base-drop': {
+    name: 'Knowledge Base Training Drop Checklist',
+    doc: 'docs/knowledge-base-training-drop.md',
+    description:
+      'Operational guardrails for mirroring the OneDrive knowledge_base dataset.',
+    tasks: [
+      'knowledge-base-verify',
+      {
+        task: 'knowledge-base-list',
+        optional: true,
+        note: 'Requires ONEDRIVE_ACCESS_TOKEN to enumerate the remote folder.',
+      },
+      {
+        task: 'knowledge-base-dump',
+        optional: true,
+        note:
+          'Requires ONEDRIVE_ACCESS_TOKEN to refresh the metadata snapshot stored in docs/onedrive-shares/evlumlqt-folder.metadata.json.',
+      },
     ],
   },
 };

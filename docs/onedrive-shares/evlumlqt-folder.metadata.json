@@ -1,0 +1,15 @@
+{
+  "shareLink": "https://1drv.ms/f/c/2ff0428a2f57c7a4/EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg",
+  "fetchedAt": "2025-02-14T00:00:00Z",
+  "notes": [
+    "Placeholder manifest captured in the automation sandbox. Replace with the real dump-drive-item.ts output when OneDrive credentials are available."
+  ],
+  "children": [
+    {
+      "name": "knowledge_base",
+      "type": "folder",
+      "lastKnownItemCount": 0,
+      "remarks": "Populate after syncing the latest training corpora."
+    }
+  ]
+}
