@@ -10,7 +10,10 @@ import {
   initTelegram,
   showBackButton,
 } from "@/lib/telegram";
-import { attachGlobalTonConnect, getMiniAppThemeManager } from "@/lib/miniapp-theme";
+import {
+  attachGlobalTonConnect,
+  getMiniAppThemeManager,
+} from "@/lib/miniapp-theme";
 
 export default function MiniAppProviders(
   { children }: { children: ReactNode },
@@ -34,16 +37,25 @@ export default function MiniAppProviders(
 
   useEffect(() => {
     if (!pathname) return;
+    const rootRoutes = new Set([
+      "/miniapp",
+      "/miniapp/home",
+      "/miniapp/overview",
+    ]);
+    const allowMainButtonRoutes = new Set([
+      "/miniapp/account",
+      "/miniapp/signals",
+      "/miniapp/trade",
+    ]);
+
     let cleanupBack: (() => void) | undefined;
-    if (pathname === "/miniapp" || pathname === "/miniapp/home") {
+    if (rootRoutes.has(pathname)) {
       hideBackButton();
     } else {
       cleanupBack = showBackButton(() => router.back());
     }
 
-    const allowMainButton = pathname === "/miniapp/account" ||
-      pathname === "/miniapp/signals";
-    if (!allowMainButton) {
+    if (!allowMainButtonRoutes.has(pathname)) {
       hideMainButton();
     }
 
