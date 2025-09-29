@@ -3,9 +3,19 @@
 from __future__ import annotations
 
 from collections import Counter, deque
+from heapq import nlargest
 from dataclasses import dataclass
 from itertools import islice
-from typing import Callable, Deque, Iterable, Iterator, Mapping, MutableMapping
+from typing import (
+    Callable,
+    Deque,
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    NamedTuple,
+    Sequence,
+)
 
 from ._utils import clamp, normalise_tags, normalise_text, utcnow
 from .consolidation import (
@@ -109,6 +119,44 @@ class DynamicMemoryEngine:
         matching = self._iter_matching(lambda fragment: fragment.domain == normalised_domain)
         return tuple(islice(matching, limit))
 
+    def recall_ranked(
+        self,
+        *,
+        limit: int = 5,
+        weights: Mapping[str, float] | None = None,
+        tags: Sequence[str] | None = None,
+        domain: str | None = None,
+    ) -> tuple[MemoryFragment, ...]:
+        """Return the highest scoring fragments based on configurable weighting.
+
+        The ranking score blends fragment ``recency``, ``relevance`` and ``novelty``
+        attributes. Optional ``tags`` and ``domain`` filters narrow the candidate set
+        before scoring. When ``tags`` are provided fragments must contain at least
+        one matching tag and gain a small boost for each match, rewarding topical
+        alignment.
+        """
+
+        if limit <= 0 or not self._fragments:
+            return ()
+
+        resolved_weights = self._resolve_weights(weights)
+        focus_tags = frozenset(normalise_tags(tags)) if tags else None
+        focus_domain = normalise_text(domain).lower() if domain else None
+
+        candidates = self._iter_rank_candidates(
+            resolved_weights, focus_tags, focus_domain
+        )
+        top_candidates = nlargest(
+            limit,
+            candidates,
+            key=lambda candidate: (candidate.score, candidate.timestamp),
+        )
+
+        if not top_candidates:
+            return ()
+
+        return tuple(candidate.fragment for candidate in top_candidates)
+
     # ------------------------------------------------------------- consolidation
     def consolidate(self, context: ConsolidationContext) -> MemoryConsolidationReport:
         if not self._fragments:
@@ -208,4 +256,62 @@ class DynamicMemoryEngine:
     @property
     def fragments(self) -> tuple[MemoryFragment, ...]:
         return tuple(self._fragments)
+
+    def _resolve_weights(self, weights: Mapping[str, float] | None) -> Mapping[str, float]:
+        base = {"recency": 0.35, "relevance": 0.45, "novelty": 0.2}
+        if weights:
+            for key, value in weights.items():
+                if key not in base:
+                    raise KeyError(f"unsupported weight key: {key}")
+                if value < 0:
+                    raise ValueError("weight values must be non-negative")
+                base[key] = float(value)
+
+        total = sum(base.values())
+        if total <= 0:
+            raise ValueError("weight values must sum to a positive number")
+
+        return {key: value / total for key, value in base.items()}
+
+    class _RankCandidate(NamedTuple):
+        score: float
+        timestamp: float
+        fragment: MemoryFragment
+
+    def _iter_rank_candidates(
+        self,
+        weights: Mapping[str, float],
+        focus_tags: frozenset[str] | None,
+        focus_domain: str | None,
+    ) -> Iterator[_RankCandidate]:
+        weight_recency = weights["recency"]
+        weight_relevance = weights["relevance"]
+        weight_novelty = weights["novelty"]
+
+        for fragment in reversed(self._fragments):
+            if focus_domain and fragment.domain != focus_domain:
+                continue
+
+            if fragment.weight <= 0:
+                continue
+
+            matches = 0
+            if focus_tags:
+                matches = sum(1 for tag in fragment.tags if tag in focus_tags)
+                if matches == 0:
+                    continue
+
+            score = fragment.weight * (
+                (fragment.recency * weight_recency)
+                + (fragment.relevance * weight_relevance)
+                + (fragment.novelty * weight_novelty)
+            )
+            if matches:
+                score += 0.05 * matches
+
+            yield self._RankCandidate(
+                score=score,
+                timestamp=fragment.timestamp.timestamp(),
+                fragment=fragment,
+            )
 
