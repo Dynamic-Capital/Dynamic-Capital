@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from statistics import mean
+from statistics import fmean, mean
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
 __all__ = [
@@ -217,7 +217,11 @@ class DynamicBenchmark:
         history_limit: int = 12,
     ) -> None:
         self.scenario = scenario
-        self._history: Deque[BenchmarkRun] = deque(maxlen=max(history_limit, 1))
+        self._history_limit = max(history_limit, 1)
+        self._history: Deque[BenchmarkRun] = deque(maxlen=self._history_limit)
+        self._metric_lookup: Mapping[str, BenchmarkMetric] = {
+            metric.name: metric for metric in scenario.metrics
+        }
         if history:
             for run in history:
                 self._history.append(run)
@@ -363,15 +367,23 @@ class DynamicBenchmark:
 
     def _trend_commentary(self, assessments: Sequence[MetricAssessment]) -> str:
         metric_names = {assessment.name for assessment in assessments}
-        historical_scores: list[float] = []
-        for run in self._history:
-            for name in metric_names:
-                if name in run.metrics:
-                    historical_scores.append(_coerce_numeric(run.metrics[name]))
+        historical_scores = list(self._historical_normalised_scores(metric_names))
         if len(historical_scores) >= 2:
-            avg_score = mean(historical_scores)
+            avg_score = fmean(historical_scores)
             return (
                 "Sustain outperforming metrics by codifying playbooks; "
                 f"historical average sits at {avg_score:.2f}."
             )
         return "Track outperforming metrics for durability across future cycles."
+
+    def _historical_normalised_scores(self, metric_names: Iterable[str]) -> Iterable[float]:
+        for run in self._history:
+            for name in metric_names:
+                value = run.metrics.get(name)
+                if value is None:
+                    continue
+                metric = self._metric_lookup.get(name)
+                if metric is None:
+                    continue
+                score, _, _ = self._score_metric(metric, value)
+                yield score
