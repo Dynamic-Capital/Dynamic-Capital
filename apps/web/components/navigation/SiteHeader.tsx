@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { LifeBuoy } from "lucide-react";
 
@@ -13,6 +14,7 @@ import { DesktopNav } from "./DesktopNav";
 import { MobileMenu } from "./MobileMenu";
 
 export function SiteHeader() {
+  const headerRef = useRef<HTMLElement | null>(null);
   const { user, signOut } = useAuth();
   const { scrollYProgress } = useScroll();
   const scrollProgress = useSpring(scrollYProgress, {
@@ -20,8 +22,32 @@ export function SiteHeader() {
     damping: 20,
   });
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const updateHeaderHeight = () => {
+      const headerHeight = headerRef.current?.offsetHeight;
+      if (typeof headerHeight === "number") {
+        document.documentElement.style.setProperty(
+          "--site-header-height",
+          `${headerHeight}px`,
+        );
+      }
+    };
+
+    updateHeaderHeight();
+    window.addEventListener("resize", updateHeaderHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateHeaderHeight);
+    };
+  }, []);
+
   return (
     <header
+      ref={headerRef}
       className={cn(
         "sticky top-0 z-40 w-full backdrop-blur-xl",
         "bg-background/70 supports-[backdrop-filter]:bg-background/60 border-b border-border/60",
