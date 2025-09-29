@@ -1400,6 +1400,12 @@ def _normalise_agent_payload(value: Any) -> Dict[str, Any]:
     return {}
 
 
+def _as_dict(value: Any) -> Dict[str, Any]:
+    if isinstance(value, Mapping):
+        return dict(value)
+    return {}
+
+
 def _resolve_agent_payload(
     context: Mapping[str, Any],
     agents: Mapping[str, Any],
@@ -1433,6 +1439,14 @@ def _normalise_action(value: Any) -> str | None:
     if isinstance(value, str):
         rendered = value.strip()
         return rendered or None
+    return None
+
+
+def _resolve_action(*values: Any) -> str | None:
+    for value in values:
+        action = _normalise_action(value)
+        if action:
+            return action
     return None
 
 
@@ -1613,82 +1627,86 @@ class DynamicChatAgent:
             "agi_result",
         )
 
+        agi_signal_payload: Dict[str, Any] = {}
+        agi_risk_payload: Dict[str, Any] = {}
+
         if agi_payload:
-            agi_research = agi_payload.get("research")
-            if isinstance(agi_research, Mapping):
-                research_payload.setdefault("analysis", dict(agi_research))
-                research_confidence = _optional_float(agi_research.get("confidence"))
+            agi_research_payload = _as_dict(agi_payload.get("research"))
+            if agi_research_payload:
+                research_payload.setdefault("analysis", agi_research_payload.copy())
+                research_confidence = _optional_float(agi_research_payload.get("confidence"))
                 if research_confidence is not None and "confidence" not in research_payload:
                     research_payload["confidence"] = research_confidence
                 research_rationale = _extract_text(
                     research_payload.get("rationale"),
-                    agi_research.get("summary"),
-                    agi_research.get("headline"),
-                    agi_research.get("insight"),
+                    agi_research_payload.get("summary"),
+                    agi_research_payload.get("headline"),
+                    agi_research_payload.get("insight"),
                     agi_payload.get("research_summary"),
                 )
                 if research_rationale:
                     research_payload["rationale"] = research_rationale
 
-            agi_signal = agi_payload.get("signal")
-            if isinstance(agi_signal, Mapping):
-                execution_payload.setdefault("signal", dict(agi_signal))
-                exec_confidence = _optional_float(agi_signal.get("confidence"))
+            agi_signal_payload = _as_dict(agi_payload.get("signal"))
+            if agi_signal_payload:
+                execution_payload.setdefault("signal", agi_signal_payload.copy())
+                exec_confidence = _optional_float(agi_signal_payload.get("confidence"))
                 if exec_confidence is not None and "confidence" not in execution_payload:
                     execution_payload["confidence"] = exec_confidence
                 exec_rationale = _extract_text(
                     execution_payload.get("rationale"),
-                    agi_signal.get("reasoning"),
-                    agi_signal.get("narrative"),
+                    agi_signal_payload.get("reasoning"),
+                    agi_signal_payload.get("narrative"),
                     agi_payload.get("signal_summary"),
                 )
                 if exec_rationale:
                     execution_payload["rationale"] = exec_rationale
 
-            agi_risk = agi_payload.get("risk_adjusted")
-            agi_risk_dict = dict(agi_risk) if isinstance(agi_risk, Mapping) else {}
-            if agi_risk_dict:
-                risk_payload.setdefault("adjusted_signal", dict(agi_risk_dict))
-                risk_confidence = _optional_float(agi_risk_dict.get("confidence"))
+            agi_risk_payload = _as_dict(agi_payload.get("risk_adjusted"))
+            if agi_risk_payload:
+                risk_payload.setdefault("adjusted_signal", agi_risk_payload.copy())
+                risk_confidence = _optional_float(agi_risk_payload.get("confidence"))
                 if risk_confidence is not None and "confidence" not in risk_payload:
                     risk_payload["confidence"] = risk_confidence
                 risk_rationale = _extract_text(
                     risk_payload.get("rationale"),
-                    agi_risk_dict.get("rationale"),
+                    agi_risk_payload.get("rationale"),
                     agi_payload.get("risk_summary"),
                 )
                 if risk_rationale:
                     risk_payload["rationale"] = risk_rationale
-                if agi_risk_dict.get("hedge_decisions") and "hedge_decisions" not in risk_payload:
-                    risk_payload["hedge_decisions"] = agi_risk_dict["hedge_decisions"]
-                if agi_risk_dict.get("escalations") and "escalations" not in risk_payload:
-                    risk_payload["escalations"] = agi_risk_dict["escalations"]
+                hedges = agi_risk_payload.get("hedge_decisions")
+                if hedges and "hedge_decisions" not in risk_payload:
+                    risk_payload["hedge_decisions"] = hedges
+                escalations = agi_risk_payload.get("escalations")
+                if escalations and "escalations" not in risk_payload:
+                    risk_payload["escalations"] = escalations
 
-                if "action" not in decision_payload and agi_risk_dict.get("action"):
-                    decision_payload["action"] = agi_risk_dict["action"]
-                risk_confidence_value = _optional_float(agi_risk_dict.get("confidence"))
+                if "action" not in decision_payload and agi_risk_payload.get("action"):
+                    decision_payload["action"] = agi_risk_payload["action"]
+                risk_confidence_value = _optional_float(agi_risk_payload.get("confidence"))
                 if risk_confidence_value is not None and "confidence" not in decision_payload:
                     decision_payload["confidence"] = risk_confidence_value
-                if agi_risk_dict.get("hedge_decisions") and "hedge_decisions" not in decision_payload:
-                    decision_payload["hedge_decisions"] = agi_risk_dict["hedge_decisions"]
-                if agi_risk_dict.get("rationale") and "rationale" not in decision_payload:
-                    decision_payload["rationale"] = agi_risk_dict["rationale"]
+                if hedges and "hedge_decisions" not in decision_payload:
+                    decision_payload["hedge_decisions"] = hedges
+                if agi_risk_payload.get("rationale") and "rationale" not in decision_payload:
+                    decision_payload["rationale"] = agi_risk_payload["rationale"]
 
-            if isinstance(agi_signal, Mapping):
-                if "action" not in decision_payload and agi_signal.get("action"):
-                    decision_payload["action"] = agi_signal["action"]
-                signal_confidence = _optional_float(agi_signal.get("confidence"))
+            if agi_signal_payload:
+                if "action" not in decision_payload and agi_signal_payload.get("action"):
+                    decision_payload["action"] = agi_signal_payload["action"]
+                signal_confidence = _optional_float(agi_signal_payload.get("confidence"))
                 if signal_confidence is not None and "confidence" not in decision_payload:
                     decision_payload["confidence"] = signal_confidence
                 if "rationale" not in decision_payload:
                     decision_payload["rationale"] = _extract_text(
-                        agi_signal.get("reasoning"),
-                        agi_signal.get("narrative"),
+                        agi_signal_payload.get("reasoning"),
+                        agi_signal_payload.get("narrative"),
                     )
 
-            sizing_payload = agi_payload.get("sizing")
-            if isinstance(sizing_payload, Mapping) and "sizing" not in decision_payload:
-                decision_payload["sizing"] = dict(sizing_payload)
+            sizing_payload = _as_dict(agi_payload.get("sizing"))
+            if sizing_payload and "sizing" not in decision_payload:
+                decision_payload["sizing"] = sizing_payload
 
             if "rationale" not in decision_payload:
                 decision_payload["rationale"] = research_payload.get("rationale") or execution_payload.get("rationale")
@@ -1705,27 +1723,24 @@ class DynamicChatAgent:
         if user_prompt:
             messages.append(ChatTurn(role="user", content=user_prompt))
 
-        if research_payload:
-            messages.append(_compose_persona_message("research", research_payload))
-        if execution_payload:
-            messages.append(_compose_persona_message("execution", execution_payload))
-        if risk_payload:
-            messages.append(_compose_persona_message("risk", risk_payload))
+        for name, persona_payload in (
+            ("research", research_payload),
+            ("execution", execution_payload),
+            ("risk", risk_payload),
+        ):
+            if persona_payload:
+                messages.append(_compose_persona_message(name, persona_payload))
 
         agi_message = _compose_agi_message(agi_payload)
         if agi_message is not None:
             messages.append(agi_message)
 
-        risk_adjusted_raw = risk_payload.get("adjusted_signal") if isinstance(risk_payload, Mapping) else None
-        risk_adjusted_payload = dict(risk_adjusted_raw) if isinstance(risk_adjusted_raw, Mapping) else {}
-        execution_signal_raw = execution_payload.get("signal") if isinstance(execution_payload, Mapping) else None
-        execution_signal_payload = dict(execution_signal_raw) if isinstance(execution_signal_raw, Mapping) else {}
-        agi_signal_raw = agi_payload.get("signal") if isinstance(agi_payload, Mapping) else None
-        agi_signal_payload = dict(agi_signal_raw) if isinstance(agi_signal_raw, Mapping) else {}
+        risk_adjusted_payload = _as_dict(risk_payload.get("adjusted_signal"))
+        execution_signal_payload = _as_dict(execution_payload.get("signal"))
 
-        if isinstance(risk_payload, Mapping):
+        if risk_payload:
             if risk_adjusted_payload and "adjusted_signal" not in decision_payload:
-                decision_payload["adjusted_signal"] = dict(risk_adjusted_payload)
+                decision_payload["adjusted_signal"] = risk_adjusted_payload.copy()
 
             hedge_payload = risk_payload.get("hedge_decisions")
             if hedge_payload and "hedge_decisions" not in decision_payload:
@@ -1753,15 +1768,13 @@ class DynamicChatAgent:
             if isinstance(sizing_payload, Mapping) and "sizing" not in decision_payload:
                 decision_payload["sizing"] = dict(sizing_payload)
 
-        action_text = _normalise_action(decision_payload.get("action"))
-        if not action_text and risk_payload:
-            action_text = _normalise_action(risk_payload.get("action"))
-        if not action_text and risk_adjusted_payload:
-            action_text = _normalise_action(risk_adjusted_payload.get("action"))
-        if not action_text and execution_signal_payload:
-            action_text = _normalise_action(execution_signal_payload.get("action"))
-        if not action_text and agi_signal_payload:
-            action_text = _normalise_action(agi_signal_payload.get("action"))
+        action_text = _resolve_action(
+            decision_payload.get("action"),
+            risk_payload.get("action") if isinstance(risk_payload, Mapping) else None,
+            risk_adjusted_payload.get("action"),
+            execution_signal_payload.get("action"),
+            agi_signal_payload.get("action"),
+        )
 
         if action_text and not _normalise_action(decision_payload.get("action")):
             decision_payload["action"] = action_text
@@ -1772,11 +1785,11 @@ class DynamicChatAgent:
         else:
             confidence_value = _first_float(
                 risk_payload.get("confidence") if isinstance(risk_payload, Mapping) else None,
-                risk_adjusted_payload.get("confidence") if isinstance(risk_adjusted_payload, Mapping) else None,
+                risk_adjusted_payload.get("confidence"),
                 execution_payload.get("confidence") if isinstance(execution_payload, Mapping) else None,
-                execution_signal_payload.get("confidence") if isinstance(execution_signal_payload, Mapping) else None,
+                execution_signal_payload.get("confidence"),
                 research_payload.get("confidence") if isinstance(research_payload, Mapping) else None,
-                agi_signal_payload.get("confidence") if isinstance(agi_signal_payload, Mapping) else None,
+                agi_signal_payload.get("confidence"),
             )
             if confidence_value is not None:
                 decision_payload["confidence"] = confidence_value
