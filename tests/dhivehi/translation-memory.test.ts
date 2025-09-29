@@ -40,3 +40,18 @@ Deno.test("finds fuzzy matches for similar english prompts", () => {
   assertEquals(matches[0].id, "late-fee");
   assertGreater(matches[0].score, 0.19);
 });
+
+Deno.test("matches thaana queries against english sources", () => {
+  const memory = new TranslationMemory();
+  memory.add({
+    id: "repayment-plan",
+    source: "Repayment plan",
+    target: "ރިޕޭމެންޓް ޕްލޭން",
+    metadata: { domain: "finance" },
+  });
+
+  const matches = memory.match("ރިޕޭމެންޓް", { minimumScore: 0.3 });
+  assert(matches.length === 1);
+  assertEquals(matches[0].id, "repayment-plan");
+  assertGreater(matches[0].score, 0.3);
+});

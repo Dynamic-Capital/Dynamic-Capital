@@ -34,3 +34,12 @@ export function levenshteinSimilarity(a: string, b: string): number {
 
   return 1 - distance / maxLength;
 }
+
+const THAANA_REGEX = /[\u0780-\u07BF]/;
+
+/**
+ * Quick heuristic to determine if a string contains Thaana characters.
+ */
+export function containsThaana(text: string): boolean {
+  return THAANA_REGEX.test(text);
+}

@@ -1,6 +1,9 @@
 import glossaryData from "./data/glossary.json" with { type: "json" };
-import { transliterateLatinToThaana } from "./transliteration.ts";
-import { levenshteinSimilarity } from "./utils.ts";
+import {
+  transliterateLatinToThaana,
+  transliterateThaanaToLatin,
+} from "./transliteration.ts";
+import { containsThaana, levenshteinSimilarity } from "./utils.ts";
 
 export interface GlossaryEntry {
   term: string;
@@ -61,15 +64,35 @@ export class Glossary {
       return [];
     }
 
+    const queryContainsThaana = containsThaana(normalizedQuery);
+    const latinQuery = queryContainsThaana
+      ? transliterateThaanaToLatin(normalizedQuery)
+      : normalizedQuery;
+    const thaanaQuery = queryContainsThaana
+      ? normalizedQuery
+      : transliterateLatinToThaana(normalizedQuery);
+    const normalizedLatinQuery = latinQuery.trim().toLowerCase();
+    const normalizedThaanaQuery = thaanaQuery.trim();
+
     const results = this.list().map((entry) => {
       const tokens = [entry.term, entry.thaana, ...entry.variants];
-      const score = Math.max(
-        ...tokens.map((token) => levenshteinSimilarity(normalizedQuery, token)),
-        levenshteinSimilarity(
-          transliterateLatinToThaana(normalizedQuery),
-          entry.thaana,
-        ),
-      );
+      const latinScores = tokens.map((token) => {
+        const normalizedToken = containsThaana(token)
+          ? transliterateThaanaToLatin(token).toLowerCase()
+          : token.toLowerCase();
+        return normalizedLatinQuery.length
+          ? levenshteinSimilarity(normalizedLatinQuery, normalizedToken)
+          : 0;
+      });
+      const thaanaScores = tokens.map((token) => {
+        const normalizedToken = containsThaana(token)
+          ? token
+          : transliterateLatinToThaana(token);
+        return normalizedThaanaQuery.length
+          ? levenshteinSimilarity(normalizedThaanaQuery, normalizedToken)
+          : 0;
+      });
+      const score = Math.max(...latinScores, ...thaanaScores);
 
       return {
         ...entry,

@@ -1,4 +1,11 @@
-import { levenshteinSimilarity } from "./utils.ts";
+import {
+  containsThaana,
+  levenshteinSimilarity,
+} from "./utils.ts";
+import {
+  transliterateLatinToThaana,
+  transliterateThaanaToLatin,
+} from "./transliteration.ts";
 
 export interface SegmentMetadata {
   domain?: string;
@@ -62,7 +69,7 @@ export class TranslationMemory {
     const { minimumScore = 0.6, limit = 5 } = options;
 
     const candidates = [...this.segments.values()].map((segment) => {
-      const score = similarity(query, segment.source);
+      const score = similarity(query, segment);
 
       return {
         ...segment,
@@ -77,13 +84,45 @@ export class TranslationMemory {
   }
 }
 
-function similarity(a: string, b: string): number {
-  const normalizedA = a.trim().toLowerCase();
-  const normalizedB = b.trim().toLowerCase();
+function normalizeLatin(value: string): string {
+  return value.trim().toLowerCase();
+}
 
-  if (!normalizedA.length && !normalizedB.length) {
-    return 1;
+function normalizeThaana(value: string): string {
+  return value.trim();
+}
+
+function similarity(query: string, segment: TranslationSegment): number {
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery.length) {
+    return 0;
   }
 
-  return levenshteinSimilarity(normalizedA, normalizedB);
+  const queryContainsThaana = containsThaana(normalizedQuery);
+  const queryLatin = queryContainsThaana
+    ? normalizeLatin(transliterateThaanaToLatin(normalizedQuery))
+    : normalizeLatin(normalizedQuery);
+  const queryThaana = queryContainsThaana
+    ? normalizeThaana(normalizedQuery)
+    : normalizeThaana(transliterateLatinToThaana(normalizedQuery));
+
+  const sourceLatin = normalizeLatin(segment.source);
+  const targetThaana = normalizeThaana(segment.target);
+  const targetLatin = normalizeLatin(transliterateThaanaToLatin(segment.target));
+
+  const englishScore = queryLatin.length
+    ? levenshteinSimilarity(queryLatin, sourceLatin)
+    : 0;
+  const thaanaScore = queryThaana.length
+    ? levenshteinSimilarity(queryThaana, targetThaana)
+    : 0;
+  const crossLatinScore = queryContainsThaana && queryLatin.length
+    ? levenshteinSimilarity(queryLatin, targetLatin)
+    : 0;
+
+  if (queryContainsThaana) {
+    return Math.max(thaanaScore, englishScore, crossLatinScore);
+  }
+
+  return Math.max(englishScore, thaanaScore);
 }

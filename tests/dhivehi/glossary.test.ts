@@ -18,5 +18,11 @@ Deno.test("search matches latin queries against thaana terms", () => {
 Deno.test("search leverages transliteration for thaana input", () => {
   const glossary = new Glossary();
   const results = glossary.search("ރިޕޭ", { minimumScore: 0.3 });
-  assert(results.some((entry) => entry.term === "repayment"));
+  assertEquals(results[0].term, "repayment");
+});
+
+Deno.test("thaana queries match glossary terms with latin entries", () => {
+  const glossary = new Glossary();
+  const results = glossary.search("ލޯން", { minimumScore: 0.3 });
+  assertEquals(results[0].term, "loan");
 });
