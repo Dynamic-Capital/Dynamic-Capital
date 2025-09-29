@@ -1,17 +1,17 @@
 #!/usr/bin/env node
-import { spawn } from 'node:child_process';
-import fs from 'node:fs';
-import path from 'node:path';
-import process from 'node:process';
-import { fileURLToPath } from 'node:url';
-import dotenv from 'dotenv';
-import { createSanitizedNpmEnv } from './utils/npm-env.mjs';
+import { spawn } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
+import { createSanitizedNpmEnv } from "./utils/npm-env.mjs";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = path.resolve(MODULE_DIR, '..');
+const PROJECT_ROOT = path.resolve(MODULE_DIR, "..");
 const DEFAULT_TELEGRAM_WEBHOOK_FIXTURE = path.join(
   PROJECT_ROOT,
-  'fixtures/telegram-webhook-info.json',
+  "fixtures/telegram-webhook-info.json",
 );
 
 function loadEnvFile(relativePath) {
@@ -21,315 +21,370 @@ function loadEnvFile(relativePath) {
   }
 
   const result = dotenv.config({ path: absolutePath, override: false });
-  if (result.error && result.error.code !== 'ENOENT') {
+  if (result.error && result.error.code !== "ENOENT") {
     throw result.error;
   }
 }
 
-loadEnvFile('.env.local');
-loadEnvFile('.env');
+loadEnvFile(".env.local");
+loadEnvFile(".env");
 
 const TASK_LIBRARY = {
-  'sync-env': {
-    id: 'sync-env',
-    label: 'Sync .env and .env.local with .env.example (npm run sync-env)',
-    command: 'npm run sync-env',
+  "sync-env": {
+    id: "sync-env",
+    label: "Sync .env and .env.local with .env.example (npm run sync-env)",
+    command: "npm run sync-env",
     optional: false,
     docs: [
-      'docs/coding-efficiency-checklist.md',
-      'docs/dynamic-capital-checklist.md',
+      "docs/coding-efficiency-checklist.md",
+      "docs/dynamic-capital-checklist.md",
     ],
     notes: [
-      'Appends any missing keys from .env.example into .env and .env.local without overwriting existing values.',
+      "Appends any missing keys from .env.example into .env and .env.local without overwriting existing values.",
     ],
   },
-  'repo-test': {
-    id: 'repo-test',
-    label: 'Run repository test suite (npm run test)',
-    command: 'npm run test',
+  "repo-test": {
+    id: "repo-test",
+    label: "Run repository test suite (npm run test)",
+    command: "npm run test",
     optional: false,
-    docs: ['docs/coding-efficiency-checklist.md'],
+    docs: ["docs/coding-efficiency-checklist.md"],
     notes: [
-      'Executes the static homepage regression check and the Deno-based unit tests.',
+      "Executes the static homepage regression check and the Deno-based unit tests.",
     ],
   },
-  'fix-and-check': {
-    id: 'fix-and-check',
-    label: 'Run repo fix-and-check script (bash scripts/fix_and_check.sh)',
-    command: 'bash scripts/fix_and_check.sh',
+  "dai-architecture-tests": {
+    id: "dai-architecture-tests",
+    label: "Run DAI architecture tests (pytest dai_architecture/tests)",
+    command: "pytest dai_architecture/tests",
     optional: false,
     docs: [
-      'docs/coding-efficiency-checklist.md',
-      'docs/dynamic-ui-development-checklist.md',
+      "docs/dai-dagi-dags-implementation-checklist.md",
+      "docs/dynamic-ai-overview.md#5-operational-checklist",
     ],
     notes: [
-      'Runs formatting, linting, and Deno type checks used throughout the project.',
+      "Validates Phase 1–4 routing, residency, and governance guards for Dynamic AI.",
+    ],
+  },
+  "dynamic-ai-tests": {
+    id: "dynamic-ai-tests",
+    label:
+      "Run Dynamic AI persona and fusion tests (pytest tests/dynamic_ai tests_python/test_dynamic_ai_phase3.py)",
+    command: "pytest tests/dynamic_ai tests_python/test_dynamic_ai_phase3.py",
+    optional: false,
+    docs: [
+      "docs/dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-ai-dai",
+      "docs/dynamic-ai-overview.md#5-operational-checklist",
+    ],
+    notes: [
+      "Covers persona chaining, fusion logic, and planning outputs for DAI.",
+    ],
+  },
+  "dynamic-agi-tests": {
+    id: "dynamic-agi-tests",
+    label: "Run Dynamic AGI oversight tests (pytest tests/dynamic_agi)",
+    command: "pytest tests/dynamic_agi",
+    optional: false,
+    docs: [
+      "docs/dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-agi-dagi",
+      "docs/dynamic-agi-modular-framework.md",
+    ],
+    notes: [
+      "Exercises DAGI self-improvement, mentorship, and orchestration diagnostics.",
+    ],
+  },
+  "fix-and-check": {
+    id: "fix-and-check",
+    label: "Run repo fix-and-check script (bash scripts/fix_and_check.sh)",
+    command: "bash scripts/fix_and_check.sh",
+    optional: false,
+    docs: [
+      "docs/coding-efficiency-checklist.md",
+      "docs/dynamic-ui-development-checklist.md",
+    ],
+    notes: [
+      "Runs formatting, linting, and Deno type checks used throughout the project.",
     ],
   },
   verify: {
-    id: 'verify',
-    label: 'Run aggregated verification suite (npm run verify)',
-    command: 'npm run verify',
+    id: "verify",
+    label: "Run aggregated verification suite (npm run verify)",
+    command: "npm run verify",
     optional: false,
     docs: [
-      'docs/coding-efficiency-checklist.md',
-      'docs/dynamic-capital-checklist.md',
+      "docs/coding-efficiency-checklist.md",
+      "docs/dynamic-capital-checklist.md",
     ],
     notes: [
-      'Executes scripts/verify/verify_all.sh which bundles static, runtime, and integration safety checks.',
-    ],
-  },
-  'web-lint': {
-    id: 'web-lint',
-    label: 'Run Next.js workspace lint (npm --workspace apps/web run lint)',
-    command: 'npm --workspace apps/web run lint',
-    optional: false,
-    docs: ['docs/dynamic-ui-development-checklist.md'],
-    notes: [
-      'Uses the Next.js ESLint configuration to validate Dynamic UI surfaces.',
+      "Executes scripts/verify/verify_all.sh which bundles static, runtime, and integration safety checks.",
     ],
   },
-  'web-test': {
-    id: 'web-test',
-    label: 'Run Next.js workspace tests (npm --workspace apps/web run test)',
-    command: 'npm --workspace apps/web run test',
+  "web-lint": {
+    id: "web-lint",
+    label: "Run Next.js workspace lint (npm --workspace apps/web run lint)",
+    command: "npm --workspace apps/web run lint",
     optional: false,
-    docs: ['docs/dynamic-ui-development-checklist.md'],
+    docs: ["docs/dynamic-ui-development-checklist.md"],
     notes: [
-      'Executes workspace-level Deno tests for web routes and components.',
+      "Uses the Next.js ESLint configuration to validate Dynamic UI surfaces.",
+    ],
+  },
+  "web-test": {
+    id: "web-test",
+    label: "Run Next.js workspace tests (npm --workspace apps/web run test)",
+    command: "npm --workspace apps/web run test",
+    optional: false,
+    docs: ["docs/dynamic-ui-development-checklist.md"],
+    notes: [
+      "Executes workspace-level Deno tests for web routes and components.",
     ],
   },
   build: {
-    id: 'build',
-    label: 'Build Next.js app and landing snapshot (npm run build)',
-    command: 'npm run build',
+    id: "build",
+    label: "Build Next.js app and landing snapshot (npm run build)",
+    command: "npm run build",
     optional: true,
-    docs: ['docs/dynamic-ui-development-checklist.md'],
+    docs: ["docs/dynamic-ui-development-checklist.md"],
     notes: [
-      'Generates production bundles to surface hydration or build-time regressions.',
+      "Generates production bundles to surface hydration or build-time regressions.",
     ],
   },
-  'build-miniapp': {
-    id: 'build-miniapp',
-    label: 'Build Supabase mini app bundle (npm run build:miniapp)',
-    command: 'npm run build:miniapp',
+  "build-miniapp": {
+    id: "build-miniapp",
+    label: "Build Supabase mini app bundle (npm run build:miniapp)",
+    command: "npm run build:miniapp",
     optional: true,
     docs: [
-      'docs/dynamic-ui-development-checklist.md',
-      'docs/dynamic-capital-checklist.md',
+      "docs/dynamic-ui-development-checklist.md",
+      "docs/dynamic-capital-checklist.md",
     ],
     notes: [
-      'Runs scripts/build-miniapp.sh to compile the Telegram mini app assets.',
+      "Runs scripts/build-miniapp.sh to compile the Telegram mini app assets.",
     ],
   },
-  'check-webhook': {
-    id: 'check-webhook',
+  "check-webhook": {
+    id: "check-webhook",
     label:
-      'Check Telegram webhook configuration (deno run -A scripts/check-webhook.ts)',
-    command: 'deno run -A scripts/check-webhook.ts',
+      "Check Telegram webhook configuration (deno run -A scripts/check-webhook.ts)",
+    command: "deno run -A scripts/check-webhook.ts",
     optional: false,
-    docs: ['docs/dynamic-capital-checklist.md'],
+    docs: ["docs/dynamic-capital-checklist.md"],
     notes: [
-      'Verifies that the Telegram bot webhook is reachable and configured with the expected URL.',
+      "Verifies that the Telegram bot webhook is reachable and configured with the expected URL.",
     ],
   },
-  'audit-edge-hosts': {
-    id: 'audit-edge-hosts',
+  "audit-edge-hosts": {
+    id: "audit-edge-hosts",
     label:
-      'Audit Supabase edge hosts (deno run -A scripts/audit-edge-hosts.ts)',
-    command: 'deno run -A scripts/audit-edge-hosts.ts',
+      "Audit Supabase edge hosts (deno run -A scripts/audit-edge-hosts.ts)",
+    command: "deno run -A scripts/audit-edge-hosts.ts",
     optional: false,
-    docs: ['docs/VARIABLES_AND_LINKS_CHECKLIST.md'],
-    notes: ['Checks Supabase edge deployments for drift between environments.'],
+    docs: ["docs/VARIABLES_AND_LINKS_CHECKLIST.md"],
+    notes: ["Checks Supabase edge deployments for drift between environments."],
   },
-  'check-linkage': {
-    id: 'check-linkage',
-    label: 'Check service linkage (deno run -A scripts/check-linkage.ts)',
-    command: 'deno run -A scripts/check-linkage.ts',
+  "check-linkage": {
+    id: "check-linkage",
+    label: "Check service linkage (deno run -A scripts/check-linkage.ts)",
+    command: "deno run -A scripts/check-linkage.ts",
     optional: false,
-    docs: ['docs/VARIABLES_AND_LINKS_CHECKLIST.md'],
+    docs: ["docs/VARIABLES_AND_LINKS_CHECKLIST.md"],
     notes: [
-      'Validates that environment variables and service URLs match their expected targets.',
+      "Validates that environment variables and service URLs match their expected targets.",
     ],
   },
-  'smoke-miniapp': {
-    id: 'smoke-miniapp',
-    label: 'Run mini app smoke test (deno run -A scripts/smoke-miniapp.ts)',
-    command: 'deno run -A scripts/smoke-miniapp.ts',
+  "smoke-miniapp": {
+    id: "smoke-miniapp",
+    label: "Run mini app smoke test (deno run -A scripts/smoke-miniapp.ts)",
+    command: "deno run -A scripts/smoke-miniapp.ts",
     optional: true,
-    docs: ['docs/dynamic-capital-checklist.md'],
+    docs: ["docs/dynamic-capital-checklist.md"],
     notes: [
-      'Executes scripted flows that mirror the production sanity checklist for the Telegram mini app.',
+      "Executes scripted flows that mirror the production sanity checklist for the Telegram mini app.",
     ],
   },
-  'smoke-tunnel': {
-    id: 'smoke-tunnel',
-    label: 'Run tunnel smoke test (node scripts/smoke-tunnel.mjs)',
-    command: 'node scripts/smoke-tunnel.mjs',
+  "smoke-tunnel": {
+    id: "smoke-tunnel",
+    label: "Run tunnel smoke test (node scripts/smoke-tunnel.mjs)",
+    command: "node scripts/smoke-tunnel.mjs",
     optional: true,
-    docs: ['docs/ngrok-troubleshooting.md'],
+    docs: ["docs/ngrok-troubleshooting.md"],
     notes: [
-      'Confirms the ngrok helper wiring by inspecting dry-run output and forwarded flags.',
+      "Confirms the ngrok helper wiring by inspecting dry-run output and forwarded flags.",
     ],
   },
-  'supabase-cli-workflow': {
-    id: 'supabase-cli-workflow',
-    label: 'Run Supabase CLI workflow (bash scripts/supabase-cli-workflow.sh)',
-    command: 'bash scripts/supabase-cli-workflow.sh',
+  "supabase-cli-workflow": {
+    id: "supabase-cli-workflow",
+    label: "Run Supabase CLI workflow (bash scripts/supabase-cli-workflow.sh)",
+    command: "bash scripts/supabase-cli-workflow.sh",
     optional: false,
-    docs: ['docs/dynamic-capital-checklist.md', 'docs/SETUP_SUMMARY.md'],
+    docs: ["docs/dynamic-capital-checklist.md", "docs/SETUP_SUMMARY.md"],
     notes: [
-      'Logs in with SUPABASE_ACCESS_TOKEN, links the configured project, and pushes pending migrations.',
+      "Logs in with SUPABASE_ACCESS_TOKEN, links the configured project, and pushes pending migrations.",
     ],
   },
-  'deno-typecheck': {
-    id: 'deno-typecheck',
-    label: 'Run Deno typecheck (deno task typecheck)',
-    command: 'deno task typecheck',
+  "deno-typecheck": {
+    id: "deno-typecheck",
+    label: "Run Deno typecheck (deno task typecheck)",
+    command: "deno task typecheck",
     optional: false,
-    docs: ['docs/SETUP_SUMMARY.md', 'docs/coding-efficiency-checklist.md'],
+    docs: ["docs/SETUP_SUMMARY.md", "docs/coding-efficiency-checklist.md"],
     notes: [
-      'Matches the standalone typecheck executed in CI (test-and-pr job).',
+      "Matches the standalone typecheck executed in CI (test-and-pr job).",
     ],
   },
-  'npm-audit': {
-    id: 'npm-audit',
-    label: 'Run npm dependency audit (npm run audit)',
-    command: 'npm run audit',
+  "npm-audit": {
+    id: "npm-audit",
+    label: "Run npm dependency audit (npm run audit)",
+    command: "npm run audit",
     optional: false,
-    docs: ['docs/SETUP_SUMMARY.md'],
+    docs: ["docs/SETUP_SUMMARY.md"],
     notes: [
-      'Surfaces vulnerable packages to keep parity with the GitHub Actions audit step.',
+      "Surfaces vulnerable packages to keep parity with the GitHub Actions audit step.",
     ],
   },
-  'ci-test-and-pr': {
-    id: 'ci-test-and-pr',
-    label: 'Run CI parity checks (deno task ci)',
-    command: 'deno task ci',
+  "ci-test-and-pr": {
+    id: "ci-test-and-pr",
+    label: "Run CI parity checks (deno task ci)",
+    command: "deno task ci",
     optional: false,
-    docs: ['docs/SETUP_SUMMARY.md'],
+    docs: ["docs/SETUP_SUMMARY.md"],
     notes: [
-      'Executes the aggregated formatting, linting, and test routine used by the test-and-pr workflow.',
+      "Executes the aggregated formatting, linting, and test routine used by the test-and-pr workflow.",
     ],
   },
-  'nft-collectible-validate': {
-    id: 'nft-collectible-validate',
+  "nft-collectible-validate": {
+    id: "nft-collectible-validate",
     label:
-      'Validate NFT checklist structure (node scripts/checklists/nft-collectible-validate.mjs)',
-    command: 'node scripts/checklists/nft-collectible-validate.mjs',
+      "Validate NFT checklist structure (node scripts/checklists/nft-collectible-validate.mjs)",
+    command: "node scripts/checklists/nft-collectible-validate.mjs",
     optional: false,
-    docs: ['docs/nft-collectible-launch-checklist.md'],
+    docs: ["docs/nft-collectible-launch-checklist.md"],
     notes: [
-      'Ensures required sections and checklist items remain intact for the NFT launch playbook.',
+      "Ensures required sections and checklist items remain intact for the NFT launch playbook.",
     ],
   },
-  'nft-collectible-tasks': {
-    id: 'nft-collectible-tasks',
+  "nft-collectible-tasks": {
+    id: "nft-collectible-tasks",
     label:
-      'Print NFT checklist tasks (node scripts/checklists/nft-collectible-tasks.mjs)',
-    command: 'node scripts/checklists/nft-collectible-tasks.mjs',
-    docs: ['docs/nft-collectible-launch-checklist.md'],
+      "Print NFT checklist tasks (node scripts/checklists/nft-collectible-tasks.mjs)",
+    command: "node scripts/checklists/nft-collectible-tasks.mjs",
+    docs: ["docs/nft-collectible-launch-checklist.md"],
     notes: [
-      'Outputs grouped checklist items for planning docs or project trackers.',
+      "Outputs grouped checklist items for planning docs or project trackers.",
     ],
   },
 };
 
 const CHECKLISTS = {
-  'coding-efficiency': {
-    name: 'Coding Efficiency Checklist',
-    doc: 'docs/coding-efficiency-checklist.md',
+  "coding-efficiency": {
+    name: "Coding Efficiency Checklist",
+    doc: "docs/coding-efficiency-checklist.md",
     description:
-      'Automation hooks referenced in the coding efficiency checklist.',
-    tasks: ['sync-env', 'repo-test', 'fix-and-check', 'verify'],
+      "Automation hooks referenced in the coding efficiency checklist.",
+    tasks: ["sync-env", "repo-test", "fix-and-check", "verify"],
   },
-  'dynamic-ui': {
-    name: 'Dynamic UI Frontend & Backend Checklist',
-    doc: 'docs/dynamic-ui-development-checklist.md',
-    description: 'Frontend and backend quality gates for Dynamic UI surfaces.',
+  "dynamic-ui": {
+    name: "Dynamic UI Frontend & Backend Checklist",
+    doc: "docs/dynamic-ui-development-checklist.md",
+    description: "Frontend and backend quality gates for Dynamic UI surfaces.",
     tasks: [
-      'web-lint',
-      'web-test',
+      "web-lint",
+      "web-test",
       {
-        task: 'repo-test',
+        task: "repo-test",
         optional: true,
-        note: 'Runs repository-wide tests alongside workspace coverage.',
+        note: "Runs repository-wide tests alongside workspace coverage.",
       },
-      'fix-and-check',
-      'verify',
+      "fix-and-check",
+      "verify",
       {
-        task: 'build',
+        task: "build",
         optional: true,
-        note: 'Useful when verifying hydration and production builds locally.',
+        note: "Useful when verifying hydration and production builds locally.",
       },
       {
-        task: 'build-miniapp',
+        task: "build-miniapp",
         optional: true,
         note:
-          'Required when Dynamic UI changes impact the Telegram mini app shell.',
+          "Required when Dynamic UI changes impact the Telegram mini app shell.",
       },
     ],
   },
-  'variables-and-links': {
-    name: 'Variables & Links Checklist',
-    doc: 'docs/VARIABLES_AND_LINKS_CHECKLIST.md',
-    description: 'Environment and outbound link audits.',
-    tasks: ['audit-edge-hosts', 'check-linkage'],
+  "variables-and-links": {
+    name: "Variables & Links Checklist",
+    doc: "docs/VARIABLES_AND_LINKS_CHECKLIST.md",
+    description: "Environment and outbound link audits.",
+    tasks: ["audit-edge-hosts", "check-linkage"],
   },
-  'go-live': {
-    name: 'Go-Live Checklist',
-    doc: 'docs/dynamic-capital-checklist.md#go-live-checklist',
-    description: 'Production readiness smoke tests.',
+  "go-live": {
+    name: "Go-Live Checklist",
+    doc: "docs/dynamic-capital-checklist.md#go-live-checklist",
+    description: "Production readiness smoke tests.",
     tasks: [
-      'check-webhook',
+      "check-webhook",
       {
-        task: 'smoke-miniapp',
+        task: "smoke-miniapp",
         optional: true,
-        note: 'Complements manual go-live validation with scripted coverage.',
+        note: "Complements manual go-live validation with scripted coverage.",
       },
       {
-        task: 'smoke-tunnel',
+        task: "smoke-tunnel",
         optional: true,
-        note: 'Verifies tunnel arguments before allowing remote QA access.',
+        note: "Verifies tunnel arguments before allowing remote QA access.",
       },
     ],
   },
-  'setup-followups': {
-    name: 'Setup Follow-Ups',
-    doc: 'docs/dynamic-capital-checklist.md#setup-follow-ups',
+  "setup-followups": {
+    name: "Setup Follow-Ups",
+    doc: "docs/dynamic-capital-checklist.md#setup-follow-ups",
     description:
-      'Supabase CLI linking and CI parity checks referenced after initial onboarding.',
+      "Supabase CLI linking and CI parity checks referenced after initial onboarding.",
     tasks: [
-      'supabase-cli-workflow',
-      'deno-typecheck',
-      'repo-test',
-      'npm-audit',
-      'ci-test-and-pr',
+      "supabase-cli-workflow",
+      "deno-typecheck",
+      "repo-test",
+      "npm-audit",
+      "ci-test-and-pr",
     ],
   },
-  'dynamic-capital': {
-    name: 'Dynamic Capital Aggregate Checklist',
-    doc: 'docs/dynamic-capital-checklist.md',
-    description: 'Automation-friendly portions of the project-wide checklist.',
+  "dynamic-capital": {
+    name: "Dynamic Capital Aggregate Checklist",
+    doc: "docs/dynamic-capital-checklist.md",
+    description: "Automation-friendly portions of the project-wide checklist.",
     tasks: [
-      'sync-env',
-      'repo-test',
-      'fix-and-check',
-      'verify',
-      'audit-edge-hosts',
-      'check-linkage',
-      'check-webhook',
-      { task: 'smoke-miniapp', optional: true },
-      { task: 'smoke-tunnel', optional: true },
+      "sync-env",
+      "repo-test",
+      "fix-and-check",
+      "verify",
+      "audit-edge-hosts",
+      "check-linkage",
+      "check-webhook",
+      { task: "smoke-miniapp", optional: true },
+      { task: "smoke-tunnel", optional: true },
     ],
   },
-  'nft-collectible': {
-    name: 'NFT Collectible Launch Checklist',
-    doc: 'docs/nft-collectible-launch-checklist.md',
-    description: 'Structural validations and exports for story-driven NFT drops.',
+  dai: {
+    name: "Dynamic AI (DAI) Validation Checklist",
+    doc: "docs/dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-ai-dai",
+    description:
+      "Domain-specific verification for Dynamic AI before orchestrator or persona updates.",
+    tasks: ["dai-architecture-tests", "dynamic-ai-tests"],
+  },
+  dagi: {
+    name: "Dynamic AGI (DAGI) Oversight Checklist",
+    doc: "docs/dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-agi-dagi",
+    description:
+      "Validates Dynamic AGI orchestration, mentorship feedback, and self-improvement loops.",
+    tasks: ["dynamic-agi-tests"],
+  },
+  "nft-collectible": {
+    name: "NFT Collectible Launch Checklist",
+    doc: "docs/nft-collectible-launch-checklist.md",
+    description:
+      "Structural validations and exports for story-driven NFT drops.",
     tasks: [
-      'nft-collectible-validate',
-      'nft-collectible-tasks',
+      "nft-collectible-validate",
+      "nft-collectible-tasks",
     ],
   },
 };
@@ -352,58 +407,58 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     switch (arg) {
-      case '--checklist':
-      case '-c': {
+      case "--checklist":
+      case "-c": {
         const value = argv[i + 1];
         if (!value) {
-          throw new Error('Missing value for --checklist');
+          throw new Error("Missing value for --checklist");
         }
         i += 1;
         options.checklists.push(
-          ...value.split(',').map((item) => item.trim()).filter(Boolean),
+          ...value.split(",").map((item) => item.trim()).filter(Boolean),
         );
         break;
       }
-      case '--only': {
+      case "--only": {
         const value = argv[i + 1];
         if (!value) {
-          throw new Error('Missing value for --only');
+          throw new Error("Missing value for --only");
         }
         i += 1;
         options.only.push(
-          ...value.split(',').map((item) => item.trim()).filter(Boolean),
+          ...value.split(",").map((item) => item.trim()).filter(Boolean),
         );
         break;
       }
-      case '--skip': {
+      case "--skip": {
         const value = argv[i + 1];
         if (!value) {
-          throw new Error('Missing value for --skip');
+          throw new Error("Missing value for --skip");
         }
         i += 1;
-        value.split(',').map((item) => item.trim()).filter(Boolean).forEach((
+        value.split(",").map((item) => item.trim()).filter(Boolean).forEach((
           item,
         ) => options.skip.add(item));
         break;
       }
-      case '--include-optional':
+      case "--include-optional":
         options.includeOptional = true;
         break;
-      case '--dry-run':
+      case "--dry-run":
         options.dryRun = true;
         break;
-      case '--list':
+      case "--list":
         options.list = true;
         break;
-      case '--continue-on-error':
+      case "--continue-on-error":
         options.continueOnError = true;
         break;
-      case '--help':
-      case '-h':
+      case "--help":
+      case "-h":
         options.help = true;
         break;
       default:
-        if (arg.startsWith('-')) {
+        if (arg.startsWith("-")) {
           throw new Error(`Unknown flag: ${arg}`);
         } else {
           throw new Error(`Unexpected argument: ${arg}`);
@@ -415,7 +470,7 @@ function parseArgs(argv) {
 }
 
 function listChecklists() {
-  console.log('Available checklists:\n');
+  console.log("Available checklists:\n");
   for (const [key, checklist] of Object.entries(CHECKLISTS)) {
     console.log(`- ${key}: ${checklist.name}`);
     if (checklist.description) {
@@ -426,40 +481,40 @@ function listChecklists() {
     }
     const tasks = checklist.tasks.map((ref) => formatTaskRef(ref));
     tasks.forEach((task) => {
-      const optionalText = task.optional ? ' (optional)' : '';
+      const optionalText = task.optional ? " (optional)" : "";
       console.log(`    • ${task.id}${optionalText} — ${task.label}`);
     });
-    console.log('');
+    console.log("");
   }
-  console.log('Task library:\n');
+  console.log("Task library:\n");
   for (const task of Object.values(TASK_LIBRARY)) {
-    const optionalText = task.optional ? ' (optional)' : '';
+    const optionalText = task.optional ? " (optional)" : "";
     console.log(`- ${task.id}${optionalText}: ${task.label}`);
   }
-  console.log('');
+  console.log("");
 }
 
 function formatTaskRef(ref) {
-  const config = typeof ref === 'string' ? { task: ref } : ref;
-  const base = TASK_LIBRARY[config.task ?? config.id ?? ''];
+  const config = typeof ref === "string" ? { task: ref } : ref;
+  const base = TASK_LIBRARY[config.task ?? config.id ?? ""];
   if (!base) {
     throw new Error(
       `Unknown task reference: ${
-        typeof ref === 'string' ? ref : JSON.stringify(ref)
+        typeof ref === "string" ? ref : JSON.stringify(ref)
       }`,
     );
   }
   return {
     id: base.id,
     label: config.label ?? base.label,
-    optional: typeof config.optional === 'boolean'
+    optional: typeof config.optional === "boolean"
       ? config.optional
       : base.optional ?? false,
   };
 }
 
 function applyTelegramFixtureIfNeeded(tasks) {
-  const needsWebhookCheck = tasks.some((task) => task.id === 'check-webhook');
+  const needsWebhookCheck = tasks.some((task) => task.id === "check-webhook");
   if (!needsWebhookCheck) {
     return;
   }
@@ -475,7 +530,7 @@ function applyTelegramFixtureIfNeeded(tasks) {
       `[checklists] TELEGRAM_BOT_TOKEN missing and no TELEGRAM_WEBHOOK_INFO_PATH provided. Expected fixture at ${DEFAULT_TELEGRAM_WEBHOOK_FIXTURE}.`,
     );
     console.warn(
-      '[checklists] Set TELEGRAM_WEBHOOK_INFO_PATH or TELEGRAM_BOT_TOKEN to run the webhook check.',
+      "[checklists] Set TELEGRAM_WEBHOOK_INFO_PATH or TELEGRAM_BOT_TOKEN to run the webhook check.",
     );
     return;
   }
@@ -496,18 +551,18 @@ function resolveTask(
   includeOptional,
   { forceInclude = false } = {},
 ) {
-  const config = typeof ref === 'string' ? { task: ref } : ref;
-  const baseKey = config.task ?? config.id ?? '';
+  const config = typeof ref === "string" ? { task: ref } : ref;
+  const baseKey = config.task ?? config.id ?? "";
   const base = TASK_LIBRARY[baseKey];
   if (!base) {
     throw new Error(
       `Unknown task reference: ${
-        typeof ref === 'string' ? ref : JSON.stringify(ref)
+        typeof ref === "string" ? ref : JSON.stringify(ref)
       }`,
     );
   }
 
-  const resolvedOptional = typeof config.optional === 'boolean'
+  const resolvedOptional = typeof config.optional === "boolean"
     ? config.optional
     : base.optional ?? false;
   if (resolvedOptional && !includeOptional && !forceInclude) {
@@ -546,23 +601,23 @@ async function runCommand(command) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, {
       shell: true,
-      stdio: 'inherit',
+      stdio: "inherit",
       env: createSanitizedNpmEnv(),
     });
-    child.on('close', (code, signal) => {
-      if (typeof code === 'number' && code === 0) {
+    child.on("close", (code, signal) => {
+      if (typeof code === "number" && code === 0) {
         resolve();
-      } else if (typeof code === 'number') {
+      } else if (typeof code === "number") {
         reject(new Error(`Command failed with exit code ${code}: ${command}`));
       } else {
         reject(
           new Error(
-            `Command terminated by signal ${signal ?? 'unknown'}: ${command}`,
+            `Command terminated by signal ${signal ?? "unknown"}: ${command}`,
           ),
         );
       }
     });
-    child.on('error', (error) => {
+    child.on("error", (error) => {
       reject(error);
     });
   });
@@ -618,7 +673,7 @@ async function main() {
 
   if (options.only.length > 0) {
     options.only.forEach((taskId) => {
-      const task = resolveTask(taskId, 'manual', true, { forceInclude: true });
+      const task = resolveTask(taskId, "manual", true, { forceInclude: true });
       if (!task) {
         return;
       }
@@ -627,7 +682,7 @@ async function main() {
   } else {
     if (options.checklists.length === 0) {
       console.error(
-        'No checklist selected. Use --checklist <key> or --list to see available options.',
+        "No checklist selected. Use --checklist <key> or --list to see available options.",
       );
       printUsage();
       process.exit(1);
@@ -657,30 +712,30 @@ async function main() {
   applyTelegramFixtureIfNeeded(filteredTasks);
 
   if (filteredTasks.length === 0) {
-    console.log('No tasks to run after applying filters.');
+    console.log("No tasks to run after applying filters.");
     return;
   }
 
   console.log(`Planned tasks (${filteredTasks.length}):`);
   filteredTasks.forEach((task, index) => {
-    const optionalText = task.optional ? 'optional' : 'required';
+    const optionalText = task.optional ? "optional" : "required";
     const sources = task.sources.size > 0
-      ? `Sources: ${Array.from(task.sources).join(', ')}`
-      : 'Sources: manual selection';
+      ? `Sources: ${Array.from(task.sources).join(", ")}`
+      : "Sources: manual selection";
     console.log(`\n${index + 1}. ${task.label}`);
     console.log(`   Command: ${task.command}`);
     console.log(`   Type: ${optionalText}`);
     console.log(`   ${sources}`);
     if (task.docs.size > 0) {
-      console.log(`   References: ${Array.from(task.docs).join(', ')}`);
+      console.log(`   References: ${Array.from(task.docs).join(", ")}`);
     }
     if (task.notes.length > 0) {
-      console.log(`   Notes: ${task.notes.join(' ')}`);
+      console.log(`   Notes: ${task.notes.join(" ")}`);
     }
   });
 
   if (options.dryRun) {
-    console.log('\nDry run enabled. No commands were executed.');
+    console.log("\nDry run enabled. No commands were executed.");
     return;
   }
 
@@ -710,7 +765,7 @@ async function main() {
   }
 
   if (requiredFailures.length > 0) {
-    console.error('\nSummary: required task failures encountered.');
+    console.error("\nSummary: required task failures encountered.");
     requiredFailures.forEach(({ task, error }) => {
       console.error(`- ${task.id}: ${error.message}`);
     });
@@ -718,17 +773,17 @@ async function main() {
   }
 
   if (optionalFailures.length > 0) {
-    console.warn('\nSummary: optional task failures encountered.');
+    console.warn("\nSummary: optional task failures encountered.");
     optionalFailures.forEach(({ task, error }) => {
       console.warn(`- ${task.id}: ${error.message}`);
     });
   }
 
-  console.log('\nAll requested checklist automation tasks completed.');
+  console.log("\nAll requested checklist automation tasks completed.");
 }
 
 main().catch((error) => {
-  console.error('Unexpected failure while running checklist automation.');
+  console.error("Unexpected failure while running checklist automation.");
   console.error(error);
   process.exit(1);
 });
