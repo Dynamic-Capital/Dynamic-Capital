@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from statistics import fmean
@@ -132,10 +133,23 @@ class LoopRecommendation:
 class DynamicLoopEngine:
     """Aggregate loop signals and highlight interventions."""
 
-    def __init__(self, *, parameters: LoopParameters | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        parameters: LoopParameters | None = None,
+        history_limit: int | None = None,
+        recommendation_limit: int | None = None,
+    ) -> None:
+        if history_limit is not None and history_limit <= 0:
+            raise ValueError("history_limit must be positive when provided")
+        if recommendation_limit is not None and recommendation_limit <= 0:
+            raise ValueError("recommendation_limit must be positive when provided")
+
         self._parameters = parameters or LoopParameters()
-        self._states: list[LoopState] = []
-        self._recommendations: list[LoopRecommendation] = []
+        self._states: deque[LoopState] = deque(maxlen=history_limit)
+        self._recommendations: deque[LoopRecommendation] = deque(
+            maxlen=recommendation_limit
+        )
 
     @property
     def parameters(self) -> LoopParameters:
@@ -242,3 +256,20 @@ class DynamicLoopEngine:
 
     def history(self) -> tuple[LoopState, ...]:
         return tuple(self._states)
+
+    def evaluate_back_to_back(
+        self, signal_batches: Iterable[Sequence[LoopSignal]]
+    ) -> tuple[LoopState, ...]:
+        """Evaluate multiple signal batches sequentially.
+
+        This helper optimises back-to-back execution by avoiding intermediate
+        tuple creation for each call site and ensures that history/recommendation
+        limits are respected while processing the collection.
+        """
+
+        states: list[LoopState] = []
+        for batch in signal_batches:
+            if not isinstance(batch, Sequence):
+                raise TypeError("each batch must be a sequence of LoopSignal")
+            states.append(self.evaluate(batch))
+        return tuple(states)
