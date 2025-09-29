@@ -233,6 +233,20 @@ const TASK_LIBRARY = {
       'Outputs grouped checklist items for planning docs or project trackers.',
     ],
   },
+  'knowledge-base-verify': {
+    id: 'knowledge-base-verify',
+    label:
+      'Validate knowledge base metadata snapshot and local mirror (node scripts/checklists/knowledge-base-drop-verify.mjs)',
+    command: 'node scripts/checklists/knowledge-base-drop-verify.mjs',
+    optional: false,
+    docs: [
+      'docs/knowledge-base-training-drop.md',
+      'docs/onedrive-shares/evlumlqt-folder.md',
+    ],
+    notes: [
+      'Checks that the OneDrive manifest for knowledge_base drops is mirrored locally with documented provenance.',
+    ],
+  },
 };
 
 const CHECKLISTS = {
@@ -331,6 +345,13 @@ const CHECKLISTS = {
       'nft-collectible-validate',
       'nft-collectible-tasks',
     ],
+  },
+  'knowledge-base-drop': {
+    name: 'Knowledge Base Drop Checklist',
+    doc: 'docs/knowledge-base-training-drop.md',
+    description:
+      'Automation checks for syncing OneDrive knowledge base drops into the repository.',
+    tasks: ['knowledge-base-verify'],
   },
 };
 

@@ -1,0 +1,4 @@
+prompt_id,prompt_text,intent
+kb-2025-10-15-1,"Summarize the resolution path for the escalated billing anomaly using the October corpus.",billing
+kb-2025-10-15-2,"List three knowledge snippets that help a new agent onboard to the enterprise risk policy updates.",onboarding
+kb-2025-10-15-3,"Produce a troubleshooting checklist for the telemetry ingestion regression captured this month.",engineering

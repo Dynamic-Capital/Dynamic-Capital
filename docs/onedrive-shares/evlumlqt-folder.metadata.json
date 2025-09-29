@@ -1,0 +1,64 @@
+{
+  "name": "EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg",
+  "webUrl": "https://1drv.ms/f/c/2ff0428a2f57c7a4/EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg",
+  "lastModifiedDateTime": "2025-10-15T12:00:00Z",
+  "folder": {
+    "childCount": 2
+  },
+  "children": [
+    {
+      "name": "knowledge_base",
+      "folder": {
+        "childCount": 1
+      },
+      "lastModifiedDateTime": "2025-10-15T11:55:00Z",
+      "children": [
+        {
+          "name": "2025-10-15",
+          "folder": {
+            "childCount": 3
+          },
+          "lastModifiedDateTime": "2025-10-15T11:50:00Z",
+          "children": [
+            {
+              "name": "modeling-overview.md",
+              "lastModifiedDateTime": "2025-10-15T11:32:10Z",
+              "size": 1542,
+              "file": {
+                "mimeType": "text/markdown"
+              },
+              "webUrl": "https://1drv.ms/t/some-modeling-overview"
+            },
+            {
+              "name": "rag-prompts.csv",
+              "lastModifiedDateTime": "2025-10-15T11:40:05Z",
+              "size": 2048,
+              "file": {
+                "mimeType": "text/csv"
+              },
+              "webUrl": "https://1drv.ms/t/some-rag-prompts"
+            },
+            {
+              "name": "eval-window.json",
+              "lastModifiedDateTime": "2025-10-15T11:44:52Z",
+              "size": 1024,
+              "file": {
+                "mimeType": "application/json"
+              },
+              "webUrl": "https://1drv.ms/t/some-eval-window"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "README.md",
+      "file": {
+        "mimeType": "text/markdown"
+      },
+      "size": 512,
+      "lastModifiedDateTime": "2025-10-10T09:15:00Z",
+      "webUrl": "https://1drv.ms/t/some-root-readme"
+    }
+  ]
+}
