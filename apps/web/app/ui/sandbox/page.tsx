@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, Play, Settings2 } from "lucide-react";
+import { ChevronDown, Play, Route, Settings2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { type BreadcrumbItem, Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DynamicTable } from "@/components/ui/dynamic-table";
 import { MotionPlayButton } from "@/components/ui/motion-play-button";
@@ -20,6 +21,50 @@ import {
 
 export default function UISandbox() {
   const [loading, setLoading] = useState(false);
+
+  const expandedTrail: BreadcrumbItem[] = [
+    {
+      label: "Workspace",
+      href: "#",
+      icon: "Home",
+      status: "completed",
+    },
+    {
+      label: "Campaigns",
+      href: "#",
+      icon: "FolderKanban",
+      status: "completed",
+    },
+    {
+      label: "Q2 Growth",
+      href: "#",
+      icon: "TrendingUp",
+    },
+    {
+      label: "Review",
+      icon: "Sparkles",
+      status: "current",
+    },
+  ];
+
+  const compactTrail: BreadcrumbItem[] = [
+    {
+      label: "HQ",
+      href: "#",
+      icon: "Building2",
+      status: "completed",
+    },
+    {
+      label: "Ops",
+      href: "#",
+      icon: "Workflow",
+    },
+    {
+      label: "Pods",
+      icon: "Users",
+      status: "current",
+    },
+  ];
 
   return (
     <motion.div
@@ -168,6 +213,26 @@ export default function UISandbox() {
               </div>
             </TabsContent>
           </Tabs>
+        </CardContent>
+      </Card>
+      <Card className="border-dashed">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+            <Route className="h-4 w-4" />
+            Navigation Patterns
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">
+              Expanded
+            </p>
+            <Breadcrumbs items={expandedTrail} size="expanded" />
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">Compact</p>
+            <Breadcrumbs items={compactTrail} size="compact" />
+          </div>
         </CardContent>
       </Card>
       <DynamicTable />
