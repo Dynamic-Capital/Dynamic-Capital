@@ -15,6 +15,7 @@ import {
 import type { SpacingToken } from "@/components/dynamic-ui-system";
 
 import { formatPrice } from "@/utils";
+import { formatPlanDuration } from "@/utils/plan-format";
 import type { Plan } from "@/types/plan";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 
@@ -22,20 +23,6 @@ const ERROR_STATE_GAP: SpacingToken = "8";
 const SECTION_GAP: SpacingToken = "32";
 const SECTION_CONTENT_GAP: SpacingToken = "20";
 const PLAN_CARD_GAP: SpacingToken = "20";
-
-const formatDuration = (plan: Plan) => {
-  if (plan.is_lifetime) {
-    return "Lifetime access";
-  }
-  if (plan.duration_months === 1) {
-    return "Monthly";
-  }
-  if (plan.duration_months % 12 === 0) {
-    const years = plan.duration_months / 12;
-    return `${years} year${years > 1 ? "s" : ""}`;
-  }
-  return `${plan.duration_months} months`;
-};
 
 export function VipPackagesSection() {
   const {
@@ -151,7 +138,7 @@ export function VipPackagesSection() {
                         size="s"
                         prefixIcon={plan.is_lifetime ? "infinity" : "calendar"}
                       >
-                        {formatDuration(plan)}
+                        {formatPlanDuration(plan)}
                       </Tag>
                     </Row>
                     <Heading variant="display-strong-s">

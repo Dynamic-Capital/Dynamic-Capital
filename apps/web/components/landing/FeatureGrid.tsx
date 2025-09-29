@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { Shield, TrendingUp, Users } from "lucide-react";
@@ -11,7 +11,7 @@ import {
   MotionScrollReveal,
   MotionStagger,
 } from "@/components/ui/motion-components";
-import { callEdgeFunction } from "@/config/supabase";
+import { useContentBatch } from "@/hooks/useContentBatch";
 
 import { InteractiveSectionContainer } from "./InteractiveSectionContainer";
 
@@ -274,62 +274,46 @@ const FeatureGrid = () => {
     [],
   );
 
-  const [content, setContent] = useState(defaultContent);
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const { data, error } = await callEdgeFunction("CONTENT_BATCH", {
-          method: "POST",
-          body: {
-            keys: [
-              "features_heading",
-              "features_subheading",
-              "feature1_title",
-              "feature1_description",
-              "feature2_title",
-              "feature2_description",
-              "feature3_title",
-              "feature3_description",
-            ],
-          },
-        });
-
-        if (!error && data) {
-          const items = (data as any).contents || [];
-          const lookup: Record<string, string> = {};
-          items.forEach((c: any) => {
-            lookup[c.content_key] = c.content_value;
-          });
-
-          const updatedFeatures: FeatureItem[] = defaultContent.features.map(
-            (feature, index) => {
-              const titleKey = `feature${index + 1}_title`;
-              const descriptionKey = `feature${index + 1}_description`;
-
-              return {
-                ...feature,
-                title: lookup[titleKey] ?? feature.title,
-                description: lookup[descriptionKey] ?? feature.description,
-              };
-            },
-          );
-
-          setContent({
-            heading: lookup.features_heading ?? defaultContent.heading,
-            subheading: lookup.features_subheading ?? defaultContent.subheading,
-            features: updatedFeatures,
-          });
-        } else if (error) {
-          console.error("Failed to fetch feature content:", error.message);
-        }
-      } catch (err) {
-        console.error("Failed to fetch feature content:", err);
-      }
+  const featureDefaults = useMemo<Record<string, string>>(() => {
+    const base: Record<string, string> = {
+      features_heading: defaultContent.heading,
+      features_subheading: defaultContent.subheading,
     };
 
-    fetchContent();
+    defaultContent.features.forEach((feature, index) => {
+      const slot = index + 1;
+      base[`feature${slot}_title`] = feature.title;
+      base[`feature${slot}_description`] = feature.description;
+    });
+
+    return base;
   }, [defaultContent]);
+
+  const featureKeys = useMemo(() => Object.keys(featureDefaults), [
+    featureDefaults,
+  ]);
+
+  const {
+    content,
+    error: featureError,
+  } = useContentBatch(featureKeys, featureDefaults);
+
+  const mappedContent = useMemo(() => ({
+    heading: content["features_heading"] ?? defaultContent.heading,
+    subheading: content["features_subheading"] ?? defaultContent.subheading,
+    features: defaultContent.features.map((feature, index) => ({
+      ...feature,
+      title: content[`feature${index + 1}_title`] ?? feature.title,
+      description: content[`feature${index + 1}_description`] ??
+        feature.description,
+    })),
+  }), [content, defaultContent]);
+
+  useEffect(() => {
+    if (featureError) {
+      console.error("Failed to fetch feature content:", featureError);
+    }
+  }, [featureError]);
 
   return (
     <section className="py-20 sm:py-24 bg-gradient-to-b from-background via-card/20 to-background relative overflow-hidden">
@@ -370,7 +354,7 @@ const FeatureGrid = () => {
               viewport={{ once: true }}
             >
               <span className="bg-gradient-to-r from-foreground via-primary to-dc-accent bg-clip-text text-transparent">
-                {content.heading}
+                {mappedContent.heading}
               </span>
               <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-dc-accent/10 to-primary/10 blur-2xl opacity-50 -z-10" />
             </motion.h2>
@@ -381,7 +365,7 @@ const FeatureGrid = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              {shortenCopy(content.subheading, 150)}
+              {shortenCopy(mappedContent.subheading, 150)}
             </motion.p>
           </div>
         </MotionScrollReveal>
@@ -390,7 +374,7 @@ const FeatureGrid = () => {
           staggerDelay={0.15}
           className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 sm:gap-8"
         >
-          {content.features.map((feature, index) => (
+          {mappedContent.features.map((feature, index) => (
             <MotionHoverCard key={index} hoverScale={1.02} hoverY={-8}>
               <motion.div
                 className="relative group"

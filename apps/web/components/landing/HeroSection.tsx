@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, TrendingUp, Shield, Users } from "lucide-react";
+import { Shield, Sparkles, TrendingUp, Users } from "lucide-react";
 
 import BrandLogo from "@/components/BrandLogo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { callEdgeFunction } from "@/config/supabase";
+import { useContentBatch } from "@/hooks/useContentBatch";
 
 import InteractiveAscii from "./InteractiveAscii";
 
@@ -17,12 +17,19 @@ interface HeroSectionProps {
 }
 
 const stats = [
-  { icon: TrendingUp, value: "92%", label: "Success Rate", color: "accent-green" },
+  {
+    icon: TrendingUp,
+    value: "92%",
+    label: "Success Rate",
+    color: "accent-green",
+  },
   { icon: Users, value: "5000+", label: "VIP Members", color: "dc-accent" },
   { icon: Shield, value: "24/7", label: "Support", color: "accent-teal" },
 ];
 
-export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps) {
+export default function HeroSection(
+  { onJoinVIP, onLearnMore }: HeroSectionProps,
+) {
   const defaultContent = useMemo(
     () => ({
       badge: "Premium Trading Platform",
@@ -33,51 +40,47 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
       joinButton: "Join VIP Now",
       learnButton: "Learn More",
     }),
-    []
+    [],
   );
-  const [content, setContent] = useState(defaultContent);
+  const heroDefaults = useMemo<Record<string, string>>(
+    () => ({
+      hero_badge: defaultContent.badge,
+      hero_badge_highlight: defaultContent.badgeHighlight,
+      hero_title: defaultContent.title,
+      hero_description: defaultContent.description,
+      hero_join_button: defaultContent.joinButton,
+      hero_learn_button: defaultContent.learnButton,
+    }),
+    [defaultContent],
+  );
+
+  const heroKeys = useMemo(() => Object.keys(heroDefaults), [heroDefaults]);
+
+  const {
+    content: heroContent,
+    error: heroContentError,
+  } = useContentBatch(heroKeys, heroDefaults);
+
+  const content = useMemo(
+    () => ({
+      badge: heroContent["hero_badge"] ?? defaultContent.badge,
+      badgeHighlight: heroContent["hero_badge_highlight"] ??
+        defaultContent.badgeHighlight,
+      title: heroContent["hero_title"] ?? defaultContent.title,
+      description: heroContent["hero_description"] ??
+        defaultContent.description,
+      joinButton: heroContent["hero_join_button"] ?? defaultContent.joinButton,
+      learnButton: heroContent["hero_learn_button"] ??
+        defaultContent.learnButton,
+    }),
+    [defaultContent, heroContent],
+  );
 
   useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const { data, error } = await callEdgeFunction("CONTENT_BATCH", {
-          method: "POST",
-          body: {
-            keys: [
-              "hero_badge",
-              "hero_badge_highlight",
-              "hero_title",
-              "hero_description",
-              "hero_join_button",
-              "hero_learn_button",
-            ],
-          },
-        });
-
-        if (!error && data) {
-          const contents = (data as any).contents || [];
-          const lookup: Record<string, string> = {};
-          contents.forEach((c: any) => {
-            lookup[c.content_key] = c.content_value;
-          });
-          setContent({
-            badge: lookup.hero_badge ?? defaultContent.badge,
-            badgeHighlight: lookup.hero_badge_highlight ?? defaultContent.badgeHighlight,
-            title: lookup.hero_title ?? defaultContent.title,
-            description: lookup.hero_description ?? defaultContent.description,
-            joinButton: lookup.hero_join_button ?? defaultContent.joinButton,
-            learnButton: lookup.hero_learn_button ?? defaultContent.learnButton,
-          });
-        } else if (error) {
-          console.error("Failed to fetch hero content:", error.message);
-        }
-      } catch (err) {
-        console.error("Failed to fetch hero content:", err);
-      }
-    };
-
-    fetchContent();
-  }, [defaultContent]);
+    if (heroContentError) {
+      console.error("Failed to fetch hero content:", heroContentError);
+    }
+  }, [heroContentError]);
 
   return (
     <section className="relative isolate overflow-hidden">
@@ -162,9 +165,17 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-70" />
               <div className="relative flex flex-col items-center gap-2">
-                <stat.icon className={`h-6 w-6 text-[hsl(var(--${stat.color}))]`} />
-                <span className={`text-3xl font-bold text-[hsl(var(--${stat.color}))] font-mono`}>{stat.value}</span>
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                <stat.icon
+                  className={`h-6 w-6 text-[hsl(var(--${stat.color}))]`}
+                />
+                <span
+                  className={`text-3xl font-bold text-[hsl(var(--${stat.color}))] font-mono`}
+                >
+                  {stat.value}
+                </span>
+                <p className="text-sm font-medium text-muted-foreground">
+                  {stat.label}
+                </p>
               </div>
             </motion.div>
           ))}
@@ -201,4 +212,3 @@ export default function HeroSection({ onJoinVIP, onLearnMore }: HeroSectionProps
     </section>
   );
 }
-

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { CardContent } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { AutoSizingGrid } from "@/components/ui/auto-sizing";
 import { MotionScrollReveal } from "@/components/ui/motion-components";
 import { GradientText, TypewriterText } from "@/components/ui/animated-text";
 import { Star } from "lucide-react";
-import { callEdgeFunction } from "@/config/supabase";
+import { useContentBatch } from "@/hooks/useContentBatch";
 
 import { InteractiveSectionContainer } from "./InteractiveSectionContainer";
 
@@ -51,90 +51,52 @@ const TestimonialsSection = () => {
     [],
   );
 
-  const [content, setContent] = useState(defaultContent);
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const { data, error } = await callEdgeFunction("CONTENT_BATCH", {
-          method: "POST",
-          body: {
-            keys: [
-              "testimonials_heading",
-              "testimonials_subheading",
-              "testimonial1_name",
-              "testimonial1_role",
-              "testimonial1_text",
-              "testimonial1_profit",
-              "testimonial2_name",
-              "testimonial2_role",
-              "testimonial2_text",
-              "testimonial2_profit",
-              "testimonial3_name",
-              "testimonial3_role",
-              "testimonial3_text",
-              "testimonial3_profit",
-            ],
-          },
-        });
-
-        if (!error && data) {
-          const items = (data as any).contents || [];
-          const lookup: Record<string, string> = {};
-          items.forEach((c: any) => {
-            lookup[c.content_key] = c.content_value;
-          });
-
-          setContent({
-            heading: lookup.testimonials_heading ?? defaultContent.heading,
-            subheading: lookup.testimonials_subheading ??
-              defaultContent.subheading,
-            testimonials: [
-              {
-                ...defaultContent.testimonials[0],
-                name: lookup.testimonial1_name ??
-                  defaultContent.testimonials[0].name,
-                role: lookup.testimonial1_role ??
-                  defaultContent.testimonials[0].role,
-                text: lookup.testimonial1_text ??
-                  defaultContent.testimonials[0].text,
-                profit: lookup.testimonial1_profit ??
-                  defaultContent.testimonials[0].profit,
-              },
-              {
-                ...defaultContent.testimonials[1],
-                name: lookup.testimonial2_name ??
-                  defaultContent.testimonials[1].name,
-                role: lookup.testimonial2_role ??
-                  defaultContent.testimonials[1].role,
-                text: lookup.testimonial2_text ??
-                  defaultContent.testimonials[1].text,
-                profit: lookup.testimonial2_profit ??
-                  defaultContent.testimonials[1].profit,
-              },
-              {
-                ...defaultContent.testimonials[2],
-                name: lookup.testimonial3_name ??
-                  defaultContent.testimonials[2].name,
-                role: lookup.testimonial3_role ??
-                  defaultContent.testimonials[2].role,
-                text: lookup.testimonial3_text ??
-                  defaultContent.testimonials[2].text,
-                profit: lookup.testimonial3_profit ??
-                  defaultContent.testimonials[2].profit,
-              },
-            ],
-          });
-        } else if (error) {
-          console.error("Failed to fetch testimonials:", error.message);
-        }
-      } catch (err) {
-        console.error("Failed to fetch testimonials:", err);
-      }
+  const testimonialDefaults = useMemo<Record<string, string>>(() => {
+    const base: Record<string, string> = {
+      testimonials_heading: defaultContent.heading,
+      testimonials_subheading: defaultContent.subheading,
     };
 
-    fetchContent();
+    defaultContent.testimonials.forEach((testimonial, index) => {
+      const slot = index + 1;
+      base[`testimonial${slot}_name`] = testimonial.name;
+      base[`testimonial${slot}_role`] = testimonial.role;
+      base[`testimonial${slot}_text`] = testimonial.text;
+      base[`testimonial${slot}_profit`] = testimonial.profit;
+    });
+
+    return base;
   }, [defaultContent]);
+
+  const testimonialKeys = useMemo(
+    () => Object.keys(testimonialDefaults),
+    [testimonialDefaults],
+  );
+
+  const {
+    content: contentMap,
+    error: testimonialError,
+  } = useContentBatch(testimonialKeys, testimonialDefaults);
+
+  const content = useMemo(() => ({
+    heading: contentMap["testimonials_heading"] ?? defaultContent.heading,
+    subheading: contentMap["testimonials_subheading"] ??
+      defaultContent.subheading,
+    testimonials: defaultContent.testimonials.map((testimonial, index) => ({
+      ...testimonial,
+      name: contentMap[`testimonial${index + 1}_name`] ?? testimonial.name,
+      role: contentMap[`testimonial${index + 1}_role`] ?? testimonial.role,
+      text: contentMap[`testimonial${index + 1}_text`] ?? testimonial.text,
+      profit: contentMap[`testimonial${index + 1}_profit`] ??
+        testimonial.profit,
+    })),
+  }), [contentMap, defaultContent]);
+
+  useEffect(() => {
+    if (testimonialError) {
+      console.error("Failed to fetch testimonials:", testimonialError);
+    }
+  }, [testimonialError]);
 
   return (
     <section className="py-20 bg-gradient-to-b from-background via-muted/20 to-background relative">

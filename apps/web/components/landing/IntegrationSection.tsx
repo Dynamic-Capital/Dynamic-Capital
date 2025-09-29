@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import {
   Smartphone,
   User,
 } from "lucide-react";
-import { callEdgeFunction } from "@/config/supabase";
+import { useContentBatch } from "@/hooks/useContentBatch";
 
 import { InteractiveSectionContainer } from "./InteractiveSectionContainer";
 
@@ -98,120 +98,81 @@ const IntegrationSection = (
     [onOpenTelegram, onViewAccount, onContactSupport],
   );
 
-  const [content, setContent] = useState(defaultContent);
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const { data, error } = await callEdgeFunction("CONTENT_BATCH", {
-          method: "POST",
-          body: {
-            keys: [
-              "integration_badge",
-              "integration_title",
-              "integration_description",
-              "integration_card1_title",
-              "integration_card1_description",
-              "integration_card2_title",
-              "integration_card2_description",
-              "integration_card3_title",
-              "integration_card3_description",
-              "integration_bot_title",
-              "integration_bot_description",
-              "integration_bot_primary_button",
-              "integration_bot_secondary_button",
-              "integration_features_title",
-              "integration_features_description",
-              "integration_feature1_title",
-              "integration_feature1_description",
-              "integration_feature2_title",
-              "integration_feature2_description",
-              "integration_feature3_title",
-              "integration_feature3_description",
-            ],
-          },
-        });
-
-        if (!error && data) {
-          const items = (data as any).contents || [];
-          const lookup: Record<string, string> = {};
-          items.forEach((c: any) => {
-            lookup[c.content_key] = c.content_value;
-          });
-
-          setContent({
-            badge: lookup.integration_badge ?? defaultContent.badge,
-            title: lookup.integration_title ?? defaultContent.title,
-            description: lookup.integration_description ??
-              defaultContent.description,
-            integrations: [
-              {
-                ...defaultContent.integrations[0],
-                title: lookup.integration_card1_title ??
-                  defaultContent.integrations[0].title,
-                description: lookup.integration_card1_description ??
-                  defaultContent.integrations[0].description,
-              },
-              {
-                ...defaultContent.integrations[1],
-                title: lookup.integration_card2_title ??
-                  defaultContent.integrations[1].title,
-                description: lookup.integration_card2_description ??
-                  defaultContent.integrations[1].description,
-              },
-              {
-                ...defaultContent.integrations[2],
-                title: lookup.integration_card3_title ??
-                  defaultContent.integrations[2].title,
-                description: lookup.integration_card3_description ??
-                  defaultContent.integrations[2].description,
-              },
-            ],
-            botTitle: lookup.integration_bot_title ?? defaultContent.botTitle,
-            botDescription: lookup.integration_bot_description ??
-              defaultContent.botDescription,
-            botPrimaryButton: lookup.integration_bot_primary_button ??
-              defaultContent.botPrimaryButton,
-            botSecondaryButton: lookup.integration_bot_secondary_button ??
-              defaultContent.botSecondaryButton,
-            featuresTitle: lookup.integration_features_title ??
-              defaultContent.featuresTitle,
-            featuresDescription: lookup.integration_features_description ??
-              defaultContent.featuresDescription,
-            features: [
-              {
-                ...defaultContent.features[0],
-                title: lookup.integration_feature1_title ??
-                  defaultContent.features[0].title,
-                description: lookup.integration_feature1_description ??
-                  defaultContent.features[0].description,
-              },
-              {
-                ...defaultContent.features[1],
-                title: lookup.integration_feature2_title ??
-                  defaultContent.features[1].title,
-                description: lookup.integration_feature2_description ??
-                  defaultContent.features[1].description,
-              },
-              {
-                ...defaultContent.features[2],
-                title: lookup.integration_feature3_title ??
-                  defaultContent.features[2].title,
-                description: lookup.integration_feature3_description ??
-                  defaultContent.features[2].description,
-              },
-            ],
-          });
-        } else if (error) {
-          console.error("Failed to fetch integration content:", error.message);
-        }
-      } catch (err) {
-        console.error("Failed to fetch integration content:", err);
-      }
+  const integrationDefaults = useMemo<Record<string, string>>(() => {
+    const base: Record<string, string> = {
+      integration_badge: defaultContent.badge,
+      integration_title: defaultContent.title,
+      integration_description: defaultContent.description,
+      integration_bot_title: defaultContent.botTitle,
+      integration_bot_description: defaultContent.botDescription,
+      integration_bot_primary_button: defaultContent.botPrimaryButton,
+      integration_bot_secondary_button: defaultContent.botSecondaryButton,
+      integration_features_title: defaultContent.featuresTitle,
+      integration_features_description: defaultContent.featuresDescription,
     };
 
-    fetchContent();
+    defaultContent.integrations.forEach((integration, index) => {
+      const slot = index + 1;
+      base[`integration_card${slot}_title`] = integration.title;
+      base[`integration_card${slot}_description`] = integration.description;
+    });
+
+    defaultContent.features.forEach((feature, index) => {
+      const slot = index + 1;
+      base[`integration_feature${slot}_title`] = feature.title;
+      base[`integration_feature${slot}_description`] = feature.description;
+    });
+
+    return base;
   }, [defaultContent]);
+
+  const integrationKeys = useMemo(
+    () => Object.keys(integrationDefaults),
+    [integrationDefaults],
+  );
+
+  const {
+    content: contentMap,
+    error: integrationError,
+  } = useContentBatch(integrationKeys, integrationDefaults);
+
+  const content = useMemo(() => ({
+    badge: contentMap["integration_badge"] ?? defaultContent.badge,
+    title: contentMap["integration_title"] ?? defaultContent.title,
+    description: contentMap["integration_description"] ??
+      defaultContent.description,
+    integrations: defaultContent.integrations.map((integration, index) => ({
+      ...integration,
+      title: contentMap[`integration_card${index + 1}_title`] ??
+        integration.title,
+      description: contentMap[`integration_card${index + 1}_description`] ??
+        integration.description,
+    })),
+    botTitle: contentMap["integration_bot_title"] ?? defaultContent.botTitle,
+    botDescription: contentMap["integration_bot_description"] ??
+      defaultContent.botDescription,
+    botPrimaryButton: contentMap["integration_bot_primary_button"] ??
+      defaultContent.botPrimaryButton,
+    botSecondaryButton: contentMap["integration_bot_secondary_button"] ??
+      defaultContent.botSecondaryButton,
+    featuresTitle: contentMap["integration_features_title"] ??
+      defaultContent.featuresTitle,
+    featuresDescription: contentMap["integration_features_description"] ??
+      defaultContent.featuresDescription,
+    features: defaultContent.features.map((feature, index) => ({
+      ...feature,
+      title: contentMap[`integration_feature${index + 1}_title`] ??
+        feature.title,
+      description: contentMap[`integration_feature${index + 1}_description`] ??
+        feature.description,
+    })),
+  }), [contentMap, defaultContent]);
+
+  useEffect(() => {
+    if (integrationError) {
+      console.error("Failed to fetch integration content:", integrationError);
+    }
+  }, [integrationError]);
 
   return (
     <section className="py-20 bg-gradient-to-b from-background via-muted/10 to-background relative">

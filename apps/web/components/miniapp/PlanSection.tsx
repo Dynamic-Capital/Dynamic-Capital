@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import type { Plan } from "@/types/plan";
 import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { callEdgeFunction } from "@/config/supabase";
+import { usePopularPlanId } from "@/hooks/usePopularPlanId";
 
 interface PromoValidation {
   valid: boolean;
@@ -34,11 +35,6 @@ interface PromoValidation {
   discount_type?: string;
   discount_value?: number;
   final_amount?: number;
-}
-
-interface ContentItem {
-  content_key: string;
-  content_value: string;
 }
 
 const PLAN_SELECTION_STORAGE_KEY = "plan_selection_counts";
@@ -51,7 +47,6 @@ export default function PlanSection() {
   } = useSubscriptionPlans();
   const { currency, setCurrency, exchangeRate } = useCurrency();
 
-  const [popularPlanId, setPopularPlanId] = useState<string | null>(null);
   const [userPreferredPlanId, setUserPreferredPlanId] = useState<string | null>(
     null,
   );
@@ -63,11 +58,14 @@ export default function PlanSection() {
   );
   const [validatingPromo, setValidatingPromo] = useState(false);
   const [isInTelegram, setIsInTelegram] = useState(false);
-  const [popularPlanLoading, setPopularPlanLoading] = useState(true);
+  const {
+    popularPlanId,
+    loading: popularPlanLoading,
+    error: popularPlanError,
+  } = usePopularPlanId();
 
   useEffect(() => {
     if (typeof window === "undefined") {
-      setPopularPlanLoading(false);
       return;
     }
 
@@ -99,46 +97,10 @@ export default function PlanSection() {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchPopularPlan = async () => {
-      try {
-        const { data, error, status } = await callEdgeFunction<{
-          contents?: ContentItem[];
-        }>("CONTENT_BATCH", {
-          method: "POST",
-          body: { keys: ["popular_plan_id"] },
-        });
-
-        if (!isMounted) return;
-
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        if (status === 200 && data?.contents) {
-          const popularContent = data.contents.find(
-            (item) => item.content_key === "popular_plan_id",
-          );
-          if (popularContent) {
-            setPopularPlanId(popularContent.content_value);
-          }
-        }
-      } catch (error) {
-        console.warn("Failed to fetch popular plan id", error);
-      } finally {
-        if (isMounted) {
-          setPopularPlanLoading(false);
-        }
-      }
-    };
-
-    void fetchPopularPlan();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    if (popularPlanError) {
+      console.warn("Failed to fetch popular plan id", popularPlanError);
+    }
+  }, [popularPlanError]);
 
   useEffect(() => {
     if (plansError) {
