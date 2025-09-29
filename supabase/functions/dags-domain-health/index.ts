@@ -46,13 +46,12 @@ export const handler = createDomainHealthHandler({
     prefix: "dags/",
     noun: "DAGS mirrored datasets",
     description:
-      "OneDrive mirror for governance artefacts (documented follow-up).",
-    optional: true,
-    emptyStatus: "warning",
+      "OneDrive mirror for governance artefacts synced via the shared S3 wrapper.",
+    emptyStatus: "error",
     emptyMessage:
-      "No DAGS mirror objects present. The governance playbook tracks this as a pending integration.",
+      "No DAGS mirror objects present. Investigate the OneDrive sync for governance datasets.",
     healthyMessage:
-      "Mirrored DAGS artefacts detected. Update governance SOPs to treat the OneDrive share as authoritative.",
+      "Mirrored DAGS artefacts detected via the shared OneDrive manifest.",
   },
   edgeFunctions: EDGE_FUNCTIONS,
   telemetry: [
@@ -60,10 +59,11 @@ export const handler = createDomainHealthHandler({
     "Structured governance event logs",
   ],
   notes: [
-    "OneDrive mirroring remains optional until the AGS follow-up is complete.",
+    "Governance artefacts replicate to the OneDrive mirror alongside Supabase Storage.",
+    "Health payload includes a sample manifest object to smoke test mirror connectivity.",
   ],
   description:
-    "Dynamic AGS database connectivity: validates governance tables and documents the pending mirror integration.",
+    "Dynamic AGS database connectivity: validates governance tables and ensures the OneDrive mirror is serving artefacts with a smoke test sample.",
 });
 
 export default handler;

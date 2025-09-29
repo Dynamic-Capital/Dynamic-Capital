@@ -112,10 +112,11 @@ export function createDomainHealthHandler(
 
     const manifestCheck = datasetConfig
       ? measureHealthCheck("onedrive:mirror", async () => {
-        const { count, error } = await supabase
+        const { data, count, error } = await supabase
           .from("one_drive_assets")
-          .select("object_key", { count: "exact", head: true })
-          .ilike("object_key", `${datasetConfig.prefix}%`);
+          .select("object_key,last_modified", { count: "exact" })
+          .ilike("object_key", `${datasetConfig.prefix}%`)
+          .limit(1);
 
         if (error) {
           return {
@@ -124,7 +125,8 @@ export function createDomainHealthHandler(
           };
         }
 
-        const total = count ?? 0;
+        const total = count ?? data?.length ?? 0;
+        const sample = data?.[0];
         if (total === 0) {
           return {
             status: mirrorEmptyStatus,
@@ -148,6 +150,12 @@ export function createDomainHealthHandler(
             description: datasetConfig.description,
             optional: datasetConfig.optional ?? false,
             objects: total,
+            sample: sample
+              ? {
+                object_key: sample.object_key,
+                last_modified: sample.last_modified,
+              }
+              : undefined,
           },
         };
       })
