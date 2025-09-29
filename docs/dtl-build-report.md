@@ -5,7 +5,7 @@
 - **Version:** 2025.03
 - **Steward:** Strategy Intelligence Guild
 - **Last Updated:** 2025-03-10
-- **Report Generated:** 2025-09-29T06:10:19.484Z
+- **Report Generated:** 2025-09-29T06:20:21.661Z
 - **Tracks:** 5 total — 🚧 3 In Progress, 📝 2 Planned
 - **Deliverables:** 15 total — 🚧 3 In Progress, 📝 12 Planned
 
@@ -33,20 +33,20 @@
 - [ ] **Broker routing bandit** — 📝 Planned
   - Exploration/exploitation bandit choosing optimal broker endpoints per
     strategy lane.
-  - Dependencies: strategy-router-skeleton
+  - Dependencies: Strategy Router skeleton service (Integration)
   - References:
-    [docs/agi_integration_strategies.md#6-implementation-checklist](../docs/agi_integration_strategies.md#6-implementation-checklist)
+    [AGI Integration Strategies — Implementation Checklist](./agi_integration_strategies.md#6-implementation-checklist)
 - [ ] **Latency baseline dashboards** — 📝 Planned
   - Grafana dashboards capturing order round-trip, fill latency, and slippage
     variance.
   - References:
-    [docs/agi_integration_strategies.md#7-next-actions](../docs/agi_integration_strategies.md#7-next-actions)
+    [AGI Integration Strategies — Next Actions](./agi_integration_strategies.md#7-next-actions)
 - [ ] **Shadow deploy tooling** — 📝 Planned
   - Automation for replaying DTL intents through DTA without releasing to
     production brokers.
-  - Dependencies: broker-bandit
+  - Dependencies: Broker routing bandit
   - References:
-    [docs/agi_integration_strategies.md#6-implementation-checklist](../docs/agi_integration_strategies.md#6-implementation-checklist)
+    [AGI Integration Strategies — Implementation Checklist](./agi_integration_strategies.md#6-implementation-checklist)
 
 ### Feedback — 🚧 In Progress
 
@@ -63,21 +63,21 @@
 - [ ] **OpenTelemetry mesh** — 🚧 In Progress
   - Unified telemetry mesh streaming persona metrics, broker telemetry, and
     mentorship scores.
-  - Dependencies: strategy-router-skeleton
+  - Dependencies: Strategy Router skeleton service (Integration)
   - References:
-    [docs/agi_integration_strategies.md#6-implementation-checklist](../docs/agi_integration_strategies.md#6-implementation-checklist)
+    [AGI Integration Strategies — Implementation Checklist](./agi_integration_strategies.md#6-implementation-checklist)
 - [ ] **Modifier auto-tuning workflow** — 📝 Planned
   - Workflow adjusting risk and conviction modifiers from telemetry deltas
     without human review.
-  - Dependencies: otel-mesh
+  - Dependencies: OpenTelemetry mesh
   - References:
-    [docs/agi_integration_strategies.md#5-continuous-learning](../docs/agi_integration_strategies.md#5-continuous-learning)
+    [AGI Integration Strategies — Continuous Learning](./agi_integration_strategies.md#5-continuous-learning)
 - [ ] **Treasury event sync** — 📝 Planned
   - Event bridge aligning treasury triggers, Oracle signals, and execution
     throttles.
-  - Dependencies: otel-mesh
+  - Dependencies: OpenTelemetry mesh
   - References:
-    [docs/agi_integration_strategies.md#43-treasury-synchronization](../docs/agi_integration_strategies.md#43-treasury-synchronization)
+    [AGI Integration Strategies — Treasury Synchronization](./agi_integration_strategies.md#43-treasury-synchronization)
 
 ### Integration — 🚧 In Progress
 
@@ -94,18 +94,18 @@
   - Stub service emitting mock DTL/DTA intents to validate schema alignment
     before production wiring.
   - References:
-    [docs/agi_integration_strategies.md#7-next-actions](../docs/agi_integration_strategies.md#7-next-actions)
+    [AGI Integration Strategies — Next Actions](./agi_integration_strategies.md#7-next-actions)
 - [ ] **Supabase rationale store** — 📝 Planned
   - Normalized store for persona debates, rationale scoring, and audit trails
     shared with DTA.
-  - Dependencies: strategy-router-skeleton
+  - Dependencies: Strategy Router skeleton service
   - References:
-    [docs/agi_integration_strategies.md#6-implementation-checklist](../docs/agi_integration_strategies.md#6-implementation-checklist)
+    [AGI Integration Strategies — Implementation Checklist](./agi_integration_strategies.md#6-implementation-checklist)
 - [ ] **Persona rituals charter** — 📝 Planned
   - Documented rituals for research, execution, and risk personas covering
     gating and review cadence.
   - References:
-    [docs/agi_integration_strategies.md#7-next-actions](../docs/agi_integration_strategies.md#7-next-actions)
+    [AGI Integration Strategies — Next Actions](./agi_integration_strategies.md#7-next-actions)
 
 ### Learning — 📝 Planned
 
@@ -121,18 +121,18 @@
 - [ ] **RL training loop** — 📝 Planned
   - Offline RL training pipeline evaluating strategy intents before deployment.
   - References:
-    [docs/agi_integration_strategies.md#51-reinforcement-learning-on-trade-outcomes](../docs/agi_integration_strategies.md#51-reinforcement-learning-on-trade-outcomes)
+    [AGI Integration Strategies — Reinforcement Learning On Trade Outcomes](./agi_integration_strategies.md#51-reinforcement-learning-on-trade-outcomes)
 - [ ] **Mentorship scoring rubric** — 📝 Planned
   - Rubric scoring mentorship and community feedback for backlog prioritization.
-  - Dependencies: rl-training-loop
+  - Dependencies: RL training loop
   - References:
-    [docs/agi_integration_strategies.md#52-mentorship--community-feedback](../docs/agi_integration_strategies.md#52-mentorship--community-feedback)
+    [AGI Integration Strategies — Mentorship & Community Feedback](./agi_integration_strategies.md#52-mentorship--community-feedback)
 - [ ] **Oracle trigger webhooks** — 📝 Planned
   - Webhook suite bridging Intelligence Oracle metrics into treasury and
     execution notifications.
-  - Dependencies: rl-training-loop, treasury-event-sync
+  - Dependencies: RL training loop, Treasury event sync (Feedback)
   - References:
-    [docs/agi_integration_strategies.md#53-intelligence-oracle--tokenomics-triggers](../docs/agi_integration_strategies.md#53-intelligence-oracle--tokenomics-triggers)
+    [AGI Integration Strategies — Intelligence Oracle & Tokenomics Triggers](./agi_integration_strategies.md#53-intelligence-oracle--tokenomics-triggers)
 
 ### Logic — 🚧 In Progress
 
@@ -149,27 +149,27 @@
 - [ ] **Ensemble evaluation harness** — 🚧 In Progress
   - Batch evaluation harness fusing multiple models to rank DTL hypotheses.
   - References:
-    [docs/agi_integration_strategies.md#6-implementation-checklist](../docs/agi_integration_strategies.md#6-implementation-checklist)
+    [AGI Integration Strategies — Implementation Checklist](./agi_integration_strategies.md#6-implementation-checklist)
 - [ ] **SMC anomaly detection** — 📝 Planned
   - Detector scanning Supabase feeds for Smart Money Concepts deviations and
     structural drifts.
-  - Dependencies: ensemble-harness
+  - Dependencies: Ensemble evaluation harness
   - References:
-    [docs/dynamic-trading-algo-improvement-checklist.md#3-analyzer--signal-enhancements](../docs/dynamic-trading-algo-improvement-checklist.md#3-analyzer--signal-enhancements)
+    [Dynamic Trading Algo Improvement Checklist — Analyzer & Signal Enhancements](./dynamic-trading-algo-improvement-checklist.md#3-analyzer--signal-enhancements)
 - [ ] **Decision delta log** — 📝 Planned
   - Append-only log capturing rationale deltas between persona consensus and
     final execution decision.
-  - Dependencies: ensemble-harness
+  - Dependencies: Ensemble evaluation harness
   - References:
-    [docs/agi_integration_strategies.md#6-implementation-checklist](../docs/agi_integration_strategies.md#6-implementation-checklist)
+    [AGI Integration Strategies — Implementation Checklist](./agi_integration_strategies.md#6-implementation-checklist)
 
 ## Milestones
 
-| Milestone                               | Target Date | Status         | Summary                                                                               | Dependencies                                           |
-| --------------------------------------- | ----------- | -------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| Router handshake and telemetry baseline | 2025-04-15  | 🚧 In Progress | Mock router publishing events with latency probes captured inside the telemetry mesh. | strategy-router-skeleton, latency-dashboard, otel-mesh |
-| Persona governance activation           | 2025-05-10  | 📝 Planned     | Persona rituals charter adopted with decision delta logs wired into Supabase.         | persona-rituals, decision-delta-log                    |
-| Learning loop pilot                     | 2025-06-01  | 📝 Planned     | RL training loop and mentorship scoring rubric produce actionable backlog updates.    | rl-training-loop, mentorship-scoring                   |
+| Milestone                               | Target Date | Status         | Summary                                                                               | Dependencies                                                                                                           |
+| --------------------------------------- | ----------- | -------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Router handshake and telemetry baseline | 2025-04-15  | 🚧 In Progress | Mock router publishing events with latency probes captured inside the telemetry mesh. | Strategy Router skeleton service (Integration), Latency baseline dashboards (Execution), OpenTelemetry mesh (Feedback) |
+| Persona governance activation           | 2025-05-10  | 📝 Planned     | Persona rituals charter adopted with decision delta logs wired into Supabase.         | Persona rituals charter (Integration), Decision delta log (Logic)                                                      |
+| Learning loop pilot                     | 2025-06-01  | 📝 Planned     | RL training loop and mentorship scoring rubric produce actionable backlog updates.    | RL training loop (Learning), Mentorship scoring rubric (Learning)                                                      |
 
 ## Telemetry Targets
 

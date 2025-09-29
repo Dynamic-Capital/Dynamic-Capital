@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import process from "node:process";
 
 type Status = "planned" | "in-progress" | "blocked" | "done";
@@ -48,6 +49,13 @@ interface Manifest {
   telemetry: TelemetryMetric[];
 }
 
+interface DeliverableInfo {
+  id: string;
+  title: string;
+  trackId: string;
+  trackLabel: string;
+}
+
 const STATUS_LABEL: Record<Status, string> = {
   planned: "Planned",
   "in-progress": "In Progress",
@@ -76,6 +84,16 @@ function validateManifest(manifest: Manifest): void {
     );
   }
 
+  if (!manifest.updated) {
+    throw new Error("Manifest is missing updated timestamp.");
+  }
+
+  if (!Array.isArray(manifest.tracks) || manifest.tracks.length === 0) {
+    throw new Error("Manifest must include at least one track.");
+  }
+
+  const deliverableIds = new Set<string>();
+
   manifest.tracks.forEach((track) => {
     if (!track.id || !track.label) {
       throw new Error(`Track is missing id or label: ${JSON.stringify(track)}`);
@@ -90,6 +108,17 @@ function validateManifest(manifest: Manifest): void {
         );
       }
       validateStatus(deliverable.status, `deliverable:${deliverable.id}`);
+      deliverableIds.add(deliverable.id);
+
+      if (deliverable.dependencies) {
+        deliverable.dependencies.forEach((dependency) => {
+          if (!dependency) {
+            throw new Error(
+              `Deliverable ${deliverable.id} includes an empty dependency entry.`,
+            );
+          }
+        });
+      }
     });
   });
 
@@ -100,6 +129,44 @@ function validateManifest(manifest: Manifest): void {
       );
     }
     validateStatus(milestone.status, `milestone:${milestone.id}`);
+  });
+
+  manifest.telemetry.forEach((metric) => {
+    if (!metric.metric || !metric.target || !metric.owner || !metric.source) {
+      throw new Error(
+        `Telemetry metric missing required fields: ${JSON.stringify(metric)}`,
+      );
+    }
+  });
+
+  manifest.tracks.forEach((track) => {
+    track.deliverables.forEach((deliverable) => {
+      if (!deliverable.dependencies) {
+        return;
+      }
+
+      deliverable.dependencies.forEach((dependency) => {
+        if (!deliverableIds.has(dependency)) {
+          throw new Error(
+            `Deliverable ${deliverable.id} references unknown dependency "${dependency}".`,
+          );
+        }
+      });
+    });
+  });
+
+  manifest.milestones.forEach((milestone) => {
+    if (!milestone.dependencies) {
+      return;
+    }
+
+    milestone.dependencies.forEach((dependency) => {
+      if (!deliverableIds.has(dependency)) {
+        throw new Error(
+          `Milestone ${milestone.id} references unknown dependency "${dependency}".`,
+        );
+      }
+    });
   });
 }
 
@@ -197,7 +264,10 @@ function renderTrackSummary(tracks: Track[]): string {
   ].join("\n");
 }
 
-function renderTrackDetails(track: Track): string {
+function renderTrackDetails(
+  track: Track,
+  deliverableLookup: Map<string, DeliverableInfo>,
+): string {
   const lines = [
     `### ${track.label} — ${STATUS_EMOJI[track.status]} ${
       STATUS_LABEL[track.status]
@@ -229,13 +299,18 @@ function renderTrackDetails(track: Track): string {
       lines.push(`- ${checkbox} **${deliverable.title}** — ${statusLabel}`);
       lines.push(`  - ${deliverable.description}`);
       if (deliverable.dependencies && deliverable.dependencies.length > 0) {
-        lines.push(`  - Dependencies: ${deliverable.dependencies.join(", ")}`);
+        lines.push(
+          `  - Dependencies: ${
+            formatDependencyList(
+              deliverable.dependencies,
+              deliverableLookup,
+              track.id,
+            )
+          }`,
+        );
       }
       if (deliverable.links && deliverable.links.length > 0) {
-        const formattedLinks = deliverable.links
-          .map((link) => "[" + link + "](../" + link + ")")
-          .join(", ");
-        lines.push(`  - References: ${formattedLinks}`);
+        lines.push(`  - References: ${formatReferences(deliverable.links)}`);
       }
     });
     lines.push("");
@@ -244,11 +319,19 @@ function renderTrackDetails(track: Track): string {
   return lines.join("\n");
 }
 
-function renderTracks(tracks: Track[]): string {
-  return tracks.map((track) => renderTrackDetails(track)).join("\n");
+function renderTracks(
+  tracks: Track[],
+  deliverableLookup: Map<string, DeliverableInfo>,
+): string {
+  return tracks
+    .map((track) => renderTrackDetails(track, deliverableLookup))
+    .join("\n");
 }
 
-function renderMilestones(milestones: Milestone[]): string {
+function renderMilestones(
+  milestones: Milestone[],
+  deliverableLookup: Map<string, DeliverableInfo>,
+): string {
   if (milestones.length === 0) {
     return "";
   }
@@ -257,9 +340,10 @@ function renderMilestones(milestones: Milestone[]): string {
     const status = `${STATUS_EMOJI[milestone.status]} ${
       STATUS_LABEL[milestone.status]
     }`;
-    const deps = milestone.dependencies && milestone.dependencies.length > 0
-      ? milestone.dependencies.join(", ")
-      : "—";
+    const deps = formatDependencyList(
+      milestone.dependencies,
+      deliverableLookup,
+    );
     return `| ${milestone.title} | ${milestone.targetDate} | ${status} | ${milestone.summary} | ${deps} |`;
   });
 
@@ -288,14 +372,120 @@ function renderTelemetry(metrics: TelemetryMetric[]): string {
   return lines.join("\n");
 }
 
+function buildDeliverableLookup(
+  manifest: Manifest,
+): Map<string, DeliverableInfo> {
+  const lookup = new Map<string, DeliverableInfo>();
+  manifest.tracks.forEach((track) => {
+    track.deliverables.forEach((deliverable) => {
+      lookup.set(deliverable.id, {
+        id: deliverable.id,
+        title: deliverable.title,
+        trackId: track.id,
+        trackLabel: track.label,
+      });
+    });
+  });
+  return lookup;
+}
+
+function formatDependencyList(
+  dependencies: string[] | undefined,
+  deliverableLookup: Map<string, DeliverableInfo>,
+  currentTrackId?: string,
+): string {
+  if (!dependencies || dependencies.length === 0) {
+    return "—";
+  }
+
+  return dependencies
+    .map((dependency) => {
+      const info = deliverableLookup.get(dependency);
+      if (!info) {
+        return dependency;
+      }
+
+      if (currentTrackId && info.trackId === currentTrackId) {
+        return info.title;
+      }
+
+      return `${info.title} (${info.trackLabel})`;
+    })
+    .join(", ");
+}
+
+function formatReferences(links: string[]): string {
+  return links.map((link) => formatLink(link)).join(", ");
+}
+
+const ACRONYM_OVERRIDES: Record<string, string> = {
+  agi: "AGI",
+  api: "API",
+  dta: "DTA",
+  dtl: "DTL",
+  otel: "OTel",
+  rl: "RL",
+  smc: "SMC",
+};
+
+function formatLink(link: string): string {
+  const trimmed = link.trim();
+  if (/^https?:\/\//i.test(trimmed)) {
+    return `[${trimmed}](${trimmed})`;
+  }
+
+  const withoutLeading = trimmed.replace(/^\.\//, "");
+  if (withoutLeading.startsWith("docs/")) {
+    const relative = withoutLeading.slice("docs/".length);
+    const [path, anchor] = relative.split("#", 2);
+    const linkTextBase = humanizeSlug(path);
+    const linkText = anchor
+      ? `${linkTextBase} — ${humanizeSlug(anchor)}`
+      : linkTextBase;
+    const target = anchor ? `${path}#${anchor}` : path;
+    return `[${linkText}](./${target})`;
+  }
+
+  return `[${humanizeSlug(withoutLeading)}](./${withoutLeading})`;
+}
+
+function humanizeSlug(slug: string): string {
+  const withoutExtension = slug.replace(/\.[^/.]+$/, "");
+  const withoutLeadingDigits = withoutExtension.replace(/^[0-9]+-/, "");
+  const ampersandNormalized = withoutLeadingDigits.replace(/--/g, " & ");
+  return ampersandNormalized
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((segment) => humanizeWord(segment))
+    .join(" ");
+}
+
+function humanizeWord(segment: string): string {
+  if (segment === "&") {
+    return "&";
+  }
+
+  const lower = segment.toLowerCase();
+  if (ACRONYM_OVERRIDES[lower]) {
+    return ACRONYM_OVERRIDES[lower];
+  }
+
+  if (segment.length === 0) {
+    return segment;
+  }
+
+  return segment[0].toUpperCase() + segment.slice(1);
+}
+
 function main(): void {
-  const scriptDir = dirname(new URL(import.meta.url).pathname);
+  const scriptDir = dirname(fileURLToPath(new URL(import.meta.url)));
   const root = resolve(scriptDir, "..", "..");
   const manifestPath = resolve(root, "data", "dtl_build_manifest.json");
   const outputPath = resolve(root, "docs", "dtl-build-report.md");
 
   const manifest = loadManifest(manifestPath);
   const nowIso = new Date().toISOString();
+  const deliverableLookup = buildDeliverableLookup(manifest);
 
   const tracks = [...manifest.tracks].sort((a, b) =>
     a.label.localeCompare(b.label)
@@ -306,15 +496,14 @@ function main(): void {
 
   const parts = [
     `# ${manifest.name} Build Report`,
-    "",
     renderOverview(manifest, nowIso),
     renderTrackSummary(tracks),
-    renderTracks(tracks),
-    renderMilestones(milestones),
+    renderTracks(tracks, deliverableLookup),
+    renderMilestones(milestones, deliverableLookup),
     renderTelemetry(manifest.telemetry),
-  ].filter(Boolean);
+  ].filter((part) => part && part.trim().length > 0);
 
-  const markdown = parts.join("\n");
+  const markdown = parts.join("\n\n");
   writeFileSync(outputPath, markdown, "utf8");
 
   const relativeOutput = relative(root, outputPath);
