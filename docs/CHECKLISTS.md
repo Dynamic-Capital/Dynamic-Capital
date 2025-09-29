@@ -45,6 +45,8 @@ key.
 | 16       | [`ISO 9241 Environment Alignment Checklist`](./iso9241_environment_checklist.md)                      | ISO 9241-110-aligned review of environments, branches, builds, and configuration | Audit deployment hygiene against usability principles                                 | —                     |
 | 17       | [`CoinGecko Listing Readiness Checklist`](./coingecko-listing-checklist.md)                           | Token listing evidence, market data, and compliance artifacts                    | Prepare the application package for a CoinGecko listing                               | —                     |
 | 18       | [`NFT Collectible Launch Checklist`](./nft-collectible-launch-checklist.md)                           | End-to-end preparation for story-driven NFT drops                                | Plan concept, metadata, utility, and community execution for a new collection         | `nft-collectible`     |
+| 19       | [`Dynamic AI (DAI) Validation`](./dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-ai-dai)            | Domain health checks for Dynamic AI telemetry, routing, and personas             | Run Dynamic AI regression tests before shipping Brain/orchestrator updates            | `dai`                 |
+| 20       | [`Dynamic AGI (DAGI) Oversight`](./dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-agi-dagi)         | Orchestration, mentorship, and self-improvement verification for DAGI            | Exercise DAGI loops prior to infrastructure or governance changes                     | `dagi`                |
 
 ## Project delivery (priorities 1–3)
 
@@ -113,6 +115,17 @@ key.
   – orchestrates trait design, storytelling, utility planning, and community
   activation for new NFT collections. Use the `nft-collectible` automation key
   to validate structure and export section-organized task lists.
+
+## Intelligence orchestration domains (priorities 19–20)
+
+- **[`Dynamic AI (DAI) Validation`](./dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-ai-dai)**
+  – pairs the DAI operational checklist with the `dai` automation key, running
+  architecture and persona regression suites before refreshing the Brain or
+  shipping orchestration changes.
+- **[`Dynamic AGI (DAGI) Oversight`](./dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-agi-dagi)**
+  – uses the `dagi` automation key to execute DAGI oversight tests so
+  self-improvement, mentorship, and orchestration feedback stay in sync with the
+  governance runbooks.
 
 ## Keep documentation in sync
 
