@@ -234,22 +234,29 @@ export default async function RootLayout(
     globalThis?.process?.env?.["STATIC_SNAPSHOT"] === "true";
 
   if (isStaticSnapshot) {
-    const { head, body, lang } = await getStaticLandingDocument();
-    return (
-      <html
-        lang={lang}
-        suppressHydrationWarning
-        className={fontClassName}
-        {...htmlAttributeDefaults}
-        data-theme={DEFAULT_THEME}
-      >
-        <head dangerouslySetInnerHTML={{ __html: ensureThemeAssets(head) }} />
-        <body
+    try {
+      const { head, body, lang } = await getStaticLandingDocument();
+      return (
+        <html
+          lang={lang}
           suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: body }}
-        />
-      </html>
-    );
+          className={fontClassName}
+          {...htmlAttributeDefaults}
+          data-theme={DEFAULT_THEME}
+        >
+          <head dangerouslySetInnerHTML={{ __html: ensureThemeAssets(head) }} />
+          <body
+            suppressHydrationWarning
+            dangerouslySetInnerHTML={{ __html: body }}
+          />
+        </html>
+      );
+    } catch (error) {
+      console.error(
+        'Failed to load static landing snapshot markup. Falling back to dynamic layout rendering.',
+        error,
+      );
+    }
   }
 
   return (
