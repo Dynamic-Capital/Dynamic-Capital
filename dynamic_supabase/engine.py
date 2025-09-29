@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+import os
+import time
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
+from urllib.parse import urljoin
+
+try:  # pragma: no cover - optional dependency
+    import requests  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    requests = None  # type: ignore
 
 __all__ = [
     "SupabaseTableBlueprint",
@@ -13,6 +21,7 @@ __all__ = [
     "SupabaseBucketBlueprint",
     "SupabaseQueryProfile",
     "SupabaseResourceHealth",
+    "SupabaseConnectionStatus",
     "DynamicSupabaseEngine",
 ]
 
@@ -269,6 +278,28 @@ class SupabaseResourceHealth:
         }
 
 
+@dataclass(slots=True)
+class SupabaseConnectionStatus:
+    """Result of probing a Supabase project's availability."""
+
+    ok: bool
+    endpoint: str
+    checked_at: datetime = field(default_factory=_utcnow)
+    status_code: int | None = None
+    latency_ms: float = 0.0
+    error: str | None = None
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "ok": self.ok,
+            "endpoint": self.endpoint,
+            "checked_at": self.checked_at.isoformat(),
+            "status_code": self.status_code,
+            "latency_ms": self.latency_ms,
+            "error": self.error,
+        }
+
+
 # ---------------------------------------------------------------------------
 # engine
 
@@ -509,3 +540,92 @@ class DynamicSupabaseEngine:
             dashboard["buckets"][bucket.canonical_name] = health.as_dict()
 
         return dashboard
+
+    # ------------------------------------------------------------ connectivity
+    def verify_connection(
+        self,
+        *,
+        url: str | None = None,
+        api_key: str | None = None,
+        timeout: float = 5.0,
+    ) -> SupabaseConnectionStatus:
+        """Probe the Supabase project backing this engine.
+
+        The check targets the Auth settings endpoint, which is available for every
+        Supabase project. A service role or anon key is sufficient to validate the
+        connection. When credentials or the optional :mod:`requests` dependency are
+        unavailable, the check gracefully reports the failure instead of raising.
+        """
+
+        resolved_url = (url or os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL"))
+        if not resolved_url:
+            return SupabaseConnectionStatus(
+                ok=False,
+                endpoint="",
+                error="Supabase URL is not configured.",
+            )
+
+        resolved_key = (
+            api_key
+            or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+            or os.environ.get("SUPABASE_SERVICE_ROLE")
+            or os.environ.get("SUPABASE_SERVICE_KEY")
+            or os.environ.get("SUPABASE_ANON_KEY")
+            or os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+        )
+
+        endpoint = urljoin(resolved_url.rstrip("/") + "/", "auth/v1/settings")
+
+        if not resolved_key:
+            return SupabaseConnectionStatus(
+                ok=False,
+                endpoint=endpoint,
+                error="Supabase API key is not configured.",
+            )
+
+        if requests is None:
+            return SupabaseConnectionStatus(
+                ok=False,
+                endpoint=endpoint,
+                error="requests library is not available; install 'requests' to enable connection verification.",
+            )
+
+        safe_timeout = timeout if timeout and timeout > 0 else 5.0
+        headers = {
+            "apikey": resolved_key,
+            "Authorization": f"Bearer {resolved_key}",
+        }
+
+        start = time.perf_counter()
+
+        try:
+            response = requests.get(endpoint, headers=headers, timeout=safe_timeout)
+        except Exception as exc:  # pragma: no cover - network dependent
+            latency_ms = (time.perf_counter() - start) * 1000
+            return SupabaseConnectionStatus(
+                ok=False,
+                endpoint=endpoint,
+                latency_ms=latency_ms,
+                error=f"Failed to reach Supabase: {exc}",
+            )
+
+        latency_ms = (time.perf_counter() - start) * 1000
+
+        if response.status_code == 200:
+            return SupabaseConnectionStatus(
+                ok=True,
+                endpoint=endpoint,
+                status_code=response.status_code,
+                latency_ms=latency_ms,
+            )
+
+        body_preview = (response.text or "").strip().splitlines()[0:1]
+        detail = body_preview[0] if body_preview else ""
+
+        return SupabaseConnectionStatus(
+            ok=False,
+            endpoint=endpoint,
+            status_code=response.status_code,
+            latency_ms=latency_ms,
+            error=f"Unexpected status {response.status_code}: {detail}",
+        )

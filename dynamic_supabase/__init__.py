@@ -8,6 +8,7 @@ from .domain_catalogue import (
 )
 from .engine import (
     SupabaseBucketBlueprint,
+    SupabaseConnectionStatus,
     SupabaseFunctionBlueprint,
     SupabaseQueryProfile,
     SupabaseResourceHealth,
@@ -17,6 +18,7 @@ from .engine import (
 
 __all__ = [
     "SupabaseBucketBlueprint",
+    "SupabaseConnectionStatus",
     "SupabaseFunctionBlueprint",
     "SupabaseQueryProfile",
     "SupabaseResourceHealth",
