@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import { execSync } from "node:child_process";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   banner,
   celebrate,
@@ -17,6 +19,12 @@ import {
   PRODUCTION_ALLOWED_ORIGINS,
   PRODUCTION_ORIGIN,
 } from "./scripts/utils/branding-env.mjs";
+
+const scriptDirectory = dirname(fileURLToPath(import.meta.url));
+const repositoryRoot = resolve(scriptDirectory);
+if (process.cwd() !== repositoryRoot) {
+  process.chdir(repositoryRoot);
+}
 
 const {
   defaultedKeys,
