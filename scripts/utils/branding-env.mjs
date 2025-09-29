@@ -11,6 +11,34 @@ export const PRODUCTION_ALLOWED_ORIGINS = PRODUCTION_ALLOWED_ORIGIN_LIST.join(
   ",",
 );
 
+function coerceOrigin(input) {
+  if (!input) {
+    return undefined;
+  }
+  const text = `${input}`.trim();
+  if (!text) {
+    return undefined;
+  }
+
+  try {
+    const candidate = text.includes("://") ? text : `https://${text}`;
+    return new URL(candidate).origin;
+  } catch {
+    return undefined;
+  }
+}
+
+function hostToOrigin(host) {
+  if (!host) {
+    return undefined;
+  }
+  const text = `${host}`.trim();
+  if (!text) {
+    return undefined;
+  }
+  return coerceOrigin(text);
+}
+
 /**
  * Resolve the most canonical origin for the current environment, preferring
  * explicit overrides before falling back to production defaults.
@@ -19,26 +47,41 @@ export function resolveBrandingOrigin({
   env = process.env,
   fallbackOrigin = PRODUCTION_ORIGIN,
 } = {}) {
-  const snapshot = {
-    LOVABLE_ORIGIN: env.LOVABLE_ORIGIN,
-    SITE_URL: env.SITE_URL,
-    NEXT_PUBLIC_SITE_URL: env.NEXT_PUBLIC_SITE_URL,
-  };
+  const candidates = [
+    ["LOVABLE_ORIGIN", env.LOVABLE_ORIGIN],
+    ["SITE_URL", env.SITE_URL],
+    ["NEXT_PUBLIC_SITE_URL", env.NEXT_PUBLIC_SITE_URL],
+    ["URL", env.URL],
+    ["APP_URL", env.APP_URL],
+    ["PUBLIC_URL", env.PUBLIC_URL],
+    ["DEPLOY_URL", env.DEPLOY_URL],
+    ["DEPLOYMENT_URL", env.DEPLOYMENT_URL],
+    ["PRIMARY_HOST", hostToOrigin(env.PRIMARY_HOST)],
+    ["DIGITALOCEAN_APP_URL", env.DIGITALOCEAN_APP_URL],
+    [
+      "DIGITALOCEAN_APP_SITE_DOMAIN",
+      hostToOrigin(env.DIGITALOCEAN_APP_SITE_DOMAIN),
+    ],
+    [
+      "DIGITALOCEAN_APP_DOMAIN",
+      hostToOrigin(env.DIGITALOCEAN_APP_DOMAIN),
+    ],
+    [
+      "DIGITALOCEAN_PRIMARY_HOST",
+      hostToOrigin(env.DIGITALOCEAN_PRIMARY_HOST),
+    ],
+    ["VERCEL_URL", env.VERCEL_URL ? `https://${env.VERCEL_URL}` : undefined],
+  ];
 
-  const originSource = snapshot.LOVABLE_ORIGIN
-    ? "LOVABLE_ORIGIN"
-    : snapshot.SITE_URL
-    ? "SITE_URL"
-    : snapshot.NEXT_PUBLIC_SITE_URL
-    ? "NEXT_PUBLIC_SITE_URL"
-    : "fallback";
+  for (const [source, rawValue] of candidates) {
+    const normalized = coerceOrigin(rawValue);
+    if (normalized) {
+      return { originSource: source, resolvedOrigin: normalized };
+    }
+  }
 
-  const resolvedOrigin = snapshot.LOVABLE_ORIGIN ||
-    snapshot.SITE_URL ||
-    snapshot.NEXT_PUBLIC_SITE_URL ||
-    fallbackOrigin;
-
-  return { originSource, resolvedOrigin };
+  const normalizedFallback = coerceOrigin(fallbackOrigin) ?? PRODUCTION_ORIGIN;
+  return { originSource: "fallback", resolvedOrigin: normalizedFallback };
 }
 
 /**
