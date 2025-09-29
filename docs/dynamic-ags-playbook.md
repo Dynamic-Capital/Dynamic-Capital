@@ -105,7 +105,11 @@
 
 - **Short-term (Redis):** working set; time-boxed to 24–48h.
 - **Medium-term (Supabase/Postgres):** task DAGs, approvals, artifacts, audit logs.
-- **Long-term (Vector DB):** knowledge; chunk strategy (1–2k tokens), metadata (source, date, quality).
+- **Long-term (Supabase Storage):** dataset snapshots roll into Supabase Storage. The platform exposes a shared `public.one_drive_assets` manifest via the wrappers integration, but AGS workflows have not yet adopted the `EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg` OneDrive share as a managed dependency, so treat the mirror as optional until the SOP is finalised.【F:docs/WRAPPERS_INTEGRATION.md†L1-L64】
+
+> **Follow-up:** Document and automate the OneDrive mirror hookup before relying on the external share for governance restores.【F:docs/WRAPPERS_INTEGRATION.md†L39-L64】
+
+> **Verification:** Run `SELECT object_key FROM public.one_drive_assets WHERE object_key ILIKE 'dags/%' LIMIT 1;` during audits. A `NULL` result confirms the mirror is still pending; once a row appears, update this playbook and the restoration runbooks to treat the share as authoritative.【F:supabase/migrations/20251104090000_enable_s3_wrapper.sql†L60-L97】
 
 ## 4. Task Lifecycle (DAG)
 
@@ -232,6 +236,7 @@ agents:
 - **Fix:**
   1. Invalidate cache; re-embed affected sources.
   2. Mark tasks using stale chunks and re-run retrieval + critic.
+  3. If/when the OneDrive mirror is wired in, extend this runbook with a manifest comparison against `public.one_drive_assets` before restoring context back into the DAG.【F:docs/WRAPPERS_INTEGRATION.md†L39-L64】
 
 ## 11. Security & Compliance
 
@@ -322,7 +327,8 @@ await handle(evt);
 7. Ship dashboards: latency, duplicate rate, critic pass, approvals.
 8. Run chaos tests (tool down, slow bus, stale memory).
 9. Document human approval SOPs.
-10. Drill incident runbooks quarterly.
+10. Plan the OneDrive mirror integration so Supabase Storage snapshots can be published to the shared manifest once the SOP is approved, and gate completion on a successful `SELECT object_key FROM public.one_drive_assets WHERE object_key ILIKE 'dags/%';` returning results.【F:docs/WRAPPERS_INTEGRATION.md†L39-L64】【F:supabase/migrations/20251104090000_enable_s3_wrapper.sql†L60-L97】
+11. Drill incident runbooks quarterly.
 
 ## 16. Quickstart (Your Stack)
 
