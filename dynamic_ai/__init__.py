@@ -81,6 +81,15 @@ from .infrastructure import (
     RoleSpec,
     build_default_infrastructure,
 )
+from .phase3 import (
+    AgentProfile,
+    Assignment,
+    BacklogItem,
+    CommunicationLine,
+    OnboardingPacket,
+    PhaseThreePlan,
+    build_phase_three_plan,
+)
 from .fusion import (
     FusionEngine,
     LobeSignal,
@@ -210,5 +219,12 @@ __all__ = [
     "DynamicInfrastructure",
     "OperationalStep",
     "OperationalPlaybook",
+    "BacklogItem",
+    "AgentProfile",
+    "Assignment",
+    "OnboardingPacket",
+    "CommunicationLine",
+    "PhaseThreePlan",
+    "build_phase_three_plan",
     "build_default_infrastructure",
 ]
