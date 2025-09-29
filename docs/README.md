@@ -92,18 +92,19 @@ documenting which assets were consulted.
 
 ## 6. Trading & Financial Operations
 
-| Ref  | Document                                                                             | Summary                                                                                                 |
-| ---- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| 6.1  | [automated-trading-checklist.md](./automated-trading-checklist.md)                   | Project plan for delivering the TradingView → Supabase → MT5 automation.                                |
-| 6.2  | [TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md](./TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md)   | Detailed bridge build between TradingView alerts and MetaTrader 5.                                      |
-| 6.3  | [TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md) | Cross-team onboarding workflow for the TradingView/MT5 stack.                                           |
-| 6.4  | [investing-com-candlestick-checklist.md](./investing-com-candlestick-checklist.md)   | Checklist for ingesting Investing.com candlestick signals.                                              |
-| 6.5  | [trading-runbook.md](./trading-runbook.md)                                           | Day-to-day trading operations, monitoring, and model lifecycle steps.                                   |
-| 6.6  | [private-fund-pool.md](./private-fund-pool.md)                                       | Architecture and database design for the private fund pool service.                                     |
-| 6.7  | [index-advisor.md](./index-advisor.md)                                               | Using Supabase Index Advisor to tune query performance.                                                 |
-| 6.8  | [WRAPPERS_INTEGRATION.md](./WRAPPERS_INTEGRATION.md)                                 | How to connect external services via Postgres foreign data wrappers.                                    |
-| 6.9  | [trading-data-organization.md](./trading-data-organization.md)                       | Folder taxonomy for templates, journals, KPIs, and backtests across each horizon bucket.                |
-| 6.10 | [dai-webhook-routing.md](./dai-webhook-routing.md)                                   | Options for single-endpoint vs. auto-provisioned TradingView webhook routes managed by DAI.             |
+<!-- deno-fmt-ignore -->
+| Ref  | Document                                                                             | Summary                                                                        |
+| ---- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| 6.1  | [automated-trading-checklist.md](./automated-trading-checklist.md)                   | Project plan for delivering the TradingView → Supabase → MT5 automation.       |
+| 6.2  | [TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md](./TRADINGVIEW_TO_MT5_BRIDGE_CHECKLIST.md)   | Detailed bridge build between TradingView alerts and MetaTrader 5.             |
+| 6.3  | [TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md](./TRADINGVIEW_MT5_ONBOARDING_CHECKLIST.md) | Cross-team onboarding workflow for the TradingView/MT5 stack.                  |
+| 6.4  | [investing-com-candlestick-checklist.md](./investing-com-candlestick-checklist.md)   | Checklist for ingesting Investing.com candlestick signals.                     |
+| 6.5  | [trading-runbook.md](./trading-runbook.md)                                           | Day-to-day trading operations, monitoring, and model lifecycle steps.          |
+| 6.6  | [private-fund-pool.md](./private-fund-pool.md)                                       | Architecture and database design for the private fund pool service.            |
+| 6.7  | [index-advisor.md](./index-advisor.md)                                               | Using Supabase Index Advisor to tune query performance.                        |
+| 6.8  | [WRAPPERS_INTEGRATION.md](./WRAPPERS_INTEGRATION.md)                                 | How to connect external services via Postgres foreign data wrappers.           |
+| 6.9  | [trading-data-organization.md](./trading-data-organization.md)                       | Folder taxonomy for templates, journals, KPIs, and backtests across each horizon bucket. |
+| 6.10 | [dai-webhook-routing.md](./dai-webhook-routing.md)                                   | Options for single-endpoint vs. auto-provisioned TradingView webhook routes managed by DAI. |
 | 6.11 | [dynamic-market-notes.md](./dynamic-market-notes.md)                                 | Dynamic Market stack overview covering DMDA feeds, DMM quoting levers, and treasury coordination notes. |
 | 6.12 | [onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.md](./onedrive-shares/ekqbarlpv7hljyb9tgpdmqcbzpxonb18k7rhjp2iv6ofmq-folder.md) | Share metadata, Graph helpers, and access notes for the trading PDF OneDrive folder. |
 | 6.13 | [onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.md](./onedrive-shares/eu8_trb65jdbrll39t1gvwqbaiebw24rkuu17wcuk-c_qa-folder.md) | Datasets share identifiers and Graph commands for refreshing training corpora. |
@@ -112,8 +113,8 @@ documenting which assets were consulted.
 | 6.16 | [onedrive-shares/ejhj6-c4fjdopaw-phw5zl8bwumo2lyzhwbrhbknd4gvbq-folder.md](./onedrive-shares/ejhj6-c4fjdopaw-phw5zl8bwumo2lyzhwbrhbknd4gvbq-folder.md) | Combined logs and model artifacts share metadata for telemetry/model reconciliation. |
 | 6.17 | [onedrive-shares/eskwdphqepxihqmatzjdduubkm_lsdxt-jvm-1smjjgfea-folder.md](./onedrive-shares/eskwdphqepxihqmatzjdduubkm_lsdxt-jvm-1smjjgfea-folder.md) | Trading reports share identifiers for ingesting supplemental analytics. |
 | 6.18 | [onedrive-shares/etoelnepqhhhiis2vl7qe_abz618nqf2vgnrykcx0prhwa-file.md](./onedrive-shares/etoelnepqhhhiis2vl7qe_abz618nqf2vgnrykcx0prhwa-file.md) | Standalone `read_me.md` text share metadata for onboarding notes. |
-| 6.19 | [agi_integration_strategies.md](./agi_integration_strategies.md) | AGI-driven integration plan aligning DTL, DTA, execution, and learning loops. |
-
+| 6.19 | [agi_integration_strategies.md](./agi_integration_strategies.md)                       | AGI-driven integration plan aligning DTL, DTA, execution, and learning loops. |
+| 6.20 | [knowledge-base-training-drop.md](./knowledge-base-training-drop.md)                  | Checklist for syncing the OneDrive knowledge base dataset drops into Supabase and local experiments. |
 ## 7. Operational Runbooks & Launch Phases
 
 | Ref  | Document                                                             | Summary                                                                   |
