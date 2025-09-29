@@ -6,8 +6,43 @@ set -euo pipefail
 # UnknownIssuer TLS errors when reaching npm.
 cmd="deno"
 if ! command -v deno >/dev/null 2>&1; then
-  # Fallback using local npm-installed Deno package
-  cmd="npx deno"
+  REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  INSTALL_DIR="${DENO_INSTALL_DIR:-"${REPO_ROOT}/.deno"}"
+  BIN_PATH="${INSTALL_DIR}/bin/deno"
+  DESIRED_VERSION="${DENO_VERSION:-v2.5.0}"
+  DESIRED_VERSION_NO_V="${DESIRED_VERSION#v}"
+
+  NEED_INSTALL=1
+  if [ -x "${BIN_PATH}" ]; then
+    INSTALLED_VERSION="$(${BIN_PATH} --version | head -n 1 | awk '{print $2}')"
+    if [ "${INSTALLED_VERSION}" = "${DESIRED_VERSION_NO_V}" ]; then
+      NEED_INSTALL=0
+    fi
+  fi
+
+  if [ "${NEED_INSTALL}" -ne 0 ]; then
+    mkdir -p "${INSTALL_DIR}/bin"
+    rm -f "${BIN_PATH}"
+
+    tmpdir="$(mktemp -d)"
+    cleanup() {
+      rm -rf "${tmpdir}"
+    }
+    trap cleanup EXIT
+
+    archive="deno-x86_64-unknown-linux-gnu.zip"
+    url="https://github.com/denoland/deno/releases/download/${DESIRED_VERSION}/${archive}"
+
+    curl -fsSL "${url}" -o "${tmpdir}/${archive}"
+    unzip -q "${tmpdir}/${archive}" -d "${tmpdir}"
+    mv "${tmpdir}/deno" "${BIN_PATH}"
+    chmod +x "${BIN_PATH}"
+
+    cleanup
+    trap - EXIT
+  fi
+
+  cmd="${BIN_PATH}"
 fi
 
 echo "env DENO_TLS_CA_STORE=system ${cmd}"
