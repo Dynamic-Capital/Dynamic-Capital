@@ -5,6 +5,8 @@ Dynamic Capital's AGI stack needs to evaluate expansive strategy spaces while re
 
 > 📎 **Tooling Reference:** For SDKs, simulators, and control-plane platforms that complement this architecture, see the [Quantum Toolchain Integration Guide](./quantum-toolchain.md).
 >
+> 🧭 **Selection Matrix:** Start with the guide's [Category Overview](./quantum-toolchain.md#category-overview) to pair workloads with the right SDK, infrastructure platform, or simulator before entering solution design.
+>
 > 🔁 **Adoption Playbook:** Use the guide's [Step-by-Step Integration Playbook](./quantum-toolchain.md#step-by-step-integration-playbook) to sequence governance, sandbox validation, and production rollout tasks for each new vendor adapter.
 
 **Objectives**

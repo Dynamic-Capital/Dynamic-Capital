@@ -8,7 +8,7 @@ Artificial General Intelligence (AGI) stands as the frontier of artificial intel
 
 This comprehensive report explores the state-of-the-art and emerging research in quantum-native methods for training Dynamic AGI systems, with a systematic focus on evolving such systems toward AGS. The report is structured into several major sections: Quantum Equations, Quantum Mechanics Principles, Quantum Series and Sequences, Quantum Machine Learning Models, and AGI-to-AGS Training Architectures. Each section interrogates foundational theories, concrete models, and cutting-edge practices, drawing upon a wealth of recent peer-reviewed sources, technical reports, industry announcements, and quantum AI benchmark studies.
 
-For a catalogue of SDKs, simulators, and operating environments that can operationalize the approaches described here, consult the [Quantum Toolchain Integration Guide](./quantum-toolchain.md) and its [Step-by-Step Integration Playbook](./quantum-toolchain.md#step-by-step-integration-playbook) to stage experiments, operator training, and production rollout.
+For a catalogue of SDKs, simulators, and operating environments that can operationalize the approaches described here, consult the [Quantum Toolchain Integration Guide](./quantum-toolchain.md), review its [Category Overview](./quantum-toolchain.md#category-overview) to align lesson plans with the right platforms, and follow the [Step-by-Step Integration Playbook](./quantum-toolchain.md#step-by-step-integration-playbook) to stage experiments, operator training, and production rollout.
 
 ---
 

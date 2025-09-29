@@ -2,22 +2,28 @@
 
 Dynamic Capital's quantum core relies on a modular control plane that can broker between simulators, hardware providers, and error-mitigation layers. This guide catalogues priority toolchains that complement the architecture described in the [Dynamic AGI Quantum Core Architecture](./dynamic_agi_quantum_core_architecture.md) and the [Quantum-Native Training blueprint](./dynamic-agi-quantum-native-training.md). Each profile summarizes purpose, stewardship, signature capabilities, and concrete integration hooks into the Dynamic Capital runtime.
 
+## Category Overview
+
+- **Programming & SDKs:** [Qiskit](#qiskit), [Cirq](#cirq), [PennyLane](#pennylane), [Microsoft Quantum Development Kit](#microsoft-quantum-development-kit-qdk), [ProjectQ](#projectq), and [QuTiP](#qutip) provide developer-facing libraries, languages, and simulators for circuit design and hybrid workloads.
+- **Quantum Hardware & Infrastructure:** [OQTOPUS](#oqtopus-open-quantum-toolchain-for-operators-and-users), [Open Quantum Design](#open-quantum-design-oqd), and [Quantify](#quantify) extend Dynamic Capital's control-plane reach into orchestration, governance partnerships, and laboratory execution stacks.
+- **Simulators & Error Mitigation Toolkits:** [Intel Quantum Simulator](#intel-quantum-simulator-iqs), [Mitiq](#mitiq), and [Quantum Inspire](#quantum-inspire) reinforce testing, resilience, and training through scalable simulators, mitigation pipelines, and accessible hardware sandboxes.
+
 ## Quick Comparison
 
-| Toolchain | Primary Maintainer(s) | Access Model | Dynamic Capital Fit |
-| --- | --- | --- | --- |
-| Qiskit | IBM Quantum | Open-source SDK + IBM backends | Vendor adaptor for circuit transpilation, calibration ingestion |
-| Cirq | Google Quantum AI | Open-source SDK | Noise modelling for NISQ experiments, reinforcement loop prototyping |
-| PennyLane | Xanadu | Open-source SDK + hardware plugins | Hybrid differentiable programming across simulators and photonic hardware |
-| Microsoft Quantum Development Kit (QDK) | Microsoft | Open-source SDK, Q# language, Azure Quantum access | Formal verification, resource estimation, Azure-hosted QPU federation |
-| ProjectQ | ETH Zurich spin-out | Open-source compiler stack | Hardware-agnostic transpiler for bespoke error-mitigation routines |
-| QuTiP | QuTiP Community | Open-source simulation suite | Open quantum system modelling for decoherence watchdogs |
-| OQTOPUS | Fujitsu-led consortium | Open-source quantum OS | Control-plane orchestration for hybrid cloud deployments |
-| Open Quantum Design (OQD) | Open Quantum Design Foundation | Open hardware initiative | Trapped-ion roadmap, governance partnership for vendor diversification |
-| Quantify | Qblox & Orange Quantum Systems | Open-source experiment framework | Pulse-level experiment scheduler for calibration feedback |
-| Intel Quantum Simulator (IQS) | Intel | Open-source HPC simulator | Large-scale circuit rehearsal and regression harness backbone |
-| Mitiq | Unitary Fund | Open-source error mitigation toolkit | Plug-in layer for zero-noise extrapolation and probabilistic error cancellation |
-| Quantum Inspire | QuTech | Cloud platform (free tier + premium) | Accessible dual-backend environment for operator training |
+| Toolchain | Category | Primary Maintainer(s) | Access Model | Dynamic Capital Fit |
+| --- | --- | --- | --- | --- |
+| Qiskit | Programming & SDKs | IBM Quantum | Open-source SDK + IBM backends | Vendor adaptor for circuit transpilation, calibration ingestion |
+| Cirq | Programming & SDKs | Google Quantum AI | Open-source SDK | Noise modelling for NISQ experiments, reinforcement loop prototyping |
+| PennyLane | Programming & SDKs | Xanadu | Open-source SDK + hardware plugins | Hybrid differentiable programming across simulators and photonic hardware |
+| Microsoft Quantum Development Kit (QDK) | Programming & SDKs | Microsoft | Open-source SDK, Q# language, Azure Quantum access | Formal verification, resource estimation, Azure-hosted QPU federation |
+| ProjectQ | Programming & SDKs | ETH Zurich spin-out | Open-source compiler stack | Hardware-agnostic transpiler for bespoke error-mitigation routines |
+| QuTiP | Programming & SDKs | QuTiP Community | Open-source simulation suite | Open quantum system modelling for decoherence watchdogs |
+| OQTOPUS | Quantum Hardware & Infrastructure | Fujitsu-led consortium | Open-source quantum OS | Control-plane orchestration for hybrid cloud deployments |
+| Open Quantum Design (OQD) | Quantum Hardware & Infrastructure | Open Quantum Design Foundation | Open hardware initiative | Trapped-ion roadmap, governance partnership for vendor diversification |
+| Quantify | Quantum Hardware & Infrastructure | Qblox & Orange Quantum Systems | Open-source experiment framework | Pulse-level experiment scheduler for calibration feedback |
+| Intel Quantum Simulator (IQS) | Simulators & Toolkits | Intel | Open-source HPC simulator | Large-scale circuit rehearsal and regression harness backbone |
+| Mitiq | Simulators & Toolkits | Unitary Fund | Open-source error mitigation toolkit | Plug-in layer for zero-noise extrapolation and probabilistic error cancellation |
+| Quantum Inspire | Simulators & Toolkits | QuTech | Cloud platform (free tier + premium) | Accessible dual-backend environment for operator training |
 
 ## Step-by-Step Integration Playbook
 
@@ -56,7 +62,7 @@ Dynamic Capital's quantum core relies on a modular control plane that can broker
 ### Qiskit
 - **Purpose:** End-to-end SDK for composing, transpiling, and executing quantum circuits across IBM simulators and superconducting hardware.
 - **Stewardship:** IBM Quantum open-source team.
-- **Key Capabilities:** Pulse-level control (Qiskit Pulse), runtime primitives, alignment with IBM backend calibration data, integrated noise models.
+- **Key Capabilities:** Pulse-level control (Qiskit Pulse), application modules for chemistry, machine learning, and optimization, runtime primitives aligned with backend calibration data, integrated noise models.
 - **Dynamic Capital Integration:**
   - Bridge the **Quantum Resource Broker** with Qiskit Runtime to dynamically select IBM backends based on queue depth and calibration snapshots.
   - Import backend properties into the **Decoherence Watchtower** for drift prediction.
@@ -92,7 +98,7 @@ Dynamic Capital's quantum core relies on a modular control plane that can broker
 ### Microsoft Quantum Development Kit (QDK)
 - **Purpose:** Provides the Q# language, resource estimators, and Azure Quantum access for scalable program synthesis.
 - **Stewardship:** Microsoft Quantum.
-- **Key Capabilities:** High-level libraries (chemistry, numerics, ML), formal verification tooling, cloud-hosted simulators, target profiles for multiple hardware partners.
+- **Key Capabilities:** High-level libraries (chemistry, numerics, ML), integration bridges for C# and Python host applications, formal verification tooling, cloud-hosted simulators, target profiles for multiple hardware partners.
 - **Dynamic Capital Integration:**
   - Use Q# resource estimation to pre-screen workloads before entering the **Hybrid Control Plane** queue.
   - Incorporate Azure Quantum providers into the **Quantum Resource Broker** for multi-vendor redundancy.
