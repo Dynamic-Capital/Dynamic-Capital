@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+date: Mon, 29 Sep 2025 18:44:29 GMT
+server: envoy
+
+HTTP/1.1 301 Moved Permanently
+content-length: 0
+location: https://onedrive.live.com/redir?cid=2ff0428a2f57c7a4&resid=2FF0428A2F57C7A4!sba30eef2b4934f54a514ba388596be2a&ithint=folder&migratedtospo=true&redeem=aHR0cHM6Ly8xZHJ2Lm1zL2YvYy8yZmYwNDI4YTJmNTdjN2E0L0V2THVNTHFUdEZSUHBSUzZPSVdXdmlvQmNGQUpkREFYSFpxTjhiWXkzSlV5eWc
+x-msnserver: PH2PPF270222439
+strict-transport-security: max-age=31536000; includeSubDomains
+ms-cv: S1utv56WnEWJxxS4Ch5nUQ.0
+x-asmversion: UNKNOWN; 19.1770.916.1003
+x-cache: CONFIG_NOCACHE
+x-msedge-ref: Ref A: 5CC59E90D6924EB18011E4F6FDB5B029 Ref B: DM2AA1091212047 Ref C: 2025-09-29T18:44:29Z
+date: Mon, 29 Sep 2025 18:44:29 GMT
+x-envoy-upstream-service-time: 78
+server: envoy
