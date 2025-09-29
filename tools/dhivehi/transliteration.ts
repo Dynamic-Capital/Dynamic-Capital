@@ -154,26 +154,54 @@ for (
   }
 }
 
+const ORDERED_REVERSE_SEQUENCES = Array.from(REVERSE_RULES.keys())
+  .map((sequence) => ({
+    sequence,
+    length: Array.from(sequence).length,
+  }))
+  .sort((a, b) => b.length - a.length);
+
 export function transliterateThaanaToLatin(
   input: string,
   options: ReverseTransliterationOptions = {},
 ): string {
   const { preserveUnknown = true } = options;
   let output = "";
+  const thaanaChars = Array.from(input);
+  let cursor = 0;
 
-  for (const char of input) {
-    const latin = REVERSE_RULES.get(char);
+  while (cursor < thaanaChars.length) {
+    let matched = false;
 
-    if (latin) {
-      output += latin;
+    for (const { sequence, length } of ORDERED_REVERSE_SEQUENCES) {
+      if (cursor + length > thaanaChars.length) {
+        continue;
+      }
+
+      const candidate = thaanaChars.slice(cursor, cursor + length).join("");
+
+      if (candidate === sequence) {
+        const latin = REVERSE_RULES.get(sequence);
+
+        if (latin) {
+          output += latin;
+        }
+
+        cursor += length;
+        matched = true;
+        break;
+      }
+    }
+
+    if (matched) {
       continue;
     }
 
-    if (!preserveUnknown) {
-      continue;
+    if (preserveUnknown) {
+      output += thaanaChars[cursor];
     }
 
-    output += char;
+    cursor += 1;
   }
 
   return output;
