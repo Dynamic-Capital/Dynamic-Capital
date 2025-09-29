@@ -1,0 +1,585 @@
+{
+  "history": 12,
+  "decay": 0.12,
+  "nodes": [
+    {
+      "key": "science_space",
+      "title": "Science & Space Systems",
+      "description": "Telemetry, simulation, and constraint governance for astronomy and mission modules.",
+      "weight": 1.28,
+      "minimum_maturity": 0.52,
+      "target_maturity": 0.86,
+      "practices": [
+        "telemetry_pipeline",
+        "physics_simulators",
+        "symbolic_constraints"
+      ]
+    },
+    {
+      "key": "business_operations",
+      "title": "Business & Operations Intelligence",
+      "description": "Financial, compliance, and collaboration analytics for operational services.",
+      "weight": 1.24,
+      "minimum_maturity": 0.5,
+      "target_maturity": 0.84,
+      "practices": [
+        "financial_feeds",
+        "compliance_rules",
+        "collaboration_analytics"
+      ],
+      "dependencies": ["science_space"]
+    },
+    {
+      "key": "human_creative",
+      "title": "Human & Creative Enablement",
+      "description": "Mentorship agents, skill ontologies, and ethical checkpoints for wisdom-driven outputs.",
+      "weight": 1.18,
+      "minimum_maturity": 0.48,
+      "target_maturity": 0.82,
+      "practices": [
+        "mentorship_agents",
+        "skill_ontologies",
+        "ethical_checkpoints"
+      ],
+      "dependencies": ["business_operations"]
+    },
+    {
+      "key": "security_governance",
+      "title": "Security & Governance Assurance",
+      "description": "Key rotation, validator incentives, and automated policy verification.",
+      "weight": 1.26,
+      "minimum_maturity": 0.55,
+      "target_maturity": 0.88,
+      "practices": [
+        "key_rotation",
+        "incentive_stress_tests",
+        "policy_verification"
+      ],
+      "dependencies": ["business_operations"]
+    },
+    {
+      "key": "finance_markets",
+      "title": "Finance & Markets Intelligence",
+      "description": "Real-time data, indicator calibration, and pricing heuristics for trading modules.",
+      "weight": 1.22,
+      "minimum_maturity": 0.5,
+      "target_maturity": 0.85,
+      "practices": [
+        "market_streams",
+        "indicator_tests",
+        "pricing_heuristics"
+      ],
+      "dependencies": ["security_governance"]
+    },
+    {
+      "key": "knowledge_communication",
+      "title": "Knowledge & Communication Trust",
+      "description": "Glossary curation, provenance tracking, and factuality enforcement.",
+      "weight": 1.16,
+      "minimum_maturity": 0.47,
+      "target_maturity": 0.8,
+      "practices": [
+        "glossary_governance",
+        "provenance_tracking",
+        "factuality_checks"
+      ],
+      "dependencies": ["human_creative"]
+    },
+    {
+      "key": "process_workflow",
+      "title": "Process & Workflow Optimization",
+      "description": "Meta-learning policies, adaptive playbooks, and RL scheduling for operations.",
+      "weight": 1.2,
+      "minimum_maturity": 0.5,
+      "target_maturity": 0.83,
+      "practices": [
+        "meta_learning_policies",
+        "adaptive_playbooks",
+        "rl_scheduling"
+      ],
+      "dependencies": ["knowledge_communication", "finance_markets"]
+    },
+    {
+      "key": "natural_sustainability",
+      "title": "Natural Systems & Sustainability",
+      "description": "Grid telemetry, CV recycling pilots, and biosafety monitoring for bio-energy modules.",
+      "weight": 1.21,
+      "minimum_maturity": 0.49,
+      "target_maturity": 0.84,
+      "practices": [
+        "grid_telemetry",
+        "cv_recycling",
+        "biosafety_monitoring"
+      ],
+      "dependencies": ["process_workflow"]
+    },
+    {
+      "key": "conceptual_experimental",
+      "title": "Conceptual & Experimental Research",
+      "description": "Causality datasets, geometric learning, and philosophical stress tests.",
+      "weight": 1.19,
+      "minimum_maturity": 0.48,
+      "target_maturity": 0.83,
+      "practices": [
+        "causality_datasets",
+        "geometric_models",
+        "philosophical_stress_tests"
+      ],
+      "dependencies": ["natural_sustainability", "process_workflow"]
+    }
+  ],
+  "objectives": [
+    {
+      "domain": "Science & Space",
+      "status": "complete",
+      "owner": "science_space",
+      "items": [
+        {
+          "key": "shared_telemetry_pipeline",
+          "title": "Shared telemetry pipeline online",
+          "status": "complete",
+          "evidence_pulse": "2024-04-10T09:00:00Z",
+          "notes": "Astronomy, atomic, and mission feeds normalized into unified buffers with drift monitoring."
+        },
+        {
+          "key": "physics_informed_simulators",
+          "title": "Physics-informed simulators integrated",
+          "status": "complete",
+          "evidence_pulse": "2024-04-10T09:00:00Z",
+          "notes": "Orbital and atomic simulators co-simulate within scheduling lattice, validated against rehearsal data."
+        },
+        {
+          "key": "symbolic_constraints_validated",
+          "title": "Symbolic constraint libraries validated",
+          "status": "complete",
+          "evidence_pulse": "2024-04-10T09:00:00Z",
+          "notes": "Constraint suites for astronomy, atomic, and mission-planning modules pass regression harness."
+        }
+      ]
+    },
+    {
+      "domain": "Business & Operations",
+      "status": "complete",
+      "owner": "business_operations",
+      "items": [
+        {
+          "key": "financial_compliance_feeds",
+          "title": "Financial and compliance feeds wired",
+          "status": "complete",
+          "evidence_pulse": "2024-04-09T09:00:00Z",
+          "notes": "General ledger synchronizes regulatory sources with anomaly hooks raising alerts."
+        },
+        {
+          "key": "collaboration_analytics",
+          "title": "Collaboration analytics launched",
+          "status": "complete",
+          "evidence_pulse": "2024-04-09T09:00:00Z",
+          "notes": "Team intelligence dashboards reveal sentiment and mitigation patterns."
+        },
+        {
+          "key": "anomaly_escalations",
+          "title": "Automated anomaly escalations activated",
+          "status": "complete",
+          "evidence_pulse": "2024-04-09T09:00:00Z",
+          "notes": "Escalation logic aligned with regulatory guardrails routes issues to compliance leads."
+        }
+      ]
+    },
+    {
+      "domain": "Human & Creative",
+      "status": "complete",
+      "owner": "human_creative",
+      "items": [
+        {
+          "key": "mentorship_agents",
+          "title": "Adaptive mentorship agents shipped",
+          "status": "complete",
+          "evidence_pulse": "2024-04-08T09:00:00Z",
+          "notes": "Cohort mentors use contextual prompts and reflection loops."
+        },
+        {
+          "key": "skill_ontology_linked",
+          "title": "Skill ontologies connected to upskilling",
+          "status": "complete",
+          "evidence_pulse": "2024-04-08T09:00:00Z",
+          "notes": "Graph links assessments to learning pathways with readiness scoring."
+        },
+        {
+          "key": "ethical_checkpoints",
+          "title": "Ethical checkpoints enforced",
+          "status": "complete",
+          "evidence_pulse": "2024-04-08T09:00:00Z",
+          "notes": "Wisdom reasoning blocked without documented ethical compliance."
+        }
+      ]
+    },
+    {
+      "domain": "Security & Governance",
+      "status": "complete",
+      "owner": "security_governance",
+      "items": [
+        {
+          "key": "key_rotation",
+          "title": "Keys and telemetry rotated",
+          "status": "complete",
+          "evidence_pulse": "2024-04-07T09:00:00Z",
+          "notes": "Rotation cadence verified with proof artifacts stored in audit stream."
+        },
+        {
+          "key": "pos_stress_tests",
+          "title": "Proof-of-stake incentives stress-tested",
+          "status": "complete",
+          "evidence_pulse": "2024-04-07T09:00:00Z",
+          "notes": "Adversarial simulations confirm validator payouts remain in equilibrium."
+        },
+        {
+          "key": "policy_verification",
+          "title": "Policy verification automated",
+          "status": "complete",
+          "evidence_pulse": "2024-04-07T09:00:00Z",
+          "notes": "Validators auto-run compliance templates across transaction types."
+        }
+      ]
+    },
+    {
+      "domain": "Finance & Markets",
+      "status": "complete",
+      "owner": "finance_markets",
+      "items": [
+        {
+          "key": "market_data_streamed",
+          "title": "Real-time market data streaming",
+          "status": "complete",
+          "evidence_pulse": "2024-04-06T09:00:00Z",
+          "notes": "Multi-venue OHLC data feeding candle analytics store."
+        },
+        {
+          "key": "indicators_recalibrated",
+          "title": "Indicators recalibrated with historical tests",
+          "status": "complete",
+          "evidence_pulse": "2024-04-06T09:00:00Z",
+          "notes": "Backtests rerun over ten-year corpora to tune thresholds."
+        },
+        {
+          "key": "pricing_heuristics_tuned",
+          "title": "Quote pricing heuristics tuned",
+          "status": "complete",
+          "evidence_pulse": "2024-04-06T09:00:00Z",
+          "notes": "Contract and risk signals reshape quoting multi-factor model."
+        }
+      ]
+    },
+    {
+      "domain": "Knowledge & Communication",
+      "status": "complete",
+      "owner": "knowledge_communication",
+      "items": [
+        {
+          "key": "glossary_curated",
+          "title": "Evolving glossaries curated",
+          "status": "complete",
+          "evidence_pulse": "2024-04-05T09:00:00Z",
+          "notes": "Term stewardship playbooks operational with drift alerts."
+        },
+        {
+          "key": "provenance_tracking",
+          "title": "Provenance tracking attached to references",
+          "status": "complete",
+          "evidence_pulse": "2024-04-05T09:00:00Z",
+          "notes": "Knowledge graph connectors embed citation lineage and metadata."
+        },
+        {
+          "key": "factuality_readability",
+          "title": "Factuality and readability checks enforced",
+          "status": "complete",
+          "evidence_pulse": "2024-04-05T09:00:00Z",
+          "notes": "Text generation pipeline rejects outputs without high factual + clarity scores."
+        }
+      ]
+    },
+    {
+      "domain": "Process & Workflow",
+      "status": "complete",
+      "owner": "process_workflow",
+      "items": [
+        {
+          "key": "meta_learning_policies",
+          "title": "Meta-learning policy libraries active",
+          "status": "complete",
+          "evidence_pulse": "2024-04-04T09:00:00Z",
+          "notes": "Policy selection API surfaces best-fit methods per objective."
+        },
+        {
+          "key": "adaptive_playbooks",
+          "title": "Adaptive incident playbooks authored",
+          "status": "complete",
+          "evidence_pulse": "2024-04-04T09:00:00Z",
+          "notes": "Incident templates include dynamic branching and rollback triggers."
+        },
+        {
+          "key": "rl_experiments_scheduled",
+          "title": "RL experiments scheduled for routines",
+          "status": "complete",
+          "evidence_pulse": "2024-04-04T09:00:00Z",
+          "notes": "Experiment calendar reserves compute and evaluation slots."
+        }
+      ]
+    },
+    {
+      "domain": "Natural Systems & Sustainability",
+      "status": "complete",
+      "owner": "natural_sustainability",
+      "items": [
+        {
+          "key": "grid_telemetry",
+          "title": "Grid telemetry integrated",
+          "status": "complete",
+          "evidence_pulse": "2024-04-03T09:00:00Z",
+          "notes": "Demand-response signals loop into optimisation routines."
+        },
+        {
+          "key": "recycling_pilots",
+          "title": "CV-assisted recycling pilots deployed",
+          "status": "complete",
+          "evidence_pulse": "2024-04-03T09:00:00Z",
+          "notes": "Sorting models measure contamination rate and feedback to RL agents."
+        },
+        {
+          "key": "biosafety_monitoring",
+          "title": "Biosafety monitoring defined",
+          "status": "complete",
+          "evidence_pulse": "2024-04-03T09:00:00Z",
+          "notes": "Stem-cell workflows include biosafety telemetry and guardrail reviews."
+        }
+      ]
+    },
+    {
+      "domain": "Conceptual & Experimental",
+      "status": "complete",
+      "owner": "conceptual_experimental",
+      "items": [
+        {
+          "key": "causality_datasets",
+          "title": "Causality datasets formalized",
+          "status": "complete",
+          "evidence_pulse": "2024-04-02T09:00:00Z",
+          "notes": "Dataset splits curated for counterfactual benchmarking."
+        },
+        {
+          "key": "geometric_models",
+          "title": "Geometric deep learning models trained",
+          "status": "complete",
+          "evidence_pulse": "2024-04-02T09:00:00Z",
+          "notes": "Multimodal corpora produce embeddings for experimental reasoning."
+        },
+        {
+          "key": "philosophical_stress_tests",
+          "title": "Philosophical stress tests executed",
+          "status": "complete",
+          "evidence_pulse": "2024-04-02T09:00:00Z",
+          "notes": "Ultimate-reality synthesis validated against pluralistic value scenarios."
+        }
+      ]
+    }
+  ],
+  "pulses": [
+    {
+      "node": "science_space",
+      "maturity": 0.82,
+      "confidence": 0.79,
+      "enablement": 0.78,
+      "resilience": 0.75,
+      "momentum": 0.26,
+      "timestamp": "2024-04-10T09:00:00Z",
+      "tags": ["astronomy", "atom", "mission_planning"],
+      "narrative": "Unified telemetry fabric streaming observatory, atomic lab, and mission control feeds into shared buffers; simulators backtest orbital trajectories with symbolic constraints passing regression suites."
+    },
+    {
+      "node": "science_space",
+      "maturity": 0.74,
+      "confidence": 0.7,
+      "enablement": 0.69,
+      "resilience": 0.68,
+      "momentum": 0.18,
+      "timestamp": "2024-03-25T09:00:00Z",
+      "tags": ["telemetry", "simulator"],
+      "narrative": "Telemetry adapters stitched across astronomy, atomic, and mission planners; simulator coupling validated against launch rehearsal datasets."
+    },
+    {
+      "node": "business_operations",
+      "maturity": 0.78,
+      "confidence": 0.75,
+      "enablement": 0.73,
+      "resilience": 0.7,
+      "momentum": 0.21,
+      "timestamp": "2024-04-09T09:00:00Z",
+      "tags": ["accounting", "forecast", "compliance"],
+      "narrative": "Financial and compliance feeds mapped into accounting GL and forecasting models; collaboration analytics dashboards highlight sentiment and regulatory escalations auto-filed."
+    },
+    {
+      "node": "business_operations",
+      "maturity": 0.7,
+      "confidence": 0.66,
+      "enablement": 0.65,
+      "resilience": 0.64,
+      "momentum": 0.16,
+      "timestamp": "2024-03-23T09:00:00Z",
+      "tags": ["team_intelligence", "anomaly_escalation"],
+      "narrative": "Initial compliance ingestion stood up with anomaly webhooks; collaboration analytics alpha surfaced cross-team blockers."
+    },
+    {
+      "node": "human_creative",
+      "maturity": 0.75,
+      "confidence": 0.72,
+      "enablement": 0.71,
+      "resilience": 0.69,
+      "momentum": 0.24,
+      "timestamp": "2024-04-08T09:00:00Z",
+      "tags": ["mentorship", "skills", "ethics"],
+      "narrative": "Adaptive mentorship agents live with contextual playbooks; skill ontology graph linked to personalised upskilling; ethical checkpoints gating wisdom outputs."
+    },
+    {
+      "node": "human_creative",
+      "maturity": 0.66,
+      "confidence": 0.63,
+      "enablement": 0.62,
+      "resilience": 0.6,
+      "momentum": 0.17,
+      "timestamp": "2024-03-21T09:00:00Z",
+      "tags": ["mentorship_pilots"],
+      "narrative": "Mentorship agent pilots launched across cohorts with skill ontology ingestion underway and ethics reviewers defining guardrails."
+    },
+    {
+      "node": "security_governance",
+      "maturity": 0.8,
+      "confidence": 0.77,
+      "enablement": 0.74,
+      "resilience": 0.76,
+      "momentum": 0.23,
+      "timestamp": "2024-04-07T09:00:00Z",
+      "tags": ["encryption", "validator", "pos"],
+      "narrative": "Encryption keys rotated with telemetry proof; proof-of-stake stress simulations show incentives stable under attacks; validator policy automation closing audit gaps."
+    },
+    {
+      "node": "security_governance",
+      "maturity": 0.71,
+      "confidence": 0.68,
+      "enablement": 0.66,
+      "resilience": 0.67,
+      "momentum": 0.15,
+      "timestamp": "2024-03-19T09:00:00Z",
+      "tags": ["key_rotation", "policy_checks"],
+      "narrative": "Telemetry coverage added to key rotation workflows; validator simulations instrumented for baseline attack vectors."
+    },
+    {
+      "node": "finance_markets",
+      "maturity": 0.79,
+      "confidence": 0.74,
+      "enablement": 0.72,
+      "resilience": 0.71,
+      "momentum": 0.22,
+      "timestamp": "2024-04-06T09:00:00Z",
+      "tags": ["candles", "indicators", "pricing"],
+      "narrative": "Realtime market streams flowing into candles store; indicators recalibrated on historical replay; pricing heuristics tuned against contract risk signals."
+    },
+    {
+      "node": "finance_markets",
+      "maturity": 0.69,
+      "confidence": 0.65,
+      "enablement": 0.63,
+      "resilience": 0.62,
+      "momentum": 0.14,
+      "timestamp": "2024-03-18T09:00:00Z",
+      "tags": ["market_data"],
+      "narrative": "Market data ingestion running in staging with indicator calibration experiments queued."
+    },
+    {
+      "node": "knowledge_communication",
+      "maturity": 0.73,
+      "confidence": 0.7,
+      "enablement": 0.69,
+      "resilience": 0.67,
+      "momentum": 0.19,
+      "timestamp": "2024-04-05T09:00:00Z",
+      "tags": ["glossary", "reference", "factuality"],
+      "narrative": "Glossary governance loop auto-detects term drift; references now carry provenance IDs; text generation pipeline enforces factuality and readability scores."
+    },
+    {
+      "node": "knowledge_communication",
+      "maturity": 0.64,
+      "confidence": 0.61,
+      "enablement": 0.6,
+      "resilience": 0.59,
+      "momentum": 0.13,
+      "timestamp": "2024-03-17T09:00:00Z",
+      "tags": ["glossary_seed"],
+      "narrative": "Initial glossary curation established with provenance hooks prototyped for reference services."
+    },
+    {
+      "node": "process_workflow",
+      "maturity": 0.77,
+      "confidence": 0.73,
+      "enablement": 0.72,
+      "resilience": 0.7,
+      "momentum": 0.2,
+      "timestamp": "2024-04-04T09:00:00Z",
+      "tags": ["meta_learning", "playbooks", "rl"],
+      "narrative": "Meta-learning policy library powering method selection; adaptive incident playbooks authored with branching tests; RL experiment scheduler optimising routine throughput."
+    },
+    {
+      "node": "process_workflow",
+      "maturity": 0.68,
+      "confidence": 0.64,
+      "enablement": 0.63,
+      "resilience": 0.61,
+      "momentum": 0.12,
+      "timestamp": "2024-03-16T09:00:00Z",
+      "tags": ["method_selection"],
+      "narrative": "Policy repository seeded with baseline heuristics; playbook authoring backlog prioritized."
+    },
+    {
+      "node": "natural_sustainability",
+      "maturity": 0.76,
+      "confidence": 0.72,
+      "enablement": 0.71,
+      "resilience": 0.72,
+      "momentum": 0.21,
+      "timestamp": "2024-04-03T09:00:00Z",
+      "tags": ["energy", "recycling", "biosafety"],
+      "narrative": "Grid telemetry integrated into optimisation loops; CV-assisted recycling pilots producing contamination metrics; stem-cell workflows monitored with biosafety alerts."
+    },
+    {
+      "node": "natural_sustainability",
+      "maturity": 0.67,
+      "confidence": 0.63,
+      "enablement": 0.62,
+      "resilience": 0.61,
+      "momentum": 0.13,
+      "timestamp": "2024-03-15T09:00:00Z",
+      "tags": ["grid_feeds"],
+      "narrative": "Grid telemetry ingestion staged; recycling computer vision pipeline calibrated on pilot datasets."
+    },
+    {
+      "node": "conceptual_experimental",
+      "maturity": 0.74,
+      "confidence": 0.71,
+      "enablement": 0.69,
+      "resilience": 0.68,
+      "momentum": 0.18,
+      "timestamp": "2024-04-02T09:00:00Z",
+      "tags": ["causality", "geometric", "philosophy"],
+      "narrative": "Causality datasets formalised with benchmark splits; geometric deep learning models trained on multimodal corpora; philosophical stress tests exercised across value synthesis stack."
+    },
+    {
+      "node": "conceptual_experimental",
+      "maturity": 0.64,
+      "confidence": 0.6,
+      "enablement": 0.59,
+      "resilience": 0.58,
+      "momentum": 0.11,
+      "timestamp": "2024-03-14T09:00:00Z",
+      "tags": ["causality_prototype"],
+      "narrative": "Initial causality dataset scaffolding published; geometric model training pipeline provisioned."
+    }
+  ]
+}
