@@ -17,7 +17,10 @@ import {
 } from "@/components/dynamic-ui-system";
 
 import Providers from "./providers";
-import { getStaticLandingDocument } from "@/lib/staticLanding";
+import {
+  ensureStaticSnapshotVisibilityMarkup,
+  getStaticLandingDocument,
+} from "@/lib/staticLanding";
 import { RouteGuard, ScrollToHash } from "@/components/dynamic-portfolio";
 import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { SiteFooter } from "@/components/navigation/SiteFooter";
@@ -236,6 +239,10 @@ export default async function RootLayout(
   if (isStaticSnapshot) {
     try {
       const { head, body, lang } = await getStaticLandingDocument();
+      const staticHeadMarkup = ensureStaticSnapshotVisibilityMarkup(
+        ensureThemeAssets(head),
+      );
+
       return (
         <html
           lang={lang}
@@ -244,8 +251,9 @@ export default async function RootLayout(
           {...htmlAttributeDefaults}
           data-theme={DEFAULT_THEME}
         >
-          <head dangerouslySetInnerHTML={{ __html: ensureThemeAssets(head) }} />
+          <head dangerouslySetInnerHTML={{ __html: staticHeadMarkup }} />
           <body
+            data-static-snapshot="true"
             suppressHydrationWarning
             dangerouslySetInnerHTML={{ __html: body }}
           />
@@ -253,7 +261,7 @@ export default async function RootLayout(
       );
     } catch (error) {
       console.error(
-        'Failed to load static landing snapshot markup. Falling back to dynamic layout rendering.',
+        "Failed to load static landing snapshot markup. Falling back to dynamic layout rendering.",
         error,
       );
     }
