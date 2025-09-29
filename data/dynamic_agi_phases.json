@@ -1,0 +1,327 @@
+{
+  "history": 10,
+  "decay": 0.15,
+  "nodes": [
+    {
+      "key": "phase1",
+      "title": "Strategic Visioning",
+      "description": "Align on the Dynamic App launch north star and shared OKRs.",
+      "weight": 1.3,
+      "minimum_maturity": 0.45,
+      "target_maturity": 0.85,
+      "practices": ["vision_brief", "okr_alignment", "stakeholder_intake"]
+    },
+    {
+      "key": "phase2",
+      "title": "Comprehensive Decomposition",
+      "description": "Expand the vision into backlog, dependencies, and risk plans.",
+      "weight": 1.25,
+      "minimum_maturity": 0.4,
+      "target_maturity": 0.8,
+      "dependencies": ["phase1"],
+      "practices": ["work_breakdown", "dependency_graph", "raid_log"]
+    },
+    {
+      "key": "phase3",
+      "title": "Dynamic Agent Assignment",
+      "description": "Map work packages to agents with onboarding packets.",
+      "weight": 1.2,
+      "minimum_maturity": 0.42,
+      "target_maturity": 0.82,
+      "dependencies": ["phase2"],
+      "practices": ["talent_graph", "capacity_planning", "communication_matrix"]
+    },
+    {
+      "key": "phase4",
+      "title": "Parallel Execution & Collaboration",
+      "description": "Run synchronized workstreams across product, marketing, and legal.",
+      "weight": 1.35,
+      "minimum_maturity": 0.5,
+      "target_maturity": 0.88,
+      "dependencies": ["phase3"],
+      "practices": ["shared_workspaces", "automated_standups", "blocker_tracking"]
+    },
+    {
+      "key": "phase5",
+      "title": "Continuous Monitoring & Feedback",
+      "description": "Maintain observability on telemetry, sentiment, and compliance signals.",
+      "weight": 1.15,
+      "minimum_maturity": 0.48,
+      "target_maturity": 0.83,
+      "dependencies": ["phase4"],
+      "practices": ["telemetry_dashboards", "alert_thresholds", "sentiment_digests"]
+    },
+    {
+      "key": "phase6",
+      "title": "Adaptive Redirection & Optimization",
+      "description": "Reallocate resources and mitigation orders as conditions shift.",
+      "weight": 1.1,
+      "minimum_maturity": 0.46,
+      "target_maturity": 0.84,
+      "dependencies": ["phase5"],
+      "practices": ["scenario_modeling", "capacity_reallocation", "mitigation_playbooks"]
+    },
+    {
+      "key": "phase7",
+      "title": "Post-Launch Performance Analysis",
+      "description": "Quantify launch impact and surface anomalies requiring action.",
+      "weight": 1.05,
+      "minimum_maturity": 0.5,
+      "target_maturity": 0.8,
+      "dependencies": ["phase6"],
+      "practices": ["kpi_scorecard", "roi_analysis", "anomaly_detection"]
+    },
+    {
+      "key": "phase8",
+      "title": "Iterative Improvement & Strategic Learning",
+      "description": "Convert findings into prioritized enhancements and experiments.",
+      "weight": 1.18,
+      "minimum_maturity": 0.47,
+      "target_maturity": 0.86,
+      "dependencies": ["phase7"],
+      "practices": ["feedback_pipeline", "experiment_ledger", "roadmap_refresh"]
+    },
+    {
+      "key": "phase9",
+      "title": "Sustained Engagement & Growth",
+      "description": "Extend momentum with lifecycle programs and community activation.",
+      "weight": 1.12,
+      "minimum_maturity": 0.44,
+      "target_maturity": 0.82,
+      "dependencies": ["phase8"],
+      "practices": ["lifecycle_campaigns", "referral_automation", "community_programs"]
+    },
+    {
+      "key": "phase10",
+      "title": "Retrospective & Knowledge Synthesis",
+      "description": "Codify institutional learning and refresh the playbook.",
+      "weight": 1.08,
+      "minimum_maturity": 0.46,
+      "target_maturity": 0.84,
+      "dependencies": ["phase9"],
+      "practices": ["retrospective_reports", "knowledge_graph", "playbook_updates"]
+    }
+  ],
+  "pulses": [
+    {
+      "node": "phase1",
+      "maturity": 0.78,
+      "confidence": 0.82,
+      "enablement": 0.79,
+      "resilience": 0.72,
+      "momentum": 0.24,
+      "timestamp": "2024-04-08T09:00:00Z",
+      "tags": ["vision", "alignment"],
+      "narrative": "Executive council aligned on north star narrative and OKRs with minor refinements pending."
+    },
+    {
+      "node": "phase1",
+      "maturity": 0.72,
+      "confidence": 0.78,
+      "enablement": 0.73,
+      "resilience": 0.68,
+      "momentum": 0.18,
+      "timestamp": "2024-03-28T09:00:00Z",
+      "tags": ["vision"],
+      "narrative": "Stakeholder intake completed; draft vision brief circulated for feedback."
+    },
+    {
+      "node": "phase2",
+      "maturity": 0.61,
+      "confidence": 0.69,
+      "enablement": 0.63,
+      "resilience": 0.58,
+      "momentum": 0.14,
+      "timestamp": "2024-04-06T09:00:00Z",
+      "tags": ["planning", "risk"],
+      "narrative": "Dependency graph validated; RAID log highlights two critical vendor risks."
+    },
+    {
+      "node": "phase2",
+      "maturity": 0.55,
+      "confidence": 0.64,
+      "enablement": 0.58,
+      "resilience": 0.53,
+      "momentum": 0.09,
+      "timestamp": "2024-03-25T09:00:00Z",
+      "tags": ["planning"],
+      "narrative": "Work breakdown structure drafted with cross-functional owners tagged."
+    },
+    {
+      "node": "phase3",
+      "maturity": 0.58,
+      "confidence": 0.66,
+      "enablement": 0.6,
+      "resilience": 0.55,
+      "momentum": 0.12,
+      "timestamp": "2024-04-05T09:00:00Z",
+      "tags": ["staffing", "enablement"],
+      "narrative": "Roster coverage at 1.05 with onboarding packets in progress for new agents."
+    },
+    {
+      "node": "phase3",
+      "maturity": 0.5,
+      "confidence": 0.62,
+      "enablement": 0.55,
+      "resilience": 0.5,
+      "momentum": 0.07,
+      "timestamp": "2024-03-22T09:00:00Z",
+      "tags": ["staffing"],
+      "narrative": "Talent graph matching initiated; compliance review flagged data residency check."
+    },
+    {
+      "node": "phase4",
+      "maturity": 0.64,
+      "confidence": 0.7,
+      "enablement": 0.62,
+      "resilience": 0.6,
+      "momentum": 0.16,
+      "timestamp": "2024-04-04T09:00:00Z",
+      "tags": ["execution", "collaboration"],
+      "narrative": "Shared workspaces activated; blocker queue shows two pending legal approvals."
+    },
+    {
+      "node": "phase4",
+      "maturity": 0.59,
+      "confidence": 0.66,
+      "enablement": 0.57,
+      "resilience": 0.55,
+      "momentum": 0.1,
+      "timestamp": "2024-03-21T09:00:00Z",
+      "tags": ["execution"],
+      "narrative": "Automated standups configured; marketing assets entering review."
+    },
+    {
+      "node": "phase5",
+      "maturity": 0.57,
+      "confidence": 0.65,
+      "enablement": 0.6,
+      "resilience": 0.58,
+      "momentum": 0.11,
+      "timestamp": "2024-04-03T09:00:00Z",
+      "tags": ["monitoring", "feedback"],
+      "narrative": "Telemetry dashboards online with sentiment digest routing to leadership."
+    },
+    {
+      "node": "phase5",
+      "maturity": 0.52,
+      "confidence": 0.6,
+      "enablement": 0.55,
+      "resilience": 0.53,
+      "momentum": 0.07,
+      "timestamp": "2024-03-19T09:00:00Z",
+      "tags": ["monitoring"],
+      "narrative": "Alert thresholds configured; ETL feeds awaiting compliance approval."
+    },
+    {
+      "node": "phase6",
+      "maturity": 0.49,
+      "confidence": 0.61,
+      "enablement": 0.54,
+      "resilience": 0.52,
+      "momentum": 0.05,
+      "timestamp": "2024-04-02T09:00:00Z",
+      "tags": ["adaptation", "optimization"],
+      "narrative": "Scenario simulations flagging need for extra marketing capacity; mitigation orders drafted."
+    },
+    {
+      "node": "phase6",
+      "maturity": 0.45,
+      "confidence": 0.58,
+      "enablement": 0.5,
+      "resilience": 0.48,
+      "momentum": 0.02,
+      "timestamp": "2024-03-18T09:00:00Z",
+      "tags": ["adaptation"],
+      "narrative": "Escalation protocols documented; awaiting leadership approval for resource flexing."
+    },
+    {
+      "node": "phase7",
+      "maturity": 0.51,
+      "confidence": 0.63,
+      "enablement": 0.56,
+      "resilience": 0.54,
+      "momentum": 0.06,
+      "timestamp": "2024-04-01T09:00:00Z",
+      "tags": ["analysis", "performance"],
+      "narrative": "KPI scorecard template populated; ROI analysis awaiting finance data refresh."
+    },
+    {
+      "node": "phase7",
+      "maturity": 0.47,
+      "confidence": 0.6,
+      "enablement": 0.52,
+      "resilience": 0.5,
+      "momentum": 0.03,
+      "timestamp": "2024-03-17T09:00:00Z",
+      "tags": ["analysis"],
+      "narrative": "Anomaly detection pipeline configured; baseline cohorts defined."
+    },
+    {
+      "node": "phase8",
+      "maturity": 0.54,
+      "confidence": 0.64,
+      "enablement": 0.58,
+      "resilience": 0.56,
+      "momentum": 0.08,
+      "timestamp": "2024-03-31T09:00:00Z",
+      "tags": ["learning", "improvement"],
+      "narrative": "Feedback-to-ticket automation active; experiment ledger ready for new ideas."
+    },
+    {
+      "node": "phase8",
+      "maturity": 0.5,
+      "confidence": 0.6,
+      "enablement": 0.55,
+      "resilience": 0.53,
+      "momentum": 0.05,
+      "timestamp": "2024-03-16T09:00:00Z",
+      "tags": ["learning"],
+      "narrative": "Roadmap refresh cadence aligned with growth team; awaiting backlog grooming."
+    },
+    {
+      "node": "phase9",
+      "maturity": 0.56,
+      "confidence": 0.62,
+      "enablement": 0.57,
+      "resilience": 0.55,
+      "momentum": 0.09,
+      "timestamp": "2024-03-30T09:00:00Z",
+      "tags": ["engagement", "growth"],
+      "narrative": "Lifecycle campaigns sequenced; community programs piloted with ambassadors."
+    },
+    {
+      "node": "phase9",
+      "maturity": 0.51,
+      "confidence": 0.58,
+      "enablement": 0.52,
+      "resilience": 0.5,
+      "momentum": 0.04,
+      "timestamp": "2024-03-15T09:00:00Z",
+      "tags": ["engagement"],
+      "narrative": "Referral automation configured; awaiting CRM data sync for personalization."
+    },
+    {
+      "node": "phase10",
+      "maturity": 0.53,
+      "confidence": 0.6,
+      "enablement": 0.55,
+      "resilience": 0.57,
+      "momentum": 0.07,
+      "timestamp": "2024-03-29T09:00:00Z",
+      "tags": ["retrospective", "knowledge"],
+      "narrative": "Retrospective agenda drafted; knowledge graph schema updated for launch artifacts."
+    },
+    {
+      "node": "phase10",
+      "maturity": 0.48,
+      "confidence": 0.57,
+      "enablement": 0.5,
+      "resilience": 0.53,
+      "momentum": 0.03,
+      "timestamp": "2024-03-14T09:00:00Z",
+      "tags": ["retrospective"],
+      "narrative": "Playbook update backlog created; awaiting ingestion of pilot learnings."
+    }
+  ]
+}
