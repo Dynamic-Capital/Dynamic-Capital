@@ -110,7 +110,12 @@ function resolveCacheBaseDir() {
   return path.resolve(".do-build-cache");
 }
 
-const cacheFilePath = path.join(resolveCacheBaseDir(), cacheFileName);
+const cacheBaseDir = resolveCacheBaseDir();
+const cacheFilePath = path.join(cacheBaseDir, cacheFileName);
+const npmCacheDir = path.join(cacheBaseDir, "npm-cache");
+
+process.env.NPM_CONFIG_CACHE = npmCacheDir;
+process.env.npm_config_cache = npmCacheDir;
 
 async function loadPreviousFingerprint() {
   try {
@@ -169,6 +174,18 @@ function formatBytes(bytes) {
 }
 
 async function main() {
+  try {
+    await mkdir(npmCacheDir, { recursive: true });
+    console.log(
+      `DigitalOcean build: npm cache directory initialised at ${npmCacheDir}.`,
+    );
+  } catch (error) {
+    console.warn(
+      `DigitalOcean build: unable to prepare npm cache directory at ${npmCacheDir}. Continuing without persistent npm cache.`,
+      error,
+    );
+  }
+
   console.log("DigitalOcean build: running `npm run build`…");
   const buildCode = await run(npmCommand, ["run", "build"]);
   if (buildCode !== 0) {

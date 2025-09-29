@@ -90,6 +90,9 @@ spec:
         - key: NEXT_PUBLIC_SITE_URL
           value: https://dynamic-capital-qazf2.ondigitalocean.app
           scope: RUN_AND_BUILD_TIME
+        - key: ALLOWED_ORIGINS
+          value: https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app
+          scope: RUN_AND_BUILD_TIME
         - key: MINIAPP_ORIGIN
           value: https://dynamic-capital-qazf2.ondigitalocean.app
           scope: RUN_AND_BUILD_TIME
