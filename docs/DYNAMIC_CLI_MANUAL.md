@@ -11,6 +11,7 @@
 | 6       | Engine Construction Workflow                    |
 | 7–8     | Report Rendering Formats                        |
 | 9       | JSON Schema Reference                           |
+| 10      | CI/CD Automation Patterns                       |
 | 11–12   | Operational Examples                            |
 | 13–14   | Troubleshooting & Diagnostics                   |
 | 15–16   | Glossary & Synonyms                             |
@@ -216,6 +217,58 @@ resembles:
 
 Each numerical field maps to floating-point output from the engine. Timestamps
 comply with ISO 8601 using a `Z` suffix for UTC.
+
+---
+
+## Page 10 — CI/CD Automation Patterns
+
+### GitHub Actions Workflow Blueprint
+
+```yaml
+name: dynamic-framework
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  cli-evaluation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Dynamic Framework
+        run: |
+          pip install --upgrade pip
+          pip install -e .
+      - name: Evaluate maturity scenario
+        run: |
+          python -m dynamic_framework \
+            --scenario ci/scenario.json \
+            --format json \
+            --fine-tune-dataset artifacts/fine-tune.json \
+            --indent 2
+      - name: Publish fine-tune artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamic-framework-report
+          path: artifacts/fine-tune.json
+```
+
+### Pipeline Integration Guidance
+
+- **Scenario source control**: Version the JSON scenarios alongside service code
+  so pull requests surface intent changes via diff review.
+- **Quality gates**: Fail the workflow when the CLI exits non-zero or when
+  report alerts include regression keywords surfaced via `jq`/`yq` filters.
+- **Dataset promotion**: Store generated fine-tune datasets as build artefacts or
+  push them to object storage, enabling Dynamic AGI retraining cadences.
+- **Feedback telemetry**: Emit summary metrics (overall maturity, alerts count)
+  to pipeline observability tools to track trendlines over time.
+
+**Synonyms for automation contexts:** pipeline ⇔ workflow ⇔ release stream,
+artefact ⇔ dataset ⇔ bundle, guardrail ⇔ gate ⇔ checkpoint.
 
 ---
 
