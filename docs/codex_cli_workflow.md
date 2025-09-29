@@ -68,6 +68,27 @@ Common flags accepted by the helper:
 
 Run `scripts/codex-workflow.js --help` to see the full list of options.
 
+### Dynamic build task controls
+
+The combined Dynamic build step is powered by `lovable-build.js`, which now
+supports finer grained task selection:
+
+- `node lovable-build.js --list` prints the available build tasks and exits.
+- `--only next,miniapp` limits execution to specific tasks (mirrored by the
+  `LOVABLE_BUILD_ONLY` environment variable).
+- `--skip miniapp` removes tasks from the run (also available via
+  `LOVABLE_BUILD_SKIP`).
+- `--serial` or `LOVABLE_BUILD_SERIAL=1` forces sequential execution, while
+  `--max-workers <n>` / `LOVABLE_BUILD_MAX_WORKERS` caps parallel workers.
+- `--timings` prints a timing summary after the build completes.
+
+Forward these flags to `npm run codex:post-pull` or `npm run codex:build` by
+appending them after a double-dash, for example:
+
+```bash
+npm run codex:build -- --only next --max-workers 1
+```
+
 The helper keeps a small JSON file (`.codex-workflow-state.json`, ignored by
 Git) that tracks which steps failed recently. Each `--agent` gets its own
 failure history so multiple Codex assistants can run the workflow without
