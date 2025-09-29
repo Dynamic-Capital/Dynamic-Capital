@@ -1,5 +1,34 @@
 import { Buffer } from "node:buffer";
 
+export interface GraphDriveItem {
+  id?: string;
+  name?: string;
+  size?: number;
+  webUrl?: string | null;
+  lastModifiedDateTime?: string | null;
+  createdDateTime?: string | null;
+  file?: {
+    mimeType?: string | null;
+  } | null;
+  folder?: {
+    childCount?: number | null;
+  } | null;
+  parentReference?: {
+    id?: string | null;
+    path?: string | null;
+    driveId?: string | null;
+  } | null;
+  children?: GraphDriveItem[];
+  "children@odata.nextLink"?: string | null;
+  [key: string]: unknown;
+}
+
+export interface GraphDriveItemCollection {
+  value?: GraphDriveItem[];
+  "@odata.nextLink"?: string | null;
+  "@odata.deltaLink"?: string | null;
+}
+
 export function toShareId(shareLink: string): string {
   const base64 = Buffer.from(shareLink, "utf-8").toString("base64");
   const base64Url = base64.replace(/\+/g, "-").replace(/\//g, "_").replace(
@@ -9,21 +38,11 @@ export function toShareId(shareLink: string): string {
   return `u!${base64Url}`;
 }
 
-export interface FetchDriveItemOptions {
-  shareLink: string;
-  accessToken: string;
-  query?: Record<string, string | undefined>;
-}
-
-export async function fetchDriveItem({
-  shareLink,
-  accessToken,
-  query,
-}: FetchDriveItemOptions): Promise<unknown> {
-  const shareId = toShareId(shareLink);
-  const url = new URL(
-    `https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem`,
-  );
+function buildUrl(
+  base: string,
+  query?: Record<string, string | undefined>,
+) {
+  const url = new URL(base);
 
   if (query) {
     for (const [key, value] of Object.entries(query)) {
@@ -33,6 +52,13 @@ export async function fetchDriveItem({
     }
   }
 
+  return url;
+}
+
+async function graphGet(
+  url: URL,
+  accessToken: string,
+): Promise<Response> {
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -47,5 +73,57 @@ export async function fetchDriveItem({
     );
   }
 
-  return response.json();
+  return response;
+}
+
+export async function fetchDriveItemCollectionByUrl(
+  nextLink: string,
+  accessToken: string,
+): Promise<GraphDriveItemCollection> {
+  const url = new URL(nextLink);
+  const response = await graphGet(url, accessToken);
+  return await response.json() as GraphDriveItemCollection;
+}
+
+export interface FetchDriveItemOptions {
+  shareLink: string;
+  accessToken: string;
+  query?: Record<string, string | undefined>;
+}
+
+export async function fetchDriveItem<T = unknown>({
+  shareLink,
+  accessToken,
+  query,
+}: FetchDriveItemOptions): Promise<T> {
+  const shareId = toShareId(shareLink);
+  const url = buildUrl(
+    `https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem`,
+    query,
+  );
+
+  const response = await graphGet(url, accessToken);
+  return await response.json() as T;
+}
+
+export interface FetchDriveItemChildrenOptions {
+  driveId: string;
+  itemId: string;
+  accessToken: string;
+  query?: Record<string, string | undefined>;
+}
+
+export async function fetchDriveItemChildren({
+  driveId,
+  itemId,
+  accessToken,
+  query,
+}: FetchDriveItemChildrenOptions): Promise<GraphDriveItemCollection> {
+  const url = buildUrl(
+    `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${itemId}/children`,
+    query,
+  );
+
+  const response = await graphGet(url, accessToken);
+  return await response.json() as GraphDriveItemCollection;
 }
