@@ -1,0 +1,17 @@
+{
+  "drop": "2025-10-15",
+  "window_start": "2025-09-01T00:00:00Z",
+  "window_end": "2025-10-15T00:00:00Z",
+  "checkpoints": [
+    {
+      "id": "kb-october-pass-1",
+      "metric": "f1",
+      "value": 0.81
+    },
+    {
+      "id": "kb-october-pass-2",
+      "metric": "f1",
+      "value": 0.86
+    }
+  ]
+}
