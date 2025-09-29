@@ -3,6 +3,17 @@ import path from "path";
 
 const ROOT = process.cwd();
 const SRC_DIRS = ["src", "supabase/functions"];
+const PACKAGE_SCAN_SKIP = new Set([
+  "node_modules",
+  ".git",
+  ".next",
+  "dist",
+  "build",
+  "out",
+  "tmp",
+  "_static",
+  ".turbo",
+]);
 
 function walk(dir) {
   const out = [];
@@ -24,6 +35,90 @@ function read(p) {
 }
 
 const files = SRC_DIRS.flatMap((d) => walk(path.join(ROOT, d)));
+
+function findPackageJsonFiles(dir) {
+  const results = [];
+  if (!fs.existsSync(dir)) return results;
+
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      if (PACKAGE_SCAN_SKIP.has(entry.name)) continue;
+      results.push(...findPackageJsonFiles(entryPath));
+    } else if (entry.isFile() && entry.name === "package.json") {
+      results.push(entryPath);
+    }
+  }
+
+  return results;
+}
+
+function collectNextBuildScripts(packageJsonPaths) {
+  const results = [];
+
+  for (const pkgPath of packageJsonPaths) {
+    let parsed;
+    try {
+      parsed = JSON.parse(read(pkgPath));
+    } catch {
+      continue;
+    }
+
+    const scripts = parsed?.scripts;
+    if (!scripts || typeof scripts !== "object") continue;
+
+    for (const [name, command] of Object.entries(scripts)) {
+      if (typeof command !== "string") continue;
+      if (!/\bnext\s+build\b/.test(command)) continue;
+
+      results.push({
+        package_file: path.relative(ROOT, pkgPath),
+        script: name,
+        command,
+      });
+    }
+  }
+
+  return results;
+}
+
+function summarizeDuplicateNextBuilds(entries) {
+  const groups = new Map();
+
+  for (const entry of entries) {
+    const normalized = entry.command.trim();
+    const existing = groups.get(normalized) ?? [];
+    existing.push(entry);
+    groups.set(normalized, existing);
+  }
+
+  const duplicates = [];
+
+  for (const [command, commandEntries] of groups.entries()) {
+    if (commandEntries.length <= 1) continue;
+
+    const locations = commandEntries
+      .map(({ package_file, script }) => ({ package_file, script }))
+      .sort((a, b) =>
+        a.package_file === b.package_file
+          ? a.script.localeCompare(b.script)
+          : a.package_file.localeCompare(b.package_file)
+      );
+
+    duplicates.push({
+      command,
+      count: commandEntries.length,
+      locations,
+    });
+  }
+
+  return duplicates.sort((a, b) => a.command.localeCompare(b.command));
+}
+
+const packageJsonPaths = findPackageJsonFiles(ROOT);
+const nextBuildScripts = collectNextBuildScripts(packageJsonPaths);
+const duplicateNextBuilds = summarizeDuplicateNextBuilds(nextBuildScripts);
 
 const cbVals = new Set(); // callback_data values
 const cbDefs = new Set(); // where defined (constants)
@@ -89,5 +184,17 @@ const out = {
   },
   callbacks: { defined: [...cbDefs].sort(), used_anywhere: [...cbVals].sort() },
   tables: { referenced: [...tableRefs].sort() },
+  next_build_scripts: {
+    total: nextBuildScripts.length,
+    entries: nextBuildScripts
+      .slice()
+      .sort((a, b) =>
+        a.package_file === b.package_file
+          ? a.script.localeCompare(b.script)
+          : a.package_file.localeCompare(b.package_file)
+      ),
+    duplicates: duplicateNextBuilds,
+  },
 };
+fs.mkdirSync(".audit", { recursive: true });
 fs.writeFileSync(".audit/code_scan.json", JSON.stringify(out, null, 2));
