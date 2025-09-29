@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, List, Tuple
+from typing import Any, Iterable, List, Mapping, Tuple
 
 from ..core_adapters import BaseCoreAdapter
 from ..io_bus.message_bus import TaskBus
@@ -59,7 +59,11 @@ class MinimalRouter:
             self.context_manager.update(envelope.task_id, last_action=decision.action)
         return result
 
-    def _rank_adapters(self, envelope: TaskEnvelope, context: dict[str, float | str]) -> List[BaseCoreAdapter]:
+    def _rank_adapters(
+        self,
+        envelope: TaskEnvelope,
+        context: Mapping[str, Any],
+    ) -> List[BaseCoreAdapter]:
         scored: List[Tuple[float, BaseCoreAdapter]] = []
         for adapter in self._adapters:
             score = adapter.score_task(envelope, context)

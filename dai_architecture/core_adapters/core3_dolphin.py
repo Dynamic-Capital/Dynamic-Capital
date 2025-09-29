@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Mapping
+from typing import Any, Mapping
 
 from .base import BaseCoreAdapter, CoreDecision
 from ..io_bus.schema import TaskEnvelope
@@ -14,12 +14,12 @@ class DolphinAdapter(BaseCoreAdapter):
     def __init__(self) -> None:
         super().__init__(name="core3_dolphin")
 
-    def score_task(self, envelope: TaskEnvelope, context: Mapping[str, float | str]) -> float:
+    def score_task(self, envelope: TaskEnvelope, context: Mapping[str, Any]) -> float:
         treasury = float(context.get("treasury_health", 0.5))
         drawdown = float(context.get("drawdown", 0.0))
         return treasury - drawdown
 
-    def run(self, envelope: TaskEnvelope, context: Mapping[str, float | str]) -> CoreDecision:
+    def run(self, envelope: TaskEnvelope, context: Mapping[str, Any]) -> CoreDecision:
         buffer = float(context.get("treasury_health", 0.5))
         drawdown = float(context.get("drawdown", 0.0))
         action = "HOLD"

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Mapping, MutableMapping
+from typing import Any, Mapping, MutableMapping
 
 from ..io_bus.schema import TaskEnvelope
 
@@ -36,9 +36,9 @@ class BaseCoreAdapter(ABC):
         self.name = name
 
     @abstractmethod
-    def score_task(self, envelope: TaskEnvelope, context: Mapping[str, float | str]) -> float:
+    def score_task(self, envelope: TaskEnvelope, context: Mapping[str, Any]) -> float:
         """Return a relative suitability score for ``envelope``."""
 
     @abstractmethod
-    def run(self, envelope: TaskEnvelope, context: Mapping[str, float | str]) -> CoreDecision:
+    def run(self, envelope: TaskEnvelope, context: Mapping[str, Any]) -> CoreDecision:
         """Produce a decision for ``envelope``."""

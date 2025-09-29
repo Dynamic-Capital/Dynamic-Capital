@@ -26,9 +26,12 @@ class L0ContextManager:
         """Return a merged context for ``envelope`` and initialise storage."""
 
         state = self._contexts.setdefault(envelope.task_id, ContextState(task_id=envelope.task_id))
-        state.values.setdefault("intent", envelope.intent)
+        state.values["intent"] = envelope.intent
+        # Always refresh values from the latest envelope so downstream adapters see
+        # the most recent telemetry.  ``setdefault`` would retain stale data from
+        # older runs when keys overlap, so we explicitly overwrite instead.
         for key, value in envelope.context.items():
-            state.values.setdefault(key, value)
+            state.values[key] = value
         return dict(state.values)
 
     def update(self, task_id: str, **updates: Any) -> None:
