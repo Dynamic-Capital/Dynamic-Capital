@@ -14,6 +14,7 @@ __all__ = [
     "TaskSlot",
     "DeferredTask",
     "BlockedTask",
+    "TaskProgressUpdate",
     "TaskSchedule",
     "DynamicTaskManager",
 ]
@@ -196,6 +197,26 @@ class BlockedTask:
             "name": self.name,
             "missing_dependencies": list(self.missing_dependencies),
             "status": self.status.value,
+        }
+
+
+@dataclass(slots=True)
+class TaskProgressUpdate:
+    """State change emitted after applying a schedule."""
+
+    name: str
+    status: TaskStatus
+    progress: float
+    remaining_hours: float
+    note: str = ""
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "name": self.name,
+            "status": self.status.value,
+            "progress": self.progress,
+            "remaining_hours": self.remaining_hours,
+            "note": self.note,
         }
 
 
@@ -393,6 +414,109 @@ class DynamicTaskManager:
         summary = self._summarise(slots, deferred, blocked, remaining_capacity)
 
         return TaskSchedule(tuple(slots), tuple(deferred), tuple(blocked), summary)
+
+    # -------------------------------------------------------- execution helpers
+    def apply_schedule(self, schedule: TaskSchedule) -> Tuple[TaskProgressUpdate, ...]:
+        """Apply a schedule to tracked tasks and capture progress updates."""
+
+        updates: List[TaskProgressUpdate] = []
+        update_lookup: Dict[str, TaskProgressUpdate] = {}
+
+        def _append_note(current: str, addition: str) -> str:
+            if not addition:
+                return current
+            return f"{current}; {addition}" if current else addition
+
+        for slot in schedule.slots:
+            task = self._tasks.get(slot.name)
+            if task is None:  # pragma: no cover - defensive guard
+                continue
+
+            consumed_fraction = 0.0
+            if task.effort_hours > 0.0:
+                consumed_fraction = slot.allocated_hours / task.effort_hours
+
+            task.progress = _clamp(task.progress + consumed_fraction)
+
+            remaining = task.remaining_hours
+            if slot.remaining_hours <= 0.0 or remaining <= 0.0:
+                task.status = TaskStatus.DONE
+                task.progress = 1.0
+                remaining = 0.0
+            else:
+                task.status = TaskStatus.IN_PROGRESS
+
+            note = slot.notes or ""
+            if remaining <= 0.0:
+                note = _append_note(note, "completed")
+            else:
+                note = _append_note(note, f"{remaining:.1f}h remaining")
+
+            update = TaskProgressUpdate(
+                name=task.name,
+                status=task.status,
+                progress=task.progress,
+                remaining_hours=remaining,
+                note=note,
+            )
+            updates.append(update)
+            update_lookup[task.name] = update
+
+        for entry in schedule.deferred:
+            update = update_lookup.get(entry.name)
+            reason_note = f"deferred: {entry.reason}" if entry.reason else "deferred"
+            task = self._tasks.get(entry.name)
+            if update is not None:
+                update.note = _append_note(update.note, reason_note)
+                if task is not None:
+                    update.remaining_hours = max(update.remaining_hours, task.remaining_hours)
+                continue
+
+            progress = task.progress if task is not None else 0.0
+            remaining = task.remaining_hours if task is not None else 0.0
+            update = TaskProgressUpdate(
+                name=entry.name,
+                status=entry.status,
+                progress=progress,
+                remaining_hours=remaining,
+                note=reason_note,
+            )
+            updates.append(update)
+            update_lookup[entry.name] = update
+
+        for entry in schedule.blocked:
+            update = update_lookup.get(entry.name)
+            dependencies = ", ".join(entry.missing_dependencies)
+            block_note = f"blocked by {dependencies}" if dependencies else "blocked"
+            task = self._tasks.get(entry.name)
+            progress = task.progress if task is not None else 0.0
+            remaining = task.remaining_hours if task is not None else 0.0
+
+            if update is not None:
+                update.note = _append_note(update.note, block_note)
+                update.status = TaskStatus.BLOCKED
+                update.remaining_hours = max(update.remaining_hours, remaining)
+                update.progress = progress
+                continue
+
+            update = TaskProgressUpdate(
+                name=entry.name,
+                status=TaskStatus.BLOCKED,
+                progress=progress,
+                remaining_hours=remaining,
+                note=block_note,
+            )
+            updates.append(update)
+            update_lookup[entry.name] = update
+
+        return tuple(updates)
+
+    def run_cycle(self, context: TaskContext) -> Tuple[TaskSchedule, Tuple[TaskProgressUpdate, ...]]:
+        """Plan work for ``context`` and immediately apply the resulting schedule."""
+
+        schedule = self.plan(context)
+        updates = self.apply_schedule(schedule)
+        return schedule, updates
 
     # ----------------------------------------------------------- scoring utils
     def _score(self, task: Task, context: TaskContext) -> float:
