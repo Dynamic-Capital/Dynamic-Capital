@@ -212,10 +212,9 @@ export function HomeNavigationRail({ className }: { className?: string }) {
     <motion.nav
       aria-label="Landing page sections"
       className={cn(
-        "sticky z-[5] mx-auto w-full max-w-6xl",
-        "rounded-2xl border border-border/50 bg-background/80 backdrop-blur-xl",
-        "shadow-lg shadow-primary/5",
-        "px-3 py-3 sm:px-5 lg:px-6",
+        "group sticky z-[5] mx-auto w-full max-w-4xl",
+        "relative overflow-visible",
+        "px-3 sm:px-4",
         className,
       )}
       style={{ top: "calc(var(--site-header-height, 64px) + 1rem)" }}
@@ -223,20 +222,24 @@ export function HomeNavigationRail({ className }: { className?: string }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.4, ease: "easeOut" }}
     >
-      <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.3em] text-muted-foreground sm:text-xs">
-          Explore Dynamic Capital
-        </div>
-        <div className="relative">
+      <div className="relative flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+        <div className="relative w-full sm:w-auto">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-[1] rounded-full"
+          >
+            <div className="absolute inset-[-65%] rounded-full bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),transparent_55%)] blur-3xl" />
+            <div className="absolute inset-[-65%] translate-y-1/3 rounded-full bg-[radial-gradient(circle_at_bottom,rgba(255,153,102,0.16),transparent_65%)] blur-3xl" />
+          </div>
           <div
             ref={scrollContainerRef}
             className={cn(
-              "flex gap-2 overflow-x-auto pb-2",
+              "flex items-center gap-1.5 overflow-x-auto rounded-full border border-white/10 bg-black/80 px-2.5 py-2",
+              "shadow-[0_12px_48px_-24px_rgba(255,153,102,0.65)] backdrop-blur-xl",
               "scroll-smooth overscroll-x-contain",
               "snap-x snap-mandatory md:snap-none",
-              "sm:gap-3 sm:pb-1",
-              "md:flex-wrap md:justify-center md:overflow-visible md:pb-0",
-              "lg:justify-start",
+              "sm:gap-2 sm:px-3 sm:py-2.5",
+              "md:justify-center md:overflow-visible",
             )}
           >
             {HOME_NAV_SECTIONS.map((section, index) => {
@@ -257,46 +260,34 @@ export function HomeNavigationRail({ className }: { className?: string }) {
                   <Link
                     href={section.href}
                     className={cn(
-                      "group relative inline-flex min-w-[10.5rem] items-center gap-2 overflow-hidden rounded-full border px-3 py-2",
-                      "text-xs font-semibold tracking-tight transition-colors",
-                      "sm:min-w-[11rem] sm:px-4 sm:py-2.5 sm:text-sm",
-                      "md:min-w-[0] md:flex-1",
-                      isActive
-                        ? "border-primary/60 bg-primary/10 text-primary"
-                        : "border-border/70 bg-background/60 text-muted-foreground hover:border-primary/40 hover:text-primary",
+                      "group relative inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-full",
+                      "text-sm font-medium text-white/70 transition-all duration-200",
+                      "sm:h-12 sm:w-12",
+                      isActive ? "text-white" : "hover:text-white",
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >
-                    <span className="contents">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary sm:h-7 sm:w-7">
-                        <Icon
-                          className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                          strokeWidth={2.1}
+                    <span className="sr-only">{section.label}</span>
+                    <Icon className="h-5 w-5" strokeWidth={2} />
+                    {isActive
+                      ? (
+                        <motion.span
+                          aria-hidden
+                          layoutId="nav-active-indicator"
+                          className="absolute inset-0 -z-[1] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.18),rgba(255,153,102,0.18)_45%,rgba(0,0,0,0)_75%)]"
+                          transition={{
+                            type: "spring",
+                            stiffness: 260,
+                            damping: 26,
+                          }}
                         />
-                      </span>
-                      <span className="flex min-w-0 flex-col items-start leading-tight">
-                        <span className="truncate text-sm sm:text-[15px]">
-                          {section.label}
-                        </span>
-                        <span className="sr-only text-[11px] font-normal text-muted-foreground/80 sm:not-sr-only sm:text-xs sm:leading-snug">
-                          {section.description}
-                        </span>
-                      </span>
-                      {isActive
-                        ? (
-                          <motion.span
-                            aria-hidden
-                            layoutId="nav-active-indicator"
-                            className="absolute inset-0 -z-[1] rounded-full bg-primary/10"
-                            transition={{
-                              type: "spring",
-                              stiffness: 260,
-                              damping: 24,
-                            }}
-                          />
-                        )
-                        : null}
-                    </span>
+                      )
+                      : (
+                        <span
+                          aria-hidden
+                          className="absolute inset-0 -z-[1] rounded-full border border-white/8 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                        />
+                      )}
                   </Link>
                 </motion.div>
               );
