@@ -182,30 +182,40 @@ function selectTasks(tasks, { only, skip }) {
   }
 
   const selected = [];
+  const selectedSet = new Set();
+  const addTask = (task) => {
+    if (!selectedSet.has(task)) {
+      selectedSet.add(task);
+      selected.push(task);
+    }
+  };
+
   const unknownOnly = [];
   const preparedOnly = prepareFilters(only);
   if (preparedOnly.length > 0) {
     for (const filter of preparedOnly) {
       const task = normalisedTasks.get(filter.key);
-      if (task && !selected.includes(task)) {
-        selected.push(task);
-      } else if (!task) {
+      if (task) {
+        addTask(task);
+      } else {
         unknownOnly.push(filter.raw);
       }
     }
   } else {
-    selected.push(...tasks);
+    for (const task of tasks) {
+      addTask(task);
+    }
   }
 
+  const skippedSet = new Set();
   const unknownSkip = [];
   const preparedSkip = prepareFilters(skip);
   if (preparedSkip.length > 0) {
     for (const filter of preparedSkip) {
       const task = normalisedTasks.get(filter.key);
       if (task) {
-        const index = selected.indexOf(task);
-        if (index !== -1) {
-          selected.splice(index, 1);
+        if (selectedSet.has(task)) {
+          skippedSet.add(task);
         }
       } else {
         unknownSkip.push(filter.raw);
@@ -213,9 +223,21 @@ function selectTasks(tasks, { only, skip }) {
     }
   }
 
-  const filteredOut = tasks.filter((task) => !selected.includes(task));
+  let finalSelected = selected;
+  let finalSelectedSet = selectedSet;
+  if (skippedSet.size > 0) {
+    finalSelected = selected.filter((task) => !skippedSet.has(task));
+    finalSelectedSet = new Set(finalSelected);
+  }
 
-  return { selected, filteredOut, unknownOnly, unknownSkip };
+  const filteredOut = [];
+  for (const task of tasks) {
+    if (!finalSelectedSet.has(task)) {
+      filteredOut.push(task);
+    }
+  }
+
+  return { selected: finalSelected, filteredOut, unknownOnly, unknownSkip };
 }
 
 function readPackageScripts() {
