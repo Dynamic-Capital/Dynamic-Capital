@@ -216,6 +216,10 @@ def route(task, telemetry, history):
 
 - Run `npm run build:dynamic-ai` to execute the Dynamic AI build across all four
   roadmap phases.
+- Scope builds to a specific phase with
+  `npm run build:dynamic-ai -- --phase <phaseId>`; repeat the option to run
+  multiple targeted phases (for example, `--phase phase2`).
+- Discover the available identifiers with `npm run build:dynamic-ai -- --list`.
 - The helper exposes the current phase through the `DYNAMIC_AI_PHASE`
   environment variable so downstream tooling can branch on phase-specific
   requirements during the build.
