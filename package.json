@@ -52,6 +52,7 @@
     "env:validate": "tsx scripts/env/validate.ts",
     "env:sync": "tsx scripts/env/sync.ts",
     "env:report": "tsx scripts/env/report.ts",
+    "scan:checklists": "tsx scripts/scan-checklists.ts",
     "do:sync-site": "node scripts/digitalocean/sync-site-config.mjs",
     "do:sync-cdn": "node scripts/digitalocean/sync-cdn-config.mjs",
     "doctl:sync-site": "node scripts/doctl/sync-site-config.mjs",
