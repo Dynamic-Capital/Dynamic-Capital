@@ -11,6 +11,13 @@ export function registerHandler(
   handler: EdgeHandler,
   options?: ServeOptions,
 ): EdgeHandler {
+  const globalAny = globalThis as {
+    __SUPABASE_SKIP_AUTO_SERVE__?: boolean;
+  };
+  if (globalAny.__SUPABASE_SKIP_AUTO_SERVE__) {
+    return handler;
+  }
+
   if (typeof Deno?.serve === "function") {
     if (options) {
       (Deno.serve as unknown as (
