@@ -319,3 +319,58 @@ def test_dynamic_chat_agent_carries_risk_metadata_into_decision() -> None:
     assert hedge_decisions and hedge_decisions[0]["action"] == "OPEN"
     assert payload["decision"]["escalations"] == ["treasury_utilisation"]
     assert payload["decision"]["sizing"] == {"base": 100000, "adjusted": 64000}
+
+
+def test_dynamic_chat_agent_emits_ui_sections() -> None:
+    agent = DynamicChatAgent()
+
+    result = agent.run(
+        {
+            "user": "Give me the key takeaways",
+            "research": {
+                "rationale": "Macro tailwinds remain supportive.",
+                "analysis": {
+                    "action": "BUY",
+                    "primary_driver": "Liquidity",
+                    "notes": ["Flows positive", "Vol stable"],
+                },
+            },
+            "execution": {
+                "signal": {
+                    "action": "BUY",
+                    "confidence": 0.61,
+                    "reasoning": "Momentum and volume trending up.",
+                }
+            },
+            "risk": {
+                "adjusted_signal": {
+                    "action": "BUY",
+                    "confidence": 0.6,
+                    "rationale": "Risk budget remains healthy.",
+                },
+                "hedge_decisions": [
+                    {"symbol": "EURUSD", "action": "OPEN", "size": 0.25},
+                ],
+            },
+        }
+    )
+
+    payload = result.to_dict()
+    decision_ui = payload["decision"].get("ui")
+    assert decision_ui is not None, "expected decision UI metadata"
+    assert decision_ui.get("title") == "Decision"
+    sections = decision_ui.get("sections") or []
+    titles = {section.get("title") for section in sections}
+    assert {"Research", "Execution", "Risk"}.issubset(titles)
+
+    persona_messages = [
+        message
+        for message in payload["messages"]
+        if message["role"] in {"research", "execution", "risk"}
+    ]
+    assert persona_messages, "expected persona messages to be emitted"
+    for message in persona_messages:
+        metadata = message.get("metadata", {})
+        ui_payload = metadata.get("ui")
+        assert ui_payload is not None, "expected UI metadata on persona message"
+        assert ui_payload.get("title") == message["role"].title()
