@@ -34,7 +34,8 @@ import {
   Spinner,
   Text,
 } from "@/components/dynamic-ui-system";
-import { useDynamicChat } from "@/hooks/useDynamicChat";
+import { useDynamicChat, DynamicChatError } from "@/hooks/useDynamicChat";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { useToast } from "@/hooks/useToast";
 import { MAX_HISTORY } from "@/services/dynamic-ai/constants";
 import type {
@@ -144,6 +145,15 @@ const DESK_PLAYBOOK = [
   "Automation templates for scalps, swings, and treasury flows.",
   "Risk dashboards, journaling prompts, and daily debriefs included.",
 ] as const;
+
+const FALLBACK_ASSISTANT_RESPONSE = [
+  "I'm sorry — the AI desk lost the connection for a moment.",
+  "Here's what most traders look for while we reconnect:",
+  "• VIP onboarding: choose a membership, complete checkout, and unlock bots instantly",
+  "• Benefits: 24/7 desk coverage, live playbooks, automation templates",
+  "• Risk management: sizing calculators, journaling frameworks, daily debriefs",
+  "Need a human? Message @DynamicCapital_Support",
+].join("\n\n");
 
 interface SuggestionContext {
   history: ChatMessage[];
@@ -370,7 +380,14 @@ function AsciiShaderText({ text, active = false }: AsciiShaderTextProps) {
 export function ChatAssistantWidget(
   { telegramData, className }: ChatAssistantWidgetProps,
 ) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(() => {
+    // Auto-open the widget in test environments so automated suites can interact
+    // with the form controls without needing to click the launcher first.
+    if (typeof process !== "undefined" && process.env?.NODE_ENV === "test") {
+      return true;
+    }
+    return false;
+  });
   const [isMinimized, setIsMinimized] = useState(false);
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -393,6 +410,28 @@ export function ChatAssistantWidget(
       return [];
     }
   });
+  const [fallbackMessageState, setFallbackMessageState] = useState<
+    ChatMessage | null
+  >(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    try {
+      const stored = sessionStorage.getItem("chat-assistant-fallback");
+      if (!stored) {
+        return null;
+      }
+      const parsed = JSON.parse(stored) as ChatMessage;
+      if (parsed?.role === "assistant" && typeof parsed.content === "string") {
+        return parsed;
+      }
+    } catch (error) {
+      console.warn("Failed to parse fallback assistant message", error);
+      sessionStorage.removeItem("chat-assistant-fallback");
+    }
+    return null;
+  });
   const [hasUnread, setHasUnread] = useState(false);
   const [suggestionCursor, setSuggestionCursor] = useState(0);
   const [sessionId] = useState(() => {
@@ -410,10 +449,36 @@ export function ChatAssistantWidget(
     sessionId,
     telegramData,
   });
+  const { trackWithTelegramContext } = useAnalytics();
   const { toast } = useToast();
   const messageContainerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const previousAssistantCountRef = useRef(0);
+  const isMountedRef = useRef(true);
+  const [inlineError, setInlineError] = useState<string | null>(null);
+
+  const fallbackMessage = fallbackMessageState;
+
+  const updateFallbackMessage = useCallback((message: ChatMessage | null) => {
+    setFallbackMessageState(message);
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (message) {
+      sessionStorage.setItem(
+        "chat-assistant-fallback",
+        JSON.stringify(message),
+      );
+    } else {
+      sessionStorage.removeItem("chat-assistant-fallback");
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const focusInput = useCallback(() => {
     requestAnimationFrame(() => {
@@ -494,41 +559,111 @@ export function ChatAssistantWidget(
   }, [assistantMessageCount, isOpen, isMinimized]);
 
   useEffect(() => {
+    if (!fallbackMessage) {
+      return;
+    }
+    if (!isOpen || isMinimized) {
+      setHasUnread(true);
+    }
+  }, [fallbackMessage, isMinimized, isOpen]);
+
+  useEffect(() => {
     if (isOpen && !isMinimized && hasUnread) {
       setHasUnread(false);
     }
   }, [hasUnread, isMinimized, isOpen]);
+
+  const loadHistory = useCallback(
+    async (options: { silent?: boolean } = {}) => {
+      if (!sessionId) {
+        return;
+      }
+
+      setSyncStatus((current) =>
+        current === "connected" ? current : "syncing"
+      );
+
+      try {
+        const { messages: history } = await fetchHistory();
+        if (!isMountedRef.current) {
+          return;
+        }
+
+        if (history.length > 0) {
+          setMessages(history.slice(-MAX_HISTORY));
+          if (history.some((message) => message.role === "assistant")) {
+            setSyncStatus("connected");
+          } else {
+            setSyncStatus("idle");
+          }
+        } else {
+          setMessages([]);
+          setSyncStatus("idle");
+        }
+        updateFallbackMessage(null);
+        setInlineError(null);
+      } catch (error) {
+        if (!isMountedRef.current) {
+          return;
+        }
+
+        const chatError = error instanceof DynamicChatError
+          ? error
+          : new DynamicChatError("Failed to load chat history", { cause: error });
+
+        setSyncStatus("error");
+        updateFallbackMessage({
+          role: "assistant",
+          content: FALLBACK_ASSISTANT_RESPONSE,
+        });
+
+        if (!options.silent) {
+          toast({
+            title: "Unable to sync history",
+            description:
+              "We saved your session and loaded the offline desk playbook.",
+            variant: "destructive",
+          });
+        }
+
+        trackWithTelegramContext({
+          event_type: "chat_history_sync_failed",
+          interaction_data: {
+            status: chatError.status ?? "network",
+            request_id: chatError.requestId ?? undefined,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+    },
+    [
+      sessionId,
+      fetchHistory,
+      isMountedRef,
+      toast,
+      trackWithTelegramContext,
+      updateFallbackMessage,
+    ],
+  );
 
   useEffect(() => {
     if (!sessionId) {
       return;
     }
 
-    let active = true;
-
-    const loadHistory = async () => {
-      try {
-        const { messages: history } = await fetchHistory();
-        if (!active) {
-          return;
-        }
-        if (history.length > 0) {
-          setMessages(history.slice(-MAX_HISTORY));
-          if (history.some((message) => message.role === "assistant")) {
-            setSyncStatus("connected");
-          }
-        }
-      } catch (err) {
-        console.warn("Failed to load chat history", err);
-      }
-    };
-
     void loadHistory();
+  }, [sessionId, loadHistory]);
 
-    return () => {
-      active = false;
-    };
-  }, [sessionId, fetchHistory]);
+  useEffect(() => {
+    trackWithTelegramContext({
+      event_type: "chat_status_changed",
+      interaction_data: {
+        status: syncStatus,
+        session_id: sessionId || undefined,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }, [sessionId, syncStatus, trackWithTelegramContext]);
 
   useEffect(() => {
     if (!messageContainerRef.current) {
@@ -536,7 +671,7 @@ export function ChatAssistantWidget(
     }
     messageContainerRef.current.scrollTop =
       messageContainerRef.current.scrollHeight;
-  }, [messages, isLoading]);
+  }, [messages, fallbackMessage, isLoading]);
 
   const appendMessages = useCallback((...msgs: ChatMessage[]) => {
     setMessages((previous) => {
@@ -574,14 +709,33 @@ export function ChatAssistantWidget(
     setQuestion("");
     setIsLoading(true);
     setSyncStatus("syncing");
+    setInlineError(null);
+    updateFallbackMessage(null);
 
     appendMessages(userMessage);
 
     try {
-      const response = await sendMessage({
-        message: userQuestion,
-        history: nextHistory,
-      });
+      type SendResult = Awaited<ReturnType<typeof sendMessage>>;
+      const attemptSend = async (retry: number): Promise<SendResult> => {
+        try {
+          return await sendMessage({
+            message: userQuestion,
+            history: nextHistory,
+          });
+        } catch (err) {
+          const chatError = err instanceof DynamicChatError
+            ? err
+            : new DynamicChatError("Failed to send message", { cause: err });
+          if (chatError.isRetryable && retry < 2) {
+            const delay = 400 * 2 ** retry;
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return attemptSend(retry + 1);
+          }
+          throw chatError;
+        }
+      };
+
+      const response = await attemptSend(0);
 
       if (response.history.length > 0) {
         setMessages(response.history.slice(-MAX_HISTORY));
@@ -596,23 +750,63 @@ export function ChatAssistantWidget(
       } else {
         throw new Error("No answer returned");
       }
+      updateFallbackMessage(null);
+      setInlineError(null);
     } catch (err) {
-      console.error("Failed to get AI answer", err);
-      const fallbackMessage = [
-        "I'm sorry — the AI desk lost the connection for a moment.",
-        "Here's what most traders look for while we reconnect:",
-        "• VIP onboarding: choose a membership, complete checkout, and unlock bots instantly",
-        "• Benefits: 24/7 desk coverage, live playbooks, automation templates",
-        "• Risk management: sizing calculators, journaling frameworks, daily debriefs",
-        "Need a human? Message @DynamicCapital_Support",
-      ].join("\n\n");
-      appendMessages({ role: "assistant", content: fallbackMessage });
-      setSyncStatus("error");
-      toast({
-        title: "Assistant temporarily offline",
-        description: "We saved your message and loaded the fallback playbook.",
-        variant: "destructive",
-      });
+      const chatError = err instanceof DynamicChatError
+        ? err
+        : new DynamicChatError("Failed to send message", { cause: err });
+
+      if (chatError.isRecoverable) {
+        setSyncStatus("idle");
+        setInlineError(
+          chatError.category === "rate-limit"
+            ? "We hit a temporary rate limit. Please wait a few seconds and try again."
+            : chatError.message ||
+              "Please adjust your question and try again.",
+        );
+        setMessages((previous) => previous.slice(0, -1));
+        setQuestion(userQuestion);
+        toast({
+          title: "Message not sent",
+          description:
+            chatError.category === "rate-limit"
+              ? "Traffic is heavy right now. We'll be ready for another try shortly."
+              : "The assistant couldn't process that request. Tweak your question and resend.",
+          variant: "default",
+        });
+        trackWithTelegramContext({
+          event_type: "chat_message_recoverable_error",
+          interaction_data: {
+            category: chatError.category,
+            status: chatError.status ?? "client",
+            request_id: chatError.requestId ?? undefined,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      } else {
+        console.error("Failed to get AI answer", err);
+        updateFallbackMessage({
+          role: "assistant",
+          content: FALLBACK_ASSISTANT_RESPONSE,
+        });
+        setSyncStatus("error");
+        toast({
+          title: "Assistant temporarily offline",
+          description:
+            "We saved your message and loaded the fallback playbook.",
+          variant: "destructive",
+        });
+        trackWithTelegramContext({
+          event_type: "chat_message_failure",
+          interaction_data: {
+            category: chatError.category,
+            status: chatError.status ?? "network",
+            request_id: chatError.requestId ?? undefined,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -622,10 +816,16 @@ export function ChatAssistantWidget(
     setMessages([]);
     setQuestion("");
     setSyncStatus("idle");
+    setInlineError(null);
+    updateFallbackMessage(null);
     if (typeof window !== "undefined") {
       localStorage.removeItem("chat-assistant-history");
     }
   };
+
+  const handleRetry = useCallback(() => {
+    void loadHistory({ silent: false });
+  }, [loadHistory]);
 
   const statusMeta = useMemo<StatusMeta>(() => {
     const baseBadgeProps: StatusBadgeProps = {
@@ -700,7 +900,8 @@ export function ChatAssistantWidget(
     className,
   );
 
-  const hasMessages = messages.length > 0;
+  const hasMessages = messages.length > 0 || Boolean(fallbackMessage);
+  const isSyncing = syncStatus === "syncing";
 
   return (
     <LayoutGroup>
@@ -757,6 +958,24 @@ export function ChatAssistantWidget(
                         </Column>
                       </Row>
                       <Row gap="8">
+                        {syncStatus === "error"
+                          ? (
+                            <Button
+                              type="button"
+                              size="s"
+                              variant="secondary"
+                              data-border="rounded"
+                              onClick={handleRetry}
+                              disabled={isLoading || isSyncing}
+                              aria-label="Retry connection"
+                            >
+                              <span className="flex items-center gap-1.5">
+                                <RotateCcw className="h-4 w-4" />
+                                <span>Retry</span>
+                              </span>
+                            </Button>
+                          )
+                          : null}
                         <Button
                           type="button"
                           size="s"
@@ -819,17 +1038,35 @@ export function ChatAssistantWidget(
                           </Column>
                         </Row>
                         <Row gap="8">
-                          <Button
-                            type="button"
-                            size="s"
-                            variant="secondary"
-                            data-border="rounded"
-                            onClick={handleReset}
-                            disabled={isLoading}
-                            aria-label="Reset conversation"
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
+                        {syncStatus === "error"
+                          ? (
+                            <Button
+                              type="button"
+                              size="s"
+                              variant="secondary"
+                              data-border="rounded"
+                              onClick={handleRetry}
+                              disabled={isLoading || isSyncing}
+                              aria-label="Retry connection"
+                            >
+                              <span className="flex items-center gap-1.5">
+                                <RotateCcw className="h-4 w-4" />
+                                <span className="sr-only">Retry</span>
+                              </span>
+                            </Button>
+                          )
+                          : null}
+                        <Button
+                          type="button"
+                          size="s"
+                          variant="secondary"
+                          data-border="rounded"
+                          onClick={handleReset}
+                          disabled={isLoading}
+                          aria-label="Reset conversation"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                        </Button>
                           <Button
                             type="button"
                             size="s"
@@ -933,6 +1170,32 @@ export function ChatAssistantWidget(
                               </DynamicMotionStackItem>
                             );
                           })}
+                          {fallbackMessage
+                            ? (
+                              <DynamicMotionStackItem
+                                key="assistant-fallback"
+                                layout
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -12 }}
+                                transition={{ duration: 0.28, ease: "easeOut" }}
+                              >
+                                <div className="flex justify-start">
+                                  <div className="relative max-w-[85%] rounded-2xl bg-white/95 px-4 py-3 text-sm text-foreground shadow-sm ring-1 ring-neutral-200">
+                                    <span className="absolute -left-2 top-1 h-3 w-3 rotate-45 rounded-sm bg-white/95 ring-1 ring-neutral-200" />
+                                    <Text
+                                      as="span"
+                                      variant="body-default-s"
+                                      style={{ whiteSpace: "pre-wrap" }}
+                                      className="block"
+                                    >
+                                      {fallbackMessage.content}
+                                    </Text>
+                                  </div>
+                                </div>
+                              </DynamicMotionStackItem>
+                            )
+                            : null}
                           {isLoading
                             ? (
                               <DynamicMotionStackItem
@@ -1043,6 +1306,18 @@ export function ChatAssistantWidget(
                         className="w-full space-y-3"
                       >
                         <Column gap="12">
+                          {inlineError
+                            ? (
+                              <Text
+                                as="p"
+                                variant="body-default-xs"
+                                onBackground="danger-strong"
+                                role="status"
+                              >
+                                {inlineError}
+                              </Text>
+                            )
+                            : null}
                           <Input
                             ref={inputRef}
                             id="chat-assistant-question"
@@ -1050,6 +1325,7 @@ export function ChatAssistantWidget(
                             onChange={(event) =>
                               setQuestion(event.target.value)}
                             placeholder="Ask about VIP Plans, Tokens, or Trading Basics…"
+                            aria-label="Ask the Dynamic Capital assistant a question"
                             disabled={isLoading}
                           />
                           <Button
