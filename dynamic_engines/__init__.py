@@ -182,6 +182,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "PredictiveScenario",
     ),
     "dynamic_quote": ("DynamicQuote",),
+    "dynamic_quantum.engine": (
+        "DynamicQuantumEngine",
+        "QuantumEnvironment",
+        "QuantumPulse",
+        "QuantumResonanceFrame",
+    ),
     "dynamic_reference": ("DynamicReference",),
     "dynamic_script": ("DynamicScriptEngine",),
     "dynamic_self_awareness": ("DynamicSelfAwareness",),
