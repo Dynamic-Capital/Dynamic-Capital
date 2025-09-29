@@ -1,51 +1,23 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import {
+  type CommitPayload,
+  type CommitRecord,
+  commitSummary,
+  loadCommitPayload,
+  loadReleaseMeta,
+  type ReleaseMeta,
+} from "./shared.ts";
 
-interface CommitRecord {
-  hash: string;
-  author: string;
-  date: string;
-  summary: string;
-  type: string;
-  scope?: string;
-  breaking: boolean;
-  prNumber?: number;
-  issues: number[];
-}
-
-interface CommitPayload {
-  groups: { type: string; commits: CommitRecord[] }[];
-  commits: CommitRecord[];
-}
-
-interface ReleaseMeta {
-  version: string;
-  date: string;
-}
-
-function cleanSummary(summary: string): string {
-  return summary.replace(/^(\w+)(?:\([^)]+\))?(!)?:\s*/, '');
-}
-
-function loadCommitPayload(cacheDir: string): CommitPayload {
-  const path = join(cacheDir, 'commits.json');
-  if (!existsSync(path)) {
-    throw new Error('Missing commit cache. Run proj:collect first.');
-  }
-  return JSON.parse(readFileSync(path, 'utf8')) as CommitPayload;
-}
-
-function loadReleaseMeta(cacheDir: string): ReleaseMeta | undefined {
-  const metaPath = join(cacheDir, 'release-meta.json');
-  if (!existsSync(metaPath)) return undefined;
-  return JSON.parse(readFileSync(metaPath, 'utf8')) as ReleaseMeta;
-}
-
-function updateFeaturesDoc(featuresPath: string, featureCommits: CommitRecord[], meta?: ReleaseMeta): void {
+function updateFeaturesDoc(
+  featuresPath: string,
+  featureCommits: CommitRecord[],
+  meta?: ReleaseMeta,
+): void {
   if (!featureCommits.length) return;
   const repo = process.env.GITHUB_REPOSITORY;
-  const version = meta?.version ?? (meta ? 'unversioned' : 'unreleased');
-  let content = readFileSync(featuresPath, 'utf8');
+  const version = meta?.version ?? (meta ? "unversioned" : "unreleased");
+  let content = readFileSync(featuresPath, "utf8");
 
   if (content.includes(`<!-- COMMIT:${featureCommits[0].hash} -->`)) {
     // Assume idempotent run detected; rely on per-commit handling below.
@@ -56,80 +28,86 @@ function updateFeaturesDoc(featuresPath: string, featureCommits: CommitRecord[],
     if (content.includes(marker)) {
       continue;
     }
-    if (content.includes('Placeholder entry until the first release ships.')) {
+    if (content.includes("Placeholder entry until the first release ships.")) {
       content = content.replace(
-        '| _TBD_      | _TBD_   | _TBD_   | Placeholder entry until the first release ships. | _n/a_ |\n',
-        ''
+        "| _TBD_      | _TBD_   | _TBD_   | Placeholder entry until the first release ships. | _n/a_ |\n",
+        "",
       );
     }
-    const area = commit.scope ?? 'general';
-    const description = cleanSummary(commit.summary);
-    const link = commit.prNumber && repo ? `https://github.com/${repo}/pull/${commit.prNumber}` : undefined;
-    const linksColumn = link ? `[PR #${commit.prNumber}](${link})` : '_n/a_';
-    const row = `| ${commit.date} | ${version} | ${area} | ${description} | ${linksColumn} ${marker} |`;
-    if (!content.endsWith('\n')) {
-      content += '\n';
+    const area = commit.scope ?? "general";
+    const description = commitSummary(commit);
+    const link = commit.prNumber && repo
+      ? `https://github.com/${repo}/pull/${commit.prNumber}`
+      : undefined;
+    const linksColumn = link ? `[PR #${commit.prNumber}](${link})` : "_n/a_";
+    const row =
+      `| ${commit.date} | ${version} | ${area} | ${description} | ${linksColumn} ${marker} |`;
+    if (!content.endsWith("\n")) {
+      content += "\n";
     }
     content += `${row}\n`;
   }
 
-  writeFileSync(featuresPath, content.replace(/\n{3,}/g, '\n\n'));
+  writeFileSync(featuresPath, content.replace(/\n{3,}/g, "\n\n"));
 }
 
 function removeLineWithMarker(content: string, marker: string): string {
   return content
-    .split('\n')
+    .split("\n")
     .filter((line) => !line.includes(marker))
-    .join('\n')
-    .replace(/\n{3,}/g, '\n\n');
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n");
 }
 
 function insertIntoShipped(content: string, line: string): string {
-  const section = '## Shipped';
+  const section = "## Shipped";
   const index = content.indexOf(section);
   if (index === -1) {
     return `${content.trim()}\n\n${section}\n${line}\n`;
   }
   const before = content.slice(0, index + section.length);
   const after = content.slice(index + section.length);
-  const parts = after.split('\n');
+  const parts = after.split("\n");
   // Skip first blank line if present
-  if (parts.length && parts[0] === '') {
+  if (parts.length && parts[0] === "") {
     parts.shift();
   }
-  if (parts.length && parts[0] === '- _No shipped items yet._') {
+  if (parts.length && parts[0] === "- _No shipped items yet._") {
     parts.shift();
   }
-  return `${before}\n${line}\n${parts.join('\n')}`.replace(/\n{3,}/g, '\n\n');
+  return `${before}\n${line}\n${parts.join("\n")}`.replace(/\n{3,}/g, "\n\n");
 }
 
-function updateRoadmapDoc(roadmapPath: string, featureCommits: CommitRecord[], meta?: ReleaseMeta): void {
+function updateRoadmapDoc(
+  roadmapPath: string,
+  featureCommits: CommitRecord[],
+  meta?: ReleaseMeta,
+): void {
   if (!featureCommits.length) return;
-  let content = readFileSync(roadmapPath, 'utf8');
+  let content = readFileSync(roadmapPath, "utf8");
   for (const commit of featureCommits) {
     const marker = `<!-- COMMIT:${commit.hash} -->`;
     if (content.includes(marker)) {
       content = removeLineWithMarker(content, marker);
     }
-    const bullet = `- ${meta?.version ? `[${meta.version}] ` : ''}${cleanSummary(commit.summary)}${
-      commit.prNumber ? ` (PR #${commit.prNumber})` : ''
-    } ${marker}`.trim();
+    const bullet = `- ${meta?.version ? `[${meta.version}] ` : ""}${
+      commitSummary(commit)
+    }${commit.prNumber ? ` (PR #${commit.prNumber})` : ""} ${marker}`.trim();
     content = insertIntoShipped(content, bullet);
   }
-  writeFileSync(roadmapPath, content.replace(/\n{3,}/g, '\n\n'));
+  writeFileSync(roadmapPath, content.replace(/\n{3,}/g, "\n\n"));
 }
 
 async function main(): Promise<void> {
   const cwd = process.cwd();
-  const cacheDir = join(cwd, '.project-cache');
-  const featuresPath = join(cwd, 'docs', 'FEATURES.md');
-  const roadmapPath = join(cwd, 'docs', 'ROADMAP.md');
+  const featuresPath = join(cwd, "docs", "FEATURES.md");
+  const roadmapPath = join(cwd, "docs", "ROADMAP.md");
   if (!existsSync(featuresPath) || !existsSync(roadmapPath)) {
-    throw new Error('Feature or roadmap documents are missing.');
+    throw new Error("Feature or roadmap documents are missing.");
   }
-  const payload = loadCommitPayload(cacheDir);
-  const featureGroup = payload.groups.find((group) => group.type === 'feat');
-  const meta = loadReleaseMeta(cacheDir);
+  const payload = loadCommitPayload(cwd);
+  const featureGroup = payload.groups.find((group) => group.type === "feat");
+  const meta = loadReleaseMeta(cwd);
   const featureCommits = featureGroup?.commits ?? [];
   if (!featureCommits.length) {
     return;
@@ -139,7 +117,9 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-  console.error('[update-features-roadmap] Unable to update feature and roadmap docs');
+  console.error(
+    "[update-features-roadmap] Unable to update feature and roadmap docs",
+  );
   console.error(error);
   process.exitCode = 1;
 });
