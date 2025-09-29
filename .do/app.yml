@@ -77,7 +77,7 @@ spec:
       instance_count: 1
       instance_size_slug: basic-xxs
       build_command: node scripts/digitalocean-build.mjs
-      run_command: npm run start:web
+      run_command: npm run start:do
       http_port: 8080
       routes:
         - path: /
