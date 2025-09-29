@@ -212,12 +212,13 @@ export function HomeNavigationRail({ className }: { className?: string }) {
     <motion.nav
       aria-label="Landing page sections"
       className={cn(
-        "sticky top-4 z-[5] mx-auto w-full max-w-6xl",
+        "sticky z-[5] mx-auto w-full max-w-6xl",
         "rounded-2xl border border-border/50 bg-background/80 backdrop-blur-xl",
         "shadow-lg shadow-primary/5",
         "px-3 py-3 sm:px-5 lg:px-6",
         className,
       )}
+      style={{ top: "calc(var(--site-header-height, 64px) + 1rem)" }}
       initial={reduceMotion ? false : { opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.4, ease: "easeOut" }}

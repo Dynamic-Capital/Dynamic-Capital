@@ -166,14 +166,22 @@ process.env.ALLOWED_ORIGINS = ALLOWED_ORIGINS;
 process.env.DEFAULT_LOCALE = DEFAULT_LOCALE;
 process.env.NEXT_PUBLIC_DEFAULT_LOCALE = DEFAULT_LOCALE;
 
-const optimizePackageImports = ['lucide-react'];
+// Disable Lucide import modularisation because the upstream package renamed icon
+// files to kebab-case (for example `chart-pie.js`).
+//
+// Next.js' `optimizePackageImports` + `modularizeImports` previously attempted to
+// rewrite `import { PieChart } from "lucide-react"` into
+// `import PieChart from "lucide-react/dist/esm/icons/PieChart"`, which no longer
+// exists. The build would then fail with "Module not found" errors for several
+// icons at runtime (visible in production and when running `next dev`).
+//
+// Until Next.js exposes a kebab-case helper (or lucide-react restores
+// pascal-case filenames), we fall back to the default lucide entrypoint. This
+// keeps the app functional even though it forgoes the micro-optimised import
+// splitting.
+const optimizePackageImports = [];
 
-const modularizeImportRules = {
-  'lucide-react': {
-    transform: 'lucide-react/dist/esm/icons/{{member}}',
-    skipDefaultConversion: true,
-  },
-};
+const modularizeImportRules = {};
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

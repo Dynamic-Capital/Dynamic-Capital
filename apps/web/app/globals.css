@@ -9,6 +9,10 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --site-header-height: 64px;
+  }
+
   *, *::before, *::after {
     box-sizing: border-box;
   }
