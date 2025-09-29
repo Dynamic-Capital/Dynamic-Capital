@@ -56,3 +56,18 @@ The response payload includes the item metadata and, when available, the
 children of the shared folder. Save the output to
 `docs/onedrive-shares/evlumlqt-folder.metadata.json` to snapshot the latest
 state.
+
+## `knowledge_base/` drop overview
+
+- The share now contains a `knowledge_base/` directory with freshly uploaded
+  training corpora. Sync the folder whenever new drops are announced so the
+  repository and Supabase mirrors stay aligned.
+- Use `tsx scripts/onedrive/list-drive-contents.ts` with the share link above to
+  enumerate the hierarchy. Expect markdown, CSV, and JSON artefacts sized for
+  retrieval-augmented model runs.
+- After each sync, rerun
+  `tsx scripts/onedrive/dump-drive-item.ts "<share>" docs/onedrive-shares/evlumlqt-folder.metadata.json`
+  to capture the updated manifest and commit the diff.
+- Mirror the downloaded files into `data/knowledge_base/` locally and document
+  provenance in `data/knowledge_base/README.md`. This keeps experiment tracking
+  consistent across GitHub, Supabase Storage, and the OneDrive source.

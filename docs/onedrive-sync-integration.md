@@ -128,3 +128,23 @@ ideal when the automation must live entirely within the Microsoft 365 estate.
 
 Document the chosen automation approach in project runbooks to keep Codex
 contributors aligned on how OneDrive mirrors stay current.
+
+## 5. Knowledge base dataset drops
+
+When fresh training corpora land in the OneDrive `knowledge_base/` directory
+inside the `EvLuMLqTtFRPpRS6OIWWvioBcFAJdDAXHZqN8bYy3JUyyg` share:
+
+1. Announce the drop in the #ml-updates channel with a summary of the contents
+   and intended experiments.
+2. Run `tsx scripts/onedrive/list-drive-contents.ts "<share-link>"` to verify
+   the new files, then update
+   `docs/onedrive-shares/evlumlqt-folder.metadata.json` via the
+   `dump-drive-item.ts` helper.
+3. Trigger the Supabase ↔ OneDrive sync or automation of choice so
+   `public.one_drive_assets` includes the `knowledge_base/` keys.
+4. Mirror the files locally under `data/knowledge_base/`, capture provenance in
+   a README, and update experiment configurations in `dynamic_trainer/` or `ml/`
+   to point at the refreshed dataset.
+
+Track ongoing operational notes in `docs/knowledge-base-training-drop.md` to
+keep the workflow reproducible.
