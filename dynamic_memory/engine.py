@@ -5,7 +5,15 @@ from __future__ import annotations
 from collections import Counter, deque
 from dataclasses import dataclass
 from itertools import islice
-from typing import Callable, Deque, Iterable, Iterator, Mapping, MutableMapping
+from typing import (
+    Callable,
+    Deque,
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    Sequence,
+)
 
 from ._utils import clamp, normalise_tags, normalise_text, utcnow
 from .consolidation import (
@@ -109,6 +117,67 @@ class DynamicMemoryEngine:
         matching = self._iter_matching(lambda fragment: fragment.domain == normalised_domain)
         return tuple(islice(matching, limit))
 
+    def recall_ranked(
+        self,
+        *,
+        limit: int = 5,
+        weights: Mapping[str, float] | None = None,
+        tags: Sequence[str] | None = None,
+        domain: str | None = None,
+    ) -> tuple[MemoryFragment, ...]:
+        """Return the highest scoring fragments based on configurable weighting.
+
+        The ranking score blends fragment ``recency``, ``relevance`` and ``novelty``
+        attributes. Optional ``tags`` and ``domain`` filters narrow the candidate set
+        before scoring. When ``tags`` are provided fragments must contain at least
+        one matching tag and gain a small boost for each match, rewarding topical
+        alignment.
+        """
+
+        if limit <= 0 or not self._fragments:
+            return ()
+
+        resolved_weights = self._resolve_weights(weights)
+        focus_tags = set(normalise_tags(tags)) if tags else None
+        focus_domain = normalise_text(domain).lower() if domain else None
+
+        ranked: list[tuple[float, MemoryFragment]] = []
+        for fragment in reversed(self._fragments):
+            if focus_domain and fragment.domain != focus_domain:
+                continue
+
+            if focus_tags:
+                matches = len(focus_tags.intersection(fragment.tags))
+                if matches == 0:
+                    continue
+            else:
+                matches = 0
+
+            if fragment.weight <= 0:
+                continue
+
+            score = (
+                (fragment.recency * resolved_weights["recency"])
+                + (fragment.relevance * resolved_weights["relevance"])
+                + (fragment.novelty * resolved_weights["novelty"])
+            )
+            score *= fragment.weight
+            if matches:
+                score += 0.05 * matches
+
+            ranked.append((score, fragment))
+
+        if not ranked:
+            return ()
+
+        ranked.sort(
+            key=lambda item: (
+                -item[0],
+                -item[1].timestamp.timestamp(),
+            )
+        )
+        return tuple(fragment for _, fragment in islice(ranked, limit))
+
     # ------------------------------------------------------------- consolidation
     def consolidate(self, context: ConsolidationContext) -> MemoryConsolidationReport:
         if not self._fragments:
@@ -208,4 +277,20 @@ class DynamicMemoryEngine:
     @property
     def fragments(self) -> tuple[MemoryFragment, ...]:
         return tuple(self._fragments)
+
+    def _resolve_weights(self, weights: Mapping[str, float] | None) -> Mapping[str, float]:
+        base = {"recency": 0.35, "relevance": 0.45, "novelty": 0.2}
+        if weights:
+            for key, value in weights.items():
+                if key not in base:
+                    raise KeyError(f"unsupported weight key: {key}")
+                if value < 0:
+                    raise ValueError("weight values must be non-negative")
+                base[key] = float(value)
+
+        total = sum(base.values())
+        if total <= 0:
+            raise ValueError("weight values must sum to a positive number")
+
+        return {key: value / total for key, value in base.items()}
 
