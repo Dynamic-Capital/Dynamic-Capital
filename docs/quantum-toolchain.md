@@ -49,6 +49,28 @@ Dynamic Capital's quantum core relies on a modular control plane that can broker
 
 > 🗂️ **Traceability Tip:** Log every completed step in the control-plane change journal so regulators and internal auditors can verify disciplined rollout of each SDK or platform.
 
+## Category Implementation Runbooks
+
+The playbook above provides the universal integration path. When it is time to *run the implementations* for a specific class of tooling, align with the focused runbooks below so engineering, governance, and operations teams stay in lock-step.
+
+### Programming & SDKs
+
+1. **Adapter Sprint (Weeks 1–2)** – Stand up containerised adapters for the SDK in the quantum development environment. Enforce reproducible builds, baseline lint/typecheck automation, and map secrets requirements to the compliance backlog.
+2. **Hybrid Loop Trials (Weeks 3–4)** – Pair SDK execution paths with the Hybrid Gradient Engine and Reinforcement Feedback Loop. Capture latency, gradient consistency, and mitigation efficacy for each workload archetype.
+3. **Approval Gate & Promotion (Weeks 5–6)** – Present benchmark artefacts to the quantum governance council, activate policy-as-code checks, and promote adapters into the control-plane staging cluster behind feature flags.
+
+### Quantum Hardware & Infrastructure
+
+1. **Connectivity Proving (Weeks 1–2)** – Validate VPN, IAM, and telemetry handshakes between Dynamic Capital infrastructure and the partner environment. Document regional restrictions and export-control obligations in the audit ledger.
+2. **Orchestration Drill (Weeks 3–4)** – Execute mock workloads through the Hybrid Control Plane using OQTOPUS, OQD, or Quantify orchestration hooks. Rehearse failover, calibration refresh, and telemetry routing scenarios.
+3. **Operational Turn-Up (Weeks 5–6)** – Finalize runbooks for facilities operations, schedule joint incident response exercises, and register the platform within quarterly readiness reviews.
+
+### Simulators & Error Mitigation Toolkits
+
+1. **Baseline Calibration (Weeks 1–2)** – Install the simulator or mitigation toolkit in the Simulation-first Runs harness. Generate reference datasets for priority circuits and store them in the telemetry warehouse.
+2. **Mitigation Weave (Weeks 3–4)** – Embed toolkits like Mitiq alongside Qiskit, Cirq, and PennyLane runs. Compare error-corrected outputs against raw simulator results to quantify uplift.
+3. **Continuous Regression (Weeks 5–6)** – Automate nightly regression workflows that rotate through vendor SDKs, mitigation recipes, and representative circuits. Export exception reports to the governance knowledge base.
+
 ## Integration Optimization Checklist
 
 1. **Baseline Readiness** – Confirm governance approvals, credential management, and secure network pathways for every prioritized vendor or simulator.
