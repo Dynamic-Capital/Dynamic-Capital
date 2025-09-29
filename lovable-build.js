@@ -4,6 +4,8 @@ import { execSync, spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { cpus } from "node:os";
 import { performance } from "node:perf_hooks";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   banner,
   celebrate,
@@ -21,6 +23,12 @@ import {
   PRODUCTION_ALLOWED_ORIGINS,
   PRODUCTION_ORIGIN,
 } from "./scripts/utils/branding-env.mjs";
+
+const scriptDirectory = dirname(fileURLToPath(import.meta.url));
+const repositoryRoot = resolve(scriptDirectory);
+if (process.cwd() !== repositoryRoot) {
+  process.chdir(repositoryRoot);
+}
 
 function parseListInput(value) {
   if (!value) return [];
@@ -174,30 +182,40 @@ function selectTasks(tasks, { only, skip }) {
   }
 
   const selected = [];
+  const selectedSet = new Set();
+  const addTask = (task) => {
+    if (!selectedSet.has(task)) {
+      selectedSet.add(task);
+      selected.push(task);
+    }
+  };
+
   const unknownOnly = [];
   const preparedOnly = prepareFilters(only);
   if (preparedOnly.length > 0) {
     for (const filter of preparedOnly) {
       const task = normalisedTasks.get(filter.key);
-      if (task && !selected.includes(task)) {
-        selected.push(task);
-      } else if (!task) {
+      if (task) {
+        addTask(task);
+      } else {
         unknownOnly.push(filter.raw);
       }
     }
   } else {
-    selected.push(...tasks);
+    for (const task of tasks) {
+      addTask(task);
+    }
   }
 
+  const skippedSet = new Set();
   const unknownSkip = [];
   const preparedSkip = prepareFilters(skip);
   if (preparedSkip.length > 0) {
     for (const filter of preparedSkip) {
       const task = normalisedTasks.get(filter.key);
       if (task) {
-        const index = selected.indexOf(task);
-        if (index !== -1) {
-          selected.splice(index, 1);
+        if (selectedSet.has(task)) {
+          skippedSet.add(task);
         }
       } else {
         unknownSkip.push(filter.raw);
@@ -205,9 +223,21 @@ function selectTasks(tasks, { only, skip }) {
     }
   }
 
-  const filteredOut = tasks.filter((task) => !selected.includes(task));
+  let finalSelected = selected;
+  let finalSelectedSet = selectedSet;
+  if (skippedSet.size > 0) {
+    finalSelected = selected.filter((task) => !skippedSet.has(task));
+    finalSelectedSet = new Set(finalSelected);
+  }
 
-  return { selected, filteredOut, unknownOnly, unknownSkip };
+  const filteredOut = [];
+  for (const task of tasks) {
+    if (!finalSelectedSet.has(task)) {
+      filteredOut.push(task);
+    }
+  }
+
+  return { selected: finalSelected, filteredOut, unknownOnly, unknownSkip };
 }
 
 function readPackageScripts() {
