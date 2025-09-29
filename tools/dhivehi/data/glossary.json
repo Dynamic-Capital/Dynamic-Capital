@@ -3,36 +3,217 @@
     "term": "loan",
     "thaana": "ލޯން",
     "definition": "Credit issued to a customer with scheduled repayments.",
-    "variants": ["ލޯނު", "ލޯންތަ"],
-    "domains": ["finance", "support"],
-    "sources": ["Javaabu/laravel-dhivehi-translate", "Radheef"],
+    "variants": [
+      "ލޯނު",
+      "ލޯންތަ"
+    ],
+    "domains": [
+      "finance",
+      "support"
+    ],
+    "sources": [
+      "Javaabu/laravel-dhivehi-translate",
+      "Radheef"
+    ],
     "notes": "Ensure consistency with repayment calculators and statement exports."
   },
   {
     "term": "repayment",
     "thaana": "ރިޕޭމެންޓް",
     "definition": "Scheduled amount owed back to Dynamic Capital.",
-    "variants": ["ރިޕޭމެންޓަށް", "ރިޕޭމެންޓް ޑެޓް"],
-    "domains": ["finance"],
-    "sources": ["DhivehiMVR_excel"],
+    "variants": [
+      "ރިޕޭމެންޓަށް",
+      "ރިޕޭމެންޓް ޑެޓް"
+    ],
+    "domains": [
+      "finance"
+    ],
+    "sources": [
+      "DhivehiMVR_excel"
+    ],
     "notes": "Surface in Thaana calculators and payment reminder templates."
   },
   {
     "term": "compliance",
     "thaana": "ކޮމްޕްލައިންސް",
     "definition": "Adherence to regulatory and Sharia guidelines.",
-    "variants": ["ކޮމްޕްލައިންސް ޕްރޮސެސް"],
-    "domains": ["governance", "support"],
-    "sources": ["kudanai/Quran-Translation"],
+    "variants": [
+      "ކޮމްޕްލައިންސް ޕްރޮސެސް"
+    ],
+    "domains": [
+      "governance",
+      "support"
+    ],
+    "sources": [
+      "kudanai/Quran-Translation"
+    ],
     "notes": "Link relevant Quran references for ethics escalations."
   },
   {
     "term": "speech transcript",
     "thaana": "ސްޕީޗް ޓްރާންސްކްރިޕްޓް",
     "definition": "Dhivehi text generated from hotline recordings.",
-    "variants": ["ވޮއިސް ޕްރޮސެސިންގް"],
-    "domains": ["speech", "support"],
-    "sources": ["beneyraheem/thaanaSTT"],
+    "variants": [
+      "ވޮއިސް ޕްރޮސެސިންގް"
+    ],
+    "domains": [
+      "speech",
+      "support"
+    ],
+    "sources": [
+      "beneyraheem/thaanaSTT"
+    ],
     "notes": "Store alongside ticket metadata for retrieval QA."
+  },
+  {
+    "term": "aggregate",
+    "thaana": "ޖުމލަ",
+    "definition": "Sum total of values used for aggregated portfolio and risk reporting.",
+    "variants": [
+      "jumla",
+      "mulhieku",
+      "ޖުމލަ",
+      "މުޅިއެކު"
+    ],
+    "domains": [
+      "finance",
+      "analytics"
+    ],
+    "sources": [
+      "Dhivehi Dictionary (2005)"
+    ],
+    "notes": "Derived from the Dhivehi dictionary entry for \"aggregate\" (jumla, mulhieku)."
+  },
+  {
+    "term": "balance",
+    "thaana": "ބާކީ",
+    "definition": "Remaining amount left after payments or settlements.",
+    "variants": [
+      "baakee",
+      "ބާކީ"
+    ],
+    "domains": [
+      "finance"
+    ],
+    "sources": [
+      "Dhivehi Dictionary (2005)"
+    ],
+    "notes": "Mapped from the Dhivehi dictionary term baakee."
+  },
+  {
+    "term": "bank",
+    "thaana": "ބެނކު",
+    "definition": "Deposit-taking financial institution supporting customer savings and loans.",
+    "variants": [
+      "benku",
+      "beynku",
+      "ބެނކު",
+      "ބޭނކު"
+    ],
+    "domains": [
+      "finance"
+    ],
+    "sources": [
+      "Dhivehi Dictionary (2005)"
+    ],
+    "notes": "Romanised forms benku/beynku appear in the Dhivehi dictionary entry for bank."
+  },
+  {
+    "term": "interest",
+    "thaana": "ސޫދު",
+    "definition": "Interest amount applied to financial products such as loans and deposits.",
+    "variants": [
+      "soodhu",
+      "ސޫދު"
+    ],
+    "domains": [
+      "finance"
+    ],
+    "sources": [
+      "Dhivehi Dictionary (2005)"
+    ],
+    "notes": "Dhivehi dictionary entry for \"interest (bank)\" rendered as soodhu."
+  },
+  {
+    "term": "aid",
+    "thaana": "ެހީ",
+    "definition": "Aid or assistance provided to customers in need of help.",
+    "variants": [
+      "ehee",
+      "ެހީ"
+    ],
+    "domains": [
+      "support"
+    ],
+    "sources": [
+      "Dhivehi Dictionary (2005)"
+    ],
+    "notes": "Dhivehi dictionary noun form ehee."
+  },
+  {
+    "term": "aid (verb)",
+    "thaana": "ެހީވުނ",
+    "definition": "Verb form describing the act of providing aid or assistance.",
+    "variants": [
+      "eheevun",
+      "ެހީވުނ"
+    ],
+    "domains": [
+      "support"
+    ],
+    "sources": [
+      "Dhivehi Dictionary (2005)"
+    ],
+    "notes": "Dhivehi dictionary verb eheevun."
+  },
+  {
+    "term": "agree",
+    "thaana": "ެބބަސވުނ",
+    "definition": "To agree to proposals, terms, or shared plans.",
+    "variants": [
+      "ebbasvun",
+      "ެބބަސވުނ"
+    ],
+    "domains": [
+      "governance"
+    ],
+    "sources": [
+      "Dhivehi Dictionary (2005)"
+    ],
+    "notes": "Dhivehi dictionary verb ebbasvun."
+  },
+  {
+    "term": "align",
+    "thaana": "ވަކިވުނ",
+    "definition": "To align or reconcile teams toward a shared direction.",
+    "variants": [
+      "vakivun",
+      "ވަކިވުނ"
+    ],
+    "domains": [
+      "governance"
+    ],
+    "sources": [
+      "Dhivehi Dictionary (2005)"
+    ],
+    "notes": "Dhivehi dictionary entry for being aligned with others."
+  },
+  {
+    "term": "already",
+    "thaana": "ދެމމެ",
+    "definition": "Adverb indicating something has already taken place.",
+    "variants": [
+      "dhemme",
+      "mihaaruves",
+      "ދެމމެ",
+      "މިހާރުވެސ"
+    ],
+    "domains": [
+      "operations"
+    ],
+    "sources": [
+      "Dhivehi Dictionary (2005)"
+    ],
+    "notes": "Dhivehi dictionary adverb forms dhemme and mihaaruves."
   }
 ]

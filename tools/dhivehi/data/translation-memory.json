@@ -1,0 +1,140 @@
+[
+  {
+    "id": "dictionary-aggregate",
+    "source": "aggregate",
+    "target": "ޖުމލަ",
+    "metadata": {
+      "domain": "finance",
+      "source": "Dhivehi Dictionary (2005)",
+      "reviewer": "automated-ingest",
+      "tags": [
+        "pdf-ingest",
+        "dhivehi-dictionary",
+        "roman:jumla",
+        "roman:mulhi eku"
+      ]
+    }
+  },
+  {
+    "id": "dictionary-balance",
+    "source": "balance",
+    "target": "ބާކީ",
+    "metadata": {
+      "domain": "finance",
+      "source": "Dhivehi Dictionary (2005)",
+      "reviewer": "automated-ingest",
+      "tags": [
+        "pdf-ingest",
+        "dhivehi-dictionary",
+        "roman:baakee"
+      ]
+    }
+  },
+  {
+    "id": "dictionary-bank",
+    "source": "bank",
+    "target": "ބެނކު",
+    "metadata": {
+      "domain": "finance",
+      "source": "Dhivehi Dictionary (2005)",
+      "reviewer": "automated-ingest",
+      "tags": [
+        "pdf-ingest",
+        "dhivehi-dictionary",
+        "roman:benku",
+        "roman:beynku"
+      ]
+    }
+  },
+  {
+    "id": "dictionary-interest",
+    "source": "interest (bank)",
+    "target": "ސޫދު",
+    "metadata": {
+      "domain": "finance",
+      "source": "Dhivehi Dictionary (2005)",
+      "reviewer": "automated-ingest",
+      "tags": [
+        "pdf-ingest",
+        "dhivehi-dictionary",
+        "roman:soodhu"
+      ]
+    }
+  },
+  {
+    "id": "dictionary-aid-noun",
+    "source": "aid",
+    "target": "ެހީ",
+    "metadata": {
+      "domain": "support",
+      "source": "Dhivehi Dictionary (2005)",
+      "reviewer": "automated-ingest",
+      "tags": [
+        "pdf-ingest",
+        "dhivehi-dictionary",
+        "roman:ehee"
+      ]
+    }
+  },
+  {
+    "id": "dictionary-aid-verb",
+    "source": "aid (verb)",
+    "target": "ެހީވުނ",
+    "metadata": {
+      "domain": "support",
+      "source": "Dhivehi Dictionary (2005)",
+      "reviewer": "automated-ingest",
+      "tags": [
+        "pdf-ingest",
+        "dhivehi-dictionary",
+        "roman:eheevun"
+      ]
+    }
+  },
+  {
+    "id": "dictionary-agree",
+    "source": "agree",
+    "target": "ެބބަސވުނ",
+    "metadata": {
+      "domain": "governance",
+      "source": "Dhivehi Dictionary (2005)",
+      "reviewer": "automated-ingest",
+      "tags": [
+        "pdf-ingest",
+        "dhivehi-dictionary",
+        "roman:ebbasvun"
+      ]
+    }
+  },
+  {
+    "id": "dictionary-align",
+    "source": "align",
+    "target": "ވަކިވުނ",
+    "metadata": {
+      "domain": "governance",
+      "source": "Dhivehi Dictionary (2005)",
+      "reviewer": "automated-ingest",
+      "tags": [
+        "pdf-ingest",
+        "dhivehi-dictionary",
+        "roman:vakivun"
+      ]
+    }
+  },
+  {
+    "id": "dictionary-already",
+    "source": "already",
+    "target": "ދެމމެ",
+    "metadata": {
+      "domain": "operations",
+      "source": "Dhivehi Dictionary (2005)",
+      "reviewer": "automated-ingest",
+      "tags": [
+        "pdf-ingest",
+        "dhivehi-dictionary",
+        "roman:dhemme",
+        "roman:mihaaruves"
+      ]
+    }
+  }
+]
