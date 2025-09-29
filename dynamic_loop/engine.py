@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from statistics import fmean
@@ -12,6 +13,7 @@ __all__ = [
     "LoopState",
     "LoopRecommendation",
     "LoopParameters",
+    "LoopSyncResult",
     "DynamicLoopEngine",
 ]
 
@@ -40,6 +42,10 @@ def _normalise_tuple(items: Iterable[str] | None) -> tuple[str, ...]:
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _normalise_domain(domain: str) -> str:
+    return _normalise_text(domain).lower()
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,13 +135,39 @@ class LoopRecommendation:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class LoopSyncResult:
+    """Container bundling domain-aligned states and recommendations."""
+
+    domain: str
+    state: LoopState
+    recommendations: tuple[LoopRecommendation, ...]
+
+
 class DynamicLoopEngine:
     """Aggregate loop signals and highlight interventions."""
 
-    def __init__(self, *, parameters: LoopParameters | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        parameters: LoopParameters | None = None,
+        history_limit: int | None = None,
+        recommendation_limit: int | None = None,
+    ) -> None:
+        if history_limit is not None and history_limit <= 0:
+            raise ValueError("history_limit must be positive when provided")
+        if recommendation_limit is not None and recommendation_limit <= 0:
+            raise ValueError("recommendation_limit must be positive when provided")
+
         self._parameters = parameters or LoopParameters()
-        self._states: list[LoopState] = []
-        self._recommendations: list[LoopRecommendation] = []
+        self._history_limit = history_limit
+        self._recommendation_limit = recommendation_limit
+        self._states: deque[LoopState] = deque(maxlen=history_limit)
+        self._recommendations: deque[LoopRecommendation] = deque(
+            maxlen=recommendation_limit
+        )
+        self._domain_states: dict[str, deque[LoopState]] = {}
+        self._domain_recommendations: dict[str, deque[LoopRecommendation]] = {}
 
     @property
     def parameters(self) -> LoopParameters:
@@ -232,13 +264,111 @@ class DynamicLoopEngine:
 
     def evaluate(self, signals: Sequence[LoopSignal]) -> LoopState:
         state = self._compute_state(signals)
-        self._states.append(state)
         recommendations = self._derive_recommendations(state)
-        self._recommendations.extend(recommendations)
+        self._append_history(state)
+        self._append_recommendations(recommendations)
         return state
 
-    def latest_recommendations(self) -> tuple[LoopRecommendation, ...]:
-        return tuple(self._recommendations)
+    def _append_history(self, state: LoopState, *, domain: str | None = None) -> None:
+        self._states.append(state)
+        if domain is None:
+            return
 
-    def history(self) -> tuple[LoopState, ...]:
-        return tuple(self._states)
+        queue = self._domain_states.get(domain)
+        if queue is None or queue.maxlen != self._history_limit:
+            queue = deque(queue or (), maxlen=self._history_limit)
+            self._domain_states[domain] = queue
+        queue.append(state)
+
+    def _append_recommendations(
+        self,
+        recommendations: Sequence[LoopRecommendation],
+        *,
+        domain: str | None = None,
+    ) -> None:
+        self._recommendations.extend(recommendations)
+        if domain is None:
+            return
+
+        queue = self._domain_recommendations.get(domain)
+        if queue is None or queue.maxlen != self._recommendation_limit:
+            queue = deque(queue or (), maxlen=self._recommendation_limit)
+            self._domain_recommendations[domain] = queue
+        queue.extend(recommendations)
+
+    def latest_recommendations(
+        self, domain: str | None = None
+    ) -> tuple[LoopRecommendation, ...]:
+        if domain is None:
+            return tuple(self._recommendations)
+        key = _normalise_domain(domain)
+        return tuple(self._domain_recommendations.get(key, ()))
+
+    def history(self, domain: str | None = None) -> tuple[LoopState, ...]:
+        if domain is None:
+            return tuple(self._states)
+        key = _normalise_domain(domain)
+        return tuple(self._domain_states.get(key, ()))
+
+    def evaluate_back_to_back(
+        self, signal_batches: Iterable[Sequence[LoopSignal]]
+    ) -> tuple[LoopState, ...]:
+        """Evaluate multiple signal batches sequentially.
+
+        This helper optimises back-to-back execution by avoiding intermediate
+        tuple creation for each call site and ensures that history/recommendation
+        limits are respected while processing the collection.
+        """
+
+        states: list[LoopState] = []
+        for batch in signal_batches:
+            if not isinstance(batch, Sequence):
+                raise TypeError("each batch must be a sequence of LoopSignal")
+            states.append(self.evaluate(batch))
+        return tuple(states)
+
+    def sync_domains(
+        self, domain_signals: Mapping[str, Sequence[LoopSignal]]
+    ) -> tuple[LoopSyncResult, ...]:
+        """Evaluate signals for multiple domains in a single pass.
+
+        Parameters
+        ----------
+        domain_signals:
+            Mapping of domain name → ordered sequence of :class:`LoopSignal`.
+
+        Returns
+        -------
+        tuple[LoopSyncResult, ...]
+            One entry per provided domain preserving the mapping order.
+        """
+
+        if not domain_signals:
+            raise ValueError("domain_signals must not be empty")
+
+        results: list[LoopSyncResult] = []
+        for domain, signals in domain_signals.items():
+            if not isinstance(signals, Sequence):
+                raise TypeError(
+                    f"signals for domain '{domain}' must be a sequence of LoopSignal"
+                )
+            if not signals:
+                raise ValueError(
+                    f"signals for domain '{domain}' must not be empty"
+                )
+
+            normalised_domain = _normalise_domain(domain)
+            state = self._compute_state(signals)
+            recommendations = self._derive_recommendations(state)
+            self._append_history(state, domain=normalised_domain)
+            self._append_recommendations(
+                recommendations, domain=normalised_domain
+            )
+            results.append(
+                LoopSyncResult(
+                    domain=normalised_domain,
+                    state=state,
+                    recommendations=tuple(recommendations),
+                )
+            )
+        return tuple(results)

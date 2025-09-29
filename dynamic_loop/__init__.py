@@ -7,6 +7,7 @@ from .engine import (
     LoopParameters,
     LoopRecommendation,
     LoopSignal,
+    LoopSyncResult,
     LoopState,
 )
 
@@ -15,5 +16,6 @@ __all__ = [
     "LoopParameters",
     "LoopRecommendation",
     "LoopSignal",
+    "LoopSyncResult",
     "LoopState",
 ]
