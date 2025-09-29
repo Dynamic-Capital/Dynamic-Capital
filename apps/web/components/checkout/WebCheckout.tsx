@@ -298,14 +298,32 @@ export const WebCheckout: React.FC<WebCheckoutProps> = ({
           trackPromoApplied(normalizedCode, selectedPlan.id);
         }
 
-        const discountLabel = normalized.discountType === "percentage"
-          ? `${normalized.discountValue ?? 0}%`
-          : formatPrice(normalized.discountValue ?? 0, planCurrency, "en-US", {
+        let discountLabel: string | null = null;
+        if (normalized.discountType === "percentage") {
+          const percentage = normalized.discountValue ?? 0;
+          discountLabel = `${percentage}%`;
+        } else if (discountAmount > 0) {
+          discountLabel = formatPrice(discountAmount, planCurrency, "en-US", {
             minimumFractionDigits: 0,
             maximumFractionDigits: 2,
           });
+        } else if (typeof normalized.discountValue === "number") {
+          discountLabel = formatPrice(
+            normalized.discountValue,
+            planCurrency,
+            "en-US",
+            {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 2,
+            },
+          );
+        }
 
-        toast.success(`Promo code applied! ${discountLabel} discount`);
+        if (discountLabel) {
+          toast.success(`Promo code applied! ${discountLabel} discount`);
+        } else {
+          toast.success("Promo code applied!");
+        }
       } else {
         toast.error(normalized?.reason || "Invalid promo code");
       }
