@@ -13,12 +13,16 @@ Capital stack.
   - Maintain versioning hygiene so prompt templates, lobe parameters, and
     toggles stay reproducible across
     environments.【F:docs/dynamic-ai-overview.md†L81-L85】
-  - **Supabase integration:** Domain catalogues register `routine_prompts`,
-    `analyst_insights`, and `user_analytics` tables alongside the
-    `analysis-ingest`, `analytics-collector`, `lorentzian-eval`, and
-    `web-app-analytics` Edge Functions so Dynamic AI telemetry is persisted and
-    queryable via the Supabase
-    engine.【F:dynamic_supabase/domain_catalogue.py†L71-L126】【F:supabase/migrations/20251102090000_add_routine_prompts_table.sql†L1-L29】【F:supabase/migrations/20251101090000_add_analyst_insights_and_human_node.sql†L3-L40】【F:supabase/migrations/20250907200029_95f54b34-d037-442a-be55-a41af9d3955c.sql†L1-L28】【F:supabase/functions/analysis-ingest/index.ts†L1-L120】【F:supabase/functions/analytics-collector/index.ts†L1-L120】【F:supabase/functions/lorentzian-eval/index.ts†L1-L160】【F:supabase/functions/web-app-analytics/index.ts†L1-L160】
+- **Supabase integration:** Domain catalogues register `routine_prompts`,
+  `analyst_insights`, and `user_analytics` tables alongside the
+  `analysis-ingest`, `analytics-collector`, `lorentzian-eval`, and
+  `web-app-analytics` Edge Functions so Dynamic AI telemetry is persisted and
+  queryable via the Supabase
+  engine.【F:dynamic_supabase/domain_catalogue.py†L71-L126】【F:supabase/migrations/20251102090000_add_routine_prompts_table.sql†L1-L29】【F:supabase/migrations/20251101090000_add_analyst_insights_and_human_node.sql†L3-L40】【F:supabase/migrations/20250907200029_95f54b34-d037-442a-be55-a41af9d3955c.sql†L1-L28】【F:supabase/functions/analysis-ingest/index.ts†L1-L120】【F:supabase/functions/analytics-collector/index.ts†L1-L120】【F:supabase/functions/lorentzian-eval/index.ts†L1-L160】【F:supabase/functions/web-app-analytics/index.ts†L1-L160】
+- **Automation helper:** Run `npm run checklists -- --checklist dai` to execute
+  the Dynamic AI regression suite (architecture plus persona/fusion tests)
+  before shipping orchestrator or Brain
+  updates.【F:scripts/run-checklists.js†L40-L87】【F:scripts/run-checklists.js†L250-L266】
 
 ## Dynamic AGI (DAGI)
 
@@ -31,12 +35,15 @@ Capital stack.
   - Harden shared infrastructure by validating telemetry pipelines, symbolic
     constraint libraries, and security guardrails across the AGI
     mesh.【F:docs/dynamic-agi-modular-framework.md†L371-L412】
-  - **Supabase integration:** The catalogued blueprint ties DAGI oversight to
-    `infrastructure_jobs`, `node_configs`, and `mentor_feedback` storage plus
-    the `ops-health`, `system-health`, `linkage-audit`, and `intent` Edge
-    Functions so orchestration health and intent envelopes are synchronised with
-    Supabase
-    primitives.【F:dynamic_supabase/domain_catalogue.py†L128-L176】【F:supabase/resource-plan.ts†L3-L111】【F:supabase/migrations/20251101090000_add_analyst_insights_and_human_node.sql†L24-L66】【F:supabase/migrations/20251022090000_add_mentor_feedback_table.sql†L1-L15】【F:supabase/functions/ops-health/index.ts†L1-L160】【F:supabase/functions/system-health/index.ts†L1-L158】【F:supabase/functions/linkage-audit/index.ts†L1-L160】【F:supabase/functions/intent/index.ts†L1-L160】
+- **Supabase integration:** The catalogued blueprint ties DAGI oversight to
+  `infrastructure_jobs`, `node_configs`, and `mentor_feedback` storage plus the
+  `ops-health`, `system-health`, `linkage-audit`, and `intent` Edge Functions so
+  orchestration health and intent envelopes are synchronised with Supabase
+  primitives.【F:dynamic_supabase/domain_catalogue.py†L128-L176】【F:supabase/resource-plan.ts†L3-L111】【F:supabase/migrations/20251101090000_add_analyst_insights_and_human_node.sql†L24-L66】【F:supabase/migrations/20251022090000_add_mentor_feedback_table.sql†L1-L15】【F:supabase/functions/ops-health/index.ts†L1-L160】【F:supabase/functions/system-health/index.ts†L1-L158】【F:supabase/functions/linkage-audit/index.ts†L1-L160】【F:supabase/functions/intent/index.ts†L1-L160】
+- **Automation helper:** Use `npm run checklists -- --checklist dagi` to run the
+  DAGI oversight tests covering self-improvement, mentorship, and orchestration
+  diagnostics before infrastructure
+  updates.【F:scripts/run-checklists.js†L58-L87】【F:scripts/run-checklists.js†L268-L274】
 
 ## Dynamic Capital Treasury (DCT)
 
