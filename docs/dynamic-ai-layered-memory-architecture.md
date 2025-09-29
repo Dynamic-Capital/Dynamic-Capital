@@ -212,6 +212,17 @@ def route(task, telemetry, history):
 4. **Phase 4 – Ops & Governance.** Harden observability, audit trails, safety
    policies, and data locality enforcement.
 
+## Build Automation
+
+- Run `npm run build:dynamic-ai` to execute the Dynamic AI build across all four
+  roadmap phases.
+- The helper exposes the current phase through the `DYNAMIC_AI_PHASE`
+  environment variable so downstream tooling can branch on phase-specific
+  requirements during the build.
+- Inspect the console output for phase banners to confirm the build progressed
+  through Foundations → Memory & Retrieval → Procedures & Routing → Ops &
+  Governance without interruption.
+
 ## Localization & Identity
 
 - **Maldivian voice.** Embed localized phrasing and cultural motifs into system
