@@ -27,12 +27,11 @@ operators can audit the deployment.
       available to the deployment automation.
 - [ ] Execute the wrapper bootstrap script so the `one_drive_assets` foreign
       table can read the `EvLuMLq…` manifest from the mirrored OneDrive share.
-- [ ] Populate DAI and DAGI dataset prefixes by pushing at least one manifest
-      entry for each domain (for example `dai/prompts/*` and
-      `dagi/orchestration/*`).
-- [ ] Record that DAGS remains pending for OneDrive ingestion; flag the
-      integration backlog item if a mirror is required for the environment you
-      are setting up.
+- [ ] Populate DAI, DAGI, and DAGS dataset prefixes by pushing at least one
+      manifest entry for each domain (for example `dai/prompts/*`,
+      `dagi/orchestration/*`, and `dags/governance/*`).
+- [ ] Verify the DAGS governance mirror appears in `public.one_drive_assets`
+      and document the prefix used for downstream operators.
 
 ## 3. Enable telemetry and logging
 
@@ -52,9 +51,14 @@ Run the following probes before handing the environment to operators:
 - [ ] **Edge Function inventory** – list deployed functions and confirm all
       eight DAI/DAGI handlers are active.
 - [ ] **OneDrive manifest check** – query `public.one_drive_assets` to confirm
-      mirrored artefacts exist for DAI and DAGI. Treat non-empty DAGS results as
-      a signal that the backlog item has landed and the documentation must be
-      updated.
+      mirrored artefacts exist for DAI, DAGI, and DAGS. Investigate immediately
+      if any domain returns zero rows.
+- [ ] **DAGS health smoke test** – invoke `supabase functions invoke
+      dags-domain-health --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt`
+      (or curl the deployed endpoint) and confirm the response includes a
+      healthy `onedrive:mirror` entry plus a `metadata.sample` manifest object.
+      This validates end-to-end connectivity from the health surface to the
+      mirrored OneDrive share.【F:supabase/functions/dags-domain-health/index.ts†L40-L78】【F:supabase/functions/_shared/domain-health.ts†L101-L167】
 
 ## 5. Handover notes
 
@@ -63,8 +67,8 @@ Provide the following evidence in the deployment record:
 - [ ] SQL output (or screenshot) demonstrating the schema probe succeeded.
 - [ ] CLI output from `supabase functions list` showing the expected handlers.
 - [ ] Sample rows from the OneDrive manifest query.
-- [ ] Confirmation that the AGS mirror remains pending (or, if available, the
-      steps used to enable it so the playbook can be amended).
+- [ ] Evidence that the DAGS governance mirror is populated (SQL output or
+      manifest excerpt).
 
 ## Acceptance summary
 
@@ -74,7 +78,7 @@ Use this matrix to capture the status per domain before closing the task:
 | ------ | ---------------- | -------------- | --------------- | ---------------- |
 | DAI    | [ ] Confirmed    | [ ] Confirmed  | [ ] Confirmed   | [ ] Confirmed    |
 | DAGI   | [ ] Confirmed    | [ ] Confirmed  | [ ] Confirmed   | [ ] Confirmed    |
-| DAGS   | [ ] Confirmed    | N/A (triggers) | Pending         | [ ] Confirmed    |
+| DAGS   | [ ] Confirmed    | N/A (triggers) | [ ] Confirmed   | [ ] Confirmed    |
 
-> **Note:** Update the DAGS OneDrive column once the mirror backlog item is
-> completed and refresh the connectivity reference at the same time.
+> **Note:** Keep the DAGS OneDrive column in sync with the connectivity
+> reference by attaching manifest evidence for each deployment.
