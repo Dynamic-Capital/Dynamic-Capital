@@ -6,10 +6,12 @@ from .consolidation import (
     MemoryConsolidationReport,
     MemoryFragment,
 )
+from .engine import DynamicMemoryEngine
 
 __all__ = [
     "ConsolidationContext",
     "DynamicMemoryConsolidator",
     "MemoryConsolidationReport",
     "MemoryFragment",
+    "DynamicMemoryEngine",
 ]
