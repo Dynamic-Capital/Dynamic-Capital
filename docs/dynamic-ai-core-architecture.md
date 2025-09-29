@@ -120,6 +120,136 @@ help schedulers rebalance warps before bottlenecks manifest while preserving the
 preferred synergy pairings (e.g., Grok↔MiniMax M1 for reactive hedging or
 DeepSeek-V3↔Kimi K2 for exploratory macro narratives).
 
+### External Reasoning Framework References
+
+To complement the native adapter roster, Dynamic AI maintains direct
+integration guides for prominent open-source reasoning frameworks. These
+references help operators evaluate when to dispatch workloads to specialised
+stacks and provide a single source of truth for onboarding playbooks:
+
+- **[AutoGPT — Autonomous Task Orchestration](https://github.com/Significant-Gravitas/AutoGPT):**
+  Mission-driven planner that expands prompts into auditable multi-step
+  execution graphs, ideal when market hypotheses require chained research or
+  compliance reviews.
+- **[SuperAGI — Collaborative Agent Workforce](https://github.com/TransformerOptimus/SuperAGI):**
+  Debate-centric framework that coordinates persona-driven agents to stress test
+  trades, enforce guardrails, and surface consensus rationale before execution.
+- **[Hugging Face Transformers — Foundation Reasoning Stack](https://huggingface.co/docs/transformers/index):**
+  Library of reproducible checkpoints and tooling that powers bespoke reasoning
+  adapters with transparent benchmarking and controllable deployment pipelines.
+- **[LangChain — Tooling and Memory Bridge](https://www.langchain.com/):**
+  Graph-based orchestration layer that links tools, memories, and reasoning
+  adapters, ensuring telemetry-complete workflows across ingestion, analysis,
+  and execution.
+
+### Internal Adapter Extensions
+
+Dynamic AI keeps external frameworks self-contained by wrapping them as
+internal adapters with reproducible guardrails. Every adapter implementation is
+reviewed with the same step-by-step activation loop so schedulers can treat them
+like any other model while still gaining the specialised behaviours they
+provide.
+
+**Adapter activation loop**
+
+1. **Ingest capabilities.** Parse each framework’s planning graph or model
+   metadata and register a deterministic signature (`max_context`, `tooling`,
+   `persona`, `cost_profile`).
+2. **Instrument guardrails.** Bind throttle limits, sandboxed credentials, and
+   replay logging into the control plane policies so payloads remain auditable.
+3. **Expose payload contracts.** Convert framework responses into the
+   `ReasoningAdapter` schema and issue schema regression tests before an SM is
+   allowed to schedule the adapter.
+4. **Run soak validation.** Execute 500+ dry-run traces per adapter inside a
+   staging SM to capture tail latencies, prompt drift, and unexpected tool
+   excursions before production rollout.
+
+#### [AutoGPT — Autonomous Task Orchestration](https://github.com/Significant-Gravitas/AutoGPT)
+
+**Implementation steps**
+
+1. Import AutoGPT mission templates into the adapter registry and snapshot them
+   as versioned mission graphs.
+2. Configure the SM scheduler to request AutoGPT only when scenarios flag
+   `requires_chained_research = true` or when compliance depth exceeds the
+   threshold set by governance.
+3. Wrap AutoGPT tool calls (web search, compliance API, risk ledger) inside the
+   Dynamic AI tool proxy so secrets never leave the sandbox.
+
+**Optimization levers**
+
+- Cache mission graphs keyed by market regime to bypass redundant planning
+  steps during live trading bursts.
+- Prefetch AutoGPT context windows in the ingress layer whenever the dispatcher
+  detects correlated alerts, reducing perceived latency for multi-instrument
+  events.
+- Record mission deltas after each run so AutoGPT can be hot-reloaded with new
+  guardrails without re-running the entire soak battery.
+
+#### [SuperAGI — Collaborative Agent Workforce](https://github.com/TransformerOptimus/SuperAGI)
+
+**Implementation steps**
+
+1. Map SuperAGI personas (TradingAgent, TreasuryAgent, MentorAgent) to Dynamic
+   Capital risk governors and persist the mapping in the control plane registry.
+2. Use the consensus microservice to launch SuperAGI debates as deterministic
+   batches, ensuring each persona receives the same market snapshot.
+3. Convert SuperAGI voting outcomes into `ConsensusFrame` payloads so the
+   egress layer can reconcile them with DynamicFusion consensus logic.
+
+**Optimization levers**
+
+- Enable persona-level telemetry sampling to identify when debates stall or
+  loop, then auto-trim underperforming personas during peak load.
+- Compress SuperAGI conversation logs using the shared scratchpad codecs to
+  reduce HBM pressure during large-scale debates.
+- Store persona state snapshots per SM so a stalled warp can be rescheduled
+  without rehydrating SuperAGI from scratch.
+
+#### [Hugging Face Transformers — Foundation Reasoning Stack](https://huggingface.co/docs/transformers/index)
+
+**Implementation steps**
+
+1. Register a curated set of checkpoints (LLM360, Qwen, DeepSeek) with latency
+   and VRAM metadata to inform routing heuristics.
+2. Ship weight files through the internal artifact registry and verify hashes
+   before and after deployment to guarantee deterministic inference.
+3. Mount the tokenizer cache inside each SM’s shared scratchpad to avoid
+   duplicate preprocessing work across micro-cores.
+
+**Optimization levers**
+
+- Auto-benchmark each checkpoint weekly and feed the results into the routing
+  heuristics so schedulers can downgrade or upgrade models dynamically.
+- Use low-rank adapters (LoRA) for scenario-specific fine-tuning while keeping
+  the base checkpoint immutable for fast rollbacks.
+- Stage quantized variants (int8, int4) for burst handling when premium VRAM is
+  constrained.
+
+#### [LangChain — Tooling and Memory Bridge](https://www.langchain.com/)
+
+**Implementation steps**
+
+1. Compile LangChain graphs into deterministic manifests that list approved
+   tools, expected inputs, and rate limits.
+2. Connect the manifests to the Dynamic AI tool proxy so invocation telemetry is
+   published alongside adapter usage statistics.
+3. Configure memory modules (vector stores, Redis caches) to align with the
+   `PreparedMarketContext` schema, preventing schema drift across adapters.
+
+**Optimization levers**
+
+- Prefetch tool responses for high-frequency signals using LangChain’s async
+  executors tied to the ingress buffer.
+- Rotate secrets and API tokens through the control plane to keep sandboxed tool
+  chains evergreen without manual restarts.
+- Run continuous contract tests that replay archived prompts to detect when a
+  downstream tool silently changes its response format.
+
+With these wrappers and control points, the orchestration fabric can upgrade or
+swap underlying frameworks without touching micro-core logic; SMs simply receive
+updated adapter metadata during the control plane’s regular registry refresh.
+
 ### Adapter Cohort Advantages and Trade-offs
 
 | Adapter     | Core Advantages                                             | Key Trade-offs                                             | Ideal Pairings                                  |
