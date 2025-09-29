@@ -320,10 +320,10 @@ function summariseResult(result) {
   return parts.join(" ");
 }
 
-async function runTask(task, packageScripts) {
+async function runTask(task, packageScripts, baseEnv) {
   step(`${task.label} in progress...`);
   const start = performance.now();
-  const env = createSanitizedNpmEnv();
+  const env = task.env ? { ...baseEnv, ...task.env } : baseEnv;
 
   if (task.script && !packageScripts[task.script]) {
     const duration = performance.now() - start;
@@ -452,6 +452,7 @@ if (supabaseFallbacks.length > 0) {
 
 const rawArgs = process.argv.slice(2);
 const cliOptions = parseCliOptions(rawArgs);
+const sanitizedNpmEnv = createSanitizedNpmEnv();
 
 if (cliOptions.warnings.length > 0) {
   warn("Adjust the provided CLI flags before continuing.", {
@@ -502,7 +503,7 @@ step("Ensuring required environment variables are present...");
 try {
   execSync("npx tsx scripts/check-env.ts", {
     stdio: "inherit",
-    env: createSanitizedNpmEnv(),
+    env: sanitizedNpmEnv,
   });
   success("Environment check passed.");
 } catch (error) {
@@ -613,7 +614,7 @@ const overallStart = performance.now();
 const results = await runTasksWithLimit(
   selectedTasks,
   workerCount,
-  (task) => runTask(task, packageScripts),
+  (task) => runTask(task, packageScripts, sanitizedNpmEnv),
 );
 const overallElapsed = performance.now() - overallStart;
 
