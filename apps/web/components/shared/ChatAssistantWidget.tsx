@@ -1114,7 +1114,9 @@ export function ChatAssistantWidget(
                                 transition={{ duration: 0.28, ease: "easeOut" }}
                               >
                                 <div className="flex justify-start">
-                                  <div className="max-w-[85%] rounded-2xl bg-white/90 px-4 py-3 text-sm text-foreground shadow-sm ring-1 ring-neutral-200">
+                                  <div
+                                    className="max-w-[85%] rounded-2xl border border-dc-brand/20 bg-dc-brand/10 px-4 py-3 text-sm text-dc-brand-dark shadow-sm dark:border-dc-brand/30 dark:bg-dc-brand/15 dark:text-dc-brand-light"
+                                  >
                                     <p className="whitespace-pre-wrap">
                                       {"👋 Hi! I’m your Dynamic Capital AI assistant. Ask me anything about VIP Plans, tokens, or trading basics."}
                                     </p>
@@ -1146,13 +1148,13 @@ export function ChatAssistantWidget(
                                     className={cn(
                                       "relative max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm",
                                       isAssistant
-                                        ? "bg-white/95 text-foreground ring-1 ring-neutral-200"
+                                        ? "border border-dc-brand/20 bg-dc-brand/10 text-dc-brand-dark dark:border-dc-brand/30 dark:bg-dc-brand/15 dark:text-dc-brand-light"
                                         : "bg-primary text-primary-foreground",
                                     )}
                                   >
                                     {isAssistant
                                       ? (
-                                        <span className="absolute -left-2 top-1 h-3 w-3 rotate-45 rounded-sm bg-white/95 ring-1 ring-neutral-200" />
+                                        <span className="absolute -left-2 top-1 h-3 w-3 rotate-45 rounded-sm border border-dc-brand/20 bg-dc-brand/10 shadow-sm dark:border-dc-brand/30 dark:bg-dc-brand/15" />
                                       )
                                       : (
                                         <span className="absolute -right-2 top-1 h-3 w-3 rotate-45 rounded-sm bg-primary" />
@@ -1181,8 +1183,13 @@ export function ChatAssistantWidget(
                                 transition={{ duration: 0.28, ease: "easeOut" }}
                               >
                                 <div className="flex justify-start">
-                                  <div className="relative max-w-[85%] rounded-2xl bg-white/95 px-4 py-3 text-sm text-foreground shadow-sm ring-1 ring-neutral-200">
-                                    <span className="absolute -left-2 top-1 h-3 w-3 rotate-45 rounded-sm bg-white/95 ring-1 ring-neutral-200" />
+                                  <div
+                                    className={cn(
+                                      "relative max-w-[85%] rounded-2xl px-4 py-3 text-sm text-dc-brand-dark shadow-sm",
+                                      "border border-dc-brand/20 bg-dc-brand/10 dark:border-dc-brand/30 dark:bg-dc-brand/15 dark:text-dc-brand-light",
+                                    )}
+                                  >
+                                    <span className="absolute -left-2 top-1 h-3 w-3 rotate-45 rounded-sm border border-dc-brand/20 bg-dc-brand/10 shadow-sm dark:border-dc-brand/30 dark:bg-dc-brand/15" />
                                     <Text
                                       as="span"
                                       variant="body-default-s"
@@ -1207,7 +1214,12 @@ export function ChatAssistantWidget(
                                 transition={{ duration: 0.28, ease: "easeOut" }}
                               >
                                 <div className="flex justify-start">
-                                  <div className="flex items-center gap-3 rounded-2xl bg-white/90 px-4 py-3 text-sm text-neutral-600 shadow-sm ring-1 ring-neutral-200">
+                                  <div
+                                    className={cn(
+                                      "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm",
+                                      "border border-dc-brand/20 bg-dc-brand/10 text-dc-brand-dark shadow-sm dark:border-dc-brand/30 dark:bg-dc-brand/15 dark:text-dc-brand-light",
+                                    )}
+                                  >
                                     <Spinner />
                                     <span>Assistant is typing…</span>
                                   </div>
