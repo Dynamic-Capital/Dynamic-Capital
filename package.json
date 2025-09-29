@@ -12,6 +12,7 @@
     "build": "node scripts/npm-safe.mjs run build:web && node scripts/npm-safe.mjs run build:landing",
     "build:landing": "node scripts/npm-safe.mjs -w apps/landing run build",
     "build:web": "node scripts/npm-safe.mjs -w apps/web run build",
+    "build:dynamic-ai": "node scripts/dynamic-ai-phased-build.mjs",
     "build:miniapp": "bash scripts/build-miniapp.sh",
     "build:dev": "vite build --mode development",
     "start": "node scripts/npm-safe.mjs -w apps/web run start",
