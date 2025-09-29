@@ -29,14 +29,66 @@ function sanitizeKeys(keys: readonly string[]): string[] {
   return normalized;
 }
 
+function snapshotDefaults(defaults: Record<string, string>) {
+  const normalized: Record<string, string> = {};
+  const signatureParts: string[] = [];
+
+  const entries = Object.entries(defaults ?? {}).sort((a, b) => {
+    if (a[0] === b[0]) return 0;
+    return a[0] < b[0] ? -1 : 1;
+  });
+
+  for (const [key, value] of entries) {
+    if (typeof value !== "string") {
+      continue;
+    }
+
+    normalized[key] = value;
+    signatureParts.push(`${key}\u0000${value}`);
+  }
+
+  return {
+    normalized,
+    signature: signatureParts.join("\u0001"),
+  };
+}
+
 export function useContentBatch(
   keys: readonly string[],
   defaults: Record<string, string> = {},
 ) {
-  const normalizedKeys = useMemo(() => sanitizeKeys(keys), [keys]);
-  const [content, setContent] = useState<Record<string, string>>({
-    ...defaults,
-  });
+  const keysSignatureRef = useRef<string>("");
+  const normalizedKeysRef = useRef<string[]>([]);
+  const normalizedKeys = useMemo(() => {
+    const normalized = sanitizeKeys(keys);
+    const signature = normalized.join("\u0000");
+
+    if (signature === keysSignatureRef.current) {
+      return normalizedKeysRef.current;
+    }
+
+    keysSignatureRef.current = signature;
+    normalizedKeysRef.current = normalized;
+    return normalized;
+  }, [keys]);
+
+  const defaultsSignatureRef = useRef<string>("");
+  const stableDefaultsRef = useRef<Record<string, string>>({});
+  const stableDefaults = useMemo(() => {
+    const { normalized, signature } = snapshotDefaults(defaults);
+
+    if (signature === defaultsSignatureRef.current) {
+      return stableDefaultsRef.current;
+    }
+
+    defaultsSignatureRef.current = signature;
+    stableDefaultsRef.current = normalized;
+    return normalized;
+  }, [defaults]);
+
+  const [content, setContent] = useState<Record<string, string>>(() => ({
+    ...stableDefaults,
+  }));
   const [loading, setLoading] = useState(normalizedKeys.length > 0);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
@@ -48,8 +100,8 @@ export function useContentBatch(
   }, []);
 
   useEffect(() => {
-    setContent((previous) => ({ ...defaults, ...previous }));
-  }, [defaults]);
+    setContent((previous) => ({ ...stableDefaults, ...previous }));
+  }, [stableDefaults]);
 
   const fetchContent = useCallback(async () => {
     if (normalizedKeys.length === 0) {
@@ -66,7 +118,9 @@ export function useContentBatch(
     }
 
     try {
-      const { data, error: edgeError } = await callEdgeFunction<ContentBatchResponse>(
+      const { data, error: edgeError } = await callEdgeFunction<
+        ContentBatchResponse
+      >(
         "CONTENT_BATCH",
         {
           method: "POST",
@@ -78,7 +132,7 @@ export function useContentBatch(
         throw new Error(edgeError.message);
       }
 
-      const next: Record<string, string> = { ...defaults };
+      const next: Record<string, string> = { ...stableDefaults };
 
       for (const item of data?.contents ?? []) {
         if (!item?.content_key) {
@@ -106,13 +160,13 @@ export function useContentBatch(
         : "Failed to load content";
 
       setError(message);
-      setContent((previous) => ({ ...defaults, ...previous }));
+      setContent((previous) => ({ ...stableDefaults, ...previous }));
     } finally {
       if (isMountedRef.current) {
         setLoading(false);
       }
     }
-  }, [defaults, normalizedKeys]);
+  }, [normalizedKeys, stableDefaults]);
 
   useEffect(() => {
     void fetchContent();
