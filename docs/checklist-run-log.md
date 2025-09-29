@@ -8,6 +8,7 @@ is the best fit for the task at hand.
 
 - [Quick Reference](#quick-reference)
 - [Command Playbooks](#command-playbooks)
+  - [2025-09-29 — NFT Checklist Automation Run](#2025-09-29--nft-checklist-automation-run)
   - [2025-09-28 — Current Checklist Catalog Verification](#2025-09-28--current-checklist-catalog-verification)
   - [2025-09-28 — Go-Live Checklist Dry Run](#2025-09-28--go-live-checklist-dry-run)
   - [2024-02-24 — Listing Available Checklists](#2024-02-24--listing-available-checklists)
@@ -23,6 +24,37 @@ is the best fit for the task at hand.
 | Need usage guidance before choosing a subcommand. | `npm run checklists` | Remind yourself of the supported options or share quick guidance with teammates. | Displays the built-in help banner with usage examples. |
 
 ## Command Playbooks
+
+### 2025-09-29 — NFT Checklist Automation Run
+
+**Command**
+
+```bash
+node scripts/run-checklists.js --checklist nft-collectible
+```
+
+**Purpose**
+
+Execute the automation hooks for the NFT Collectible Launch checklist to
+validate the document structure and export the grouped task list for planning
+use.
+
+**Highlights**
+
+- Structural validation confirmed the checklist still ships with 9 sections and
+  42 actionable items.
+- Captured the full task hierarchy for quick sharing with stakeholders or
+  downstream tooling.
+
+**Output Snapshot**
+
+```text
+Validated NFT checklist structure: 9 sections, 42 checklist items.
+NFT Collectible Launch Checklist Tasks
+1. Concept Foundations …
+2. Trait System & Metadata Architecture …
+3. Narrative & Worldbuilding …
+```
 
 ### 2025-09-28 — Current Checklist Catalog Verification
 
