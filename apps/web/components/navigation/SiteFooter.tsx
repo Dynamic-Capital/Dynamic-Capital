@@ -10,18 +10,59 @@ import { LetterFx } from "@/components/ui/animated-text";
 import { schema, social } from "@/resources";
 import NAV_ITEMS from "./nav-items";
 
+const TELEGRAM_SUPPORT_URL =
+  social.find((item) => item.name === "Telegram")?.link ??
+    "https://t.me/DynamicCapital_Support";
+
+const CONTACT_EMAIL = schema.email ?? "dynamiccaptialapp@gmail.com";
+
+const CONTACT_EMAIL_LINK = social.find((item) => item.name === "Email")?.link ??
+  `mailto:${CONTACT_EMAIL}`;
+
 const QUICK_LINKS = [
-  { label: "Dynamic GUI optimizer", href: "/tools/dynamic-ui-optimizer" },
-  { label: "Dynamic market review", href: "/tools/dynamic-market-review" },
-  { label: "Dynamic visual systems", href: "/tools/dynamic-visual" },
-  { label: "Multi-LLM studio", href: "/tools/multi-llm" },
-  { label: "Provider matrix", href: "/#provider-matrix" },
-  { label: "Routing policies", href: "/#orchestration" },
-  { label: "Observability", href: "/#analytics" },
-  { label: "Guardrails", href: "/#resilience" },
-  { label: "Plans & onboarding", href: "/plans" },
-  { label: "Support", href: "/support" },
-  { label: "Research", href: "/blog" },
+  {
+    label: "Overview",
+    description:
+      "Start with a plain-language tour of the workspace, pricing, and desk coverage tiers.",
+    href: "/#overview",
+    ctaLabel: "Explore the overview",
+  },
+  {
+    label: "Market",
+    description:
+      "Check live FX, crypto, and metals dashboards to understand the market pulse before placing trades.",
+    href: "/#live-markets",
+    ctaLabel: "See live markets",
+  },
+  {
+    label: "Learn",
+    description:
+      "Dive into beginner-friendly explainers that break down strategies, automation, and risk in simple terms.",
+    href: "/blog",
+    ctaLabel: "Visit the learning hub",
+  },
+  {
+    label: "Chat",
+    description:
+      "Message the desk lead on Telegram whenever you need help translating workflows or configuring tools.",
+    href: TELEGRAM_SUPPORT_URL,
+    ctaLabel: "Start a Telegram chat",
+    external: true,
+  },
+  {
+    label: "About",
+    description:
+      "Meet the founder and learn how research, mentorship, and automation come together for members.",
+    href: "/about",
+    ctaLabel: "Meet the team",
+  },
+  {
+    label: "Contact",
+    description:
+      `Prefer email? Reach us at ${CONTACT_EMAIL} and we’ll reply with next steps within one business day.`,
+    href: CONTACT_EMAIL_LINK,
+    ctaLabel: "Send an email",
+  },
 ];
 
 export function SiteFooter() {
@@ -73,17 +114,44 @@ export function SiteFooter() {
               className="uppercase"
               onBackground="neutral-weak"
             >
-              Quick links
+              Quick start
             </Text>
-            <Column gap="8">
+            <Column gap="12">
               {QUICK_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                <Column
+                  key={link.label}
+                  gap="8"
+                  align="start"
+                  className="rounded-2xl border border-border/40 bg-background/70 p-4 transition hover:border-primary/40 hover:bg-background"
                 >
-                  {link.label}
-                </a>
+                  <Text
+                    variant="label-strong-s"
+                    className="uppercase tracking-wide"
+                    onBackground="neutral-strong"
+                  >
+                    {link.label}
+                  </Text>
+                  <Text
+                    variant="body-default-s"
+                    onBackground="neutral-weak"
+                  >
+                    {link.description}
+                  </Text>
+                  {link.ctaLabel
+                    ? (
+                      <Button
+                        href={link.href}
+                        variant="tertiary"
+                        data-border="rounded"
+                        arrowIcon
+                        target={link.external ? "_blank" : undefined}
+                        rel={link.external ? "noreferrer" : undefined}
+                      >
+                        {link.ctaLabel}
+                      </Button>
+                    )
+                    : null}
+                </Column>
               ))}
             </Column>
           </Column>

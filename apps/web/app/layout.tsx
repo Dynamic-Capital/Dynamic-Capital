@@ -21,7 +21,6 @@ import { getStaticLandingDocument } from "@/lib/staticLanding";
 import { RouteGuard, ScrollToHash } from "@/components/dynamic-portfolio";
 import { SiteHeader } from "@/components/navigation/SiteHeader";
 import { SiteFooter } from "@/components/navigation/SiteFooter";
-import { MobileBottomNav } from "@/components/navigation/MobileBottomNav";
 import { SkipToContent } from "@/components/navigation/SkipToContent";
 import { dynamicBranding, dynamicUI } from "@/resources";
 
@@ -373,7 +372,6 @@ export default async function RootLayout(
               </Flex>
             </Flex>
             <SiteFooter />
-            <MobileBottomNav />
           </Column>
         </Providers>
       </body>
