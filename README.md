@@ -9,6 +9,13 @@
 
 <!-- TOC:START -->
 - [Overview](#overview)
+- [Beginner Quick Start](#beginner-quick-start)
+  - [Step 1 — Understand the flow](#step-1--understand-the-flow)
+  - [Step 2 — Prepare your workstation](#step-2--prepare-your-workstation)
+  - [Step 3 — Launch the stack locally](#step-3--launch-the-stack-locally)
+  - [Step 4 — Explore the Telegram experience](#step-4--explore-the-telegram-experience)
+  - [Step 5 — Grow your skills](#step-5--grow-your-skills)
+- [Essential Commands Cheat Sheet](#essential-commands-cheat-sheet)
 - [What's New](#whats-new)
 - [Quick Links](#quick-links)
   - [Saved GitHub queries](#saved-github-queries)
@@ -68,6 +75,7 @@
   - [Smoke checks](#smoke-checks)
   - [Local webhook testing](#local-webhook-testing)
     - [Public tunnel for remote QA](#public-tunnel-for-remote-qa)
+  - [Local quality gates](#local-quality-gates)
 - [Operational Routines](#operational-routines)
   - [Mini App](#mini-app)
   - [VIP Sync](#vip-sync)
@@ -90,6 +98,72 @@ Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank 
 A single Next.js application powers both the marketing landing page and the authenticated dashboard. The build pipeline captures the homepage into the repository-level `_static/` directory so it can be served via CDN without touching runtime secrets, while the live `/app` routes continue to handle Supabase access, authentication, and other server-side features.
 
 The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and backed by Supabase.
+
+## Beginner Quick Start
+
+### Step 1 — Understand the flow
+
+- **Problem we solve:** fast fiat and crypto deposits for TON traders directly inside Telegram.
+- **Core pieces:** a Telegram Bot, a Mini App (Next.js), Supabase edge functions, and TON smart-contract integrations.
+- **What you build locally:** the Mini App UI, supporting API routes, and the Supabase functions that power account actions.
+- Skim [Platform Capabilities](#platform-capabilities) if you want a deeper architectural tour after your first run.
+
+### Step 2 — Prepare your workstation
+
+| Requirement | Why it matters | Install notes |
+| --- | --- | --- |
+| **Node.js 20+** | Runs the Next.js Mini App and CLI scripts. | Use [nvm](https://github.com/nvm-sh/nvm) or [asdf](https://asdf-vm.com/). |
+| **pnpm 8+** | Package manager used by the repo. | `npm install -g pnpm` |
+| **Deno 1.41+** | Formats Supabase edge functions and tests. | Follow the [Deno install guide](https://deno.land/manual/getting_started/installation). |
+| **Supabase CLI** | Optional for running functions locally, required for auth emulation. | `pnpm dlx supabase start` boots the stack. |
+| **Telegram test bot** | Needed to see bot + Mini App links while you iterate. | Create via [BotFather](https://core.telegram.org/bots#6-botfather). |
+
+Copy `.env.example` to `.env.local`, then fill in the Telegram bot token, Supabase keys, and TON RPC endpoints as you gain access. Stick with placeholder values for optional services until you integrate them.
+
+### Step 3 — Launch the stack locally
+
+```bash
+pnpm install                   # install dependencies
+pnpm supabase:start            # optional: run local Supabase stack
+pnpm dev                       # start Next.js Mini App on http://localhost:3000
+```
+
+Need to test Supabase edge functions? From another terminal run:
+
+```bash
+pnpm supabase:functions:dev
+```
+
+That command watches the `supabase/functions` directory and reloads when you edit handlers or tests.
+
+### Step 4 — Explore the Telegram experience
+
+1. Run the Mini App locally (`pnpm dev`).
+2. In BotFather, set your bot’s `/setdomain` to the ngrok/Cloudflare tunnel URL that proxies to `localhost:3000`.
+3. Use the Telegram desktop or mobile client to open the bot, tap **Start**, and then tap **Open Mini App** to view your local build.
+4. Use the **/help** command for quick admin shortcuts when testing approval flows.
+
+If you only want to preview the UI, visit `http://localhost:3000/app` in your browser. Telegram-only features (MainButton, haptics) are mocked in development for easier iteration.
+
+### Step 5 — Grow your skills
+
+- Walk through the [Dynamic AGI self-improvement loop](#dynamic-agi-self-improvement-loop) to see how AI tooling fits into daily development.
+- Review the [Local quality gates](#local-quality-gates) checklist before opening a PR.
+- Explore the [Dynamic Capital ecosystem anatomy](docs/dynamic-capital-ecosystem-anatomy.md) for production-grade context.
+- Ready for smart-contract work? Jump into [`dynamic_capital_ton`](dynamic-capital-ton/) for TON blueprints.
+
+## Essential Commands Cheat Sheet
+
+| Task | Command | When to run |
+| --- | --- | --- |
+| Install dependencies | `pnpm install` | After cloning or pulling new packages. |
+| Start Next.js dev server | `pnpm dev` | Building the Mini App or landing pages. |
+| Run unit + integration tests | `pnpm test` | Validating logic before commits. |
+| Type-check the project | `pnpm typecheck` | Ensuring TypeScript safety. |
+| Lint the codebase | `pnpm lint` | Catching style and best-practice issues. |
+| Format Supabase/Deno sources | `npm run format` | Before pushing changes touching Deno-based scripts. |
+| Supabase local stack | `pnpm supabase:start` | When you need auth, database, or edge functions locally. |
+| Supabase functions dev loop | `pnpm supabase:functions:dev` | While editing edge functions or Deno tests. |
 
 ## What's New
 
@@ -890,6 +964,51 @@ If tests present:
 ```bash
 deno test -A
 ```
+
+### Local quality gates
+
+Run the baseline JavaScript/TypeScript automation locally before opening a pull
+request. These commands ensure formatting, linting, and type-safety checks all
+pass alongside the Jest/Vitest suites:
+
+```bash
+npm run format
+npm run lint
+npm run typecheck
+npm run test
+```
+
+- `npm run format` applies the repository formatting conventions (including
+  Markdown, when configured).
+- `npm run lint` executes ESLint across the workspace and surfaces actionable
+  warnings or errors.
+- `npm run typecheck` validates TypeScript projects and helps catch regressions
+  before CI.
+- `npm run test` runs the unit/integration suites defined in `package.json` so
+  you can iterate without waiting for CI feedback.
+
+> ℹ️ On a fresh clone `npm run format` currently fails on the archived Supabase
+> fixtures `supabase/functions/_tests/payments-flags.test.ts` and
+> `supabase/functions/_tests/helpers.ts`, which intentionally include syntax that
+> Deno's formatter cannot parse. The error typically reads `Expected ';', got
+> 'Promise'`.
+
+#### Troubleshooting `npm run format`
+
+The formatter delegates to `deno fmt` for Supabase edge functions. While the
+legacy fixtures remain, scope the formatter to the directories you touched or
+explicitly ignore the known offenders:
+
+```bash
+# Format everything except the flaky legacy fixtures
+npm run format -- --ignore=supabase/functions/_tests/payments-flags.test.ts,supabase/functions/_tests/helpers.ts
+
+# Or target only the functions you edited
+deno fmt supabase/functions/telegram-bot
+```
+
+Re-run `npm run format` without overrides once the underlying syntax issue is
+resolved so the next contributor inherits a clean baseline.
 
 ### Smoke checks
 
