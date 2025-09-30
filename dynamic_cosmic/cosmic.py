@@ -254,6 +254,7 @@ class DynamicCosmic:
         self._bridges: MutableMapping[tuple[str, str], CosmicBridge] = {}
         self._events: Deque[CosmicTimelineEvent] = deque()
         self._history_limit = int(history_limit)
+        self._resilience_cache: float | None = None
 
         if phenomena:
             for item in phenomena:
@@ -261,6 +262,12 @@ class DynamicCosmic:
         if bridges:
             for bridge in bridges:
                 self.register_bridge(bridge)
+
+    # ------------------------------------------------------------------
+    # internal bookkeeping
+
+    def _mark_resilience_dirty(self) -> None:
+        self._resilience_cache = None
 
     @property
     def phenomena(self) -> tuple[CosmicPhenomenon, ...]:
@@ -286,14 +293,19 @@ class DynamicCosmic:
         if not isinstance(phenomenon, CosmicPhenomenon):
             phenomenon = CosmicPhenomenon(**phenomenon)
         self._phenomena[phenomenon.identifier] = phenomenon
+        self._mark_resilience_dirty()
         return phenomenon
 
     def remove_phenomenon(self, identifier: str) -> None:
         key = _normalise_identifier(identifier)
-        self._phenomena.pop(key, None)
+        removed = self._phenomena.pop(key, None)
+        bridges_removed = False
         for bridge_key in list(self._bridges):
             if key in bridge_key:
                 del self._bridges[bridge_key]
+                bridges_removed = True
+        if removed is not None or bridges_removed:
+            self._mark_resilience_dirty()
 
     def get_phenomenon(self, identifier: str) -> CosmicPhenomenon | None:
         return self._phenomena.get(_normalise_identifier(identifier))
@@ -304,11 +316,29 @@ class DynamicCosmic:
         if bridge.source not in self._phenomena or bridge.target not in self._phenomena:
             raise KeyError("bridge endpoints must reference registered phenomena")
         self._bridges[(bridge.source, bridge.target)] = bridge
+        self._mark_resilience_dirty()
         return bridge
 
     def remove_bridge(self, source: str, target: str) -> None:
         key = (_normalise_identifier(source), _normalise_identifier(target))
-        self._bridges.pop(key, None)
+        if self._bridges.pop(key, None) is not None:
+            self._mark_resilience_dirty()
+
+    def get_bridge(self, source: str, target: str) -> CosmicBridge | None:
+        """Return the bridge connecting ``source`` to ``target`` if present."""
+
+        key = (_normalise_identifier(source), _normalise_identifier(target))
+        return self._bridges.get(key)
+
+    def bridges_for(self, identifier: str) -> tuple[CosmicBridge, ...]:
+        """Return all bridges connected to a given phenomenon."""
+
+        key = _normalise_identifier(identifier)
+        return tuple(
+            bridge
+            for (source, target), bridge in self._bridges.items()
+            if key in (source, target)
+        )
 
     def ingest_signal(self, identifier: str, signal: CosmicSignal | Mapping[str, object]) -> CosmicPhenomenon:
         if not isinstance(signal, CosmicSignal):
@@ -318,6 +348,7 @@ class DynamicCosmic:
             raise KeyError(f"unknown phenomenon '{identifier}'")
         updated = phenomenon.with_signal(signal)
         self._phenomena[updated.identifier] = updated
+        self._mark_resilience_dirty()
         return updated
 
     def record_event(self, event: CosmicTimelineEvent | Mapping[str, object]) -> CosmicTimelineEvent:
@@ -341,15 +372,43 @@ class DynamicCosmic:
             self._events.pop()
 
     def evaluate_resilience(self) -> float:
+        if self._resilience_cache is not None:
+            return self._resilience_cache
         if not self._phenomena:
+            self._resilience_cache = 0.0
             return 0.0
+
         resonance = _mean(phenomenon.resonance_score() for phenomenon in self._phenomena.values())
         if not self._bridges:
+            self._resilience_cache = resonance
             return resonance
+
         connectivity = _mean(bridge.transfer_efficiency() for bridge in self._bridges.values())
-        return resonance * (0.6 + 0.4 * min(1.0, connectivity / (resonance + 1e-9)))
+        self._resilience_cache = resonance * (0.6 + 0.4 * min(1.0, connectivity / (resonance + 1e-9)))
+        return self._resilience_cache
+
+    def topology_metrics(self) -> Mapping[str, float]:
+        """Return aggregate metrics describing the current network topology."""
+
+        resonance_scores = [phenomenon.resonance_score() for phenomenon in self._phenomena.values()]
+        bridge_efficiencies = [bridge.transfer_efficiency() for bridge in self._bridges.values()]
+        volatility = [phenomenon.volatility for phenomenon in self._phenomena.values()]
+
+        return {
+            "phenomena": float(len(self._phenomena)),
+            "bridges": float(len(self._bridges)),
+            "mean_resonance": _mean(resonance_scores),
+            "mean_bridge_efficiency": _mean(bridge_efficiencies),
+            "volatility_index": _mean(volatility),
+        }
 
     def snapshot(self) -> Mapping[str, object]:
+        ordered_phenomena = sorted(self._phenomena.values(), key=lambda phenomenon: phenomenon.identifier)
+        ordered_bridges = sorted(
+            self._bridges.values(),
+            key=lambda bridge: (bridge.source, bridge.target),
+        )
+
         return {
             "phenomena": [
                 {
@@ -358,7 +417,7 @@ class DynamicCosmic:
                     "volatility": phenomenon.volatility,
                     "signals": [signal.identifier for signal in phenomenon.signals],
                 }
-                for phenomenon in self._phenomena.values()
+                for phenomenon in ordered_phenomena
             ],
             "bridges": [
                 {
@@ -366,7 +425,7 @@ class DynamicCosmic:
                     "target": bridge.target,
                     "stability": bridge.stability,
                 }
-                for bridge in self._bridges.values()
+                for bridge in ordered_bridges
             ],
             "events": [
                 {
@@ -377,4 +436,5 @@ class DynamicCosmic:
                 for event in self._events
             ],
             "resilience": self.evaluate_resilience(),
+            "metrics": self.topology_metrics(),
         }

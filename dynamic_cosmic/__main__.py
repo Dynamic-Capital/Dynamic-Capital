@@ -251,6 +251,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "phenomena": snapshot.get("phenomena", []),
         "bridges": snapshot.get("bridges", []),
         "events": snapshot.get("events", []),
+        "metrics": snapshot.get("metrics", {}),
     }
 
     if args.pretty:
