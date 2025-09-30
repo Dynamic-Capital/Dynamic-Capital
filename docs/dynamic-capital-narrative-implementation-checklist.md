@@ -26,6 +26,24 @@ touchpoints.
 7. [ ] **Snapshot baselines** (deck version numbers, dashboard commit hashes)
        so post-optimization diffs are easy to audit.
 
+## Macro Data Application Playbook
+
+- [ ] **Lead with credibility.** Highlight Maldives GDP per capita (nominal
+      and PPP) in decks, whitepapers, and website hero copy with clear source
+      links so investors immediately understand the premium-income backdrop.
+- [ ] **Tie tokenomics to momentum.** Reference GDP-per-capita CAGR when
+      explaining supply schedules, staking yields, or treasury allocations to
+      show how protocol mechanics parallel national growth.
+- [ ] **Score mentorship by outcomes.** Weight mentor and mentee reputation
+      metrics toward certifications, venture funding, or export wins that echo
+      the prosperity narrative.
+- [ ] **Bridge local to global.** Spotlight Maldivian partnerships in marketing
+      materials while outlining how the operating model scales to other
+      markets.
+- [ ] **Anchor roadmap proof points.** Pair macro claims with specific delivery
+      milestones (e.g., AI trading desk launch dates, marketplace onboarding
+      targets) so the “living protocol” story maps to tangible execution.
+
 ## 1. Reinforce Investor Materials with Macro Credibility
 
 ### Implement
