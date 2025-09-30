@@ -308,7 +308,7 @@ const TASK_LIBRARY = {
       "docs/DEPLOYMENT.md#step-by-step-promote-digitalocean-as-the-primary-origin",
     ],
     notes: [
-      "Checks committed manifests, Supabase config, and DNS exports to ensure they all reference https://dynamic-capital.ondigitalocean.app before syncing infrastructure.",
+      "Checks committed manifests, Supabase config, DNS exports, and performs a live smoke test to ensure https://dynamic-capital.ondigitalocean.app is healthy before syncing infrastructure.",
     ],
   },
 };

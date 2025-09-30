@@ -89,6 +89,11 @@ complete it:
   confirm hosted dashboards (Supabase, Telegram, Vercel, automation runners)
   also advertise the App Platform origin so tokens, email links, and edge
   handlers never fall back to the Vercel preview domain.
+- [ ] **Smoke test the App Platform origin** – Run
+  `npm run checklists -- --checklist promote-digitalocean-primary-origin`
+  (or execute the script directly) and confirm the DigitalOcean domain responds
+  with a 2xx/3xx status. Investigate any failures before treating the App
+  Platform host as authoritative.
 - [ ] **Audit traffic** – Once DNS propagates, load the site via the DigitalOcean
   domain and confirm telemetry (logs, analytics, Supabase traces) reports the
   expected origin. Keep the Vercel deployment alive for preview URLs, but treat

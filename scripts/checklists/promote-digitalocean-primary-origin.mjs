@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
+import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import YAML from "yaml";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,6 +25,9 @@ const EXPECTED_ALIAS_DOMAINS = [
   "dynamic-capital.lovable.app",
 ];
 const EXPECTED_ZONE_IPS = ["162.159.140.98", "172.66.0.96"];
+const SMOKE_TEST_TIMEOUT_MS = 10_000;
+
+const execFileAsync = promisify(execFile);
 
 const results = [];
 
@@ -430,6 +435,52 @@ async function checkSiteConfigHelpers() {
   );
 }
 
+async function smokeTestPrimaryOrigin() {
+  const curlArgs = [
+    "--silent",
+    "--show-error",
+    "--output",
+    "/dev/null",
+    "--write-out",
+    "%{http_code}",
+    PRIMARY_ORIGIN,
+  ];
+
+  let stdout;
+  try {
+    const result = await execFileAsync("curl", curlArgs, {
+      timeout: SMOKE_TEST_TIMEOUT_MS,
+    });
+    stdout = result.stdout;
+  } catch (error) {
+    const stderr = error?.stderr?.trim();
+    const reason = stderr
+      ? stderr
+      : error?.message ?? error;
+    record(
+      false,
+      `Smoke test: curl failed to reach ${PRIMARY_ORIGIN} (${reason}).`,
+    );
+    return;
+  }
+
+  const status = Number(stdout?.toString()?.trim());
+  if (Number.isNaN(status)) {
+    record(
+      false,
+      `Smoke test: unable to parse curl response code from "${stdout?.toString()?.trim() ?? ""}".`,
+    );
+    return;
+  }
+
+  const healthy = status >= 200 && status < 400;
+  expect(
+    healthy,
+    `Smoke test: ${PRIMARY_ORIGIN} responded with HTTP ${status}.`,
+    `Smoke test: ${PRIMARY_ORIGIN} returned HTTP ${status}; expected a 2xx/3xx response.`,
+  );
+}
+
 async function main() {
   await checkDoAppSpec();
   await checkVercelConfig();
@@ -438,6 +489,7 @@ async function main() {
   await checkBrandingEnv();
   await checkDnsZone();
   await checkSiteConfigHelpers();
+  await smokeTestPrimaryOrigin();
 
   let hasFailure = false;
   for (const { ok, message } of results) {
