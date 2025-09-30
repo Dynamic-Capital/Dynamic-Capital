@@ -16,6 +16,7 @@
 | 15–16   | Glossary & Synonyms                             |
 | 17–18   | Appendix A – Default Scenario Blueprint         |
 | 19      | Appendix B – Exit Codes & Environment Variables |
+| 20–21   | Appendix C – Back-to-Back Expression Library    |
 
 > **Pagination note:** Page numbers reference printed formatting using US Letter
 > paper with default Markdown-to-PDF rendering (roughly 500 words per page).
@@ -72,13 +73,13 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 
 ### Core Flags
 
-| Flag                             | Default        | Purpose                                                                | Synonymous terminology                         |
-| -------------------------------- | -------------- | ---------------------------------------------------------------------- | ---------------------------------------------- |
-| `--scenario PATH`                | _(optional)_   | Load scenario JSON from a file path or '-' for STDIN.                  | context file, input manifest, blueprint source |
-| `--format {text,json,fine-tune}` | `text`         | Choose plain text, JSON, or fine-tune dataset output.                  | output mode, rendering style, representation   |
-| `--indent N`                     | `2`            | Number of spaces applied to JSON pretty-printing.                      | spacing, padding, indentation depth            |
+| Flag                             | Default        | Purpose                                                                                                              | Synonymous terminology                         |
+| -------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `--scenario PATH`                | _(optional)_   | Load scenario JSON from a file path or '-' for STDIN.                                                                | context file, input manifest, blueprint source |
+| `--format {text,json,fine-tune}` | `text`         | Choose plain text, JSON, or fine-tune dataset output.                                                                | output mode, rendering style, representation   |
+| `--indent N`                     | `2`            | Number of spaces applied to JSON pretty-printing.                                                                    | spacing, padding, indentation depth            |
 | `--fine-tune-dataset PATH`       | _(optional)_   | Write the Dynamic AGI training payload to `PATH` (use `-` for stdout). Parent directories are created automatically. | dataset export, training payload, AGI corpus   |
-| `--fine-tune-tag TAG`            | _(repeatable)_ | Apply default tags to generated fine-tune examples.                    | label, classification marker, taxonomy token   |
+| `--fine-tune-tag TAG`            | _(repeatable)_ | Apply default tags to generated fine-tune examples.                                                                  | label, classification marker, taxonomy token   |
 
 ---
 
@@ -168,8 +169,8 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
   report payload alongside fine-tune examples and a dataset summary.
 - Combine with `--fine-tune-dataset PATH` to persist the JSON for ingestion by
   the `DynamicAGIFineTuner` utility or orchestration pipelines.
-- Examples are ordered by node key so successive runs remain deterministic
-  when the scenario input is unchanged.
+- Examples are ordered by node key so successive runs remain deterministic when
+  the scenario input is unchanged.
 
 **Related terminology:**
 
@@ -325,6 +326,239 @@ The CLI provides `DEFAULT_SCENARIO`, mirroring the JSON contained in
   module search list).
 - `LC_ALL` / `LANG` — Influence locale-specific formatting (synonyms: language
   settings, regional profile).
+
+---
+
+## Page 20 — Appendix C – Back-to-Back Expression Library
+
+To support consistent CLI/CD messaging, this appendix curates reusable
+"back-to-back" phrases. Grouped lists make it easy to tailor release notes,
+pipeline prompts, and operator briefings without repeating the same wording.
+
+### 📘 Master List of Back-to-Back Expressions
+
+#### ⏳ Time & Progression
+
+- day-by-day
+- year-by-year
+- month-by-month
+- week-by-week
+- hour-by-hour
+- minute-by-minute
+- moment-by-moment
+- second-by-second
+- stage-by-stage
+- step-by-step
+- phase-by-phase
+- period-by-period
+- generation-by-generation
+- season-by-season
+
+#### 🧩 Detail & Breakdown
+
+- one-by-one
+- bit-by-bit
+- piece-by-piece
+- part-by-part
+- element-by-element
+- block-by-block
+- brick-by-brick
+- layer-by-layer
+- inch-by-inch
+- detail-by-detail
+- section-by-section
+- line-by-line
+- row-by-row
+- page-by-page
+- chapter-by-chapter
+- verse-by-verse
+- note-by-note
+- word-by-word
+- letter-by-letter
+- character-by-character
+- pixel-by-pixel
+- frame-by-frame
+- click-by-click
+- question-by-question
+
+#### ⚔️ Conflict & Competition
+
+- face-to-face
+- toe-to-toe
+- head-to-head
+- shoulder-to-shoulder
+- nose-to-nose
+- hand-to-hand (combat)
+- eye-to-eye (agreement/disagreement)
+- back-to-back (matches, wins, games)
+- round-by-round
+- play-by-play
+
+#### 🤝 Unity & Relationships
+
+- hand-in-hand
+- arm-in-arm
+- shoulder-to-shoulder (also teamwork)
+- heart-to-heart (deep talk)
+- side-by-side
+- back-to-back (also protection / closeness)
+
+#### ⚖️ Equivalence & Exactness
+
+- word-for-word
+- letter-for-letter
+- number-for-number
+- like-for-like
+- point-for-point
+- pound-for-pound
+- tit-for-tat
+- eye-for-eye (Biblical phrase)
+- measure-for-measure
+
+#### 🏠 Travel & Movement
+
+- door-to-door (sales, delivery)
+- mile-by-mile
+- yard-by-yard
+- street-by-street
+- road-by-road
+- route-by-route
+- stop-by-stop
+- station-by-station
+- journey-by-journey
+- step-by-step (fits both travel & process)
+
+#### 🎨 Creative & Stylized
+
+- image-by-image
+- sketch-by-sketch
+- scene-by-scene
+- shot-by-shot
+- cut-by-cut
+- reel-by-reel (film)
+- track-by-track (music albums)
+- beat-by-beat (music/drama pacing)
+- post-by-post (social media)
+- tweet-by-tweet
+- story-by-story
+- article-by-article
+- blog-by-blog
+
+#### 📊 Learning & Analysis
+
+- example-by-example
+- case-by-case
+- problem-by-problem
+- equation-by-equation
+- proof-by-proof
+- theorem-by-theorem
+- argument-by-argument
+- point-by-point
+
+#### 🧠 Emotional/Experiential
+
+- breath-by-breath
+- heartbeat-by-heartbeat
+- tear-by-tear
+- smile-by-smile
+- memory-by-memory
+- thought-by-thought
+- lesson-by-lesson
+- experience-by-experience
+
+### ⚛️ Quantum Back-to-Back Glossary
+
+1. **Quantum-by-Quantum (State Evolution & Measurement)**
+
+   - **Meaning:** Systems evolve in discrete quanta instead of continuous
+     increments.
+   - **Used in:** Quantum measurement theory and harmonic oscillator analysis.
+   - **Equation:** `E_n = \hbar \omega (n + 1/2), n = 0, 1, 2, ...` — harmonic
+     oscillator energy levels climb quantum-by-quantum.
+
+2. **Photon-by-Photon (Quantum Optics)**
+
+   - **Meaning:** Observing light at the level of single photons.
+   - **Used in:** Single-photon experiments and quantum communication setups.
+   - **Equation:** `\hat{a}^\dagger |n\rangle = \sqrt{n + 1}\, |n + 1\rangle` —
+     the creation operator injects photons photon-by-photon.
+
+3. **Particle-by-Particle (Scattering & Detection)**
+
+   - **Meaning:** Treating each interaction or detection event as a discrete
+     particle process.
+   - **Used in:** Scattering calculations and quantum Monte Carlo simulations.
+   - **Equation:** `\Psi(r_1, r_2, ..., r_N)` — an N-body wavefunction is
+     assembled particle-by-particle.
+
+4. **Spin-by-Spin (Quantum Magnetism)**
+
+   - **Meaning:** Resolving spin chains and entanglement interactions step by
+     step.
+   - **Used in:** Ising and Heisenberg model evaluations.
+   - **Equation:** `H = -J \sum_i \sigma_i^z \sigma_{i+1}^z` — spin couplings
+     accumulate spin-by-spin across the chain.
+
+5. **Qubit-by-Qubit (Quantum Computing)**
+
+   - **Meaning:** Building and entangling quantum registers one qubit at a time.
+   - **Used in:** Quantum error correction and circuit synthesis.
+   - **Equation:** `|\psi\rangle = \bigotimes_{i=1}^{N} |q_i\rangle` — a
+     register state forms qubit-by-qubit.
+
+6. **State-to-State (Transitions)**
+
+   - **Meaning:** Tracking transition probabilities between discrete quantum
+     states.
+   - **Used in:** Spectroscopy analysis and Fermi's Golden Rule applications.
+   - **Equation:**
+     `W_{i \to f} = \frac{2\pi}{\hbar} |\langle f|H'|i\rangle|^2 \rho(E_f)` —
+     transition rates accrue state-to-state.
+
+7. **Phase-in-Phase (Coherence & Interference)**
+
+   - **Meaning:** Describing overlapping quantum phases that interfere
+     constructively or destructively.
+   - **Used in:** Superposition experiments, including the double-slit setup.
+   - **Equation:**
+     `|\Psi\rangle = \tfrac{1}{2} (e^{i\phi_1} |1\rangle + e^{i\phi_2} |2\rangle)`
+     — wave components combine phase-in-phase.
+
+8. **Energy-for-Energy (Conservation)**
+
+   - **Meaning:** Energy exchanges balance exactly within quantum interactions.
+   - **Used in:** Scattering derivations and conservation law bookkeeping.
+   - **Equation:** `E_{\text{in}} = E_{\text{out}}` — conservation enforces
+     energy-for-energy symmetry.
+
+9. **Field-to-Field (Quantum Field Theory)**
+
+   - **Meaning:** Capturing interactions between distinct quantum fields.
+   - **Used in:** Quantum electrodynamics (QED) and quantum chromodynamics
+     (QCD).
+   - **Equation:**
+     `\mathcal{L}_{\text{int}} = -e \bar{\psi} \gamma^{\mu} \psi A_{\mu}` — the
+     electron field couples field-to-field with the photon field.
+
+**Quantum summary:** Quantum systems advance discretely (quantum-by-quantum),
+relate through paired interactions (particle-by-particle, field-to-field),
+conserve exact quantities (energy-for-energy), and evolve procedurally
+(state-to-state).
+
+### 🔑 How to Invent New Ones
+
+The structure is productive and customizable:
+
+- `[Unit] + by + [Unit]`
+- `[Unit] + to + [Unit]`
+- `[Unit] + for + [Unit]`
+- `[Unit] + in + [Unit]`
+
+Examples to adapt for backlog items, experiments, or retrospectives include:
+
+- task-by-task, goal-by-goal (productivity)
+- layer-by-layer, frame-by-frame (technology)
+- pulse-by-pulse, breath-by-breath (poetic/emotional)
 
 ---
 
