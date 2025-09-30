@@ -1,16 +1,16 @@
 "use client";
 
-import { ReactNode, createContext, useContext } from 'react';
-import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createContext, ReactNode, useContext } from "react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { Database } from '@/integrations/supabase/types';
-
-function useTypedSupabaseClient(): SupabaseClient<Database> {
-  return useSupabaseClient<Database>();
-}
+import type { Database } from "@/integrations/supabase/types";
 
 type SupabaseClientValue = SupabaseClient<Database>;
+
+function useTypedSupabaseClient(): SupabaseClientValue {
+  return useSupabaseClient<Database>() as unknown as SupabaseClientValue;
+}
 
 interface SupabaseContextValue {
   supabase: SupabaseClientValue;
@@ -34,7 +34,7 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
 export const useSupabase = () => {
   const context = useContext(SupabaseContext);
   if (!context) {
-    throw new Error('useSupabase must be used within a SupabaseProvider');
+    throw new Error("useSupabase must be used within a SupabaseProvider");
   }
   return context;
 };
