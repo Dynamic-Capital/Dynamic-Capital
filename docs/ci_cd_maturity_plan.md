@@ -81,6 +81,7 @@ Transform the current CI/CD implementation into a high-velocity, self-optimizing
 
 ### Integration Backlog
 - [ ] Publish a shared CI template that imports Dynamic AI/AGI smoke tests and performance benchmarks.
+- [ ] Embed Dynamic CLI scenario evaluations into CI pipelines with cached back-to-back runs, automated diffing, and PR review summaries to gate merges and publish fine-tune artefacts.
 - [ ] Automate Dynamic AGS policy verification with OPA/Sentinel gates backed by AGI telemetry evidence.
 - [ ] Add Dynamic TL contract tests to the pull request pipeline with diff-based fixture generation.
 - [ ] Wire Dynamic TA GPU backtests into scheduled workflows using autoscaling runners with cost guards.

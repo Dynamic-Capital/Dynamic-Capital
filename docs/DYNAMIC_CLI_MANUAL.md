@@ -11,6 +11,7 @@
 | 6       | Engine Construction Workflow                    |
 | 7–8     | Report Rendering Formats                        |
 | 9       | JSON Schema Reference                           |
+| 10      | CI/CD Automation Patterns                       |
 | 11–12   | Operational Examples                            |
 | 13–14   | Troubleshooting & Diagnostics                   |
 | 15–16   | Glossary & Synonyms                             |
@@ -217,6 +218,136 @@ resembles:
 
 Each numerical field maps to floating-point output from the engine. Timestamps
 comply with ISO 8601 using a `Z` suffix for UTC.
+
+---
+
+## Page 10 — CI/CD Automation Patterns
+
+### GitHub Actions Workflow Blueprint
+
+```yaml
+name: dynamic-framework
+on:
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: dynamic-framework-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  cli-evaluation:
+    runs-on: ubuntu-latest
+    env:
+      PIP_CACHE_DIR: .pip-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Prime dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e .[cli]
+      - name: Validate canonical scenario
+        run: |
+          python -m dynamic_framework \
+            --scenario ci/scenario.json \
+            --format json \
+            --fine-tune-dataset artifacts/canonical.json \
+            --indent 2
+      - name: Validate regression scenario
+        run: |
+          python -m dynamic_framework \
+            --scenario ci/regression.json \
+            --format json \
+            --fine-tune-dataset artifacts/regression.json \
+            --indent 2
+      - name: Compare back-to-back outputs
+        run: |
+          python scripts/cli_ci/compare_reports.py \
+            artifacts/canonical.json \
+            artifacts/regression.json
+      - name: Publish fine-tune artefacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynamic-framework-reports
+          path: artifacts/
+```
+
+### Pipeline Integration Guidance
+
+- **Scenario source control**: Version the JSON scenarios alongside service code
+  so pull requests surface intent changes via diff review.
+- **Quality gates**: Fail the workflow when the CLI exits non-zero or when
+  report alerts include regression keywords surfaced via `jq`/`yq` filters.
+- **Back-to-back optimisation**: Run canonical and regression scenarios
+  consecutively, then diff the JSON outputs to ensure deterministic behaviour
+  and highlight maturity deltas before a code review is requested.
+- **Dataset promotion**: Store generated fine-tune datasets as build artefacts or
+  push them to object storage, enabling Dynamic AGI retraining cadences.
+- **Feedback telemetry**: Emit summary metrics (overall maturity, alerts count)
+  to pipeline observability tools to track trendlines over time.
+- **Review automations**: Post summarised results (overall score delta,
+  regression alerts, compare script output) as a PR comment via a GitHub App or
+  `actions/github-script` to guide reviewer focus.
+
+**Synonyms for automation contexts:** pipeline ⇔ workflow ⇔ release stream,
+artefact ⇔ dataset ⇔ bundle, guardrail ⇔ gate ⇔ checkpoint.
+
+### Back-to-Back Evaluation Checklist
+
+1. **Cache dependencies** so sequential runs do not repeat full environment
+   setup; prefer workflow-level pip caching plus `pip install -e .[cli]` to pull
+   optional extras needed by comparison scripts.
+2. **Execute canonical scenario first** to establish a baseline result that
+   should remain stable across the release train.
+3. **Execute regression or feature scenario next** to capture the impact of the
+   change under review.
+4. **Run automated comparison tooling** (e.g., `scripts/cli_ci/compare_reports.py`)
+   that tolerates expected drift via configurable thresholds while surfacing
+   unexpected deviations as review blockers.
+5. **Publish artefacts and summary metrics** so reviewers can inspect the raw
+   JSON and diffs without rerunning the workflow locally.
+6. **Record review evidence** by linking the workflow run, artefacts, and
+   compare output in the pull request checklist prior to merge.
+
+The following helper can live at `scripts/cli_ci/compare_reports.py` to enforce
+the comparison contract referenced above:
+
+```python
+#!/usr/bin/env python3
+"""Example scripts/cli_ci/compare_reports.py helper for back-to-back checks."""
+import json
+import sys
+from pathlib import Path
+
+
+def load_report(path: str) -> dict:
+    return json.loads(Path(path).read_text())
+
+
+def main() -> int:
+    baseline, candidate = sys.argv[1:3]
+    base_report = load_report(baseline)
+    cand_report = load_report(candidate)
+
+    delta = cand_report["overall_maturity"] - base_report["overall_maturity"]
+    alerts_added = set(cand_report.get("alerts", [])) - set(
+        base_report.get("alerts", []),
+    )
+
+    print(f"Overall maturity delta: {delta:+.4f}")
+    if alerts_added:
+        print("New alerts detected:")
+        for alert in sorted(alerts_added):
+            print(f"  - {alert}")
+    return 1 if alerts_added else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
 
 ---
 
