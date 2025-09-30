@@ -1,6 +1,6 @@
 # Development Workflow
 
-This guide outlines eight high-level steps to run, build, and deploy the
+This guide outlines nine high-level steps to run, build, and deploy the
 Telegram bot and optional Mini App.
 
 1. **Understand the project scope**
@@ -34,14 +34,32 @@ Telegram bot and optional Mini App.
    npm run build:miniapp # optional
    ```
 
-6. **Quality checks**
+6. **Quality checks & verification**
    - Type-check and test the codebase:
    ```bash
    deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
    deno test -A
    ```
+   - Run the aggregated verification suite when you need confidence across the
+     static exports, Telegram integrations, and trading automation:
+   ```bash
+   npm run verify
+   ```
+   - Following the Dynamic Codex flow? Use `npm run codex:verify` to invoke the
+     same checks from the workflow helper.
 
-7. **Deploy**
+7. **Optimize bundles (optional but recommended before release)**
+   - Produce production artifacts:
+   ```bash
+   npm run build
+   ```
+   - Inspect bundle composition with the built-in analyzer to spot regressions
+     before they reach Maldivian traders:
+   ```bash
+   ANALYZE=true npm run build:web
+   ```
+
+8. **Deploy**
    - Deploy edge functions and push to your hosting platform:
    ```bash
    supabase functions deploy telegram-bot --project-ref <PROJECT_REF>
@@ -49,7 +67,7 @@ Telegram bot and optional Mini App.
    ```
    - Configure the Telegram webhook via BotFather.
 
-8. **Post-deployment smoke tests**
+9. **Post-deployment smoke tests**
 
 - Verify deployed endpoints respond as expected. Replace `<PROJECT>` with your
   Supabase project ref, or use `TELEGRAM_WEBHOOK_URL` for the Telegram webhook
