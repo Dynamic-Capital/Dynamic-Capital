@@ -193,6 +193,7 @@ Explore the broader platform anatomy and contributor guides:
 
 - [Master meta-model reference](models/meta_model.md) — shared state/control/dynamics grammar with module index.
 - [Dynamic Capital ecosystem anatomy](docs/dynamic-capital-ecosystem-anatomy.md)
+- [Dynamic Capital flow chart](docs/dynamic-capital-flow-chart.md) — high-level CI/CD and runtime topology across GitHub, Vercel, Supabase, DigitalOcean, and TON.
 - [Dynamic AI overview](docs/dynamic-ai-overview.md)
 - [Dynamic Trading ALGO vs LOGIC](docs/dynamic-trading-algo-vs-logic.md)
 - [Model intelligence & infrastructure reference](docs/model-intelligence-infrastructure-reference.md)
