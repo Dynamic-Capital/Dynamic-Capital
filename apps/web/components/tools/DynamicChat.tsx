@@ -37,7 +37,7 @@ const DEFAULT_SYSTEM_PROMPT =
 export function DynamicChat() {
   const [providers, setProviders] = useState<ProviderSummary[]>([]);
   const [selectedProviderId, setSelectedProviderId] = useState<ProviderId | "">(
-    "",
+    "dynamic-agi",
   );
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(512);
@@ -116,14 +116,28 @@ export function DynamicChat() {
         if (cancelled) return;
         setProviders(data.providers);
 
-        if (!selectedProviderId) {
-          const firstConfigured = data.providers.find((provider) =>
-            provider.configured
-          );
-          setSelectedProviderId(
-            (firstConfigured ?? data.providers[0])?.id ?? "",
-          );
+        const resolvedSelection = data.providers.find((provider) =>
+          provider.id === selectedProviderId
+        );
+
+        if (resolvedSelection) {
+          setSelectedProviderId(resolvedSelection.id);
+          return;
         }
+
+        const dynamicAgiProvider = data.providers.find((provider) =>
+          provider.id === "dynamic-agi"
+        );
+
+        if (dynamicAgiProvider) {
+          setSelectedProviderId(dynamicAgiProvider.id);
+          return;
+        }
+
+        const firstConfigured = data.providers.find((provider) =>
+          provider.configured
+        );
+        setSelectedProviderId((firstConfigured ?? data.providers[0])?.id ?? "");
       } catch (providerError) {
         if (cancelled) return;
         const message = providerError instanceof Error
