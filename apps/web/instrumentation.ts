@@ -44,6 +44,33 @@ const registerImpl: () => Promise<void> = (() => {
   const isNodeRuntime = typeof process !== "undefined" &&
     !!process.versions?.node;
 
+  const dynamicImport = new Function(
+    "specifier",
+    "return import(specifier);",
+  ) as <T>(specifier: string) => Promise<T>;
+
+  const modulePaths = {
+    exporterPrometheus: [
+      "@opentelemetry",
+      "exporter-prometheus",
+    ].join("/"),
+    sdkMetrics: ["@opentelemetry", "sdk-metrics"].join("/"),
+    instrumentation: ["@opentelemetry", "instrumentation"].join("/"),
+    instrumentationHttp: [
+      "@opentelemetry",
+      "instrumentation-http",
+    ].join("/"),
+    instrumentationFetch: [
+      "@opentelemetry",
+      "instrumentation-fetch",
+    ].join("/"),
+    resources: ["@opentelemetry", "resources"].join("/"),
+    semanticConventions: [
+      "@opentelemetry",
+      "semantic-conventions",
+    ].join("/"),
+  } as const;
+
   async function ensurePrometheusExporter() {
     if (telemetryState.prometheusExporter) {
       return telemetryState.prometheusExporter;
@@ -54,9 +81,9 @@ const registerImpl: () => Promise<void> = (() => {
     }
 
     try {
-      const module = (await import(
-        /* webpackIgnore: true */ "@opentelemetry/exporter-prometheus"
-      )) as typeof import("@opentelemetry/exporter-prometheus");
+      const module = await dynamicImport<
+        typeof import("@opentelemetry/exporter-prometheus")
+      >(modulePaths.exporterPrometheus);
       const exporter = new module.PrometheusExporter({
         preventServerStart: true,
         appendTimestamp: false,
@@ -100,44 +127,44 @@ const registerImpl: () => Promise<void> = (() => {
     | undefined;
 
   async function loadSDKMetricsModule() {
-    sdkMetricsModulePromise ??= import(
-      /* webpackIgnore: true */ "@opentelemetry/sdk-metrics"
-    );
+    sdkMetricsModulePromise ??= dynamicImport<
+      typeof import("@opentelemetry/sdk-metrics")
+    >(modulePaths.sdkMetrics);
     return sdkMetricsModulePromise;
   }
 
   async function loadInstrumentationModule() {
-    instrumentationModulePromise ??= import(
-      /* webpackIgnore: true */ "@opentelemetry/instrumentation"
-    );
+    instrumentationModulePromise ??= dynamicImport<
+      typeof import("@opentelemetry/instrumentation")
+    >(modulePaths.instrumentation);
     return instrumentationModulePromise;
   }
 
   async function loadHttpInstrumentationModule() {
-    httpInstrumentationModulePromise ??= import(
-      /* webpackIgnore: true */ "@opentelemetry/instrumentation-http"
-    );
+    httpInstrumentationModulePromise ??= dynamicImport<
+      typeof import("@opentelemetry/instrumentation-http")
+    >(modulePaths.instrumentationHttp);
     return httpInstrumentationModulePromise;
   }
 
   async function loadFetchInstrumentationModule() {
-    fetchInstrumentationModulePromise ??= import(
-      /* webpackIgnore: true */ "@opentelemetry/instrumentation-fetch"
-    );
+    fetchInstrumentationModulePromise ??= dynamicImport<
+      typeof import("@opentelemetry/instrumentation-fetch")
+    >(modulePaths.instrumentationFetch);
     return fetchInstrumentationModulePromise;
   }
 
   async function loadResourcesModule() {
-    resourcesModulePromise ??= import(
-      /* webpackIgnore: true */ "@opentelemetry/resources"
-    );
+    resourcesModulePromise ??= dynamicImport<
+      typeof import("@opentelemetry/resources")
+    >(modulePaths.resources);
     return resourcesModulePromise;
   }
 
   async function loadSemanticConventionsModule() {
-    semanticConventionsModulePromise ??= import(
-      /* webpackIgnore: true */ "@opentelemetry/semantic-conventions"
-    );
+    semanticConventionsModulePromise ??= dynamicImport<
+      typeof import("@opentelemetry/semantic-conventions")
+    >(modulePaths.semanticConventions);
     return semanticConventionsModulePromise;
   }
 
