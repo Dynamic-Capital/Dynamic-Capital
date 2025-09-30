@@ -24,7 +24,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/utils";
 
 import {
-  type ChatMessage,
+  type DynamicChatEngineExecuteInput,
+  useDynamicChatEngine,
+} from "@/hooks/useDynamicChatEngine";
+import {
   type ChatResult,
   type ProviderId,
   type ProviderSummary,
@@ -37,23 +40,73 @@ interface ProvidersResponse {
 const DEFAULT_SYSTEM_PROMPT =
   "You are an analytical AI assistant comparing multiple model providers. Respond with concise, actionable insights.";
 
-interface ConversationItem extends ChatMessage {
-  usageSummary?: string;
-}
-
 export function MultiLlmStudio() {
   const [providers, setProviders] = useState<ProviderSummary[]>([]);
   const [selectedProviderId, setSelectedProviderId] = useState<ProviderId | "">(
     "",
   );
-  const [messages, setMessages] = useState<ConversationItem[]>([
-    { role: "system", content: DEFAULT_SYSTEM_PROMPT },
-  ]);
-  const [input, setInput] = useState("");
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(512);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const selectedProvider = useMemo(() => {
+    return providers.find((provider) => provider.id === selectedProviderId) ??
+      null;
+  }, [providers, selectedProviderId]);
+
+  useEffect(() => {
+    if (!selectedProvider) return;
+    setMaxTokens((previous) =>
+      Math.min(previous, selectedProvider.maxOutputTokens)
+    );
+  }, [selectedProvider]);
+
+  const executeChatWithProvider = useCallback(async ({
+    messages: pendingMessages,
+  }: DynamicChatEngineExecuteInput) => {
+    if (!selectedProvider) {
+      throw new Error("Select a provider before sending a message.");
+    }
+
+    const response = await fetch("/api/tools/multi-llm/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        providerId: selectedProvider.id,
+        messages: pendingMessages.map(({ role, content }) => ({
+          role,
+          content,
+        })),
+        temperature,
+        maxTokens,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      const message = typeof errorBody.error === "string"
+        ? errorBody.error
+        : `Chat request failed with status ${response.status}.`;
+      throw new Error(message);
+    }
+
+    const result = (await response.json()) as ChatResult;
+    return result;
+  }, [maxTokens, selectedProvider, temperature]);
+
+  const {
+    conversation,
+    systemMessage,
+    input,
+    setInput,
+    isLoading,
+    error,
+    setError,
+    resetConversation,
+    sendMessage,
+  } = useDynamicChatEngine({
+    initialSystemPrompt: DEFAULT_SYSTEM_PROMPT,
+    executor: executeChatWithProvider,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -91,24 +144,7 @@ export function MultiLlmStudio() {
     return () => {
       cancelled = true;
     };
-  }, [selectedProviderId]);
-
-  const selectedProvider = useMemo(() => {
-    return providers.find((provider) => provider.id === selectedProviderId) ??
-      null;
-  }, [providers, selectedProviderId]);
-
-  useEffect(() => {
-    if (!selectedProvider) return;
-    setMaxTokens((previous) =>
-      Math.min(previous, selectedProvider.maxOutputTokens)
-    );
-  }, [selectedProvider]);
-
-  const conversation = useMemo(
-    () => messages.filter((message) => message.role !== "system"),
-    [messages],
-  );
+  }, [selectedProviderId, setError]);
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim();
@@ -128,53 +164,8 @@ export function MultiLlmStudio() {
       return;
     }
 
-    setError(null);
-
-    const userMessage: ConversationItem = { role: "user", content: trimmed };
-    const pendingMessages = [...messages, userMessage];
-
-    setMessages(pendingMessages);
-    setInput("");
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/tools/multi-llm/chat", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          providerId: selectedProvider.id,
-          messages: pendingMessages,
-          temperature,
-          maxTokens,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        const message = typeof errorBody.error === "string"
-          ? errorBody.error
-          : `Chat request failed with status ${response.status}.`;
-        throw new Error(message);
-      }
-
-      const result = (await response.json()) as ChatResult;
-      const usageSummary = formatUsage(result.usage);
-      const assistantMessage: ConversationItem = {
-        ...result.message,
-        usageSummary,
-      };
-      setMessages((previous) => [...previous, assistantMessage]);
-    } catch (chatError) {
-      const message = chatError instanceof Error
-        ? chatError.message
-        : "Unable to generate a response.";
-      setError(message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [input, maxTokens, messages, selectedProvider, temperature]);
-
-  const systemMessage = messages.find((message) => message.role === "system");
+    await sendMessage();
+  }, [input, selectedProvider, sendMessage, setError]);
 
   return (
     <div className="w-full space-y-8">
@@ -337,11 +328,7 @@ export function MultiLlmStudio() {
             <div className="flex flex-wrap items-center justify-end gap-3">
               <Button
                 variant="outline"
-                onClick={() =>
-                  setMessages([{
-                    role: "system",
-                    content: DEFAULT_SYSTEM_PROMPT,
-                  }])}
+                onClick={resetConversation}
                 disabled={isLoading}
               >
                 Reset conversation
@@ -359,20 +346,4 @@ export function MultiLlmStudio() {
       </Card>
     </div>
   );
-}
-
-function formatUsage(usage: ChatResult["usage"]): string | undefined {
-  if (!usage) return undefined;
-  const parts: string[] = [];
-  if (typeof usage.inputTokens === "number") {
-    parts.push(`in: ${usage.inputTokens}`);
-  }
-  if (typeof usage.outputTokens === "number") {
-    parts.push(`out: ${usage.outputTokens}`);
-  }
-  if (typeof usage.totalTokens === "number") {
-    parts.push(`total: ${usage.totalTokens}`);
-  }
-  if (parts.length === 0) return undefined;
-  return parts.join(" · ");
 }
