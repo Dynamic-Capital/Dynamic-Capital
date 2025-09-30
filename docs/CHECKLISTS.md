@@ -47,6 +47,7 @@ key.
 | 18       | [`NFT Collectible Launch Checklist`](./nft-collectible-launch-checklist.md)                           | End-to-end preparation for story-driven NFT drops                                | Plan concept, metadata, utility, and community execution for a new collection         | `nft-collectible`     |
 | 19       | [`Dynamic AI (DAI) Validation`](./dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-ai-dai)            | Domain health checks for Dynamic AI telemetry, routing, and personas             | Run Dynamic AI regression tests before shipping Brain/orchestrator updates            | `dai`                 |
 | 20       | [`Dynamic AGI (DAGI) Oversight`](./dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-agi-dagi)         | Orchestration, mentorship, and self-improvement verification for DAGI            | Exercise DAGI loops prior to infrastructure or governance changes                     | `dagi`                |
+| 21       | [`Dynamic Capital Ecosystem Deployment`](./dynamic-capital-ecosystem-deployment-checklist.md)        | Full-stack Supabase, Vercel, DigitalOcean, Telegram, and TON deployment readiness | Coordinate multi-surface go-lives with cross-team owners                                | `ecosystem-deployment` |
 
 ## Project delivery (priorities 1–3)
 
@@ -89,6 +90,8 @@ key.
 - **[`Vercel Production Checklist`](./VERCEL_PRODUCTION_CHECKLIST.md)** –
   applies the Vercel Well-Architected review to the hosted frontend. Ideal
   before handoffs or compliance reviews.
+- **[`Dynamic Capital Ecosystem Deployment Checklist`](./dynamic-capital-ecosystem-deployment-checklist.md)** –
+  orchestrates the Supabase, Vercel, DigitalOcean, Telegram, and TON go-live sequence with a single cross-team playbook.
 
 ## Specialized projects & integrations (priorities 9–12)
 

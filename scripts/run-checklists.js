@@ -104,6 +104,17 @@ const TASK_LIBRARY = {
       "Parses the modular architecture document and reports the status of implementation and verification tasks.",
     ],
   },
+  "ecosystem-deployment-report": {
+    id: "ecosystem-deployment-report",
+    label:
+      "Summarize ecosystem deployment checklist (node scripts/checklists/dynamic-capital-ecosystem-deployment.mjs)",
+    command: "node scripts/checklists/dynamic-capital-ecosystem-deployment.mjs",
+    optional: false,
+    docs: ["docs/dynamic-capital-ecosystem-deployment-checklist.md"],
+    notes: [
+      "Parses the cross-surface deployment checklist and reports completion status by platform.",
+    ],
+  },
   "automated-trading-build-report": {
     id: "automated-trading-build-report",
     label:
@@ -409,6 +420,13 @@ const CHECKLISTS = {
       { task: "smoke-miniapp", optional: true },
       { task: "smoke-tunnel", optional: true },
     ],
+  },
+  "ecosystem-deployment": {
+    name: "Dynamic Capital Ecosystem Deployment Checklist",
+    doc: "docs/dynamic-capital-ecosystem-deployment-checklist.md",
+    description:
+      "Summarize progress across Supabase, Vercel, DigitalOcean, Telegram, and TON launch streams.",
+    tasks: ["ecosystem-deployment-report"],
   },
   "dynamic-modular-architecture": {
     name: "Dynamic Modular Architecture Checklist",
