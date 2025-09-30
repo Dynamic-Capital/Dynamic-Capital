@@ -5,7 +5,8 @@ launching or refreshing the Dynamic Capital ecosystem. Each section mirrors a
 platform owner. Complete every checkbox before marking the deployment ready.
 
 > **Automation:** Run `npm run checklists -- --checklist ecosystem-deployment`
-> to generate a progress report for this checklist.
+> to generate a progress report for this checklist. Snapshot logs live under
+> `docs/checklist-runs/` for historical reference.
 
 ## Supabase Setup
 
