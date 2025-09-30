@@ -86,6 +86,13 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DemandSnapshot",
         "DemandSummary",
     ),
+    "dynamic_deep_learning": (
+        "DynamicDeepLearningEngine",
+        "DeepLearningLayerSpec",
+        "DeepLearningModelSpec",
+        "TrainingSample",
+        "TrainingMetrics",
+    ),
     "dynamic_dockerfile": (
         "DynamicDockerfileEngine",
         "DockerfileContext",
