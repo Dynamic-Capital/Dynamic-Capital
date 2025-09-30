@@ -13,7 +13,13 @@ import {
   jsonResponse,
   methodNotAllowed,
   oops,
+  unauth,
 } from "@/utils/http.ts";
+import {
+  verifyAdminRequest,
+  isAdminVerificationFailure,
+  type AdminVerificationFailure,
+} from "@/utils/admin-auth.ts";
 
 const ROUTE_NAME = "/api/dynamic-cli";
 
@@ -202,8 +208,23 @@ function normaliseOutput(
   return { report: stdout.trimEnd() };
 }
 
+function handleAdminFailure(
+  result: AdminVerificationFailure,
+  req: Request,
+) {
+  if (result.status >= 500) {
+    return oops(result.message, undefined, req);
+  }
+  return unauth(result.message, req);
+}
+
 export async function POST(req: Request) {
   return await withApiMetrics(req, ROUTE_NAME, async () => {
+    const adminCheck = await verifyAdminRequest(req);
+    if (isAdminVerificationFailure(adminCheck)) {
+      return handleAdminFailure(adminCheck, req);
+    }
+
     let rawBody: unknown;
     try {
       rawBody = await req.json();

@@ -1,3 +1,5 @@
+import { createHmac } from "node:crypto";
+import { Buffer } from "node:buffer";
 import { EventEmitter } from "node:events";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 
@@ -49,6 +51,41 @@ declare const Deno: {
   test: (name: string, fn: () => void | Promise<void>) => void;
 };
 
+const ADMIN_SECRET = "test-admin-secret";
+
+function base64UrlEncode(input: string | Buffer): string {
+  return Buffer.from(input)
+    .toString("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+function createAdminToken(
+  secret: string,
+  claims: Partial<{ sub: string; admin: boolean; exp: number; iat: number }> = {},
+): string {
+  const header = { alg: "HS256", typ: "JWT" };
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    sub: "admin-user",
+    admin: true,
+    iat: now,
+    exp: now + 3600,
+    ...claims,
+  };
+  const headerSegment = base64UrlEncode(JSON.stringify(header));
+  const payloadSegment = base64UrlEncode(JSON.stringify(payload));
+  const signingInput = `${headerSegment}.${payloadSegment}`;
+  const signature = createHmac("sha256", secret)
+    .update(signingInput)
+    .digest("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+  return `${signingInput}.${signature}`;
+}
+
 function resetOverrides() {
   delete (globalThis as Record<PropertyKey, unknown>)[
     SPAWN_OVERRIDE_SYMBOL
@@ -60,6 +97,7 @@ function resetOverrides() {
 
 Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
   Deno.env.set("DYNAMIC_CLI_PYTHON", "python3");
+  Deno.env.set("ADMIN_API_SECRET", ADMIN_SECRET);
   (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
     createNoopApiMetrics();
 
@@ -100,10 +138,14 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
     exportDataset: true,
   } as const;
 
+  const token = createAdminToken(ADMIN_SECRET);
   const response = await POST(
     new Request("http://localhost/api/dynamic-cli", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-admin-token": token,
+      },
       body: JSON.stringify(body),
     }),
   );
@@ -149,6 +191,7 @@ Deno.test("POST /api/dynamic-cli returns CLI output", async () => {
 
 Deno.test("POST /api/dynamic-cli propagates CLI errors", async () => {
   Deno.env.set("DYNAMIC_CLI_PYTHON", "python3");
+  Deno.env.set("ADMIN_API_SECRET", ADMIN_SECRET);
   (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
     createNoopApiMetrics();
 
@@ -163,10 +206,14 @@ Deno.test("POST /api/dynamic-cli propagates CLI errors", async () => {
 
   const { POST } = await import("./route.ts");
 
+  const token = createAdminToken(ADMIN_SECRET);
   const response = await POST(
     new Request("http://localhost/api/dynamic-cli", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-admin-token": token,
+      },
       body: JSON.stringify({
         scenario: {
           nodes: [{ key: "orchestration", title: "Orchestration" }],
@@ -195,6 +242,44 @@ Deno.test("POST /api/dynamic-cli propagates CLI errors", async () => {
   const payload = await response.json() as { error?: string };
   if (!payload.error || !payload.error.includes("error: bad scenario")) {
     throw new Error("Expected CLI stderr to be surfaced in error payload");
+  }
+
+  resetOverrides();
+});
+
+Deno.test("POST /api/dynamic-cli rejects missing admin credentials", async () => {
+  Deno.env.set("DYNAMIC_CLI_PYTHON", "python3");
+  Deno.env.set("ADMIN_API_SECRET", ADMIN_SECRET);
+  (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
+    createNoopApiMetrics();
+
+  const { POST } = await import("./route.ts");
+
+  const response = await POST(
+    new Request("http://localhost/api/dynamic-cli", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        scenario: {
+          nodes: [{ key: "orchestration", title: "Orchestration" }],
+          pulses: [
+            {
+              node: "orchestration",
+              maturity: 0.8,
+              timestamp: "2024-04-01T00:00:00Z",
+            },
+          ],
+        },
+        format: "text",
+        indent: 2,
+        fineTuneTags: [],
+        exportDataset: false,
+      }),
+    }),
+  );
+
+  if (response.status !== 401) {
+    throw new Error(`Expected HTTP 401 when admin credentials are missing.`);
   }
 
   resetOverrides();

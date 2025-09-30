@@ -7,6 +7,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DynamicCliWorkbench } from "../DynamicCliWorkbench";
 import { DEFAULT_DYNAMIC_CLI_SCENARIO } from "@/services/dynamic-cli";
 
+const getAdminAuthMock = vi.fn(() => ({ token: "test-admin-token" }));
+
+vi.mock("@/hooks/useTelegramAuth", () => ({
+  useTelegramAuth: () => ({
+    telegramUser: null,
+    isAdmin: true,
+    isVip: true,
+    loading: false,
+    initData: null,
+    verifyTelegramAuth: vi.fn(),
+    checkAdminStatus: vi.fn(),
+    getAdminAuth: getAdminAuthMock,
+  }),
+}));
+
 const originalFetch = globalThis.fetch;
 const originalCreateObjectURL = globalThis.URL.createObjectURL;
 const originalRevokeObjectURL = globalThis.URL.revokeObjectURL;
@@ -76,6 +91,8 @@ describe("DynamicCliWorkbench", () => {
     fetchMock.mockReset();
     createObjectUrlMock.mockReset();
     revokeObjectUrlMock.mockReset();
+    getAdminAuthMock.mockReset();
+    getAdminAuthMock.mockReturnValue({ token: "test-admin-token" });
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
     globalThis.URL.createObjectURL = createObjectUrlMock;
     globalThis.URL.revokeObjectURL = revokeObjectUrlMock;
@@ -112,6 +129,9 @@ describe("DynamicCliWorkbench", () => {
     expect(payload.format).toBe("text");
     expect(payload.exportDataset).toBe(false);
     expect(payload.scenario).toEqual(DEFAULT_DYNAMIC_CLI_SCENARIO);
+    expect((init?.headers as Record<string, string>)["x-admin-token"]).toBe(
+      "test-admin-token",
+    );
 
     const report = await screen.findByLabelText(/dynamic cli report/i);
     expect(report).toHaveTextContent("CLI report");
@@ -131,6 +151,17 @@ describe("DynamicCliWorkbench", () => {
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent(/invalid dynamic cli payload/i);
+  });
+
+  it("blocks access when admin token is unavailable", () => {
+    getAdminAuthMock.mockReturnValue(null);
+
+    render(<DynamicCliWorkbench />);
+
+    expect(
+      screen.getByRole("heading", { name: /admin session required/i }),
+    ).toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("downloads the dataset when the fine-tune format is selected", async () => {

@@ -21,8 +21,10 @@ import {
   type DynamicCliReportFormat,
   type DynamicCliResponsePayload,
   type DynamicCliScenario,
+  type DynamicCliRequestOptions,
   runDynamicCli,
 } from "@/services/dynamic-cli";
+import { useTelegramAuth } from "@/hooks/useTelegramAuth";
 
 const FORMAT_OPTIONS: Array<{
   value: DynamicCliReportFormat;
@@ -60,6 +62,10 @@ function buildDefaultScenarioText(): string {
 }
 
 export function DynamicCliWorkbench() {
+  const { loading: adminLoading, getAdminAuth } = useTelegramAuth();
+  const adminAuth = useMemo(() => getAdminAuth?.() ?? null, [getAdminAuth]);
+  const hasAdminToken = Boolean(adminAuth?.token);
+
   const [scenarioText, setScenarioText] = useState(() =>
     buildDefaultScenarioText()
   );
@@ -133,13 +139,22 @@ export function DynamicCliWorkbench() {
 
     setIsSubmitting(true);
     try {
+      const auth = getAdminAuth?.();
+      if (!auth?.token) {
+        setError("Admin session expired. Refresh your admin token and try again.");
+        return;
+      }
+      const requestOptions: DynamicCliRequestOptions = {
+        adminToken: auth.token,
+        adminInitData: auth.initData,
+      };
       const response = await runDynamicCli({
         scenario: typedScenario,
         format,
         indent,
         fineTuneTags,
         exportDataset: resolvedDatasetPreference,
-      });
+      }, requestOptions);
       setResult(response);
     } catch (cliError) {
       const message = cliError instanceof Error
@@ -149,7 +164,14 @@ export function DynamicCliWorkbench() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [format, indent, resolvedDatasetPreference, fineTuneTags, scenarioText]);
+  }, [
+    format,
+    indent,
+    resolvedDatasetPreference,
+    fineTuneTags,
+    scenarioText,
+    getAdminAuth,
+  ]);
 
   const handleIndentChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -203,6 +225,32 @@ export function DynamicCliWorkbench() {
     anchor.click();
     URL.revokeObjectURL(objectUrl);
   }, [result]);
+
+  if (adminLoading) {
+    return (
+      <Column gap="24" align="center" horizontal="center" paddingY="40">
+        <Heading variant="heading-strong-m">Checking admin access…</Heading>
+        <Text variant="body-default-m" onBackground="neutral-weak" align="center">
+          Hold tight while we confirm your admin session.
+        </Text>
+      </Column>
+    );
+  }
+
+  if (!hasAdminToken) {
+    return (
+      <Column gap="24" align="center" horizontal="center" paddingY="40">
+        <Heading variant="heading-strong-m">Admin session required</Heading>
+        <Text variant="body-default-m" onBackground="neutral-weak" align="center">
+          Refresh the admin control room to generate a valid session token before
+          running the Dynamic CLI/CD workbench.
+        </Text>
+        <Tag size="s" background="brand-alpha-weak">
+          Tip: Authenticate via the admin gate to mint a new token.
+        </Tag>
+      </Column>
+    );
+  }
 
   return (
     <Column gap="32" fillWidth>

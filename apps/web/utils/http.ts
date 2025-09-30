@@ -124,7 +124,7 @@ if (!allowedOrigins.includes("*")) {
 export function buildCorsHeaders(origin: string | null, methods?: string) {
   const headers: Record<string, string> = {
     "access-control-allow-headers":
-      "authorization, x-client-info, apikey, content-type",
+      "authorization, x-client-info, apikey, content-type, x-admin-token, x-telegram-init-data",
     "access-control-allow-methods": methods ||
       "GET,POST,PUT,PATCH,DELETE,OPTIONS",
   };
