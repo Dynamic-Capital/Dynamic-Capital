@@ -12,6 +12,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) {
+    out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return out === 0;
+}
+
 function getLogger(req: Request) {
   return createLogger({
     function: "setup-webhook",
@@ -33,7 +42,11 @@ export async function handler(req: Request): Promise<Response> {
 
   const providedSecret = req.headers.get("X-Admin-Secret")?.trim() ?? "";
   const expectedSecret = optionalEnv("ADMIN_API_SECRET");
-  if (!expectedSecret || providedSecret !== expectedSecret) {
+  if (!expectedSecret) {
+    logger.error("ADMIN_API_SECRET is not configured; refusing request");
+    return oops("Server misconfigured", undefined, req);
+  }
+  if (!providedSecret || !timingSafeEqual(providedSecret, expectedSecret)) {
     logger.warn("unauthorized setup-webhook attempt", {
       hasSecret: Boolean(providedSecret),
     });
