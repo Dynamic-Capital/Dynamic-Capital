@@ -44,7 +44,7 @@ _Last run: 30 Sep 2025 (UTC) based on GitHub API snapshots._
 
 | Status | Task | Notes |
 | --- | --- | --- |
-| ⚠️ Pending environment | Mirror Ton Connect auth flows in staging with `tonkeeper-web` and demo dApps. | Prepared staging checklist from the web monorepo and SDK developer guides (Node 20 + Yarn 4 workspace, Nx build, and demo linking), but execution still needs Dynamic Capital staging credentials and Tonkeeper demo configuration.【8d7ef4†L1-L36】【3681e2†L1-L66】【fb699a†L1-L9】 |
+| ⚙️ Runbook staged | Mirror Ton Connect auth flows in staging with `tonkeeper-web` and demo dApps. | Auth runbook now captures toolchain prerequisites, staging boot overrides, demo manifest publishing, and Telegram/ngrok guidance, and a helper script fetches Tonendpoint payloads for both networks—execution is blocked only by Dynamic Capital staging credentials and Tonkeeper demo configuration.【F:docs/tonconnect-staging-auth-playbook.md†L1-L138】【F:scripts/tonkeeper/tonendpoint-config.mjs†L1-L132】 |
 | ⚙️ Docs aligned | Integrate `wallet-api` sandbox endpoints and document response contracts. | Pulled the updated deep-link matrix from Ton Console docs to map current URI parameters, enabling contract documentation without relying on the deprecated README; next step is validating responses against staging APIs.【bfbbfb†L1-L120】【c68773†L1-L79】 |
 | ⚠️ Evaluate | Embed `ton-keychain` security helpers where applicable. | Beta toolkit now has a published specification for mnemonic derivation across TON/ETH/TRON/BTC—perform cryptographic review before importing packages into custodial tooling flows.【7d12a1†L1-L11】【31f24d†L1-L52】 |
 
