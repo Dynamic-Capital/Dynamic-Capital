@@ -2,41 +2,78 @@
 
 ## Understanding Market Structure
 
-- Market structure relies on wave movements, reaction points, opposing orders,
-  and liquidity imbalances to reveal the intentions of price movers.
-- Structural pivots that cause reactions reflect future opposition; static ones
-  lack intent or liquidity information.
-- Market psychology: traders see markets moving relative to broader structure,
-  seeking market psychology consensus when structure is unclear.
-- Wyckoff's law: a body in motion (bull trend) continues until counter-order
-  flow creates imbalance.
-- Newton's third law: every bullish move meets bearish response at equilibrium;
-  breakout equals breakdown in magnitude.
-- Newton's first law restated: a bullish body stays in motion until counterflow
-  creates imbalance.
-- Liquidity and imbalance underpin market structure, covering price intent and
-  flow. Markets stay in equilibrium until liquidity imbalance shifts.
-- Buyers overpowering sellers signal bullishness; sellers overpowering buyers
-  indicate bearishness. Balanced markets move sideways, and equilibrium shifts
-  when pressure accumulates.
-- Key takeaways: aggressive buyers lift prices; dominant sellers drop prices;
-  balance brings sideways movement; trends follow reliable repeating structures.
+- *Is the market random?* It can feel that way when entries rely on indicators
+  without context, yet price is never random. Structure exposes the intent of
+  the orders driving price, revealing where opposition is gathering and why a
+  move is unfolding.
+- Structural pivots that generate strong reactions advertise the presence of
+  liquidity. Static or untouched levels lack that intent and cannot guide the
+  next decision in isolation.
+- Market psychology mirrors this. Traders view price relative to the larger
+  structure so they can agree on bias. When structure is unclear, consensus and
+  conviction fade until price advertises a new imbalance.
+- Wyckoff's first law applied to structure: a trending body remains in motion
+  until counter-order flow forces a change. Newton's laws echo the same lesson:
+  every bullish drive meets a bearish response at equilibrium, and a trend will
+  persist until opposing pressure builds enough to halt it.
+- Liquidity and imbalance therefore underpin market structure. Markets sit in
+  equilibrium while buyers and sellers are matched; imbalance tips the scale and
+  creates directional movement. You are studying the flow of orders transitioning
+  from balance → imbalance → new balance.
+- In this equilibrium state, liquidity depth varies. When the book can absorb
+  heavy selling, price may consolidate; when buyers overwhelm offers, the
+  advance accelerates. The reverse is equally true for bearish phases.
+- Everything you need to learn stems from observing how price behaves at that
+  equilibrium: who controls the auction, how fast that control changes hands,
+  and whether price returns to the mean or expands into trend continuation.
+
+### In summary
+
+- When buyers are more aggressive than sellers, upswings last longer than the
+  pullbacks.
+- When sellers are in control, downswings extend and retracements are shallow.
+- When pressure is balanced, swings appear random because the market is ranging.
 
 ## Market Structure Concept
 
-- Structure aligns order flow, liquidity building, and application of pressure
-  across time frames to reveal trend intent.
-- Primary trend examples: long-term with weekly higher highs and lows; long-term
-  with lower highs and lows.
-- Intermediate trend: between long-term extremes, showing higher or lower
-  intermediate levels.
-- Short-term trend: within intermediate trend, rising or falling relative to
-  surrounding levels.
-- Tertiary trend: the weakest flow, often counter to short-term direction,
-  lasting hours to days.
+- Market structure is a timeless definition driven by imbalances of buying and
+  selling. Those imbalances reveal whether price is defending higher levels or
+  pressuring toward new lows.
+- Structure aligns order flow, liquidity building, and pressure across multiple
+  time frames. Reading the hierarchy keeps you focused on the dominant trend.
+- Short-term moves can be manipulated. Anchor decisions in the higher-time-frame
+  bias first, then drop down to execute with the prevailing flow.
+
+### Trend tiers
+
+- **Primary / Long-Term Trend** – Lasting months to many years with weekly or
+  monthly higher highs/higher lows in a bull phase, or lower highs/lower lows in
+  a bear phase.
+- **Secondary (Intermediate) Trend** – Lasting from weeks to a few months,
+  moving in the opposite direction of the primary trend while building or
+  relieving liquidity at key levels.
+- **Intermediate-Term Flow** – Any short-term highs/lows that align with higher
+  short-term highs/lows; essentially the structure that bridges the primary and
+  intraday views.
+- **Short-Term Trend** – Days to weeks inside the intermediate structure,
+  printing new short-term highs or lows relative to the preceding swing.
+- **Tertiary Trend** – Hours to days. The weakest flow, often counter to the
+  active short-term direction, used to fine tune entries.
+
+- **Short-term bullish** behaviour prints higher lows relative to both the
+  preceding and following swing.
+- **Short-term bearish** behaviour prints lower highs relative to both the
+  preceding and following swing.
+- Treat the daily as the expected trend. Execute long setups in bullish
+  structure and short setups in bearish structure.
 
 ## Trading with Market Structure
 
+- When the market structure is bullish, plan for price to retest prior structure
+  before continuing. Supportive pullbacks offer the setups; fading strength does
+  not.
+- In bearish conditions, expect previous lows to be revisited and only fade a
+  decline when structure shifts or the higher-time-frame bias turns neutral.
 - Align directional bias with higher time frames and trade smaller time frame
   setups in that direction.
 - Anticipate reactions at equilibrium levels, key supports, and resistances;
@@ -57,15 +94,22 @@
 2. Bearish structure features price breaking previous lows and respecting prior
    highs.
 3. Intermediate swings take profits; short-term swings target direction
-   alignment for trend continuation.
-4. Higher time frame structure and weekly/daily charts set bias.
-5. Avoid trading lower time frames against higher time frame structure; wait for
-   a neutral or bullish bias before buying.
+   alignment for continuation.
+4. Anchor bias to the weekly and daily structure before drilling down.
+5. Stand aside on lower time frames until the higher structure turns neutral or
+   supportive of your idea.
 6. Allow higher time frame structure to coordinate with intraday entries.
-7. During bullish structure, watch swings for buy setups and sell swings
+7. Trade with the higher-time-frame bias during bullish regimes; fade rallies
    cautiously.
-8. Sell during bearish structure only in sync with short-term trend shifts.
-9. Wait for daily/weekly trends to align before loading buys.
+8. During bearish regimes, only take sells that align with both the higher
+   structure and the most recent short-term break of structure.
+9. Wait for daily/weekly trends to align before loading aggressive positions.
+10. In bullish regimes, focus on buying pullbacks to higher lows rather than
+    selling into strength.
+11. In bearish regimes, focus on selling lower highs rather than buying into
+    weakness.
+12. Track the Dollar Index and correlated macro drivers for confluence while
+    the structure plays out.
 
 ## Terms Cheat Sheet
 
