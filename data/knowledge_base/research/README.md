@@ -7,7 +7,8 @@ for mirroring the new material into the Dynamic Capital knowledge base.
 ## Source information
 
 - **OneDrive path:** `OneDrive\\DynamicAI_DB\\knowledge_base\\research`
-- **Supabase mirror (planned):** `public.one_drive_assets/knowledge_base/research/*`
+- **Supabase mirror (planned):**
+  `public.one_drive_assets/knowledge_base/research/*`
 - **Status:** Assets were uploaded to OneDrive and are awaiting checksum
   verification before being copied into Supabase cold storage.
 
@@ -24,10 +25,28 @@ for mirroring the new material into the Dynamic Capital knowledge base.
 
 ## Dataset registry
 
-| Dataset slug | Description | Notes |
-| ------------ | ----------- | ----- |
-| `dhivehi_radheef_v1` | Deduplicated Dhivehi Radheef dictionary slices prepared for bilingual instruction tuning. | Processed corpus at `processed/dhivehi_training_corpus.jsonl`; training telemetry in `training_runs/dhivehi_radheef_v1.json`. |
-| `market_structure_notes_v1` | Refined market-structure corpus with tier hierarchy, execution discipline, timeframe playbooks, and top-down workflow quick references. | Processed corpus at `processed/trading_market_structure_corpus.jsonl`. |
+| Dataset slug                 | Description                                                                                                                                    | Notes                                                                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dhivehi_radheef_v1`         | Deduplicated Dhivehi Radheef dictionary slices prepared for bilingual instruction tuning.                                                      | Processed corpus at `processed/dhivehi_training_corpus.jsonl`; training telemetry in `training_runs/dhivehi_radheef_v1.json`.                  |
+| `market_structure_notes_v1`  | Refined market-structure corpus with tier hierarchy, execution discipline, timeframe playbooks, and top-down workflow quick references.        | Processed corpus at `processed/trading_market_structure_corpus.jsonl`.                                                                         |
+| `nemotron_personas_japan_v1` | One million Japanese-language synthetic personas aligned to census demographics, geography, and cultural context for sovereign AI prototyping. | Source maintained on Hugging Face at `nvidia/Nemotron-Personas-Japan` (CC BY 4.0). Export with `python ml/extract_nemotron_personas_japan.py`. |
+
+### Extraction helpers
+
+Install the lightweight ML dependencies and materialise the Nemotron personas
+into JSONL form with:
+
+```bash
+pip install -r ml/requirements.txt
+python ml/extract_nemotron_personas_japan.py \
+  --limit 3600 \
+  --output data/knowledge_base/research/processed/nemotron_personas_japan.jsonl \
+  --summary data/knowledge_base/research/processed/nemotron_personas_japan_summary.json
+```
+
+Adjust `--limit` (or omit it) depending on whether you need a quick sample or
+the full six-million persona corpus. The summary report captures metadata counts
+and deduplication statistics for downstream validation.
 
 ## Latest training pass
 
