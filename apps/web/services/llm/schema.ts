@@ -9,6 +9,7 @@ export const chatRoleSchema = z.enum([
 ]) satisfies z.ZodType<ChatRole>;
 
 const providerIdSchema = z.enum([
+  "dynamic-agi",
   "openai",
   "anthropic",
   "groq",
