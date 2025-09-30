@@ -3,6 +3,7 @@ export const PRODUCTION_ORIGIN =
 
 export const PRODUCTION_ALLOWED_ORIGIN_LIST = [
   "https://dynamic-capital.ondigitalocean.app",
+  "https://dynamic-capital-qazf2.ondigitalocean.app",
   "https://dynamic.capital",
   "https://dynamic-capital.vercel.app",
   "https://dynamic-capital.lovable.app",
