@@ -840,4 +840,138 @@ export const HEATMAP_CONFIGS: Record<HeatmapAssetClass, HeatmapConfig> = {
       defaultEntries: SHARED_MARKET_MOVERS_DEFAULT,
     },
   },
+  stocks: {
+    assetClass: "stocks",
+    snapshotLabel: "Equities market snapshot",
+    hero: {
+      title: "Equities snapshot",
+      description:
+        "US megacaps and global leaders ranked by desk momentum so you can steer index and single-name exposure in sync with the playbook.",
+    },
+    strength: {
+      copy: {
+        title: "Equity Strength",
+        description:
+          "Momentum scoring for the equities roster currently driving risk-on flows.",
+        asOf: "As of 25 September 2025 at 06:29 GMT+5",
+      },
+      entries: [
+        {
+          instrumentId: "AAPL",
+          score: 82,
+          dayChange: "+1.4%",
+          sentiment: "Bullish",
+        },
+        {
+          instrumentId: "MSFT",
+          score: 76,
+          dayChange: "+0.9%",
+          sentiment: "Bullish",
+        },
+        {
+          instrumentId: "NVDA",
+          score: 88,
+          dayChange: "+2.1%",
+          sentiment: "Bullish",
+        },
+        {
+          instrumentId: "AMZN",
+          score: 69,
+          dayChange: "+0.7%",
+          sentiment: "Neutral",
+        },
+        {
+          instrumentId: "META",
+          score: 73,
+          dayChange: "+1.1%",
+          sentiment: "Bullish",
+        },
+        {
+          instrumentId: "GOOGL",
+          score: 71,
+          dayChange: "+0.8%",
+          sentiment: "Bullish",
+        },
+        {
+          instrumentId: "TSLA",
+          score: 54,
+          dayChange: "-1.8%",
+          sentiment: "Bearish",
+        },
+      ],
+    },
+    chart: {
+      copy: {
+        title: "Equities Heat Map",
+        description:
+          "Relative strength over the past month highlights which megacaps continue to lead.",
+        asOf: "As of 25 September 2025 at 06:29 GMT+5",
+      },
+      labels: ["W-4", "W-3", "W-2", "W-1", "Now"],
+      series: [
+        { instrumentId: "AAPL", values: [48, 52, 58, 64, 72] },
+        { instrumentId: "MSFT", values: [44, 47, 55, 60, 66] },
+        { instrumentId: "NVDA", values: [62, 68, 74, 81, 88] },
+      ],
+    },
+    matrix: {
+      copy: {
+        title: "Equities Momentum Matrix",
+        description:
+          "Short vs long-term momentum view that feeds the desk’s automation thresholds.",
+        asOf: "As of 25 September 2025 at 06:29 GMT+5",
+      },
+      tags: DEFAULT_TAGS,
+      points: [
+        {
+          instrumentId: "AAPL",
+          label: "AAPL",
+          shortTerm: 74,
+          longTerm: 66,
+          conviction: 82,
+          direction: "Bullish",
+        },
+        {
+          instrumentId: "MSFT",
+          label: "MSFT",
+          shortTerm: 62,
+          longTerm: 58,
+          conviction: 75,
+          direction: "Balancing",
+        },
+        {
+          instrumentId: "NVDA",
+          label: "NVDA",
+          shortTerm: 86,
+          longTerm: 78,
+          conviction: 88,
+          direction: "Bullish",
+        },
+        {
+          instrumentId: "TSLA",
+          label: "TSLA",
+          shortTerm: 48,
+          longTerm: 52,
+          conviction: 54,
+          direction: "Bearish",
+        },
+      ],
+    },
+    marketMovers: {
+      copy: {
+        title: "Equity Movers",
+        description:
+          "Mega-cap momentum board aligning with the equities desk automation.",
+      },
+      defaultEntries: [
+        { instrumentId: "AAPL", score: 82 },
+        { instrumentId: "MSFT", score: 76 },
+        { instrumentId: "NVDA", score: 88 },
+        { instrumentId: "AMZN", score: 71 },
+        { instrumentId: "META", score: 73 },
+        { instrumentId: "GOOGL", score: 70 },
+        { instrumentId: "TSLA", score: 54 },
+      ],
+    },
+  },
 };

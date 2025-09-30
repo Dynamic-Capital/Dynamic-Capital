@@ -1,6 +1,11 @@
 import type { Colors } from "@/components/dynamic-ui-system";
 
-export type AssetClass = "commodities" | "currencies" | "indices" | "crypto";
+export type AssetClass =
+  | "commodities"
+  | "currencies"
+  | "indices"
+  | "crypto"
+  | "stocks";
 
 export interface InstrumentMetadata {
   id: string;
@@ -473,6 +478,90 @@ const RAW_INSTRUMENTS: InstrumentMetadata[] = [
     displaySymbol: "US2000",
     name: "Russell 2000",
     assetClass: "indices",
+  },
+  {
+    id: "AAPL",
+    displaySymbol: "AAPL",
+    name: "Apple Inc.",
+    assetClass: "stocks",
+    format: {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+  },
+  {
+    id: "MSFT",
+    displaySymbol: "MSFT",
+    name: "Microsoft Corp.",
+    assetClass: "stocks",
+    format: {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+  },
+  {
+    id: "NVDA",
+    displaySymbol: "NVDA",
+    name: "NVIDIA Corp.",
+    assetClass: "stocks",
+    format: {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+  },
+  {
+    id: "AMZN",
+    displaySymbol: "AMZN",
+    name: "Amazon.com Inc.",
+    assetClass: "stocks",
+    format: {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+  },
+  {
+    id: "TSLA",
+    displaySymbol: "TSLA",
+    name: "Tesla Inc.",
+    assetClass: "stocks",
+    format: {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+  },
+  {
+    id: "META",
+    displaySymbol: "META",
+    name: "Meta Platforms Inc.",
+    assetClass: "stocks",
+    format: {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
+  },
+  {
+    id: "GOOGL",
+    displaySymbol: "GOOGL",
+    name: "Alphabet Inc. Class A",
+    assetClass: "stocks",
+    format: {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    },
   },
   {
     id: "DXY",
