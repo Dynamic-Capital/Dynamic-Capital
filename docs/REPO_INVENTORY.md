@@ -30,9 +30,8 @@ _Last updated: 2025-09-15 (UTC)._
 ## 4. Supporting infrastructure & configuration
 
 - **`docker/`** – Container assets including app and Go service Dockerfiles, compose file, Nginx config, and health check script for running the stack in controlled environments.【b095f5†L1-L2】
-- **`dns/`** – DNS zone export (previously `dynamic-capital.ondigitalocean.app.zone`;
-  update with `dynamic-capital-qazf2.ondigitalocean.app` when a fresh export is
-  captured) and
+- **`dns/`** – DNS zone export (`dynamic-capital.ondigitalocean.app.zone`; update
+  when a fresh export is captured) and
   DigitalOcean automation config (`dynamic-capital.lovable.app.json`) used to
   reproduce external records.【a93f31†L1-L2】
 - **`apps/web/app/telegram/`** – Next.js route for the Telegram operations dashboard, replacing the standalone Dynamic Codex Vite workspace so bot tooling ships from the unified build.【F:apps/web/app/telegram/page.tsx†L1-L11】【F:README.md†L96-L117】

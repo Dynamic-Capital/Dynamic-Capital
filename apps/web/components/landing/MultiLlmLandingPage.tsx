@@ -25,7 +25,7 @@ const HERO_BADGES = [
 
 const CTA_LINKS = {
   telegram: "https://t.me/dynamiccapital", // replace with production invite when ready
-  invest: "https://dynamic-capital-qazf2.ondigitalocean.app/app",
+  invest: "https://dynamic-capital.ondigitalocean.app/app",
   learn: "#academy",
 };
 

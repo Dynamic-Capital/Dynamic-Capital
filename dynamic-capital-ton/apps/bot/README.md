@@ -6,7 +6,7 @@ A minimal Telegraf bot that welcomes users and links them to the Dynamic Capital
 
 ```bash
 TELEGRAM_BOT_TOKEN=xxxxxxxx
-APP_URL=https://dynamic-capital-qazf2.ondigitalocean.app
+APP_URL=https://dynamic-capital.ondigitalocean.app
 ```
 
 Install dependencies with `pnpm install` and run the bot locally using:
