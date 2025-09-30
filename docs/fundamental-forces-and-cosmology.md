@@ -198,6 +198,90 @@ c^{2}}{a^{2}}, \qquad \frac{\ddot{a}}{a} = -\frac{4\pi G}{3} \left( \rho +
   and scaling plans, selecting the policy that maximizes cash runway while
   satisfying service-level objectives.
 
+## Cosmological Endgames → Market Regime Fail-Safes
+
+Use cosmic end-state analogies to stress-test growth assumptions and confirm
+that the treasury, research, and operations pods can detect when the market is
+drifting toward unproductive equilibria.
+
+### Big Freeze — Low-Volatility Drift
+
+\[
+\frac{dP}{dt} \propto \frac{\Lambda_{\text{info}}}{1 + e^{\alpha P}} - \Gamma_{\text{volatility}}
+\]
+
+- **\(\Lambda_{\text{info}}\)** → Background signal trickle. Daily telemetry,
+  new listings, and small partner updates nudge price upward without exciting
+  catalysts.
+- **\(\alpha\)** → Market saturation dampener. As AUM and operational
+  efficiency improve, each incremental data point produces a smaller reaction.
+- **\(\Gamma_{\text{volatility}}\)** → Volatility decay. Orderflow and
+  liquidity smoothing tools absorb shocks, flattening realized variance.
+
+**Playbook triggers**
+
+- Track realized vs. implied volatility each week; when both compress toward
+  long-run means, rotate analyst cycles from reactionary firefighting to deep
+  research so future catalysts are ready.
+- Schedule liquidity stress drills quarterly so the desk can respond if
+  \(\Lambda_{\text{info}}\) suddenly spikes—preventing complacency while the
+  market drifts.
+
+### Big Crunch — Self-Reinforcing Deleveraging
+
+\[
+\frac{d^{2}P}{dt^{2}} \propto -\frac{G_{\text{greed}} \cdot M_{\text{debt}}}{P^{2}} + \Lambda_{\text{optimism}}
+\]
+
+- **\(G_{\text{greed}}\)** → Speculative leverage appetite. Aggressive
+  position sizing and relaxed guardrails amplify positive feedback loops.
+- **\(M_{\text{debt}}\)** → Accumulated counterparty exposure. Unwound credit
+  lines and leverage caps accelerate the crash.
+- **\(\Lambda_{\text{optimism}}\)** → Narrative optimism. Product marketing,
+  community sentiment, and roadmap promises delay the collapse until they are
+  overpowered.
+
+**Playbook triggers**
+
+- Instrument debt and margin inventory dashboards; when coverage ratios fall
+  below policy floors, auto-trigger unwind runbooks before acceleration flips
+  negative.
+- Run scenario sims on \(P^{-2}\) sensitivity so teams understand how far they
+  can stretch collateral or net asset value before liquidation cascades start.
+
+### Big Rip — Runaway Fear Dynamics
+
+\[
+\frac{d^{2}P}{dt^{2}} \propto \omega_{\text{fear}}(t) \cdot P, \qquad \omega_{\text{fear}}(t) < -1
+\]
+
+- **\(\omega_{\text{fear}}(t)\)** → Time-varying panic coefficient. Social
+  feeds, macro shocks, and rumor velocity accelerate disorder as time passes.
+- **\(P\)** → Market price level—pulled apart from fundamentals when fear
+  dominates signal quality.
+
+**Playbook triggers**
+
+- Pair sentiment scrapers with exchange orderbook health metrics; when
+  \(\omega_{\text{fear}}(t)\) trends downward faster than liquidity can refill,
+  activate circuit-breaker policies (reduced quotes, spread widening, hedged
+  unwinds).
+- Maintain "chaos drills" that rehearse communication cadence, custodian
+  coordination, and customer support scripts so the organization remains
+  cohesive as \(\omega_{\text{fear}}(t)\) diverges.
+
+### Why These Equations Remain Metaphors
+
+- **Human agency:** Desk leads and counterparties adapt as soon as an anomaly is
+  spotted, invalidating any static constant like \(G_{\text{greed}}\) or
+  \(\Lambda_{\text{optimism}}\).
+- **Irreducible complexity:** Macro policy shifts, liquidity venues, and
+  inter-agent feedback add hidden variables that no single equation captures.
+- **Subjective value:** Token valuations emerge from collective expectations,
+  not a conserved physical quantity.
+- **Information flow:** News latency, execution speed, and messaging load create
+  non-continuous shocks unlike smooth cosmological expansion.
+
 ## Quantum Entanglement → Cross-Bot Coordination
 
 A maximally entangled Bell state couples two qubits:
