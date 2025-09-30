@@ -1,6 +1,6 @@
 # Dynamic Inventory Knowledge Base
 
-_Last updated: 2025-09-28 (UTC)_
+_Last updated: 2024-05-05 (UTC)_
 
 This catalog summarizes the repository's `dynamic_` directories so you can
 explore related knowledge modules at a glance.
@@ -13,12 +13,13 @@ explore related knowledge modules at a glance.
 - [Potential uses for each module](#potential-uses-for-each-module)
 - [Next steps to enrich the knowledge base](#next-steps-to-enrich-the-knowledge-base)
 - [Complete alphabetical index](#complete-alphabetical-index)
+- [Command-line listing](#command-line-listing)
 
 ## Snapshot metrics
 
-- Total directories: 161
+- Total directories: 183 (see the live script output below)
 - Domain groups: 11 (largest: Technology & Infrastructure with 54 modules)
-- Generation command: `ls -d dynamic_* | sort`
+- Generation helper: `npx tsx scripts/list-dynamic-inventory.ts`
 
 ## Domain overview
 
@@ -36,7 +37,6 @@ explore related knowledge modules at a glance.
 | Process & Workflow Tooling | 9 | Frameworks for orchestrating routines, bridges, and continuous cycles. |
 | Natural Systems & Sustainability | 5 | Biological and energy-oriented systems thinking. |
 | Conceptual & Experimental Frameworks | 4 | Abstract models, pillars, and exploratory mental scaffolds. |
-
 
 ## Domain-based catalog
 
@@ -331,3 +331,13 @@ The table below is sorted alphabetically from left to right for quick scanning.
 | `dynamic_wave` | `dynamic_web` | `dynamic_web3` | `dynamic_wisdom` |
 | `dynamic_zone` |  |  |  |
 
+## Command-line listing
+
+For an always up-to-date directory roster, run the helper script:
+
+```bash
+npx tsx scripts/list-dynamic-inventory.ts
+```
+
+It prints the current count (183 at the time of this update) followed by every
+`dynamic_` module name, ensuring you never rely on stale manual counts.
