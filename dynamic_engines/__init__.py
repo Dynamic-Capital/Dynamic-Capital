@@ -258,6 +258,12 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "ShoppingItem",
     ),
     "dynamic_script": ("DynamicScriptEngine",),
+    "dynamic_sense": (
+        "DynamicSenseEngine",
+        "SenseSignal",
+        "SenseContext",
+        "SenseFrame",
+    ),
     "dynamic_self_awareness": ("DynamicSelfAwareness",),
     "dynamic_ecosystem": (
         "CascadeSimulation",
