@@ -42,7 +42,9 @@ Ready to continue your trading success? 🚀',
   'contact_message',
   '💬 Contact Dynamic Capital Support
 
-📧 Email: dynamiccapitalapp@gmail.com
+📧 Inquiries: hello@dynamiccapital.ton
+🛟 Support: support@dynamiccapital.ton
+📣 Marketing: marketing@dynamiccapital.ton
 💬 Telegram: @DynamicCapital_Support
 
 🕐 Support Hours: 24/7
@@ -58,9 +60,11 @@ How can we help you today?',
 
 -- Insert default contact links (without ON CONFLICT since we don't have unique constraints on these fields)
 INSERT INTO public.contact_links (platform, display_name, url, icon_emoji, is_active, display_order) VALUES
-('email', 'Email', 'dynamiccapitalapp@gmail.com', '📧', true, 1),
-('telegram', 'Telegram Support', '@DynamicCapital_Support', '💬', true, 2),
-('website', 'Website', 'https://dynamiccapital.com', '🌐', true, 3);
+('email', 'Inquiries Email', 'hello@dynamiccapital.ton', '📧', true, 1),
+('support', 'Support Email', 'support@dynamiccapital.ton', '🛟', true, 2),
+('marketing', 'Marketing Email', 'marketing@dynamiccapital.ton', '📣', true, 3),
+('telegram', 'Telegram Support', '@DynamicCapital_Support', '💬', true, 4),
+('website', 'Website', 'https://dynamiccapital.com', '🌐', true, 5);
 
 -- Insert default bot setting for auto intro feature
 INSERT INTO public.bot_settings (setting_key, setting_value, setting_type, description, is_active) VALUES

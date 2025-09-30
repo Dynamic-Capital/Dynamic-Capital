@@ -849,7 +849,9 @@ Our support team is here for you!
 ${contactLinks}
 
 🕐 Support Hours: 24/7
-We typically respond within 2-4 hours.`;
+We typically respond within 2-4 hours.
+
+Route inquiries or marketing requests to the channels listed above.`;
 
     return {
       text: supportMessage,
@@ -1119,10 +1121,15 @@ async function fetchActiveContactLinks(): Promise<string> {
 
     if (!links || links.length === 0) {
       return [
-        "📱 Instagram: https://www.instagram.com/dynamic.capital/",
-        "📱 Facebook: https://www.facebook.com/dynamic.capital.fb/",
+        "📧 Inquiries: hello@dynamiccapital.ton",
+        "🛟 Support: support@dynamiccapital.ton",
+        "📣 Marketing: marketing@dynamiccapital.ton",
+        "💬 Telegram: https://t.me/DynamicCapital_Support",
+        "🌐 Website: https://dynamiccapital.com",
+        "📸 Instagram: https://www.instagram.com/dynamic.capital/",
+        "📘 Facebook: https://www.facebook.com/dynamic.capital.fb/",
         "📊 TradingView: https://www.tradingview.com/u/DynamicCapital-FX/",
-        "📱 TikTok: https://www.tiktok.com/@dynamic.capital.mv/",
+        "🎵 TikTok: https://www.tiktok.com/@dynamic.capital.mv/",
       ].join("\n");
     }
 
@@ -1137,10 +1144,15 @@ async function fetchActiveContactLinks(): Promise<string> {
   } catch (error) {
     console.error("Error fetching contact links:", error);
     return [
-      "📱 Instagram: https://www.instagram.com/dynamic.capital/",
-      "📱 Facebook: https://www.facebook.com/dynamic.capital.fb/",
+      "📧 Inquiries: hello@dynamiccapital.ton",
+      "🛟 Support: support@dynamiccapital.ton",
+      "📣 Marketing: marketing@dynamiccapital.ton",
+      "💬 Telegram: https://t.me/DynamicCapital_Support",
+      "🌐 Website: https://dynamiccapital.com",
+      "📸 Instagram: https://www.instagram.com/dynamic.capital/",
+      "📘 Facebook: https://www.facebook.com/dynamic.capital.fb/",
       "📊 TradingView: https://www.tradingview.com/u/DynamicCapital-FX/",
-      "📱 TikTok: https://www.tiktok.com/@dynamic.capital.mv/",
+      "🎵 TikTok: https://www.tiktok.com/@dynamic.capital.mv/",
     ].join("\n");
   }
 }
@@ -1284,6 +1296,8 @@ ${contactLinks}
 
 🕐 Support Hours: 24/7
 📞 We typically respond within 2-4 hours
+
+Route inquiries, support tickets, or marketing campaigns to the channel that fits best.
 
 How can we help you today?`;
 

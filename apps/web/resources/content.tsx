@@ -34,7 +34,7 @@ const person: Person = {
   name: "Abdul Mumin Ibun Aflhal",
   role: "Founder",
   avatar: supabaseAsset("images/avatar.jpg"),
-  email: "dynamiccaptialapp@gmail.com",
+  email: "hello@dynamiccapital.ton",
   location: DESK_TIME_ZONE,
   locationLabel: DESK_TIME_ZONE_LABEL,
 };
