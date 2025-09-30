@@ -4,8 +4,9 @@ This guide outlines eight high-level steps to run, build, and deploy the
 Telegram bot and optional Mini App.
 
 1. **Understand the project scope**
-   - Telegram bot for deposit workflows with optional Mini App for richer
-     interactions.
+   - First Maldivian Web3 trading application delivered through a Telegram bot
+     with optional Mini App for richer interactions and verified deposit
+     workflows.
 
 2. **Set up prerequisites**
    - Install Node.js 22.x (LTS), Deno, and the Supabase CLI.

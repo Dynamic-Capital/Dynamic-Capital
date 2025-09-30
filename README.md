@@ -1,9 +1,9 @@
-# Dynamic Capital — Telegram Bot & Mini App
+# Dynamic Capital — First Maldivian Web3 Trading Application
 
 <!-- BADGES:START -->
 <!-- BADGES:END -->
 
-**Fast deposits for traders. Bank & crypto, verified.**
+**First Maldivian Web3 trading platform, unifying bank and crypto deposits with verified speed.**
 
 ## Table of Contents
 
@@ -85,7 +85,7 @@
 
 ## Overview
 
-Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development experience.
+Dynamic Capital is the first Maldivian Web3 trading application, pairing a Telegram-first bot and optional Mini App (Web App) for deposit workflows (bank OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development experience.
 
 A single Next.js application powers both the marketing landing page and the authenticated dashboard. The build pipeline captures the homepage into the repository-level `_static/` directory so it can be served via CDN without touching runtime secrets, while the live `/app` routes continue to handle Supabase access, authentication, and other server-side features.
 
