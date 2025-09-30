@@ -1,0 +1,178 @@
+{
+  "dataset": "data/knowledge_base/research/processed/dhivehi_training_corpus.jsonl",
+  "objective": "knowledge-base-research-dhivehi",
+  "signals": [
+    {
+      "run_label": "knowledge-base-research-dhivehi-epoch-1",
+      "dataset_rows": 171,
+      "accuracy": 0.871778721682848,
+      "loss": 0.46611063915857603,
+      "throughput": 322.1333333333333,
+      "stability": 0.7403527698716054,
+      "compute_efficiency": 0.91,
+      "label_quality": 0.7599417475728155,
+      "energy": 0.22188666666666668,
+      "weight": 0.5,
+      "timestamp": "2025-09-30T06:03:16.822935+00:00",
+      "tags": [
+        "trading"
+      ],
+      "metadata": {
+        "epoch": 1,
+        "chunk_rows": 171,
+        "chunk_languages": {
+          "dv": 171
+        },
+        "chunk_tags": [
+          "trading"
+        ],
+        "avg_prompt_chars": 54.92397660818713,
+        "avg_response_chars": 64.60818713450293
+      }
+    },
+    {
+      "run_label": "knowledge-base-research-dhivehi-epoch-2",
+      "dataset_rows": 171,
+      "accuracy": 0.891778721682848,
+      "loss": 0.458110639158576,
+      "throughput": 324.2666666666667,
+      "stability": 0.7753527698716054,
+      "compute_efficiency": 0.92,
+      "label_quality": 0.7679417475728155,
+      "energy": 0.22688666666666668,
+      "weight": 0.5,
+      "timestamp": "2025-09-30T06:03:16.823999+00:00",
+      "tags": [
+        "trading"
+      ],
+      "metadata": {
+        "epoch": 2,
+        "chunk_rows": 171,
+        "chunk_languages": {
+          "dv": 171
+        },
+        "chunk_tags": [
+          "trading"
+        ],
+        "avg_prompt_chars": 55.514619883040936,
+        "avg_response_chars": 65.22222222222223
+      }
+    },
+    {
+      "run_label": "knowledge-base-research-dhivehi-epoch-3",
+      "dataset_rows": 171,
+      "accuracy": 0.9117787216828479,
+      "loss": 0.450110639158576,
+      "throughput": 326.4,
+      "stability": 0.8103527698716054,
+      "compute_efficiency": 0.93,
+      "label_quality": 0.7759417475728155,
+      "energy": 0.23188666666666669,
+      "weight": 0.5,
+      "timestamp": "2025-09-30T06:03:16.825040+00:00",
+      "tags": [
+        "trading"
+      ],
+      "metadata": {
+        "epoch": 3,
+        "chunk_rows": 171,
+        "chunk_languages": {
+          "dv": 171
+        },
+        "chunk_tags": [
+          "trading"
+        ],
+        "avg_prompt_chars": 55.54385964912281,
+        "avg_response_chars": 72.98245614035088
+      }
+    },
+    {
+      "run_label": "knowledge-base-research-dhivehi-epoch-4",
+      "dataset_rows": 2,
+      "accuracy": 0.9317787216828479,
+      "loss": 0.44211063915857607,
+      "throughput": 328.5333333333333,
+      "stability": 0.8453527698716053,
+      "compute_efficiency": 0.9400000000000001,
+      "label_quality": 0.7839417475728155,
+      "energy": 0.23688666666666666,
+      "weight": 0.5,
+      "timestamp": "2025-09-30T06:03:16.825212+00:00",
+      "tags": [
+        "trading"
+      ],
+      "metadata": {
+        "epoch": 4,
+        "chunk_rows": 2,
+        "chunk_languages": {
+          "dv": 2
+        },
+        "chunk_tags": [
+          "trading"
+        ],
+        "avg_prompt_chars": 56.0,
+        "avg_response_chars": 51.0
+      }
+    }
+  ],
+  "diagnostics": {
+    "base_metrics": {
+      "dataset_rows": 515,
+      "avg_prompt_chars": 55.33009708737864,
+      "avg_response_chars": 67.53980582524272,
+      "avg_context_chars": 66.64271844660195,
+      "avg_total_chars": 189.5126213592233,
+      "std_total_chars": 64.1668738897179,
+      "std_ratio": 0.33858892051357825,
+      "languages": {
+        "dv": 515
+      },
+      "tags": {
+        "trading": 515
+      },
+      "dedupe_ratio": 0.0,
+      "total_characters": 97599
+    },
+    "epochs": 4,
+    "baseline": {
+      "accuracy": 0.851778721682848,
+      "loss": 0.47411063915857604,
+      "throughput": 320.0,
+      "stability": 0.7653527698716054,
+      "efficiency": 0.9,
+      "label_quality": 0.7519417475728155,
+      "energy": 0.21688666666666667
+    }
+  },
+  "readiness": {
+    "readiness": 0.7622340620649359,
+    "confidence": 0.6280089092076473,
+    "quality": 0.7,
+    "efficiency": 1.0,
+    "focus_areas": [
+      "tighten regularisation to compress loss trajectory"
+    ],
+    "advisories": [
+      "Priority themes: trading"
+    ],
+    "recommended_actions": [
+      "Promote candidate checkpoint for evaluation gate",
+      "Address focus areas before scaling training footprint"
+    ],
+    "sample_size": 4,
+    "metadata": {
+      "averages": {
+        "accuracy": 0.9017787216828479,
+        "loss": 0.454110639158576,
+        "throughput": 325.3333333333333,
+        "stability": 0.7928527698716054,
+        "efficiency": 0.925,
+        "label_quality": 0.7719417475728155,
+        "energy": 0.22938666666666668,
+        "quality": 0.903998466828479
+      },
+      "window": 5,
+      "samples": 4
+    }
+  }
+}
