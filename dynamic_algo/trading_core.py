@@ -211,6 +211,28 @@ _TRUE_FLAG_VALUES = {"true", "yes", "on", "1", "enable", "enabled"}
 _FALSE_FLAG_VALUES = {"false", "no", "off", "0", "disable", "disabled"}
 
 
+_SIGNAL_NUMERIC_LOOKUPS: Dict[str, tuple[str, ...]] = {
+    "confidence": ("confidence", "confidence_score"),
+    "conviction": ("conviction", "strength", "probability"),
+    "urgency": ("urgency", "velocity", "timing"),
+    "risk": ("risk", "risk_score", "drawdown_risk"),
+    "volatility": ("volatility", "volatility_score", "turbulence"),
+    "size_multiplier": ("size_multiplier", "lot_multiplier", "scale", "boost"),
+    "edge": ("edge", "edge_score", "alpha", "edge_probability"),
+    "reward": ("reward", "reward_score", "risk_reward", "rr"),
+    "heat": ("portfolio_heat", "heat", "exposure_utilization", "book_utilisation"),
+    "drawdown": ("drawdown", "max_drawdown", "floating_drawdown"),
+    "implied_volatility": (
+        "implied_volatility",
+        "expected_volatility",
+        "signal_volatility",
+        "forecast_volatility",
+    ),
+    "liquidity": ("liquidity", "market_liquidity", "depth_score"),
+    "slippage": ("slippage", "slippage_estimate", "impact_cost"),
+}
+
+
 def _interpret_flag(value: Any) -> Optional[bool]:
     if value is None:
         return None
@@ -242,6 +264,60 @@ def _extract_signal_section(signal: Any, *keys: str) -> Any:
             continue
         return candidate
     return None
+
+
+def _normalise_signal_metrics(signal: Any) -> Dict[str, float | None]:
+    metrics: Dict[str, float | None] = {}
+    for name, keys in _SIGNAL_NUMERIC_LOOKUPS.items():
+        metrics[name] = _extract_signal_numeric(signal, *keys)
+    return metrics
+
+
+def _band_scale(value: float | None, *, low: float, high: float) -> float:
+    if value is None:
+        return 1.0
+    if not math.isfinite(low) or not math.isfinite(high):
+        return 1.0
+    bounded = _clamp_unit(value)
+    return max(0.0, low + (high - low) * bounded)
+
+
+def _risk_suppression(value: float | None, *, floor: float, intensity: float) -> float:
+    if value is None:
+        return 1.0
+    bounded = _clamp_unit(abs(value))
+    suppression = 1.0 - bounded * intensity
+    return max(floor, suppression)
+
+
+def _liquidity_penalty(liquidity: float | None, slippage: float | None) -> float:
+    penalty = 1.0
+    if liquidity is not None:
+        availability = _clamp_unit(liquidity)
+        penalty *= 0.6 + 0.4 * availability
+    if slippage is not None:
+        impact = _clamp_unit(slippage)
+        penalty *= max(0.5, 1.0 - 0.5 * impact)
+    return max(0.3, penalty)
+
+
+def _volatility_alignment(
+    profile: InstrumentProfile,
+    implied_volatility: float | None,
+    market_volatility: float | None,
+) -> float:
+    candidate = _coerce_positive(implied_volatility)
+    if candidate is None:
+        candidate = _coerce_positive(market_volatility)
+    if candidate is None:
+        return 1.0
+
+    baseline = max(profile.volatility, 1e-9)
+    ratio = min(max(candidate / baseline, 0.05), 20.0)
+    if ratio <= 1.0:
+        return 1.0 + min(0.35, (1.0 - ratio) * 0.45)
+    damped = 1.0 / (1.0 + (ratio - 1.0) * 0.75)
+    return max(0.35, damped)
 
 
 def _normalise_sizing_candidate(candidate: Any) -> Dict[str, Any] | None:
@@ -1074,31 +1150,36 @@ class DynamicTradingAlgo:
     def _apply_signal_modifiers(
         self, signal: Any, lot: float, profile: InstrumentProfile
     ) -> float:
+        metrics = _normalise_signal_metrics(signal)
         multiplier = 1.0
 
-        confidence = _extract_signal_numeric(signal, "confidence", "confidence_score")
-        if confidence is not None:
-            multiplier *= 0.6 + 0.4 * _clamp_unit(confidence)
+        multiplier *= _band_scale(metrics.get("confidence"), low=0.75, high=1.2)
+        multiplier *= _band_scale(metrics.get("conviction"), low=0.8, high=1.25)
+        multiplier *= _band_scale(metrics.get("urgency"), low=0.9, high=1.1)
+        multiplier *= _band_scale(metrics.get("edge"), low=0.85, high=1.3)
+        multiplier *= _band_scale(metrics.get("reward"), low=0.95, high=1.2)
 
-        conviction = _extract_signal_numeric(signal, "conviction", "strength", "probability")
-        if conviction is not None:
-            multiplier *= 0.7 + 0.3 * _clamp_unit(conviction)
+        multiplier *= _risk_suppression(metrics.get("risk"), floor=0.3, intensity=0.6)
+        multiplier *= _risk_suppression(metrics.get("drawdown"), floor=0.35, intensity=0.5)
+        multiplier *= _risk_suppression(metrics.get("heat"), floor=0.4, intensity=0.45)
 
-        urgency = _extract_signal_numeric(signal, "urgency", "velocity", "timing")
-        if urgency is not None:
-            multiplier *= 0.85 + 0.3 * _clamp_unit(urgency)
+        multiplier *= _liquidity_penalty(
+            metrics.get("liquidity"), metrics.get("slippage")
+        )
+        multiplier *= _volatility_alignment(
+            profile,
+            metrics.get("implied_volatility"),
+            metrics.get("volatility"),
+        )
 
-        risk = _extract_signal_numeric(signal, "risk", "risk_score", "drawdown_risk")
-        if risk is not None:
-            multiplier *= max(0.1, 1.0 - 0.5 * _clamp_unit(risk))
-
-        volatility = _extract_signal_numeric(signal, "volatility", "volatility_score", "turbulence")
-        if volatility is not None:
-            multiplier *= max(0.25, 1.0 - 0.4 * _clamp_unit(volatility))
-
-        size_multiplier = _extract_signal_numeric(signal, "size_multiplier", "lot_multiplier")
+        size_multiplier = metrics.get("size_multiplier")
         if size_multiplier is not None and size_multiplier > 0.0:
             multiplier *= size_multiplier
+
+        if not math.isfinite(multiplier) or multiplier <= 0.0:
+            multiplier = 1.0
+        else:
+            multiplier = max(multiplier, 0.05)
 
         adjusted = lot * multiplier
 
