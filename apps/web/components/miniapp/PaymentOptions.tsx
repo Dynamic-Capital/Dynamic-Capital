@@ -1,96 +1,84 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { CreditCard, Banknote } from "lucide-react";
-import Image from "next/image";
+import { ReactNode, useMemo } from "react";
 
-interface PaymentOption {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  description: string;
-  processingTime: string;
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+
+import {
+  type PaymentMethodDefinition,
+  type PaymentMethodId,
+  paymentMethodMap,
+} from "./paymentMethods";
+
+interface PaymentOption extends PaymentMethodDefinition {
+  icon: ReactNode;
+  isPopular?: boolean;
+}
+
+export interface PaymentOptionPresentation {
+  icon: ReactNode;
+  description?: string;
+  processingTime?: string;
   isPopular?: boolean;
 }
 
 interface PaymentOptionsProps {
-  selectedMethod: string | null;
-  onSelect: (method: string) => void;
-  currency: string;
+  selectedMethod: PaymentMethodId | null;
+  onSelect: (method: PaymentMethodId) => void;
+  methods?: PaymentMethodId[];
+  presentation: Partial<Record<PaymentMethodId, PaymentOptionPresentation>>;
 }
 
-export function PaymentOptions({ selectedMethod, onSelect, currency }: PaymentOptionsProps) {
-  const paymentOptions: PaymentOption[] = [
-    {
-      id: "bank_transfer",
-      name: "Bank Transfer",
-      icon: (
-        <div className="flex items-center gap-1">
-          <Image
-            src="/icons/bank.svg"
-            alt="Bank"
-            width={20}
-            height={20}
-            className="h-5 w-5"
-          />
-          <div className="flex gap-1 text-xs">
-            <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">BML</span>
-            <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded text-xs">MIB</span>
-          </div>
-        </div>
-      ),
-      description: "Direct bank transfer - most secure",
-      processingTime: "1-3 business days",
-      isPopular: currency === "MVR"
-    },
-    {
-      id: "crypto",
-      name: "Cryptocurrency",
-      icon: (
-        <div className="flex items-center gap-1">
-          <Image
-            src="/icons/usdt.svg"
-            alt="USDT"
-            width={20}
-            height={20}
-            className="h-5 w-5"
-          />
-          <Image
-            src="/icons/trc20.svg"
-            alt="TRC20"
-            width={16}
-            height={16}
-            className="h-4 w-4"
-          />
-          <span className="text-xs text-green-600 font-medium">USDT</span>
-        </div>
-      ),
-      description: "USDT (TRC20) - instant processing",
-      processingTime: "5-30 minutes",
-      isPopular: currency === "USD"
-    }
-  ];
+export function PaymentOptions({
+  selectedMethod,
+  onSelect,
+  methods,
+  presentation,
+}: PaymentOptionsProps) {
+  const paymentOptions = useMemo(() => {
+    const methodIds = methods ?? ["bank_transfer", "crypto"];
+
+    return methodIds
+      .map<PaymentOption | null>((id) => {
+        const definition = paymentMethodMap[id];
+        const extras = presentation[id];
+
+        if (!definition || !extras) {
+          return null;
+        }
+
+        return {
+          ...definition,
+          icon: extras.icon,
+          description: extras.description ?? definition.description,
+          processingTime: extras.processingTime ?? definition.processingTime,
+          isPopular: extras.isPopular ?? false,
+        };
+      })
+      .filter((option): option is PaymentOption => option !== null);
+  }, [methods, presentation]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {paymentOptions.map((option) => (
-        <Card 
+        <Card
           key={option.id}
           className={`glass-card cursor-pointer transition-all duration-300 hover:scale-105 ${
-            selectedMethod === option.id 
-              ? 'border-primary shadow-lg ring-2 ring-primary/20 glass-active' 
-              : 'border-white/10 hover:border-primary/50'
+            selectedMethod === option.id
+              ? "border-primary shadow-lg ring-2 ring-primary/20 glass-active"
+              : "border-white/10 hover:border-primary/50"
           }`}
           onClick={() => onSelect(option.id)}
         >
           <CardContent className="p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg transition-all duration-200 ${
-                  selectedMethod === option.id 
-                    ? 'bg-primary/10 border border-primary/20' 
-                    : 'bg-muted'
-                }`}>
+                <div
+                  className={`p-2 rounded-lg transition-all duration-200 ${
+                    selectedMethod === option.id
+                      ? "bg-primary/10 border border-primary/20"
+                      : "bg-muted"
+                  }`}
+                >
                   {option.icon}
                 </div>
                 <div>
@@ -102,7 +90,9 @@ export function PaymentOptions({ selectedMethod, onSelect, currency }: PaymentOp
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{option.description}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {option.description}
+                  </p>
                 </div>
               </div>
             </div>
