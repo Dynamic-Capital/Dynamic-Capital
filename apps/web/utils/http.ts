@@ -116,8 +116,11 @@ export function buildCorsHeaders(origin: string | null, methods?: string) {
   };
   if (allowedOrigins.includes("*")) {
     headers["access-control-allow-origin"] = "*";
-  } else if (origin && allowedOrigins.includes(origin)) {
-    headers["access-control-allow-origin"] = origin;
+  } else if (origin) {
+    const normalizedOrigin = coerceOrigin(origin);
+    if (normalizedOrigin && allowedOrigins.includes(normalizedOrigin)) {
+      headers["access-control-allow-origin"] = origin;
+    }
   }
   return headers;
 }
