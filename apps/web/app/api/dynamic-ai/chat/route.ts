@@ -1,4 +1,3 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { withApiMetrics } from "@/observability/server-metrics.ts";
@@ -37,11 +36,55 @@ const SUPABASE_OVERRIDE_SYMBOL = Symbol.for(
   "dynamic-capital.dynamic-ai.supabase",
 );
 
-type ServiceSupabaseClient = SupabaseClient<Database>;
+type UserInteractionInsert =
+  Database["public"]["Tables"]["user_interactions"]["Insert"];
+type UserInteractionRow = Pick<
+  Database["public"]["Tables"]["user_interactions"]["Row"],
+  "interaction_data"
+>;
+
+interface SupabaseSelectBuilder<Row> {
+  eq(column: string, value: unknown): SupabaseSelectBuilder<Row>;
+  order(
+    column: string,
+    options: { ascending: boolean },
+  ): SupabaseSelectBuilder<Row>;
+  limit(count: number): Promise<{
+    data: Row[] | null;
+    error: unknown | null;
+  }>;
+}
+
+interface SupabaseUserInteractionsTable {
+  insert(values: UserInteractionInsert): Promise<{ error: unknown | null }>;
+  select(columns: string): SupabaseSelectBuilder<UserInteractionRow>;
+}
+
+interface ServiceSupabaseClient {
+  from(table: string): SupabaseUserInteractionsTable;
+}
 
 let cachedClient: ServiceSupabaseClient | null = null;
+let supabaseModulePromise:
+  | Promise<{ createClient: (...args: unknown[]) => unknown }>
+  | null = null;
 
-function getSupabaseClient(): ServiceSupabaseClient {
+async function loadSupabaseModule(): Promise<
+  { createClient: (...args: unknown[]) => unknown }
+> {
+  if (!supabaseModulePromise) {
+    supabaseModulePromise = (async () => {
+      const { createClient } = await import("@supabase/supabase-js");
+      return { createClient } as {
+        createClient: (...args: unknown[]) => unknown;
+      };
+    })();
+  }
+
+  return supabaseModulePromise;
+}
+
+async function getSupabaseClient(): Promise<ServiceSupabaseClient> {
   const override = (globalThis as Record<PropertyKey, unknown>)[
     SUPABASE_OVERRIDE_SYMBOL
   ];
@@ -57,10 +100,12 @@ function getSupabaseClient(): ServiceSupabaseClient {
     throw new Error("Supabase service role key is not configured");
   }
 
-  cachedClient = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  const { createClient } = await loadSupabaseModule();
+  const client = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
     auth: { persistSession: false },
-  });
-  return cachedClient;
+  }) as unknown as ServiceSupabaseClient;
+  cachedClient = client;
+  return client;
 }
 
 async function persistMessage(entry: {
@@ -69,8 +114,8 @@ async function persistMessage(entry: {
   content: string;
   telegram?: z.infer<typeof telegramAuthSchema>;
 }) {
-  const supabase = getSupabaseClient();
-  const { error } = await supabase.from("user_interactions").insert({
+  const supabase = await getSupabaseClient();
+  const payload: UserInteractionInsert = {
     interaction_type: "ai_chat",
     telegram_user_id: String(entry.telegram?.id ?? "anonymous"),
     session_id: entry.sessionId,
@@ -79,7 +124,8 @@ async function persistMessage(entry: {
       role: entry.role,
       content: entry.content,
     },
-  });
+  };
+  const { error } = await supabase.from("user_interactions").insert(payload);
 
   if (error) {
     throw error;
@@ -87,7 +133,7 @@ async function persistMessage(entry: {
 }
 
 async function loadHistory(sessionId: string): Promise<ChatMessage[]> {
-  const supabase = getSupabaseClient();
+  const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from("user_interactions")
     .select("interaction_data")
@@ -165,6 +211,129 @@ export async function GET(req: Request) {
   });
 }
 
+type StreamEvent =
+  | { type: "ack" }
+  | { type: "token"; token: string; content: string }
+  | {
+    type: "done";
+    message: ChatMessage;
+    history: ChatMessage[];
+    metadata?: Record<string, unknown>;
+  }
+  | {
+    type: "error";
+    message: string;
+    status?: number;
+    requestId?: string | null;
+    hint?: unknown;
+  };
+
+function chunkAnswer(answer: string): string[] {
+  const tokens: string[] = [];
+  const splitter = /(\s+)/g;
+  let lastIndex = 0;
+  for (const match of answer.matchAll(splitter)) {
+    if (match.index === undefined) {
+      continue;
+    }
+    if (match.index > lastIndex) {
+      tokens.push(answer.slice(lastIndex, match.index));
+    }
+    if (match[0]) {
+      tokens.push(match[0]);
+    }
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < answer.length) {
+    tokens.push(answer.slice(lastIndex));
+  }
+  return tokens;
+}
+
+function streamChatResponse(payload: ChatRequestPayload, req: Request) {
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const send = (event: StreamEvent) => {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
+        );
+      };
+
+      send({ type: "ack" });
+
+      try {
+        const prompt = buildPrompt(payload);
+        const response = await callDynamicAi({
+          sessionId: payload.sessionId,
+          messages: prompt,
+        });
+
+        const assistantMessage: ChatMessage = {
+          role: "assistant",
+          content: response.answer,
+        };
+
+        try {
+          await persistMessage({
+            sessionId: payload.sessionId,
+            role: "assistant",
+            content: assistantMessage.content,
+            telegram: payload.telegram,
+          });
+        } catch (error) {
+          console.error("Failed to persist assistant message", error);
+        }
+
+        const userEntry: ChatMessage = {
+          role: "user",
+          content: payload.message,
+        };
+        const history: ChatMessage[] = [
+          ...payload.history,
+          userEntry,
+          assistantMessage,
+        ]
+          .slice(-MAX_HISTORY);
+
+        let aggregated = "";
+        for (const token of chunkAnswer(assistantMessage.content)) {
+          aggregated += token;
+          send({ type: "token", token, content: aggregated });
+          await Promise.resolve();
+        }
+
+        send({
+          type: "done",
+          message: assistantMessage,
+          history,
+          metadata: response.metadata,
+        });
+      } catch (error) {
+        console.error("Dynamic AI chat stream failed", error);
+        const message = error instanceof Error
+          ? error.message
+          : "Dynamic AI chat failed";
+        send({ type: "error", message });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      "content-type": "text/event-stream; charset=utf-8",
+      "cache-control": "no-store, no-transform",
+      connection: "keep-alive",
+      "x-accel-buffering": "no",
+      ...corsHeaders(req),
+    },
+  });
+}
+
 export async function POST(req: Request) {
   return withApiMetrics(req, ROUTE_NAME, async () => {
     let payload: ChatRequestPayload;
@@ -186,6 +355,13 @@ export async function POST(req: Request) {
     } catch (error) {
       console.error("Failed to persist user message", error);
       return oops("Failed to persist user message", error, req);
+    }
+
+    const url = new URL(req.url);
+    const stream = url.searchParams.get("stream") === "1";
+
+    if (stream) {
+      return streamChatResponse(payload, req);
     }
 
     try {
@@ -211,10 +387,16 @@ export async function POST(req: Request) {
         console.error("Failed to persist assistant message", error);
       }
 
-      const history = [...payload.history, {
+      const userEntry: ChatMessage = {
         role: "user",
         content: payload.message,
-      }, assistantMessage].slice(-MAX_HISTORY);
+      };
+      const history: ChatMessage[] = [
+        ...payload.history,
+        userEntry,
+        assistantMessage,
+      ]
+        .slice(-MAX_HISTORY);
 
       return jsonResponse(
         {

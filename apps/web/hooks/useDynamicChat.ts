@@ -21,9 +21,16 @@ interface FetchHistoryResult {
   messages: ChatMessage[];
 }
 
+export interface ChatStreamChunk {
+  token: string;
+  content: string;
+}
+
 interface SendMessageOptions {
   message: string;
   history: ChatMessage[];
+  onToken?: (chunk: ChatStreamChunk) => void;
+  signal?: AbortSignal;
 }
 
 interface SendMessageResult {
@@ -110,6 +117,40 @@ function parseHistory(raw: unknown): ChatMessage[] {
   return parsed.data.map((item) => chatMessageSchema.parse(item));
 }
 
+function parseSseEvent(rawEvent: string) {
+  const lines = rawEvent.split("\n");
+  let data = "";
+  for (const line of lines) {
+    if (line.startsWith("data:")) {
+      data += `${line.slice(5).trimStart()}\n`;
+    }
+  }
+  if (!data) {
+    return null;
+  }
+  try {
+    return JSON.parse(data.trimEnd()) as
+      | { type: "ack" }
+      | { type: "token"; token: string; content: string }
+      | {
+        type: "done";
+        message: ChatMessage;
+        history: ChatMessage[];
+        metadata?: Record<string, unknown>;
+      }
+      | {
+        type: "error";
+        message: string;
+        status?: number;
+        requestId?: string | null;
+        hint?: unknown;
+      };
+  } catch (error) {
+    console.warn("Failed to parse SSE chunk", error, rawEvent);
+    return null;
+  }
+}
+
 export function useDynamicChat({
   sessionId,
   telegramData,
@@ -156,6 +197,7 @@ export function useDynamicChat({
     }
 
     const trimmedHistory = options.history.slice(-MAX_HISTORY);
+    const wantsStream = typeof options.onToken === "function";
     const payload: ChatRequestPayload = {
       sessionId,
       message: options.message,
@@ -167,16 +209,106 @@ export function useDynamicChat({
 
     let response: Response;
     try {
-      response = await fetch("/api/dynamic-ai/chat", {
+      const url = wantsStream
+        ? "/api/dynamic-ai/chat?stream=1"
+        : "/api/dynamic-ai/chat";
+      response = await fetch(url, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload satisfies ChatRequestPayload),
+        signal: options.signal,
       });
     } catch (error) {
       throw new DynamicChatError("Network error while sending message", {
         cause: error,
         category: "network",
       });
+    }
+
+    if (wantsStream) {
+      if (!response.ok) {
+        const body = await parseErrorResponse(response);
+        throw new DynamicChatError(
+          body?.error ?? "Dynamic AI request failed",
+          {
+            status: response.status,
+            requestId: response.headers.get("x-request-id"),
+            hint: body?.hint,
+          },
+        );
+      }
+
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!response.body || !contentType.includes("text/event-stream")) {
+        const fallbackBody = await response.json() as {
+          assistantMessage?: unknown;
+          history?: unknown;
+          metadata?: Record<string, unknown>;
+        };
+        const history = parseHistory(fallbackBody.history);
+        const assistantMessage = fallbackBody.assistantMessage
+          ? chatMessageSchema.safeParse(fallbackBody.assistantMessage).success
+            ? chatMessageSchema.parse(fallbackBody.assistantMessage)
+            : null
+          : null;
+
+        return { assistantMessage, history, metadata: fallbackBody.metadata };
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let result: SendMessageResult | null = null;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+          break;
+        }
+        buffer += decoder.decode(value, { stream: true });
+        let boundary = buffer.indexOf("\n\n");
+        while (boundary !== -1) {
+          const rawEvent = buffer.slice(0, boundary);
+          buffer = buffer.slice(boundary + 2);
+          const parsed = parseSseEvent(rawEvent);
+          if (!parsed) {
+            boundary = buffer.indexOf("\n\n");
+            continue;
+          }
+
+          if (parsed.type === "token") {
+            options.onToken?.({
+              token: parsed.token,
+              content: parsed.content,
+            });
+          } else if (parsed.type === "done") {
+            result = {
+              assistantMessage: chatMessageSchema.parse(parsed.message),
+              history: parseHistory(parsed.history),
+              metadata: parsed.metadata,
+            };
+          } else if (parsed.type === "error") {
+            throw new DynamicChatError(
+              parsed.message ?? "Dynamic AI stream failed",
+              {
+                status: parsed.status,
+                requestId: parsed.requestId,
+                hint: parsed.hint,
+              },
+            );
+          }
+
+          boundary = buffer.indexOf("\n\n");
+        }
+      }
+
+      if (!result) {
+        throw new DynamicChatError("Chat stream ended without result", {
+          category: "server",
+        });
+      }
+
+      return result;
     }
 
     const body = await response.json() as {
