@@ -1,6 +1,17 @@
 # Historical Foundations of Quantitative Finance
 
-This document summarizes several landmark developments in quantitative finance, highlighting the mathematical structures they introduced and the practical insights they offer for modern markets.
+This document summarizes several landmark developments in quantitative finance, highlighting the mathematical structures they introduced and the practical insights they offer for modern markets. The timeline below provides a quick reference before the detailed sections.
+
+## Timeline at a Glance
+
+| Year | Researcher(s) | Core Contribution | Practical Takeaway |
+| ---- | ------------- | ----------------- | ------------------ |
+| 1900 | Louis Bachelier | Random walk model of prices using Brownian motion. | Introduces stochastic calculus for securities. |
+| 1952 | Harry Markowitz | Mean–variance portfolio optimization. | Quantifies diversification and efficient frontiers. |
+| 1973–1974 | Fischer Black, Myron Scholes, Robert Merton | Closed-form option pricing. | Establishes risk-neutral valuation and hedging. |
+| 2012 | Timothy Sauer | Numerical schemes for SDEs. | Enables Monte Carlo pricing of complex derivatives. |
+| 1980s–1990s | J. Doyne Farmer | Chaos and complex systems in markets. | Explains non-linear, emergent behavior. |
+| Ongoing | Agent-Based Modeling | Simulation of interacting market participants. | Captures heterogeneous behaviors and feedback loops. |
 
 ## Louis Bachelier (1900): Random Walk Model
 
@@ -80,7 +91,7 @@ This document summarizes several landmark developments in quantitative finance, 
 
 ## Optimizing Dynamic Models
 
-Dynamic models knit together stochastic drivers, portfolio constraints, derivative sensitivities, and feedback from adaptive agents. Optimizing across these layers requires a disciplined calibration–validation loop:
+Dynamic models knit together stochastic drivers, portfolio constraints, derivative sensitivities, and feedback from adaptive agents. In practice, practitioners sequence the techniques in the timeline—estimating stochastic parameters (Bachelier), optimizing allocations (Markowitz), pricing hedges (Black–Scholes), and stress-testing the resulting strategies numerically (Sauer) before layering in complex feedback (Farmer, ABM). Optimizing across these layers requires a disciplined calibration–validation loop:
 
 1. **Parameter estimation.** Use maximum likelihood or Bayesian inference to fit drift, diffusion, and jump components simultaneously so that portfolio and option models share a coherent probability structure.
 2. **State augmentation.** Extend Markovian states with latent variables (e.g., stochastic volatility or macro factors) that improve predictive power without overfitting. Kalman and particle filters keep these states updated in real time.
