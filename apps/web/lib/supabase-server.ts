@@ -1,15 +1,24 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/config/supabase-runtime";
 import type { InvestorDatabase } from "@/lib/investor-metrics";
 
-export type ServerSupabaseClient = SupabaseClient<InvestorDatabase>;
+function inferServerClientType() {
+  return createServerClient<InvestorDatabase>(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll: () => [],
+      },
+    },
+  );
+}
 
-export async function createServerSupabaseClient(): Promise<
-  ServerSupabaseClient
-> {
+export type ServerSupabaseClient = ReturnType<typeof inferServerClientType>;
+
+export async function createServerSupabaseClient(): Promise<ServerSupabaseClient> {
   const cookieStore = await cookies();
 
   return createServerClient<InvestorDatabase>(

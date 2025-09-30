@@ -1,4 +1,6 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { ServerSupabaseClient } from "@/lib/supabase-server";
+
+type SupabaseServerClient = ServerSupabaseClient;
 
 import type { Database } from "@/types/supabase";
 
@@ -61,8 +63,6 @@ type InvestorSchema = Omit<Database["public"], "Views"> & {
 type InvestorDatabase = Omit<Database, "public"> & {
   public: InvestorSchema;
 };
-
-type SupabaseServerClient = SupabaseClient<InvestorDatabase>;
 
 export type { InvestorDatabase };
 
