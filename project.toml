@@ -54,4 +54,4 @@ version = "0.0.0"
 
 [[processes]]
 type = "web"
-command = "node apps/web/.next/standalone/apps/web/server.js"
+command = "node scripts/start-next-standalone.mjs"

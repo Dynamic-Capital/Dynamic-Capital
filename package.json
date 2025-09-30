@@ -17,7 +17,7 @@
     "build:dev": "vite build --mode development",
     "start": "node scripts/npm-safe.mjs -w apps/web run start",
     "start:web": "node scripts/npm-safe.mjs -w apps/web run start",
-    "start:do": "NODE_ENV=production node apps/web/.next/standalone/apps/web/server.js",
+    "start:do": "node scripts/start-next-standalone.mjs",
     "dev": "node scripts/npm-safe.mjs -w apps/web run dev --",
     "dev:lovable": "node lovable-dev.js",
     "codex:post-pull": "node scripts/codex-workflow.js post-pull",

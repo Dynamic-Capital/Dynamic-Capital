@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "node ../../scripts/run-next-build.mjs",
-    "start": "NODE_ENV=production node .next/standalone/apps/web/server.js",
+    "start": "node ../../scripts/start-next-standalone.mjs",
     "copy-static": "tsx ../../scripts/copy-static.ts --copy-only",
     "lint": "eslint .",
     "test": "deno test --sloppy-imports --no-lock --no-npm --node-modules-dir=false --unsafely-ignore-certificate-errors -A --no-check && vitest run",
