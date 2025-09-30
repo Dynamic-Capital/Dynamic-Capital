@@ -1,27 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  AlertCircle,
   CheckCircle,
-  Clock,
-  CreditCard,
   ExternalLink,
   Monitor,
   Smartphone,
   Star,
-  TrendingUp,
-  Users,
 } from "lucide-react";
 
 interface MiniAppPreviewProps {
@@ -29,7 +18,6 @@ interface MiniAppPreviewProps {
 }
 
 export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
-  const [activeTab, setActiveTab] = useState("home");
   const [viewMode, setViewMode] = useState<"deployed" | "inline">("deployed");
 
   const envMiniAppUrl = process.env.NEXT_PUBLIC_MINI_APP_URL?.trim();
@@ -45,13 +33,6 @@ export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
   const miniAppUrl = envMiniAppUrl && envMiniAppUrl.length > 0
     ? envMiniAppUrl
     : derivedMiniAppUrl ?? "https://stub.functions.supabase.co/miniapp/";
-
-  const tabs = [
-    { id: "home", label: "Home", icon: Star },
-    { id: "plan", label: "Plan", icon: CreditCard },
-    { id: "status", label: "Status", icon: CheckCircle },
-    { id: "me", label: "Profile", icon: Users },
-  ];
 
   return (
     <div className={`max-w-sm mx-auto ${className}`}>
@@ -175,29 +156,6 @@ export default function MiniAppPreview({ className }: MiniAppPreviewProps) {
                 </Card>
               </div>
             )}
-        </div>
-
-        {/* Bottom Navigation */}
-        <div className="bg-card border-t border-border p-2">
-          <div className="flex justify-around">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-telegram text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-xs">{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
     </div>
