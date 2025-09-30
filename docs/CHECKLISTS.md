@@ -47,6 +47,7 @@ key.
 | 18       | [`NFT Collectible Launch Checklist`](./nft-collectible-launch-checklist.md)                           | End-to-end preparation for story-driven NFT drops                                | Plan concept, metadata, utility, and community execution for a new collection         | `nft-collectible`     |
 | 19       | [`Dynamic AI (DAI) Validation`](./dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-ai-dai)            | Domain health checks for Dynamic AI telemetry, routing, and personas             | Run Dynamic AI regression tests before shipping Brain/orchestrator updates            | `dai`                 |
 | 20       | [`Dynamic AGI (DAGI) Oversight`](./dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-agi-dagi)         | Orchestration, mentorship, and self-improvement verification for DAGI            | Exercise DAGI loops prior to infrastructure or governance changes                     | `dagi`                |
+| 21       | [`Dynamic Protocol Layer Implementation`](./dynamic_protocol_layers.md#layer-by-layer-checklist)      | Layered networking, blockchain, intelligence, and governance readiness audits    | Summarize outstanding work across the seven-layer protocol architecture               | `protocol-layers`     |
 
 ## Project delivery (priorities 1–3)
 

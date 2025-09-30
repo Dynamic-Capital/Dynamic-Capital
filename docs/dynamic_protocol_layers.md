@@ -133,6 +133,9 @@ sustaining resilient, interoperable intelligence and finance networks.
 
 ## Layer-by-Layer Checklist
 
+- Run `npm run checklists -- --checklist protocol-layers` to print a live summary of
+  completion status across every layer.
+
 - [ ] **Layer 1: Physical & Network Transport**
   - [ ] Validate redundant ISP paths and BGP sessions, including automated
         failover drills.

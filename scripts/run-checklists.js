@@ -298,6 +298,17 @@ const TASK_LIBRARY = {
       'Starts the configured machine if needed, confirms it is running, inspects the VM metadata, and verifies the default named-pipe connection.',
     ],
   },
+  "protocol-layers-review": {
+    id: "protocol-layers-review",
+    label:
+      "Summarize protocol layer checklist progress (node scripts/checklists/protocol-layers-review.mjs)",
+    command: "node scripts/checklists/protocol-layers-review.mjs",
+    optional: false,
+    docs: ["docs/dynamic_protocol_layers.md"],
+    notes: [
+      "Parses the Layer-by-Layer Checklist and prints completion status for each protocol domain.",
+    ],
+  },
 };
 
 const CHECKLISTS = {
@@ -401,6 +412,13 @@ const CHECKLISTS = {
     description:
       "Validates Dynamic AGI orchestration, mentorship feedback, and self-improvement loops.",
     tasks: ["dynamic-agi-tests"],
+  },
+  "protocol-layers": {
+    name: "Dynamic Protocol Layer Implementation Checklist",
+    doc: "docs/dynamic_protocol_layers.md#layer-by-layer-checklist",
+    description:
+      "Surfaced automation hook for reviewing the layered networking, blockchain, intelligence, and governance tasks.",
+    tasks: ["protocol-layers-review"],
   },
   "nft-collectible": {
     name: "NFT Collectible Launch Checklist",
