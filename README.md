@@ -5,6 +5,92 @@
 
 **Fast deposits for traders. Bank & crypto, verified.**
 
+## Table of Contents
+
+<!-- TOC:START -->
+- [Overview](#overview)
+- [What's New](#whats-new)
+- [Quick Links](#quick-links)
+  - [Saved GitHub queries](#saved-github-queries)
+  - [GitHub CLI one-liners](#github-cli-one-liners)
+- [Platform Capabilities](#platform-capabilities)
+  - [Telegram Mini App — Next.js + React + Icons](#telegram-mini-app--nextjs--react--icons)
+  - [Install](#install)
+  - [Swap icon library (optional)](#swap-icon-library-optional)
+  - [Features](#features)
+  - [Investor Experience](#investor-experience)
+  - [Treasury & Token](#treasury--token)
+  - [Architecture & Docs](#architecture--docs)
+    - [Dynamic AGI self-improvement loop](#dynamic-agi-self-improvement-loop)
+  - [Dynamic Theme System](#dynamic-theme-system)
+  - [Security Features](#security-features)
+  - [Privacy & Security](#privacy--security)
+- [Environment Setup](#environment-setup)
+  - [Client-side (`NEXT_PUBLIC_*`)](#client-side-next_public_)
+  - [Server-only secrets](#server-only-secrets)
+  - [Timezone configuration](#timezone-configuration)
+- [Project Structure](#project-structure)
+- [Development Workflow](#development-workflow)
+  - [Project starters](#project-starters)
+  - [Development Process Overview](#development-process-overview)
+  - [Quick start with Dynamic Codex](#quick-start-with-dynamic-codex)
+    - [Using Dynamic Codex (Recommended)](#using-dynamic-codex-recommended)
+    - [Local Development](#local-development)
+    - [Codex CLI workflow helper](#codex-cli-workflow-helper)
+- [Build & Deployment](#build--deployment)
+  - [Building](#building)
+    - [Bundle analysis](#bundle-analysis)
+  - [Static snapshot pipeline](#static-snapshot-pipeline)
+  - [Asset Deployment](#asset-deployment)
+  - [Maintenance & Automation](#maintenance--automation)
+  - [🎨 UI Development with Dynamic Codex](#ui-development-with-dynamic-codex)
+    - [Quick UI Guidelines](#quick-ui-guidelines)
+    - [UI Development Workflow](#ui-development-workflow)
+    - [AI-Powered Features](#ai-powered-features)
+    - [Debugging Tools](#debugging-tools)
+  - [🔒 Architecture & Integration Guardrails](#architecture--integration-guardrails)
+    - [Telegram Bot ⇄ Mini App Connection](#telegram-bot--mini-app-connection)
+    - [🚨 CRITICAL: DO NOT MODIFY INTEGRATION](#critical-do-not-modify-integration)
+    - [✅ SAFE TO MODIFY: UI & UX Only](#safe-to-modify-ui--ux-only)
+    - [Connectivity Sanity Checks](#connectivity-sanity-checks)
+    - [Payment Flow Overview](#payment-flow-overview)
+    - [Common UI Pitfalls to Avoid](#common-ui-pitfalls-to-avoid)
+    - [Edge Function Error Handling](#edge-function-error-handling)
+  - [Environment variables](#environment-variables)
+    - [Build environment](#build-environment)
+  - [Running with Docker](#running-with-docker)
+    - [GitHub Actions Docker smoke test](#github-actions-docker-smoke-test)
+  - [Deployment](#deployment)
+- [Testing & Validation](#testing--validation)
+  - [API Demo](#api-demo)
+  - [Tests](#tests)
+  - [CI / checks](#ci--checks)
+  - [Smoke checks](#smoke-checks)
+  - [Local webhook testing](#local-webhook-testing)
+    - [Public tunnel for remote QA](#public-tunnel-for-remote-qa)
+- [Operational Routines](#operational-routines)
+  - [Mini App](#mini-app)
+  - [VIP Sync](#vip-sync)
+  - [Go Service](#go-service)
+    - [Build and run](#build-and-run)
+    - [Docker](#docker)
+- [Automation & Data Pipelines](#automation--data-pipelines)
+  - [Analyst Insights Collector](#analyst-insights-collector)
+  - [Dynamic Hedge Model](#dynamic-hedge-model)
+- [GitHub Integration](#github-integration)
+- [Hybrid Development Workflow](#hybrid-development-workflow)
+- [License / contributions](#license--contributions)
+- [Notes](#notes)
+<!-- TOC:END -->
+
+## Overview
+
+Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development experience.
+
+A single Next.js application powers both the marketing landing page and the authenticated dashboard. The build pipeline captures the homepage into the repository-level `_static/` directory so it can be served via CDN without touching runtime secrets, while the live `/app` routes continue to handle Supabase access, authentication, and other server-side features.
+
+The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and backed by Supabase.
+
 ## What's New
 
 <!-- WHATS_NEW:START -->
@@ -13,76 +99,7 @@
 - Enhanced Telegram bot console delivers richer admin telemetry, escalation tooling, and instant Mini App synchronization.
 <!-- WHATS_NEW:END -->
 
-## Table of Contents
-
-<!-- TOC:START -->
-- [What's New](#whats-new)
-- [Shortcuts](#shortcuts)
-  - [Saved GitHub queries](#saved-github-queries)
-  - [GitHub CLI one-liners](#github-cli-one-liners)
-- [What this is](#what-this-is)
-- [Telegram Mini App — Next.js + React + Icons](#telegram-mini-app--nextjs--react--icons)
-  - [Install](#install)
-  - [Swap icon library (optional)](#swap-icon-library-optional)
-- [Features](#features)
-- [Investor Experience](#investor-experience)
-- [Treasury & Token](#treasury--token)
-- [Architecture & Docs](#architecture--docs)
-- [Dynamic Theme System](#dynamic-theme-system)
-- [Security Features](#security-features)
-- [Environment Setup](#environment-setup)
-  - [Client-side (`NEXT_PUBLIC_*`)](#client-side-next_public_)
-  - [Server-only secrets](#server-only-secrets)
-  - [Timezone configuration](#timezone-configuration)
-- [Project Structure](#project-structure)
-- [Project starters](#project-starters)
-- [Static snapshot pipeline](#static-snapshot-pipeline)
-- [Asset Deployment](#asset-deployment)
-- [Maintenance & Automation](#maintenance--automation)
-- [Development Process Overview](#development-process-overview)
-- [🎨 UI Development with Dynamic Codex](#ui-development-with-dynamic-codex)
-  - [Quick UI Guidelines](#quick-ui-guidelines)
-  - [Development Workflow](#development-workflow)
-  - [AI-Powered Features](#ai-powered-features)
-  - [Debugging Tools](#debugging-tools)
-- [🔒 Architecture & Integration Guardrails](#architecture--integration-guardrails)
-  - [Telegram Bot ⇄ Mini App Connection](#telegram-bot--mini-app-connection)
-  - [🚨 CRITICAL: DO NOT MODIFY INTEGRATION](#critical-do-not-modify-integration)
-  - [✅ SAFE TO MODIFY: UI & UX Only](#safe-to-modify-ui--ux-only)
-  - [Connectivity Sanity Checks](#connectivity-sanity-checks)
-  - [Payment Flow Overview](#payment-flow-overview)
-  - [Common UI Pitfalls to Avoid](#common-ui-pitfalls-to-avoid)
-  - [Edge Function Error Handling](#edge-function-error-handling)
-- [Privacy & security](#privacy--security)
-- [Environment variables](#environment-variables)
-  - [Build environment](#build-environment)
-- [Building](#building)
-  - [Bundle analysis](#bundle-analysis)
-- [API demo](#api-demo)
-  - [Tests](#tests)
-- [Quick start with Dynamic Codex](#quick-start-with-dynamic-codex)
-  - [Using Dynamic Codex (Recommended)](#using-dynamic-codex-recommended)
-  - [Local Development](#local-development)
-  - [Codex CLI workflow helper](#codex-cli-workflow-helper)
-- [Running with Docker](#running-with-docker)
-- [Mini App](#mini-app)
-- [VIP Sync](#vip-sync)
-- [CI / checks](#ci--checks)
-- [Go Service](#go-service)
-  - [Build and run](#build-and-run)
-  - [Docker](#docker)
-- [Smoke checks](#smoke-checks)
-- [Local webhook testing](#local-webhook-testing)
-- [Deployment](#deployment)
-- [Analyst Insights Collector](#analyst-insights-collector)
-- [Dynamic Hedge Model](#dynamic-hedge-model)
-- [GitHub Integration](#github-integration)
-- [Hybrid Development Workflow](#hybrid-development-workflow)
-- [License / contributions](#license--contributions)
-- [Notes](#notes)
-<!-- TOC:END -->
-
-## Shortcuts
+## Quick Links
 
 ### Saved GitHub queries
 
@@ -107,22 +124,9 @@ gh api 'search/issues?q=repo:Dynamic-Capital/Dynamic-Capital+is:pr+author:Dynami
 gh api 'repos/Dynamic-Capital/Dynamic-Capital/commits?author=Dynamic-Capital' -q '.[].html_url'
 ```
 
-## What this is
+## Platform Capabilities
 
-Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
-OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development
-experience.
-
-A single Next.js application powers both the marketing landing page and the
-authenticated dashboard. The build pipeline captures the homepage into the
-repository-level `_static/` directory so it can be served via CDN without
-touching runtime secrets, while the live `/app` routes continue to handle
-Supabase access, authentication, and other server-side features.
-
-The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
-backed by Supabase.
-
-## Telegram Mini App — Next.js + React + Icons
+### Telegram Mini App — Next.js + React + Icons
 
 - Built with **Next.js (App Router)** + **React 18**
 - Uses **lucide-react** icons (swap to `react-icons` if preferred)
@@ -151,7 +155,7 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 // ...use <FiHome/>, <FiActivity/>, <FiUser/>
 ```
 
-## Features
+### Features
 
 - Telegram webhook (200-fast), OCR on images only
 - Bank receipts (BML/MIB) auto-verification
@@ -172,18 +176,18 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
   [Dynamic AI Overview](docs/dynamic-ai-overview.md) summarising the Brain layer,
   lobe fusion model, and operational guardrails that keep automation governed.
 
-## Investor Experience
+### Investor Experience
 
 - **TonConnect onboarding flow** delivers deep links from Telegram, QR fallback, and guarded session handshakes so traders can authenticate once and rejoin across devices.
 - **Automation guardrails** enforce per-user hedging limits, circuit breakers, and operator approval queues before new strategies reach production.
 - **Supported wallets** include Tonkeeper, OpenMask, and MyTonWallet with dynamic capability negotiation for staking, swaps, and signature payloads.
 
-## Treasury & Token
+### Treasury & Token
 
 - **Dynamic Capital Token (DCT)** anchors treasury governance with transparent supply, vesting cliffs, and fee routing published in the [DCT whitepaper](docs/dynamic-capital-ton-whitepaper.md).
 - **Live DEX references**: monitor liquidity and pricing on [STON.fi](https://app.ston.fi) and [DeDust](https://dedust.io) pairs, with hedging hooks synced to the Supabase ledger service.
 
-## Architecture & Docs
+### Architecture & Docs
 
 Explore the broader platform anatomy and contributor guides:
 
@@ -193,7 +197,7 @@ Explore the broader platform anatomy and contributor guides:
 - [Dynamic Trading ALGO vs LOGIC](docs/dynamic-trading-algo-vs-logic.md)
 - [Model intelligence & infrastructure reference](docs/model-intelligence-infrastructure-reference.md)
 
-### Dynamic AGI self-improvement loop
+#### Dynamic AGI self-improvement loop
 
 `dynamic_agi.DynamicAGIModel` now accepts an optional
 `DynamicSelfImprovement` manager that records each evaluation and emits an
@@ -212,7 +216,7 @@ Creation`, `Adapting Global Intelligence`) so downstream services can surface
 consistent branding while reinforcing the platform's mandate to compound
 innovation under adaptive intelligence safeguards.
 
-## Dynamic Theme System
+### Dynamic Theme System
 
 The web console and Mini App share a synchronized theming pipeline so traders
 see consistent branding across every surface:
@@ -234,7 +238,7 @@ When adding new routes or components, rely on the shared `useTheme` hook and the
 `ThemeToggle` UI so appearance updates propagate everywhere without duplicating
 logic.
 
-## Security Features
+### Security Features
 
 - Optional HTTPS server enforces TLS 1.2+ (prefers TLS 1.3) when SSL
   certificates are supplied.
@@ -243,6 +247,13 @@ logic.
 - Maintains third-party certifications for ISO 27001, SOC 2 Type II, PCI DSS
   Level 1, HIPAA, GDPR, and the EU–US Data Privacy Framework
   ([docs/compliance](docs/compliance/README.md)).
+
+
+### Privacy & Security
+
+No secrets in this repo; uses environment variables. Service role keys used only
+in Edge Functions. Code and assets may be encrypted/obfuscated later. Logs avoid
+PII; rate limits enabled.
 
 ## Environment Setup
 
@@ -337,7 +348,9 @@ run without the deprecation warning.
   `docs/REPO_FILE_ORGANIZER.md`, which groups top-level files by domain so
   contributors can quickly find the right surface.
 
-## Project starters
+## Development Workflow
+
+### Project starters
 
 - **Package scripts** – launch development, build, and production with
   `npm run dev`, `npm run build`, and `npm run start` in `package.json`
@@ -351,359 +364,26 @@ run without the deprecation warning.
 - **Broadcast planner** – standalone service at `broadcast/index.ts`
 - **Queue worker** – standalone service at `queue/index.ts`
 
-## Static snapshot pipeline
-
-Run `npm run build:web` to produce the standalone Next.js server output. Follow
-with `npm run build:landing` to boot that server locally, capture the rendered
-homepage, and copy the necessary assets into the `_static/` directory. The
-hardened `server.js` serves this snapshot for CDN-style hosting, while the
-Next.js server continues to power authenticated routes.
-
-All landing page edits now live in `apps/web` (for example, `app/page.tsx` and
-the Dynamic UI components). After changing those files, rerun the build steps
-above to refresh the snapshot.
-
-## Asset Deployment
-
-- Run `npm run upload-assets` to push the generated `_static` directory to the
-  configured CDN. The helper validates `CDN_ENDPOINT` and falls back to the
-  regional Spaces endpoint if a custom CDN host is provided by mistake.
-- Provide `DIGITALOCEAN_TOKEN`, `CDN_ENDPOINT_ID`, and `CDN_PURGE_PATHS`
-  (comma-separated paths such as `/index.html,/`) to let the uploader purge
-  stale CDN cache entries through the DigitalOcean API after each upload.
-- A GitHub Actions workflow (`upload-assets.yml`) builds the Next.js app, runs
-  the landing snapshot helper, and uploads `_static/` on pushes to `main`. It
-  expects `CDN_BUCKET`, `CDN_ACCESS_KEY`, `CDN_SECRET_KEY`, and optional
-  `CDN_REGION`/`CDN_ENDPOINT` secrets.
-- Use
-  `npm run do:sync-cdn -- --space <bucket> --region <slug> --apply --show-endpoint`
-  to create or update the DigitalOcean CDN endpoint via the REST API and surface
-  the endpoint ID. Pass `--custom-domain`/`--certificate-id` when attaching a
-  vanity domain, or omit `--apply` for a dry run.
-- During development, `npm run upload-assets:watch` monitors `_static` and
-  uploads changes automatically.
-
-## Maintenance & Automation
-
-- Regenerate the documentation inventory after touching edge functions or
-  environment variables with `npm run docs:summary`. The script updates
-  `docs/REPO_SUMMARY.md` so reviewers can confirm every handler exposes a
-  default export and spot any new `Deno.env.get` usage.
-- Review the [Checklist Directory](docs/CHECKLISTS.md) to find the right
-  project, launch, or integration checklist and see which ones have automation
-  keys (`npm run checklists`).
-- Keep `docs/env.md` in sync when introducing deployment settings such as
-  `FUNCTIONS_BASE_URL` or log drain credentials (`LOGTAIL_SOURCE_TOKEN`,
-  `LOGTAIL_URL`). Pair updates with the summary script so both docs reference
-  the same keys.
-- When rotating the Telegram webhook secret, run
-  `deno run -A scripts/set-webhook.ts` (or `deno task set:webhook`) after
-  deploying the updated function to re-register the webhook with BotFather.
-- Scaffold AlgoKit runtime functions with
-  `python tools/algo-cli/algokit.py function strategy-name --lang both` to
-  create matching Python and TypeScript stubs from the command line.
-
-## Development Process Overview
-
-| Tool                   | What It Does                                                            | How You Use It                                                                                              |
-| ---------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Dynamic (Platform)** | Hosts your web app, manages deployment, and provides a Supabase backend | Use the Dynamic console to configure environment variables and monitor deployments                          |
-| **Dynamic (AI)**       | Generates initial project scaffolding and high-level feature guidance   | Use the chat interface during setup and when auto-generating components                                     |
-| **Telegram/BotFather** | Manages the bot and links it to your web app                            | Run BotFather commands like `/setmenubutton` or `/mybots` to connect the bot to your Dynamic deployment URL |
-| **Codex CLI**          | Assists with granular, code-level tasks on your local machine           | Use terminal commands for UI refinements, refactoring, and adding features                                  |
-| **GitHub**             | Version control and deployment trigger                                  | Push local changes to GitHub to trigger Dynamic to rebuild and redeploy your web app                        |
-
-## 🎨 UI Development with Dynamic Codex
-
-### Quick UI Guidelines
-
-- **Design System Only**: NEVER use direct colors like `text-white`, `bg-black`.
-  Always use semantic tokens from `index.css` and `tailwind.config.ts`
-- **Component Structure**: Create focused, reusable components instead of
-  modifying large files
-- **Visual Edits**: Use Dynamic's Visual Edit button for quick text/color
-  changes (saves credits)
-- **Real-time Preview**: See changes immediately in the live preview window
-
-### Development Workflow
-
-1. **Chat-driven**: Describe UI changes in natural language
-2. **Visual Edits**: Use for simple text/color/font changes
-3. **Incremental**: Test each change before requesting more
-4. **Design System**: Always use semantic tokens, never hardcoded colors
-
-### AI-Powered Features
-
-- **Natural Language Coding**: Describe features in plain English
-- **Automatic Optimization**: Code is refactored for best practices
-- **TypeScript Integration**: Full type safety and IntelliSense support
-- **Responsive Design**: Mobile-first approach with proper breakpoints
-
-### Debugging Tools
-
-- **Console Access**: Real-time console log monitoring
-- **Network Inspection**: API call and edge function monitoring
-- **Error Detection**: Automatic error identification and fixes
-- **Performance Tracking**: Component optimization suggestions
-
-## 🔒 Architecture & Integration Guardrails
-
-### Telegram Bot ⇄ Mini App Connection
-
-<lov-mermaid>
-graph TD
-    A[Telegram Bot] -->|Webhook| B[Supabase Edge Functions]
-    A -->|/start command| C[Mini App Button]
-    C -->|Click| D[Web App Launch]
-    D -->|initData auth| B
-    B -->|Database| E[Supabase Tables]
-    B -->|Storage| F[Receipt Files]
-
-    subgraph "Core Tables"
-        E1[bot_users]
-        E2[user_subscriptions]
-        E3[payment_intents]
-        E4[receipts]
-        E1 --> E2
-        E2 --> E3
-        E3 --> E4
-    end
-
-    E --> E1
-
-    subgraph "Payment Flow"
-        G[Receipt Upload] --> H[OCR Processing]
-        H --> I[Bank Parser]
-        I --> J{Auto-approve?}
-        J -->|Yes| K[Approved]
-        J -->|No| L[Manual Review]
-    end
-
-    B --> G
-
-</lov-mermaid>
-
-### 🚨 CRITICAL: DO NOT MODIFY INTEGRATION
-
-**⚠️ NEVER CHANGE THESE CORE SYSTEMS:**
-
-1. **Supabase Database Schema**
-   - Tables: `bot_users`, `user_subscriptions`, `payment_intents`, `receipts`
-   - Relationships and foreign keys
-   - RLS policies and security
-
-2. **Edge Functions Integration**
-   - `telegram-bot/index.ts` - Core webhook handler
-   - Authentication flow between bot and Mini App
-   - Payment processing and OCR pipeline
-
-3. **initData Validation**
-   - Telegram Web App authentication mechanism
-   - User session handling
-   - Security token validation
-
-### ✅ SAFE TO MODIFY: UI & UX Only
-
-**These areas are safe for UI improvements:**
-
-- **React Components**: All files in `components/`
-- **Pages**: All files in `app/`
-- **Styling**: `app/globals.css`, `tailwind.config.ts`
-- **UI Library**: `components/ui/`
-- **Hooks**: `lib/hooks/` (UI-related only)
-
-### Connectivity Sanity Checks
-
-Before making changes, verify these connections work:
-
-```bash
-# 1. Bot webhook responds
-WEBHOOK_BASE=${TELEGRAM_WEBHOOK_URL:-https://your-project-ref.functions.supabase.co/telegram-bot}
-WEBHOOK_BASE=${WEBHOOK_BASE%/}
-curl -X POST "$WEBHOOK_BASE" \
-  -H "content-type: application/json" \
-  -H "X-Telegram-Bot-Api-Secret-Token: SECRET" \
-  -d '{"test":"ping"}'
-
-# 2. Mini App loads
-curl -s https://your-project-ref.functions.supabase.co/miniapp/
-
-# 3. Auth endpoint works
-curl -X POST https://your-project-ref.functions.supabase.co/verify-initdata \
-  -H "content-type: application/json" \
-  -d '{"initData":"VALID_INIT_DATA"}'
-```
-
-### Payment Flow Overview
-
-1. **User starts bot** → `/start` command → Creates `bot_users` record
-2. **Subscription needed** → Shows plans → Creates `user_subscriptions`
-3. **Payment intent** → Bank details shown → Creates `payment_intents`
-4. **Receipt upload** → OCR processing → Creates `receipts` record
-5. **Auto-verification** → Bank parser → Approves or flags for review
-6. **VIP access** → Telegram channel invitation → Updates subscription status
-
-### Common UI Pitfalls to Avoid
-
-❌ **DON'T:**
-
-- Use `text-white`, `bg-black` or any direct colors
-- Modify API endpoints or database queries
-- Change authentication flows
-- Edit Supabase schema or policies
-- Hardcode URLs or tokens
-
-✅ **DO:**
-
-- Use semantic tokens: `text-foreground`, `bg-background`
-- Create new UI components for features
-- Use the existing design system
-- Test in both light and dark modes
-- Follow mobile-first responsive design
-
-### Edge Function Error Handling
-
-Use the `callEdgeFunction` helper to invoke Supabase Edge Functions. It returns
-an object with optional `data` and `error` fields instead of throwing on
-failure:
-
-```ts
-const { data, error } = await callEdgeFunction<MyType>("FUNCTION_NAME");
-if (error) {
-  // handle error.message / error.status
-} else {
-  // use typed data
-}
-```
-
-This pattern keeps error handling consistent across the app and avoids unhandled
-promise rejections.
-
-Admin and system functions such as `ADMIN_SESSION` or `RESET_BOT` require
-`TELEGRAM_WEBHOOK_SECRET` to be configured. The helper will throw before making
-the request if the secret is missing.
-
-## Privacy & security
-
-No secrets in this repo; uses environment variables. Service role keys used only
-in Edge Functions. Code and assets may be encrypted/obfuscated later. Logs avoid
-PII; rate limits enabled.
-
-## Environment variables
-
-Full list and usage notes: [docs/env.md](docs/env.md).
-
-- The `ALLOWED_ORIGINS` variable controls which domains may call the API and
-  edge functions. If unset, it falls back to `SITE_URL` (or
-  `http://localhost:3000` when `SITE_URL` is missing).
-- See [docs/NETWORKING.md](docs/NETWORKING.md) for port mappings, reverse proxy
-  tips, and Cloudflare ingress IPs.
-- Copy `.env.example` to `.env.local` and replace the placeholder values with
-  real secrets for your environment. This file is ignored by Git so each
-  contributor maintains their own local configuration.
-
-- SUPABASE_URL
-- SUPABASE_ANON_KEY
-- SUPABASE_SERVICE_ROLE_KEY
-- TELEGRAM_BOT_TOKEN
-- TELEGRAM_WEBHOOK_SECRET
-- TELEGRAM_BOT_USERNAME _(optional)_
-- TELEGRAM_BOT_URL _(optional)_
-- USDT_TRC20_ADDRESS
-- TELEGRAM_ADMIN_IDS _(comma-separated Telegram user IDs; spaces are ignored)_
-- MINI_APP_URL _(optional)_
-- AMOUNT_TOLERANCE _(optional)_
-- WINDOW_SECONDS _(optional)_
-- OPENAI_API_KEY _(optional)_
-- OPENAI_ENABLED _(optional)_
-- BENEFICIARY_TABLE _(optional)_
-- LOG_LEVEL _(optional)_
-
-### Build environment
-
-Both the dashboard and the Telegram MiniApp require these variables at build
-time (exposed with Next.js `NEXT_PUBLIC_` prefix so they end up in the browser
-bundle). `NEXT_PUBLIC_API_URL` is optional and defaults to `/api` if omitted:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-# NEXT_PUBLIC_API_URL=https://example.com/api
-```
-
-Set the required Supabase values in your hosting provider (e.g., Dynamic
-workspace settings). If either value is missing, the app will render a
-configuration error screen instead of loading. You can optionally set
-`NEXT_PUBLIC_API_URL` to point at a custom API; otherwise the client uses the
-relative `/api` path. The client also accepts `SUPABASE_URL`/`SUPABASE_ANON_KEY`
-as fallbacks if the `NEXT_PUBLIC_` values are not provided.
-
-Values are set in Supabase function secrets, GitHub Environments, or Dynamic
-Codex project settings. Do not commit them.
-
-To troubleshoot `401 Unauthorized` from admin endpoints, generate a known-good
-`initData` string and verify it:
-
-```bash
-deno run --no-npm -A scripts/make-initdata.ts --id=<your_telegram_id>
-curl -X POST -H "Content-Type: application/json" \
-  -d "{\"initData\":\"$INITDATA\"}" \
-  "$SUPABASE_URL/functions/v1/verify-initdata"
-```
-
-## Building
-
-The main build compiles the dashboard only. Run the Mini App build separately
-when needed:
-
-```bash
-# build the dashboard
-npm run build
-
-# build the Telegram Mini App
-npm run build:miniapp
-
-# build both targets
-npm run build:all
-```
-
-`npm run build` produces a standalone bundle in `.next/standalone` which can be
-run with `node .next/standalone/server.js`. This output is ideal for Docker or
-process managers such as PM2.
-
-### Bundle analysis
-
-Inspect bundle size by enabling the analyzer during build:
-
-```bash
-npm run analyze
-# or
-ANALYZE=true npm run build
-```
-
-## API demo
-
-A simple `app/api/hello` route returns a JSON greeting. The client page in
-`app/api-demo/page.tsx` fetches this endpoint on mount and displays loading,
-success, or error states based on the fetch result.
-
-### Tests
-
-- `tests/api/hello.test.ts` calls the route handler and asserts the expected
-  JSON payload.
-- `tests/app/api-demo/page.test.tsx` renders the demo page with a mocked `fetch`
-  and verifies that the message appears.
-
-## Quick start with Dynamic Codex
-
-### Using Dynamic Codex (Recommended)
+### Development Process Overview
+
+| Tool                   | What It Does                                                            | How You Use It                                                                                 |
+| ---------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Dynamic (Platform)** | Hosts your web app, manages deployment, and provides a Supabase backend | Use the Dynamic console to configure environment variables and monitor deployments              |
+| **Dynamic (AI)**       | Generates initial project scaffolding and high-level feature guidance   | Use the chat interface during setup and when auto-generating components                         |
+| **Telegram/BotFather** | Manages the bot and links it to your web app                            | Run BotFather commands like `/setmenubutton` or `/mybots` to connect the bot to your deployment |
+| **Codex CLI**          | Assists with granular, code-level tasks on your local machine           | Use terminal commands for UI refinements, refactoring, and adding features                      |
+| **GitHub**             | Version control and deployment trigger                                  | Push local changes to GitHub to trigger Dynamic to rebuild and redeploy your web app            |
+
+### Quick start with Dynamic Codex
+
+#### Using Dynamic Codex (Recommended)
 
 1. Open the project in Dynamic Codex
 2. Use the chat interface to describe desired changes
 3. Use Visual Edits for quick UI modifications
 4. Monitor the live preview for real-time feedback
 
-### Local Development
+#### Local Development
 
 ```bash
 # Create your local environment files
@@ -725,7 +405,7 @@ curl -X POST "http://127.0.0.1:54321/functions/v1/telegram-bot" \
   -d '{"test":"ping"}'
 ```
 
-### Codex CLI workflow helper
+#### Codex CLI workflow helper
 
 The Codex CLI pulls these changes into your local checkout. Run the helper
 scripts to reproduce Codex's post-export steps and keep everything in sync:
@@ -773,7 +453,328 @@ without digging through logs.
 Note: for OCR parsing, send an actual Telegram image to the bot; OCR runs only
 on images.
 
-## Running with Docker
+
+## Build & Deployment
+### Building
+
+The main build compiles the dashboard only. Run the Mini App build separately
+when needed:
+
+```bash
+# build the dashboard
+npm run build
+
+# build the Telegram Mini App
+npm run build:miniapp
+
+# build both targets
+npm run build:all
+```
+
+`npm run build` produces a standalone bundle in `.next/standalone` which can be
+run with `node .next/standalone/server.js`. This output is ideal for Docker or
+process managers such as PM2.
+
+#### Bundle analysis
+
+Inspect bundle size by enabling the analyzer during build:
+
+```bash
+npm run analyze
+# or
+ANALYZE=true npm run build
+```
+
+
+### Static snapshot pipeline
+
+Run `npm run build:web` to produce the standalone Next.js server output. Follow
+with `npm run build:landing` to boot that server locally, capture the rendered
+homepage, and copy the necessary assets into the `_static/` directory. The
+hardened `server.js` serves this snapshot for CDN-style hosting, while the
+Next.js server continues to power authenticated routes.
+
+All landing page edits now live in `apps/web` (for example, `app/page.tsx` and
+the Dynamic UI components). After changing those files, rerun the build steps
+above to refresh the snapshot.
+
+### Asset Deployment
+
+- Run `npm run upload-assets` to push the generated `_static` directory to the
+  configured CDN. The helper validates `CDN_ENDPOINT` and falls back to the
+  regional Spaces endpoint if a custom CDN host is provided by mistake.
+- Provide `DIGITALOCEAN_TOKEN`, `CDN_ENDPOINT_ID`, and `CDN_PURGE_PATHS`
+  (comma-separated paths such as `/index.html,/`) to let the uploader purge
+  stale CDN cache entries through the DigitalOcean API after each upload.
+- A GitHub Actions workflow (`upload-assets.yml`) builds the Next.js app, runs
+  the landing snapshot helper, and uploads `_static/` on pushes to `main`. It
+  expects `CDN_BUCKET`, `CDN_ACCESS_KEY`, `CDN_SECRET_KEY`, and optional
+  `CDN_REGION`/`CDN_ENDPOINT` secrets.
+- Use
+  `npm run do:sync-cdn -- --space <bucket> --region <slug> --apply --show-endpoint`
+  to create or update the DigitalOcean CDN endpoint via the REST API and surface
+  the endpoint ID. Pass `--custom-domain`/`--certificate-id` when attaching a
+  vanity domain, or omit `--apply` for a dry run.
+- During development, `npm run upload-assets:watch` monitors `_static` and
+  uploads changes automatically.
+
+### Maintenance & Automation
+
+- Regenerate the documentation inventory after touching edge functions or
+  environment variables with `npm run docs:summary`. The script updates
+  `docs/REPO_SUMMARY.md` so reviewers can confirm every handler exposes a
+  default export and spot any new `Deno.env.get` usage.
+- Review the [Checklist Directory](docs/CHECKLISTS.md) to find the right
+  project, launch, or integration checklist and see which ones have automation
+  keys (`npm run checklists`).
+- Keep `docs/env.md` in sync when introducing deployment settings such as
+  `FUNCTIONS_BASE_URL` or log drain credentials (`LOGTAIL_SOURCE_TOKEN`,
+  `LOGTAIL_URL`). Pair updates with the summary script so both docs reference
+  the same keys.
+- When rotating the Telegram webhook secret, run
+  `deno run -A scripts/set-webhook.ts` (or `deno task set:webhook`) after
+  deploying the updated function to re-register the webhook with BotFather.
+- Scaffold AlgoKit runtime functions with
+  `python tools/algo-cli/algokit.py function strategy-name --lang both` to
+  create matching Python and TypeScript stubs from the command line.
+
+
+### 🎨 UI Development with Dynamic Codex
+
+#### Quick UI Guidelines
+
+- **Design System Only**: NEVER use direct colors like `text-white`, `bg-black`.
+  Always use semantic tokens from `index.css` and `tailwind.config.ts`
+- **Component Structure**: Create focused, reusable components instead of
+  modifying large files
+- **Visual Edits**: Use Dynamic's Visual Edit button for quick text/color
+  changes (saves credits)
+- **Real-time Preview**: See changes immediately in the live preview window
+
+#### UI Development Workflow
+
+1. **Chat-driven**: Describe UI changes in natural language
+2. **Visual Edits**: Use for simple text/color/font changes
+3. **Incremental**: Test each change before requesting more
+4. **Design System**: Always use semantic tokens, never hardcoded colors
+
+#### AI-Powered Features
+
+- **Natural Language Coding**: Describe features in plain English
+- **Automatic Optimization**: Code is refactored for best practices
+- **TypeScript Integration**: Full type safety and IntelliSense support
+- **Responsive Design**: Mobile-first approach with proper breakpoints
+
+#### Debugging Tools
+
+- **Console Access**: Real-time console log monitoring
+- **Network Inspection**: API call and edge function monitoring
+- **Error Detection**: Automatic error identification and fixes
+- **Performance Tracking**: Component optimization suggestions
+
+### 🔒 Architecture & Integration Guardrails
+
+#### Telegram Bot ⇄ Mini App Connection
+
+<lov-mermaid>
+graph TD
+    A[Telegram Bot] -->|Webhook| B[Supabase Edge Functions]
+    A -->|/start command| C[Mini App Button]
+    C -->|Click| D[Web App Launch]
+    D -->|initData auth| B
+    B -->|Database| E[Supabase Tables]
+    B -->|Storage| F[Receipt Files]
+
+    subgraph "Core Tables"
+        E1[bot_users]
+        E2[user_subscriptions]
+        E3[payment_intents]
+        E4[receipts]
+        E1 --> E2
+        E2 --> E3
+        E3 --> E4
+    end
+
+    E --> E1
+
+    subgraph "Payment Flow"
+        G[Receipt Upload] --> H[OCR Processing]
+        H --> I[Bank Parser]
+        I --> J{Auto-approve?}
+        J -->|Yes| K[Approved]
+        J -->|No| L[Manual Review]
+    end
+
+    B --> G
+
+</lov-mermaid>
+
+#### 🚨 CRITICAL: DO NOT MODIFY INTEGRATION
+
+**⚠️ NEVER CHANGE THESE CORE SYSTEMS:**
+
+1. **Supabase Database Schema**
+   - Tables: `bot_users`, `user_subscriptions`, `payment_intents`, `receipts`
+   - Relationships and foreign keys
+   - RLS policies and security
+
+2. **Edge Functions Integration**
+   - `telegram-bot/index.ts` - Core webhook handler
+   - Authentication flow between bot and Mini App
+   - Payment processing and OCR pipeline
+
+3. **initData Validation**
+   - Telegram Web App authentication mechanism
+   - User session handling
+   - Security token validation
+
+#### ✅ SAFE TO MODIFY: UI & UX Only
+
+**These areas are safe for UI improvements:**
+
+- **React Components**: All files in `components/`
+- **Pages**: All files in `app/`
+- **Styling**: `app/globals.css`, `tailwind.config.ts`
+- **UI Library**: `components/ui/`
+- **Hooks**: `lib/hooks/` (UI-related only)
+
+#### Connectivity Sanity Checks
+
+Before making changes, verify these connections work:
+
+```bash
+# 1. Bot webhook responds
+WEBHOOK_BASE=${TELEGRAM_WEBHOOK_URL:-https://your-project-ref.functions.supabase.co/telegram-bot}
+WEBHOOK_BASE=${WEBHOOK_BASE%/}
+curl -X POST "$WEBHOOK_BASE" \
+  -H "content-type: application/json" \
+  -H "X-Telegram-Bot-Api-Secret-Token: SECRET" \
+  -d '{"test":"ping"}'
+
+# 2. Mini App loads
+curl -s https://your-project-ref.functions.supabase.co/miniapp/
+
+# 3. Auth endpoint works
+curl -X POST https://your-project-ref.functions.supabase.co/verify-initdata \
+  -H "content-type: application/json" \
+  -d '{"initData":"VALID_INIT_DATA"}'
+```
+
+#### Payment Flow Overview
+
+1. **User starts bot** → `/start` command → Creates `bot_users` record
+2. **Subscription needed** → Shows plans → Creates `user_subscriptions`
+3. **Payment intent** → Bank details shown → Creates `payment_intents`
+4. **Receipt upload** → OCR processing → Creates `receipts` record
+5. **Auto-verification** → Bank parser → Approves or flags for review
+6. **VIP access** → Telegram channel invitation → Updates subscription status
+
+#### Common UI Pitfalls to Avoid
+
+❌ **DON'T:**
+
+- Use `text-white`, `bg-black` or any direct colors
+- Modify API endpoints or database queries
+- Change authentication flows
+- Edit Supabase schema or policies
+- Hardcode URLs or tokens
+
+✅ **DO:**
+
+- Use semantic tokens: `text-foreground`, `bg-background`
+- Create new UI components for features
+- Use the existing design system
+- Test in both light and dark modes
+- Follow mobile-first responsive design
+
+#### Edge Function Error Handling
+
+Use the `callEdgeFunction` helper to invoke Supabase Edge Functions. It returns
+an object with optional `data` and `error` fields instead of throwing on
+failure:
+
+```ts
+const { data, error } = await callEdgeFunction<MyType>("FUNCTION_NAME");
+if (error) {
+  // handle error.message / error.status
+} else {
+  // use typed data
+}
+```
+
+This pattern keeps error handling consistent across the app and avoids unhandled
+promise rejections.
+
+Admin and system functions such as `ADMIN_SESSION` or `RESET_BOT` require
+`TELEGRAM_WEBHOOK_SECRET` to be configured. The helper will throw before making
+the request if the secret is missing.
+
+
+### Environment variables
+
+Full list and usage notes: [docs/env.md](docs/env.md).
+
+- The `ALLOWED_ORIGINS` variable controls which domains may call the API and
+  edge functions. If unset, it falls back to `SITE_URL` (or
+  `http://localhost:3000` when `SITE_URL` is missing).
+- See [docs/NETWORKING.md](docs/NETWORKING.md) for port mappings, reverse proxy
+  tips, and Cloudflare ingress IPs.
+- Copy `.env.example` to `.env.local` and replace the placeholder values with
+  real secrets for your environment. This file is ignored by Git so each
+  contributor maintains their own local configuration.
+
+- SUPABASE_URL
+- SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY
+- TELEGRAM_BOT_TOKEN
+- TELEGRAM_WEBHOOK_SECRET
+- TELEGRAM_BOT_USERNAME _(optional)_
+- TELEGRAM_BOT_URL _(optional)_
+- USDT_TRC20_ADDRESS
+- TELEGRAM_ADMIN_IDS _(comma-separated Telegram user IDs; spaces are ignored)_
+- MINI_APP_URL _(optional)_
+- AMOUNT_TOLERANCE _(optional)_
+- WINDOW_SECONDS _(optional)_
+- OPENAI_API_KEY _(optional)_
+- OPENAI_ENABLED _(optional)_
+- BENEFICIARY_TABLE _(optional)_
+- LOG_LEVEL _(optional)_
+
+#### Build environment
+
+Both the dashboard and the Telegram MiniApp require these variables at build
+time (exposed with Next.js `NEXT_PUBLIC_` prefix so they end up in the browser
+bundle). `NEXT_PUBLIC_API_URL` is optional and defaults to `/api` if omitted:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+# NEXT_PUBLIC_API_URL=https://example.com/api
+```
+
+Set the required Supabase values in your hosting provider (e.g., Dynamic
+workspace settings). If either value is missing, the app will render a
+configuration error screen instead of loading. You can optionally set
+`NEXT_PUBLIC_API_URL` to point at a custom API; otherwise the client uses the
+relative `/api` path. The client also accepts `SUPABASE_URL`/`SUPABASE_ANON_KEY`
+as fallbacks if the `NEXT_PUBLIC_` values are not provided.
+
+Values are set in Supabase function secrets, GitHub Environments, or Dynamic
+Codex project settings. Do not commit them.
+
+To troubleshoot `401 Unauthorized` from admin endpoints, generate a known-good
+`initData` string and verify it:
+
+```bash
+deno run --no-npm -A scripts/make-initdata.ts --id=<your_telegram_id>
+curl -X POST -H "Content-Type: application/json" \
+  -d "{\"initData\":\"$INITDATA\"}" \
+  "$SUPABASE_URL/functions/v1/verify-initdata"
+```
+
+
+
+### Running with Docker
 
 1. **Build the image**
 
@@ -822,8 +823,7 @@ on images.
      conflicting service.
    - Ensure required environment variables are present; missing values may cause
      runtime errors.
-
-### GitHub Actions Docker smoke test
+#### GitHub Actions Docker smoke test
 
 - The `Docker local smoke test` workflow builds the Compose `app` service image
   and runs a lightweight command inside the resulting container to ensure Docker
@@ -835,119 +835,7 @@ on images.
   docker/docker-compose.yml build app` followed by `docker compose -f
   docker/docker-compose.yml run --rm --entrypoint node app --version`.
 
-## Mini App
-
-- Set `MINI_APP_URL` in env (example domain only, do not hardcode).
-- Launch via Web App button inside Telegram.
-- All UI images should be 1:1 (square).
-
-## VIP Sync
-
-- Bot must be an admin in VIP channels to receive membership updates and call
-  `getChatMember`.
-- Configure VIP channels via `bot_settings.vip_channels` (JSON array) or env
-  `VIP_CHANNELS`.
-- Memberships are synced on join/leave events and via `/vip-sync` helper
-  endpoints.
-- Use `scripts/import-vip-csv.ts` for bulk backfills; users must `/start` the
-  bot at least once.
-
-## CI / checks
-
-All Deno tasks live in `deno.json` and can be run via `deno task <name>`.
-
-Type check:
-
-```bash
-deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
-```
-
-If tests present:
-
-```bash
-deno test -A
-```
-
-## Go Service
-
-A minimal Go HTTP server lives in `go-service/` and exposes a `/healthz`
-endpoint on port `8080`.
-
-### Build and run
-
-```bash
-cd go-service
-go run main.go
-# or build
-go build
-./go-service
-```
-
-### Docker
-
-```bash
-docker build -f docker/go.Dockerfile -t go-service .
-docker run --rm -p 8080:8080 go-service
-```
-
-## Smoke checks
-
-```bash
-curl -s https://your-project-ref.functions.supabase.co/miniapp/version
-WEBHOOK_BASE=${TELEGRAM_WEBHOOK_URL:-https://your-project-ref.functions.supabase.co/telegram-bot}
-WEBHOOK_BASE=${WEBHOOK_BASE%/}
-curl -s "$WEBHOOK_BASE/version"
-curl -s -X POST "$WEBHOOK_BASE" \
-  -H 'x-telegram-bot-api-secret-token: <TELEGRAM_WEBHOOK_SECRET>' \
-  -H 'content-type: application/json' -d '{"test":"ping"}'
-```
-
-Confirm the tunnel helper wiring before exposing a localhost webhook via ngrok:
-
-```bash
-npm run smoke:tunnel -- --port 54321 --log=stdout
-```
-
-The smoke script runs the helper in dry-run mode, surfaces the resolved binary
-and arguments, and fails fast if overrides (such as `--port` or `--bin`) are not
-applied as expected.
-
-## Local webhook testing
-
-Run Edge Functions locally without JWT verification to exercise webhooks:
-
-```bash
-npm run serve:functions
-```
-
-Then POST to `http://localhost:54321/functions/v1/telegram-webhook` with
-`X-Telegram-Bot-Api-Secret-Token`.
-
-### Public tunnel for remote QA
-
-If teammates need to validate the webhook or Mini App from outside your
-network, expose the local Supabase functions port through a trusted tunnel
-provider such as ngrok. A convenience script is available to start the
-standard tunnel:
-
-```bash
-npm run tunnel:functions
-```
-
-If you only need to confirm the ngrok arguments or verify custom flags,
-run the command in dry-run mode:
-
-```bash
-npm run tunnel:functions -- --dry-run
-```
-
-Share the resulting HTTPS endpoint with reviewers and map requests to the
-appropriate function path. For instance,
-`https://exosporal-ezequiel-semibiographically.ngrok-free.dev/` has been used
-to proxy the local Telegram webhook during QA sessions—replace it with your own
-ephemeral domain and rotate the tunnel token regularly.
-
-## Deployment
+### Deployment
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment vars, tests,
 deployment, and troubleshooting. For Nginx + Let's Encrypt on DuckDNS, see
@@ -971,7 +859,143 @@ supabase functions deploy telegram-bot --project-ref <PROJECT_REF>
 Set Telegram webhook (with secret): use BotFather or API; do not paste secrets
 in README.
 
-## Analyst Insights Collector
+## Testing & Validation
+
+### API Demo
+
+A simple `app/api/hello` route returns a JSON greeting. The client page in
+`app/api-demo/page.tsx` fetches this endpoint on mount and displays loading,
+success, or error states based on the fetch result.
+
+### Tests
+
+- `tests/api/hello.test.ts` calls the route handler and asserts the expected
+  JSON payload.
+- `tests/app/api-demo/page.test.tsx` renders the demo page with a mocked `fetch`
+  and verifies that the message appears.
+
+### CI / checks
+
+All Deno tasks live in `deno.json` and can be run via `deno task <name>`.
+
+Type check:
+
+```bash
+deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
+```
+
+If tests present:
+
+```bash
+deno test -A
+```
+
+### Smoke checks
+
+```bash
+curl -s https://your-project-ref.functions.supabase.co/miniapp/version
+WEBHOOK_BASE=${TELEGRAM_WEBHOOK_URL:-https://your-project-ref.functions.supabase.co/telegram-bot}
+WEBHOOK_BASE=${WEBHOOK_BASE%/}
+curl -s "$WEBHOOK_BASE/version"
+curl -s -X POST "$WEBHOOK_BASE" \
+  -H 'x-telegram-bot-api-secret-token: <TELEGRAM_WEBHOOK_SECRET>' \
+  -H 'content-type: application/json' -d '{"test":"ping"}'
+```
+
+Confirm the tunnel helper wiring before exposing a localhost webhook via ngrok:
+
+```bash
+npm run smoke:tunnel -- --port 54321 --log=stdout
+```
+
+The smoke script runs the helper in dry-run mode, surfaces the resolved binary
+and arguments, and fails fast if overrides (such as `--port` or `--bin`) are not
+applied as expected.
+
+### Local webhook testing
+
+Run Edge Functions locally without JWT verification to exercise webhooks:
+
+```bash
+npm run serve:functions
+```
+
+Then POST to `http://localhost:54321/functions/v1/telegram-webhook` with
+`X-Telegram-Bot-Api-Secret-Token`.
+
+#### Public tunnel for remote QA
+
+If teammates need to validate the webhook or Mini App from outside your
+network, expose the local Supabase functions port through a trusted tunnel
+provider such as ngrok. A convenience script is available to start the
+standard tunnel:
+
+```bash
+npm run tunnel:functions
+```
+
+If you only need to confirm the ngrok arguments or verify custom flags,
+run the command in dry-run mode:
+
+```bash
+npm run tunnel:functions -- --dry-run
+```
+
+Share the resulting HTTPS endpoint with reviewers and map requests to the
+appropriate function path. For instance,
+`https://exosporal-ezequiel-semibiographically.ngrok-free.dev/` has been used
+to proxy the local Telegram webhook during QA sessions—replace it with your own
+ephemeral domain and rotate the tunnel token regularly.
+
+
+
+
+## Operational Routines
+
+### Mini App
+
+- Set `MINI_APP_URL` in env (example domain only, do not hardcode).
+- Launch via Web App button inside Telegram.
+- All UI images should be 1:1 (square).
+
+### VIP Sync
+
+- Bot must be an admin in VIP channels to receive membership updates and call
+  `getChatMember`.
+- Configure VIP channels via `bot_settings.vip_channels` (JSON array) or env
+  `VIP_CHANNELS`.
+- Memberships are synced on join/leave events and via `/vip-sync` helper
+  endpoints.
+- Use `scripts/import-vip-csv.ts` for bulk backfills; users must `/start` the
+  bot at least once.
+
+
+### Go Service
+
+A minimal Go HTTP server lives in `go-service/` and exposes a `/healthz`
+endpoint on port `8080`.
+
+#### Build and run
+
+```bash
+cd go-service
+go run main.go
+# or build
+go build
+./go-service
+```
+
+#### Docker
+
+```bash
+docker build -f docker/go.Dockerfile -t go-service .
+docker run --rm -p 8080:8080 go-service
+```
+
+
+## Automation & Data Pipelines
+
+### Analyst Insights Collector
 
 The discretionary research feed from the Dynamic Capital TradingView profile is
 now modelled end-to-end:
@@ -1004,7 +1028,7 @@ now modelled end-to-end:
 Set `TRADINGVIEW_LOG_LEVEL=DEBUG` locally to inspect scraping output when
 troubleshooting.
 
-## Dynamic Hedge Model
+### Dynamic Hedge Model
 
 The automated hedge engine now complements the directional trading pipeline:
 
