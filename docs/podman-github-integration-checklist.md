@@ -35,6 +35,9 @@ Use it when onboarding a new project or hardening local development.
   - `podman system connection ls --format "{{.Name}}\t{{if .Default}}(default){{end}}"`
 - [ ] Verify the machine is reachable:
   - `podman info`
+- [ ] Confirm the Windows UNC share is available for quick file transfers:
+  - Open `\\wsl.localhost\podman-machine-default` in File Explorer.
+  - Map the share to a drive letter if team workflows depend on persistent paths.
 
 ### Quick PowerShell verification script
 
