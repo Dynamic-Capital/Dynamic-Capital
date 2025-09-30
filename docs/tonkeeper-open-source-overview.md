@@ -34,11 +34,11 @@ _Last run: 30 Sep 2025 (UTC) based on GitHub API snapshots._
 
 ### 1. Due diligence
 
-| Status           | Task                                                                                    | Notes                                                                                                                                                                                                                                                                                                                         |
-| ---------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ⚙️ Script staged | Subscribe to release notifications on `tonkeeper-web`, `wallet-api`, and `ton-connect`. | Added a Node-based watcher (`scripts/tonkeeper/watch-releases.mjs`) that captures latest release tags and push timestamps for the target repos; schedule it from an environment with outbound network access to replace manual GitHub notification toggles.【F:scripts/tonkeeper/watch-releases.mjs†L1-L86】【2fb53a†L1-L15】 |
-| ✅ Complete      | Review API surface changes in `tonconnect-sdk`, `tonapi-go`, and `pytonapi`.            | Captured current release branches and versions (Ton Connect SDK `3.2.0-beta.0`, Go module targeting Go 1.22/1.23, PyTONAPI v0.5.0) to confirm compatibility with Dynamic Capital services.【6012a9†L1-L5】【604462†L1-L1】【c06f57†L1-L5】【eaf94d†L1-L10】【dba1ed†L1-L9】                                                   |
-| ✅ Complete      | Validate asset listing workflows against `ton-assets`.                                  | Reviewed repository structure and contribution manual to align schema checks and update cadence for Dynamic Capital listings.【b78e0c†L1-L9】【ab6b88†L1-L29】                                                                                                                                                                |
+| Status | Task | Notes |
+| --- | --- | --- |
+| ⚙️ Script staged | Subscribe to release notifications on `tonkeeper-web`, `wallet-api`, and `ton-connect`. | Added a configurable watcher (`scripts/tonkeeper/watch-releases.mjs`) that supports GitHub tokens, external repo manifests, throttling, and JSON/table exports for downstream automation; schedule it from an environment with outbound network access to replace manual GitHub notification toggles.【F:scripts/tonkeeper/watch-releases.mjs†L7-L265】【2fb53a†L1-L15】 |
+| ✅ Complete | Review API surface changes in `tonconnect-sdk`, `tonapi-go`, and `pytonapi`. | Captured current release branches and versions (Ton Connect SDK `3.2.0-beta.0`, Go module targeting Go 1.22/1.23, PyTONAPI v0.5.0) to confirm compatibility with Dynamic Capital services.【6012a9†L1-L5】【604462†L1-L1】【c06f57†L1-L5】【eaf94d†L1-L10】【dba1ed†L1-L9】 |
+| ✅ Complete | Validate asset listing workflows against `ton-assets`. | Reviewed repository structure and contribution manual to align schema checks and update cadence for Dynamic Capital listings.【b78e0c†L1-L9】【ab6b88†L1-L29】 |
 
 ### 2. Implementation
 
@@ -52,7 +52,7 @@ _Last run: 30 Sep 2025 (UTC) based on GitHub API snapshots._
 
 | Status | Task | Notes |
 | --- | --- | --- |
-| ⚙️ Script staged | Automate health checks for `ton-assets` and `ton-console` releases. | Extend the new watcher script to track these repos’ push timestamps—ready for scheduling once outbound network access is available, preserving current `main/master` baselines from 30 Sep 2025.【F:scripts/tonkeeper/watch-releases.mjs†L1-L86】【01cc74†L1-L5】【b3694a†L1-L5】【2fb53a†L1-L15】 |
+| ⚙️ Script staged | Automate health checks for `ton-assets` and `ton-console` releases. | Extend the new watcher script to track these repos’ push timestamps—ready for scheduling once outbound network access is available, preserving current `main/master` baselines from 30 Sep 2025.【F:scripts/tonkeeper/watch-releases.mjs†L7-L265】【01cc74†L1-L5】【b3694a†L1-L5】【2fb53a†L1-L15】 |
 | ✅ Complete | Align telemetry with `analytics-schemas`. | Reviewed base schema requirements to ensure Dynamic Capital dashboards mirror Tonkeeper’s analytics contracts.【cb8697†L1-L11】 |
 | ✅ Complete | Set quarterly review cadence for Tonkeeper roadmap alignment. | Established baseline using latest push data for wallet, API, and SDK repositories to drive Q4 2025 review checkpoints.【71ab7c†L1-L5】【532c3a†L1-L5】【6012a9†L1-L5】 |
 
@@ -73,4 +73,27 @@ _Last run: 30 Sep 2025 (UTC) based on GitHub API snapshots._
   the repository watcher script once scheduled from network-enabled automation,
   giving Dynamic Capital a repeatable baseline for push and release deltas
   across key Tonkeeper
-  projects.【F:scripts/tonkeeper/watch-releases.mjs†L1-L86】【203bbc†L1-L3】【01cc74†L1-L5】【b3694a†L1-L5】
+  projects.【F:scripts/tonkeeper/watch-releases.mjs†L7-L265】【203bbc†L1-L3】【01cc74†L1-L5】【b3694a†L1-L5】
+
+## Automation script quick start
+
+The watcher script can be executed locally or from CI runners with outbound
+internet access:
+
+```bash
+node scripts/tonkeeper/watch-releases.mjs \
+  --format table \
+  --output tonkeeper-metrics.json \
+  --token "$GITHUB_TOKEN"
+```
+
+- `--config` accepts a JSON file containing a `repos` array so Dynamic Capital
+  can mirror additional Tonkeeper or ecosystem projects without editing the
+  script.【F:scripts/tonkeeper/watch-releases.mjs†L18-L54】
+- `--repo owner/name[:releases]` augments targets inline and toggles release
+  polling when `:releases` is omitted; combine with `--no-defaults` to supply a
+  bespoke list at runtime.【F:scripts/tonkeeper/watch-releases.mjs†L69-L101】
+- `--delay`, `--format`, and `--output` throttle GitHub calls, control stdout
+  rendering (JSON, JSONL, or console table), and persist the final payload to a
+  file for downstream
+  checks.【F:scripts/tonkeeper/watch-releases.mjs†L23-L40】【F:scripts/tonkeeper/watch-releases.mjs†L205-L261】
