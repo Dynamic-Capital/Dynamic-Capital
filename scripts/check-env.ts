@@ -1,6 +1,7 @@
 // Reuse the env helper from the web app to avoid maintaining a separate copy
 import { optionalEnvVar } from "../apps/web/utils/env.ts";
 import { celebrate, info, success, warn } from "./utils/friendly-logger.js";
+import process from "node:process";
 
 const SUPABASE_URL = optionalEnvVar("SUPABASE_URL");
 const SUPABASE_ANON_KEY = optionalEnvVar("SUPABASE_ANON_KEY");
@@ -40,7 +41,9 @@ if (placeholders.length > 0) {
 
 if (!process.env.MINIAPP_ORIGIN && process.env.SITE_URL) {
   process.env.MINIAPP_ORIGIN = process.env.SITE_URL;
-  info(`MINIAPP_ORIGIN defaulted to ${process.env.MINIAPP_ORIGIN} to match SITE_URL.`);
+  info(
+    `MINIAPP_ORIGIN defaulted to ${process.env.MINIAPP_ORIGIN} to match SITE_URL.`,
+  );
 } else if (process.env.MINIAPP_ORIGIN) {
   info(`MINIAPP_ORIGIN is set to ${process.env.MINIAPP_ORIGIN}.`);
 }

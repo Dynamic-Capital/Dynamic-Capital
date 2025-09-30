@@ -1,0 +1,13 @@
+# Paths linted by fix_and_check.sh and fix_all.sh.
+# Lines starting with # are ignored. Keep entries relative to the repo root.
+scripts/audit-edge-hosts.ts
+scripts/check-env.ts
+scripts/check-linkage.ts
+scripts/check-supabase-connectivity.ts
+scripts/check-webhook.ts
+scripts/check-url.mjs
+scripts/ping-webhook.ts
+scripts/set-chat-menu-button.ts
+scripts/set-webhook.ts
+scripts/setup-db-webhooks.ts
+scripts/tg-chat-menu.ts
