@@ -11,6 +11,7 @@
 | 6       | Engine Construction Workflow                    |
 | 7–8     | Report Rendering Formats                        |
 | 9       | JSON Schema Reference                           |
+| 10      | Web GUI Workbench                               |
 | 11–12   | Operational Examples                            |
 | 13–14   | Troubleshooting & Diagnostics                   |
 | 15–16   | Glossary & Synonyms                             |
@@ -217,6 +218,30 @@ resembles:
 
 Each numerical field maps to floating-point output from the engine. Timestamps
 comply with ISO 8601 using a `Z` suffix for UTC.
+
+---
+
+## Page 10 — Web GUI Workbench
+
+The Dynamic CLI/CD workbench is now available at `/tools/dynamic-cli` inside the
+Dynamic Capital web workspace. The interface mirrors the CLI flags so analysts
+can iterate on scenarios without a terminal.
+
+- **Scenario editor** — pre-populated with the default blueprint. Paste updated
+  history, decay, nodes, and pulses to test new telemetry before codifying it in
+  version control.
+- **Report format selector** — maps directly to `--format` (`text`, `json`, or
+  `fine-tune`). Choosing fine-tune automatically enables dataset export.
+- **Indentation control** — sets the `--indent` value, including support for
+  `-1` to minimise whitespace when exporting JSON.
+- **Fine-tune tags** — parallels the repeatable `--fine-tune-tag` flag. Enter up
+  to 16 tags; they are forwarded to the CLI whenever datasets are generated.
+- **Dataset toggle** — invokes `--fine-tune-dataset -` when enabled so the API
+  response contains both the narrative report and the training dataset JSON.
+
+The underlying API route (`POST /api/dynamic-cli`) executes
+`python -m dynamic_framework`, streams scenario JSON over STDIN, and returns the
+serialised output—or CLI error—as a JSON response.
 
 ---
 

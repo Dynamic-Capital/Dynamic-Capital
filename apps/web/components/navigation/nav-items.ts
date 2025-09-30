@@ -5,6 +5,7 @@ import {
   type LucideIcon,
   Network,
   PieChart,
+  Terminal,
 } from "lucide-react";
 
 import {
@@ -114,14 +115,27 @@ const extraNavItems: NavItem[] = [
     showOnMobile: true,
   },
   {
-    id: "market-review",
+    id: "dynamic-cli",
     step: `Step ${firstExtraStep + 4}`,
+    label: "Dynamic CLI/CD",
+    description:
+      "Generate maturity reports and AGI training datasets from scenarios.",
+    icon: Terminal,
+    path: "/tools/dynamic-cli",
+    ariaLabel: `Step ${
+      firstExtraStep + 4
+    }: Dynamic CLI/CD. Generate maturity reports and AGI training datasets from scenarios.`,
+    showOnMobile: true,
+  },
+  {
+    id: "market-review",
+    step: `Step ${firstExtraStep + 5}`,
     label: "Market review",
     description: "Track FX strength, volatility, and cross-asset watchlists.",
     icon: LineChart,
     path: "/tools/dynamic-market-review",
     ariaLabel: `Step ${
-      firstExtraStep + 4
+      firstExtraStep + 5
     }: Market review. Track FX strength, volatility, and cross-asset watchlists.`,
     showOnMobile: true,
   },
