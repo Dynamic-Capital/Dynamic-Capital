@@ -5,8 +5,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from statistics import fmean
-from typing import Deque, Iterable, MutableMapping, Sequence, TYPE_CHECKING
+from typing import Deque, MutableMapping, Sequence, TYPE_CHECKING
 
 __all__ = [
     "RhythmObservation",
@@ -32,13 +31,6 @@ def _ensure_timestamp(value: datetime | None) -> datetime:
 
 def _clamp(value: float, *, lower: float = 0.0, upper: float = 1.0) -> float:
     return max(lower, min(upper, value))
-
-
-def _mean(values: Iterable[float], *, default: float = 0.0) -> float:
-    collected = list(values)
-    if not collected:
-        return default
-    return fmean(collected)
 
 
 def _accent_to_strength(label: str) -> float:
@@ -192,21 +184,47 @@ class DynamicRhythmModel:
             raise RuntimeError("no rhythm observations available")
 
         observations = list(self._observations)
-        bars_min = min(obs.bar for obs in observations)
-        bars_max = max(obs.bar for obs in observations)
+        first = observations[0]
+        bars_min = bars_max = first.bar
+        beats_per_bar_total = 0.0
+        offbeat_total = 0.0
+        accent_total = 0.0
+        energy_total = 0.0
+        velocities_min = first.velocity
+        velocities_max = first.velocity
+        even_duration_total = 0.0
+        odd_duration_total = 0.0
+        even_count = 0
+        odd_count = 0
+
+        for index, observation in enumerate(observations):
+            bars_min = min(bars_min, observation.bar)
+            bars_max = max(bars_max, observation.bar)
+            beats_per_bar_total += observation.beats_per_bar
+            offbeat_total += observation.offbeat_weight
+            accent_total += observation.accent_strength
+            energy_total += observation.energy
+            velocities_min = min(velocities_min, observation.velocity)
+            velocities_max = max(velocities_max, observation.velocity)
+
+            if index % 2 == 0:
+                even_duration_total += observation.duration
+                even_count += 1
+            else:
+                odd_duration_total += observation.duration
+                odd_count += 1
+
         bars_span = max(1, bars_max - bars_min + 1)
-        beats_per_bar = _mean((obs.beats_per_bar for obs in observations), default=4.0)
+        beats_per_bar = beats_per_bar_total / len(observations)
 
         pulse_density_raw = len(observations) / (bars_span * beats_per_bar)
         pulse_density = round(_clamp(pulse_density_raw * 4.0), 4)
 
-        syncopation = round(_clamp(_mean((obs.offbeat_weight for obs in observations))), 4)
+        syncopation = round(_clamp(offbeat_total / len(observations)), 4)
 
-        even_durations = [obs.duration for idx, obs in enumerate(observations) if idx % 2 == 0]
-        odd_durations = [obs.duration for idx, obs in enumerate(observations) if idx % 2 == 1]
-        if even_durations and odd_durations:
-            even_avg = _mean(even_durations, default=0.0)
-            odd_avg = _mean(odd_durations, default=0.0)
+        if even_count and odd_count:
+            even_avg = even_duration_total / even_count
+            odd_avg = odd_duration_total / odd_count
             total = even_avg + odd_avg
             if total == 0:
                 swing_value = 0.5
@@ -216,13 +234,12 @@ class DynamicRhythmModel:
             swing_value = 0.5
         swing = round(_clamp(swing_value), 4)
 
-        velocities = [obs.velocity for obs in observations]
-        dynamic_range = round(_clamp(max(velocities) - min(velocities)), 4)
+        dynamic_range = round(_clamp(velocities_max - velocities_min), 4)
 
-        accent_mean = _mean((obs.accent_strength for obs in observations), default=0.5)
+        accent_mean = accent_total / len(observations)
         accent_balance = round(_clamp(1.0 - abs(accent_mean - 0.5) * 2.0), 4)
 
-        energy = round(_clamp(_mean((obs.energy for obs in observations))), 4)
+        energy = round(_clamp(energy_total / len(observations)), 4)
 
         density_desc = "dense" if pulse_density > 0.7 else "open" if pulse_density < 0.4 else "balanced"
         sync_desc = "syncopated" if syncopation > 0.6 else "grounded"

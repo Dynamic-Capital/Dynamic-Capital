@@ -15,6 +15,9 @@ __all__ = [
 ]
 
 
+_EPSILON = 1e-6
+
+
 # ---------------------------------------------------------------------------
 # helpers
 
@@ -197,14 +200,19 @@ class DynamicRhythmEngine:
         self._motifs.clear()
 
     # ----------------------------------------------------------- core planner
+    @property
+    def motifs(self) -> tuple[RhythmMotif, ...]:
+        """Return the registered motifs in insertion order."""
+
+        return tuple(self._motifs)
+
     def generate(self, context: RhythmContext, *, bars: int = 4) -> RhythmPattern:
         if bars <= 0:
             raise ValueError("bars must be positive")
         if not self._motifs:
             raise RuntimeError("no motifs registered")
 
-        ranked = sorted(self._motifs, key=lambda motif: self._score(motif, context), reverse=True)
-        chosen = ranked[0]
+        chosen = max(self._motifs, key=lambda motif: self._score(motif, context))
 
         events = self._render_events(chosen, context, bars)
         bar_intensity = self._bar_intensity(events, bars, context.beats_per_bar)
@@ -236,6 +244,7 @@ class DynamicRhythmEngine:
         pulses_per_bar = motif.pulses_per_bar()
         scale = context.beats_per_bar / pulses_per_bar
         swing_strength = (context.swing - 0.5) * 0.4
+        seconds_per_beat = context.seconds_per_beat
 
         running_index = 0
         for bar in range(bars):
@@ -252,12 +261,12 @@ class DynamicRhythmEngine:
                     swing_offset = duration_beats * swing_strength
 
                 jitter = math.sin((running_index + 1) * math.pi / 4) * context.humanise * 0.08 * duration_beats
-                start = max(0.0, min(context.beats_per_bar, base_start + swing_offset + jitter))
+                start = max(0.0, min(context.beats_per_bar - _EPSILON, base_start + swing_offset + jitter))
                 velocity = _clamp((accent_value * 0.6) + (context.intensity * 0.4))
                 accent = self._accent_label(accent_value, context.intensity)
 
                 global_beat = bar * context.beats_per_bar + start
-                time_seconds = global_beat * context.seconds_per_beat
+                time_seconds = global_beat * seconds_per_beat
 
                 events.append(
                     RhythmEvent(
@@ -290,6 +299,8 @@ class DynamicRhythmEngine:
         if not events:
             return []
         variation_strength = context.variation * 0.12
+        if variation_strength == 0:
+            return list(events)
         adjusted: list[RhythmEvent] = []
         for index, event in enumerate(events):
             curve = math.cos(index * math.pi / 6)
