@@ -37,6 +37,7 @@ interface IndexedSegment extends TranslationSegment {
   normalizedSourceLatin: string;
   normalizedTargetThaana: string;
   normalizedTargetLatin: string;
+  sourceTokens: string[];
 }
 
 const BASE_SEGMENTS: RawTranslationSegment[] = (
@@ -109,7 +110,10 @@ export class TranslationMemory {
     }
 
     return candidates
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) =>
+        b.score - a.score ||
+        b.segment.updatedAt.getTime() - a.segment.updatedAt.getTime()
+      )
       .slice(0, limit)
       .map(({ segment, score }) => ({
         ...this.clone(segment),
@@ -129,13 +133,16 @@ export class TranslationMemory {
       updatedAt: new Date(),
     };
 
+    const normalizedSourceLatin = normalizeLatin(enriched.source);
+
     return {
       ...enriched,
-      normalizedSourceLatin: normalizeLatin(enriched.source),
+      normalizedSourceLatin,
       normalizedTargetThaana: normalizeThaana(enriched.target),
       normalizedTargetLatin: normalizeLatin(
         transliterateThaanaToLatin(enriched.target),
       ),
+      sourceTokens: tokenizeLatin(normalizedSourceLatin),
     };
   }
 
@@ -166,6 +173,7 @@ interface PreparedQuery {
   containsThaana: boolean;
   latin: string;
   thaana: string;
+  latinTokens: string[];
 }
 
 function prepareQuery(query: string): PreparedQuery {
@@ -183,6 +191,7 @@ function prepareQuery(query: string): PreparedQuery {
     containsThaana: contains,
     latin,
     thaana,
+    latinTokens: tokenizeLatin(latin),
   };
 }
 
@@ -197,11 +206,50 @@ function similarity(query: PreparedQuery, segment: IndexedSegment): number {
     ? levenshteinSimilarity(query.latin, segment.normalizedTargetLatin)
     : 0;
 
+  let score = query.containsThaana
+    ? Math.max(thaanaScore, englishScore, crossLatinScore)
+    : Math.max(englishScore, thaanaScore);
+
   if (query.containsThaana) {
-    return Math.max(thaanaScore, englishScore, crossLatinScore);
+    const includesQuery = segment.normalizedTargetThaana.includes(query.thaana);
+    if (includesQuery) {
+      score = Math.min(1, score + 0.05);
+    } else {
+      score *= 0.75;
+    }
+    return score;
   }
 
-  return Math.max(englishScore, thaanaScore);
+  const lexicalOverlap = overlapRatio(query.latinTokens, segment.sourceTokens);
+
+  if (lexicalOverlap > 0) {
+    score = Math.min(1, score + lexicalOverlap * 0.25);
+  } else if (englishScore < 0.4) {
+    score *= 0.5;
+  }
+
+  return score;
 }
 
 export const defaultTranslationMemory = new TranslationMemory();
+
+function tokenizeLatin(value: string): string[] {
+  return value.split(/[^a-z0-9]+/).filter(Boolean);
+}
+
+function overlapRatio(queryTokens: string[], sourceTokens: string[]): number {
+  if (!queryTokens.length || !sourceTokens.length) {
+    return 0;
+  }
+
+  const querySet = new Set(queryTokens);
+  let overlap = 0;
+
+  for (const token of sourceTokens) {
+    if (querySet.has(token)) {
+      overlap += 1;
+    }
+  }
+
+  return overlap / queryTokens.length;
+}
