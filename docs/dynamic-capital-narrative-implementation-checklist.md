@@ -29,6 +29,25 @@ touchpoints.
 8. [ ] **Snapshot baselines** (deck version numbers, dashboard commit hashes)
        so post-optimization diffs are easy to audit.
 
+## Back-to-Back Review ➜ Optimize Command Center
+
+- [ ] **Publish the session agenda** in the project tracker with separate
+      blocks for review, verify, and optimization so each owner knows when they
+      are on deck.
+- [ ] **Spin up a shared notes doc** (or Notion page) that includes sections
+      for decisions, blockers, optimization tasks, and assigned owners to ensure
+      nothing gets lost in the handoff between review and optimization.
+- [ ] **Open the Maldives Data Tracker** side-by-side with current assets so
+      verifiers can confirm citations without context switching during the
+      meeting.
+- [ ] **Record action items in real time** as the review concludes and convert
+      them into optimization subtasks with due dates before the group breaks.
+- [ ] **Capture verification evidence live** (screenshots, data exports, commit
+      hashes) so the optimization sprint starts with fresh proof of the current
+      state.
+- [ ] **Close with a readiness check**—each workstream confirms the optimization
+      plan, dependencies, and success metrics before the team disbands.
+
 ## Macro Data Application Playbook
 
 - [ ] **Lead with credibility.** Highlight Maldives GDP per capita (nominal
