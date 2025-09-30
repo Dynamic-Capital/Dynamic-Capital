@@ -1,8 +1,9 @@
 import http from "node:http";
 import https from "node:https";
-import { createReadStream, readFileSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync } from "node:fs";
 import { stat } from "node:fs/promises";
-import { join, normalize } from "node:path";
+import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createGzip } from "node:zlib";
 import {
   getCacheControl,
@@ -10,8 +11,123 @@ import {
 } from "./scripts/utils/static-assets.js";
 
 const port = process.env.PORT || 3000;
-const root = process.cwd();
-const staticRoot = join(root, "_static");
+const moduleDir = dirname(fileURLToPath(import.meta.url));
+const configuredStaticRootValue =
+  typeof process.env.STATIC_ROOT === "string"
+    ? process.env.STATIC_ROOT.trim()
+    : undefined;
+
+function resolveConfiguredStaticRoot(raw) {
+  if (!raw) return undefined;
+  if (isAbsolute(raw)) {
+    return normalize(raw);
+  }
+
+  const moduleRelative = normalize(resolve(moduleDir, raw));
+  if (existsSync(moduleRelative)) {
+    return moduleRelative;
+  }
+
+  return normalize(resolve(process.cwd(), raw));
+}
+
+function findNearestStaticRoot(startDir) {
+  if (!startDir) return undefined;
+  let current = startDir;
+  const visited = new Set();
+  while (!visited.has(current)) {
+    const candidate = join(current, "_static");
+    if (existsSync(candidate)) {
+      return normalize(candidate);
+    }
+    visited.add(current);
+    const parent = dirname(current);
+    if (parent === current) {
+      break;
+    }
+    current = parent;
+  }
+  return undefined;
+}
+
+const candidateStaticRoots = [];
+const seenStaticRoots = new Set();
+
+function addCandidateStaticRoot(path, source) {
+  if (!path) return;
+  const normalized = normalize(path);
+  if (seenStaticRoots.has(normalized)) {
+    return;
+  }
+  seenStaticRoots.add(normalized);
+  candidateStaticRoots.push({ path: normalized, source });
+}
+
+const resolvedConfiguredStaticRoot = resolveConfiguredStaticRoot(
+  configuredStaticRootValue,
+);
+if (resolvedConfiguredStaticRoot) {
+  addCandidateStaticRoot(
+    resolvedConfiguredStaticRoot,
+    "STATIC_ROOT configuration",
+  );
+}
+
+addCandidateStaticRoot(
+  findNearestStaticRoot(moduleDir),
+  "nearest _static relative to server.js",
+);
+addCandidateStaticRoot(
+  findNearestStaticRoot(process.cwd()),
+  "nearest _static relative to process.cwd()",
+);
+addCandidateStaticRoot(join(moduleDir, "_static"), "server.js/_static fallback");
+addCandidateStaticRoot(
+  resolve(process.cwd(), "_static"),
+  "process.cwd()/_static fallback",
+);
+
+let staticRootEntry;
+for (const candidate of candidateStaticRoots) {
+  if (existsSync(candidate.path)) {
+    staticRootEntry = candidate;
+    break;
+  }
+}
+
+if (!staticRootEntry) {
+  staticRootEntry = candidateStaticRoots[0];
+  if (staticRootEntry) {
+    console.warn(
+      `[static] Unable to confirm existence of static assets; using ${staticRootEntry.path}.`,
+    );
+  } else {
+    throw new Error("Unable to determine static asset directory");
+  }
+}
+
+if (
+  resolvedConfiguredStaticRoot &&
+  resolvedConfiguredStaticRoot !== staticRootEntry.path &&
+  !existsSync(resolvedConfiguredStaticRoot)
+) {
+  console.warn(
+    `[static] STATIC_ROOT ${resolvedConfiguredStaticRoot} not found; falling back to ${staticRootEntry.path} (${staticRootEntry.source}).`,
+  );
+} else if (
+  candidateStaticRoots.length > 0 &&
+  staticRootEntry.path !== candidateStaticRoots[0].path
+) {
+  console.warn(
+    `[static] Serving assets from ${staticRootEntry.path} (${staticRootEntry.source}).`,
+  );
+}
+
+if (!process.env.STATIC_ROOT) {
+  process.env.STATIC_ROOT = staticRootEntry.path;
+}
+
+const staticRoot = staticRootEntry.path;
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
 const LOOPBACK_PATTERNS = [/^127\./, /^::1$/, /^::ffff:127\./];
 
@@ -222,6 +338,9 @@ async function streamFile(req, res, filePath, status = 200) {
     "Content-Type": type,
     "Cache-Control": getCacheControl(filePath, type),
   };
+  const method = (req.method || "GET").toUpperCase();
+  const isHeadRequest = method === "HEAD";
+
   let info;
   try {
     info = await stat(filePath);
@@ -240,16 +359,26 @@ async function streamFile(req, res, filePath, status = 200) {
   } catch {}
 
   const accept = req.headers["accept-encoding"] || "";
+  const shouldGzip = /\bgzip\b/.test(accept);
+  if (shouldGzip) {
+    headers["Content-Encoding"] = "gzip";
+  } else if (info) {
+    headers["Content-Length"] = info.size;
+  }
+
+  if (isHeadRequest) {
+    res.writeHead(status, headers);
+    return res.end();
+  }
+
   const stream = createReadStream(filePath).on("error", () => {
     res.writeHead(500, { "Content-Type": "text/plain" });
     res.end("Internal Server Error");
   });
-  if (/\bgzip\b/.test(accept)) {
-    headers["Content-Encoding"] = "gzip";
-    res.writeHead(status, headers);
+  res.writeHead(status, headers);
+  if (shouldGzip) {
     stream.pipe(createGzip()).pipe(res);
   } else {
-    res.writeHead(status, headers);
     stream.pipe(res);
   }
 }
@@ -309,7 +438,8 @@ async function respondNotFound(req, res) {
 }
 
 async function tryServeSpaFallback(req, res, pathname) {
-  if (req.method !== "GET") {
+  const method = (req.method || "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD") {
     return false;
   }
 
@@ -323,7 +453,12 @@ async function tryServeSpaFallback(req, res, pathname) {
         return false;
       }
       const [type] = trimmed.split(";", 1);
-      return type.trim() === "text/html";
+      const mediaType = type.trim();
+      return (
+        mediaType === "text/html" ||
+        mediaType === "application/xhtml+xml" ||
+        mediaType === "*/*"
+      );
     });
   }
   if (!acceptsHtml) {
