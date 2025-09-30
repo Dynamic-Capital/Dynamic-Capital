@@ -27,7 +27,7 @@ for mirroring the new material into the Dynamic Capital knowledge base.
 | Dataset slug | Description | Notes |
 | ------------ | ----------- | ----- |
 | `dhivehi_radheef_v1` | Deduplicated Dhivehi Radheef dictionary slices prepared for bilingual instruction tuning. | Processed corpus at `processed/dhivehi_training_corpus.jsonl`; training telemetry in `training_runs/dhivehi_radheef_v1.json`. |
-| `market_structure_notes_v1` | Transcribed market structure slide deck covering structure theory, multi-time-frame playbooks, and the top-down workflow. | Processed corpus at `processed/trading_market_structure_corpus.jsonl`. |
+| `market_structure_notes_v1` | Refined market-structure corpus with tier hierarchy, execution discipline, timeframe playbooks, and top-down workflow quick references. | Processed corpus at `processed/trading_market_structure_corpus.jsonl`. |
 
 ## Latest training pass
 
