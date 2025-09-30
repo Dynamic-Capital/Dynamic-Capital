@@ -19,8 +19,82 @@ __all__ = [
     "PredictiveFeature",
     "PredictiveScenario",
     "PredictiveInsight",
+    "PredictiveConfiguration",
+    "PredictiveTrainingSample",
     "DynamicPredictiveEngine",
 ]
+
+
+# ---------------------------------------------------------------------------
+# public configuration and training primitives
+
+
+@dataclass(slots=True)
+class PredictiveConfiguration:
+    """Tunables that shape the predictive model behaviour."""
+
+    optimism_bias_weight: float = 0.35
+    volatility_weight: float = 0.7
+    risk_appetite_weight: float = 0.25
+    inhibitor_weight: float = 0.03
+    momentum_scale: float = 2.0
+    confidence_weight: float = 0.7
+    execution_weight: float = 0.4
+    execution_bias: float = 0.6
+
+    def __post_init__(self) -> None:
+        self.optimism_bias_weight = _clamp(float(self.optimism_bias_weight), lower=0.0, upper=1.0)
+        self.volatility_weight = _clamp(float(self.volatility_weight), lower=0.0, upper=1.5)
+        self.risk_appetite_weight = _clamp(float(self.risk_appetite_weight), lower=0.0, upper=1.0)
+        self.inhibitor_weight = _clamp(float(self.inhibitor_weight), lower=0.0, upper=0.2)
+        self.momentum_scale = _clamp(float(self.momentum_scale), lower=0.5, upper=4.0)
+        self.confidence_weight = _clamp(float(self.confidence_weight), lower=0.0, upper=1.0)
+        self.execution_weight = _clamp(float(self.execution_weight), lower=0.0, upper=1.0)
+        self.execution_bias = _clamp(float(self.execution_bias), lower=0.3, upper=1.0)
+
+    def copy(self) -> "PredictiveConfiguration":
+        return PredictiveConfiguration(
+            optimism_bias_weight=self.optimism_bias_weight,
+            volatility_weight=self.volatility_weight,
+            risk_appetite_weight=self.risk_appetite_weight,
+            inhibitor_weight=self.inhibitor_weight,
+            momentum_scale=self.momentum_scale,
+            confidence_weight=self.confidence_weight,
+            execution_weight=self.execution_weight,
+            execution_bias=self.execution_bias,
+        )
+
+    def adjust(self, **deltas: float) -> None:
+        """Apply incremental updates to configuration values with clamping."""
+
+        for key, delta in deltas.items():
+            if delta == 0:
+                continue
+            current = getattr(self, key)
+            setattr(self, key, current + float(delta))
+        self.__post_init__()
+
+
+@dataclass(slots=True)
+class PredictiveTrainingSample:
+    """Supervised optimisation sample for the predictive engine."""
+
+    features: Sequence[Mapping[str, object] | "PredictiveFeature"]
+    scenario: Mapping[str, object] | "PredictiveScenario"
+    target_score: float
+    target_risk: float
+    target_confidence: float | None = None
+
+    def __post_init__(self) -> None:
+        self.features = tuple(self.features)
+        if not self.features:
+            raise ValueError("training sample requires at least one feature")
+        if not isinstance(self.scenario, (PredictiveScenario, Mapping)):
+            raise TypeError("scenario must be PredictiveScenario or mapping")
+        self.target_score = _clamp(float(self.target_score))
+        self.target_risk = _clamp(float(self.target_risk))
+        if self.target_confidence is not None:
+            self.target_confidence = _clamp(float(self.target_confidence))
 
 
 # ---------------------------------------------------------------------------
@@ -111,6 +185,22 @@ def _collect_attributes(
                 seen.add(value)
                 collected.append(value)
     return tuple(collected)
+
+
+def _coerce_feature(
+    feature: "PredictiveFeature" | Mapping[str, object]
+) -> "PredictiveFeature":
+    if isinstance(feature, PredictiveFeature):
+        return feature
+    if isinstance(feature, Mapping):
+        return PredictiveFeature(**feature)
+    raise TypeError("feature must be PredictiveFeature or mapping")
+
+
+def _coerce_features(
+    features: Sequence["PredictiveFeature" | Mapping[str, object]]
+) -> tuple["PredictiveFeature", ...]:
+    return tuple(_coerce_feature(feature) for feature in features)
 
 
 # ---------------------------------------------------------------------------
@@ -220,21 +310,56 @@ class PredictiveInsight:
 
 
 # ---------------------------------------------------------------------------
+# internal state containers
+
+
+@dataclass(slots=True)
+class _EngineMetrics:
+    weighted_signal: float
+    weighted_volatility: float
+    weighted_confidence: float
+    momentum_delta: float
+
+
+@dataclass(slots=True)
+class _EvaluationResult:
+    features: tuple[PredictiveFeature, ...]
+    scenario: PredictiveScenario
+    metrics: _EngineMetrics
+    insight: PredictiveInsight
+
+
+# ---------------------------------------------------------------------------
 # engine
 
 
 class DynamicPredictiveEngine:
     """Rolling predictive engine that fuses features into scenario insights."""
 
-    def __init__(self, *, window: int = 64) -> None:
+    def __init__(
+        self,
+        *,
+        window: int = 64,
+        config: PredictiveConfiguration | None = None,
+    ) -> None:
         if window <= 0:
             raise ValueError("window must be positive")
         self._window: Deque[PredictiveFeature] = deque(maxlen=window)
+        self._config = (config.copy() if config is not None else PredictiveConfiguration())
 
     def reset(self) -> None:
         """Clear all tracked features."""
 
         self._window.clear()
+
+    @property
+    def config(self) -> PredictiveConfiguration:
+        return self._config.copy()
+
+    def configure(self, config: PredictiveConfiguration) -> None:
+        if not isinstance(config, PredictiveConfiguration):  # pragma: no cover - guard
+            raise TypeError("config must be PredictiveConfiguration")
+        self._config = config.copy()
 
     @property
     def window(self) -> int:
@@ -245,12 +370,9 @@ class DynamicPredictiveEngine:
         return tuple(self._window)
 
     def ingest(self, feature: PredictiveFeature | Mapping[str, object]) -> PredictiveFeature:
-        if isinstance(feature, Mapping):
-            feature = PredictiveFeature(**feature)
-        elif not isinstance(feature, PredictiveFeature):  # pragma: no cover - guard
-            raise TypeError("feature must be PredictiveFeature or mapping")
-        self._window.append(feature)
-        return feature
+        coerced = _coerce_feature(feature)
+        self._window.append(coerced)
+        return coerced
 
     def ingest_many(
         self, features: Iterable[PredictiveFeature | Mapping[str, object]]
@@ -261,58 +383,190 @@ class DynamicPredictiveEngine:
         return tuple(ingested)
 
     def generate(self, scenario: PredictiveScenario | Mapping[str, object]) -> PredictiveInsight:
+        result = self._evaluate(self.features, scenario)
+        return result.insight
+
+    # ------------------------------------------------------------------
+    # optimisation API
+
+    def optimize(
+        self,
+        samples: Sequence[PredictiveTrainingSample],
+        *,
+        learning_rate: float = 0.1,
+        iterations: int = 1,
+    ) -> PredictiveConfiguration:
+        if not samples:
+            raise ValueError("samples must not be empty")
+        if learning_rate <= 0:
+            raise ValueError("learning_rate must be positive")
+        if iterations <= 0:
+            raise ValueError("iterations must be positive")
+
+        config = self._config.copy()
+        prepared_samples = tuple(samples)
+
+        for _ in range(iterations):
+            aggregate_updates: dict[str, float] = {
+                "optimism_bias_weight": 0.0,
+                "volatility_weight": 0.0,
+                "risk_appetite_weight": 0.0,
+                "inhibitor_weight": 0.0,
+                "momentum_scale": 0.0,
+                "confidence_weight": 0.0,
+                "execution_weight": 0.0,
+                "execution_bias": 0.0,
+            }
+
+            for sample in prepared_samples:
+                evaluation = self._evaluate(sample.features, sample.scenario, config=config)
+                scenario = evaluation.scenario
+                insight = evaluation.insight
+                metrics = evaluation.metrics
+
+                score_error = sample.target_score - insight.score
+                risk_error = sample.target_risk - insight.risk
+                confidence_error = (
+                    (sample.target_confidence - insight.confidence)
+                    if sample.target_confidence is not None
+                    else 0.0
+                )
+
+                if scenario.optimism_bias:
+                    aggregate_updates["optimism_bias_weight"] += (
+                        learning_rate * score_error * float(scenario.optimism_bias)
+                    )
+                if metrics.weighted_volatility:
+                    aggregate_updates["volatility_weight"] += (
+                        learning_rate * risk_error * metrics.weighted_volatility
+                    )
+                appetite_signal = 1.0 - scenario.risk_appetite
+                if appetite_signal:
+                    aggregate_updates["risk_appetite_weight"] += (
+                        learning_rate * risk_error * appetite_signal
+                    )
+                inhibitor_pressure = len(scenario.inhibitors)
+                if inhibitor_pressure:
+                    aggregate_updates["inhibitor_weight"] += (
+                        learning_rate * risk_error * inhibitor_pressure
+                    )
+                if metrics.momentum_delta:
+                    aggregate_updates["momentum_scale"] -= (
+                        learning_rate * score_error * abs(metrics.momentum_delta)
+                    )
+                if metrics.weighted_confidence:
+                    aggregate_updates["confidence_weight"] += (
+                        learning_rate * confidence_error * metrics.weighted_confidence
+                    )
+                if scenario.execution_capacity:
+                    aggregate_updates["execution_weight"] += (
+                        learning_rate * confidence_error * scenario.execution_capacity
+                    )
+                aggregate_updates["execution_bias"] += learning_rate * confidence_error
+
+            scale = 1.0 / len(prepared_samples)
+            config.adjust(
+                optimism_bias_weight=aggregate_updates["optimism_bias_weight"] * scale,
+                volatility_weight=aggregate_updates["volatility_weight"] * scale,
+                risk_appetite_weight=aggregate_updates["risk_appetite_weight"] * scale,
+                inhibitor_weight=aggregate_updates["inhibitor_weight"] * scale,
+                momentum_scale=aggregate_updates["momentum_scale"] * scale,
+                confidence_weight=aggregate_updates["confidence_weight"] * scale,
+                execution_weight=aggregate_updates["execution_weight"] * scale,
+                execution_bias=aggregate_updates["execution_bias"] * scale,
+            )
+
+        self._config = config
+        return self._config.copy()
+
+    # ------------------------------------------------------------------
+    # evaluation internals
+
+    def _evaluate(
+        self,
+        features: Sequence[PredictiveFeature | Mapping[str, object]],
+        scenario: PredictiveScenario | Mapping[str, object],
+        *,
+        config: PredictiveConfiguration | None = None,
+    ) -> _EvaluationResult:
         if isinstance(scenario, Mapping):
             scenario = PredictiveScenario(**scenario)
         elif not isinstance(scenario, PredictiveScenario):  # pragma: no cover - guard
             raise TypeError("scenario must be PredictiveScenario or mapping")
 
-        features = self.features
-        if not features:
+        config = config.copy() if config is not None else self._config.copy()
+        features_tuple = _coerce_features(features)
+
+        if not features_tuple:
             baseline_story = (
                 f"Horizon: {scenario.horizon}. No signals ingested yet; "
                 "use discovery sprints to populate the predictive backlog."
             )
-            return PredictiveInsight(
-                score=_to_unit_interval(scenario.optimism_bias),
-                risk=_clamp(1.0 - scenario.risk_appetite),
+            baseline_weight = _clamp(config.execution_weight + 0.2)
+            baseline_bias = _clamp(config.execution_bias - 0.4)
+            baseline_confidence = _clamp(
+                scenario.execution_capacity * baseline_weight + baseline_bias
+            )
+            insight = PredictiveInsight(
+                score=round(
+                    _to_unit_interval(
+                        _clamp(scenario.optimism_bias, lower=-1.0, upper=1.0)
+                    ),
+                    3,
+                ),
+                risk=round(_clamp(1.0 - scenario.risk_appetite), 3),
                 momentum=0.5,
-                confidence=_clamp(scenario.execution_capacity * 0.6 + 0.2),
+                confidence=round(baseline_confidence, 3),
                 catalysts=scenario.catalysts,
                 inhibitors=scenario.inhibitors,
                 storyline=baseline_story,
             )
+            metrics = _EngineMetrics(
+                weighted_signal=0.0,
+                weighted_volatility=0.0,
+                weighted_confidence=0.0,
+                momentum_delta=0.0,
+            )
+            return _EvaluationResult(features_tuple, scenario, metrics, insight)
 
-        weights = [feature.impact * (0.5 + 0.5 * feature.confidence) for feature in features]
-        signals = [feature.signal for feature in features]
-        volatilities = [feature.volatility for feature in features]
-        confidences = [feature.confidence for feature in features]
+        weights = [
+            feature.impact * (0.5 + 0.5 * feature.confidence)
+            for feature in features_tuple
+        ]
+        signals = [feature.signal for feature in features_tuple]
+        volatilities = [feature.volatility for feature in features_tuple]
+        confidences = [feature.confidence for feature in features_tuple]
 
         weighted_signal = _weighted_mean(signals, weights)
         weighted_volatility = _weighted_mean(volatilities, weights)
         weighted_confidence = _weighted_mean(confidences, weights)
 
-        optimism_adjustment = scenario.optimism_bias * 0.35
-        score = _to_unit_interval(_clamp(weighted_signal + optimism_adjustment, lower=-1.0, upper=1.0))
+        optimism_adjustment = scenario.optimism_bias * config.optimism_bias_weight
+        score = _to_unit_interval(
+            _clamp(weighted_signal + optimism_adjustment, lower=-1.0, upper=1.0)
+        )
 
-        inhibitor_pressure = len(scenario.inhibitors) * 0.03
+        inhibitor_pressure = len(scenario.inhibitors) * config.inhibitor_weight
         risk = _clamp(
-            weighted_volatility * 0.7
-            + (1.0 - scenario.risk_appetite) * 0.25
+            weighted_volatility * config.volatility_weight
+            + (1.0 - scenario.risk_appetite) * config.risk_appetite_weight
             + inhibitor_pressure,
         )
 
         head, tail = _split_signal_window(signals)
         momentum_delta = tail - head
-        momentum = _to_unit_interval(_clamp(momentum_delta / 2.0, lower=-1.0, upper=1.0))
+        momentum = _to_unit_interval(
+            _clamp(momentum_delta / config.momentum_scale, lower=-1.0, upper=1.0)
+        )
 
-        execution_factor = scenario.execution_capacity * 0.4 + 0.6
-        confidence = _clamp(weighted_confidence * 0.7 * execution_factor)
+        execution_factor = scenario.execution_capacity * config.execution_weight + config.execution_bias
+        confidence = _clamp(weighted_confidence * config.confidence_weight * execution_factor)
 
         catalysts = _normalise_tuple(
-            (*_collect_attributes(features, "catalysts"), *scenario.catalysts)
+            (*_collect_attributes(features_tuple, "catalysts"), *scenario.catalysts)
         )
         inhibitors = _normalise_tuple(
-            (*_collect_attributes(features, "inhibitors"), *scenario.inhibitors)
+            (*_collect_attributes(features_tuple, "inhibitors"), *scenario.inhibitors)
         )
 
         storyline_parts = [
@@ -329,7 +583,7 @@ class DynamicPredictiveEngine:
 
         storyline = " ".join(storyline_parts)
 
-        return PredictiveInsight(
+        insight = PredictiveInsight(
             score=round(score, 3),
             risk=round(risk, 3),
             momentum=round(momentum, 3),
@@ -338,4 +592,11 @@ class DynamicPredictiveEngine:
             inhibitors=inhibitors,
             storyline=storyline,
         )
+        metrics = _EngineMetrics(
+            weighted_signal=weighted_signal,
+            weighted_volatility=weighted_volatility,
+            weighted_confidence=weighted_confidence,
+            momentum_delta=momentum_delta,
+        )
+        return _EvaluationResult(features_tuple, scenario, metrics, insight)
 
