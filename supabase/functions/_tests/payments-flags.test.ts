@@ -1,34 +1,31 @@
 import { assertEquals } from "std/testing/asserts.ts";
-import { setConfig, getFlag } from "../_shared/config.ts";
+import { getFlag, setConfig } from "../_shared/config.ts";
 
-async function applyAutoApprove(payment: {
-  await Promise.resolve(); // satisfy require-await
- method: string; status: string }) {
-  const flag = await getFlag(`auto_approve_${payment.method}`, false);
-  payment.status = flag ? "completed" : "awaiting_admin";
+type PaymentMethod = "crypto" | "bank_transfer";
+type PaymentStatus = "pending" | "completed" | "awaiting_admin";
+type FeatureFlagName = `auto_approve_${PaymentMethod}`;
+
+const scenarios = [
+  { method: "crypto", flag: "auto_approve_crypto" },
+  { method: "bank_transfer", flag: "auto_approve_bank_transfer" },
+] as const satisfies ReadonlyArray<
+  { method: PaymentMethod; flag: FeatureFlagName }
+>;
+
+async function resolveStatus(method: PaymentMethod): Promise<PaymentStatus> {
+  const flagName = `auto_approve_${method}` as FeatureFlagName;
+  const enabled = await getFlag(flagName, false);
+  return enabled ? "completed" : "awaiting_admin";
 }
 
-Deno.test("crypto auto-approval flag", async () => {
-  await setConfig("features:published", { data: { auto_approve_crypto: true } });
-  const p1 = { method: "crypto", status: "pending" };
-  await applyAutoApprove(p1);
-  assertEquals(p1.status, "completed");
+Deno.test("payments auto-approval flags respect toggles", async (t) => {
+  for (const { method, flag } of scenarios) {
+    await t.step(method, async () => {
+      await setConfig("features:published", { data: { [flag]: true } });
+      assertEquals(await resolveStatus(method), "completed");
 
-  await setConfig("features:published", { data: { auto_approve_crypto: false } });
-  const p2 = { method: "crypto", status: "pending" };
-  await applyAutoApprove(p2);
-  assertEquals(p2.status, "awaiting_admin");
+      await setConfig("features:published", { data: { [flag]: false } });
+      assertEquals(await resolveStatus(method), "awaiting_admin");
+    });
+  }
 });
-
-Deno.test("bank transfer auto-approval flag", async () => {
-  await setConfig("features:published", { data: { auto_approve_bank_transfer: true } });
-  const p1 = { method: "bank_transfer", status: "pending" };
-  await applyAutoApprove(p1);
-  assertEquals(p1.status, "completed");
-
-  await setConfig("features:published", { data: { auto_approve_bank_transfer: false } });
-  const p2 = { method: "bank_transfer", status: "pending" };
-  await applyAutoApprove(p2);
-  assertEquals(p2.status, "awaiting_admin");
-});
-
