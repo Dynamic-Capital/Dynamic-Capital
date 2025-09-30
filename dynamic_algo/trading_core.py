@@ -232,6 +232,20 @@ _SIGNAL_NUMERIC_LOOKUPS: Dict[str, tuple[str, ...]] = {
     "slippage": ("slippage", "slippage_estimate", "impact_cost"),
 }
 
+_BAND_METRIC_CONFIG: tuple[tuple[str, float, float], ...] = (
+    ("confidence", 0.75, 1.2),
+    ("conviction", 0.8, 1.25),
+    ("urgency", 0.9, 1.1),
+    ("edge", 0.85, 1.3),
+    ("reward", 0.95, 1.2),
+)
+
+_RISK_METRIC_CONFIG: tuple[tuple[str, float, float], ...] = (
+    ("risk", 0.3, 0.6),
+    ("drawdown", 0.35, 0.5),
+    ("heat", 0.4, 0.45),
+)
+
 
 def _interpret_flag(value: Any) -> Optional[bool]:
     if value is None:
@@ -1153,15 +1167,13 @@ class DynamicTradingAlgo:
         metrics = _normalise_signal_metrics(signal)
         multiplier = 1.0
 
-        multiplier *= _band_scale(metrics.get("confidence"), low=0.75, high=1.2)
-        multiplier *= _band_scale(metrics.get("conviction"), low=0.8, high=1.25)
-        multiplier *= _band_scale(metrics.get("urgency"), low=0.9, high=1.1)
-        multiplier *= _band_scale(metrics.get("edge"), low=0.85, high=1.3)
-        multiplier *= _band_scale(metrics.get("reward"), low=0.95, high=1.2)
+        for name, low, high in _BAND_METRIC_CONFIG:
+            multiplier *= _band_scale(metrics.get(name), low=low, high=high)
 
-        multiplier *= _risk_suppression(metrics.get("risk"), floor=0.3, intensity=0.6)
-        multiplier *= _risk_suppression(metrics.get("drawdown"), floor=0.35, intensity=0.5)
-        multiplier *= _risk_suppression(metrics.get("heat"), floor=0.4, intensity=0.45)
+        for name, floor, intensity in _RISK_METRIC_CONFIG:
+            multiplier *= _risk_suppression(
+                metrics.get(name), floor=floor, intensity=intensity
+            )
 
         multiplier *= _liquidity_penalty(
             metrics.get("liquidity"), metrics.get("slippage")
