@@ -1,9 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { getEnv } from "../_shared/env.ts";
+import { getEnv, optionalEnv } from "../_shared/env.ts";
 import { createLogger } from "../_shared/logger.ts";
 import { ensureWebhookSecret } from "../_shared/telegram_secret.ts";
 import { createClient } from "../_shared/client.ts";
-import { json, mna, oops } from "../_shared/http.ts";
+import { json, mna, oops, unauth } from "../_shared/http.ts";
 import { version } from "../_shared/version.ts";
 
 const corsHeaders = {
@@ -11,6 +11,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) {
+    out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return out === 0;
+}
 
 function getLogger(req: Request) {
   return createLogger({
@@ -30,6 +39,19 @@ export async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") return mna();
 
   const logger = getLogger(req);
+
+  const providedSecret = req.headers.get("X-Admin-Secret")?.trim() ?? "";
+  const expectedSecret = optionalEnv("ADMIN_API_SECRET");
+  if (!expectedSecret) {
+    logger.error("ADMIN_API_SECRET is not configured; refusing request");
+    return oops("Server misconfigured", undefined, req);
+  }
+  if (!providedSecret || !timingSafeEqual(providedSecret, expectedSecret)) {
+    logger.warn("unauthorized setup-webhook attempt", {
+      hasSecret: Boolean(providedSecret),
+    });
+    return unauth("Missing or invalid admin secret", req);
+  }
 
   try {
     const botToken = getEnv("TELEGRAM_BOT_TOKEN");
