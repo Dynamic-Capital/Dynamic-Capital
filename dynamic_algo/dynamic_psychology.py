@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import Counter, deque
 from dataclasses import dataclass, field, fields
 from datetime import datetime, timedelta, timezone
-from typing import Deque, Dict, Iterable, Iterator, Mapping, MutableMapping, Optional
+from typing import Deque, Dict, Iterable, Iterator, Mapping, MutableMapping
 
 from algorithms.python.trading_psychology_elements import (
     Element,
@@ -20,6 +20,11 @@ __all__ = [
     "PsychologySnapshot",
     "DynamicPsychologyAlgo",
 ]
+
+
+_ELEMENT_ORDER: Mapping[Element, int] = {
+    element: index for index, element in enumerate(Element)
+}
 
 
 def _coerce_timestamp(value: datetime | str | None) -> datetime:
@@ -68,7 +73,7 @@ def _deduplicate(items: Iterable[str]) -> list[str]:
 
 
 def _element_order(element: Element) -> int:
-    return list(Element).index(element)
+    return _ELEMENT_ORDER[element]
 
 
 @dataclass(slots=True)
@@ -132,6 +137,15 @@ class PsychologySnapshot:
         return round(self.recovery_score * 10, 2)
 
 
+@dataclass(slots=True)
+class _TraderBuffer:
+    """Internal per-trader cache to avoid re-computing snapshots."""
+
+    history: Deque[PsychologyEntry] = field(default_factory=deque)
+    cached_snapshot: PsychologySnapshot | None = None
+    dirty: bool = True
+
+
 class DynamicPsychologyAlgo:
     """Maintain rolling psychology telemetry and compute actionable metrics."""
 
@@ -155,7 +169,7 @@ class DynamicPsychologyAlgo:
     ) -> None:
         self.window_size = window_size
         self.window_duration = window_duration
-        self._entries: Dict[str, Deque[PsychologyEntry]] = {}
+        self._entries: Dict[str, _TraderBuffer] = {}
 
     # -------------------------------------------------------------- record utils
     def record(
@@ -187,20 +201,26 @@ class DynamicPsychologyAlgo:
             notes=notes,
         )
 
-        history = self._history_for(entry.trader_id)
-        history.append(entry)
-        self._prune(history, reference=entry.timestamp)
+        state = self._state_for(entry.trader_id)
+        state.history.append(entry)
+        state.cached_snapshot = None
+        state.dirty = True
+        self._prune(state.history, reference=entry.timestamp)
         return entry
 
     # --------------------------------------------------------------- aggregators
     def snapshot(self, trader_id: str) -> PsychologySnapshot:
         """Return the aggregated psychology state for *trader_id*."""
 
-        history = self._history_for(trader_id)
-        self._prune(history)
-        if not history:
-            return PsychologySnapshot(
-                trader_id=str(trader_id).upper(),
+        key = str(trader_id).upper()
+        state = self._state_for(key)
+        if self._prune(state.history):
+            state.cached_snapshot = None
+            state.dirty = True
+
+        if not state.history:
+            snapshot = PsychologySnapshot(
+                trader_id=key,
                 sample_count=0,
                 elements=(),
                 readiness_score=0.0,
@@ -212,11 +232,22 @@ class DynamicPsychologyAlgo:
                 dominant_level="stable",
                 last_sample_at=None,
             )
+            state.cached_snapshot = snapshot
+            state.dirty = False
+            return snapshot
 
+        if not state.dirty and state.cached_snapshot is not None:
+            return state.cached_snapshot
+
+        history = state.history
         totals: dict[Element, float] = {element: 0.0 for element in Element}
-        level_votes: dict[Element, Counter[str]] = {element: Counter() for element in Element}
+        level_votes: dict[Element, Counter[str]] = {
+            element: Counter() for element in Element
+        }
         reason_map: dict[Element, list[str]] = {element: [] for element in Element}
-        recommendation_map: dict[Element, list[str]] = {element: [] for element in Element}
+        recommendation_map: dict[Element, list[str]] = {
+            element: [] for element in Element
+        }
 
         total_weight = 0.0
         last_sample_at: datetime | None = None
@@ -264,7 +295,7 @@ class DynamicPsychologyAlgo:
         stability = readiness - caution
 
         dominant = aggregates[0]
-        return PsychologySnapshot(
+        snapshot = PsychologySnapshot(
             trader_id=history[0].trader_id,
             sample_count=len(history),
             elements=tuple(aggregates),
@@ -277,6 +308,9 @@ class DynamicPsychologyAlgo:
             dominant_level=dominant.level,
             last_sample_at=last_sample_at,
         )
+        state.cached_snapshot = snapshot
+        state.dirty = False
+        return snapshot
 
     def snapshot_all(self) -> Dict[str, PsychologySnapshot]:
         return {trader: self.snapshot(trader) for trader in self._entries}
@@ -323,30 +357,40 @@ class DynamicPsychologyAlgo:
         return tuple(self._entries.keys())
 
     def entries(self, trader_id: str) -> Iterator[PsychologyEntry]:
-        return iter(self._history_for(trader_id))
+        state = self._entries.get(str(trader_id).upper())
+        if state is None:
+            return iter(())
+        return iter(state.history)
 
     # -------------------------------------------------------------- internals
-    def _history_for(self, trader_id: str) -> Deque[PsychologyEntry]:
+    def _state_for(self, trader_id: str) -> _TraderBuffer:
         key = str(trader_id).upper()
-        if key not in self._entries:
-            self._entries[key] = deque()
-        return self._entries[key]
+        state = self._entries.get(key)
+        if state is None:
+            state = _TraderBuffer()
+            self._entries[key] = state
+        return state
 
     def _prune(
         self,
         history: Deque[PsychologyEntry],
         *,
         reference: datetime | None = None,
-    ) -> None:
+    ) -> bool:
+        modified = False
         if self.window_size is not None:
             while len(history) > self.window_size:
                 history.popleft()
+                modified = True
 
         if self.window_duration is not None and history:
             base_time = reference or history[-1].timestamp
             cutoff = base_time - self.window_duration
             while history and history[0].timestamp < cutoff:
                 history.popleft()
+                modified = True
+
+        return modified
 
     def _select_level(self, votes: Counter[str], element: Element) -> str:
         if not votes:
