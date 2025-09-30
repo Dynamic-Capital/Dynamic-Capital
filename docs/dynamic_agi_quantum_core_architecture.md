@@ -3,6 +3,14 @@
 ## Executive Summary
 Dynamic Capital's AGI stack needs to evaluate expansive strategy spaces while remaining accountable to stringent governance requirements. The quantum core architecture establishes a hybrid control plane that layers quantum primitives—superposition, entanglement, interference, and measurement—onto the existing orchestrator. The result is a runtime that can explore non-linear hypothesis spaces, converge on high-confidence policies, and document every action for regulatory and operational review.
 
+> 📎 **Tooling Reference:** For SDKs, simulators, and control-plane platforms that complement this architecture, see the [Quantum Toolchain Integration Guide](./quantum-toolchain.md).
+>
+> 🧭 **Selection Matrix:** Start with the guide's [Category Overview](./quantum-toolchain.md#category-overview) to pair workloads with the right SDK, infrastructure platform, or simulator before entering solution design.
+>
+> 🔁 **Adoption Playbook:** Use the guide's [Step-by-Step Integration Playbook](./quantum-toolchain.md#step-by-step-integration-playbook) to sequence governance, sandbox validation, and production rollout tasks for each new vendor adapter.
+>
+> 🚀 **Implementation Sprints:** Coordinate delivery squads with the [Category Implementation Runbooks](./quantum-toolchain.md#category-implementation-runbooks) to run programming, infrastructure, and simulator integrations on predictable six-week cadences.
+
 **Objectives**
 
 - Compress exploration time for combinatorial or probabilistic planning problems.
