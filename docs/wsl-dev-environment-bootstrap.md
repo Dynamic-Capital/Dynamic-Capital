@@ -10,6 +10,17 @@ GitHub Desktop on the Windows host. The guide focuses on Ubuntu 22.04, but the s
 - Administrative access to run commands with `sudo`.
 - GitHub Desktop installed on Windows for the shared repository workflow.
 
+## Setup Checklist
+
+- [ ] Update Ubuntu and install core developer packages.
+- [ ] Enable Docker and Podman compatibility, then refresh the `docker` group membership.
+- [ ] Configure WSL to start `systemd` so the Docker service runs automatically.
+- [ ] Install Node.js 20.x and the Supabase CLI globally.
+- [ ] Clone the shared repository from Windows storage for GitHub Desktop syncing.
+- [ ] Start the Supabase local stack from the project directory.
+- [ ] (Optional) Install the Docker Compose plugin and build the application stack.
+- [ ] Verify Docker, Podman, and Supabase respond without errors.
+
 ## 1. Update Ubuntu and Install Essentials
 ```bash
 sudo apt update && sudo apt upgrade -y
