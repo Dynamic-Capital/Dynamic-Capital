@@ -54,8 +54,19 @@ complete it:
   `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` to
   `https://dynamic-capital.ondigitalocean.app` in your `.env.local` (or
   equivalent secrets manager entry). Commit configuration templates rather than
-  concrete secrets. The App Platform spec already reflects these values, so the
-  runtime and Supabase functions advertise the DigitalOcean host.
+  concrete secrets. Mirror those values into the automation manifests that ship
+  with the repository so every workflow promotes the same origin:
+
+  - `.do/app.yml` – Primary domain and service-level env blocks already point at
+    `dynamic-capital.ondigitalocean.app`; review pending changes before
+    committing.
+  - `vercel.json` – Ensures preview builds and CLI workflows hydrate the
+    DigitalOcean origin by default.
+  - `supabase/config.toml` / `project.toml` – Keep the Supabase Studio URLs,
+    OAuth redirects, and function env vars aligned with the DigitalOcean host.
+
+  The App Platform spec reflects these values, so the runtime and Supabase
+  functions advertise the DigitalOcean host once you replay the configuration.
 - [ ] **Replay the App Platform spec** – Run the sync helper with `--apply` and
   `--apply-zone` (see [Reconcile the site URL and zone records with
   `doctl`](#reconcile-the-site-url-and-zone-records-with-doctl) for full usage)
@@ -70,12 +81,34 @@ complete it:
   remains authoritative.
 - [ ] **Align auxiliary services** – Update OAuth callbacks, Supabase Edge
   Function allowlists, webhooks, and any automated messaging to reference the
-  DigitalOcean URL. `vercel.json` and other scripts already default to the App
-  Platform host, but verify no previews leak into production configs.
+  DigitalOcean URL. `supabase/config.toml`, `project.toml`, and
+  `scripts/utils/branding-env.mjs` are versioned with the correct defaults;
+  confirm hosted dashboards (Supabase, Telegram, Vercel, automation runners)
+  also advertise the App Platform origin so tokens, email links, and edge
+  handlers never fall back to the Vercel preview domain.
 - [ ] **Audit traffic** – Once DNS propagates, load the site via the DigitalOcean
   domain and confirm telemetry (logs, analytics, Supabase traces) reports the
   expected origin. Keep the Vercel deployment alive for preview URLs, but treat
   it as read-only.
+
+### Quick reference: files that pin the DigitalOcean origin
+
+Use this table to double-check the committed configuration whenever you suspect
+the canonical host drifted:
+
+| File / script | Purpose | Canonical origin setting |
+| --- | --- | --- |
+| [`.do/app.yml`](../.do/app.yml) | App Platform spec (service + domain config) | `dynamic-capital.ondigitalocean.app` primary domain, env overrides for the service |
+| [`scripts/doctl/sync-site-config.mjs`](../scripts/doctl/sync-site-config.mjs) | CLI helper to replay the spec and DNS | `--site-url https://dynamic-capital.ondigitalocean.app` and zone import |
+| [`scripts/digitalocean/sync-site-config.mjs`](../scripts/digitalocean/sync-site-config.mjs) | REST helper alternative to `doctl` | Same defaults as the CLI helper (`--site-url` / `--domain`) |
+| [`vercel.json`](../vercel.json) | Vercel previews + local CLI defaults | `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `MINIAPP_ORIGIN` → `https://dynamic-capital.ondigitalocean.app` |
+| [`supabase/config.toml`](../supabase/config.toml) | Supabase auth + function env | `site_url`, `additional_redirect_urls`, and function env block → DigitalOcean origin |
+| [`project.toml`](../project.toml) | Supabase CLI environment map | `ALLOWED_ORIGINS` list includes the DigitalOcean origin first |
+| [`scripts/utils/branding-env.mjs`](../scripts/utils/branding-env.mjs) | Shared origin defaults for tooling | `PRODUCTION_ORIGIN` = `https://dynamic-capital.ondigitalocean.app` |
+
+Reapply the relevant helper (`npm run doctl:sync-site`, `npm run do:sync-site`,
+or `deno run -A scripts/configure-digitalocean-dns.ts`) whenever the table shows
+a mismatch so the DigitalOcean deployment regains authority.
 
 ## DNS for App Platform
 
