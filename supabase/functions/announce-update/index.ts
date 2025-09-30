@@ -14,26 +14,28 @@ interface TelegramResponse {
 
 const DEFAULT_VERSION = "v1.0";
 const DEFAULT_FEATURE = "Bug fixes and improvements";
-const DEFAULT_MINI_APP_URL = "https://www.dynamiccapital.ton/";
-const APEX_MINI_APP_HOST = "dynamiccapital.ton";
-const WWW_MINI_APP_HOST = "www.dynamiccapital.ton";
+const DEFAULT_MINI_APP_URL = "https://dynamiccapital.ton/";
+const PROTOCOL_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//;
+
+function ensureProtocol(value: string): string {
+  return PROTOCOL_PATTERN.test(value) ? value : `https://${value}`;
+}
 
 function normalizeMiniAppUrl(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
 
+  const candidate = ensureProtocol(trimmed);
+
   try {
-    const parsed = new URL(trimmed);
-    if (parsed.hostname === APEX_MINI_APP_HOST) {
-      parsed.hostname = WWW_MINI_APP_HOST;
-      if (!parsed.pathname) {
-        parsed.pathname = "/";
-      }
+    const parsed = new URL(candidate);
+    if (!parsed.pathname) {
+      parsed.pathname = "/";
     }
     return parsed.toString();
   } catch (_error) {
-    return trimmed.endsWith("/") ? trimmed : `${trimmed}/`;
+    return null;
   }
 }
 
