@@ -346,7 +346,9 @@ class DynamicLoopEngine:
         if not domain_signals:
             raise ValueError("domain_signals must not be empty")
 
-        results: list[LoopSyncResult] = []
+        staged_results: list[
+            tuple[str, LoopState, tuple[LoopRecommendation, ...]]
+        ] = []
         for domain, signals in domain_signals.items():
             if not isinstance(signals, Sequence):
                 raise TypeError(
@@ -359,16 +361,18 @@ class DynamicLoopEngine:
 
             normalised_domain = _normalise_domain(domain)
             state = self._compute_state(signals)
-            recommendations = self._derive_recommendations(state)
-            self._append_history(state, domain=normalised_domain)
-            self._append_recommendations(
-                recommendations, domain=normalised_domain
-            )
+            recommendations = tuple(self._derive_recommendations(state))
+            staged_results.append((normalised_domain, state, recommendations))
+
+        results: list[LoopSyncResult] = []
+        for domain, state, recommendations in staged_results:
+            self._append_history(state, domain=domain)
+            self._append_recommendations(recommendations, domain=domain)
             results.append(
                 LoopSyncResult(
-                    domain=normalised_domain,
+                    domain=domain,
                     state=state,
-                    recommendations=tuple(recommendations),
+                    recommendations=recommendations,
                 )
             )
         return tuple(results)
