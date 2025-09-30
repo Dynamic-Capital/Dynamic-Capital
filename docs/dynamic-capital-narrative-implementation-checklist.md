@@ -14,12 +14,17 @@ touchpoints.
        minutes review, 45 minutes optimization) within the same sprint.
 3. [ ] **Collect the latest macro data package** (GDP, PPP, supporting
        citations) and distribute it to all owners before implementation work
-       begins.
-4. [ ] **Log the checklist in your project tracker** with due dates for the
+       begins, noting the refresh cadence per source.
+4. [ ] **Subscribe to source update alerts** (IMF, World Bank, national
+       statistics portals) or add them to an automation feed so data refreshes
+       trigger tasks automatically.
+5. [ ] **Log the checklist in your project tracker** with due dates for the
        implementation run and the review/optimization follow-up.
-5. [ ] **Record the source metadata** (publication, URL, access date) inside the
+6. [ ] **Record the source metadata** (publication, URL, access date) inside the
        shared Maldives Data Tracker template so every team can deep-link
        citations without version drift.
+7. [ ] **Snapshot baselines** (deck version numbers, dashboard commit hashes)
+       so post-optimization diffs are easy to audit.
 
 ## 1. Reinforce Investor Materials with Macro Credibility
 
@@ -53,6 +58,11 @@ touchpoints.
 - [ ] Update the asset library (Notion, Figma, shared drives) with the final
       approved versions.
 
+### Future-Proof
+
+- [ ] Track upcoming macro release dates and pre-build placeholders in assets so
+      refreshed numbers only require value swaps.
+
 ## 2. Tie Tokenomics to National Momentum
 
 ### Implement
@@ -83,6 +93,13 @@ touchpoints.
 - [ ] Add scenario callouts (base, bull, bear) tied to specific GDP outcomes to
       improve investor comprehension.
 - [ ] Publish a brief tokenomics explainer post summarizing the macro alignment.
+
+### Future-Proof
+
+- [ ] Bake GDP scenario variables into token models so future updates become
+      data inputs instead of rewrites.
+- [ ] Maintain a changelog that maps macro updates to protocol parameter changes
+      for investor transparency.
 
 ## 3. Anchor Mentorship Scoring to the Living Protocol Narrative
 
@@ -116,6 +133,11 @@ touchpoints.
 - [ ] Integrate success metrics into the mentorship analytics dashboard for
       ongoing visibility.
 
+### Future-Proof
+
+- [ ] Create a mentorship metric backlog capturing emerging national development
+      signals to integrate as the Maldives economy evolves.
+
 ## 4. Local-to-Global Go-to-Market Positioning
 
 ### Implement
@@ -148,6 +170,11 @@ touchpoints.
 - [ ] Publish an internal rollout note summarizing updates so support and sales
       teams can reinforce the story.
 
+### Future-Proof
+
+- [ ] Stand up evergreen campaign modules that accept updated macro stats and
+      partnerships via CMS fields rather than hard-coded copy.
+
 ## 5. Roadmap Milestones Linked to the Narrative
 
 ### Implement
@@ -177,6 +204,11 @@ touchpoints.
 - [ ] Update OKRs or KPI dashboards to reflect the refined narrative-linked
       targets.
 - [ ] Capture lessons learned in the roadmap changelog for future cycles.
+
+### Future-Proof
+
+- [ ] Build roadmap milestones in a structured database (e.g., Linear, Airtable)
+      with narrative tags so future strategy pivots remain traceable.
 
 ## 6. Messaging Enhancements from Follow-up Feedback
 
@@ -212,6 +244,11 @@ touchpoints.
 - [ ] Archive previous messaging versions alongside a changelog entry detailing
       why updates were made.
 
+### Future-Proof
+
+- [ ] Template the narrative paragraph in your CMS or design system so new
+      surfaces inherit citation and milestone requirements automatically.
+
 ## 7. Governance and Maintenance
 
 ### Implement
@@ -241,6 +278,11 @@ touchpoints.
 - [ ] Introduce new macro indicators or narrative proof points as the Maldives
       economy evolves.
 
+### Future-Proof
+
+- [ ] Document contingency plans for major macro swings (tourism shocks, fiscal
+      policy shifts) with pre-approved narrative responses.
+
 ## 8. Run the Review ➜ Optimize Loop Every Cycle
 
 - [ ] Timebox the review and optimization sessions on the same day to maintain
@@ -251,17 +293,50 @@ touchpoints.
       are signed off, ensuring the living protocol narrative stays coherent
       end-to-end.
 
+## 9. Future-Proofing & Continuous Optimization Layer
+
+### Implement
+
+- [ ] Configure automated reminders in the project management tool that reopen
+      the checklist ahead of macro data releases or major product launches.
+- [ ] Establish a single source of truth dashboard that merges macro metrics,
+      product KPIs, and messaging status with version history.
+- [ ] Define decision thresholds that trigger rapid-response narrative reviews
+      (e.g., if GDP revisions exceed ±1.5% or token metrics deviate from
+      projections).
+- [ ] Document escalation paths for compliance, legal, or regulatory updates
+      that could impact messaging claims.
+
+### Review
+
+- [ ] Conduct quarterly retrospectives on the checklist process itself to
+      identify automation or delegation opportunities.
+- [ ] Validate that all automation hooks (webhooks, API pulls, calendar holds)
+      are functioning and sending reminders to the correct channels.
+- [ ] Audit the single source of truth dashboard for data freshness, access
+      permissions, and redundancy safeguards.
+
+### Optimize
+
+- [ ] Expand the automation stack with emerging tooling (AI summarizers,
+      real-time data monitors) once they meet security standards.
+- [ ] Rotate checklist ownership across team leads annually to maintain
+      organizational resilience.
+- [ ] Publish a yearly state-of-the-narrative report summarizing macro shifts,
+      protocol progress, and messaging updates to inform stakeholders.
+
 ## Appendix A: Maldives Data Tracker Template
 
 Use this table to centralize the macro assumptions that anchor the narrative.
 Duplicate it inside your project workspace and keep all fields current before
 each implementation sprint.
 
-| Metric                        | 2024 Value | 2025 Target                 | Source (Org + URL) | Accessed | Usage Note                               |
-| ----------------------------- | ---------- | --------------------------- | ------------------ | -------- | ---------------------------------------- |
-| GDP per capita (nominal, USD) | 17,287     | 18,207                      |                    |          | Investor materials + tokenomics overlays |
-| GDP per capita (PPP, USD)     | 26,000+    | Refresh with latest release |                    |          | Messaging prosperity comparisons         |
-| Supporting macro indicator    |            |                             |                    |          | Mentorship scoring / roadmap claims      |
+| Metric                        | 2024 Value | 2025 Target                 | Source (Org + URL) | Accessed | Usage Note                                | Automation / Owner |
+| ----------------------------- | ---------- | --------------------------- | ------------------ | -------- | ---------------------------------------- | ------------------ |
+| GDP per capita (nominal, USD) | 17,287     | 18,207                      |                    |          | Investor materials + tokenomics overlays |                    |
+| GDP per capita (PPP, USD)     | 26,000+    | Refresh with latest release |                    |          | Messaging prosperity comparisons         |                    |
+| Supporting macro indicator    |            |                             |                    |          | Mentorship scoring / roadmap claims      |                    |
+| Data refresh trigger          |            |                             | Automation link     |          | Slack/PM alert reference                 |                    |
 
 ## Appendix B: Narrative Paragraph Deployment Checklist
 
@@ -278,3 +353,15 @@ Capital’s ecosystem, run this micro-checklist alongside the main flow:
        narrative bridge → global positioning structure intact.
 4. [ ] **Tracker sync:** Confirm the numbers match the latest entries in the
        Maldives Data Tracker and that the tracker link is visible to reviewers.
+
+## Appendix C: Automation & Version Control Register
+
+Use this register to capture the systems that keep the narrative future proof.
+
+| System / Workflow               | Purpose                                   | Owner | Check Cadence | Last Audit | Notes |
+| ------------------------------ | ----------------------------------------- | ----- | ------------- | ---------- | ----- |
+| Macro source alert feed        | Notify team when GDP/PPP data updates     |       |               |            |       |
+| Narrative asset version log    | Track pitch deck / site revisions         |       |               |            |       |
+| Tokenomics parameter change log| Map macro changes to protocol levers      |       |               |            |       |
+| Automation health dashboard    | Monitor reminders & integrations          |       |               |            |       |
+| Compliance & legal watchlist   | Surface regulatory messaging constraints  |       |               |            |       |
