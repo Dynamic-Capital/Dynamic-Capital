@@ -39,7 +39,9 @@ Ready to continue your trading success? 🚀', 'text', 'Auto-intro message for r
     INSERT INTO public.bot_content (content_key, content_value, content_type, description, is_active, created_by, last_modified_by) VALUES
     ('contact_message', '💬 Contact Dynamic Capital Support
 
-📧 Email: dynamiccapitalapp@gmail.com
+📧 Inquiries: hello@dynamiccapital.ton
+🛟 Support: support@dynamiccapital.ton
+📣 Marketing: marketing@dynamiccapital.ton
 💬 Telegram: @DynamicCapital_Support
 
 🕐 Support Hours: 24/7
@@ -49,19 +51,29 @@ How can we help you today?', 'text', 'Contact information message for /contact c
   END IF;
 
   -- Insert default contact links if they don't exist
-  IF NOT EXISTS (SELECT 1 FROM public.contact_links WHERE platform = 'email' AND display_name = 'Email') THEN
+  IF NOT EXISTS (SELECT 1 FROM public.contact_links WHERE platform = 'email' AND display_name = 'Inquiries Email') THEN
     INSERT INTO public.contact_links (platform, display_name, url, icon_emoji, is_active, display_order) VALUES
-    ('email', 'Email', 'dynamiccapitalapp@gmail.com', '📧', true, 1);
+    ('email', 'Inquiries Email', 'hello@dynamiccapital.ton', '📧', true, 1);
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM public.contact_links WHERE platform = 'support' AND display_name = 'Support Email') THEN
+    INSERT INTO public.contact_links (platform, display_name, url, icon_emoji, is_active, display_order) VALUES
+    ('support', 'Support Email', 'support@dynamiccapital.ton', '🛟', true, 2);
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM public.contact_links WHERE platform = 'marketing' AND display_name = 'Marketing Email') THEN
+    INSERT INTO public.contact_links (platform, display_name, url, icon_emoji, is_active, display_order) VALUES
+    ('marketing', 'Marketing Email', 'marketing@dynamiccapital.ton', '📣', true, 3);
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM public.contact_links WHERE platform = 'telegram' AND display_name = 'Telegram Support') THEN
     INSERT INTO public.contact_links (platform, display_name, url, icon_emoji, is_active, display_order) VALUES
-    ('telegram', 'Telegram Support', '@DynamicCapital_Support', '💬', true, 2);
+    ('telegram', 'Telegram Support', '@DynamicCapital_Support', '💬', true, 4);
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM public.contact_links WHERE platform = 'website' AND display_name = 'Website') THEN
     INSERT INTO public.contact_links (platform, display_name, url, icon_emoji, is_active, display_order) VALUES
-    ('website', 'Website', 'https://dynamiccapital.com', '🌐', true, 3);
+    ('website', 'Website', 'https://dynamiccapital.com', '🌐', true, 5);
   END IF;
 
   -- Insert or update bot setting for auto intro feature
