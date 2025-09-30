@@ -11,6 +11,7 @@ __all__ = [
     "BridgeHealthReport",
     "BridgeIncident",
     "BridgeLink",
+    "BridgeOptimizationPlan",
     "DynamicBridgeOrchestrator",
 ]
 
@@ -224,6 +225,30 @@ class BridgeHealthReport:
         }
 
 
+@dataclass(slots=True)
+class BridgeOptimizationPlan:
+    """Recommended adjustments to raise bridge health."""
+
+    target_overall_score: float
+    current_overall_score: float
+    projected_overall_score: float
+    prioritized_actions: tuple[str, ...]
+    link_adjustments: Mapping[str, Mapping[str, float]]
+    incident_resolution_ids: tuple[str, ...]
+    metadata: Mapping[str, object] = field(default_factory=dict)
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "target_overall_score": self.target_overall_score,
+            "current_overall_score": self.current_overall_score,
+            "projected_overall_score": self.projected_overall_score,
+            "prioritized_actions": list(self.prioritized_actions),
+            "link_adjustments": {k: dict(v) for k, v in self.link_adjustments.items()},
+            "incident_resolution_ids": list(self.incident_resolution_ids),
+            "metadata": dict(self.metadata),
+        }
+
+
 # ---------------------------------------------------------------------------
 # bridge orchestrator
 
@@ -358,11 +383,158 @@ class DynamicBridgeOrchestrator:
         )
         return report
 
+    # optimisation -------------------------------------------------------
+
+    def generate_optimization_plan(
+        self,
+        *,
+        target_overall_score: float = 0.9,
+        minimum_latency_margin_ms: float = 50.0,
+        target_throughput_per_minute: float | None = 600.0,
+    ) -> BridgeOptimizationPlan:
+        """Build an optimisation play that targets improved bridge health."""
+
+        report = self.evaluate_health()
+
+        adjustments: dict[str, dict[str, float]] = {}
+        actions: list[str] = []
+
+        degraded_links = {
+            name
+            for name, score in report.link_scores.items()
+            if score < target_overall_score
+        }
+
+        for link in self._links.values():
+            link_actions: dict[str, float] = {}
+            score = report.link_scores[link.name]
+
+            if link.name in degraded_links:
+                if link.latency_margin_ms < minimum_latency_margin_ms:
+                    target_expected = max(
+                        link.latency_budget_ms - minimum_latency_margin_ms,
+                        0.0,
+                    )
+                    if target_expected < link.expected_latency_ms:
+                        link_actions["expected_latency_ms"] = round(target_expected, 2)
+                        actions.append(
+                            "Reduce processing latency on "
+                            f"'{link.name}' to {target_expected:.0f}ms target to "
+                            "recover latency headroom."
+                        )
+
+                    target_budget = max(
+                        link.latency_budget_ms,
+                        link.expected_latency_ms + minimum_latency_margin_ms,
+                    )
+                    if target_budget > link.latency_budget_ms:
+                        link_actions["latency_budget_ms"] = round(target_budget, 2)
+                        actions.append(
+                            "Increase latency budget for "
+                            f"'{link.name}' to {target_budget:.0f}ms to sustain "
+                            "target margin."
+                        )
+
+                if link.reliability < target_overall_score:
+                    recommended_reliability = round(
+                        min(0.999, max(target_overall_score, link.reliability + 0.03)),
+                        4,
+                    )
+                    if recommended_reliability > link.reliability:
+                        link_actions["reliability"] = recommended_reliability
+                        actions.append(
+                            "Improve reliability for "
+                            f"'{link.name}' to {recommended_reliability:.3f} via "
+                            "redundancy and retry hardening."
+                        )
+
+            if (
+                target_throughput_per_minute is not None
+                and link.throughput_per_minute < target_throughput_per_minute
+            ):
+                link_actions["throughput_per_minute"] = float(
+                    target_throughput_per_minute
+                )
+                actions.append(
+                    "Scale throughput capacity for "
+                    f"'{link.name}' to {target_throughput_per_minute:.0f} msgs/min."
+                )
+
+            if link_actions:
+                adjustments[link.name] = link_actions
+
+        open_incident_ids = tuple(
+            incident.identifier for incident in report.open_incidents
+        )
+        if open_incident_ids:
+            actions.append(
+                "Resolve open incidents: " + ", ".join(open_incident_ids)
+            )
+
+        incidents_resolved = bool(open_incident_ids)
+        if adjustments or incidents_resolved:
+            projected_scores: list[float] = []
+            for link in self._links.values():
+                link_adjustment = adjustments.get(link.name, {})
+                expected_latency = float(
+                    link_adjustment.get("expected_latency_ms", link.expected_latency_ms)
+                )
+                latency_budget = float(
+                    link_adjustment.get("latency_budget_ms", link.latency_budget_ms)
+                )
+                reliability = float(
+                    link_adjustment.get("reliability", link.reliability)
+                )
+
+                within_budget = expected_latency <= latency_budget
+                if within_budget:
+                    latency_penalty = 0.0
+                else:
+                    deficit = expected_latency - latency_budget
+                    baseline = latency_budget if latency_budget > 0 else 1.0
+                    latency_penalty = _clamp(deficit / baseline)
+
+                if incidents_resolved:
+                    incident_penalty = 0.0
+                else:
+                    incident_penalty = self._link_penalty_from_incidents(link.name)
+
+                combined_penalty = _clamp(latency_penalty + incident_penalty, upper=1.0)
+                projected_score = round(reliability * (1.0 - combined_penalty), 4)
+                projected_scores.append(projected_score)
+
+            projected_overall_score = round(
+                sum(projected_scores) / len(projected_scores), 4
+            )
+        else:
+            projected_overall_score = report.overall_score
+
+        metadata = {
+            "links_considered": len(self._links),
+            "degraded_links": len(degraded_links),
+            "target_overall_score": target_overall_score,
+            "minimum_latency_margin_ms": minimum_latency_margin_ms,
+        }
+        if target_throughput_per_minute is not None:
+            metadata["target_throughput_per_minute"] = target_throughput_per_minute
+
+        plan = BridgeOptimizationPlan(
+            target_overall_score=target_overall_score,
+            current_overall_score=report.overall_score,
+            projected_overall_score=projected_overall_score,
+            prioritized_actions=tuple(actions),
+            link_adjustments={k: dict(v) for k, v in adjustments.items()},
+            incident_resolution_ids=open_incident_ids,
+            metadata=metadata,
+        )
+        return plan
+
 
 __all__ = [
     "BridgeEndpoint",
     "BridgeHealthReport",
     "BridgeIncident",
     "BridgeLink",
+    "BridgeOptimizationPlan",
     "DynamicBridgeOrchestrator",
 ]

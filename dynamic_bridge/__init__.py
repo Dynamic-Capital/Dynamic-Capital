@@ -6,6 +6,7 @@ from .orchestrator import (
     BridgeHealthReport,
     BridgeIncident,
     BridgeLink,
+    BridgeOptimizationPlan,
     DynamicBridgeOrchestrator,
 )
 
@@ -14,6 +15,7 @@ __all__ = [
     "BridgeHealthReport",
     "BridgeIncident",
     "BridgeLink",
+    "BridgeOptimizationPlan",
     "DynamicBridgeOrchestrator",
     "create_dynamic_mt5_bridge",
 ]
