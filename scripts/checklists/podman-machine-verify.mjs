@@ -23,6 +23,37 @@ function run(command, args, options = {}) {
   return result;
 }
 
+function isRootOnLinux() {
+  return (
+    process.platform === "linux" &&
+    typeof process.getuid === "function" &&
+    process.getuid() === 0
+  );
+}
+
+function detectUnsupportedMachine(result) {
+  const combined = [result.stdout, result.stderr]
+    .filter(Boolean)
+    .join("\n")
+    .toLowerCase();
+
+  if (combined.includes("cannot run command \"podman machine list\" as root")) {
+    console.log(
+      "Podman machine cannot be managed as the root user on Linux. Re-run this checklist as a non-root user if you need Podman machine support.",
+    );
+    return true;
+  }
+
+  if (combined.includes("podman machine is not supported on linux")) {
+    console.log(
+      "Podman machine is not supported on Linux hosts. This checklist targets macOS and Windows installations.",
+    );
+    return true;
+  }
+
+  return false;
+}
+
 function ensurePodmanPresent() {
   try {
     const result = run("podman", ["--version"]);
@@ -92,11 +123,17 @@ function getMachineNames() {
       return names;
     }
   } else if (result.stderr) {
+    if (detectUnsupportedMachine(result)) {
+      return null;
+    }
     console.error(result.stderr.trim());
   }
 
   result = run("podman", ["machine", "list"]);
   if (result.status !== 0) {
+    if (detectUnsupportedMachine(result)) {
+      return null;
+    }
     fail(
       "Failed to list Podman machines. Inspect the output above and ensure Podman machine is configured.",
     );
@@ -187,7 +224,17 @@ function main() {
     return;
   }
 
+  if (isRootOnLinux()) {
+    console.log(
+      "Podman machine is not available when running as root on Linux. Switch to a non-root user if you need Podman machine functionality.",
+    );
+    return;
+  }
+
   const names = getMachineNames();
+  if (names === null) {
+    return;
+  }
   verifyMachines(names);
 }
 
