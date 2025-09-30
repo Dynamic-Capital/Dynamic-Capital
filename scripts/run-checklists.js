@@ -273,29 +273,42 @@ const TASK_LIBRARY = {
       "Outputs grouped checklist items for planning docs or project trackers.",
     ],
   },
-  'knowledge-base-verify': {
-    id: 'knowledge-base-verify',
+  "knowledge-base-verify": {
+    id: "knowledge-base-verify",
     label:
-      'Validate knowledge base metadata snapshot and local mirror (node scripts/checklists/knowledge-base-drop-verify.mjs)',
-    command: 'node scripts/checklists/knowledge-base-drop-verify.mjs',
+      "Validate knowledge base metadata snapshot and local mirror (node scripts/checklists/knowledge-base-drop-verify.mjs)",
+    command: "node scripts/checklists/knowledge-base-drop-verify.mjs",
     optional: false,
     docs: [
-      'docs/knowledge-base-training-drop.md',
-      'docs/onedrive-shares/evlumlqt-folder.md',
+      "docs/knowledge-base-training-drop.md",
+      "docs/onedrive-shares/evlumlqt-folder.md",
     ],
     notes: [
-      'Checks that the OneDrive manifest for knowledge_base drops is mirrored locally with documented provenance.',
+      "Checks that the OneDrive manifest for knowledge_base drops is mirrored locally with documented provenance.",
     ],
   },
-  'podman-machine-verify': {
-    id: 'podman-machine-verify',
+  "podman-machine-verify": {
+    id: "podman-machine-verify",
     label:
-      'Validate Podman machine and default connection (node scripts/checklists/podman-machine-verify.mjs)',
-    command: 'node scripts/checklists/podman-machine-verify.mjs',
+      "Validate Podman machine and default connection (node scripts/checklists/podman-machine-verify.mjs)",
+    command: "node scripts/checklists/podman-machine-verify.mjs",
     optional: false,
-    docs: ['docs/podman-github-integration-checklist.md'],
+    docs: ["docs/podman-github-integration-checklist.md"],
     notes: [
-      'Starts the configured machine if needed, confirms it is running, inspects the VM metadata, and verifies the default named-pipe connection.',
+      "Starts the configured machine if needed, confirms it is running, inspects the VM metadata, and verifies the default named-pipe connection.",
+    ],
+  },
+  "promote-digitalocean-primary-origin": {
+    id: "promote-digitalocean-primary-origin",
+    label:
+      "Verify DigitalOcean primary-origin manifests (node scripts/checklists/promote-digitalocean-primary-origin.mjs)",
+    command: "node scripts/checklists/promote-digitalocean-primary-origin.mjs",
+    optional: false,
+    docs: [
+      "docs/DEPLOYMENT.md#step-by-step-promote-digitalocean-as-the-primary-origin",
+    ],
+    notes: [
+      "Checks committed manifests, Supabase config, and DNS exports to ensure they all reference https://dynamic-capital.ondigitalocean.app before syncing infrastructure.",
     ],
   },
 };
@@ -388,6 +401,14 @@ const CHECKLISTS = {
       { task: "smoke-tunnel", optional: true },
     ],
   },
+  "promote-digitalocean-primary-origin": {
+    name: "Promote DigitalOcean Primary Origin",
+    doc:
+      "docs/DEPLOYMENT.md#step-by-step-promote-digitalocean-as-the-primary-origin",
+    description:
+      "Validates repository manifests before replaying the DigitalOcean promotion workflow.",
+    tasks: ["promote-digitalocean-primary-origin"],
+  },
   dai: {
     name: "Dynamic AI (DAI) Validation Checklist",
     doc: "docs/dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-ai-dai",
@@ -412,19 +433,19 @@ const CHECKLISTS = {
       "nft-collectible-tasks",
     ],
   },
-  'knowledge-base-drop': {
-    name: 'Knowledge Base Drop Checklist',
-    doc: 'docs/knowledge-base-training-drop.md',
+  "knowledge-base-drop": {
+    name: "Knowledge Base Drop Checklist",
+    doc: "docs/knowledge-base-training-drop.md",
     description:
-      'Automation checks for syncing OneDrive knowledge base drops into the repository.',
-    tasks: ['knowledge-base-verify'],
+      "Automation checks for syncing OneDrive knowledge base drops into the repository.",
+    tasks: ["knowledge-base-verify"],
   },
-  'podman-github': {
-    name: 'Podman GitHub Integration Checklist',
-    doc: 'docs/podman-github-integration-checklist.md',
+  "podman-github": {
+    name: "Podman GitHub Integration Checklist",
+    doc: "docs/podman-github-integration-checklist.md",
     description:
-      'Validates Windows Podman machine connectivity before running repository workflows.',
-    tasks: ['podman-machine-verify'],
+      "Validates Windows Podman machine connectivity before running repository workflows.",
+    tasks: ["podman-machine-verify"],
   },
 };
 

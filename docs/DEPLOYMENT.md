@@ -64,6 +64,9 @@ complete it:
     DigitalOcean origin by default.
   - `supabase/config.toml` / `project.toml` – Keep the Supabase Studio URLs,
     OAuth redirects, and function env vars aligned with the DigitalOcean host.
+  - Run `npm run checklists -- --checklist promote-digitalocean-primary-origin`
+    to confirm the committed manifests, Supabase config, and DNS export remain
+    pinned to the DigitalOcean origin before you apply infrastructure changes.
 
   The App Platform spec reflects these values, so the runtime and Supabase
   functions advertise the DigitalOcean host once you replay the configuration.
@@ -96,6 +99,7 @@ complete it:
 Use this table to double-check the committed configuration whenever you suspect
 the canonical host drifted:
 
+<!-- deno-fmt-ignore-start -->
 | File / script | Purpose | Canonical origin setting |
 | --- | --- | --- |
 | [`.do/app.yml`](../.do/app.yml) | App Platform spec (service + domain config) | `dynamic-capital.ondigitalocean.app` primary domain, env overrides for the service |
@@ -104,7 +108,9 @@ the canonical host drifted:
 | [`vercel.json`](../vercel.json) | Vercel previews + local CLI defaults | `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `MINIAPP_ORIGIN` → `https://dynamic-capital.ondigitalocean.app` |
 | [`supabase/config.toml`](../supabase/config.toml) | Supabase auth + function env | `site_url`, `additional_redirect_urls`, and function env block → DigitalOcean origin |
 | [`project.toml`](../project.toml) | Supabase CLI environment map | `ALLOWED_ORIGINS` list includes the DigitalOcean origin first |
+| [`scripts/checklists/promote-digitalocean-primary-origin.mjs`](../scripts/checklists/promote-digitalocean-primary-origin.mjs) | Automation gate before promotion | Validates manifests, Supabase config, DNS export, and helper defaults target `https://dynamic-capital.ondigitalocean.app` |
 | [`scripts/utils/branding-env.mjs`](../scripts/utils/branding-env.mjs) | Shared origin defaults for tooling | `PRODUCTION_ORIGIN` = `https://dynamic-capital.ondigitalocean.app` |
+<!-- deno-fmt-ignore-end -->
 
 Reapply the relevant helper (`npm run doctl:sync-site`, `npm run do:sync-site`,
 or `deno run -A scripts/configure-digitalocean-dns.ts`) whenever the table shows
