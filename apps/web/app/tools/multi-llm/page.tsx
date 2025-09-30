@@ -5,7 +5,7 @@ import { DynamicChat } from "@/components/tools/DynamicChat";
 export const metadata = {
   title: "Dynamic Chat – Dynamic Capital",
   description:
-    "Compare OpenAI, Anthropic, and Groq responses side by side with Dynamic Capital's orchestration workspace.",
+    "Compare Dynamic AGI alongside OpenAI, Anthropic, and Groq responses inside Dynamic Capital's orchestration workspace.",
 };
 
 export default function DynamicChatToolPage() {

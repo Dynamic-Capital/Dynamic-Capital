@@ -1,4 +1,5 @@
 import { OpenAIClient } from "@/integrations/openai/client";
+import { callDynamicAgi } from "@/services/dynamic-agi/client";
 import { optionalEnvVar, requireEnvVar } from "@/utils/env";
 
 import {
@@ -26,6 +27,27 @@ type ProviderInvokeInput = Omit<ChatRequest, "providerId">;
 const ANTHROPIC_VERSION = "2023-06-01";
 
 const providerDefinitions: ProviderDefinition[] = [
+  {
+    id: "dynamic-agi",
+    name: "Dynamic AGI",
+    description: "Dynamic AGI orchestrator with multi-agent synthesis.",
+    defaultModel: "dagi-orchestrator",
+    contextWindow: 128_000,
+    maxOutputTokens: 4_096,
+    envKeys: ["DYNAMIC_AGI_CHAT_URL", "DYNAMIC_AGI_CHAT_KEY"],
+    async invoke(
+      { messages, temperature = 0.7, maxTokens },
+    ): Promise<Omit<ChatResult, "provider">> {
+      const { system, conversation } = normalizeMessages(messages);
+      const result = await callDynamicAgi({
+        system,
+        messages: conversation,
+        temperature,
+        maxTokens,
+      });
+      return result;
+    },
+  },
   {
     id: "openai",
     name: "OpenAI",

@@ -38,7 +38,7 @@ interface ProvidersResponse {
 }
 
 const DEFAULT_SYSTEM_PROMPT =
-  "You are an analytical AI assistant comparing multiple model providers. Respond with concise, actionable insights.";
+  "You are the Dynamic AGI orchestrator comparing multiple model providers. Respond with concise, actionable insights and highlight when the Dynamic AGI engine can extend the analysis.";
 
 export function DynamicChat() {
   const [providers, setProviders] = useState<ProviderSummary[]>([]);
@@ -194,6 +194,9 @@ export function DynamicChat() {
                     <SelectItem key={provider.id} value={provider.id}>
                       <div className="flex flex-col">
                         <span>{provider.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {provider.description}
+                        </span>
                         <span className="text-xs text-muted-foreground">
                           {provider.configured
                             ? provider.defaultModel
