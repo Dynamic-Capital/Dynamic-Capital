@@ -16,6 +16,7 @@
 | 15–16   | Glossary & Synonyms                             |
 | 17–18   | Appendix A – Default Scenario Blueprint         |
 | 19      | Appendix B – Exit Codes & Environment Variables |
+| 20      | Appendix C – Back-to-Back Expression Library    |
 
 > **Pagination note:** Page numbers reference printed formatting using US Letter
 > paper with default Markdown-to-PDF rendering (roughly 500 words per page).
@@ -325,6 +326,160 @@ The CLI provides `DEFAULT_SCENARIO`, mirroring the JSON contained in
   module search list).
 - `LC_ALL` / `LANG` — Influence locale-specific formatting (synonyms: language
   settings, regional profile).
+
+---
+
+## Page 20 — Appendix C – Back-to-Back Expression Library
+
+To support consistent CLI/CD messaging, this appendix curates reusable
+"back-to-back" phrases. Grouped lists make it easy to tailor release notes,
+pipeline prompts, and operator briefings without repeating the same wording.
+
+### 📘 Master List of Back-to-Back Expressions
+
+#### ⏳ Time & Progression
+
+- day-by-day
+- year-by-year
+- month-by-month
+- week-by-week
+- hour-by-hour
+- minute-by-minute
+- moment-by-moment
+- second-by-second
+- stage-by-stage
+- step-by-step
+- phase-by-phase
+- period-by-period
+- generation-by-generation
+- season-by-season
+
+#### 🧩 Detail & Breakdown
+
+- one-by-one
+- bit-by-bit
+- piece-by-piece
+- part-by-part
+- element-by-element
+- block-by-block
+- brick-by-brick
+- layer-by-layer
+- inch-by-inch
+- detail-by-detail
+- section-by-section
+- line-by-line
+- row-by-row
+- page-by-page
+- chapter-by-chapter
+- verse-by-verse
+- note-by-note
+- word-by-word
+- letter-by-letter
+- character-by-character
+- pixel-by-pixel
+- frame-by-frame
+- click-by-click
+- question-by-question
+
+#### ⚔️ Conflict & Competition
+
+- face-to-face
+- toe-to-toe
+- head-to-head
+- shoulder-to-shoulder
+- nose-to-nose
+- hand-to-hand (combat)
+- eye-to-eye (agreement/disagreement)
+- back-to-back (matches, wins, games)
+- round-by-round
+- play-by-play
+
+#### 🤝 Unity & Relationships
+
+- hand-in-hand
+- arm-in-arm
+- shoulder-to-shoulder (also teamwork)
+- heart-to-heart (deep talk)
+- side-by-side
+- back-to-back (also protection / closeness)
+
+#### ⚖️ Equivalence & Exactness
+
+- word-for-word
+- letter-for-letter
+- number-for-number
+- like-for-like
+- point-for-point
+- pound-for-pound
+- tit-for-tat
+- eye-for-eye (Biblical phrase)
+- measure-for-measure
+
+#### 🏠 Travel & Movement
+
+- door-to-door (sales, delivery)
+- mile-by-mile
+- yard-by-yard
+- street-by-street
+- road-by-road
+- route-by-route
+- stop-by-stop
+- station-by-station
+- journey-by-journey
+- step-by-step (fits both travel & process)
+
+#### 🎨 Creative & Stylized
+
+- image-by-image
+- sketch-by-sketch
+- scene-by-scene
+- shot-by-shot
+- cut-by-cut
+- reel-by-reel (film)
+- track-by-track (music albums)
+- beat-by-beat (music/drama pacing)
+- post-by-post (social media)
+- tweet-by-tweet
+- story-by-story
+- article-by-article
+- blog-by-blog
+
+#### 📊 Learning & Analysis
+
+- example-by-example
+- case-by-case
+- problem-by-problem
+- equation-by-equation
+- proof-by-proof
+- theorem-by-theorem
+- argument-by-argument
+- point-by-point
+
+#### 🧠 Emotional/Experiential
+
+- breath-by-breath
+- heartbeat-by-heartbeat
+- tear-by-tear
+- smile-by-smile
+- memory-by-memory
+- thought-by-thought
+- lesson-by-lesson
+- experience-by-experience
+
+### 🔑 How to Invent New Ones
+
+The structure is productive and customizable:
+
+- `[Unit] + by + [Unit]`
+- `[Unit] + to + [Unit]`
+- `[Unit] + for + [Unit]`
+- `[Unit] + in + [Unit]`
+
+Examples to adapt for backlog items, experiments, or retrospectives include:
+
+- task-by-task, goal-by-goal (productivity)
+- layer-by-layer, frame-by-frame (technology)
+- pulse-by-pulse, breath-by-breath (poetic/emotional)
 
 ---
 
