@@ -314,22 +314,6 @@ export function normalizeAppSpec({
   spec.jobs = updateComponentEnvs(spec.jobs, { label: "job" });
   spec.functions = updateComponentEnvs(spec.functions, { label: "function" });
 
-  if (spec.ingress && typeof spec.ingress === "object") {
-    spec.ingress.rules = ensureArray(spec.ingress.rules);
-    for (const rule of spec.ingress.rules) {
-      if (
-        rule && typeof rule === "object" && rule.match &&
-        typeof rule.match === "object" && rule.match.authority
-      ) {
-        const authority = rule.match.authority;
-        if (authority.exact !== finalDomain) {
-          authority.exact = finalDomain;
-          changes.add(`ingress authority exact → ${finalDomain}`);
-        }
-      }
-    }
-  }
-
   spec.domains = ensureArray(spec.domains);
   if (spec.domains.length === 0) {
     spec.domains.push({
@@ -353,6 +337,64 @@ export function normalizeAppSpec({
     }
     if (primary.wildcard === undefined) {
       primary.wildcard = false;
+    }
+  }
+
+  const canonicalDomainLower = finalDomain.toLowerCase();
+  const knownDomains = new Set(
+    spec.domains
+      .map((item) =>
+        typeof item?.domain === "string"
+          ? item.domain.trim().toLowerCase()
+          : undefined
+      )
+      .filter(Boolean),
+  );
+  knownDomains.add(canonicalDomainLower);
+
+  if (spec.ingress && typeof spec.ingress === "object") {
+    spec.ingress.rules = ensureArray(spec.ingress.rules);
+    let hasCanonicalRule = false;
+
+    for (const rule of spec.ingress.rules) {
+      if (
+        rule && typeof rule === "object" && rule.match &&
+        typeof rule.match === "object" && rule.match.authority
+      ) {
+        const authority = rule.match.authority;
+        const rawExact = typeof authority.exact === "string"
+          ? authority.exact.trim()
+          : undefined;
+
+        if (rawExact) {
+          const lowerExact = rawExact.toLowerCase();
+          if (lowerExact === canonicalDomainLower) {
+            hasCanonicalRule = true;
+            continue;
+          }
+
+          if (knownDomains.has(lowerExact)) {
+            continue;
+          }
+        }
+
+        authority.exact = finalDomain;
+        hasCanonicalRule = true;
+        changes.add(`ingress authority exact → ${finalDomain}`);
+      }
+    }
+
+    if (!hasCanonicalRule) {
+      spec.ingress.rules.unshift({
+        component: { name: serviceName },
+        match: {
+          authority: { exact: finalDomain },
+          path: { prefix: "/" },
+        },
+      });
+      changes.add(
+        `ingress rule added for ${finalDomain} → service '${serviceName}'`,
+      );
     }
   }
 
