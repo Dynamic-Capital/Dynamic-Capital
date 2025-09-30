@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals } from "std/assert/mod.ts";
 import { isMemberLike, getChatMemberStatus } from "../_shared/telegram_membership.ts";
 import { recomputeVipForUser } from "../_shared/vip_sync.ts";
 import { createMockSupabaseClient } from "./mock_supabase.ts";

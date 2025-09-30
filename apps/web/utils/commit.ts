@@ -1,23 +1,36 @@
-const nodeProcess = (globalThis as any).process as
-  | { env?: Record<string, string | undefined> }
-  | undefined;
+type NodeProcessLike = {
+  env?: Record<string, string | undefined>;
+};
 
-const denoEnv = 'Deno' in globalThis
-  ? ((globalThis as any).Deno?.env as { get?: (key: string) => string | undefined })
-  : undefined;
+type DenoEnvNamespace = {
+  env?: {
+    get?: (key: string) => string | undefined;
+  };
+};
+
+type GlobalWithRuntimes = typeof globalThis & {
+  process?: NodeProcessLike;
+  Deno?: DenoEnvNamespace;
+};
+
+const runtimeGlobal = globalThis as GlobalWithRuntimes;
+
+const nodeProcess = runtimeGlobal.process;
+
+const denoEnv = runtimeGlobal.Deno?.env;
 
 export const COMMIT_ENV_KEYS = [
-  'NEXT_PUBLIC_COMMIT_SHA',
-  'COMMIT_SHA',
-  'GIT_COMMIT_SHA',
-  'GIT_COMMIT',
-  'VERCEL_GIT_COMMIT_SHA',
-  'SOURCE_VERSION',
-  'DIGITALOCEAN_GIT_COMMIT_SHA',
-  'DIGITALOCEAN_DEPLOYMENT_ID',
-  'DIGITALOCEAN_APP_DEPLOYMENT_SHA',
-  'RENDER_GIT_COMMIT',
-  'HEROKU_SLUG_COMMIT',
+  "NEXT_PUBLIC_COMMIT_SHA",
+  "COMMIT_SHA",
+  "GIT_COMMIT_SHA",
+  "GIT_COMMIT",
+  "VERCEL_GIT_COMMIT_SHA",
+  "SOURCE_VERSION",
+  "DIGITALOCEAN_GIT_COMMIT_SHA",
+  "DIGITALOCEAN_DEPLOYMENT_ID",
+  "DIGITALOCEAN_APP_DEPLOYMENT_SHA",
+  "RENDER_GIT_COMMIT",
+  "HEROKU_SLUG_COMMIT",
 ] as const;
 
 function readEnv(key: string): string | undefined {
@@ -35,7 +48,7 @@ function readEnv(key: string): string | undefined {
 function normalizeCommit(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
   const value = raw.trim();
-  if (!value || value === 'undefined' || value === 'null') {
+  if (!value || value === "undefined" || value === "null") {
     return undefined;
   }
   return value;
@@ -54,10 +67,10 @@ export function getCommitSha(): string {
     }
   }
 
-  cachedCommit = 'dev';
+  cachedCommit = "dev";
   return cachedCommit;
 }
 
 export function healthPayload() {
-  return { status: 'ok', commit: getCommitSha() } as const;
+  return { status: "ok", commit: getCommitSha() } as const;
 }

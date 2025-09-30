@@ -3,6 +3,7 @@
 // stores state in Redis when available, falling back to an in-memory store for
 // tests.
 
+import process from "node:process";
 export type BackoffStrategy = "exp";
 
 export interface EnqueueOptions {
@@ -104,59 +105,66 @@ class MemoryQueueBackend implements QueueBackend {
   #queue: number[] = [];
   #nextId = 1;
 
-  async init() {}
-
-  async nextId(): Promise<number> {
-    return this.#nextId++;
+  init(): Promise<void> {
+    return Promise.resolve();
   }
 
-  async storeJob(job: JobRecord): Promise<void> {
+  nextId(): Promise<number> {
+    return Promise.resolve(this.#nextId++);
+  }
+
+  storeJob(job: JobRecord): Promise<void> {
     this.#jobStore.set(job.id, job);
     this.#queue.push(job.id);
     this.#sortQueue();
+    return Promise.resolve();
   }
 
-  async requeueJob(job: JobRecord): Promise<void> {
+  requeueJob(job: JobRecord): Promise<void> {
     this.#jobStore.set(job.id, job);
     this.#queue = this.#queue.filter((id) => id !== job.id);
     this.#queue.push(job.id);
     this.#sortQueue();
+    return Promise.resolve();
   }
 
-  async markJobDone(job: JobRecord): Promise<void> {
+  markJobDone(job: JobRecord): Promise<void> {
     this.#jobStore.set(job.id, job);
     this.#queue = this.#queue.filter((id) => id !== job.id);
+    return Promise.resolve();
   }
 
-  async popDueJob(now: number): Promise<JobRecord | null> {
+  popDueJob(now: number): Promise<JobRecord | null> {
     for (let i = 0; i < this.#queue.length; i++) {
       const id = this.#queue[i];
       const job = this.#jobStore.get(id);
       if (!job) continue;
       if (job.nextRunAt <= now) {
         this.#queue.splice(i, 1);
-        return job;
+        return Promise.resolve(job);
       }
     }
-    return null;
+    return Promise.resolve(null);
   }
 
-  async peekNext(): Promise<JobRecord | null> {
+  peekNext(): Promise<JobRecord | null> {
     if (this.#queue.length === 0) return null;
     const id = this.#queue[0];
-    return this.#jobStore.get(id) ?? null;
+    return Promise.resolve(this.#jobStore.get(id) ?? null);
   }
 
-  async listPending(): Promise<JobRecord[]> {
-    return this.#queue
+  listPending(): Promise<JobRecord[]> {
+    const pending = this.#queue
       .map((id) => this.#jobStore.get(id))
       .filter((job): job is JobRecord => Boolean(job));
+    return Promise.resolve(pending);
   }
 
-  async clear(): Promise<void> {
+  clear(): Promise<void> {
     this.#queue = [];
     this.#jobStore.clear();
     this.#nextId = 1;
+    return Promise.resolve();
   }
 
   #sortQueue() {
@@ -285,7 +293,7 @@ let running = false;
 let backoffBaseMs = 1000; // can be tuned for tests
 const backoffCapMs = 30000;
 let timer: ReturnType<typeof setTimeout> | null = null;
-let backend: QueueBackend = isTestEnvironment()
+const backend: QueueBackend = isTestEnvironment()
   ? new MemoryQueueBackend()
   : new RedisQueueBackend();
 let backendInit: Promise<void> | null = null;

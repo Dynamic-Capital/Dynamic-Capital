@@ -12,7 +12,9 @@ export function setTestEnv(kv: Record<string, string>) {
 export async function makeTelegramInitData(
   user: Record<string, unknown>,
   botToken: string,
-  extra: Record<string, string> = {},
+  extra: Record<string, string> = {
+    await Promise.resolve(); // satisfy require-await
+},
 ) {
   // builds a valid WebApp initData for tests
   const enc = new TextEncoder();

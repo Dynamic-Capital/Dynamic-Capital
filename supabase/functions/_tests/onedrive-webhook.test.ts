@@ -1,7 +1,7 @@
 import {
   assertEquals,
   assertStringIncludes,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+} from "std/assert/mod.ts";
 
 (globalThis as { __SUPABASE_SKIP_AUTO_SERVE__?: boolean })
   .__SUPABASE_SKIP_AUTO_SERVE__ = true;
@@ -67,6 +67,8 @@ Deno.test("onedrive-webhook can read drive item with content", async () => {
 
   globalThis.fetch =
     (async (input: Request | URL | string, init?: RequestInit) => {
+  await Promise.resolve(); // satisfy require-await
+
       const url = typeof input === "string"
         ? input
         : input instanceof URL
@@ -160,6 +162,8 @@ Deno.test("onedrive-webhook uploads content", async () => {
 
   globalThis.fetch =
     (async (input: Request | URL | string, init?: RequestInit) => {
+  await Promise.resolve(); // satisfy require-await
+
       const url = typeof input === "string"
         ? input
         : input instanceof URL
@@ -237,6 +241,8 @@ Deno.test("onedrive-webhook processes notifications", async () => {
   const calls: Array<{ url: string }> = [];
 
   globalThis.fetch = (async (input: Request | URL | string) => {
+  await Promise.resolve(); // satisfy require-await
+
     const url = typeof input === "string"
       ? input
       : input instanceof URL

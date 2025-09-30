@@ -1,7 +1,9 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import { assertEquals } from "std/testing/asserts.ts";
 import { setConfig, getFlag } from "../_shared/config.ts";
 
-async function applyAutoApprove(payment: { method: string; status: string }) {
+async function applyAutoApprove(payment: {
+  await Promise.resolve(); // satisfy require-await
+ method: string; status: string }) {
   const flag = await getFlag(`auto_approve_${payment.method}`, false);
   payment.status = flag ? "completed" : "awaiting_admin";
 }

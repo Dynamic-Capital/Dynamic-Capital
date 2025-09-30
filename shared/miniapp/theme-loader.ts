@@ -506,9 +506,9 @@ function calculateContrast(colorA: string, colorB: string): number | null {
 class ThemeMetadataCache {
   private dbPromise: Promise<IDBDatabase | null> | null = null;
 
-  private async openDb(): Promise<IDBDatabase | null> {
+  private openDb(): Promise<IDBDatabase | null> {
     if (!ensureBrowserEnvironment() || !("indexedDB" in window)) {
-      return null;
+      return Promise.resolve(null);
     }
     if (!this.dbPromise) {
       this.dbPromise = new Promise((resolve) => {
@@ -533,7 +533,7 @@ class ThemeMetadataCache {
     if (!ensureBrowserEnvironment()) return null;
     const localKey = `${ACTIVE_THEME_WALLET_PREFIX}cache:${id}`;
     try {
-      const stored = window.localStorage.getItem(localKey);
+      const stored = globalThis.localStorage.getItem(localKey);
       if (stored) {
         return JSON.parse(stored) as CacheEntry;
       }
@@ -556,7 +556,7 @@ class ThemeMetadataCache {
     const serialized = JSON.stringify(entry);
     const localKey = `${ACTIVE_THEME_WALLET_PREFIX}cache:${entry.id}`;
     try {
-      window.localStorage.setItem(localKey, serialized);
+      globalThis.localStorage.setItem(localKey, serialized);
     } catch (error) {
       console.debug("[miniapp-theme] Failed to persist metadata cache", error);
     }
@@ -570,7 +570,7 @@ class ThemeMetadataCache {
     if (!ensureBrowserEnvironment()) return;
     const localKey = `${ACTIVE_THEME_WALLET_PREFIX}cache:${id}`;
     try {
-      window.localStorage.removeItem(localKey);
+      globalThis.localStorage.removeItem(localKey);
     } catch (error) {
       console.debug("[miniapp-theme] Failed to clear metadata cache", error);
     }
@@ -728,10 +728,10 @@ export class MiniAppThemeManager {
     const walletKey = address ? `${ACTIVE_THEME_WALLET_PREFIX}${address}` : null;
     try {
       if (walletKey) {
-        const stored = window.localStorage.getItem(walletKey);
+        const stored = globalThis.localStorage.getItem(walletKey);
         if (stored) return stored;
       }
-      const fallback = window.localStorage.getItem(ACTIVE_THEME_STORAGE_KEY);
+      const fallback = globalThis.localStorage.getItem(ACTIVE_THEME_STORAGE_KEY);
       return fallback ?? null;
     } catch (error) {
       console.debug("[miniapp-theme] Unable to read stored theme selection", error);
@@ -746,15 +746,15 @@ export class MiniAppThemeManager {
     try {
       if (walletKey) {
         if (themeId) {
-          window.localStorage.setItem(walletKey, themeId);
+          globalThis.localStorage.setItem(walletKey, themeId);
         } else {
-          window.localStorage.removeItem(walletKey);
+          globalThis.localStorage.removeItem(walletKey);
         }
       }
       if (themeId) {
-        window.localStorage.setItem(ACTIVE_THEME_STORAGE_KEY, themeId);
+        globalThis.localStorage.setItem(ACTIVE_THEME_STORAGE_KEY, themeId);
       } else {
-        window.localStorage.removeItem(ACTIVE_THEME_STORAGE_KEY);
+        globalThis.localStorage.removeItem(ACTIVE_THEME_STORAGE_KEY);
       }
     } catch (error) {
       console.debug("[miniapp-theme] Unable to persist active theme", error);
@@ -790,8 +790,8 @@ export class MiniAppThemeManager {
     await this.applyTheme(theme, { persist: true });
   }
 
-  async resetTheme() {
-    if (!ensureBrowserEnvironment()) return;
+  resetTheme(): Promise<void> {
+    if (!ensureBrowserEnvironment()) return Promise.resolve();
     const root = document.documentElement;
     for (const key of this.appliedVarKeys) {
       const defaultValue = this.defaultVarSnapshot[key];
@@ -804,6 +804,7 @@ export class MiniAppThemeManager {
     this.appliedVarKeys.clear();
     this.persistSelection(null);
     this.setState({ activeThemeId: null, isApplying: false });
+    return Promise.resolve();
   }
 
   private async applyTheme(
@@ -845,7 +846,7 @@ export class MiniAppThemeManager {
   private captureDefaultValues(keys: Iterable<string>) {
     if (!ensureBrowserEnvironment()) return;
     const root = document.documentElement;
-    const computed = window.getComputedStyle(root);
+    const computed = globalThis.getComputedStyle(root);
     for (const key of keys) {
       if (this.defaultVarSnapshot[key]) continue;
       const inline = root.style.getPropertyValue(key);
@@ -956,7 +957,7 @@ export class MiniAppThemeManager {
     const root = document.documentElement;
     const inline = root.style.getPropertyValue(key);
     if (inline) return inline.trim();
-    const computed = window.getComputedStyle(root).getPropertyValue(key);
+    const computed = globalThis.getComputedStyle(root).getPropertyValue(key);
     return computed.trim();
   }
 
@@ -1116,15 +1117,15 @@ export function attachGlobalTonConnect(manager: MiniAppThemeManager): () => void
     };
   }
 
-  const interval = window.setInterval(() => {
+  const interval = globalThis.setInterval(() => {
     if (attemptAttach()) {
-      window.clearInterval(interval);
+      globalThis.clearInterval(interval);
     }
   }, 500);
 
   return () => {
     disposed = true;
-    window.clearInterval(interval);
+    globalThis.clearInterval(interval);
     cleanup?.();
   };
 }
