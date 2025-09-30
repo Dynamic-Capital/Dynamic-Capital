@@ -1,19 +1,19 @@
 import { Column, Heading, Text } from "@/components/dynamic-ui-system";
 
-import { MultiLlmStudio } from "@/components/tools/MultiLlmStudio";
+import { DynamicChat } from "@/components/tools/DynamicChat";
 
 export const metadata = {
-  title: "Multi-LLM Studio – Dynamic Capital",
+  title: "Dynamic Chat – Dynamic Capital",
   description:
     "Compare OpenAI, Anthropic, and Groq responses side by side with Dynamic Capital's orchestration workspace.",
 };
 
-export default function MultiLlmToolPage() {
+export default function DynamicChatToolPage() {
   return (
     <Column gap="32" paddingY="40" align="center" horizontal="center" fillWidth>
       <Column maxWidth={36} gap="12" align="center" horizontal="center">
         <Heading variant="display-strong-s" align="center">
-          Multi-LLM studio
+          Dynamic Chat
         </Heading>
         <Text
           variant="body-default-m"
@@ -25,7 +25,7 @@ export default function MultiLlmToolPage() {
         </Text>
       </Column>
       <Column maxWidth={64} fillWidth>
-        <MultiLlmStudio />
+        <DynamicChat />
       </Column>
     </Column>
   );
