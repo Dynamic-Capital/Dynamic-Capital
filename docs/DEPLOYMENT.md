@@ -56,26 +56,17 @@ complete it:
   equivalent secrets manager entry). Commit configuration templates rather than
   concrete secrets. The App Platform spec already reflects these values, so the
   runtime and Supabase functions advertise the DigitalOcean host.
-- [ ] **Replay the App Platform spec** – Run
-  ```bash
-  node scripts/doctl/sync-site-config.mjs \
-    --app-id $DIGITALOCEAN_APP_ID \
-    --site-url https://dynamic-capital.ondigitalocean.app \
-    --zone dynamic-capital.ondigitalocean.app \
-    --apply \
-    --apply-zone
-  ```
-  This command updates environment variables, the primary domain, and DNS
-  records in one pass (requires an authenticated `doctl` session). Use the
-  REST-based helper `npm run do:sync-site -- --help` when `doctl` is
-  unavailable.
-- [ ] **Reconcile DNS** – Preview changes with
-  ```bash
-  deno run -A scripts/configure-digitalocean-dns.ts --dry-run
-  ```
-  then rerun without `--dry-run` (or add `--context <doctl-context>` when
-  necessary). Confirm the apex routes through the Cloudflare anycast IPs from
-  `dns/dynamic-capital.ondigitalocean.app.zone` so the DigitalOcean deployment
+- [ ] **Replay the App Platform spec** – Run the sync helper with `--apply` and
+  `--apply-zone` (see [Reconcile the site URL and zone records with
+  `doctl`](#reconcile-the-site-url-and-zone-records-with-doctl) for full usage)
+  so environment variables, ingress, and DNS all point at the DigitalOcean
+  host. Use the REST-based helper `npm run do:sync-site -- --help` when
+  `doctl` is unavailable.
+- [ ] **Reconcile DNS** – Start with
+  `deno run -A scripts/configure-digitalocean-dns.ts --dry-run`, then rerun
+  without `--dry-run` (adding `--context <doctl-context>` when necessary) so the
+  apex routes through the Cloudflare anycast IPs from
+  `dns/dynamic-capital.ondigitalocean.app.zone` and the DigitalOcean deployment
   remains authoritative.
 - [ ] **Align auxiliary services** – Update OAuth callbacks, Supabase Edge
   Function allowlists, webhooks, and any automated messaging to reference the
@@ -118,49 +109,34 @@ aligned with Cloudflare while normalizing environment variables on the app
 itself along with any services, static sites, workers, jobs, and functions
 declared in the spec.
 
-Example usage:
-
-Set `DOCTL_CONTEXT` to the `doctl` context you authenticated (omit the flag if
-you only use the default context):
+Example usage (append `--context $DOCTL_CONTEXT` when you work outside the
+default session):
 
 ```bash
-# Update the app spec, aligning env vars, ingress, and primary domain.
+# Normalize the app spec, ingress, and DNS in one command.
 node scripts/doctl/sync-site-config.mjs \
   --app-id $DIGITALOCEAN_APP_ID \
   --site-url https://dynamic-capital.ondigitalocean.app \
   --zone dynamic-capital.ondigitalocean.app \
-  --spec .do/app.yml \
-  --output .do/app.yml \
-  --context $DOCTL_CONTEXT \
-  --show-spec
-
-# Apply the spec changes and import the DNS zone in one go.
-node scripts/doctl/sync-site-config.mjs \
-  --app-id $DIGITALOCEAN_APP_ID \
-  --site-url https://dynamic-capital.ondigitalocean.app \
-  --zone dynamic-capital.ondigitalocean.app \
-  --context $DOCTL_CONTEXT \
   --apply \
   --apply-zone
 ```
 
-Flags:
+Key flags:
 
 - `--app-id` – App Platform UUID (`doctl apps list`).
 - `--site-url` – Canonical host for the deployment. The script updates
   `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN`
   globally, on the `dynamic-capital` service, and on any static site components.
-- `--context` – doctl context to run commands against (defaults to the active
-  context).
 - `--zone` – DNS zone to import. Defaults to the site URL host.
-- `--spec` – Load an app spec from a local YAML file (for example
-  `.do/app.yml`). Combine with `--output` to rewrite the file after
-  normalization.
+- `--spec` / `--output` – Load and rewrite a local spec file (for example
+  `.do/app.yml`) before applying.
+- `--context` – Override the active doctl context.
 - `--zone-file` – Override the zone file path (defaults to `dns/<zone>.zone`).
 - `--apply` / `--apply-zone` – Push changes via `doctl` instead of running a dry
   run.
 
-Use `npm run doctl:sync-site -- --help` to see all available options.
+Run `npm run doctl:sync-site -- --help` to inspect the full option list.
 
 When the DigitalOcean CLI is unavailable (for example in CI pipelines), the
 repository now also ships `scripts/digitalocean/sync-site-config.mjs`, which
