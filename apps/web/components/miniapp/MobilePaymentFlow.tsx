@@ -118,38 +118,23 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
 
   const isInTelegram = typeof window !== "undefined" && window.Telegram?.WebApp;
 
-  const methodsToRender = useMemo(() => methodIds ?? DEFAULT_METHOD_IDS, [
-    methodIds,
-  ]);
-
-  const combinedPresentation = useMemo(() => {
-    if (!methodPresentation) {
-      return DEFAULT_METHOD_PRESENTATION;
-    }
-
-    return methodsToRender.reduce<
-      Record<PaymentMethodId, PaymentMethodPresentation>
-    >(
-      (acc, id) => {
-        acc[id] = {
-          ...DEFAULT_METHOD_PRESENTATION[id],
-          ...(methodPresentation[id] ?? {}),
-        };
-        return acc;
-      },
-      {} as Record<PaymentMethodId, PaymentMethodPresentation>,
-    );
-  }, [methodPresentation, methodsToRender]);
-
   const paymentMethods = useMemo<MobilePaymentMethod[]>(() => {
+    const methodsToRender = methodIds ?? DEFAULT_METHOD_IDS;
+
     return methodsToRender
       .map<MobilePaymentMethod | null>((id) => {
         const definition = paymentMethodMap[id];
-        const extras = combinedPresentation[id];
 
-        if (!definition || !extras) {
+        if (!definition) {
           return null;
         }
+
+        const extras = methodPresentation
+          ? {
+            ...DEFAULT_METHOD_PRESENTATION[id],
+            ...(methodPresentation[id] ?? {}),
+          }
+          : DEFAULT_METHOD_PRESENTATION[id];
 
         return {
           ...definition,
@@ -162,7 +147,7 @@ export const MobilePaymentFlow: React.FC<MobilePaymentFlowProps> = ({
         };
       })
       .filter((method): method is MobilePaymentMethod => method !== null);
-  }, [combinedPresentation, methodsToRender]);
+  }, [methodIds, methodPresentation]);
 
   const handleMethodSelect = (methodId: PaymentMethodId) => {
     const method = paymentMethods.find((m) => m.id === methodId);
