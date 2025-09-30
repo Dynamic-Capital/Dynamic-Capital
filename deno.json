@@ -17,6 +17,7 @@
     "miniapp:deploy": "bash scripts/build-deploy-miniapp.sh",
     "miniapp:update-telegram": "deno run -A scripts/update-telegram-miniapp.ts",
     "miniapp:deploy-and-update": "deno task miniapp:deploy && deno task miniapp:update-telegram",
+    "podman:share-check": "deno run -A scripts/checklists/podman-share-check.ts",
     "test": "deno test -A supabase/functions/_tests",
     "check:webhook": "deno run -A scripts/check-webhook.ts",
     "ping:webhook": "deno run -A scripts/ping-webhook.ts",

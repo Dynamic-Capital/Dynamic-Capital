@@ -273,29 +273,40 @@ const TASK_LIBRARY = {
       "Outputs grouped checklist items for planning docs or project trackers.",
     ],
   },
-  'knowledge-base-verify': {
-    id: 'knowledge-base-verify',
+  "knowledge-base-verify": {
+    id: "knowledge-base-verify",
     label:
-      'Validate knowledge base metadata snapshot and local mirror (node scripts/checklists/knowledge-base-drop-verify.mjs)',
-    command: 'node scripts/checklists/knowledge-base-drop-verify.mjs',
+      "Validate knowledge base metadata snapshot and local mirror (node scripts/checklists/knowledge-base-drop-verify.mjs)",
+    command: "node scripts/checklists/knowledge-base-drop-verify.mjs",
     optional: false,
     docs: [
-      'docs/knowledge-base-training-drop.md',
-      'docs/onedrive-shares/evlumlqt-folder.md',
+      "docs/knowledge-base-training-drop.md",
+      "docs/onedrive-shares/evlumlqt-folder.md",
     ],
     notes: [
-      'Checks that the OneDrive manifest for knowledge_base drops is mirrored locally with documented provenance.',
+      "Checks that the OneDrive manifest for knowledge_base drops is mirrored locally with documented provenance.",
     ],
   },
-  'podman-machine-verify': {
-    id: 'podman-machine-verify',
+  "podman-machine-verify": {
+    id: "podman-machine-verify",
     label:
-      'Validate Podman machine and default connection (node scripts/checklists/podman-machine-verify.mjs)',
-    command: 'node scripts/checklists/podman-machine-verify.mjs',
+      "Validate Podman machine and default connection (node scripts/checklists/podman-machine-verify.mjs)",
+    command: "node scripts/checklists/podman-machine-verify.mjs",
     optional: false,
-    docs: ['docs/podman-github-integration-checklist.md'],
+    docs: ["docs/podman-github-integration-checklist.md"],
     notes: [
-      'Starts the configured machine if needed, confirms it is running, inspects the VM metadata, and verifies the default named-pipe connection.',
+      "Starts the configured machine if needed, confirms it is running, inspects the VM metadata, and verifies the default named-pipe connection.",
+    ],
+  },
+  "podman-share-sample": {
+    id: "podman-share-sample",
+    label:
+      "Validate Podman UNC share accessibility (deno task podman:share-check -- --list)",
+    command: "deno task podman:share-check -- --list",
+    optional: false,
+    docs: ["docs/podman-github-integration-checklist.md"],
+    notes: [
+      "Checks the default \\wsl.localhost\\podman-machine-default share, sampling directory entries so Windows workflows can confirm bind mount readiness.",
     ],
   },
 };
@@ -412,29 +423,39 @@ const CHECKLISTS = {
       "nft-collectible-tasks",
     ],
   },
-  'knowledge-base-drop': {
-    name: 'Knowledge Base Drop Checklist',
-    doc: 'docs/knowledge-base-training-drop.md',
+  "knowledge-base-drop": {
+    name: "Knowledge Base Drop Checklist",
+    doc: "docs/knowledge-base-training-drop.md",
     description:
-      'Automation checks for syncing OneDrive knowledge base drops into the repository.',
-    tasks: ['knowledge-base-verify'],
+      "Automation checks for syncing OneDrive knowledge base drops into the repository.",
+    tasks: ["knowledge-base-verify"],
   },
-  'podman-github': {
-    name: 'Podman GitHub Integration Checklist',
-    doc: 'docs/podman-github-integration-checklist.md',
+  "podman-github": {
+    name: "Podman GitHub Integration Checklist",
+    doc: "docs/podman-github-integration-checklist.md",
     description:
-      'Validates Windows Podman machine connectivity before running repository workflows.',
-    tasks: ['podman-machine-verify'],
+      "Validates Windows Podman machine connectivity before running repository workflows.",
+    sections: [
+      {
+        id: "pre-flight",
+        label: "Pre-flight validation",
+        description:
+          "Runs the Podman machine probe along with the UNC share sampler documented in the pre-flight section.",
+        tasks: ["podman-machine-verify", "podman-share-sample"],
+      },
+    ],
+    tasks: ["podman-machine-verify", "podman-share-sample"],
   },
 };
 
 const HELP_TEXT =
-  `Usage: npm run checklists -- [options]\n       node scripts/run-checklists.js --[options]\n\nOptions:\n  --checklist, -c <names>   Comma-separated checklist keys to run.\n  --only <task-ids>         Run the specified task IDs (comma-separated) without loading a checklist.\n  --skip <task-ids>         Skip the specified task IDs.\n  --include-optional        Include tasks marked as optional.\n  --continue-on-error       Continue executing tasks even if a required task fails.\n  --dry-run                 Print the resolved tasks without executing commands.\n  --list                    List available checklists and tasks.\n  --help, -h                Show this help message.\n`;
+  `Usage: npm run checklists -- [options]\n       node scripts/run-checklists.js --[options]\n\nOptions:\n  --checklist, -c <names>   Comma-separated checklist keys to run.\n  --section <name>          Limit execution to sections that match the provided name (case-insensitive).\n                            Use checklist:section to disambiguate when running multiple checklists.\n  --only <task-ids>         Run the specified task IDs (comma-separated) without loading a checklist.\n  --skip <task-ids>         Skip the specified task IDs.\n  --include-optional        Include tasks marked as optional.\n  --continue-on-error       Continue executing tasks even if a required task fails.\n  --dry-run                 Print the resolved tasks without executing commands.\n  --list                    List available checklists and tasks.\n  --help, -h                Show this help message.\n`;
 
 function parseArgs(argv) {
   const options = {
     checklists: [],
     only: [],
+    sections: [],
     skip: new Set(),
     includeOptional: false,
     dryRun: false,
@@ -454,6 +475,17 @@ function parseArgs(argv) {
         }
         i += 1;
         options.checklists.push(
+          ...value.split(",").map((item) => item.trim()).filter(Boolean),
+        );
+        break;
+      }
+      case "--section": {
+        const value = argv[i + 1];
+        if (!value) {
+          throw new Error("Missing value for --section");
+        }
+        i += 1;
+        options.sections.push(
           ...value.split(",").map((item) => item.trim()).filter(Boolean),
         );
         break;
@@ -518,11 +550,26 @@ function listChecklists() {
     if (checklist.doc) {
       console.log(`    Reference: ${checklist.doc}`);
     }
-    const tasks = checklist.tasks.map((ref) => formatTaskRef(ref));
+    const tasks = (checklist.tasks ?? []).map((ref) => formatTaskRef(ref));
     tasks.forEach((task) => {
       const optionalText = task.optional ? " (optional)" : "";
       console.log(`    • ${task.id}${optionalText} — ${task.label}`);
     });
+    if (Array.isArray(checklist.sections) && checklist.sections.length > 0) {
+      console.log("    Sections:");
+      checklist.sections.forEach((section) => {
+        console.log(`      - ${section.id}: ${section.label}`);
+        if (section.description) {
+          console.log(`        ${section.description}`);
+        }
+        const sectionTasks = (section.tasks ?? [])
+          .map((ref) => formatTaskRef(ref));
+        sectionTasks.forEach((task) => {
+          const optionalText = task.optional ? " (optional)" : "";
+          console.log(`        • ${task.id}${optionalText} — ${task.label}`);
+        });
+      });
+    }
     console.log("");
   }
   console.log("Task library:\n");
@@ -550,6 +597,89 @@ function formatTaskRef(ref) {
       ? config.optional
       : base.optional ?? false,
   };
+}
+
+function normalizeSectionToken(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function sectionMatches(section, query) {
+  const normalizedQuery = normalizeSectionToken(query);
+  if (!normalizedQuery) {
+    return false;
+  }
+  const candidates = [section.id ?? "", section.label ?? ""];
+  return candidates.some((candidate) => {
+    if (!candidate) {
+      return false;
+    }
+    const normalizedCandidate = normalizeSectionToken(candidate);
+    return normalizedCandidate === normalizedQuery ||
+      candidate.toLowerCase() === query.toLowerCase();
+  });
+}
+
+function parseSectionSpecifier(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    throw new Error("Section specifier cannot be empty.");
+  }
+
+  let delimiterIndex = trimmed.indexOf(":");
+  if (delimiterIndex === -1) {
+    delimiterIndex = trimmed.indexOf("#");
+  }
+
+  if (delimiterIndex === -1) {
+    return { raw: trimmed, checklist: null, section: trimmed };
+  }
+
+  const checklist = trimmed.slice(0, delimiterIndex).trim();
+  const section = trimmed.slice(delimiterIndex + 1).trim();
+  if (!section) {
+    throw new Error(`Section name missing in specifier: ${raw}`);
+  }
+  return {
+    raw: trimmed,
+    checklist: checklist ? checklist : null,
+    section,
+  };
+}
+
+function resolveSectionSelection(checklist, specs, checklistKey) {
+  if (!Array.isArray(checklist.sections) || checklist.sections.length === 0) {
+    return { matches: [], unmatched: [], applied: false };
+  }
+
+  const relevantSpecs = specs.filter((spec) =>
+    spec.checklist === null || spec.checklist === checklistKey
+  );
+  if (relevantSpecs.length === 0) {
+    return { matches: [], unmatched: [], applied: false };
+  }
+
+  const matches = [];
+  const unmatched = [];
+  const seen = new Set();
+
+  relevantSpecs.forEach((spec) => {
+    const section = checklist.sections.find((candidate) =>
+      sectionMatches(candidate, spec.section)
+    );
+    if (section) {
+      if (!seen.has(section.id)) {
+        matches.push(section);
+        seen.add(section.id);
+      }
+    } else {
+      unmatched.push(spec);
+    }
+  });
+
+  return { matches, unmatched, applied: true };
 }
 
 function applyTelegramFixtureIfNeeded(tasks) {
@@ -588,7 +718,7 @@ function resolveTask(
   ref,
   checklistName,
   includeOptional,
-  { forceInclude = false } = {},
+  { forceInclude = false, source } = {},
 ) {
   const config = typeof ref === "string" ? { task: ref } : ref;
   const baseKey = config.task ?? config.id ?? "";
@@ -623,6 +753,14 @@ function resolveTask(
     notes.push(...config.notes);
   }
 
+  const taskSources = new Set();
+  if (checklistName) {
+    taskSources.add(checklistName);
+  }
+  if (source) {
+    taskSources.add(source);
+  }
+
   const task = {
     id: base.id,
     label: config.label ?? base.label,
@@ -630,7 +768,7 @@ function resolveTask(
     optional: resolvedOptional,
     docs,
     notes,
-    sources: new Set(checklistName ? [checklistName] : []),
+    sources: taskSources,
   };
 
   return task;
@@ -700,6 +838,16 @@ async function main() {
   const plannedTasks = [];
   const taskMap = new Map();
 
+  let sectionSpecs = [];
+  try {
+    sectionSpecs = options.sections.map((value) =>
+      parseSectionSpecifier(value)
+    );
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+
   const addTask = (task) => {
     const existing = taskMap.get(task.id);
     if (existing) {
@@ -734,7 +882,52 @@ async function main() {
         printUsage();
         process.exit(1);
       }
-      checklist.tasks.forEach((ref) => {
+      const { matches, unmatched, applied } = resolveSectionSelection(
+        checklist,
+        sectionSpecs,
+        name,
+      );
+
+      if (applied) {
+        unmatched.forEach((spec) => {
+          console.warn(
+            `[checklists] Section "${spec.raw}" not found in checklist ${name}.`,
+          );
+        });
+        if (matches.length === 0) {
+          console.warn(
+            `[checklists] Section filters provided for ${name} but none matched. Skipping.`,
+          );
+          return;
+        }
+
+        matches.forEach((section) => {
+          (section.tasks ?? []).forEach((ref) => {
+            const task = resolveTask(ref, name, options.includeOptional, {
+              source: `${name}#${section.id ?? "section"}`,
+            });
+            if (!task) {
+              return;
+            }
+            addTask(task);
+          });
+        });
+        return;
+      }
+
+      const hasRelevantFilter = sectionSpecs.some((spec) =>
+        spec.checklist === null || spec.checklist === name
+      );
+      if (
+        hasRelevantFilter &&
+        (!Array.isArray(checklist.sections) || checklist.sections.length === 0)
+      ) {
+        console.warn(
+          `[checklists] Checklist ${name} does not define sections; running full task list.`,
+        );
+      }
+
+      (checklist.tasks ?? []).forEach((ref) => {
         const task = resolveTask(ref, name, options.includeOptional);
         if (!task) {
           return;
