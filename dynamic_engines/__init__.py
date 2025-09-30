@@ -91,6 +91,11 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DiffusionNode",
         "DiffusionSignal",
         "DiffusionSnapshot",
+        "DynamicDiffusionModel",
+        "DiffusionModelParameters",
+        "DiffusionModelTrainingSample",
+        "DiffusionModelResult",
+        "DiffusionNodeForecast",
     ),
     "dynamic_deep_learning": (
         "DynamicDeepLearningEngine",
