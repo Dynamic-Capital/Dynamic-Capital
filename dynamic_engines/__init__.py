@@ -86,6 +86,17 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "DemandSnapshot",
         "DemandSummary",
     ),
+    "dynamic_diffusion": (
+        "DynamicDiffusionEngine",
+        "DiffusionNode",
+        "DiffusionSignal",
+        "DiffusionSnapshot",
+        "DynamicDiffusionModel",
+        "DiffusionModelParameters",
+        "DiffusionModelTrainingSample",
+        "DiffusionModelResult",
+        "DiffusionNodeForecast",
+    ),
     "dynamic_deep_learning": (
         "DynamicDeepLearningEngine",
         "DeepLearningLayerSpec",
