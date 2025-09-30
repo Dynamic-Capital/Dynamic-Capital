@@ -11,9 +11,9 @@ The DigitalOcean App Platform spec used to provision the production app lives at
 environment changes described in this document so the repository remains a
 single source of truth for deployments. The checked-in spec provisions a single
 Node.js service named `dynamic-capital`, configures
-`dynamic-capital.ondigitalocean.app` as the primary domain while
-registering the Vercel and Dynamic hosts as aliases, and leaves ingress open so
-every hostname continues to route traffic. The service runs
+`dynamic-capital.ondigitalocean.app` as the primary domain while registering the
+Vercel and Dynamic hosts as aliases, and leaves ingress open so every hostname
+continues to route traffic. The service runs
 `node scripts/digitalocean-build.mjs` from the repository root before starting
 the Next.js server via `npm run start:web`. Requests are served on port `8080`,
 and the runtime sets `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and
@@ -44,10 +44,76 @@ Include your database connection string or anon key as needed:
 - `ALLOWED_ORIGINS` (comma-separated list of hosts allowed by CORS)
 - `MINIAPP_ORIGIN` (canonical host(s) allowed to call `verify-telegram`)
 
+## Step-by-step: promote DigitalOcean as the primary origin
+
+Follow this checklist when `dynamic-capital.ondigitalocean.app` should be the
+canonical host and Vercel is only used for preview builds. Tick each item as you
+complete it:
+
+- [ ] **Normalize environment variables locally** – Set `SITE_URL`,
+  `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` to
+  `https://dynamic-capital.ondigitalocean.app` in your `.env.local` (or
+  equivalent secrets manager entry). Commit configuration templates rather than
+  concrete secrets. Mirror those values into the automation manifests that ship
+  with the repository so every workflow promotes the same origin:
+
+  - `.do/app.yml` – Primary domain and service-level env blocks already point at
+    `dynamic-capital.ondigitalocean.app`; review pending changes before
+    committing.
+  - `vercel.json` – Ensures preview builds and CLI workflows hydrate the
+    DigitalOcean origin by default.
+  - `supabase/config.toml` / `project.toml` – Keep the Supabase Studio URLs,
+    OAuth redirects, and function env vars aligned with the DigitalOcean host.
+
+  The App Platform spec reflects these values, so the runtime and Supabase
+  functions advertise the DigitalOcean host once you replay the configuration.
+- [ ] **Replay the App Platform spec** – Run the sync helper with `--apply` and
+  `--apply-zone` (see [Reconcile the site URL and zone records with
+  `doctl`](#reconcile-the-site-url-and-zone-records-with-doctl) for full usage)
+  so environment variables, ingress, and DNS all point at the DigitalOcean
+  host. Use the REST-based helper `npm run do:sync-site -- --help` when
+  `doctl` is unavailable.
+- [ ] **Reconcile DNS** – Start with
+  `deno run -A scripts/configure-digitalocean-dns.ts --dry-run`, then rerun
+  without `--dry-run` (adding `--context <doctl-context>` when necessary) so the
+  apex routes through the Cloudflare anycast IPs from
+  `dns/dynamic-capital.ondigitalocean.app.zone` and the DigitalOcean deployment
+  remains authoritative.
+- [ ] **Align auxiliary services** – Update OAuth callbacks, Supabase Edge
+  Function allowlists, webhooks, and any automated messaging to reference the
+  DigitalOcean URL. `supabase/config.toml`, `project.toml`, and
+  `scripts/utils/branding-env.mjs` are versioned with the correct defaults;
+  confirm hosted dashboards (Supabase, Telegram, Vercel, automation runners)
+  also advertise the App Platform origin so tokens, email links, and edge
+  handlers never fall back to the Vercel preview domain.
+- [ ] **Audit traffic** – Once DNS propagates, load the site via the DigitalOcean
+  domain and confirm telemetry (logs, analytics, Supabase traces) reports the
+  expected origin. Keep the Vercel deployment alive for preview URLs, but treat
+  it as read-only.
+
+### Quick reference: files that pin the DigitalOcean origin
+
+Use this table to double-check the committed configuration whenever you suspect
+the canonical host drifted:
+
+| File / script | Purpose | Canonical origin setting |
+| --- | --- | --- |
+| [`.do/app.yml`](../.do/app.yml) | App Platform spec (service + domain config) | `dynamic-capital.ondigitalocean.app` primary domain, env overrides for the service |
+| [`scripts/doctl/sync-site-config.mjs`](../scripts/doctl/sync-site-config.mjs) | CLI helper to replay the spec and DNS | `--site-url https://dynamic-capital.ondigitalocean.app` and zone import |
+| [`scripts/digitalocean/sync-site-config.mjs`](../scripts/digitalocean/sync-site-config.mjs) | REST helper alternative to `doctl` | Same defaults as the CLI helper (`--site-url` / `--domain`) |
+| [`vercel.json`](../vercel.json) | Vercel previews + local CLI defaults | `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `MINIAPP_ORIGIN` → `https://dynamic-capital.ondigitalocean.app` |
+| [`supabase/config.toml`](../supabase/config.toml) | Supabase auth + function env | `site_url`, `additional_redirect_urls`, and function env block → DigitalOcean origin |
+| [`project.toml`](../project.toml) | Supabase CLI environment map | `ALLOWED_ORIGINS` list includes the DigitalOcean origin first |
+| [`scripts/utils/branding-env.mjs`](../scripts/utils/branding-env.mjs) | Shared origin defaults for tooling | `PRODUCTION_ORIGIN` = `https://dynamic-capital.ondigitalocean.app` |
+
+Reapply the relevant helper (`npm run doctl:sync-site`, `npm run do:sync-site`,
+or `deno run -A scripts/configure-digitalocean-dns.ts`) whenever the table shows
+a mismatch so the DigitalOcean deployment regains authority.
+
 ## DNS for App Platform
 
-DigitalOcean provisions the `dynamic-capital.ondigitalocean.app` domain.
-Export the zone file into `dns/` (use
+DigitalOcean provisions the `dynamic-capital.ondigitalocean.app` domain. Export
+the zone file into `dns/` (use
 [`dns/dynamic-capital.ondigitalocean.app.zone`](../dns/dynamic-capital.ondigitalocean.app.zone)
 as the previous reference) so the required NS and A records (162.159.140.98 and
 172.66.0.96) are versioned alongside the codebase. Use the updated export if you
@@ -71,54 +137,39 @@ deno run -A scripts/configure-digitalocean-dns.ts
 The repository ships with `scripts/doctl/sync-site-config.mjs` to patch the App
 Platform spec when `SITE_URL` (and related variables) drift or the primary
 domain is missing. The helper script also replays the exported zone file so the
-DigitalOcean-managed primary domain (`dynamic-capital.ondigitalocean.app`)
-stays aligned with Cloudflare while normalizing environment variables on the app
+DigitalOcean-managed primary domain (`dynamic-capital.ondigitalocean.app`) stays
+aligned with Cloudflare while normalizing environment variables on the app
 itself along with any services, static sites, workers, jobs, and functions
 declared in the spec.
 
-Example usage:
-
-Set `DOCTL_CONTEXT` to the `doctl` context you authenticated (omit the flag if
-you only use the default context):
+Example usage (append `--context $DOCTL_CONTEXT` when you work outside the
+default session):
 
 ```bash
-# Update the app spec, aligning env vars, ingress, and primary domain.
+# Normalize the app spec, ingress, and DNS in one command.
 node scripts/doctl/sync-site-config.mjs \
   --app-id $DIGITALOCEAN_APP_ID \
   --site-url https://dynamic-capital.ondigitalocean.app \
   --zone dynamic-capital.ondigitalocean.app \
-  --spec .do/app.yml \
-  --output .do/app.yml \
-  --context $DOCTL_CONTEXT \
-  --show-spec
-
-# Apply the spec changes and import the DNS zone in one go.
-node scripts/doctl/sync-site-config.mjs \
-  --app-id $DIGITALOCEAN_APP_ID \
-  --site-url https://dynamic-capital.ondigitalocean.app \
-  --zone dynamic-capital.ondigitalocean.app \
-  --context $DOCTL_CONTEXT \
   --apply \
   --apply-zone
 ```
 
-Flags:
+Key flags:
 
 - `--app-id` – App Platform UUID (`doctl apps list`).
 - `--site-url` – Canonical host for the deployment. The script updates
   `SITE_URL`, `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN`
   globally, on the `dynamic-capital` service, and on any static site components.
-- `--context` – doctl context to run commands against (defaults to the active
-  context).
 - `--zone` – DNS zone to import. Defaults to the site URL host.
-- `--spec` – Load an app spec from a local YAML file (for example
-  `.do/app.yml`). Combine with `--output` to rewrite the file after
-  normalization.
+- `--spec` / `--output` – Load and rewrite a local spec file (for example
+  `.do/app.yml`) before applying.
+- `--context` – Override the active doctl context.
 - `--zone-file` – Override the zone file path (defaults to `dns/<zone>.zone`).
 - `--apply` / `--apply-zone` – Push changes via `doctl` instead of running a dry
   run.
 
-Use `npm run doctl:sync-site -- --help` to see all available options.
+Run `npm run doctl:sync-site -- --help` to inspect the full option list.
 
 When the DigitalOcean CLI is unavailable (for example in CI pipelines), the
 repository now also ships `scripts/digitalocean/sync-site-config.mjs`, which
