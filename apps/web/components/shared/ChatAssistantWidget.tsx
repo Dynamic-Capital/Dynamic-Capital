@@ -34,7 +34,11 @@ import {
   Spinner,
   Text,
 } from "@/components/dynamic-ui-system";
-import { useDynamicChat, DynamicChatError } from "@/hooks/useDynamicChat";
+import {
+  type ChatStreamChunk,
+  DynamicChatError,
+  useDynamicChat,
+} from "@/hooks/useDynamicChat";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useToast } from "@/hooks/useToast";
 import { MAX_HISTORY } from "@/services/dynamic-ai/constants";
@@ -579,9 +583,7 @@ export function ChatAssistantWidget(
         return;
       }
 
-      setSyncStatus((current) =>
-        current === "connected" ? current : "syncing"
-      );
+      setSyncStatus((current) => current === "connected" ? current : "syncing");
 
       try {
         const { messages: history } = await fetchHistory();
@@ -609,7 +611,9 @@ export function ChatAssistantWidget(
 
         const chatError = error instanceof DynamicChatError
           ? error
-          : new DynamicChatError("Failed to load chat history", { cause: error });
+          : new DynamicChatError("Failed to load chat history", {
+            cause: error,
+          });
 
         setSyncStatus("error");
         updateFallbackMessage({
@@ -704,6 +708,10 @@ export function ChatAssistantWidget(
       role: "user",
       content: userQuestion,
     };
+    const assistantPlaceholder: ChatMessage = {
+      role: "assistant",
+      content: "",
+    };
     const nextHistory = [...messages, userMessage];
 
     setQuestion("");
@@ -712,15 +720,19 @@ export function ChatAssistantWidget(
     setInlineError(null);
     updateFallbackMessage(null);
 
-    appendMessages(userMessage);
+    appendMessages(userMessage, assistantPlaceholder);
 
     try {
       type SendResult = Awaited<ReturnType<typeof sendMessage>>;
-      const attemptSend = async (retry: number): Promise<SendResult> => {
+      const attemptSend = async (
+        retry: number,
+        onToken?: (chunk: ChatStreamChunk) => void,
+      ): Promise<SendResult> => {
         try {
           return await sendMessage({
             message: userQuestion,
             history: nextHistory,
+            onToken,
           });
         } catch (err) {
           const chatError = err instanceof DynamicChatError
@@ -729,13 +741,27 @@ export function ChatAssistantWidget(
           if (chatError.isRetryable && retry < 2) {
             const delay = 400 * 2 ** retry;
             await new Promise((resolve) => setTimeout(resolve, delay));
-            return attemptSend(retry + 1);
+            return attemptSend(retry + 1, onToken);
           }
           throw chatError;
         }
       };
 
-      const response = await attemptSend(0);
+      const response = await attemptSend(0, (chunk: ChatStreamChunk) => {
+        setMessages((previous) => {
+          if (previous.length === 0) {
+            return previous;
+          }
+          const next = [...previous];
+          const lastIndex = next.length - 1;
+          const lastEntry = next[lastIndex];
+          if (!lastEntry || lastEntry.role !== "assistant") {
+            return next;
+          }
+          next[lastIndex] = { ...lastEntry, content: chunk.content };
+          return next;
+        });
+      });
 
       if (response.history.length > 0) {
         setMessages(response.history.slice(-MAX_HISTORY));
@@ -745,7 +771,19 @@ export function ChatAssistantWidget(
           setSyncStatus("connected");
         }
       } else if (response.assistantMessage) {
-        appendMessages(response.assistantMessage);
+        setMessages((previous) => {
+          if (previous.length === 0) {
+            return [response.assistantMessage];
+          }
+          const next = [...previous];
+          const lastIndex = next.length - 1;
+          if (next[lastIndex]?.role === "assistant") {
+            next[lastIndex] = response.assistantMessage;
+            return next;
+          }
+          next.push(response.assistantMessage);
+          return next.slice(-MAX_HISTORY);
+        });
         setSyncStatus("connected");
       } else {
         throw new Error("No answer returned");
@@ -765,14 +803,29 @@ export function ChatAssistantWidget(
             : chatError.message ||
               "Please adjust your question and try again.",
         );
-        setMessages((previous) => previous.slice(0, -1));
+        setMessages((previous) => {
+          if (previous.length === 0) {
+            return previous;
+          }
+          let next = [...previous];
+          if (next[next.length - 1]?.role === "assistant") {
+            next = next.slice(0, -1);
+          }
+          if (
+            next.length > 0 &&
+            next[next.length - 1]?.role === "user" &&
+            next[next.length - 1]?.content === userQuestion
+          ) {
+            next = next.slice(0, -1);
+          }
+          return next;
+        });
         setQuestion(userQuestion);
         toast({
           title: "Message not sent",
-          description:
-            chatError.category === "rate-limit"
-              ? "Traffic is heavy right now. We'll be ready for another try shortly."
-              : "The assistant couldn't process that request. Tweak your question and resend.",
+          description: chatError.category === "rate-limit"
+            ? "Traffic is heavy right now. We'll be ready for another try shortly."
+            : "The assistant couldn't process that request. Tweak your question and resend.",
           variant: "default",
         });
         trackWithTelegramContext({
@@ -786,6 +839,15 @@ export function ChatAssistantWidget(
         });
       } else {
         console.error("Failed to get AI answer", err);
+        setMessages((previous) => {
+          if (previous.length === 0) {
+            return previous;
+          }
+          if (previous[previous.length - 1]?.role === "assistant") {
+            return previous.slice(0, -1);
+          }
+          return previous;
+        });
         updateFallbackMessage({
           role: "assistant",
           content: FALLBACK_ASSISTANT_RESPONSE,
@@ -1038,35 +1100,35 @@ export function ChatAssistantWidget(
                           </Column>
                         </Row>
                         <Row gap="8">
-                        {syncStatus === "error"
-                          ? (
-                            <Button
-                              type="button"
-                              size="s"
-                              variant="secondary"
-                              data-border="rounded"
-                              onClick={handleRetry}
-                              disabled={isLoading || isSyncing}
-                              aria-label="Retry connection"
-                            >
-                              <span className="flex items-center gap-1.5">
-                                <RotateCcw className="h-4 w-4" />
-                                <span className="sr-only">Retry</span>
-                              </span>
-                            </Button>
-                          )
-                          : null}
-                        <Button
-                          type="button"
-                          size="s"
-                          variant="secondary"
-                          data-border="rounded"
-                          onClick={handleReset}
-                          disabled={isLoading}
-                          aria-label="Reset conversation"
-                        >
-                          <Sparkles className="h-4 w-4" />
-                        </Button>
+                          {syncStatus === "error"
+                            ? (
+                              <Button
+                                type="button"
+                                size="s"
+                                variant="secondary"
+                                data-border="rounded"
+                                onClick={handleRetry}
+                                disabled={isLoading || isSyncing}
+                                aria-label="Retry connection"
+                              >
+                                <span className="flex items-center gap-1.5">
+                                  <RotateCcw className="h-4 w-4" />
+                                  <span className="sr-only">Retry</span>
+                                </span>
+                              </Button>
+                            )
+                            : null}
+                          <Button
+                            type="button"
+                            size="s"
+                            variant="secondary"
+                            data-border="rounded"
+                            onClick={handleReset}
+                            disabled={isLoading}
+                            aria-label="Reset conversation"
+                          >
+                            <Sparkles className="h-4 w-4" />
+                          </Button>
                           <Button
                             type="button"
                             size="s"
@@ -1114,9 +1176,7 @@ export function ChatAssistantWidget(
                                 transition={{ duration: 0.28, ease: "easeOut" }}
                               >
                                 <div className="flex justify-start">
-                                  <div
-                                    className="max-w-[85%] rounded-2xl border border-dc-brand/20 bg-dc-brand/10 px-4 py-3 text-sm text-dc-brand-dark shadow-sm dark:border-dc-brand/30 dark:bg-dc-brand/15 dark:text-dc-brand-light"
-                                  >
+                                  <div className="max-w-[85%] rounded-2xl border border-dc-brand/20 bg-dc-brand/10 px-4 py-3 text-sm text-dc-brand-dark shadow-sm dark:border-dc-brand/30 dark:bg-dc-brand/15 dark:text-dc-brand-light">
                                     <p className="whitespace-pre-wrap">
                                       {"👋 Hi! I’m your Dynamic Capital AI assistant. Ask me anything about VIP Plans, tokens, or trading basics."}
                                     </p>

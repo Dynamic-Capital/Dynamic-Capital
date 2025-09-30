@@ -1,3 +1,8 @@
+import {
+  API_METRICS_OVERRIDE_SYMBOL,
+  createNoopApiMetrics,
+} from "@/observability/server-metrics.ts";
+
 function assertCondition(
   condition: boolean,
   message: string,
@@ -76,6 +81,8 @@ Deno.test("POST /api/dynamic-ai/chat proxies requests to Dynamic AI", async () =
   const supabaseMock = createSupabaseMock();
   (globalThis as Record<PropertyKey, unknown>)[SUPABASE_OVERRIDE_SYMBOL] =
     supabaseMock;
+  (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
+    createNoopApiMetrics();
 
   const fetchCalls: Array<{ input: RequestInfo | URL; init?: RequestInit }> =
     [];
@@ -134,6 +141,114 @@ Deno.test("POST /api/dynamic-ai/chat proxies requests to Dynamic AI", async () =
   delete (globalThis as Record<PropertyKey, unknown>)[
     DYNAMIC_AI_FETCH_OVERRIDE
   ];
+  delete (globalThis as Record<PropertyKey, unknown>)[
+    API_METRICS_OVERRIDE_SYMBOL
+  ];
+});
+
+async function collectSseEvents(response: Response) {
+  const body = response.body;
+  assertCondition(body !== null, "expected response body stream");
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const events: Record<string, unknown>[] = [];
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) {
+      break;
+    }
+    buffer += decoder.decode(value, { stream: true });
+    let boundary = buffer.indexOf("\n\n");
+    while (boundary !== -1) {
+      const raw = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
+      const data = raw
+        .split("\n")
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => line.slice(5).trimStart())
+        .join("\n");
+      if (data) {
+        events.push(JSON.parse(data));
+      }
+      boundary = buffer.indexOf("\n\n");
+    }
+  }
+
+  return events;
+}
+
+Deno.test("POST /api/dynamic-ai/chat streams realtime updates", async () => {
+  setEnv();
+  const supabaseMock = createSupabaseMock();
+  (globalThis as Record<PropertyKey, unknown>)[SUPABASE_OVERRIDE_SYMBOL] =
+    supabaseMock;
+  (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
+    createNoopApiMetrics();
+
+  (globalThis as Record<PropertyKey, unknown>)[DYNAMIC_AI_FETCH_OVERRIDE] =
+    async () =>
+      new Response(
+        JSON.stringify({ answer: "Desk is online", metadata: { latency: 42 } }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      );
+
+  const { POST } = await import("../route.ts");
+
+  const body = {
+    sessionId: "session-stream",
+    message: "Hello desk",
+    history: [],
+  } as const;
+
+  const response = await POST(
+    new Request("http://localhost/api/dynamic-ai/chat?stream=1", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "content-type": "application/json" },
+    }),
+  );
+
+  assertEquals(response.status, 200);
+  const contentType = response.headers.get("content-type") ?? "";
+  assertCondition(
+    contentType.includes("text/event-stream"),
+    "expected SSE content type",
+  );
+
+  const events = await collectSseEvents(response);
+  assertCondition(events.length >= 2, "expected multiple SSE events");
+  assertEquals(events[0]?.type, "ack");
+
+  const tokenEvents = events.filter((event) => event.type === "token");
+  const doneEvent = events.find((event) => event.type === "done");
+  assertCondition(tokenEvents.length > 0, "expected token events");
+  const finalContent = tokenEvents[tokenEvents.length - 1]?.content;
+  assertEquals(finalContent, "Desk is online");
+  assertCondition(doneEvent !== undefined, "expected done event");
+  assertEquals(Array.isArray(doneEvent?.history), true, "done history array");
+  assertCondition(
+    (doneEvent?.history as unknown[] | undefined)?.length === 2,
+    "expected streamed history",
+  );
+
+  assertEquals(supabaseMock.inserts.length, 2);
+  assertEquals(
+    supabaseMock.inserts[1]?.interaction_data.content,
+    "Desk is online",
+  );
+
+  delete (globalThis as Record<PropertyKey, unknown>)[SUPABASE_OVERRIDE_SYMBOL];
+  delete (globalThis as Record<PropertyKey, unknown>)[
+    DYNAMIC_AI_FETCH_OVERRIDE
+  ];
+  delete (globalThis as Record<PropertyKey, unknown>)[
+    API_METRICS_OVERRIDE_SYMBOL
+  ];
 });
 
 Deno.test("GET /api/dynamic-ai/chat returns persisted history", async () => {
@@ -145,6 +260,8 @@ Deno.test("GET /api/dynamic-ai/chat returns persisted history", async () => {
   ]);
   (globalThis as Record<PropertyKey, unknown>)[SUPABASE_OVERRIDE_SYMBOL] =
     supabaseMock;
+  (globalThis as Record<PropertyKey, unknown>)[API_METRICS_OVERRIDE_SYMBOL] =
+    createNoopApiMetrics();
 
   const { GET } = await import("../route.ts");
 
@@ -166,5 +283,8 @@ Deno.test("GET /api/dynamic-ai/chat returns persisted history", async () => {
   delete (globalThis as Record<PropertyKey, unknown>)[SUPABASE_OVERRIDE_SYMBOL];
   delete (globalThis as Record<PropertyKey, unknown>)[
     DYNAMIC_AI_FETCH_OVERRIDE
+  ];
+  delete (globalThis as Record<PropertyKey, unknown>)[
+    API_METRICS_OVERRIDE_SYMBOL
   ];
 });

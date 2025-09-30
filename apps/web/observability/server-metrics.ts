@@ -1,36 +1,106 @@
-import { type Attributes, metrics } from "@opentelemetry/api";
-
 const SERVICE_NAME = "dynamic-capital-web";
 
-const meter = metrics.getMeter(SERVICE_NAME);
+type AttributeValue = string | number | boolean | null | undefined;
+export type Attributes = Record<string, AttributeValue>;
 
-const httpRequestDurationSeconds = meter.createHistogram(
-  "http_request_duration_seconds",
-  {
-    description:
-      "Distribution of server API request durations used for latency SLOs.",
-    unit: "s",
-  },
+interface CounterLike {
+  add(value: number, attributes?: Attributes): void;
+}
+
+interface HistogramLike {
+  record(value: number, attributes?: Attributes): void;
+}
+
+interface UpDownCounterLike {
+  add(value: number, attributes?: Attributes): void;
+}
+
+export interface ApiMetricsInstrumentation {
+  httpRequestDurationSeconds: HistogramLike;
+  httpRequestsTotal: CounterLike;
+  httpRequestErrorsTotal: CounterLike;
+  httpRequestsInFlight: UpDownCounterLike;
+}
+
+export const API_METRICS_OVERRIDE_SYMBOL = Symbol.for(
+  "dynamic-capital.observability.metrics.override",
 );
 
-const httpRequestsTotal = meter.createCounter("http_requests_total", {
-  description: "Total number of HTTP requests processed by the web API.",
-});
+const noopInstrumentation: ApiMetricsInstrumentation = {
+  httpRequestDurationSeconds: { record: () => {} },
+  httpRequestsTotal: { add: () => {} },
+  httpRequestErrorsTotal: { add: () => {} },
+  httpRequestsInFlight: { add: () => {} },
+};
 
-const httpRequestErrorsTotal = meter.createCounter(
-  "http_request_errors_total",
-  {
-    description:
-      "Total number of HTTP requests that resulted in server-side errors.",
-  },
-);
+export function createNoopApiMetrics(): ApiMetricsInstrumentation {
+  return noopInstrumentation;
+}
 
-const httpRequestsInFlight = meter.createUpDownCounter(
-  "http_requests_in_flight",
-  {
-    description: "Current number of in-flight HTTP requests being processed.",
-  },
-);
+let cachedInstrumentation: ApiMetricsInstrumentation | null = null;
+let instrumentationPromise: Promise<ApiMetricsInstrumentation> | null = null;
+
+async function resolveApiInstrumentation(): Promise<ApiMetricsInstrumentation> {
+  const override = (globalThis as Record<PropertyKey, unknown>)[
+    API_METRICS_OVERRIDE_SYMBOL
+  ];
+  if (override) {
+    return override as ApiMetricsInstrumentation;
+  }
+
+  if (cachedInstrumentation) {
+    return cachedInstrumentation;
+  }
+
+  if (!instrumentationPromise) {
+    instrumentationPromise = (async () => {
+      try {
+        const { metrics } = await import("@opentelemetry/api");
+        const meter = metrics.getMeter(SERVICE_NAME);
+        const instrumentation: ApiMetricsInstrumentation = {
+          httpRequestDurationSeconds: meter.createHistogram(
+            "http_request_duration_seconds",
+            {
+              description:
+                "Distribution of server API request durations used for latency SLOs.",
+              unit: "s",
+            },
+          ),
+          httpRequestsTotal: meter.createCounter("http_requests_total", {
+            description:
+              "Total number of HTTP requests processed by the web API.",
+          }),
+          httpRequestErrorsTotal: meter.createCounter(
+            "http_request_errors_total",
+            {
+              description:
+                "Total number of HTTP requests that resulted in server-side errors.",
+            },
+          ),
+          httpRequestsInFlight: meter.createUpDownCounter(
+            "http_requests_in_flight",
+            {
+              description:
+                "Current number of in-flight HTTP requests being processed.",
+            },
+          ),
+        };
+        cachedInstrumentation = instrumentation;
+        return instrumentation;
+      } catch (error) {
+        console.warn(
+          "OpenTelemetry metrics unavailable, falling back to no-op instrumentation.",
+          error,
+        );
+        return noopInstrumentation;
+      }
+    })();
+  }
+
+  const instrumentation = await instrumentationPromise;
+  cachedInstrumentation = instrumentation;
+  return instrumentation;
+}
 
 type Handler = () => Response | Promise<Response>;
 
@@ -55,6 +125,13 @@ export async function withApiMetrics(
   route: string,
   handler: Handler,
 ): Promise<Response> {
+  const {
+    httpRequestDurationSeconds,
+    httpRequestErrorsTotal,
+    httpRequestsInFlight,
+    httpRequestsTotal,
+  } = await resolveApiInstrumentation();
+
   const method = req?.method ?? "GET";
   const baseAttributes: Attributes = { route, method };
 
