@@ -59,3 +59,11 @@ Use this checklist to track progress when implementing the TradingView → Verce
 - [ ] Set up alerting/notifications for failed webhooks, DB errors, or EA exceptions.
 - [ ] Review latency end-to-end and optimize if necessary.
 - [ ] Schedule periodic audits of trading performance and system health.
+
+## Checklist Automation
+
+Generate a quick status summary for this checklist with the repository tooling:
+
+```bash
+npm run checklists -- --checklist build-implementation
+```
