@@ -97,3 +97,22 @@ node scripts/tonkeeper/watch-releases.mjs \
   rendering (JSON, JSONL, or console table), and persist the final payload to a
   file for downstream
   checks.【F:scripts/tonkeeper/watch-releases.mjs†L23-L40】【F:scripts/tonkeeper/watch-releases.mjs†L205-L261】
+
+### Install Ton CLI helpers
+
+Dynamic Capital engineers frequently need Tonkeeper’s reference CLI for
+contract scaffolding, migrations, and project inspection. Use the installation
+helper to fetch the latest `toncli` release via `pip` (default) or `pipx`:
+
+```bash
+node scripts/tonkeeper/install-ton-cli.mjs --upgrade
+```
+
+- `--pipx` switches the installer to `pipx`, forcing a reinstall with
+  `--force` when paired with `--upgrade` to ensure a fresh virtual environment.
+- `--python` overrides the Python interpreter (defaults to `python3`), while
+  `--global` drops the `--user` flag for system-wide installs when run from
+  controlled environments.
+- The script verifies the executable on `PATH` and surfaces follow-up guidance
+  when the binary lands in platform-specific locations such as `~/.local/bin`
+  (Linux/macOS) or `%APPDATA%\Python\Python311\Scripts` on Windows.【F:scripts/tonkeeper/install-ton-cli.mjs†L1-L152】
