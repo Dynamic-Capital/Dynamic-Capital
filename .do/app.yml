@@ -11,6 +11,10 @@ spec:
       type: PRIMARY
       wildcard: false
       zone: dynamic-capital.ondigitalocean.app
+    - domain: dynamic-capital-qazf2.ondigitalocean.app
+      type: ALIAS
+      wildcard: false
+      zone: ondigitalocean.app
     - domain: dynamic-capital.vercel.app
       type: ALIAS
       wildcard: false
@@ -28,6 +32,13 @@ spec:
             exact: dynamic-capital.ondigitalocean.app
           path:
             prefix: /
+      - component:
+          name: dynamic-capital
+        match:
+          authority:
+            exact: dynamic-capital-qazf2.ondigitalocean.app
+          path:
+            prefix: /
   envs:
     - key: NODE_ENV
       value: production
@@ -42,7 +53,7 @@ spec:
       value: https://dynamic-capital.ondigitalocean.app
       scope: RUN_AND_BUILD_TIME
     - key: ALLOWED_ORIGINS
-      value: https://dynamic-capital.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app
+      value: https://dynamic-capital.ondigitalocean.app,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app
       scope: RUN_AND_BUILD_TIME
     - key: MINIAPP_ORIGIN
       value: https://dynamic-capital.ondigitalocean.app
@@ -91,7 +102,7 @@ spec:
           value: https://dynamic-capital.ondigitalocean.app
           scope: RUN_AND_BUILD_TIME
         - key: ALLOWED_ORIGINS
-          value: https://dynamic-capital.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app
+          value: https://dynamic-capital.ondigitalocean.app,https://dynamic-capital-qazf2.ondigitalocean.app,https://dynamic.capital,https://dynamic-capital.vercel.app,https://dynamic-capital.lovable.app
           scope: RUN_AND_BUILD_TIME
         - key: MINIAPP_ORIGIN
           value: https://dynamic-capital.ondigitalocean.app

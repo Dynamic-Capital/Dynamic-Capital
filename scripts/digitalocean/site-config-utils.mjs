@@ -2,6 +2,7 @@ import { URL } from "node:url";
 
 export const PRODUCTION_ALLOWED_ORIGINS = [
   "https://dynamic-capital.ondigitalocean.app",
+  "https://dynamic-capital-qazf2.ondigitalocean.app",
   "https://dynamic.capital",
   "https://dynamic-capital.vercel.app",
   "https://dynamic-capital.lovable.app",
