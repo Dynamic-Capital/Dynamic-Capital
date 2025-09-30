@@ -24,7 +24,7 @@ Deno.test("resolveMiniAppUrl normalizes env value with trailing slash", async ()
   Deno.env.set("MINI_APP_URL", " https://dynamiccapital.ton ");
   try {
     const resolved = await resolveMiniAppUrl();
-    assertEquals(resolved, "https://dynamiccapital.ton/");
+    assertEquals(resolved, "https://www.dynamiccapital.ton/");
   } finally {
     Deno.env.delete("MINI_APP_URL");
   }
@@ -34,7 +34,7 @@ Deno.test("resolveMiniAppUrl preserves existing path and query", async () => {
   Deno.env.set("MINI_APP_URL", "https://dynamiccapital.ton/app?ref=bot");
   try {
     const resolved = await resolveMiniAppUrl();
-    assertEquals(resolved, "https://dynamiccapital.ton/app?ref=bot");
+    assertEquals(resolved, "https://www.dynamiccapital.ton/app?ref=bot");
   } finally {
     Deno.env.delete("MINI_APP_URL");
   }
@@ -47,7 +47,7 @@ Deno.test("resolveMiniAppUrl falls back to config setting when env missing", asy
     async (_key) => valueFromSetting,
     () => resolveMiniAppUrl(),
   );
-  assertEquals(resolved, "https://dynamiccapital.ton/");
+  assertEquals(resolved, "https://www.dynamiccapital.ton/");
 });
 
 Deno.test("resolveMiniAppUrl returns default when nothing configured", async () => {
@@ -56,5 +56,5 @@ Deno.test("resolveMiniAppUrl returns default when nothing configured", async () 
     async (_key) => null,
     () => resolveMiniAppUrl(),
   );
-  assertEquals(resolved, "https://dynamiccapital.ton/");
+  assertEquals(resolved, "https://www.dynamiccapital.ton/");
 });
