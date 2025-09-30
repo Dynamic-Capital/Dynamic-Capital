@@ -96,6 +96,5 @@
 ## Test Execution Notes
 
 - `$(bash scripts/deno_bin.sh) test -A dynamic-capital-ton/apps/tests/pool_allocator.test.ts`
-  currently fails during dependency caching because the npm registry responds
-  with HTTP 502 for `ajv@6.12.6`. Re-run once the registry outage is resolved to
-  confirm the allocator tests.
+  now completes successfully after isolating the allocator suite's Deno
+  configuration, confirming the parsing and forwarding regressions are covered.
