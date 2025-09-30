@@ -88,3 +88,12 @@ resonance metaphors.
       dashboards, and TradingView integrations.
 - [ ] Monitor oracle-driven resonance metrics to ensure token burns, pricing
       adjustments, and sustainability safeguards fire as designed.
+
+### Checklist Automation
+
+Run the automation wrapper to summarize the current implementation and
+verification status directly from this document:
+
+```bash
+npm run checklists -- --checklist dynamic-modular-architecture
+```

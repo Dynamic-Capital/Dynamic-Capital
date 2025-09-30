@@ -24,6 +24,29 @@ is the best fit for the task at hand.
 
 ## Command Playbooks
 
+### 2025-10-16 — Modular Architecture Checklist Run
+
+**Command**
+
+```bash
+npm run checklists -- --checklist dynamic-modular-architecture
+```
+
+**Purpose**
+
+Summarize the implementation and verification checklists embedded in
+`docs/dynamic-capital-modular-architecture.md` so teams can capture status in
+one step.
+
+**Highlights**
+
+- Parses the implementation and verification sections, ensuring each contains at
+  least one checklist item.
+- Reports completion counts and enumerates the individual tasks with an `OPEN`
+  or `DONE` label for quick review.
+- Fails fast when headings or checklist items are missing, guarding against
+  accidental documentation regressions.
+
 ### 2025-10-16 — Knowledge Base Drop Verification
 
 **Command**
