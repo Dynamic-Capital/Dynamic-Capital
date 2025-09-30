@@ -16,11 +16,23 @@ interface SwapEvent extends SwapInput {
   timestamp: number;
 }
 
+interface RouterForward {
+  value: number;
+  payload: SwapInput;
+}
+
+interface JettonTransferInput extends SwapInput {
+  wallet: string;
+  jettonAmount: number;
+  forwardTonAmount: number;
+}
+
 class MockAllocator {
   #paused = false;
   #pendingPauseAt: number | null = null;
   #pendingPauseState: boolean | null = null;
   #dctVault = 0;
+  #routerForwards: RouterForward[] = [];
   #timelockSeconds: number;
   #now = 0;
   #jettonWallet: string;
@@ -74,14 +86,36 @@ class MockAllocator {
     };
   }
 
+  get routerForwards(): RouterForward[] {
+    return this.#routerForwards.slice();
+  }
+
   processJettonTransfer({
     wallet,
+    jettonAmount,
+    forwardTonAmount,
     ...input
-  }: SwapInput & { wallet: string }): SwapEvent {
+  }: JettonTransferInput): SwapEvent {
     if (wallet !== this.#jettonWallet) {
       throw new Error("allocator: unauthorized jetton");
     }
-    return this.swap(input);
+    if (forwardTonAmount <= 0) {
+      throw new Error("allocator: invalid forward TON");
+    }
+    if (input.usdtAmount !== jettonAmount) {
+      throw new Error("allocator: amount mismatch");
+    }
+    this.#routerForwards.push({
+      value: forwardTonAmount,
+      payload: input,
+    });
+    this.#dctVault += jettonAmount;
+    return {
+      ...input,
+      usdtAmount: jettonAmount,
+      dctAmount: jettonAmount,
+      timestamp: this.#now,
+    };
   }
 
   requestWithdrawal(usdtAmount: number) {
@@ -158,17 +192,33 @@ Deno.test("jetton transfers must originate from configured wallet", () => {
   allocator.setNow(0);
   const event = allocator.processJettonTransfer({
     wallet: "GOOD",
+    jettonAmount: 200,
+    forwardTonAmount: 0.75,
     depositId: "1",
     investorKey: "0xabc",
     usdtAmount: 200,
     fxRate: 2,
     tonTxHash: "0xbeef",
   });
-  assertEquals(event.dctAmount, 100);
+  assertEquals(event.dctAmount, 200);
+  assertEquals(allocator.routerForwards, [
+    {
+      value: 0.75,
+      payload: {
+        depositId: "1",
+        investorKey: "0xabc",
+        usdtAmount: 200,
+        fxRate: 2,
+        tonTxHash: "0xbeef",
+      },
+    },
+  ]);
 
   assertThrows(() =>
     allocator.processJettonTransfer({
       wallet: "BAD",
+      jettonAmount: 50,
+      forwardTonAmount: 0.5,
       depositId: "2",
       investorKey: "0xdef",
       usdtAmount: 50,
@@ -177,4 +227,58 @@ Deno.test("jetton transfers must originate from configured wallet", () => {
     }),
     /unauthorized jetton/,
   );
+});
+
+Deno.test("jetton transfer enforces forward ton amount", () => {
+  const allocator = new MockAllocator({ timelockSeconds: 5, jettonWallet: "GOOD" });
+  allocator.setNow(0);
+  allocator.processJettonTransfer({
+    wallet: "GOOD",
+    jettonAmount: 150,
+    forwardTonAmount: 1.25,
+    depositId: "42",
+    investorKey: "0xface",
+    usdtAmount: 150,
+    fxRate: 3,
+    tonTxHash: "0xcafe",
+  });
+
+  assertThrows(() =>
+    allocator.processJettonTransfer({
+      wallet: "GOOD",
+      jettonAmount: 10,
+      forwardTonAmount: 0,
+      depositId: "99",
+      investorKey: "0xdead",
+      usdtAmount: 10,
+      fxRate: 1,
+      tonTxHash: "0xdead",
+    }),
+    /invalid forward TON/,
+  );
+
+  assertThrows(() =>
+    allocator.processJettonTransfer({
+      wallet: "GOOD",
+      jettonAmount: 10,
+      forwardTonAmount: 0.5,
+      depositId: "11",
+      investorKey: "0xbead",
+      usdtAmount: 9,
+      fxRate: 1,
+      tonTxHash: "0xbead",
+    }),
+    /amount mismatch/,
+  );
+
+  assertEquals(allocator.routerForwards.at(-1), {
+    value: 1.25,
+    payload: {
+      depositId: "42",
+      investorKey: "0xface",
+      usdtAmount: 150,
+      fxRate: 3,
+      tonTxHash: "0xcafe",
+    },
+  });
 });
