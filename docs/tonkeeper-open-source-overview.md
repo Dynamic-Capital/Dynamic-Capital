@@ -77,8 +77,10 @@ _Last run: 30 Sep 2025 (UTC) based on GitHub API snapshots._
 
 ## Automation script quick start
 
-The watcher script can be executed locally or from CI runners with outbound
-internet access:
+#### Release watcher
+
+The release watcher script can be executed locally or from CI runners with
+outbound internet access:
 
 ```bash
 node scripts/tonkeeper/watch-releases.mjs \
@@ -97,6 +99,27 @@ node scripts/tonkeeper/watch-releases.mjs \
   rendering (JSON, JSONL, or console table), and persist the final payload to a
   file for downstream
   checks.【F:scripts/tonkeeper/watch-releases.mjs†L23-L40】【F:scripts/tonkeeper/watch-releases.mjs†L205-L261】
+
+#### GitHub snapshot collector
+
+Export an organisation-wide Tonkeeper snapshot (repo inventory, languages, and
+recent pushes) for checklist updates or reporting:
+
+```bash
+node scripts/tonkeeper/github-snapshot.mjs \
+  --format pretty \
+  --output tonkeeper-snapshot.json \
+  --token "$GITHUB_TOKEN"
+```
+
+- `--include-forks` controls whether forked repositories are tallied alongside
+  Tonkeeper-owned codebases, while `--limit` trims the crawl for quick probes.
+  Combine with repeated `--repo owner/name` flags to force-include ecosystem
+  projects in the output payload.【F:scripts/tonkeeper/github-snapshot.mjs†L12-L164】【F:scripts/tonkeeper/github-snapshot.mjs†L166-L239】
+- The script prints JSON, JSONL, or pretty-printed payloads summarising
+  repository counts, language totals, and the most recent pushes; `--output`
+  writes the structured snapshot for downstream tooling and still logs
+  warnings when GitHub requests fail.【F:scripts/tonkeeper/github-snapshot.mjs†L241-L323】
 
 ### Install Ton CLI helpers
 
