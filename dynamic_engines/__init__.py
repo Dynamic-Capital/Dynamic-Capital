@@ -157,6 +157,14 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "SpectralType",
         "SOLAR_MASS_KG",
     ),
+    "dynamic_matrix": (
+        "DynamicMatrixEngine",
+        "MatrixBlueprint",
+        "MatrixCellUpdate",
+        "MatrixSnapshot",
+        "MatrixSummary",
+        "CellUpdateMode",
+    ),
     "dynamic_package": ("DynamicPackageDesigner",),
     "dynamic_playbook": (
         "DynamicPlaybookAgent",
