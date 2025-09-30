@@ -1,4 +1,4 @@
-"""Dynamic rhythm generation utilities."""
+"""Dynamic rhythm generation and modelling utilities."""
 
 from .engine import (
     DynamicRhythmEngine,
@@ -7,6 +7,7 @@ from .engine import (
     RhythmMotif,
     RhythmPattern,
 )
+from .model import DynamicRhythmModel, RhythmObservation, RhythmProfile
 
 __all__ = [
     "DynamicRhythmEngine",
@@ -14,4 +15,7 @@ __all__ = [
     "RhythmEvent",
     "RhythmMotif",
     "RhythmPattern",
+    "DynamicRhythmModel",
+    "RhythmObservation",
+    "RhythmProfile",
 ]
