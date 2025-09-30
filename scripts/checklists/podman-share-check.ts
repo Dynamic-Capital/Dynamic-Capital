@@ -1,13 +1,4 @@
 #!/usr/bin/env -S deno run --allow-env --allow-read
-import { parse } from "https://deno.land/std@0.224.0/flags/mod.ts";
-import {
-  bold,
-  gray,
-  green,
-  red,
-  yellow,
-} from "https://deno.land/std@0.224.0/fmt/colors.ts";
-
 const DEFAULT_SHARE = "\\\\wsl.localhost\\podman-machine-default";
 const DEFAULT_SAMPLE = 3;
 
@@ -29,6 +20,46 @@ type ShareReport = {
   entries: string[];
   driveMapping?: DriveMappingResult;
 };
+
+type ParsedArgs = {
+  _: string[];
+  share?: string;
+  list?: boolean;
+  sample?: number;
+  "map-drive"?: string;
+  "no-persistent"?: boolean;
+  json?: boolean;
+  help?: boolean;
+};
+
+const enableColor = !Deno.noColor;
+
+function colorize(text: string, open: string, close: string): string {
+  if (!enableColor) {
+    return text;
+  }
+  return `${open}${text}${close}`;
+}
+
+function bold(text: string): string {
+  return colorize(text, "\u001B[1m", "\u001B[22m");
+}
+
+function green(text: string): string {
+  return colorize(text, "\u001B[32m", "\u001B[39m");
+}
+
+function red(text: string): string {
+  return colorize(text, "\u001B[31m", "\u001B[39m");
+}
+
+function yellow(text: string): string {
+  return colorize(text, "\u001B[33m", "\u001B[39m");
+}
+
+function gray(text: string): string {
+  return colorize(text, "\u001B[90m", "\u001B[39m");
+}
 
 function printUsage(): void {
   console.log(
@@ -59,6 +90,99 @@ function sanitizeDriveLetter(input: string): string {
     throw new Error(`Invalid drive letter: ${input}`);
   }
   return letter;
+}
+
+function parseArgs(argv: string[]): ParsedArgs {
+  const result: ParsedArgs = { _: [] };
+  const aliasMap: Record<
+    string,
+    { key: keyof ParsedArgs; type: "boolean" | "string" }
+  > = {
+    s: { key: "share", type: "string" },
+    l: { key: "list", type: "boolean" },
+    j: { key: "json", type: "boolean" },
+    h: { key: "help", type: "boolean" },
+    m: { key: "map-drive", type: "string" },
+  };
+
+  const booleanFlags = new Set(["list", "json", "help", "no-persistent"]);
+  const stringFlags = new Set(["share", "map-drive"]);
+  const numberFlags = new Set(["sample"]);
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+
+    if (arg === "--") {
+      result._.push(...argv.slice(index + 1));
+      break;
+    }
+
+    if (arg.startsWith("--")) {
+      const [rawName, rawValue] = arg.slice(2).split("=", 2);
+      const name = rawName.trim();
+      if (!name) {
+        throw new Error("Unexpected empty flag name.");
+      }
+
+      if (booleanFlags.has(name)) {
+        result[name as keyof ParsedArgs] = true;
+        continue;
+      }
+
+      if (stringFlags.has(name) || numberFlags.has(name)) {
+        let value = rawValue;
+        if (value === undefined) {
+          value = argv[index + 1];
+          if (value === undefined) {
+            throw new Error(`Missing value for --${name}`);
+          }
+          index += 1;
+        }
+        if (numberFlags.has(name)) {
+          const parsed = Number(value);
+          if (Number.isNaN(parsed)) {
+            throw new Error(
+              `Expected numeric value for --${name}, received "${value}".`,
+            );
+          }
+          result[name as keyof ParsedArgs] =
+            parsed as ParsedArgs[keyof ParsedArgs];
+        } else {
+          result[name as keyof ParsedArgs] =
+            value as ParsedArgs[keyof ParsedArgs];
+        }
+        continue;
+      }
+
+      throw new Error(`Unknown option: --${name}`);
+    }
+
+    if (arg.startsWith("-")) {
+      const flag = arg.slice(1);
+      if (flag.length !== 1) {
+        throw new Error(`Unknown short option: -${flag}`);
+      }
+      const alias = aliasMap[flag];
+      if (!alias) {
+        throw new Error(`Unknown option: -${flag}`);
+      }
+      if (alias.type === "boolean") {
+        result[alias.key] = true as ParsedArgs[keyof ParsedArgs];
+        continue;
+      }
+      const value = argv[index + 1];
+      if (value === undefined) {
+        throw new Error(`Missing value for -${flag}`);
+      }
+      result[alias.key] = value as ParsedArgs[keyof ParsedArgs];
+      index += 1;
+      continue;
+    }
+
+    result._.push(arg);
+  }
+
+  return result;
 }
 
 async function mapDrive(
@@ -163,18 +287,16 @@ function formatReport(report: ShareReport): string {
 }
 
 async function main() {
-  const args = parse(Deno.args, {
-    string: ["share", "map-drive"],
-    boolean: ["help", "list", "json", "no-persistent"],
-    number: ["sample"],
-    alias: {
-      share: ["s"],
-      "map-drive": ["m"],
-      help: ["h"],
-      list: ["l"],
-      json: ["j"],
-    },
-  });
+  let args: ParsedArgs;
+  try {
+    args = parseArgs(Deno.args);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
+    printUsage();
+    Deno.exit(1);
+    return;
+  }
 
   if (args.help) {
     printUsage();

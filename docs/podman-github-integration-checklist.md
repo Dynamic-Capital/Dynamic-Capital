@@ -16,15 +16,18 @@ Use it when onboarding a new project or hardening local development.
 
 ## Audit summary
 
-| Area | Current status | Follow-up |
-| ---- | -------------- | --------- |
-| Podman machine lifecycle | Documented `podman machine start` sequence. | Add optional `podman machine inspect` health check. |
-| Connection registration | Captures `podman system connection add` usage with default selection verification. | Include scripted check for `podman system connection ls`. |
-| Repository workflow | Covers cloning, building, and running containers with bind mounts. | Track Windows path nuances and PowerShell execution policy prerequisites. |
-| Compose compatibility | Notes `podman-compose` availability for Docker Compose files. | Evaluate parity with Docker Desktop features used by the project. |
+| Area                     | Current status                                                                     | Follow-up                                                                 |
+| ------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Podman machine lifecycle | Documented `podman machine start` sequence.                                        | Add optional `podman machine inspect` health check.                       |
+| Connection registration  | Captures `podman system connection add` usage with default selection verification. | Include scripted check for `podman system connection ls`.                 |
+| Repository workflow      | Covers cloning, building, and running containers with bind mounts.                 | Track Windows path nuances and PowerShell execution policy prerequisites. |
+| Compose compatibility    | Notes `podman-compose` availability for Docker Compose files.                      | Evaluate parity with Docker Desktop features used by the project.         |
 
 ## Pre-flight validation
 
+- Run `npm run checklists -- --checklist podman-github --section pre-flight` to
+  execute the scripted validation for these steps on Windows hosts with Podman
+  installed.
 - [ ] Confirm Podman is installed at the latest stable release on Windows.
 - [ ] Start the machine and ensure it reports `Running`:
   - `podman machine start`
@@ -63,9 +66,13 @@ Write-Host "Connection default:`t$($connection.Default)"
 ## Repository preparation
 
 - [ ] Clone the target GitHub repository or pull the latest changes.
-- [ ] Review project-specific container requirements (Dockerfile, scripts, compose files).
-- [ ] Configure any `.env` files using documented templates (do **not** commit secrets).
-- [ ] Ensure the working tree lives on an NTFS drive (Podman automatically shares `C:`) or configure additional shared paths via `podman machine set --rootful --now`.
+- [ ] Review project-specific container requirements (Dockerfile, scripts,
+      compose files).
+- [ ] Configure any `.env` files using documented templates (do **not** commit
+      secrets).
+- [ ] Ensure the working tree lives on an NTFS drive (Podman automatically
+      shares `C:`) or configure additional shared paths via
+      `podman machine set --rootful --now`.
 
 ## Image build and runtime checks
 
@@ -76,22 +83,31 @@ Write-Host "Connection default:`t$($connection.Default)"
   - `podman run --rm -it -v ${PWD}:/app -w /app <image-name> <command>`
   - `podman volume ls`
 - [ ] Confirm file permissions map correctly between Windows host and Podman VM.
-- [ ] Persist any containerized dependencies (volumes, secrets) using Podman-native tooling.
+- [ ] Persist any containerized dependencies (volumes, secrets) using
+      Podman-native tooling.
 
 ## Compose and automation (optional)
 
 - [ ] If the project includes `docker-compose.yml`, install `podman-compose`.
-- [ ] Run `podman-compose up --build` and document any deviations from Docker Desktop output.
+- [ ] Run `podman-compose up --build` and document any deviations from Docker
+      Desktop output.
 - [ ] Capture logs and follow-up items for cross-platform quirks.
 
 ## Documentation handoff
 
 - [ ] Record completion notes in the project wiki or onboarding doc.
-- [ ] Open issues for remaining follow-ups highlighted in the audit summary table.
-- [ ] Share the checklist results with collaborators to confirm environment parity.
+- [ ] Open issues for remaining follow-ups highlighted in the audit summary
+      table.
+- [ ] Share the checklist results with collaborators to confirm environment
+      parity.
 
 ## Troubleshooting cues
 
-- [ ] Connection fails with `permission denied`: reset pipe access with `podman machine stop`, `podman machine rm`, then recreate using `podman machine init --now`.
-- [ ] Bind mounts show as empty directories: confirm the path casing matches Windows conventions and rerun `podman machine ssh -- mount` to inspect the shared folder mapping.
-- [ ] Compose services cannot reach each other: compare `podman network ls` output against expected bridge names and recreate the network if drifted.
+- [ ] Connection fails with `permission denied`: reset pipe access with
+      `podman machine stop`, `podman machine rm`, then recreate using
+      `podman machine init --now`.
+- [ ] Bind mounts show as empty directories: confirm the path casing matches
+      Windows conventions and rerun `podman machine ssh -- mount` to inspect the
+      shared folder mapping.
+- [ ] Compose services cannot reach each other: compare `podman network ls`
+      output against expected bridge names and recreate the network if drifted.

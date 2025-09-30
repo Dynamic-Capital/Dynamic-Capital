@@ -12,12 +12,14 @@ Run the helper to explore or execute automation-aware checklists:
 ```bash
 npm run checklists -- --list
 npm run checklists -- --checklist <key> [--include-optional]
+npm run checklists -- --checklist <key> --section <section-name>
 ```
 
 Each key maps to a sequence defined in
 [`scripts/run-checklists.js`](../scripts/run-checklists.js). The helper reads
 the tables below, resolves the referenced tasks, and runs the associated
-commands.
+commands. Use `--section` to run a named subset (for example
+`--section pre-flight`) when a checklist documents multiple automation buckets.
 
 ## Prioritized checklist roadmap
 
@@ -73,8 +75,8 @@ key.
 - **[`Podman GitHub Integration Checklist`](./podman-github-integration-checklist.md)**
   – audits Windows-based Podman machine connectivity and documents the
   repository workflow so local development stays aligned with container
-  lifecycle tasks. Use the `podman-github` automation key to trigger the
-  machine validation helper.
+  lifecycle tasks. Use the `podman-github` automation key to trigger the machine
+  validation helper.
 
 ## Launch & production hardening (priorities 5–8)
 
