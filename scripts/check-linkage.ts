@@ -29,14 +29,43 @@ function expectedWebhookUrl(): string | null {
   return ref ? `https://${ref}.functions.supabase.co/telegram-bot` : null;
 }
 
-async function getJson(url: string, client?: Deno.HttpClient) {
+type GetJsonOptions = {
+  client?: Deno.HttpClient;
+  label?: string;
+  timeoutMs?: number;
+};
+
+async function getJson(url: string, options: GetJsonOptions = {}) {
+  const { client, label, timeoutMs = 10_000 } = options;
+  const target = label ?? url;
   try {
-    const signal = AbortSignal.timeout(10_000);
-    const r = await fetch(url, client ? { client, signal } : { signal });
-    return await r.json();
+    const signal = AbortSignal.timeout(timeoutMs);
+    const response = await fetch(url, client ? { client, signal } : { signal });
+    if (!response.ok) {
+      const body = await response.text().catch(() => null);
+      console.warn(
+        `[linkage] ${target} responded ${response.status} ${response.statusText}` +
+          (body ? ` — ${body.slice(0, 200)}` : ""),
+      );
+      return null;
+    }
+    try {
+      return await response.json();
+    } catch (parseError) {
+      console.warn(
+        `[linkage] Unable to parse JSON from ${target}:`,
+        parseError instanceof Error ? parseError.message : String(parseError),
+      );
+      return null;
+    }
   } catch (error) {
     if (error instanceof DOMException && error.name === "TimeoutError") {
-      console.warn(`[linkage] Request timed out for ${url}`);
+      console.warn(`[linkage] Request timed out for ${target}`);
+    } else {
+      console.warn(
+        `[linkage] Request failed for ${target}:`,
+        error instanceof Error ? error.message : String(error),
+      );
     }
     return null;
   }
@@ -57,7 +86,10 @@ async function main() {
   if (token) {
     const info = await getJson(
       `https://api.telegram.org/bot${token}/getWebhookInfo`,
-      tlsContext?.client,
+      {
+        client: tlsContext?.client,
+        label: "Telegram getWebhookInfo",
+      },
     );
     currentWebhook = info?.result?.url ?? null;
     console.log("[linkage] getWebhookInfo.ok:", !!info?.ok);
@@ -77,7 +109,10 @@ async function main() {
     ? `https://${ref}.functions.supabase.co/linkage-audit`
     : null;
   if (healthUrl) {
-    const inside = await getJson(healthUrl);
+    const inside = await getJson(healthUrl, {
+      client: tlsContext?.client,
+      label: "Supabase linkage-audit",
+    });
     console.log(
       "[linkage] Edge linkage-audit:",
       inside ? "reachable" : "not reachable",
