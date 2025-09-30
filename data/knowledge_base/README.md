@@ -36,3 +36,6 @@ and file descriptions from the corresponding OneDrive manifest.
 | Relative path        | Purpose                                                           |
 | -------------------- | ----------------------------------------------------------------- |
 | `research/README.md` | Mirroring checklist plus dataset registry for the research drop. |
+| `research/processed/dhivehi_training_corpus.jsonl` | Preprocessed Dhivehi Radheef corpus ready for instruction tuning. |
+| `research/training_runs/dhivehi_radheef_v1.json` | Dynamic trainer readiness summary for the Dhivehi corpus fine-tune. |
+| `research/manifest.json` | Structured manifest enumerating the staged research datasets. |

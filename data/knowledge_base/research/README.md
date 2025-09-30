@@ -26,7 +26,28 @@ for mirroring the new material into the Dynamic Capital knowledge base.
 
 | Dataset slug | Description | Notes |
 | ------------ | ----------- | ----- |
-| _TBD_        | Populate once the mirrored archives have been catalogued. | |
+| `dhivehi_radheef_v1` | Deduplicated Dhivehi Radheef dictionary slices prepared for bilingual instruction tuning. | Processed corpus at `processed/dhivehi_training_corpus.jsonl`; training telemetry in `training_runs/dhivehi_radheef_v1.json`. |
+
+## Latest training pass
+
+Execute the following commands after syncing the OneDrive drop to reproduce the
+current training artefacts:
+
+```bash
+python ml/preprocess_corpus.py \
+  --input data/dhivehi_radheef_sample.jsonl data/dhivehi_radheef_pages_026_050.jsonl \
+  --output data/knowledge_base/research/processed/dhivehi_training_corpus.jsonl \
+  --languages en dv \
+  --min-characters 64
+
+python ml/research_corpus_trainer.py \
+  --dataset data/knowledge_base/research/processed/dhivehi_training_corpus.jsonl \
+  --output data/knowledge_base/research/training_runs/dhivehi_radheef_v1.json \
+  --objective "knowledge-base-research-dhivehi"
+```
+
+The resulting readiness summary recommends promoting the candidate checkpoint
+while tightening loss-focused regularisation before scaling further runs.
 
 Keep this document in sync with the upstream OneDrive folder so that future
 knowledge base drops reflect the new research materials.

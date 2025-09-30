@@ -1,0 +1,24 @@
+{
+  "datasets": [
+    {
+      "slug": "dhivehi_radheef_v1",
+      "source": {
+        "one_drive_path": "OneDrive\\\\DynamicAI_DB\\\\knowledge_base\\\\research",
+        "files": [
+          "dhivehi_radheef_sample.jsonl",
+          "dhivehi_radheef_pages_026_050.jsonl"
+        ]
+      },
+      "processed_path": "data/knowledge_base/research/processed/dhivehi_training_corpus.jsonl",
+      "training_report": "data/knowledge_base/research/training_runs/dhivehi_radheef_v1.json",
+      "rows": 515,
+      "languages": {
+        "dv": 515
+      },
+      "tags": {
+        "trading": 515
+      },
+      "notes": "Preprocessed Dhivehi Radheef dictionary batches; ready for LoRA fine-tuning once checksum verification completes."
+    }
+  ]
+}
