@@ -78,6 +78,16 @@ This document summarizes several landmark developments in quantitative finance, 
 - **Model structure:** Each agent decides to buy, sell, or hold based on heuristics (e.g., threshold rules on expected returns). Aggregate market behavior arises from these micro-level interactions.
 - **Insight:** Captures phenomena like bubbles, crashes, and regime shifts that are difficult to model with equilibrium-based frameworks.
 
+## Optimizing Dynamic Models
+
+Dynamic models knit together stochastic drivers, portfolio constraints, derivative sensitivities, and feedback from adaptive agents. Optimizing across these layers requires a disciplined calibration–validation loop:
+
+1. **Parameter estimation.** Use maximum likelihood or Bayesian inference to fit drift, diffusion, and jump components simultaneously so that portfolio and option models share a coherent probability structure.
+2. **State augmentation.** Extend Markovian states with latent variables (e.g., stochastic volatility or macro factors) that improve predictive power without overfitting. Kalman and particle filters keep these states updated in real time.
+3. **Multi-objective optimization.** Frame allocation, hedging, and liquidity targets as a unified problem. Techniques such as scalarization or Pareto front exploration ensure that improvements in one dimension do not destabilize another.
+4. **Scenario enrichment.** Stress deterministic and stochastic paths with rare but plausible shocks, then re-optimize using robust or distributionally ambiguous formulations to guard against model error.
+5. **Adaptive rebalancing.** Deploy reinforcement or agent-based policies that learn when to accept model recommendations versus deferring to market microstructure signals, closing the loop between theory and execution.
+
 ## Practical Workflow: Running Optimizations Back-to-Back
 
 1. **Calibrate stochastic dynamics.** Estimate drift and volatility parameters under the Bachelier or Black–Scholes setup using historical data so that subsequent optimization steps share a consistent probabilistic foundation.
