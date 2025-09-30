@@ -1,15 +1,26 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  type ComponentProps,
+  type ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   Button,
   Column,
   Heading,
   Icon,
+  type IconName,
   RevealFx,
   Row,
   Schema,
+  Skeleton,
+  SpacingToken,
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
@@ -28,6 +39,22 @@ const CTA_LINKS = {
   invest: "https://dynamic-capital.ondigitalocean.app/app",
   learn: "#academy",
 };
+
+const SECTION_HEADING_IDS = {
+  overview: `${HOME_NAV_SECTION_IDS.overview}-heading`,
+  token: `${HOME_NAV_SECTION_IDS.token}-heading`,
+  wallet: `${HOME_NAV_SECTION_IDS.wallet}-heading`,
+  markets: `${HOME_NAV_SECTION_IDS.markets}-heading`,
+  forecasts: `${HOME_NAV_SECTION_IDS.forecasts}-heading`,
+  community: `${HOME_NAV_SECTION_IDS.community}-heading`,
+  miniApp: `${HOME_NAV_SECTION_IDS.miniApp}-heading`,
+  api: `${HOME_NAV_SECTION_IDS.api}-heading`,
+  admin: `${HOME_NAV_SECTION_IDS.admin}-heading`,
+  advantages: `${HOME_NAV_SECTION_IDS.advantages}-heading`,
+} as const satisfies Record<
+  keyof typeof HOME_NAV_SECTION_IDS,
+  string
+>;
 
 const TOKEN_FEATURES = [
   {
@@ -115,41 +142,37 @@ const FORECAST_HIGHLIGHTS = [
 
 const FORECAST_CATEGORIES = [
   {
-    label: "Countries",
-    description:
-      "Growth, inflation, and policy paths for 150+ economies.",
+    title: "Countries",
+    description: "Growth, inflation, and policy paths for 150+ economies.",
   },
   {
-    label: "Indicators",
+    title: "Indicators",
     description:
       "Leading, coincident, and lagging signals that shape strategy.",
   },
   {
-    label: "Commodities",
+    title: "Commodities",
     description:
       "Energy, metals, and agricultural curves tied to supply shifts.",
   },
   {
-    label: "Indexes",
-    description:
-      "Equity and volatility benchmarks synced to macro drivers.",
+    title: "Indexes",
+    description: "Equity and volatility benchmarks synced to macro drivers.",
   },
   {
-    label: "Currencies",
-    description:
-      "FX crosses modeled on rate differentials and trade balances.",
+    title: "Currencies",
+    description: "FX crosses modeled on rate differentials and trade balances.",
   },
   {
-    label: "Crypto",
+    title: "Crypto",
     description:
       "Digital asset trajectories bridging on-chain and macro flows.",
   },
   {
-    label: "Bonds",
-    description:
-      "Sovereign and credit curves linked to inflation and growth.",
+    title: "Bonds",
+    description: "Sovereign and credit curves linked to inflation and growth.",
   },
-] as const;
+] as const satisfies readonly FeatureCardItem[];
 
 const COMMUNITY_MESSAGES = {
   dhivehi:
@@ -157,6 +180,17 @@ const COMMUNITY_MESSAGES = {
   english:
     "Investors, partners, and regulators view a single source of truth for burns, rewards, and strategy updates.",
 };
+
+const COMMUNITY_LANGUAGE_CARDS = [
+  {
+    title: "ދިވެހި",
+    description: COMMUNITY_MESSAGES.dhivehi,
+  },
+  {
+    title: "English",
+    description: COMMUNITY_MESSAGES.english,
+  },
+] as const satisfies readonly FeatureCardItem[];
 
 const MINI_APP_FEATURES = [
   "Real-time P&L with profit, loss, and cash balance summaries.",
@@ -199,6 +233,213 @@ const ADVANTAGES = [
   "Supabase backend synchronises every surface so the community sees the same ledger as the desk.",
   "Modular architecture makes it easy to add Academy, Governance, or Events sections when you are ready.",
 ];
+
+interface FeatureCardItem {
+  title: string;
+  description: string;
+  icon?: IconName;
+}
+
+interface FeatureCardGridProps<Item extends FeatureCardItem> {
+  items: readonly Item[];
+  className?: string;
+  as?: "div" | "ul";
+  titleVariant?: ComponentProps<typeof Heading>["variant"];
+  textVariant?: ComponentProps<typeof Text>["variant"];
+  textOnBackground?: ComponentProps<typeof Text>["onBackground"];
+}
+
+function FeatureCardGrid<Item extends FeatureCardItem>({
+  items,
+  className,
+  as = "div",
+  titleVariant = "heading-strong-xs",
+  textVariant = "body-default-s",
+  textOnBackground = "neutral-weak",
+}: FeatureCardGridProps<Item>) {
+  const Wrapper: "div" | "ul" = as;
+
+  return (
+    <Wrapper
+      className={cn(
+        "grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3",
+        as === "ul" ? "list-none p-0" : undefined,
+        className,
+      )}
+    >
+      {items.map((item) => (
+        <Column
+          key={item.title}
+          as={as === "ul" ? "li" : undefined}
+          gap="12"
+          padding="20"
+          radius="l"
+          background="surface"
+          border="neutral-alpha-weak"
+          data-border="rounded"
+          className="h-full bg-background/70 shadow-lg shadow-primary/5"
+        >
+          {item.icon ? <Icon name={item.icon} size="m" decorative /> : null}
+          <Heading variant={titleVariant}>{item.title}</Heading>
+          <Text
+            variant={textVariant}
+            onBackground={textOnBackground}
+            wrap="balance"
+          >
+            {item.description}
+          </Text>
+        </Column>
+      ))}
+    </Wrapper>
+  );
+}
+
+interface IconBulletListProps {
+  items: readonly string[];
+  icon?: IconName;
+  textVariant?: ComponentProps<typeof Text>["variant"];
+  textOnBackground?: ComponentProps<typeof Text>["onBackground"];
+  className?: string;
+  as?: "ul" | "ol";
+}
+
+function IconBulletList({
+  items,
+  icon = "check",
+  textVariant = "body-default-m",
+  textOnBackground = "neutral-strong",
+  className,
+  as = "ul",
+}: IconBulletListProps) {
+  const ListTag = as;
+
+  return (
+    <Column
+      as={ListTag}
+      gap="8"
+      className={cn(
+        "w-full",
+        as === "ul" ? "list-none p-0" : undefined,
+        className,
+      )}
+    >
+      {items.map((item) => (
+        <Row
+          key={item}
+          as="li"
+          gap="12"
+          horizontal="start"
+          className="items-start"
+        >
+          <span className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+            <Icon name={icon} size="s" decorative />
+          </span>
+          <Text
+            variant={textVariant}
+            onBackground={textOnBackground}
+            wrap="balance"
+          >
+            {item}
+          </Text>
+        </Row>
+      ))}
+    </Column>
+  );
+}
+
+interface SectionHeaderProps {
+  id: string;
+  title: ReactNode;
+  tag?: string;
+  description?: ReactNode;
+  note?: ReactNode;
+  align?: "start" | "center";
+  gap?: SpacingToken;
+  titleVariant?: ComponentProps<typeof Heading>["variant"];
+  descriptionVariant?: ComponentProps<typeof Text>["variant"];
+  noteVariant?: ComponentProps<typeof Text>["variant"];
+  descriptionOnBackground?: ComponentProps<typeof Text>["onBackground"];
+  noteOnBackground?: ComponentProps<typeof Text>["onBackground"];
+  className?: string;
+  titleClassName?: string;
+  descriptionClassName?: string;
+  noteClassName?: string;
+  tagClassName?: string;
+}
+
+function SectionHeader({
+  id,
+  title,
+  tag,
+  description,
+  note,
+  align = "start",
+  gap = "12",
+  titleVariant = "heading-strong-m",
+  descriptionVariant = "body-default-m",
+  noteVariant = "body-default-s",
+  descriptionOnBackground = "neutral-weak",
+  noteOnBackground = "neutral-weak",
+  className,
+  titleClassName,
+  descriptionClassName,
+  noteClassName,
+  tagClassName,
+}: SectionHeaderProps) {
+  const alignmentClasses = align === "center"
+    ? "items-center text-center"
+    : "items-start text-left";
+
+  return (
+    <Column gap={gap} className={cn(alignmentClasses, className)}>
+      {tag
+        ? (
+          <Tag
+            variant="brand"
+            size="m"
+            className={cn(
+              align === "center" ? "self-center" : "self-start",
+              tagClassName,
+            )}
+          >
+            {tag}
+          </Tag>
+        )
+        : null}
+      <Heading
+        id={id}
+        variant={titleVariant}
+        className={cn("max-w-3xl text-balance", titleClassName)}
+      >
+        {title}
+      </Heading>
+      {description
+        ? (
+          <Text
+            variant={descriptionVariant}
+            onBackground={descriptionOnBackground}
+            wrap="balance"
+            className={cn("max-w-3xl", descriptionClassName)}
+          >
+            {description}
+          </Text>
+        )
+        : null}
+      {note
+        ? (
+          <Text
+            variant={noteVariant}
+            onBackground={noteOnBackground}
+            wrap="balance"
+            className={cn("max-w-3xl", noteClassName)}
+          >
+            {note}
+          </Text>
+        )
+        : null}
+    </Column>
+  );
+}
 
 const HERO_TITLE = "Maldives’ First AI-Powered Trading Ecosystem";
 const HERO_DESCRIPTION =
@@ -285,6 +526,7 @@ function TradingViewWidget(
     [reactId, slug],
   );
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -298,6 +540,7 @@ function TradingViewWidget(
     }
 
     setError(null);
+    setIsLoading(true);
     loadTradingViewScript()
       .then(() => {
         if (!isActive || !window.TradingView) {
@@ -319,10 +562,15 @@ function TradingViewWidget(
           allow_symbol_change: false,
           autosize: true,
         });
+
+        if (isActive) {
+          setIsLoading(false);
+        }
       })
       .catch(() => {
         if (isActive) {
           setError("Live chart unavailable right now");
+          setIsLoading(false);
         }
       });
 
@@ -363,10 +611,26 @@ function TradingViewWidget(
       </Column>
       <div className="tradingview-widget-container w-full">
         <div
-          id={containerId}
-          ref={containerRef}
-          className="h-64 w-full rounded-xl border border-border/60 bg-gradient-to-br from-background/60 via-background/40 to-background/60"
-        />
+          className="relative h-64 w-full"
+          aria-busy={isLoading}
+          aria-live="polite"
+        >
+          {isLoading
+            ? (
+              <Skeleton
+                shape="block"
+                className="absolute inset-0 h-full w-full rounded-xl border border-border/60 bg-background/40"
+              />
+            )
+            : null}
+          <div
+            id={containerId}
+            ref={containerRef}
+            className="h-full w-full rounded-xl border border-border/60 bg-gradient-to-br from-background/60 via-background/40 to-background/60"
+            role="img"
+            aria-label={`Live TradingView chart for ${title}`}
+          />
+        </div>
       </div>
       {error
         ? (
@@ -381,20 +645,33 @@ function TradingViewWidget(
 
 interface SectionProps {
   anchor: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   delay?: number;
+  titleId?: string;
 }
 
-function Section({ anchor, children, className, delay }: SectionProps) {
+function Section(
+  { anchor, children, className, delay, titleId }: SectionProps,
+) {
   return (
     <RevealFx translateY="16" delay={delay}>
       <section
         id={anchor}
         data-section-anchor={anchor}
-        className={cn("w-full", className)}
+        aria-labelledby={titleId}
+        role="region"
+        className={cn(
+          "w-full scroll-mt-28 sm:scroll-mt-32",
+          className,
+        )}
       >
-        <Column fillWidth gap="24" paddingX="16" className="mx-auto max-w-6xl">
+        <Column
+          fillWidth
+          gap="24"
+          paddingX="16"
+          className="mx-auto max-w-6xl"
+        >
           {children}
         </Column>
       </section>
@@ -426,24 +703,23 @@ export function MultiLlmLandingPage() {
         }}
       />
 
-      <Section anchor={HOME_NAV_SECTION_IDS.overview}>
-        <Column gap="32" paddingTop="40" className="text-center sm:text-left">
-          <Column gap="16" horizontal="center" className="text-center">
-            <Heading
-              variant="heading-strong-l"
-              className="max-w-3xl text-balance text-4xl sm:text-5xl"
-            >
-              {HERO_TITLE}
-            </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-2xl"
-            >
-              {HERO_DESCRIPTION}
-            </Text>
-          </Column>
+      <Section
+        anchor={HOME_NAV_SECTION_IDS.overview}
+        titleId={SECTION_HEADING_IDS.overview}
+      >
+        <Column gap="32" paddingTop="40">
+          <SectionHeader
+            id={SECTION_HEADING_IDS.overview}
+            title={HERO_TITLE}
+            description={HERO_DESCRIPTION}
+            align="center"
+            gap="16"
+            titleVariant="heading-strong-l"
+            descriptionVariant="body-default-m"
+            className="items-center text-center sm:items-start sm:text-left"
+            titleClassName="max-w-3xl text-balance text-4xl sm:text-5xl"
+            descriptionClassName="max-w-2xl"
+          />
           <Row
             gap="12"
             wrap
@@ -464,7 +740,7 @@ export function MultiLlmLandingPage() {
                 data-border="rounded"
                 className="shadow-md shadow-brand/10"
               >
-                <Icon name={badge.icon} size="s" />
+                <Icon name={badge.icon} size="s" decorative />
                 <Text variant="body-default-s" onBackground="neutral-strong">
                   {badge.label}
                 </Text>
@@ -503,367 +779,140 @@ export function MultiLlmLandingPage() {
         </Column>
       </Section>
 
-      <Section anchor={HOME_NAV_SECTION_IDS.token}>
+      <Section
+        anchor={HOME_NAV_SECTION_IDS.token}
+        titleId={SECTION_HEADING_IDS.token}
+      >
         <Column gap="20">
-          <Column gap="12">
-            <Tag variant="brand" size="m">
-              DCT Token economics
-            </Tag>
-            <Heading variant="heading-strong-m">
-              Burns, rewards, and radical transparency
-            </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              DCT powers the Dynamic Capital treasury. Every burn, reward, and
-              treasury movement is mirrored inside Supabase and exposed through
-              investor dashboards.
-            </Text>
-          </Column>
-          <Row gap="16" wrap className="gap-6">
-            {TOKEN_FEATURES.map((feature) => (
-              <Column
-                key={feature.title}
-                gap="12"
-                padding="20"
-                radius="l"
-                background="surface"
-                border="neutral-alpha-weak"
-                data-border="rounded"
-                className="flex-1 min-w-[240px] bg-background/70 shadow-lg shadow-primary/5"
-              >
-                <Icon name={feature.icon} size="m" />
-                <Heading variant="heading-strong-xs">{feature.title}</Heading>
-                <Text
-                  variant="body-default-s"
-                  onBackground="neutral-weak"
-                  wrap="balance"
-                >
-                  {feature.description}
-                </Text>
-              </Column>
-            ))}
-          </Row>
+          <SectionHeader
+            id={SECTION_HEADING_IDS.token}
+            tag="DCT Token economics"
+            title="Burns, rewards, and radical transparency"
+            description="DCT powers the Dynamic Capital treasury. Every burn, reward, and treasury movement is mirrored inside Supabase and exposed through investor dashboards."
+          />
+          <FeatureCardGrid items={TOKEN_FEATURES} as="ul" />
         </Column>
       </Section>
 
-      <Section anchor={HOME_NAV_SECTION_IDS.wallet}>
+      <Section
+        anchor={HOME_NAV_SECTION_IDS.wallet}
+        titleId={SECTION_HEADING_IDS.wallet}
+      >
         <Column gap="20">
-          <Column gap="12">
-            <Tag variant="brand" size="m">
-              Dynamic wallet
-            </Tag>
-            <Heading variant="heading-strong-m">
-              One TonConnect handshake powers every surface
-            </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              Link wallets from Telegram, store them in Supabase, and unlock
-              staking, VIP plans, and automation without duplicating onboarding
-              flows.
-            </Text>
-          </Column>
-          <Row gap="16" wrap className="gap-6">
-            {WALLET_FEATURES.map((feature) => (
-              <Column
-                key={feature.title}
-                gap="12"
-                padding="20"
-                radius="l"
-                background="surface"
-                border="neutral-alpha-weak"
-                data-border="rounded"
-                className="flex-1 min-w-[240px] bg-background/70 shadow-lg shadow-primary/5"
-              >
-                <Icon name={feature.icon} size="m" />
-                <Heading variant="heading-strong-xs">{feature.title}</Heading>
-                <Text
-                  variant="body-default-s"
-                  onBackground="neutral-weak"
-                  wrap="balance"
-                >
-                  {feature.description}
-                </Text>
-              </Column>
-            ))}
-          </Row>
+          <SectionHeader
+            id={SECTION_HEADING_IDS.wallet}
+            tag="Dynamic wallet"
+            title="One TonConnect handshake powers every surface"
+            description="Link wallets from Telegram, store them in Supabase, and unlock staking, VIP plans, and automation without duplicating onboarding flows."
+          />
+          <FeatureCardGrid items={WALLET_FEATURES} as="ul" />
           <Column gap="12" className="max-w-3xl">
             <Heading variant="heading-strong-s">Guardrails baked in</Heading>
-            <Column gap="8" as="ul">
-              {WALLET_GUARDRAILS.map((guardrail) => (
-                <Row
-                  key={guardrail}
-                  gap="12"
-                  as="li"
-                  horizontal="start"
-                  className="items-start"
-                >
-                  <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
-                    <Icon name="check" size="s" />
-                  </span>
-                  <Text
-                    variant="body-default-m"
-                    onBackground="neutral-strong"
-                    wrap="balance"
-                  >
-                    {guardrail}
-                  </Text>
-                </Row>
-              ))}
-            </Column>
+            <IconBulletList items={WALLET_GUARDRAILS} />
           </Column>
         </Column>
       </Section>
 
-      <Section anchor={HOME_NAV_SECTION_IDS.markets}>
+      <Section
+        anchor={HOME_NAV_SECTION_IDS.markets}
+        titleId={SECTION_HEADING_IDS.markets}
+      >
         <Column gap="20">
-          <Column gap="12">
-            <Tag variant="brand" size="m">
-              Live markets
-            </Tag>
-            <Heading variant="heading-strong-m">
-              TradingView charts across desks
-            </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              Monitor the exact markets Dynamic Capital automates. These
-              embedded widgets sync with your TradingView alerts for gold,
-              forex, and crypto strategies.
-            </Text>
-          </Column>
-          <Row gap="16" wrap className="gap-6">
+          <SectionHeader
+            id={SECTION_HEADING_IDS.markets}
+            tag="Live markets"
+            title="TradingView charts across desks"
+            description="Monitor the exact markets Dynamic Capital automates. These embedded widgets sync with your TradingView alerts for gold, forex, and crypto strategies."
+          />
+          <div className="grid w-full gap-6 md:grid-cols-2 xl:grid-cols-3">
             {MARKET_WIDGETS.map((widget) => (
               <TradingViewWidget key={widget.symbol} {...widget} />
             ))}
-          </Row>
+          </div>
         </Column>
       </Section>
 
-      <Section anchor={HOME_NAV_SECTION_IDS.forecasts}>
+      <Section
+        anchor={HOME_NAV_SECTION_IDS.forecasts}
+        titleId={SECTION_HEADING_IDS.forecasts}
+      >
         <Column gap="20">
-          <Column gap="12">
-            <Tag variant="brand" size="m">
-              {FORECAST_HERO.tag}
-            </Tag>
-            <Heading variant="heading-strong-m">
-              {FORECAST_HERO.heading}
-            </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              {FORECAST_HERO.description}
-            </Text>
-            <Text
-              variant="body-default-s"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              {FORECAST_HERO.updateNote}
-            </Text>
-          </Column>
+          <SectionHeader
+            id={SECTION_HEADING_IDS.forecasts}
+            tag={FORECAST_HERO.tag}
+            title={FORECAST_HERO.heading}
+            description={FORECAST_HERO.description}
+            note={FORECAST_HERO.updateNote}
+          />
           <Column gap="12" className="max-w-3xl">
             <Heading variant="heading-strong-s">
               What sets our forecasts apart
             </Heading>
-            <Column gap="8" as="ul">
-              {FORECAST_HIGHLIGHTS.map((highlight) => (
-                <Row
-                  key={highlight}
-                  gap="12"
-                  as="li"
-                  horizontal="start"
-                  className="items-start"
-                >
-                  <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
-                    <Icon name="check" size="s" />
-                  </span>
-                  <Text
-                    variant="body-default-m"
-                    onBackground="neutral-strong"
-                    wrap="balance"
-                  >
-                    {highlight}
-                  </Text>
-                </Row>
-              ))}
-            </Column>
+            <IconBulletList items={FORECAST_HIGHLIGHTS} />
           </Column>
-          <Row gap="16" wrap className="gap-6">
-            {FORECAST_CATEGORIES.map((category) => (
-              <Column
-                key={category.label}
-                gap="12"
-                padding="20"
-                radius="l"
-                background="surface"
-                border="neutral-alpha-weak"
-                data-border="rounded"
-                className="flex-1 min-w-[220px] bg-background/70 shadow-lg shadow-primary/5"
-              >
-                <Heading variant="heading-strong-xs">
-                  {category.label}
-                </Heading>
-                <Text
-                  variant="body-default-s"
-                  onBackground="neutral-weak"
-                  wrap="balance"
-                >
-                  {category.description}
-                </Text>
-              </Column>
-            ))}
-          </Row>
+          <FeatureCardGrid items={FORECAST_CATEGORIES} as="ul" />
         </Column>
       </Section>
 
-      <Section anchor={HOME_NAV_SECTION_IDS.community}>
+      <Section
+        anchor={HOME_NAV_SECTION_IDS.community}
+        titleId={SECTION_HEADING_IDS.community}
+      >
         <Column gap="20">
-          <Column gap="12">
-            <Tag variant="brand" size="m">
-              Community trust
-            </Tag>
-            <Heading variant="heading-strong-m">
-              Two languages, one truth
-            </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              Whether you follow the project in Malé or overseas, the same
-              treasury and strategy data powers every update.
-            </Text>
-          </Column>
-          <Row gap="16" wrap className="gap-6">
-            <Column
-              gap="12"
-              padding="20"
-              radius="l"
-              background="surface"
-              border="neutral-alpha-weak"
-              data-border="rounded"
-              className="flex-1 min-w-[260px] bg-background/70 shadow-lg shadow-primary/5"
-            >
-              <Heading variant="heading-strong-xs">ދިވެހި</Heading>
-              <Text
-                variant="body-default-m"
-                onBackground="neutral-strong"
-                wrap="balance"
-              >
-                {COMMUNITY_MESSAGES.dhivehi}
-              </Text>
-            </Column>
-            <Column
-              gap="12"
-              padding="20"
-              radius="l"
-              background="surface"
-              border="neutral-alpha-weak"
-              data-border="rounded"
-              className="flex-1 min-w-[260px] bg-background/70 shadow-lg shadow-primary/5"
-            >
-              <Heading variant="heading-strong-xs">English</Heading>
-              <Text
-                variant="body-default-m"
-                onBackground="neutral-strong"
-                wrap="balance"
-              >
-                {COMMUNITY_MESSAGES.english}
-              </Text>
-            </Column>
-          </Row>
+          <SectionHeader
+            id={SECTION_HEADING_IDS.community}
+            tag="Community trust"
+            title="Two languages, one truth"
+            description="Whether you follow the project in Malé or overseas, the same treasury and strategy data powers every update."
+          />
+          <FeatureCardGrid
+            items={COMMUNITY_LANGUAGE_CARDS}
+            as="ul"
+            textVariant="body-default-m"
+            textOnBackground="neutral-strong"
+            className="xl:grid-cols-2"
+          />
         </Column>
       </Section>
 
-      <Section anchor={HOME_NAV_SECTION_IDS.miniApp}>
+      <Section
+        anchor={HOME_NAV_SECTION_IDS.miniApp}
+        titleId={SECTION_HEADING_IDS.miniApp}
+      >
         <Column gap="20">
-          <Column gap="12">
-            <Tag variant="brand" size="m">
-              Telegram Mini App
-            </Tag>
-            <Heading variant="heading-strong-m">
-              Investor dashboard inside Telegram
-            </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              Accessible via{" "}
-              <Text
-                as="span"
-                variant="body-default-m"
-                onBackground="brand-medium"
-              >
-                /app
-              </Text>, the Mini App gives every verified investor immediate
-              access to their positions and staking performance.
-            </Text>
-          </Column>
-          <Column gap="12" className="max-w-3xl">
-            {MINI_APP_FEATURES.map((feature) => (
-              <Row
-                key={feature}
-                gap="12"
-                horizontal="start"
-                className="items-start"
-              >
-                <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
-                  <Icon name="check" size="s" />
-                </span>
-                <Text
-                  variant="body-default-m"
-                  onBackground="neutral-strong"
-                  wrap="balance"
-                >
-                  {feature}
-                </Text>
-              </Row>
-            ))}
-          </Column>
+          <SectionHeader
+            id={SECTION_HEADING_IDS.miniApp}
+            tag="Telegram Mini App"
+            title="Investor dashboard inside Telegram"
+            description={
+              <>
+                Accessible via{"  "}
+                <span className="font-medium text-primary">/app</span>, the Mini
+                App gives every verified investor immediate access to their
+                positions and staking performance.
+              </>
+            }
+          />
+          <IconBulletList items={MINI_APP_FEATURES} className="max-w-3xl" />
         </Column>
       </Section>
 
-      <Section anchor={HOME_NAV_SECTION_IDS.api}>
+      <Section
+        anchor={HOME_NAV_SECTION_IDS.api}
+        titleId={SECTION_HEADING_IDS.api}
+      >
         <Column gap="20">
-          <Column gap="12">
-            <Tag variant="brand" size="m">
-              API & backend
-            </Tag>
-            <Heading variant="heading-strong-m">
-              One infrastructure powering every surface
-            </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              REST endpoints keep TradingView, Telegram, and treasury automation
-              aligned with Supabase-authenticated data.
-            </Text>
-          </Column>
-          <Column gap="12" className="max-w-3xl">
+          <SectionHeader
+            id={SECTION_HEADING_IDS.api}
+            tag="API & backend"
+            title="One infrastructure powering every surface"
+            description="REST endpoints keep TradingView, Telegram, and treasury automation aligned with Supabase-authenticated data."
+          />
+          <Column as="ul" gap="12" className="max-w-3xl list-none p-0">
             {API_ENDPOINTS.map((endpoint) => (
               <Column
                 key={endpoint.path}
+                as="li"
                 gap="8"
                 padding="16"
                 radius="m"
@@ -888,97 +937,48 @@ export function MultiLlmLandingPage() {
         </Column>
       </Section>
 
-      <Section anchor={HOME_NAV_SECTION_IDS.admin}>
+      <Section
+        anchor={HOME_NAV_SECTION_IDS.admin}
+        titleId={SECTION_HEADING_IDS.admin}
+      >
         <Column gap="20">
-          <Column gap="12">
-            <Tag variant="brand" size="m">
-              Admin desk
-            </Tag>
-            <Heading variant="heading-strong-m">
-              Control center for the trading team
-            </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              Restricted access at{" "}
-              <Text
-                as="span"
-                variant="body-default-m"
-                onBackground="brand-medium"
-              >
-                /admin
-              </Text>{" "}
-              keeps sensitive workflows, payments, and strategy switches behind
-              MFA.
-            </Text>
-          </Column>
-          <Column gap="12" className="max-w-3xl">
-            {ADMIN_ACTIONS.map((action) => (
-              <Row
-                key={action}
-                gap="12"
-                horizontal="start"
-                className="items-start"
-              >
-                <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
-                  <Icon name="shield" size="s" />
-                </span>
-                <Text
-                  variant="body-default-m"
-                  onBackground="neutral-strong"
-                  wrap="balance"
-                >
-                  {action}
-                </Text>
-              </Row>
-            ))}
-          </Column>
+          <SectionHeader
+            id={SECTION_HEADING_IDS.admin}
+            tag="Admin desk"
+            title="Control center for the trading team"
+            description={
+              <>
+                Restricted access at{"  "}
+                <span className="font-medium text-primary">/admin</span>{" "}
+                keeps sensitive workflows, payments, and strategy switches
+                behind MFA.
+              </>
+            }
+          />
+          <IconBulletList
+            items={ADMIN_ACTIONS}
+            icon="shield"
+            className="max-w-3xl"
+          />
         </Column>
       </Section>
 
-      <Section anchor={HOME_NAV_SECTION_IDS.advantages}>
+      <Section
+        anchor={HOME_NAV_SECTION_IDS.advantages}
+        titleId={SECTION_HEADING_IDS.advantages}
+      >
         <Column gap="20" paddingBottom="40">
-          <Column gap="12">
-            <Tag variant="brand" size="m">
-              Why it matters
-            </Tag>
-            <Heading variant="heading-strong-m">
-              A single site for the entire Dynamic Capital universe
-            </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              From marketing to investor operations, Dynamic Capital scales
-              through one extensible codebase and one domain.
-            </Text>
-          </Column>
-          <Column gap="12" className="max-w-3xl">
-            {ADVANTAGES.map((advantage) => (
-              <Row
-                key={advantage}
-                gap="12"
-                horizontal="start"
-                className="items-start"
-              >
-                <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
-                  <Icon name="sparkles" size="s" />
-                </span>
-                <Text
-                  variant="body-default-m"
-                  onBackground="neutral-strong"
-                  wrap="balance"
-                >
-                  {advantage}
-                </Text>
-              </Row>
-            ))}
-          </Column>
+          <SectionHeader
+            id={SECTION_HEADING_IDS.advantages}
+            tag="Why it matters"
+            title="A single site for the entire Dynamic Capital universe"
+            description="From marketing to investor operations, Dynamic Capital scales through one extensible codebase and one domain."
+          />
+          <IconBulletList
+            items={ADVANTAGES}
+            icon="sparkles"
+            className="max-w-3xl"
+          />
         </Column>
       </Section>
     </Column>
