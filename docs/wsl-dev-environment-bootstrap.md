@@ -15,7 +15,7 @@ GitHub Desktop on the Windows host. The guide focuses on Ubuntu 22.04, but the s
 - [ ] Update Ubuntu and install core developer packages.
 - [ ] Enable Docker and Podman compatibility, then refresh the `docker` group membership.
 - [ ] Configure WSL to start `systemd` so the Docker service runs automatically.
-- [ ] Install Node.js 20.x and the Supabase CLI globally.
+- [ ] Install Node.js 20.x and the Supabase CLI binary.
 - [ ] Clone the shared repository from Windows storage for GitHub Desktop syncing.
 - [ ] Start the Supabase local stack from the project directory.
 - [ ] (Optional) Install the Docker Compose plugin and build the application stack.
@@ -24,15 +24,16 @@ GitHub Desktop on the Windows host. The guide focuses on Ubuntu 22.04, but the s
 ## 1. Update Ubuntu and Install Essentials
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y build-essential curl git zsh tmux unzip podman docker.io
+sudo apt install -y build-essential curl git zsh tmux unzip podman
 ```
+> Installing `docker.io` from Ubuntu packages conflicts with `podman-docker` and lags behind Docker Desktop updates. Use Docker Desktop on Windows for the Docker Engine and rely on `podman` locally for rootless containers.
 
 ## 2. Enable Docker and Podman Compatibility
 ```bash
 sudo apt install -y podman-docker
 sudo usermod -aG docker $USER
 ```
-> Sign out of WSL or run `exec su -l $USER` to refresh group membership.
+> `podman-docker` provides a Docker-compatible CLI backed by Podman. If you rely on Docker Desktop for the engine, ensure it is running on Windows before issuing Docker commands inside WSL. Sign out of WSL or run `exec su -l $USER` to refresh group membership after adding yourself to the `docker` group.
 
 ## 3. Enable systemd for Docker in WSL
 ```bash
@@ -48,8 +49,18 @@ Restart the distribution from the Start menu or by running `wsl` again.
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
-npm install -g supabase
+
+# Download the latest Supabase CLI release
+LATEST=$(curl -s https://api.github.com/repos/supabase/cli/releases/latest \
+  | grep browser_download_url \
+  | grep supabase_linux_amd64.tar.gz \
+  | cut -d '"' -f 4)
+curl -L "$LATEST" -o /tmp/supabase.tar.gz
+tar -xzf /tmp/supabase.tar.gz -C /tmp
+sudo mv /tmp/supabase /usr/local/bin/supabase
+supabase --version
 ```
+> Global installation with `npm install -g supabase` is no longer supported. The script above fetches the official Linux binary and places it on your `PATH`.
 
 ## 5. Clone Shared Repository for GitHub Desktop
 ```bash
@@ -63,6 +74,8 @@ git clone https://github.com/your-org/your-repo.git
 cd your-repo
 supabase start
 ```
+
+> Supabase relies on a running Docker Engine. Start Docker Desktop on Windows before invoking `supabase start` inside WSL, otherwise the CLI will report `Cannot connect to the Docker daemon`.
 
 ## 7. Optional: Run Docker Compose Stack
 
@@ -81,5 +94,4 @@ podman info
 supabase status
 ```
 
-Each command should complete without errors, confirming Docker, Podman, and Supabase CLI are properly configured. If any
-command fails, review the previous steps or rerun them to resolve missing dependencies.
+`podman info` validates the local container runtime. `docker info` and `supabase status` require Docker Desktop to be running; they will fail with `Cannot connect to the Docker daemon` until the Windows service is active.
