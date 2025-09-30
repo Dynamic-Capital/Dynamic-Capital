@@ -8,11 +8,23 @@ that is already registered in Tonkeeper.
 
 - Organize the project as a static site with an entry point (for example
   `index.html`) and any supporting assets (`styles.css`, `script.js`, `images/`,
-  etc.).
+  etc.). A minimal bundle might look like:
+
+  ```text
+  dist/
+  ├── index.html
+  ├── styles.css
+  ├── script.js
+  └── images/
+      └── logo.png
+  ```
+
 - Verify that asset paths are relative (e.g. `./images/logo.png`) so they
   resolve correctly once hosted from TON Storage.
 - Optionally run a production build step (if your framework supports it) so that
   only the compiled static output is uploaded.
+- Remove any secrets or environment-specific files before uploading. TON Storage
+  is content-addressed and public by default.
 
 ## 2. Install TON CLI
 
@@ -27,6 +39,8 @@ bundle.
   ```
 - Confirm the CLI works by running `ton-storage-cli --help` (or
   `docker run --rm toncenter/ton ton-storage-cli --help` when using Docker).
+- (Optional) Export the `TONCENTER_API_KEY` and other environment variables your
+  workflow requires so the CLI can reach the appropriate endpoint.
 
 ## 3. Upload Files to TON Storage
 
@@ -41,6 +55,8 @@ ton-storage-cli add ./dist/index.html
   directory in one command.
 - Record the root content address returned by the CLI (formatted like
   `0:abc12345def6789...`). This hash identifies the static bundle.
+- Use `ton-storage-cli ls` (or `bag list`) to verify the files that are now
+  tracked by TON Storage before moving on.
 
 ## 4. Create the TON Site (ADNL)
 
@@ -55,6 +71,8 @@ ton-storage-cli site create ./dist
   the `.ton` domain in the next step.
 - You can rerun the command whenever you update the site; each run produces a
   fresh ADNL pointing at the latest uploaded content hash.
+- Keep the ADNL and content hash noted somewhere secure so you can roll back if
+  the latest upload has issues.
 
 ## 5. Link the ADNL to `dynamiccapital.ton`
 
@@ -71,6 +89,8 @@ Changes usually propagate within a few minutes.
 - Open Tonkeeper (or another TON-aware browser) and visit `dynamiccapital.ton`.
 - Confirm that the site loads the uploaded content. If something is missing,
   re-check relative paths and re-run the upload/ADNL creation steps.
+- Optionally open a public gateway such as `https://tonhub.com/ton-site/<ADNL>`
+  to confirm the site is reachable from traditional browsers.
 
 ## Optional Enhancements
 
