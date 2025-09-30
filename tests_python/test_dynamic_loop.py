@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from dynamic_loop import (
     DynamicLoopEngine,
+    LoopEquation,
     LoopRecommendation,
     LoopSignal,
     LoopState,
@@ -89,3 +90,52 @@ def test_dynamic_engines_legacy_loop_entrypoint() -> None:
     assert isinstance(state, LoopState)
     assert legacy.history()
     assert legacy.latest_recommendations()
+
+
+def test_dynamic_loop_back_to_back_equation(engine: DynamicLoopEngine) -> None:
+    review_signals = [
+        LoopSignal(metric="Latency", value=0.2, weight=1.0, trend=0.8),
+        LoopSignal(metric="Quality", value=-0.6, weight=2.0, trend=0.3),
+        LoopSignal(metric="Quality", value=-0.4, weight=1.5, trend=0.2),
+        LoopSignal(metric="Delivery", value=0.3, weight=0.5, trend=0.6),
+    ]
+    optimise_signals = [
+        LoopSignal(metric="Latency", value=0.1, weight=1.0, trend=0.9),
+        LoopSignal(metric="Quality", value=0.2, weight=1.5, trend=0.8),
+        LoopSignal(metric="Delivery", value=0.5, weight=1.0, trend=0.7),
+    ]
+
+    equation = engine.review_optimize_back_to_back(review_signals, optimise_signals)
+
+    assert isinstance(equation, LoopEquation)
+    assert len(engine.history()) == 2
+    assert len(engine.latest_recommendations()) == 2
+
+    assert equation.review_score < equation.optimise_score
+    assert equation.score_delta == pytest.approx(0.0598, abs=1e-3)
+
+    assert equation.review_terms == (
+        "0.45×stability(0.71)",
+        "0.35×momentum(0.70)",
+        "0.20×resilience(0.75)",
+    )
+    assert equation.optimise_terms == (
+        "0.45×stability(0.74)",
+        "0.35×momentum(0.80)",
+        "0.20×resilience(0.80)",
+    )
+    assert equation.steps == (
+        "Review stage: stability=0.71, momentum=0.70, fatigue=0.25 -> score=0.7145 (0.45×stability(0.71) + 0.35×momentum(0.70) + 0.20×resilience(0.75))",
+        "Optimize stage: stability=0.74, momentum=0.80, fatigue=0.20 -> score=0.7743 (0.45×stability(0.74) + 0.35×momentum(0.80) + 0.20×resilience(0.80))",
+        "Delta: optimise minus review = +0.0598 (improved).",
+    )
+
+    payload = equation.as_dict()
+    assert payload["cadence"] == "review-optimize"
+    assert payload["review_score"] == pytest.approx(equation.review_score, rel=1e-6)
+    assert payload["optimise_score"] == pytest.approx(
+        equation.optimise_score, rel=1e-6
+    )
+    assert payload["review_terms"] == list(equation.review_terms)
+    assert payload["optimise_terms"] == list(equation.optimise_terms)
+    assert payload["steps"] == list(equation.steps)

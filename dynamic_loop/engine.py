@@ -11,6 +11,7 @@ __all__ = [
     "LoopSignal",
     "LoopState",
     "LoopRecommendation",
+    "LoopEquation",
     "LoopParameters",
     "DynamicLoopEngine",
 ]
@@ -51,6 +52,9 @@ class LoopParameters:
     fatigue_ceiling: float = 0.6
     default_momentum: float = 0.3
     default_fatigue: float = 0.2
+    stability_weight: float = 0.45
+    momentum_weight: float = 0.35
+    fatigue_weight: float = 0.2
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "stability_floor", _clamp(self.stability_floor))
@@ -58,6 +62,20 @@ class LoopParameters:
         object.__setattr__(self, "fatigue_ceiling", _clamp(self.fatigue_ceiling))
         object.__setattr__(self, "default_momentum", _clamp(self.default_momentum))
         object.__setattr__(self, "default_fatigue", _clamp(self.default_fatigue))
+
+        weights = (
+            max(float(self.stability_weight), 0.0),
+            max(float(self.momentum_weight), 0.0),
+            max(float(self.fatigue_weight), 0.0),
+        )
+        total = sum(weights)
+        if total <= 0:
+            raise ValueError("loop score weights must sum to a positive value")
+
+        normalised = tuple(weight / total for weight in weights)
+        object.__setattr__(self, "stability_weight", normalised[0])
+        object.__setattr__(self, "momentum_weight", normalised[1])
+        object.__setattr__(self, "fatigue_weight", normalised[2])
 
 
 @dataclass(slots=True)
@@ -129,6 +147,34 @@ class LoopRecommendation:
         }
 
 
+@dataclass(slots=True)
+class LoopEquation:
+    """Summarise a back-to-back review ➜ optimise loop."""
+
+    review_state: LoopState
+    optimise_state: LoopState
+    review_score: float
+    optimise_score: float
+    score_delta: float
+    review_terms: tuple[str, ...]
+    optimise_terms: tuple[str, ...]
+    steps: tuple[str, ...] = field(default_factory=tuple)
+    cadence: str = "review-optimize"
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "review": self.review_state.as_dict(),
+            "optimise": self.optimise_state.as_dict(),
+            "review_score": self.review_score,
+            "optimise_score": self.optimise_score,
+            "score_delta": self.score_delta,
+            "review_terms": list(self.review_terms),
+            "optimise_terms": list(self.optimise_terms),
+            "steps": list(self.steps),
+            "cadence": self.cadence,
+        }
+
+
 class DynamicLoopEngine:
     """Aggregate loop signals and highlight interventions."""
 
@@ -190,6 +236,23 @@ class DynamicLoopEngine:
             insights=metrics.insights,
         )
 
+    def _score_state(self, state: LoopState) -> tuple[float, tuple[str, ...]]:
+        stability_weight = self._parameters.stability_weight
+        momentum_weight = self._parameters.momentum_weight
+        fatigue_weight = self._parameters.fatigue_weight
+
+        stability_term = stability_weight * state.stability
+        momentum_term = momentum_weight * state.momentum
+        resilience_term = fatigue_weight * (1.0 - state.fatigue)
+
+        score = round(stability_term + momentum_term + resilience_term, 4)
+        terms = (
+            f"{stability_weight:.2f}×stability({state.stability:.2f})",
+            f"{momentum_weight:.2f}×momentum({state.momentum:.2f})",
+            f"{fatigue_weight:.2f}×resilience({1.0 - state.fatigue:.2f})",
+        )
+        return score, terms
+
     def _derive_recommendations(self, state: LoopState) -> list[LoopRecommendation]:
         recommendations: list[LoopRecommendation] = []
         if state.stability < self._parameters.stability_floor:
@@ -236,6 +299,54 @@ class DynamicLoopEngine:
         recommendations = self._derive_recommendations(state)
         self._recommendations.extend(recommendations)
         return state
+
+    def review_optimize_back_to_back(
+        self,
+        review_signals: Sequence[LoopSignal],
+        optimize_signals: Sequence[LoopSignal],
+    ) -> LoopEquation:
+        """Run a review ➜ optimise loop and compute its composite score."""
+
+        review_state = self.evaluate(review_signals)
+        optimise_state = self.evaluate(optimize_signals)
+
+        review_score, review_terms = self._score_state(review_state)
+        optimise_score, optimise_terms = self._score_state(optimise_state)
+
+        score_delta = round(optimise_score - review_score, 4)
+
+        delta_descriptor = "improved" if score_delta > 0 else "declined" if score_delta < 0 else "held steady"
+        steps = (
+            "Review stage: stability={stability:.2f}, momentum={momentum:.2f}, fatigue={fatigue:.2f} -> score={score:.4f} ({terms})".format(
+                stability=review_state.stability,
+                momentum=review_state.momentum,
+                fatigue=review_state.fatigue,
+                score=review_score,
+                terms=" + ".join(review_terms),
+            ),
+            "Optimize stage: stability={stability:.2f}, momentum={momentum:.2f}, fatigue={fatigue:.2f} -> score={score:.4f} ({terms})".format(
+                stability=optimise_state.stability,
+                momentum=optimise_state.momentum,
+                fatigue=optimise_state.fatigue,
+                score=optimise_score,
+                terms=" + ".join(optimise_terms),
+            ),
+            "Delta: optimise minus review = {delta:+.4f} ({descriptor}).".format(
+                delta=score_delta,
+                descriptor=delta_descriptor,
+            ),
+        )
+
+        return LoopEquation(
+            review_state=review_state,
+            optimise_state=optimise_state,
+            review_score=review_score,
+            optimise_score=optimise_score,
+            score_delta=score_delta,
+            review_terms=review_terms,
+            optimise_terms=optimise_terms,
+            steps=steps,
+        )
 
     def latest_recommendations(self) -> tuple[LoopRecommendation, ...]:
         return tuple(self._recommendations)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .engine import (
     DynamicLoopEngine,
+    LoopEquation,
     LoopParameters,
     LoopRecommendation,
     LoopSignal,
@@ -12,6 +13,7 @@ from .engine import (
 
 __all__ = [
     "DynamicLoopEngine",
+    "LoopEquation",
     "LoopParameters",
     "LoopRecommendation",
     "LoopSignal",
