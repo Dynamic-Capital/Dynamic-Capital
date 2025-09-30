@@ -18,6 +18,12 @@ from .trade_logic import (
     TradeConfig,
     TradeLogic,
 )
+from dynamic_review import (
+    DynamicReviewEngine,
+    ReviewContext,
+    ReviewInput,
+    ReviewReport,
+)
 
 try:  # pragma: no cover - optional dependency used for typing only
     from .grok_advisor import TradeAdvisor
@@ -52,6 +58,14 @@ class OptimizationPlan:
     trade_logic: TradeLogic
     realtime_executor: Optional[RealtimeExecutor]
     insights: OptimizationInsights
+
+
+@dataclass(slots=True)
+class ReviewOptimizationRun:
+    """Bundle the outputs of a review synthesis and optimisation pass."""
+
+    review: ReviewReport
+    optimization: OptimizationPlan
 
 
 def _prepare_pipeline(snapshots: Sequence[MarketSnapshot]) -> FeaturePipeline:
@@ -220,9 +234,52 @@ def optimize_trading_stack(
     )
 
 
+def run_review_and_optimize(
+    observations: Iterable[ReviewInput],
+    review_context: ReviewContext,
+    snapshots: Sequence[MarketSnapshot],
+    search_space: Mapping[str, Iterable],
+    *,
+    base_config: Optional[TradeConfig] = None,
+    risk_parameters: Optional[RiskParameters] = None,
+    scoring: Optional[Callable[[BacktestResult], float]] = None,
+    initial_equity: float = 10_000.0,
+    broker: Optional[BrokerConnector] = None,
+    state_store: Optional[StateStore] = None,
+    health_monitor: Optional[HealthMonitor] = None,
+    advisor: "TradeAdvisor" | None = None,
+) -> ReviewOptimizationRun:
+    """Run a review synthesis followed by an optimisation cycle."""
+
+    review_items = list(observations)
+    if not review_items:
+        raise ValueError("observations must contain at least one ReviewInput")
+
+    engine = DynamicReviewEngine()
+    engine.extend(review_items)
+    review_report = engine.compile(review_context)
+
+    optimization_plan = optimize_trading_stack(
+        snapshots,
+        search_space,
+        base_config=base_config,
+        risk_parameters=risk_parameters,
+        scoring=scoring,
+        initial_equity=initial_equity,
+        broker=broker,
+        state_store=state_store,
+        health_monitor=health_monitor,
+        advisor=advisor,
+    )
+
+    return ReviewOptimizationRun(review=review_report, optimization=optimization_plan)
+
+
 __all__ = [
     "OptimizationInsights",
     "OptimizationPlan",
+    "ReviewOptimizationRun",
     "optimize_trading_stack",
+    "run_review_and_optimize",
 ]
 
