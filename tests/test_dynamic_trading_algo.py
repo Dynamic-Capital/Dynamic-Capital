@@ -2,6 +2,8 @@ import types
 
 import pytest
 
+from dynamic_ai.risk import PositionSizing
+
 from dynamic_algo.trading_core import (
     ORDER_ACTION_BUY,
     SUCCESS_RETCODE,
@@ -159,5 +161,72 @@ def test_execute_trade_respects_signal_caps() -> None:
     assert len(connector.calls) == 1
     symbol, lot = connector.calls[0]
     assert symbol == "XAUUSD"
+    assert lot == pytest.approx(expected, abs=1e-4)
+    assert result.lot == pytest.approx(expected, abs=1e-4)
+
+
+def test_execute_trade_applies_dataclass_sizing_override() -> None:
+    connector = StubConnector()
+    algo = DynamicTradingAlgo(connector=connector)
+
+    signal = {
+        "action": ORDER_ACTION_BUY,
+        "sizing": PositionSizing(notional=150.0, leverage=1.5, notes="risk guided"),
+    }
+
+    result = algo.execute_trade(signal, lot=0.05, symbol="ethusd")
+
+    assert len(connector.calls) == 1
+    symbol, lot = connector.calls[0]
+    assert symbol == "ETHUSD"
+
+    profile = algo.instrument_profiles["ETHUSD"]
+    expected = algo._clamp_lot((150.0 * 1.5) / profile.reference_price, profile)
+
+    assert lot == pytest.approx(expected, abs=1e-4)
+    assert result.lot == pytest.approx(expected, abs=1e-4)
+
+
+def test_execute_trade_applies_fractional_equity_sizing() -> None:
+    connector = StubConnector()
+    algo = DynamicTradingAlgo(connector=connector)
+
+    signal = {
+        "action": ORDER_ACTION_BUY,
+        "sizing": {"equity": 100_000, "risk_percent": 1.25, "leverage": 2.0},
+    }
+
+    result = algo.execute_trade(signal, lot=0.1, symbol="xauusd")
+
+    assert len(connector.calls) == 1
+    symbol, lot = connector.calls[0]
+    assert symbol == "XAUUSD"
+
+    profile = algo.instrument_profiles["XAUUSD"]
+    expected_raw = (100_000 * (1.25 / 100.0) * 2.0) / profile.reference_price
+    expected = algo._clamp_lot(expected_raw, profile)
+
+    assert lot == pytest.approx(expected, abs=1e-4)
+    assert result.lot == pytest.approx(expected, abs=1e-4)
+
+
+def test_execute_trade_respects_disabled_sizing_directive() -> None:
+    connector = StubConnector()
+    algo = DynamicTradingAlgo(connector=connector)
+
+    signal = {
+        "action": ORDER_ACTION_BUY,
+        "sizing": {"apply": False, "lot": 5.0},
+    }
+
+    result = algo.execute_trade(signal, lot=0.3, symbol="eurusd")
+
+    assert len(connector.calls) == 1
+    symbol, lot = connector.calls[0]
+    assert symbol == "EURUSD"
+
+    profile = algo.instrument_profiles["EURUSD"]
+    expected = algo._clamp_lot(0.3, profile)
+
     assert lot == pytest.approx(expected, abs=1e-4)
     assert result.lot == pytest.approx(expected, abs=1e-4)

@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import random
 from copy import deepcopy
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field, is_dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Mapping, Optional, Tuple
 
@@ -27,7 +27,7 @@ def _utcnow() -> datetime:
 
 ALGO_VERSION_INFO = ModelVersion(
     name="Dynamic Algo",
-    number=VersionNumber(major=0, minor=1),
+    number=VersionNumber(major=0, minor=2),
 ).with_source("dynamic_algo.trading_core")
 ALGO_VERSION = ALGO_VERSION_INFO.tag
 
@@ -205,6 +205,301 @@ def _extract_signal_numeric(signal: Any, *keys: str) -> float | None:
 
         return numeric
     return None
+
+
+_TRUE_FLAG_VALUES = {"true", "yes", "on", "1", "enable", "enabled"}
+_FALSE_FLAG_VALUES = {"false", "no", "off", "0", "disable", "disabled"}
+
+
+def _interpret_flag(value: Any) -> Optional[bool]:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        if not math.isfinite(float(value)):
+            return None
+        return bool(value)
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in _TRUE_FLAG_VALUES:
+            return True
+        if lowered in _FALSE_FLAG_VALUES:
+            return False
+    return None
+
+
+def _extract_signal_section(signal: Any, *keys: str) -> Any:
+    for key in keys:
+        candidate: Any
+        if isinstance(signal, Mapping) and key in signal:
+            candidate = signal[key]
+        elif hasattr(signal, key):
+            candidate = getattr(signal, key)
+        else:
+            continue
+        if callable(candidate):
+            continue
+        return candidate
+    return None
+
+
+def _normalise_sizing_candidate(candidate: Any) -> Dict[str, Any] | None:
+    if candidate is None:
+        return None
+    if isinstance(candidate, Mapping):
+        return {str(key): value for key, value in candidate.items()}
+    if is_dataclass(candidate):
+        try:
+            return asdict(candidate)
+        except Exception:
+            return None
+    to_dict = getattr(candidate, "to_dict", None)
+    if callable(to_dict):
+        try:
+            mapping = to_dict()
+        except Exception:
+            mapping = None
+        else:
+            if isinstance(mapping, Mapping):
+                return dict(mapping)
+    as_dict_method = getattr(candidate, "_asdict", None)
+    if callable(as_dict_method):
+        mapping = as_dict_method()
+        if isinstance(mapping, Mapping):
+            return dict(mapping)
+    if hasattr(candidate, "__dict__"):
+        return {
+            key: value
+            for key, value in vars(candidate).items()
+            if not key.startswith("_")
+        }
+    if isinstance(candidate, (list, tuple)):
+        try:
+            mapping = dict(candidate)
+        except Exception:
+            return None
+        return {str(key): value for key, value in mapping.items()}
+    return None
+
+
+def _apply_sizing_directives(
+    signal: Any, lot: float, profile: InstrumentProfile
+) -> float:
+    sizing_candidate = _extract_signal_section(
+        signal,
+        "sizing",
+        "position_sizing",
+        "position_size",
+        "target_position",
+        "allocation",
+    )
+    sizing_payload = _normalise_sizing_candidate(sizing_candidate)
+    if not sizing_payload:
+        return lot
+
+    for key in ("payload", "value", "data"):
+        nested = _normalise_sizing_candidate(sizing_payload.get(key))
+        if nested:
+            for nested_key, nested_value in nested.items():
+                sizing_payload.setdefault(nested_key, nested_value)
+
+    if _interpret_flag(sizing_payload.get("disabled")) is True:
+        return lot
+    apply_flag = _interpret_flag(sizing_payload.get("apply"))
+    if apply_flag is False:
+        return lot
+    enabled_flag = _interpret_flag(sizing_payload.get("enabled"))
+    if enabled_flag is False:
+        return lot
+
+    base_result = lot
+
+    reference = _coerce_positive(
+        _extract_signal_numeric(
+            sizing_payload,
+            "reference_price",
+            "price",
+            "entry_price",
+            "mid_price",
+            "mark",
+        )
+    )
+    if reference is None or reference <= 0.0:
+        reference = profile.reference_price or profile.tick_size or 1.0
+    reference = max(reference, profile.tick_size, 1e-9)
+
+    leverage = _coerce_positive(
+        _extract_signal_numeric(
+            sizing_payload,
+            "leverage",
+            "target_leverage",
+            "gear",
+            "notional_leverage",
+        )
+    )
+    if leverage is None:
+        leverage = 1.0
+
+    candidate_result: float | None = None
+
+    exposure = _coerce_positive(
+        _extract_signal_numeric(
+            sizing_payload,
+            "exposure",
+            "target_exposure",
+            "gross_exposure",
+        )
+    )
+    if exposure is not None:
+        candidate_result = exposure / reference
+
+    if candidate_result is None:
+        notional = _coerce_positive(
+            _extract_signal_numeric(
+                sizing_payload,
+                "notional",
+                "target_notional",
+                "notional_value",
+            )
+        )
+        if notional is None:
+            equity = _coerce_positive(
+                _extract_signal_numeric(
+                    sizing_payload,
+                    "equity",
+                    "account_equity",
+                    "capital",
+                    "balance",
+                    "portfolio_equity",
+                )
+            )
+            fraction = _coerce_positive(
+                _extract_signal_numeric(
+                    sizing_payload,
+                    "risk_fraction",
+                    "capital_fraction",
+                    "equity_fraction",
+                    "allocation",
+                    "risk_percent",
+                    "capital_percent",
+                )
+            )
+            if equity is not None and fraction is not None:
+                fraction_value = fraction if fraction <= 1.0 else fraction / 100.0
+                notional = equity * max(fraction_value, 0.0)
+        if notional is not None:
+            candidate_result = (notional * leverage) / reference
+
+    direct_lot = _coerce_positive(
+        _extract_signal_numeric(
+            sizing_payload,
+            "lot",
+            "lots",
+            "quantity",
+            "size",
+            "target_lot",
+            "target",
+        )
+    )
+    if direct_lot is not None:
+        candidate_result = direct_lot
+
+    delta = _extract_signal_numeric(
+        sizing_payload,
+        "delta",
+        "lot_delta",
+        "adjustment",
+        "increment",
+        "lot_adjustment",
+    )
+    if delta is not None:
+        base = candidate_result if candidate_result is not None else base_result
+        candidate_result = base + delta
+
+    scale_hint = _coerce_positive(
+        _extract_signal_numeric(
+            sizing_payload,
+            "multiplier",
+            "scale",
+            "weight",
+            "lot_multiplier",
+        )
+    )
+    if scale_hint is not None:
+        base = candidate_result if candidate_result is not None else base_result
+        candidate_result = base * scale_hint
+
+    if candidate_result is None:
+        candidate_result = base_result
+
+    floor = _coerce_positive(
+        _extract_signal_numeric(
+            sizing_payload,
+            "min_lot",
+            "floor",
+            "min",
+            "lot_floor",
+        )
+    )
+    if floor is not None:
+        candidate_result = max(candidate_result, floor)
+
+    ceiling = _coerce_positive(
+        _extract_signal_numeric(
+            sizing_payload,
+            "max_lot",
+            "ceiling",
+            "max",
+            "lot_ceiling",
+        )
+    )
+
+    notional_cap = _coerce_positive(
+        _extract_signal_numeric(
+            sizing_payload,
+            "notional_cap",
+            "max_notional",
+            "exposure_cap",
+        )
+    )
+    if notional_cap is not None:
+        allowed = notional_cap / reference
+        if ceiling is None or allowed < ceiling:
+            ceiling = allowed
+
+    if ceiling is not None:
+        candidate_result = min(candidate_result, ceiling)
+
+    step = _coerce_positive(
+        _extract_signal_numeric(
+            sizing_payload,
+            "lot_step",
+            "step",
+            "increment_size",
+        )
+    )
+    if step is not None:
+        step = max(step, 1e-9)
+        candidate_result = round(round(candidate_result / step) * step, 8)
+
+    precision_hint = _extract_signal_numeric(
+        sizing_payload,
+        "lot_precision",
+        "precision",
+    )
+    if precision_hint is not None:
+        try:
+            decimals = max(0, int(round(float(precision_hint))))
+        except (TypeError, ValueError):
+            decimals = None
+        if decimals is not None:
+            candidate_result = round(candidate_result, decimals)
+
+    if not math.isfinite(candidate_result):
+        return base_result
+
+    return candidate_result
 
 
 def _build_alias_index(profiles: Mapping[str, InstrumentProfile]) -> Dict[str, str]:
@@ -806,6 +1101,8 @@ class DynamicTradingAlgo:
             multiplier *= size_multiplier
 
         adjusted = lot * multiplier
+
+        adjusted = _apply_sizing_directives(signal, adjusted, profile)
 
         min_hint = _coerce_positive(
             _extract_signal_numeric(signal, "min_lot", "min_position", "floor")
