@@ -287,6 +287,17 @@ const TASK_LIBRARY = {
       'Checks that the OneDrive manifest for knowledge_base drops is mirrored locally with documented provenance.',
     ],
   },
+  'podman-machine-verify': {
+    id: 'podman-machine-verify',
+    label:
+      'Validate Podman machine and default connection (node scripts/checklists/podman-machine-verify.mjs)',
+    command: 'node scripts/checklists/podman-machine-verify.mjs',
+    optional: false,
+    docs: ['docs/podman-github-integration-checklist.md'],
+    notes: [
+      'Starts the configured machine if needed, confirms it is running, inspects the VM metadata, and verifies the default named-pipe connection.',
+    ],
+  },
 };
 
 const CHECKLISTS = {
@@ -407,6 +418,13 @@ const CHECKLISTS = {
     description:
       'Automation checks for syncing OneDrive knowledge base drops into the repository.',
     tasks: ['knowledge-base-verify'],
+  },
+  'podman-github': {
+    name: 'Podman GitHub Integration Checklist',
+    doc: 'docs/podman-github-integration-checklist.md',
+    description:
+      'Validates Windows Podman machine connectivity before running repository workflows.',
+    tasks: ['podman-machine-verify'],
   },
 };
 

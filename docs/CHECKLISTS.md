@@ -73,7 +73,8 @@ key.
 - **[`Podman GitHub Integration Checklist`](./podman-github-integration-checklist.md)**
   – audits Windows-based Podman machine connectivity and documents the
   repository workflow so local development stays aligned with container
-  lifecycle tasks.
+  lifecycle tasks. Use the `podman-github` automation key to trigger the
+  machine validation helper.
 
 ## Launch & production hardening (priorities 5–8)
 

@@ -5,6 +5,15 @@ GitHub repository to a Podman machine running on Windows via the
 `podman-machine-default` named pipe (`npipe://./pipe/podman-machine-default`).
 Use it when onboarding a new project or hardening local development.
 
+## Automation helper
+
+- Run `npm run checklists -- --checklist podman-github` to execute the scripted
+  machine validation sequence.
+- Pass `-- --checklist podman-github --include-optional` to combine the helper
+  with any optional tasks you add locally.
+- Use `node scripts/checklists/podman-machine-verify.mjs --help` for
+  connection-specific flags such as `--connection <name>` or `--skip-start`.
+
 ## Audit summary
 
 | Area | Current status | Follow-up |
