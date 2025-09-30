@@ -110,6 +110,22 @@ Capital ecosystem.
 - **Reconciliation Reports:** Generate daily reconciliations across orders, bank
   statements, and blockchain transfers.
 
+### Optimization Feedback Loop
+
+- **Issue Register:** During each reconciliation cycle, log mismatches, manual
+  overrides, or settlement delays into a shared Supabase table with owner,
+  severity, and remediation deadline fields.
+- **Root-Cause Reviews:** Within 24 hours of a flagged incident, document the
+  underlying process, data, or partner failure and propose a preventive control
+  change.
+- **Metric Dashboard:** Plot daily settlement latency, reconciliation error
+  counts, and hedge cost variance so optimization effects are measurable.
+- **Back-to-Back Cadence:** Schedule optimization sprints immediately after each
+  audit cycle to ensure findings translate into implemented controls.
+- **Continuous Tuning:** Prioritize fixes that reduce manual touch time, shrink
+  settlement latency, or lower hedging costs. Deploy improvements in small
+  batches and monitor their effect on the next audit run.
+
 ## Tokenomics and Market Operations
 
 - **Treasury Policy:** Define clear mint allowances and prefer governed minting
