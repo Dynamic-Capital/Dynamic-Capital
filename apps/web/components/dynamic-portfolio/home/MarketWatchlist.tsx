@@ -51,7 +51,12 @@ interface MarketWatchlistItem {
   playbook?: StrategyPlaybook;
 }
 
-type InstrumentCategory = "Crypto" | "FX" | "Metals" | "Indices";
+type InstrumentCategory =
+  | "Crypto"
+  | "FX"
+  | "Commodities"
+  | "Indices"
+  | "Stocks";
 
 type MarketQuote = {
   last: number;
@@ -118,12 +123,21 @@ type MarketApiResponse = Record<string, MarketApiQuote>;
 
 const REFRESH_INTERVAL_MS = 60_000;
 
-const CATEGORY_DETAILS: Record<InstrumentCategory, CategoryVisual> = {
-  Crypto: { icon: "sparkles", label: "Crypto" },
-  FX: { icon: "globe", label: "FX majors" },
-  Metals: { icon: "sparkles", label: "Metals" },
-  Indices: { icon: "grid", label: "Indices" },
+export const CATEGORY_DETAILS: Record<InstrumentCategory, CategoryVisual> = {
+  Crypto: { icon: "sparkles", label: "Crypto currencies" },
+  FX: { icon: "globe", label: "Currencies" },
+  Commodities: { icon: "sparkles", label: "Commodities" },
+  Indices: { icon: "grid", label: "Index" },
+  Stocks: { icon: "building", label: "Stocks" },
 };
+
+export const CATEGORY_ORDER: InstrumentCategory[] = [
+  "FX",
+  "Stocks",
+  "Commodities",
+  "Crypto",
+  "Indices",
+];
 
 const BIAS_DETAILS: Record<MarketWatchlistItem["bias"], BiasVisual> = {
   Long: {
@@ -143,11 +157,12 @@ const BIAS_DETAILS: Record<MarketWatchlistItem["bias"], BiasVisual> = {
   },
 };
 
-const CATEGORY_BY_ASSET_CLASS: Record<AssetClass, InstrumentCategory> = {
-  commodities: "Metals",
+export const CATEGORY_BY_ASSET_CLASS: Record<AssetClass, InstrumentCategory> = {
+  commodities: "Commodities",
   currencies: "FX",
   indices: "Indices",
   crypto: "Crypto",
+  stocks: "Stocks",
 };
 
 const DEFAULT_NUMBER_FORMAT: Intl.NumberFormatOptions = {
@@ -268,6 +283,55 @@ const WATCHLIST_CONFIG: WatchlistConfigEntry[] = [
     },
   },
   {
+    instrumentId: "AAPL",
+    session: "US equities open",
+    focus:
+      "Stalking follow-through after the keynote beat. Option flow is leaning bullish into $220 so we’re managing adds above the breakout shelf.",
+    beginnerTip:
+      "Apple tends to trend strongly on product catalysts—plan for gaps and scale entries rather than chasing the first move.",
+    bias: "Long",
+    playbook: {
+      automation:
+        "Equity momentum bot adds in thirds above $220 and trails stops below the keynote gap.",
+      support: 214,
+      resistance: 225,
+      momentum: { bullish: 0.65, bearish: 0.35 },
+      plan: {
+        default:
+          "Stay with the breakout while Apple defends $214 with automation keeping adds measured and risk tight.",
+        bullish:
+          "A clean push through $225 lets automation pyramid into strength and rotate into call spreads for leverage.",
+        bearish:
+          "Failure back below $214 signals to flatten momentum exposure and wait for a fresh base.",
+      },
+    },
+  },
+  {
+    instrumentId: "MSFT",
+    session: "US close preparation",
+    focus:
+      "Watching cloud guidance versus AI opex. Desk wants confirmation above $415 before pressing longs again.",
+    beginnerTip:
+      "Microsoft is a market leader—let it prove demand above resistance before committing full size.",
+    bias: "Monitoring",
+    playbook: {
+      automation:
+        "Equity desk script trims to core below $400 and re-engages trend mode on strong closes back above $415.",
+      support: 400,
+      resistance: 415,
+      flipLevel: 400,
+      momentum: { bullish: 0.5, bearish: 0.45 },
+      plan: {
+        default:
+          "Range-trade while price is trapped between $400 and $415, letting automation handle partial hedges.",
+        bullish:
+          "Momentum reclaim above $415 lets the script layer back exposure and lean into the broader index beta tailwind.",
+        bearish:
+          "Breaks of $400 trigger capital preservation, rotating back into defensive spreads until buyers return.",
+      },
+    },
+  },
+  {
     instrumentId: "BTCUSD",
     session: "London momentum",
     focus:
@@ -318,7 +382,7 @@ const WATCHLIST_CONFIG: WatchlistConfigEntry[] = [
   },
 ];
 
-const WATCHLIST: MarketWatchlistItem[] = WATCHLIST_CONFIG.map((item) => {
+export const WATCHLIST: MarketWatchlistItem[] = WATCHLIST_CONFIG.map((item) => {
   const metadata = getInstrumentMetadata(item.instrumentId);
   const category = item.categoryOverride ??
     CATEGORY_BY_ASSET_CLASS[metadata.assetClass];
@@ -339,6 +403,14 @@ const WATCHLIST: MarketWatchlistItem[] = WATCHLIST_CONFIG.map((item) => {
     playbook: item.playbook,
   };
 });
+
+export const WATCHLIST_GROUPS: Array<{
+  category: InstrumentCategory;
+  items: MarketWatchlistItem[];
+}> = CATEGORY_ORDER.map((category) => ({
+  category,
+  items: WATCHLIST.filter((item) => item.category === category),
+}));
 
 const toMarketCode = (symbol: string) => {
   const metadata = findInstrumentMetadata(symbol);
@@ -958,7 +1030,9 @@ export function MarketWatchlist() {
       shadow="l"
     >
       <Column gap="16" maxWidth={32}>
-        <Heading variant="display-strong-xs">Live market watchlist</Heading>
+        <Heading variant="display-strong-xs">
+          Dynamic live market watchlist
+        </Heading>
         <Column gap="8">
           <Text variant="body-default-l" onBackground="neutral-weak">
             New to the markets? Start with the quick takeaways in each card. We
@@ -982,11 +1056,9 @@ export function MarketWatchlist() {
             </Tag>
             <RefreshAnimation
               active={isFetching}
-              ariaLabel={
-                isFetching
-                  ? "Refreshing market watchlist data"
-                  : "Market watchlist data idle"
-              }
+              ariaLabel={isFetching
+                ? "Refreshing market watchlist data"
+                : "Market watchlist data idle"}
             />
           </Row>
           {error
@@ -998,217 +1070,275 @@ export function MarketWatchlist() {
             : null}
         </Row>
       </Column>
-      <div
-        style={{
-          display: "grid",
-          gridAutoFlow: "column",
-          gap: "16px",
-          overflowX: "auto",
-          paddingBottom: "8px",
-          scrollSnapType: "x mandatory",
-          WebkitOverflowScrolling: "touch",
-        }}
-      >
-        {WATCHLIST.map((item) => {
-          const category = CATEGORY_DETAILS[item.category];
-          const bias = BIAS_DETAILS[item.bias];
-          const quote = quotes[item.dataKey];
-          const changeValue = quote?.changePercent;
-          const changePositive = changeValue !== undefined
-            ? changeValue >= 0
-            : undefined;
-          const quickTakeaway = buildQuickTakeaway(item, quote);
-          const strategyFocus = buildStrategyFocus(item, quote);
-          const changeBackground = changePositive === undefined
-            ? "neutral-alpha-weak"
-            : changePositive
-            ? "brand-alpha-weak"
-            : "danger-alpha-weak";
-          const changeForeground = changePositive === undefined
-            ? "neutral-strong"
-            : changePositive
-            ? "brand-strong"
-            : "danger-strong";
-
+      <Column gap="32" align="start" fillWidth>
+        {WATCHLIST_GROUPS.map(({ category, items }) => {
+          const categoryDetails = CATEGORY_DETAILS[category];
           return (
-            <Column
-              key={item.symbol}
-              background="page"
-              border="neutral-alpha-weak"
-              radius="l"
-              padding="l"
-              gap="16"
-              style={{ minWidth: "280px", scrollSnapAlign: "start" }}
-            >
-              <Row
-                horizontal="between"
-                vertical="center"
-                gap="12"
-                s={{ direction: "column", align: "start" }}
-              >
-                <Column gap="8">
-                  <Row gap="8" vertical="center" wrap>
-                    <Heading variant="heading-strong-m">
-                      {item.displaySymbol}
-                    </Heading>
-                    <Tag size="s" prefixIcon={category.icon}>
-                      {category.label}
-                    </Tag>
-                    <Tag
-                      size="s"
-                      background={bias.background}
-                      onBackground={bias.onBackground}
-                    >
-                      {bias.label}
-                    </Tag>
-                  </Row>
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    {item.name}
-                  </Text>
-                </Column>
-                <Column gap="8" horizontal="end" align="end">
-                  <Row gap="12" vertical="center">
-                    <AsciiShaderText asChild intensity="bold">
-                      <Text variant="heading-strong-m" align="right">
-                        {formatNumber(quote?.last, item.format)}
-                      </Text>
-                    </AsciiShaderText>
-                    <Tag
-                      size="s"
-                      background={changeBackground}
-                      onBackground={changeForeground}
-                    >
-                      <AsciiShaderText intensity="balanced">
-                        {formatChangePercent(changeValue)}
-                      </AsciiShaderText>
-                    </Tag>
-                  </Row>
-                  <Text
-                    variant="body-default-s"
-                    onBackground="neutral-weak"
-                    align="right"
-                  >
-                    24h change
-                  </Text>
-                </Column>
+            <Column key={category} gap="16" align="start" fillWidth>
+              <Row gap="8" vertical="center">
+                <Icon
+                  name={categoryDetails.icon}
+                  onBackground="brand-strong"
+                />
+                <Heading as="h3" variant="heading-strong-m">
+                  {categoryDetails.label}
+                </Heading>
               </Row>
-              <Line background="neutral-alpha-weak" />
-              <Row gap="16" wrap>
-                <Column minWidth={16} gap="8">
-                  <Text variant="label-default-s" onBackground="neutral-weak">
-                    Session focus
-                  </Text>
-                  <Tag size="s" prefixIcon="sparkles">
-                    {item.session}
-                  </Tag>
-                </Column>
-                <Column minWidth={16} gap="8">
-                  <Text variant="label-default-s" onBackground="neutral-weak">
-                    Intraday range
-                  </Text>
-                  <AsciiShaderText asChild intensity="subtle">
-                    <Text variant="body-default-m">
-                      {formatRange(quote, item.format)}
-                    </Text>
-                  </AsciiShaderText>
-                </Column>
-                <Column
-                  flex={1}
-                  minWidth={24}
-                  gap="8"
-                  background="brand-alpha-weak"
-                  padding="m"
-                  radius="m"
-                >
-                  <Text variant="label-default-s" onBackground="brand-strong">
-                    Quick takeaway
-                  </Text>
-                  <Column gap="4">
-                    {quickTakeaway.length > 0
-                      ? quickTakeaway.map((insight, index) => {
-                        const tone = INSIGHT_TONE_STYLES[insight.tone];
-                        return (
-                          <Row
-                            key={`${item.symbol}-takeaway-${index}`}
-                            background={tone.background}
-                            radius="s"
-                            padding="s"
-                            gap="8"
-                            vertical="center"
-                          >
-                            <Icon
-                              name={insight.icon}
-                              onBackground={tone.icon}
-                            />
-                            <AsciiShaderText asChild intensity="subtle">
-                              <Text
-                                variant="body-default-s"
-                                onBackground={tone.text}
+              <Row gap="16" wrap fillWidth>
+                {items.length > 0
+                  ? items.map((item) => {
+                    const bias = BIAS_DETAILS[item.bias];
+                    const quote = quotes[item.dataKey];
+                    const changeValue = quote?.changePercent;
+                    const changePositive = changeValue !== undefined
+                      ? changeValue >= 0
+                      : undefined;
+                    const quickTakeaway = buildQuickTakeaway(item, quote);
+                    const strategyFocus = buildStrategyFocus(item, quote);
+                    const changeBackground = changePositive === undefined
+                      ? "neutral-alpha-weak"
+                      : changePositive
+                      ? "brand-alpha-weak"
+                      : "danger-alpha-weak";
+                    const changeForeground = changePositive === undefined
+                      ? "neutral-strong"
+                      : changePositive
+                      ? "brand-strong"
+                      : "danger-strong";
+
+                    return (
+                      <Column
+                        key={item.symbol}
+                        background="page"
+                        border="neutral-alpha-weak"
+                        radius="l"
+                        padding="l"
+                        gap="16"
+                        style={{ minWidth: "280px" }}
+                      >
+                        <Row
+                          horizontal="between"
+                          vertical="center"
+                          gap="12"
+                          s={{ direction: "column", align: "start" }}
+                        >
+                          <Column gap="8">
+                            <Row gap="8" vertical="center" wrap>
+                              <Heading variant="heading-strong-m">
+                                {item.displaySymbol}
+                              </Heading>
+                              <Tag
+                                size="s"
+                                prefixIcon={categoryDetails.icon}
                               >
-                                {insight.label}
+                                {categoryDetails.label}
+                              </Tag>
+                              <Tag
+                                size="s"
+                                background={bias.background}
+                                onBackground={bias.onBackground}
+                              >
+                                {bias.label}
+                              </Tag>
+                            </Row>
+                            <Text
+                              variant="body-default-s"
+                              onBackground="neutral-weak"
+                            >
+                              {item.name}
+                            </Text>
+                          </Column>
+                          <Column gap="8" horizontal="end" align="end">
+                            <Row gap="12" vertical="center">
+                              <AsciiShaderText asChild intensity="bold">
+                                <Text variant="heading-strong-m" align="right">
+                                  {formatNumber(quote?.last, item.format)}
+                                </Text>
+                              </AsciiShaderText>
+                              <Tag
+                                size="s"
+                                background={changeBackground}
+                                onBackground={changeForeground}
+                              >
+                                <AsciiShaderText intensity="balanced">
+                                  {formatChangePercent(changeValue)}
+                                </AsciiShaderText>
+                              </Tag>
+                            </Row>
+                            <Text
+                              variant="body-default-s"
+                              onBackground="neutral-weak"
+                              align="right"
+                            >
+                              24h change
+                            </Text>
+                          </Column>
+                        </Row>
+                        <Line background="neutral-alpha-weak" />
+                        <Row gap="16" wrap>
+                          <Column minWidth={16} gap="8">
+                            <Text
+                              variant="label-default-s"
+                              onBackground="neutral-weak"
+                            >
+                              Session focus
+                            </Text>
+                            <Tag size="s" prefixIcon="sparkles">
+                              {item.session}
+                            </Tag>
+                          </Column>
+                          <Column minWidth={16} gap="8">
+                            <Text
+                              variant="label-default-s"
+                              onBackground="neutral-weak"
+                            >
+                              Intraday range
+                            </Text>
+                            <AsciiShaderText asChild intensity="subtle">
+                              <Text variant="body-default-m">
+                                {formatRange(quote, item.format)}
                               </Text>
                             </AsciiShaderText>
-                          </Row>
-                        );
-                      })
-                      : (
-                        <AsciiShaderText asChild intensity="subtle">
-                          <Text
-                            variant="body-default-s"
-                            onBackground="brand-strong"
-                          >
-                            No quick insights available.
-                          </Text>
-                        </AsciiShaderText>
-                      )}
-                  </Column>
-                </Column>
-                <Column flex={1} minWidth={24} gap="8">
-                  <Text variant="label-default-s" onBackground="neutral-weak">
-                    Strategy focus
-                  </Text>
-                  <Column gap="4">
-                    {strategyFocus.length > 0
-                      ? strategyFocus.map((insight, index) => {
-                        const tone = INSIGHT_TONE_STYLES[insight.tone];
-                        return (
-                          <Row
-                            key={`${item.symbol}-strategy-${index}`}
-                            background={tone.background}
-                            radius="s"
-                            padding="s"
+                          </Column>
+                          <Column
+                            flex={1}
+                            minWidth={24}
                             gap="8"
-                            vertical="center"
+                            background="brand-alpha-weak"
+                            padding="m"
+                            radius="m"
                           >
-                            <Icon
-                              name={insight.icon}
-                              onBackground={tone.icon}
-                            />
-                            <AsciiShaderText asChild intensity="subtle">
-                              <Text
-                                variant="body-default-m"
-                                onBackground={tone.text}
-                              >
-                                {insight.label}
-                              </Text>
-                            </AsciiShaderText>
-                          </Row>
-                        );
-                      })
-                      : (
-                        <AsciiShaderText asChild intensity="subtle">
-                          <Text variant="body-default-m">
-                            No focus guidance.
-                          </Text>
-                        </AsciiShaderText>
-                      )}
-                  </Column>
-                </Column>
+                            <Text
+                              variant="label-default-s"
+                              onBackground="brand-strong"
+                            >
+                              Quick takeaway
+                            </Text>
+                            <Column gap="4">
+                              {quickTakeaway.length > 0
+                                ? quickTakeaway.map((insight, index) => {
+                                  const tone =
+                                    INSIGHT_TONE_STYLES[insight.tone];
+                                  return (
+                                    <Row
+                                      key={`${item.symbol}-takeaway-${index}`}
+                                      background={tone.background}
+                                      radius="s"
+                                      padding="s"
+                                      gap="8"
+                                      vertical="center"
+                                    >
+                                      <Icon
+                                        name={insight.icon}
+                                        onBackground={tone.icon}
+                                      />
+                                      <AsciiShaderText
+                                        asChild
+                                        intensity="subtle"
+                                      >
+                                        <Text
+                                          variant="body-default-s"
+                                          onBackground={tone.text}
+                                        >
+                                          {insight.label}
+                                        </Text>
+                                      </AsciiShaderText>
+                                    </Row>
+                                  );
+                                })
+                                : (
+                                  <AsciiShaderText asChild intensity="subtle">
+                                    <Text
+                                      variant="body-default-s"
+                                      onBackground="brand-strong"
+                                    >
+                                      No quick insights available.
+                                    </Text>
+                                  </AsciiShaderText>
+                                )}
+                            </Column>
+                          </Column>
+                          <Column flex={1} minWidth={24} gap="8">
+                            <Text
+                              variant="label-default-s"
+                              onBackground="neutral-weak"
+                            >
+                              Strategy focus
+                            </Text>
+                            <Column gap="4">
+                              {strategyFocus.length > 0
+                                ? strategyFocus.map((insight, index) => {
+                                  const tone =
+                                    INSIGHT_TONE_STYLES[insight.tone];
+                                  return (
+                                    <Row
+                                      key={`${item.symbol}-strategy-${index}`}
+                                      background={tone.background}
+                                      radius="s"
+                                      padding="s"
+                                      gap="8"
+                                      vertical="center"
+                                    >
+                                      <Icon
+                                        name={insight.icon}
+                                        onBackground={tone.icon}
+                                      />
+                                      <AsciiShaderText
+                                        asChild
+                                        intensity="subtle"
+                                      >
+                                        <Text
+                                          variant="body-default-m"
+                                          onBackground={tone.text}
+                                        >
+                                          {insight.label}
+                                        </Text>
+                                      </AsciiShaderText>
+                                    </Row>
+                                  );
+                                })
+                                : (
+                                  <AsciiShaderText asChild intensity="subtle">
+                                    <Text variant="body-default-m">
+                                      No focus guidance.
+                                    </Text>
+                                  </AsciiShaderText>
+                                )}
+                            </Column>
+                          </Column>
+                        </Row>
+                      </Column>
+                    );
+                  })
+                  : (
+                    <Column
+                      background="page"
+                      border="neutral-alpha-weak"
+                      radius="l"
+                      padding="l"
+                      minWidth={32}
+                      gap="8"
+                    >
+                      <Text
+                        variant="body-default-m"
+                        onBackground="neutral-weak"
+                      >
+                        {`No ${categoryDetails.label.toLowerCase()} instruments are active yet.`}
+                      </Text>
+                      <Text
+                        variant="body-default-s"
+                        onBackground="neutral-weak"
+                      >
+                        Desk coverage placeholders keep the taxonomy visible
+                        while live feeds come online.
+                      </Text>
+                    </Column>
+                  )}
               </Row>
             </Column>
           );
         })}
-      </div>
+      </Column>
       <Text variant="body-default-s" onBackground="neutral-weak">
         Quotes stream from AwesomeAPI and refresh every 60 seconds while you
         keep this dashboard open. Guidance updates alongside each global session

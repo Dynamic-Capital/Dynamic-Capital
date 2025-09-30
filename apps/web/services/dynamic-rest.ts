@@ -20,6 +20,7 @@ const ASSET_CLASSES = [
   "currencies",
   "indices",
   "crypto",
+  "stocks",
 ] as const satisfies readonly AssetClass[];
 
 export interface RestEndpointDescriptor {

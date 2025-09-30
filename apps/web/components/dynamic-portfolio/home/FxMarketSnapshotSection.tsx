@@ -7,33 +7,25 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-import type { Colors } from "@/components/dynamic-ui-system";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { AsciiShaderText } from "@/components/ui/AsciiShaderText";
 import { formatIsoTime } from "@/utils/isoFormat";
-import {
-  type ComponentProps,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_FX_PAIRS,
   getInstrumentMetadata,
   PRIMARY_CURRENCY_CODES,
 } from "@/data/instruments";
 import { RefreshAnimation } from "./RefreshAnimation";
+import {
+  InsightCard,
+  MoversSection,
+  MoversTable,
+  StrengthMeterList,
+  type TagBackground,
+  VolatilityBucket,
+  VolatilityBucketPanel,
+  VolatilityMeterList,
+} from "./MarketSnapshotPrimitives";
 
 type CurrencyStrength = {
   code: string;
@@ -61,33 +53,6 @@ type VolatilityPair = {
   symbol: string;
   pair: string;
   rangePercent: number;
-};
-
-type TagBackground = Colors | "page" | "surface" | "overlay" | "transparent";
-
-type MoversSection = {
-  title: string;
-  data: TopMover[];
-  tone: TagBackground;
-};
-
-type VolatilityBucket = {
-  title: string;
-  data: VolatilityPair[];
-  background: TagBackground;
-};
-
-type InsightCardTag = {
-  label: string;
-  icon?: ComponentProps<typeof Tag>["prefixIcon"];
-  tone?: TagBackground;
-};
-
-type InsightCardProps = {
-  title: string;
-  description?: string;
-  tag?: InsightCardTag;
-  children: ReactNode;
 };
 
 const DISPLAY_CURRENCIES: Array<CurrencyStrength["code"]> =
@@ -720,32 +685,6 @@ const VOLATILITY_DISPLAY_METADATA = [
   },
 ] as const satisfies Array<Pick<VolatilityBucket, "title" | "background">>;
 
-const toneTagBackground: Record<CurrencyStrength["tone"], TagBackground> = {
-  strong: "brand-alpha-weak",
-  balanced: "neutral-alpha-weak",
-  soft: "danger-alpha-weak",
-};
-
-const toneLabel: Record<CurrencyStrength["tone"], string> = {
-  strong: "Leadership",
-  balanced: "Balanced",
-  soft: "Under pressure",
-};
-
-const formatPercent = (value: number) =>
-  `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
-
-const formatChange = (value: number) => value.toFixed(4);
-
-const formatPips = (value: number) =>
-  `${value > 0 ? "+" : ""}${value.toFixed(1)}`;
-
-const formatPrice = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 6,
-  }).format(value);
-
 export function FxMarketSnapshotSection() {
   const [strengthMeter, setStrengthMeter] = useState<CurrencyStrength[]>(
     FALLBACK_STRENGTH,
@@ -865,12 +804,30 @@ export function FxMarketSnapshotSection() {
       {
         title: MOVERS_DISPLAY_METADATA[0].title,
         tone: MOVERS_DISPLAY_METADATA[0].tone,
-        data: topGainers,
+        iconName: "trending-up",
+        data: topGainers.map((item) => ({
+          id: item.symbol,
+          label: item.pair,
+          symbol: item.symbol,
+          changePercent: item.changePercent,
+          change: item.change,
+          extra: item.pips,
+          last: item.lastPrice,
+        })),
       },
       {
         title: MOVERS_DISPLAY_METADATA[1].title,
         tone: MOVERS_DISPLAY_METADATA[1].tone,
-        data: topLosers,
+        iconName: "trending-down",
+        data: topLosers.map((item) => ({
+          id: item.symbol,
+          label: item.pair,
+          symbol: item.symbol,
+          changePercent: item.changePercent,
+          change: item.change,
+          extra: item.pips,
+          last: item.lastPrice,
+        })),
       },
     ],
     [topGainers, topLosers],
@@ -881,15 +838,48 @@ export function FxMarketSnapshotSection() {
       {
         title: VOLATILITY_DISPLAY_METADATA[0].title,
         background: VOLATILITY_DISPLAY_METADATA[0].background,
-        data: mostVolatilePairs,
+        data: mostVolatilePairs.map((item) => ({
+          id: item.symbol,
+          label: item.pair,
+          symbol: item.symbol,
+          value: item.rangePercent,
+        })),
       },
       {
         title: VOLATILITY_DISPLAY_METADATA[1].title,
         background: VOLATILITY_DISPLAY_METADATA[1].background,
-        data: leastVolatilePairs,
+        data: leastVolatilePairs.map((item) => ({
+          id: item.symbol,
+          label: item.pair,
+          symbol: item.symbol,
+          value: item.rangePercent,
+        })),
       },
     ],
     [leastVolatilePairs, mostVolatilePairs],
+  );
+
+  const strengthEntries = useMemo(
+    () =>
+      strengthMeter.map((currency) => ({
+        id: currency.code,
+        code: currency.code,
+        rank: currency.rank,
+        tone: currency.tone,
+        summary: currency.summary,
+      })),
+    [strengthMeter],
+  );
+
+  const volatilityEntries = useMemo(
+    () =>
+      volatilityMeter.map((currency) => ({
+        id: currency.code,
+        code: currency.code,
+        rank: currency.rank,
+        summary: currency.summary,
+      })),
+    [volatilityMeter],
   );
 
   const statusLabel = useMemo(() => {
@@ -931,7 +921,7 @@ export function FxMarketSnapshotSection() {
             id="fx-market-snapshot-heading"
             variant="display-strong-xs"
           >
-            Dynamic market snapshot
+            Currencies market snapshot
           </Heading>
           <Row gap="4" vertical="center">
             <Tag
@@ -946,11 +936,9 @@ export function FxMarketSnapshotSection() {
             </Tag>
             <RefreshAnimation
               active={isFetching}
-              ariaLabel={
-                isFetching
-                  ? "Refreshing FX market snapshot"
-                  : "FX market snapshot idle"
-              }
+              ariaLabel={isFetching
+                ? "Refreshing FX market snapshot"
+                : "FX market snapshot idle"}
             />
           </Row>
         </Row>
@@ -971,37 +959,7 @@ export function FxMarketSnapshotSection() {
               tone: "brand-alpha-weak",
             }}
           >
-            <Row gap="16" wrap>
-              {strengthMeter.map((currency) => (
-                <Column
-                  key={currency.code}
-                  background="page"
-                  border="neutral-alpha-weak"
-                  radius="l"
-                  padding="l"
-                  gap="12"
-                  minWidth={20}
-                  flex={1}
-                >
-                  <Row horizontal="between" vertical="center" gap="8">
-                    <Row gap="8" vertical="center">
-                      <Tag size="s" background="neutral-alpha-weak">
-                        #{currency.rank}
-                      </Tag>
-                      <Heading as="h4" variant="heading-strong-s">
-                        {currency.code}
-                      </Heading>
-                    </Row>
-                    <Tag size="s" background={toneTagBackground[currency.tone]}>
-                      {toneLabel[currency.tone]}
-                    </Tag>
-                  </Row>
-                  <Text variant="body-default-s" onBackground="neutral-weak">
-                    {currency.summary}
-                  </Text>
-                </Column>
-              ))}
-            </Row>
+            <StrengthMeterList entries={strengthEntries} />
           </InsightCard>
 
           <InsightCard
@@ -1013,21 +971,7 @@ export function FxMarketSnapshotSection() {
               tone: "neutral-alpha-weak",
             }}
           >
-            <Column gap="12">
-              {volatilityMeter.map((currency) => (
-                <Row key={currency.code} gap="12" vertical="start">
-                  <Tag size="s" background="neutral-alpha-weak">
-                    #{currency.rank}
-                  </Tag>
-                  <Column gap="4">
-                    <Text variant="body-strong-s">{currency.code}</Text>
-                    <Text variant="body-default-s" onBackground="neutral-weak">
-                      {currency.summary}
-                    </Text>
-                  </Column>
-                </Row>
-              ))}
-            </Column>
+            <VolatilityMeterList entries={volatilityEntries} />
           </InsightCard>
         </Column>
 
@@ -1065,180 +1009,6 @@ export function FxMarketSnapshotSection() {
           </InsightCard>
         </Column>
       </Row>
-    </Column>
-  );
-}
-
-function InsightCard({ title, description, tag, children }: InsightCardProps) {
-  return (
-    <Column
-      background="page"
-      border="neutral-alpha-weak"
-      radius="l"
-      padding="l"
-      gap="16"
-      align="start"
-    >
-      <Column gap="8" align="start">
-        {tag
-          ? (
-            <Tag
-              size="s"
-              background={tag.tone ?? "neutral-alpha-weak"}
-              prefixIcon={tag.icon}
-            >
-              {tag.label}
-            </Tag>
-          )
-          : null}
-        <Heading as="h3" variant="heading-strong-m">
-          {title}
-        </Heading>
-        {description
-          ? (
-            <Text variant="body-default-s" onBackground="neutral-weak">
-              {description}
-            </Text>
-          )
-          : null}
-      </Column>
-      {children}
-    </Column>
-  );
-}
-
-function MoversTable({ title, data, tone }: MoversSection) {
-  const tableLabel = `${title} currency movers`;
-
-  return (
-    <Column gap="12" align="start">
-      <Tag
-        size="s"
-        background={tone}
-        prefixIcon={title === "Top gainers" ? "trending-up" : "trending-down"}
-      >
-        {title}
-      </Tag>
-      <Column
-        background="surface"
-        border="neutral-alpha-weak"
-        radius="l"
-        padding="l"
-        fillWidth
-      >
-        <Table aria-label={tableLabel}>
-          <TableCaption className="sr-only">
-            {`${title} with percentage change, price change, pips, and last price data.`}
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col">Pair</TableHead>
-              <TableHead scope="col" className="text-right">
-                Change %
-              </TableHead>
-              <TableHead scope="col" className="text-right">
-                Change
-              </TableHead>
-              <TableHead scope="col" className="text-right">
-                Pips
-              </TableHead>
-              <TableHead scope="col" className="text-right">
-                Last
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((item) => (
-              <TableRow key={item.symbol}>
-                <TableCell>
-                  <Column gap="4" align="start">
-                    <Text variant="body-strong-s">{item.pair}</Text>
-                    <Text variant="body-default-s" onBackground="neutral-weak">
-                      {item.symbol}
-                    </Text>
-                  </Column>
-                </TableCell>
-                <TableCell className="text-right">
-                  <AsciiShaderText asChild intensity="bold">
-                    <Text variant="body-strong-s">
-                      {formatPercent(item.changePercent)}
-                    </Text>
-                  </AsciiShaderText>
-                </TableCell>
-                <TableCell className="text-right">
-                  <AsciiShaderText asChild intensity="balanced">
-                    <Text variant="body-default-s" onBackground="neutral-weak">
-                      {formatChange(item.change)}
-                    </Text>
-                  </AsciiShaderText>
-                </TableCell>
-                <TableCell className="text-right">
-                  <AsciiShaderText asChild intensity="balanced">
-                    <Text variant="body-default-s" onBackground="neutral-weak">
-                      {formatPips(item.pips)}
-                    </Text>
-                  </AsciiShaderText>
-                </TableCell>
-                <TableCell className="text-right">
-                  <AsciiShaderText asChild intensity="bold">
-                    <Text variant="body-default-s" onBackground="neutral-weak">
-                      {formatPrice(item.lastPrice)}
-                    </Text>
-                  </AsciiShaderText>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Column>
-    </Column>
-  );
-}
-
-function VolatilityBucketPanel({ title, data, background }: VolatilityBucket) {
-  const headingId = `${
-    title.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-  }-bucket-label`;
-
-  return (
-    <Column
-      flex={1}
-      minWidth={24}
-      gap="12"
-      background="surface"
-      border="neutral-alpha-weak"
-      radius="l"
-      padding="l"
-      align="start"
-    >
-      <Tag
-        id={headingId}
-        size="s"
-        background={background}
-        prefixIcon="activity"
-      >
-        {title}
-      </Tag>
-      <Column as="ul" gap="12" fillWidth aria-labelledby={headingId}>
-        {data.map((item) => (
-          <Row
-            key={item.symbol}
-            as="li"
-            horizontal="between"
-            vertical="center"
-          >
-            <Column gap="4">
-              <Text variant="body-strong-s">{item.pair}</Text>
-              <Text variant="body-default-s" onBackground="neutral-weak">
-                {item.symbol}
-              </Text>
-            </Column>
-            <Text variant="body-strong-s">
-              {item.rangePercent.toFixed(2)}%
-            </Text>
-          </Row>
-        ))}
-      </Column>
     </Column>
   );
 }
