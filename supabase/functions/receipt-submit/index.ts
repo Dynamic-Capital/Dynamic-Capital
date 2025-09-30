@@ -52,8 +52,16 @@ export const handler = registerHandler(async (req) => {
     return bad("Invalid JSON");
   }
 
-  const { payment_id, file_path, bucket, initData, telegram_id, parsed_slip } =
-    body;
+  const {
+    payment_id,
+    file_path,
+    bucket,
+    initData,
+    telegram_id,
+    parsed_slip,
+    order_id,
+    reference_code,
+  } = body;
 
   // If no auth, try Telegram initData
   if (!telegramId && initData) {
@@ -117,6 +125,42 @@ export const handler = registerHandler(async (req) => {
     }
 
     const imageHash = await hashBlob(downloaded);
+    const fileBytes = typeof downloaded.size === "number" ? downloaded.size : 0;
+
+    const orderId = typeof order_id === "string" && order_id.trim()
+      ? order_id
+      : null;
+    const referenceCode =
+      typeof reference_code === "string" && reference_code.trim()
+        ? reference_code.trim()
+        : null;
+
+    let orderRecord:
+      | { id: string; user_id: string; reference_code: string }
+      | null = null;
+    if (orderId || referenceCode) {
+      const orderQuery = supa
+        .from("orders")
+        .select("id,user_id,reference_code")
+        .limit(1);
+      if (orderId) orderQuery.eq("id", orderId);
+      else if (referenceCode) orderQuery.eq("reference_code", referenceCode);
+      const { data: orderData, error: orderLookupError } = await orderQuery
+        .maybeSingle();
+      if (orderLookupError) {
+        console.error(
+          "Order lookup error during receipt submit",
+          orderLookupError,
+        );
+      }
+      if (orderData?.id) {
+        orderRecord = {
+          id: orderData.id as string,
+          user_id: orderData.user_id as string,
+          reference_code: orderData.reference_code as string,
+        };
+      }
+    }
 
     const { data: existing, error: duplicateCheckError } = await supa
       .from("receipts")
@@ -210,6 +254,50 @@ export const handler = registerHandler(async (req) => {
     if (receiptInsertError) {
       console.error("Receipt insert error:", receiptInsertError);
       return oops("Failed to register receipt");
+    }
+
+    const uploadedBy = (orderRecord?.user_id || payment.user_id) as
+      | string
+      | null;
+    if (orderRecord && uploadedBy) {
+      await supa.from("receipt_uploads").upsert({
+        order_id: orderRecord.id,
+        storage_path: file_path,
+        checksum_sha256: imageHash,
+        file_bytes: fileBytes,
+        uploaded_by: uploadedBy,
+      }, { onConflict: "order_id,uploaded_by" }).catch((err) => {
+        console.warn("receipt_uploads upsert failed", err);
+      });
+
+      await supa
+        .from("orders")
+        .update({ status: "verifying" })
+        .eq("id", orderRecord.id)
+        .in("status", ["awaiting_payment", "pending"]);
+
+      await supa.from("verification_logs").insert({
+        order_id: orderRecord.id,
+        rule_name: "receipt_upload",
+        result: "manual_review",
+        notes: `Receipt uploaded ${file_path}`,
+      }).catch((err) => {
+        console.warn("receipt verification log insert failed", err);
+      });
+
+      await supa.from("audit_events").insert({
+        entity_type: "order",
+        entity_id: orderRecord.id,
+        action: "receipt_uploaded",
+        actor: telegramId ? `telegram:${telegramId}` : "receipt_submitter",
+        payload: {
+          storage_path: file_path,
+          checksum_sha256: imageHash,
+          reference_code: orderRecord.reference_code,
+        },
+      }).catch((err) => {
+        console.warn("order audit insert failed", err);
+      });
     }
 
     console.log("Receipt submitted successfully for payment:", payment_id);
