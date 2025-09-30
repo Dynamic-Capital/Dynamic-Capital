@@ -36,8 +36,10 @@ Use it when onboarding a new project or hardening local development.
 - [ ] Verify the machine is reachable:
   - `podman info`
 - [ ] Confirm the Windows UNC share is available for quick file transfers:
-  - Open `\\wsl.localhost\podman-machine-default` in File Explorer.
-  - Map the share to a drive letter if team workflows depend on persistent paths.
+  - `Test-Path "\\\\wsl.localhost\\podman-machine-default"` should return `True`.
+  - `Get-ChildItem -Path "\\\\wsl.localhost\\podman-machine-default" | Select-Object -First 1` verifies the directory responds.
+  - Map the share to a drive letter if team workflows depend on persistent paths:
+    - `net use P: \\\\wsl.localhost\\podman-machine-default /persistent:yes`
 
 ### Quick PowerShell verification script
 
