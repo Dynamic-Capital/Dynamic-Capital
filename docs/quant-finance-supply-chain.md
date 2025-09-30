@@ -2,6 +2,17 @@
 
 This brief stitches together the physics-inspired stochastic modeling roots of quantitative finance with the later pricing, prediction, and evaluation layers that define modern systematic investing. Each layer transforms raw uncertainty into progressively more actionable structure, mirroring a supply chain in which information is refined and validated before capital is deployed.
 
+## Layer Interfaces at a Glance
+
+| Layer | Input | Transformation | Output | Canonical Equation |
+| --- | --- | --- | --- | --- |
+| Stochastic dynamics | Micro-level shocks $dW_t$ | SDEs encode drift/diffusion structure | Path distribution $P(S_t)$ | $dS_t = \mu S_t\,dt + \sigma S_t\,dW_t$ |
+| Pricing | Path distribution under risk-neutral measure $\mathbb{Q}$ | Hedging + no-arbitrage constraints | Derivative value $V(S,t)$ | $\frac{\partial V}{\partial t} + \tfrac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2} + rS\frac{\partial V}{\partial S} - rV = 0$ |
+| Prediction | Historical observations $(x_t, y_t)$ | Statistical learning / filtering | Forecast $\hat{y}_{t+1}$ | $\hat{y}_{t+1} = f_\theta(x_t)$ |
+| Evaluation | Forecasts and realized returns | Risk-adjusted scoring | Capital allocation decision | $\text{Sharpe} = \frac{E[R_p - R_f]}{\sigma_p}$ |
+
+The remainder of the note drills into each layer, highlighting the handoff artifacts that enable the next transformation.
+
 ## 1. Stochastic Dynamics Layer (Physics Heritage)
 
 Financial variables are first modeled as stochastic processes borrowed from statistical mechanics. These dynamics specify how uncertainty is injected into the system.
@@ -30,7 +41,9 @@ Financial variables are first modeled as stochastic processes borrowed from stat
   $$
   Tracks how the probability density $P$ implied by the stochastic differential equation drifts and diffuses over time.
 
-**Transformation.** This layer converts market randomness into a structured probabilistic description of price paths—setting the stage for risk-neutral valuation and statistical inference.
+**Input → Output.** Random shocks $dW_t$ (or $\eta(t)$) are translated into a probabilistic description of price paths $P(S_t)$.
+
+**Transformation.** This layer converts market randomness into a structured probabilistic description of price paths—setting the stage for risk-neutral valuation and statistical inference. In practice this produces either a closed-form transition density or Monte Carlo simulator that downstream layers can sample from.
 
 ## 2. Pricing Layer (No-Arbitrage PDEs)
 
@@ -58,7 +71,15 @@ Given a stochastic model, no-arbitrage arguments translate path dynamics into pr
   $$
   Transforms the PDE into actionable premium quotes under the GBM assumptions.
 
-**Transformation.** Stochastic behavior is distilled into deterministic pricing rules and hedging ratios—the logistics layer that maps randomness into tradable valuations.
+**Input → Output.** The state distribution implied by the SDE is converted into a pricing functional $V(S,t)$ under the risk-neutral measure $\mathbb{Q}$.
+
+**Bridge Equation.** The hedging argument implies the risk-neutral expectation
+$$
+V(S,t) = e^{-r(T-t)} \mathbb{E}_{\mathbb{Q}}\big[\Phi(S_T) \mid S_t = S\big],
+$$
+linking the stochastic layer to concrete payoff pricing $\Phi$.
+
+**Transformation.** Stochastic behavior is distilled into deterministic pricing rules and hedging ratios—the logistics layer that maps randomness into tradable valuations. Sensitivities (Greeks) serve as quality checks that feed portfolio risk systems.
 
 ## 3. Prediction Layer (Data-Driven Inference)
 
@@ -81,7 +102,11 @@ As market microstructure, alternative data, and compute evolved, quants layered 
   $$
   Optimizes model parameters $\theta$ against a loss $L$ (MSE, cross-entropy, asymmetric payoff loss) tailored to the trading horizon.
 
-**Transformation.** Historical observations are ingested to update beliefs and produce predictive signals that sit alongside— or override—classical pricing results when markets depart from idealized assumptions.
+**Input → Output.** Historical observations and priced signals are molded into forecasts $\hat{y}_{t+1}$ and associated uncertainty bands.
+
+**Coupling with Pricing.** Pricing outputs often act as engineered features—e.g., implied volatility surfaces or carry metrics—feeding $f_\theta$ alongside raw returns. State-space models such as the Kalman filter explicitly fuse theoretical dynamics with empirical residuals.
+
+**Transformation.** Historical observations are ingested to update beliefs and produce predictive signals that sit alongside—or override—classical pricing results when markets depart from idealized assumptions.
 
 ## 4. Evaluation Layer (Performance & Risk Diagnostics)
 
@@ -105,7 +130,9 @@ Signals and pricing outputs must be validated against realized performance to ju
   $$
   Quantifies residual value-add after accounting for market risk.
 
-**Transformation.** Converts model outputs into accountability metrics that decide whether a strategy survives, scales, or is retired.
+**Input → Output.** Forecasts and realized PnL time series are turned into standardized performance diagnostics for investment committees.
+
+**Transformation.** Converts model outputs into accountability metrics that decide whether a strategy survives, scales, or is retired. Risk decomposition (e.g., factor exposures, drawdown statistics) augments the headline ratios to capture nonlinear payoffs.
 
 ## 5. Chain Integration & Historical Milestones
 
@@ -116,4 +143,8 @@ The pipeline mirrors a manufacturing flow:
 3. **Adaptive Forecasting** → statistical learning systems (Renaissance Technologies, machine-learning-driven funds) layer on empirical alpha discovery when closed forms fall short.
 4. **Quality Assurance** → performance diagnostics (Sharpe, CAPM, Jensen) filter strategies, echoing critiques such as the Cornell study of Medallion’s anomaly.
 
-This progression reflects the quant revolution’s evolution from physics-style reasoning (Weatherall, Voigt) to data-centric intelligence (Zuckerman’s account of Renaissance) while maintaining rigorous evaluation checkpoints. Each layer hands structured information to the next, ensuring that uncertainty is successively refined into tradable, testable, and ultimately accountable investment decisions.
+This progression reflects the quant revolution’s evolution from physics-style reasoning (Weatherall, Voigt) to data-centric intelligence (Zuckerman’s account of Renaissance) while maintaining rigorous evaluation checkpoints. Each layer hands structured information to the next, ensuring that uncertainty is successively refined into tradable, testable, and ultimately accountable investment decisions. The end-to-end chain can be summarized as the composition
+$$
+\text{Capital Decision} = \mathcal{E}\big(\mathcal{P}\big(\mathcal{Q}(\mathcal{S}(\text{Market Shocks}))\big)\big),
+$$
+where $\mathcal{S}$ denotes stochastic modeling, $\mathcal{Q}$ risk-neutral pricing, $\mathcal{P}$ predictive inference, and $\mathcal{E}$ evaluation. Optimization at any stage feeds back upstream, driving the iterative refinement characteristic of modern quantitative finance.
