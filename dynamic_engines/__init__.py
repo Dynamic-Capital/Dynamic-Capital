@@ -118,6 +118,11 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     ),
     "dynamic_implicit_memory": ("DynamicImplicitMemory",),
     "dynamic_index": ("DynamicIndex",),
+    "dynamic_immune": (
+        "DynamicImmuneEngine",
+        "ThreatAssessment",
+        "ThreatEvent",
+    ),
     "dynamic_loop": ("DynamicLoopEngine",),
     "dynamic_letter_index": ("DynamicLetterIndex",),
     "dynamic_indicators": ("DynamicIndicators",),
@@ -138,7 +143,10 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "LogSeverity",
         "LoggingSnapshot",
     ),
-    "dynamic_memory": ("DynamicMemoryConsolidator",),
+    "dynamic_memory": (
+        "DynamicMemoryConsolidator",
+        "DynamicMemoryEngine",
+    ),
     "dynamic_memory_reconsolidation": ("DynamicMemoryReconsolidation",),
     "dynamic_method": (
         "DynamicMethodEngine",
@@ -190,6 +198,11 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "PredictiveScenario",
     ),
     "dynamic_quote": ("DynamicQuote",),
+    "dynamic_respiration": (
+        "DynamicRespirationEngine",
+        "InformationPulse",
+        "RespirationSnapshot",
+    ),
     "dynamic_quantum.engine": (
         "DynamicQuantumEngine",
         "QuantumEnvironment",
@@ -209,6 +222,13 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
     ),
     "dynamic_script": ("DynamicScriptEngine",),
     "dynamic_self_awareness": ("DynamicSelfAwareness",),
+    "dynamic_ecosystem": (
+        "CascadeSimulation",
+        "DynamicEcosystemEngine",
+        "EcosystemEntity",
+        "EcosystemLink",
+        "EcosystemSnapshot",
+    ),
     "dynamic_skeleton": ("DynamicGovernanceAlgo", "DynamicComplianceAlgo"),
     "dynamic_source": ("DynamicSourceEngine",),
     "dynamic_space.engine": ("DynamicSpaceEngine",),
