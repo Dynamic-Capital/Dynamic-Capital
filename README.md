@@ -8,19 +8,30 @@
 ## Table of Contents
 
 <!-- TOC:START -->
-- [Overview](#overview)
-- [Beginner Quick Start](#beginner-quick-start)
-  - [Step 1 — Understand the flow](#step-1--understand-the-flow)
-  - [Step 2 — Prepare your workstation](#step-2--prepare-your-workstation)
-  - [Step 3 — Launch the stack locally](#step-3--launch-the-stack-locally)
-  - [Step 4 — Explore the Telegram experience](#step-4--explore-the-telegram-experience)
-  - [Step 5 — Grow your skills](#step-5--grow-your-skills)
-- [Essential Commands Cheat Sheet](#essential-commands-cheat-sheet)
+- [Investor Snapshot](#investor-snapshot)
+  - [Vision & Value Proposition](#vision--value-proposition)
+  - [Market Opportunity](#market-opportunity)
+  - [Traction & Proof Points](#traction--proof-points)
+  - [Competitive Edge](#competitive-edge)
+  - [Business Model & Revenue Streams](#business-model--revenue-streams)
+  - [Token & Treasury Strategy](#token--treasury-strategy)
+  - [Go-To-Market & Growth Levers](#go-to-market--growth-levers)
+  - [Roadmap](#roadmap)
+  - [Team, Governance & Partners](#team-governance--partners)
+  - [How to Engage](#how-to-engage)
+- [Developer Enablement](#developer-enablement)
+  - [Beginner Quick Start](#beginner-quick-start)
+    - [Step 1 — Understand the flow](#step-1--understand-the-flow)
+    - [Step 2 — Prepare your workstation](#step-2--prepare-your-workstation)
+    - [Step 3 — Launch the stack locally](#step-3--launch-the-stack-locally)
+    - [Step 4 — Explore the Telegram experience](#step-4--explore-the-telegram-experience)
+    - [Step 5 — Grow your skills](#step-5--grow-your-skills)
+  - [Essential Commands Cheat Sheet](#essential-commands-cheat-sheet)
 - [What's New](#whats-new)
 - [Quick Links](#quick-links)
   - [Saved GitHub queries](#saved-github-queries)
   - [GitHub CLI one-liners](#github-cli-one-liners)
-- [Platform Capabilities](#platform-capabilities)
+- [Product Deep Dive](#product-deep-dive)
   - [Telegram Mini App — Next.js + React + Icons](#telegram-mini-app--nextjs--react--icons)
   - [Install](#install)
   - [Swap icon library (optional)](#swap-icon-library-optional)
@@ -91,24 +102,87 @@
 - [Notes](#notes)
 <!-- TOC:END -->
 
-## Overview
+## Investor Snapshot
 
-Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development experience.
+### Vision & Value Proposition
 
-A single Next.js application powers both the marketing landing page and the authenticated dashboard. The build pipeline captures the homepage into the repository-level `_static/` directory so it can be served via CDN without touching runtime secrets, while the live `/app` routes continue to handle Supabase access, authentication, and other server-side features.
+Dynamic Capital compresses compliant fiat and crypto deposits into a Telegram-native workflow so professional traders can fund TON strategies in minutes instead of days. The platform pairs bank-grade verification (OCR-backed receipts, AML checks, hedging guardrails) with Web3-native automation to deliver a unified treasury cockpit inside the messenger investors already trust.
 
-The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and backed by Supabase.
+- **Seamless onboarding:** TonConnect deep links, QR code fallbacks, and Telegram SSO minimize friction for high-value clients moving between devices.
+- **Institutional guardrails:** Circuit breakers, approval queues, and automated hedging align fast settlement with risk policy.
+- **Data-driven operations:** Supabase, Next.js, and the Dynamic Codex AI stack provide auditable infrastructure for compliance, analytics, and continuous strategy evolution.
 
-## Beginner Quick Start
+### Market Opportunity
 
-### Step 1 — Understand the flow
+- Telegram is approaching a billion monthly users, and TON has become its default Web3 rail—creating a captive distribution channel for capital products.
+- Emerging-market traders and OTC desks are underserved by slow wire processes; Dynamic Capital’s instant chat-first rails bridge fiat liquidity with TON-native strategies.
+- Regulators continue to tighten custody and disclosure expectations. Platforms that blend verifiable KYC with programmable treasury controls are positioned to capture institutional capital flows.
+
+### Traction & Proof Points
+
+- Private beta live with trading desks using the Mini App and bot to process cross-border deposits under live compliance monitoring.
+- Production-ready Supabase edge functions automate receipt validation, hedging triggers, and investor communications without manual intervention.
+- Multi-LLM Studio, market intelligence dashboards, and automated signal ingestion (TradingView, macro calendars) demonstrate the depth of the analytics layer supporting decision velocity.
+
+### Competitive Edge
+
+- **Telegram-first UX** keeps clients in a high-retention channel while syncing with a full Next.js dashboard for richer analytics.
+- **Verified capital flows** combine OCR, TXID attestation, and policy-driven approvals to satisfy counterparty requirements.
+- **AI-assisted operations** (Dynamic Codex, AGI self-improvement loops) continuously tune trading playbooks and compliance checks.
+- **Modular architecture** spans bots, edge functions, and smart-contract templates, making it portable across partner banks, TON protocols, and custody providers.
+
+### Business Model & Revenue Streams
+
+- Spread and processing fees on fiat and crypto deposit volume routed through the bot and Mini App.
+- Premium automation bundles (risk dashboards, AI-generated hedging strategies, compliance reporting) offered to desks under SaaS contracts.
+- Treasury yield participation and token liquidity provisioning via Dynamic Capital Token (DCT) staking programs.
+- Enterprise integrations for custodians, wallet providers, and payment processors seeking compliant TON access.
+
+### Token & Treasury Strategy
+
+- DCT underpins governance, fee routing, and treasury transparency—see the [whitepaper](docs/dynamic-capital-ton-whitepaper.md) for supply mechanics and vesting cliffs.
+- Supabase-ledgered reporting keeps investor updates auditable, while on-chain positions sync with DeDust and STON.fi liquidity endpoints.
+- Treasury policy prioritizes runway, liquidity incentives, and community reward pools with automated disclosures driven by edge functions.
+
+### Go-To-Market & Growth Levers
+
+- Strategic partnerships with TON wallets (Tonkeeper, OpenMask, MyTonWallet) and Telegram communities bring pre-qualified flows.
+- Referral economics for OTC desks and prop firms who bundle Dynamic Capital’s rails with their client services.
+- Regional compliance playbooks plus local banking integrations accelerate launches in high-growth FX corridors.
+- Content flywheel: investor intelligence briefings, automation case studies, and market alerts distributed directly via the bot.
+
+### Roadmap
+
+- **Now:** Expand private beta, finalize automated compliance reporting, and ship hedging guardrails tuned for larger ticket sizes.
+- **Next 2 quarters:** Add TON-native yield products, real-time treasury analytics, and investor-grade audit exports inside the Mini App.
+- **12+ months:** Launch partner APIs, extend to additional L1/L2 rails, and introduce on-chain structured products governed by DCT holders.
+
+### Team, Governance & Partners
+
+- Cross-functional founding crew with experience across regulated fintech, digital asset exchanges, and AI automation.
+- Security and compliance advisors ensure alignment with ISO 27001, SOC 2, PCI DSS, HIPAA, GDPR, and EU–US Data Privacy Framework commitments.
+- Open to co-developing bespoke guardrails or liquidity products with banks, market makers, and institutional DeFi partners.
+
+### How to Engage
+
+- Request the investor brief and financial model via `investors@dynamic.capital` (include your firm, mandate, and timeline).
+- DM `@DynamicCapitalHQ` on Telegram for live product walkthroughs or to join the private beta group.
+- Use the GitHub “Investor Intro” issue template (coming soon) to coordinate due diligence artifacts inside this repository.
+
+## Developer Enablement
+
+Dynamic Capital remains open-source at its core so contributors, auditors, and partner teams can inspect the stack they are backing. Start with the resources below to get productive quickly.
+
+### Beginner Quick Start
+
+#### Step 1 — Understand the flow
 
 - **Problem we solve:** fast fiat and crypto deposits for TON traders directly inside Telegram.
 - **Core pieces:** a Telegram Bot, a Mini App (Next.js), Supabase edge functions, and TON smart-contract integrations.
 - **What you build locally:** the Mini App UI, supporting API routes, and the Supabase functions that power account actions.
-- Skim [Platform Capabilities](#platform-capabilities) if you want a deeper architectural tour after your first run.
+- Skim the [Product Deep Dive](#product-deep-dive) if you want a deeper architectural tour after your first run.
 
-### Step 2 — Prepare your workstation
+#### Step 2 — Prepare your workstation
 
 | Requirement | Why it matters | Install notes |
 | --- | --- | --- |
@@ -120,7 +194,7 @@ The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and b
 
 Copy `.env.example` to `.env.local`, then fill in the Telegram bot token, Supabase keys, and TON RPC endpoints as you gain access. Stick with placeholder values for optional services until you integrate them.
 
-### Step 3 — Launch the stack locally
+#### Step 3 — Launch the stack locally
 
 ```bash
 pnpm install                   # install dependencies
@@ -136,7 +210,7 @@ pnpm supabase:functions:dev
 
 That command watches the `supabase/functions` directory and reloads when you edit handlers or tests.
 
-### Step 4 — Explore the Telegram experience
+#### Step 4 — Explore the Telegram experience
 
 1. Run the Mini App locally (`pnpm dev`).
 2. In BotFather, set your bot’s `/setdomain` to the ngrok/Cloudflare tunnel URL that proxies to `localhost:3000`.
@@ -145,14 +219,14 @@ That command watches the `supabase/functions` directory and reloads when you edi
 
 If you only want to preview the UI, visit `http://localhost:3000/app` in your browser. Telegram-only features (MainButton, haptics) are mocked in development for easier iteration.
 
-### Step 5 — Grow your skills
+#### Step 5 — Grow your skills
 
 - Walk through the [Dynamic AGI self-improvement loop](#dynamic-agi-self-improvement-loop) to see how AI tooling fits into daily development.
 - Review the [Local quality gates](#local-quality-gates) checklist before opening a PR.
 - Explore the [Dynamic Capital ecosystem anatomy](docs/dynamic-capital-ecosystem-anatomy.md) for production-grade context.
 - Ready for smart-contract work? Jump into [`dynamic_capital_ton`](dynamic-capital-ton/) for TON blueprints.
 
-## Essential Commands Cheat Sheet
+### Essential Commands Cheat Sheet
 
 | Task | Command | When to run |
 | --- | --- | --- |
@@ -198,7 +272,7 @@ gh api 'search/issues?q=repo:Dynamic-Capital/Dynamic-Capital+is:pr+author:Dynami
 gh api 'repos/Dynamic-Capital/Dynamic-Capital/commits?author=Dynamic-Capital' -q '.[].html_url'
 ```
 
-## Platform Capabilities
+## Product Deep Dive
 
 ### Telegram Mini App — Next.js + React + Icons
 
