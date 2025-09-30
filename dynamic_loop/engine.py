@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from statistics import fmean
 from typing import Iterable, Mapping, MutableMapping, Sequence
@@ -11,6 +11,9 @@ __all__ = [
     "LoopSignal",
     "LoopState",
     "LoopRecommendation",
+    "LoopEquation",
+    "LoopEquationDelta",
+    "LoopEquationTimelineEntry",
     "LoopParameters",
     "DynamicLoopEngine",
 ]
@@ -51,6 +54,9 @@ class LoopParameters:
     fatigue_ceiling: float = 0.6
     default_momentum: float = 0.3
     default_fatigue: float = 0.2
+    stability_weight: float = 0.45
+    momentum_weight: float = 0.35
+    fatigue_weight: float = 0.2
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "stability_floor", _clamp(self.stability_floor))
@@ -58,6 +64,20 @@ class LoopParameters:
         object.__setattr__(self, "fatigue_ceiling", _clamp(self.fatigue_ceiling))
         object.__setattr__(self, "default_momentum", _clamp(self.default_momentum))
         object.__setattr__(self, "default_fatigue", _clamp(self.default_fatigue))
+
+        weights = (
+            max(float(self.stability_weight), 0.0),
+            max(float(self.momentum_weight), 0.0),
+            max(float(self.fatigue_weight), 0.0),
+        )
+        total = sum(weights)
+        if total <= 0:
+            raise ValueError("loop score weights must sum to a positive value")
+
+        normalised = tuple(weight / total for weight in weights)
+        object.__setattr__(self, "stability_weight", normalised[0])
+        object.__setattr__(self, "momentum_weight", normalised[1])
+        object.__setattr__(self, "fatigue_weight", normalised[2])
 
 
 @dataclass(slots=True)
@@ -129,6 +149,113 @@ class LoopRecommendation:
         }
 
 
+@dataclass(slots=True)
+class LoopEquationTimelineEntry:
+    """Structured commentary for each stage in a loop equation."""
+
+    stage: str
+    score: float
+    stability: float
+    momentum: float
+    fatigue: float
+    terms: tuple[str, ...]
+    commentary: str
+    captured_at: datetime
+
+    def __post_init__(self) -> None:
+        self.stage = _normalise_text(self.stage).lower()
+        self.score = float(self.score)
+        self.stability = float(self.stability)
+        self.momentum = float(self.momentum)
+        self.fatigue = float(self.fatigue)
+        self.terms = tuple(term.strip() for term in self.terms if term.strip())
+        self.commentary = _normalise_text(self.commentary)
+        if not isinstance(self.captured_at, datetime):
+            raise TypeError("captured_at must be a datetime instance")
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "stage": self.stage,
+            "score": self.score,
+            "stability": self.stability,
+            "momentum": self.momentum,
+            "fatigue": self.fatigue,
+            "terms": list(self.terms),
+            "commentary": self.commentary,
+            "captured_at": self.captured_at.isoformat(),
+        }
+
+
+@dataclass(slots=True)
+class LoopEquationDelta:
+    """Delta insights between two consecutive loop stages."""
+
+    direction: str
+    magnitude: float
+    narrative: str
+    confidence: float
+
+    def __post_init__(self) -> None:
+        direction = _normalise_text(self.direction).lower()
+        if direction not in {"positive", "negative", "neutral"}:
+            raise ValueError("direction must be positive, negative, or neutral")
+        self.direction = direction
+        self.magnitude = round(float(self.magnitude), 4)
+        self.narrative = _normalise_text(self.narrative)
+        self.confidence = round(_clamp(float(self.confidence)), 4)
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "direction": self.direction,
+            "magnitude": self.magnitude,
+            "narrative": self.narrative,
+            "confidence": self.confidence,
+        }
+
+
+@dataclass(slots=True)
+class LoopEquation:
+    """Summarise a back-to-back review ➜ optimise loop."""
+
+    review_state: LoopState
+    optimise_state: LoopState
+    review_score: float
+    optimise_score: float
+    score_delta: float
+    review_terms: tuple[str, ...]
+    optimise_terms: tuple[str, ...]
+    steps: tuple[str, ...] = field(default_factory=tuple)
+    cadence: str = "review-optimize"
+    timeline: tuple[LoopEquationTimelineEntry, ...] = field(default_factory=tuple)
+    delta: LoopEquationDelta | None = None
+    computed_at: datetime = field(default_factory=_utcnow)
+    parameters_snapshot: Mapping[str, float] = field(default_factory=dict)
+    version: str = "2024.1"
+
+    def __post_init__(self) -> None:
+        if self.delta is None:
+            raise ValueError("delta details are required for loop equations")
+        self.parameters_snapshot = dict(self.parameters_snapshot)
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        return {
+            "review": self.review_state.as_dict(),
+            "optimise": self.optimise_state.as_dict(),
+            "review_score": self.review_score,
+            "optimise_score": self.optimise_score,
+            "score_delta": self.score_delta,
+            "review_terms": list(self.review_terms),
+            "optimise_terms": list(self.optimise_terms),
+            "steps": list(self.steps),
+            "cadence": self.cadence,
+            "timeline": [entry.as_dict() for entry in self.timeline],
+            "delta": self.delta.as_dict() if self.delta else None,
+            "computed_at": self.computed_at.isoformat(),
+            "version": self.version,
+            "parameters": dict(self.parameters_snapshot),
+        }
+
+
 class DynamicLoopEngine:
     """Aggregate loop signals and highlight interventions."""
 
@@ -190,6 +317,23 @@ class DynamicLoopEngine:
             insights=metrics.insights,
         )
 
+    def _score_state(self, state: LoopState) -> tuple[float, tuple[str, ...]]:
+        stability_weight = self._parameters.stability_weight
+        momentum_weight = self._parameters.momentum_weight
+        fatigue_weight = self._parameters.fatigue_weight
+
+        stability_term = stability_weight * state.stability
+        momentum_term = momentum_weight * state.momentum
+        resilience_term = fatigue_weight * (1.0 - state.fatigue)
+
+        score = round(stability_term + momentum_term + resilience_term, 4)
+        terms = (
+            f"{stability_weight:.2f}×stability({state.stability:.2f})",
+            f"{momentum_weight:.2f}×momentum({state.momentum:.2f})",
+            f"{fatigue_weight:.2f}×resilience({1.0 - state.fatigue:.2f})",
+        )
+        return score, terms
+
     def _derive_recommendations(self, state: LoopState) -> list[LoopRecommendation]:
         recommendations: list[LoopRecommendation] = []
         if state.stability < self._parameters.stability_floor:
@@ -237,8 +381,109 @@ class DynamicLoopEngine:
         self._recommendations.extend(recommendations)
         return state
 
+    def review_optimize_back_to_back(
+        self,
+        review_signals: Sequence[LoopSignal],
+        optimize_signals: Sequence[LoopSignal],
+    ) -> LoopEquation:
+        """Run a review ➜ optimise loop and compute its composite score."""
+
+        review_state = self.evaluate(review_signals)
+        optimise_state = self.evaluate(optimize_signals)
+
+        review_score, review_terms = self._score_state(review_state)
+        optimise_score, optimise_terms = self._score_state(optimise_state)
+
+        score_delta = round(optimise_score - review_score, 4)
+        timeline = (
+            self._build_timeline_entry(
+                stage="review",
+                state=review_state,
+                score=review_score,
+                terms=review_terms,
+            ),
+            self._build_timeline_entry(
+                stage="optimise",
+                state=optimise_state,
+                score=optimise_score,
+                terms=optimise_terms,
+            ),
+        )
+        delta = self._build_delta(score_delta)
+        steps = tuple(entry.commentary for entry in timeline) + (delta.narrative,)
+
+        return LoopEquation(
+            review_state=review_state,
+            optimise_state=optimise_state,
+            review_score=review_score,
+            optimise_score=optimise_score,
+            score_delta=score_delta,
+            review_terms=review_terms,
+            optimise_terms=optimise_terms,
+            steps=steps,
+            timeline=timeline,
+            delta=delta,
+            parameters_snapshot=asdict(self._parameters),
+        )
+
     def latest_recommendations(self) -> tuple[LoopRecommendation, ...]:
         return tuple(self._recommendations)
 
     def history(self) -> tuple[LoopState, ...]:
         return tuple(self._states)
+
+    def _build_timeline_entry(
+        self,
+        *,
+        stage: str,
+        state: LoopState,
+        score: float,
+        terms: Sequence[str],
+    ) -> LoopEquationTimelineEntry:
+        stage_title = stage.replace("-", " ").title()
+        commentary = (
+            f"{stage_title} stage: stability={state.stability:.2f}, momentum={state.momentum:.2f}, "
+            f"fatigue={state.fatigue:.2f} -> score={score:.4f} ({' + '.join(terms)})"
+        )
+        return LoopEquationTimelineEntry(
+            stage=stage,
+            score=score,
+            stability=state.stability,
+            momentum=state.momentum,
+            fatigue=state.fatigue,
+            terms=tuple(terms),
+            commentary=commentary,
+            captured_at=state.updated_at,
+        )
+
+    def _build_delta(self, score_delta: float) -> LoopEquationDelta:
+        magnitude = round(abs(score_delta), 4)
+        if magnitude <= 1e-4:
+            direction = "neutral"
+            descriptor = "held steady"
+        elif score_delta > 0:
+            direction = "positive"
+            descriptor = "improved"
+        else:
+            direction = "negative"
+            descriptor = "regressed"
+
+        if magnitude >= 0.075:
+            significance = "meaningful shift"
+        elif magnitude >= 0.03:
+            significance = "notable change"
+        else:
+            significance = "subtle change"
+
+        base_confidence = 0.5 if magnitude == 0 else 0.55 + min(magnitude * 6.0, 0.35)
+        confidence = round(_clamp(base_confidence), 4)
+
+        narrative = (
+            f"Delta: optimise minus review = {score_delta:+.4f} ({descriptor}, {significance})."
+        )
+        return LoopEquationDelta(
+            direction=direction,
+            magnitude=magnitude,
+            narrative=narrative,
+            confidence=confidence,
+        )
