@@ -14,7 +14,30 @@ interface TelegramResponse {
 
 const DEFAULT_VERSION = "v1.0";
 const DEFAULT_FEATURE = "Bug fixes and improvements";
-const DEFAULT_MINI_APP_URL = "https://dynamic-capital.ondigitalocean.app";
+const DEFAULT_MINI_APP_URL = "https://dynamiccapital.ton/";
+const PROTOCOL_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//;
+
+function ensureProtocol(value: string): string {
+  return PROTOCOL_PATTERN.test(value) ? value : `https://${value}`;
+}
+
+function normalizeMiniAppUrl(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const candidate = ensureProtocol(trimmed);
+
+  try {
+    const parsed = new URL(candidate);
+    if (!parsed.pathname) {
+      parsed.pathname = "/";
+    }
+    return parsed.toString();
+  } catch (_error) {
+    return null;
+  }
+}
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -37,10 +60,12 @@ function normalizeFeatures(features: unknown): string[] {
     .filter((feature) => feature.length > 0);
 }
 
-async function resolveMiniAppUrl(): Promise<string> {
-  const configured = await envOrSetting<string>("MINI_APP_URL");
-  if (configured && configured.trim()) {
-    return configured.trim();
+export async function resolveMiniAppUrl(): Promise<string> {
+  const configured = normalizeMiniAppUrl(
+    await envOrSetting<string>("MINI_APP_URL"),
+  );
+  if (configured) {
+    return configured;
   }
 
   return DEFAULT_MINI_APP_URL;
