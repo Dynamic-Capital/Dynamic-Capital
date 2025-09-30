@@ -19,6 +19,25 @@
         "trading": 515
       },
       "notes": "Preprocessed Dhivehi Radheef dictionary batches; ready for LoRA fine-tuning once checksum verification completes."
+    },
+    {
+      "slug": "market_structure_notes_v1",
+      "source": {
+        "one_drive_path": "OneDrive\\\\DynamicAI_DB\\\\knowledge_base\\\\research\\\\market_structure_slides",
+        "files": [
+          "market_structure_slides.zip"
+        ]
+      },
+      "processed_path": "data/knowledge_base/research/processed/trading_market_structure_corpus.jsonl",
+      "rows": 3,
+      "languages": {
+        "en": 3
+      },
+      "tags": {
+        "trading": 3,
+        "market_structure": 3
+      },
+      "notes": "Text transcription of the market structure slide deck covering understanding, trading guidance, and trend taxonomy."
     }
   ]
 }
