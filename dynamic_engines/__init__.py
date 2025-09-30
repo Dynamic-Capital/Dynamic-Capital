@@ -113,6 +113,14 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "FeatureRecipe",
     ),
     "dynamic_effect": ("DynamicEffectEngine",),
+    "dynamic_evaluation": (
+        "DynamicEvaluationEngine",
+        "EvaluationContext",
+        "EvaluationCriterion",
+        "EvaluationReport",
+        "EvaluationSignal",
+        "EvaluationSnapshot",
+    ),
     "dynamic_event": (
         "DynamicEventEngine",
         "EventPulse",
