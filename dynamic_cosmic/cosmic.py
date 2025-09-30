@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
-from math import sqrt
+from math import exp, sqrt, tanh
 from statistics import fmean
 from typing import Deque, Iterable, Mapping, MutableMapping, Sequence
 
@@ -15,6 +15,7 @@ __all__ = [
     "CosmicPhenomenon",
     "CosmicBridge",
     "CosmicTimelineEvent",
+    "CosmicExpansionModel",
     "DynamicCosmic",
 ]
 
@@ -79,6 +80,13 @@ def _mean(values: Iterable[float]) -> float:
     if not data:
         return 0.0
     return float(fmean(data))
+
+
+def _sigmoid(value: float, *, clamp: float = 6.0) -> float:
+    """Return a numerically stable logistic response."""
+
+    bounded = max(-clamp, min(clamp, value))
+    return 1.0 / (1.0 + exp(-bounded))
 
 
 # ---------------------------------------------------------------------------
@@ -235,6 +243,111 @@ class CosmicTimelineEvent:
 
 
 # ---------------------------------------------------------------------------
+# cosmological modelling
+
+
+@dataclass(slots=True)
+class CosmicExpansionModel:
+    """Encapsulates a simplified Λ-CDM inspired profile for the engine.
+
+    The model tracks the cosmological constant (``Λ``), matter density,
+    Hubble constant, and the dark energy equation-of-state (``w``). Even though
+    these parameters are unitless here, they retain their qualitative roles:
+
+    - ``cosmological_constant`` behaves like vacuum energy density. Larger
+      values imply a stronger background expansion pressure.
+    - ``matter_density`` captures clustered structure and offers a dampening
+      term against runaway acceleration.
+    - ``equation_of_state`` tunes how the vacuum energy couples to pressure.
+      ``w = -1`` recovers the classical cosmological constant behaviour.
+    - ``hubble_constant`` modulates how aggressively the system responds to the
+      current density mix.
+
+    The helper exposes derived quantities (Friedmann acceleration, continuity
+    residual, etc.) that the orchestration engine can fold into its resilience
+    scoring.
+    """
+
+    cosmological_constant: float = 0.7
+    equation_of_state: float = -1.0
+    matter_density: float = 0.3
+    hubble_constant: float = 70.0
+
+    def __post_init__(self) -> None:
+        self.cosmological_constant = _non_negative(self.cosmological_constant)
+        self.matter_density = _non_negative(self.matter_density)
+        self.hubble_constant = _non_negative(self.hubble_constant, minimum=1e-3)
+        self.equation_of_state = float(self.equation_of_state)
+
+    def dark_energy_pressure(self) -> float:
+        """Return the effective vacuum pressure using ``p = w ρ``."""
+
+        return self.equation_of_state * self.cosmological_constant
+
+    def energy_density(self) -> float:
+        """Combined matter plus dark-energy density."""
+
+        return self.cosmological_constant + self.matter_density
+
+    def friedmann_acceleration(self) -> float:
+        r"""Scaled \(\ddot{a} / a\) term from the second Friedmann equation."""
+
+        density = self.energy_density()
+        pressure = self.dark_energy_pressure()
+        return -(density + 3.0 * pressure)
+
+    def expansion_rate(self) -> float:
+        """Normalised Hubble expansion rate for telemetry dashboards."""
+
+        return (self.hubble_constant / 100.0) * sqrt(max(self.energy_density(), 0.0))
+
+    def continuity_residual(self, network_density: float) -> float:
+        """Deviation from a steady-state continuity equation.
+
+        ``network_density`` approximates how many bridges exist per phenomenon
+        and acts as a multiplier for expansion drag. Positive values indicate a
+        tendency toward accelerated expansion that treasury teams must offset.
+        """
+
+        hubble = self.hubble_constant / 100.0
+        density = self.energy_density()
+        pressure = self.dark_energy_pressure()
+        background = -3.0 * hubble * (self.cosmological_constant + pressure)
+        coupling = hubble * density * (network_density - 1.0)
+        return coupling + background
+
+    def stability_modulation(self, network_density: float) -> float:
+        """Return a multiplier for network resilience based on cosmology."""
+
+        acceleration = self.friedmann_acceleration()
+        # Normalise the acceleration by the hubble constant so a default
+        # parameter set lands close to a unity multiplier. Allow negative
+        # acceleration (deceleration) to meaningfully reduce the modulation
+        # instead of clamping it to zero.
+        hubble_scale = max(0.1, self.hubble_constant / 100.0)
+        logistic = _sigmoid(acceleration / (1.5 * hubble_scale))
+        density_term = tanh((network_density - 1.0) * 0.8)
+        # Centre the modifier at ~1.0 and keep it within a tight band so the
+        # expansion model nudges resilience without dominating the base signal.
+        return 1.0 + 0.2 * (logistic - 0.5) + 0.15 * density_term
+
+    def telemetry(self, network_density: float) -> Mapping[str, float]:
+        """Expose derived cosmological quantities for downstream consumers."""
+
+        return {
+            "cosmological_constant": self.cosmological_constant,
+            "equation_of_state": self.equation_of_state,
+            "matter_density": self.matter_density,
+            "energy_density": self.energy_density(),
+            "dark_energy_pressure": self.dark_energy_pressure(),
+            "friedmann_acceleration": self.friedmann_acceleration(),
+            "expansion_rate": self.expansion_rate(),
+            "continuity_residual": self.continuity_residual(network_density),
+            "stability_modifier": self.stability_modulation(network_density),
+        }
+
+
+# ---------------------------------------------------------------------------
 # orchestration engine
 
 
@@ -247,6 +360,7 @@ class DynamicCosmic:
         phenomena: Sequence[CosmicPhenomenon] | None = None,
         bridges: Sequence[CosmicBridge] | None = None,
         history_limit: int = 500,
+        expansion_model: CosmicExpansionModel | Mapping[str, object] | None = None,
     ) -> None:
         if history_limit <= 0:
             raise ValueError("history_limit must be positive")
@@ -254,6 +368,7 @@ class DynamicCosmic:
         self._bridges: MutableMapping[tuple[str, str], CosmicBridge] = {}
         self._events: Deque[CosmicTimelineEvent] = deque()
         self._history_limit = int(history_limit)
+        self._expansion_model = self._ensure_expansion_model(expansion_model)
 
         if phenomena:
             for item in phenomena:
@@ -281,6 +396,10 @@ class DynamicCosmic:
     @property
     def history_size(self) -> int:
         return len(self._events)
+
+    @property
+    def expansion_model(self) -> CosmicExpansionModel:
+        return self._expansion_model
 
     def register_phenomenon(self, phenomenon: CosmicPhenomenon | Mapping[str, object]) -> CosmicPhenomenon:
         if not isinstance(phenomenon, CosmicPhenomenon):
@@ -336,20 +455,45 @@ class DynamicCosmic:
         self._history_limit = int(limit)
         self._enforce_history_limit()
 
+    def configure_expansion(
+        self, model: CosmicExpansionModel | Mapping[str, object] | None
+    ) -> CosmicExpansionModel:
+        """Update the cosmological profile used for resilience calculations."""
+
+        self._expansion_model = self._ensure_expansion_model(model)
+        return self._expansion_model
+
     def _enforce_history_limit(self) -> None:
         while len(self._events) > self._history_limit:
             self._events.pop()
+
+    def _ensure_expansion_model(
+        self, model: CosmicExpansionModel | Mapping[str, object] | None
+    ) -> CosmicExpansionModel:
+        if model is None:
+            return CosmicExpansionModel()
+        if isinstance(model, CosmicExpansionModel):
+            return model
+        return CosmicExpansionModel(**model)
+
+    def _network_density(self) -> float:
+        if not self._phenomena:
+            return 0.0
+        return len(self._bridges) / max(1, len(self._phenomena))
 
     def evaluate_resilience(self) -> float:
         if not self._phenomena:
             return 0.0
         resonance = _mean(phenomenon.resonance_score() for phenomenon in self._phenomena.values())
+        modifier = self._expansion_model.stability_modulation(self._network_density())
         if not self._bridges:
-            return resonance
+            return resonance * modifier
         connectivity = _mean(bridge.transfer_efficiency() for bridge in self._bridges.values())
-        return resonance * (0.6 + 0.4 * min(1.0, connectivity / (resonance + 1e-9)))
+        ratio = min(1.0, connectivity / (resonance + 1e-9))
+        return resonance * (0.6 + 0.4 * ratio) * modifier
 
     def snapshot(self) -> Mapping[str, object]:
+        network_density = self._network_density()
         return {
             "phenomena": [
                 {
@@ -377,4 +521,5 @@ class DynamicCosmic:
                 for event in self._events
             ],
             "resilience": self.evaluate_resilience(),
+            "expansion": self._expansion_model.telemetry(network_density),
         }

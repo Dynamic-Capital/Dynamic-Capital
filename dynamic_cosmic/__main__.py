@@ -212,7 +212,12 @@ def _load_config(path: Path) -> Mapping[str, Any]:
 def build_engine(config: Mapping[str, Any]) -> DynamicCosmic:
     history_limit = int(config.get("history_limit", 500))
     phenomena = _build_phenomena(config.get("phenomena", []))
-    engine = DynamicCosmic(phenomena=phenomena, history_limit=history_limit)
+    expansion_config = config.get("expansion_model")
+    engine = DynamicCosmic(
+        phenomena=phenomena,
+        history_limit=history_limit,
+        expansion_model=expansion_config,
+    )
     _build_bridges(config.get("bridges", []), engine)
     _build_events(config.get("events", []), engine)
 
@@ -251,6 +256,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "phenomena": snapshot.get("phenomena", []),
         "bridges": snapshot.get("bridges", []),
         "events": snapshot.get("events", []),
+        "expansion": snapshot.get("expansion", {}),
     }
 
     if args.pretty:

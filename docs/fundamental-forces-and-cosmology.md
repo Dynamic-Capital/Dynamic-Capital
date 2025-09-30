@@ -82,6 +82,47 @@ Einstein's field equations explain how matter and energy curve spacetime:
 - **Control optimization:** Solve a quadratic program minimizing curvature
   variance subject to cash runway constraints before approving capital moves.
 
+### Dark Energy → Expansion Pace & Treasury Runway Pressure
+
+The cosmological constant and the dark energy equation of state introduce a
+baseline acceleration in general relativity:
+
+\[ R_{\mu\nu} - \tfrac{1}{2} R g_{\mu\nu} + \Lambda g_{\mu\nu} = \frac{8 \pi
+G}{c^4} T_{\mu\nu}, \qquad p = w \rho. \]
+
+- **Cosmological constant (\(\Lambda\)) → Fixed runway drag:** Treat recurring
+  operational burn, compliance overhead, and required community incentives as an
+  immutable background term. Even when no new initiatives are funded, that
+  pressure accelerates cash consumption.
+- **Equation of state (\(w\)) → Growth posture:** Aggressive expansion modes
+  (marketing pushes, new chain deployments) behave like \(w < -1/3\), creating
+  negative pressure that speeds up treasury drawdown. A conservative posture
+  keeps \(w \approx -1\), ensuring burn is offset by yield or fee revenue.
+- **Friedmann acceleration (\(\ddot{a}/a = -\frac{4\pi G}{3c^2} (\rho + 3p)\)) →
+  Liquidity slope:** Translate the acceleration term into a KPI that tracks how
+  fast available liquidity changes under the current burn and revenue profile.
+  Positive acceleration signals unsustainable momentum—trigger a slowdown before
+  reserves fall below guardrails.
+- **Continuity (\( \dot{\rho}_{\text{DE}} + 3 H (\rho_{\text{DE}} +
+  p_{\text{DE}}) = 0 \)) → Forecast discipline:** Weekly runway models must
+  reconcile inflows, burn, and expansion bets. If "dark energy" initiatives are
+  assumed constant, enforce \(p_{\text{DE}} = -\rho_{\text{DE}}\) by earmarking
+  offsetting yield streams or trimming discretionary scope.
+- **Network density calibration → Resilience modifier:** Treat bridge-per-
+  phenomenon density around 1.0 as the neutral point. Higher densities increase
+  the expansion drag term, while sparse networks dampen it. The dynamic cosmic
+  engine now folds this calibration into a bounded stability multiplier so
+  treasury actions nudge resilience rather than whipsawing it.
+
+**Operational loop**
+
+1. **Review:** Publish a "cosmic constant" dashboard that compares observed burn
+   against the assumed \(\Lambda\) baseline and highlights when \(w\) deviates
+   from planned posture.
+2. **Optimize:** Adjust hiring, vendor spend, or incentive programs to return
+   \(w\) to the target band. Pair each change with a treasury hedging update so
+   long-horizon commitments stay solvent even under accelerated expansion.
+
 ## Electromagnetism → Signal Routing & Data Hygiene
 
 Maxwell's equations capture how electric and magnetic fields interact:

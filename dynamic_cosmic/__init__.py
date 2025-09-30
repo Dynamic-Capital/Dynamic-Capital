@@ -3,6 +3,7 @@
 from .cosmic import (
     CosmicBridge,
     CosmicCoordinate,
+    CosmicExpansionModel,
     CosmicPhenomenon,
     CosmicSignal,
     CosmicTimelineEvent,
@@ -12,6 +13,7 @@ from .cosmic import (
 __all__ = [
     "CosmicBridge",
     "CosmicCoordinate",
+    "CosmicExpansionModel",
     "CosmicPhenomenon",
     "CosmicSignal",
     "CosmicTimelineEvent",

@@ -59,12 +59,27 @@ class DynamicCosmicAgent:
         bridges = snapshot.get("bridges", [])
         events = snapshot.get("events", [])
         resilience = float(snapshot.get("resilience", 0.0) or 0.0)
+        expansion = snapshot.get("expansion", {}) if isinstance(snapshot, Mapping) else {}
         metrics = {
             "phenomena": float(len(phenomena)),
             "bridges": float(len(bridges)),
             "events": float(len(events)),
             "resilience": resilience,
         }
+        if isinstance(expansion, Mapping):
+            friedmann = float(expansion.get("friedmann_acceleration", 0.0) or 0.0)
+            continuity = float(expansion.get("continuity_residual", 0.0) or 0.0)
+            modifier = float(expansion.get("stability_modifier", 0.0) or 0.0)
+            metrics.update(
+                {
+                    "friedmann_acceleration": friedmann,
+                    "continuity_residual": continuity,
+                    "stability_modifier": modifier or 1.0,
+                }
+            )
+            equation_of_state = expansion.get("equation_of_state")
+            if isinstance(equation_of_state, (int, float)):
+                metrics["equation_of_state"] = float(equation_of_state)
         highlights: list[str] = []
         if phenomena:
             dominant = max(phenomena, key=lambda item: item.get("magnitude", 0.0))
@@ -73,6 +88,13 @@ class DynamicCosmicAgent:
             )
         if bridges:
             highlights.append(f"Network bridges active: {len(bridges)}")
+        if isinstance(expansion, Mapping):
+            friedmann = float(expansion.get("friedmann_acceleration", 0.0) or 0.0)
+            continuity = float(expansion.get("continuity_residual", 0.0) or 0.0)
+            if friedmann > 0.05:
+                highlights.append(f"Expansion acceleration {friedmann:.2f}")
+            if continuity > 0.05:
+                highlights.append(f"Runway drag index {continuity:.2f}")
         details = {"snapshot": snapshot}
         return AgentInsight(
             domain=self.domain,
