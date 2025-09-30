@@ -113,6 +113,8 @@ export function createMockSupabaseClient(): MockSupabaseClient {
       },
     },
     rpc: async (name: string, _params: unknown) => {
+  await Promise.resolve(); // satisfy require-await
+
       if (name === "rl_touch") {
         return { data: { count: 0 }, error: null };
       }
@@ -133,6 +135,8 @@ export function createMockSupabaseClient(): MockSupabaseClient {
       if (table === "channel_memberships") {
         return {
           upsert: async (rows: MockMembershipRecord[] | MockMembershipRecord) => {
+  await Promise.resolve(); // satisfy require-await
+
             for (const r of Array.isArray(rows) ? rows : [rows]) {
               cm[`${r.telegram_user_id}:${r.channel_id}`] = r;
             }
@@ -189,6 +193,8 @@ export function createMockSupabaseClient(): MockSupabaseClient {
       if (table === "admin_logs") {
         return {
           insert: async (row: unknown) => {
+  await Promise.resolve(); // satisfy require-await
+
             logs.push(row);
             return { data: row, error: null };
           },

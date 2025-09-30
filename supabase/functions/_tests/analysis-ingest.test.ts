@@ -1,7 +1,7 @@
 import {
   assertEquals,
   assertStrictEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+} from "std/assert/mod.ts";
 
 Deno.test("analysis-ingest stores valid analyst insight", async () => {
   const originalFetch = globalThis.fetch;
@@ -13,6 +13,8 @@ Deno.test("analysis-ingest stores valid analyst insight", async () => {
     input: Request | URL | string,
     init?: RequestInit,
   ) => {
+    await Promise.resolve(); // satisfy require-await
+
     const url = typeof input === "string"
       ? new URL(input)
       : input instanceof Request
@@ -134,6 +136,8 @@ Deno.test("analysis-ingest surfaces database errors", async () => {
     input: Request | URL | string,
     init?: RequestInit,
   ) => {
+    await Promise.resolve(); // satisfy require-await
+
     const url = typeof input === "string"
       ? new URL(input)
       : input instanceof Request

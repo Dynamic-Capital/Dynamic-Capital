@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "std/assert/mod.ts";
 
 const REQUIRED_ENV = [
   "ONEDRIVE_TENANT_ID",
@@ -30,6 +30,8 @@ Deno.test("onedrive-proxy lists drive items", async () => {
 
   globalThis.fetch =
     (async (input: Request | URL | string, init?: RequestInit) => {
+  await Promise.resolve(); // satisfy require-await
+
       const url = typeof input === "string"
         ? input
         : input instanceof URL

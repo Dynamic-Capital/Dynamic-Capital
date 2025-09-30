@@ -2,12 +2,15 @@
 
 import { ReactNode, createContext, useContext } from 'react';
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-function useTypedSupabaseClient() {
-  return useSupabaseClient<any, 'public'>();
+import type { Database } from '@/integrations/supabase/types';
+
+function useTypedSupabaseClient(): SupabaseClient<Database> {
+  return useSupabaseClient<Database>();
 }
 
-type SupabaseClientValue = ReturnType<typeof useTypedSupabaseClient>;
+type SupabaseClientValue = SupabaseClient<Database>;
 
 interface SupabaseContextValue {
   supabase: SupabaseClientValue;

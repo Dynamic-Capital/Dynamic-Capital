@@ -1,7 +1,7 @@
 import {
   assert,
   assertEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+} from "std/assert/mod.ts";
 
 Deno.test("economic calendar function returns normalized events", async () => {
   const originalFetch = globalThis.fetch;
@@ -26,6 +26,8 @@ Deno.test("economic calendar function returns normalized events", async () => {
     input: Request | URL | string,
     init?: RequestInit,
   ) => {
+    await Promise.resolve(); // satisfy require-await
+
     const url = typeof input === "string"
       ? new URL(input)
       : input instanceof Request

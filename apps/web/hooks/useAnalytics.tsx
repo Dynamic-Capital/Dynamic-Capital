@@ -2,16 +2,17 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { TrackEventResponse } from '@/types/api';
 
 // Client-only hook: interacts with window, document, and navigator
+
+type InteractionData = Record<string, unknown>;
 
 interface AnalyticsEvent {
   event_type: string;
   telegram_user_id?: string;
   session_id?: string;
   page_context?: string;
-  interaction_data?: any;
+  interaction_data?: InteractionData;
   user_agent?: string;
   referrer?: string;
   utm_source?: string;
@@ -76,7 +77,10 @@ export const useAnalytics = () => {
     });
   }, [trackEvent]);
 
-  const trackButtonClick = useCallback((buttonId: string, extraData?: any) => {
+  const trackButtonClick = useCallback((
+    buttonId: string,
+    extraData?: InteractionData,
+  ) => {
     trackEvent({
       event_type: 'button_click',
       interaction_data: {

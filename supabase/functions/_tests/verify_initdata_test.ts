@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertEquals } from "std/assert/mod.ts";
 import { setTestEnv, makeTelegramInitData } from "./helpers.ts";
 import { verifyFromRaw } from "../verify-initdata/index.ts";
 

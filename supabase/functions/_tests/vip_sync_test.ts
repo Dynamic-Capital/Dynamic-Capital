@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "std/assert/mod.ts";
 import { createMockSupabaseClient } from "./mock_supabase.ts";
 
 Deno.test("vip-sync version", async () => {

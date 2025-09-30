@@ -1,12 +1,26 @@
 // Access Node's process via globalThis to avoid TypeScript errors when `process`
 // is not defined (e.g. in Deno environments)
-const nodeProcess = (globalThis as any).process as
-  | { env?: Record<string, string | undefined> }
-  | undefined;
+type NodeProcessLike = {
+  env?: Record<string, string | undefined>;
+};
+
+type DenoEnvNamespace = {
+  env?: {
+    get?: (key: string) => string | undefined;
+  };
+};
+
+type GlobalWithRuntimes = typeof globalThis & {
+  process?: NodeProcessLike;
+  Deno?: DenoEnvNamespace;
+};
+
+const runtimeGlobal = globalThis as GlobalWithRuntimes;
+const nodeProcess = runtimeGlobal.process;
 
 const getEnv = (key: string): string | undefined => {
   if ("Deno" in globalThis) {
-    const denoEnv = (globalThis as any).Deno?.env;
+    const denoEnv = runtimeGlobal.Deno?.env;
     const value = denoEnv?.get?.(key);
     if (value !== undefined) {
       return value;

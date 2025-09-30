@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "std/assert/mod.ts";
 import { setTestEnv, clearTestEnv } from "./env-mock.ts";
 
 Deno.test("checkout-init rejects unauthenticated requests", async () => {

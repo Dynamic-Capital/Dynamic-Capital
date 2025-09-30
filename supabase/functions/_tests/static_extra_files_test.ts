@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import { assert, assertEquals } from "std/testing/asserts.ts";
 import { serveStatic, StaticOpts } from "../_shared/static.ts";
 
 Deno.test("serve robots.txt and sitemap.xml with correct content-type", async () => {

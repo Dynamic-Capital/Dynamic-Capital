@@ -1,4 +1,4 @@
-import { assertEquals, assert } from "https://deno.land/std@0.224.0/testing/asserts.ts";
+import { assertEquals, assert } from "std/testing/asserts.ts";
 import handler from "../payments-auto-review/index.ts";
 
 Deno.test("payments-auto-review exposes version", async () => {

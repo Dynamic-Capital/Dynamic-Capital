@@ -1,4 +1,4 @@
-import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert } from "std/assert/mod.ts";
 import { setTestEnv, clearTestEnv } from "./env-mock.ts";
 
 async function importBot() {
@@ -19,6 +19,8 @@ Deno.test("start command includes Mini App button when env present", async () =>
   const calls: { input: string; body: string }[] = [];
   const origFetch = globalThis.fetch;
   globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  await Promise.resolve(); // satisfy require-await
+
     const body = typeof init?.body === "string"
       ? init.body
       : init?.body
@@ -56,6 +58,8 @@ Deno.test("start command includes Mini App button when env missing", async () =>
   const calls: { input: string; body: string }[] = [];
   const origFetch = globalThis.fetch;
   globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  await Promise.resolve(); // satisfy require-await
+
     const body = typeof init?.body === "string"
       ? init.body
       : init?.body

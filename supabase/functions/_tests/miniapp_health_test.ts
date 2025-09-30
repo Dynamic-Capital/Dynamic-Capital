@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals, assertThrows } from "std/assert/mod.ts";
 import { FakeSupa } from "./helpers.ts";
 import { requireMiniAppEnv } from "../_shared/miniapp.ts";
 

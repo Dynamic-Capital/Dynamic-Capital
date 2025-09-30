@@ -23,6 +23,7 @@ export function setTestEnv(values: Partial<Record<EnvKey, string>>) {
 
   for (const [k, v] of Object.entries(merged)) {
     try {
+// deno-lint-ignore ban-ts-comment
       // @ts-ignore -- Deno may be unavailable in some environments
       Deno.env.set(k, v);
     } catch {
@@ -43,6 +44,7 @@ export function clearTestEnv() {
   if (current) {
     for (const k of Object.keys(current)) {
       try {
+// deno-lint-ignore ban-ts-comment
         // @ts-ignore -- Deno may be unavailable
         Deno.env.delete(k);
       } catch {

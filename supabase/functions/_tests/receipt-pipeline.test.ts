@@ -115,6 +115,8 @@ Deno.test("startReceiptPipeline stores parsed bank slip on payment", async () =>
                 eq(_col: string, value: string) {
                   return {
                     maybeSingle: async () => {
+  await Promise.resolve(); // satisfy require-await
+
                       const row = payments.get(value);
                       if (!row) return { data: null, error: null };
                       const { id, user_id, webhook_data } = row;
@@ -143,6 +145,8 @@ Deno.test("startReceiptPipeline stores parsed bank slip on payment", async () =>
             delete() {
               return {
                 eq: async (_col: string, value: string) => {
+  await Promise.resolve(); // satisfy require-await
+
                   payments.delete(value);
                   return { error: null };
                 },
@@ -237,6 +241,8 @@ Deno.test("startReceiptPipeline stores parsed bank slip on payment", async () =>
   const supabaseUrl = "https://stub.supabase.co/functions/v1/receipt-submit";
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (input: Request | string, init?: RequestInit) => {
+  await Promise.resolve(); // satisfy require-await
+
     const url = typeof input === "string" ? input : input.url;
     if (url.includes("/getFile")) {
       return new Response(

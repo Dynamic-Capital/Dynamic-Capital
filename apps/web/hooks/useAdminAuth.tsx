@@ -3,12 +3,19 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+interface TelegramUserData {
+  id?: number | string;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+}
+
 interface AdminAuthContextType {
   isAdmin: boolean;
   isVip: boolean;
   loading: boolean;
   checkAdminStatus: (telegramUserId?: string) => Promise<boolean>;
-  syncUser: (telegramData?: any) => Promise<boolean>;
+  syncUser: (telegramData?: TelegramUserData) => Promise<boolean>;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
@@ -83,7 +90,9 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const syncUser = async (telegramData?: any): Promise<boolean> => {
+  const syncUser = async (
+    telegramData?: TelegramUserData,
+  ): Promise<boolean> => {
     if (!telegramData) return false;
 
     try {

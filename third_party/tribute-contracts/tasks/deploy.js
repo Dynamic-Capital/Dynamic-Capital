@@ -1,3 +1,4 @@
+import process from "node:process";
 const fs = require("fs");
 const path = require("path");
 
@@ -20,7 +21,7 @@ const { log, info } = require("../utils/log-util");
 const { deployConfigs } = require("../deploy-config");
 require("dotenv").config({ path: "../.env" });
 
-task("deploy", "Deploy the list of contracts", async (args, hre) => {
+task("deploy", "Deploy the list of contracts", async (_args, hre) => {
   const { network } = hre.hardhatArguments;
 
   log(`Deployment started at ${new Date().toISOString()}`);
@@ -875,7 +876,7 @@ const deployAvalancheDao = async ({
   });
 };
 
-const deploy = async (opts) => {
+const deploy = (opts) => {
   const action = DeploymentActions[opts.network];
   if (action) {
     return action(opts);
