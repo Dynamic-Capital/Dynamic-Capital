@@ -21,6 +21,39 @@ project-specific runbooks.
 | First month reinforcement | Weeks 2–4      | New collaborator                      | Feature delivery evidence, checklist facilitation recap  |
 | Completion                | End of month 1 | Buddy + manager                       | Final sign-off comment and archived checklist link       |
 
+## How to run this checklist
+
+1. **Create an onboarding tracker issue.** Spin up an issue in GitHub or Notion
+   titled `Onboarding – <Name>` and paste the checklist below. Add the
+   onboarding buddy and hiring manager as assignees so accountability is clear
+   from the start.
+2. **Define milestone dates up front.** Align on the collaborator's first day,
+   end of week one, and 30-day review target. Record the dates in the issue so
+   reminders and calendar holds can be scheduled immediately.
+3. **Attach evidence in real time.** Every time a task is completed, drop the
+   screenshot, CLI output, or document link in the issue with a short note.
+   Encourage the new collaborator to contribute their own evidence so they get
+   comfortable with the repository tooling quickly.
+4. **Run twice-weekly check-ins.** Use a 15-minute sync at the start of the week
+   (review outstanding items) and end of the week (capture wins/risks) to keep
+   momentum. Convert the outcomes into comments on the issue for the leadership
+   record.
+5. **Close the loop at completion.** When all sections are checked off, post a
+   summary comment that links to the captured evidence, lessons learned, and
+   next delivery target. Archive the issue in the onboarding workspace.
+
+### Progress log template
+
+Paste the following table at the top of the onboarding issue to document each
+checkpoint and surface blockers before they slow down delivery.
+
+| Date       | Phase / Task Group        | Owner(s)          | Key updates / Evidence                   | Blockers & Next Actions      |
+| ---------- | ------------------------- | ----------------- | ---------------------------------------- | ---------------------------- |
+| 2025-01-06 | Pre-boarding – accounts   | People Ops, Buddy | GitHub/Notion invites sent               | Awaiting Supabase approval   |
+| 2025-01-08 | Day 1 – workspace setup   | New collaborator  | Attached terminal logs for `npm install` | Need Docker Desktop approval |
+| 2025-01-13 | Week 1 – first PR shipped | New collaborator  | Linked docs PR #123                      | Schedule deployment shadow   |
+| 2025-02-03 | Month 1 – sign-off        | Buddy, Manager    | Added 30-day feedback summary            | Confirm access review invite |
+
 ## 1. Pre-boarding (week before start date)
 
 ### 1.1 Admin & access provisioning
