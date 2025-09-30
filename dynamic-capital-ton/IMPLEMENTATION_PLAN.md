@@ -42,3 +42,6 @@
 ## Dependencies & Open Questions
 - Confirm whether Tact testing infrastructure exists in the repo to simulate contract executions. If not, plan to add focused unit tests using the available toolchain or document the manual testing process.
 - Verify if the allocator needs to refund any leftover TON from `msg.info.value - forward_ton_amount`; clarify desired behavior with stakeholders if unspecified.
+
+## Test Execution Notes
+- `$(bash scripts/deno_bin.sh) test -A dynamic-capital-ton/apps/tests/pool_allocator.test.ts` currently fails during dependency caching because the npm registry responds with HTTP 502 for `ajv@6.12.6`. Re-run once the registry outage is resolved to confirm the allocator tests.
