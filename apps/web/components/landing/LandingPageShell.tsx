@@ -7,7 +7,6 @@ import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
 import { dynamicUI } from "@/resources";
 import { MultiLlmLandingPage } from "@/components/landing/MultiLlmLandingPage";
-import { HomeNavigationRail } from "@/components/landing/HomeNavigationRail";
 import type {
   ChromaBackgroundProps,
   ChromaBackgroundStyle,
@@ -114,7 +113,6 @@ export function LandingPageShell({
         gap="32"
         horizontal="center"
       >
-        <HomeNavigationRail className="mt-4" />
         <MultiLlmLandingPage />
       </Column>
       {showAssistant
