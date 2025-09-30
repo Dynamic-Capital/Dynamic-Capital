@@ -776,6 +776,10 @@ curl -X POST -H "Content-Type: application/json" \
 
 ### Running with Docker
 
+If the Docker CLI is not yet available in your development environment, follow the [Docker CLI setup guide](docs/devops/docker-cli-setup.md) before running the commands below.
+
+> ⚠️ **Heads-up:** The hosted development container cannot always start the Docker daemon. Review the "Running Containers in this Project Environment" section of the setup guide for workarounds (remote Docker contexts, local machines, etc.) and never paste real tunnel or API tokens directly into commands.
+
 1. **Build the image**
 
    ```bash
