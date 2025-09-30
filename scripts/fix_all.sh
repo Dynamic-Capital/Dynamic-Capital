@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DENO_BIN="$(bash scripts/deno_bin.sh)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+cd "${REPO_ROOT}"
+
+DENO_BIN="$(bash "${SCRIPT_DIR}/deno_bin.sh")"
 export DENO_TLS_CA_STORE="${DENO_TLS_CA_STORE:-system}"
 export DENO_NO_UPDATE_CHECK=1
 
