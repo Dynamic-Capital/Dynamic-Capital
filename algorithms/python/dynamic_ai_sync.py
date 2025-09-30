@@ -6,7 +6,7 @@ import json
 from dataclasses import asdict, dataclass, field, is_dataclass
 from datetime import UTC, date, datetime
 from time import perf_counter
-from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple
 
 from typing_extensions import Literal
 
@@ -313,11 +313,75 @@ def _ensure_trade_algo(candidate: Any) -> DynamicTradingAlgo:
     return DynamicTradingAlgo()
 
 
+def _clean_sequence(items: Iterable[Any]) -> list[Any]:
+    cleaned: list[Any] = []
+    for item in items:
+        if item is None:
+            continue
+        if isinstance(item, str):
+            text = item.strip()
+            if not text:
+                continue
+            cleaned.append(text)
+            continue
+        if isinstance(item, Mapping):
+            nested = _clean_mapping(item)
+            if nested:
+                cleaned.append(nested)
+            continue
+        if isinstance(item, float) and item != item:  # NaN guard
+            continue
+        cleaned.append(item)
+    return cleaned
+
+
+def _clean_mapping(payload: Mapping[str, Any]) -> Dict[str, Any]:
+    cleaned: Dict[str, Any] = {}
+    for key, value in payload.items():
+        if value is None:
+            continue
+        if isinstance(value, float) and value != value:  # NaN guard
+            continue
+        if key == "loss_covered":
+            numeric = _safe_float(value)
+            if numeric is None or numeric == 0:
+                continue
+        if isinstance(value, str):
+            text = value.strip()
+            if not text:
+                continue
+            cleaned[key] = text
+            continue
+        if isinstance(value, Mapping):
+            nested = _clean_mapping(value)
+            if nested:
+                cleaned[key] = nested
+            continue
+        if isinstance(value, (list, tuple, set)):
+            nested_sequence = _clean_sequence(value)
+            if nested_sequence:
+                cleaned[key] = nested_sequence
+            continue
+        cleaned[key] = value
+    return cleaned
+
+
 def _apply_treasury_updates(
     trade: TradeExecutionResult,
     treasury_candidate: Any,
 ) -> Mapping[str, Any] | None:
-    treasury = treasury_candidate
+    treasury = _extract_agent_candidate(treasury_candidate)
+
+    if isinstance(treasury, type) or (
+        callable(treasury) and not hasattr(treasury, "update_from_trade")
+    ):
+        try:
+            produced = treasury()
+        except Exception:  # pragma: no cover - constructor guard
+            treasury = None
+        else:
+            treasury = _extract_agent_candidate(produced)
+
     if treasury is None and DynamicTreasuryAlgo is not None:
         try:
             treasury = DynamicTreasuryAlgo()
@@ -342,19 +406,11 @@ def _apply_treasury_updates(
     if not normalised:
         return None
 
-    cleaned: Dict[str, Any] = {}
-    for key, value in normalised.items():
-        if value is None:
-            continue
-        if key == "loss_covered":
-            numeric = _safe_float(value)
-            if numeric is None or numeric == 0:
-                continue
-        if isinstance(value, (list, tuple, set)) and not value:
-            continue
-        cleaned[key] = value
+    cleaned = _clean_mapping(normalised)
+    if cleaned:
+        return cleaned
 
-    return cleaned or None
+    return None
 
 
 def _summarise_optimisation(

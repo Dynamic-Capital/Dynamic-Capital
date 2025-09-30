@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, Mapping, Sequence
 
 from algorithms.python.dynamic_ai_sync import (
@@ -222,6 +222,29 @@ class StubTreasury:
         return TreasuryEvent(burned=1.0, rewards_distributed=2.0, profit_retained=3.0)
 
 
+@dataclass(slots=True)
+class VerboseTreasuryEvent:
+    burned: float = 1.5
+    rewards_distributed: float = 4.0
+    profit_retained: float = 0.75
+    loss_covered: float = 0.0
+    notes: tuple[str, ...] = ("  ", "Treasury balancing complete")
+    memo: str = "   "
+    metadata: Dict[str, Any] = field(
+        default_factory=lambda: {"details": None, "tags": (), "signals": []}
+    )
+
+
+@dataclass(slots=True)
+class EmptyTreasuryEvent:
+    burned: float | None = None
+    rewards_distributed: float | None = None
+    profit_retained: float | None = None
+    loss_covered: float = 0.0
+    notes: tuple[str, ...] = ()
+    metadata: Dict[str, Any] = field(default_factory=lambda: {"details": None})
+
+
 def test_run_dynamic_algo_alignment_executes_trade_and_treasury() -> None:
     trader = StubTrader()
     treasury = StubTreasury()
@@ -244,6 +267,68 @@ def test_run_dynamic_algo_alignment_executes_trade_and_treasury() -> None:
     assert result["treasury_event"] == {"burned": 1.0, "rewards_distributed": 2.0, "profit_retained": 3.0}
     assert result["optimisation"]["risk_flags"] == ()
     assert result["optimisation"]["hedges_recommended"] == 0
+
+
+def test_run_dynamic_algo_alignment_supports_factory_treasury_and_cleans_payload() -> None:
+    trader = StubTrader()
+
+    class FactoryTreasury:
+        created = 0
+        last_instance: "FactoryTreasury | None" = None
+
+        def __init__(self) -> None:
+            type(self).created += 1
+            type(self).last_instance = self
+            self.calls = 0
+
+        def update_from_trade(self, trade_result: TradeExecutionResult) -> VerboseTreasuryEvent:
+            self.calls += 1
+            return VerboseTreasuryEvent()
+
+    result = run_dynamic_algo_alignment(
+        {
+            "symbol": "EURUSD",
+            "lot": 0.25,
+            "research_payload": _research_payload(),
+            "market_payload": _market_payload(),
+            "risk_payload": _risk_payload(),
+            "trader": trader,
+            "treasury": {"factory": FactoryTreasury},
+        }
+    )
+
+    assert result["trade"]["status"] == "executed"
+    assert result["treasury_event"] == {
+        "burned": 1.5,
+        "rewards_distributed": 4.0,
+        "profit_retained": 0.75,
+        "notes": ["Treasury balancing complete"],
+    }
+    assert FactoryTreasury.created == 1
+    assert FactoryTreasury.last_instance is not None
+    assert FactoryTreasury.last_instance.calls == 1
+
+
+def test_run_dynamic_algo_alignment_ignores_empty_treasury_event() -> None:
+    trader = StubTrader()
+
+    class EmptyTreasury:
+        def update_from_trade(self, trade_result: TradeExecutionResult) -> EmptyTreasuryEvent:
+            return EmptyTreasuryEvent()
+
+    result = run_dynamic_algo_alignment(
+        {
+            "symbol": "EURUSD",
+            "lot": 0.1,
+            "research_payload": _research_payload(),
+            "market_payload": _market_payload(),
+            "risk_payload": _risk_payload(),
+            "trader": trader,
+            "treasury": EmptyTreasury(),
+        }
+    )
+
+    assert result["treasury_event"] is None
 
 
 def test_run_dynamic_algo_alignment_reuses_existing_cycle() -> None:
