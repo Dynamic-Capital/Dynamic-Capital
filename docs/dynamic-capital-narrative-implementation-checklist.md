@@ -20,10 +20,13 @@ touchpoints.
        trigger tasks automatically.
 5. [ ] **Log the checklist in your project tracker** with due dates for the
        implementation run and the review/optimization follow-up.
-6. [ ] **Record the source metadata** (publication, URL, access date) inside the
+6. [ ] **Define verification checkpoints** (metrics to capture, owners, storage
+       location) so teams log proof of completion immediately after each
+       optimization burst.
+7. [ ] **Record the source metadata** (publication, URL, access date) inside the
        shared Maldives Data Tracker template so every team can deep-link
        citations without version drift.
-7. [ ] **Snapshot baselines** (deck version numbers, dashboard commit hashes)
+8. [ ] **Snapshot baselines** (deck version numbers, dashboard commit hashes)
        so post-optimization diffs are easy to audit.
 
 ## Macro Data Application Playbook
@@ -67,6 +70,15 @@ touchpoints.
 - [ ] Spot-check the new narrative paragraph in the pitch deck, whitepaper, and
       website for tone consistency and readability.
 
+### Verify (Bridge review ➜ optimize)
+
+- [ ] Run a citation link check to ensure every URL resolves and matches the
+      metadata saved in the Maldives Data Tracker.
+- [ ] Capture the baseline asset versions (deck slide IDs, site commit hashes)
+      in the tracker so optimization edits can be compared quickly.
+- [ ] Note outstanding review questions or data gaps directly in the project
+      log to guide the optimization sprint.
+
 ### Optimize (Run right after the review session)
 
 - [ ] Iterate slide layout or hero copy based on reviewer feedback (e.g., adjust
@@ -103,6 +115,15 @@ touchpoints.
       linkages are technically sound.
 - [ ] Ensure risk disclaimers and assumptions are clearly documented alongside
       the visuals.
+
+### Verify
+
+- [ ] Recalculate key token metrics with the recorded GDP inputs to confirm
+      models and dashboards output the expected values.
+- [ ] Save screenshots or exports of the verification results in the tokenomics
+      changelog for traceability.
+- [ ] Flag any discrepancies between on-chain data and modeled scenarios in the
+      project tracker before optimization begins.
 
 ### Optimize
 
@@ -142,6 +163,15 @@ touchpoints.
 - [ ] Check that documentation, onboarding flows, and dashboards all use
       identical terminology.
 
+### Verify
+
+- [ ] Document simulation results and approval notes in the mentorship analytics
+      workspace for post-optimization comparison.
+- [ ] Confirm the updated scoring logic is versioned in the knowledge base with
+      change authors and timestamps.
+- [ ] Record any edge cases or anomalies that surfaced during review so the
+      optimization step can resolve them.
+
 ### Optimize
 
 - [ ] Adjust weightings or thresholds based on review findings and publish the
@@ -179,6 +209,14 @@ touchpoints.
 - [ ] Cross-check that tone and imagery align with brand guidelines and
       accessibility standards.
 
+### Verify
+
+- [ ] Record which assets were reviewed, approved, or sent back using the
+      campaign tracker so optimization focuses on flagged pieces.
+- [ ] Confirm UTM tags, CMS IDs, or asset repository links are documented before
+      launching optimizations.
+- [ ] Ensure legal/compliance sign-offs are archived alongside the review notes.
+
 ### Optimize
 
 - [ ] Iterate campaigns based on review feedback (e.g., tighten CTAs, update
@@ -214,6 +252,15 @@ touchpoints.
       narrative.
 - [ ] Inspect cross-channel announcements (blog, email, social, investor
       updates) for timeline consistency.
+
+### Verify
+
+- [ ] Log approved milestone statements, owners, and target dates in the roadmap
+      database before optimization adjustments.
+- [ ] Capture dependency confirmations or risk flags raised in review so they
+      can be addressed during optimization.
+- [ ] Double-check that the roadmap shares the same macro assumptions referenced
+      in the investor materials and tokenomics sections.
 
 ### Optimize
 
@@ -253,6 +300,15 @@ touchpoints.
 - [ ] Ensure translations or localized versions preserve the macro-to-product
       linkage.
 
+### Verify
+
+- [ ] Store the approved paragraph and citation evidence in the shared
+      narrative library with a direct link to the Maldives Data Tracker entry.
+- [ ] Check that analytics or heatmap tools are set to capture performance after
+      the optimized copy ships.
+- [ ] Note unresolved reviewer feedback so optimization focuses on concrete
+      adjustments.
+
 ### Optimize
 
 - [ ] Refine phrasing, formatting, or placement based on reviewer input without
@@ -288,6 +344,15 @@ touchpoints.
 - [ ] Review checklist analytics or tracker data to confirm completion signals
       are accurate.
 
+### Verify
+
+- [ ] Capture attendance, decisions, and follow-up tasks from each governance
+      sync directly in the ownership matrix or PM tool.
+- [ ] Ensure archival logs include before/after asset references plus approval
+      timestamps.
+- [ ] Validate that automation reminders fired as expected for the last cycle
+      and document any failures.
+
 ### Optimize
 
 - [ ] Update ownership matrices or RACI charts when responsibilities shift.
@@ -301,12 +366,14 @@ touchpoints.
 - [ ] Document contingency plans for major macro swings (tourism shocks, fiscal
       policy shifts) with pre-approved narrative responses.
 
-## 8. Run the Review ➜ Optimize Loop Every Cycle
+## 8. Run the Review ➜ Verify ➜ Optimize Loop Every Cycle
 
 - [ ] Timebox the review and optimization sessions on the same day to maintain
       narrative momentum and prevent stale feedback.
-- [ ] Capture review decisions, optimization changes, and outstanding risks in
-      the project tracker before closing the cycle.
+- [ ] Reserve a short verification slot between sessions to log evidence,
+      approvals, and data captures while context is fresh.
+- [ ] Capture review decisions, verification outputs, optimization changes, and
+      outstanding risks in the project tracker before closing the cycle.
 - [ ] Trigger the next implementation sprint only after the optimization tasks
       are signed off, ensuring the living protocol narrative stays coherent
       end-to-end.
