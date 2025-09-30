@@ -450,3 +450,46 @@ Use this register to capture the systems that keep the narrative future proof.
 | Tokenomics parameter change log| Map macro changes to protocol levers      |       |               |            |       |
 | Automation health dashboard    | Monitor reminders & integrations          |       |               |            |       |
 | Compliance & legal watchlist   | Surface regulatory messaging constraints  |       |               |            |       |
+
+## Appendix D: Investor Narrative Snippet Template
+
+Reuse this paragraph scaffold whenever you need a fast, source-backed story for
+investors, partners, or press. Swap in the latest GDP numbers, cite the source,
+and highlight an upcoming milestone so the macro proof point flows directly
+into execution.
+
+> "Maldives today stands among the world’s top 60 nations in nominal GDP per
+> capita, with income levels projected to rise from **$17,287** in 2024 to
+> **$18,207** in 2025.<sup>[1]</sup> In purchasing power terms, Maldivians enjoy
+> an effective standard of living exceeding **$26,000** per capita, placing the
+> country on par with advanced economies. This upward trajectory is more than a
+> statistic—it’s a signal of capacity. Dynamic Capital is building the first
+> Maldivian-born trading and mentorship ecosystem designed to match this
+> prosperity with opportunity. By anchoring our tokenomics, mentorship scoring,
+> and AI-driven trading intelligence to a nation already outperforming its
+> peers, we’re not just creating financial tools—we’re encoding the Maldives’
+> growth story into a living protocol that scales globally. {{Add milestone
+> clause: e.g., "AI trading desk beta launches in Q3 2025."}}
+
+**Implementation notes**
+
+- Replace the bolded values with the latest numbers from the Maldives Data
+  Tracker and update the superscript citation to the correct publication.
+- Update the milestone clause with a specific, time-bound delivery that already
+  has leadership sign-off.
+- When localizing, preserve the credibility anchor → narrative bridge → global
+  positioning flow even if sentence order changes.
+- If publishing on the web, link the superscript citation to the source URL and
+  ensure accessibility via descriptive link text.
+
+**Verification quick check**
+
+1. [ ] Paragraph copy matches the most recent tracker snapshot (numbers, source
+       name, access date).
+2. [ ] Milestone clause points to an initiative with an existing delivery plan
+       and owner in the roadmap database.
+3. [ ] Citation link resolves and is logged in the verification evidence folder
+       alongside the published asset.
+
+[1]: Replace with the authoritative GDP data source (e.g., IMF World Economic
+Outlook 2024) including the direct URL and access date.
