@@ -110,5 +110,31 @@ This document maps the key protocol domains that underpin the Dynamic Capital ec
 - [ ] **Governance & Alignment:** Launch DAO governance stack, codify ethics charter, and synchronize compliance attestations with oracle scoring models.
 - [ ] **Community Experience:** Deliver integrated dashboards, knowledge hubs, and identity-linked reward pathways to sustain engagement and growth.
 
+## Implementation Runbook
+Operational sequencing, ownership, and exit criteria for the protocol stack
+are captured in the
+[Dynamic Protocol Stack Implementation Runbook](./RUNBOOK_dynamic-protocol-stack.md).
+Use the runbook to coordinate layered rollouts, tie checklist items to
+quarterly objectives, and log completion evidence in the appropriate docs
+(`docs/NETWORKING.md`, `docs/compliance/*`, `docs/event-streaming/`, etc.).
+
+### Phase Overview
+- **Phase 0 – Pre-flight Alignment:** Confirm dependencies, backlog, and
+  stakeholder commitments before starting execution.
+- **Phase 1 – Network Fabric Activation:** Deploy redundant connectivity,
+  perimeter controls, and baseline observability.
+- **Phase 2 – Decentralized Settlement Enablement:** Automate contract
+  delivery, bridge monitoring, and compliance updates.
+- **Phase 3 – Intelligence Mesh Rollout:** Launch service mesh, agent registry,
+  and feature store integrations with secret governance.
+- **Phase 4 – Event Feedback Spine:** Stand up Kafka/NATS infrastructure,
+  taxonomy alignment, and replay tooling.
+- **Phase 5 – Governance & Alignment Systems:** Roll out DAO tooling,
+  policy-as-code, and cultural charter enforcement.
+- **Phase 6 – Experience & Community Layer:** Integrate dashboards,
+  localization, and identity-linked incentives with beta feedback loops.
+- **Phase 7 – Launch & Sustainment:** Schedule resilience drills, update the
+  runbook, and track metrics across the ecosystem.
+
 ## Conclusion
 The Dynamic Capital protocol layering framework unifies networking, blockchain, AGI services, and socio-technical governance into a coherent blueprint. Treat each layer as a living system with iterative feedback loops, ensuring resilient operations, transparent collaboration, and sustained innovation across the ecosystem.

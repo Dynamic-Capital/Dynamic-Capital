@@ -130,6 +130,7 @@ documenting which assets were consulted.
 | 7.9  | [PHASE_08_GROWTH.md](./PHASE_08_GROWTH.md)                           | Growth experiments and marketing activation plan.                         |
 | 7.10 | [PHASE_09_SECURITY.md](./PHASE_09_SECURITY.md)                       | Security hardening checklist for the launch program.                      |
 | 7.11 | [PHASE_10_AUTOVERIFY.md](./PHASE_10_AUTOVERIFY.md)                   | Automated verification tasks to keep the stack healthy post-launch.       |
+| 7.12 | [RUNBOOK_dynamic-protocol-stack.md](./RUNBOOK_dynamic-protocol-stack.md) | Layered implementation sequencing for networking, blockchain, AGI, and governance surfaces. |
 
 ## 8. Security, Compliance & Legal
 
