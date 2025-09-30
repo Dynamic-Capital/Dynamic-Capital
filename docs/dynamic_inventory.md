@@ -1,6 +1,6 @@
 # Dynamic Inventory Knowledge Base
 
-_Last updated: 2025-09-28 (UTC)_
+_Last updated: 2025-09-30 (UTC)_
 
 This catalog summarizes the repository's `dynamic_` directories so you can
 explore related knowledge modules at a glance.
@@ -16,8 +16,8 @@ explore related knowledge modules at a glance.
 
 ## Snapshot metrics
 
-- Total directories: 161
-- Domain groups: 11 (largest: Technology & Infrastructure with 54 modules)
+- Total directories: 165
+- Domain groups: 11 (largest: Technology & Infrastructure with 55 modules)
 - Generation command: `ls -d dynamic_* | sort`
 
 ## Domain overview
@@ -25,15 +25,15 @@ explore related knowledge modules at a glance.
 <!-- deno-fmt-ignore -->
 | Domain | Modules | Focus |
 | --- | ---: | --- |
-| Technology & Infrastructure | 54 | Core engineering building blocks for compute, storage, networking, and orchestration. |
+| Technology & Infrastructure | 55 | Core engineering building blocks for compute, storage, networking, and orchestration. |
 | AI, Agents & Cognition | 14 | Intelligent systems, agentic behaviors, and cognitive capabilities. |
-| Science & Space | 20 | Scientific foundations spanning physics, astronomy, and multi-layer space environments. |
+| Science & Space | 21 | Scientific foundations spanning physics, astronomy, and multi-layer space environments. |
 | Business & Operations | 12 | Operational excellence, planning, and delivery disciplines for teams and initiatives. |
 | Human & Creative Dimensions | 12 | People-centered growth including mindset, skills, mentorship, and expression. |
 | Security & Governance | 14 | Trust, compliance, and protective controls for resilient systems and organizations. |
 | Finance & Markets | 4 | Market structure, analytics, and trading intelligence modules. |
-| Knowledge Systems & Communication | 13 | Information architecture, indexing, and shared language assets. |
-| Process & Workflow Tooling | 9 | Frameworks for orchestrating routines, bridges, and continuous cycles. |
+| Knowledge Systems & Communication | 14 | Information architecture, indexing, and shared language assets. |
+| Process & Workflow Tooling | 10 | Frameworks for orchestrating routines, bridges, and continuous cycles. |
 | Natural Systems & Sustainability | 5 | Biological and energy-oriented systems thinking. |
 | Conceptual & Experimental Frameworks | 4 | Abstract models, pillars, and exploratory mental scaffolds. |
 
@@ -79,6 +79,7 @@ operational tooling.
 - `dynamic_logging`
 - `dynamic_loop`
 - `dynamic_mapping`
+- `dynamic_matrix`
 - `dynamic_message_queue`
 - `dynamic_metadata`
 - `dynamic_microservices`
@@ -138,6 +139,7 @@ interstellar systems.
 - `dynamic_mesosphere`
 - `dynamic_ocean`
 - `dynamic_physics`
+- `dynamic_quantum`
 - `dynamic_space`
 - `dynamic_spheres`
 - `dynamic_stratosphere`
@@ -225,6 +227,7 @@ Knowledge-management assets that organize language, references, and indexes.
 - `dynamic_synonym`
 - `dynamic_tag`
 - `dynamic_text`
+- `dynamic_translation`
 - `dynamic_vocabulary`
 
 ### Process & Workflow Tooling
@@ -239,6 +242,7 @@ Patterns and routines that keep projects synchronized and adaptive.
 - `dynamic_mantra`
 - `dynamic_method`
 - `dynamic_playbook`
+- `dynamic_recipe`
 - `dynamic_routine`
 
 ### Natural Systems & Sustainability
@@ -311,22 +315,23 @@ The table below is sorted alphabetically from left to right for quick scanning.
 | `dynamic_ip_address` | `dynamic_keepers` | `dynamic_kyc` | `dynamic_letter_index` |
 | `dynamic_library` | `dynamic_load_balancer` | `dynamic_local_machine` | `dynamic_logging` |
 | `dynamic_loop` | `dynamic_mantra` | `dynamic_mapping` | `dynamic_mass` |
-| `dynamic_memory` | `dynamic_memory_reconsolidation` | `dynamic_mentorship` | `dynamic_mesosphere` |
-| `dynamic_message_queue` | `dynamic_metacognition` | `dynamic_metadata` | `dynamic_method` |
-| `dynamic_microservices` | `dynamic_mindset` | `dynamic_numbers` | `dynamic_ocean` |
-| `dynamic_package` | `dynamic_physics` | `dynamic_pillars` | `dynamic_playbook` |
-| `dynamic_point_in_time` | `dynamic_predictive` | `dynamic_proof` | `dynamic_proof_of_authority` |
-| `dynamic_proof_of_burn` | `dynamic_proof_of_history` | `dynamic_proof_of_reputation` | `dynamic_proof_of_space` |
-| `dynamic_proof_of_stake` | `dynamic_proof_of_work` | `dynamic_proxy` | `dynamic_quote` |
-| `dynamic_recycling` | `dynamic_reference` | `dynamic_review` | `dynamic_routine` |
-| `dynamic_script` | `dynamic_self_awareness` | `dynamic_skeleton` | `dynamic_skills` |
-| `dynamic_source` | `dynamic_space` | `dynamic_spheres` | `dynamic_stake` |
-| `dynamic_states` | `dynamic_stem_cell` | `dynamic_stratosphere` | `dynamic_suites` |
-| `dynamic_summary` | `dynamic_supabase` | `dynamic_superclusters` | `dynamic_supply` |
-| `dynamic_syncronization` | `dynamic_synonym` | `dynamic_tag` | `dynamic_task_manager` |
-| `dynamic_teaching` | `dynamic_team` | `dynamic_text` | `dynamic_thermosphere` |
-| `dynamic_thinking` | `dynamic_token` | `dynamic_ton` | `dynamic_tool_kits` |
-| `dynamic_trainer` | `dynamic_troposphere` | `dynamic_ultimate_reality` | `dynamic_validator` |
+| `dynamic_matrix` | `dynamic_memory` | `dynamic_memory_reconsolidation` | `dynamic_mentorship` |
+| `dynamic_mesosphere` | `dynamic_message_queue` | `dynamic_metacognition` | `dynamic_metadata` |
+| `dynamic_method` | `dynamic_microservices` | `dynamic_mindset` | `dynamic_numbers` |
+| `dynamic_ocean` | `dynamic_package` | `dynamic_physics` | `dynamic_pillars` |
+| `dynamic_playbook` | `dynamic_point_in_time` | `dynamic_predictive` | `dynamic_proof` |
+| `dynamic_proof_of_authority` | `dynamic_proof_of_burn` | `dynamic_proof_of_history` | `dynamic_proof_of_reputation` |
+| `dynamic_proof_of_space` | `dynamic_proof_of_stake` | `dynamic_proof_of_work` | `dynamic_proxy` |
+| `dynamic_quantum` | `dynamic_quote` | `dynamic_recipe` | `dynamic_recycling` |
+| `dynamic_reference` | `dynamic_review` | `dynamic_routine` | `dynamic_script` |
+| `dynamic_self_awareness` | `dynamic_skeleton` | `dynamic_skills` | `dynamic_source` |
+| `dynamic_space` | `dynamic_spheres` | `dynamic_stake` | `dynamic_states` |
+| `dynamic_stem_cell` | `dynamic_stratosphere` | `dynamic_suites` | `dynamic_summary` |
+| `dynamic_supabase` | `dynamic_superclusters` | `dynamic_supply` | `dynamic_syncronization` |
+| `dynamic_synonym` | `dynamic_tag` | `dynamic_task_manager` | `dynamic_teaching` |
+| `dynamic_team` | `dynamic_text` | `dynamic_thermosphere` | `dynamic_thinking` |
+| `dynamic_token` | `dynamic_ton` | `dynamic_tool_kits` | `dynamic_trainer` |
+| `dynamic_translation` | `dynamic_troposphere` | `dynamic_ultimate_reality` | `dynamic_validator` |
 | `dynamic_version` | `dynamic_vocabulary` | `dynamic_volume` | `dynamic_wallet` |
 | `dynamic_wave` | `dynamic_web` | `dynamic_web3` | `dynamic_wisdom` |
 | `dynamic_zone` |  |  |  |
