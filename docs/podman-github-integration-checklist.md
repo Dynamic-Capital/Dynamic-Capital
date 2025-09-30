@@ -19,25 +19,45 @@ Use it when onboarding a new project or hardening local development.
 - [ ] Confirm Podman is installed at the latest stable release on Windows.
 - [ ] Start the machine and ensure it reports `Running`:
   - `podman machine start`
+  - `podman machine list --format "{{.Name}}\t{{.Running}}\t{{.LastUp}}"`
   - `podman machine inspect podman-machine-default --format '{{.LastUp}}'`
 - [ ] Register the default connection if missing:
   - `podman system connection add --default podman-machine-default npipe://./pipe/podman-machine-default`
-  - `podman system connection ls`
+  - `podman system connection ls --format "{{.Name}}\t{{if .Default}}(default){{end}}"`
 - [ ] Verify the machine is reachable:
   - `podman info`
+
+### Quick PowerShell verification script
+
+Run this after a cold boot to validate the machine state and the default
+connection in a single pass.
+
+```powershell
+$connectionName = "podman-machine-default"
+
+podman machine start $connectionName | Out-Null
+$machine = podman machine inspect $connectionName | ConvertFrom-Json
+$connection = podman system connection ls --format '{{json .}}' | ConvertFrom-Json | Where-Object { $_.Name -eq $connectionName }
+
+Write-Host "Machine state:`t$($machine.LastUp) (running: $($machine.LastUp -ne $null))"
+Write-Host "Connection default:`t$($connection.Default)"
+```
 
 ## Repository preparation
 
 - [ ] Clone the target GitHub repository or pull the latest changes.
 - [ ] Review project-specific container requirements (Dockerfile, scripts, compose files).
 - [ ] Configure any `.env` files using documented templates (do **not** commit secrets).
+- [ ] Ensure the working tree lives on an NTFS drive (Podman automatically shares `C:`) or configure additional shared paths via `podman machine set --rootful --now`.
 
 ## Image build and runtime checks
 
 - [ ] Build the container image:
   - `podman build -t <image-name> .`
+  - `podman images --filter reference=<image-name>`
 - [ ] Run an interactive container with bind-mounted source:
   - `podman run --rm -it -v ${PWD}:/app -w /app <image-name> <command>`
+  - `podman volume ls`
 - [ ] Confirm file permissions map correctly between Windows host and Podman VM.
 - [ ] Persist any containerized dependencies (volumes, secrets) using Podman-native tooling.
 
@@ -52,3 +72,9 @@ Use it when onboarding a new project or hardening local development.
 - [ ] Record completion notes in the project wiki or onboarding doc.
 - [ ] Open issues for remaining follow-ups highlighted in the audit summary table.
 - [ ] Share the checklist results with collaborators to confirm environment parity.
+
+## Troubleshooting cues
+
+- [ ] Connection fails with `permission denied`: reset pipe access with `podman machine stop`, `podman machine rm`, then recreate using `podman machine init --now`.
+- [ ] Bind mounts show as empty directories: confirm the path casing matches Windows conventions and rerun `podman machine ssh -- mount` to inspect the shared folder mapping.
+- [ ] Compose services cannot reach each other: compare `podman network ls` output against expected bridge names and recreate the network if drifted.
