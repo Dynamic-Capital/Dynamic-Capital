@@ -73,15 +73,17 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 
 ### Core Flags
 
-| Flag                             | Default        | Purpose                                                                                                              | Synonymous terminology                         |
-| -------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `--scenario PATH`                | _(optional)_   | Load scenario JSON from a file path or '-' for STDIN.                                                                | context file, input manifest, blueprint source |
-| `--format {text,json,fine-tune}` | `text`         | Choose plain text, JSON, or fine-tune dataset output.                                                                | output mode, rendering style, representation   |
-| `--indent N`                     | `2`            | Number of spaces applied to JSON pretty-printing.                                                                    | spacing, padding, indentation depth            |
-| `--fine-tune-dataset PATH`       | _(optional)_   | Write the Dynamic AGI training payload to `PATH` (use `-` for stdout). Parent directories are created automatically. | dataset export, training payload, AGI corpus   |
-| `--fine-tune-tag TAG`            | _(repeatable)_ | Apply default tags to generated fine-tune examples.                                                                  | label, classification marker, taxonomy token   |
-
+| Flag | Default | Purpose | Synonymous terminology |
+| --- | --- | --- | --- |
+| `--scenario PATH` | _(optional)_ | Load scenario JSON from a file path or '-' for STDIN. | context file, input manifest, blueprint source |
+| `--format {text,json,fine-tune,awesome-prompts}` | `text` | Choose plain text, JSON, fine-tune dataset, or awesome prompts CSV output. | output mode, rendering style, representation |
+| `--indent N` | `2` | Number of spaces applied to JSON pretty-printing. | spacing, padding, indentation depth |
+| `--fine-tune-dataset PATH` | _(optional)_ | Write the Dynamic AGI training payload to `PATH` (use `-` for stdout). Parent directories are created automatically. | dataset export, training payload, AGI corpus |
+| `--fine-tune-tag TAG` | _(repeatable)_ | Apply default tags to generated fine-tune examples. | label, classification marker, taxonomy token |
+| `--awesome-prompts-output PATH` | _(optional)_ | Persist the awesome-prompts CSV export to `PATH` (use `-` to stream after the main output). | save, archive, capture |
+| `--extract-datasets DIR` | _(optional)_ | Extract both fine-tune JSON and awesome-prompts CSV datasets into `DIR`, creating the folder when missing. | export, bundle, harvest |
 ---
+
 
 ## Pages 4–5 — Scenario Input Specifications
 
@@ -177,6 +179,22 @@ such as CI/CD, cron jobs, and ChatOps command handlers.
 - _Fine-tune dataset_ ⇔ _Training payload_, _Curriculum bundle_.
 - _Examples_ ⇔ _Prompt-completion pairs_, _Learning samples_.
 - _Tags_ ⇔ _Labels_, _Facets_, _Taxonomy markers_.
+
+### Awesome Prompts Mode (`--format awesome-prompts`)
+
+- Emits a CSV matching the structure of the
+  [`fka/awesome-chatgpt-prompts`](https://huggingface.co/datasets/fka/awesome-chatgpt-prompts)
+  dataset for seamless downstream ingestion.
+- Each row captures the capability-specific persona in the `act` column and a
+  telemetry-rich coaching brief in the `prompt` column.
+- Output is ordered deterministically by node key to keep diffs readable across
+  repeated runs against unchanged scenarios.
+- Combine with `--awesome-prompts-output PATH` to write the CSV to disk while
+  still printing the primary CLI response. Supply `-` alongside another format
+  (such as `json`) to mirror the CSV to stdout after the main payload.
+- Use `--extract-datasets DIR` to simultaneously write `awesome-prompts.csv`
+  and the fine-tune dataset (`fine-tune-dataset.json`) into the specified
+  directory for batch processing pipelines.
 
 ---
 

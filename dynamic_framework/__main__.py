@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import argparse
 import copy
+import csv
+import io
 import json
 import sys
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence, TextIO
-
-from dynamic_agi.fine_tune import DynamicAGIFineTuner
-from dynamic_agi.self_improvement import ImprovementSignal, LearningSnapshot
+from typing import TYPE_CHECKING, Any, Iterable, Mapping, Sequence, TextIO, Type
 
 from .engine import (
     DynamicFrameworkEngine,
@@ -20,6 +20,27 @@ from .engine import (
     FrameworkReport,
     FrameworkSnapshot,
 )
+if TYPE_CHECKING:
+    from dynamic_agi.fine_tune import DynamicAGIFineTuner
+    from dynamic_agi.self_improvement import ImprovementSignal, LearningSnapshot
+
+
+@lru_cache()
+def _fine_tuner_cls() -> Type["DynamicAGIFineTuner"]:
+    from dynamic_agi.fine_tune import DynamicAGIFineTuner
+
+    return DynamicAGIFineTuner
+
+
+@lru_cache()
+def _self_improvement_classes() -> tuple[
+    Type["ImprovementSignal"],
+    Type["LearningSnapshot"],
+]:
+    from dynamic_agi.self_improvement import ImprovementSignal, LearningSnapshot
+
+    return ImprovementSignal, LearningSnapshot
+
 
 DEFAULT_SCENARIO: Mapping[str, Any] = {
     "history": 12,
@@ -264,8 +285,9 @@ def _build_signal(
     direction: str,
     weight: float,
     notes: str,
-) -> ImprovementSignal:
-    return ImprovementSignal(
+) -> "ImprovementSignal":
+    ImprovementSignalCls, _ = _self_improvement_classes()
+    return ImprovementSignalCls(
         metric=f"{snapshot.key}.{metric}",
         value=value,
         direction=direction,
@@ -274,7 +296,7 @@ def _build_signal(
     )
 
 
-def _maturity_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+def _maturity_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> "ImprovementSignal":
     value = snapshot.maturity
     if value >= node.target_maturity:
         direction = "positive"
@@ -302,7 +324,9 @@ def _maturity_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> Improv
     )
 
 
-def _confidence_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+def _confidence_signal(
+    snapshot: FrameworkSnapshot, node: FrameworkNode
+) -> "ImprovementSignal":
     value = snapshot.confidence
     if value >= 0.7:
         direction = "positive"
@@ -323,7 +347,9 @@ def _confidence_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> Impr
     )
 
 
-def _enablement_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+def _enablement_signal(
+    snapshot: FrameworkSnapshot, node: FrameworkNode
+) -> "ImprovementSignal":
     value = snapshot.enablement
     if value >= 0.6:
         direction = "positive"
@@ -344,7 +370,9 @@ def _enablement_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> Impr
     )
 
 
-def _resilience_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+def _resilience_signal(
+    snapshot: FrameworkSnapshot, node: FrameworkNode
+) -> "ImprovementSignal":
     value = snapshot.resilience
     if value >= 0.6:
         direction = "positive"
@@ -365,7 +393,9 @@ def _resilience_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> Impr
     )
 
 
-def _momentum_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> ImprovementSignal:
+def _momentum_signal(
+    snapshot: FrameworkSnapshot, node: FrameworkNode
+) -> "ImprovementSignal":
     value = snapshot.momentum
     if value >= 0.1:
         direction = "positive"
@@ -389,7 +419,8 @@ def _momentum_signal(snapshot: FrameworkSnapshot, node: FrameworkNode) -> Improv
 def _learning_snapshot_from_framework(
     snapshot: FrameworkSnapshot,
     node: FrameworkNode,
-) -> LearningSnapshot:
+) -> "LearningSnapshot":
+    _, LearningSnapshotCls = _self_improvement_classes()
     output = {
         "node": snapshot.key,
         "title": snapshot.title,
@@ -412,7 +443,7 @@ def _learning_snapshot_from_framework(
         _resilience_signal(snapshot, node),
         _momentum_signal(snapshot, node),
     )
-    return LearningSnapshot(
+    return LearningSnapshotCls(
         output=output,
         performance=performance,
         feedback=feedback,
@@ -432,7 +463,8 @@ def build_fine_tune_dataset(
     if not snapshots:
         snapshots = tuple(engine.snapshot(key) for key in sorted(engine.nodes))
     snapshots = tuple(sorted(snapshots, key=lambda snap: snap.key))
-    tuner = DynamicAGIFineTuner(default_tags=default_tags)
+    tuner_cls = _fine_tuner_cls()
+    tuner = tuner_cls(default_tags=default_tags)
     learning_snapshots: list[LearningSnapshot] = []
     for snapshot in snapshots:
         node = engine.nodes.get(snapshot.key)
@@ -513,6 +545,99 @@ def render_report(
     return "\n".join(lines)
 
 
+def build_prompt_catalog(
+    engine: DynamicFrameworkEngine,
+    *,
+    report: FrameworkReport | None = None,
+) -> list[dict[str, str]]:
+    report = report or engine.report()
+    snapshots = report.snapshots
+    if not snapshots:
+        snapshots = tuple(engine.snapshot(key) for key in sorted(engine.nodes))
+    snapshots = tuple(sorted(snapshots, key=lambda snap: snap.key))
+    focus_areas = tuple(report.focus_areas)
+    alerts = tuple(report.alerts)
+    prompts: list[dict[str, str]] = []
+
+    for snapshot in snapshots:
+        header = (
+            "I want you to act as a capability coach guiding the "
+            f"{snapshot.title} node within the Dynamic Framework."
+        )
+        status = f"Current status: {snapshot.status}."
+        telemetry = (
+            "Telemetry readings — "
+            f"maturity {snapshot.maturity:.2f}, confidence {snapshot.confidence:.2f}, "
+            f"enablement {snapshot.enablement:.2f}, resilience {snapshot.resilience:.2f}, "
+            f"momentum {snapshot.momentum:.2f}."
+        )
+        narrative_lines = [header, status, telemetry]
+
+        if snapshot.summary:
+            narrative_lines.extend(["", f"Latest narrative: {snapshot.summary}"])
+
+        if snapshot.recommendations:
+            recommendation_block = "\n".join(
+                f"- {item}" for item in snapshot.recommendations
+            )
+            narrative_lines.extend([
+                "",
+                "Current recommendations to consider:",
+                recommendation_block,
+            ])
+
+        if snapshot.alerts:
+            alerts_block = "\n".join(f"- {item}" for item in snapshot.alerts)
+            narrative_lines.extend([
+                "",
+                "Alerts requiring attention:",
+                alerts_block,
+            ])
+
+        if focus_areas:
+            focus_block = "\n".join(f"- {title}" for title in focus_areas)
+            narrative_lines.extend([
+                "",
+                "Strategic focus areas for this reporting cycle:",
+                focus_block,
+            ])
+
+        if alerts and not snapshot.alerts:
+            global_alerts_block = "\n".join(f"- {item}" for item in alerts)
+            narrative_lines.extend([
+                "",
+                "Global alerts from the overall report:",
+                global_alerts_block,
+            ])
+
+        narrative_lines.extend(
+            [
+                "",
+                "Explain the next set of improvement experiments, "
+                "link them to the telemetry above, and close with a concise "
+                "action plan for the next iteration.",
+            ]
+        )
+
+        prompts.append(
+            {
+                "act": f"{snapshot.title} Capability Coach",
+                "prompt": "\n".join(narrative_lines).strip(),
+            }
+        )
+
+    return prompts
+
+
+def render_prompt_catalog(prompts: Sequence[Mapping[str, str]]) -> str:
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["act", "prompt"])
+    for entry in prompts:
+        writer.writerow([entry.get("act", ""), entry.get("prompt", "")])
+    return buffer.getvalue().strip()
+
+
 def run(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Run the Dynamic Framework engine against a scenario file or STDIN.",
@@ -524,7 +649,7 @@ def run(argv: Sequence[str] | None = None) -> int:
     )
     parser.add_argument(
         "--format",
-        choices=["text", "json", "fine-tune"],
+        choices=["text", "json", "fine-tune", "awesome-prompts"],
         default="text",
         help=(
             "Control how the report is rendered (default: text). Use 'fine-tune' to emit "
@@ -552,6 +677,22 @@ def run(argv: Sequence[str] | None = None) -> int:
         default=None,
         help="Default tag to apply to generated fine-tuning examples (repeatable).",
     )
+    parser.add_argument(
+        "--awesome-prompts-output",
+        type=str,
+        help=(
+            "Optional path to persist the awesome-prompts CSV export. Provide '-' to stream "
+            "it to stdout in addition to the main CLI output."
+        ),
+    )
+    parser.add_argument(
+        "--extract-datasets",
+        type=str,
+        help=(
+            "Directory path used to extract both fine-tune JSON and awesome-prompts CSV "
+            "datasets. Parent directories are created automatically."
+        ),
+    )
     args = parser.parse_args(argv)
     try:
         scenario = load_scenario(args.scenario, stdin=sys.stdin)
@@ -560,7 +701,10 @@ def run(argv: Sequence[str] | None = None) -> int:
         parser.exit(2, f"error: {exc}\n")
     report: FrameworkReport | None = None
     dataset_payload: dict[str, Any] | None = None
+    prompt_catalog: list[dict[str, str]] | None = None
+    awesome_prompts_csv: str | None = None
     indent_value = _normalise_indent(args.indent)
+    extract_dir = args.extract_datasets
 
     if args.format == "fine-tune":
         report = engine.report()
@@ -570,6 +714,11 @@ def run(argv: Sequence[str] | None = None) -> int:
             default_tags=args.fine_tune_tags,
         )
         output = json.dumps(dataset_payload, indent=indent_value)
+    elif args.format == "awesome-prompts":
+        report = engine.report()
+        prompt_catalog = build_prompt_catalog(engine, report=report)
+        awesome_prompts_csv = render_prompt_catalog(prompt_catalog)
+        output = awesome_prompts_csv
     else:
         if args.fine_tune_dataset:
             report = engine.report()
@@ -588,22 +737,57 @@ def run(argv: Sequence[str] | None = None) -> int:
 
     print(output)
 
-    if args.fine_tune_dataset:
+    if args.fine_tune_dataset or extract_dir:
         dataset_payload = dataset_payload or build_fine_tune_dataset(
             engine,
             report=report,
             default_tags=args.fine_tune_tags,
         )
         dataset_json = json.dumps(dataset_payload, indent=indent_value)
-        destination = args.fine_tune_dataset
-        if destination == "-":
-            if args.format != "fine-tune":
-                print("")
-                print(dataset_json)
-        else:
-            destination_path = Path(destination).expanduser()
-            destination_path.parent.mkdir(parents=True, exist_ok=True)
-            destination_path.write_text(f"{dataset_json}\n", encoding="utf-8")
+        if args.fine_tune_dataset:
+            destination = args.fine_tune_dataset
+            if destination == "-":
+                if args.format != "fine-tune":
+                    print("")
+                    print(dataset_json)
+            else:
+                destination_path = Path(destination).expanduser()
+                destination_path.parent.mkdir(parents=True, exist_ok=True)
+                destination_path.write_text(
+                    f"{dataset_json}\n", encoding="utf-8"
+                )
+        if extract_dir:
+            export_dir = Path(extract_dir).expanduser()
+            export_dir.mkdir(parents=True, exist_ok=True)
+            (export_dir / "fine-tune-dataset.json").write_text(
+                f"{dataset_json}\n", encoding="utf-8"
+            )
+
+    if args.awesome_prompts_output or extract_dir:
+        report = report or engine.report()
+        if prompt_catalog is None:
+            prompt_catalog = build_prompt_catalog(engine, report=report)
+        awesome_prompts_csv = awesome_prompts_csv or render_prompt_catalog(
+            prompt_catalog
+        )
+        if args.awesome_prompts_output:
+            destination = args.awesome_prompts_output
+            if destination == "-":
+                if args.format != "awesome-prompts":
+                    print("")
+                    print(awesome_prompts_csv)
+            else:
+                destination_path = Path(destination).expanduser()
+                destination_path.parent.mkdir(parents=True, exist_ok=True)
+                destination_path.write_text(
+                    f"{awesome_prompts_csv}\n", encoding="utf-8"
+                )
+        if extract_dir:
+            export_dir = Path(extract_dir).expanduser()
+            export_dir.mkdir(parents=True, exist_ok=True)
+            (export_dir / "awesome-prompts.csv").write_text(
+                f"{awesome_prompts_csv}\n", encoding="utf-8"
+            )
     return 0
 
 
@@ -615,7 +799,9 @@ __all__ = [
     "DEFAULT_SCENARIO",
     "build_engine",
     "build_fine_tune_dataset",
+    "build_prompt_catalog",
     "load_scenario",
+    "render_prompt_catalog",
     "render_report",
     "serialise_report",
     "run",

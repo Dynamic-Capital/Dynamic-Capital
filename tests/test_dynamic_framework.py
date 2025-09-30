@@ -16,7 +16,9 @@ from dynamic_framework.__main__ import (
     DEFAULT_SCENARIO,
     build_engine,
     build_fine_tune_dataset,
+    build_prompt_catalog,
     load_scenario,
+    render_prompt_catalog,
     render_report,
     serialise_report,
     run,
@@ -237,6 +239,17 @@ def test_build_fine_tune_dataset_orders_examples_by_node_key() -> None:
     assert example_keys == sorted(example_keys)
 
 
+def test_build_prompt_catalog_produces_rows_for_each_node() -> None:
+    engine = build_engine(DEFAULT_SCENARIO)
+    report = engine.report()
+
+    prompts = build_prompt_catalog(engine, report=report)
+
+    assert len(prompts) == len(report.snapshots)
+    assert all(entry["act"].endswith("Capability Coach") for entry in prompts)
+    assert all("Telemetry readings" in entry["prompt"] for entry in prompts)
+
+
 def test_cli_writes_fine_tune_dataset_creating_parent_dirs(tmp_path, capsys) -> None:
     destination = tmp_path / "nested" / "fine-tune" / "dataset.json"
 
@@ -256,6 +269,84 @@ def test_cli_writes_fine_tune_dataset_creating_parent_dirs(tmp_path, capsys) -> 
 
     dataset_payload = json.loads(destination.read_text())
     assert dataset_payload["dataset"]["summary"]["count"] > 0
+
+
+def test_cli_emits_awesome_prompts_csv(capsys) -> None:
+    exit_code = run(["--format", "awesome-prompts"])
+
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    lines = [line for line in captured.out.splitlines() if line.strip()]
+    assert lines[0].startswith("act,prompt")
+    assert any("Capability Coach" in line for line in lines[1:])
+
+
+def test_cli_writes_awesome_prompts_csv(tmp_path, capsys) -> None:
+    destination = tmp_path / "exports" / "awesome-prompts.csv"
+
+    exit_code = run([
+        "--format",
+        "awesome-prompts",
+        "--awesome-prompts-output",
+        str(destination),
+    ])
+
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert destination.exists()
+    assert captured.out.splitlines()[0].startswith("act,prompt")
+
+    csv_lines = [line for line in destination.read_text().splitlines() if line.strip()]
+    assert csv_lines[0] == "act,prompt"
+    assert any("Capability Coach" in line for line in csv_lines[1:])
+
+
+def test_cli_can_stream_awesome_prompts_alongside_other_format(capsys) -> None:
+    exit_code = run([
+        "--format",
+        "json",
+        "--awesome-prompts-output",
+        "-",
+        "--indent",
+        "0",
+    ])
+
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert captured.out.startswith("{")
+    assert "\n\nact,prompt" in captured.out
+
+
+def test_cli_extracts_both_datasets(tmp_path, capsys) -> None:
+    export_dir = tmp_path / "dataset-exports"
+
+    exit_code = run([
+        "--format",
+        "text",
+        "--extract-datasets",
+        str(export_dir),
+    ])
+
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert "Node snapshots:" in captured.out
+
+    fine_tune_path = export_dir / "fine-tune-dataset.json"
+    awesome_prompts_path = export_dir / "awesome-prompts.csv"
+
+    assert fine_tune_path.exists()
+    assert awesome_prompts_path.exists()
+
+    dataset_payload = json.loads(fine_tune_path.read_text())
+    assert dataset_payload["dataset"]["summary"]["count"] > 0
+
+    csv_lines = [line for line in awesome_prompts_path.read_text().splitlines() if line]
+    assert csv_lines[0] == "act,prompt"
+    assert any("Capability Coach" in line for line in csv_lines[1:])
 
 
 def test_load_scenario_accepts_stdin_payload() -> None:
