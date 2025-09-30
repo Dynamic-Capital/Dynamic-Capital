@@ -878,6 +878,9 @@ success, or error states based on the fetch result.
 ### CI / checks
 
 All Deno tasks live in `deno.json` and can be run via `deno task <name>`.
+If you need to call Deno directly, run it through `bash scripts/deno_exec.sh ...`
+so the tool trusts the host certificate store—this avoids TLS handshake
+failures when contacting npm mirrors from the sandbox.
 
 Type check:
 
