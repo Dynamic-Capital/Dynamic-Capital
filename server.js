@@ -222,6 +222,9 @@ async function streamFile(req, res, filePath, status = 200) {
     "Content-Type": type,
     "Cache-Control": getCacheControl(filePath, type),
   };
+  const method = (req.method || "GET").toUpperCase();
+  const isHeadRequest = method === "HEAD";
+
   let info;
   try {
     info = await stat(filePath);
@@ -240,16 +243,26 @@ async function streamFile(req, res, filePath, status = 200) {
   } catch {}
 
   const accept = req.headers["accept-encoding"] || "";
+  const shouldGzip = /\bgzip\b/.test(accept);
+  if (shouldGzip) {
+    headers["Content-Encoding"] = "gzip";
+  } else if (info) {
+    headers["Content-Length"] = info.size;
+  }
+
+  if (isHeadRequest) {
+    res.writeHead(status, headers);
+    return res.end();
+  }
+
   const stream = createReadStream(filePath).on("error", () => {
     res.writeHead(500, { "Content-Type": "text/plain" });
     res.end("Internal Server Error");
   });
-  if (/\bgzip\b/.test(accept)) {
-    headers["Content-Encoding"] = "gzip";
-    res.writeHead(status, headers);
+  res.writeHead(status, headers);
+  if (shouldGzip) {
     stream.pipe(createGzip()).pipe(res);
   } else {
-    res.writeHead(status, headers);
     stream.pipe(res);
   }
 }
@@ -309,7 +322,8 @@ async function respondNotFound(req, res) {
 }
 
 async function tryServeSpaFallback(req, res, pathname) {
-  if (req.method !== "GET") {
+  const method = (req.method || "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD") {
     return false;
   }
 
@@ -323,7 +337,12 @@ async function tryServeSpaFallback(req, res, pathname) {
         return false;
       }
       const [type] = trimmed.split(";", 1);
-      return type.trim() === "text/html";
+      const mediaType = type.trim();
+      return (
+        mediaType === "text/html" ||
+        mediaType === "application/xhtml+xml" ||
+        mediaType === "*/*"
+      );
     });
   }
   if (!acceptsHtml) {
