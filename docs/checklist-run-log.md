@@ -15,14 +15,38 @@ is the best fit for the task at hand.
 
 ## Quick Reference
 
-| Scenario | Command | When to Use | Output Highlights |
-| --- | --- | --- | --- |
-| Fast local runs that bypass npm wrappers. | `node scripts/run-checklists.js --list` | Iterate on the script directly without lifecycle hooks or npm overhead. | Streams the checklist metadata immediately in plain text. |
-| Runs that require project hooks or environment bootstrapping. | `npm run checklists -- --list` | Respect npm lifecycle hooks (`prechecklists`, `.env` loading, etc.) while listing the catalog. | Mirrors the raw list while honoring repository setup requirements. |
-| Preview a specific checklist without executing tasks. | `node scripts/run-checklists.js --checklist <name> --dry-run` | Validate the task inventory before running the automation in CI or production. | Prints the planned tasks, references, and notes without triggering side effects. |
-| Need usage guidance before choosing a subcommand. | `npm run checklists` | Remind yourself of the supported options or share quick guidance with teammates. | Displays the built-in help banner with usage examples. |
+| Scenario                                                      | Command                                                       | When to Use                                                                                    | Output Highlights                                                                |
+| ------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Fast local runs that bypass npm wrappers.                     | `node scripts/run-checklists.js --list`                       | Iterate on the script directly without lifecycle hooks or npm overhead.                        | Streams the checklist metadata immediately in plain text.                        |
+| Runs that require project hooks or environment bootstrapping. | `npm run checklists -- --list`                                | Respect npm lifecycle hooks (`prechecklists`, `.env` loading, etc.) while listing the catalog. | Mirrors the raw list while honoring repository setup requirements.               |
+| Preview a specific checklist without executing tasks.         | `node scripts/run-checklists.js --checklist <name> --dry-run` | Validate the task inventory before running the automation in CI or production.                 | Prints the planned tasks, references, and notes without triggering side effects. |
+| Need usage guidance before choosing a subcommand.             | `npm run checklists`                                          | Remind yourself of the supported options or share quick guidance with teammates.               | Displays the built-in help banner with usage examples.                           |
 
 ## Command Playbooks
+
+### 2025-10-16 — Knowledge Base Drop Verification
+
+**Command**
+
+```bash
+npm run checklists -- --checklist knowledge-base-drop
+```
+
+**Purpose**
+
+Run the automation-backed knowledge base checklist to validate the latest
+OneDrive drop against the local mirror and provenance documentation.
+
+**Highlights**
+
+- Executes `knowledge-base-verify`, which parses
+  `docs/onedrive-shares/evlumlqt-folder.metadata.json` and compares it with the
+  files under `data/knowledge_base/`.
+- Confirms the provenance table in `data/knowledge_base/README.md` references
+  every artefact recorded in the metadata snapshot.
+- Output reported:
+  `Validated 3 knowledge base artefacts against local mirror and
+  provenance README.`
 
 ### 2025-09-28 — Current Checklist Catalog Verification
 
@@ -117,7 +141,8 @@ Available checklists:
 ```
 
 > The listing continues for every checklist, surfacing each description,
-> reference document, and associated tasks (including optional items where noted).
+> reference document, and associated tasks (including optional items where
+> noted).
 
 ### 2024-02-24 — Viewing CLI Help
 
