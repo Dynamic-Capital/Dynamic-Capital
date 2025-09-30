@@ -338,7 +338,23 @@ def _apply_treasury_updates(
     normalised = _coerce_payload(event)
     if not normalised and TreasuryEvent is not None and isinstance(event, TreasuryEvent):
         normalised = asdict(event)
-    return normalised
+
+    if not normalised:
+        return None
+
+    cleaned: Dict[str, Any] = {}
+    for key, value in normalised.items():
+        if value is None:
+            continue
+        if key == "loss_covered":
+            numeric = _safe_float(value)
+            if numeric is None or numeric == 0:
+                continue
+        if isinstance(value, (list, tuple, set)) and not value:
+            continue
+        cleaned[key] = value
+
+    return cleaned or None
 
 
 def _summarise_optimisation(
