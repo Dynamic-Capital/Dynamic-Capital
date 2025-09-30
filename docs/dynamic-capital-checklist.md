@@ -5,8 +5,10 @@ project. It is organized so that the highest-priority actions appear first,
 making it easier to execute items in the optimal order. Check items off as they
 are completed.
 
-> [!TIP] Use the [Checklist Directory](./CHECKLISTS.md) to see how this tracker
-> relates to other project-specific lists and automation keys.
+> [!TIP] Pair this tracker with the
+> [Dynamic Capital Onboarding Checklist](./onboarding-checklist.md) when guiding
+> new collaborators, and use the [Checklist Directory](./CHECKLISTS.md) to see
+> how each list maps to automation keys.
 
 ## Priority navigation
 
@@ -18,6 +20,16 @@ are completed.
 6. [Launch & Production Readiness](#launch--production-readiness)
 7. [Specialized Projects](#specialized-projects)
 8. [Completed Repo-Level Action Items](#completed-repo-level-action-items)
+
+## Quick status snapshot (2025-09-30)
+
+| Area                   | Status                                  | Next action                                                                                                                                                           |
+| ---------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fix-and-check script   | 🔴 Failing (`scripts/fix_and_check.sh`) | Clear the `deno lint` violations (`no-explicit-any`, `require-await`, import prefixes) across Supabase functions, web components, and tooling, then rerun the helper. |
+| Linkage audit          | 🟡 Blocked (`scripts/check-linkage.ts`) | Provide `TELEGRAM_BOT_TOKEN` and bring `https://qeejuomcapbdlhnjqjcc.functions.supabase.co/linkage-audit` back online so the outbound URL audit can complete.         |
+| Telegram webhook check | 🟡 Blocked (`scripts/check-webhook.ts`) | Populate `TELEGRAM_BOT_TOKEN` (or supply a mock) so the webhook verifier can authenticate instead of exiting early.                                                   |
+| Supabase CLI workflow  | 🟡 Pending (`Setup Follow-Ups` §1)      | Run `scripts/supabase-cli-workflow.sh` or the manual login/link/push sequence once credentials are available.                                                         |
+| Production sanity test | 🟡 Pending (`Setup Follow-Ups` §4)      | Walk the `/start` → `/plans` approval flow and capture evidence that `current_vip.is_vip` toggles correctly.                                                          |
 
 ## Automation helper
 
@@ -38,44 +50,44 @@ repo health checks before audits, launches, or large merges. Track the results
 in your PR/issue notes so reviewers can see the evidence.
 
 - [x] Sync `.env` and `.env.local` with `.env.example` (`npm run sync-env`) to
-      ensure new environment keys are captured locally. _Ran with the automation
-      helper; 106 missing keys were appended to both `.env` and `.env.local`
-      from the template so local parity is restored._
+      ensure new environment keys are captured locally.
+  > **Status (2025-09-30):** Automation helper appended 129 missing keys into
+  > both `.env` and `.env.local`, restoring parity with the template.
 - [x] Run the repository test suite (`npm run test`) so Deno and Next.js smoke
-      tests cover the latest changes. _Latest run passed 90 tests with one
-      ignored case, matching the deno-based CI suite._
+      tests cover the latest changes.
+  > **Status (2025-09-30):** `npm run checklists -- --checklist dynamic-capital`
+  > executed 119 Deno tests (1 ignored) in ~29s with all suites passing.
 - [ ] Execute the fix-and-check script (`bash scripts/fix_and_check.sh`) to
-      apply formatting and rerun Deno format/lint/type checks. _2024-11-19 run
-      still fails: `deno lint` now flags unused GitHub type imports and
-      lingering `any` helpers in
-      `scripts/project/projects-v2-update.ts`, forward-ref generics in
-      `apps/web/vitest.setup.tsx`, the buyback bot’s placeholder async methods,
-      and Supabase automation utilities such as
-      `supabase/functions/telegram-bot-sync/index.ts`. Repository-level fixes
-      are still required before the script can succeed._
+      apply formatting and rerun Deno format/lint/type checks.
+  > **Status (2025-09-30):** Helper aborted during the lint phase because files
+  > across Supabase functions, web UI packages, and third-party utilities still
+  > violate `no-explicit-any`, `require-await`, `jsx-key`, and related rules.
 - [x] Run the aggregated verification suite (`npm run verify`) for the bundled
-      static, runtime, and integration safety checks. _`verify_all.sh` completed
-      successfully and refreshed `.out/verify_report.md` with the latest
-      results._
+      static, runtime, and integration safety checks.
+  > **Status (2024-11-19):** `verify_all.sh` completed successfully and
+  > refreshed `.out/verify_report.md` with the latest results.
 - [x] Audit Supabase Edge function hosts
       (`deno run -A scripts/audit-edge-hosts.ts`) to detect environment drift
-      between deployments. _Check completed via `npx deno`; 17 URLs were scanned
-      and none deviated from the expected host pattern._
+      between deployments.
+  > **Status (2025-09-30):** `npx deno run -A scripts/audit-edge-hosts.ts`
+  > scanned 20 Edge URLs and reported no host mismatches.
 - [ ] Check linkage across environment variables and outbound URLs
-      (`deno run -A scripts/check-linkage.ts`) before promoting builds. _Proxy
-      bootstrapping still works, but the helper reports `TELEGRAM_BOT_TOKEN`
-      missing (webhook verification skipped) and the
-      `https://qeejuomcapbdlhnjqjcc.functions.supabase.co/linkage-audit`
-      endpoint times out, leaving the linkage host parity unresolved._
+      (`deno run -A scripts/check-linkage.ts`) before promoting builds.
+  > **Status (2025-09-30):** Script still skips webhook verification without
+  > `TELEGRAM_BOT_TOKEN` and the linkage audit request to
+  > `https://qeejuomcapbdlhnjqjcc.functions.supabase.co/linkage-audit` timed
+  > out.
 - [ ] Verify the Telegram webhook configuration
       (`deno run -A scripts/check-webhook.ts`) so bot traffic hits the expected
-      endpoint. _Current run aborts immediately with `Missing
-      TELEGRAM_BOT_TOKEN`; provide the secret or mock before re-running the
-      webhook health check._
+      endpoint.
+  > **Status (2025-09-30):** Execution stops immediately with
+  > `Missing TELEGRAM_BOT_TOKEN`; populate the secret or mock the Telegram API
+  > to complete the check.
 - [ ] _Optional:_ Run the mini app smoke test
       (`deno run -A scripts/smoke-miniapp.ts`) to mirror the go-live walkthrough
-      end-to-end. _Requires `FUNCTIONS_BASE` to target a deployed Supabase Edge
-      host; not available in this environment._
+      end-to-end.
+  > **Status (2024-11-19):** Requires `FUNCTIONS_BASE` for a deployed Supabase
+  > Edge host; not available in this environment.
 
 ## Setup Follow-Ups
 
@@ -86,11 +98,23 @@ in your PR/issue notes so reviewers can see the evidence.
        (`npx supabase login && supabase link && supabase db push`) or run
        `bash scripts/supabase-cli-workflow.sh` with the required credentials
        exported.
+
+       > **Status (2024-11-19):** Pending—credentials have not been supplied in
+       > this environment.
 2. [ ] Refresh or open the pending PR ensuring CI checks pass
        (`deno task typecheck`, `npm run test`, `npm run audit`, `deno task ci`).
+
+       > **Status (2024-11-19):** Pending—rerun once local Supabase linking is
+       > complete so CI parity can be captured alongside logs.
 3. [ ] Enable auto-merge with the required branch protections.
+
+       > **Status (2024-11-19):** Pending—activate after CI checks are
+       > consistently passing for the target branch.
 4. [ ] Run the production sanity test (`/start`, `/plans`, approve test payment)
        to confirm `current_vip.is_vip`.
+
+       > **Status (2024-11-19):** Pending—blocked on Supabase credentials and
+       > Telegram secrets before the happy path can be exercised.
 
 ## Go Live Checklist
 
