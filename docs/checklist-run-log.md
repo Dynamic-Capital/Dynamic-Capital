@@ -47,6 +47,29 @@ one step.
 - Fails fast when headings or checklist items are missing, guarding against
   accidental documentation regressions.
 
+### 2025-10-16 — Automated Trading Build Checklist Run
+
+**Command**
+
+```bash
+npm run checklists -- --checklist build-implementation
+```
+
+**Purpose**
+
+Generate a consolidated status snapshot for the Automated Trading System Build
+Checklist so operators can audit delivery across every pipeline layer from a
+single command.
+
+**Highlights**
+
+- Parses each numbered section (TradingView signals through end-to-end
+  validation) and validates that they retain at least one checklist item.
+- Prints section-level completion totals alongside the enumerated tasks and
+  their `OPEN`/`DONE` state labels.
+- Surfaces an error if the document loses its numbered headings, protecting the
+  automation contract relied on by the checklist runner.
+
 ### 2025-10-16 — Knowledge Base Drop Verification
 
 **Command**

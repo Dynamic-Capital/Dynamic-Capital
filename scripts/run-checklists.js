@@ -104,6 +104,17 @@ const TASK_LIBRARY = {
       "Parses the modular architecture document and reports the status of implementation and verification tasks.",
     ],
   },
+  "automated-trading-build-report": {
+    id: "automated-trading-build-report",
+    label:
+      "Summarize automated trading build checklist (node scripts/checklists/automated-trading-build.mjs)",
+    command: "node scripts/checklists/automated-trading-build.mjs",
+    optional: false,
+    docs: ["docs/automated-trading-checklist.md"],
+    notes: [
+      "Parses the automated trading build checklist and reports completion status per section.",
+    ],
+  },
   "fix-and-check": {
     id: "fix-and-check",
     label: "Run repo fix-and-check script (bash scripts/fix_and_check.sh)",
@@ -405,6 +416,13 @@ const CHECKLISTS = {
     description:
       "Summarize implementation and verification tasks defined in the modular architecture playbook.",
     tasks: ["dynamic-modular-architecture-report"],
+  },
+  "build-implementation": {
+    name: "Automated Trading Build Implementation Checklist",
+    doc: "docs/automated-trading-checklist.md",
+    description:
+      "Summarize section progress for the automated trading build implementation checklist.",
+    tasks: ["automated-trading-build-report"],
   },
   dai: {
     name: "Dynamic AI (DAI) Validation Checklist",
