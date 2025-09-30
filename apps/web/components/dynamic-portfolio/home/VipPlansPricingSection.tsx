@@ -28,6 +28,36 @@ import styles from "./VipPlansPricingSection.module.scss";
 
 const MAX_FEATURES_DISPLAY = 6;
 
+const BILLING_HIGHLIGHTS = [
+  {
+    icon: "sparkles" as const,
+    copy: "Credits only burn when you use them.",
+  },
+  {
+    icon: "gift" as const,
+    copy: "Promo codes drop in every checkout.",
+  },
+  {
+    icon: "refresh" as const,
+    copy: "Copy access recharges with your tier.",
+  },
+];
+
+const PLAN_EDUCATION = [
+  {
+    term: "Copy trading",
+    description: "Desk trades mirror into your connected account.",
+  },
+  {
+    term: "Credits",
+    description: "Lovable Live credits power chat, mentors, and bots.",
+  },
+  {
+    term: "Withdrawal",
+    description: "Schedule decentralized releases whenever you need out.",
+  },
+];
+
 export function VipPlansPricingSection() {
   const { plans, loading, error, hasData, refresh } = useSubscriptionPlans();
   const {
@@ -117,23 +147,22 @@ export function VipPlansPricingSection() {
       <Column gap="20" align="start" className={styles.section}>
         <Column gap="12" align="start">
           <Heading variant="display-strong-xs">
-            VIP plans publish here as soon as pricing is live
+            Pricing syncs shortly
           </Heading>
           <Text variant="body-default-m" onBackground="neutral-weak">
-            Check back shortly or chat with the desk team for a concierge
-            walkthrough.
+            Check back soon or ping the desk for a quick walkthrough.
           </Text>
         </Column>
-        <Row gap="12" s={{ direction: "column" }}>
-          <Button
-            size="m"
-            variant="secondary"
-            data-border="rounded"
-            href="/checkout"
-            prefixIcon="sparkles"
-          >
-            Open secure checkout
-          </Button>
+          <Row gap="12" s={{ direction: "column" }}>
+            <Button
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              href="/checkout"
+              prefixIcon="sparkles"
+            >
+              Go to checkout
+            </Button>
           <Button
             size="m"
             variant="secondary"
@@ -150,22 +179,53 @@ export function VipPlansPricingSection() {
 
   return (
     <Column gap="20" align="start" className={styles.section}>
-      <Column gap="12" align="start">
-        <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
-          VIP plans
-        </Tag>
-        <Heading variant="display-strong-xs" wrap="balance">
-          Choose the desk access tier that fits your momentum
-        </Heading>
-        <Text
-          variant="body-default-l"
-          onBackground="neutral-weak"
-          wrap="balance"
+      <Row gap="20" wrap s={{ direction: "column" }}>
+        <Column gap="12" align="start" flex={2} minWidth={24}>
+          <Tag size="s" background="brand-alpha-weak" prefixIcon="sparkles">
+            VIP plans
+          </Tag>
+          <Heading variant="display-strong-xs" wrap="balance">
+            Pick a plan that matches your pace
+          </Heading>
+          <Text
+            variant="body-default-l"
+            onBackground="neutral-weak"
+            wrap="balance"
+          >
+            Straightforward pricing that mirrors checkout. Credits, copy
+            trading, and withdrawals stay explained in plain words.
+          </Text>
+          <Row gap="8" wrap>
+            {BILLING_HIGHLIGHTS.map((item) => (
+              <Tag key={item.copy} size="s" prefixIcon={item.icon}>
+                {item.copy}
+              </Tag>
+            ))}
+          </Row>
+        </Column>
+        <Column
+          gap="12"
+          align="start"
+          flex={1}
+          minWidth={20}
+          background="neutral-alpha-weak"
+          border="neutral-alpha-medium"
+          radius="l"
+          padding="l"
         >
-          Pricing updates in sync with the mini app so every plan you see here
-          matches the checkout experience.
-        </Text>
-      </Column>
+          <Heading variant="heading-strong-s">Need-to-know terms</Heading>
+          <Column gap="8">
+            {PLAN_EDUCATION.map((item) => (
+              <Column key={item.term} gap="4">
+                <Text variant="heading-strong-xs">{item.term}</Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {item.description}
+                </Text>
+              </Column>
+            ))}
+          </Column>
+        </Column>
+      </Row>
 
       <div className={styles.planGrid}>
         {sortedPlans.map((plan, index) => {

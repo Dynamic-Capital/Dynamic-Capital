@@ -24,6 +24,27 @@ const SECTION_GAP: SpacingToken = "32";
 const SECTION_CONTENT_GAP: SpacingToken = "20";
 const PLAN_CARD_GAP: SpacingToken = "20";
 
+const GETTING_STARTED_STEPS = [
+  {
+    title: "Choose a duration",
+    description: "Daily, weekly, or monthly access depending on how you trade.",
+  },
+  {
+    title: "Connect your platform",
+    description: "Link the broker or exchange you already use.",
+  },
+  {
+    title: "Load credits",
+    description: "Top up Lovable Live credits for chat and automations.",
+  },
+];
+
+const PACKAGE_AUTOMATIONS = [
+  "Packages auto-adjust from daily to monthly usage.",
+  "Copy trading mirrors into linked accounts with set pricing.",
+  "Promo codes and credit recharges trigger automatically.",
+];
+
 export function VipPackagesSection() {
   const {
     plans,
@@ -53,10 +74,35 @@ export function VipPackagesSection() {
       <Column gap="12" maxWidth={32}>
         <Heading variant="display-strong-xs">VIP membership packages</Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
-          Pick the access level that fits your growth lane. All memberships
-          bundle live desk signals, automation guardrails, and mentor
-          accountability.
+          Light tiers for quick setup. Choose how long you need access and keep
+          the desk topped up with credits.
         </Text>
+        <Column gap="12" padding="m" background="neutral-alpha-weak" radius="l">
+          <Heading variant="heading-strong-s">Three simple steps</Heading>
+          <Column gap="12">
+            {GETTING_STARTED_STEPS.map((step, index) => (
+              <Column key={step.title} gap="4">
+                <Text variant="body-default-s" onBackground="brand-medium">
+                  Step {index + 1}
+                </Text>
+                <Text variant="heading-strong-xs">{step.title}</Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {step.description}
+                </Text>
+              </Column>
+            ))}
+          </Column>
+        </Column>
+        <Column as="ul" gap="8">
+          {PACKAGE_AUTOMATIONS.map((item) => (
+            <Row key={item} gap="8" vertical="center">
+              <Icon name="check" onBackground="brand-medium" />
+              <Text as="li" variant="body-default-m">
+                {item}
+              </Text>
+            </Row>
+          ))}
+        </Column>
         {error
           ? (
             <Column gap={ERROR_STATE_GAP}>
@@ -88,8 +134,8 @@ export function VipPackagesSection() {
         ? (
           <Column gap="12" paddingY="24">
             <Text variant="body-default-m" onBackground="neutral-weak">
-              VIP packages publish here as soon as pricing is live in Supabase.
-              Check back shortly or ping the desk for a concierge walkthrough.
+              Packages go live once pricing syncs. Check back soon or chat with
+              the desk.
             </Text>
             <Row gap="12" s={{ direction: "column" }}>
               <Button
@@ -99,16 +145,16 @@ export function VipPackagesSection() {
                 prefixIcon="rocket"
                 href="/checkout"
               >
-                Open secure checkout
+                Go to checkout
               </Button>
               <Button
                 size="m"
                 variant="secondary"
                 data-border="rounded"
                 arrowIcon
-                href="#mentorship-programs"
+                href="#pricing"
               >
-                Compare mentorship support
+                View pricing overview
               </Button>
             </Row>
           </Column>
@@ -217,16 +263,16 @@ export function VipPackagesSection() {
                 prefixIcon="rocket"
                 href="/checkout"
               >
-                Open secure checkout
+                Go to checkout
               </Button>
               <Button
                 size="m"
                 variant="secondary"
                 data-border="rounded"
                 arrowIcon
-                href="#mentorship-programs"
+                href="#pricing"
               >
-                Compare mentorship support
+                View pricing overview
               </Button>
             </Row>
           </Column>
