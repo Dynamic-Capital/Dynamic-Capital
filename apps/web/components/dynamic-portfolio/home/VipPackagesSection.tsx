@@ -35,14 +35,14 @@ const GETTING_STARTED_STEPS = [
   },
   {
     title: "Load credits",
-    description: "Top up Lovable Live credits for chat and automations.",
+    description: "Top up DCT (Dynamic Capital Tokens) for chat and automations.",
   },
 ];
 
 const PACKAGE_AUTOMATIONS = [
   "Packages auto-adjust from daily to monthly usage.",
   "Copy trading mirrors into linked accounts with set pricing.",
-  "Promo codes and credit recharges trigger automatically.",
+  "Promo codes and DCT recharges trigger automatically.",
 ];
 
 export function VipPackagesSection() {
@@ -75,7 +75,7 @@ export function VipPackagesSection() {
         <Heading variant="display-strong-xs">VIP membership packages</Heading>
         <Text variant="body-default-l" onBackground="neutral-weak">
           Light tiers for quick setup. Choose how long you need access and keep
-          the desk topped up with credits.
+          the desk topped up with DCT.
         </Text>
         <Column gap="12" padding="m" background="neutral-alpha-weak" radius="l">
           <Heading variant="heading-strong-s">Three simple steps</Heading>

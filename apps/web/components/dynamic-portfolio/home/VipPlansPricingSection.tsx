@@ -31,7 +31,7 @@ const MAX_FEATURES_DISPLAY = 6;
 const BILLING_HIGHLIGHTS = [
   {
     icon: "sparkles" as const,
-    copy: "Credits only burn when you use them.",
+    copy: "DCT only burns when you use it.",
   },
   {
     icon: "gift" as const,
@@ -49,8 +49,8 @@ const PLAN_EDUCATION = [
     description: "Desk trades mirror into your connected account.",
   },
   {
-    term: "Credits",
-    description: "Lovable Live credits power chat, mentors, and bots.",
+    term: "DCT (Dynamic Capital Token)",
+    description: "DCT powers chat, mentors, and automation bots.",
   },
   {
     term: "Withdrawal",
@@ -192,7 +192,7 @@ export function VipPlansPricingSection() {
             onBackground="neutral-weak"
             wrap="balance"
           >
-            Straightforward pricing that mirrors checkout. Credits, copy
+            Straightforward pricing that mirrors checkout. DCT, copy
             trading, and withdrawals stay explained in plain words.
           </Text>
           <Row gap="8" wrap>

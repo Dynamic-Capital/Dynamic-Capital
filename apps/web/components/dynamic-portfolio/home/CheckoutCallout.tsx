@@ -23,8 +23,8 @@ export function CheckoutCallout() {
         Checkout stays quick and transparent
       </Heading>
       <Text variant="body-default-l" onBackground="brand-weak" wrap="balance">
-        Apply your promo code, load Lovable Live credits, and confirm your plan
-        in a couple of minutes.
+        Apply your promo code, load DCT (Dynamic Capital Tokens), and confirm
+        your plan in a couple of minutes.
       </Text>
       <Row gap="12" wrap s={{ direction: "column" }}>
         <Button

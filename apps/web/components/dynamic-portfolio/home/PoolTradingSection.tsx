@@ -38,7 +38,7 @@ const INVESTOR_SERVICES = [
   },
   {
     icon: "refresh" as const,
-    copy: "Recharge Lovable Live credits in one tap.",
+    copy: "Recharge DCT (Dynamic Capital Tokens) in one tap.",
   },
 ];
 

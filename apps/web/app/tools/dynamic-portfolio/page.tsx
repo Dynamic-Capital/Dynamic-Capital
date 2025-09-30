@@ -37,7 +37,7 @@ const HIGHLIGHTS = [
   {
     icon: "refresh" as const,
     title: "Credits that recharge",
-    body: "Top up Lovable Live credits anytime for chat and automations.",
+    body: "Top up DCT (Dynamic Capital Tokens) anytime for chat and automations.",
   },
 ];
 
@@ -45,7 +45,7 @@ const QUICK_STEPS = [
   {
     step: "1",
     title: "Load credits",
-    description: "Activate checkout and apply the auto promo code provided.",
+    description: "Activate checkout, apply the auto promo code, and load DCT.",
   },
   {
     step: "2",
@@ -244,8 +244,8 @@ export default function InvestorDeskPage() {
             onBackground="neutral-weak"
             wrap="balance"
           >
-            Plans adapt to the algorithms you follow. Recharge credits whenever
-            you need more chat or automation time.
+            Plans adapt to the algorithms you follow. Recharge DCT whenever you
+            need more chat or automation time.
           </Text>
         </Column>
         <VipPlansPricingSection />
