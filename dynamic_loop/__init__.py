@@ -5,6 +5,8 @@ from __future__ import annotations
 from .engine import (
     DynamicLoopEngine,
     LoopEquation,
+    LoopEquationDelta,
+    LoopEquationTimelineEntry,
     LoopParameters,
     LoopRecommendation,
     LoopSignal,
@@ -14,6 +16,8 @@ from .engine import (
 __all__ = [
     "DynamicLoopEngine",
     "LoopEquation",
+    "LoopEquationDelta",
+    "LoopEquationTimelineEntry",
     "LoopParameters",
     "LoopRecommendation",
     "LoopSignal",

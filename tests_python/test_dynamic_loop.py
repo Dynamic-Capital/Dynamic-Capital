@@ -8,6 +8,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from dynamic_loop import (
     DynamicLoopEngine,
     LoopEquation,
+    LoopEquationDelta,
+    LoopEquationTimelineEntry,
     LoopRecommendation,
     LoopSignal,
     LoopState,
@@ -126,9 +128,20 @@ def test_dynamic_loop_back_to_back_equation(engine: DynamicLoopEngine) -> None:
     )
     assert equation.steps == (
         "Review stage: stability=0.71, momentum=0.70, fatigue=0.25 -> score=0.7145 (0.45×stability(0.71) + 0.35×momentum(0.70) + 0.20×resilience(0.75))",
-        "Optimize stage: stability=0.74, momentum=0.80, fatigue=0.20 -> score=0.7743 (0.45×stability(0.74) + 0.35×momentum(0.80) + 0.20×resilience(0.80))",
-        "Delta: optimise minus review = +0.0598 (improved).",
+        "Optimise stage: stability=0.74, momentum=0.80, fatigue=0.20 -> score=0.7743 (0.45×stability(0.74) + 0.35×momentum(0.80) + 0.20×resilience(0.80))",
+        "Delta: optimise minus review = +0.0598 (improved, notable change).",
     )
+
+    assert isinstance(equation.timeline, tuple)
+    assert [entry.stage for entry in equation.timeline] == ["review", "optimise"]
+    assert all(isinstance(entry, LoopEquationTimelineEntry) for entry in equation.timeline)
+    assert equation.timeline[0].commentary == equation.steps[0]
+
+    assert isinstance(equation.delta, LoopEquationDelta)
+    assert equation.steps[-1] == equation.delta.narrative
+    assert equation.delta.direction == "positive"
+    assert equation.delta.magnitude == pytest.approx(abs(equation.score_delta), rel=1e-6)
+    assert 0.5 <= equation.delta.confidence <= 0.9
 
     payload = equation.as_dict()
     assert payload["cadence"] == "review-optimize"
@@ -139,3 +152,10 @@ def test_dynamic_loop_back_to_back_equation(engine: DynamicLoopEngine) -> None:
     assert payload["review_terms"] == list(equation.review_terms)
     assert payload["optimise_terms"] == list(equation.optimise_terms)
     assert payload["steps"] == list(equation.steps)
+    assert payload["timeline"][0]["stage"] == "review"
+    assert payload["delta"]["direction"] == equation.delta.direction
+    assert payload["parameters"]["stability_weight"] == pytest.approx(
+        equation.parameters_snapshot["stability_weight"], rel=1e-6
+    )
+    assert payload["version"] == equation.version
+    assert "computed_at" in payload
