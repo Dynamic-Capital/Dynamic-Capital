@@ -1,7 +1,7 @@
 # Development Workflow
 
-This guide outlines nine high-level steps to run, build, and deploy the
-Telegram bot and optional Mini App.
+This guide outlines nine high-level steps to run, build, and deploy the Telegram
+bot and optional Mini App.
 
 1. **Understand the project scope**
    - First Maldivian Web3 trading application delivered through a Telegram bot
@@ -35,13 +35,18 @@ Telegram bot and optional Mini App.
    ```
 
 6. **Quality checks & verification**
-   - Type-check and test the codebase:
+   - Run the combined verification + optimization helper for the quickest full
+     sweep:
+   ```bash
+   npm run changes
+   ```
+   - Need a focused pass? Type-check and test the codebase directly:
    ```bash
    deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
    deno test -A
    ```
-   - Run the aggregated verification suite when you need confidence across the
-     static exports, Telegram integrations, and trading automation:
+   - The aggregated verification suite remains available when you only want the
+     guardrail checks without rebuilding:
    ```bash
    npm run verify
    ```
@@ -49,7 +54,10 @@ Telegram bot and optional Mini App.
      same checks from the workflow helper.
 
 7. **Optimize bundles (optional but recommended before release)**
-   - Produce production artifacts:
+   - `npm run changes` already triggers the analyzer, so rerun it with
+     `--verify-only` when you only need to re-check code health after tweaking
+     copy or content.
+   - Produce production artifacts if you skipped the combined helper:
    ```bash
    npm run build
    ```

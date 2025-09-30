@@ -24,6 +24,7 @@
     "codex:dev": "node scripts/codex-workflow.js dev",
     "codex:build": "node scripts/codex-workflow.js build",
     "codex:verify": "node scripts/codex-workflow.js verify",
+    "changes": "node scripts/run-changes.mjs",
     "lint": "node scripts/npm-safe.mjs -w apps/web run lint",
     "format": "deno fmt apps supabase scripts db docs",
     "typecheck": "node scripts/npm-safe.mjs -w apps/web run typecheck",

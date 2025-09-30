@@ -918,6 +918,10 @@ applied as expected.
 
 ### Verification suite
 
+- `npm run changes` runs the verification suite, rebuilds production assets, and
+  triggers the bundle analyzer in one pass. Use `npm run changes --help` for
+  optional flags (for example `--verify-only` or `--skip-analyze`) when you need
+  a more targeted sweep.
 - `npm run verify` bundles the static, runtime wiring, trading integrations, and
   mini app safety checks. The script stitches together the shell helpers under
   `scripts/verify/` (static code, deployed functions, runtime wiring, mini app
@@ -934,6 +938,9 @@ applied as expected.
 
 ### Optimization passes
 
+- `npm run changes` defaults to running the analyzer once the production build
+  finishes, giving you a single command to verify and inspect the bundle
+  footprint before opening a PR.
 - `npm run build` compiles the production bundles for the Telegram-focused
   Next.js application and regenerates the `_static/` snapshot that powers the
   CDN landing page.
