@@ -78,6 +78,14 @@ This document summarizes several landmark developments in quantitative finance, 
 - **Model structure:** Each agent decides to buy, sell, or hold based on heuristics (e.g., threshold rules on expected returns). Aggregate market behavior arises from these micro-level interactions.
 - **Insight:** Captures phenomena like bubbles, crashes, and regime shifts that are difficult to model with equilibrium-based frameworks.
 
+## Practical Workflow: Running Optimizations Back-to-Back
+
+1. **Calibrate stochastic dynamics.** Estimate drift and volatility parameters under the Bachelier or Black–Scholes setup using historical data so that subsequent optimization steps share a consistent probabilistic foundation.
+2. **Trace the efficient frontier.** Solve the Markowitz quadratic program repeatedly for a grid of target returns. Because the covariance matrix remains fixed, the optimization problems can be executed back-to-back with warm starts, yielding the full efficient frontier efficiently.
+3. **Price and hedge derivatives.** Use the calibrated volatility in the Black–Scholes model to produce pricing surfaces. Run calibrations sequentially for multiple maturities and strikes to maintain consistency with the portfolio optimizations.
+4. **Stress-test via simulation.** Propagate the optimized portfolios through Euler–Maruyama simulations to evaluate path-dependent risk and verify hedging assumptions.
+5. **Incorporate adaptive feedback.** Feed the simulation insights into an agent-based setting to observe how heterogeneous behaviors might alter optimal allocations, iterating the optimization–simulation loop as new scenarios emerge.
+
 ---
 
-Together, these theories chart a progression from early stochastic models to complex adaptive systems, illustrating how quantitative finance continually evolves to accommodate new data, computational techniques, and market behaviors.
+Together, these theories and workflows chart a progression from early stochastic models to complex adaptive systems, illustrating how quantitative finance continually evolves to accommodate new data, computational techniques, and market behaviors.
