@@ -1,0 +1,16 @@
+{
+  "lock": false,
+  "nodeModulesDir": "auto",
+  "fmt": {
+    "include": ["apps", "contracts", "supabase"],
+    "exclude": []
+  },
+  "lint": {
+    "files": {
+      "include": ["apps", "contracts", "supabase"]
+    }
+  },
+  "test": {
+    "include": ["apps/tests/**/*.test.ts"]
+  }
+}
