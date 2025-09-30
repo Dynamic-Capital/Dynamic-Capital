@@ -123,12 +123,25 @@ contract TonPoolAllocator {
       self.reject(msg, "allocator: unauthorized jetton");
       return;
     }
+
     slice body = msg.body.beginParse();
-    body.loadUint(32); // op
+    Int op = body.loadUint(32);
+    if (op != op::JettonTransfer) {
+      self.reject(msg, "allocator: invalid jetton payload");
+      return;
+    }
+
     body.loadUint(64); // query id
-    body.loadMsgAddress();
-    body.loadCoins(); // amount (jetton style)
-    slice forwardPayload = body.loadRef().beginParse();
+    Int jettonAmount = body.loadCoins();
+    body.loadMsgAddress(); // destination
+    body.loadMsgAddress(); // response destination
+    body.loadMaybeRef(); // skip custom payload
+    Int forwardTonAmount = body.loadCoins();
+    require(msg.info.value - msg.info.fwdFee >= forwardTonAmount, "allocator: insufficient ton");
+
+    cell forwardPayloadCell = body.loadEitherRef();
+    slice forwardPayload = forwardPayloadCell.beginParse();
+
     Int forwardOp = forwardPayload.loadUint(32);
     if (forwardOp != OP_DEPOSIT) {
       self.reject(msg, "allocator: unsupported op");
@@ -138,36 +151,27 @@ contract TonPoolAllocator {
     Int depositId = forwardPayload.loadUint(64);
     Slice investorKey = forwardPayload.loadBitsSlice(256);
     Int usdtAmount = forwardPayload.loadCoins();
+    require(usdtAmount == jettonAmount, "allocator: amount mismatch");
     Int expectedFx = forwardPayload.loadUint(64);
     Slice tonTx = forwardPayload.loadBitsSlice(256);
-
-    // Forward swap request to router
-    builder swap = beginCell();
-    swap.storeUint(OP_DEPOSIT, 32);
-    swap.storeUint(depositId, 64);
-    swap.storeSlice(investorKey);
-    swap.storeUint(usdtAmount, 64);
-    swap.storeUint(expectedFx, 64);
-    swap.storeSlice(tonTx);
 
     sendRawMessage(
       InternalMessage{
         info: InternalMessageInfo{
           src: myAddress(),
           dest: self.dexRouter,
-          value: msg.info.value / 2,
+          value: forwardTonAmount,
           ihrDisabled: true,
         },
-        body: swap.endCell(),
+        body: forwardPayloadCell,
       },
     );
 
-    // Emit event cell
     DepositEvent event = DepositEvent{
       depositId: depositId,
       investorKey: investorKey,
-      usdtAmount: usdtAmount,
-      dctAmount: msg.body.beginParse().loadCoins(),
+      usdtAmount: jettonAmount,
+      dctAmount: jettonAmount,
       fxRate: expectedFx,
       tonTxHash: tonTx,
     };
