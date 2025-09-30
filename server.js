@@ -1,6 +1,6 @@
 import http from "node:http";
 import https from "node:https";
-import { createReadStream, readFileSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync } from "node:fs";
 import { stat } from "node:fs/promises";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,15 +16,118 @@ const configuredStaticRootValue =
   typeof process.env.STATIC_ROOT === "string"
     ? process.env.STATIC_ROOT.trim()
     : undefined;
-const configuredStaticRoot =
-  configuredStaticRootValue && configuredStaticRootValue.length > 0
-    ? configuredStaticRootValue
-    : undefined;
-const staticRoot = configuredStaticRoot
-  ? isAbsolute(configuredStaticRoot)
-    ? configuredStaticRoot
-    : resolve(moduleDir, configuredStaticRoot)
-  : join(moduleDir, "_static");
+
+function resolveConfiguredStaticRoot(raw) {
+  if (!raw) return undefined;
+  if (isAbsolute(raw)) {
+    return normalize(raw);
+  }
+
+  const moduleRelative = normalize(resolve(moduleDir, raw));
+  if (existsSync(moduleRelative)) {
+    return moduleRelative;
+  }
+
+  return normalize(resolve(process.cwd(), raw));
+}
+
+function findNearestStaticRoot(startDir) {
+  if (!startDir) return undefined;
+  let current = startDir;
+  const visited = new Set();
+  while (!visited.has(current)) {
+    const candidate = join(current, "_static");
+    if (existsSync(candidate)) {
+      return normalize(candidate);
+    }
+    visited.add(current);
+    const parent = dirname(current);
+    if (parent === current) {
+      break;
+    }
+    current = parent;
+  }
+  return undefined;
+}
+
+const candidateStaticRoots = [];
+const seenStaticRoots = new Set();
+
+function addCandidateStaticRoot(path, source) {
+  if (!path) return;
+  const normalized = normalize(path);
+  if (seenStaticRoots.has(normalized)) {
+    return;
+  }
+  seenStaticRoots.add(normalized);
+  candidateStaticRoots.push({ path: normalized, source });
+}
+
+const resolvedConfiguredStaticRoot = resolveConfiguredStaticRoot(
+  configuredStaticRootValue,
+);
+if (resolvedConfiguredStaticRoot) {
+  addCandidateStaticRoot(
+    resolvedConfiguredStaticRoot,
+    "STATIC_ROOT configuration",
+  );
+}
+
+addCandidateStaticRoot(
+  findNearestStaticRoot(moduleDir),
+  "nearest _static relative to server.js",
+);
+addCandidateStaticRoot(
+  findNearestStaticRoot(process.cwd()),
+  "nearest _static relative to process.cwd()",
+);
+addCandidateStaticRoot(join(moduleDir, "_static"), "server.js/_static fallback");
+addCandidateStaticRoot(
+  resolve(process.cwd(), "_static"),
+  "process.cwd()/_static fallback",
+);
+
+let staticRootEntry;
+for (const candidate of candidateStaticRoots) {
+  if (existsSync(candidate.path)) {
+    staticRootEntry = candidate;
+    break;
+  }
+}
+
+if (!staticRootEntry) {
+  staticRootEntry = candidateStaticRoots[0];
+  if (staticRootEntry) {
+    console.warn(
+      `[static] Unable to confirm existence of static assets; using ${staticRootEntry.path}.`,
+    );
+  } else {
+    throw new Error("Unable to determine static asset directory");
+  }
+}
+
+if (
+  resolvedConfiguredStaticRoot &&
+  resolvedConfiguredStaticRoot !== staticRootEntry.path &&
+  !existsSync(resolvedConfiguredStaticRoot)
+) {
+  console.warn(
+    `[static] STATIC_ROOT ${resolvedConfiguredStaticRoot} not found; falling back to ${staticRootEntry.path} (${staticRootEntry.source}).`,
+  );
+} else if (
+  candidateStaticRoots.length > 0 &&
+  staticRootEntry.path !== candidateStaticRoots[0].path
+) {
+  console.warn(
+    `[static] Serving assets from ${staticRootEntry.path} (${staticRootEntry.source}).`,
+  );
+}
+
+if (!process.env.STATIC_ROOT) {
+  process.env.STATIC_ROOT = staticRootEntry.path;
+}
+
+const staticRoot = staticRootEntry.path;
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
 const LOOPBACK_PATTERNS = [/^127\./, /^::1$/, /^::ffff:127\./];
 
