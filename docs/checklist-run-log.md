@@ -8,6 +8,8 @@ is the best fit for the task at hand.
 
 - [Quick Reference](#quick-reference)
 - [Command Playbooks](#command-playbooks)
+  - [2025-10-16 — Modular Architecture Checklist Run](#2025-10-16--modular-architecture-checklist-run)
+  - [2025-10-16 — Automated Trading Build Checklist Run](#2025-10-16--automated-trading-build-checklist-run)
   - [2025-09-28 — Current Checklist Catalog Verification](#2025-09-28--current-checklist-catalog-verification)
   - [2025-09-28 — Go-Live Checklist Dry Run](#2025-09-28--go-live-checklist-dry-run)
   - [2024-02-24 — Listing Available Checklists](#2024-02-24--listing-available-checklists)
@@ -23,6 +25,52 @@ is the best fit for the task at hand.
 | Need usage guidance before choosing a subcommand.             | `npm run checklists`                                          | Remind yourself of the supported options or share quick guidance with teammates.               | Displays the built-in help banner with usage examples.                           |
 
 ## Command Playbooks
+
+### 2025-10-16 — Modular Architecture Checklist Run
+
+**Command**
+
+```bash
+npm run checklists -- --checklist dynamic-modular-architecture
+```
+
+**Purpose**
+
+Summarize the implementation and verification checklists embedded in
+`docs/dynamic-capital-modular-architecture.md` so teams can capture status in
+one step.
+
+**Highlights**
+
+- Parses the implementation and verification sections, ensuring each contains at
+  least one checklist item.
+- Reports completion counts and enumerates the individual tasks with an `OPEN`
+  or `DONE` label for quick review.
+- Fails fast when headings or checklist items are missing, guarding against
+  accidental documentation regressions.
+
+### 2025-10-16 — Automated Trading Build Checklist Run
+
+**Command**
+
+```bash
+npm run checklists -- --checklist build-implementation
+```
+
+**Purpose**
+
+Generate a consolidated status snapshot for the Automated Trading System Build
+Checklist so operators can audit delivery across every pipeline layer from a
+single command.
+
+**Highlights**
+
+- Parses each numbered section (TradingView signals through end-to-end
+  validation) and validates that they retain at least one checklist item.
+- Prints section-level completion totals alongside the enumerated tasks and
+  their `OPEN`/`DONE` state labels.
+- Surfaces an error if the document loses its numbered headings, protecting the
+  automation contract relied on by the checklist runner.
 
 ### 2025-10-16 — Knowledge Base Drop Verification
 
