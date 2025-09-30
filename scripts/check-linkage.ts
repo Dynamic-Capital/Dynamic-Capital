@@ -4,6 +4,20 @@
 
 import { createHttpClientWithEnvCa } from "./utils/http-client.ts";
 
+type TelegramWebhookInfoResponse = {
+  ok: boolean;
+  result?: {
+    url?: string;
+  };
+};
+
+type SupabaseLinkageAuditResponse = {
+  status?: string;
+  webhooks?: Record<string, unknown>;
+  outbound?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
 function env(k: string) {
   return Deno.env.get(k) ?? "";
 }
@@ -35,7 +49,10 @@ type GetJsonOptions = {
   timeoutMs?: number;
 };
 
-async function getJson(url: string, options: GetJsonOptions = {}) {
+async function getJson<T>(
+  url: string,
+  options: GetJsonOptions = {},
+): Promise<T | null> {
   const { client, label, timeoutMs = 10_000 } = options;
   const target = label ?? url;
   try {
@@ -50,7 +67,7 @@ async function getJson(url: string, options: GetJsonOptions = {}) {
       return null;
     }
     try {
-      return await response.json();
+      return await response.json() as T;
     } catch (parseError) {
       console.warn(
         `[linkage] Unable to parse JSON from ${target}:`,
@@ -84,7 +101,7 @@ async function main() {
   }
 
   if (token) {
-    const info = await getJson(
+    const info = await getJson<TelegramWebhookInfoResponse>(
       `https://api.telegram.org/bot${token}/getWebhookInfo`,
       {
         client: tlsContext?.client,
@@ -109,7 +126,7 @@ async function main() {
     ? `https://${ref}.functions.supabase.co/linkage-audit`
     : null;
   if (healthUrl) {
-    const inside = await getJson(healthUrl, {
+    const inside = await getJson<SupabaseLinkageAuditResponse>(healthUrl, {
       client: tlsContext?.client,
       label: "Supabase linkage-audit",
     });
