@@ -2,7 +2,8 @@ import http from "node:http";
 import https from "node:https";
 import { createReadStream, readFileSync } from "node:fs";
 import { stat } from "node:fs/promises";
-import { join, normalize } from "node:path";
+import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createGzip } from "node:zlib";
 import {
   getCacheControl,
@@ -10,8 +11,20 @@ import {
 } from "./scripts/utils/static-assets.js";
 
 const port = process.env.PORT || 3000;
-const root = process.cwd();
-const staticRoot = join(root, "_static");
+const moduleDir = dirname(fileURLToPath(import.meta.url));
+const configuredStaticRootValue =
+  typeof process.env.STATIC_ROOT === "string"
+    ? process.env.STATIC_ROOT.trim()
+    : undefined;
+const configuredStaticRoot =
+  configuredStaticRootValue && configuredStaticRootValue.length > 0
+    ? configuredStaticRootValue
+    : undefined;
+const staticRoot = configuredStaticRoot
+  ? isAbsolute(configuredStaticRoot)
+    ? configuredStaticRoot
+    : resolve(moduleDir, configuredStaticRoot)
+  : join(moduleDir, "_static");
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
 const LOOPBACK_PATTERNS = [/^127\./, /^::1$/, /^::ffff:127\./];
 
