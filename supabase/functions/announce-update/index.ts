@@ -14,7 +14,7 @@ interface TelegramResponse {
 
 const DEFAULT_VERSION = "v1.0";
 const DEFAULT_FEATURE = "Bug fixes and improvements";
-const DEFAULT_MINI_APP_URL = "https://dynamic-capital.ondigitalocean.app";
+const DEFAULT_MINI_APP_URL = "https://dynamiccapital.ton/";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
