@@ -86,37 +86,73 @@ class OrderFlowWindow:
 
     horizon: timedelta
     events: Deque[OrderEvent] = field(default_factory=deque)
+    _buy_notional: float = field(default=0.0, init=False)
+    _sell_notional: float = field(default=0.0, init=False)
+    _total_notional: float = field(default=0.0, init=False)
 
     def __post_init__(self) -> None:
         if isinstance(self.horizon, (int, float)):
             self.horizon = timedelta(seconds=float(self.horizon))
         if self.horizon <= timedelta(0):
             raise ValueError("horizon must be positive")
+        if self.events:
+            self._recompute_notional()
 
     def add(self, event: OrderEvent) -> None:
         self.events.append(event)
+        self._register_event(event)
         self._expire(event.timestamp)
 
     def extend(self, events: Iterable[OrderEvent]) -> None:
         for event in events:
             self.add(event)
 
+    def prune(self, now: datetime | None = None) -> None:
+        """Drop stale events that fall outside the configured horizon."""
+        self._expire(now)
+
     def _expire(self, now: datetime | None = None) -> None:
         cutoff = (now or _utcnow()) - self.horizon
         while self.events and self.events[0].timestamp < cutoff:
-            self.events.popleft()
+            expired = self.events.popleft()
+            self._deregister_event(expired)
+
+    def _register_event(self, event: OrderEvent) -> None:
+        notional = event.notional
+        self._total_notional += notional
+        if event.side == "buy":
+            self._buy_notional += notional
+        else:
+            self._sell_notional += notional
+
+    def _deregister_event(self, event: OrderEvent) -> None:
+        notional = event.notional
+        self._total_notional = max(self._total_notional - notional, 0.0)
+        if event.side == "buy":
+            self._buy_notional = max(self._buy_notional - notional, 0.0)
+        else:
+            self._sell_notional = max(self._sell_notional - notional, 0.0)
+
+    def _recompute_notional(self) -> None:
+        self._buy_notional = sum(event.notional for event in self.events if event.side == "buy")
+        self._sell_notional = sum(event.notional for event in self.events if event.side == "sell")
+        self._total_notional = self._buy_notional + self._sell_notional
 
     @property
     def total_notional(self) -> float:
-        return sum(event.notional for event in self.events)
+        return self._total_notional
 
     @property
     def buy_notional(self) -> float:
-        return sum(event.notional for event in self.events if event.side == "buy")
+        return self._buy_notional
 
     @property
     def sell_notional(self) -> float:
-        return sum(event.notional for event in self.events if event.side == "sell")
+        return self._sell_notional
+
+    @property
+    def event_count(self) -> int:
+        return len(self.events)
 
     def imbalance(self) -> "OrderFlowImbalance":
         return OrderFlowImbalance(
@@ -233,7 +269,8 @@ class DynamicOrderFlow:
         while len(self._latencies) > self.max_samples:
             self._latencies.popleft()
 
-    def pressure(self) -> OrderFlowImbalance:
+    def pressure(self, *, now: datetime | None = None) -> OrderFlowImbalance:
+        self._window.prune(now)
         return self._window.imbalance()
 
     def average_latency(self) -> float:
@@ -250,10 +287,10 @@ class DynamicOrderFlow:
             "average_latency": self.average_latency(),
         }
 
-    def optimize(self) -> OrderFlowOptimization:
+    def optimize(self, *, now: datetime | None = None) -> OrderFlowOptimization:
         """Produce routing directives that balance latency and directional risk."""
 
-        imbalance = self.pressure()
+        imbalance = self.pressure(now=now)
         latency = self.average_latency()
         intensity = imbalance.intensity
         directives: MutableSequence[str] = []
