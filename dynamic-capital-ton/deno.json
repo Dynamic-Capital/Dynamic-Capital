@@ -3,12 +3,17 @@
   "nodeModulesDir": "auto",
   "fmt": {
     "include": ["apps", "contracts", "supabase"],
-    "exclude": []
+    "exclude": [
+      "supabase/functions/miniapp/static",
+      "supabase/functions/telegram-bot/vendor"
+    ]
   },
   "lint": {
-    "files": {
-      "include": ["apps", "contracts", "supabase"]
-    }
+    "include": ["apps", "contracts", "supabase"],
+    "exclude": [
+      "supabase/functions/miniapp/static",
+      "supabase/functions/telegram-bot/vendor"
+    ]
   },
   "test": {
     "include": ["apps/tests/**/*.test.ts"]

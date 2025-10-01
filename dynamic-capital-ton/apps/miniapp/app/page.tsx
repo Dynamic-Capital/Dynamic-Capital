@@ -44,6 +44,12 @@ type TelegramWebApp = {
   };
 };
 
+type TelegramGlobal = {
+  Telegram?: {
+    WebApp?: TelegramWebApp;
+  };
+};
+
 type PlanOption = {
   id: Plan;
   name: string;
@@ -615,11 +621,14 @@ const SUPPORT_OPTIONS: SupportOption[] = [
 ];
 
 function useTelegramId(): string {
-  if (typeof window === "undefined") {
+  const isBrowser = typeof globalThis !== "undefined" &&
+    typeof (globalThis as { window?: unknown }).window !== "undefined";
+  if (!isBrowser) {
     return "demo";
   }
 
-  const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+  const telegram = (globalThis as TelegramGlobal).Telegram;
+  const telegramId = telegram?.WebApp?.initDataUnsafe?.user?.id;
   return telegramId ? String(telegramId) : "demo";
 }
 

@@ -5,6 +5,7 @@ import { stat } from "node:fs/promises";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createGzip } from "node:zlib";
+import process from "node:process";
 import {
   getCacheControl,
   getContentType,

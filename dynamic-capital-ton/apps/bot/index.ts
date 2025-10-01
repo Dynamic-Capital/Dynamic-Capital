@@ -1,4 +1,5 @@
 import { Telegraf } from "telegraf";
+import process from "node:process";
 
 type Context = Parameters<Telegraf["start"]>[0];
 

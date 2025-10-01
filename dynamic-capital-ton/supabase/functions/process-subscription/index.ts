@@ -197,17 +197,17 @@ export async function verifyTonPayment(
   return { ok: true, amountTON: amountTon, payerAddress };
 }
 
-async function dexBuyDCT(
+function dexBuyDCT(
   _routerAddr: string,
   tonAmount: number,
 ): Promise<{ dctAmount: number }> {
   console.log("dexBuyDCT placeholder", tonAmount);
-  return { dctAmount: tonAmount * 100 };
+  return Promise.resolve({ dctAmount: tonAmount * 100 });
 }
 
-async function burnDCT(_dctMaster: string, amount: number) {
+function burnDCT(_dctMaster: string, amount: number) {
   console.log("burnDCT placeholder", amount);
-  return true;
+  return Promise.resolve(true);
 }
 
 async function notifyUser(fetchFn: typeof fetch, text: string) {

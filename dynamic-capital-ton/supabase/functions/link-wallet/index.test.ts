@@ -28,10 +28,11 @@ function createSupabaseStub(state: SupabaseState) {
         return {
           upsert: () => ({
             select: () => ({
-              single: async () => ({
-                data: { id: state.userId },
-                error: null,
-              }),
+              single: () =>
+                Promise.resolve({
+                  data: { id: state.userId },
+                  error: null,
+                }),
             }),
           }),
         };
@@ -41,14 +42,20 @@ function createSupabaseStub(state: SupabaseState) {
         return {
           select: () => ({
             eq: (_column: string, value: string) => ({
-              maybeSingle: async () => {
+              maybeSingle: () => {
                 if (_column === "address") {
-                  return { data: state.walletByAddress ?? null, error: null };
+                  return Promise.resolve({
+                    data: state.walletByAddress ?? null,
+                    error: null,
+                  });
                 }
                 if (_column === "user_id" && value === state.userId) {
-                  return { data: state.walletByUser ?? null, error: null };
+                  return Promise.resolve({
+                    data: state.walletByUser ?? null,
+                    error: null,
+                  });
                 }
-                return { data: null, error: null };
+                return Promise.resolve({ data: null, error: null });
               },
             }),
           }),

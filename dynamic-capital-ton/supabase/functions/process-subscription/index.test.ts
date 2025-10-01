@@ -116,7 +116,8 @@ function createSupabaseStub(
               return {
                 eq() {
                   return {
-                    single: async () => ({ data: config, error: null }),
+                    single: () =>
+                      Promise.resolve({ data: config, error: null }),
                   };
                 },
               };
@@ -128,12 +129,13 @@ function createSupabaseStub(
               return {
                 eq(_column: string, value: string) {
                   return {
-                    single: async () => ({
-                      data: plans[value] ?? null,
-                      error: plans[value]
-                        ? null
-                        : { message: "Plan not found" },
-                    }),
+                    single: () =>
+                      Promise.resolve({
+                        data: plans[value] ?? null,
+                        error: plans[value]
+                          ? null
+                          : { message: "Plan not found" },
+                      }),
                   };
                 },
               };
@@ -145,12 +147,13 @@ function createSupabaseStub(
               return {
                 eq() {
                   return {
-                    single: async () => ({
-                      data: options.user ?? null,
-                      error: options.user
-                        ? null
-                        : { message: "User not found" },
-                    }),
+                    single: () =>
+                      Promise.resolve({
+                        data: options.user ?? null,
+                        error: options.user
+                          ? null
+                          : { message: "User not found" },
+                      }),
                   };
                 },
               };
@@ -162,10 +165,11 @@ function createSupabaseStub(
               return {
                 eq() {
                   return {
-                    maybeSingle: async () => ({
-                      data: options.wallet ?? null,
-                      error: null,
-                    }),
+                    maybeSingle: () =>
+                      Promise.resolve({
+                        data: options.wallet ?? null,
+                        error: null,
+                      }),
                   };
                 },
               };
@@ -178,13 +182,14 @@ function createSupabaseStub(
               return {
                 select() {
                   return {
-                    single: async () => ({
-                      data: {
-                        id: "sub-1",
-                        ...(values as Record<string, unknown>),
-                      },
-                      error: null,
-                    }),
+                    single: () =>
+                      Promise.resolve({
+                        data: {
+                          id: "sub-1",
+                          ...(values as Record<string, unknown>),
+                        },
+                        error: null,
+                      }),
                   };
                 },
               };
@@ -192,16 +197,16 @@ function createSupabaseStub(
           };
         case "stakes":
           return {
-            insert: async (values: unknown) => {
+            insert: (values: unknown) => {
               state.stakes.push(values);
-              return { error: null };
+              return Promise.resolve({ error: null });
             },
           };
         case "tx_logs":
           return {
-            insert: async (values: Array<unknown>) => {
+            insert: (values: Array<unknown>) => {
               state.txLogs.push(...values);
-              return { error: null };
+              return Promise.resolve({ error: null });
             },
           };
         default:
@@ -260,7 +265,7 @@ Deno.test("returns 503 when TON pricing is unavailable", async () => {
     );
 
     const fetchCalls: Array<string> = [];
-    const fetchStub: typeof fetch = async (input, _init) => {
+    const fetchStub: typeof fetch = (input, _init) => {
       const url = typeof input === "string"
         ? input
         : input instanceof URL
@@ -269,7 +274,9 @@ Deno.test("returns 503 when TON pricing is unavailable", async () => {
       fetchCalls.push(url);
 
       if (url.includes("tonapi.io")) {
-        return new Response(JSON.stringify({ rates: {} }), { status: 200 });
+        return Promise.resolve(
+          new Response(JSON.stringify({ rates: {} }), { status: 200 }),
+        );
       }
 
       throw new Error(`Unexpected fetch call: ${url}`);
@@ -322,7 +329,7 @@ Deno.test("rejects subscription when TON transfer goes to different wallet", asy
   });
 
   const fetchCalls: Array<{ input: string | URL; init?: RequestInit }> = [];
-  const fetchStub: typeof fetch = async (
+  const fetchStub: typeof fetch = (
     input: Request | URL | string,
     init?: RequestInit,
   ) => {
@@ -334,12 +341,14 @@ Deno.test("rejects subscription when TON transfer goes to different wallet", asy
     fetchCalls.push({ input: url, init });
 
     if (url.includes("/transactions/")) {
-      return new Response(
-        JSON.stringify({
-          destination: "EQWRONG",
-          amount: 120_000_000_000,
-        }),
-        { status: 200 },
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            destination: "EQWRONG",
+            amount: 120_000_000_000,
+          }),
+          { status: 200 },
+        ),
       );
     }
 
@@ -365,9 +374,7 @@ Deno.test("verifyTonPayment fails closed when indexer URL is missing", async () 
       "0xhash",
       "EQOPS",
       100,
-      async () => {
-        throw new Error("fetch should not be called");
-      },
+      () => Promise.reject(new Error("fetch should not be called")),
     );
     assertEquals(result.ok, false);
     if (result.ok) {
@@ -419,7 +426,7 @@ Deno.test("rejects subscription when payer wallet mismatches linked wallet", asy
     },
   );
 
-  const fetchStub: typeof fetch = async (input) => {
+  const fetchStub: typeof fetch = (input) => {
     const url = typeof input === "string"
       ? input
       : input instanceof URL
@@ -427,13 +434,15 @@ Deno.test("rejects subscription when payer wallet mismatches linked wallet", asy
       : input.url;
 
     if (url.includes("/transactions/")) {
-      return new Response(
-        JSON.stringify({
-          destination: "EQOPS",
-          amount: 120_000_000_000,
-          source: "EQATTACKER",
-        }),
-        { status: 200 },
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            destination: "EQOPS",
+            amount: 120_000_000_000,
+            source: "EQATTACKER",
+          }),
+          { status: 200 },
+        ),
       );
     }
 
@@ -490,7 +499,7 @@ Deno.test("processes subscription when payer wallet matches linked wallet", asyn
 
   const notifications: Array<string> = [];
   const fetchCalls: Array<string> = [];
-  const fetchStub: typeof fetch = async (input, init) => {
+  const fetchStub: typeof fetch = (input, init) => {
     const url = typeof input === "string"
       ? input
       : input instanceof URL
@@ -499,13 +508,15 @@ Deno.test("processes subscription when payer wallet matches linked wallet", asyn
     fetchCalls.push(url);
 
     if (url.includes("/transactions/")) {
-      return new Response(
-        JSON.stringify({
-          destination: "EQOPS",
-          amount: 120_000_000_000,
-          source: "EQLINKED",
-        }),
-        { status: 200 },
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            destination: "EQOPS",
+            amount: 120_000_000_000,
+            source: "EQLINKED",
+          }),
+          { status: 200 },
+        ),
       );
     }
 
@@ -513,7 +524,7 @@ Deno.test("processes subscription when payer wallet matches linked wallet", asyn
       if (init?.body) {
         notifications.push(String(init.body));
       }
-      return new Response("ok", { status: 200 });
+      return Promise.resolve(new Response("ok", { status: 200 }));
     }
 
     throw new Error(`Unexpected fetch call: ${url}`);
