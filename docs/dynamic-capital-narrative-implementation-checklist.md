@@ -26,16 +26,16 @@ touchpoints.
 7. [ ] **Record the source metadata** (publication, URL, access date) inside the
        shared Maldives Data Tracker template so every team can deep-link
        citations without version drift.
-8. [ ] **Snapshot baselines** (deck version numbers, dashboard commit hashes)
-       so post-optimization diffs are easy to audit.
+8. [ ] **Snapshot baselines** (deck version numbers, dashboard commit hashes) so
+       post-optimization diffs are easy to audit.
 
 ## Back-to-Back Review ➜ Optimize Command Center
 
-- [ ] **Publish the session agenda** in the project tracker with separate
-      blocks for review, verify, and optimization so each owner knows when they
-      are on deck.
-- [ ] **Spin up a shared notes doc** (or Notion page) that includes sections
-      for decisions, blockers, optimization tasks, and assigned owners to ensure
+- [ ] **Publish the session agenda** in the project tracker with separate blocks
+      for review, verify, and optimization so each owner knows when they are on
+      deck.
+- [ ] **Spin up a shared notes doc** (or Notion page) that includes sections for
+      decisions, blockers, optimization tasks, and assigned owners to ensure
       nothing gets lost in the handoff between review and optimization.
 - [ ] **Open the Maldives Data Tracker** side-by-side with current assets so
       verifiers can confirm citations without context switching during the
@@ -50,9 +50,9 @@ touchpoints.
 
 ## Macro Data Application Playbook
 
-- [ ] **Lead with credibility.** Highlight Maldives GDP per capita (nominal
-      and PPP) in decks, whitepapers, and website hero copy with clear source
-      links so investors immediately understand the premium-income backdrop.
+- [ ] **Lead with credibility.** Highlight Maldives GDP per capita (nominal and
+      PPP) in decks, whitepapers, and website hero copy with clear source links
+      so investors immediately understand the premium-income backdrop.
 - [ ] **Tie tokenomics to momentum.** Reference GDP-per-capita CAGR when
       explaining supply schedules, staking yields, or treasury allocations to
       show how protocol mechanics parallel national growth.
@@ -60,8 +60,7 @@ touchpoints.
       metrics toward certifications, venture funding, or export wins that echo
       the prosperity narrative.
 - [ ] **Bridge local to global.** Spotlight Maldivian partnerships in marketing
-      materials while outlining how the operating model scales to other
-      markets.
+      materials while outlining how the operating model scales to other markets.
 - [ ] **Anchor roadmap proof points.** Pair macro claims with specific delivery
       milestones (e.g., AI trading desk launch dates, marketplace onboarding
       targets) so the “living protocol” story maps to tangible execution.
@@ -95,8 +94,8 @@ touchpoints.
       metadata saved in the Maldives Data Tracker.
 - [ ] Capture the baseline asset versions (deck slide IDs, site commit hashes)
       in the tracker so optimization edits can be compared quickly.
-- [ ] Note outstanding review questions or data gaps directly in the project
-      log to guide the optimization sprint.
+- [ ] Note outstanding review questions or data gaps directly in the project log
+      to guide the optimization sprint.
 
 ### Optimize (Run right after the review session)
 
@@ -321,8 +320,8 @@ touchpoints.
 
 ### Verify
 
-- [ ] Store the approved paragraph and citation evidence in the shared
-      narrative library with a direct link to the Maldives Data Tracker entry.
+- [ ] Store the approved paragraph and citation evidence in the shared narrative
+      library with a direct link to the Maldives Data Tracker entry.
 - [ ] Check that analytics or heatmap tools are set to capture performance after
       the optimized copy ships.
 - [ ] Note unresolved reviewer feedback so optimization focuses on concrete
@@ -435,12 +434,12 @@ Use this table to centralize the macro assumptions that anchor the narrative.
 Duplicate it inside your project workspace and keep all fields current before
 each implementation sprint.
 
-| Metric                        | 2024 Value | 2025 Target                 | Source (Org + URL) | Accessed | Usage Note                                | Automation / Owner |
+| Metric                        | 2024 Value | 2025 Target                 | Source (Org + URL) | Accessed | Usage Note                               | Automation / Owner |
 | ----------------------------- | ---------- | --------------------------- | ------------------ | -------- | ---------------------------------------- | ------------------ |
 | GDP per capita (nominal, USD) | 17,287     | 18,207                      |                    |          | Investor materials + tokenomics overlays |                    |
 | GDP per capita (PPP, USD)     | 26,000+    | Refresh with latest release |                    |          | Messaging prosperity comparisons         |                    |
 | Supporting macro indicator    |            |                             |                    |          | Mentorship scoring / roadmap claims      |                    |
-| Data refresh trigger          |            |                             | Automation link     |          | Slack/PM alert reference                 |                    |
+| Data refresh trigger          |            |                             | Automation link    |          | Slack/PM alert reference                 |                    |
 
 ## Appendix B: Narrative Paragraph Deployment Checklist
 
@@ -462,33 +461,36 @@ Capital’s ecosystem, run this micro-checklist alongside the main flow:
 
 Use this register to capture the systems that keep the narrative future proof.
 
-| System / Workflow               | Purpose                                   | Owner | Check Cadence | Last Audit | Notes |
-| ------------------------------ | ----------------------------------------- | ----- | ------------- | ---------- | ----- |
-| Macro source alert feed        | Notify team when GDP/PPP data updates     |       |               |            |       |
-| Narrative asset version log    | Track pitch deck / site revisions         |       |               |            |       |
-| Tokenomics parameter change log| Map macro changes to protocol levers      |       |               |            |       |
-| Automation health dashboard    | Monitor reminders & integrations          |       |               |            |       |
-| Compliance & legal watchlist   | Surface regulatory messaging constraints  |       |               |            |       |
+| System / Workflow               | Purpose                                  | Owner | Check Cadence | Last Audit | Notes |
+| ------------------------------- | ---------------------------------------- | ----- | ------------- | ---------- | ----- |
+| Macro source alert feed         | Notify team when GDP/PPP data updates    |       |               |            |       |
+| Narrative asset version log     | Track pitch deck / site revisions        |       |               |            |       |
+| Tokenomics parameter change log | Map macro changes to protocol levers     |       |               |            |       |
+| Automation health dashboard     | Monitor reminders & integrations         |       |               |            |       |
+| Compliance & legal watchlist    | Surface regulatory messaging constraints |       |               |            |       |
 
 ## Appendix D: Investor Narrative Snippet Template
 
 Reuse this paragraph scaffold whenever you need a fast, source-backed story for
 investors, partners, or press. Swap in the latest GDP numbers, cite the source,
-and highlight an upcoming milestone so the macro proof point flows directly
-into execution.
+and highlight an upcoming milestone so the macro proof point flows directly into
+execution.
 
 > "Maldives today stands among the world’s top 60 nations in nominal GDP per
 > capita, with income levels projected to rise from **$17,287** in 2024 to
-> **$18,207** in 2025.<sup>[1]</sup> In purchasing power terms, Maldivians enjoy
-> an effective standard of living exceeding **$26,000** per capita, placing the
-> country on par with advanced economies. This upward trajectory is more than a
-> statistic—it’s a signal of capacity. Dynamic Capital is building the first
-> Maldivian-born trading and mentorship ecosystem designed to match this
-> prosperity with opportunity. By anchoring our tokenomics, mentorship scoring,
-> and AI-driven trading intelligence to a nation already outperforming its
-> peers, we’re not just creating financial tools—we’re encoding the Maldives’
-> growth story into a living protocol that scales globally. {{Add milestone
-> clause: e.g., "AI trading desk beta launches in Q3 2025."}}
+>
+>> **$18,207** in 2025.<sup>[1]</sup> In purchasing power terms, Maldivians
+>>
+>>> enjoy an effective standard of living exceeding **$26,000** per capita,
+>>> placing the country on par with advanced economies. This upward trajectory
+>>> is more than a statistic—it’s a signal of capacity. Dynamic Capital is
+>>> building the first Maldivian-born trading and mentorship ecosystem designed
+>>> to match this prosperity with opportunity. By anchoring our tokenomics,
+>>> mentorship scoring, and AI-driven trading intelligence to a nation already
+>>> outperforming its peers, we’re not just creating financial tools—we’re
+>>> encoding the Maldives’ growth story into a living protocol that scales
+>>> globally. {{Add milestone clause: e.g., "AI trading desk beta launches in Q3
+>>> 2025."}}
 
 **Implementation notes**
 

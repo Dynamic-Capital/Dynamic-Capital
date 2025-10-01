@@ -16,9 +16,9 @@ import {
   unauth,
 } from "@/utils/http.ts";
 import {
-  verifyAdminRequest,
-  isAdminVerificationFailure,
   type AdminVerificationFailure,
+  isAdminVerificationFailure,
+  verifyAdminRequest,
 } from "@/utils/admin-auth.ts";
 
 const ROUTE_NAME = "/api/dynamic-cli";

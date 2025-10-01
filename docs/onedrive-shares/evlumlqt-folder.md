@@ -70,10 +70,10 @@ curl -I "${ONEDRIVE_SHARE_LINK}" | tee docs/onedrive-shares/evlumlqt-folder.head
 curl -sSL "${ONEDRIVE_SHARE_LINK}" | tee docs/onedrive-shares/evlumlqt-folder.403.html | head
 ```
 
-As of 2025-09-29 the second command returns the HTML error stub with the
-visible banner `The request is blocked.` along with rotating `Ref A`, `Ref B`,
-and `Ref C` identifiers from Microsoft Edge. Save the output for future
-comparisons when re-testing access.
+As of 2025-09-29 the second command returns the HTML error stub with the visible
+banner `The request is blocked.` along with rotating `Ref A`, `Ref B`, and
+`Ref C` identifiers from Microsoft Edge. Save the output for future comparisons
+when re-testing access.
 
 ## Fetching metadata
 

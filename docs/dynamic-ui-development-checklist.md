@@ -62,9 +62,9 @@ a glance.
       accessibility contrast and use the shared transition durations.
 - [ ] Keep custom CSS scoped via module files or `:where` selectors so global
       Dynamic UI styles remain unmodified.
-- [ ] Route theme toggles through `useTheme` so updates persist via
-      `theme-save` and immediately reflect across the marketing shell, Telegram
-      Mini App, and dashboard surfaces.
+- [ ] Route theme toggles through `useTheme` so updates persist via `theme-save`
+      and immediately reflect across the marketing shell, Telegram Mini App, and
+      dashboard surfaces.
 - [ ] Use the shared motion tokens exported from `@/lib/motion-variants`
       (`dynamicMotionVariants`, `DYNAMIC_MOTION_SPRINGS`, etc.) instead of
       redefining easing, durations, or stagger timings.

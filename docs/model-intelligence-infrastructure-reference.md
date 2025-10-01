@@ -119,14 +119,14 @@ across the stack.
 
 ### Module Blueprints
 
-| Module Domain               | Role Stack                                          | Primary Outcomes                                   |
-| --------------------------- | --------------------------------------------------- | -------------------------------------------------- |
-| Technology & Infrastructure | Bot → Helper → Keeper → Watcher → Planner → Builder | Automated ops, schema evolution, deep observability |
-| AI, Agents & Cognition      | Agent → Keeper → Planner → Builder                  | Adaptive policies, curated memory, evolving loops   |
-| Business & Operations       | Planner → Agent → Keeper → Builder                  | Coordinated cadences, governed approvals, new plays |
+| Module Domain               | Role Stack                                          | Primary Outcomes                                      |
+| --------------------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| Technology & Infrastructure | Bot → Helper → Keeper → Watcher → Planner → Builder | Automated ops, schema evolution, deep observability   |
+| AI, Agents & Cognition      | Agent → Keeper → Planner → Builder                  | Adaptive policies, curated memory, evolving loops     |
+| Business & Operations       | Planner → Agent → Keeper → Builder                  | Coordinated cadences, governed approvals, new plays   |
 | Finance & Markets           | Watcher → Agent → Planner → Keeper                  | Market surveillance, decisive execution, auditability |
-| Human & Creative            | Assistant → Planner → Builder                       | Coaching experiences, tailored curricula, assets    |
-| Security & Governance       | Bot → Watcher → Agent → Keeper                      | Policy enforcement, rapid remediation, compliance   |
+| Human & Creative            | Assistant → Planner → Builder                       | Coaching experiences, tailored curricula, assets      |
+| Security & Governance       | Bot → Watcher → Agent → Keeper                      | Policy enforcement, rapid remediation, compliance     |
 
 ### Operational Playbook
 
@@ -150,6 +150,5 @@ The `dynamic_ai.infrastructure` module materialises this playbook in code. It
 defines the shared role palette, per-domain blueprints, and a
 `DynamicInfrastructure` registry that can register modules, assign role owners,
 and emit operational playbooks. Use `build_default_infrastructure()` when you
-need a ready-to-run baseline covering core modules such as
-`dynamic_supabase`, `dynamic_memory`, `dynamic_task_manager`, and
-`dynamic_validator`.
+need a ready-to-run baseline covering core modules such as `dynamic_supabase`,
+`dynamic_memory`, `dynamic_task_manager`, and `dynamic_validator`.

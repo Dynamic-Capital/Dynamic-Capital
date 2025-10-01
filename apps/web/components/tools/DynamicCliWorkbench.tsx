@@ -19,9 +19,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   DEFAULT_DYNAMIC_CLI_SCENARIO,
   type DynamicCliReportFormat,
+  type DynamicCliRequestOptions,
   type DynamicCliResponsePayload,
   type DynamicCliScenario,
-  type DynamicCliRequestOptions,
   runDynamicCli,
 } from "@/services/dynamic-cli";
 import { useTelegramAuth } from "@/hooks/useTelegramAuth";
@@ -141,7 +141,9 @@ export function DynamicCliWorkbench() {
     try {
       const auth = getAdminAuth?.();
       if (!auth?.token) {
-        setError("Admin session expired. Refresh your admin token and try again.");
+        setError(
+          "Admin session expired. Refresh your admin token and try again.",
+        );
         return;
       }
       const requestOptions: DynamicCliRequestOptions = {
@@ -230,7 +232,11 @@ export function DynamicCliWorkbench() {
     return (
       <Column gap="24" align="center" horizontal="center" paddingY="40">
         <Heading variant="heading-strong-m">Checking admin access…</Heading>
-        <Text variant="body-default-m" onBackground="neutral-weak" align="center">
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          align="center"
+        >
           Hold tight while we confirm your admin session.
         </Text>
       </Column>
@@ -241,9 +247,13 @@ export function DynamicCliWorkbench() {
     return (
       <Column gap="24" align="center" horizontal="center" paddingY="40">
         <Heading variant="heading-strong-m">Admin session required</Heading>
-        <Text variant="body-default-m" onBackground="neutral-weak" align="center">
-          Refresh the admin control room to generate a valid session token before
-          running the Dynamic CLI/CD workbench.
+        <Text
+          variant="body-default-m"
+          onBackground="neutral-weak"
+          align="center"
+        >
+          Refresh the admin control room to generate a valid session token
+          before running the Dynamic CLI/CD workbench.
         </Text>
         <Tag size="s" background="brand-alpha-weak">
           Tip: Authenticate via the admin gate to mint a new token.

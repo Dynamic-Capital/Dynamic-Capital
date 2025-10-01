@@ -8,26 +8,30 @@ const enhancedButtonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        default:
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         brand: [
           "bg-gradient-brand text-white font-semibold shadow-lg",
           "hover:shadow-xl hover:shadow-primary/30 hover:scale-105",
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
-          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
+          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700",
         ],
         premium: [
           "bg-gradient-to-r from-primary via-accent to-primary text-white font-semibold",
           "shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/50",
-          "hover:scale-105 animate-pulse-glow"
+          "hover:scale-105 animate-pulse-glow",
         ],
         glass: [
           "bg-background/10 dark:bg-foreground/10 backdrop-blur-md border border-border/20 text-foreground",
-          "hover:bg-background/20 dark:hover:bg-foreground/20 hover:border-border/30 shadow-lg hover:shadow-xl"
+          "hover:bg-background/20 dark:hover:bg-foreground/20 hover:border-border/30 shadow-lg hover:shadow-xl",
         ],
         shimmer: [
           "bg-gradient-to-r from-primary via-accent to-primary text-white font-semibold",
@@ -35,7 +39,7 @@ const enhancedButtonVariants = cva(
           "hover:scale-105 relative overflow-hidden",
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/30 before:to-transparent",
           "before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000",
-          "before:animate-shimmer"
+          "before:animate-shimmer",
         ],
         attention: [
           "bg-gradient-to-r from-orange-500 via-dc-brand to-orange-500 text-white font-bold",
@@ -44,8 +48,8 @@ const enhancedButtonVariants = cva(
           "border-2 border-orange-400/50 hover:border-orange-300",
           "relative overflow-hidden",
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent",
-          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500"
-        ]
+          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500",
+        ],
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -59,11 +63,12 @@ const enhancedButtonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface EnhancedButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof enhancedButtonVariants> {
   asChild?: boolean;
   loading?: boolean;
@@ -72,25 +77,24 @@ export interface EnhancedButtonProps
 }
 
 const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
-  ({ 
-    className, 
-    variant, 
-    size, 
-    asChild = false, 
+  ({
+    className,
+    variant,
+    size,
+    asChild = false,
     loading = false,
     icon,
     iconPosition = "left",
     children,
     disabled,
-    ...props 
+    ...props
   }, ref) => {
     const baseClassName = cn(
       enhancedButtonVariants({ variant, size, className }),
     );
 
     const renderContent = (innerChildren: React.ReactNode) => (
-      <div className={cn("flex items-center gap-2", loading && "opacity-0")}
-      >
+      <div className={cn("flex items-center gap-2", loading && "opacity-0")}>
         {icon && iconPosition === "left" ? icon : null}
         {innerChildren}
         {icon && iconPosition === "right" ? icon : null}
@@ -126,11 +130,13 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
           ...(loading ? { "aria-busy": true } : null),
           children: (
             <>
-              {loading ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                </div>
-              ) : null}
+              {loading
+                ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  </div>
+                )
+                : null}
               {renderContent(onlyChild.props.children)}
             </>
           ),
@@ -165,16 +171,18 @@ const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
         aria-busy={loading}
         {...props}
       >
-        {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          </div>
-        ) : null}
+        {loading
+          ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            </div>
+          )
+          : null}
 
         {renderContent(children)}
       </button>
     );
-  }
+  },
 );
 
 EnhancedButton.displayName = "EnhancedButton";

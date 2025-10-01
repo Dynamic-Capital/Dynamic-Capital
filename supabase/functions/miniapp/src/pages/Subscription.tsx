@@ -27,7 +27,9 @@ interface Plan {
 
 export default function Subscription() {
   const api = useApi();
-  const [subscription, setSubscription] = useState<SubscriptionStatus | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionStatus | null>(
+    null,
+  );
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -57,78 +59,90 @@ export default function Subscription() {
 
   const getStatusColor = (status: string | null) => {
     switch (status) {
-      case 'completed': return 'VERIFIED';
-      case 'pending': return 'AWAITING';
-      default: return 'REJECTED';
+      case "completed":
+        return "VERIFIED";
+      case "pending":
+        return "AWAITING";
+      default:
+        return "REJECTED";
     }
   };
 
   return (
     <div className="dc-screen">
       <TopBar title="My Subscription" />
-      
-      {subscription?.is_vip ? (
-        <GlassPanel>
-          <div className="text-center mb-4">
-            <div className="text-lg font-semibold text-dc-primary mb-2">
-              {subscription.plan_name || 'VIP Plan'}
+
+      {subscription?.is_vip
+        ? (
+          <GlassPanel>
+            <div className="text-center mb-4">
+              <div className="text-lg font-semibold text-dc-primary mb-2">
+                {subscription.plan_name || "VIP Plan"}
+              </div>
+              <StatusPill
+                status={getStatusColor(subscription.payment_status)}
+              />
+              <Link to="/vip-dashboard" className="mt-3 block">
+                <PrimaryButton label="Open VIP Dashboard" />
+              </Link>
             </div>
-            <StatusPill status={getStatusColor(subscription.payment_status)} />
-            <Link to="/vip-dashboard" className="mt-3 block">
-              <PrimaryButton label="Open VIP Dashboard" />
-            </Link>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-dc-text-dim">Status:</span>
-              <span className="text-dc-text">
-                {subscription.is_expired ? 'Expired' : 'Active'}
-              </span>
-            </div>
-            
-            <div className="flex justify-between">
-              <span className="text-dc-text-dim">Expires:</span>
-              <span className="text-dc-text">
-                {formatDate(subscription.subscription_end_date)}
-              </span>
-            </div>
-            
-            {subscription.days_remaining !== null && (
+
+            <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-dc-text-dim">Days Remaining:</span>
-                <span className={`font-medium ${
-                  subscription.days_remaining < 7 ? 'text-red-400' : 'text-dc-text'
-                }`}>
-                  {subscription.days_remaining}
+                <span className="text-dc-text-dim">Status:</span>
+                <span className="text-dc-text">
+                  {subscription.is_expired ? "Expired" : "Active"}
                 </span>
               </div>
-            )}
-          </div>
-          
-          {subscription.is_expired && (
-            <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
-              <div className="text-red-400 text-sm text-center">
-                Your subscription has expired. Renew to continue accessing VIP features.
+
+              <div className="flex justify-between">
+                <span className="text-dc-text-dim">Expires:</span>
+                <span className="text-dc-text">
+                  {formatDate(subscription.subscription_end_date)}
+                </span>
               </div>
+
+              {subscription.days_remaining !== null && (
+                <div className="flex justify-between">
+                  <span className="text-dc-text-dim">Days Remaining:</span>
+                  <span
+                    className={`font-medium ${
+                      subscription.days_remaining < 7
+                        ? "text-red-400"
+                        : "text-dc-text"
+                    }`}
+                  >
+                    {subscription.days_remaining}
+                  </span>
+                </div>
+              )}
             </div>
-          )}
-        </GlassPanel>
-      ) : (
-        <GlassPanel>
-          <div className="text-center">
-            <div className="text-lg font-semibold text-dc-text mb-2">
-              No Active Subscription
+
+            {subscription.is_expired && (
+              <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                <div className="text-red-400 text-sm text-center">
+                  Your subscription has expired. Renew to continue accessing VIP
+                  features.
+                </div>
+              </div>
+            )}
+          </GlassPanel>
+        )
+        : (
+          <GlassPanel>
+            <div className="text-center">
+              <div className="text-lg font-semibold text-dc-text mb-2">
+                No Active Subscription
+              </div>
+              <div className="text-dc-text-dim text-sm mb-4">
+                Subscribe to access VIP trading signals and premium features
+              </div>
+              <Link to="/plan">
+                <PrimaryButton label="Choose Plan" />
+              </Link>
             </div>
-            <div className="text-dc-text-dim text-sm mb-4">
-              Subscribe to access VIP trading signals and premium features
-            </div>
-            <Link to="/plan">
-              <PrimaryButton label="Choose Plan" />
-            </Link>
-          </div>
-        </GlassPanel>
-      )}
+          </GlassPanel>
+        )}
 
       {plans.length > 0 && (
         <div className="mt-4">
@@ -139,7 +153,9 @@ export default function Subscription() {
                 <div>
                   <div className="font-medium text-dc-text">{plan.name}</div>
                   <div className="text-dc-text-dim text-sm">
-                    {plan.is_lifetime ? 'Lifetime' : `${plan.duration_months} months`}
+                    {plan.is_lifetime
+                      ? "Lifetime"
+                      : `${plan.duration_months} months`}
                   </div>
                 </div>
                 <div className="text-right">

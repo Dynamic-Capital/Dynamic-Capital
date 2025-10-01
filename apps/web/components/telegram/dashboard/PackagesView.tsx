@@ -41,9 +41,9 @@ const normalizePlan = (plan: SubscriptionPlan): SubscriptionPlan => ({
       : null,
   features: Array.isArray(plan.features)
     ? plan.features.filter(
-        (feature): feature is string =>
-          typeof feature === "string" && feature.trim().length > 0,
-      )
+      (feature): feature is string =>
+        typeof feature === "string" && feature.trim().length > 0,
+    )
     : null,
 });
 
@@ -150,7 +150,8 @@ export function PackagesView({ onBack }: PackagesViewProps) {
         <Card className="p-8 bg-gradient-to-br from-background to-muted border-0 shadow-lg text-center">
           <h3 className="text-xl font-semibold mb-2">No subscription plans</h3>
           <p className="text-muted-foreground">
-            Create a plan in Supabase to have it appear here and in the Telegram bot menu.
+            Create a plan in Supabase to have it appear here and in the Telegram
+            bot menu.
           </p>
         </Card>
       );
@@ -168,15 +169,19 @@ export function PackagesView({ onBack }: PackagesViewProps) {
               key={plan.id}
               className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg relative"
             >
-              {plan.is_lifetime ? (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-purple-600 text-white">Lifetime</Badge>
-                </div>
-              ) : plan.id === bestValuePlanId ? (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-blue-600 text-white">Best Value</Badge>
-                </div>
-              ) : null}
+              {plan.is_lifetime
+                ? (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-purple-600 text-white">Lifetime</Badge>
+                  </div>
+                )
+                : plan.id === bestValuePlanId
+                ? (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-blue-600 text-white">Best Value</Badge>
+                  </div>
+                )
+                : null}
 
               <div className="text-center space-y-4">
                 <div>
@@ -184,7 +189,9 @@ export function PackagesView({ onBack }: PackagesViewProps) {
                   <p className="text-3xl font-bold text-blue-600">
                     {toCurrency(plan.price, plan.currency)}
                   </p>
-                  <p className="text-muted-foreground">{formatDuration(plan)}</p>
+                  <p className="text-muted-foreground">
+                    {formatDuration(plan)}
+                  </p>
                   {monthly !== null && (
                     <p className="text-xs text-muted-foreground">
                       ≈ {toCurrency(monthly, plan.currency)} per month

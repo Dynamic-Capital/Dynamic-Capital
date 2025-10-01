@@ -1,28 +1,34 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Eye, 
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Building2,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Coins,
+  ExternalLink,
+  Eye,
+  FileText,
+  Filter,
   RefreshCw,
   Search,
-  Filter,
-  ExternalLink,
-  FileText,
-  Building2,
-  Coins,
   User,
-  Calendar
+  XCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { callEdgeFunction } from "@/config/supabase";
@@ -62,38 +68,42 @@ export function PaymentReview() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('payments')
+        .from("payments")
         .select(`
           *,
           user:bot_users!inner(telegram_id, first_name, last_name),
           plan:subscription_plans!inner(name, duration_months, is_lifetime)
         `)
-        .order('created_at', { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(50);
 
       if (error) throw error;
       setPayments(data || []);
     } catch (error) {
-      console.error('Error fetching payments:', error);
+      console.error("Error fetching payments:", error);
       toast.error("Failed to fetch payments");
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePaymentAction = async (paymentId: string, action: 'approve' | 'reject', notes?: string) => {
+  const handlePaymentAction = async (
+    paymentId: string,
+    action: "approve" | "reject",
+    notes?: string,
+  ) => {
     try {
       setProcessing(paymentId);
       const { data: { user } } = await supabase.auth.getUser();
 
-      const { data, error } = await callEdgeFunction('ADMIN_REVIEW_PAYMENT', {
-        method: 'POST',
+      const { data, error } = await callEdgeFunction("ADMIN_REVIEW_PAYMENT", {
+        method: "POST",
         body: {
           payment_id: paymentId,
           decision: action,
           notes,
-          admin_telegram_id: user?.user_metadata?.telegram_id
-        }
+          admin_telegram_id: user?.user_metadata?.telegram_id,
+        },
       });
 
       if (error) {
@@ -105,10 +115,10 @@ export function PaymentReview() {
         fetchPayments();
         setSelectedPayment(null);
       } else {
-        throw new Error((data as any)?.error || 'Failed to process payment');
+        throw new Error((data as any)?.error || "Failed to process payment");
       }
     } catch (error) {
-      console.error('Error processing payment:', error);
+      console.error("Error processing payment:", error);
       toast.error(`Failed to ${action} payment`);
     } finally {
       setProcessing(null);
@@ -118,24 +128,29 @@ export function PaymentReview() {
   const viewReceipt = (payment: Payment) => {
     if (payment.payment_provider_id) {
       const { data } = supabase.storage
-        .from('payment-receipts')
+        .from("payment-receipts")
         .getPublicUrl(payment.payment_provider_id);
-      
+
       if (data.publicUrl) {
-        window.open(data.publicUrl, '_blank');
+        window.open(data.publicUrl, "_blank");
       }
     }
   };
 
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch = !searchTerm || 
+  const filteredPayments = payments.filter((payment) => {
+    const matchesSearch = !searchTerm ||
       payment.user.telegram_id?.includes(searchTerm) ||
-      payment.user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.user.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.user.first_name?.toLowerCase().includes(
+        searchTerm.toLowerCase(),
+      ) ||
+      payment.user.last_name?.toLowerCase().includes(
+        searchTerm.toLowerCase(),
+      ) ||
       payment.id.includes(searchTerm);
-    
-    const matchesStatus = statusFilter === "all" || payment.status === statusFilter;
-    
+
+    const matchesStatus = statusFilter === "all" ||
+      payment.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
@@ -145,14 +160,30 @@ export function PaymentReview() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
-        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
-      case 'pending_review':
-        return <Badge variant="outline"><Eye className="h-3 w-3 mr-1" />Under Review</Badge>;
-      case 'completed':
-        return <Badge variant="default"><CheckCircle2 className="h-3 w-3 mr-1" />Completed</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+      case "pending":
+        return (
+          <Badge variant="secondary">
+            <Clock className="h-3 w-3 mr-1" />Pending
+          </Badge>
+        );
+      case "pending_review":
+        return (
+          <Badge variant="outline">
+            <Eye className="h-3 w-3 mr-1" />Under Review
+          </Badge>
+        );
+      case "completed":
+        return (
+          <Badge variant="default">
+            <CheckCircle2 className="h-3 w-3 mr-1" />Completed
+          </Badge>
+        );
+      case "rejected":
+        return (
+          <Badge variant="destructive">
+            <XCircle className="h-3 w-3 mr-1" />Rejected
+          </Badge>
+        );
       default:
         return <Badge>{status}</Badge>;
     }
@@ -160,9 +191,9 @@ export function PaymentReview() {
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
-      case 'bank_transfer':
+      case "bank_transfer":
         return <Building2 className="h-4 w-4" />;
-      case 'crypto':
+      case "crypto":
         return <Coins className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
@@ -175,10 +206,14 @@ export function PaymentReview() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Payment Review</h2>
-          <p className="text-muted-foreground">Review and manage payment submissions</p>
+          <p className="text-muted-foreground">
+            Review and manage payment submissions
+          </p>
         </div>
         <Button onClick={fetchPayments} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
@@ -226,7 +261,7 @@ export function PaymentReview() {
                     <div className="flex items-center gap-2">
                       {getPaymentMethodIcon(payment.payment_method)}
                       <span className="font-medium capitalize">
-                        {payment.payment_method.replace('_', ' ')}
+                        {payment.payment_method.replace("_", " ")}
                       </span>
                     </div>
                     {getStatusBadge(payment.status)}
@@ -250,7 +285,9 @@ export function PaymentReview() {
                       <p className="text-muted-foreground">Plan</p>
                       <p className="font-medium">{payment.plan.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {payment.plan.is_lifetime ? 'Lifetime' : `${payment.plan.duration_months} months`}
+                        {payment.plan.is_lifetime
+                          ? "Lifetime"
+                          : `${payment.plan.duration_months} months`}
                       </p>
                     </div>
 
@@ -286,11 +323,12 @@ export function PaymentReview() {
                     </Button>
                   )}
 
-                  {payment.status === 'pending_review' && (
+                  {payment.status === "pending_review" && (
                     <>
                       <Button
                         size="sm"
-                        onClick={() => handlePaymentAction(payment.id, 'approve')}
+                        onClick={() =>
+                          handlePaymentAction(payment.id, "approve")}
                         disabled={processing === payment.id}
                         className="bg-green-600 hover:bg-green-700"
                       >
@@ -321,10 +359,9 @@ export function PaymentReview() {
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground" />
                 <h3 className="text-lg font-medium">No payments found</h3>
                 <p className="text-muted-foreground">
-                  {searchTerm || statusFilter !== "all" 
+                  {searchTerm || statusFilter !== "all"
                     ? "No payments match your current filters"
-                    : "No payment submissions to review"
-                  }
+                    : "No payment submissions to review"}
                 </p>
               </div>
             </CardContent>
@@ -361,12 +398,16 @@ export function PaymentReview() {
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    const reason = (document.getElementById('rejection-reason') as HTMLTextAreaElement)?.value;
-                    handlePaymentAction(selectedPayment.id, 'reject', reason);
+                    const reason = (document.getElementById(
+                      "rejection-reason",
+                    ) as HTMLTextAreaElement)?.value;
+                    handlePaymentAction(selectedPayment.id, "reject", reason);
                   }}
                   disabled={processing === selectedPayment.id}
                 >
-                  {processing === selectedPayment.id ? 'Processing...' : 'Reject Payment'}
+                  {processing === selectedPayment.id
+                    ? "Processing..."
+                    : "Reject Payment"}
                 </Button>
               </div>
             </CardContent>

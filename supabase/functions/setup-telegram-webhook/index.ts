@@ -34,18 +34,30 @@ export async function handler(req: Request): Promise<Response> {
   try {
     if (!BOT_TOKEN) {
       console.error("Bot token not configured");
-      return json({ success: false, error: "Bot token not configured" }, 500, corsHeaders);
+      return json(
+        { success: false, error: "Bot token not configured" },
+        500,
+        corsHeaders,
+      );
     }
 
     if (!SUPABASE_URL) {
       console.error("Supabase URL not configured");
-      return json({ success: false, error: "Supabase URL not configured" }, 500, corsHeaders);
+      return json(
+        { success: false, error: "Supabase URL not configured" },
+        500,
+        corsHeaders,
+      );
     }
 
     const SECRET = await expectedSecret();
     if (!SECRET) {
       console.error("❌ TELEGRAM_WEBHOOK_SECRET not configured");
-      return json({ success: false, error: "Webhook secret not configured" }, 500, corsHeaders);
+      return json(
+        { success: false, error: "Webhook secret not configured" },
+        500,
+        corsHeaders,
+      );
     }
 
     const webhookUrl = `${SUPABASE_URL}/functions/v1/telegram-bot`;

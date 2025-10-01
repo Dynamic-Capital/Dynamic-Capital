@@ -17,8 +17,8 @@ a cohesive service roadmap.
 2. **Mentor Mode**
    - [ ] Unlock advanced tooling (strategy backtesting, portfolio optimization
          prompts).
-   - [ ] Enable deep-dive explanations with citations to market data or
-         on-chain metrics.
+   - [ ] Enable deep-dive explanations with citations to market data or on-chain
+         metrics.
    - [ ] Provide co-creation workflows where the agent and user refine
          hypotheses together.
 3. **Analyst Mode**

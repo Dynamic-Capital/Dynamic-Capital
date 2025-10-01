@@ -30,7 +30,11 @@ interface MarketHeadline {
   created_at: string;
 }
 
-function stableHeadlineId(source: string, headline: string, publishedAt: string) {
+function stableHeadlineId(
+  source: string,
+  headline: string,
+  publishedAt: string,
+) {
   const data = `${source}|${headline}|${publishedAt}`;
   let hash = 1469598103934665603n;
   const prime = 1099511628211n;
@@ -43,7 +47,10 @@ function stableHeadlineId(source: string, headline: string, publishedAt: string)
 
 function clampImpact(article: NewsApiArticle): string | null {
   const title = article.title?.toLowerCase() ?? "";
-  if (title.includes("surge") || title.includes("plunge") || title.includes("crash")) {
+  if (
+    title.includes("surge") || title.includes("plunge") ||
+    title.includes("crash")
+  ) {
     return "high";
   }
   if (title.includes("steady") || title.includes("flat")) {
@@ -67,7 +74,8 @@ function mapArticle(article: NewsApiArticle): MarketHeadline | null {
   if (!publishedAt || !title) {
     return null;
   }
-  const source = article.source?.name?.trim() || article.author?.trim() || "newsapi";
+  const source = article.source?.name?.trim() || article.author?.trim() ||
+    "newsapi";
   const id = stableHeadlineId(source, title, publishedAt);
   return {
     id,
@@ -138,7 +146,9 @@ export const handler = registerHandler(async (req) => {
       .upsert(headlines, { onConflict: "id" });
     if (error) {
       logger.error("Failed to upsert market news", error);
-      return jsonResponse({ message: "failed_to_store_market_news" }, { status: 500 }, req);
+      return jsonResponse({ message: "failed_to_store_market_news" }, {
+        status: 500,
+      }, req);
     }
     logger.info("Persisted market news", { count: headlines.length });
     return jsonResponse({ inserted: headlines.length }, { status: 200 }, req);

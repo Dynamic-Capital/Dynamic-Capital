@@ -1,5 +1,5 @@
 import { assertEquals } from "std/testing/asserts.ts";
-import { setTestEnv, clearTestEnv } from "./env-mock.ts";
+import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
 Deno.test("telegram-webhook rejects requests without secret", async () => {
   setTestEnv({ TELEGRAM_WEBHOOK_SECRET: "s3cr3t" });

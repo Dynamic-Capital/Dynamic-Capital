@@ -18,7 +18,9 @@ function inferServerClientType() {
 
 export type ServerSupabaseClient = ReturnType<typeof inferServerClientType>;
 
-export async function createServerSupabaseClient(): Promise<ServerSupabaseClient> {
+export async function createServerSupabaseClient(): Promise<
+  ServerSupabaseClient
+> {
   const cookieStore = await cookies();
 
   return createServerClient<InvestorDatabase>(

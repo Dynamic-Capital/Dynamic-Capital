@@ -50,17 +50,21 @@ async function openAiExtract(
 }
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 export const handler = registerHandler(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405, headers: corsHeaders });
+    return new Response("Method Not Allowed", {
+      status: 405,
+      headers: corsHeaders,
+    });
   }
   let body: Body;
   try {
@@ -123,8 +127,12 @@ export const handler = registerHandler(async (req) => {
   };
   await supa.from("payments").update({ webhook_data: merged }).eq("id", p.id);
 
-  const amt = result.amount ? `${result.amount} ${result.currency || ""}` : "unknown amount";
-  const conf = result.confidence ? ` (confidence ${Math.round((result.confidence || 0) * 100)}%)` : "";
+  const amt = result.amount
+    ? `${result.amount} ${result.currency || ""}`
+    : "unknown amount";
+  const conf = result.confidence
+    ? ` (confidence ${Math.round((result.confidence || 0) * 100)}%)`
+    : "";
   await notify(p.user_id, `📄 OCR result: ${amt}${conf}.`);
 
   return new Response(JSON.stringify({ ok: true, ocr: result }), {

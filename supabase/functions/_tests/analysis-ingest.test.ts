@@ -1,7 +1,4 @@
-import {
-  assertEquals,
-  assertStrictEquals,
-} from "std/assert/mod.ts";
+import { assertEquals, assertStrictEquals } from "std/assert/mod.ts";
 
 Deno.test("analysis-ingest stores valid analyst insight", async () => {
   const originalFetch = globalThis.fetch;

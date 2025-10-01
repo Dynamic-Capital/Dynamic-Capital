@@ -341,7 +341,9 @@ function buildDocument(config: WhitepaperConfig): string {
   parts.push(renderNumberedList(config.priceStrategy.transparencyStack));
 
   parts.push("## Token Supply & Emissions");
-  parts.push(renderDistributionTable(config.distributionTable, config.token.symbol));
+  parts.push(
+    renderDistributionTable(config.distributionTable, config.token.symbol),
+  );
   parts.push("\n" + renderBullets(config.emissionNotes));
 
   if (config.valuationFramework) {

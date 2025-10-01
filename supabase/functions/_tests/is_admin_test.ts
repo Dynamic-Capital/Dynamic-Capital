@@ -1,7 +1,4 @@
-import {
-  assert,
-  assertFalse,
-} from "std/assert/mod.ts";
+import { assert, assertFalse } from "std/assert/mod.ts";
 import { isAdmin } from "../_shared/telegram.ts";
 
 Deno.test("isAdmin accepts IDs with spaces", () => {

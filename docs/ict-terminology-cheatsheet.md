@@ -1,8 +1,10 @@
 # ICT Terminology Cheat Sheet
 
-A quick-reference glossary for new and advanced traders studying Smart Money Concepts (SMC).
+A quick-reference glossary for new and advanced traders studying Smart Money
+Concepts (SMC).
 
 ## Market Levels
+
 - **PDH** – Previous Day High
 - **PDL** – Previous Day Low
 - **PWH** – Previous Week High
@@ -10,6 +12,7 @@ A quick-reference glossary for new and advanced traders studying Smart Money Con
 - **RN** – Round Numbers
 
 ## Structure & Flow
+
 - **BOS** – Break of Structure
 - **BMS** – Break in Market Structure
 - **SMS** – Shift in Market Structure
@@ -20,6 +23,7 @@ A quick-reference glossary for new and advanced traders studying Smart Money Con
 - **MSOS** – Major Sign of Strength
 
 ## Smart Money Concepts
+
 - **SMT** – Smart Money Tool
 - **OB** – Order Block
 - **CE** – Consequent Encroachment (50% of FVG)
@@ -31,6 +35,7 @@ A quick-reference glossary for new and advanced traders studying Smart Money Con
 - **CBDR** – Central Bank Dealer Range
 
 ## Price Action & Liquidity
+
 - **LP** – Liquidity Pool
 - **SSL** – Sell Stop Liquidity
 - **BSL** – Buy Stop Liquidity
@@ -40,6 +45,7 @@ A quick-reference glossary for new and advanced traders studying Smart Money Con
 - **WDYS** – What Do You See?
 
 ## Trading Tools & Indicators
+
 - **PA** – Price Action
 - **AOI** – Area of Interest
 - **POI** – Point of Interest
@@ -52,10 +58,12 @@ A quick-reference glossary for new and advanced traders studying Smart Money Con
 - **NFP** – Non-Farm Payroll
 
 ## Timeframes
+
 - **HTF** – Higher Time Frame
 - **LTF** – Lower Time Frame
 
 ## Wyckoff Concepts
+
 - **SC** – Selling Climax
 - **BC** – Buying Climax
 - **AR** – Automatic Rally
@@ -69,4 +77,5 @@ A quick-reference glossary for new and advanced traders studying Smart Money Con
 - **UTAD** – Upthrust After Distribution
 - **Spring** – Bear Trap
 
-Keep this glossary handy to boost understanding and precision when analyzing the charts. Save and share for quick reference!
+Keep this glossary handy to boost understanding and precision when analyzing the
+charts. Save and share for quick reference!

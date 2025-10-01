@@ -31,19 +31,24 @@ export default function Status() {
   return (
     <div className="dc-screen">
       <TopBar title="Payment Status" />
-      {receipt ? (
-        <GlassRow
-          left={
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">Payment #{receipt.id.slice(0, 8)}</span>
-              <span className="text-xs text-dc-text-dim">${receipt.amount} • {new Date(receipt.created_at).toLocaleDateString()}</span>
-            </div>
-          }
-          right={<StatusPill status={receipt.status} />}
-        />
-      ) : (
-        <p className="p-4 text-sm">No payment information available.</p>
-      )}
+      {receipt
+        ? (
+          <GlassRow
+            left={
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">
+                  Payment #{receipt.id.slice(0, 8)}
+                </span>
+                <span className="text-xs text-dc-text-dim">
+                  ${receipt.amount} •{" "}
+                  {new Date(receipt.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            }
+            right={<StatusPill status={receipt.status} />}
+          />
+        )
+        : <p className="p-4 text-sm">No payment information available.</p>}
     </div>
   );
 }

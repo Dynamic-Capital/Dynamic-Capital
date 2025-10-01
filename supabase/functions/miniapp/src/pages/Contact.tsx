@@ -1,5 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { useCallback, useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import PrimaryButton from "../components/PrimaryButton";
 import { useApi } from "../hooks/useApi";
@@ -18,25 +23,32 @@ interface ContactLink {
 export default function Contact() {
   const [contacts, setContacts] = useState<ContactLink[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<
+    { message: string; type: "success" | "error" } | null
+  >(null);
   const { get } = useApi();
 
   const fetchContacts = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await get('/contact-links');
-      
+      const response = await get("/contact-links");
+
       if (response.ok && response.data) {
         const activeContacts = response.data
           .filter((contact: ContactLink) => contact.is_active)
-          .sort((a: ContactLink, b: ContactLink) => a.display_order - b.display_order);
+          .sort((a: ContactLink, b: ContactLink) =>
+            a.display_order - b.display_order
+          );
         setContacts(activeContacts);
       } else {
-        throw new Error('Failed to fetch contact links');
+        throw new Error("Failed to fetch contact links");
       }
     } catch (error) {
-      console.error('Error fetching contacts:', error);
-      setToast({ message: 'Failed to load contact information', type: 'error' });
+      console.error("Error fetching contacts:", error);
+      setToast({
+        message: "Failed to load contact information",
+        type: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -52,11 +64,11 @@ export default function Contact() {
       if (tg) {
         tg.openLink(url);
       } else {
-        window.open(url, '_blank', 'noopener,noreferrer');
+        window.open(url, "_blank", "noopener,noreferrer");
       }
     } catch (error) {
-      console.error('Error opening contact link:', error);
-      setToast({ message: `Failed to open ${platform} link`, type: 'error' });
+      console.error("Error opening contact link:", error);
+      setToast({ message: `Failed to open ${platform} link`, type: "error" });
     }
   };
 
@@ -92,61 +104,84 @@ export default function Contact() {
             Contact Support
           </h1>
           <p className="text-slate-300 max-w-2xl mx-auto">
-            Get in touch with our team through any of the channels below. We're here to help with your questions and support needs.
+            Get in touch with our team through any of the channels below. We're
+            here to help with your questions and support needs.
           </p>
         </div>
 
         {/* Contact Methods */}
-        {contacts.length > 0 ? (
-          <div className="grid gap-4 mb-8">
-            {contacts.map((contact) => (
-              <Card key={contact.id} className="bg-slate-800/50 border-slate-700 backdrop-blur hover:bg-slate-800/70 transition-colors">
-                <CardHeader className="text-center pb-3">
-                  <div className="flex items-center justify-center gap-3 mb-2">
-                    {contact.icon_emoji && (
-                      <span className="text-2xl">{contact.icon_emoji}</span>
-                    )}
-                    <CardTitle className="text-white text-lg">{contact.display_name}</CardTitle>
-                  </div>
-                  <Badge className="w-fit mx-auto bg-primary/20 text-primary border-primary/30">
-                    {contact.platform}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <PrimaryButton
-                    label={`Contact via ${contact.platform}`}
-                    onClick={() => handleContactClick(contact.url, contact.platform)}
-                    className="w-full"
-                  />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="bg-slate-800/50 border-slate-700 backdrop-blur text-center py-12 mb-8">
-            <CardContent>
-              <div className="text-slate-400 mb-4">
-                <svg className="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h8z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-white">No Contact Methods Available</h3>
-              <p className="text-slate-400">
-                Contact information is being updated. Please check back later.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {contacts.length > 0
+          ? (
+            <div className="grid gap-4 mb-8">
+              {contacts.map((contact) => (
+                <Card
+                  key={contact.id}
+                  className="bg-slate-800/50 border-slate-700 backdrop-blur hover:bg-slate-800/70 transition-colors"
+                >
+                  <CardHeader className="text-center pb-3">
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                      {contact.icon_emoji && (
+                        <span className="text-2xl">{contact.icon_emoji}</span>
+                      )}
+                      <CardTitle className="text-white text-lg">
+                        {contact.display_name}
+                      </CardTitle>
+                    </div>
+                    <Badge className="w-fit mx-auto bg-primary/20 text-primary border-primary/30">
+                      {contact.platform}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <PrimaryButton
+                      label={`Contact via ${contact.platform}`}
+                      onClick={() =>
+                        handleContactClick(contact.url, contact.platform)}
+                      className="w-full"
+                    />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )
+          : (
+            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur text-center py-12 mb-8">
+              <CardContent>
+                <div className="text-slate-400 mb-4">
+                  <svg
+                    className="h-16 w-16 mx-auto"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h8z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-2 text-white">
+                  No Contact Methods Available
+                </h3>
+                <p className="text-slate-400">
+                  Contact information is being updated. Please check back later.
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
         {/* Additional Info */}
         <Card className="bg-gradient-to-r from-primary/20 to-blue-500/20 border-primary/30 backdrop-blur">
           <CardHeader>
-            <CardTitle className="text-center text-xl text-white">Need Help?</CardTitle>
+            <CardTitle className="text-center text-xl text-white">
+              Need Help?
+            </CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <p className="text-slate-300">
-              Our support team is available to assist you with any questions about our VIP services, 
-              payment processing, or technical issues.
+              Our support team is available to assist you with any questions
+              about our VIP services, payment processing, or technical issues.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
               <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-3 py-1">

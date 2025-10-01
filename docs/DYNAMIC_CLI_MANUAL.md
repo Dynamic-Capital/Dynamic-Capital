@@ -244,9 +244,9 @@ The underlying API route (`POST /api/dynamic-cli`) executes
 serialised output—or CLI error—as a JSON response.
 
 > **Access control:** The web workbench is reserved for admin operators. The
-> browser includes an `x-admin-token` header (or `x-telegram-init-data` fallback)
-> issued by the admin gate, and the API validates it against `ADMIN_API_SECRET`
-> before invoking the CLI.
+> browser includes an `x-admin-token` header (or `x-telegram-init-data`
+> fallback) issued by the admin gate, and the API validates it against
+> `ADMIN_API_SECRET` before invoking the CLI.
 
 ---
 

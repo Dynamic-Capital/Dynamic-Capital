@@ -34,20 +34,21 @@ export async function handleContentManagement(
         is_active: boolean;
         updated_at: string;
       }, index: number) => {
-      const status = item.is_active ? "🟢" : "🔴";
-      const preview = item.content_value.substring(0, 50) + "...";
-      lines.push(
-        `${
-          index + 1
-        }. ${status} ${item.content_key}\\n   📄 Preview: ${preview}\\n   🕐 Updated: ${
-          new Date(item.updated_at).toLocaleDateString()
-        }\\n`,
-      );
-      buttons.push([{
-        text: item.content_key,
-        callback_data: `edit_content_${item.content_key}`,
-      }]);
-    });
+        const status = item.is_active ? "🟢" : "🔴";
+        const preview = item.content_value.substring(0, 50) + "...";
+        lines.push(
+          `${
+            index + 1
+          }. ${status} ${item.content_key}\\n   📄 Preview: ${preview}\\n   🕐 Updated: ${
+            new Date(item.updated_at).toLocaleDateString()
+          }\\n`,
+        );
+        buttons.push([{
+          text: item.content_key,
+          callback_data: `edit_content_${item.content_key}`,
+        }]);
+      },
+    );
 
     contentMessage += lines.join("\\n");
 
@@ -83,7 +84,7 @@ export async function handleEditContent(
       .maybeSingle();
     if (error) throw error;
     const current = data?.content_value ?? "";
-    
+
     // Set awaiting input in user session
     await supabaseAdmin
       .from("user_sessions")
@@ -93,7 +94,7 @@ export async function handleEditContent(
         is_active: true,
         last_activity: new Date().toISOString(),
       });
-    
+
     const msg =
       `📝 *Editing ${contentKey}*\\n\\nCurrent value:\n${current}\n\nSend new content to update this entry.`;
     const keyboard = {
@@ -122,7 +123,7 @@ export async function handleAddNewContent(
         is_active: true,
         last_activity: new Date().toISOString(),
       });
-    
+
     const msg =
       "➕ *Add New Content*\\n\\nSend new content in the format `key=Your content here`.";
     const keyboard = {

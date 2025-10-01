@@ -1,7 +1,5 @@
 export function base64url(input: string | Uint8Array): string {
-  const str = typeof input === "string"
-    ? input
-    : String.fromCharCode(...input);
+  const str = typeof input === "string" ? input : String.fromCharCode(...input);
   return btoa(str).replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");

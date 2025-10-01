@@ -1,11 +1,11 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Moon } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Moon, Sun } from "lucide-react";
 import { cn } from "@/utils";
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from "@/hooks/useTheme";
 
 export function ThemeToggle() {
   const { currentTheme, toggleTheme } = useTheme();
@@ -28,33 +28,35 @@ export function ThemeToggle() {
           "hover:scale-110 active:scale-95 transition-all duration-200",
           "shadow-lg hover:shadow-xl",
           "border-primary/30 hover:border-primary/50",
-          "hover:bg-gradient-primary hover:text-primary-foreground"
+          "hover:bg-gradient-primary hover:text-primary-foreground",
         )}
       >
         <AnimatePresence mode="wait">
-          {currentTheme === 'light' ? (
-            <motion.div
-              key="sun"
-              initial={{ opacity: 0, rotate: -180, scale: 0.5 }}
-              animate={{ opacity: 1, rotate: 0, scale: 1 }}
-              exit={{ opacity: 0, rotate: 180, scale: 0.5 }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <Sun className="h-6 w-6 text-primary" />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="moon"
-              initial={{ opacity: 0, rotate: 180, scale: 0.5 }}
-              animate={{ opacity: 1, rotate: 0, scale: 1 }}
-              exit={{ opacity: 0, rotate: -180, scale: 0.5 }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0 flex items-center justify-center"
-            >
-              <Moon className="h-6 w-6 text-primary" />
-            </motion.div>
-          )}
+          {currentTheme === "light"
+            ? (
+              <motion.div
+                key="sun"
+                initial={{ opacity: 0, rotate: -180, scale: 0.5 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, rotate: 180, scale: 0.5 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <Sun className="h-6 w-6 text-primary" />
+              </motion.div>
+            )
+            : (
+              <motion.div
+                key="moon"
+                initial={{ opacity: 0, rotate: 180, scale: 0.5 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, rotate: -180, scale: 0.5 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <Moon className="h-6 w-6 text-primary" />
+              </motion.div>
+            )}
         </AnimatePresence>
 
         {/* Background gradient effect */}

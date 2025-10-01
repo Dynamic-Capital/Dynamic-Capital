@@ -6,8 +6,7 @@ export default defineConfig({
   out: "./drizzle",
   driver: "pg",
   dbCredentials: {
-    connectionString:
-      process.env.DATABASE_URL ??
+    connectionString: process.env.DATABASE_URL ??
       `postgresql://postgres:${process.env.SUPABASE_DB_PASSWORD}@db.${process.env.SUPABASE_PROJECT_ID}.supabase.co:5432/postgres`,
   },
 });

@@ -1,7 +1,4 @@
-import {
-  assert,
-  assertEquals,
-} from "std/assert/mod.ts";
+import { assert, assertEquals } from "std/assert/mod.ts";
 
 Deno.test("collect-market-sentiment aggregates multiple providers", async () => {
   const originalFetch = globalThis.fetch;

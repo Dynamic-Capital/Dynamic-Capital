@@ -44,8 +44,8 @@ Capital ecosystem.
 ### Purchase Initiation
 
 - **Order Record:** Insert `orders` entries with `user_id`, `amount_fiat`,
-  `target_dct`, `reference_code`, `status`, and `expires_at` fields so locks
-  can safely time out.
+  `target_dct`, `reference_code`, `status`, and `expires_at` fields so locks can
+  safely time out.
 - **Pricing Engine:** Quote DCT prices using a USDT peg with a configurable
   spread and a short-term lock window. Cache each quote hash on the order so
   later reconciliation can confirm that the delivered DCT matches the quote.
@@ -71,8 +71,8 @@ Capital ecosystem.
   timestamp tolerances, and check for duplicate submissions. Write evaluation
   results to `verification_logs` with fields for rule outcomes and reviewer ID.
 - **Mint/Transfer:** Trigger the DCT treasury or market-maker wallet to transfer
-  tokens on-chain to the user's address. Persist the transaction hash and
-  signer public key in a `treasury_transfers` table.
+  tokens on-chain to the user's address. Persist the transaction hash and signer
+  public key in a `treasury_transfers` table.
 - **Finalize:** Update order status to `settled` and record immutable audit
   entries. Post a corresponding ledger entry into `accounting_ledger` so fiat
   and token balances reconcile end-to-end.
@@ -152,8 +152,8 @@ bank events or verification logs; instead, layer derived views for reporting.
 
 ## Edge Functions and Automation
 
-- **`create-order` Function:** Validates user tiers, computes the quote, reserves
-  a payment reference, and inserts the order. Returns signed payment
+- **`create-order` Function:** Validates user tiers, computes the quote,
+  reserves a payment reference, and inserts the order. Returns signed payment
   instructions plus expiry metadata for the UI.
 - **`ingest-bank-event` Function:** Receives webhook payloads, validates source
   signatures, stores raw JSON, and emits a Supabase Realtime event for the
@@ -174,8 +174,8 @@ bank events or verification logs; instead, layer derived views for reporting.
    entries by amount, reference code, and settlement date. Export mismatches to
    the issue register for remediation.
 2. **Ledger Triangulation:** Ensure each settled order has matching ledger,
-   treasury transfer, and on-chain transaction hash. Trigger alerts when any
-   leg is missing for more than 30 minutes.
+   treasury transfer, and on-chain transaction hash. Trigger alerts when any leg
+   is missing for more than 30 minutes.
 3. **FX & Hedge Review:** Re-run the pricing engine with actual FX rates to
    quantify slippage and hedge costs; feed results into the metric dashboard.
 4. **Access Review:** Weekly, confirm that only authorized operators have
@@ -243,9 +243,9 @@ bank events or verification logs; instead, layer derived views for reporting.
 - **Metric Dashboard:** Plot daily settlement latency, reconciliation error
   counts, and hedge cost variance so optimization effects are measurable.
 - **Back-to-Back Cadence:** Schedule optimization sprints immediately after each
-  audit cycle to ensure findings translate into implemented controls. Each sprint
-  should produce an implementation memo that references the originating audit
-  issue IDs and documents the deployed change.
+  audit cycle to ensure findings translate into implemented controls. Each
+  sprint should produce an implementation memo that references the originating
+  audit issue IDs and documents the deployed change.
 - **Continuous Tuning:** Prioritize fixes that reduce manual touch time, shrink
   settlement latency, or lower hedging costs. Deploy improvements in small
   batches and monitor their effect on the next audit run. Track win/loss ratios

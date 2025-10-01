@@ -1,5 +1,5 @@
 import { assert } from "std/assert/mod.ts";
-import { setTestEnv, clearTestEnv } from "./env-mock.ts";
+import { clearTestEnv, setTestEnv } from "./env-mock.ts";
 
 async function importBot() {
   // Bust module cache to allow different env per test
@@ -19,7 +19,7 @@ Deno.test("start command includes Mini App button when env present", async () =>
   const calls: { input: string; body: string }[] = [];
   const origFetch = globalThis.fetch;
   globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-  await Promise.resolve(); // satisfy require-await
+    await Promise.resolve(); // satisfy require-await
 
     const body = typeof init?.body === "string"
       ? init.body
@@ -35,7 +35,7 @@ Deno.test("start command includes Mini App button when env present", async () =>
 
   const sendCalls = calls.filter((c) => c.input.includes("/sendMessage"));
   const hasButton = sendCalls.some((c) =>
-    c.body.includes("\"web_app\"") || c.body.includes("\"url\"")
+    c.body.includes('"web_app"') || c.body.includes('"url"')
   );
   assert(hasButton);
 
@@ -58,7 +58,7 @@ Deno.test("start command includes Mini App button when env missing", async () =>
   const calls: { input: string; body: string }[] = [];
   const origFetch = globalThis.fetch;
   globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-  await Promise.resolve(); // satisfy require-await
+    await Promise.resolve(); // satisfy require-await
 
     const body = typeof init?.body === "string"
       ? init.body
@@ -74,7 +74,7 @@ Deno.test("start command includes Mini App button when env missing", async () =>
 
   const sendCalls = calls.filter((c) => c.input.includes("/sendMessage"));
   const hasButton = sendCalls.some((c) =>
-    c.body.includes("\"web_app\"") || c.body.includes("\"url\"")
+    c.body.includes('"web_app"') || c.body.includes('"url"')
   );
   assert(hasButton);
 
@@ -83,4 +83,3 @@ Deno.test("start command includes Mini App button when env missing", async () =>
   Deno.env.delete("TELEGRAM_BOT_TOKEN");
   Deno.env.delete("TELEGRAM_BOT_USERNAME");
 });
-

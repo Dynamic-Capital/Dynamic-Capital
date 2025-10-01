@@ -1,13 +1,13 @@
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from "node:fs";
+import path from "node:path";
 
-const pageContent = fs.readFileSync('apps/web/app/page.tsx', 'utf8');
+const pageContent = fs.readFileSync("apps/web/app/page.tsx", "utf8");
 if (/force-dynamic/.test(pageContent)) {
-  console.warn('Homepage uses force-dynamic');
+  console.warn("Homepage uses force-dynamic");
 }
 
 function hasTopLevelAwait(file) {
-  const content = fs.readFileSync(file, 'utf8');
+  const content = fs.readFileSync(file, "utf8");
   return /^\s*await\s/m.test(content);
 }
 
@@ -25,4 +25,4 @@ function walk(dir) {
   }
 }
 
-walk('apps/web/config');
+walk("apps/web/config");

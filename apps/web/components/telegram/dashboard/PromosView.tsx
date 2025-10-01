@@ -23,24 +23,20 @@ const toCurrency = (value: number) =>
     maximumFractionDigits: 2,
   }).format(value);
 
-const parseDate = (value?: string | null) =>
-  value ? new Date(value) : null;
+const parseDate = (value?: string | null) => value ? new Date(value) : null;
 
 const normalizePromo = (promo: Promotion): Promotion => ({
   ...promo,
   discount_type: promo.discount_type?.toLowerCase() ?? null,
-  discount_value:
-    typeof promo.discount_value === "number"
-      ? promo.discount_value
-      : Number(promo.discount_value ?? 0),
-  max_uses:
-    promo.max_uses !== null && promo.max_uses !== undefined
-      ? Number(promo.max_uses)
-      : null,
-  usage_count:
-    promo.usage_count !== null && promo.usage_count !== undefined
-      ? Number(promo.usage_count)
-      : null,
+  discount_value: typeof promo.discount_value === "number"
+    ? promo.discount_value
+    : Number(promo.discount_value ?? 0),
+  max_uses: promo.max_uses !== null && promo.max_uses !== undefined
+    ? Number(promo.max_uses)
+    : null,
+  usage_count: promo.usage_count !== null && promo.usage_count !== undefined
+    ? Number(promo.usage_count)
+    : null,
 });
 
 const formatDiscount = (promo: Promotion) => {
@@ -90,9 +86,7 @@ export function PromosView({ onBack, onCopyPromo }: PromosViewProps) {
         if (!isMounted) return;
         console.error("Error loading promotions:", err);
         setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to load promotions",
+          err instanceof Error ? err.message : "Failed to load promotions",
         );
       } finally {
         if (isMounted) setLoading(false);
@@ -170,7 +164,10 @@ export function PromosView({ onBack, onCopyPromo }: PromosViewProps) {
       <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={`promo-skeleton-${index}`} className="flex items-center gap-4">
+            <div
+              key={`promo-skeleton-${index}`}
+              className="flex items-center gap-4"
+            >
               <Skeleton className="h-10 w-10 rounded-lg" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-1/2" />
@@ -184,7 +181,10 @@ export function PromosView({ onBack, onCopyPromo }: PromosViewProps) {
       <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={`promo-stat-${index}`} className="h-24 w-full rounded-lg" />
+            <Skeleton
+              key={`promo-stat-${index}`}
+              className="h-24 w-full rounded-lg"
+            />
           ))}
         </div>
       </Card>
@@ -197,7 +197,8 @@ export function PromosView({ onBack, onCopyPromo }: PromosViewProps) {
         <Card className="p-8 bg-gradient-to-br from-background to-muted border-0 shadow-lg text-center">
           <h3 className="text-xl font-semibold mb-2">No active promotions</h3>
           <p className="text-muted-foreground">
-            Create a promo code in Supabase to make it available here and through the Telegram bot.
+            Create a promo code in Supabase to make it available here and
+            through the Telegram bot.
           </p>
         </Card>
       );
@@ -213,19 +214,18 @@ export function PromosView({ onBack, onCopyPromo }: PromosViewProps) {
             const days = daysUntil(promo);
             const expiresLabel = promo.valid_until
               ? new Intl.DateTimeFormat(undefined, {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                }).format(parseDate(promo.valid_until)!)
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }).format(parseDate(promo.valid_until)!)
               : "No expiry";
-            const statusLabel =
-              days === null
-                ? "Active"
-                : days < 0
-                ? "Expired"
-                : days <= 7
-                ? "Expiring Soon"
-                : "Active";
+            const statusLabel = days === null
+              ? "Active"
+              : days < 0
+              ? "Expired"
+              : days <= 7
+              ? "Expiring Soon"
+              : "Active";
             return (
               <div
                 key={promo.code}
@@ -250,13 +250,11 @@ export function PromosView({ onBack, onCopyPromo }: PromosViewProps) {
                       </Button>
                       <Badge
                         variant="outline"
-                        className={
-                          statusLabel === "Active"
-                            ? "border-green-500 text-green-600"
-                            : statusLabel === "Expiring Soon"
-                            ? "border-orange-500 text-orange-600"
-                            : "border-destructive text-destructive"
-                        }
+                        className={statusLabel === "Active"
+                          ? "border-green-500 text-green-600"
+                          : statusLabel === "Expiring Soon"
+                          ? "border-orange-500 text-orange-600"
+                          : "border-destructive text-destructive"}
                       >
                         {statusLabel}
                       </Badge>
@@ -267,11 +265,12 @@ export function PromosView({ onBack, onCopyPromo }: PromosViewProps) {
                     <div className="flex flex-wrap items-center gap-4 mt-1 text-xs text-muted-foreground">
                       <span>Discount: {formatDiscount(promo)}</span>
                       <span>Expires: {expiresLabel}</span>
-                      {promo.max_uses !== null && promo.usage_count !== null && (
-                        <span>
-                          Usage: {promo.usage_count}/{promo.max_uses}
-                        </span>
-                      )}
+                      {promo.max_uses !== null && promo.usage_count !== null &&
+                        (
+                          <span>
+                            Usage: {promo.usage_count}/{promo.max_uses}
+                          </span>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -303,10 +302,10 @@ export function PromosView({ onBack, onCopyPromo }: PromosViewProps) {
     const days = daysUntil(highlightPromo);
     const expiresLabel = highlightPromo.valid_until
       ? new Intl.DateTimeFormat(undefined, {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }).format(parseDate(highlightPromo.valid_until)!)
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }).format(parseDate(highlightPromo.valid_until)!)
       : "No expiry";
     return (
       <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg border-l-4 border-l-green-500">
@@ -316,7 +315,9 @@ export function PromosView({ onBack, onCopyPromo }: PromosViewProps) {
               <Gift className="w-6 h-6 text-green-500" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-green-600">{highlightPromo.code}</h3>
+              <h3 className="text-xl font-semibold text-green-600">
+                {highlightPromo.code}
+              </h3>
               <p className="text-muted-foreground">
                 {highlightPromo.description || "Active promotion"}
               </p>
@@ -371,31 +372,43 @@ export function PromosView({ onBack, onCopyPromo }: PromosViewProps) {
         </Alert>
       )}
 
-      {loading ? (
-        renderSkeleton()
-      ) : (
-        <>
-          {renderHighlight()}
-          {renderPromos()}
-          <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Promo Performance</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-background/50 rounded-lg">
-                <p className="text-2xl font-bold text-green-500">{stats.active}</p>
-                <p className="text-sm text-muted-foreground">Active codes</p>
+      {loading
+        ? (
+          renderSkeleton()
+        )
+        : (
+          <>
+            {renderHighlight()}
+            {renderPromos()}
+            <Card className="p-6 bg-gradient-to-br from-background to-muted border-0 shadow-lg">
+              <h3 className="text-lg font-semibold mb-4">Promo Performance</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-background/50 rounded-lg">
+                  <p className="text-2xl font-bold text-green-500">
+                    {stats.active}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Active codes</p>
+                </div>
+                <div className="text-center p-4 bg-background/50 rounded-lg">
+                  <p className="text-2xl font-bold text-blue-500">
+                    {stats.expiringSoon}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Expiring within 7 days
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-background/50 rounded-lg">
+                  <p className="text-2xl font-bold text-orange-500">
+                    {stats.highestDiscount}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Top discount available
+                  </p>
+                </div>
               </div>
-              <div className="text-center p-4 bg-background/50 rounded-lg">
-                <p className="text-2xl font-bold text-blue-500">{stats.expiringSoon}</p>
-                <p className="text-sm text-muted-foreground">Expiring within 7 days</p>
-              </div>
-              <div className="text-center p-4 bg-background/50 rounded-lg">
-                <p className="text-2xl font-bold text-orange-500">{stats.highestDiscount}</p>
-                <p className="text-sm text-muted-foreground">Top discount available</p>
-              </div>
-            </div>
-          </Card>
-        </>
-      )}
+            </Card>
+          </>
+        )}
     </div>
   );
 }

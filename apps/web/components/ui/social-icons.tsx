@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Instagram, Facebook } from "lucide-react";
+import { Facebook, Instagram } from "lucide-react";
 import { cn } from "@/utils";
 import logger from "@/utils/logger";
 
@@ -20,7 +20,7 @@ const TikTokIcon = ({ className }: { className?: string }) => (
     className={className}
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
   </svg>
 );
 
@@ -32,8 +32,8 @@ const TradingViewIcon = ({ className }: { className?: string }) => (
     className={className}
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM7.07 18.28c.43-.9 3.05-1.78 4.93-1.78s4.51.88 4.93 1.78c-.71.61-1.63.95-2.63.95H9.7c-1-.01-1.92-.34-2.63-.95zM18.36 16.83c-.74-1.25-3.03-2.05-5.04-2.05H10.68c-2.01 0-4.3.8-5.04 2.05C4.62 15.48 4 13.78 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8c0 1.78-.62 3.48-1.64 4.83z"/>
-    <circle cx="12" cy="10" r="3"/>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM7.07 18.28c.43-.9 3.05-1.78 4.93-1.78s4.51.88 4.93 1.78c-.71.61-1.63.95-2.63.95H9.7c-1-.01-1.92-.34-2.63-.95zM18.36 16.83c-.74-1.25-3.03-2.05-5.04-2.05H10.68c-2.01 0-4.3.8-5.04 2.05C4.62 15.48 4 13.78 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8c0 1.78-.62 3.48-1.64 4.83z" />
+    <circle cx="12" cy="10" r="3" />
   </svg>
 );
 
@@ -94,13 +94,13 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
   variant = "default",
 }) => {
   const Icon = iconMap[platform];
-  
+
   const sizeClasses = {
     sm: "w-4 h-4",
     md: "w-5 h-5",
     lg: "w-6 h-6",
   };
-  
+
   const containerSizeClasses = {
     sm: "w-8 h-8 p-1.5",
     md: "w-10 h-10 p-2",
@@ -110,7 +110,7 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
   const baseClasses = cn(
     "inline-flex items-center justify-center rounded-lg transition-all duration-300 group",
     containerSizeClasses[size],
-    className
+    className,
   );
 
   const colors = brandColors[platform];
@@ -119,27 +119,27 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
     default: cn(
       colors.default,
       colors.hover,
-      "text-muted-foreground hover:text-foreground"
+      "text-muted-foreground hover:text-foreground",
     ),
     glass:
       "bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white hover:border-white/40",
     glow: cn(
       "bg-gradient-to-r text-white shadow-lg hover:shadow-xl hover:scale-110",
-      colors.gradient
+      colors.gradient,
     ),
   };
 
   const handleClick = () => {
     // Track social media clicks with console log for debugging
     logger.log(`Social media click: ${platform} -> ${href}`);
-    
+
     // Track with any available analytics
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       // You can integrate with Google Analytics or other analytics here
       try {
         // Example: window.gtag?.('event', 'social_click', { platform, destination: href });
       } catch (error) {
-        logger.log('Analytics tracking not available');
+        logger.log("Analytics tracking not available");
       }
     }
   };
@@ -156,7 +156,12 @@ export const SocialIcon: React.FC<SocialIconProps> = ({
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
       aria-label={`Visit our ${platform} page`}
     >
-      <Icon className={cn(sizeClasses[size], "group-hover:scale-110 transition-transform duration-200")} />
+      <Icon
+        className={cn(
+          sizeClasses[size],
+          "group-hover:scale-110 transition-transform duration-200",
+        )}
+      />
     </motion.a>
   );
 };

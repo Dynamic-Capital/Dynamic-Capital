@@ -1,10 +1,10 @@
-import { cp, rm } from 'node:fs/promises';
-import { join } from 'node:path';
+import { cp, rm } from "node:fs/promises";
+import { join } from "node:path";
 
 const root = process.cwd();
-const outDir = join(root, 'out');
+const outDir = join(root, "out");
 // Output to a project-level directory so deployment tooling can pick it up
-const staticDir = join(root, '_static');
+const staticDir = join(root, "_static");
 
 async function copyOut() {
   await rm(staticDir, { recursive: true, force: true });
@@ -13,6 +13,6 @@ async function copyOut() {
 }
 
 copyOut().catch((err) => {
-  console.error('❌ Failed to copy static assets:', err);
+  console.error("❌ Failed to copy static assets:", err);
   process.exit(1);
 });

@@ -8,7 +8,9 @@ interface ViewHeaderProps {
   actions?: ReactNode;
 }
 
-export function ViewHeader({ title, description, onBack, actions }: ViewHeaderProps) {
+export function ViewHeader(
+  { title, description, onBack, actions }: ViewHeaderProps,
+) {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>

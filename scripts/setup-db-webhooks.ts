@@ -16,7 +16,8 @@ const accessToken = Deno.env.get("SUPABASE_ACCESS_TOKEN");
 if (!project) throw new Error("SUPABASE_PROJECT_ID missing");
 if (!accessToken) throw new Error("SUPABASE_ACCESS_TOKEN missing");
 
-const funcBase = Deno.env.get("FUNCTIONS_BASE_URL") ?? `https://${project}.functions.supabase.co`;
+const funcBase = Deno.env.get("FUNCTIONS_BASE_URL") ??
+  `https://${project}.functions.supabase.co`;
 
 const hooks = [
   {

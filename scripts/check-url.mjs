@@ -59,7 +59,9 @@ if (!allowedRedirectPolicies.has(redirectPolicy)) {
   process.exit(1);
 }
 
-const maxRedirects = values["max-redirects"] ? Number(values["max-redirects"]) : 5;
+const maxRedirects = values["max-redirects"]
+  ? Number(values["max-redirects"])
+  : 5;
 if (Number.isNaN(maxRedirects) || maxRedirects < 0) {
   usage("--max-redirects must be a non-negative integer.");
   process.exit(1);
@@ -125,7 +127,9 @@ function performRequest(urlString, redirectsRemaining) {
             redirectPolicy === "error"
           ) {
             settled = true;
-            reject(new Error(`Redirect encountered (${statusCode}) to ${location}`));
+            reject(
+              new Error(`Redirect encountered (${statusCode}) to ${location}`),
+            );
             return;
           }
 

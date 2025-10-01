@@ -1,7 +1,7 @@
-import { createClient } from './client.ts';
-import { getFlag as getConfigFlag } from './config.ts';
+import { createClient } from "./client.ts";
+import { getFlag as getConfigFlag } from "./config.ts";
 
-const FEATURE_TABLE = 'features';
+const FEATURE_TABLE = "features";
 
 type FeatureRow = {
   key: string;
@@ -15,11 +15,11 @@ export async function isFeatureEnabled(
   fallback = false,
 ): Promise<boolean> {
   try {
-    const supabase = createClient('service');
+    const supabase = createClient("service");
     const { data, error } = await supabase
       .from<FeatureRow>(FEATURE_TABLE)
-      .select('enabled')
-      .eq('key', key)
+      .select("enabled")
+      .eq("key", key)
       .maybeSingle();
     if (!error && data) {
       return Boolean(data.enabled);
@@ -42,12 +42,12 @@ export async function ensureFeatureRegistered(
   metadata: Record<string, unknown> = {},
 ): Promise<void> {
   try {
-    const supabase = createClient('service');
+    const supabase = createClient("service");
     const { error } = await supabase
       .from(FEATURE_TABLE)
       .upsert(
         { key, description, enabled, metadata },
-        { onConflict: 'key' },
+        { onConflict: "key" },
       );
     if (error) {
       console.error(`[features] upsert failed for "${key}":`, error);

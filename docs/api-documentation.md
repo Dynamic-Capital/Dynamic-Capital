@@ -6,6 +6,7 @@
 ## 📋 Table of Contents
 
 <!-- TOC:START -->
+
 - [🚀 Project Overview](#project-overview)
   - [Key Features](#key-features)
   - [Technology Stack](#technology-stack)
@@ -77,15 +78,16 @@
   - [Bot Configuration](#bot-configuration)
 - [📚 Additional Resources](#additional-resources)
 - [🤝 Contributing](#contributing)
+
 <!-- TOC:END -->
 
 ---
 
 ## 🚀 Project Overview
 
-The Dynamic Capital Bot is a comprehensive Telegram bot built with
-TypeScript, Supabase, and Deno Edge Functions. It manages VIP subscriptions,
-education packages, payments, and user interactions.
+The Dynamic Capital Bot is a comprehensive Telegram bot built with TypeScript,
+Supabase, and Deno Edge Functions. It manages VIP subscriptions, education
+packages, payments, and user interactions.
 
 ### Key Features
 

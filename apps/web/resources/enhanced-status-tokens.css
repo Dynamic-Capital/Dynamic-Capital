@@ -5,19 +5,19 @@
   --status-success-foreground: 355 25% 95%;
   --status-success-muted: 142 76% 94%;
   --status-success-border: 142 76% 84%;
-  
+
   /* Warning States */
   --status-warning: 32 95% 44%;
   --status-warning-foreground: 0 0% 100%;
   --status-warning-muted: 54 91% 95%;
   --status-warning-border: 54 91% 84%;
-  
+
   /* Info States */
   --status-info: 199 89% 48%;
   --status-info-foreground: 0 0% 100%;
   --status-info-muted: 204 94% 94%;
   --status-info-border: 204 94% 84%;
-  
+
   /* Error States */
   --status-error: 0 84% 60%;
   --status-error-foreground: 0 0% 100%;
@@ -37,11 +37,31 @@
   --market-volatile: 32 95% 44%;
 
   /* Enhanced Gradients for Status */
-  --gradient-success: linear-gradient(135deg, hsl(var(--status-success)) 0%, hsl(142 76% 46%) 100%);
-  --gradient-warning: linear-gradient(135deg, hsl(var(--status-warning)) 0%, hsl(42 95% 54%) 100%);
-  --gradient-info: linear-gradient(135deg, hsl(var(--status-info)) 0%, hsl(209 89% 58%) 100%);
-  --gradient-error: linear-gradient(135deg, hsl(var(--status-error)) 0%, hsl(10 84% 70%) 100%);
-  --gradient-telegram: linear-gradient(135deg, hsl(var(--telegram)) 0%, hsl(var(--telegram-light)) 100%);
+  --gradient-success: linear-gradient(
+    135deg,
+    hsl(var(--status-success)) 0%,
+    hsl(142 76% 46%) 100%
+  );
+  --gradient-warning: linear-gradient(
+    135deg,
+    hsl(var(--status-warning)) 0%,
+    hsl(42 95% 54%) 100%
+  );
+  --gradient-info: linear-gradient(
+    135deg,
+    hsl(var(--status-info)) 0%,
+    hsl(209 89% 58%) 100%
+  );
+  --gradient-error: linear-gradient(
+    135deg,
+    hsl(var(--status-error)) 0%,
+    hsl(10 84% 70%) 100%
+  );
+  --gradient-telegram: linear-gradient(
+    135deg,
+    hsl(var(--telegram)) 0%,
+    hsl(var(--telegram-light)) 100%
+  );
 }
 
 [data-theme="dark"] {
@@ -49,15 +69,15 @@
   --status-success: 142 76% 46%;
   --status-success-muted: 142 30% 15%;
   --status-success-border: 142 50% 25%;
-  
+
   --status-warning: 32 95% 54%;
   --status-warning-muted: 54 30% 15%;
   --status-warning-border: 54 50% 25%;
-  
+
   --status-info: 199 89% 58%;
   --status-info-muted: 204 30% 15%;
   --status-info-border: 204 50% 25%;
-  
+
   --status-error: 0 84% 70%;
   --status-error-muted: 0 30% 15%;
   --status-error-border: 0 50% 25%;

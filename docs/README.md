@@ -115,6 +115,7 @@ documenting which assets were consulted.
 | 6.18 | [onedrive-shares/etoelnepqhhhiis2vl7qe_abz618nqf2vgnrykcx0prhwa-file.md](./onedrive-shares/etoelnepqhhhiis2vl7qe_abz618nqf2vgnrykcx0prhwa-file.md) | Standalone `read_me.md` text share metadata for onboarding notes. |
 | 6.19 | [agi_integration_strategies.md](./agi_integration_strategies.md)                       | AGI-driven integration plan aligning DTL, DTA, execution, and learning loops. |
 | 6.20 | [knowledge-base-training-drop.md](./knowledge-base-training-drop.md)                  | Checklist for syncing the OneDrive knowledge base dataset drops into Supabase and local experiments. |
+
 ## 7. Operational Runbooks & Launch Phases
 
 | Ref  | Document                                                             | Summary                                                                   |

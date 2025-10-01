@@ -22,10 +22,20 @@ export interface MainComponentProps {
   className?: string;
 }
 
-const containerTransition = { type: "spring", duration: 0.6, bounce: 0 } as const;
-const optionsTransition = { type: "spring", duration: 0.45, bounce: 0.15 } as const;
+const containerTransition = {
+  type: "spring",
+  duration: 0.6,
+  bounce: 0,
+} as const;
+const optionsTransition = {
+  type: "spring",
+  duration: 0.45,
+  bounce: 0.15,
+} as const;
 
-const MainComponent: React.FC<MainComponentProps> = ({ items = [], className }) => {
+const MainComponent: React.FC<MainComponentProps> = (
+  { items = [], className },
+) => {
   const [expanded, setExpanded] = useState(false);
 
   const handleToggle = () => setExpanded((prev) => !prev);
@@ -60,7 +70,11 @@ const MainComponent: React.FC<MainComponentProps> = ({ items = [], className }) 
       </motion.div>
       <motion.div
         className="ml-2 flex items-center gap-2 overflow-hidden"
-        animate={{ opacity: expanded ? 1 : 0, x: expanded ? 0 : -24, pointerEvents: expanded ? "auto" : "none" }}
+        animate={{
+          opacity: expanded ? 1 : 0,
+          x: expanded ? 0 : -24,
+          pointerEvents: expanded ? "auto" : "none",
+        }}
         transition={optionsTransition}
       >
         {items.map((item) => (

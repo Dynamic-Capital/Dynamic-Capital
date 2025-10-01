@@ -76,7 +76,12 @@ const AdminDashboardSkeleton = () => {
             <div className="space-y-6 rounded-3xl border border-border/40 bg-card/70 p-6 shadow-inner">
               <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
                 {Array.from({ length: 6 }).map((_, index) => (
-                  <Skeleton key={index} shape="block" height="m" className="rounded-xl" />
+                  <Skeleton
+                    key={index}
+                    shape="block"
+                    height="m"
+                    className="rounded-xl"
+                  />
                 ))}
               </div>
               <div className="space-y-3">
@@ -87,15 +92,32 @@ const AdminDashboardSkeleton = () => {
                   >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex flex-1 items-center gap-3">
-                        <Skeleton shape="circle" width="m" className="shrink-0" />
+                        <Skeleton
+                          shape="circle"
+                          width="m"
+                          className="shrink-0"
+                        />
                         <div className="w-full space-y-2">
-                          <Skeleton height="s" width="l" className="max-w-[14rem]" />
-                          <Skeleton height="s" width="m" className="max-w-[10rem]" />
+                          <Skeleton
+                            height="s"
+                            width="l"
+                            className="max-w-[14rem]"
+                          />
+                          <Skeleton
+                            height="s"
+                            width="m"
+                            className="max-w-[10rem]"
+                          />
                         </div>
                       </div>
                       <div className="flex w-full flex-col items-start gap-2 sm:w-auto sm:items-end">
                         <Skeleton height="s" width="s" />
-                        <Skeleton shape="block" height="m" width="m" className="rounded-xl" />
+                        <Skeleton
+                          shape="block"
+                          height="m"
+                          width="m"
+                          className="rounded-xl"
+                        />
                       </div>
                     </div>
                   </div>

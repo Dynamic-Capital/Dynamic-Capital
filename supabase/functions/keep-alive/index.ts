@@ -17,8 +17,7 @@ const baseLogger = createLogger({ function: "keep-alive" });
 function getLogger(req: Request) {
   return createLogger({
     function: "keep-alive",
-    requestId:
-      req.headers.get("sb-request-id") ||
+    requestId: req.headers.get("sb-request-id") ||
       req.headers.get("x-request-id") ||
       crypto.randomUUID(),
   });

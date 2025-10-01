@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, MessageCircle, Zap, TrendingUp, X } from 'lucide-react';
-import { TouchFeedback } from '@/components/ui/mobile-gestures';
-import { cn } from '@/lib/utils';
-import logger from '@/utils/logger';
+import React, { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { MessageCircle, Plus, TrendingUp, X, Zap } from "lucide-react";
+import { TouchFeedback } from "@/components/ui/mobile-gestures";
+import { cn } from "@/lib/utils";
+import logger from "@/utils/logger";
 
 interface FloatingAction {
   id: string;
@@ -19,25 +19,25 @@ interface MobileFloatingActionsProps {
 
 const defaultActions: FloatingAction[] = [
   {
-    id: 'chat',
+    id: "chat",
     icon: MessageCircle,
-    label: 'Quick Support',
-    color: 'bg-blue-500',
-    action: () => logger.log('Support chat'),
+    label: "Quick Support",
+    color: "bg-blue-500",
+    action: () => logger.log("Support chat"),
   },
   {
-    id: 'boost',
+    id: "boost",
     icon: Zap,
-    label: 'Boost Plan',
-    color: 'bg-yellow-500',
-    action: () => logger.log('Boost plan'),
+    label: "Boost Plan",
+    color: "bg-yellow-500",
+    action: () => logger.log("Boost plan"),
   },
   {
-    id: 'analytics',
+    id: "analytics",
     icon: TrendingUp,
-    label: 'View Stats',
-    color: 'bg-green-500',
-    action: () => logger.log('View analytics'),
+    label: "View Stats",
+    color: "bg-green-500",
+    action: () => logger.log("View analytics"),
   },
 ];
 
@@ -58,25 +58,27 @@ export const MobileFloatingActions: React.FC<MobileFloatingActionsProps> = ({
             className="flex flex-col space-y-3 mb-4"
           >
             {actions.map((action, index) => {
-              const Icon = action.icon as React.ComponentType<{ size?: number; className?: string }>;
+              const Icon = action.icon as React.ComponentType<
+                { size?: number; className?: string }
+              >;
               return (
                 <motion.div
                   key={action.id}
                   initial={{ scale: 0, y: 50 }}
-                  animate={{ 
-                    scale: 1, 
+                  animate={{
+                    scale: 1,
                     y: 0,
-                    transition: { 
+                    transition: {
                       delay: index * 0.1,
                       type: "spring",
                       stiffness: 500,
-                      damping: 30
-                    }
+                      damping: 30,
+                    },
                   }}
-                  exit={{ 
-                    scale: 0, 
+                  exit={{
+                    scale: 0,
                     y: 50,
-                    transition: { delay: (actions.length - index - 1) * 0.05 }
+                    transition: { delay: (actions.length - index - 1) * 0.05 },
                   }}
                 >
                   <TouchFeedback
@@ -89,13 +91,15 @@ export const MobileFloatingActions: React.FC<MobileFloatingActionsProps> = ({
                       className={cn(
                         "flex items-center space-x-3 p-3 rounded-full shadow-lg",
                         action.color,
-                        "text-white"
+                        "text-white",
                       )}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <Icon size={20} />
-                      <span className="text-sm font-medium pr-2">{action.label}</span>
+                      <span className="text-sm font-medium pr-2">
+                        {action.label}
+                      </span>
                     </motion.div>
                   </TouchFeedback>
                 </motion.div>
@@ -118,11 +122,9 @@ export const MobileFloatingActions: React.FC<MobileFloatingActionsProps> = ({
             animate={{ rotate: isOpen ? 90 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            {isOpen ? (
-              <X size={24} className="text-primary-foreground" />
-            ) : (
-              <Plus size={24} className="text-primary-foreground" />
-            )}
+            {isOpen
+              ? <X size={24} className="text-primary-foreground" />
+              : <Plus size={24} className="text-primary-foreground" />}
           </motion.div>
         </motion.div>
       </TouchFeedback>

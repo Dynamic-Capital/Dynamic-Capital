@@ -375,15 +375,15 @@ html, body {
       transparent 58%
     ),
     radial-gradient(
-      circle at 82% 12%,
-      hsl(var(--dc-secondary) / 0.24),
-      transparent 60%
-    ),
+    circle at 82% 12%,
+    hsl(var(--dc-secondary) / 0.24),
+    transparent 60%
+  ),
     linear-gradient(
-      135deg,
-      hsl(var(--card) / 0.92),
-      hsl(var(--background) / 0.78)
-    );
+    135deg,
+    hsl(var(--card) / 0.92),
+    hsl(var(--background) / 0.78)
+  );
   box-shadow: 0 28px 72px hsl(var(--dc-brand-dark) / 0.45);
   backdrop-filter: var(--glass-motion-blur);
   overflow: hidden;

@@ -1,6 +1,6 @@
-import { verifyInitDataAndGetUser, isAdmin } from "../_shared/telegram.ts";
+import { isAdmin, verifyInitDataAndGetUser } from "../_shared/telegram.ts";
 import { createClient } from "../_shared/client.ts";
-import { ok, unauth, mna } from "../_shared/http.ts";
+import { mna, ok, unauth } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 
 export const handler = registerHandler(async (req) => {
@@ -24,7 +24,9 @@ export const handler = registerHandler(async (req) => {
 
   if (!supa) return ok({ items: [] });
 
-  let query = supa.from("receipts").select("id, ocr_amount, verdict, created_at").order("created_at", { ascending: false }).limit(limit);
+  let query = supa.from("receipts").select(
+    "id, ocr_amount, verdict, created_at",
+  ).order("created_at", { ascending: false }).limit(limit);
   if (status) query = query.eq("verdict", status);
   // In a real implementation, we'd filter by user here. For tests we fetch all.
   const { data, error } = await query;

@@ -4,13 +4,13 @@
 
 The `ml/dhivehi_corpus_extractor.py` utility scrapes dictionary entries from
 [Radheef](https://www.radheef.info/) to expand Dynamic Capital's Dhivehi
-language corpora. Entries are normalised into JSONL records compatible with
-our preprocessing and tokenizer pipelines.
+language corpora. Entries are normalised into JSONL records compatible with our
+preprocessing and tokenizer pipelines.
 
-Each record captures the Dhivehi headword, the Radheef definition, and a
-minimal context trail referencing the source URL and page number. The samples
-are tagged as Dhivehi dictionary data so downstream components can weight or
-filter them independently.
+Each record captures the Dhivehi headword, the Radheef definition, and a minimal
+context trail referencing the source URL and page number. The samples are tagged
+as Dhivehi dictionary data so downstream components can weight or filter them
+independently.
 
 ## Usage
 
@@ -28,7 +28,8 @@ Arguments:
 
 - `--output` (Path): destination JSONL file. Parent directories are created
   automatically. Defaults to `data/dhivehi_radheef.jsonl`.
-- `--start-page` (int): first Radheef page (1-indexed) to request. Defaults to 1.
+- `--start-page` (int): first Radheef page (1-indexed) to request. Defaults
+  to 1.
 - `--end-page` (int, optional): optional last page to request. When omitted the
   script follows pagination until the last discovered page.
 - `--delay` (float): polite delay between page fetches in seconds. Defaults to
@@ -43,9 +44,9 @@ Arguments:
 The extractor streams entries page by page, flushing batches to disk as it
 progresses, and halts if an HTTP error occurs, the optional batch cap is
 reached, or no dictionary cards are detected. Adjust the delay upwards if you
-encounter rate limiting. When resuming after hitting a batch cap, you can
-repeat the final processed page (`--start-page <last-page>`) to ensure no
-entries are skipped.
+encounter rate limiting. When resuming after hitting a batch cap, you can repeat
+the final processed page (`--start-page <last-page>`) to ensure no entries are
+skipped.
 
 ## Sample dataset
 

@@ -13,8 +13,7 @@ const corsHeaders = {
 function getLogger(req: Request) {
   return createLogger({
     function: "debug-bot",
-    requestId:
-      req.headers.get("sb-request-id") ||
+    requestId: req.headers.get("sb-request-id") ||
       req.headers.get("x-request-id") ||
       crypto.randomUUID(),
   });

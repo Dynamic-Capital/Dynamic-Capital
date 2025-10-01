@@ -1,5 +1,5 @@
 import { createClient } from "../_shared/client.ts";
-import { getEnv, EnvKey } from "../_shared/env.ts";
+import { EnvKey, getEnv } from "../_shared/env.ts";
 import { ok } from "../_shared/http.ts";
 import { registerHandler } from "../_shared/serve.ts";
 

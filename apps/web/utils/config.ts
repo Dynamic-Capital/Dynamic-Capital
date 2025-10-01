@@ -12,8 +12,8 @@ type FlagSnapshot = { ts: number; data: Record<string, boolean> };
 const CONFIG_DISABLED_MESSAGE =
   "Supabase configuration is missing; remote config client is disabled.";
 
-const HAS_REMOTE_CONFIG =
-  SUPABASE_CONFIG_FROM_ENV && Boolean(SUPABASE_URL) && Boolean(SUPABASE_ANON_KEY);
+const HAS_REMOTE_CONFIG = SUPABASE_CONFIG_FROM_ENV && Boolean(SUPABASE_URL) &&
+  Boolean(SUPABASE_ANON_KEY);
 
 if (!HAS_REMOTE_CONFIG) {
   console.warn("Configuration warning:", CONFIG_DISABLED_MESSAGE);

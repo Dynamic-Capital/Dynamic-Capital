@@ -1,7 +1,4 @@
-import {
-  assert,
-  assertEquals,
-} from "std/assert/mod.ts";
+import { assert, assertEquals } from "std/assert/mod.ts";
 
 function fnv1a64(input: string): number {
   let hash = 1469598103934665603n;

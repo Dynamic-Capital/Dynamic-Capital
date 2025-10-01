@@ -13,30 +13,43 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md hover:scale-[1.02]",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-md hover:scale-[1.02]",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-sm hover:scale-[1.02]",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm hover:scale-[1.02]",
-        ghost: "hover:bg-accent hover:text-accent-foreground hover:scale-[1.02]",
-        link: "text-primary underline-offset-4 hover:underline hover:scale-[1.02]",
-        telegram: "bg-gradient-to-r from-telegram to-telegram-dark text-white hover:from-telegram-dark hover:to-telegram shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300",
-        "telegram-outline": "border-2 border-telegram text-telegram hover:bg-telegram hover:text-white hover:shadow-md hover:scale-[1.02] transition-all duration-300",
-        glass: "bg-white/10 backdrop-blur-md border border-white/20 text-foreground hover:bg-white/20 hover:shadow-lg hover:scale-[1.02] transition-all duration-300",
-        subtle: "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm hover:scale-[1.02] transition-all duration-300",
-        success: "bg-success text-success-foreground hover:bg-success/90 hover:shadow-md hover:scale-[1.02] transition-all duration-300",
-        warning: "bg-warning text-warning-foreground hover:bg-warning/90 hover:shadow-md hover:scale-[1.02] transition-all duration-300",
-        info: "bg-info text-info-foreground hover:bg-info/90 hover:shadow-md hover:scale-[1.02] transition-all duration-300",
+        default:
+          "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md hover:scale-[1.02]",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-md hover:scale-[1.02]",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-sm hover:scale-[1.02]",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm hover:scale-[1.02]",
+        ghost:
+          "hover:bg-accent hover:text-accent-foreground hover:scale-[1.02]",
+        link:
+          "text-primary underline-offset-4 hover:underline hover:scale-[1.02]",
+        telegram:
+          "bg-gradient-to-r from-telegram to-telegram-dark text-white hover:from-telegram-dark hover:to-telegram shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300",
+        "telegram-outline":
+          "border-2 border-telegram text-telegram hover:bg-telegram hover:text-white hover:shadow-md hover:scale-[1.02] transition-all duration-300",
+        glass:
+          "bg-white/10 backdrop-blur-md border border-white/20 text-foreground hover:bg-white/20 hover:shadow-lg hover:scale-[1.02] transition-all duration-300",
+        subtle:
+          "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm hover:scale-[1.02] transition-all duration-300",
+        success:
+          "bg-success text-success-foreground hover:bg-success/90 hover:shadow-md hover:scale-[1.02] transition-all duration-300",
+        warning:
+          "bg-warning text-warning-foreground hover:bg-warning/90 hover:shadow-md hover:scale-[1.02] transition-all duration-300",
+        info:
+          "bg-info text-info-foreground hover:bg-info/90 hover:shadow-md hover:scale-[1.02] transition-all duration-300",
         premium: [
           "bg-gradient-to-r from-primary to-accent text-white hover:from-primary/90 hover:to-accent/90 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300",
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
-          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
+          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700",
         ],
         brand: [
           "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300",
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
-          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
+          "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700",
         ],
-        three: ""
+        three: "",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -46,24 +59,25 @@ const buttonVariants = cva(
         xl: "h-12 rounded-md px-10 text-lg",
         icon: "h-10 w-10",
         "icon-sm": "h-8 w-8",
-        "icon-lg": "h-12 w-12"
+        "icon-lg": "h-12 w-12",
       },
       fullWidth: {
         true: "w-full",
-        false: ""
+        false: "",
       },
       responsive: {
-        true: "min-h-[44px] sm:min-h-[40px] touch-manipulation active:scale-95 transition-transform duration-150",
-        false: ""
-      }
+        true:
+          "min-h-[44px] sm:min-h-[40px] touch-manipulation active:scale-95 transition-transform duration-150",
+        false: "",
+      },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
       fullWidth: false,
-      responsive: false
+      responsive: false,
     },
-  }
+  },
 );
 
 export interface ButtonProps
@@ -89,7 +103,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       ...props
     },
-    ref
+    ref,
   ) => {
     if (variant === "three") {
       const { onClick, color, hoverColor } = props as any;

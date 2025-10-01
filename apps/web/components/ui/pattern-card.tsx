@@ -5,13 +5,13 @@ import { motion } from "framer-motion";
 import { cn } from "@/utils";
 import { Card, CardContent } from "./card";
 
-export type PatternType = 
-  | "dots" 
-  | "grid" 
-  | "diagonal" 
-  | "waves" 
-  | "circuit" 
-  | "hexagon" 
+export type PatternType =
+  | "dots"
+  | "grid"
+  | "diagonal"
+  | "waves"
+  | "circuit"
+  | "hexagon"
   | "none";
 
 interface PatternCardProps {
@@ -98,7 +98,7 @@ export function PatternCard({
           <motion.div
             className={cn(
               "absolute inset-0 z-0",
-              getPatternClass()
+              getPatternClass(),
             )}
             style={{
               color: patternColor,
@@ -112,7 +112,7 @@ export function PatternCard({
             }}
           />
         )}
-        
+
         {/* Content */}
         <div className="relative z-10">
           {children}
@@ -146,14 +146,15 @@ export function GlowPatternCard({
       <motion.div
         className="absolute -inset-1 rounded-lg blur-sm"
         style={{
-          background: `linear-gradient(45deg, ${glowColor}, transparent, ${glowColor})`,
+          background:
+            `linear-gradient(45deg, ${glowColor}, transparent, ${glowColor})`,
         }}
         animate={{
           opacity: isHovered ? glowIntensity : 0,
         }}
         transition={{ duration: 0.3 }}
       />
-      
+
       <PatternCard
         {...props}
         className="relative"

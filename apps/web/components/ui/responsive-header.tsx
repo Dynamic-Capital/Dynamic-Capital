@@ -1,6 +1,10 @@
 import React from "react";
-import { motion, LayoutGroup } from "framer-motion";
-import { AutoSizingContainer, AutoSizingText, ResponsiveSpacing } from "@/components/ui/auto-sizing";
+import { LayoutGroup, motion } from "framer-motion";
+import {
+  AutoSizingContainer,
+  AutoSizingText,
+  ResponsiveSpacing,
+} from "@/components/ui/auto-sizing";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils";
 
@@ -13,18 +17,18 @@ interface ResponsiveHeaderProps {
   variant?: "default" | "glass" | "brand";
 }
 
-export function ResponsiveHeader({ 
-  title, 
-  subtitle, 
-  icon, 
-  actions, 
+export function ResponsiveHeader({
+  title,
+  subtitle,
+  icon,
+  actions,
   className,
-  variant = "default"
+  variant = "default",
 }: ResponsiveHeaderProps) {
   const variantStyles = {
     default: "bg-background/80 backdrop-blur-md border-b border-border/50",
     glass: "glass-card backdrop-blur-xl border-b border-border/40",
-    brand: "bg-gradient-brand text-white backdrop-blur-xl"
+    brand: "bg-gradient-brand text-white backdrop-blur-xl",
   };
 
   return (
@@ -32,19 +36,19 @@ export function ResponsiveHeader({
       className={cn(
         "sticky top-0 z-20 transition-all duration-300",
         variantStyles[variant],
-        className
+        className,
       )}
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <AutoSizingContainer 
-        responsive 
-        minHeight={60} 
+      <AutoSizingContainer
+        responsive
+        minHeight={60}
         maxHeight={120}
         className="flex items-center justify-between p-3 sm:p-4 lg:p-6"
       >
-        <motion.div 
+        <motion.div
           className="flex items-center gap-2 sm:gap-3 lg:gap-4 flex-1 min-w-0"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -56,16 +60,16 @@ export function ResponsiveHeader({
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <AutoSizingText 
-              minSize={14} 
+            <AutoSizingText
+              minSize={14}
               maxSize={20}
               className="font-semibold leading-tight truncate"
             >
               {title}
             </AutoSizingText>
             {subtitle && (
-              <AutoSizingText 
-                minSize={11} 
+              <AutoSizingText
+                minSize={11}
                 maxSize={14}
                 className="text-muted-foreground leading-none mt-0.5 truncate"
               >
@@ -74,7 +78,7 @@ export function ResponsiveHeader({
             )}
           </div>
         </motion.div>
-        
+
         {actions && (
           <motion.div
             className="flex-shrink-0 ml-2"
@@ -103,12 +107,15 @@ interface ResponsiveTabsProps {
   ariaLabel?: string;
 }
 
-export function ResponsiveTabs({ tabs, activeTab, onTabChange, className, ariaLabel = "Tabs" }: ResponsiveTabsProps) {
+export function ResponsiveTabs(
+  { tabs, activeTab, onTabChange, className, ariaLabel = "Tabs" }:
+    ResponsiveTabsProps,
+) {
   return (
     <motion.nav
       className={cn(
         "sticky top-16 sm:top-20 lg:top-24 z-10 glass-card backdrop-blur-md border-b",
-        className
+        className,
       )}
       role="tablist"
       aria-label={ariaLabel}
@@ -116,14 +123,16 @@ export function ResponsiveTabs({ tabs, activeTab, onTabChange, className, ariaLa
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}
     >
-      <AutoSizingContainer 
-        responsive 
-        minHeight={48} 
+      <AutoSizingContainer
+        responsive
+        minHeight={48}
         maxHeight={72}
         className="overflow-x-auto scrollbar-hide"
       >
         <LayoutGroup>
-          <div className={`grid grid-cols-${tabs.length} gap-0.5 sm:gap-1 p-1 h-full`}>
+          <div
+            className={`grid grid-cols-${tabs.length} gap-0.5 sm:gap-1 p-1 h-full`}
+          >
             {tabs.map((tab, index) => (
               <motion.button
                 key={tab.id}
@@ -174,7 +183,22 @@ export function ResponsiveTabs({ tabs, activeTab, onTabChange, className, ariaLa
 interface MobileOptimizedButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "telegram" | "telegram-outline" | "glass" | "subtle" | "success" | "warning" | "info" | "premium" | "brand";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link"
+    | "telegram"
+    | "telegram-outline"
+    | "glass"
+    | "subtle"
+    | "success"
+    | "warning"
+    | "info"
+    | "premium"
+    | "brand";
   size?: "sm" | "default" | "lg";
   fullWidth?: boolean;
   loading?: boolean;
@@ -183,9 +207,9 @@ interface MobileOptimizedButtonProps {
   disabled?: boolean;
 }
 
-export function MobileOptimizedButton({ 
-  children, 
-  onClick, 
+export function MobileOptimizedButton({
+  children,
+  onClick,
   variant = "default",
   size = "default",
   fullWidth = false,
@@ -193,7 +217,7 @@ export function MobileOptimizedButton({
   icon,
   className,
   disabled,
-  ...props 
+  ...props
 }: MobileOptimizedButtonProps) {
   return (
     <Button
@@ -209,7 +233,7 @@ export function MobileOptimizedButton({
         "active:scale-95 transition-all duration-150",
         "hover:shadow-md hover:scale-[1.02]",
         "focus:ring-2 focus:ring-primary/50",
-        className
+        className,
       )}
       {...props}
     >

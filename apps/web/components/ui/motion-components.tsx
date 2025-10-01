@@ -1,15 +1,21 @@
 "use client";
 
-import React from 'react';
-import { motion, AnimatePresence, useMotionValue, animate, useMotionValueEvent } from 'framer-motion';
-import { cn } from '@/utils';
+import React from "react";
+import {
+  animate,
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+} from "framer-motion";
+import { cn } from "@/utils";
 
 interface MotionFadeInProps {
   children: React.ReactNode;
   className?: string;
   delay?: number;
   duration?: number;
-  direction?: 'up' | 'down' | 'left' | 'right';
+  direction?: "up" | "down" | "left" | "right";
   distance?: number;
   scale?: boolean;
   once?: boolean;
@@ -20,29 +26,29 @@ export const MotionFadeIn: React.FC<MotionFadeInProps> = ({
   className,
   delay = 0,
   duration = 0.8,
-  direction = 'up',
+  direction = "up",
   distance = 50,
   scale = false,
-  once = true
+  once = true,
 }) => {
   const directionMap = {
     up: { y: distance },
     down: { y: -distance },
     left: { x: distance },
-    right: { x: -distance }
+    right: { x: -distance },
   };
 
   const initialState = {
     opacity: 0,
     ...(scale && { scale: 0.9 }),
-    ...directionMap[direction]
+    ...directionMap[direction],
   };
 
   const animateState = {
     opacity: 1,
     ...(scale && { scale: 1 }),
     x: 0,
-    y: 0
+    y: 0,
   };
 
   return (
@@ -57,7 +63,7 @@ export const MotionFadeIn: React.FC<MotionFadeInProps> = ({
         ease: [0.16, 1, 0.3, 1], // Enhanced easing
         type: "spring",
         stiffness: 260,
-        damping: 20
+        damping: 20,
       }}
     >
       {children}
@@ -76,7 +82,7 @@ export const MotionStagger: React.FC<MotionStaggerProps> = ({
   children,
   className,
   staggerDelay = 0.1,
-  initialDelay = 0
+  initialDelay = 0,
 }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -84,9 +90,9 @@ export const MotionStagger: React.FC<MotionStaggerProps> = ({
       opacity: 1,
       transition: {
         staggerChildren: staggerDelay,
-        delayChildren: initialDelay
-      }
-    }
+        delayChildren: initialDelay,
+      },
+    },
   };
 
   const itemVariants = {
@@ -97,9 +103,9 @@ export const MotionStagger: React.FC<MotionStaggerProps> = ({
       scale: 1,
       transition: {
         duration: 0.5,
-        ease: [0.6, -0.05, 0.01, 0.99] as [number, number, number, number]
-      }
-    }
+        ease: [0.6, -0.05, 0.01, 0.99] as [number, number, number, number],
+      },
+    },
   };
 
   return (
@@ -110,11 +116,14 @@ export const MotionStagger: React.FC<MotionStaggerProps> = ({
       whileInView="visible"
       viewport={{ once: true }}
     >
-      {React.Children.map(children, (child, index) => (
-        <motion.div key={index} variants={itemVariants}>
-          {child}
-        </motion.div>
-      ))}
+      {React.Children.map(
+        children,
+        (child, index) => (
+          <motion.div key={index} variants={itemVariants}>
+            {child}
+          </motion.div>
+        ),
+      )}
     </motion.div>
   );
 };
@@ -135,8 +144,8 @@ export const MotionCounter: React.FC<MotionCounterProps> = ({
   duration = 2,
   delay = 0,
   className,
-  suffix = '',
-  prefix = ''
+  suffix = "",
+  prefix = "",
 }) => {
   const value = useMotionValue(from);
   const [count, setCount] = React.useState(from);
@@ -158,7 +167,9 @@ export const MotionCounter: React.FC<MotionCounterProps> = ({
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
     >
-      {prefix}{count.toLocaleString()}{suffix}
+      {prefix}
+      {count.toLocaleString()}
+      {suffix}
     </motion.span>
   );
 };
@@ -178,7 +189,7 @@ export const MotionHoverCard: React.FC<MotionHoverCardProps> = ({
   hoverScale = 1.05,
   hoverRotate = 0,
   hoverY = -10,
-  tapScale = 0.95
+  tapScale = 0.95,
 }) => {
   return (
     <motion.div
@@ -190,22 +201,22 @@ export const MotionHoverCard: React.FC<MotionHoverCardProps> = ({
         scale: hoverScale,
         rotate: hoverRotate,
         y: hoverY,
-        transition: { 
+        transition: {
           type: "spring",
           stiffness: 400,
-          damping: 25
-        }
+          damping: 25,
+        },
       }}
-      whileTap={{ 
+      whileTap={{
         scale: tapScale,
-        transition: { duration: 0.1 }
+        transition: { duration: 0.1 },
       }}
-      transition={{ 
-        duration: 0.8, 
+      transition={{
+        duration: 0.8,
         ease: [0.16, 1, 0.3, 1],
         type: "spring",
         stiffness: 260,
-        damping: 20
+        damping: 20,
       }}
     >
       {children}
@@ -222,20 +233,20 @@ interface MotionScrollRevealProps {
 export const MotionScrollReveal: React.FC<MotionScrollRevealProps> = ({
   children,
   className,
-  threshold = 0.1
+  threshold = 0.1,
 }) => {
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, y: 50, scale: 0.9 }}
-      whileInView={{ 
-        opacity: 1, 
-        y: 0, 
+      whileInView={{
+        opacity: 1,
+        y: 0,
         scale: 1,
         transition: {
           duration: 0.8,
-          ease: [0.6, -0.05, 0.01, 0.99]
-        }
+          ease: [0.6, -0.05, 0.01, 0.99],
+        },
       }}
       viewport={{ once: true, amount: threshold }}
     >
@@ -251,7 +262,7 @@ interface MotionPageTransitionProps {
 
 export const MotionPageTransition: React.FC<MotionPageTransitionProps> = ({
   children,
-  className
+  className,
 }) => {
   return (
     <motion.div
@@ -261,7 +272,7 @@ export const MotionPageTransition: React.FC<MotionPageTransitionProps> = ({
       exit={{ opacity: 0, y: -20 }}
       transition={{
         duration: 0.4,
-        ease: [0.6, -0.05, 0.01, 0.99]
+        ease: [0.6, -0.05, 0.01, 0.99],
       }}
     >
       {children}
@@ -275,5 +286,5 @@ export default {
   MotionCounter,
   MotionHoverCard,
   MotionScrollReveal,
-  MotionPageTransition
+  MotionPageTransition,
 };

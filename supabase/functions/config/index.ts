@@ -1,13 +1,16 @@
 import { registerHandler } from "../_shared/serve.ts";
 import {
   getConfig,
-  setConfig,
   getFlag as getFlagBase,
+  setConfig,
   setFlag as setFlagBase,
 } from "../_shared/config.ts";
 import { createClient } from "../_shared/client.ts";
 
-interface FlagSnapshot { ts: number; data: Record<string, boolean> }
+interface FlagSnapshot {
+  ts: number;
+  data: Record<string, boolean>;
+}
 
 async function preview(): Promise<FlagSnapshot> {
   return await getConfig<FlagSnapshot>("features:draft", {
@@ -25,8 +28,14 @@ async function publish(adminId?: string): Promise<void> {
     ts: Date.now(),
     data: {},
   });
-  await setConfig("features:rollback", { ts: current.ts, data: { ...current.data } });
-  await setConfig("features:published", { ts: draft.ts, data: { ...draft.data } });
+  await setConfig("features:rollback", {
+    ts: current.ts,
+    data: { ...current.data },
+  });
+  await setConfig("features:published", {
+    ts: draft.ts,
+    data: { ...draft.data },
+  });
   const client = createClient();
   try {
     await client.from("audit_log").insert({
@@ -50,8 +59,14 @@ async function rollback(adminId?: string): Promise<void> {
     ts: Date.now(),
     data: {},
   });
-  await setConfig("features:published", { ts: previous.ts, data: { ...previous.data } });
-  await setConfig("features:rollback", { ts: published.ts, data: { ...published.data } });
+  await setConfig("features:published", {
+    ts: previous.ts,
+    data: { ...previous.data },
+  });
+  await setConfig("features:rollback", {
+    ts: published.ts,
+    data: { ...published.data },
+  });
   const client = createClient();
   try {
     await client.from("audit_log").insert({
