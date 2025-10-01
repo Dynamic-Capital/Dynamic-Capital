@@ -472,15 +472,13 @@ def _build_scrapegraphai_plan(job: CrawlJob, config: CrawlerConfig) -> CrawlerPl
     )
     requirements_file = PlanFile(
         path=f"crawlers/{slug}/requirements.txt",
-        content=(
-            "scrapegraphai @ "
-            "git+https://github.com/ScrapeGraphAI/Scrapegraph-ai\n"
-        ),
+        content=_scrapegraphai_requirement_line(job),
     )
     notes = (
         "Ensure the configured LLM provider is available and credentials are exported as environment variables.",
         "ScrapeGraphAI will orchestrate multi-step extraction flows based on the natural-language description.",
         "Install ScrapeGraphAI from the GitHub source via the generated requirements file before execution.",
+        "Provide `scrapegraphai_ref` or `scrapegraphai_requirement` metadata to pin a specific release when needed.",
     )
     environment = {
         "SCRAPEGRAPH_OUTPUT_PATH": job.destination,
@@ -687,3 +685,32 @@ def _render_crawlee_script(job: CrawlJob, config: CrawlerConfig) -> str:
     await crawler.run(urls);
     """
     return "\n".join(line.rstrip() for line in script.strip().splitlines()) + "\n"
+
+
+def _scrapegraphai_requirement_line(job: CrawlJob) -> str:
+    """Return the requirement line for ScrapeGraphAI respecting job metadata overrides."""
+
+    metadata = job.metadata or {}
+    explicit_requirement = metadata.get("scrapegraphai_requirement")
+    if isinstance(explicit_requirement, str):
+        cleaned_requirement = explicit_requirement.strip()
+        if cleaned_requirement:
+            return _ensure_trailing_newline(cleaned_requirement)
+
+    git_ref = metadata.get("scrapegraphai_ref")
+    if isinstance(git_ref, str):
+        cleaned_ref = git_ref.strip()
+        if cleaned_ref:
+            requirement = (
+                "scrapegraphai @ "
+                f"git+https://github.com/ScrapeGraphAI/Scrapegraph-ai@{cleaned_ref}"
+            )
+            return _ensure_trailing_newline(requirement)
+
+    return _ensure_trailing_newline(
+        "scrapegraphai @ git+https://github.com/ScrapeGraphAI/Scrapegraph-ai"
+    )
+
+
+def _ensure_trailing_newline(value: str) -> str:
+    return value if value.endswith("\n") else f"{value}\n"
