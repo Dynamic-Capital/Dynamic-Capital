@@ -2,6 +2,8 @@ import process from "node:process";
 
 export async function POST(req: Request) {
   const supabaseFnUrl = process.env.SUPABASE_FN_URL;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseFnUrl) {
     console.error(
@@ -19,9 +21,18 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (supabaseAnonKey) {
+    headers.Authorization = `Bearer ${supabaseAnonKey}`;
+    headers.apikey = supabaseAnonKey;
+  }
+
   const response = await fetch(`${supabaseFnUrl}/process-subscription`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(body),
   });
 
