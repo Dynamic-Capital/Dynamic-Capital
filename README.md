@@ -10,6 +10,7 @@
 <!-- TOC:START -->
 
 - [Overview](#overview)
+  - [Dynamic Ecosystem Highlights](#dynamic-ecosystem-highlights)
 - [What's New](#whats-new)
 - [Quick Links](#quick-links)
   - [Saved GitHub queries](#saved-github-queries)
@@ -99,6 +100,24 @@ Supabase access, authentication, and other server-side features.
 
 The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
 backed by Supabase.
+
+### Dynamic Ecosystem Highlights
+
+- **DYNAMIC CAPITAL WEB3**
+- **DYNAMIC CAPITAL TOKEN**
+- **DYNAMIC AGS**
+- **DYNAMIC AGI**
+- **DYNAMIC AI**
+- **DYNAMIC TRADING LOGIC**
+- **DYNAMIC TRADING ALGO**
+- **DYNAMIC ENGINES**
+- **DYNAMIC TOOLS**
+- **DYNAMIC MODELS**
+- **DYNAMIC**
+
+These pillars summarize the core modules that power the broader Dynamic Capital
+stack—from the on-chain Web3 layer and token mechanics to the intelligence
+systems, trading automation, and supporting tooling.
 
 ## What's New
 
