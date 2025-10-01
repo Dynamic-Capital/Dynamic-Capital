@@ -1,35 +1,20 @@
 # Dynamic Capital Unified Site Map
 
-Dynamic Capital keeps every investor touchpoint consistent across the responsive web app and the Telegram mini app. The flows below are written for first-time investors: clear language, minimalist layouts, and direct calls-to-action.
+Dynamic Capital maintains a single, investor-friendly journey across the responsive web app and the Telegram mini app. Every surface uses plain language, minimalist layouts, and confident CTA buttons so first-time investors always know the next step.
 
-## Journey 1 — Onboard & Orient
+## Experience Matrix
 
-| Step | Web entry | Telegram mini app entry | Beginner takeaway | CTA |
+| Journey stage | Experience | Web route & CTA | Telegram mini app route & CTA | Beginner guidance |
 | --- | --- | --- | --- | --- |
-| Launch pad | `/` welcome surface with a single value promise and social proof tile. | `/miniapp` redirect that mirrors the same copy and hero art. | Sets expectations instantly and keeps the story identical on both surfaces. | **Continue to home** |
-| Personalized home | `/investor` default dashboard with curated snapshots and checklist. | `/miniapp/home` personalized welcome using Telegram auth for fast context. | Gives newcomers a guided home base that feels familiar everywhere. | **Explore home** |
-
-## Journey 2 — Research & Readiness
-
-| Step | Web entry | Telegram mini app entry | Beginner takeaway | CTA |
-| --- | --- | --- | --- | --- |
-| Fund transparency | `/token` explainer with plain-language charts on supply, utility, and allocation. | `/miniapp/fund` lightweight dashboard with the same metrics and ROI visuals. | Keeps token mechanics transparent without spreadsheets or jargon. | **Review fund metrics** |
-| Signal feed | `/investor` → signals tab with alert history and mentor commentary. | `/miniapp/signals` live feed with quick tips on interpreting each alert. | Couples every alert with guidance so research and action stay aligned. | **Follow signals** |
-| Watchlist | `/investor` → watchlist builder synced to alerts and trade planning. | `/miniapp/watchlist` editor for managing the same basket inside Telegram. | Ensures research travels with the investor, no matter the device. | **Update watchlist** |
-
-## Journey 3 — Execute & Monitor
-
-| Step | Web entry | Telegram mini app entry | Beginner takeaway | CTA |
-| --- | --- | --- | --- | --- |
-| Trading desk | `/investor` → trade workspace surfacing live setups and guardrails. | `/miniapp/trade` compact panel tuned for fast entries with identical safeguards. | Reinforces that execution stays disciplined and mirrored across platforms. | **Place a trade** |
-| Portfolio overview | `/investor` → overview tab summarizing holdings and performance trends. | `/miniapp/overview` quick-look dashboard for rapid health checks. | Provides a consistent snapshot so progress feels stable everywhere. | **View portfolio** |
-
-## Journey 4 — Support & Upkeep
-
-| Step | Web entry | Telegram mini app entry | Beginner takeaway | CTA |
-| --- | --- | --- | --- | --- |
-| Mentorship | `/support` concierge hub routing to mentors, FAQs, and playbooks. | `/miniapp/mentorship` direct mentor chat for on-demand coaching. | Keeps human support one tap away to reassure new investors. | **Start mentorship chat** |
-| Account center | `/investor` → account tools covering billing, concierge access, and status updates. | `/miniapp/account` mirrored settings for Telegram-first members. | Simplifies upkeep by syncing preferences and payments automatically. | **Manage account** |
+| Onboard & orient | Welcome launch pad | `/` &rarr; **Continue to Home** button that restates the value promise beside social proof. | `/miniapp` &rarr; auto-redirect with the same hero copy and **Continue to Home** confirmation. | Aligns expectations instantly and keeps the welcome story identical on every device. |
+| Onboard & orient | Personalized home hub | `/investor` &rarr; **Explore Home** cards with curated snapshots and a checklist. | `/miniapp/home` &rarr; **Explore Home** cards personalized via Telegram auth. | Gives newcomers a guided hub so progress feels familiar whether they start on web or Telegram. |
+| Research & readiness | Fund transparency | `/token` &rarr; **Review Fund Metrics** button beside plain-language charts on supply, utility, and allocation. | `/miniapp/fund` &rarr; **Review Fund Metrics** button atop mirrored tokenomics and ROI visuals. | Makes token mechanics transparent without spreadsheets or jargon. |
+| Research & readiness | Signal feed | `/investor` → signals tab &rarr; **Follow Signals** button near mentor commentary and alert history. | `/miniapp/signals` &rarr; **Follow Signals** button paired with live tips for interpreting each alert. | Couples every alert with coaching so research and action stay aligned. |
+| Research & readiness | Watchlist builder | `/investor` → watchlist tab &rarr; **Update Watchlist** button that syncs with planning tools. | `/miniapp/watchlist` &rarr; **Update Watchlist** button for managing the same basket within Telegram. | Keeps research organized and portable across devices. |
+| Execute & monitor | Trading desk | `/investor` → trade workspace &rarr; **Place a Trade** button framed by guardrails and position sizing helpers. | `/miniapp/trade` &rarr; **Place a Trade** button inside a compact panel with identical safeguards. | Reinforces disciplined execution while keeping controls familiar. |
+| Execute & monitor | Portfolio overview | `/investor` → overview tab &rarr; **View Portfolio** button next to performance trends. | `/miniapp/overview` &rarr; **View Portfolio** button for quick check-ins. | Provides a consistent health snapshot so investors feel stable everywhere. |
+| Support & upkeep | Mentorship access | `/support` &rarr; **Start Mentorship Chat** button connecting to mentors, FAQs, and playbooks. | `/miniapp/mentorship` &rarr; **Start Mentorship Chat** button for on-demand coaching. | Keeps human reassurance one tap away and encourages ongoing learning. |
+| Support & upkeep | Account center | `/investor` → account tools &rarr; **Manage Account** button covering billing, concierge access, and status updates. | `/miniapp/account` &rarr; **Manage Account** button with mirrored preferences. | Syncs billing and preferences automatically so upkeep stays simple. |
 
 ## Dynamic AGI Enhancements to Explore
 
@@ -43,17 +28,17 @@ Dynamic Capital keeps every investor touchpoint consistent across the responsive
 ## Implementation Checklist
 
 ### Stage 1 — Onboard & Orient
-- [ ] Align hero copy, visuals, and analytics events across `/` and `/miniapp` to ensure identical first impressions.
-- [ ] Build personalized welcome states on `/investor` and `/miniapp/home`, tracking taps on **Explore home**.
+- [ ] Align hero copy, visuals, and analytics events across `/` and `/miniapp` to keep the welcome promise identical.
+- [ ] Build personalized welcome states on `/investor` and `/miniapp/home`, tracking taps on the **Explore Home** CTA.
 
 ### Stage 2 — Research & Readiness
 - [ ] Serve the same data source to `/token` and `/miniapp/fund`, validating metric parity.
-- [ ] Standardize alert formatting and the **Follow signals** CTA across `/investor` and `/miniapp/signals`.
+- [ ] Standardize alert formatting and the **Follow Signals** CTA across `/investor` and `/miniapp/signals`.
 - [ ] Enable near-real-time syncing between `/investor` and `/miniapp/watchlist` edits.
 
 ### Stage 3 — Execute & Monitor
-- [ ] Match guardrails, order flows, and the **Place a trade** CTA between `/investor` and `/miniapp/trade`.
-- [ ] Mirror portfolio calculations and labelling between `/investor` overview and `/miniapp/overview`.
+- [ ] Match guardrails, order flows, and the **Place a Trade** CTA between `/investor` and `/miniapp/trade`.
+- [ ] Mirror portfolio calculations and labeling between `/investor` overview and `/miniapp/overview`.
 
 ### Stage 4 — Support & Upkeep
 - [ ] Connect mentor routing, transcripts, and satisfaction tracking across `/support` and `/miniapp/mentorship`.
