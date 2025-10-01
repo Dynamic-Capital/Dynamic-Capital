@@ -70,22 +70,31 @@ beginners always understand the next action.
 
 ### Stage 1 — Onboard & Orient
 
+> Detailed execution requirements live in
+> [`docs/web-stage1-onboard-plan.md`](./web-stage1-onboard-plan.md) and should
+> be referenced during implementation and QA sign-off.
+
 - [ ] Align hero copy, visuals, and analytics events across `/` and `/miniapp`
       to keep the welcome promise identical.
   - Reuse the same headline, subheadline, and supporting copy in both hero
-    sections.
+    sections, sourced from the shared `heroContent` config described in the
+    Stage 1 plan.
   - Confirm the hero art direction (illustration, animation, or photo) stays
-    consistent and adapts responsively.
+    consistent and adapts responsively, matching the asset catalog and
+    accessibility acceptance criteria outlined in the plan.
   - Emit a shared analytics event name and payload when the **Continue to Home**
-    CTA is tapped.
+    CTA is tapped, following the `cta_continue_home_clicked` schema and testing
+    steps noted in the plan.
 - [ ] Build personalized welcome states on `/investor` and `/miniapp/home`,
       tracking taps on the **Explore Home** CTA.
   - Surface the same personalization tokens (name, risk profile, onboarding
-    checklist) in both experiences.
+    checklist) in both experiences using the shared `/api/welcome-context`
+    contract.
   - Ensure authentication gates enable Telegram profile data to hydrate the web
-    view and vice versa.
+    view and vice versa through the signed init bridge and shared JWT flow.
   - Record **Explore Home** CTA engagements with a unified event schema for
-    funnel comparisons.
+    funnel comparisons, conforming to the `cta_explore_home_clicked` payload and
+    guardrails.
 
 ### Stage 2 — Research & Readiness
 
