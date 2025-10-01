@@ -110,3 +110,91 @@ const { code, label } = defaultDynamicNamingEngine.generate({
 Call `parse` to break down existing abbreviations, or instantiate
 `DynamicNamingEngine` with custom registries when integrating new ecosystems or
 experimental metaphors.
+
+## Missing Component Name Scan
+
+Run the repository-wide scan to identify component codes that reference
+undefined prefixes, functions, or scopes:
+
+```bash
+npm exec deno run -- --allow-read dynamic_naming/scan_missing_names.ts
+```
+
+The latest scan surfaced the following codes that need naming definitions:
+
+### AGI-00
+
+- **Issue:** `00` is not a registered function code.
+- **Locations:**
+  - `docs/open_source_dictionary_apis.md`
+
+### AGI-AGS
+
+- **Issue:** `AGS` is not a registered function code.
+- **Locations:**
+  - `docs/dynamic-agi-quantum-native-training.md`
+
+### DC-GDPR-2024
+
+- **Issue:** `GDPR` is not a registered function code.
+- **Locations:**
+  - `apps/web/components/dynamic-portfolio/home/ComplianceCertificates.tsx`
+  - `docs/compliance/README.md`
+  - `docs/compliance/certificates.json`
+  - `docs/compliance/gdpr.md`
+
+### DC-HIPAA-2024
+
+- **Issue:** `HIPAA` is not a registered function code.
+- **Locations:**
+  - `apps/web/components/dynamic-portfolio/home/ComplianceCertificates.tsx`
+  - `docs/compliance/README.md`
+  - `docs/compliance/certificates.json`
+  - `docs/compliance/hipaa.md`
+
+### DC-ISMS-27001-2024
+
+- **Issue:** `ISMS` is not a registered function code.
+- **Locations:**
+  - `apps/web/components/dynamic-portfolio/home/ComplianceCertificates.tsx`
+  - `docs/compliance/README.md`
+  - `docs/compliance/certificates.json`
+  - `docs/compliance/iso-27001.md`
+
+### DC-PCI-2024-L1
+
+- **Issue:** `PCI` is not a registered function code.
+- **Locations:**
+  - `apps/web/components/dynamic-portfolio/home/ComplianceCertificates.tsx`
+  - `docs/compliance/README.md`
+  - `docs/compliance/certificates.json`
+  - `docs/compliance/pci-dss-level1.md`
+
+### DC-SOC1-2024-T2
+
+- **Issue:** `SOC1` is not a registered function code.
+- **Locations:**
+  - `docs/compliance/README.md`
+  - `docs/compliance/certificates.json`
+  - `docs/compliance/soc1-type2.md`
+
+### DC-SOC2-2024-T2
+
+- **Issue:** `SOC2` is not a registered function code.
+- **Locations:**
+  - `apps/web/components/dynamic-portfolio/home/ComplianceCertificates.tsx`
+  - `docs/compliance/README.md`
+  - `docs/compliance/certificates.json`
+  - `docs/compliance/soc2-type2.md`
+
+### DC-XXXXXX
+
+- **Issue:** `XXXXXX` is not a registered function code.
+- **Locations:**
+  - `supabase/functions/telegram-bot/bank-parsers.ts`
+
+### DCT-TON
+
+- **Issue:** `TON` is not a registered function code.
+- **Locations:**
+  - `dynamic/trading/algo/trading_core.py`
