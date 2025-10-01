@@ -212,6 +212,15 @@ _ENGINE_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "MatrixSummary",
         "CellUpdateMode",
     ),
+    "dynamic_multi_ll": (
+        "DynamicMultiLLEngine",
+        "LLModelDescriptor",
+        "MultiLLModel",
+        "MultiLLPrompt",
+        "MultiLLResponse",
+        "MultiLLAggregate",
+        "MultiLLResult",
+    ),
     "dynamic_package": ("DynamicPackageDesigner",),
     "dynamic_playbook": (
         "DynamicPlaybookAgent",
