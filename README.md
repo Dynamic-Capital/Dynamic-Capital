@@ -338,6 +338,19 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
   [STON.fi](https://app.ston.fi) and [DeDust](https://dedust.io) pairs, with
   hedging hooks synced to the Supabase ledger service.
 
+### TON Sites Optimisation
+
+- **dynamic_ton.sites** introduces telemetry-aware optimisation plans for TON
+  Sites. Feed latency, availability, TLS, and storage ratios into
+  `TonSiteOptimizer` to receive prioritised actions, risk focus areas, and
+  remediation metadata for each domain.
+- **Portfolio rollups** via `evaluate_portfolio` aggregate scores and
+  high-priority blockers across domains so investor updates can reference a
+  single health snapshot before capital deployment.
+- **Regression coverage** lives in
+  `tests/test_dynamic_ton_sites.py`, ensuring remediation guidance stays
+  deterministic as we tune hosting guardrails.
+
 ### Architecture & Docs
 
 Explore the broader platform anatomy and contributor guides:
