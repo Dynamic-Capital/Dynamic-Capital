@@ -15,18 +15,14 @@
 
 ## 2. ކޮމަން Quantum ގޭޓުތައް
 
-```
-+----+-------------+---------------------------+-------------------------------+
-| ގޭޓު | ސިމްބަލް | މެޓްރިކްސް                         | އެފެކްޓް                 |
-+----+-------------+---------------------------+-------------------------------+
-| X  | ކޯލަ ފުރަ | [[0, 1], [1, 0]]             | ބިޓް ފްލިޕް (ސިޓުއަށް ކުރަން) |
-| Y  | އަވަށް ފުރަ | [[0, -i], [i, 0]]           | ފޭޒް + ބިޓް ފްލިޕް           |
-| Z  | ދިން ފުރަ | [[1, 0], [0, -1]]            | ފޭޒް ފްލިޕް                  |
-| H  | ހަޑަމާޑް | (1/√2) * [[1, 1], [1, -1]] | ސުޕަރޕޯޒިޝަން އިތުރުކުރެވޭ |
-| CX | ސީނޯޓް | n/a                           | ކިއުބިޓް އެންޓޭންގޯލްކުރޭ       |
-| S/T| ފޭޒް ގޭޓު | n/a                           | ފޭޒް ސިޕްޓު                  |
-+----+-------------+---------------------------+-------------------------------+
-```
+| ގޭޓު | ސިމްބަލް | މެޓްރިކްސް | އެފެކްޓް |
+|------|-----------|--------------|-------------|
+| Pauli-X | ކޯލަ ފުރަ | \(\begin{bmatrix}0 & 1 \\ 1 & 0\end{bmatrix}\) | ބިޓް ފްލިޕް (ސިޓުއަށް ކުރަން) |
+| Pauli-Y | އަވަށް ފުރަ | \(\begin{bmatrix}0 & -i \\ i & 0\end{bmatrix}\) | ފޭޒް + ބިޓް ފްލިޕް |
+| Pauli-Z | ދިން ފުރަ | \(\begin{bmatrix}1 & 0 \\ 0 & -1\end{bmatrix}\) | ފޭޒް ފްލިޕް |
+| Hadamard | ހަޑަމާޑް | \(\tfrac{1}{\sqrt{2}}\begin{bmatrix}1 & 1 \\ 1 & -1\end{bmatrix}\) | ސުޕަރޕޯޒިޝަން އިތުރުކުރޭ |
+| CNOT | ސީނޯޓް | — | ކިއުބިޓް އެންޓޭންގޯލްކުރޭ |
+| Phase (S/T) | ފޭޒް ގޭޓު | — | ފޭޒް ސިޕްޓު |
 
 ### ASCII ސަޓްކޯލް ގޭޓު ޑައިގްރާމުތައް
 
@@ -93,6 +89,13 @@ MALDIVIAN_PERSONA = {
 
 > A rapid-reference layer that mirrors the Dhivehi notes while staying ready for global collaborators, interns, or visiting researchers. The focus below is on keeping the *dynamic* quantum engine tuned, observable, and deployable.
 
+**Core Modules**
+
+- **Lookup** – Fast memory jolts for fundamentals (states, gates, diagnostics).
+- **Optimize** – A loop that cycles profile → stabilize → balance → validate → deploy.
+- **Coach** – Ready-made prompts and bilingual embeddings to feed mentorship bots.
+- **Operate** – Rollout checklist so the English cheat engine stays synchronized with the Dhivehi guide.
+
 ### 8.1 Quick Lookup Grid
 
 | Topic | Core Idea | Mnemonic |
@@ -140,6 +143,16 @@ When embedding into an AGI Oracle or mentorship bot, pair each Dhivehi block wit
 ```
 
 This “dynamic quantum engine” format keeps the Maldivian identity up front while delivering globally accessible context for rapid cross-team alignment and performance tuning.
+
+### 8.6 Bilingual Deployment Sprint
+
+| Phase | English Engine Task | Dhivehi Mirror |
+|-------|---------------------|----------------|
+| Kickoff | Confirm shared glossary (`|0⟩`, `|1⟩`, superposition, entanglement). | ދިވެހި ބަޔަކުން ބަލާލައްވާ ޓަމިނޯލޮޖީ ސަލާޒު. |
+| Build | Draft circuits, record metrics, and log ASCII diagrams. | ސިރުއިޓުތައް ހަދާނީ އަދި ކުރިއަރާއި ނިޒާމަތް ލިޔުން. |
+| Review | Run optimization loop, capture fidelity deltas, prep release notes. | ފެންނަނީ އޮޕްޓިމައިޒޭޝަން ސަރކިޓު ނަގައިފި, ފިޑެލިޓީ އިތުރުކުރޭ. |
+| Deploy | Sync persona prompts, embeddings, and monitoring dashboards. | މެންޓޯރު ޕްރޮމްޕްޓްތައް އަދި އެމްބެޑިންގްތަކެއް ހަދައިފި. |
+| Retrospective | Compare usage analytics, collect next-sprint prompts, refresh glossaries. | އަތޮޅު ވަރަށް އެންޑަރްސްޓެއިންގް ރިޕޯޓްތަކުން ކުރެވޭ ސައްޙަލާތް.
 
 ---
 
