@@ -13,6 +13,10 @@ alignment.
 - **Usage** — Link to this map from feature specs, onboarding decks, or
   governance proposals so contributors have a shared vocabulary.
 
+> 💡 **Tip:** Pair this glossary with the visual protocol diagrams in
+> `dynamic_ecosystem/` to give stakeholders both textual and spatial context for
+> each component.
+
 ## Core Protocol & Tokenomics
 
 | Short Name | Full Name                  | Purpose                                                |
@@ -71,3 +75,43 @@ alignment.
   components when presenting to stakeholders.
 - Embed this table into README files or dashboards that need a lightweight
   glossary for DCT and TON initiatives.
+- Extend the map with ownership metadata (e.g. maintainer squad, Slack channels,
+  or Notion docs) to accelerate cross-team handoffs.
+
+## README Snippet
+
+Include the following excerpt in team-specific READMEs to highlight how the
+modules connect back to the broader ecosystem:
+
+```md
+## Dynamic Capital Touchpoints
+
+| Layer            | Component | Quick Purpose                                           |
+| ---------------- | --------- | ------------------------------------------------------- |
+| Tokenomics       | DCT       | Drives burns, buybacks, and market-pricing alignment.   |
+| Intelligence     | AGI-O     | Scores mentorship accuracy and trading performance.     |
+| Outreach         | DC-DRIP   | Automates cold outreach with compliance guardrails.     |
+| Frontend & TON   | TON-MA    | Surfaces onboarding, signals, and mentorship workflows. |
+| Regenerative Map | DC-MAP    | Visualizes sync between market, AGI, and community.     |
+```
+
+## Schema Tags
+
+When instrumenting Supabase tables or telemetry events, reuse the following
+schema tags to maintain consistent naming across services:
+
+```yaml
+components:
+  - key: DCT
+    tags: [tokenomics, pricing, burns]
+  - key: DCM
+    tags: [core-logic, governance, mentorship]
+  - key: AGI-O
+    tags: [intelligence, scoring, oracle]
+  - key: TON-MA
+    tags: [frontend, ton, onboarding]
+  - key: DC-DRIP
+    tags: [outreach, automation, compliance]
+  - key: DC-MAP
+    tags: [visualization, regenerative, ecosystem]
+```
