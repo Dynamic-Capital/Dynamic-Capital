@@ -48,6 +48,7 @@ documenting which assets were consulted.
 | 2.7 | [NEXTJS_BUILD_CACHE_TASK.md](./NEXTJS_BUILD_CACHE_TASK.md)         | Instructions for the Next.js build cache maintenance task.                                           |
 | 2.8 | [ton-ide-plugins.md](./ton-ide-plugins.md)                         | Official TON IDE plugins for JetBrains, VS Code, and the Web IDE with install checklists.            |
 | 2.9 | [onedrive-sync-integration.md](./onedrive-sync-integration.md)     | GitHub and Supabase adapter guide for working with Microsoft OneDrive assets inside Codex workflows. |
+| 2.10 | [open-source-ai-crawlers.md](./open-source-ai-crawlers.md)        | Comparison of AI-driven crawling frameworks with implementation and selection guidance. |
 
 ## 3. Environment & Configuration
 
