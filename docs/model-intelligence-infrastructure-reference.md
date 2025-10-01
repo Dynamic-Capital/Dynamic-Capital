@@ -152,3 +152,13 @@ defines the shared role palette, per-domain blueprints, and a
 and emit operational playbooks. Use `build_default_infrastructure()` when you
 need a ready-to-run baseline covering core modules such as `dynamic_supabase`,
 `dynamic_memory`, `dynamic_task_manager`, and `dynamic_validator`.
+
+For hands-on experiments, the repo now provides lightweight compatibility
+packages for the core operational personas:
+
+- `dynamic_agents`, `dynamic_helpers`, and `dynamic_bots` proxy to their modern
+  implementations while keeping legacy import paths stable.
+- `dynamic_builders` exposes snapshot and orchestration builders from
+  `algorithms.python` without forcing a heavy import on cold start.
+- `dynamic_watchers` introduces an in-memory telemetry watcher that can ingest
+  signals, evaluate threshold rules, and produce alert-focused summaries.
