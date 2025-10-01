@@ -94,7 +94,11 @@ class OrderFlowWindow:
 
     def add(self, event: OrderEvent) -> None:
         self.events.append(event)
-        self._expire(event.timestamp)
+        reference_time = event.timestamp
+        current_time = _utcnow()
+        if reference_time < current_time:
+            reference_time = current_time
+        self._expire(reference_time)
 
     def extend(self, events: Iterable[OrderEvent]) -> None:
         for event in events:
@@ -107,21 +111,34 @@ class OrderFlowWindow:
 
     @property
     def total_notional(self) -> float:
+        self._expire()
         return sum(event.notional for event in self.events)
 
     @property
     def buy_notional(self) -> float:
+        self._expire()
         return sum(event.notional for event in self.events if event.side == "buy")
 
     @property
     def sell_notional(self) -> float:
+        self._expire()
         return sum(event.notional for event in self.events if event.side == "sell")
 
     def imbalance(self) -> "OrderFlowImbalance":
+        self._expire()
+        buy_notional = 0.0
+        sell_notional = 0.0
+        for event in self.events:
+            notional = event.notional
+            if event.side == "buy":
+                buy_notional += notional
+            else:
+                sell_notional += notional
+        total_notional = buy_notional + sell_notional
         return OrderFlowImbalance(
-            buy_notional=self.buy_notional,
-            sell_notional=self.sell_notional,
-            total_notional=self.total_notional,
+            buy_notional=buy_notional,
+            sell_notional=sell_notional,
+            total_notional=total_notional,
         )
 
 
