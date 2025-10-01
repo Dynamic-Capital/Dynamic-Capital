@@ -94,6 +94,53 @@ keep the TON surfaces aligned with the broader platform roadmap.
   ([`link-wallet`](../dynamic-capital-ton/supabase/functions/link-wallet/index.ts))
   to ensure Supabase connectivity from the TON-hosted site.
 
+### Running the Tonutils reverse proxy
+
+Deploy the [Tonutils reverse proxy](https://github.com/tonutils/reverse-proxy)
+so visitors can open the site through TON Proxy without relying on the browser
+extension.
+
+#### Linux installation
+
+```bash
+wget https://github.com/tonutils/reverse-proxy/releases/latest/download/tonutils-reverse-proxy-linux-amd64
+chmod +x tonutils-reverse-proxy-linux-amd64
+```
+
+Start the proxy with the `.ton` domain that was linked to the TON Storage hash:
+
+```bash
+./tonutils-reverse-proxy-linux-amd64 --domain <your-domain.ton>
+```
+
+Scan the QR code in the terminal using Tonkeeper, Tonhub, or another wallet to
+approve the linking transaction. The proxy begins forwarding traffic to the
+configured origin immediately after confirmation.
+
+#### Running without a TON DNS domain
+
+Skip the `--domain` flag to operate in ADNL mode when a `.ton` or `.t.me`
+address is not available:
+
+```bash
+./tonutils-reverse-proxy-linux-amd64
+```
+
+The CLI prints an `.adnl` address that users can open through TON Proxy-enabled
+wallets and browsers.
+
+#### Configuration and maintenance
+
+- Edit `config.json` to adjust the upstream `proxy_pass` URL (default:
+  `http://127.0.0.1:80/`) and restart the process to apply changes.
+- Expect the proxy to append `X-Adnl-Ip` and `X-Adnl-Id` headers to each
+  request; surface these in logs if IP attribution is required.
+- Build from source (`make build`) on non-Linux platforms and mirror the launch
+  flags documented above.
+- After provisioning, confirm availability with a TON Proxy-enabled browser by
+  loading the `.ton` or `.adnl` address and verifying that static assets render
+  correctly.
+
 ### Application integration
 
 - Mini App clients rely on
