@@ -1,5 +1,6 @@
 """Dynamic TON network orchestration primitives."""
 
+from .api import build_execution_plan, serialise_execution_plan
 from .dns_auction import (
     AUCTION_START_TIME,
     DNS_CONFIG_ID,
@@ -37,6 +38,8 @@ __all__ = [
     "TonLiquidityPool",
     "TonNetworkTelemetry",
     "TonTreasuryPosture",
+    "build_execution_plan",
+    "serialise_execution_plan",
     "check_domain_string",
     "get_min_price",
     "get_min_price_config",
