@@ -77,6 +77,7 @@
     - [Docker](#docker)
 - [Automation & Data Pipelines](#automation--data-pipelines)
   - [Analyst Insights Collector](#analyst-insights-collector)
+  - [LLM-native crawling stack](#llm-native-crawling-stack)
   - [Dynamic Hedge Model](#dynamic-hedge-model)
 - [GitHub Integration](#github-integration)
 - [Hybrid Development Workflow](#hybrid-development-workflow)
