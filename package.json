@@ -98,7 +98,7 @@
     "lovable-tagger": "^1.1.10",
     "lucide-react": "^0.544.0",
     "mime-types": "^3.0.1",
-    "next-auth": "5.0.0-beta.29",
+    "next-auth": "^4.24.7",
     "posthog-js": "^1.268.8",
     "prismjs": "^1.30.0",
     "sonner": "^2.0.7"
