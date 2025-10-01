@@ -1,4 +1,14 @@
-# Dynamic Capital — Telegram Bot & Mini App
+# Dynamic Capital Ecosystem Platform
+
+<div align="center">
+
+  <strong>Unified intelligence, trading, and automation for high-velocity digital asset operations.</strong>
+
+  <sub>Dynamic Capital combines Web3 infrastructure, machine intelligence, and precision execution tooling into a single, adaptive stack.</sub>
+
+</div>
+
+---
 
 <!-- BADGES:START -->
 <!-- BADGES:END -->
@@ -11,6 +21,9 @@
 
 - [Overview](#overview)
   - [Dynamic Ecosystem Highlights](#dynamic-ecosystem-highlights)
+- [Interface Layout](#interface-layout)
+  - [Header](#header)
+  - [Footer](#footer)
 - [What's New](#whats-new)
 - [Quick Links](#quick-links)
   - [Saved GitHub queries](#saved-github-queries)
@@ -81,6 +94,7 @@
   - [Dynamic Hedge Model](#dynamic-hedge-model)
 - [GitHub Integration](#github-integration)
 - [Hybrid Development Workflow](#hybrid-development-workflow)
+- [References](#references)
 - [License / contributions](#license--contributions)
 - [Notes](#notes)
 
@@ -118,6 +132,37 @@ backed by Supabase.
 These pillars summarize the core modules that power the broader Dynamic Capital
 stack—from the on-chain Web3 layer and token mechanics to the intelligence
 systems, trading automation, and supporting tooling.
+
+## Interface Layout
+
+The Dynamic Capital experience prioritizes clarity, trust, and real-time signal
+delivery for traders and operators. The following guidelines ensure the UI
+reinforces brand identity while surfacing critical actions.
+
+### Header
+
+- **Identity first:** Persist the Dynamic Capital logotype and gradient motif to
+  anchor the ecosystem branding across the Telegram Mini App and web surfaces.
+- **Status-aware controls:** Surface live portfolio health, treasury runway, or
+  trading session state with concise iconography and color semantics that follow
+  accessibility contrast ratios.
+- **Action shortcuts:** Pin universal actions—"Deposit", "Launch AI Copilot",
+  and "Review Signals"—so power users can switch contexts without losing
+  situational awareness.
+- **Telemetry hooks:** Emit lightweight analytics events (`header:view` and
+  `header:cta_click`) to keep observability consistent across clients.
+
+### Footer
+
+- **Contextual navigation:** Group navigation targets by workflow pillars (AI,
+  Trading, Treasury, Operations) and keep tap targets within 48px minimum height
+  for touch ergonomics.
+- **Regulatory confidence:** Reserve a footer band for compliance badges,
+  jurisdiction disclosures, and updated audit timestamps to reinforce trust.
+- **Realtime alerts:** Integrate a non-intrusive toast rail or ticker that can
+  surface hedging directives, market volatility flags, or AI audit summaries.
+- **Support loop:** Provide a persistent "Need Help?" affordance that routes to
+  the Dynamic Support desk or kicks off an in-bot troubleshooting flow.
 
 ## What's New
 
@@ -1118,6 +1163,19 @@ with Dynamic and local tooling, see
 [docs/HYBRID_DEVELOPMENT_WORKFLOW.md](docs/HYBRID_DEVELOPMENT_WORKFLOW.md). It
 covers prototyping in Dynamic, exporting via the Codex CLI, local testing, and
 syncing changes through GitHub to maintain a seamless deployment pipeline.
+
+## References
+
+| Focus Area                | Resource                                                                 | Description |
+| ------------------------- | ------------------------------------------------------------------------- | ----------- |
+| Ecosystem architecture    | [dynamic_ecosystem/](dynamic_ecosystem/)                                  | High-level specs and models for the interconnected Dynamic platform pillars. |
+| Trading intelligence      | [dynamic_algo/](dynamic_algo/)                                            | Core automation routines orchestrating trading signals and hedging logic. |
+| AI research               | [dynamic_ai/](dynamic_ai/)                                                | Machine intelligence experiments, copilots, and model governance assets. |
+| Token & treasury          | [dynamic_token/](dynamic_token/)                                          | Tokenomics artifacts plus treasury operations playbooks. |
+| Operational guardrails    | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)                                  | Deployment, environment, and rollback procedures for production stability. |
+| Security & compliance     | [SECURITY.md](SECURITY.md)                                                | Security postures, reporting channels, and ongoing compliance commitments. |
+| Developer productivity    | [docs/codex_cli_workflow.md](docs/codex_cli_workflow.md)                  | Codex workflows, templates, and tooling for rapid iteration. |
+| Data & analytics pipelines| [data/](data/)                                                            | Datasets, ingestion scripts, and analytics-ready exports. |
 
 ## License / contributions
 
