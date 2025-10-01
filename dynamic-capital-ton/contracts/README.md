@@ -71,3 +71,22 @@ To permanently lock an item's metadata, the DAO submits opcode `0x544d4332`
 flag and emits a `ThemeFrozenEvent` (`0x544d4532`). Once frozen, future content
 updates for that item will be rejected both on-chain and in the mirroring NFT
 item contracts. This protects milestone Theme Pass art drops after approval.
+
+## TON DNS domain item contract
+
+The `dns` directory contains the FunC sources for a DNS domain smart contract
+that implements the standard NFT item interface (TIP-4). The implementation is
+based on the official TON DNS contracts and exposes the same auction
+functionality, governance hooks, and DNS record management helpers.
+
+To compile the contract, invoke `func` with the provided standard library and
+supporting modules:
+
+```
+func -o build/domain-item.fif \
+  dns/stdlib.fc dns/op-codes.fc dns/params.fc dns/dns-utils.fc dns/nft-item.fc
+```
+
+The resulting Fift assembly can then be assembled and deployed using the TON
+toolchain. Refer to `dns-utils.fc` for auction timings, DNS pricing logic, and
+configuration constants such as `dns_config_id`.
