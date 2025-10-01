@@ -89,11 +89,11 @@ MALDIVIAN_PERSONA = {
 }
 ```
 
-## 8. English Quantum Cheat Engine
+## 8. English Dynamic Quantum Engine
 
-> A rapid-reference layer that mirrors the Dhivehi notes while remaining ready for global collaborators, interns, or visiting researchers.
+> A rapid-reference layer that mirrors the Dhivehi notes while staying ready for global collaborators, interns, or visiting researchers. The focus below is on keeping the *dynamic* quantum engine tuned, observable, and deployable.
 
-### Quick Lookup Grid
+### 8.1 Quick Lookup Grid
 
 | Topic | Core Idea | Mnemonic |
 |-------|-----------|----------|
@@ -103,13 +103,31 @@ MALDIVIAN_PERSONA = {
 | Entanglement | CNOT entangles a control and target qubit, correlating outcomes. | “One switch tunes another.” |
 | Phase Gates | `S` and `T` rotate phase without changing measured probabilities. | “Phase shifts hide in angles.” |
 
-### Ready-Made Prompts
+### 8.2 Dynamic Engine Optimization Loop
 
-- **Explain to a junior engineer**: “Summarize the Maldivian Quantum cheat sheet in three sentences, focus on how qubit basics, gates, and measurement interrelate.”
+1. **Profile** – Capture execution depth, gate counts, and transpiler metrics (depth, 2-qubit error) for each circuit build.
+2. **Stabilize** – Apply noise-aware transpilation (level 2+) and insert dynamical decoupling where idle windows exceed coherence limits.
+3. **Balance** – Swap-qubit mapping to minimize CNOT distance; prefer hardware-native basis gates to reduce synthesis overhead.
+4. **Validate** – Run process tomography or randomized benchmarking on updated subroutines to ensure fidelity > 0.98 before release.
+5. **Deploy** – Promote optimized circuits into the Maldivian mentorship bot or AGI Oracle with paired Dhivehi/English annotations.
+
+### 8.3 Rapid Diagnostic Checklist
+
+| Signal | Healthy Range | Investigate When |
+|--------|---------------|------------------|
+| Depth / Coherence Ratio | `< 0.6` | Ratio climbs above `0.8` → trim ancillae or parallelize gates. |
+| Two-Qubit Error Rate | `< 2.5%` | Error spikes → remap qubits, enable echo sequences. |
+| Shot Variance | `< 5%` across batches | Drift → recalibrate measurement or increase shots. |
+| Classical Latency | `< 120 ms` | Latency > 200 ms → cache compiled circuits, prefetch results. |
+
+### 8.4 Ready-Made Prompts
+
+- **Explain to a junior engineer**: “Summarize the Maldivian Quantum cheat sheet in three sentences, focusing on how qubit basics, gates, and measurement interrelate.”
 - **Debug assistance**: “Given a two-qubit circuit with H on qubit 0 and CX(0,1), describe the expected entanglement signature and probability distribution.”
+- **Optimization retro**: “List the top three gate-depth reductions achieved after remapping to the new topology and flag any trade-offs in fidelity.”
 - **Visualization request**: “Render ASCII circuit art for a Bell pair and note which gates introduce phase versus amplitude changes.”
 
-### Dual-Language Embedding Tip
+### 8.5 Dual-Language Embedding Tip
 
 When embedding into an AGI Oracle or mentorship bot, pair each Dhivehi block with its English summary:
 
@@ -121,7 +139,7 @@ When embedding into an AGI Oracle or mentorship bot, pair each Dhivehi block wit
 }
 ```
 
-This “cheat engine” format keeps the Maldivian identity up front while delivering globally accessible context for rapid cross-team alignment.
+This “dynamic quantum engine” format keeps the Maldivian identity up front while delivering globally accessible context for rapid cross-team alignment and performance tuning.
 
 ---
 
