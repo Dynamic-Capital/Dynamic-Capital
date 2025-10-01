@@ -49,7 +49,13 @@ keep the TON surfaces aligned with the broader platform roadmap.
 3. **Document resolver deployments** by updating
    [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) with the live
    contract address (`EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo` as of
-   this commit) and linking the Ton Verifier receipt for auditors.
+   this commit) and linking the Ton Verifier receipt for auditors. Mirror the
+   domain NFT metadata (collection
+   `EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz`, owner
+   `UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G`, and Tonviewer image hash)
+   so operations can reconcile blockchain explorers with the repo state, and
+   capture the upstream collection metadata snapshot
+   (`https://dns.ton.org/collection.json`) for provenance.
 4. **Verify propagation** using `toncli dns resolve <domain>` before promoting
    front-end links or Mini App deep links.
 5. **Renew before expiry**; add an Ops reminder alongside the `PHASE_06_OPS.md`
@@ -97,6 +103,10 @@ keep the TON surfaces aligned with the broader platform roadmap.
 - After upload, call the health-check endpoint in the Mini App
   ([`link-wallet`](../dynamic-capital-ton/supabase/functions/link-wallet/index.ts))
   to ensure Supabase connectivity from the TON-hosted site.
+- Generate or rotate the TON Site certificate by running
+  `npm run ton:generate-adnl`; record the resulting ADNL address under
+  [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) → `ton_site`
+  and archive the private key in the operations vault before publishing.
 
 ### Application integration
 

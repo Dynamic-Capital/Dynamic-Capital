@@ -2,6 +2,32 @@
   "domain": "dynamiccapital.ton",
   "type": "TON_DNS",
   "resolver_contract": "EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo",
+  "nft": {
+    "address": "EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo",
+    "collectionAddress": "EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz",
+    "ownerAddress": "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
+    "image": "https://dns-image.mytonwallet.org/img?d=dynamiccapital",
+    "name": "dynamiccapital.ton",
+    "description": null,
+    "index": "80873690796054040234093249941684590733974627304617667952956467058382753434080",
+    "attributes": [],
+    "metadataUrl": null,
+    "collectionMetadata": {
+      "name": "TON DNS Domains",
+      "description": "*.ton domains",
+      "image": "https://dns.ton.org/icon.png",
+      "source": "https://dns.ton.org/collection.json"
+    }
+  },
+  "ton_site": {
+    "adnl_address": "0:192631d3bc9dd251d3b6d5cd4e807c68e53e1b6126499d8c5db3e7bb4ccc9243",
+    "public_key_base64": "0PiJ9VlwxSxHP7XyEV5sKzgj9jkgWOH8bCWdSPM5LGc=",
+    "generated": {
+      "command": "npm run ton:generate-adnl",
+      "timestamp": "2025-10-01T10:03:05Z",
+      "note": "ADNL derived from Ed25519 key pair for TON Site certificate provisioning"
+    }
+  },
   "records": [
     {
       "type": "A",
@@ -37,6 +63,7 @@
     "Records must be set through TON DNS resolver contract",
     "Register domain at TON DNS marketplace (e.g., dns.ton.org)",
     "Update resolver_contract address after deployment",
+    "TON Site ADNL 0:192631d3bc9dd251d3b6d5cd4e807c68e53e1b6126499d8c5db3e7bb4ccc9243 (see ton_site.public_key_base64)",
     "Verify resolution through TON DNS tools before going live"
   ]
 }

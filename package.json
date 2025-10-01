@@ -69,7 +69,8 @@
     "supabase:functions:deploy": "supabase functions deploy --project-ref $SUPABASE_PROJECT_REF --password $SUPABASE_DB_PASSWORD",
     "screenshot:install": "npx playwright install --with-deps",
     "screenshot:preview": "npx playwright show-report",
-    "tunnel:functions": "node scripts/ngrok-http.mjs"
+    "tunnel:functions": "node scripts/ngrok-http.mjs",
+    "ton:generate-adnl": "tsx tools/ton/generate-adnl.ts"
   },
   "devDependencies": {
     "chokidar-cli": "^3.0.0",
