@@ -32,6 +32,11 @@ keep the TON surfaces aligned with the broader platform roadmap.
 - **Access to a TON wallet** with deployment permissions for the DNS resolver
   and storage uploads (multisig recommended per
   [`config.yaml`](../dynamic-capital-ton/config.yaml)).
+- **Pinned lite servers** — reference the curated endpoints in the
+  [`config.yaml`](../dynamic-capital-ton/config.yaml) `network.liteservers` list
+  (`31.57.199.1:5053` and `163.5.62.1:5053`, shared `publicKeyBase64`
+  `Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=`) when configuring tonlib
+  clients or fall back to TON Access for redundancy.
 
 > **Tip:** Run `npm run format` before committing documentation updates so the
 > repo-wide formatter normalizes Markdown tables.
