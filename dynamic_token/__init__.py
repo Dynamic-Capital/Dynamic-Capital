@@ -6,7 +6,8 @@ from .engine import (
     DynamicCapitalTokenEngine,
     committee_signals_from_optimisation,
 )
-from .nft import DynamicNFTMinter, MintedDynamicNFT
+from .image import GeneratedNFTImage, NanoBananaClient
+from .nft import DynamicNFTMinter, MintedDynamicNFT, NFTImageGenerator
 from .treasury import DynamicTreasuryAlgo
 
 __all__ = [
@@ -16,5 +17,8 @@ __all__ = [
     "DynamicTreasuryAlgo",
     "DynamicNFTMinter",
     "MintedDynamicNFT",
+    "GeneratedNFTImage",
+    "NFTImageGenerator",
+    "NanoBananaClient",
     "committee_signals_from_optimisation",
 ]

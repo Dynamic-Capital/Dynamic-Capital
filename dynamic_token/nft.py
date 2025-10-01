@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Mapping, MutableMapping, Sequence
+from typing import Any, Mapping, MutableMapping, Protocol, Sequence
 
 try:  # pragma: no cover - exercised indirectly when dependency is available
     from dynamic_algo.dynamic_metadata import (  # type: ignore
@@ -12,6 +12,20 @@ try:  # pragma: no cover - exercised indirectly when dependency is available
     )
 except Exception:  # pragma: no cover - fallback path for isolated test runs
     _DynamicMetadataAlgo = None
+
+from .image import GeneratedNFTImage
+
+
+class NFTImageGenerator(Protocol):
+    """Protocol for image generators used by :class:`DynamicNFTMinter`."""
+
+    def generate(
+        self,
+        prompt: str,
+        *,
+        context: Mapping[str, Any] | None = None,
+    ) -> GeneratedNFTImage:
+        ...
 
 
 def _coerce_timestamp(value: datetime | str | None) -> datetime:
@@ -111,7 +125,7 @@ DynamicMetadataAlgo = (
     _DynamicMetadataAlgo if _DynamicMetadataAlgo is not None else _FallbackDynamicMetadataAlgo
 )
 
-__all__ = ["MintedDynamicNFT", "DynamicNFTMinter"]
+__all__ = ["MintedDynamicNFT", "DynamicNFTMinter", "NFTImageGenerator"]
 
 
 @dataclass(slots=True)
@@ -138,14 +152,84 @@ class MintedDynamicNFT:
 class DynamicNFTMinter:
     """Produce metadata-backed NFTs that evolve with market telemetry."""
 
-    def __init__(self, symbol: str, *, metadata_algo: DynamicMetadataAlgo | None = None) -> None:
+    def __init__(
+        self,
+        symbol: str,
+        *,
+        metadata_algo: DynamicMetadataAlgo | None = None,
+        image_generator: NFTImageGenerator | None = None,
+    ) -> None:
         if not isinstance(symbol, str) or not symbol.strip():
             raise ValueError("symbol must be a non-empty string")
 
         self.symbol = symbol.upper()
         self._metadata_algo = metadata_algo or DynamicMetadataAlgo()
+        self._image_generator = image_generator
         self._next_token_id = 1
         self._tokens: dict[int, MintedDynamicNFT] = {}
+
+    def _build_image_context(
+        self,
+        *,
+        analysis: Mapping[str, Any] | None,
+        flow: Mapping[str, Any] | None,
+        pool: Mapping[str, Any] | None,
+        risk: Mapping[str, Any] | None,
+        tags: Sequence[str] | None,
+        extra: Mapping[str, Any] | None,
+        timestamp: Any,
+        overrides: Mapping[str, Any] | None,
+    ) -> MutableMapping[str, Any]:
+        context: MutableMapping[str, Any] = {"symbol": self.symbol}
+        if timestamp is not None:
+            context["timestamp"] = timestamp
+
+        if analysis:
+            context["analysis"] = dict(analysis)
+        if flow:
+            context["flow"] = dict(flow)
+        if pool:
+            context["pool"] = dict(pool)
+        if risk:
+            context["risk"] = dict(risk)
+        if tags:
+            context["tags"] = list(tags)
+        if extra:
+            context["extra"] = dict(extra)
+
+        if overrides:
+            for key, value in overrides.items():
+                context[key] = value
+
+        return context
+
+    def _maybe_attach_image(
+        self,
+        metadata: MutableMapping[str, Any],
+        *,
+        prompt: str | None,
+        context: Mapping[str, Any] | None,
+    ) -> None:
+        if self._image_generator is None or prompt is None:
+            return
+        prompt_value = prompt.strip() if isinstance(prompt, str) else ""
+        if not prompt_value:
+            return
+
+        try:
+            generated = self._image_generator.generate(prompt_value, context=context)
+        except Exception:  # pragma: no cover - defensive safety net around integrations
+            return
+
+        metadata["image"] = generated.url
+        properties = metadata.get("properties")
+        if not isinstance(properties, MutableMapping):
+            properties = {}
+            metadata["properties"] = properties
+
+        image_payload = generated.as_metadata()
+        image_payload.setdefault("provider", "Nano Banana AI")
+        properties["image"] = image_payload
 
     def mint(
         self,
@@ -158,6 +242,8 @@ class DynamicNFTMinter:
         tags: Sequence[str] | None = None,
         extra: Mapping[str, Any] | None = None,
         timestamp: datetime | str | None = None,
+        image_prompt: str | None = None,
+        image_context: Mapping[str, Any] | None = None,
     ) -> MintedDynamicNFT:
         """Mint a new NFT with metadata snapshot of the current context."""
 
@@ -177,6 +263,24 @@ class DynamicNFTMinter:
             tags=tags,
             extra=extra,
             timestamp=timestamp or minted_at,
+        )
+
+        media_context = None
+        if self._image_generator is not None:
+            media_context = self._build_image_context(
+                analysis=analysis,
+                flow=flow,
+                pool=pool,
+                risk=risk,
+                tags=tags,
+                extra=extra,
+                timestamp=metadata.get("timestamp"),
+                overrides=image_context,
+            )
+        self._maybe_attach_image(
+            metadata,
+            prompt=image_prompt,
+            context=media_context,
         )
 
         nft = MintedDynamicNFT(
@@ -199,6 +303,8 @@ class DynamicNFTMinter:
         tags: Sequence[str] | None = None,
         extra: Mapping[str, Any] | None = None,
         timestamp: datetime | str | None = None,
+        image_prompt: str | None = None,
+        image_context: Mapping[str, Any] | None = None,
     ) -> MutableMapping[str, Any]:
         """Regenerate metadata for an existing NFT using fresh telemetry."""
 
@@ -215,6 +321,23 @@ class DynamicNFTMinter:
             tags=tags,
             extra=extra,
             timestamp=timestamp,
+        )
+        media_context = None
+        if self._image_generator is not None:
+            media_context = self._build_image_context(
+                analysis=analysis,
+                flow=flow,
+                pool=pool,
+                risk=risk,
+                tags=tags,
+                extra=extra,
+                timestamp=metadata.get("timestamp"),
+                overrides=image_context,
+            )
+        self._maybe_attach_image(
+            metadata,
+            prompt=image_prompt,
+            context=media_context,
         )
         nft.metadata = metadata
         return metadata
