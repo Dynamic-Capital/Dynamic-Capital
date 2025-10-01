@@ -1,4 +1,14 @@
-# Dynamic Capital — Telegram Bot & Mini App
+# Dynamic Capital Ecosystem Platform
+
+<div align="center">
+
+  <strong>Institutional-grade intelligence, trading, and automation for digital asset growth.</strong>
+
+  <sub>Dynamic Capital unifies Web3 infrastructure, machine intelligence, and precise execution tooling into an adaptive platform that scales with market velocity.</sub>
+
+</div>
+
+---
 
 <!-- BADGES:START -->
 <!-- BADGES:END -->
@@ -9,7 +19,20 @@
 
 <!-- TOC:START -->
 
-- [Overview](#overview)
+- [Executive Overview](#executive-overview)
+  - [Vision](#vision)
+  - [Strategic Focus](#strategic-focus)
+- [Investor Snapshot](#investor-snapshot)
+  - [Value Drivers](#value-drivers)
+  - [Traction Signals](#traction-signals)
+- [Beginner's Guide](#beginners-guide)
+  - [First Steps](#first-steps)
+  - [Learning Resources](#learning-resources)
+- [Ecosystem Pillars](#ecosystem-pillars)
+  - [Dynamic Capital Modules](#dynamic-capital-modules)
+- [Interface Layout](#interface-layout)
+  - [Header](#header)
+  - [Footer](#footer)
 - [What's New](#whats-new)
 - [Quick Links](#quick-links)
   - [Saved GitHub queries](#saved-github-queries)
@@ -80,25 +103,128 @@
   - [Dynamic Hedge Model](#dynamic-hedge-model)
 - [GitHub Integration](#github-integration)
 - [Hybrid Development Workflow](#hybrid-development-workflow)
+- [References](#references)
 - [License / contributions](#license--contributions)
 - [Notes](#notes)
 
 <!-- TOC:END -->
 
-## Overview
+## Executive Overview
 
-Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
-OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development
-experience.
+### Vision
 
-A single Next.js application powers both the marketing landing page and the
-authenticated dashboard. The build pipeline captures the homepage into the
-repository-level `_static/` directory so it can be served via CDN without
-touching runtime secrets, while the live `/app` routes continue to handle
-Supabase access, authentication, and other server-side features.
+Dynamic Capital brings institutional discipline to the digital asset market by
+combining compliant onboarding, intelligent automation, and transparent risk
+controls. The platform empowers investors to deploy capital confidently while
+engineering teams continue to evolve the product with the full Dynamic Codex
+toolchain.
 
-The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
-backed by Supabase.
+### Strategic Focus
+
+- Deliver regulated-friendly deposit and withdrawal workflows that work across
+  traditional banking and on-chain rails.
+- Augment trading desks with explainable AI copilot experiences that keep
+  humans in the loop.
+- Provide a modular foundation—spanning infrastructure, analytics, and
+  operations—that scales from pilot programs to multi-entity portfolios.
+
+## Investor Snapshot
+
+### Value Drivers
+
+- **Unified surface area:** A single Next.js codebase powers the Telegram bot,
+  web dashboard, and landing experience for consistent messaging and faster
+  iteration.
+- **Governance-ready architecture:** Supabase-backed data services, auditable
+  automations, and configurable guardrails support treasury oversight and
+  compliance reviews.
+- **AI-enhanced execution:** Integrated research, signal generation, and
+  hedging logic compress decision cycles for discretionary and systematic
+  strategies alike.
+
+### Traction Signals
+
+- Production-ready Telegram Mini App deployed on DigitalOcean with Supabase for
+  authentication, storage, and secure edge functions.
+- Automated build pipeline that snapshots the marketing site into `_static/`
+  for CDN delivery without exposing secrets.
+- Continuous discovery via Dynamic Codex workflows that shorten prototyping
+  loops for new trading logic, models, and user journeys.
+
+## Beginner's Guide
+
+### First Steps
+
+1. **Explore the platform story:** Start with the [Executive Overview](#executive-overview)
+   to understand the strategy and scope.
+2. **Review capabilities:** Dive into [Platform Capabilities](#platform-capabilities)
+   for a breakdown of product surfaces, integrations, and AI features.
+3. **Follow the workflows:** Use the [Development Workflow](#development-workflow)
+   and [Build & Deployment](#build--deployment) sections to see how teams ship
+   updates safely.
+
+### Learning Resources
+
+- **Quick reference:** The [Quick Links](#quick-links) section collects saved
+  GitHub searches and CLI snippets for deeper due diligence.
+- **Technical deep dives:** Explore [Architecture & Docs](#architecture--docs)
+  and [Security Features](#security-features) for implementation specifics.
+- **Operational readiness:** Consult [Testing & Validation](#testing--validation)
+  and [Operational Routines](#operational-routines) to understand monitoring
+  and maintenance practices.
+
+## Ecosystem Pillars
+
+### Dynamic Capital Modules
+
+| No. | Module | Focus |
+| --- | --- | --- |
+| 1 | **DYNAMIC CAPITAL WEB3** | Bridges custody, settlement, and network access across leading blockchains. |
+| 2 | **DYNAMIC CAPITAL TOKEN** | Structures treasury incentives, access tiers, and on-chain governance hooks. |
+| 3 | **DYNAMIC AGS** | Coordinates governance services to align stakeholders and automate policy enforcement. |
+| 4 | **DYNAMIC AGI** | Drives the self-improving intelligence loop that continuously retrains and redeploys AI agents. |
+| 5 | **DYNAMIC AI** | Bundles research assistants, copilots, and analytics dashboards for decision support. |
+| 6 | **DYNAMIC TRADING LOGIC** | Captures risk rules, execution parameters, and guardrails for discretionary traders. |
+| 7 | **DYNAMIC TRADING ALGO** | Automates systematic strategies with parameterized bots and adaptive hedging. |
+| 8 | **DYNAMIC ENGINES** | Powers low-latency execution services, routing, and connectivity with market venues. |
+| 9 | **DYNAMIC TOOLS** | Provides developer and operator utilities, from observability to workflow orchestration. |
+| 10 | **DYNAMIC MODELS** | Houses predictive, quantitative, and sentiment models that feed trading decisions. |
+| 11 | **DYNAMIC** | Represents the shared brand system and experience layer that unites every module. |
+
+These modules operate together to deliver a cohesive ecosystem—from the
+on-chain Web3 foundation and token mechanics to intelligence systems, trading
+automation, and supporting tooling.
+
+## Interface Layout
+
+The Dynamic Capital experience prioritizes clarity, trust, and real-time signal
+delivery for traders and operators. The following guidelines ensure the UI
+reinforces brand identity while surfacing critical actions.
+
+### Header
+
+- **Identity first:** Persist the Dynamic Capital logotype and gradient motif to
+  anchor the ecosystem branding across the Telegram Mini App and web surfaces.
+- **Status-aware controls:** Surface live portfolio health, treasury runway, or
+  trading session state with concise iconography and color semantics that follow
+  accessibility contrast ratios.
+- **Action shortcuts:** Pin universal actions—"Deposit", "Launch AI Copilot",
+  and "Review Signals"—so power users can switch contexts without losing
+  situational awareness.
+- **Telemetry hooks:** Emit lightweight analytics events (`header:view` and
+  `header:cta_click`) to keep observability consistent across clients.
+
+### Footer
+
+- **Contextual navigation:** Group navigation targets by workflow pillars (AI,
+  Trading, Treasury, Operations) and keep tap targets within 48px minimum height
+  for touch ergonomics.
+- **Regulatory confidence:** Reserve a footer band for compliance badges,
+  jurisdiction disclosures, and updated audit timestamps to reinforce trust.
+- **Realtime alerts:** Integrate a non-intrusive toast rail or ticker that can
+  surface hedging directives, market volatility flags, or AI audit summaries.
+- **Support loop:** Provide a persistent "Need Help?" affordance that routes to
+  the Dynamic Support desk or kicks off an in-bot troubleshooting flow.
 
 ## What's New
 
@@ -211,6 +337,19 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 - **Live DEX references**: monitor liquidity and pricing on
   [STON.fi](https://app.ston.fi) and [DeDust](https://dedust.io) pairs, with
   hedging hooks synced to the Supabase ledger service.
+
+### TON Sites Optimisation
+
+- **dynamic_ton.sites** introduces telemetry-aware optimisation plans for TON
+  Sites. Feed latency, availability, TLS, and storage ratios into
+  `TonSiteOptimizer` to receive prioritised actions, risk focus areas, and
+  remediation metadata for each domain.
+- **Portfolio rollups** via `evaluate_portfolio` aggregate scores and
+  high-priority blockers across domains so investor updates can reference a
+  single health snapshot before capital deployment.
+- **Regression coverage** lives in
+  `tests/test_dynamic_ton_sites.py`, ensuring remediation guidance stays
+  deterministic as we tune hosting guardrails.
 
 ### Architecture & Docs
 
@@ -1099,6 +1238,19 @@ with Dynamic and local tooling, see
 [docs/HYBRID_DEVELOPMENT_WORKFLOW.md](docs/HYBRID_DEVELOPMENT_WORKFLOW.md). It
 covers prototyping in Dynamic, exporting via the Codex CLI, local testing, and
 syncing changes through GitHub to maintain a seamless deployment pipeline.
+
+## References
+
+| Focus Area                | Resource                                                                 | Description |
+| ------------------------- | ------------------------------------------------------------------------- | ----------- |
+| Ecosystem architecture    | [dynamic_ecosystem/](dynamic_ecosystem/)                                  | High-level specs and models for the interconnected Dynamic platform pillars. |
+| Trading intelligence      | [dynamic_algo/](dynamic_algo/)                                            | Core automation routines orchestrating trading signals and hedging logic. |
+| AI research               | [dynamic_ai/](dynamic_ai/)                                                | Machine intelligence experiments, copilots, and model governance assets. |
+| Token & treasury          | [dynamic_token/](dynamic_token/)                                          | Tokenomics artifacts plus treasury operations playbooks. |
+| Operational guardrails    | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)                                  | Deployment, environment, and rollback procedures for production stability. |
+| Security & compliance     | [SECURITY.md](SECURITY.md)                                                | Security postures, reporting channels, and ongoing compliance commitments. |
+| Developer productivity    | [docs/codex_cli_workflow.md](docs/codex_cli_workflow.md)                  | Codex workflows, templates, and tooling for rapid iteration. |
+| Data & analytics pipelines| [data/](data/)                                                            | Datasets, ingestion scripts, and analytics-ready exports. |
 
 ## License / contributions
 
