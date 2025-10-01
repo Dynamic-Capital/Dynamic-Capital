@@ -8,6 +8,7 @@ import {
   Heading,
   Line,
   Row,
+  SegmentedControl,
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
@@ -31,8 +32,69 @@ interface ProvidersResponse {
   providers: ProviderSummary[];
 }
 
-const DEFAULT_SYSTEM_PROMPT =
-  "You are the Dynamic Capital orchestration lead. Compare provider responses, surface latency or token insights, and call out when the Dynamic AGI engine can extend the analysis.";
+interface LanguageOption {
+  value: "english" | "dhivehi";
+  label: string;
+  helper: string;
+  prompt: string;
+  placeholder: string;
+  tagLabel: string;
+  lang: string;
+}
+
+function composeSystemPrompt(base: string, languagePrompt: string): string {
+  const baseTrimmed = base.trim();
+  const languageTrimmed = languagePrompt.trim();
+  if (!baseTrimmed) return languageTrimmed;
+  if (!languageTrimmed) return baseTrimmed;
+  return `${baseTrimmed}\n\n${languageTrimmed}`;
+}
+
+const DHIVEHI_CHAR_PATTERN = /[\u0780-\u07BF]/;
+
+function inferMessageLanguage(content: string, fallback: string): string {
+  if (DHIVEHI_CHAR_PATTERN.test(content)) {
+    return "dv";
+  }
+  if (/[A-Za-z]/.test(content)) {
+    return "en";
+  }
+  return fallback;
+}
+
+const BASE_SYSTEM_PROMPT =
+  "You are the Dynamic Capital orchestration lead. Compare provider responses, surface latency or token insights, and highlight when Dynamic AGI orchestration or specialist agents should extend the analysis. Keep reasoning auditable for risk, automation triggers, and compliance checkpoints.";
+
+const LANGUAGE_OPTIONS: LanguageOption[] = [
+  {
+    value: "english",
+    label: "English",
+    helper:
+      "Default orchestration voice with automation-ready, English analysis.",
+    prompt:
+      "Communicate in English with concise rationales. Summarise provider divergence, latency considerations, and automation hooks in bullet-ready form.",
+    placeholder:
+      "Ask about routing policies, compare providers, or request Dhivehi hand-offs.",
+    tagLabel: "English · Control",
+    lang: "en",
+  },
+  {
+    value: "dhivehi",
+    label: "Dhivehi",
+    helper:
+      "Dynamic AGI localises replies with Dhivehi (Thaana) phrasing plus English checkpoints for compliance.",
+    prompt:
+      'Respond primarily in Dhivehi (Thaana script). Translate user intent from English when necessary. Use Dhivehi financial terminology from the Dynamic Capital glossary, format monetary values for Maldivian Rufiyaa where relevant, and add a concise English checkpoint prefixed with "EN:" when guidance includes figures or compliance steps.',
+    placeholder: "ސްޓްރެޓޭޖީ އިތުރަށް ސަބަބުން އަދި ފަންވަތް އިސްމޮންސް ބަލާލެއްވުން؟",
+    tagLabel: "Dhivehi · Thaana",
+    lang: "dv",
+  },
+];
+
+const DEFAULT_SYSTEM_PROMPT = composeSystemPrompt(
+  BASE_SYSTEM_PROMPT,
+  LANGUAGE_OPTIONS[0].prompt,
+);
 
 export function DynamicChat() {
   const [providers, setProviders] = useState<ProviderSummary[]>([]);
@@ -41,11 +103,23 @@ export function DynamicChat() {
   );
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(512);
+  const [language, setLanguage] = useState<LanguageOption["value"]>(
+    LANGUAGE_OPTIONS[0].value,
+  );
 
   const selectedProvider = useMemo(() => {
     return providers.find((provider) => provider.id === selectedProviderId) ??
       null;
   }, [providers, selectedProviderId]);
+
+  const languageOption = useMemo(() => {
+    return LANGUAGE_OPTIONS.find((option) => option.value === language) ??
+      LANGUAGE_OPTIONS[0];
+  }, [language]);
+
+  const composedSystemPrompt = useMemo(() => {
+    return composeSystemPrompt(BASE_SYSTEM_PROMPT, languageOption.prompt);
+  }, [languageOption]);
 
   useEffect(() => {
     if (!selectedProvider) return;
@@ -56,6 +130,7 @@ export function DynamicChat() {
 
   const executeChatWithProvider = useCallback(async ({
     messages: pendingMessages,
+    signal,
   }: DynamicChatEngineExecuteInput) => {
     if (!selectedProvider) {
       throw new Error("Select a provider before sending a message.");
@@ -73,6 +148,7 @@ export function DynamicChat() {
         temperature,
         maxTokens,
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -97,10 +173,16 @@ export function DynamicChat() {
     setError,
     resetConversation,
     sendMessage,
+    updateSystemPrompt,
   } = useDynamicChatEngine({
     initialSystemPrompt: DEFAULT_SYSTEM_PROMPT,
     executor: executeChatWithProvider,
+    conversationWindowSize: 16,
   });
+
+  useEffect(() => {
+    updateSystemPrompt(composedSystemPrompt);
+  }, [composedSystemPrompt, updateSystemPrompt]);
 
   useEffect(() => {
     let cancelled = false;
@@ -182,6 +264,9 @@ export function DynamicChat() {
   const providerSelectionLabel = selectedProvider
     ? `${selectedProvider.name} selected`
     : "Select a provider";
+  const promptPlaceholder = languageOption.placeholder;
+  const conversationLanguageTag = languageOption.tagLabel;
+  const isDynamicAgiActive = selectedProvider?.id === "dynamic-agi";
 
   return (
     <Column gap="24" fillWidth>
@@ -337,6 +422,33 @@ export function DynamicChat() {
             </Text>
           </Column>
 
+          <Column gap="12" className="relative z-[1]">
+            <Text
+              as="span"
+              variant="label-default-s"
+              className="uppercase tracking-[0.2em] text-xs text-muted-foreground"
+            >
+              Language
+            </Text>
+            <SegmentedControl
+              buttons={LANGUAGE_OPTIONS.map((option) => ({
+                label: option.label,
+                value: option.value,
+              }))}
+              selected={language}
+              onToggle={(value) =>
+                setLanguage(value as LanguageOption["value"])}
+              aria-label="Select conversation language"
+            />
+            <Text
+              as="span"
+              variant="body-default-xs"
+              onBackground="neutral-weak"
+            >
+              {languageOption.helper}
+            </Text>
+          </Column>
+
           <Column gap="16" className="relative z-[1]">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-3">
@@ -455,16 +567,36 @@ export function DynamicChat() {
                   configured on the left.
                 </Text>
               </Column>
-              {selectedProvider && (
+              <Row gap="8" wrap vertical="center">
+                {selectedProvider && (
+                  <Tag
+                    size="m"
+                    background="brand-alpha-weak"
+                    border="brand-alpha-medium"
+                    onBackground="brand-strong"
+                  >
+                    Active · {selectedProvider.name}
+                  </Tag>
+                )}
                 <Tag
                   size="m"
-                  background="brand-alpha-weak"
-                  border="brand-alpha-medium"
-                  onBackground="brand-strong"
+                  background="neutral-alpha-weak"
+                  border="neutral-alpha-medium"
+                  onBackground="neutral-strong"
                 >
-                  Active · {selectedProvider.name}
+                  Language · {conversationLanguageTag}
                 </Tag>
-              )}
+                {isDynamicAgiActive && (
+                  <Tag
+                    size="m"
+                    background="accent-alpha-weak"
+                    border="accent-alpha-medium"
+                    onBackground="accent-strong"
+                  >
+                    Dynamic AGI optimised
+                  </Tag>
+                )}
+              </Row>
             </Row>
           </Column>
 
@@ -497,6 +629,10 @@ export function DynamicChat() {
                     : message.role === "system"
                     ? "System"
                     : "You";
+                  const messageLang = inferMessageLanguage(
+                    message.content,
+                    languageOption.lang,
+                  );
 
                   return (
                     <div
@@ -538,6 +674,8 @@ export function DynamicChat() {
                           variant="body-default-s"
                           onBackground="neutral-strong"
                           className="whitespace-pre-wrap leading-relaxed"
+                          dir="auto"
+                          lang={messageLang}
                         >
                           {message.content}
                         </Text>
@@ -579,9 +717,11 @@ export function DynamicChat() {
               id="chat-input"
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Ask about routing policies, compare providers, or request a structured summary."
+              placeholder={promptPlaceholder}
               rows={4}
               className="min-h-[140px] rounded-2xl border border-white/10 bg-background/75 px-4 py-3 text-sm leading-relaxed text-foreground shadow-inner focus-visible:ring-2 focus-visible:ring-dc-brand/60"
+              dir="auto"
+              lang={languageOption.lang}
             />
             <Row gap="12" horizontal="end" wrap>
               <Button
