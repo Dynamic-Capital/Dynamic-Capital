@@ -18,7 +18,7 @@ function parseIndex(value: string | null): number | null {
   return parsed;
 }
 
-export async function GET(req: Request) {
+export function GET(req: Request) {
   const url = new URL(req.url);
   const indexParam = parseIndex(url.searchParams.get("index"));
   const now = new Date();

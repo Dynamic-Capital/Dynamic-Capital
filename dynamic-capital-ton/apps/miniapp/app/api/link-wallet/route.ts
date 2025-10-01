@@ -1,3 +1,5 @@
+import process from "node:process";
+
 export async function POST(req: Request) {
   const supabaseFnUrl = process.env.SUPABASE_FN_URL;
 

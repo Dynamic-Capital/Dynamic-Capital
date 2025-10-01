@@ -1,3 +1,5 @@
+import process from "node:process";
+
 export async function GET() {
   const supabaseFnUrl = process.env.SUPABASE_FN_URL;
   const supabaseAnonKey = process.env.SUPABASE_ANON_KEY ??

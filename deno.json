@@ -86,7 +86,17 @@
   },
   "fmt": {
     "include": ["apps", "supabase", "scripts", "db", "docs"],
-    "exclude": ["supabase/functions/miniapp/static"]
+    "exclude": [
+      "supabase/functions/miniapp/static",
+      "supabase/functions/telegram-bot/vendor"
+    ]
+  },
+  "lint": {
+    "include": ["apps", "supabase", "scripts", "db", "docs"],
+    "exclude": [
+      "supabase/functions/miniapp/static",
+      "supabase/functions/telegram-bot/vendor"
+    ]
   },
   "importMap": "./supabase/functions/telegram-bot/vendor/import_map.json",
   "test": {
