@@ -8,10 +8,22 @@ from .engine import (
     QuantumPulse,
     QuantumResonanceFrame,
 )
+from .protocol import (
+    BASIS_ORDER,
+    DEFAULT_OPERATORS,
+    QuantumOperator,
+    QuantumStrategicState,
+    resonance_score,
+)
 
 __all__ = [
     "DynamicQuantumEngine",
     "QuantumEnvironment",
     "QuantumPulse",
     "QuantumResonanceFrame",
+    "BASIS_ORDER",
+    "DEFAULT_OPERATORS",
+    "QuantumOperator",
+    "QuantumStrategicState",
+    "resonance_score",
 ]
