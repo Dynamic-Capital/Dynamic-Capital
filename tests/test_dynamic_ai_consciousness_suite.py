@@ -1,6 +1,6 @@
 import pytest
 
-from dynamic_ai import (
+from dynamic.intelligence.ai_apps import (
     AwarenessContexts,
     AwarenessDiagnostics,
     DynamicConsciousnessSuite,
@@ -8,7 +8,7 @@ from dynamic_ai import (
 from dynamic_consciousness import ConsciousnessContext, DynamicConsciousness
 from dynamic_self_awareness import AwarenessContext, DynamicSelfAwareness
 from dynamic_ultimate_reality import NonDualContext, DynamicUltimateReality
-from dynamic_engines import DynamicConsciousnessSuite as EnginesSuite
+from dynamic.platform.engines import DynamicConsciousnessSuite as EnginesSuite
 from dynamic_tool_kits import (
     AwarenessContexts as ToolkitAwarenessContexts,
     AwarenessDiagnostics as ToolkitAwarenessDiagnostics,

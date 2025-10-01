@@ -2,7 +2,7 @@
 
 import pytest
 
-from dynamic_ai.risk import (
+from dynamic.intelligence.ai_apps.risk import (
     PositionSizing,
     RiskContext,
     RiskManager,

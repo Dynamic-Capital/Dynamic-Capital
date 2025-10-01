@@ -69,8 +69,8 @@ const TASK_LIBRARY = {
   "dynamic-ai-tests": {
     id: "dynamic-ai-tests",
     label:
-      "Run Dynamic AI persona and fusion tests (pytest tests/dynamic_ai tests_python/test_dynamic_ai_phase3.py)",
-    command: "pytest tests/dynamic_ai tests_python/test_dynamic_ai_phase3.py",
+      "Run Dynamic AI persona and fusion tests (pytest tests/intelligence/ai_apps tests_python/test_dynamic_ai_phase3.py)",
+    command: "pytest tests/intelligence/ai_apps tests_python/test_dynamic_ai_phase3.py",
     optional: false,
     docs: [
       "docs/dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-ai-dai",
@@ -82,8 +82,9 @@ const TASK_LIBRARY = {
   },
   "dynamic-agi-tests": {
     id: "dynamic-agi-tests",
-    label: "Run Dynamic AGI oversight tests (pytest tests/dynamic_agi)",
-    command: "pytest tests/dynamic_agi",
+    label:
+      "Run Dynamic AGI oversight tests (pytest tests/intelligence/agi)",
+    command: "pytest tests/intelligence/agi",
     optional: false,
     docs: [
       "docs/dai-dagi-dct-dtl-dta-checklist-review.md#dynamic-agi-dagi",

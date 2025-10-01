@@ -8,7 +8,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 from dynamic_assign.engine import AgentProfile
-from dynamic_engines import DynamicUsageOrchestrator, PersonaSignal
+from dynamic.platform.engines import DynamicUsageOrchestrator, PersonaSignal
 from dynamic_space.engine import SpaceNetworkOverview
 from dynamic_zone.zone import Zone, ZoneBoundary
 

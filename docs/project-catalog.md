@@ -56,9 +56,9 @@ strategic pillars.
 
 - **Documentation Hubs (`docs/`, `_static/`, `content/`)** – Playbooks, white
   papers, inventories, and curated research libraries.
-- **Data Foundations (`data/`, `db/`, `models/`, `ml/`, `trainer/`)** –
+- **Data Foundations (`data/`, `db/`, `dynamic/models/`, `ml/`, `trainer/`)** –
   Datasets, schema definitions, model checkpoints, and experiment harnesses.
-- **Research Initiatives (`dynamic_ai/`, `dynamic_agi/`, `dynamic_quantum/`)** –
+- **Research Initiatives (`dynamic.intelligence.ai_apps/`, `dynamic.intelligence.agi/`, `dynamic_quantum/`)** –
   Exploratory programs that extend the platform's intelligence frontier.
 
 ### Observability, Security & Governance
@@ -96,7 +96,7 @@ strategic pillars.
 - **Speculative Research (`dynamic_interstellar_space/`,
   `dynamic_consciousness/`, `dynamic_ultimate_reality/`)** – Experimental
   domains that probe future-state architectures and metaphysical models.
-- **Emerging Technologies (`dynamic_web3/`, `dynamic_blockchain/`,
+- **Emerging Technologies (`dynamic.platform.web3/`, `dynamic_blockchain/`,
   `dynamic_quantum/`)** – Advanced protocol experiments and cross-chain
   innovations.
 - **Creative Sandboxes (`dynamic_creative_thinking/`, `dynamic_expressions/`,

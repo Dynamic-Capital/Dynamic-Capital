@@ -2,9 +2,9 @@ import types
 
 import pytest
 
-from dynamic_ai.risk import PositionSizing
+from dynamic.intelligence.ai_apps.risk import PositionSizing
 
-from dynamic_algo.trading_core import (
+from dynamic.trading.algo.trading_core import (
     ORDER_ACTION_BUY,
     SUCCESS_RETCODE,
     DynamicTradingAlgo,
@@ -82,8 +82,8 @@ def test_execute_trade_uses_instrument_profile_for_paper(monkeypatch: pytest.Mon
     def fake_uniform(_a: float, _b: float) -> float:
         return next(values)
 
-    monkeypatch.setattr("dynamic_algo.trading_core.random.uniform", fake_uniform)
-    monkeypatch.setattr("dynamic_algo.trading_core.random.randint", lambda _a, _b: 12345)
+    monkeypatch.setattr("dynamic.trading.algo.trading_core.random.uniform", fake_uniform)
+    monkeypatch.setattr("dynamic.trading.algo.trading_core.random.randint", lambda _a, _b: 12345)
 
     result = algo.execute_trade({"action": "sell"}, lot=0.001, symbol="xrp/usdt")
 

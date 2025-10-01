@@ -218,7 +218,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("models/lorentzian_v1.pkl"),
+        default=Path("dynamic/models/lorentzian_v1.pkl"),
         help="Destination for the serialized model",
     )
     parser.add_argument("--window", type=int, default=50, help="Rolling window size")

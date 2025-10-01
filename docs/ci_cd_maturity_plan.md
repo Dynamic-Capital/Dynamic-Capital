@@ -125,10 +125,10 @@ value.
 
 ## Dynamic Module, Model, and Engine Integration
 
-- **Dynamic AI (`dynamic_ai/`)**: Add targeted model validation suites and
+- **Dynamic AI (`dynamic.intelligence.ai_apps/`)**: Add targeted model validation suites and
   reproducible dataset snapshots to CI so inference changes are profiled for
   latency, accuracy, and safety regressions before merge.
-- **Dynamic AGI (`dynamic_agi/`)**: Orchestrate multi-agent simulations within
+- **Dynamic AGI (`dynamic.intelligence.agi/`)**: Orchestrate multi-agent simulations within
   nightly pipelines to validate orchestrator policies, prompt governance, and
   self-healing behaviors across complex scenarios.
 - **Dynamic AGS (Autonomous Governance Systems)**: Incorporate policy drift
@@ -141,7 +141,7 @@ value.
 - **Dynamic TA (Technical Analysis)**: Execute GPU-accelerated backtests and
   statistical validation within CI to certify that indicator updates, signal
   models, and trading heuristics stay within predefined risk envelopes.
-- **DCT – Dynamic Capital Token (`dynamic_token/`)**: Extend release pipelines
+- **DCT – Dynamic Capital Token (`dynamic.platform.token/`)**: Extend release pipelines
   with ledger simulation, smart contract linting, and supply integrity checks so
   tokenomics updates align with treasury policy.
 - **Engine Compatibility Matrix**: Maintain a matrix of inference engines,

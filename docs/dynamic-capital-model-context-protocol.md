@@ -10,7 +10,7 @@ Optimizing MCP for Dynamic Capital means:
 - Giving the Telegram deposit assistant, Go orchestration service, and Supabase
   edge functions a shared definition of the context they consume.
 - Routing investor, market, and operational knowledge through the same
-  guardrails that already power `supabase/functions`, `dynamic_ai`,
+  guardrails that already power `supabase/functions`, `dynamic.intelligence.ai_apps`,
   `dynamic_bridge`, and the web surfaces in `apps`.
 - Preserving compliance and latency guarantees while the platform scales
   multi-LLM experimentation and trading automation.
@@ -23,7 +23,7 @@ context, including:
 - **Runtime services** – Supabase edge functions (e.g.,
   `supabase/functions/miniapp`, `.../dynamic-hedge`), the Go service under
   `go-service`, and the WebSocket bridges in `dynamic_bridge`.
-- **AI orchestration** – Modules inside `dynamic_ai`, retrieval tooling in
+- **AI orchestration** – Modules inside `dynamic.intelligence.ai_apps`, retrieval tooling in
   `dynamic_memory`, and evaluation harnesses in `dynamic_library` and `grok-1`.
 - **Client experiences** – Telegram bot flows, the Next.js Mini App (`apps`),
   analyst dashboards, and broadcast automations.
@@ -36,8 +36,8 @@ context, including:
 | Value Stream                           | Primary Surfaces                                                                                   | Core Context Packages                                                        | Repository Touchpoints                                                                            |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | **Telegram deposit & KYC automation**  | Supabase functions `receipt-*`, `verify-*`, `payments-*`; Telegram bot sync jobs; Go webhook relay | Task manifest + investor snapshot + compliance policy + live payment signals | `apps` (Mini App UI), `supabase/functions/telegram-*`, `go-service`, `dynamic_memory` schemas     |
-| **Dynamic Hedge & liquidity controls** | Supabase function `dynamic-hedge`, `dynamic_ai/hedge.py`, MT5 bridge orchestrator                  | Risk envelope, market depth snapshot, treasury controls                      | `dynamic_ai`, `dynamic_bridge/mt5_bridge.py`, `supabase/functions/dynamic-hedge`, `dynamic_cache` |
-| **Multi-LLM strategy studio**          | `dynamic_ai` adapters, `supabase/functions/analysis-ingest`, notebooks in `ml`                     | Strategy brief, benchmark corpus, telemetry traces                           | `dynamic_ai/fusion.py`, `ml`, `dynamic_library`, `supabase/functions/analysis-ingest`             |
+| **Dynamic Hedge & liquidity controls** | Supabase function `dynamic-hedge`, `dynamic.intelligence.ai_apps/hedge.py`, MT5 bridge orchestrator                  | Risk envelope, market depth snapshot, treasury controls                      | `dynamic.intelligence.ai_apps`, `dynamic_bridge/mt5_bridge.py`, `supabase/functions/dynamic-hedge`, `dynamic_cache` |
+| **Multi-LLM strategy studio**          | `dynamic.intelligence.ai_apps` adapters, `supabase/functions/analysis-ingest`, notebooks in `ml`                     | Strategy brief, benchmark corpus, telemetry traces                           | `dynamic.intelligence.ai_apps/fusion.py`, `ml`, `dynamic_library`, `supabase/functions/analysis-ingest`             |
 | **Investor intelligence & broadcasts** | Broadcast Cron (`supabase/functions/broadcast-*`), analytics collectors, Next.js dashboards        | Audience cohort, messaging policy, market intel bundle                       | `broadcast`, `supabase/functions/analytics-*`, `apps`, `dynamic_reference`                        |
 
 Use these streams to scope new integrations: each package inherits the base
@@ -63,12 +63,12 @@ protocol while tailoring payload shape to the consuming surface.
    `supabase/functions/*/config`) and Markdown conventions under `docs/` for
    narrative fragments. Every record carries provenance metadata: `source_id`,
    `hash`, `sensitivity`, and TTL.
-3. **Ranking** – Apply retrieval heuristics from `dynamic_ai/analysis.py`,
+3. **Ranking** – Apply retrieval heuristics from `dynamic.intelligence.ai_apps/analysis.py`,
    embeddings built in `dynamic_memory_reconsolidation`, or rule engines inside
-   `dynamic_ai/risk.py` depending on the stream.
+   `dynamic.intelligence.ai_apps/risk.py` depending on the stream.
 4. **Packaging** – Compose context packages via dedicated assemblers
    (recommended location: `supabase/functions/context-*` or reusable utilities
-   in `dynamic_ai/core.py`). Sign payloads with Supabase JWT scoped to access
+   in `dynamic.intelligence.ai_apps/core.py`). Sign payloads with Supabase JWT scoped to access
    tier.
 5. **Delivery** – Surface packages through:
    - HTTPS responses to Telegram bot and Mini App.
@@ -81,7 +81,7 @@ protocol while tailoring payload shape to the consuming surface.
 - Publish OpenAPI specs per package in `docs/api/` (or co-located with the
   function) and JSON Schema definitions alongside each adapter or under a
   dedicated `docs/schemas/` directory.
-- Maintain Adapter SDKs in `dynamic_tool_kits` (TypeScript) and `dynamic_ai`
+- Maintain Adapter SDKs in `dynamic_tool_kits` (TypeScript) and `dynamic.intelligence.ai_apps`
   (Python) with automated guardrail checks before dispatch.
 - Emit audit events (`context.delivered`, `context.dropped`,
   `context.escalated`) through Supabase `analytics-data` function into analytics
@@ -94,7 +94,7 @@ protocol while tailoring payload shape to the consuming surface.
 - **Task Manifest** – Deposit type, user tier, currency, allowed actions.
   Derived from Supabase row + `apps` route params.
 - **Entity Snapshot** – KYC status, anonymized wallet or bank identifiers, risk
-  flags from `dynamic_ai/risk.py`.
+  flags from `dynamic.intelligence.ai_apps/risk.py`.
 - **Signal Deck** – Latest OCR verdict (`supabase/functions/receipt-ocr`),
   payment verification status, webhook latency metrics.
 - **Narrative Frame** – Recent support transcripts or policy excerpts stored in
@@ -108,7 +108,7 @@ protocol while tailoring payload shape to the consuming surface.
 - **Entity Snapshot** – Treasury balances from Supabase, liquidity tiers, MT5
   account metadata.
 - **Signal Deck** – Order flow from `dynamic_bridge/mt5_bridge.py`, pricing
-  feeds, risk exposure computed in `dynamic_ai/hedge.py`.
+  feeds, risk exposure computed in `dynamic.intelligence.ai_apps/hedge.py`.
 - **Narrative Frame** – Market commentary and runbook steps relevant to the
   current volatility regime.
 - **Guardrail Policy** – Trading limits, kill-switch toggles, compliance
@@ -120,7 +120,7 @@ protocol while tailoring payload shape to the consuming surface.
 - **Entity Snapshot** – Model variant, dataset pointer (Supabase storage
   bucket), benchmark config.
 - **Signal Deck** – Retrieval metrics, prior win/loss ratios, telemetry from
-  `dynamic_ai/fusion.py`.
+  `dynamic.intelligence.ai_apps/fusion.py`.
 - **Narrative Frame** – Research briefs, code snippets, governance notes.
 - **Guardrail Policy** – Provider usage caps, data residency, sandbox vs.
   production toggle.
@@ -134,7 +134,7 @@ protocol while tailoring payload shape to the consuming surface.
   adapter (Telegram bot, Go service, MT5 bridge, analytics exports) to the
   minimal tier.
 - Perform **Redaction** using deterministic tokenization utilities in
-  `dynamic_ai/core.py` before embeddings or prompt assembly. Store reversible
+  `dynamic.intelligence.ai_apps/core.py` before embeddings or prompt assembly. Store reversible
   secrets in Vault or Supabase secrets, never in code.
 - Run **Drift Audits** weekly via a scheduled function
   (`supabase/functions/context-drift-audit`) comparing delivered packages vs.
@@ -168,7 +168,7 @@ Key metrics:
 - [ ] Harden ingestion (Supabase functions, MT5 bridge) with schema validation,
       retries, and circuit breakers.
 - [ ] Deploy ranking heuristics (semantic search, rules) per value stream inside
-      `dynamic_ai`.
+      `dynamic.intelligence.ai_apps`.
 - [ ] Ship adapter SDK updates enforcing guardrail verification prior to
       dispatch.
 - [ ] Instrument delivery paths with tracing (Supabase `analytics-data`,
@@ -195,10 +195,10 @@ Key metrics:
 
 | Capability           | Directory / Artifact                                                        | Notes                                   |
 | -------------------- | --------------------------------------------------------------------------- | --------------------------------------- |
-| Context assemblers   | `supabase/functions/context-*` (new) or shared libs in `dynamic_ai/core.py` | Centralize serialization + signing      |
+| Context assemblers   | `supabase/functions/context-*` (new) or shared libs in `dynamic.intelligence.ai_apps/core.py` | Centralize serialization + signing      |
 | Retrieval embeddings | `dynamic_memory`, `dynamic_memory_reconsolidation`                          | Manage vector stores, decay policies    |
-| Hedge orchestration  | `dynamic_ai/hedge.py`, `dynamic_bridge/mt5_bridge.py`                       | Ensure MCP packages drive trading logic |
-| Multi-LLM tooling    | `dynamic_ai`, `dynamic_library`, `ml`                                       | Standardize experiment inputs           |
+| Hedge orchestration  | `dynamic.intelligence.ai_apps/hedge.py`, `dynamic_bridge/mt5_bridge.py`                       | Ensure MCP packages drive trading logic |
+| Multi-LLM tooling    | `dynamic.intelligence.ai_apps`, `dynamic_library`, `ml`                                       | Standardize experiment inputs           |
 | Client adapters      | `apps`, `go-service`, `broadcast`                                           | Respect tiered access + policy tagging  |
 | Compliance artifacts | `SECURITY.md`, `docs/compliance/*`, Supabase migrations                     | Keep protocol changes reviewable        |
 

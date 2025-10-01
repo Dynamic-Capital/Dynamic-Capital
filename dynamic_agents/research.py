@@ -2,7 +2,7 @@
 
 The historical automation stack imported the research agent from the
 ``dynamic_agents`` namespace.  The implementation now lives under
-:mod:`dynamic_ai.agents`, and this wrapper keeps the import path stable
+:mod:`dynamic.intelligence.ai_apps.agents`, and this wrapper keeps the import path stable
 while deferring the heavy dependency graph until an attribute is
 accessed.
 """
@@ -15,10 +15,10 @@ from ._lazy import LazyNamespace
 
 __all__ = ["ResearchAgent", "ResearchAgentResult"]
 
-_LAZY = LazyNamespace("dynamic_ai.agents", __all__)
+_LAZY = LazyNamespace("dynamic.intelligence.ai_apps.agents", __all__)
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
-    from dynamic_ai.agents import ResearchAgent, ResearchAgentResult
+    from dynamic.intelligence.ai_apps.agents import ResearchAgent, ResearchAgentResult
 
 
 def __getattr__(name: str) -> Any:

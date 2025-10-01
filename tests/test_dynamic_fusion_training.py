@@ -26,10 +26,10 @@ if "requests" not in sys.modules:
     requests_stub.post = _post
     sys.modules["requests"] = requests_stub
 
-if "dynamic_ai" not in sys.modules:
-    package_stub = types.ModuleType("dynamic_ai")
-    package_stub.__path__ = [str(Path("dynamic_ai"))]
-    sys.modules["dynamic_ai"] = package_stub
+if "dynamic.intelligence.ai_apps" not in sys.modules:
+    package_stub = types.ModuleType("dynamic.intelligence.ai_apps")
+    package_stub.__path__ = [str(Path("dynamic.intelligence.ai_apps"))]
+    sys.modules["dynamic.intelligence.ai_apps"] = package_stub
 
 
 def _load_module(name: str, path: str):
@@ -37,14 +37,20 @@ def _load_module(name: str, path: str):
     if spec is None or spec.loader is None:  # pragma: no cover - defensive check
         raise ImportError(f"Unable to load module spec for {name}")
     module = importlib.util.module_from_spec(spec)
-    module.__package__ = "dynamic_ai"
+    module.__package__ = "dynamic.intelligence.ai_apps"
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
 
 
-core = _load_module("dynamic_ai.core_runtime", str(Path("dynamic_ai/core.py")))
-training = _load_module("dynamic_ai.training_runtime", str(Path("dynamic_ai/training.py")))
+core = _load_module(
+    "dynamic.intelligence.ai_apps.core_runtime",
+    str(Path("dynamic/intelligence/ai_apps/core.py")),
+)
+training = _load_module(
+    "dynamic.intelligence.ai_apps.training_runtime",
+    str(Path("dynamic/intelligence/ai_apps/training.py")),
+)
 
 DynamicFusionAlgo = core.DynamicFusionAlgo
 prepare_fusion_training_rows = training.prepare_fusion_training_rows

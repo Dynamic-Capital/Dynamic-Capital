@@ -40,7 +40,7 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "TradingAgentResult",
         "run_dynamic_agent_cycle",
     ),
-    "dynamic_ai": (
+    "dynamic.intelligence.ai_apps": (
         "AISignal",
         "DynamicAnalysis",
         "DynamicConsciousnessSuite",
@@ -83,7 +83,7 @@ _TOOLKIT_EXPORTS: Dict[str, Tuple[str, ...]] = {
         "AwarenessDiagnostics",
         "IntegratedAwareness",
     ),
-    "dynamic_algo": (
+    "dynamic.trading.algo": (
         "ORDER_ACTION_BUY",
         "ORDER_ACTION_SELL",
         "SUCCESS_RETCODE",

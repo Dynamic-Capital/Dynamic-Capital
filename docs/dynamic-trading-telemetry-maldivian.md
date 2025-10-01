@@ -15,7 +15,7 @@ execution.
 | Context        | `dynamic_regimes`                                                          | Market state tags                         | Monsoon watch stations         | Refresh cadence & drift detection      |
 | Signal         | `dynamic_candles`, `dynamic_indicators`, `dynamic_volume`, `dynamic_quote` | Price, derived signals, amplitude, spread | Reef beacons & lagoon currents | Signal cleanliness, latency budgets    |
 | Microstructure | `dynamic_orderflow`, `dynamic_liquidity`                                   | Execution flow, depth, slippage           | Atoll channels & reef passes   | Routing precision, slippage tolerances |
-| Control        | `dynamic_risk`, `dynamic_sync`                                             | Capital guardrails, time alignment        | Helmsman & celestial navigator | Guardrail alerts, clock skew           |
+| Control        | `dynamic.trading.logic`, `dynamic_sync`                                             | Capital guardrails, time alignment        | Helmsman & celestial navigator | Guardrail alerts, clock skew           |
 | Oracle         | Intelligence scoring, mentorship, tokenomics                               | Composite scores, rituals                 | Council of Navigators          | Outcome attribution, narrative hooks   |
 
 ## Layered Architecture
@@ -48,7 +48,7 @@ execution.
 - **Optimization Cue**: Track realized vs. expected slippage per route and feed
   anomalies back to the oracle as _reef hazard bulletins_.
 
-### 4. Control Layer — `dynamic_risk`, `dynamic_sync`
+### 4. Control Layer — `dynamic.trading.logic`, `dynamic_sync`
 
 - **Telemetry Task**: Enforce capital guardrails and ensure phase-locked
   timestamps across every module.
@@ -96,7 +96,7 @@ execution.
 3. **Fleet Coordination**
    - Use `dynamic_sync` dashboards to ensure clock drift <±50ms across all
      feeds.
-   - Validate `dynamic_risk` guardrails, recording ballast adjustments (position
+   - Validate `dynamic.trading.logic` guardrails, recording ballast adjustments (position
      caps) per strategy pod.
 4. **Oracle Council Session**
    - Run composite scoring, then narrate the verdict with Maldivian metaphors

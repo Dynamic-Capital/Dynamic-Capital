@@ -6,7 +6,7 @@ import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from dynamic_algo.dynamic_pool import DynamicPoolAlgo
+from dynamic.trading.algo.dynamic_pool import DynamicPoolAlgo
 
 
 def _dt(hour: int, minute: int = 0) -> datetime:

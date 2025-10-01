@@ -18,7 +18,7 @@ from algorithms.python.trading_psychology_elements import (
     ElementSignal,
     PsychologyTelemetry,
 )
-from dynamic_algo.dynamic_psychology import DynamicPsychologyAlgo
+from dynamic.trading.algo.dynamic_psychology import DynamicPsychologyAlgo
 
 
 def _dt(offset_minutes: int = 0) -> datetime:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from dynamic_ai.hedge import (
+from dynamic.intelligence.ai_apps.hedge import (
     AccountState,
     DynamicHedgePolicy,
     ExposurePosition,

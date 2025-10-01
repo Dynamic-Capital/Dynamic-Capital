@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from dynamic_agents.wave import WaveAgent as ShimWaveAgent
-from dynamic_ai.agents import WaveAgent, WaveAgentResult
+from dynamic.intelligence.ai_apps.agents import WaveAgent, WaveAgentResult
 from dynamic_wave import WaveformKind
 
 

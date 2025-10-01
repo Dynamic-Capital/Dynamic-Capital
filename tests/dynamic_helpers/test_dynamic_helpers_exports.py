@@ -9,8 +9,8 @@ def test_dynamic_helpers_exports_reference_canonical_symbols() -> None:
     dynamic_helpers = importlib.import_module("dynamic_helpers")
 
     agents_module = importlib.import_module("dynamic_agents")
-    ai_module = importlib.import_module("dynamic_ai")
-    algo_module = importlib.import_module("dynamic_algo")
+    ai_module = importlib.import_module("dynamic.intelligence.ai_apps")
+    algo_module = importlib.import_module("dynamic.trading.algo")
     bridge_module = importlib.import_module("dynamic_bridge")
 
     assert (

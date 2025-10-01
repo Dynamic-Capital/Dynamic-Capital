@@ -10,7 +10,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:  # pragma: no cover - path hygiene for pytest discovery
     sys.path.insert(0, str(ROOT))
 
-from dynamic_ai.phase3 import (
+from dynamic.intelligence.ai_apps.phase3 import (
     AgentProfile,
     Assignment,
     BacklogItem,

@@ -16,10 +16,10 @@ __all__ = [
     "reset_dynamic_start_agents",
 ]
 
-_LAZY = LazyNamespace("dynamic_ai.agents", __all__)
+_LAZY = LazyNamespace("dynamic.intelligence.ai_apps.agents", __all__)
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
-    from dynamic_ai.agents import (
+    from dynamic.intelligence.ai_apps.agents import (
         configure_dynamic_start_agents,
         get_default_execution_agent,
         get_default_research_agent,

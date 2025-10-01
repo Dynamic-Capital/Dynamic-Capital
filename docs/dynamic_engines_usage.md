@@ -28,7 +28,7 @@ Use this checklist when auditing an environment or planning improvements. Each
 subsection maps to the detailed guidance later in the document.
 
 - [ ] **Shim coverage** – inventory which orchestration engines are needed,
-      confirm they are exported via `dynamic_engines`, and document any new
+      confirm they are exported via `dynamic.platform.engines`, and document any new
       modules that must be registered in `_ENGINE_EXPORTS`.
 - [ ] **Persona chain fit** – review the existing research → execution → risk
       flow, note where persona overrides are required, and schedule updates
@@ -46,24 +46,24 @@ subsection maps to the detailed guidance later in the document.
 Document the owner, deadline, and status for each item so audits feed directly
 into the team backlog.
 
-## 1. Import engines through the `dynamic_engines` shim
+## 1. Import engines through the `dynamic.platform.engines` shim
 
-The legacy-compatible `dynamic_engines` module forwards attributes to the domain
+The legacy-compatible `dynamic.platform.engines` module forwards attributes to the domain
 packages on demand, so you can keep call sites stable while implementations live
 beside their data models. Update `_ENGINE_EXPORTS` if you add a new engine so it
 becomes available via a single import path.
 
 ```python
-from dynamic_engines import DynamicSpaceEngine, DynamicStateEngine
+from dynamic.platform.engines import DynamicSpaceEngine, DynamicStateEngine
 ```
 
 _Optimisation tips:_
 
-- `dynamic_engines.__getattr__` lazily imports the source module and caches the
+- `dynamic.platform.engines.__getattr__` lazily imports the source module and caches the
   symbol, covering engines such as `DynamicAssignEngine`, `DynamicSpaceEngine`,
   and `DynamicStateEngine`. This keeps optional dependencies dormant until
   needed and mirrors the historical surface area without duplicating
-  logic.【F:dynamic_engines/**init**.py†L1-L123】【F:dynamic_engines/**init**.py†L168-L212】
+  logic.【F:dynamic.platform.engines/**init**.py†L1-L123】【F:dynamic.platform.engines/**init**.py†L168-L212】
 - When adding a new engine, expose only the public entry points in
   `_ENGINE_EXPORTS` to avoid leaking experimental utilities.
 - Pair shim imports with type checking (`reveal_type` in tests or `mypy` stubs)
@@ -78,7 +78,7 @@ environments or tasks before calling `prime_dynamic_start_agents()` to
 materialise the cache.
 
 ```python
-from dynamic_ai.agents import (
+from dynamic.intelligence.ai_apps.agents import (
     configure_dynamic_start_agents,
     get_dynamic_start_agents,
     prime_dynamic_start_agents,
@@ -95,7 +95,7 @@ _Optimisation tips:_
   locks in the replacements and keeps them available for reuse. This pattern
   mirrors how the production persona chain daisy-chains analysis, execution, and
   risk evaluations while letting you inject zone- or task-specific variants on
-  demand.【F:dynamic_ai/agents.py†L874-L940】
+  demand.【F:dynamic.intelligence.ai_apps/agents.py†L874-L940】
 - Share persona caches between services through `prime_dynamic_start_agents()`
   during boot to reduce cold-start latency.
 - Capture persona output metadata (confidence, latency) so downstream engines
@@ -223,7 +223,7 @@ signals into zone/space events, and produces `AssignableTask`s that flow
 straight into the assignment planner.
 
 ```python
-from dynamic_engines import DynamicUsageOrchestrator, PersonaSignal
+from dynamic.platform.engines import DynamicUsageOrchestrator, PersonaSignal
 from dynamic_assign.engine import AgentProfile
 from dynamic_zone.zone import ZoneBoundary
 

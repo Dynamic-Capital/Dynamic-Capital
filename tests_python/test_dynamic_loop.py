@@ -14,7 +14,7 @@ from dynamic_loop import (
     LoopSignal,
     LoopState,
 )
-from dynamic_engines import DynamicLoopEngine as LegacyLoopEngine
+from dynamic.platform.engines import DynamicLoopEngine as LegacyLoopEngine
 
 
 @pytest.fixture

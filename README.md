@@ -216,7 +216,7 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 
 Explore the broader platform anatomy and contributor guides:
 
-- [Master meta-model reference](models/meta_model.md) — shared
+- [Master meta-model reference](dynamic/models/meta_model.md) — shared
   state/control/dynamics grammar with module index.
 - [Dynamic Capital ecosystem anatomy](docs/dynamic-capital-ecosystem-anatomy.md)
 - [Dynamic Capital flow chart](docs/dynamic-capital-flow-chart.md) — high-level
@@ -229,17 +229,17 @@ Explore the broader platform anatomy and contributor guides:
 
 #### Dynamic AGI self-improvement loop
 
-`dynamic_agi.DynamicAGIModel` now accepts an optional `DynamicSelfImprovement`
+`dynamic.intelligence.agi.DynamicAGIModel` now accepts an optional `DynamicSelfImprovement`
 manager that records each evaluation and emits an iterative improvement plan.
 Provide realised performance telemetry or human feedback when calling
 `evaluate()` so the manager can accumulate session snapshots. The returned
 `AGIOutput` includes an `improvement` payload with ranked focus areas,
 aggregated metrics, and the latest introspection reports. See
-`tests/dynamic_agi/test_dynamic_self_improvement.py` for an end-to-end example.
+`tests/dynamic.intelligence.agi/test_dynamic_self_improvement.py` for an end-to-end example.
 
 **Dynamic AGI** abbreviates **Driving Yield of New Advancements in Minds,
 Intelligence & Creation — Adapting Global Intelligence**. The
-`dynamic_agi.DynamicAGIModel.identity` helper exposes this expansion and its
+`dynamic.intelligence.agi.DynamicAGIModel.identity` helper exposes this expansion and its
 three pillars (`Driving Yield of New Advancements in Minds`,
 `Intelligence &
 Creation`, `Adapting Global Intelligence`) so downstream

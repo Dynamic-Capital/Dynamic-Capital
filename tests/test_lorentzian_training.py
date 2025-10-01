@@ -1,7 +1,7 @@
 import math
 import pickle
 
-from dynamic_ai.training import calibrate_lorentzian_lobe, load_lorentzian_model
+from dynamic.intelligence.ai_apps.training import calibrate_lorentzian_lobe, load_lorentzian_model
 from ml.lorentzian_train import LorentzianModel, train_lorentzian
 
 

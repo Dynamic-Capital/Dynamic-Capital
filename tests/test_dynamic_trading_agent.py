@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from dynamic_ai.agents import TradingAgent, TradingAgentResult
-from dynamic_ai.risk import PositionSizing
-from dynamic_algo.trading_core import (
+from dynamic.intelligence.ai_apps.agents import TradingAgent, TradingAgentResult
+from dynamic.intelligence.ai_apps.risk import PositionSizing
+from dynamic.trading.algo.trading_core import (
     SUCCESS_RETCODE,
     TradeExecutionResult,
     DynamicTradingAlgo,

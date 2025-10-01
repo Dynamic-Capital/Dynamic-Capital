@@ -146,7 +146,7 @@ preserving observability, governance, and cost efficiency.
 
 ## Reference Implementation
 
-The `dynamic_ai.infrastructure` module materialises this playbook in code. It
+The `dynamic.intelligence.ai_apps.infrastructure` module materialises this playbook in code. It
 defines the shared role palette, per-domain blueprints, and a
 `DynamicInfrastructure` registry that can register modules, assign role owners,
 and emit operational playbooks. Use `build_default_infrastructure()` when you

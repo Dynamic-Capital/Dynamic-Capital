@@ -36,7 +36,7 @@ service’s instruction schema (`prompt`, `context`, `response`, `language`,
 ```bash
 python ml/tokenizer_builder.py \
   --input data/processed/dhivehi_en.jsonl \
-  --output models/tokenizers/dhivehi_en \
+  --output dynamic/models/tokenizers/dhivehi_en \
   --vocab-size 52000 \
   --special-token "<trade_signal>" --special-token "<mentor_prompt>"
 ```
@@ -60,7 +60,7 @@ curl -X POST https://trainer.example.com/train \
         "hyperparams": {
           "base_model": "meta-llama/Llama-2-7b-hf",
           "task_type": "causal",
-          "tokenizer_path": "models/tokenizers/dhivehi_en",
+          "tokenizer_path": "dynamic/models/tokenizers/dhivehi_en",
           "epochs": 3,
           "batch_size": 16,
           "max_seq_length": 1024

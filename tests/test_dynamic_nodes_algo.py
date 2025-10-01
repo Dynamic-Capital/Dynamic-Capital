@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
-from dynamic_algo.dynamic_nodes import (
+from dynamic.trading.algo.dynamic_nodes import (
     DynamicNode,
     DynamicNodeRegistry,
     NodeConfigError,

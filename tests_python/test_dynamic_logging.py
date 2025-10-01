@@ -6,7 +6,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from dynamic_engines import DynamicLoggingEngine as LegacyLoggingEngine
+from dynamic.platform.engines import DynamicLoggingEngine as LegacyLoggingEngine
 from dynamic_logging import DynamicLoggingEngine, LogEvent, LogSeverity, LoggingSnapshot
 
 

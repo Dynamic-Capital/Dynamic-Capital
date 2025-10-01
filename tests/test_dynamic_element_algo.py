@@ -7,7 +7,7 @@ import pytest
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from algorithms.python.trading_psychology_elements import Element
-from dynamic_algo.dynamic_elements import DynamicElementAlgo
+from dynamic.trading.algo.dynamic_elements import DynamicElementAlgo
 
 
 def _dt(minutes: int = 0) -> datetime:

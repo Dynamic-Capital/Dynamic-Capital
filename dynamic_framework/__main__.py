@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, TextIO
 
-from dynamic_agi.fine_tune import DynamicAGIFineTuner
-from dynamic_agi.self_improvement import ImprovementSignal, LearningSnapshot
+from dynamic.intelligence.agi.fine_tune import DynamicAGIFineTuner
+from dynamic.intelligence.agi.self_improvement import ImprovementSignal, LearningSnapshot
 
 from .engine import (
     DynamicFrameworkEngine,
