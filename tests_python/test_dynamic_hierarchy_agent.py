@@ -94,6 +94,20 @@ def test_builder_reorders_nodes_to_respect_dependencies() -> None:
     assert blueprints[0].children[0].key == "child"
 
 
+def test_builder_order_flow_reports_dependency_sequence() -> None:
+    builder = HierarchyBuilder()
+    builder.add_node(key="leaf", title="Leaf", parent="child")
+    builder.add_node(key="child", title="Child", parent="root")
+    builder.add_node(key="root", title="Root")
+
+    flow = builder.order_flow()
+
+    assert [entry["key"] for entry in flow] == ["root", "child", "leaf"]
+    assert flow[0]["parent"] is None
+    assert flow[1]["parent"] == "root"
+    assert flow[2]["parent"] == "child"
+
+
 def test_builder_validates_external_parents() -> None:
     builder = HierarchyBuilder()
     builder.add_node(key="orphan", title="Orphan", parent="missing")
@@ -107,3 +121,15 @@ def test_builder_validates_external_parents() -> None:
 
     with pytest.raises(KeyError):
         agent.commit()
+
+
+def test_helper_bot_summarize_order_flow_reports_staged_nodes() -> None:
+    agent = HierarchyAgent()
+    agent.stage_node(key="root", title="Root")
+    agent.stage_node(key="child", title="Child", parent="root")
+
+    summary = agent.helper().summarize_order_flow()
+
+    assert "Staged order flow:" in summary
+    assert "1. Root (root) -> parent: <root>" in summary
+    assert "2. Child (child) -> parent: root" in summary

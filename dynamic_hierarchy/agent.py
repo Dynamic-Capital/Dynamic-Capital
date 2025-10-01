@@ -128,6 +128,29 @@ class HierarchyBuilder:
 
         return tuple(ordered)
 
+    def order_flow(self) -> tuple[MutableMapping[str, object], ...]:
+        """Return the planned application order for staged nodes.
+
+        The method reuses the dependency-aware ordering logic to surface the
+        exact sequence in which nodes will be emitted or committed. Consumers
+        can use the resulting metadata to verify that parents precede their
+        children before mutating a live hierarchy.
+        """
+
+        ordered_keys = self._ordered_keys(allow_external_parents=True)
+        flow: list[MutableMapping[str, object]] = []
+        for position, key in enumerate(ordered_keys, start=1):
+            node = self._nodes[key]
+            flow.append(
+                {
+                    "position": position,
+                    "key": node.key,
+                    "title": node.title,
+                    "parent": node.parent,
+                }
+            )
+        return tuple(flow)
+
     def iter_pending_nodes(self) -> Iterator[MutableMapping[str, object]]:
         """Yield staged nodes as mapping objects."""
 
@@ -318,4 +341,19 @@ class HierarchyHelperBot:
 
         for root in hierarchy.roots():
             visit(root.key, 0)
+        return "\n".join(lines)
+
+    def summarize_order_flow(self) -> str:
+        """Return a human readable summary of the staged order flow."""
+
+        flow = self.agent.builder.order_flow()
+        if not flow:
+            return "No nodes are currently staged."
+
+        lines = ["Staged order flow:"]
+        for entry in flow:
+            parent = entry["parent"] or "<root>"
+            lines.append(
+                f"{entry['position']}. {entry['title']} ({entry['key']}) -> parent: {parent}"
+            )
         return "\n".join(lines)
