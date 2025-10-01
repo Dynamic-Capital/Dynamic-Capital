@@ -233,15 +233,15 @@ _SIGNAL_NUMERIC_LOOKUPS: Dict[str, tuple[str, ...]] = {
 }
 
 _BAND_METRIC_CONFIG: tuple[tuple[str, float, float], ...] = (
-    ("confidence", 0.75, 1.2),
-    ("conviction", 0.8, 1.25),
-    ("urgency", 0.9, 1.1),
+    ("confidence", 0.6, 1.0),
+    ("conviction", 0.7, 1.0),
+    ("urgency", 0.85, 1.15),
     ("edge", 0.85, 1.3),
     ("reward", 0.95, 1.2),
 )
 
 _RISK_METRIC_CONFIG: tuple[tuple[str, float, float], ...] = (
-    ("risk", 0.3, 0.6),
+    ("risk", 0.5, 0.5),
     ("drawdown", 0.35, 0.5),
     ("heat", 0.4, 0.45),
 )
@@ -326,12 +326,14 @@ def _volatility_alignment(
     if candidate is None:
         return 1.0
 
-    baseline = max(profile.volatility, 1e-9)
-    ratio = min(max(candidate / baseline, 0.05), 20.0)
-    if ratio <= 1.0:
-        return 1.0 + min(0.35, (1.0 - ratio) * 0.45)
-    damped = 1.0 / (1.0 + (ratio - 1.0) * 0.75)
-    return max(0.35, damped)
+    # Signals often provide volatility metrics normalised between ``0`` and ``1``.
+    # We treat the value as a direct penalty factor so calmer markets keep sizing
+    # intact while turbulent conditions progressively suppress lot sizes. The
+    # clamp avoids negative multipliers and ensures we never boost exposure based
+    # solely on volatility.
+    bounded = _clamp_unit(candidate)
+    penalty = 1.0 - 0.4 * bounded
+    return max(0.5, penalty)
 
 
 def _normalise_sizing_candidate(candidate: Any) -> Dict[str, Any] | None:
