@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import { SupabaseAdapter } from "@auth/supabase-adapter";
 import GitHub from "next-auth/providers/github";
 
-const { handlers } = NextAuth({
+const handler = NextAuth({
   adapter: SupabaseAdapter({
     url: process.env.SUPABASE_URL || "https://stub.supabase.co",
     secret: process.env.SUPABASE_SERVICE_ROLE_KEY || "stub-service-role-key",
@@ -15,4 +15,4 @@ const { handlers } = NextAuth({
   ],
 });
 
-export const { GET, POST } = handlers;
+export { handler as GET, handler as POST };
