@@ -44,6 +44,47 @@ Include your database connection string or anon key as needed:
 - `ALLOWED_ORIGINS` (comma-separated list of hosts allowed by CORS)
 - `MINIAPP_ORIGIN` (canonical host(s) allowed to call `verify-telegram`)
 
+## Step-by-step: promote DigitalOcean as the primary origin
+
+Follow this checklist when `dynamic-capital.ondigitalocean.app` should be the
+canonical host and Vercel is only used for preview builds:
+
+1. **Normalize environment variables locally** – Set `SITE_URL`,
+   `NEXT_PUBLIC_SITE_URL`, `ALLOWED_ORIGINS`, and `MINIAPP_ORIGIN` to
+   `https://dynamic-capital.ondigitalocean.app` in your `.env.local` (or
+   equivalent secrets manager entry). Commit configuration templates rather than
+   concrete secrets. The App Platform spec already reflects these values, so the
+   runtime and Supabase functions advertise the DigitalOcean host.
+2. **Replay the App Platform spec** – Run
+   ```bash
+   node scripts/doctl/sync-site-config.mjs \
+     --app-id $DIGITALOCEAN_APP_ID \
+     --site-url https://dynamic-capital.ondigitalocean.app \
+     --zone dynamic-capital.ondigitalocean.app \
+     --apply \
+     --apply-zone
+   ```
+   This command updates environment variables, the primary domain, and DNS
+   records in one pass (requires an authenticated `doctl` session). Use the
+   REST-based helper `npm run do:sync-site -- --help` when `doctl` is
+   unavailable.
+3. **Reconcile DNS** – Preview changes with
+   ```bash
+   deno run -A scripts/configure-digitalocean-dns.ts --dry-run
+   ```
+   then rerun without `--dry-run` (or add `--context <doctl-context>` when
+   necessary). Confirm the apex routes through the Cloudflare anycast IPs from
+   `dns/dynamic-capital.ondigitalocean.app.zone` so the DigitalOcean deployment
+   remains authoritative.
+4. **Align auxiliary services** – Update OAuth callbacks, Supabase Edge Function
+   allowlists, webhooks, and any automated messaging to reference the
+   DigitalOcean URL. `vercel.json` and other scripts already default to the App
+   Platform host, but verify no previews leak into production configs.
+5. **Audit traffic** – Once DNS propagates, load the site via the DigitalOcean
+   domain and confirm telemetry (logs, analytics, Supabase traces) reports the
+   expected origin. Keep the Vercel deployment alive for preview URLs, but treat
+   it as read-only.
+
 ## DNS for App Platform
 
 DigitalOcean provisions the `dynamic-capital.ondigitalocean.app` domain. Export
