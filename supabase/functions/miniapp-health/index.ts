@@ -8,6 +8,7 @@ import {
 } from "../_shared/health.ts";
 import { version } from "../_shared/version.ts";
 import { getVipForTelegram } from "./vip.ts";
+import { checkMiniAppLive } from "./live.ts";
 
 async function checkEnvAdmin(telegramId: string): Promise<boolean> {
   try {
@@ -59,6 +60,14 @@ export async function handler(req: Request): Promise<Response> {
 
   try {
     const checks = await Promise.all([
+      measureHealthCheck("miniapp_availability", async () => {
+        const result = await checkMiniAppLive();
+        return {
+          status: result.status,
+          message: result.message,
+          metadata: result.metadata,
+        };
+      }),
       measureHealthCheck("vip_lookup", async () => {
         const vip = await getVipForTelegram(supa, tg);
         isVip = vip;
