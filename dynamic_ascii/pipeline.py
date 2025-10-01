@@ -9,7 +9,7 @@ from dynamic_ascii.engine import (
     AsciiNFT,
     DynamicAsciiEngine,
 )
-from dynamic_token.nft import DynamicNFTMinter, MintedDynamicNFT
+from dynamic.platform.token.nft import DynamicNFTMinter, MintedDynamicNFT
 
 __all__ = [
     "AsciiDynamicNFTContext",

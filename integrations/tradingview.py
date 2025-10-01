@@ -9,9 +9,9 @@ from typing import Any, Dict, Optional
 
 from flask import Flask, Response, jsonify, request
 
-from dynamic_ai.core import DynamicFusionAlgo
-from dynamic_algo.trading_core import DynamicTradingAlgo
-from dynamic_token.treasury import DynamicTreasuryAlgo
+from dynamic.intelligence.ai_apps.core import DynamicFusionAlgo
+from dynamic.trading.algo.trading_core import DynamicTradingAlgo
+from dynamic.platform.token.treasury import DynamicTreasuryAlgo
 from integrations.supabase_logger import SupabaseLogger
 from integrations.telegram_bot import DynamicTelegramBot
 

@@ -10,7 +10,7 @@ import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from dynamic_algo.dynamic_traffic import (  # noqa: E402
+from dynamic.trading.algo.dynamic_traffic import (  # noqa: E402
     DynamicTrafficControl,
     TrafficSignal,
 )

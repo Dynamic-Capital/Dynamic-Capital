@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import cast
 
 from dynamic_agents.nft_engine import DynamicNFTAgent
-from dynamic_token.nft import MintedDynamicNFT
+from dynamic.platform.token.nft import MintedDynamicNFT
 from dynamic_bots._base import InsightBot
 from dynamic_helpers.nft_engine import DynamicNFTHelper
 from dynamic_keepers.nft_engine import DynamicNFTKeeper

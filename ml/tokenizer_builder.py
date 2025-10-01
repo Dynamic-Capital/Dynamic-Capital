@@ -3,7 +3,7 @@
 This CLI trains a shared multilingual vocabulary tailored to Dynamic
 Capital's mentorship, trading, and governance domains.  It accepts plain
 text or JSONL files, extracts textual content, and writes SentencePiece
-artifacts under ``models/tokenizers/dhivehi_en`` by default.
+artifacts under ``dynamic/models/tokenizers/dhivehi_en`` by default.
 """
 from __future__ import annotations
 
@@ -132,7 +132,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("models/tokenizers/dhivehi_en"),
+        default=Path("dynamic/models/tokenizers/dhivehi_en"),
         help="Directory to store the tokenizer artifacts",
     )
     parser.add_argument(

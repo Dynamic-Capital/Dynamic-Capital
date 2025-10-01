@@ -5,12 +5,12 @@
 - **Mission:** Validate how the Dynamic Capital Token (DCT) orchestration stack
   couples market data, governance signals, and treasury policy to enforce the
   intelligence-driven tokenomics
-  charter.【F:dynamic_token/engine.py†L9-L242】【F:docs/dct-intelligence-driven-tokenomics.md†L1-L88】
+  charter.【F:dynamic.platform.token/engine.py†L9-L242】【F:docs/dct-intelligence-driven-tokenomics.md†L1-L88】
 - **Inputs reviewed:** On-chain orchestration engine, treasury distribution
   policy, regression suite spanning price discovery, allocation, and reserve
   management, plus the Tonstarter allocation tables, sale planner math, and
   whitepaper supply
-  schedule.【F:dynamic_token/engine.py†L135-L242】【F:dynamic_token/treasury.py†L24-L145】【F:tests/dynamic_token/test_dct_engine.py†L48-L205】【F:docs/tonstarter/tokenomics-tables.md†L7-L46】【F:algorithms/python/dct_tonstarter_sale.py†L1-L120】【F:docs/dynamic-capital-ton-whitepaper.md†L34-L116】
+  schedule.【F:dynamic.platform.token/engine.py†L135-L242】【F:dynamic.platform.token/treasury.py†L24-L145】【F:tests/dynamic.platform.token/test_dct_engine.py†L48-L205】【F:docs/tonstarter/tokenomics-tables.md†L7-L46】【F:algorithms/python/dct_tonstarter_sale.py†L1-L120】【F:docs/dynamic-capital-ton-whitepaper.md†L34-L116】
 - **Cadence:** Recommended quarterly, aligning with parameter reviews outlined
   in the intelligence-driven tokenomics
   playbook.【F:docs/dct-intelligence-driven-tokenomics.md†L81-L107】
@@ -20,19 +20,19 @@
 1. **Composable committee signals.** Governance/LLM outputs can simultaneously
    alter pricing inputs, allocation weights, production scale, and carry
    metadata for audit trails, letting one signed recommendation reconfigure the
-   entire epoch run.【F:dynamic_token/engine.py†L40-L131】
+   entire epoch run.【F:dynamic.platform.token/engine.py†L40-L131】
 2. **Deterministic orchestration loop.** The engine runs price calculation,
    production planning, allocation, and treasury settlement in order, exposing
    both raw plans and effective outcomes for downstream
-   analytics.【F:dynamic_token/engine.py†L175-L242】
+   analytics.【F:dynamic.platform.token/engine.py†L175-L242】
 3. **Treasury-aware incentives.** Profit-positive trades trigger configurable
    burn, reward, and retention splits with rounding guards; loss scenarios drain
    reserves up to available balance while recording shortfall notes for
-   operators.【F:dynamic_token/treasury.py†L24-L130】
+   operators.【F:dynamic.platform.token/treasury.py†L24-L130】
 4. **Regression coverage.** Scenario tests verify the orchestration loop,
    committee signal translation, emission caps, and treasury distribution math,
    giving confidence that surface API changes stay backward
-   compatible.【F:tests/dynamic_token/test_dct_engine.py†L48-L205】
+   compatible.【F:tests/dynamic.platform.token/test_dct_engine.py†L48-L205】
 
 ## Tokenomics Model Review
 
@@ -74,7 +74,7 @@
 
 - **Profit-responsive treasury logic.** Burn, reward, and retention splits with
   rounding reconciliation guardrails ensure trading profits translate into
-  policy-compliant treasury actions.【F:dynamic_token/treasury.py†L24-L130】
+  policy-compliant treasury actions.【F:dynamic.platform.token/treasury.py†L24-L130】
 - **Liquidity guardrails.** Launch strategy, depth requirements, and buyback
   levers anchor token liquidity to treasury commitments and monitoring cadences
   spelled out in the
@@ -85,40 +85,40 @@
 - **Policy traceability:** `DCTEngineReport.to_dict()` serializes every
   intermediate artifact—inputs, plans, allocations, treasury deltas—supporting
   governance dashboards without additional
-  adapters.【F:dynamic_token/engine.py†L85-L133】
+  adapters.【F:dynamic.platform.token/engine.py†L85-L133】
 - **Signal hygiene:** Committee signals automatically deduplicate notes and
   clamp production scales, reducing operator error from malformed
-  adjustments.【F:dynamic_token/engine.py†L40-L79】
+  adjustments.【F:dynamic.platform.token/engine.py†L40-L79】
 - **Resilient treasury math:** Distribution shares must sum below 1, coercion
   checks reject non-finite values, and rounding corrections prevent penny drift,
   matching treasury control expectations in the tokenomics
-  guide.【F:dynamic_token/treasury.py†L37-L107】【F:docs/dct-intelligence-driven-tokenomics.md†L52-L88】
+  guide.【F:dynamic.platform.token/treasury.py†L37-L107】【F:docs/dct-intelligence-driven-tokenomics.md†L52-L88】
 - **Emission discipline:** Phase-based supply decay, vesting cliffs, and
   time-locked governance controls reduce sell pressure and maintain auditability
   across community and strategic
   allocations.【F:docs/dynamic-capital-ton-whitepaper.md†L36-L50】【F:docs/tonstarter/tokenomics-tables.md†L7-L17】
 - **Test-backed guardrails:** Loss coverage and custom distribution scenarios
   are unit-tested, validating both defensive notes and operator-tuned
-  burn/reward splits.【F:tests/dynamic_token/test_dct_engine.py†L173-L205】
+  burn/reward splits.【F:tests/dynamic.platform.token/test_dct_engine.py†L173-L205】
 
 ## Risks & Gaps
 
 - **External dependency drift:** The orchestration engine leans on
   `algorithms.python.dct_token_sync` primitives; API or parameter changes there
   could silently desynchronize production planning without explicit integration
-  tests across modules.【F:dynamic_token/engine.py†L9-L236】
+  tests across modules.【F:dynamic.platform.token/engine.py†L9-L236】
 - **Runtime side effects only logged via prints:** Treasury hooks
   (burn/buyback/reward) currently emit console statements, so integrations that
   expect async jobs or on-chain transactions need richer side-effect adapters to
-  avoid missing executions.【F:dynamic_token/treasury.py†L92-L145】
+  avoid missing executions.【F:dynamic.platform.token/treasury.py†L92-L145】
 - **No persistence for neutral trades:** Zero-profit trades return `None`,
   leaving governance blind to flat epochs unless upstream telemetry captures
   them separately; consider emitting no-op events for observability
-  completeness.【F:dynamic_token/treasury.py†L59-L107】
+  completeness.【F:dynamic.platform.token/treasury.py†L59-L107】
 - **Residual management manual:** Orchestrator only annotates leftover supply or
   oversubscription in notes—operators must resolve discrepancies out-of-band,
   increasing operational toil during volatile
-  epochs.【F:dynamic_token/engine.py†L219-L241】
+  epochs.【F:dynamic.platform.token/engine.py†L219-L241】
 - **Planner drift risk:** Allocation tables, sale planner defaults, and
   whitepaper prose rely on manual synchronization; without automated diff checks
   the Tonstarter-ready collateral could diverge from executable sale configs or
@@ -134,18 +134,18 @@
 1. **Integration contract tests:** Add cross-package tests (or property-based
    contracts) that exercise orchestration against live `dct_token_sync` builds
    to catch upstream interface changes
-   early.【F:dynamic_token/engine.py†L9-L236】【F:tests/dynamic_token/test_dct_engine.py†L48-L152】
+   early.【F:dynamic.platform.token/engine.py†L9-L236】【F:tests/dynamic.platform.token/test_dct_engine.py†L48-L152】
 2. **Treasury action adapters:** Replace console prints with pluggable
    dispatchers that can trigger buyback transactions, staking distributions, or
    audit logs, aligning runtime behavior with the governance transparency
-   mandate.【F:dynamic_token/treasury.py†L92-L145】【F:docs/dct-intelligence-driven-tokenomics.md†L52-L107】
+   mandate.【F:dynamic.platform.token/treasury.py†L92-L145】【F:docs/dct-intelligence-driven-tokenomics.md†L52-L107】
 3. **Neutral-trade telemetry:** Emit explicit zero-impact `TreasuryEvent`
    records so dashboards can monitor volume even when P&L is flat, preventing
-   blind spots in review meetings.【F:dynamic_token/treasury.py†L59-L128】
+   blind spots in review meetings.【F:dynamic.platform.token/treasury.py†L59-L128】
 4. **Residual auto-recycling:** Extend the allocation engine or treasury loop to
    recycle residual supply into reserves or future epochs automatically,
    reducing manual reconciliation work noted during
-   testing.【F:dynamic_token/engine.py†L219-L241】【F:tests/dynamic_token/test_dct_engine.py†L70-L101】
+   testing.【F:dynamic.platform.token/engine.py†L219-L241】【F:tests/dynamic.platform.token/test_dct_engine.py†L70-L101】
 5. **Tokenomics collateral sync:** Automate regression checks that compare the
    Tonstarter tables, sale planner outputs, and whitepaper passages so
    governance reviews flag any divergence in supply math before updates

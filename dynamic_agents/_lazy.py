@@ -1,7 +1,7 @@
 """Utilities for building lightweight compatibility shims.
 
 The :mod:`dynamic_agents` package largely re-exports the concrete
-implementations that now live in :mod:`dynamic_ai`.  Historically each
+implementations that now live in :mod:`dynamic.intelligence.ai_apps`.  Historically each
 module implemented its own ``__getattr__`` to defer importing those heavy
 modules until they were actually needed.  That approach worked but it also
 meant a fair amount of duplicated boilerplate scattered across every

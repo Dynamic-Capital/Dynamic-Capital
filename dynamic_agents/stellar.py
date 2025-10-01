@@ -29,10 +29,10 @@ __all__ = [
     "DynamicAlphaCygniAgent",
 ]
 
-_LAZY = LazyNamespace("dynamic_ai.stellar_agents", __all__)
+_LAZY = LazyNamespace("dynamic.intelligence.ai_apps.stellar_agents", __all__)
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
-    from dynamic_ai.stellar_agents import (  # noqa: F401
+    from dynamic.intelligence.ai_apps.stellar_agents import (  # noqa: F401
         DynamicAlphaAurigaeAgent,
         DynamicAlphaBootisAgent,
         DynamicAlphaCanisMajorisAgent,

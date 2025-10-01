@@ -46,15 +46,15 @@ const steps: Step[] = [
   {
     title: "Review algorithmic engines",
     description: [
-      "Surveyed Python packages under `algorithms/`, `core/`, `dynamic_ai/`, `dynamic_algo/`, and `dynamic_token/` to map where",
-      "trading, treasury, and AI orchestration logic live.",
+      "Surveyed Python packages under `algorithms/`, `core/`, `dynamic/intelligence/ai_apps/`, `dynamic/trading/algo/`, and",
+      "`dynamic/platform/token/` to map where trading, treasury, and AI orchestration logic live.",
     ],
     pathsToVerify: [
       "algorithms",
       "core",
-      "dynamic_ai",
-      "dynamic_algo",
-      "dynamic_token",
+      "dynamic/intelligence/ai_apps",
+      "dynamic/trading/algo",
+      "dynamic/platform/token",
     ],
   },
   {
@@ -107,20 +107,20 @@ const highlights: Highlight[] = [
       "Python trading core with fusion engines, market-making routines, and shared Supabase client utilities.",
   },
   {
-    directory: "dynamic_ai/",
-    path: "dynamic_ai",
+    directory: "dynamic/intelligence/ai_apps/",
+    path: "dynamic/intelligence/ai_apps",
     description:
       "AI orchestration layer coordinating agent behaviors, risk modules, hedging, and training pipelines.",
   },
   {
-    directory: "dynamic_algo/",
-    path: "dynamic_algo",
+    directory: "dynamic/trading/algo/",
+    path: "dynamic/trading/algo",
     description:
       "Modular automation suite describing roles (CEO/CFO/COO), marketing, analytics, and middleware primitives for Dynamic Capital workflows.",
   },
   {
-    directory: "dynamic_token/",
-    path: "dynamic_token",
+    directory: "dynamic/platform/token/",
+    path: "dynamic/platform/token",
     description:
       "Treasury utilities managing Dynamic Capital Token accounting logic.",
   },
@@ -161,7 +161,7 @@ const highlights: Highlight[] = [
       "Datasets and machine learning artifact placeholders that support analytics and AI-driven features across the platform.",
   },
   {
-    directory: "models/",
+    directory: "dynamic/models/",
     path: "models",
     description:
       "Model checkpoints and assets referenced by AI-assisted tooling and analytics flows.",

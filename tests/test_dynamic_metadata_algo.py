@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from dynamic_algo import (  # noqa: E402
+from dynamic.trading.algo import (  # noqa: E402
     DynamicMarketFlow,
     DynamicMetadataAlgo,
     DynamicPoolAlgo,

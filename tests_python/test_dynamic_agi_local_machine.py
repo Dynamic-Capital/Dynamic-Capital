@@ -9,14 +9,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-from dynamic_agi import (
+from dynamic.intelligence.agi import (
     AGIDiagnostics,
     AGILocalMachineTaskConfig,
     AGIOutput,
     build_local_machine_plan_from_improvement,
     build_local_machine_plan_from_output,
 )
-from dynamic_ai import AISignal
+from dynamic.intelligence.ai_apps import AISignal
 
 
 def _diagnostics() -> AGIDiagnostics:

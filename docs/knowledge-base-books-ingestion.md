@@ -17,7 +17,8 @@ OneDrive/DynamicAI_DB/
 │   ├── market_data/
 │   ├── account_history/
 │   └── processed/
-├── models/
+├── dynamic/
+│   └── models/
 ├── logs/
 ├── reports/
 └── knowledge_base/

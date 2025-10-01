@@ -12,9 +12,15 @@ from algorithms.python.dynamic_ai_sync import (
     run_dynamic_algo_alignment,
 )
 from algorithms.python.multi_llm import LLMConfig
-from dynamic_algo.trading_core import SUCCESS_RETCODE, TradeExecutionResult
-from dynamic_token.treasury import TreasuryEvent
-from dynamic_ai import AISignal, ExecutionAgentResult, ResearchAgentResult, RiskAgentResult, reset_dynamic_start_agents
+from dynamic.trading.algo.trading_core import SUCCESS_RETCODE, TradeExecutionResult
+from dynamic.platform.token.treasury import TreasuryEvent
+from dynamic.intelligence.ai_apps import (
+    AISignal,
+    ExecutionAgentResult,
+    ResearchAgentResult,
+    RiskAgentResult,
+    reset_dynamic_start_agents,
+)
 
 
 class StubClient:

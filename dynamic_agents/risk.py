@@ -8,10 +8,10 @@ from ._lazy import LazyNamespace
 
 __all__ = ["RiskAgent", "RiskAgentResult"]
 
-_LAZY = LazyNamespace("dynamic_ai.agents", __all__)
+_LAZY = LazyNamespace("dynamic.intelligence.ai_apps.agents", __all__)
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
-    from dynamic_ai.agents import RiskAgent, RiskAgentResult
+    from dynamic.intelligence.ai_apps.agents import RiskAgent, RiskAgentResult
 
 
 def __getattr__(name: str) -> Any:

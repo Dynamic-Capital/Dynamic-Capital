@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, Iterable, Mapping, Optional, Sequence, T
 
 from typing_extensions import Literal
 
-from dynamic_ai import (
+from dynamic.intelligence.ai_apps import (
     ExecutionAgent,
     ResearchAgent,
     RiskAgent,
@@ -18,10 +18,14 @@ from dynamic_ai import (
     get_default_research_agent,
     get_default_risk_agent,
 )
-from dynamic_algo.trading_core import DynamicTradingAlgo, TradeExecutionResult, normalise_symbol
+from dynamic.trading.algo.trading_core import (
+    DynamicTradingAlgo,
+    TradeExecutionResult,
+    normalise_symbol,
+)
 
 try:  # pragma: no cover - optional dependency for treasury actions
-    from dynamic_token.treasury import DynamicTreasuryAlgo, TreasuryEvent
+    from dynamic.platform.token.treasury import DynamicTreasuryAlgo, TreasuryEvent
 except Exception:  # pragma: no cover - keep alignment logic usable without treasury module
     DynamicTreasuryAlgo = None  # type: ignore[assignment]
     TreasuryEvent = None  # type: ignore[assignment]
@@ -957,7 +961,7 @@ dynamic_agent_cycle_adapter = AlgorithmSyncAdapter(
     runner=run_dynamic_agent_cycle,
     description="Run the Dynamic AI research → execution → risk agents",
     metadata={"agents": ("research", "execution", "risk")},
-    tags=("dynamic_ai", "agents"),
+    tags=("dynamic.intelligence.ai_apps", "agents"),
     notes=("Includes fused signal, guardrails, and hedge directives.",),
 )
 
@@ -967,7 +971,7 @@ dynamic_algo_sync_adapter = AlgorithmSyncAdapter(
     runner=run_dynamic_algo_alignment,
     description="Align Dynamic AI persona outputs with Dynamic Algo execution",
     metadata={"chain": ("research", "execution", "risk", "trading")},
-    tags=("dynamic_ai", "dynamic_algo", "execution"),
+    tags=("dynamic.intelligence.ai_apps", "dynamic.trading.algo", "execution"),
     notes=("Runs the persona cycle, executes via paper trading, and surfaces optimisation cues.",),
 )
 

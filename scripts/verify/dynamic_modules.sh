@@ -21,11 +21,11 @@ run_pytest() {
   fi
 }
 
-run_pytest "Dynamic AI" tests/dynamic_ai
-run_pytest "Dynamic AGI" tests/dynamic_agi
+run_pytest "Dynamic AI" tests/intelligence/ai_apps
+run_pytest "Dynamic AGI" tests/intelligence/agi
 run_pytest "Dynamic AGS" tests/test_dynamic_ags_playbook.py
 run_pytest "Dynamic Translation Layer" tests/dynamic_translation
 run_pytest "Dynamic Technical Analysis" tests/dynamic_ta
-run_pytest "Dynamic Capital Token" tests/dynamic_token
+run_pytest "Dynamic Capital Token" tests/platform/token
 
 say "Dynamic module verification complete"

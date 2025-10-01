@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Iterable, Mapping, MutableMapping, Sequence
 
 from dynamic_agents._insight import AgentInsight, utcnow
-from dynamic_token.nft import DynamicNFTMinter, MintedDynamicNFT
+from dynamic.platform.token.nft import DynamicNFTMinter, MintedDynamicNFT
 
 __all__ = ["NFTAgentInsight", "DynamicNFTAgent"]
 
@@ -21,7 +21,7 @@ class NFTAgentInsight:
 
 
 class DynamicNFTAgent:
-    """Coordinate :class:`dynamic_token.nft.DynamicNFTMinter` operations."""
+    """Coordinate :class:`dynamic.platform.token.nft.DynamicNFTMinter` operations."""
 
     domain = "Dynamic NFT Engine"
 

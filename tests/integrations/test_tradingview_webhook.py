@@ -11,7 +11,7 @@ from flask.testing import FlaskClient
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from integrations import tradingview
-from dynamic_algo.trading_core import SUCCESS_RETCODE
+from dynamic.trading.algo.trading_core import SUCCESS_RETCODE
 
 
 SECRET_HEADER = "X-Tradingview-Secret"

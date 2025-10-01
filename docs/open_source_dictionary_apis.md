@@ -178,7 +178,7 @@ curl -s "https://api.datamuse.com/words?ml=liquidity&max=5" | jq '.[].word'
 
 ## Connect with Dynamic AGI
 
-The `dynamic_agi` package can ingest dictionary outputs as part of a broader
+The `dynamic.intelligence.agi` package can ingest dictionary outputs as part of a broader
 knowledge or research pipeline. Use dictionary entries to enrich the `research`
 payload that accompanies a market or product evaluation.
 
@@ -191,7 +191,7 @@ payload that accompanies a market or product evaluation.
    `DynamicSelfImprovement` manager can refine future prompts.
 
 ```python
-from dynamic_agi import DynamicAGIModel
+from dynamic.intelligence.agi import DynamicAGIModel
 
 model = DynamicAGIModel()
 

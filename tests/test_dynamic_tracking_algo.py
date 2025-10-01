@@ -6,7 +6,7 @@ import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from dynamic_algo.dynamic_tracking import DynamicTrackingAlgo  # noqa: E402
+from dynamic.trading.algo.dynamic_tracking import DynamicTrackingAlgo  # noqa: E402
 
 
 def _dt(days: int = 0, hours: int = 0) -> datetime:

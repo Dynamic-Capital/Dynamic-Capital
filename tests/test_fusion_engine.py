@@ -1,6 +1,6 @@
 """Unit tests for the multi-lobe FusionEngine."""
 
-from dynamic_ai.fusion import (
+from dynamic.intelligence.ai_apps.fusion import (
     FusionEngine,
     LorentzianDistanceLobe,
     RegimeContext,

@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
-from dynamic_algo.middleware import (
+from dynamic.trading.algo.middleware import (
     DynamicMiddlewareAlgo,
     MiddlewareContext,
     MiddlewareExecutionError,

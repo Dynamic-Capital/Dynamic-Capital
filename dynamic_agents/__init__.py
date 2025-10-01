@@ -2,7 +2,7 @@
 
 Downstream code historically relied on the :mod:`dynamic_agents`
 namespace, but the concrete implementations now live in
-:mod:`dynamic_ai`.  Importing the heavy agent stack eagerly adds a
+:mod:`dynamic.intelligence.ai_apps`.  Importing the heavy agent stack eagerly adds a
 noticeable startup penalty for lightweight scripts.  To keep backwards
 compatibility *and* reduce the import overhead, this module proxies the
 symbols via :func:`importlib.import_module` so objects are materialised
@@ -68,7 +68,7 @@ __all__ = [
 ]
 
 _LAZY = LazyNamespace(
-    "dynamic_ai",
+    "dynamic.intelligence.ai_apps",
     __all__,
     overrides={
         "run_dynamic_agent_cycle": "algorithms.python.dynamic_ai_sync",
@@ -99,7 +99,7 @@ _LAZY = LazyNamespace(
 
 if TYPE_CHECKING:  # pragma: no cover - import-time only
     from algorithms.python.dynamic_ai_sync import run_dynamic_agent_cycle
-    from dynamic_ai import (
+    from dynamic.intelligence.ai_apps import (
         Agent,
         AgentResult,
         BloodAgent,

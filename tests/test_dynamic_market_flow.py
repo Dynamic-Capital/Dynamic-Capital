@@ -10,8 +10,8 @@ import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from dynamic_algo.market_flow import DynamicMarketFlow
-from dynamic_algo.trading_core import SUCCESS_RETCODE, TradeExecutionResult
+from dynamic.trading.algo.market_flow import DynamicMarketFlow
+from dynamic.trading.algo.trading_core import SUCCESS_RETCODE, TradeExecutionResult
 
 
 def _dt(offset_minutes: int = 0) -> datetime:

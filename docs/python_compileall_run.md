@@ -49,13 +49,13 @@ model still parses after changes to shared helpers or typing imports.
 The same safety net applies to the business-critical dynamic platforms that live
 at the repository root:
 
-- **`dynamic_agi`** – synthesizes signals from the atmospheric layers and
+- **`dynamic.intelligence.agi`** – synthesizes signals from the atmospheric layers and
   ensures the orchestration logic in `agent.py` and `model.py` stay importable
   after edits to shared prompt-building utilities.
-- **`dynamic_algo`** – houses the trading strategy backtests, so compiling it
+- **`dynamic.trading.algo`** – houses the trading strategy backtests, so compiling it
   confirms that the algorithm entry points and the `portfolio/` helpers
   reference only valid type hints.
-- **`dynamic_token`** (plus the umbrella `dynamic_token`-adjacent packages such
+- **`dynamic.platform.token`** (plus the umbrella `dynamic.platform.token`-adjacent packages such
   as `dynamic_capital_token/` and `dynamic_capital/`) – compileall traverses
   these tokenomics modules to verify that smart-contract bindings and CLI
   integration scripts remain syntax clean. This includes the `__init__.py` glue
@@ -65,7 +65,7 @@ When `python -m compileall` runs from the repository root it traverses each
 `dynamic_*` package, ensuring that `model.py`, `agent.py`, and their siblings
 receive fresh bytecode. You can confirm this by spot-checking the transient
 `__pycache__/model.cpython-312.pyc` files that appear under directories such as
-`dynamic_stratosphere/`, `dynamic_agi/`, and `dynamic_token/` before cleanup.
+`dynamic_stratosphere/`, `dynamic.intelligence.agi/`, and `dynamic.platform.token/` before cleanup.
 
 ## Additional Python Surfaces to Audit
 

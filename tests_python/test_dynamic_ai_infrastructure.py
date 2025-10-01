@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from dynamic_ai.infrastructure import (
+from dynamic.intelligence.ai_apps.infrastructure import (
     DEFAULT_MODULE_REGISTRATIONS,
     MODULE_BLUEPRINTS,
     DynamicInfrastructure,

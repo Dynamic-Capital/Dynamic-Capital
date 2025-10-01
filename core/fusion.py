@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from dynamic_ai.core import DynamicFusionAlgo
+from dynamic.intelligence.ai_apps.core import DynamicFusionAlgo
 
 __all__ = ["DynamicFusionAlgo"]

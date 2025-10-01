@@ -11,7 +11,7 @@
    `landing` and `web` house the marketing site and the Next.js-powered Telegram
    Mini App/dashboard bundle respectively.
 3. **Review algorithmic engines** – Surveyed Python packages under
-   `algorithms/`, `core/`, `dynamic_ai/`, `dynamic_algo/`, and `dynamic_token/`
+   `algorithms/`, `core/`, `dynamic.intelligence.ai_apps/`, `dynamic.trading.algo/`, and `dynamic.platform.token/`
    to map where trading, treasury, and AI orchestration logic live.
 4. **Trace integrations and queues** – Checked `integrations/` and `queue/` to
    identify connectors for MT5, Telegram, TradingView, and the lightweight job
@@ -31,11 +31,11 @@
   and webhook adapters for strategy experimentation and external integrations.
 - `core/`: Python trading core with fusion engines, market-making routines, and
   shared Supabase client utilities.
-- `dynamic_ai/`: AI orchestration layer coordinating agent behaviors, risk
+- `dynamic.intelligence.ai_apps/`: AI orchestration layer coordinating agent behaviors, risk
   modules, hedging, and training pipelines.
-- `dynamic_algo/`: Modular automation suite describing roles (CEO/CFO/COO),
+- `dynamic.trading.algo/`: Modular automation suite describing roles (CEO/CFO/COO),
   marketing, analytics, and middleware primitives for Dynamic Capital workflows.
-- `dynamic_token/`: Treasury utilities managing Dynamic Capital Token accounting
+- `dynamic.platform.token/`: Treasury utilities managing Dynamic Capital Token accounting
   logic.
 - `integrations/`: Connectors bridging MT5, Telegram bots, TradingView feeds,
   and Supabase logging helpers.
@@ -49,7 +49,7 @@
   whitepapers, and contributor guides.
 - `data/`: Datasets and machine learning artifact placeholders that support
   analytics and AI-driven features across the platform.
-- `models/`: Model checkpoints and assets referenced by AI-assisted tooling and
+- `dynamic/models/`: Model checkpoints and assets referenced by AI-assisted tooling and
   analytics flows.
 - `tools/`: Developer utilities, including automation helpers and shared
   workflows for repository maintenance.

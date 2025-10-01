@@ -40,8 +40,8 @@ _HELPER_EXPORTS = {
         "search_element_helpers",
     ),
     "dynamic_agents": ("run_dynamic_agent_cycle",),
-    "dynamic_ai": ("calibrate_lorentzian_lobe", "load_lorentzian_model"),
-    "dynamic_algo": (
+    "dynamic.intelligence.ai_apps": ("calibrate_lorentzian_lobe", "load_lorentzian_model"),
+    "dynamic.trading.algo": (
         "normalise_symbol",
         "ORDER_ACTION_BUY",
         "ORDER_ACTION_SELL",

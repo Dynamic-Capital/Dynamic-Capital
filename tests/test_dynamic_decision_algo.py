@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from dynamic_algo.dynamic_decision import (
+from dynamic.trading.algo.dynamic_decision import (
     DecisionContext,
     DecisionOption,
     DecisionSignal,

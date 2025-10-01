@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from dynamic_agi import DynamicAGIModel
+from dynamic.intelligence.agi import DynamicAGIModel
 from dynamic_spheres import (
     DynamicSpheresEngine,
     SphereProfile,

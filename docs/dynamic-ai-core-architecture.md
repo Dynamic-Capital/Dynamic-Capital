@@ -35,18 +35,18 @@ and cleaner extensibility.
 Each micro-core hosts a minimal agent runtime tuned for peak throughput:
 
 - **Signal ingestion** normalises raw telemetry into the `PreparedMarketContext`
-  schema reused throughout Dynamic AI.【F:dynamic_ai/core.py†L68-L145】
+  schema reused throughout Dynamic AI.【F:dynamic.intelligence.ai_apps/core.py†L68-L145】
 - **Heuristic evaluation** executes the relevant indicator blend and converts
   composite scores into discrete actions via `score_to_action`
-  helpers.【F:dynamic_ai/core.py†L46-L103】
+  helpers.【F:dynamic.intelligence.ai_apps/core.py†L46-L103】
 - **Reasoning enhancement** optionally invokes a `ReasoningAdapter` (for example
   ChatCPT 2, Grok, Dolphin, Ollama, Kimi K2, DeepSeek-V3, DeepSeek R1, Qwen3,
   MiniMax M1, Zhipu AI, or Hunyuan) via the federated adapter pool to refine
   narratives without blocking the
-  pipeline.【F:dynamic_ai/core.py†L20-L44】【F:dynamic_ai/core.py†L152-L206】
+  pipeline.【F:dynamic.intelligence.ai_apps/core.py†L20-L44】【F:dynamic.intelligence.ai_apps/core.py†L152-L206】
 - **Signal emission** packages the outcome into an `AISignal` with confidence,
   rationale, and provenance for downstream
-  consumers.【F:dynamic_ai/core.py†L108-L135】
+  consumers.【F:dynamic.intelligence.ai_apps/core.py†L108-L135】
 
 Micro-cores communicate exclusively through immutable payloads, preventing
 accidental state bleed. All state transitions are logged to per-core journals
@@ -85,7 +85,7 @@ reasoning layer:
 2. **Consensus layer** aggregates outputs from multiple SMs, applies
    `DynamicFusionAlgo` consensus logic, and reconciles conflicts against risk
    governors while blending reasoning sourced from multiple adapters.
-   【F:dynamic_ai/core.py†L207-L369】
+   【F:dynamic.intelligence.ai_apps/core.py†L207-L369】
 3. **Egress layer** streams enriched signals to execution bridges, persistence
    stores, and monitoring dashboards with backpressure controls and per-model
    usage telemetry.
@@ -362,7 +362,7 @@ an adapter received preferential routing during a given trading session.
 - **Sidecar caches** attached to each SM store hot LLM reasoning snippets keyed
   by market regime, adapter, and persona, reducing redundant model calls and
   respecting the `reasoning_cache_size`
-  guardrails.【F:dynamic_ai/core.py†L199-L206】
+  guardrails.【F:dynamic.intelligence.ai_apps/core.py†L199-L206】
 
 ## Scheduling Lifecycle
 
@@ -422,7 +422,7 @@ disadvantages of each core model, and compounds overall efficiency.
 
 - **Circuit breakers** triggered by anomalous drawdowns or data-quality flags
   bubble up through the orchestration fabric to pause affected SMs without
-  halting the entire grid.【F:dynamic_ai/core.py†L118-L140】
+  halting the entire grid.【F:dynamic.intelligence.ai_apps/core.py†L118-L140】
 - **Hot-standby SMs** keep spare capacity ready to absorb workloads from
   degraded clusters.
 - **Deterministic replay** uses the append-only logs to re-run specific warps
@@ -449,7 +449,7 @@ can triage anomalies rapidly.
 ## Implementation Roadmap
 
 1. **Prototype SM runtime** using existing async worker pools in
-   `dynamic_ai.training` to validate scheduling semantics before hardware
+   `dynamic.intelligence.ai_apps.training` to validate scheduling semantics before hardware
    acceleration and to benchmark adapter-aware warp packing.
 2. **Introduce telemetry schema** mirroring the metrics outlined above and emit
    them via the existing monitoring stack, including adapter health feeds.

@@ -18,7 +18,7 @@ from typing import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover - import cycle guard
-    from dynamic_agi import DynamicAGIModel
+    from dynamic.intelligence.agi import DynamicAGIModel
 
 __all__ = [
     "SphereProfile",

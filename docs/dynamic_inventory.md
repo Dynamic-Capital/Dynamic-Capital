@@ -45,7 +45,7 @@ explore related knowledge modules at a glance.
 Foundational engineering modules spanning compute, networking, runtimes, and
 operational tooling.
 
-- `dynamic_algo`
+- `dynamic.trading.algo`
 - `dynamic_architect`
 - `dynamic_ascii`
 - `dynamic_benchmark`
@@ -65,7 +65,7 @@ operational tooling.
 - `dynamic_domain_name_system`
 - `dynamic_domain_names`
 - `dynamic_engineer`
-- `dynamic_engines`
+- `dynamic.platform.engines`
 - `dynamic_framework`
 - `dynamic_generator`
 - `dynamic_graphql`
@@ -91,13 +91,13 @@ operational tooling.
 - `dynamic_states`
 - `dynamic_supabase`
 - `dynamic_syncronization`
-- `dynamic_token`
+- `dynamic.platform.token`
 - `dynamic_ton`
 - `dynamic_tool_kits`
 - `dynamic_version`
 - `dynamic_wallet`
 - `dynamic_web`
-- `dynamic_web3`
+- `dynamic.platform.web3`
 - `dynamic_zone`
 
 ### AI, Agents & Cognition
@@ -106,8 +106,8 @@ Intelligence-focused modules covering cognition, memory, and autonomous
 behaviors.
 
 - `dynamic_agents`
-- `dynamic_agi`
-- `dynamic_ai`
+- `dynamic.intelligence.agi`
+- `dynamic.intelligence.ai_apps`
 - `dynamic_autonoetic`
 - `dynamic_bots`
 - `dynamic_consciousness`
@@ -238,7 +238,7 @@ Patterns and routines that keep projects synchronized and adaptive.
 - `dynamic_hierarchy`
 - `dynamic_mantra`
 - `dynamic_method`
-- `dynamic_playbook`
+- `dynamic.governance.ags`
 - `dynamic_routine`
 
 ### Natural Systems & Sustainability
@@ -275,7 +275,7 @@ assets:
 
 ## Next steps to enrich the knowledge base
 
-1. Map relationships across domains (e.g., `dynamic_ai` → `dynamic_agents` →
+1. Map relationships across domains (e.g., `dynamic.intelligence.ai_apps` → `dynamic_agents` →
    `dynamic_task_manager`).
 2. Standardize a reusable playbook template covering overview, principles, use
    cases, examples, and links.
@@ -289,8 +289,8 @@ The table below is sorted alphabetically from left to right for quick scanning.
 <!-- deno-fmt-ignore -->
 | A | B | C | D |
 | --- | --- | --- | --- |
-| `dynamic_accounting` | `dynamic_acronym` | `dynamic_agents` | `dynamic_agi` |
-| `dynamic_ai` | `dynamic_algo` | `dynamic_analytical_thinking` | `dynamic_architect` |
+| `dynamic_accounting` | `dynamic_acronym` | `dynamic_agents` | `dynamic.intelligence.agi` |
+| `dynamic.intelligence.ai_apps` | `dynamic.trading.algo` | `dynamic_analytical_thinking` | `dynamic_architect` |
 | `dynamic_arrow` | `dynamic_ascii` | `dynamic_assign` | `dynamic_astronomy` |
 | `dynamic_atmosphere` | `dynamic_atom` | `dynamic_autonoetic` | `dynamic_benchmark` |
 | `dynamic_blob_storage` | `dynamic_block` | `dynamic_blockchain` | `dynamic_blood` |
@@ -301,7 +301,7 @@ The table below is sorted alphabetically from left to right for quick scanning.
 | `dynamic_cycle` | `dynamic_database` | `dynamic_demand` | `dynamic_dependency` |
 | `dynamic_development_team` | `dynamic_dimensions` | `dynamic_dockerfile` | `dynamic_domain` |
 | `dynamic_domain_name_system` | `dynamic_domain_names` | `dynamic_effect` | `dynamic_emoticon` |
-| `dynamic_encryption` | `dynamic_energy` | `dynamic_engineer` | `dynamic_engines` |
+| `dynamic_encryption` | `dynamic_energy` | `dynamic_engineer` | `dynamic.platform.engines` |
 | `dynamic_event` | `dynamic_exosphere` | `dynamic_expressions` | `dynamic_firewall` |
 | `dynamic_forecast` | `dynamic_framework` | `dynamic_fuel` | `dynamic_generator` |
 | `dynamic_glossary` | `dynamic_grammar` | `dynamic_graphql` | `dynamic_hashtag` |
@@ -314,7 +314,7 @@ The table below is sorted alphabetically from left to right for quick scanning.
 | `dynamic_memory` | `dynamic_memory_reconsolidation` | `dynamic_mentorship` | `dynamic_mesosphere` |
 | `dynamic_message_queue` | `dynamic_metacognition` | `dynamic_metadata` | `dynamic_method` |
 | `dynamic_microservices` | `dynamic_mindset` | `dynamic_numbers` | `dynamic_ocean` |
-| `dynamic_package` | `dynamic_physics` | `dynamic_pillars` | `dynamic_playbook` |
+| `dynamic_package` | `dynamic_physics` | `dynamic_pillars` | `dynamic.governance.ags` |
 | `dynamic_point_in_time` | `dynamic_predictive` | `dynamic_proof` | `dynamic_proof_of_authority` |
 | `dynamic_proof_of_burn` | `dynamic_proof_of_history` | `dynamic_proof_of_reputation` | `dynamic_proof_of_space` |
 | `dynamic_proof_of_stake` | `dynamic_proof_of_work` | `dynamic_proxy` | `dynamic_quote` |
@@ -325,10 +325,10 @@ The table below is sorted alphabetically from left to right for quick scanning.
 | `dynamic_summary` | `dynamic_supabase` | `dynamic_superclusters` | `dynamic_supply` |
 | `dynamic_syncronization` | `dynamic_synonym` | `dynamic_tag` | `dynamic_task_manager` |
 | `dynamic_teaching` | `dynamic_team` | `dynamic_text` | `dynamic_thermosphere` |
-| `dynamic_thinking` | `dynamic_token` | `dynamic_ton` | `dynamic_tool_kits` |
+| `dynamic_thinking` | `dynamic.platform.token` | `dynamic_ton` | `dynamic_tool_kits` |
 | `dynamic_trainer` | `dynamic_troposphere` | `dynamic_ultimate_reality` | `dynamic_validator` |
 | `dynamic_version` | `dynamic_vocabulary` | `dynamic_volume` | `dynamic_wallet` |
-| `dynamic_wave` | `dynamic_web` | `dynamic_web3` | `dynamic_wisdom` |
+| `dynamic_wave` | `dynamic_web` | `dynamic.platform.web3` | `dynamic_wisdom` |
 | `dynamic_zone` |  |  |  |
 
 ## Command-line listing

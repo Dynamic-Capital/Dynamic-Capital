@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from dynamic_algo.dynamic_mark import DynamicMark
+from dynamic.trading.algo.dynamic_mark import DynamicMark
 
 
 def _ts() -> datetime:

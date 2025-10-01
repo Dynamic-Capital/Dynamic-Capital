@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dynamic_ai.stellar_agents import (
+from dynamic.intelligence.ai_apps.stellar_agents import (
     DynamicAlphaAquilaeAgent,
     DynamicAlphaCanisMajorisAgent,
     DynamicAlphaOrionisAgent,
