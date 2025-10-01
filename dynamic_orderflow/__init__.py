@@ -1,5 +1,12 @@
 """Orderflow telemetry utilities."""
 
+from .agents import (
+    OrderFlowAgent,
+    OrderFlowBot,
+    OrderFlowBuilder,
+    OrderFlowDirective,
+    OrderFlowHelper,
+)
 from .engine import (
     DynamicOrderFlow,
     OrderEvent,
@@ -12,6 +19,11 @@ from .engine import (
 __all__ = [
     "DynamicOrderFlow",
     "OrderEvent",
+    "OrderFlowAgent",
+    "OrderFlowBot",
+    "OrderFlowBuilder",
+    "OrderFlowDirective",
+    "OrderFlowHelper",
     "OrderFlowImbalance",
     "OrderFlowStream",
     "OrderFlowSummary",
