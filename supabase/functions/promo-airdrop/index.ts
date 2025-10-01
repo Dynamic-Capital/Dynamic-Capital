@@ -41,6 +41,20 @@ interface PromoInsertResult {
   telegram_id: string;
 }
 
+interface ExistingPromotion {
+  id: string;
+  code: string;
+  valid_from: string;
+  valid_until: string;
+  current_uses: number;
+  max_uses: number | null;
+  discount_type: DiscountType;
+  discount_value: number;
+  description: string | null;
+  airdrop_metadata: Record<string, unknown> | null;
+  airdrop_bot_user_id: string | null;
+}
+
 const DEFAULT_VALID_DAYS = 14;
 const DEFAULT_CODE_LENGTH = 8;
 
@@ -153,7 +167,8 @@ async function insertPromotion(
     };
   }
 
-  const nowIso = new Date().toISOString();
+  const now = new Date();
+  const nowIso = now.toISOString();
   const description = payload.description
     ? payload.description
     : `${payload.campaign} airdrop for ${telegramId}`;
@@ -182,6 +197,114 @@ async function insertPromotion(
     : DEFAULT_CODE_LENGTH;
 
   const prefix = payload.code_prefix?.trim() || payload.campaign || "DROP";
+
+  const existing = await supabase
+    .from("promotions")
+    .select(
+      "id, code, valid_from, valid_until, current_uses, max_uses, discount_type, discount_value, description, airdrop_metadata, airdrop_bot_user_id",
+    )
+    .eq("airdrop_campaign", payload.campaign)
+    .eq("airdrop_target", telegramId)
+    .eq("is_active", true)
+    .lte("valid_from", nowIso)
+    .gte("valid_until", nowIso)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<ExistingPromotion>();
+
+  if (existing.error && existing.status !== 406) {
+    console.error(
+      "promo-airdrop: failed to check for existing promo",
+      existing.error,
+    );
+  }
+
+  if (existing.data) {
+    const promo = existing.data;
+    const hasRemainingUses = promo.max_uses === null
+      ? true
+      : promo.current_uses < promo.max_uses;
+
+    if (hasRemainingUses) {
+      const updates: Record<string, unknown> = {};
+
+      if (promo.description !== description) {
+        updates.description = description;
+      }
+
+      if (promo.discount_type !== payload.discount_type) {
+        updates.discount_type = payload.discount_type;
+      }
+
+      if (promo.discount_value !== payload.discount_value) {
+        updates.discount_value = payload.discount_value;
+      }
+
+      if (promo.valid_until !== validUntil) {
+        updates.valid_until = validUntil;
+      }
+
+      if (promo.max_uses !== maxUses) {
+        updates.max_uses = maxUses;
+      }
+
+      const existingMetadata =
+        promo.airdrop_metadata && isRecord(promo.airdrop_metadata)
+          ? cleanRecord(promo.airdrop_metadata)
+          : null;
+      const existingMetadataJson = existingMetadata
+        ? JSON.stringify(existingMetadata)
+        : null;
+      const requestedMetadataJson = metadataValue
+        ? JSON.stringify(metadataValue)
+        : null;
+
+      if (existingMetadataJson !== requestedMetadataJson) {
+        updates.airdrop_metadata = metadataValue;
+      }
+
+      if (promo.airdrop_bot_user_id !== botUserId) {
+        updates.airdrop_bot_user_id = botUserId;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const patch = await supabase
+          .from("promotions")
+          .update({
+            ...updates,
+            generated_via: `airdrop:${payload.campaign}`,
+          })
+          .eq("id", promo.id)
+          .select("valid_until")
+          .maybeSingle();
+
+        if (patch.error) {
+          console.error(
+            "promo-airdrop: failed to refresh existing promo",
+            patch.error,
+          );
+        } else {
+          const refreshedValidUntil = patch.data?.valid_until
+            ? String(patch.data.valid_until)
+            : validUntil;
+
+          return {
+            id: promo.id,
+            code: promo.code,
+            valid_until: refreshedValidUntil,
+            telegram_id: telegramId,
+          };
+        }
+      }
+
+      return {
+        id: promo.id,
+        code: promo.code,
+        valid_until: promo.valid_until,
+        telegram_id: telegramId,
+      };
+    }
+  }
 
   const attempts = 5;
   for (let i = 0; i < attempts; i++) {
