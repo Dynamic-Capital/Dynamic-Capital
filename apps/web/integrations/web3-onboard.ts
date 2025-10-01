@@ -2,6 +2,8 @@
 
 import type { OnboardAPI } from "@web3-onboard/core";
 
+import { WEB3_CONFIG } from "@/config/web3";
+
 let onboardPromise: Promise<OnboardAPI | null> | null = null;
 
 async function initializeOnboard(): Promise<OnboardAPI | null> {
@@ -25,22 +27,13 @@ async function initializeOnboard(): Promise<OnboardAPI | null> {
 
     return createOnboard({
       wallets: [bitgetWallet, injectedWallets],
-      chains: [
-        {
-          id: "0x1",
-          token: "ETH",
-          label: "Ethereum Mainnet",
-          rpcUrl: "https://rpc.ankr.com/eth",
-        },
-      ],
+      chains: WEB3_CONFIG.chains,
       appMetadata: {
-        name: "Dynamic Capital",
-        icon: "/logo.svg",
-        description: "Dynamic Capital trading desk and portfolio tools",
-        recommendedInjectedWallets: [
-          { name: "Bitget Wallet", url: "https://bitkeep.com" },
-          { name: "MetaMask", url: "https://metamask.io" },
-        ],
+        name: WEB3_CONFIG.metadata.name,
+        icon: WEB3_CONFIG.metadata.icon,
+        description: WEB3_CONFIG.metadata.description,
+        recommendedInjectedWallets:
+          WEB3_CONFIG.metadata.recommendedInjectedWallets,
       },
     });
   } catch (error) {

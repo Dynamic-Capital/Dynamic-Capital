@@ -30,6 +30,11 @@ export const publicSchema = z.object({
   NEXT_PUBLIC_POSTHOG_HOST: z.string().optional(),
   NEXT_PUBLIC_ECONOMIC_CALENDAR_URL: z.string().url().optional(),
   NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY: z.string().optional(),
+  NEXT_PUBLIC_WEB3_CHAINS: z.string().optional(),
+  NEXT_PUBLIC_WEB3_APP_NAME: z.string().optional(),
+  NEXT_PUBLIC_WEB3_APP_DESCRIPTION: z.string().optional(),
+  NEXT_PUBLIC_WEB3_APP_ICON: z.string().optional(),
+  NEXT_PUBLIC_WEB3_RECOMMENDED_WALLETS: z.string().optional(),
 });
 
 export const serverSchema = z.object({
@@ -104,6 +109,15 @@ function validatePublicEnv(): ValidationResult {
     NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY: optionalEnvVar(
       "NEXT_PUBLIC_ECONOMIC_CALENDAR_API_KEY",
       ["ECONOMIC_CALENDAR_API_KEY"],
+    ),
+    NEXT_PUBLIC_WEB3_CHAINS: optionalEnvVar("NEXT_PUBLIC_WEB3_CHAINS"),
+    NEXT_PUBLIC_WEB3_APP_NAME: optionalEnvVar("NEXT_PUBLIC_WEB3_APP_NAME"),
+    NEXT_PUBLIC_WEB3_APP_DESCRIPTION: optionalEnvVar(
+      "NEXT_PUBLIC_WEB3_APP_DESCRIPTION",
+    ),
+    NEXT_PUBLIC_WEB3_APP_ICON: optionalEnvVar("NEXT_PUBLIC_WEB3_APP_ICON"),
+    NEXT_PUBLIC_WEB3_RECOMMENDED_WALLETS: optionalEnvVar(
+      "NEXT_PUBLIC_WEB3_RECOMMENDED_WALLETS",
     ),
   } satisfies Record<string, string | undefined>;
 
