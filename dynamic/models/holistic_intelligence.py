@@ -54,6 +54,7 @@ _AGI_EVALUATE_ARGS = {
 }
 
 
+ContextT = TypeVar("ContextT")
 SignalT = TypeVar("SignalT")
 
 
@@ -61,48 +62,70 @@ def _coerce_mapping(payload: Mapping[str, object]) -> Dict[str, Any]:
     return dict(payload)
 
 
-def _resolve_thinking_context(
-    context: ThinkingContext | Mapping[str, object]
-) -> ThinkingContext:
-    if isinstance(context, ThinkingContext):
+def _resolve_context(
+    context: ContextT | Mapping[str, object],
+    *,
+    label: str,
+    context_type: type[ContextT],
+) -> ContextT:
+    """Normalise a context value ensuring the expected type is produced."""
+
+    if isinstance(context, context_type):
         return context
     if isinstance(context, Mapping):
         data = _coerce_mapping(context)
-        return ThinkingContext(**cast(Dict[str, Any], data))
-    raise TypeError("context must be ThinkingContext or mapping")
+        try:
+            return context_type(**cast(Dict[str, Any], data))  # type: ignore[arg-type]
+        except TypeError as error:  # pragma: no cover - defensive guard
+            message = (
+                f"{label} mapping could not instantiate"
+                f" {context_type.__name__}: {error}"
+            )
+            raise TypeError(message) from error
+    raise TypeError(
+        f"{label} must be {context_type.__name__} or mapping,"
+        f" received {type(context)!r}",
+    )
+
+
+def _resolve_thinking_context(
+    context: ThinkingContext | Mapping[str, object]
+) -> ThinkingContext:
+    return _resolve_context(
+        context,
+        label="thinking_context",
+        context_type=ThinkingContext,
+    )
 
 
 def _resolve_awareness_context(
     context: AwarenessContext | Mapping[str, object]
 ) -> AwarenessContext:
-    if isinstance(context, AwarenessContext):
-        return context
-    if isinstance(context, Mapping):
-        data = _coerce_mapping(context)
-        return AwarenessContext(**cast(Dict[str, Any], data))
-    raise TypeError("context must be AwarenessContext or mapping")
+    return _resolve_context(
+        context,
+        label="self_awareness_context",
+        context_type=AwarenessContext,
+    )
 
 
 def _resolve_reflection_context(
     context: ReflectionContext | Mapping[str, object]
 ) -> ReflectionContext:
-    if isinstance(context, ReflectionContext):
-        return context
-    if isinstance(context, Mapping):
-        data = _coerce_mapping(context)
-        return ReflectionContext(**cast(Dict[str, Any], data))
-    raise TypeError("context must be ReflectionContext or mapping")
+    return _resolve_context(
+        context,
+        label="cognitive_context",
+        context_type=ReflectionContext,
+    )
 
 
 def _resolve_nondual_context(
     context: NonDualContext | Mapping[str, object]
 ) -> NonDualContext:
-    if isinstance(context, NonDualContext):
-        return context
-    if isinstance(context, Mapping):
-        data = _coerce_mapping(context)
-        return NonDualContext(**cast(Dict[str, Any], data))
-    raise TypeError("context must be NonDualContext or mapping")
+    return _resolve_context(
+        context,
+        label="ultimate_context",
+        context_type=NonDualContext,
+    )
 
 
 @dataclass(slots=True)
@@ -364,7 +387,7 @@ def _coerce_signals(
             resolved.append(signal)
             continue
         if isinstance(signal, Mapping):
-            payload = cast(Dict[str, Any], dict(signal))
+            payload = cast(Dict[str, Any], _coerce_mapping(signal))
             resolved.append(signal_type(**payload))  # type: ignore[arg-type]
             continue
         raise TypeError(
