@@ -85,3 +85,28 @@ purposes. Expand it as new services are introduced.
 
 Maintaining this map keeps cross-team communication crisp while preserving the
 creative tone of the Dynamic Capital ecosystem.
+
+## Dynamic Naming Engine
+
+Use the `DynamicNamingEngine` helper to generate or validate component names in
+codebases, scripts, and documentation automation. The engine ships with the
+defaults from this framework and can be extended with additional prefixes,
+function codes, or scope suffixes.
+
+```ts
+import { defaultDynamicNamingEngine } from "../dynamic_naming/engine";
+
+const { code, label } = defaultDynamicNamingEngine.generate({
+  prefix: "DCT",
+  func: "BL",
+  scopes: ["SC"],
+  metaphor: "Regen",
+});
+
+// code  → "DCT-BL-SC-REGEN"
+// label → "Token layer Burn Logic Smart Contract Regen"
+```
+
+Call `parse` to break down existing abbreviations, or instantiate
+`DynamicNamingEngine` with custom registries when integrating new ecosystems or
+experimental metaphors.
