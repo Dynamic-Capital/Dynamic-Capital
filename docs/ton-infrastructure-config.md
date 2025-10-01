@@ -49,11 +49,14 @@ TON Sites so they resolve under `.ton` domains.
   - Execute
     `toncli storage upload ./supabase/functions/miniapp/static --dns dynamiccapital.ton --verbose`
     from the release branch.
-  - Verify the Supabase release record fields before logging: set
-    `meta.host` to the `.ton` domain being promoted and `meta.summary` to a
-    one-line release synopsis so the provenance is clear to auditors.
+  - Verify the Supabase release record fields **before** you create the log
+    entry: confirm `meta.host` matches the `.ton` domain being promoted and
+    `meta.summary` provides a concise, single-line release synopsis that
+    auditors can follow. Update the release record if either value is missing
+    or stale.
   - Store the returned content hash in Supabase
-    (`tx_logs.kind = 'ton_site_publish'`) alongside:
+    (`tx_logs.kind = 'ton_site_publish'`) alongside the values you just
+    validated:
     - `git_ref`
     - `storage_bag_id`
     - `operator`
