@@ -20,6 +20,7 @@ export function useMiniAppThemeManager(
   const state = useSyncExternalStore<MiniAppThemeState>(
     (listener) => manager.subscribe(listener),
     () => manager.getState(),
+    () => manager.getState(),
   );
 
   useEffect(() => {

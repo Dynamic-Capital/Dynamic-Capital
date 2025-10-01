@@ -6,11 +6,22 @@ import {
   useTonConnectUI,
 } from "@tonconnect/ui-react";
 import type { WalletsListConfiguration } from "@tonconnect/ui-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { JSX } from "react";
 import {
   useMiniAppThemeManager,
 } from "../../../../shared/miniapp/use-miniapp-theme";
-import type { MiniAppThemeOption } from "../../../../shared/miniapp/theme-loader";
+import type {
+  MiniAppThemeOption,
+  TonConnectAccountLike,
+  TonConnectLike,
+} from "../../../../shared/miniapp/theme-loader";
 import {
   isSupportedPlan,
   linkTonMiniAppWallet,
@@ -268,11 +279,12 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
   const nextOptions: PlanOption[] = [];
 
   for (const raw of plans) {
-    if (!raw || !isSupportedPlan(raw.id ?? undefined)) {
+    const planId = typeof raw?.id === "string" ? raw.id : undefined;
+    if (!planId || !isSupportedPlan(planId)) {
       continue;
     }
 
-    const fallback = FALLBACK_PLAN_LOOKUP[raw.id];
+    const fallback = FALLBACK_PLAN_LOOKUP[planId];
     const name = typeof raw.name === "string" && raw.name.trim().length > 0
       ? raw.name
       : fallback.name;
@@ -305,7 +317,7 @@ function normalisePlanOptions(plans: RawPlan[]): PlanOption[] {
       : fallback.cadence;
 
     nextOptions.push({
-      id: raw.id,
+      id: planId,
       name,
       price: priceLabel,
       cadence,
@@ -633,6 +645,37 @@ function formatWalletAddress(address?: string | null): string {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
 }
 
+function normaliseTonConnectAccount(
+  source: unknown,
+): TonConnectAccountLike | null {
+  if (!source || typeof source !== "object") {
+    return null;
+  }
+
+  const candidate = source as {
+    address?: string | null;
+    account?: { address?: string | null } | null;
+    wallet?: { address?: string | null } | null;
+  };
+
+  if (typeof candidate.address === "string") {
+    return { address: candidate.address };
+  }
+
+  if (
+    candidate.account &&
+    typeof candidate.account.address === "string"
+  ) {
+    return { address: candidate.account.address };
+  }
+
+  if (candidate.wallet && typeof candidate.wallet.address === "string") {
+    return { address: candidate.wallet.address };
+  }
+
+  return null;
+}
+
 function resolveThemeSwatches(theme: MiniAppThemeOption): string[] {
   const background = theme.cssVariables["--tg-bg"] ??
     theme.cssVariables["--surface"] ??
@@ -666,8 +709,32 @@ function HomeInner() {
   const telegramId = useTelegramId();
   const liveIntel = useLiveIntel();
   const [countdown, setCountdown] = useState<number | null>(null);
+  const tonConnectSource = useMemo<TonConnectLike | null>(() => {
+    if (!tonConnectUI) {
+      return null;
+    }
+
+    const account = normaliseTonConnectAccount(tonConnectUI.account);
+    const wallet = normaliseTonConnectAccount(
+      tonConnectUI.wallet ?? tonConnectUI.account,
+    ) ?? account;
+
+    const onStatusChange =
+      typeof tonConnectUI.onStatusChange === "function"
+        ? (listener: (wallet: TonConnectAccountLike | null) => void) =>
+            tonConnectUI.onStatusChange((walletCandidate) => {
+              listener(normaliseTonConnectAccount(walletCandidate));
+            })
+        : undefined;
+
+    return {
+      account,
+      wallet,
+      onStatusChange,
+    } satisfies TonConnectLike;
+  }, [tonConnectUI]);
   const { manager: themeManager, state: themeState } = useMiniAppThemeManager(
-    tonConnectUI,
+    tonConnectSource,
   );
 
   const updatePlanSyncStatus = useCallback(
@@ -684,8 +751,8 @@ function HomeInner() {
     () => planOptions.find((option) => option.id === plan),
     [plan, planOptions],
   );
-  const wallet = tonConnectUI?.account;
-  const walletAddress = wallet?.address;
+  const walletAccount = tonConnectSource?.account ?? tonConnectSource?.wallet;
+  const walletAddress = walletAccount?.address ?? null;
 
   const themeOptions = themeState.availableThemes;
   const walletConnected = Boolean(walletAddress);
@@ -1097,7 +1164,7 @@ function HomeInner() {
             <button
               className="button button-secondary"
               onClick={linkWallet}
-              disabled={isLinking || !wallet}
+              disabled={isLinking || !walletAccount}
             >
               {isLinking ? "Linking…" : "Link wallet to desk"}
             </button>

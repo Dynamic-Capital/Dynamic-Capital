@@ -2,15 +2,19 @@
   "name": "dynamic-capital-miniapp",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+    "dev": "cross-env NEXT_IGNORE_INCORRECT_LOCKFILE=1 next dev",
+    "build": "cross-env NEXT_IGNORE_INCORRECT_LOCKFILE=1 next build",
+    "start": "cross-env NEXT_IGNORE_INCORRECT_LOCKFILE=1 next start"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.3",
-    "@tonconnect/ui-react": "^2.5.4",
+    "@tonconnect/ui-react": "^2.3.1",
+    "encoding": "^0.1.13",
     "next": "^13.5.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }
