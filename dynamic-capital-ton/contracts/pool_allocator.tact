@@ -26,6 +26,7 @@ struct DepositEvent {
   dctAmount: Int;
   fxRate: Int;
   tonTxHash: Slice;
+  timestamp: Int;
 }
 
 contract TonPoolAllocator {
@@ -159,6 +160,8 @@ contract TonPoolAllocator {
     Slice investorKey = forwardPayload.loadBitsSlice(256);
     Int usdtAmount = forwardPayload.loadCoins();
     require(usdtAmount == jettonAmount, "allocator: amount mismatch");
+    Int dctAmount = forwardPayload.loadCoins();
+    require(dctAmount > 0, "allocator: invalid dct amount");
     Int expectedFx = forwardPayload.loadUint(64);
     Slice tonTx = forwardPayload.loadBitsSlice(256);
 
@@ -177,10 +180,11 @@ contract TonPoolAllocator {
     DepositEvent event = DepositEvent{
       depositId: depositId,
       investorKey: investorKey,
-      usdtAmount: jettonAmount,
-      dctAmount: jettonAmount,
+      usdtAmount: usdtAmount,
+      dctAmount: dctAmount,
       fxRate: expectedFx,
       tonTxHash: tonTx,
+      timestamp: now(),
     };
     emit(event);
   }

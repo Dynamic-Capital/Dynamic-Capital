@@ -11,14 +11,18 @@ interface SwapInput {
   tonTxHash: string;
 }
 
-interface SwapEvent extends SwapInput {
+interface SwapPayload extends SwapInput {
+  dctAmount: number;
+}
+
+interface SwapEvent extends SwapPayload {
   dctAmount: number;
   timestamp: number;
 }
 
 interface RouterForward {
   value: number;
-  payload: SwapInput;
+  payload: SwapPayload;
 }
 
 interface JettonTransferInput extends SwapInput {
@@ -79,9 +83,12 @@ class MockAllocator {
     }
     const dctAmount = Number((input.usdtAmount / input.fxRate).toFixed(9));
     this.#dctVault += dctAmount;
-    return {
+    const payload: SwapPayload = {
       ...input,
       dctAmount,
+    };
+    return {
+      ...payload,
       timestamp: this.#now,
     };
   }
@@ -105,15 +112,22 @@ class MockAllocator {
     if (input.usdtAmount !== jettonAmount) {
       throw new Error("allocator: amount mismatch");
     }
+    const dctAmount = Number((jettonAmount / input.fxRate).toFixed(9));
+    const payload: SwapPayload = {
+      depositId: input.depositId,
+      investorKey: input.investorKey,
+      usdtAmount: jettonAmount,
+      dctAmount,
+      fxRate: input.fxRate,
+      tonTxHash: input.tonTxHash,
+    };
     this.#routerForwards.push({
       value: forwardTonAmount,
-      payload: input,
+      payload,
     });
-    this.#dctVault += jettonAmount;
+    this.#dctVault += dctAmount;
     return {
-      ...input,
-      usdtAmount: jettonAmount,
-      dctAmount: jettonAmount,
+      ...payload,
       timestamp: this.#now,
     };
   }
@@ -215,7 +229,7 @@ Deno.test("jetton transfers must originate from configured wallet", () => {
     fxRate: 2,
     tonTxHash: "0xbeef",
   });
-  assertEquals(event.dctAmount, 200);
+  assertEquals(event.dctAmount, 100);
   assertEquals(allocator.routerForwards, [
     {
       value: 0.75,
@@ -223,6 +237,7 @@ Deno.test("jetton transfers must originate from configured wallet", () => {
         depositId: "1",
         investorKey: "0xabc",
         usdtAmount: 200,
+        dctAmount: 100,
         fxRate: 2,
         tonTxHash: "0xbeef",
       },
@@ -301,6 +316,7 @@ Deno.test("jetton transfer enforces forward ton amount", () => {
       depositId: "42",
       investorKey: "0xface",
       usdtAmount: 150,
+      dctAmount: 50,
       fxRate: 3,
       tonTxHash: "0xcafe",
     },
