@@ -25,17 +25,27 @@ an optional scope suffix to keep names concise, pronounceable, and unambiguous.
 
 ## Function Abbreviations
 
-| Function     | Abbreviation | Description                                           | Example Name                      |
-| ------------ | ------------ | ----------------------------------------------------- | --------------------------------- |
-| Core Module  | `CM`         | Foundational service or orchestrator logic.           | `DC-CM` → Dynamic Core Module     |
-| Token        | `TK`         | Fungible or non-fungible token artifacts.             | `DCT-TK` → Dynamic Capital Token  |
-| Oracle       | `OR`         | Data feeds, inference engines, and pricing oracles.   | `AGI-OR` → AGI Oracle             |
-| Signal       | `SG`         | Alerting, strategy signals, or telemetry dispatchers. | `DC-SG` → Dynamic Capital Signals |
-| Governance   | `GV`         | Voting, policy, or treasury oversight modules.        | `DCT-GV` → Governance Layer       |
-| Onboarding   | `ON`         | User activation and setup flows.                      | `TT-ON` → TON Onboarding          |
-| Verification | `VR`         | Identity, compliance, or proof-of-humanity logic.     | `TT-VR` → TON Verification        |
-| Pricing      | `PR`         | Market data valuation and pricing strategies.         | `AGI-PR` → Oracle Pricing         |
-| Burn Logic   | `BL`         | Supply contraction mechanics and retirement events.   | `DCT-BL` → DCT Burn Logic         |
+| Function                  | Abbreviation | Description                                                           | Example Name                                    |
+| ------------------------- | ------------ | --------------------------------------------------------------------- | ----------------------------------------------- |
+| Version Sequence          | `00`         | Release metadata and baseline numbering for intelligence services.    | `AGI-00` → AGI Baseline Release                 |
+| Core Module               | `CM`         | Foundational service or orchestrator logic.                           | `DC-CM` → Dynamic Core Module                   |
+| Token                     | `TK`         | Fungible or non-fungible token artifacts.                             | `DCT-TK` → Dynamic Capital Token                |
+| Oracle                    | `OR`         | Data feeds, inference engines, and pricing oracles.                   | `AGI-OR` → AGI Oracle                           |
+| Signal                    | `SG`         | Alerting, strategy signals, or telemetry dispatchers.                 | `DC-SG` → Dynamic Capital Signals               |
+| Governance                | `GV`         | Voting, policy, or treasury oversight modules.                        | `DCT-GV` → Governance Layer                     |
+| Onboarding                | `ON`         | User activation and setup flows.                                      | `TT-ON` → TON Onboarding                        |
+| Verification              | `VR`         | Identity, compliance, or proof-of-humanity logic.                     | `TT-VR` → TON Verification                      |
+| Pricing                   | `PR`         | Market data valuation and pricing strategies.                         | `AGI-PR` → Oracle Pricing                       |
+| Burn Logic                | `BL`         | Supply contraction mechanics and retirement events.                   | `DCT-BL` → DCT Burn Logic                       |
+| AGI-to-AGS Evolution      | `AGS`        | Transition programs guiding AGI toward superintelligence milestones.  | `AGI-AGS` → AGI to AGS Evolution Initiative     |
+| GDPR Compliance           | `GDPR`       | EU General Data Protection Regulation controls and attestations.      | `DC-GDPR-2024` → GDPR Compliance Program        |
+| HIPAA Compliance          | `HIPAA`      | Healthcare data privacy and security safeguards for HIPAA workloads.  | `DC-HIPAA-2024` → HIPAA Compliance Program      |
+| ISMS Governance           | `ISMS`       | ISO 27001-aligned information security management system operations.  | `DC-ISMS-27001-2024` → ISMS Governance Stack    |
+| PCI Security              | `PCI`        | Payment Card Industry Data Security Standard enforcement activities.  | `DC-PCI-2024-L1` → PCI DSS Level 1 Operations   |
+| SOC 1 Assurance           | `SOC1`       | Financial control design, evidence gathering, and audit coordination. | `DC-SOC1-2024-T2` → SOC 1 Type 2 Readiness      |
+| SOC 2 Assurance           | `SOC2`       | Trust Services Criteria monitoring and attestation programs.          | `DC-SOC2-2024-T2` → SOC 2 Type 2 Readiness      |
+| TON Liquidity             | `TON`        | Bridges, liquidity pools, and trading venues for the TON ecosystem.   | `DCT-TON` → DCT / TON Liquidity Pair            |
+| Generic Payment Reference | `XXXXXX`     | Placeholder identifiers ingested from partner banking artefacts.      | `DC-XXXXXX` → External Payment Reference Intake |
 
 > **Metaphorical aliases:** for creative modules, layer in thematic descriptors
 > (e.g., `AGI-OR-RES` for "Resonance" analytics, `DCT-BL-REGEN` for regenerative
@@ -59,17 +69,27 @@ infrastructure (e.g., `TT-ON-FE-API`).
 The table below documents current high-priority component names and their
 purposes. Expand it as new services are introduced.
 
-| Abbreviation | Full Name                            | Purpose                                                                               |
-| ------------ | ------------------------------------ | ------------------------------------------------------------------------------------- |
-| `DC-CM-API`  | Dynamic Core Module API              | Central orchestration surface exposing protocol capabilities to integrators.          |
-| `DC-SG-FE`   | Dynamic Capital Signals Frontend     | Trader- and operator-facing interface for signal visualization.                       |
-| `AGI-OR-API` | AGI Oracle API Layer                 | Machine intelligence endpoint delivering forecasts, pricing, and research insights.   |
-| `AGI-PR-DB`  | Oracle Pricing Database              | Historical market store backing forecasting and pricing experiments.                  |
-| `TT-ON-FE`   | TON Onboarding Frontend              | Guided onboarding experience for Telegram and TON participants.                       |
-| `TT-VR-API`  | TON Verification API                 | KYC/AML verification checks interfacing with TON-native identity providers.           |
-| `DCT-TK-SC`  | Dynamic Capital Token Smart Contract | Canonical token contract defining total supply, minting rules, and transfer policies. |
-| `DCT-BL-SC`  | DCT Burn Logic Smart Contract        | Deflationary jetton logic executing scheduled or event-driven burn mechanics.         |
-| `DCT-GV-CFG` | Governance Layer Config              | Policy definitions, quorum thresholds, and treasury rules for on-chain governance.    |
+| Abbreviation         | Full Name                            | Purpose                                                                               |
+| -------------------- | ------------------------------------ | ------------------------------------------------------------------------------------- |
+| `AGI-00`             | AGI Baseline Release Sequence        | Versioned metadata pipeline for AGI dictionary and research intelligence outputs.     |
+| `AGI-AGS`            | AGI to AGS Evolution Initiative      | Quantum-native training and evaluation program guiding AGI toward AGS milestones.     |
+| `AGI-OR-API`         | AGI Oracle API Layer                 | Machine intelligence endpoint delivering forecasts, pricing, and research insights.   |
+| `AGI-PR-DB`          | Oracle Pricing Database              | Historical market store backing forecasting and pricing experiments.                  |
+| `DC-CM-API`          | Dynamic Core Module API              | Central orchestration surface exposing protocol capabilities to integrators.          |
+| `DC-GDPR-2024`       | GDPR Compliance Program 2024         | EU GDPR evidence pack, audits, and reporting automation.                              |
+| `DC-HIPAA-2024`      | HIPAA Compliance Program 2024        | Healthcare data privacy and security attestation workflow.                            |
+| `DC-ISMS-27001-2024` | ISMS Governance Stack 2024           | ISO 27001-aligned information security management controls and reviews.               |
+| `DC-PCI-2024-L1`     | PCI DSS Level 1 Operations 2024      | Cardholder data environment hardening and auditor coordination.                       |
+| `DC-SG-FE`           | Dynamic Capital Signals Frontend     | Trader- and operator-facing interface for signal visualization.                       |
+| `DC-SOC1-2024-T2`    | SOC 1 Type 2 Readiness 2024          | Financial control testing and evidence management for SOC 1 reports.                  |
+| `DC-SOC2-2024-T2`    | SOC 2 Type 2 Readiness 2024          | Trust Services Criteria monitoring, alerting, and compliance documentation.           |
+| `DC-XXXXXX`          | External Payment Reference Intake    | Placeholder capture for transaction codes sourced from partner banking slips.         |
+| `DCT-BL-SC`          | DCT Burn Logic Smart Contract        | Deflationary jetton logic executing scheduled or event-driven burn mechanics.         |
+| `DCT-GV-CFG`         | Governance Layer Config              | Policy definitions, quorum thresholds, and treasury rules for on-chain governance.    |
+| `DCT-TK-SC`          | Dynamic Capital Token Smart Contract | Canonical token contract defining total supply, minting rules, and transfer policies. |
+| `DCT-TON`            | DCT / TON Liquidity Pair             | Liquidity routing, market making, and settlement support for the TON pair.            |
+| `TT-ON-FE`           | TON Onboarding Frontend              | Guided onboarding experience for Telegram and TON participants.                       |
+| `TT-VR-API`          | TON Verification API                 | KYC/AML verification checks interfacing with TON-native identity providers.           |
 
 ## Stewardship Checklist
 
@@ -120,81 +140,10 @@ undefined prefixes, functions, or scopes:
 npm exec deno run -- --allow-read dynamic_naming/scan_missing_names.ts
 ```
 
-The latest scan surfaced the following codes that need naming definitions:
+The latest scan now completes without unresolved codes after registering the
+compliance, liquidity, and release functions:
 
-### AGI-00
-
-- **Issue:** `00` is not a registered function code.
-- **Locations:**
-  - `docs/open_source_dictionary_apis.md`
-
-### AGI-AGS
-
-- **Issue:** `AGS` is not a registered function code.
-- **Locations:**
-  - `docs/dynamic-agi-quantum-native-training.md`
-
-### DC-GDPR-2024
-
-- **Issue:** `GDPR` is not a registered function code.
-- **Locations:**
-  - `apps/web/components/dynamic-portfolio/home/ComplianceCertificates.tsx`
-  - `docs/compliance/README.md`
-  - `docs/compliance/certificates.json`
-  - `docs/compliance/gdpr.md`
-
-### DC-HIPAA-2024
-
-- **Issue:** `HIPAA` is not a registered function code.
-- **Locations:**
-  - `apps/web/components/dynamic-portfolio/home/ComplianceCertificates.tsx`
-  - `docs/compliance/README.md`
-  - `docs/compliance/certificates.json`
-  - `docs/compliance/hipaa.md`
-
-### DC-ISMS-27001-2024
-
-- **Issue:** `ISMS` is not a registered function code.
-- **Locations:**
-  - `apps/web/components/dynamic-portfolio/home/ComplianceCertificates.tsx`
-  - `docs/compliance/README.md`
-  - `docs/compliance/certificates.json`
-  - `docs/compliance/iso-27001.md`
-
-### DC-PCI-2024-L1
-
-- **Issue:** `PCI` is not a registered function code.
-- **Locations:**
-  - `apps/web/components/dynamic-portfolio/home/ComplianceCertificates.tsx`
-  - `docs/compliance/README.md`
-  - `docs/compliance/certificates.json`
-  - `docs/compliance/pci-dss-level1.md`
-
-### DC-SOC1-2024-T2
-
-- **Issue:** `SOC1` is not a registered function code.
-- **Locations:**
-  - `docs/compliance/README.md`
-  - `docs/compliance/certificates.json`
-  - `docs/compliance/soc1-type2.md`
-
-### DC-SOC2-2024-T2
-
-- **Issue:** `SOC2` is not a registered function code.
-- **Locations:**
-  - `apps/web/components/dynamic-portfolio/home/ComplianceCertificates.tsx`
-  - `docs/compliance/README.md`
-  - `docs/compliance/certificates.json`
-  - `docs/compliance/soc2-type2.md`
-
-### DC-XXXXXX
-
-- **Issue:** `XXXXXX` is not a registered function code.
-- **Locations:**
-  - `supabase/functions/telegram-bot/bank-parsers.ts`
-
-### DCT-TON
-
-- **Issue:** `TON` is not a registered function code.
-- **Locations:**
-  - `dynamic/trading/algo/trading_core.py`
+```bash
+npm exec deno run -- --allow-read dynamic_naming/scan_missing_names.ts
+No missing component names detected for discovered codes.
+```

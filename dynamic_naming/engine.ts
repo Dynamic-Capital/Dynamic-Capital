@@ -69,6 +69,12 @@ const DEFAULT_PREFIXES: readonly PrefixDefinition[] = [
 
 const DEFAULT_FUNCTIONS: readonly FunctionDefinition[] = [
   {
+    code: "00",
+    name: "Version Sequence",
+    description:
+      "Release metadata scaffolding and baseline numbering for intelligence services.",
+  },
+  {
     code: "CM",
     name: "Core Module",
     description: "Foundational orchestration or service logic.",
@@ -112,6 +118,60 @@ const DEFAULT_FUNCTIONS: readonly FunctionDefinition[] = [
     code: "BL",
     name: "Burn Logic",
     description: "Supply contraction mechanics and retirement events.",
+  },
+  {
+    code: "AGS",
+    name: "AGI-to-AGS Evolution",
+    description:
+      "Transition programs guiding AGI capabilities toward superintelligence milestones.",
+  },
+  {
+    code: "GDPR",
+    name: "GDPR Compliance",
+    description:
+      "Controls, audits, and reporting for EU General Data Protection Regulation obligations.",
+  },
+  {
+    code: "HIPAA",
+    name: "HIPAA Compliance",
+    description:
+      "Healthcare data privacy and security safeguards aligned with HIPAA requirements.",
+  },
+  {
+    code: "ISMS",
+    name: "ISMS Governance",
+    description:
+      "ISO 27001-aligned information security management system operations and reviews.",
+  },
+  {
+    code: "PCI",
+    name: "PCI Security",
+    description:
+      "Payment Card Industry Data Security Standard enforcement and attestation workflows.",
+  },
+  {
+    code: "SOC1",
+    name: "SOC 1 Assurance",
+    description:
+      "Financial controls design, evidence gathering, and audit support for SOC 1 reports.",
+  },
+  {
+    code: "SOC2",
+    name: "SOC 2 Assurance",
+    description:
+      "Trust Services Criteria controls and monitoring for SOC 2 examinations.",
+  },
+  {
+    code: "TON",
+    name: "TON Liquidity",
+    description:
+      "Bridges, trading pairs, and liquidity infrastructure for the TON ecosystem.",
+  },
+  {
+    code: "XXXXXX",
+    name: "Generic Payment Reference",
+    description:
+      "Placeholder transaction identifiers captured from external banking artefacts.",
   },
 ] as const;
 
