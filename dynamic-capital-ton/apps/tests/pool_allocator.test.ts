@@ -2,6 +2,17 @@ import {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { Buffer } from "node:buffer";
+import { beginCell, toNano } from "npm:@ton/core";
+import {
+  DEFAULT_FORWARD_DESTINATION,
+  DEFAULT_FORWARD_RESPONSE,
+  OP_JETTON_TRANSFER,
+  createDepositForwardPayload,
+  createJettonTransferBody,
+  decodeAllocatorForwardPayload,
+  normalizeHex,
+} from "./helpers/ton.ts";
 
 interface SwapInput {
   depositId: string;
@@ -321,4 +332,84 @@ Deno.test("jetton transfer enforces forward ton amount", () => {
       tonTxHash: "0xcafe",
     },
   });
+});
+
+Deno.test("tip-3 transfer payload carries allocator deposit fields", () => {
+  const forwardPayload = createDepositForwardPayload({
+    depositId: 42n,
+    investorKey: "0xface",
+    usdtAmount: 150n,
+    dctAmount: 50n,
+    expectedFx: 3n,
+    tonTxHash: "0xcafe",
+  });
+
+  const forwardTonAmount = toNano("1.25");
+  const body = createJettonTransferBody({
+    jettonAmount: 150n,
+    destination: DEFAULT_FORWARD_DESTINATION,
+    responseDestination: DEFAULT_FORWARD_RESPONSE,
+    forwardTonAmount,
+    forwardPayload,
+  });
+
+  const slice = body.beginParse();
+  assertEquals(slice.loadUint(32), OP_JETTON_TRANSFER);
+  assertEquals(slice.loadUintBig(64), 0n);
+  assertEquals(slice.loadCoins(), 150n);
+  assertEquals(
+    slice.loadAddress()?.toString(),
+    DEFAULT_FORWARD_DESTINATION.toString(),
+  );
+  assertEquals(
+    slice.loadAddress()?.toString(),
+    DEFAULT_FORWARD_RESPONSE.toString(),
+  );
+  assertEquals(slice.loadMaybeRef(), null);
+  assertEquals(slice.loadCoins(), forwardTonAmount);
+
+  const forwardCell = slice.loadRef();
+  const decoded = decodeAllocatorForwardPayload(forwardCell);
+  assertEquals(decoded.depositId, 42n);
+  assertEquals(decoded.investorKey, normalizeHex("0xface"));
+  assertEquals(decoded.usdtAmount, 150n);
+  assertEquals(decoded.dctAmount, 50n);
+  assertEquals(decoded.expectedFx, 3n);
+  assertEquals(decoded.tonTxHash, normalizeHex("0xcafe"));
+  slice.endParse();
+});
+
+Deno.test("forward payload rejects non-deposit opcodes", () => {
+  const invalidForward = beginCell()
+    .storeUint(0xdeadbeef, 32)
+    .storeUint(1n, 64)
+    .storeBuffer(Buffer.from(new Uint8Array(32)))
+    .storeCoins(1n)
+    .storeCoins(1n)
+    .storeUint(1n, 64)
+    .storeBuffer(Buffer.from(new Uint8Array(32).fill(1)))
+    .endCell();
+
+  assertThrows(
+    () => decodeAllocatorForwardPayload(invalidForward),
+    Error,
+    "allocator: unsupported op",
+  );
+});
+
+Deno.test("forward payload rejects zero dct amount", () => {
+  const forwardPayload = createDepositForwardPayload({
+    depositId: 1n,
+    investorKey: "0xabc",
+    usdtAmount: 10n,
+    dctAmount: 0n,
+    expectedFx: 1n,
+    tonTxHash: "0xdef",
+  });
+
+  assertThrows(
+    () => decodeAllocatorForwardPayload(forwardPayload),
+    Error,
+    "allocator: invalid dct amount",
+  );
 });
