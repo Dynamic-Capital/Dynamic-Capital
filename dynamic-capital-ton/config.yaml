@@ -47,3 +47,12 @@ themePasses:
       name: Community Theme Pass
       defaultPriority: 60
       contentUri: "ipfs://dynamic-capital/theme/community.json"
+
+network:
+  liteservers:
+    - host: 31.57.199.1
+      port: 5053
+      publicKeyBase64: Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=
+    - host: 163.5.62.1
+      port: 5053
+      publicKeyBase64: Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=

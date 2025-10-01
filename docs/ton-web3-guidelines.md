@@ -32,6 +32,11 @@ keep the TON surfaces aligned with the broader platform roadmap.
 - **Access to a TON wallet** with deployment permissions for the DNS resolver
   and storage uploads (multisig recommended per
   [`config.yaml`](../dynamic-capital-ton/config.yaml)).
+- **Pinned lite servers** — reference the curated endpoints in the
+  [`config.yaml`](../dynamic-capital-ton/config.yaml) `network.liteservers` list
+  (`31.57.199.1:5053` and `163.5.62.1:5053`, shared `publicKeyBase64`
+  `Ug3YgtwUydgkFaxJdvtYkcsRlJZra7UrA95vOE1ZzW0=`) when configuring tonlib
+  clients or fall back to TON Access for redundancy.
 
 > **Tip:** Run `npm run format` before committing documentation updates so the
 > repo-wide formatter normalizes Markdown tables.
@@ -55,7 +60,8 @@ keep the TON surfaces aligned with the broader platform roadmap.
    `UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G`, and Tonviewer image hash)
    so operations can reconcile blockchain explorers with the repo state, and
    capture the upstream collection metadata snapshot
-   (`https://dns.ton.org/collection.json`) for provenance.
+   ([`https://dns.ton.org/collection.json`](https://dns.ton.org/collection.json),
+   last verified 2025-10-01) for provenance.
 4. **Verify propagation** using `toncli dns resolve <domain>` before promoting
    front-end links or Mini App deep links.
 5. **Renew before expiry**; add an Ops reminder alongside the `PHASE_06_OPS.md`
