@@ -164,7 +164,7 @@ cell pack_auction(slice max_bid_address, int max_bid_amount, int auction_end_tim
             ;; if owner send bid right after auction he can restore it by transfer resonse message
             store_data(index, collection_address, owner_address, content, domain, auction, now());
         } else {
-            throw_unless(407, msg_value >= muldiv(max_bid_amount, 105, 100)); ;; 5% greater then previous bid
+            throw_unless(407, msg_value >= muldiv(max_bid_amount, 105, 100)); ;; 5% greater than previous bid
             int amount_to_send = (max_bid_amount > my_balance - min_tons_for_storage()) ? (my_balance - min_tons_for_storage()) : max_bid_amount;
             if (amount_to_send > 0) {
                 send_msg(max_bid_address, amount_to_send, op::outbid_notification, cur_lt(), null(), 1); ;; pay transfer fees separately
