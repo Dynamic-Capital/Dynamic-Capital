@@ -48,19 +48,49 @@ Dynamic Capital guides first-time and seasoned investors through one coordinated
 
 ### Stage 1 — Onboard & Orient
 - [ ] Align hero copy, visuals, and analytics events across `/` and `/miniapp` to keep the welcome promise identical.
+  - Reuse the same headline, subheadline, and supporting copy in both hero sections.
+  - Confirm the hero art direction (illustration, animation, or photo) stays consistent and adapts responsively.
+  - Emit a shared analytics event name and payload when the **Continue to Home** CTA is tapped.
 - [ ] Build personalized welcome states on `/investor` and `/miniapp/home`, tracking taps on the **Explore Home** CTA.
+  - Surface the same personalization tokens (name, risk profile, onboarding checklist) in both experiences.
+  - Ensure authentication gates enable Telegram profile data to hydrate the web view and vice versa.
+  - Record **Explore Home** CTA engagements with a unified event schema for funnel comparisons.
 
 ### Stage 2 — Research & Readiness
 - [ ] Serve the same data source to `/token` and `/miniapp/fund`, validating metric parity.
+  - Point both clients to the canonical fund metrics endpoint with matching query parameters.
+  - Add automated tests or dashboards that flag drift across supply, utility, and allocation values.
+  - Document cache/refresh policies so latency optimizations do not fork the numbers presented.
 - [ ] Standardize alert formatting and the **Follow Signals** CTA across `/investor` and `/miniapp/signals`.
+  - Harmonize typography, iconography, and urgency color tokens for each alert severity level.
+  - Keep mentor commentary slots and AGI tooltips in identical positions.
+  - Instrument the **Follow Signals** CTA with shared analytics and success states.
 - [ ] Enable near-real-time syncing between `/investor` and `/miniapp/watchlist` edits.
+  - Stream watchlist mutations through a central pub/sub layer with optimistic UI support.
+  - Resolve conflicts with a clear last-write-wins or merge rule documented for product and support teams.
+  - Provide user feedback (toasts or banners) confirming cross-platform synchronization.
 
 ### Stage 3 — Execute & Monitor
 - [ ] Match guardrails, order flows, and the **Place a Trade** CTA between `/investor` and `/miniapp/trade`.
+  - Audit risk limits, position sizing helpers, and confirmation dialogs for parity.
+  - Validate that order review summaries display identical data points before submission.
+  - Track conversion events on **Place a Trade** with the same funnel step naming.
 - [ ] Mirror portfolio calculations and labeling between `/investor` overview and `/miniapp/overview`.
+  - Centralize portfolio math (returns, allocations, cash buffers) in a shared service or library.
+  - Reuse label copy and tooltip definitions to avoid investor confusion.
+  - Render performance charts with equivalent axes, scales, and time range presets.
 
 ### Stage 4 — Support & Upkeep
 - [ ] Connect mentor routing, transcripts, and satisfaction tracking across `/support` and `/miniapp/mentorship`.
+  - Route mentor assignments through the same availability engine for both surfaces.
+  - Store conversation transcripts in a unified repository with consistent retention rules.
+  - Trigger satisfaction surveys with identical questions and scoring logic.
 - [ ] Centralize billing and status updates so changes on `/investor` account tools appear instantly in `/miniapp/account`.
+  - Share billing webhooks and account status events through a common notification service.
+  - Synchronize UI badges and messaging when membership tiers or payment states change.
+  - Maintain a single audit trail that support can reference regardless of entry point.
 - [ ] Trigger beginner-friendly surveys after mentorship and account sessions to confirm clarity and confidence.
+  - Launch surveys with tailored copy based on the session type (mentorship vs. account maintenance).
+  - Capture qualitative feedback alongside a confidence score to monitor improvements over time.
+  - Feed survey results into the product analytics stack for follow-up experiments.
 

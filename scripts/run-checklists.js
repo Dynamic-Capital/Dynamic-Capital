@@ -126,6 +126,17 @@ const TASK_LIBRARY = {
       "Parses the automated trading build checklist and reports completion status per section.",
     ],
   },
+  "web-stage1-report": {
+    id: "web-stage1-report",
+    label:
+      "Summarize Stage 1 implementation alignment checklist (node scripts/checklists/web-stage1.mjs)",
+    command: "node scripts/checklists/web-stage1.mjs",
+    optional: false,
+    docs: ["docs/web-site-map.md"],
+    notes: [
+      "Parses the Stage 1 implementation tasks in docs/web-site-map.md to confirm they remain intact.",
+    ],
+  },
   "fix-and-check": {
     id: "fix-and-check",
     label: "Run repo fix-and-check script (bash scripts/fix_and_check.sh)",
@@ -420,6 +431,13 @@ const CHECKLISTS = {
       { task: "smoke-miniapp", optional: true },
       { task: "smoke-tunnel", optional: true },
     ],
+  },
+  "web-stage1": {
+    name: "Web & Mini App Stage 1 Implementation Checklist",
+    doc: "docs/web-site-map.md",
+    description:
+      "Summarize Stage 1 onboarding alignment tasks from the unified site map.",
+    tasks: ["web-stage1-report"],
   },
   "ecosystem-deployment": {
     name: "Dynamic Capital Ecosystem Deployment Checklist",
