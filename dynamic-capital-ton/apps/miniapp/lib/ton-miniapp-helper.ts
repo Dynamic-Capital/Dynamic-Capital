@@ -65,9 +65,24 @@ function toBase64Url(buffer: Buffer): string {
     .replace(/=+$/u, "");
 }
 
+function normaliseBocEncoding(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  const base64 = trimmed.replace(/-/g, "+").replace(/_/g, "/");
+  const padding = base64.length % 4;
+  if (padding === 0) {
+    return base64;
+  }
+
+  return `${base64}${"=".repeat(4 - padding)}`;
+}
+
 export function deriveTonTransactionHash(boc: string): string | null {
   try {
-    const normalised = typeof boc === "string" ? boc.trim() : "";
+    const normalised = typeof boc === "string" ? normaliseBocEncoding(boc) : "";
     if (!normalised) {
       return null;
     }
