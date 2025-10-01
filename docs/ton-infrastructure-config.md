@@ -229,9 +229,9 @@ Use the following template to record each run of the configuration checklist.
 Copy the table into release notes or the runbook entry for the respective
 change.
 
-| Date       | Scope                                        | Operator | Links (PR, Supabase, Vault)                                                                          | Verification summary                                      | Notes                               |
-| ---------- | -------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ----------------------------------- |
-| YYYY-MM-DD | TON Sites / Storage / Proxy / Wallets / Node | Name     | `[PR](https://github.com/dynamic-capital/...)`<br>`[Supabase tx_logs](https://app.supabase.com/...)` | e.g. "Supabase health check 200 OK, Tonkeeper screenshot" | Follow-ups, incidents, pending work |
+| Date       | Scope                          | Operator | Evidence                                                                                                          | Verification summary                                      | Notes                             |
+| ---------- | ------------------------------ | -------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- | --------------------------------- |
+| YYYY-MM-DD | Sites / Storage / Proxy / Node | Name     | `[PR](https://github.com/dynamic-capital/...)`<br>`[tx_logs](https://app.supabase.com/...)`<br>`Vault: infra/...` | e.g. "Supabase health check 200 OK; Tonkeeper screenshot" | Follow-ups, incidents, next steps |
 
 Document completed runs in the shared runbook folder so handovers and audits can
 trace configuration changes end-to-end.
