@@ -42,22 +42,27 @@ _Last updated: 2025-09-17._
 
 ### 1.5 Site Map (Next.js & Supporting Endpoints)
 
-| Route         | Audience / Access       | Description & Key Hooks                                                                                                      |
-| ------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Route         | Audience / Access       | Description & Key Hooks                                                                                                                                                                                                                                                   |
+| ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/`           | Public                  | Marketing landing experience rendered via the `OnceLandingPage` composition with CTA handlers deep-linking to the Telegram bot for onboarding, plan selection, and payments. Brand gradients and the animated `BrandLogo` establish the Dynamic Capital look immediately. |
-| `/:locale`    | Public                  | Locale-aware alias that reuses the homepage component and layout providers while injecting locale content, keeping routing logic centralized. Locale shells inherit the same brand tokens so translated routes still surface the signature gradients. |
-| `/telegram`   | Authenticated ops staff | Rich dashboard for monitoring the Telegram bot, reviewing analytics, managing promos, and launching the embedded admin console. The dashboard bootstraps brand-aware providers so charts, alerts, and badges reuse the `dc-brand` palette. |
-| `/signal`     | Public CDN              | Serves the pre-rendered `_static/index.html` snapshot to host the marketing page without requiring runtime secrets. The static artifact bakes in the same gradient overlays and typography so the CDN host mirrors live branding. |
-| `/healthz`    | Ops & monitoring        | JSON health probe exposing status, timestamp, and environment metadata for uptime checks. Branding metadata (app name, environment tags) keeps monitoring dashboards aligned with Dynamic Capital terminology. |
-| `/api`        | Programmatic            | Baseline API heartbeat returning a simple payload with CORS headers for service-level probes. Responses include the branded service identifier so upstream monitors display the correct Dynamic Capital label. |
-| `/api/hello`  | Programmatic            | Demo JSON response plus preflight handler for smoke tests and sample integrations. Payload text references Dynamic Capital to validate that partner sandboxes surface the right branding. |
-| `/api/auth/*` | Authenticated           | NextAuth handler wired to the Supabase adapter and GitHub OAuth for secure console sign-in. Metadata passed to identity providers keeps OAuth consent screens consistent with Dynamic Capital’s brand naming. |
+| `/:locale`    | Public                  | Locale-aware alias that reuses the homepage component and layout providers while injecting locale content, keeping routing logic centralized. Locale shells inherit the same brand tokens so translated routes still surface the signature gradients.                     |
+| `/telegram`   | Authenticated ops staff | Rich dashboard for monitoring the Telegram bot, reviewing analytics, managing promos, and launching the embedded admin console. The dashboard bootstraps brand-aware providers so charts, alerts, and badges reuse the `dc-brand` palette.                                |
+| `/signal`     | Public CDN              | Serves the pre-rendered `_static/index.html` snapshot to host the marketing page without requiring runtime secrets. The static artifact bakes in the same gradient overlays and typography so the CDN host mirrors live branding.                                         |
+| `/healthz`    | Ops & monitoring        | JSON health probe exposing status, timestamp, and environment metadata for uptime checks. Branding metadata (app name, environment tags) keeps monitoring dashboards aligned with Dynamic Capital terminology.                                                            |
+| `/api`        | Programmatic            | Baseline API heartbeat returning a simple payload with CORS headers for service-level probes. Responses include the branded service identifier so upstream monitors display the correct Dynamic Capital label.                                                            |
+| `/api/hello`  | Programmatic            | Demo JSON response plus preflight handler for smoke tests and sample integrations. Payload text references Dynamic Capital to validate that partner sandboxes surface the right branding.                                                                                 |
+| `/api/auth/*` | Authenticated           | NextAuth handler wired to the Supabase adapter and GitHub OAuth for secure console sign-in. Metadata passed to identity providers keeps OAuth consent screens consistent with Dynamic Capital’s brand naming.                                                             |
 
 **Brand Alignment Notes**
 
-- Gradient overlays and `BrandLogo` variants are shared between SSR and static hosts so animations, typography, and color ramps stay synchronized across entry points.
-- Supabase-powered content pulls (hero KPIs, testimonials) are wrapped with brand-aware typography tokens so marketing copy preserves the Dynamic Capital tone.
-- CTA links encode `dynamic.capital` deep links that open the Telegram bot in a branded context, avoiding mismatched hostnames.
+- Gradient overlays and `BrandLogo` variants are shared between SSR and static
+  hosts so animations, typography, and color ramps stay synchronized across
+  entry points.
+- Supabase-powered content pulls (hero KPIs, testimonials) are wrapped with
+  brand-aware typography tokens so marketing copy preserves the Dynamic Capital
+  tone.
+- CTA links encode `dynamic.capital` deep links that open the Telegram bot in a
+  branded context, avoiding mismatched hostnames.
 
 ### 1.6 Page Map (Landing `/` Experience)
 
@@ -80,10 +85,11 @@ _Last updated: 2025-09-17._
    culminating in closing CTAs that launch the Telegram workspace or reach
    support. Quote cards lean on `brand-alpha-weak` surfaces to keep the social
    section on-brand while maintaining readability.
-6. **Chat Assistant Widget** – Floating assistant managing open/minimized state,
-   persisting message history, logging to Supabase, and offering fallbacks when
-   AI responses fail. The widget enforces brand-accent borders/backgrounds so AI
-   replies never feel detached from the Dynamic Capital shell.
+6. **Legacy Chat Assistant Widget (removed)** – Former floating assistant that
+   managed open/minimized state, persisted message history, logged to Supabase,
+   and offered fallbacks when AI responses failed. Retain telemetry hooks in
+   case the experience returns so we can rehydrate the widget without
+   re-engineering analytics.
 
 ### 1.7 App Map (Telegram Operations Console)
 
@@ -129,13 +135,13 @@ the data dependencies that must be honored when scaling features.
 
 #### 1.8.1 UI Page Segments (`page.tsx`)
 
-| Route              | File                                                      | Description                                                                                          | Data & Service Dependencies                                                                                                                                           | Scalability Guardrails                                                                                                                                                                         |
-| ------------------ | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`                | `apps/web/app/page.tsx`                                   | Renders the Once Landing Page shell plus the Chat Assistant widget to funnel visitors into Telegram. | Client-side handlers trigger `window.open` deep links; `ChatAssistantWidget` depends on Supabase Edge (`ai-faq-assistant`) and local storage for history persistence. | Keep CTA handlers abstracted behind props so new flows (e.g., waitlists) swap in without editing Dynamic UI. If the widget grows, lazy-load it with `next/dynamic` to protect Core Web Vitals. |
-| `/:locale`         | `apps/web/app/[locale]/page.tsx`                          | Locale-aware alias that re-exports the root page to share layout and logic.                          | Relies on shared translation content loaded higher in the tree (planned `generateStaticParams`) and whichever copy management pipeline feeds the marketing team.      | Introduce localized metadata via `generateMetadata` and drive translations through a CMS or JSON bundle per locale; keep re-export pattern to avoid drift between languages.                   |
-| `/telegram`        | `apps/web/app/telegram/page.tsx`                          | Authenticated dashboard entry that mounts `BotDashboard`.                                            | Consumes Supabase Edge functions (`analytics-data`, `test-bot-status`) via React Query, plus session context from `Providers`.                                        | Split panels into feature modules (`components/telegram/*`) as they grow, and gate new admin features behind feature flags stored in Supabase for controlled rollout.                          |
-| `*` (404 fallback) | `apps/web/app/not-found.tsx`                              | Friendly not-found boundary with CTA back to the homepage.                                           | Depends on the global layout and theme providers.                                                                                                                     | Keep copy short and avoid hardcoded product names so the view stays valid as branding evolves; consider wiring telemetry for missing routes to Supabase logs.                                  |
-| Error boundaries   | `apps/web/app/error.tsx`, `apps/web/app/global-error.tsx` | Client-rendered error shells for route-level and root-level failures.                                | Receive error objects from Next.js runtime and render minimal HTML.                                                                                                   | When adding async server components, ensure thrown errors remain serializable; hook observability (Sentry/Logflare) via a shared error reporter imported in these files.                       |
+| Route              | File                                                      | Description                                                                                    | Data & Service Dependencies                                                                                                                                      | Scalability Guardrails                                                                                                                                                       |
+| ------------------ | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                | `apps/web/app/page.tsx`                                   | Renders the Once Landing Page shell with the `MultiLlmLandingPage` hero and marketing content. | Currently static marketing copy with Dynamic UI components; optional chroma background pulled from `dynamicUI.effects`.                                          | Preserve shell composition so future CTAs or widgets can slot in without reshaping the layout; consider lazy-loading interactive add-ons if they return.                     |
+| `/:locale`         | `apps/web/app/[locale]/page.tsx`                          | Locale-aware alias that re-exports the root page to share layout and logic.                    | Relies on shared translation content loaded higher in the tree (planned `generateStaticParams`) and whichever copy management pipeline feeds the marketing team. | Introduce localized metadata via `generateMetadata` and drive translations through a CMS or JSON bundle per locale; keep re-export pattern to avoid drift between languages. |
+| `/telegram`        | `apps/web/app/telegram/page.tsx`                          | Authenticated dashboard entry that mounts `BotDashboard`.                                      | Consumes Supabase Edge functions (`analytics-data`, `test-bot-status`) via React Query, plus session context from `Providers`.                                   | Split panels into feature modules (`components/telegram/*`) as they grow, and gate new admin features behind feature flags stored in Supabase for controlled rollout.        |
+| `*` (404 fallback) | `apps/web/app/not-found.tsx`                              | Friendly not-found boundary with CTA back to the homepage.                                     | Depends on the global layout and theme providers.                                                                                                                | Keep copy short and avoid hardcoded product names so the view stays valid as branding evolves; consider wiring telemetry for missing routes to Supabase logs.                |
+| Error boundaries   | `apps/web/app/error.tsx`, `apps/web/app/global-error.tsx` | Client-rendered error shells for route-level and root-level failures.                          | Receive error objects from Next.js runtime and render minimal HTML.                                                                                              | When adding async server components, ensure thrown errors remain serializable; hook observability (Sentry/Logflare) via a shared error reporter imported in these files.     |
 
 > **Future Locale Support** – When adding new locales, pair
 > `apps/web/app/[locale]/layout.tsx` with a localized metadata exporter and
