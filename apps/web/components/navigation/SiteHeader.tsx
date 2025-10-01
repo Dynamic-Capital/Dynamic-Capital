@@ -96,14 +96,24 @@ export function SiteHeader() {
           </Button>
           {user
             ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => signOut()}
-                className="hidden lg:inline-flex"
-              >
-                Sign out
-              </Button>
+              <>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary lg:inline-flex"
+                >
+                  <Link href="/profile">Profile</Link>
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => signOut()}
+                  className="hidden lg:inline-flex"
+                >
+                  Sign out
+                </Button>
+              </>
             )
             : (
               <Button

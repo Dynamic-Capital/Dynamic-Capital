@@ -1,7 +1,14 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { Session, User } from "@supabase/supabase-js";
+import {
+  type AuthError,
+  type OAuthResponse,
+  type Provider,
+  type Session,
+  type User,
+  type UserAttributes,
+} from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getProfile } from "@/integrations/supabase/queries";
@@ -19,6 +26,27 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
+  sendEmailOtp: (email: string) => Promise<{ error: AuthError | null }>;
+  signInWithEmailOtp: (
+    email: string,
+    token: string,
+  ) => Promise<{ error: AuthError | null }>;
+  signUpWithPhone: (
+    phone: string,
+    password: string,
+    metadata?: Record<string, unknown>,
+  ) => Promise<{ error: AuthError | null }>;
+  signInWithPhoneOtp: (phone: string) => Promise<{ error: AuthError | null }>;
+  verifyPhoneOtp: (
+    phone: string,
+    token: string,
+  ) => Promise<{ error: AuthError | null }>;
+  signInWithOAuth: (
+    provider: Provider,
+    options?: { redirectTo?: string; scopes?: string },
+  ) => Promise<OAuthResponse>;
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  updateUser: (updates: UserAttributes) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,19 +89,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  const buildRedirectUrl = (path?: string) => {
+    const resolveBase = () => {
+      if (typeof window !== "undefined") {
+        return window.location.origin;
+      }
+      return process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
+    };
+
+    const base = resolveBase();
+    if (!base) {
+      return undefined;
+    }
+
+    const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
+    if (!path || path === "/") {
+      return `${normalizedBase}/`;
+    }
+
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return `${normalizedBase}${normalizedPath}`;
+  };
+
   const signUp = async (
     email: string,
     password: string,
     firstName?: string,
     lastName?: string,
   ) => {
-    const getRedirectUrl = () => {
-      if (typeof window !== "undefined") {
-        return `${window.location.origin}/`;
-      }
-      return process.env.NEXT_PUBLIC_SITE_URL || undefined;
-    };
-    const redirectUrl = getRedirectUrl();
+    const redirectUrl = buildRedirectUrl();
     if (!redirectUrl) {
       console.warn(
         "NEXT_PUBLIC_SITE_URL is not set; auth emails may contain an invalid redirect URL.",
@@ -104,6 +148,100 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const sendEmailOtp = async (email: string) => {
+    const redirectUrl = buildRedirectUrl();
+    if (!redirectUrl) {
+      console.warn(
+        "NEXT_PUBLIC_SITE_URL is not set; magic link emails may contain an invalid redirect URL.",
+      );
+    }
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: redirectUrl,
+      },
+    });
+
+    return { error };
+  };
+
+  const signInWithEmailOtp = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: "email",
+    });
+
+    return { error };
+  };
+
+  const signUpWithPhone = async (
+    phone: string,
+    password: string,
+    metadata: Record<string, unknown> = {},
+  ) => {
+    const { error } = await supabase.auth.signUp({
+      phone,
+      password,
+      options: {
+        data: metadata,
+      },
+    });
+
+    return { error };
+  };
+
+  const signInWithPhoneOtp = async (phone: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      phone,
+    });
+
+    return { error };
+  };
+
+  const verifyPhoneOtp = async (phone: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: "sms",
+    });
+
+    return { error };
+  };
+
+  const signInWithOAuth = (
+    provider: Provider,
+    options: { redirectTo?: string; scopes?: string } = {},
+  ) => {
+    const fallbackRedirect = buildRedirectUrl();
+    return supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: options.redirectTo ?? fallbackRedirect,
+        scopes: options.scopes,
+      },
+    });
+  };
+
+  const resetPassword = async (email: string) => {
+    const redirectTo = buildRedirectUrl("/login?mode=reset");
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+
+    return { error };
+  };
+
+  const updateUser = async (updates: UserAttributes) => {
+    const redirectTo = buildRedirectUrl();
+    const { error } = await supabase.auth.updateUser(updates, {
+      emailRedirectTo: redirectTo,
+    });
+
+    return { error };
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     try {
@@ -127,6 +265,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signOut,
     isAdmin,
+    sendEmailOtp,
+    signInWithEmailOtp,
+    signUpWithPhone,
+    signInWithPhoneOtp,
+    verifyPhoneOtp,
+    signInWithOAuth,
+    resetPassword,
+    updateUser,
   };
 
   return (
