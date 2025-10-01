@@ -9,7 +9,10 @@ down process start-up.  The other dynamic shims – such as
 ``dynamic_agents`` and ``dynamic_helpers`` – already switched to a lazy
 loading model powered by :mod:`dynamic_agents._lazy`.  This module mirrors that
 approach so callers retain the concise import path without paying the import
-penalty unless a specific builder is accessed.
+penalty unless a specific builder is accessed.  The same mapping is also used
+to expose the :mod:`dynamic_crawl` primitives so legacy notebooks can import
+the crawler via ``dynamic_builders`` without eagerly importing the crawling
+engine.
 """
 
 from __future__ import annotations
@@ -23,6 +26,12 @@ _BUILDER_EXPORTS = {
     "algorithms.python.awesome_api": ("AwesomeAPISnapshotBuilder",),
     "algorithms.python.dynamic_market_snapshot": ("DynamicMarketSnapshotBuilder",),
     "algorithms.python.dynamic_market_index": ("DynamicMarketIndexBuilder",),
+    "dynamic_crawl": (
+        "CrawlPlan",
+        "DynamicCrawler",
+        "FetchPayload",
+        "FetchResult",
+    ),
 }
 
 _LAZY = build_lazy_namespace(_BUILDER_EXPORTS, default_module="algorithms.python.core_orchestration")

@@ -5,7 +5,10 @@ integration used for trade and operations notifications.  Historically we
 eagerly imported every bot implementation which made importing
 ``dynamic_bots`` surprisingly expensive during cold starts.  We now reuse
 the shared :mod:`dynamic_agents._lazy` helpers to resolve symbols on
-demand while keeping backwards compatibility with legacy import paths.
+demand while keeping backwards compatibility with legacy import paths.  The
+same compatibility table now surfaces the :mod:`dynamic_crawl` primitives so
+automation tooling that historically loaded the crawler via ``dynamic_bots``
+continues to operate without modification.
 """
 
 from __future__ import annotations
@@ -35,6 +38,12 @@ _EXPORT_MAP = {
         "iter_element_bots",
         "get_element_bot",
         "search_element_bots",
+    ),
+    "dynamic_crawl": (
+        "CrawlPlan",
+        "DynamicCrawler",
+        "FetchPayload",
+        "FetchResult",
     ),
 }
 

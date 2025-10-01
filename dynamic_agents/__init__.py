@@ -6,7 +6,10 @@ namespace, but the concrete implementations now live in
 noticeable startup penalty for lightweight scripts.  To keep backwards
 compatibility *and* reduce the import overhead, this module proxies the
 symbols via :func:`importlib.import_module` so objects are materialised
-only when they are first accessed.
+only when they are first accessed.  The compatibility shim also forwards the
+``dynamic_crawl`` exports, allowing legacy orchestration layers that imported
+the crawler through ``dynamic_agents`` to continue working without pulling in
+the heavy agent stack eagerly.
 """
 
 from __future__ import annotations
@@ -65,6 +68,10 @@ __all__ = [
     "iter_element_agents",
     "get_element_agent",
     "search_element_agents",
+    "CrawlPlan",
+    "DynamicCrawler",
+    "FetchPayload",
+    "FetchResult",
 ]
 
 _LAZY = LazyNamespace(
@@ -94,6 +101,10 @@ _LAZY = LazyNamespace(
         "iter_element_agents": "dynamic_agents.elements",
         "get_element_agent": "dynamic_agents.elements",
         "search_element_agents": "dynamic_agents.elements",
+        "CrawlPlan": "dynamic_crawl",
+        "DynamicCrawler": "dynamic_crawl",
+        "FetchPayload": "dynamic_crawl",
+        "FetchResult": "dynamic_crawl",
     },
 )
 
@@ -150,6 +161,12 @@ if TYPE_CHECKING:  # pragma: no cover - import-time only
         iter_element_agents,
         get_element_agent,
         search_element_agents,
+    )
+    from dynamic_crawl import (
+        CrawlPlan,
+        DynamicCrawler,
+        FetchPayload,
+        FetchResult,
     )
 
 
