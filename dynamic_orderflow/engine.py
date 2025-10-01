@@ -6,12 +6,13 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from statistics import fmean
-from typing import Deque, Iterable, Mapping, MutableMapping
+from typing import Deque, Iterable, Mapping, MutableMapping, MutableSequence
 
 __all__ = [
     "OrderEvent",
     "OrderFlowWindow",
     "OrderFlowImbalance",
+    "OrderFlowOptimization",
     "DynamicOrderFlow",
 ]
 
@@ -192,6 +193,38 @@ class OrderFlowImbalance:
         }
 
 
+def _clamp(value: float, *, lower: float = 0.0, upper: float = 1.0) -> float:
+    return max(lower, min(upper, value))
+
+
+def _efficiency_score(*, intensity: float, latency: float) -> float:
+    balance_component = 1.0 - _clamp(intensity)
+    latency_component = _clamp(1.0 - min(max(latency, 0.0) / 2.5, 1.0))
+    return _clamp(0.55 * latency_component + 0.45 * balance_component)
+
+
+@dataclass(slots=True)
+class OrderFlowOptimization:
+    """Recommended adjustments derived from current orderflow telemetry."""
+
+    directives: tuple[str, ...]
+    efficiency: float
+    latency: float
+    imbalance: OrderFlowImbalance
+    notes: tuple[str, ...]
+
+    def as_dict(self) -> MutableMapping[str, object]:
+        payload: MutableMapping[str, object] = {
+            "directives": self.directives,
+            "efficiency": self.efficiency,
+            "latency": self.latency,
+            "imbalance": self.imbalance.as_dict(),
+        }
+        if self.notes:
+            payload["notes"] = self.notes
+        return payload
+
+
 @dataclass(slots=True)
 class DynamicOrderFlow:
     """High level manager for orderflow telemetry."""
@@ -233,3 +266,52 @@ class DynamicOrderFlow:
             "bias": imbalance.bias,
             "average_latency": self.average_latency(),
         }
+
+    def optimize(self) -> OrderFlowOptimization:
+        """Produce routing directives that balance latency and directional risk."""
+
+        imbalance = self.pressure()
+        latency = self.average_latency()
+        intensity = imbalance.intensity
+        directives: MutableSequence[str] = []
+        notes: MutableSequence[str] = []
+
+        if intensity > 0.65 and imbalance.dominant_side in {"buy", "sell"}:
+            directives.append(
+                f"buffer {imbalance.dominant_side} pressure with passive liquidity"
+            )
+        elif intensity < 0.2:
+            directives.append("introduce probing orders to map hidden liquidity")
+        else:
+            notes.append("directional pressure within comfort band")
+
+        if imbalance.bias > 0.6:
+            directives.append("route inventory to lean against buy skew")
+        elif imbalance.bias < 0.4:
+            directives.append("route inventory to lean against sell skew")
+        else:
+            notes.append("inventory distribution stable")
+
+        if latency > 1.5:
+            directives.append("reroute flow through low-latency pathways")
+        elif latency > 0.8:
+            notes.append("monitor latency drift")
+        else:
+            notes.append("latency envelope optimal")
+
+        efficiency = _efficiency_score(intensity=intensity, latency=latency)
+        if efficiency < 0.45:
+            directives.append("activate cross-venue smart order routing")
+        elif efficiency > 0.75:
+            notes.append("orderflow efficiency strong")
+
+        unique_directives = tuple(dict.fromkeys(directives))
+        unique_notes = tuple(dict.fromkeys(notes))
+
+        return OrderFlowOptimization(
+            directives=unique_directives,
+            efficiency=efficiency,
+            latency=latency,
+            imbalance=imbalance,
+            notes=unique_notes,
+        )
