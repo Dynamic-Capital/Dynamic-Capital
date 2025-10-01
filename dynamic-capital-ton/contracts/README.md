@@ -31,6 +31,12 @@ Refer to `config.yaml` for the default deployment parameters. The pool allocator
 exposed by the master contract, so deploy it alongside the jetton and reuse the
 same multisig administrator when configuring the vault.
 
+For multisig governance or hybrid custody setups the repository now also tracks
+the canonical FunC implementation of wallet v5 used across Dynamic Capital TON
+deployments (`wallet_v5.fc`). The contract is imported as-is from the upstream
+reference implementation so auditors can diff it directly against validator
+tooling and the TON blockchain sources.
+
 ## Theme collection deployment
 
 The Theme Pass collection (`theme/theme_collection.tact`) is a TIP-4 compliant
