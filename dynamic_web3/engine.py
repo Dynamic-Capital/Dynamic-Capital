@@ -15,6 +15,7 @@ __all__ = [
     "Web3Action",
     "NetworkHealthSummary",
     "Web3UnifiedBuild",
+    "Web3GoLiveReadiness",
     "DynamicWeb3Engine",
 ]
 
@@ -233,6 +234,36 @@ class Web3UnifiedBuild:
         self.average_utilisation = _clamp01(self.average_utilisation)
         self.aggregate_alerts = tuple(_normalise_identifier(alert) for alert in self.aggregate_alerts)
         self.aggregate_actions = tuple(self.aggregate_actions)
+        self.total_pending_transactions = _ensure_non_negative_int(self.total_pending_transactions)
+        self.metadata = MappingProxyType(_ensure_mapping(self.metadata))
+
+
+@dataclass(slots=True)
+class Web3GoLiveReadiness:
+    """Represents a go-live readiness assessment derived from a unified build."""
+
+    project: str
+    status: str
+    unified_build: Web3UnifiedBuild
+    ready_networks: tuple[str, ...]
+    networks_requiring_attention: tuple[str, ...]
+    blocking_alerts: tuple[str, ...]
+    critical_actions: tuple[Web3Action, ...]
+    total_pending_transactions: int
+    metadata: Mapping[str, object]
+
+    def __post_init__(self) -> None:
+        self.project = _normalise_identifier(self.project)
+        status = _normalise_category(self.status)
+        if status not in {"ready", "blocked", "attention"}:
+            raise ValueError("status must be ready, blocked, or attention")
+        self.status = status
+        self.ready_networks = tuple(_normalise_identifier(name) for name in self.ready_networks)
+        self.networks_requiring_attention = tuple(
+            _normalise_identifier(name) for name in self.networks_requiring_attention
+        )
+        self.blocking_alerts = tuple(_normalise_identifier(alert) for alert in self.blocking_alerts)
+        self.critical_actions = tuple(self.critical_actions)
         self.total_pending_transactions = _ensure_non_negative_int(self.total_pending_transactions)
         self.metadata = MappingProxyType(_ensure_mapping(self.metadata))
 
@@ -482,4 +513,62 @@ class DynamicWeb3Engine:
             aggregate_actions=tuple(aggregate_actions),
             total_pending_transactions=total_pending,
             metadata=metadata,
+        )
+
+    def compile_project_build(
+        self,
+        telemetry_map: Mapping[str, NetworkTelemetry],
+        *,
+        project_name: str = "Dynamic Capital",
+        metadata: Mapping[str, object] | None = None,
+    ) -> Web3GoLiveReadiness:
+        """Produce a go-live readiness summary for the supplied telemetry."""
+
+        unified = self.build_unified_status(telemetry_map)
+
+        ready: list[str] = []
+        attention: list[str] = []
+        blocking_alerts: list[str] = []
+        critical_actions: list[Web3Action] = []
+
+        for summary in unified.summaries:
+            network_ready = (
+                summary.reliability_score >= self.reliability_floor
+                and summary.utilisation <= self.congestion_threshold
+                and summary.average_latency_ms <= self.latency_target_ms
+                and summary.finality_gap == 0
+                and summary.contract_success_rate >= 0.9
+            )
+
+            if network_ready:
+                ready.append(summary.network)
+            else:
+                attention.append(summary.network)
+                blocking_alerts.extend(summary.alerts)
+                critical_actions.extend(
+                    action for action in summary.actions if action.priority == "high"
+                )
+
+        status = "ready"
+        if attention:
+            status = "blocked" if blocking_alerts else "attention"
+
+        combined_metadata: MutableMapping[str, object] = {
+            "project": project_name,
+            "average_reliability": unified.average_reliability,
+            "average_utilisation": unified.average_utilisation,
+            "evaluated_networks": unified.metadata.get("evaluated_networks", ()),
+        }
+        combined_metadata.update(_ensure_mapping(metadata))
+
+        return Web3GoLiveReadiness(
+            project=project_name,
+            status=status,
+            unified_build=unified,
+            ready_networks=tuple(ready),
+            networks_requiring_attention=tuple(attention),
+            blocking_alerts=tuple(blocking_alerts),
+            critical_actions=tuple(critical_actions),
+            total_pending_transactions=unified.total_pending_transactions,
+            metadata=combined_metadata,
         )
