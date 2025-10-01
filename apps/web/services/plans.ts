@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@/integrations/supabase/client";
 import { createClient } from "@/integrations/supabase/client";
 import type { Plan } from "@/types/plan";
 import { callEdgeFunction } from "@/config/supabase";
+import { getDefaultVipPlans } from "@/data/vip-plans";
 
 interface PlansResponse {
   plans?: RawPlan[] | null;
@@ -74,6 +75,9 @@ function normalizePlan(plan: RawPlan | null | undefined): Plan | null {
     )
     : [];
 
+  const tonAmount = coerceNumber(plan.ton_amount);
+  const dctAmount = coerceNumber(plan.dct_amount) ?? displayPrice;
+
   return {
     id: plan.id,
     name: plan.name,
@@ -90,16 +94,16 @@ function normalizePlan(plan: RawPlan | null | undefined): Plan | null {
     pricing_formula: plan.pricing_formula ?? null,
     last_priced_at: plan.last_priced_at ?? null,
     performance_snapshot: plan.performance_snapshot ?? null,
-    ton_amount: coerceNumber(plan.ton_amount),
-    dct_amount: coerceNumber(plan.dct_amount) ?? displayPrice,
+    ton_amount: tonAmount,
+    dct_amount: dctAmount,
     pricing: {
       basePrice,
       displayPrice,
       dynamicPrice,
       lastPricedAt: plan.last_priced_at ?? null,
       formula: plan.pricing_formula ?? null,
-      tonAmount: coerceNumber(plan.ton_amount),
-      dctAmount: coerceNumber(plan.dct_amount) ?? displayPrice,
+      tonAmount,
+      dctAmount,
       performanceSnapshot: plan.performance_snapshot ?? null,
     },
   };
@@ -121,6 +125,7 @@ async function fetchPlansFromSupabase(): Promise<Plan[]> {
     "id",
     "name",
     "price",
+    "base_price",
     "currency",
     "duration_months",
     "is_lifetime",
@@ -130,6 +135,8 @@ async function fetchPlansFromSupabase(): Promise<Plan[]> {
     "pricing_formula",
     "last_priced_at",
     "performance_snapshot",
+    "ton_amount",
+    "dct_amount",
   ].join(",");
 
   const { data, error } = await client
@@ -145,9 +152,19 @@ async function fetchPlansFromSupabase(): Promise<Plan[]> {
 }
 
 export async function fetchSubscriptionPlans(
-  options: { force?: boolean } = {},
+  options: {
+    force?: boolean;
+    callEdge?: typeof callEdgeFunction;
+    fetchFromSupabase?: () => Promise<Plan[]>;
+    getFallbackPlans?: () => Plan[];
+  } = {},
 ): Promise<Plan[]> {
-  const { force = false } = options;
+  const {
+    force = false,
+    callEdge = callEdgeFunction,
+    fetchFromSupabase: fetchFromDatabase = fetchPlansFromSupabase,
+    getFallbackPlans = getDefaultVipPlans,
+  } = options;
 
   if (force) {
     cachedPlans = null;
@@ -164,7 +181,7 @@ export async function fetchSubscriptionPlans(
 
   const request = (async () => {
     try {
-      const { data, error } = await callEdgeFunction<PlansResponse>("PLANS");
+      const { data, error } = await callEdge<PlansResponse>("PLANS");
       if (error) {
         throw new Error(error.message || "Unable to load subscription plans");
       }
@@ -174,15 +191,37 @@ export async function fetchSubscriptionPlans(
         return normalized;
       }
 
-      // If we received an empty result, fall back to a direct query to ensure
-      // live plans still render for admins and the landing page.
-      return await fetchPlansFromSupabase();
+      const supabasePlans = await fetchFromDatabase();
+      if (supabasePlans.length > 0) {
+        return supabasePlans;
+      }
+
+      console.info(
+        "No live subscription plans returned, using default VIP packages",
+      );
+      return getFallbackPlans();
     } catch (edgeError) {
       console.warn(
-        "Edge function `plans` failed, falling back to direct Supabase query",
+        "Edge function `plans` failed, attempting direct Supabase query",
         edgeError,
       );
-      return await fetchPlansFromSupabase();
+
+      try {
+        const supabasePlans = await fetchFromDatabase();
+        if (supabasePlans.length > 0) {
+          return supabasePlans;
+        }
+      } catch (supabaseError) {
+        console.error(
+          "Direct Supabase query failed while loading subscription plans",
+          supabaseError,
+        );
+      }
+
+      console.info(
+        "Serving default VIP packages while live pricing propagates",
+      );
+      return getFallbackPlans();
     }
   })();
 

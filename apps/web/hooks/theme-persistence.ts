@@ -1,3 +1,5 @@
+import type { CallEdgeFunction } from "@/config/supabase";
+
 export type Theme = "light" | "dark" | "system";
 
 export interface TelegramWebApp {
@@ -9,20 +11,6 @@ export interface TelegramWebApp {
 export interface ThemeSessionLike {
   access_token?: string | null;
 }
-
-export type CallEdgeFunction = <T>(
-  functionName: string,
-  options?: {
-    method?: string;
-    body?: unknown;
-    headers?: Record<string, string>;
-    token?: string;
-  },
-) => Promise<{
-  data?: T;
-  error?: { status: number; message: string };
-  status?: number;
-}>;
 
 export interface ThemeModeSetterDeps {
   setDynamicUiTheme: (value: Theme) => void;

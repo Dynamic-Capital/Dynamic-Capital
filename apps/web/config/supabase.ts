@@ -191,3 +191,5 @@ export const callEdgeFunction = async <T>(
 
   return { data, status: res.status };
 };
+
+export type CallEdgeFunction = typeof callEdgeFunction;
