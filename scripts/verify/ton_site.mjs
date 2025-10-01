@@ -341,6 +341,10 @@ const hostsToProbe = normalizedDomain
   ]
   : [];
 
+if (hostsToProbe.length > 0) {
+  record("tonsite_gateway_hosts", hostsToProbe.join(","));
+}
+
 const slugForHost = (host) => {
   if (!host) {
     return "unknown";
@@ -466,11 +470,20 @@ const evaluateGatewaysForHost = async (host) => {
 };
 
 let rootResult = null;
+const gatewayResults = [];
 for (const host of hostsToProbe) {
   const result = await evaluateGatewaysForHost(host);
+  gatewayResults.push(result);
   if (result.slug === "root") {
     rootResult = result;
   }
+}
+
+if (gatewayResults.length > 0) {
+  const summary = gatewayResults
+    .map((result) => `${result.slug}:${result.status}`)
+    .join(",");
+  record("tonsite_gateway_summary", summary);
 }
 
 if (rootResult) {
