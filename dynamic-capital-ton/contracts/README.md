@@ -71,3 +71,45 @@ To permanently lock an item's metadata, the DAO submits opcode `0x544d4332`
 flag and emits a `ThemeFrozenEvent` (`0x544d4532`). Once frozen, future content
 updates for that item will be rejected both on-chain and in the mirroring NFT
 item contracts. This protects milestone Theme Pass art drops after approval.
+
+## TON NFT opcode reference
+
+The following FunC helpers mirror the TIP-4/TIP-65 opcode layout used by the
+standard NFT collection and editable item interfaces. They are useful when
+building off-chain tooling or authoring low-level contracts that need to craft
+or decode NFT messages manually.
+
+### Opcode helpers
+
+- **TIP-4 base flow** — covers transfers, ownership updates, static data, and
+  royalty queries between NFT items, collections, and wallets.
+  - `transfer` (`0x5fcc3d14`): request ownership change from a wallet.
+  - `ownership_assigned` (`0x05138d91`): confirm a transfer to the new owner.
+  - `excesses` (`0xd53276db`): return unspent gas or bounced value.
+  - `get_static_data` (`0x2fcb26a2`): ask a collection for immutable metadata.
+  - `report_static_data` (`0x8b771735`): return the static metadata response.
+  - `get_royalty_params` (`0x693d3950`): request royalty configuration.
+  - `report_royalty_params` (`0xa8cb00ad`): respond with royalty fields.
+- **TIP-65 editable flow** — extends TIP-4 with editorship management hooks.
+  - `edit_content` (`0x1a0b9d51`): submit new content or metadata for review.
+  - `transfer_editorship` (`0x1c04412a`): hand off editing rights to another
+    address.
+  - `editorship_assigned` (`0x511a4463`): acknowledge the new editor.
+
+```func
+int op::transfer() asm "0x5fcc3d14 PUSHINT";
+int op::ownership_assigned() asm "0x05138d91 PUSHINT";
+int op::excesses() asm "0xd53276db PUSHINT";
+int op::get_static_data() asm "0x2fcb26a2 PUSHINT";
+int op::report_static_data() asm "0x8b771735 PUSHINT";
+int op::get_royalty_params() asm "0x693d3950 PUSHINT";
+int op::report_royalty_params() asm "0xa8cb00ad PUSHINT";
+
+;; NFTEditable
+int op::edit_content() asm "0x1a0b9d51 PUSHINT";
+int op::transfer_editorship() asm "0x1c04412a PUSHINT";
+int op::editorship_assigned() asm "0x511a4463 PUSHINT";
+```
+
+Keep this reference in sync with the official TON NFT standards to avoid
+breaking compatibility with wallets and indexers.
