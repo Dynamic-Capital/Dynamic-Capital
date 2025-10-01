@@ -90,6 +90,7 @@ export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isAssignPackageOpen, setIsAssignPackageOpen] = useState(false);
+  const [isInvitingUser, setIsInvitingUser] = useState(false);
 
   const [newUser, setNewUser] = useState({
     telegram_id: "",
@@ -166,7 +167,11 @@ export function UserManagement() {
     }
   }, [isAdmin, loadData]);
 
-  const addUser = () => {
+  const addUser = async () => {
+    if (isInvitingUser) {
+      return;
+    }
+
     try {
       if (!newUser.first_name || !newUser.email) {
         toast({
@@ -177,12 +182,39 @@ export function UserManagement() {
         return;
       }
 
-      // For now, just show a message that manual user creation will be handled by admins
+      setIsInvitingUser(true);
+
+      const response = await fetch("/api/admin/invite-user", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          email: newUser.email,
+          firstName: newUser.first_name,
+          lastName: newUser.last_name || undefined,
+          role: newUser.role,
+          telegramId: newUser.telegram_id || undefined,
+          username: newUser.username || undefined,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload?.ok) {
+        const description =
+          (payload && "error" in payload && typeof payload.error === "string")
+            ? payload.error
+            : "Failed to send invitation email";
+        toast({
+          title: "Invite failed",
+          description,
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
-        title: "Info",
-        description:
-          "Manual user creation feature will be implemented. Users should sign up through the auth system.",
-        variant: "default",
+        title: "Invite sent",
+        description: `We emailed ${newUser.email} an invitation link.`,
       });
 
       setNewUser({
@@ -201,6 +233,8 @@ export function UserManagement() {
         description: "Failed to add user",
         variant: "destructive",
       });
+    } finally {
+      setIsInvitingUser(false);
     }
   };
 
@@ -459,8 +493,12 @@ export function UserManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={addUser} className="w-full">
-                  Add User
+                <Button
+                  onClick={addUser}
+                  className="w-full"
+                  disabled={isInvitingUser}
+                >
+                  {isInvitingUser ? "Sending invite…" : "Add User"}
                 </Button>
               </div>
             </DialogContent>
