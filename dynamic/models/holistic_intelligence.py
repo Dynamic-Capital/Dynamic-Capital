@@ -399,4 +399,3 @@ def _coerce_signals(
         raise ValueError(f"{label} must contain at least one signal")
 
     return tuple(resolved)
-
