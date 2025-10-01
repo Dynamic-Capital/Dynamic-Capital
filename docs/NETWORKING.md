@@ -28,6 +28,9 @@ following guidance to expose the services and control access.
   [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) for
   configuration). TON DNS requires registration through TON DNS marketplace and
   resolver contract deployment.
+- The resolver contract for `dynamiccapital.ton` is
+  `EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo` (verified via
+  [TON Contract Verifier](https://verifier.ton.org/EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo)).
 - Run `deno run -A scripts/configure-digitalocean-dns.ts --dry-run` to inspect
   the planned DNS state for `dynamic-capital.lovable.app`. Remove `--dry-run`
   once the plan looks correct to apply changes through `doctl`. The script keeps
