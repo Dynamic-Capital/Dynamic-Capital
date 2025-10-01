@@ -103,6 +103,10 @@ keep the TON surfaces aligned with the broader platform roadmap.
 - After upload, call the health-check endpoint in the Mini App
   ([`link-wallet`](../dynamic-capital-ton/supabase/functions/link-wallet/index.ts))
   to ensure Supabase connectivity from the TON-hosted site.
+- Generate or rotate the TON Site certificate by running
+  `npm run ton:generate-adnl`; record the resulting ADNL address under
+  [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) → `ton_site`
+  and archive the private key in the operations vault before publishing.
 
 ### Application integration
 

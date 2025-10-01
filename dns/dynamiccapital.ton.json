@@ -19,6 +19,15 @@
       "source": "https://dns.ton.org/collection.json"
     }
   },
+  "ton_site": {
+    "adnl_address": "0:192631d3bc9dd251d3b6d5cd4e807c68e53e1b6126499d8c5db3e7bb4ccc9243",
+    "public_key_base64": "0PiJ9VlwxSxHP7XyEV5sKzgj9jkgWOH8bCWdSPM5LGc=",
+    "generated": {
+      "command": "npm run ton:generate-adnl",
+      "timestamp": "2025-10-01T10:03:05Z",
+      "note": "ADNL derived from Ed25519 key pair for TON Site certificate provisioning"
+    }
+  },
   "records": [
     {
       "type": "A",
@@ -54,6 +63,7 @@
     "Records must be set through TON DNS resolver contract",
     "Register domain at TON DNS marketplace (e.g., dns.ton.org)",
     "Update resolver_contract address after deployment",
+    "TON Site ADNL 0:192631d3bc9dd251d3b6d5cd4e807c68e53e1b6126499d8c5db3e7bb4ccc9243 (see ton_site.public_key_base64)",
     "Verify resolution through TON DNS tools before going live"
   ]
 }
