@@ -164,6 +164,15 @@ class StemCellProfile:
 class DynamicStemCell:
     """Aggregate signals to steer stem cell programs in real time."""
 
+    _STAT_ATTRIBUTES = (
+        "potency",
+        "plasticity",
+        "stress_resilience",
+        "metabolic_reserve",
+        "activation",
+        "signal_strength",
+    )
+
     def __init__(self, *, history: int = 72) -> None:
         if history <= 0:
             raise ValueError("history must be positive")
@@ -197,19 +206,21 @@ class DynamicStemCell:
         if not self._signals:
             raise RuntimeError("no stem cell signals captured")
 
-        potency = self._weighted_average("potency")
-        plasticity = self._weighted_average("plasticity")
-        stress_resilience = self._weighted_average("stress_resilience")
-        metabolic_reserve = self._weighted_average("metabolic_reserve")
-        activation = self._weighted_average("activation")
-        signal_strength = self._weighted_average("signal_strength")
+        averages, lineage_counter = self._signal_statistics()
+
+        potency = averages["potency"]
+        plasticity = averages["plasticity"]
+        stress_resilience = averages["stress_resilience"]
+        metabolic_reserve = averages["metabolic_reserve"]
+        activation = averages["activation"]
+        signal_strength = averages["signal_strength"]
 
         environment_alignment = self._environment_alignment(context, stress_resilience, metabolic_reserve)
         potency_score = _clamp(0.55 * potency + 0.35 * plasticity + 0.1 * environment_alignment)
         stability_index = _clamp(0.6 * stress_resilience + 0.3 * metabolic_reserve + 0.1 * environment_alignment)
         differentiation_readiness = self._differentiation_readiness(context, activation, signal_strength, plasticity)
 
-        lineage_bias = self._dominant_lineages()
+        lineage_bias = self._dominant_lineages(lineage_counter)
         alerts = self._alert_flags(context, potency_score, stability_index, differentiation_readiness)
         interventions = self._recommended_interventions(context, potency_score, stability_index, differentiation_readiness)
         monitoring_focus = self._monitoring_focus(lineage_bias)
@@ -235,11 +246,30 @@ class DynamicStemCell:
             narrative=narrative,
         )
 
-    def _weighted_average(self, attribute: str) -> float:
-        total_weight = sum(signal.weight for signal in self._signals)
-        if total_weight == 0:
-            return 0.0
-        return sum(getattr(signal, attribute) * signal.weight for signal in self._signals) / total_weight
+    def _signal_statistics(self) -> tuple[dict[str, float], Counter[str]]:
+        totals = {attr: 0.0 for attr in self._STAT_ATTRIBUTES}
+        total_weight = 0.0
+        lineage_counter: Counter[str] = Counter()
+
+        for signal in self._signals:
+            weight = signal.weight
+            total_weight += weight
+            totals["potency"] += signal.potency * weight
+            totals["plasticity"] += signal.plasticity * weight
+            totals["stress_resilience"] += signal.stress_resilience * weight
+            totals["metabolic_reserve"] += signal.metabolic_reserve * weight
+            totals["activation"] += signal.activation * weight
+            totals["signal_strength"] += signal.signal_strength * weight
+
+            if signal.lineage_hint:
+                lineage_counter[signal.lineage_hint] += 1
+
+        if total_weight == 0.0:
+            return {attr: 0.0 for attr in self._STAT_ATTRIBUTES}, lineage_counter
+
+        scale = 1.0 / total_weight
+        averages = {attr: totals[attr] * scale for attr in self._STAT_ATTRIBUTES}
+        return averages, lineage_counter
 
     def _environment_alignment(
         self,
@@ -273,9 +303,11 @@ class DynamicStemCell:
             readiness_core -= 0.05
         return _clamp(readiness_core)
 
-    def _dominant_lineages(self) -> tuple[str, ...]:
-        counter: Counter[str] = Counter(signal.lineage_hint for signal in self._signals if signal.lineage_hint)
-        return tuple(lineage for lineage, _ in counter.most_common(4))
+    def _dominant_lineages(self, counter: Counter[str] | None = None) -> tuple[str, ...]:
+        lineage_counter = counter or Counter(
+            signal.lineage_hint for signal in self._signals if signal.lineage_hint
+        )
+        return tuple(lineage for lineage, _ in lineage_counter.most_common(4))
 
     def _alert_flags(
         self,
