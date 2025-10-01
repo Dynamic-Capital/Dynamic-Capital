@@ -37,6 +37,9 @@ TON Sites so they resolve under `.ton` domains.
     `scripts/build-miniapp.sh`). The build script writes the Mini App bundle to
     `supabase/functions/miniapp/static`; `apps/miniapp/out` is not generated in
     this repository.
+  - The build completes with `scripts/assert-miniapp-bundle.mjs`, which fails if
+    `supabase/functions/miniapp/static/index.html` is missing or suspiciously
+    small. Re-run the build and address any reported errors before continuing.
   - Verify the compiled assets under `supabase/functions/miniapp/static` and
     confirm `supabase/functions/miniapp/manifest.json` reflects the release
     metadata.
