@@ -38,6 +38,8 @@ interface IndexedSegment extends TranslationSegment {
   normalizedTargetThaana: string;
   normalizedTargetLatin: string;
   sourceTokens: string[];
+  romanizedTargetLatin?: string;
+  romanizedTargetTokens: string[];
 }
 
 const BASE_SEGMENTS: RawTranslationSegment[] = (
@@ -134,6 +136,10 @@ export class TranslationMemory {
     };
 
     const normalizedSourceLatin = normalizeLatin(enriched.source);
+    const romanizations = extractRomanizations(metadata);
+    const romanizedTargetLatin = romanizations.length
+      ? normalizeLatin(romanizations.join(" "))
+      : undefined;
 
     return {
       ...enriched,
@@ -143,6 +149,12 @@ export class TranslationMemory {
         transliterateThaanaToLatin(enriched.target),
       ),
       sourceTokens: tokenizeLatin(normalizedSourceLatin),
+      romanizedTargetLatin,
+      romanizedTargetTokens: dedupeTokens(
+        romanizations.flatMap((variant) =>
+          tokenizeLatin(normalizeLatin(variant))
+        ),
+      ),
     };
   }
 
@@ -205,10 +217,14 @@ function similarity(query: PreparedQuery, segment: IndexedSegment): number {
   const crossLatinScore = query.containsThaana && query.latin.length
     ? levenshteinSimilarity(query.latin, segment.normalizedTargetLatin)
     : 0;
+  const romanizationScore =
+    query.latin.length && segment.romanizedTargetLatin
+      ? levenshteinSimilarity(query.latin, segment.romanizedTargetLatin)
+      : 0;
 
   let score = query.containsThaana
     ? Math.max(thaanaScore, englishScore, crossLatinScore)
-    : Math.max(englishScore, thaanaScore);
+    : Math.max(englishScore, thaanaScore, romanizationScore);
 
   if (query.containsThaana) {
     const includesQuery = segment.normalizedTargetThaana.includes(query.thaana);
@@ -221,10 +237,25 @@ function similarity(query: PreparedQuery, segment: IndexedSegment): number {
   }
 
   const lexicalOverlap = overlapRatio(query.latinTokens, segment.sourceTokens);
+  const romanizedOverlap = segment.romanizedTargetTokens.length
+    ? overlapRatio(query.latinTokens, segment.romanizedTargetTokens)
+    : 0;
 
   if (lexicalOverlap > 0) {
     score = Math.min(1, score + lexicalOverlap * 0.25);
-  } else if (englishScore < 0.4) {
+  }
+
+  if (!query.containsThaana && romanizedOverlap > 0) {
+    score = Math.min(1, score + romanizedOverlap * 0.2);
+  }
+
+  if (
+    !query.containsThaana &&
+    lexicalOverlap === 0 &&
+    romanizedOverlap === 0 &&
+    englishScore < 0.4 &&
+    romanizationScore < 0.4
+  ) {
     score *= 0.5;
   }
 
@@ -252,4 +283,21 @@ function overlapRatio(queryTokens: string[], sourceTokens: string[]): number {
   }
 
   return overlap / queryTokens.length;
+}
+
+function extractRomanizations(metadata?: SegmentMetadata): string[] {
+  if (!metadata?.tags?.length) {
+    return [];
+  }
+
+  const prefix = "roman:";
+  return metadata.tags
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.toLowerCase().startsWith(prefix))
+    .map((tag) => tag.slice(prefix.length))
+    .filter(Boolean);
+}
+
+function dedupeTokens(tokens: string[]): string[] {
+  return [...new Set(tokens)];
 }
