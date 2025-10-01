@@ -289,7 +289,7 @@ def _build_scrapegraphai_spec() -> CrawlerSpec:
     metadata = CrawlerMetadata(
         name="ScrapeGraphAI",
         language="Python",
-        homepage="https://github.com/ScrapeGraphAI/Scrapegraph",
+        homepage="https://github.com/ScrapeGraphAI/Scrapegraph-ai",
         license="MIT",
         description="Prompt-driven scraping pipelines orchestrated through graph logic.",
     )
@@ -470,19 +470,34 @@ def _build_scrapegraphai_plan(job: CrawlJob, config: CrawlerConfig) -> CrawlerPl
             indent=2,
         ),
     )
+    requirements_file = PlanFile(
+        path=f"crawlers/{slug}/requirements.txt",
+        content=(
+            "scrapegraphai @ "
+            "git+https://github.com/ScrapeGraphAI/Scrapegraph-ai\n"
+        ),
+    )
     notes = (
         "Ensure the configured LLM provider is available and credentials are exported as environment variables.",
         "ScrapeGraphAI will orchestrate multi-step extraction flows based on the natural-language description.",
+        "Install ScrapeGraphAI from the GitHub source via the generated requirements file before execution.",
     )
     environment = {
         "SCRAPEGRAPH_OUTPUT_PATH": job.destination,
     }
     if config.llm_provider:
         environment["SCRAPEGRAPH_LLM"] = config.llm_provider
+    install_command = (
+        f"python -m pip install --upgrade --disable-pip-version-check "
+        f"-r {requirements_file.path}"
+    )
     return CrawlerPlan(
-        commands=(f"python -m scrapegraphai.cli run {config_file.path}",),
+        commands=(
+            install_command,
+            f"python -m scrapegraphai.cli run {config_file.path}",
+        ),
         environment=environment,
-        files=(config_file,),
+        files=(config_file, requirements_file),
         notes=notes,
     )
 
