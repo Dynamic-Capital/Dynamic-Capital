@@ -46,9 +46,13 @@ keep the TON surfaces aligned with the broader platform roadmap.
    canonical addresses live in the `app_config` table created by
    [`schema.sql`](../dynamic-capital-ton/supabase/schema.sql) and mirrored in
    [`config.yaml`](../dynamic-capital-ton/config.yaml).
-3. **Verify propagation** using `toncli dns resolve <domain>` before promoting
+3. **Document resolver deployments** by updating
+   [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) with the live
+   contract address (`EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo` as of
+   this commit) and linking the Ton Verifier receipt for auditors.
+4. **Verify propagation** using `toncli dns resolve <domain>` before promoting
    front-end links or Mini App deep links.
-4. **Renew before expiry**; add an Ops reminder alongside the `PHASE_06_OPS.md`
+5. **Renew before expiry**; add an Ops reminder alongside the `PHASE_06_OPS.md`
    workstream when TTL thresholds approach.
 
 ### Resolver reference table
