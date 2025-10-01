@@ -37,6 +37,8 @@ contract ThemeCollection with NftCollection {
     itemCode: Cell,
     royalty: RoyaltyParams,
   ) {
+    self.requireBaseWorkchain(owner, "theme: owner workchain");
+    self.requireBaseWorkchain(dao, "theme: dao workchain");
     self.owner = owner;
     self.dao = dao;
     self.collectionContent = collectionContent;
@@ -107,6 +109,11 @@ contract ThemeCollection with NftCollection {
 
   fun requireDao(sender: Address) {
     require(sender == self.dao, "theme: unauthorized");
+  }
+
+  fun requireBaseWorkchain(addr: Address, err: String) {
+    StdAddress components = parseStdAddress(addr.asSlice());
+    require(components.workchain == 0, err);
   }
 
   get fun get_collection_data(): (Int, Cell, Address, Cell) {
