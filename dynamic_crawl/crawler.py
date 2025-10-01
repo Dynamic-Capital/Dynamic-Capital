@@ -2,7 +2,16 @@ from __future__ import annotations
 
 """Asynchronous breadth-first crawler with pluggable fetch and parsing stages."""
 
-from asyncio import CancelledError, Event, Queue, create_task, gather, get_running_loop
+from asyncio import (
+    CancelledError,
+    Event,
+    Lock,
+    Queue,
+    create_task,
+    gather,
+    get_running_loop,
+    sleep,
+)
 from dataclasses import dataclass
 from inspect import isawaitable
 from time import perf_counter
@@ -28,6 +37,9 @@ __all__ = [
 ]
 
 
+_EMPTY_HEADERS: Mapping[str, str] = MappingProxyType({})
+
+
 @dataclass(frozen=True, slots=True)
 class CrawlPlan:
     """Description of a crawl task waiting to be fetched."""
@@ -41,8 +53,8 @@ class FetchPayload:
     """Raw response information returned by the fetcher."""
 
     status_code: int | None
-    headers: Mapping[str, str]
-    content: bytes | None
+    headers: Mapping[str, str] = _EMPTY_HEADERS
+    content: bytes | None = None
     elapsed: float | None = None
     error: Exception | None = None
 
@@ -84,6 +96,7 @@ Fetcher = Callable[[str], Awaitable[FetchPayload]]
 LinkExtractor = Callable[[FetchResult], Iterable[str]]
 UrlNormaliser = Callable[[str, str | None], str | None]
 ResultCallback = Callable[[FetchResult], Awaitable[None] | None]
+ShouldFollow = Callable[[FetchResult, str], bool]
 
 
 class DynamicCrawler:
@@ -99,11 +112,22 @@ class DynamicCrawler:
         fetcher: Fetcher | None = None,
         link_extractor: LinkExtractor | None = None,
         url_normaliser: UrlNormaliser | None = None,
+        should_follow: ShouldFollow | None = None,
+        min_request_interval: float | None = None,
+        retry_attempts: int = 2,
+        retry_for_statuses: Iterable[int] | None = None,
+        backoff_factor: float = 0.5,
     ) -> None:
         if max_depth < 0:
             raise ValueError("max_depth must be non-negative")
         if max_concurrency <= 0:
             raise ValueError("max_concurrency must be a positive integer")
+        if min_request_interval is not None and min_request_interval < 0:
+            raise ValueError("min_request_interval must be non-negative")
+        if retry_attempts < 0:
+            raise ValueError("retry_attempts must be non-negative")
+        if backoff_factor < 0:
+            raise ValueError("backoff_factor must be non-negative")
 
         self._max_depth = max_depth
         self._max_concurrency = max_concurrency
@@ -112,6 +136,14 @@ class DynamicCrawler:
         self._fetcher = fetcher or self._default_fetcher
         self._link_extractor = link_extractor or self._default_link_extractor
         self._url_normaliser = url_normaliser or self._default_url_normaliser
+        self._should_follow = should_follow or self._default_should_follow
+        self._min_request_interval = min_request_interval
+        self._retry_attempts = retry_attempts
+        default_statuses = (429, 500, 502, 503, 504)
+        self._retry_statuses = set(retry_for_statuses) if retry_for_statuses else set(default_statuses)
+        self._backoff_factor = backoff_factor
+        self._last_request: MutableMapping[str, float] = {}
+        self._throttle_locks: dict[str, Lock] = {}
 
     async def crawl(
         self,
@@ -145,42 +177,38 @@ class DynamicCrawler:
                     plan = await queue.get()
                 except CancelledError:
                     break
-                if stop_event.is_set():
+
+                try:
+                    if stop_event.is_set() or (limit is not None and len(results) >= limit):
+                        stop_event.set()
+                        continue
+
+                    fetch_result = await self._execute_fetch(plan)
+                    results.append(fetch_result)
+
+                    if on_result is not None:
+                        callback_result = on_result(fetch_result)
+                        if isawaitable(callback_result):
+                            await callback_result  # type: ignore[arg-type]
+
+                    if limit is not None and len(results) >= limit:
+                        stop_event.set()
+
+                    if (
+                        not stop_event.is_set()
+                        and fetch_result.error is None
+                        and plan.depth < self._max_depth
+                    ):
+                        for link in self._link_extractor(fetch_result):
+                            if not self._should_follow(fetch_result, link):
+                                continue
+                            next_url = self._url_normaliser(link, fetch_result.url)
+                            if not next_url or next_url in seen:
+                                continue
+                            seen.add(next_url)
+                            await queue.put(CrawlPlan(url=next_url, depth=plan.depth + 1))
+                finally:
                     queue.task_done()
-                    continue
-
-                if limit is not None and stop_event.is_set():
-                    queue.task_done()
-                    continue
-
-                fetch_result = await self._execute_fetch(plan)
-                results.append(fetch_result)
-
-                if on_result is not None:
-                    callback_result = on_result(fetch_result)
-                    if isawaitable(callback_result):
-                        await callback_result  # type: ignore[arg-type]
-
-                if limit is not None and len(results) >= limit:
-                    stop_event.set()
-
-                if (
-                    not stop_event.is_set()
-                    and fetch_result.error is None
-                    and fetch_result.content
-                    and plan.depth < self._max_depth
-                ):
-                    for link in self._link_extractor(fetch_result):
-                        next_url = self._url_normaliser(link, fetch_result.url)
-                        if not next_url or next_url in seen:
-                            continue
-                        seen.add(next_url)
-                        await queue.put(CrawlPlan(url=next_url, depth=plan.depth + 1))
-
-                queue.task_done()
-
-                if stop_event.is_set() and queue.empty():
-                    break
 
         workers = [create_task(worker()) for _ in range(self._max_concurrency)]
 
@@ -195,30 +223,31 @@ class DynamicCrawler:
         return results if limit is None else results[:limit]
 
     async def _execute_fetch(self, plan: CrawlPlan) -> FetchResult:
-        try:
-            payload = await self._fetcher(plan.url)
-        except Exception as exc:  # pragma: no cover - network failures are acceptable
-            return FetchResult(
-                url=plan.url,
-                depth=plan.depth,
-                status_code=None,
-                headers=MappingProxyType({}),
-                content=None,
-                elapsed=None,
-                error=exc,
-            )
+        attempt = 0
+        delay = self._backoff_factor
 
-        headers = MappingProxyType(dict(payload.headers)) if payload.headers else MappingProxyType({})
+        while True:
+            await self._respect_rate_limit(plan.url)
 
-        return FetchResult(
-            url=plan.url,
-            depth=plan.depth,
-            status_code=payload.status_code,
-            headers=headers,
-            content=payload.content,
-            elapsed=payload.elapsed,
-            error=payload.error,
-        )
+            try:
+                payload = await self._fetcher(plan.url)
+            except Exception as exc:  # pragma: no cover - network failures are acceptable
+                payload = FetchPayload(
+                    status_code=None,
+                    headers=_EMPTY_HEADERS,
+                    content=None,
+                    elapsed=None,
+                    error=exc,
+                )
+
+            result = self._build_fetch_result(plan, payload)
+            if not self._should_retry(result, attempt):
+                return result
+
+            attempt += 1
+            if delay > 0:
+                await sleep(delay)
+                delay *= 2
 
     async def _default_fetcher(self, url: str) -> FetchPayload:
         loop = get_running_loop()
@@ -239,7 +268,7 @@ class DynamicCrawler:
             elapsed = perf_counter() - start
             return FetchPayload(
                 status_code=getattr(exc, "code", None),
-                headers=MappingProxyType({}),
+                headers=_EMPTY_HEADERS,
                 content=None,
                 elapsed=elapsed,
                 error=exc,
@@ -248,7 +277,7 @@ class DynamicCrawler:
             elapsed = perf_counter() - start
             return FetchPayload(
                 status_code=None,
-                headers=MappingProxyType({}),
+                headers=_EMPTY_HEADERS,
                 content=None,
                 elapsed=elapsed,
                 error=exc,
@@ -256,7 +285,7 @@ class DynamicCrawler:
         elapsed = perf_counter() - start
         return FetchPayload(
             status_code=status_code,
-            headers=MappingProxyType(dict(headers)),
+            headers=MappingProxyType(dict(headers)) if headers else _EMPTY_HEADERS,
             content=content,
             elapsed=elapsed,
         )
@@ -308,3 +337,57 @@ class DynamicCrawler:
             return None
 
         return urldefrag(absolute)[0]
+
+    @staticmethod
+    def _default_should_follow(result: FetchResult, link: str) -> bool:  # pragma: no cover - simple predicate
+        return True
+
+    def _should_retry(self, result: FetchResult, attempt: int) -> bool:
+        if self._retry_attempts == 0:
+            return False
+        if attempt >= self._retry_attempts:
+            return False
+        if result.error is not None:
+            return True
+        if result.status_code is not None and result.status_code in self._retry_statuses:
+            return True
+        return False
+
+    async def _respect_rate_limit(self, url: str) -> None:
+        if self._min_request_interval is None or self._min_request_interval == 0:
+            return
+        host = urlsplit(url).netloc
+        if not host:
+            return
+        lock = self._throttle_locks.get(host)
+        if lock is None:
+            lock = Lock()
+            self._throttle_locks[host] = lock
+        async with lock:
+            now = perf_counter()
+            last = self._last_request.get(host)
+            if last is not None:
+                wait_time = self._min_request_interval - (now - last)
+                if wait_time > 0:
+                    await sleep(wait_time)
+            self._last_request[host] = perf_counter()
+
+    @staticmethod
+    def _coerce_headers(headers: Mapping[str, str] | None) -> Mapping[str, str]:
+        if not headers:
+            return _EMPTY_HEADERS
+        if isinstance(headers, MappingProxyType):
+            return headers
+        return MappingProxyType(dict(headers))
+
+    def _build_fetch_result(self, plan: CrawlPlan, payload: FetchPayload) -> FetchResult:
+        headers = self._coerce_headers(payload.headers)
+        return FetchResult(
+            url=plan.url,
+            depth=plan.depth,
+            status_code=payload.status_code,
+            headers=headers,
+            content=payload.content,
+            elapsed=payload.elapsed,
+            error=payload.error,
+        )
