@@ -90,3 +90,4 @@ bun.lockb
 .project-cache/
 # Python bytecode cache directories
 __pycache__/
+dynamic-capital-ton/.bin/
