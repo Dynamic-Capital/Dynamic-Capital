@@ -1,6 +1,7 @@
 # TON Node Hardening Checklist
 
-Track the security posture of TON node hosts. Complete the checklist for each deployment and attach logs or evidence links.
+Track the security posture of TON node hosts. Complete the checklist for each
+deployment and attach logs or evidence links.
 
 - [ ] OS patched to latest stable release
 - [ ] Unused services disabled (`sshd`, `ufw`, etc. reviewed)
