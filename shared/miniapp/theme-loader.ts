@@ -8,7 +8,7 @@ const DEFAULT_CONTRAST_REQUIREMENT = 4.5;
 const SECONDARY_CONTRAST_REQUIREMENT = 3;
 const CONTENT_POLL_INTERVAL_MS = 60_000;
 
-type TonConnectAccountLike = {
+export type TonConnectAccountLike = {
   address?: string | null;
 };
 
