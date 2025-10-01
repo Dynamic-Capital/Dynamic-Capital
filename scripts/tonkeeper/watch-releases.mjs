@@ -3,6 +3,7 @@ import { URL } from "node:url";
 import { parseArgs } from "node:util";
 import { readFile, writeFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
+import process from "node:process";
 
 const DEFAULT_REPOS = [
   { owner: "tonkeeper", name: "tonkeeper-web", monitorReleases: true },
@@ -23,9 +24,28 @@ const { values } = parseArgs({
     format: { type: "string", default: "jsonl" },
     delay: { type: "string" },
     token: { type: "string" },
+    help: { type: "boolean", default: false },
     "no-defaults": { type: "boolean", default: false },
   },
 });
+
+function usage() {
+  return `Usage: watch-releases.mjs [options]\n\n` +
+    "Options:\n" +
+    "  --config <file>        JSON file containing a repos array\n" +
+    "  --repo owner/name[:releases]  Add repo and optionally skip release polling\n" +
+    "  --no-defaults         Ignore built-in Tonkeeper targets\n" +
+    "  --token <token>       GitHub token or rely on GITHUB_TOKEN/GH_TOKEN\n" +
+    "  --format <json|jsonl|table>  Output format (default jsonl)\n" +
+    "  --output <file>       Write results to file instead of stdout\n" +
+    "  --delay <ms>          Throttle between requests (default 120)\n" +
+    "  --help                Show this message\n";
+}
+
+if (values.help) {
+  console.log(usage());
+  process.exit(0);
+}
 
 const token = values.token ?? process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN;
 const throttleMs = values.delay ? Number.parseInt(values.delay, 10) : 120;
@@ -290,5 +310,6 @@ try {
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
   console.error(message);
+  console.error(usage());
   process.exitCode = 1;
 }

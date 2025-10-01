@@ -16,11 +16,31 @@ const { values } = parseArgs({
     token: { type: "string" },
     output: { type: "string" },
     format: { type: "string", default: "json" },
+    help: { type: "boolean", default: false },
     "include-forks": { type: "boolean", default: false },
     delay: { type: "string", default: "150" },
     limit: { type: "string" },
   },
 });
+
+function usage() {
+  return `Usage: github-snapshot.mjs [options]\n\n` +
+    "Options:\n" +
+    "  --org <name>           GitHub organisation to crawl (default tonkeeper)\n" +
+    "  --repo owner/name      Extra repository to include (repeatable)\n" +
+    "  --token <token>        GitHub token or rely on GITHUB_TOKEN/GH_TOKEN\n" +
+    "  --output <file>        Write results to file instead of stdout\n" +
+    "  --format <json|jsonl|pretty>  Output mode (default json)\n" +
+    "  --include-forks        Include forks in the organisation tally\n" +
+    "  --delay <ms>           Throttle between API calls (default 150)\n" +
+    "  --limit <count>        Limit number of organisation repos crawled\n" +
+    "  --help                 Show this message\n";
+}
+
+if (values.help) {
+  console.log(usage());
+  process.exit(0);
+}
 
 const token = values.token ?? process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN;
 const throttleMs = Number.parseInt(values.delay, 10);

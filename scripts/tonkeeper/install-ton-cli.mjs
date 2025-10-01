@@ -15,8 +15,27 @@ const { values } = parseArgs({
     pipx: { type: "boolean", default: false },
     pre: { type: "boolean", default: false },
     "dry-run": { type: "boolean", default: false },
+    help: { type: "boolean", default: false },
   },
 });
+
+function usage() {
+  return `Usage: install-ton-cli.mjs [options]\n\n` +
+    "Options:\n" +
+    "  --version <semver>   Install a specific toncli version\n" +
+    "  --python <command>   Python interpreter to use (default python3)\n" +
+    "  --upgrade            Upgrade the package if already installed\n" +
+    "  --global             Perform a system-wide installation (no --user)\n" +
+    "  --pipx               Use pipx instead of python -m pip\n" +
+    "  --pre                Allow pre-release versions\n" +
+    "  --dry-run            Print commands without executing them\n" +
+    "  --help               Show this message\n";
+}
+
+if (values.help) {
+  console.log(usage());
+  process.exit(0);
+}
 
 const pythonCommand = values.python ?? "python3";
 const requestedVersion = values.version;
@@ -151,5 +170,6 @@ async function main() {
 
 main().catch((error) => {
   console.error(error.message);
+  console.error(usage());
   process.exitCode = 1;
 });

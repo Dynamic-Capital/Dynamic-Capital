@@ -77,6 +77,8 @@ _Last run: 30 Sep 2025 (UTC) based on GitHub API snapshots._
 
 ## Automation script quick start
 
+> ℹ️ Each helper script supports `--help` to print its available options and defaults without making network calls.
+
 #### Release watcher
 
 The release watcher script can be executed locally or from CI runners with
