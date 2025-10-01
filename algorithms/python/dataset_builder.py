@@ -137,6 +137,19 @@ class DatasetWriter:
         payload = asdict(sample)
         payload["timestamp"] = sample.timestamp.isoformat()
         payload["features"] = list(sample.features)
+
+        metadata = sample.metadata
+        if metadata:
+            # ``pyarrow`` requires struct columns to define their child schema.
+            # By round-tripping through JSON we normalise any nested mapping
+            # into plain Python containers while preserving values. When the
+            # metadata is empty we explicitly store ``None`` so the column is
+            # treated as nullable instead of an empty struct, which Parquet
+            # cannot materialise.
+            payload["metadata"] = json.loads(json.dumps(metadata))
+        else:
+            payload["metadata"] = None
+
         return payload
 
     def _chunked_shuffle_records_for_tests(
