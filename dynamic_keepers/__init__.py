@@ -8,7 +8,10 @@ legacy path.  To keep those integrations working we lazily forward attribute
 access to the modern modules.  This mirrors the approach used by
 ``dynamic_engines`` and avoids importing heavy dependencies until a symbol is
 first accessed.  The shims now reuse :func:`dynamic_agents._lazy.build_lazy_namespace`
-so their caching behaviour matches the other compatibility packages.
+so their caching behaviour matches the other compatibility packages.  The same
+lazy map now forwards the :mod:`dynamic_crawl` exports as well so historical
+automation scripts that imported the crawler via ``dynamic_keepers`` continue
+to function.
 """
 
 from __future__ import annotations
@@ -75,6 +78,12 @@ _KEEPER_EXPORTS = {
         "iter_element_keepers",
         "get_element_keeper",
         "search_element_keepers",
+    ),
+    "dynamic_crawl": (
+        "CrawlPlan",
+        "DynamicCrawler",
+        "FetchPayload",
+        "FetchResult",
     ),
 }
 

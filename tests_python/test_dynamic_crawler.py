@@ -9,6 +9,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import dynamic_agents
+import dynamic_bots
+import dynamic_builders
+import dynamic_helpers
+import dynamic_keepers
 from dynamic_crawl.crawler import DynamicCrawler, FetchPayload, FetchResult
 
 
@@ -96,4 +101,22 @@ def test_should_follow_filters_links() -> None:
 
     visited = {result.url for result in results}
     assert visited == {"https://root", "https://keep"}
+
+
+def test_crawler_reexported_via_compatibility_packages() -> None:
+    from dynamic_crawl import CrawlPlan, FetchPayload as PublicFetchPayload, FetchResult as PublicFetchResult
+
+    modules = [
+        dynamic_agents,
+        dynamic_builders,
+        dynamic_keepers,
+        dynamic_helpers,
+        dynamic_bots,
+    ]
+
+    for module in modules:
+        assert getattr(module, "DynamicCrawler") is DynamicCrawler
+        assert getattr(module, "CrawlPlan") is CrawlPlan
+        assert getattr(module, "FetchPayload") is PublicFetchPayload
+        assert getattr(module, "FetchResult") is PublicFetchResult
 

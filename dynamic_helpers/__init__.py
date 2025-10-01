@@ -6,7 +6,10 @@ module proxies access to the canonical locations and loads them on demand.
 The original implementation eagerly walked a module map and imported the
 target as soon as :data:`__getattr__` was invoked.  We now leverage the
 shared :func:`dynamic_agents._lazy.build_lazy_namespace` helper so the
-implementation mirrors other shim packages and centralises caching.
+implementation mirrors other shim packages and centralises caching.  The
+mapping also proxies the :mod:`dynamic_crawl` primitives so older utilities
+that imported the crawler through ``dynamic_helpers`` continue to resolve to
+the modern implementation.
 """
 
 from __future__ import annotations
@@ -48,6 +51,12 @@ _HELPER_EXPORTS = {
         "SUCCESS_RETCODE",
     ),
     "dynamic_bridge": ("create_dynamic_mt5_bridge",),
+    "dynamic_crawl": (
+        "CrawlPlan",
+        "DynamicCrawler",
+        "FetchPayload",
+        "FetchResult",
+    ),
 }
 
 _LAZY = build_lazy_namespace(_HELPER_EXPORTS, default_module="dynamic_helpers.recycling")
