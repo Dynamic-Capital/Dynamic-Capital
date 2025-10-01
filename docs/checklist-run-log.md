@@ -8,8 +8,12 @@ is the best fit for the task at hand.
 
 - [Quick Reference](#quick-reference)
 - [Command Playbooks](#command-playbooks)
+  - [2025-10-01 — Modular Architecture Checklist Run](#2025-10-01--modular-architecture-checklist-run)
+  - [2025-10-01 — Automated Trading Build Checklist Run](#2025-10-01--automated-trading-build-checklist-run)
   - [2025-10-16 — Modular Architecture Checklist Run](#2025-10-16--modular-architecture-checklist-run)
   - [2025-10-16 — Automated Trading Build Checklist Run](#2025-10-16--automated-trading-build-checklist-run)
+  - [2025-10-16 — Stage 1 Onboard & Orient Checklist Run](#2025-10-16--stage-1-onboard--orient-checklist-run)
+  - [2025-10-16 — Knowledge Base Drop Verification](#2025-10-16--knowledge-base-drop-verification)
   - [2025-09-28 — Current Checklist Catalog Verification](#2025-09-28--current-checklist-catalog-verification)
   - [2025-09-28 — Go-Live Checklist Dry Run](#2025-09-28--go-live-checklist-dry-run)
   - [2024-02-24 — Listing Available Checklists](#2024-02-24--listing-available-checklists)
@@ -25,6 +29,80 @@ is the best fit for the task at hand.
 | Need usage guidance before choosing a subcommand.             | `npm run checklists`                                          | Remind yourself of the supported options or share quick guidance with teammates.               | Displays the built-in help banner with usage examples.                           |
 
 ## Command Playbooks
+
+### 2025-10-01 — Modular Architecture Checklist Run
+
+**Command**
+
+```bash
+node scripts/run-checklists.js --checklist dynamic-modular-architecture
+```
+
+**Purpose**
+
+Dry-run style status snapshot confirming the Dynamic Modular Architecture
+checklist remains parseable after dependency updates.
+
+**Highlights**
+
+- Parses `docs/dynamic-capital-modular-architecture.md` and outputs the
+  implementation and verification task tables.
+- Reports completion totals (0 done / 5 pending for both sections), matching the
+  source document.
+- Confirms the automation helper continues to exit successfully after the npm
+  workspace dependency refresh.
+
+**Output Snapshot**
+
+```text
+Dynamic Capital Modular Architecture checklist status
+Source: docs/dynamic-capital-modular-architecture.md
+
+Implementation checklist — 5 tasks
+  Complete: 0
+  Pending: 5
+
+Verification checklist — 5 tasks
+  Complete: 0
+  Pending: 5
+```
+
+### 2025-10-01 — Automated Trading Build Checklist Run
+
+**Command**
+
+```bash
+node scripts/run-checklists.js --checklist build-implementation
+```
+
+**Purpose**
+
+Validate that the automated trading build report helper still enumerates every
+section after updating Node dependencies for the checklist runner.
+
+**Highlights**
+
+- Loads `docs/automated-trading-checklist.md` and prints each stage with OPEN
+  task counts.
+- Confirms all seven sections resolve with zero completed items, matching the
+  authored plan.
+- Demonstrates that automation output remains stable across dependency updates,
+  ready for follow-up implementation work.
+
+**Output Snapshot**
+
+```text
+Automated Trading System Build checklist status
+Source: docs/automated-trading-checklist.md
+
+1. TradingView Signal Generation — 6 tasks
+  Complete: 0
+  Pending: 6
+
+2. Vercel Webhook Receiver — 8 tasks
+  Complete: 0
+  Pending: 8
+```
 
 ### 2025-10-16 — Modular Architecture Checklist Run
 
@@ -71,6 +149,40 @@ single command.
   their `OPEN`/`DONE` state labels.
 - Surfaces an error if the document loses its numbered headings, protecting the
   automation contract relied on by the checklist runner.
+
+### 2025-10-16 — Stage 1 Onboard & Orient Checklist Run
+
+**Command**
+
+```bash
+node scripts/run-checklists.js --checklist web-stage1
+```
+
+**Purpose**
+
+Summarize the onboarding alignment tasks from Stage 1 of the unified site map so
+teams can verify the cross-surface commitments before implementation work
+begins.
+
+**Highlights**
+
+- Parses the Stage 1 subsection under "Implementation Checklist" in
+  `docs/web-site-map.md` to confirm the hero and personalization tasks remain
+  documented.
+- Prints each Stage 1 task with its supporting bullet guidance, preserving the
+  onboarding requirements for `/`, `/miniapp`, `/investor`, and `/miniapp/home`.
+- Reports the aggregate progress line (`0/2 complete`) to track when the
+  cross-surface welcome experience is ready to ship.
+
+**Output Snapshot**
+
+```text
+Dynamic Capital Stage 1 implementation checklist status
+Source: docs/web-site-map.md
+Stage: Stage 1 — Onboard & Orient
+
+Progress: 0/2 complete (0% done)
+```
 
 ### 2025-10-16 — Knowledge Base Drop Verification
 
@@ -210,3 +322,126 @@ Display usage guidance and supported options for the checklist runner.
   name, or other parameters to run targeted entries.
 - Helpful when onboarding teammates or refreshing your memory of supported
   commands.
+
+### 2025-10-01 — Ecosystem Deployment Checklist Summary
+
+**Command**
+
+```bash
+node scripts/run-checklists.js --checklist ecosystem-deployment
+```
+
+**Purpose**
+
+Capture a fresh snapshot of the cross-surface deployment plan for Supabase,
+Vercel, DigitalOcean, Telegram, and TON integrations.
+
+**Highlights**
+
+- Confirms the automation still parses 47 deployment tasks grouped by platform
+  streams.
+- Provides section-by-section completion ratios to help product and platform
+  leads coordinate open work.
+- Retains narrative context for optional TON burn triggers so launch managers
+  can decide when to activate them.
+
+**Output Snapshot**
+
+```text
+Dynamic Capital ecosystem deployment checklist status
+Source: docs/dynamic-capital-ecosystem-deployment-checklist.md
+
+Overall progress: 0/47 complete (0% done)
+
+Supabase Setup — 12 tasks
+  Progress: 0/12 complete (0% done)
+```
+
+### 2025-10-01 — Knowledge Base Drop Verification
+
+**Command**
+
+```bash
+node scripts/run-checklists.js --checklist knowledge-base-drop
+```
+
+**Purpose**
+
+Verify the OneDrive knowledge base manifest continues to mirror the checked-in
+artefacts and provenance notes.
+
+**Highlights**
+
+- Validates the manifest against three locally mirrored artefacts.
+- Confirms the README guidance still explains how contributors should refresh
+  training drops.
+- Keeps the knowledge transfer pipeline auditable before the next bulk import.
+
+**Output Snapshot**
+
+```text
+Validated 3 knowledge base artefacts against local mirror and provenance README.
+```
+
+### 2025-10-01 — NFT Collectible Checklist Summary
+
+**Command**
+
+```bash
+node scripts/run-checklists.js --checklist nft-collectible
+```
+
+**Purpose**
+
+Audit the NFT launch checklist structure and regenerate the grouped task export
+for planning boards.
+
+**Highlights**
+
+- Confirms the automation still counts 9 sections and 42 required checklist
+  items.
+- Streams the full narrative task list to share with marketing and lore teams.
+- Provides optional enhancement reminders for dynamic metadata and loyalty
+  scoring experiments.
+
+**Output Snapshot**
+
+```text
+Validated NFT checklist structure: 9 sections, 42 checklist items.
+
+NFT Collectible Launch Checklist Tasks
+=====================================
+
+1. Concept Foundations
+----------------------
+```
+
+### 2025-10-01 — Podman GitHub Integration Validation (Failed)
+
+**Command**
+
+```bash
+node scripts/run-checklists.js --checklist podman-github
+```
+
+**Purpose**
+
+Exercise the Windows Podman machine validation routine so the team knows what to
+remediate before attempting GitHub workflow parity on local machines.
+
+**Highlights**
+
+- Checklist runner reports the Podman CLI is missing from the PATH, causing
+  every machine inspection step to fail.
+- Documents the exact commands the automation attempted (`podman machine list`,
+  `podman info`, etc.) so infra engineers can replay them after installing
+  Podman Desktop.
+- Flags the failure as blocking because the required task could not complete.
+
+**Output Snapshot**
+
+```text
+[podman-checklist] Podman CLI not found in PATH. Install Podman Desktop or add podman to PATH.
+[podman-checklist] Failed to start machine podman-machine-default.
+[podman-checklist] Failed to read machine list: spawn podman ENOENT
+```
