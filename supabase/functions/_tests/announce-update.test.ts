@@ -24,18 +24,18 @@ Deno.test("resolveMiniAppUrl normalizes env-provided values", async (t) => {
   const cases = [
     {
       name: "trims whitespace and adds trailing slash",
-      input: " https://dynamiccapital.ton ",
-      expected: "https://dynamiccapital.ton/",
+      input: " https://mini.dynamic.capital/miniapp ",
+      expected: "https://mini.dynamic.capital/miniapp/",
     },
     {
       name: "adds protocol when missing",
-      input: "dynamiccapital.ton",
-      expected: "https://dynamiccapital.ton/",
+      input: "mini.dynamic.capital/miniapp",
+      expected: "https://mini.dynamic.capital/miniapp/",
     },
     {
       name: "preserves existing path and query",
-      input: "https://dynamiccapital.ton/app?ref=bot",
-      expected: "https://dynamiccapital.ton/app?ref=bot",
+      input: "https://mini.dynamic.capital/app?ref=bot",
+      expected: "https://mini.dynamic.capital/app?ref=bot",
     },
     {
       name: "preserves non-https protocols",
@@ -60,10 +60,10 @@ Deno.test("resolveMiniAppUrl normalizes env-provided values", async (t) => {
 Deno.test("resolveMiniAppUrl falls back to config setting when env missing", async () => {
   Deno.env.delete("MINI_APP_URL");
   const resolved = await withSettingOverride(
-    async (_key) => " dynamiccapital.ton ",
+    async (_key) => " mini.dynamic.capital/miniapp ",
     () => resolveMiniAppUrl(),
   );
-  assertEquals(resolved, "https://dynamiccapital.ton/");
+  assertEquals(resolved, "https://mini.dynamic.capital/miniapp/");
 });
 
 Deno.test("resolveMiniAppUrl returns default when nothing configured", async () => {
@@ -72,7 +72,7 @@ Deno.test("resolveMiniAppUrl returns default when nothing configured", async () 
     async (_key) => null,
     () => resolveMiniAppUrl(),
   );
-  assertEquals(resolved, "https://dynamiccapital.ton/");
+  assertEquals(resolved, "https://mini.dynamic.capital/miniapp/");
 });
 
 Deno.test("resolveMiniAppUrl ignores invalid configuration and falls back", async () => {
@@ -81,5 +81,5 @@ Deno.test("resolveMiniAppUrl ignores invalid configuration and falls back", asyn
     async (_key) => "nota url",
     () => resolveMiniAppUrl(),
   );
-  assertEquals(resolved, "https://dynamiccapital.ton/");
+  assertEquals(resolved, "https://mini.dynamic.capital/miniapp/");
 });

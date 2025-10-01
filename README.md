@@ -876,6 +876,19 @@ success, or error states based on the fetch result.
 - `tests/app/api-demo/page.test.tsx` renders the demo page with a mocked `fetch`
   and verifies that the message appears.
 
+### TypeScript type checking
+
+Install the web workspace dependencies to make sure browser-only packages such
+as `@web3-onboard/*` are available to the compiler, then run the type checker:
+
+```bash
+npm install --workspace apps/web
+npm run typecheck
+```
+
+The type check targets the Next.js Mini App and should complete without
+warnings once the workspace dependencies are in place.
+
 ### CI / checks
 
 All Deno tasks live in `deno.json` and can be run via `deno task <name>`.

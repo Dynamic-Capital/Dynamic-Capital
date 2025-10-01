@@ -14,7 +14,7 @@ interface TelegramResponse {
 
 const DEFAULT_VERSION = "v1.0";
 const DEFAULT_FEATURE = "Bug fixes and improvements";
-const DEFAULT_MINI_APP_URL = "https://dynamiccapital.ton/";
+const DEFAULT_MINI_APP_URL = "https://mini.dynamic.capital/miniapp/";
 const PROTOCOL_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//;
 
 function ensureProtocol(value: string): string {
@@ -30,8 +30,16 @@ function normalizeMiniAppUrl(value: unknown): string | null {
 
   try {
     const parsed = new URL(candidate);
+    const isHttps = parsed.protocol === "https:";
     if (!parsed.pathname) {
       parsed.pathname = "/";
+    } else if (
+      isHttps &&
+      !parsed.pathname.endsWith("/") &&
+      !parsed.search &&
+      !parsed.hash
+    ) {
+      parsed.pathname = `${parsed.pathname}/`;
     }
     return parsed.toString();
   } catch (_error) {
