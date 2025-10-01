@@ -8,6 +8,10 @@ from .engine import (
     QuantumPulse,
     QuantumResonanceFrame,
 )
+from .orchestration import (
+    DynamicQuantumOrchestrator,
+    QuantumOrchestrationSnapshot,
+)
 from .protocol import (
     BASIS_ORDER,
     DEFAULT_OPERATORS,
@@ -21,6 +25,8 @@ __all__ = [
     "QuantumEnvironment",
     "QuantumPulse",
     "QuantumResonanceFrame",
+    "DynamicQuantumOrchestrator",
+    "QuantumOrchestrationSnapshot",
     "BASIS_ORDER",
     "DEFAULT_OPERATORS",
     "QuantumOperator",
