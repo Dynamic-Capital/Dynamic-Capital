@@ -112,6 +112,8 @@ def test_compose_generates_digest_with_metrics() -> None:
     assert payload["initiative"] == context.initiative
     assert len(payload["fragments"]) == 2
     assert all(item["language"] == "plaintext" for item in payload["fragments"])
+    assert digest.metrics["python_fragment_ratio"] == pytest.approx(0.0)
+    assert digest.metrics["language_focus_score"] == pytest.approx(1.0)
 
 
 def test_guardrail_penalty_affects_ranking() -> None:
@@ -237,3 +239,72 @@ def test_language_preferences_prioritise_python() -> None:
     )
     assert digest.metrics["language_match_rate"] == pytest.approx(1.0)
     assert digest.metrics["history_language_coverage"] == pytest.approx(2 / 3, rel=1e-3)
+    assert digest.metrics["python_fragment_ratio"] == pytest.approx(1 / 3, rel=1e-3)
+    assert digest.metrics["language_focus_score"] == pytest.approx(1.0)
+
+
+def test_python_metrics_account_for_eviction() -> None:
+    engine = DynamicTextEngine(history_limit=2)
+    python_fragment = TextFragment(
+        channel="docs",
+        content="Add async worker",
+        voice="Technical",
+        language="python",
+        clarity=0.9,
+        warmth=0.4,
+        boldness=0.55,
+        novelty=0.65,
+        tempo=0.5,
+        emphasis=0.6,
+    )
+    plaintext_fragment = TextFragment(
+        channel="docs",
+        content="Rewrite onboarding guide",
+        voice="Informative",
+        language="plaintext",
+        clarity=0.75,
+        warmth=0.6,
+        boldness=0.45,
+        novelty=0.5,
+        tempo=0.55,
+        emphasis=0.55,
+    )
+    python_follow_up = TextFragment(
+        channel="docs",
+        content="Tighten pipeline validators",
+        voice="Technical",
+        language="python",
+        clarity=0.88,
+        warmth=0.42,
+        boldness=0.6,
+        novelty=0.68,
+        tempo=0.52,
+        emphasis=0.62,
+    )
+
+    engine.ingest(python_fragment)
+    engine.ingest(plaintext_fragment)
+
+    context = TextContext(
+        initiative="Runtime alignment",
+        audience="Platform guild",
+        channel="docs",
+        urgency=0.6,
+        personalization=0.55,
+        risk_appetite=0.5,
+        preferred_languages=("python", "plaintext"),
+        highlight_limit=2,
+    )
+
+    digest = engine.compose(context)
+    assert digest.metrics["python_fragment_ratio"] == pytest.approx(0.5)
+    assert digest.metrics["python_signal_strength"] == pytest.approx(
+        python_fragment.signal_strength
+    )
+
+    engine.ingest(python_follow_up)
+    digest = engine.compose(context)
+    assert digest.metrics["python_fragment_ratio"] == pytest.approx(0.5)
+    assert digest.metrics["python_signal_strength"] == pytest.approx(
+        python_follow_up.signal_strength
+    )
