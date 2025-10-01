@@ -4,6 +4,8 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 
+import pytest
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:  # pragma: no cover - import side effect
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -65,3 +67,43 @@ def test_helper_bot_produces_outline_and_description() -> None:
     assert "- Leaf" in outline
 
     assert branches["root"] == ("child", "leaf")
+
+
+def test_agent_commit_handles_out_of_order_staging() -> None:
+    agent = HierarchyAgent()
+    agent.stage_node(key="child", title="Child", parent="root")
+    agent.stage_node(key="root", title="Root")
+
+    hierarchy = agent.commit()
+
+    assert hierarchy.get("root") is not None
+    assert hierarchy.get("child") is not None
+    assert hierarchy.children("root")[0].key == "child"
+
+
+def test_builder_reorders_nodes_to_respect_dependencies() -> None:
+    builder = HierarchyBuilder()
+    builder.add_node(key="child", title="Child", parent="root")
+    builder.add_node(key="root", title="Root")
+
+    ordered_keys = [node["key"] for node in builder.iter_pending_nodes()]
+    assert ordered_keys == ["root", "child"]
+
+    blueprints = builder.to_blueprints()
+    assert blueprints[0].key == "root"
+    assert blueprints[0].children[0].key == "child"
+
+
+def test_builder_validates_external_parents() -> None:
+    builder = HierarchyBuilder()
+    builder.add_node(key="orphan", title="Orphan", parent="missing")
+
+    with pytest.raises(KeyError):
+        builder.to_blueprints()
+
+    agent = HierarchyAgent()
+    agent.builder = builder
+    agent.builder.engine = agent.engine
+
+    with pytest.raises(KeyError):
+        agent.commit()

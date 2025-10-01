@@ -32,6 +32,10 @@ class HierarchyBuilder:
     def __init__(self, *, engine: HierarchyEngine | None = None) -> None:
         self.engine = engine or HierarchyEngine()
         self._nodes: dict[str, _BuilderNode] = {}
+        # ``_order`` keeps track of the chronological staging sequence. We still
+        # re-order nodes by dependency when emitting them, but keeping the
+        # original order makes the output deterministic when dependencies are
+        # satisfied (for example siblings under the same parent).
         self._order: list[str] = []
 
     def __len__(self) -> int:  # pragma: no cover - trivial
@@ -59,10 +63,6 @@ class HierarchyBuilder:
             parent_key = parent.strip().lower()
             if not parent_key:
                 raise ValueError("parent must not be empty when provided")
-            if parent_key not in self._nodes and self.engine.hierarchy.get(parent_key) is None:
-                raise KeyError(
-                    f"parent '{parent_key}' must exist in the builder or target hierarchy"
-                )
         else:
             parent_key = None
 
@@ -84,10 +84,54 @@ class HierarchyBuilder:
         self._nodes.clear()
         self._order.clear()
 
+    # ------------------------------------------------------------------
+    # ordering helpers
+
+    def _ordered_keys(self, *, allow_external_parents: bool) -> tuple[str, ...]:
+        """Return staged keys sorted so parents precede children.
+
+        ``allow_external_parents`` controls whether references to nodes outside
+        the staged set (for example nodes that already exist in the managed
+        hierarchy) are treated as valid. When ``False`` the method raises a
+        :class:`KeyError` if a staged node refers to a missing parent, which is
+        used by :meth:`to_blueprints` to guarantee a self-contained tree.
+        """
+
+        resolved: set[str] = set()
+        visiting: set[str] = set()
+        ordered: list[str] = []
+
+        def visit(key: str) -> None:
+            if key in resolved:
+                return
+            if key in visiting:
+                raise RuntimeError("detected cycle in staged nodes")
+            visiting.add(key)
+            node = self._nodes[key]
+            if node.parent is not None:
+                if node.parent in self._nodes:
+                    visit(node.parent)
+                elif not allow_external_parents:
+                    raise KeyError(
+                        f"parent '{node.parent}' must be staged before emitting blueprints"
+                    )
+                elif self.engine.hierarchy.get(node.parent) is None:
+                    raise KeyError(
+                        f"parent '{node.parent}' must exist in the current hierarchy before committing"
+                    )
+            ordered.append(key)
+            visiting.remove(key)
+            resolved.add(key)
+
+        for key in self._order:
+            visit(key)
+
+        return tuple(ordered)
+
     def iter_pending_nodes(self) -> Iterator[MutableMapping[str, object]]:
         """Yield staged nodes as mapping objects."""
 
-        for key in self._order:
+        for key in self._ordered_keys(allow_external_parents=True):
             node = self._nodes[key]
             payload: MutableMapping[str, object] = {
                 "key": node.key,
@@ -104,20 +148,23 @@ class HierarchyBuilder:
     def can_emit_blueprints(self) -> bool:
         """Return ``True`` if all staged parents are also staged."""
 
-        return all(
-            node.parent is None or node.parent in self._nodes for node in self._nodes.values()
-        )
+        try:
+            self._ordered_keys(allow_external_parents=False)
+        except KeyError:
+            return False
+        return True
 
     def to_blueprints(self) -> tuple[HierarchyBlueprint, ...]:
         """Convert staged nodes into hierarchical blueprints."""
 
-        if not self.can_emit_blueprints():
-            raise RuntimeError(
-                "cannot emit blueprints when nodes depend on external parents"
-            )
+        try:
+            ordered_keys = self._ordered_keys(allow_external_parents=False)
+        except KeyError as exc:
+            raise KeyError(str(exc)) from exc
 
-        children: dict[str, list[str]] = {key: [] for key in self._nodes}
-        for node in self._nodes.values():
+        children: dict[str, list[str]] = {key: [] for key in ordered_keys}
+        for key in ordered_keys:
+            node = self._nodes[key]
             if node.parent is not None:
                 children.setdefault(node.parent, []).append(node.key)
 
@@ -134,7 +181,7 @@ class HierarchyBuilder:
                 children=nested,
             )
 
-        roots = [key for key in self._order if self._nodes[key].parent is None]
+        roots = [key for key in ordered_keys if self._nodes[key].parent is None]
         return tuple(build_node(key) for key in roots)
 
     def build(self) -> DynamicHierarchy:
