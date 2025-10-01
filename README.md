@@ -889,6 +889,11 @@ npm run typecheck
 The type check targets the Next.js Mini App and should complete without
 warnings once the workspace dependencies are in place.
 
+If the workspace packages fall out of sync you may see TypeScript errors such
+as `Cannot find module '@web3-onboard/core'` during the check. Running the
+install command again refreshes the browser-only dependencies so `tsc` can
+finish without emitting diagnostics.
+
 ### CI / checks
 
 All Deno tasks live in `deno.json` and can be run via `deno task <name>`.
