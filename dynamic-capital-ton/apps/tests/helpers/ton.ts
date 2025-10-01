@@ -1,5 +1,3 @@
-import { Buffer } from "node:buffer";
-
 export class Address {
   #raw: string;
 
@@ -13,7 +11,13 @@ export class Address {
     }
 
     const normalized = value.trim();
-    if (!/^[0-9a-fA-F:-]+$/.test(normalized)) {
+    if (normalized.length === 0) {
+      throw new Error("address: value must be a non-empty string");
+    }
+
+    const isHexLike = /^[0-9a-fA-F:-]+$/.test(normalized);
+    const isBase64Like = /^[A-Za-z0-9_-]+=*$/.test(normalized);
+    if (!isHexLike && !isBase64Like) {
       throw new Error("address: invalid characters");
     }
 
@@ -178,8 +182,13 @@ export function toNano(value: string | number | bigint): bigint {
     return value * 1_000_000_000n;
   }
 
-  const stringValue = typeof value === "number" ? value.toString() : value;
-  if (typeof stringValue !== "string" || !/^[0-9]+(\.[0-9]+)?$/.test(stringValue)) {
+  const stringValue = (typeof value === "number" ? value.toString() : value)
+    .trim();
+  if (
+    typeof stringValue !== "string" ||
+    stringValue.length === 0 ||
+    !/^[0-9]+(\.[0-9]{0,9})?$/.test(stringValue)
+  ) {
     throw new Error("toNano: value must be a numeric string");
   }
 
@@ -218,7 +227,14 @@ export const DEFAULT_FORWARD_RESPONSE = Address.parse(
 );
 
 export function normalizeHex(hex: string, bytes = 32): string {
+  if (!Number.isInteger(bytes) || bytes <= 0) {
+    throw new Error("normalizeHex: bytes must be a positive integer");
+  }
+
   let normalized = hex.startsWith("0x") ? hex.slice(2) : hex;
+  if (!/^[0-9a-fA-F]*$/.test(normalized)) {
+    throw new Error("normalizeHex: invalid hex characters");
+  }
   if (normalized.length > bytes * 2) {
     throw new Error("hex value exceeds expected length");
   }
@@ -251,11 +267,11 @@ export function createDepositForwardPayload(
   const builder = beginCell();
   builder.storeUint(OP_DEPOSIT, 32);
   builder.storeUint(payload.depositId, 64);
-  builder.storeBuffer(Buffer.from(hexToBytes(payload.investorKey)));
+  builder.storeBuffer(hexToBytes(payload.investorKey));
   builder.storeCoins(payload.usdtAmount);
   builder.storeCoins(payload.dctAmount);
   builder.storeUint(payload.expectedFx, 64);
-  builder.storeBuffer(Buffer.from(hexToBytes(payload.tonTxHash)));
+  builder.storeBuffer(hexToBytes(payload.tonTxHash));
   return builder.endCell();
 }
 

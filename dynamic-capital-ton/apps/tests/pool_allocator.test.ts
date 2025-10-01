@@ -2,7 +2,6 @@ import {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { Buffer } from "node:buffer";
 import {
   beginCell,
   DEFAULT_FORWARD_DESTINATION,
@@ -384,11 +383,11 @@ Deno.test("forward payload rejects non-deposit opcodes", () => {
   const invalidForward = beginCell()
     .storeUint(0xdeadbeef, 32)
     .storeUint(1n, 64)
-    .storeBuffer(Buffer.from(new Uint8Array(32)))
+    .storeBuffer(new Uint8Array(32))
     .storeCoins(1n)
     .storeCoins(1n)
     .storeUint(1n, 64)
-    .storeBuffer(Buffer.from(new Uint8Array(32).fill(1)))
+    .storeBuffer(new Uint8Array(32).fill(1))
     .endCell();
 
   assertThrows(
