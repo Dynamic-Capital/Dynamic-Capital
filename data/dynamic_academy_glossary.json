@@ -1,0 +1,2182 @@
+[
+  {
+    "slug": "51-percent-attack",
+    "term": "51% Attack",
+    "summary": "Also known as a majority attack. When one or a group of miners control greater than 50% of the network's mining hashrate or computational power."
+  },
+  {
+    "slug": "absolute-advantage",
+    "term": "Absolute Advantage",
+    "summary": "An economics concept in which one party has a direct advantage in efficiency in producing/providing a specific good or service over another party."
+  },
+  {
+    "slug": "active-management",
+    "term": "Active Management",
+    "summary": "An investing strategy employed by fund managers aiming to outperform an index or market in order to generate profits."
+  },
+  {
+    "slug": "actively-validated-services-avs",
+    "term": "Actively Validated Services (AVS)",
+    "summary": "Systems that undergo continuous monitoring and validation to ensure they operate correctly."
+  },
+  {
+    "slug": "ad-hoc",
+    "term": "Ad Hoc",
+    "summary": "A phrase of Latin origin that is used in modern English to mean 'for this purpose' or 'specifically for this.'"
+  },
+  {
+    "slug": "address",
+    "term": "Address",
+    "summary": "String of text that designates the location of a particular wallet on the blockchain. Often a hashed version of a public key."
+  },
+  {
+    "slug": "airdrop",
+    "term": "Airdrop",
+    "summary": "The distribution of digital assets to the public, either by virtue of holding a certain other token or simply by virtue of being an active wallet address on a particular blockchain"
+  },
+  {
+    "slug": "algorithm",
+    "term": "Algorithm",
+    "summary": "A sequence of unambiguous instructions used for the purpose of solving a problem."
+  },
+  {
+    "slug": "all-or-none-order",
+    "term": "All or None Order (AON)",
+    "summary": "An order which once placed, must either be filled in its entirety or not at all. This prevents any partial filling of orders."
+  },
+  {
+    "slug": "all-time-high",
+    "term": "All-Time High (ATH)",
+    "summary": "The highest price that an asset has ever reached in its trading history."
+  },
+  {
+    "slug": "allocation",
+    "term": "Allocation",
+    "summary": "An allotment of tokens or equity, that may be earned, purchased, or set aside for a certain investor, team, group, organization, or other related entity."
+  },
+  {
+    "slug": "alpha",
+    "term": "Alpha",
+    "summary": "The first look at a product released by a team, consisting of the very first version of a primitive, basic software or product."
+  },
+  {
+    "slug": "altcoin",
+    "term": "Altcoin",
+    "summary": "A cryptocurrency that is alternative to Bitcoin. Used to describe cryptocurrencies that are not Bitcoin."
+  },
+  {
+    "slug": "angel-investor",
+    "term": "Angel Investor",
+    "summary": "Wealthy investors that seek out opportunities to provide funding for entrepreneurs or start-up companies."
+  },
+  {
+    "slug": "anti-money-laundering",
+    "term": "Anti Money Laundering (AML)",
+    "summary": "A framework consisting of legal and regulatory procedures to minimize and curb the flow of funds that are generated from illegal or dubious activities."
+  },
+  {
+    "slug": "application-programming-interface",
+    "term": "Application Programming Interface (API)",
+    "summary": "A collection of functions and procedures that allow users to interact/communicate with the data of an application or service, such as an exchange, to execute the features of the service programmatically."
+  },
+  {
+    "slug": "application-specific-integrated-circuit",
+    "term": "Application-Specific Integrated Circuit (ASIC)",
+    "summary": "An Integrated Circuit customized for maximum performance in a particular use, rather than general-purpose use."
+  },
+  {
+    "slug": "arbitrage",
+    "term": "Arbitrage",
+    "summary": "Buying and selling of assets over different markets in order to take advantage of differing prices on the same asset."
+  },
+  {
+    "slug": "arc-20",
+    "term": "ARC-20",
+    "summary": "A token standard for fungible tokens (colored coins) on the Bitcoin network."
+  },
+  {
+    "slug": "artificial-intelligence-ai",
+    "term": "Artificial Intelligence (AI)",
+    "summary": "Artificial Intelligence (AI) is the intelligence displayed by machines or computer systems, simulating human-like cognitive processes."
+  },
+  {
+    "slug": "asic-resistant",
+    "term": "ASIC-resistant",
+    "summary": "An ASIC-resistant cryptocurrency has its protocol and mining algorithm configured in such a way that using ASIC machines to mine the coin is either impossible or brings no significant benefit when compared to traditional GPU mining."
+  },
+  {
+    "slug": "asking-price",
+    "term": "Ask Price",
+    "summary": "The lowest price a seller is willing to accept on their sell order when trading an asset on an exchange."
+  },
+  {
+    "slug": "asset-management",
+    "term": "Asset Management",
+    "summary": "A system or method that helps individuals or companies manage assets. Either on behalf of their clients or their own."
+  },
+  {
+    "slug": "assets-under-management-aum",
+    "term": "Assets Under Management (AUM)",
+    "summary": "AUM (assets under management) is the market value of financial assets managed by an entity on behalf of clients, indicating influence and operational scale."
+  },
+  {
+    "slug": "asynchronous",
+    "term": "Asynchronous",
+    "summary": "Events in electronic systems that do not happen at the same time or speed, or happen independent of the main program flow."
+  },
+  {
+    "slug": "atomic-swap",
+    "term": "Atomic Swap",
+    "summary": "Smart contract technology that enables the exchange of one cryptocurrency for another without using centralized intermediaries, such as exchanges."
+  },
+  {
+    "slug": "attack-surface",
+    "term": "Attack surface",
+    "summary": "Points in a software environment where an attacker can attempt to enter or extract data from the system."
+  },
+  {
+    "slug": "auction",
+    "term": "Auction",
+    "summary": "A live event where assets or services are negotiated through a bidding process, which is often led by an auctioneer."
+  },
+  {
+    "slug": "automated-market-maker-amm",
+    "term": "Automated Market Maker (AMM)",
+    "summary": "Automated Market Makers (AMMs) are a subset of decentralized exchange (DEX) protocols. They allow users to trade digital assets without the need for an intermediary."
+  },
+  {
+    "slug": "b-tokens",
+    "term": "B-Tokens",
+    "summary": "B-Tokens are the name for a range of fully-collateralized wrapped tokens minted by Binance."
+  },
+  {
+    "slug": "bags",
+    "term": "Bags",
+    "summary": "The portfolio of coins and tokens one is holding. Often related to a poorly performing bag of assets that investors insist to hold."
+  },
+  {
+    "slug": "beacon-chain",
+    "term": "Beacon Chain",
+    "summary": "The Beacon Chain is Ethereum’s proof-of-stake (PoS) layer where consensus is reached. It controls and coordinates the network of Ethereum stakers who help validate and secure the network in exchange for staking rewards."
+  },
+  {
+    "slug": "bear-market",
+    "term": "Bear Market",
+    "summary": "A negative trend in prices of a market. It is widely used not only in the cryptocurrency space but also in the traditional markets."
+  },
+  {
+    "slug": "benchmark",
+    "term": "Benchmark",
+    "summary": "A measurement standard which can be used to gauge the performance of a particular asset or investment portfolio."
+  },
+  {
+    "slug": "bep-1155",
+    "term": "BEP-1155",
+    "summary": "A token standard that optimizes the creation and management of digital assets on the BNB Chain."
+  },
+  {
+    "slug": "bep-20",
+    "term": "BEP-20",
+    "summary": "A token standard on BNB Smart Chain (BSC)."
+  },
+  {
+    "slug": "bep-721",
+    "term": "BEP-721",
+    "summary": "A technical standard that defines a set of rules for the issuance of NFTs in the BNB Smart Chain ecosystem."
+  },
+  {
+    "slug": "bep-95",
+    "term": "BEP-95",
+    "summary": "BEP-95 is a BNB Evolution Proposal that introduces a real-time burning mechanism to BNB Chain."
+  },
+  {
+    "slug": "beta-coefficient",
+    "term": "Beta (Coefficient)",
+    "summary": "A tool used to measure the volatility of an asset in comparison to the volatility of a specific portfolio or market index."
+  },
+  {
+    "slug": "beta-release",
+    "term": "Beta (Release)",
+    "summary": "An early version of a program for users to test and for a team to get feedback. Beta stage comes after the Alpha stage."
+  },
+  {
+    "slug": "bid-price",
+    "term": "Bid Price",
+    "summary": "In the context of financial markets, it is the value buyers offer for an asset, such as a commodity, security, or cryptocurrency."
+  },
+  {
+    "slug": "bid-ask-spread",
+    "term": "Bid-Ask Spread",
+    "summary": "The difference in price between the lowest asking price and highest bid price on the order book for an asset"
+  },
+  {
+    "slug": "binance-ecosystem-fund",
+    "term": "Binance Ecosystem Fund (BEF)",
+    "summary": "An initiative by Binance to collaborate with partners who care about the blockchain/cryptocurrency ecosystem."
+  },
+  {
+    "slug": "binancian",
+    "term": "Binancian",
+    "summary": "A \"Binancian\" is a term referring to individuals who are actively involved with or contribute to the cryptocurrency exchange Binance."
+  },
+  {
+    "slug": "bitcoin",
+    "term": "Bitcoin",
+    "summary": "A cryptocurrency created by the pseudonymous developer(s) Satoshi Nakamoto. The first cryptocurrency, initially described as a 'Peer-to-Peer e-cash'."
+  },
+  {
+    "slug": "bitcoin-core",
+    "term": "Bitcoin Core",
+    "summary": "Leading implementation of the software that enables users to interact with the Bitcoin network. Initially released by Satoshi."
+  },
+  {
+    "slug": "bitcoin-dominance",
+    "term": "Bitcoin Dominance",
+    "summary": "The ratio of Bitcoin's market capitalization versus the sum of the market capitalizations of all cryptocurrencies."
+  },
+  {
+    "slug": "bitcoin-maximalists",
+    "term": "Bitcoin Maximalists",
+    "summary": "Bitcoin Maximalists are individuals who believe that bitcoin is the only valuable cryptocurrency and the future of global finance."
+  },
+  {
+    "slug": "bitcoin-pizza",
+    "term": "Bitcoin Pizza",
+    "summary": "The first known transaction where Bitcoin was exchanged for a physical good. Laszlo Hanyecz paid 10,000 BTC for two pizzas."
+  },
+  {
+    "slug": "black-swan-event",
+    "term": "Black Swan Event",
+    "summary": "An event that is often entirely unexpected and deviates from the expected result causing widespread ramifications."
+  },
+  {
+    "slug": "block",
+    "term": "Block",
+    "summary": "A computer file that stores transaction data. These can then be arranged in a linear sequence, which will form a blockchain."
+  },
+  {
+    "slug": "block-explorer",
+    "term": "Block Explorer",
+    "summary": "An online Blockchain webpage which allows users to browse information about blocks, transactions, balances, and transaction histories."
+  },
+  {
+    "slug": "block-header",
+    "term": "Block header",
+    "summary": "A section in a block containing metadata and a summary of the block's transactions. This is the information hashed when mining."
+  },
+  {
+    "slug": "block-height",
+    "term": "Block Height",
+    "summary": "The number of blocks in the chain between itself and the first block on that blockchain (genesis block or block 0)."
+  },
+  {
+    "slug": "block-reward",
+    "term": "Block Reward",
+    "summary": "The sum of coins awarded by the blockchain protocol to cryptocurrency miners for each successfully mined and validated block."
+  },
+  {
+    "slug": "blockchain",
+    "term": "Blockchain",
+    "summary": "A decentralized, digitized ledger that records transaction information about a cryptocurrency in a chronological order."
+  },
+  {
+    "slug": "binance-blockchain-charity-foundation",
+    "term": "Blockchain Charity Foundation",
+    "summary": "The world's first decentralized charity platform to advocate the concept of 'blockchain for social good'."
+  },
+  {
+    "slug": "bloom-filter",
+    "term": "Bloom Filter",
+    "summary": "A data structure that can be used to inform the user whether a particular item is part of a set"
+  },
+  {
+    "slug": "blue-chip-token",
+    "term": "Blue-Chip Token",
+    "summary": "Blue-chip cryptos are coins that have withstood the test of time. These assets are established and reliably valuable."
+  },
+  {
+    "slug": "bnb",
+    "term": "BNB",
+    "summary": "BNB Chain's native token."
+  },
+  {
+    "slug": "bnsol",
+    "term": "BNSOL",
+    "summary": "A liquid staking token that represents your staked SOL on Binance."
+  },
+  {
+    "slug": "bollinger-bands",
+    "term": "Bollinger Bands",
+    "summary": "A technical analysis indicator that measures market volatility. It's made of two sidelong bands and a simple moving average."
+  },
+  {
+    "slug": "bond",
+    "term": "Bond",
+    "summary": "A type of fixed-income investment that represents a loan made to a borrower, typically a business or government."
+  },
+  {
+    "slug": "bounty",
+    "term": "Bounty",
+    "summary": "A reward posted by a group or individual to incentivize certain work, behavior (such as referrals), or development."
+  },
+  {
+    "slug": "brc-20-tokens",
+    "term": "BRC-20 Tokens",
+    "summary": "BRC-20 is an experimental token standard that enables the minting and transferring of fungible tokens via the Ordinals protocol on the Bitcoin blockchain."
+  },
+  {
+    "slug": "break-even-point",
+    "term": "Break-Even Point (BEP)",
+    "summary": "The point where the total costs of an operation is equivalent to its current value or revenue."
+  },
+  {
+    "slug": "breakeven-multiple",
+    "term": "Breakeven Multiple",
+    "summary": "The multiple of the current price by which an asset needs to appreciate in order to reach its previous all-time high."
+  },
+  {
+    "slug": "breakout",
+    "term": "Breakout",
+    "summary": "When the price of an asset moves outside of a defined range or pattern, typically by breaking out of a support or resistance area."
+  },
+  {
+    "slug": "bscscan",
+    "term": "BscScan",
+    "summary": "A blockchain explorer designed for BNB Smart Chain (BSC) users."
+  },
+  {
+    "slug": "btc-wallet-address",
+    "term": "BTC Wallet Address",
+    "summary": "A unique string of letters and numbers used to send and receive BTC transactions."
+  },
+  {
+    "slug": "buidl",
+    "term": "BUIDL",
+    "summary": "Originally derived from HODL, a term referring to keeping your heads down and focusing on building your product."
+  },
+  {
+    "slug": "bull-market",
+    "term": "Bull Market",
+    "summary": "A positive trend in prices of a market. It is widely used not only in the cryptocurrency space but also in the traditional markets."
+  },
+  {
+    "slug": "burner-wallet",
+    "term": "Burner Wallet",
+    "summary": "A temporary crypto wallet for potentially risky interactions."
+  },
+  {
+    "slug": "buy-wall",
+    "term": "Buy Wall",
+    "summary": "A single huge buy order or the composition of multiple large buy orders at the same price in the order book of a particular market."
+  },
+  {
+    "slug": "candidate-block",
+    "term": "Candidate Block",
+    "summary": "A temporary block created by a mining node (miner) to add to the blockchain to receive the block rewards."
+  },
+  {
+    "slug": "candlestick",
+    "term": "Candlestick",
+    "summary": "A graph representation of price action that displays the open, close, high, and low points within a certain period."
+  },
+  {
+    "slug": "capitulation",
+    "term": "Capitulation",
+    "summary": "A period of strong selling activity, where investors give up their positions and sell their holdings as quickly as possible."
+  },
+  {
+    "slug": "censorship-resistance",
+    "term": "Censorship-resistance",
+    "summary": "The property of a cryptocurrency network that prevents any entity from altering transactions on it."
+  },
+  {
+    "slug": "central-bank",
+    "term": "Central Bank",
+    "summary": "A financial institution that acts as a monetary authority and manages a states currency, interest rates, and money supply."
+  },
+  {
+    "slug": "central-bank-digital-currency-cbdc",
+    "term": "Central Bank Digital Currency (CBDC)",
+    "summary": "A Central Bank Digital Currency (CBDC) is an officially sanctioned digital tender issued by a sovereign central bank. CBDCs can be either wholesale or retail."
+  },
+  {
+    "slug": "central-processing-unit",
+    "term": "Central Processing Unit (CPU)",
+    "summary": "The part of a computer responsible for interpreting instructions of computer programs and executing operations."
+  },
+  {
+    "slug": "centralized",
+    "term": "Centralized",
+    "summary": "When the planning and decision-making mechanisms are concentrated in a particular point within a system."
+  },
+  {
+    "slug": "centralized-exchange",
+    "term": "Centralized Exchange",
+    "summary": "Understand the world of centralized exchanges, traditional crypto marketplaces known for high liquidity, advanced trading tools, and risk considerations."
+  },
+  {
+    "slug": "chatgpt",
+    "term": "ChatGPT",
+    "summary": "ChatGPT is a language processing model developed by OpenAI. It represents a significant advancement in the field of natural language processing (NLP)"
+  },
+  {
+    "slug": "cipher",
+    "term": "Cipher",
+    "summary": "A method for encrypting and decrypting messages. These can be divided into symmetric or asymmetric, according to their key model."
+  },
+  {
+    "slug": "circulating-supply",
+    "term": "Circulating Supply",
+    "summary": "The best approximate number of cryptocurrency coins or tokens that are publicly available and circulating in the market."
+  },
+  {
+    "slug": "cloud",
+    "term": "Cloud",
+    "summary": "In computer science, a shared pool of resources, which are made available to multiple users through the Internet."
+  },
+  {
+    "slug": "coin",
+    "term": "Coin",
+    "summary": "A cryptocurrency or digital cash that is independent of any other platform, which is used as an exchange of value."
+  },
+  {
+    "slug": "cold-storage",
+    "term": "Cold Storage",
+    "summary": "The practice of storing digital assets offline to mitigate risks."
+  },
+  {
+    "slug": "collateral",
+    "term": "Collateral",
+    "summary": "Pledging something of value against a loan to guarantee that the person taking the loan will complete repayment."
+  },
+  {
+    "slug": "colocation",
+    "term": "Colocation",
+    "summary": "A dedicated space in a data center belonging to stock exchanges which is shared with other entities such as high-frequency traders."
+  },
+  {
+    "slug": "commodity-futures-trading-commission",
+    "term": "Commodity Futures Trading Commission (CFTC)",
+    "summary": "US-based agency responsible for regulating the derivatives markets, which includes options, swaps, and futures contracts."
+  },
+  {
+    "slug": "compound-interest",
+    "term": "Compound Interest",
+    "summary": "Compound interest refers to the interest accumulated on the principal amount, in addition to the interest from previous periods; this allows you to maximize your earnings on the principal sum."
+  },
+  {
+    "slug": "confirmation-time",
+    "term": "Confirmation Time",
+    "summary": "The interval needed for a blockchain transaction to be approved and added to the ledger."
+  },
+  {
+    "slug": "confluence",
+    "term": "Confluence",
+    "summary": "When multiple investment methods, technical indicators, or trading signals are combined to form a more reliable strategy."
+  },
+  {
+    "slug": "consensus-algorithm",
+    "term": "Consensus Algorithm",
+    "summary": "Consensus algorithms are mechanisms that help different computers in a blockchain network agree on what's true, even if some of them aren't playing fair."
+  },
+  {
+    "slug": "consumer-price-index-(cpi)",
+    "term": "Consumer Price Index (CPI)",
+    "summary": "A Consumer Price Index (CPI) is a measure used to track the effects of inflation over a period of time."
+  },
+  {
+    "slug": "contango-and-backwardation",
+    "term": "Contango and Backwardation",
+    "summary": "Contango and backwardation are terms used to describe the relationship between the futures price of a commodity and its expected future spot price. They are useful metrics for trading, hedging and arbitrage."
+  },
+  {
+    "slug": "copy-trading",
+    "term": "Copy Trading",
+    "summary": "Copy trading is the process of emulating the successful trades of experienced investors."
+  },
+  {
+    "slug": "counterparty-risk",
+    "term": "Counterparty Risk",
+    "summary": "Counterparty risk refers to the risk that one party involved in a financial transaction may default or fail to fulfill its contractual obligations, causing financial losses to the other party."
+  },
+  {
+    "slug": "credentials",
+    "term": "Credentials",
+    "summary": "Personal information. Examples include username, password, email address, qualifications and many more."
+  },
+  {
+    "slug": "cross-chain-bridges",
+    "term": "Cross-Chain Bridges",
+    "summary": "Blockchain bridges connect different blockchain networks, enabling the movement of digital assets across networks and facilitating interoperability in the crypto space."
+  },
+  {
+    "slug": "crypto-etfs",
+    "term": "Crypto ETFs",
+    "summary": "Crypto ETFs allow investors to gain exposure to the price movements of cryptocurrencies without owning, or managing, them directly."
+  },
+  {
+    "slug": "crypto-fear-and-greed-index",
+    "term": "Crypto Fear and Greed Index",
+    "summary": "The Crypto Fear and Greed Index is a tool that uses several indicators to help measure the overall cryptocurrency market sentiment on a 0-100 score range."
+  },
+  {
+    "slug": "crypto-protocol",
+    "term": "Crypto Protocol",
+    "summary": "A crypto protocol is a set of rules and procedures that govern behavior in a decentralized network."
+  },
+  {
+    "slug": "crypto-winter",
+    "term": "Crypto Winter",
+    "summary": "The term crypto winter refers to an extended period of declining or stagnant prices and negative sentiment in the cryptocurrency market."
+  },
+  {
+    "slug": "cryptocurrency",
+    "term": "Cryptocurrency",
+    "summary": "A digital currency that is secured by cryptography to work as a medium of exchange within a peer-to-peer (P2P) economic system."
+  },
+  {
+    "slug": "cryptography",
+    "term": "Cryptography",
+    "summary": "The science of using mathematical theories and computation in order to encrypt and decrypt information."
+  },
+  {
+    "slug": "custody",
+    "term": "Custody",
+    "summary": "Refers to the holding of assets on behalf of a client. Can also refer to the ownership of one's funds or assets."
+  },
+  {
+    "slug": "daemon",
+    "term": "Daemon",
+    "summary": "A process operating in the background waiting for a specific event or condition in order to be activated."
+  },
+  {
+    "slug": "danksharding",
+    "term": "Danksharding",
+    "summary": "Danksharding brings a new approach to sharding and plays a crucial role in optimizing data management and transaction processing within the Ethereum network."
+  },
+  {
+    "slug": "dead-cat-bounce",
+    "term": "Dead Cat Bounce",
+    "summary": "A brief recovery in the price of a declining asset that is shortly followed by a continuation of the downtrend."
+  },
+  {
+    "slug": "death-cross",
+    "term": "Death Cross",
+    "summary": "A pattern that indicates the potential for a market downturn."
+  },
+  {
+    "slug": "decentralized-application",
+    "term": "Decentralized Application (DApp)",
+    "summary": "DApps are applications that run on a P2P network of computers rather than a central database. Users can freely connect to DApps using crypto wallets."
+  },
+  {
+    "slug": "decentralized-autonomous-cooperative",
+    "term": "Decentralized Autonomous Cooperative (DAC)",
+    "summary": "An organization that is controlled by shareholders rather than a central authority."
+  },
+  {
+    "slug": "decentralized-autonomous-organization",
+    "term": "Decentralized Autonomous Organization (DAO)",
+    "summary": "A system of hard-coded rules that define which actions a decentralized organization will take."
+  },
+  {
+    "slug": "decentralized-exchange",
+    "term": "Decentralized Exchange (DEX)",
+    "summary": "An exchange which does not require users to deposit funds to start trading and does not hold the funds for the user. Instead, users trade directly from their own wallets."
+  },
+  {
+    "slug": "defi",
+    "term": "Decentralized Finance (DeFi)",
+    "summary": "The ecosystem comprised of decentralized financial applications developed on top of blockchain networks."
+  },
+  {
+    "slug": "decentralized-indexes",
+    "term": "Decentralized Indexes",
+    "summary": "A decentralized index is a type of investment vehicle that tracks the performance of multiple cryptocurrencies or digital assets traded on decentralized exchanges."
+  },
+  {
+    "slug": "decryption",
+    "term": "Decryption",
+    "summary": "The act of reverting an encryption process so that unreadable data (ciphertext) can be converted into readable data (plaintext)."
+  },
+  {
+    "slug": "deep-web",
+    "term": "Deep Web",
+    "summary": "The part of the web that is somehow hidden, i.e., not indexed by Google and other traditional web search engines."
+  },
+  {
+    "slug": "delisting",
+    "term": "Delisting",
+    "summary": "The removal of an asset from an exchange either as a request from the project team or as a decision made by the exchange."
+  },
+  {
+    "slug": "depeg",
+    "term": "Depeg",
+    "summary": "Learn about causes, effects, and preventive measures to avoid a depeg and ensure stablecoin reliability and trust in the cryptocurrency market."
+  },
+  {
+    "slug": "depression",
+    "term": "Depression",
+    "summary": "An extended and severe downturn in economic activity."
+  },
+  {
+    "slug": "design-flaw-attack",
+    "term": "Design Flaw Attack",
+    "summary": "An attack in which a malicious user purposely creates a smart-contract, decentralized market, or other software with knowledge of certain flaws in order to trick individuals interacting within the permissionless environment."
+  },
+  {
+    "slug": "diamond-hands",
+    "term": "Diamond Hands",
+    "summary": "Diamond hands refers to holding a financial asset and not selling it, regardless of its volatility."
+  },
+  {
+    "slug": "difficulty",
+    "term": "Difficulty",
+    "summary": "In cryptocurrency, difficulty indicates the difficulty required to mine a block. Learn more at Binance Academy."
+  },
+  {
+    "slug": "difficulty-bomb",
+    "term": "Difficulty Bomb",
+    "summary": "The term 'difficulty bomb' denotes the increase in mining difficulty in Ethereum, as part of its migration to Proof of Stake."
+  },
+  {
+    "slug": "digital-signature",
+    "term": "Digital Signature",
+    "summary": "A cryptographic tool to verify the authenticity and integrity of digital data, ensuring the security of data communication and cryptocurrency transactions."
+  },
+  {
+    "slug": "direct-market-access-dma",
+    "term": "Direct Market Access (DMA)",
+    "summary": "A technology that provides investors direct access to order books without the need for brokers."
+  },
+  {
+    "slug": "divergence",
+    "term": "Divergence",
+    "summary": "When the market price of an asset and a technical indicator (e.g. RSI, Volume, MACD) are heading in opposite directions."
+  },
+  {
+    "slug": "diversification",
+    "term": "Diversification",
+    "summary": "The allocation of funds across different types of assets and jurisdictions in order to reduce the overall risks."
+  },
+  {
+    "slug": "do-your-own-research",
+    "term": "Do Your Own Research (DYOR)",
+    "summary": "A valuable piece of advice. It's always wise to research a coin or token yourself instead of following what others say."
+  },
+  {
+    "slug": "dollar-cost-averaging",
+    "term": "Dollar Cost Averaging (DCA)",
+    "summary": "Investing fixed dollar amounts over regular periods of time regardless of the price of the asset."
+  },
+  {
+    "slug": "dot-plot",
+    "term": "Dot Plot",
+    "summary": "A simple type of chart where each data point shows up as a dot."
+  },
+  {
+    "slug": "double-spending",
+    "term": "Double Spending",
+    "summary": "When a given amount of coins are spent more than once. Usually as a result of a race attack or a 51% attack."
+  },
+  {
+    "slug": "eclipse-attack",
+    "term": "Eclipse Attack",
+    "summary": "When the majority of peers on the network are malicious and monopolize the network in order to prevent specific nodes from receiving information from honest nodes."
+  },
+  {
+    "slug": "efficient-market-hypothesis-emh",
+    "term": "Efficient Market Hypothesis (EMH)",
+    "summary": "An economic theory stating financial markets reflect all available information on the price of assets at any time."
+  },
+  {
+    "slug": "eigenlayer",
+    "term": "EigenLayer",
+    "summary": "A blockchain protocol that introduced the concept of \"restaking collective\" for Ethereum."
+  },
+  {
+    "slug": "eip",
+    "term": "EIP",
+    "summary": "Ethereum Improvement Proposals that describe suggested upgrades and new features in detail."
+  },
+  {
+    "slug": "eip-1559",
+    "term": "EIP-1559",
+    "summary": "A 2021 upgrade that changed Ethereum’s fee system."
+  },
+  {
+    "slug": "eip-3074",
+    "term": "EIP-3074",
+    "summary": "An improvement proposal for Ethereum aimed at improving transaction authorization processes."
+  },
+  {
+    "slug": "eip-4844",
+    "term": "EIP-4844",
+    "summary": "EIP-4844, also known as proto-danksharding, is a proposed upgrade that focuses on reducing Ethereum’s fees and increasing transaction throughput."
+  },
+  {
+    "slug": "eip-7251",
+    "term": "EIP-7251",
+    "summary": "A proposal to modify Ethereum's staking by increasing the Maximum Effective Balance."
+  },
+  {
+    "slug": "eip-7702",
+    "term": "EIP-7702",
+    "summary": "A proposal designed to enhance Externally Owned Accounts (EOAs) on Ethereum."
+  },
+  {
+    "slug": "elasticity",
+    "term": "Elasticity",
+    "summary": "Measures the responsiveness of one variable to changes in another variable."
+  },
+  {
+    "slug": "encryption",
+    "term": "Encryption",
+    "summary": "Conversion of information or data into a secure code in order to prevent unauthorised access to the information or data."
+  },
+  {
+    "slug": "endogenous-variable",
+    "term": "Endogenous Variable",
+    "summary": "A variable in an economic model that is directly related to other variables in the same model."
+  },
+  {
+    "slug": "ethereum-enterprise-alliance",
+    "term": "Enterprise Ethereum Alliance (EEA)",
+    "summary": "The industry’s first global standards organization to deliver an open, standards-based architecture and specification to accelerate the adoption of Enterprise Ethereum."
+  },
+  {
+    "slug": "erc-1155",
+    "term": "ERC-1155",
+    "summary": "Discover the versatility of ERC-1155 tokens. Ideal for gaming, digital collectibles and managing multiple token types efficiently."
+  },
+  {
+    "slug": "erc-20",
+    "term": "ERC-20",
+    "summary": "A technical standard used to issue and implement tokens on the Ethereum blockchain proposed in November 2015 by Fabian Vogelsteller."
+  },
+  {
+    "slug": "erc-404",
+    "term": "ERC-404",
+    "summary": "An experimental token standard blending fungibility and non-fungibility."
+  },
+  {
+    "slug": "erc-721",
+    "term": "ERC-721",
+    "summary": "An Ethereum based non-fungible token. This means that each token is unique and as a result, not interchangeable."
+  },
+  {
+    "slug": "etf",
+    "term": "ETF",
+    "summary": "Learn what ETFs are and explore their role in the cryptocurrency market: benefits, impacts, and challenges for investors and the financial ecosystem."
+  },
+  {
+    "slug": "ethereum-classic",
+    "term": "Ethereum Classic",
+    "summary": "Ethereum Classic (ETC) emerged from the Ethereum hard fork that happened as a result of the 2016 DAO hack. Unlike ETH, ETC still uses Proof of Work."
+  },
+  {
+    "slug": "ethereum-foundation",
+    "term": "Ethereum Foundation",
+    "summary": "A non-profit organization dedicated to the development, improvement, and promotion of the Ethereum blockchain"
+  },
+  {
+    "slug": "ethereum-virtual-machine-evm",
+    "term": "Ethereum Virtual Machine (EVM)",
+    "summary": "The Ethereum Virtual Machine (EVM) is a Turing-complete programmable machine that executes smart contracts, which are typically coded in Solidity."
+  },
+  {
+    "slug": "exchange",
+    "term": "Exchange",
+    "summary": "A marketplace for cryptocurrencies where users can buy and sell coins."
+  },
+  {
+    "slug": "exogenous-variable",
+    "term": "Exogenous Variable",
+    "summary": "A variable in an economic model that impacts the model as an outside factor."
+  },
+  {
+    "slug": "exponential-moving-average-ema",
+    "term": "Exponential Moving Average (EMA)",
+    "summary": "A moving average used in trading that gives more weight to recent data points."
+  },
+  {
+    "slug": "externally-owned-account-eoa",
+    "term": "Externally Owned Account (EOA)",
+    "summary": "A type of account on the Ethereum blockchain controlled by a private key."
+  },
+  {
+    "slug": "fakeout",
+    "term": "Fakeout",
+    "summary": "A situation where a trader enters a position betting on a price movement that quickly reverses or ultimately doesn’t happen."
+  },
+  {
+    "slug": "falling-knife",
+    "term": "Falling Knife",
+    "summary": "Refers to the action of purchasing an asset while it is rapidly declining in price under the expectation that it will bounce."
+  },
+  {
+    "slug": "fan-tokens",
+    "term": "Fan Tokens",
+    "summary": "Fan tokens are digital assets that are created by sports teams, clubs or brands to increase fan engagement and create new revenue streams."
+  },
+  {
+    "slug": "fear-of-missing-out",
+    "term": "Fear Of Missing Out (FOMO)",
+    "summary": "The feeling of fear and anxiety that you might be missing out on a potentially profitable opportunity."
+  },
+  {
+    "slug": "fear-uncertainty-and-doubt",
+    "term": "Fear, Uncertainty and Doubt (FUD)",
+    "summary": "A strategy used to spread fear and insecurity among customers, traders, or investors."
+  },
+  {
+    "slug": "fiat",
+    "term": "Fiat",
+    "summary": "Money that a government has declared to be legal tender."
+  },
+  {
+    "slug": "fibonacci-retracement",
+    "term": "Fibonacci Retracement",
+    "summary": "A technical analysis tool used by traders to find support and resistance levels."
+  },
+  {
+    "slug": "fill-or-kill-order",
+    "term": "Fill Or Kill Order (FOK)",
+    "summary": "A buy or sell order which must be executed immediately in its entirety or else it will be cancelled."
+  },
+  {
+    "slug": "finality",
+    "term": "Finality",
+    "summary": "The assurance or guarantee that completed (cryptocurrency) transactions cannot be altered, reversed or canceled."
+  },
+  {
+    "slug": "first-mover-advantage",
+    "term": "First-Mover Advantage (FMA)",
+    "summary": "The competitive advantage of the first project to bring a service or product into a new and unexplored market or industry."
+  },
+  {
+    "slug": "fiscal-policy",
+    "term": "Fiscal Policy",
+    "summary": "Describes how authorities adjusts the tax rates of a country, influencing how public funds should be collected and used."
+  },
+  {
+    "slug": "flappening",
+    "term": "Flappening",
+    "summary": "The name to describe the moment when Litecoin (LTC) surpassed Bitcoin Cash (BCH) in terms of market capitalization"
+  },
+  {
+    "slug": "flashbots",
+    "term": "Flashbots",
+    "summary": "Explore Flashbots, a research & development organization focused on refining MEV-related blockchain solutions on Ethereum."
+  },
+  {
+    "slug": "flippening",
+    "term": "Flippening",
+    "summary": "The name to describe the moment when/if Ethereum (ETH) surpasses Bitcoin (BTC) in terms of market capitalization"
+  },
+  {
+    "slug": "flow-variable",
+    "term": "Flow Variable",
+    "summary": "A measurement of something over a specific period of time."
+  },
+  {
+    "slug": "forced-liquidation",
+    "term": "Forced Liquidation",
+    "summary": "When a trader's leveraged position is forcibly closed as a result of it not fulfilling the necessary margin requirements."
+  },
+  {
+    "slug": "forex-fx",
+    "term": "Forex (FX)",
+    "summary": "Forex stands for Foreign Exchange Markets. It's a global market for the trading of fiat currencies."
+  },
+  {
+    "slug": "fork",
+    "term": "Fork",
+    "summary": "A fork is a divergence in the blockchain network by creating a split in the blockchain's transaction history. There are two types of forks - soft and hard."
+  },
+  {
+    "slug": "formal-verification",
+    "term": "Formal Verification",
+    "summary": "Using mathematically rigorous proofs to ensure certain properties of cryptographic algorithms and blockchain mechanisms"
+  },
+  {
+    "slug": "fraud-proof",
+    "term": "Fraud Proof",
+    "summary": "A fraud proof is a cryptographical evidence that a verifier submits to challenge a transaction's validity. They are widely used for blockchain scalability."
+  },
+  {
+    "slug": "fren",
+    "term": "Fren",
+    "summary": "“Fren” is an online slang term used to address someone in a friendly way. It developed in digital communities and is widely used in the crypto community."
+  },
+  {
+    "slug": "full-node",
+    "term": "Full Node",
+    "summary": "A computer that fully implements the entirety of rules of an underlying blockchain network and completely validates transactions and blocks on a blockchain."
+  },
+  {
+    "slug": "fully-diluted-valuation-fdv",
+    "term": "Fully Diluted Valuation (FDV)",
+    "summary": "Fully Diluted Valuation tells us what a project’s market value could be in the future."
+  },
+  {
+    "slug": "fundamental-analysis",
+    "term": "Fundamental Analysis (FA)",
+    "summary": "Evaluating an asset based on its underlying characteristics and traits as an effort towards arriving at an intrinsic value of the asset."
+  },
+  {
+    "slug": "funding-fees",
+    "term": "Funding Fees",
+    "summary": "Periodic payments between long and short traders in perpetual futures markets."
+  },
+  {
+    "slug": "fungibility",
+    "term": "Fungibility",
+    "summary": "The property of an asset whose individual units are indistinguishable from each other in terms of value and functionality."
+  },
+  {
+    "slug": "futures-contract",
+    "term": "Futures Contract",
+    "summary": "A standardized version of forward contracts that are used as a legal agreement to buy or sell an asset in the future at an agreed upon price and date."
+  },
+  {
+    "slug": "gamefi",
+    "term": "GameFi",
+    "summary": "GameFi is a section of DeFi that merges blockchain technology and gaming, offering play-to-earn incentives through NFTs and cryptocurrencies."
+  },
+  {
+    "slug": "gas",
+    "term": "Gas",
+    "summary": "A pricing mechanism that calculates the costs of smart contracts operations and transaction fees."
+  },
+  {
+    "slug": "gas-limit",
+    "term": "Gas Limit",
+    "summary": "The maximum price a cryptocurrency user is willing to pay as a fee when sending a transaction, or performing a smart contract function."
+  },
+  {
+    "slug": "gdp-deflator",
+    "term": "GDP Deflator",
+    "summary": "A measure that shows how much the prices in a country have increased over time."
+  },
+  {
+    "slug": "general-public-license",
+    "term": "General Public License",
+    "summary": "License allowing users to copy and modify software, but requires the works to be distributed under the same license."
+  },
+  {
+    "slug": "genesis-block",
+    "term": "Genesis Block",
+    "summary": "The first ever block recorded on its respective blockchain network, also referred to as Block 0 or Block 1."
+  },
+  {
+    "slug": "github",
+    "term": "GitHub",
+    "summary": "A site/system/folder/repository where a team can share, collaborate, and save their open source or propietary code."
+  },
+  {
+    "slug": "gm-good-morning",
+    "term": "GM (Good Morning)",
+    "summary": "GM stands for \"Good Morning,\" and its use in the crypto community reflects the inclusive and collaborative nature of the space."
+  },
+  {
+    "slug": "golden-cross",
+    "term": "Golden Cross",
+    "summary": "A bullish chart pattern where a shorter-term moving average crosses above a longer-term moving average."
+  },
+  {
+    "slug": "golden-ratio",
+    "term": "Golden Ratio",
+    "summary": "A number that represents a special proportion found in nature, art, architecture, and even financial markets."
+  },
+  {
+    "slug": "goldilocks",
+    "term": "Goldilocks",
+    "summary": "An optimal state in economics where conditions are neither too hot nor too cold."
+  },
+  {
+    "slug": "gossip-protocol",
+    "term": "Gossip Protocol",
+    "summary": "A particular method of asynchronous peer-to-peer communication between computer nodes of a distributed system."
+  },
+  {
+    "slug": "gross-domestic-product-gdp",
+    "term": "Gross Domestic Product (GDP)",
+    "summary": "A measure of the value of all the goods and services produced in a country during a specific time."
+  },
+  {
+    "slug": "gwei",
+    "term": "Gwei",
+    "summary": "A small denomination of ether, widely used as a measure of gas prices."
+  },
+  {
+    "slug": "hackathon",
+    "term": "Hackathon",
+    "summary": "A blockchain hackathon is a competition where participants build sample applications atop a blockchain ecosystem."
+  },
+  {
+    "slug": "hacker",
+    "term": "Hacker",
+    "summary": "An individual that has an advanced understanding of computer systems and networks, including programmers and cybersecurity experts."
+  },
+  {
+    "slug": "haha-money-printer-go-brrrrr",
+    "term": "Haha Money Printer Go Brrrrr",
+    "summary": "Haha Money Printer Go Brrrrr is meme created in response to the Federal Reserve's 2020 plan to print money."
+  },
+  {
+    "slug": "halving",
+    "term": "Halving",
+    "summary": "Halving is a process that reduces the block reward of a PoW crypto like Bitcoin (BTC) to half. The next halving of Bitcoin is expected around 2024."
+  },
+  {
+    "slug": "hard-cap",
+    "term": "Hard Cap",
+    "summary": "The maximum amount of funds a project intends to raise during their Initial Coin Offering (ICO) or alternative fundraising event."
+  },
+  {
+    "slug": "hard-landing",
+    "term": "Hard Landing",
+    "summary": "A situation where an economy rapidly transitions from growth to slow growth or recession."
+  },
+  {
+    "slug": "hash",
+    "term": "Hash",
+    "summary": "The output produced by a hash function after a piece of data is mapped. May also be referred to as hash value, hash code, or digest."
+  },
+  {
+    "slug": "hash-rate",
+    "term": "Hash Rate",
+    "summary": "The speed at which a computer or mining hardware is able to calculate new hashes. Usually measured in hashes per second."
+  },
+  {
+    "slug": "hashed-timelock-contract",
+    "term": "Hashed TimeLock Contract (HTLC)",
+    "summary": "Refers to a special feature that is used to create smart contracts that are able to modify payment channels."
+  },
+  {
+    "slug": "herd-instinct",
+    "term": "Herd Instinct",
+    "summary": "The tendency of some traders to follow the actions of the majority."
+  },
+  {
+    "slug": "high-frequency-trading-hft",
+    "term": "High-Frequency Trading (HFT)",
+    "summary": "A type of algorithmic trading that involves the execution of a large number of orders in fractions of a second."
+  },
+  {
+    "slug": "hodl",
+    "term": "HODL",
+    "summary": "A typo of 'Hold' originating from bitcointalk that has also been retrofitted to be an acronym for Hold on for Dear Life - to maintain ownership of coins and not sell."
+  },
+  {
+    "slug": "honeypot",
+    "term": "Honeypot",
+    "summary": "A mechanism used in computer security used to detect or counteract unauthorized access of information systems."
+  },
+  {
+    "slug": "iceberg-order",
+    "term": "Iceberg Order",
+    "summary": "A conditional order to buy or sell a large amount of assets in smaller predetermined quantities in order to conceal the total order quantity."
+  },
+  {
+    "slug": "immutability",
+    "term": "Immutability",
+    "summary": "The inability to change or be changed. One of the core features behind Bitcoin and blockchain technology."
+  },
+  {
+    "slug": "index",
+    "term": "Index",
+    "summary": "A financial instrument used to track the price value of a given asset or basket of assets"
+  },
+  {
+    "slug": "index-funds",
+    "term": "Index Funds",
+    "summary": "A type of investment fund designed to replicate the performance of a specific market index, such as the S&P 500."
+  },
+  {
+    "slug": "initial-coin-offering",
+    "term": "Initial Coin Offering (ICO)",
+    "summary": "A fundraising method in which new projects will sell their cryptocurrency to investors."
+  },
+  {
+    "slug": "initial-dex-offering-ido",
+    "term": "Initial DEX Offering (IDO)",
+    "summary": "An Initial DEX Offering (IDO) is a type of blockchain fundraising method. It’s a public token sale conducted directly on a decentralized exchange (DEX)."
+  },
+  {
+    "slug": "initial-exchange-offering",
+    "term": "Initial Exchange Offering (IEO)",
+    "summary": "A fundraising method designed to reduce the risk for token purchasers by introducing a trusted intermediary between the project team and the user."
+  },
+  {
+    "slug": "initial-public-offering",
+    "term": "Initial Public Offering (IPO)",
+    "summary": "Refers to the moment a private company starts offering its shares to the public for the first time."
+  },
+  {
+    "slug": "inscription",
+    "term": "Inscription",
+    "summary": "A piece of data attached to individual units of cryptocurrency."
+  },
+  {
+    "slug": "integrated-circuit",
+    "term": "Integrated Circuit (IC)",
+    "summary": "A small chip, typically made of silicon, that holds a set of electronic parts such as transistors, resistors or capacitors."
+  },
+  {
+    "slug": "interest-rates",
+    "term": "Interest Rates",
+    "summary": "Interest rates can refer either to the cost of borrowing money or the return earned on an investment, usually expressed as a percentage of the principal."
+  },
+  {
+    "slug": "interoperability",
+    "term": "Interoperability",
+    "summary": "A concept of allowing blockchains to be compatible with each other and build upon each other's features and use-cases."
+  },
+  {
+    "slug": "interplanetary-file-system-ipfs",
+    "term": "InterPlanetary File System (IPFS)",
+    "summary": "An open-source project building a protocol for distributed content storage and access."
+  },
+  {
+    "slug": "iou",
+    "term": "IOU",
+    "summary": "An acronym which stands for “I owe you” and refers to an informal document that acknowledges a debt one party owes to another."
+  },
+  {
+    "slug": "isolated-margin",
+    "term": "Isolated Margin",
+    "summary": "The margin balance allocated to a position. Traders can manage risk by restricting the amount allocated to each position."
+  },
+  {
+    "slug": "issuance",
+    "term": "Issuance",
+    "summary": "Generation of a new cryptocurrency which occurs in a variety of different ways, depending on parameters specified by the creators."
+  },
+  {
+    "slug": "keccak",
+    "term": "Keccak",
+    "summary": "A versatile cryptographic function designed by Guido Bertoni, Joan Daemen, Michaël Peeters, and Gilles Van Assche."
+  },
+  {
+    "slug": "know-your-customer",
+    "term": "Know Your Customer (KYC)",
+    "summary": "A standard procedure in the finance industry which allows companies to identify their customers and comply with KYC AML laws"
+  },
+  {
+    "slug": "laspeyres-index",
+    "term": "Laspeyres Index",
+    "summary": "A tool used to track changes in the cost of a basket of goods over time."
+  },
+  {
+    "slug": "latency",
+    "term": "Latency",
+    "summary": "The time between submitting a transaction to a network and the first confirmation of acceptance by the network."
+  },
+  {
+    "slug": "law-of-demand",
+    "term": "Law of Demand",
+    "summary": "The law of demand relates to the willingness of consumers to buy a specific amount of goods or services for a particular price."
+  },
+  {
+    "slug": "layer-2",
+    "term": "Layer 2",
+    "summary": "A secondary framework or protocol that is built on top of an existing blockchain system to provide increased scalability."
+  },
+  {
+    "slug": "ledger",
+    "term": "Ledger",
+    "summary": "A physical book or a digital computer file where monetary and financial transactions are tracked and recorded."
+  },
+  {
+    "slug": "leveraged-tokens",
+    "term": "Leveraged Tokens",
+    "summary": "Leveraged tokens are a type of cryptocurrency derivative that allows traders to gain leveraged exposure to a particular cryptocurrency without having to actively manage the margin requirements. They are designed to provide traders with a simplified way to trade leveraged positions in cryptocurrencies."
+  },
+  {
+    "slug": "library",
+    "term": "Library",
+    "summary": "A collection of stable resources, which may include executable files, documentation, message templates, and written code."
+  },
+  {
+    "slug": "lightning-network",
+    "term": "Lightning Network",
+    "summary": "A second layer operating on top of a blockchain, enabling increased transaction speed among participating nodes. This is one proposed scaling solution."
+  },
+  {
+    "slug": "limit-order",
+    "term": "Limit Order",
+    "summary": "A type of order to buy or sell an asset at a specific price or better."
+  },
+  {
+    "slug": "linux",
+    "term": "Linux",
+    "summary": "A popular open-source operating system, created in 1991 by Linus Torvalds. It is used in a wide range of devices around the world."
+  },
+  {
+    "slug": "liquid-staking",
+    "term": "Liquid Staking",
+    "summary": "The process of tokenizing staked assets to provide enhanced liquidity."
+  },
+  {
+    "slug": "liquid-staking-token-lst",
+    "term": "Liquid Staking Token (LST)",
+    "summary": "A cryptocurrency token that represents staked assets on a blockchain network."
+  },
+  {
+    "slug": "liquidity",
+    "term": "Liquidity",
+    "summary": "The ability to sell or buy any given asset without causing significant fluctuations in the market price for that asset."
+  },
+  {
+    "slug": "liquidity-crisis",
+    "term": "Liquidity Crisis",
+    "summary": "A liquidity crisis is a financial situation in which an individual, organization, or market faces a shortage of cash, making it difficult to meet immediate financial obligations."
+  },
+  {
+    "slug": "liquidity-provider",
+    "term": "Liquidity Provider",
+    "summary": "Liquidity Providers (LPs) are entities or individuals who supply buy and sell orders to the financial markets to increase market liquidity and ensure a stable and efficient market."
+  },
+  {
+    "slug": "liquidity-ratios",
+    "term": "Liquidity Ratios",
+    "summary": "Liquidity ratios are a type of financial metric used to measure a company’s capability to pay short-term obligations."
+  },
+  {
+    "slug": "listing",
+    "term": "Listing",
+    "summary": "The addition of an asset to an exchange either as a request from the project team or as a decision made by the exchange."
+  },
+  {
+    "slug": "mainnet",
+    "term": "Mainnet",
+    "summary": "A blockchain protocol which is fully developed and deployed where transactions are being broadcasted, verified, and recorded."
+  },
+  {
+    "slug": "mainnet-swap",
+    "term": "Mainnet Swap",
+    "summary": "When a coin migrates from a third party platform such as Ethereum or other token to a native on-chain token on their mainnet."
+  },
+  {
+    "slug": "maker",
+    "term": "Maker",
+    "summary": "You become a “maker” when you place an order and it does not trade immediately, so your order stays in the order book and waits for someone else to fill/match with it later."
+  },
+  {
+    "slug": "malware",
+    "term": "Malware",
+    "summary": "Any software program or code that is created to infiltrate and intentionally cause damage to computer systems and networks."
+  },
+  {
+    "slug": "margin-trading",
+    "term": "Margin Trading",
+    "summary": "Trading using borrowed funds - note: this is a high risk strategy and should only be done by experienced investors."
+  },
+  {
+    "slug": "market-capitalization",
+    "term": "Market Capitalization",
+    "summary": "The total trading value of a given coin - calculated by the product of the supply of the coin by the current price."
+  },
+  {
+    "slug": "market-momentum",
+    "term": "Market Momentum",
+    "summary": "The ability of a certain market to maintain a continuous increase or decrease in price within a particular timeframe."
+  },
+  {
+    "slug": "market-order",
+    "term": "Market Order",
+    "summary": "When a taker picks the best available bid or ask for a cryptocurrency, taking the price and quantity available on the order book."
+  },
+  {
+    "slug": "masternode",
+    "term": "Masternode",
+    "summary": "Nodes on a network that often require a minimum amount of a given coin staked in order to access staking rewards."
+  },
+  {
+    "slug": "matching-engine",
+    "term": "Matching Engine",
+    "summary": "A matching engine is a piece of software designed to process trading orders, ensuring that buyers and sellers are paid correctly in financial markets."
+  },
+  {
+    "slug": "maximum-supply",
+    "term": "Maximum Supply",
+    "summary": "Refers to the maximum number of coins or tokens that will be ever created for a given cryptocurrency."
+  },
+  {
+    "slug": "mempool",
+    "term": "Mempool",
+    "summary": "A node’s mechanism for keeping track of unconfirmed transactions that the node has seen (but have not yet been added to a block)."
+  },
+  {
+    "slug": "merged-mining",
+    "term": "Merged Mining",
+    "summary": "The act of mining two or more cryptocurrencies at the same time, without sacrificing overall mining performance"
+  },
+  {
+    "slug": "merkle-tree",
+    "term": "Merkle Tree",
+    "summary": "A way of organizing and structuring large amounts of data to make it more straightforward to process. A hash-based data structure."
+  },
+  {
+    "slug": "metadata",
+    "term": "Metadata",
+    "summary": "Data that includes information about other data, such as information about features of a specific transaction."
+  },
+  {
+    "slug": "metaverse",
+    "term": "Metaverse",
+    "summary": "The metaverse is a concept of a persistent, online, 3D virtual environment that many believe will be a key element of future digital experiences."
+  },
+  {
+    "slug": "microtransactions",
+    "term": "Microtransactions",
+    "summary": "A small financial exchange using cryptocurrencies, such as bitcoin (BTC) or ether (ETH)."
+  },
+  {
+    "slug": "mining",
+    "term": "Mining",
+    "summary": "The verification of transactions on a blockchain network, in which transactions are added as entries into the blockchain ledger."
+  },
+  {
+    "slug": "mining-farm",
+    "term": "Mining Farm",
+    "summary": "A collection of many miners, often in a warehouse or large data center devoted to mining cryptocurrencies"
+  },
+  {
+    "slug": "mint",
+    "term": "Minting",
+    "summary": "Minting adds fresh tokens into the crypto ecosystem, enabling them to be traded or used within its network. Minting is similar to mining, with some key differences."
+  },
+  {
+    "slug": "monetary-policy",
+    "term": "Monetary Policy",
+    "summary": "Refers to the policies that authorities create and adopt to control the money supply and interest rates of a country."
+  },
+  {
+    "slug": "money-markets",
+    "term": "Money Markets",
+    "summary": "Where people and institutions trade short-term financial instruments like T-bills and CDs."
+  },
+  {
+    "slug": "monitoring-tag",
+    "term": "Monitoring Tag",
+    "summary": "A tag used by Binance to classify assets that present higher volatility and risk when compared to other tokens."
+  },
+  {
+    "slug": "moon",
+    "term": "Moon",
+    "summary": "A colloquial expression used to describe a cryptocurrency or other asset that is experiencing a strong upward market trend."
+  },
+  {
+    "slug": "moving-average-envelopes",
+    "term": "Moving Average Envelopes",
+    "summary": "A TA tool that consists of two bands placed around a core moving average."
+  },
+  {
+    "slug": "moving-average-ribbon",
+    "term": "Moving Average Ribbon",
+    "summary": "A technical analysis tool composed of multiple moving averages of varying lengths."
+  },
+  {
+    "slug": "mt-gox",
+    "term": "Mt. Gox",
+    "summary": "A defunct Bitcoin exchange based in Japan that was once the largest in the world."
+  },
+  {
+    "slug": "multisignature",
+    "term": "Multisignature",
+    "summary": "Wallet which requires another party to authorize a transaction before it is broadcasted to the network."
+  },
+  {
+    "slug": "nakamoto-consensus",
+    "term": "Nakamoto Consensus",
+    "summary": "A protocol used in blockchain networks to achieve agreement on the state of the blockchain without a central authority."
+  },
+  {
+    "slug": "net-asset-value-nav",
+    "term": "Net Asset Value (NAV)",
+    "summary": "The value of an entity’s total assets minus its liabilities."
+  },
+  {
+    "slug": "nft-floor-prices",
+    "term": "NFT Floor Prices",
+    "summary": "Floor prices represent the lowest value at which you can purchase an NFT within a collection."
+  },
+  {
+    "slug": "nft-mystery-boxes",
+    "term": "NFT Mystery Boxes",
+    "summary": "Non-fungible token (NFT) mystery boxes are a type of digital collectible that contain a random assortment of NFTs that are unknown the buyer until they open the box."
+  },
+  {
+    "slug": "ngmi",
+    "term": "NGMI",
+    "summary": "NGMI is an acronym for \"Not Gonna Make It,” used to convey a sense of pessimism in achieving success or overcoming a challenge."
+  },
+  {
+    "slug": "node",
+    "term": "Node",
+    "summary": "A participant on a blockchain network that communicates with other participants to ensure the security and integrity of the system."
+  },
+  {
+    "slug": "non-fungible-token-nft",
+    "term": "Non-Fungible Token (NFT)",
+    "summary": "A type of cryptographic token that represents a unique digital or real-world asset and isn't interchangeable."
+  },
+  {
+    "slug": "nonce",
+    "term": "Nonce",
+    "summary": "A single-use arbitrary string or number generated for verification purposes to prevent replaying past transactions."
+  },
+  {
+    "slug": "oco-order",
+    "term": "OCO Order",
+    "summary": "An OCO (One Cancels the Other) order allows you to place two orders at the same time. It combines a limit order with a stop-limit order but only one of them can be executed."
+  },
+  {
+    "slug": "off-chain",
+    "term": "Off-Chain",
+    "summary": "The processes and transactions that occur outside the main blockchain, often used to enhance scalability."
+  },
+  {
+    "slug": "offline-signing-orchestrator-oso",
+    "term": "Offline Signing Orchestrator (OSO)",
+    "summary": "Offline Signing Orchestrator (OSO) is a technology developed by IBM to enhance the security of crypto and digital assets when they are stored in cold storage."
+  },
+  {
+    "slug": "offshore-account",
+    "term": "Offshore account",
+    "summary": "An account that is registered in a jurisdiction that is different to the jurisdiction of the holder's citizenship."
+  },
+  {
+    "slug": "on-chain",
+    "term": "On-Chain",
+    "summary": "On-chain refers to transactions and activities directly recorded on the blockchain, ensuring data transparency, security, and immutability."
+  },
+  {
+    "slug": "opbnb",
+    "term": "opBNB",
+    "summary": "opBNB acts as an important layer-2 scaling solution, which strategically offloads transaction processing and resource usage from the BNB Smart Chain."
+  },
+  {
+    "slug": "open-source-software-oss",
+    "term": "Open-Source Software (OSS)",
+    "summary": "Software released under a license that gives anyone the ability and right to use, update, and distribute it freely."
+  },
+  {
+    "slug": "opportunity-cost",
+    "term": "Opportunity Cost",
+    "summary": "The value of what you miss out as a result of making a decision."
+  },
+  {
+    "slug": "oracle",
+    "term": "Oracle",
+    "summary": "A data source or feed from a third party used for determining outcomes for smart contracts"
+  },
+  {
+    "slug": "orc-20-tokens",
+    "term": "ORC-20 Tokens",
+    "summary": "ORC-20 tokens run on the Bitcoin blockchain and are represented as JSON (JavaScript Object Notation) files inscribed onto satoshis with an Ordinal serial number, similar to BRC-20 tokens."
+  },
+  {
+    "slug": "order-book",
+    "term": "Order Book",
+    "summary": "An electronic list of outstanding buy and sell orders for a specific asset on an exchange or marketplace."
+  },
+  {
+    "slug": "ordinals",
+    "term": "Ordinals",
+    "summary": "Ordinals are NFT-like entities that can be minted directly on the Bitcoin blockchain."
+  },
+  {
+    "slug": "orphan-block",
+    "term": "Orphan Block",
+    "summary": "A block whose parent block is unknown, formed in older versions of Bitcoin Core, where ancestry data wasn't required."
+  },
+  {
+    "slug": "pancakeswap",
+    "term": "PancakeSwap",
+    "summary": "PancakeSwap is a decentralized exchange (DEX) that uses an AMM model. It's available in multiple blockchain networks with various DeFi products and services."
+  },
+  {
+    "slug": "paper-wallet",
+    "term": "Paper Wallet",
+    "summary": "A piece of paper on which a cryptocurrency address and its corresponding private key are physically printed out."
+  },
+  {
+    "slug": "parallelization",
+    "term": "Parallelization",
+    "summary": "A method for processing multiple transactions at the same time."
+  },
+  {
+    "slug": "passive-management",
+    "term": "Passive Management",
+    "summary": "An investing strategy that doesn’t rely on active market exposure but rather tracks an existing economic index."
+  },
+  {
+    "slug": "peer-to-peer",
+    "term": "Peer-to-Peer (P2P)",
+    "summary": "When two or more computers are connected and share workload or resources without relying on a centralized server."
+  },
+  {
+    "slug": "pegged-currency",
+    "term": "Pegged Currency",
+    "summary": "A currency whose value is tied to the value of another currency, commodity, or basket of currencies."
+  },
+  {
+    "slug": "permissionless-blockchain",
+    "term": "Permissionless Blockchain",
+    "summary": "Permissionless blockchains are open networks that allow anyone to participate in the consensus process without the need to obtain approval, permission, or authorization."
+  },
+  {
+    "slug": "phishing",
+    "term": "Phishing",
+    "summary": "A malicious attack where a bad actor will attempt to obtain the credentials of a user in order to gain unauthorised access into their account."
+  },
+  {
+    "slug": "plasma",
+    "term": "Plasma",
+    "summary": "An Ethereum off-chain scaling solution which may allow Etherum to greatly increase the transactions per second capablities."
+  },
+  {
+    "slug": "polkadot-crowdloan",
+    "term": "Polkadot Crowdloan",
+    "summary": "Polkadot Crowdloan refers to the process of staking Polkadot (DOT) tokens to support specific projects in the Polkadot Slot Auction. In return, participants can receive rewards from the projects."
+  },
+  {
+    "slug": "ponzi-scheme",
+    "term": "Ponzi Scheme",
+    "summary": "A scam in which new investors' funds are used to pay returns promised to previous investors. Do not invest in these."
+  },
+  {
+    "slug": "premining",
+    "term": "Premining",
+    "summary": "When a portion of cryptocurrency tokens is mined or created before its official launch."
+  },
+  {
+    "slug": "price-action",
+    "term": "Price Action",
+    "summary": "The price movements of a financial asset over time. Plotted on a chart, it can be used by traders to identify trade setups."
+  },
+  {
+    "slug": "prisoners-dilemma",
+    "term": "Prisoner's Dilemma",
+    "summary": "An example that shows why two individuals might not cooperate, even if it may appear to be in their best interest."
+  },
+  {
+    "slug": "private-key",
+    "term": "Private Key",
+    "summary": "In cryptocurrency, a private key is a lengthy number that allows users to sign transactions and to generate receiving addresses."
+  },
+  {
+    "slug": "private-sale",
+    "term": "Private Sale",
+    "summary": "An early stage investment round for strategic investors with a considerable amount of investible funds."
+  },
+  {
+    "slug": "progressive-web-application",
+    "term": "Progressive Web application (PWA)",
+    "summary": "An application that is created through the use of modern web technologies and follows basic web standards."
+  },
+  {
+    "slug": "proof-of-attendance-protocol-poap",
+    "term": "Proof of Attendance Protocol (POAP)",
+    "summary": "A protocol that creates digital badges or collectibles to celebrate and record the attendance of an event."
+  },
+  {
+    "slug": "proof-of-reserves-por",
+    "term": "Proof of Reserves (PoR)",
+    "summary": "Proof of Reserves (PoR) is a verification proving an exchange maintains funds to cover users' assets."
+  },
+  {
+    "slug": "proof-of-stake",
+    "term": "Proof of Stake (PoS)",
+    "summary": "A consensus mechanism that reward block validators according to the amount of coins they have at stake."
+  },
+  {
+    "slug": "proof-of-staked-authority-posa",
+    "term": "Proof of Staked Authority (PoSA)",
+    "summary": "Proof of Staked Authority merges Proof of Stake and Proof of Authority, enhancing blockchain security through its equal staking and balanced validation system."
+  },
+  {
+    "slug": "proof-of-work",
+    "term": "Proof of Work (PoW)",
+    "summary": "Proof of Work is a crypto consensus mechanism where miners use special equipment to solve cryptographic puzzles to validate transactions and create new blocks."
+  },
+  {
+    "slug": "proposer-builder-separation-pbs",
+    "term": "Proposer-Builder Separation (PBS)",
+    "summary": "Proposer-builder separation (PBS) is an Ethereum concept aiming to improve scalability by dividing the responsibilities of block building into block proposers and block builders."
+  },
+  {
+    "slug": "proto-danksharding",
+    "term": "Proto-Danksharding",
+    "summary": "Proto-danksharding serves as a temporary scalability solution before the implementation of danksharding, which marks the final phase of Ethereum 2.0 (Serenity)."
+  },
+  {
+    "slug": "pseudorandom",
+    "term": "Pseudorandom",
+    "summary": "The property of a definite function that can produce an outcome that passes statistical tests of randomness."
+  },
+  {
+    "slug": "public-key",
+    "term": "Public Key",
+    "summary": "A public key is one-half of a key pair used to encrypt messages or verify digital signatures. In the crypto space, it essentially works as your wallet address."
+  },
+  {
+    "slug": "pump-and-dump",
+    "term": "Pump-and-dump",
+    "summary": "Pump-and-dumps are a deceptive practice used in crypto, where the price of a digital asset is artificially inflated and dumped, causing a sharp decline in the token value."
+  },
+  {
+    "slug": "quantitative-easing-qe",
+    "term": "Quantitative Easing (QE)",
+    "summary": "A strategy used by central banks to boost the economy when it's not performing well."
+  },
+  {
+    "slug": "quantitative-tightening-qt",
+    "term": "Quantitative Tightening (QT)",
+    "summary": "A monetary policy tool used by central banks to reduce the supply of money in the economy."
+  },
+  {
+    "slug": "quantum-computing",
+    "term": "Quantum Computing",
+    "summary": "Quantum computing works using particles that can be in superposition. These particles represent qubits instead of bits and can take the value of 1, 0 or both simultaneously."
+  },
+  {
+    "slug": "race-attack",
+    "term": "Race attack",
+    "summary": "When two transactions are created with the same funds at the same time, with the intention of spending those funds twice."
+  },
+  {
+    "slug": "ransomware",
+    "term": "Ransomware",
+    "summary": "A type of malware which takes over your computer and threatens to destroy or reveal files unless a ransom is paid."
+  },
+  {
+    "slug": "real-world-assets-rwas",
+    "term": "Real World Assets (RWAs)",
+    "summary": "Real World Assets refer to tangible, physical assets with intrinsic value—like real estate, commodities, or art—that are tokenized for use on the blockchain."
+  },
+  {
+    "slug": "recession",
+    "term": "Recession",
+    "summary": "An extended period of significant economic activity decline."
+  },
+  {
+    "slug": "recursive-inscription",
+    "term": "Recursive Inscription",
+    "summary": "A process where data or information is retrieved from existing inscriptions to generate new ones."
+  },
+  {
+    "slug": "rekt",
+    "term": "Rekt",
+    "summary": "A slang term used to define someone or something that has been destroyed or experienced catastrophic failure and a synonym for liquidated"
+  },
+  {
+    "slug": "relative-strength-index",
+    "term": "Relative Strength Index (RSI)",
+    "summary": "A technical indicator that measures market momentum & used to identify overbought and oversold conditions."
+  },
+  {
+    "slug": "resistance",
+    "term": "Resistance",
+    "summary": "A term in Technical Analysis (TA). When a price that is increasing finds resistance. Usually compared with previous highs."
+  },
+  {
+    "slug": "return-on-investment",
+    "term": "Return on Investment (ROI)",
+    "summary": "A measure used in order to assess the efficiency of an investment. The ratio between net profit and net cost."
+  },
+  {
+    "slug": "revenge-trading",
+    "term": "Revenge Trading",
+    "summary": "Psychological trap where traders try to quickly recover their losses."
+  },
+  {
+    "slug": "risk-premium",
+    "term": "Risk Premium",
+    "summary": "The additional compensation investors expect in return for taking on higher levels of risk."
+  },
+  {
+    "slug": "roadmap",
+    "term": "Roadmap",
+    "summary": "A business planning technique which lays out the short and long term goals of a company within a flexible estimated timeline."
+  },
+  {
+    "slug": "routing-attack",
+    "term": "Routing Attack",
+    "summary": "An attack on the Internet Service Provider level to affect uptime or participation in a web-enabled system, such as a blockchain."
+  },
+  {
+    "slug": "rug-pull",
+    "term": "Rug pull",
+    "summary": "A rug pull in the crypto industry is when a development team suddenly abandons a project and sells or removes all its liquidity."
+  },
+  {
+    "slug": "sahm-rule",
+    "term": "Sahm Rule",
+    "summary": "An indicator used to identify the early stages of a recession."
+  },
+  {
+    "slug": "sandwich-trading",
+    "term": "Sandwich Trading",
+    "summary": "Sandwich trading, also known as sandwich attacks or sandwiching, is a trading strategy or manipulation technique in the cryptocurrency markets."
+  },
+  {
+    "slug": "satoshi",
+    "term": "Satoshi",
+    "summary": "The smallest unit of a bitcoin, as defined by the Bitcoin protocol. It equals one-hundred-millionth of a bitcoin or 0.00000001 BTC."
+  },
+  {
+    "slug": "satoshi-nakamoto",
+    "term": "Satoshi Nakamoto",
+    "summary": "The pseudonym of the creator or creators of the bitcoin protocol and whitepaper."
+  },
+  {
+    "slug": "secure-asset-fund-for-users",
+    "term": "Secure Asset Fund for Users (SAFU)",
+    "summary": "Secure Asset Fund for Users is an emergency insurance fund created by Binance in 2018."
+  },
+  {
+    "slug": "securities-and-exchange-commission",
+    "term": "Securities and Exchange Commission (SEC)",
+    "summary": "An independent governmental agency responsible for regulating securities markets."
+  },
+  {
+    "slug": "security-audit",
+    "term": "Security Audit",
+    "summary": "A systematic analysis to evaluate how safe a system, smart contract, or blockchain is agaisnt attacks or technical failures."
+  },
+  {
+    "slug": "security-token-offering-sto",
+    "term": "Security Token Offering (STO)",
+    "summary": "A fundraising method that involves the issuance of security tokens."
+  },
+  {
+    "slug": "seed-phrase",
+    "term": "Seed Phrase",
+    "summary": "A seed phrase or mnemonic seed is a collection of words that can be used to access your cryptocurrency wallet."
+  },
+  {
+    "slug": "seed-tag",
+    "term": "Seed Tag",
+    "summary": "A tag used to classify riskier assets that are in their initial stages of development."
+  },
+  {
+    "slug": "segregated-witness",
+    "term": "Segregated Witness (SegWit)",
+    "summary": "Segregated Witness, often abbreviated to SegWit, is an update to the Bitcoin protocol designed to address the network’s scalability and security issues."
+  },
+  {
+    "slug": "selfish-mining",
+    "term": "Selfish Mining",
+    "summary": "The strategic withholding and releasing of blocks by a miner in order to gain a competitive advantage over the network."
+  },
+  {
+    "slug": "sell-wall",
+    "term": "Sell Wall",
+    "summary": "A very large limit sell order or a cumulation of sell orders at the same price level on an order book for an asset."
+  },
+  {
+    "slug": "sentiment",
+    "term": "Sentiment",
+    "summary": "The overall attitude of a community in regards to a cryptocurrency or within investors towards a certain financial market."
+  },
+  {
+    "slug": "sharding",
+    "term": "Sharding",
+    "summary": "Sharding is a method of splitting blockchains ( or other types of databases) into smaller, partitioned blockchains that manage specific data segments."
+  },
+  {
+    "slug": "sharpe-ratio",
+    "term": "Sharpe Ratio",
+    "summary": "A ratio created in 1966 that investors and economists use to assess the potential return of investment (ROI)."
+  },
+  {
+    "slug": "sidechains",
+    "term": "Sidechains",
+    "summary": "Sidechains are independent blockchains linked to a parent blockchain, designed to enhance scalability and facilitate digital asset transfers between networks."
+  },
+  {
+    "slug": "simple-moving-average-sma",
+    "term": "Simple Moving Average (SMA)",
+    "summary": "A technical analysis tool that helps traders identify trends by smoothing out price data."
+  },
+  {
+    "slug": "slashing",
+    "term": "Slashing",
+    "summary": "A mechanism to punish malicious behavior in blockchains that use the Proof of Stake (PoS) consensus mechanism."
+  },
+  {
+    "slug": "slippage",
+    "term": "Slippage",
+    "summary": "When a trade settles at a different price than originally requested or expected, usually in low-liquidity markets and when using market orders."
+  },
+  {
+    "slug": "smart-contract",
+    "term": "Smart Contract",
+    "summary": "Smart contracts are self-executing contracts that exist on certain blockchain networks. Their conditions and terms are written directly into lines of code."
+  },
+  {
+    "slug": "smart-contract-wallet",
+    "term": "Smart Contract Wallet",
+    "summary": "Smart contract wallets are crypto wallets that leverage programmable smart contracts to introduce advanced functionalities and enhanced security features."
+  },
+  {
+    "slug": "snapshot",
+    "term": "Snapshot",
+    "summary": "The ability to record the state of a blockchain ledger, storage device, or computer system at a specific point in time."
+  },
+  {
+    "slug": "social-recovery-wallet",
+    "term": "Social Recovery Wallet",
+    "summary": "Social recovery wallets are crypto wallets allowing crypto recovery. They utilize trusted contacts so users can regain access in case of lost keys or forgotten passwords."
+  },
+  {
+    "slug": "social-trading",
+    "term": "Social Trading",
+    "summary": "Social trading is a strategy that enables individuals to mimic the trading behavior of expert investors and market professionals, often in real time."
+  },
+  {
+    "slug": "socialfi",
+    "term": "SocialFi",
+    "summary": "SocialFi, short for Social Finance, represents a convergence of decentralized finance (DeFi) principles with the dynamics of social media."
+  },
+  {
+    "slug": "soft-landing",
+    "term": "Soft Landing",
+    "summary": "Soft landing refers to a situation in which the economy slows down gradually after a period of rapid growth while simultaneously avoiding a recession."
+  },
+  {
+    "slug": "solidity",
+    "term": "Solidity",
+    "summary": "Solidity is a programming language specially designed to write and implement smart contracts on the Ethereum blockchain."
+  },
+  {
+    "slug": "source-code",
+    "term": "Source Code",
+    "summary": "Computer code, which is responsible for defining how software will function based on a list of instructions and statements."
+  },
+  {
+    "slug": "spl",
+    "term": "SPL",
+    "summary": "SPL stands for Solana Program Library (SPL). It is a set of rules and protocols governing how tokens behave and interact on the Solana network."
+  },
+  {
+    "slug": "src-20-tokens",
+    "term": "SRC-20 Tokens",
+    "summary": "SRC-20 tokens leverage the Bitcoin Stamps technology to increase the utility of the Bitcoin blockchain."
+  },
+  {
+    "slug": "stablecoin",
+    "term": "Stablecoin",
+    "summary": "A type of cryptocurrency that is designed to maintain a stable value, rather than experiencing significant price changes."
+  },
+  {
+    "slug": "stagflation",
+    "term": "Stagflation",
+    "summary": "An economic challenge that includes slow economic growth, higher scarcity of job offerings, and rising prices of goods and services."
+  },
+  {
+    "slug": "staking-pool",
+    "term": "Staking Pool",
+    "summary": "A pool where stakeholders combine their staking power to increase their chance of successfully validating a new block."
+  },
+  {
+    "slug": "state-channel",
+    "term": "State Channel",
+    "summary": "A two-way communication channel between two users or nodes on a network, or between a user and a service."
+  },
+  {
+    "slug": "steth",
+    "term": "stETH",
+    "summary": "A token designed to make Ethereum staking more inclusive and flexible for investors."
+  },
+  {
+    "slug": "stock-variable",
+    "term": "Stock Variable",
+    "summary": "The quantity of an economic resource measured at a specific point in time."
+  },
+  {
+    "slug": "store-of-value",
+    "term": "Store of Value",
+    "summary": "A commodity, asset or currency that can be saved, retrieved and exchanged at a future date, without suffering depreciation."
+  },
+  {
+    "slug": "supercomputer",
+    "term": "Supercomputer",
+    "summary": "A computer or virtual machine that operates at the highest level of currently possible computing power."
+  },
+  {
+    "slug": "supply-chain",
+    "term": "Supply Chain",
+    "summary": "A network of people and businesses involved in creating and distributing a particular product or serving a particular customer."
+  },
+  {
+    "slug": "support",
+    "term": "Support",
+    "summary": "A term in Technical Analysis (TA). When a price that is decreasing finds 'support'. Usually compared with lows."
+  },
+  {
+    "slug": "sybil-attack",
+    "term": "Sybil Attack",
+    "summary": "A cyber attack where an entity creates and controls fake identities or nodes on a P2P network to gain influence."
+  },
+  {
+    "slug": "taker",
+    "term": "Taker",
+    "summary": "The 'taker' is someone who decides to place an order that is instantly matched with an existing order on the order book."
+  },
+  {
+    "slug": "tank",
+    "term": "Tank",
+    "summary": "A term adopted from the traditional financial markets and describes a strong negative financial performance of a particular asset"
+  },
+  {
+    "slug": "testnet",
+    "term": "Testnet",
+    "summary": "Testnets are replicas of the mainnet, offering risk-free, secure environments for exploring and testing blockchain features."
+  },
+  {
+    "slug": "ticker-symbol",
+    "term": "Ticker Symbol",
+    "summary": "A short code that represents a stock, cryptocurrency, or other asset."
+  },
+  {
+    "slug": "token",
+    "term": "Token",
+    "summary": "Tokens (not to be confused with coins) are digital units issued on a blockchain. They can hold value or be redeemed for assets."
+  },
+  {
+    "slug": "token-generation-event-tge",
+    "term": "Token Generation Event (TGE)",
+    "summary": "A crowdfunding method used by blockchain projects and companies to launch tokens and raise funds."
+  },
+  {
+    "slug": "token-lockup",
+    "term": "Token Lockup",
+    "summary": "Token lockup or vesting period refers to the time span in which tokens or coins are not allowed to be transferred or traded."
+  },
+  {
+    "slug": "token-merge",
+    "term": "Token Merge",
+    "summary": "When two or more crypto tokens are combined into a single, unified token."
+  },
+  {
+    "slug": "token-sale",
+    "term": "Token Sale",
+    "summary": "The issuance of tokens in exchange for another cryptocurrency. Also referred to as an Initial Coin Offering."
+  },
+  {
+    "slug": "token-standards",
+    "term": "Token Standards",
+    "summary": "Learn about ERC-20, ERC-721, BEP-20, and TRC-20 token standards in blockchain networks. Understand their role in cryptocurrency transactions and decentralized applications."
+  },
+  {
+    "slug": "tokenization",
+    "term": "Tokenization",
+    "summary": "Tokenization refers to the process of converting real-world assets, such as real estate, art, or financial instruments, into digital tokens on a blockchain."
+  },
+  {
+    "slug": "tokenomics",
+    "term": "Tokenomics",
+    "summary": "The word “tokenomics” combines two words, ‘token’ and ‘economics.’ It allows us to see how a token functions, along with various factors that may affect its value"
+  },
+  {
+    "slug": "total-supply",
+    "term": "Total Supply",
+    "summary": "Refers to the number of coins or tokens that currently exists and are either in circulation or locked somehow."
+  },
+  {
+    "slug": "total-value-locked-tvl",
+    "term": "Total Value Locked (TVL)",
+    "summary": "Total Value Locked (TVL) is a widely used metric in the cryptocurrency industry that measures the total value of assets locked in a decentralized finance (DeFi) protocol."
+  },
+  {
+    "slug": "tradfi",
+    "term": "TradFi",
+    "summary": "TradFi (traditional finance) is the established financial system most people interact with in their daily lives."
+  },
+  {
+    "slug": "transaction-id",
+    "term": "Transaction ID (TXID)",
+    "summary": "A transaction ID (TXID) is a unique string of characters that labels each transaction on the blockchain."
+  },
+  {
+    "slug": "transactions-per-second-tps",
+    "term": "Transactions Per Second (TPS)",
+    "summary": "The number of transactions that a blockchain network is capable of processing each second."
+  },
+  {
+    "slug": "treasury-bills-t-bills",
+    "term": "Treasury Bills (T-Bills)",
+    "summary": "Financial instruments issued by governments to raise funds."
+  },
+  {
+    "slug": "trueusd-tusd",
+    "term": "TrueUSD (TUSD)",
+    "summary": "TrueUSD is a stablecoin pegged to the U.S. dollar. It is integrated with multiple blockchain networks and is among the fastest-growing stablecoins."
+  },
+  {
+    "slug": "trustless",
+    "term": "Trustless",
+    "summary": "No single entity has authority over the system and consensus is achieved between participants who do not have to trust each other."
+  },
+  {
+    "slug": "turing-complete",
+    "term": "Turing Complete",
+    "summary": "A machine that, given enough time and memory along with the necessary instructions, can solve any computational problem, no matter how complex."
+  },
+  {
+    "slug": "understanding-cz-s-number-4",
+    "term": "Understanding CZ’s Number 4",
+    "summary": "The number 4 represents one of CZ’s New Years resolutions to ignore FUD, fake news and attacks on Binance."
+  },
+  {
+    "slug": "unit-of-account",
+    "term": "Unit of Account",
+    "summary": "One of the primary properties of money. Allowing measurement and comparison of the value of different things."
+  },
+  {
+    "slug": "unspent-transaction-output-utxo",
+    "term": "Unspent Transaction Output (UTXO)",
+    "summary": "An output created in a transaction, which must be referenced in a future transaction to spend funds."
+  },
+  {
+    "slug": "user-interface",
+    "term": "User Interface (UI)",
+    "summary": "The interface where interactions between humans and machines occur. It establishes how a user can interact with a machine."
+  },
+  {
+    "slug": "utility-token",
+    "term": "Utility Token",
+    "summary": "A digital token issued through a blockchain network, often via an initial coin offering (ICO), initial exchange offering (IEO) or token generation event (TGE)."
+  },
+  {
+    "slug": "verification-code",
+    "term": "Verification Code",
+    "summary": "Code sent to a second device to ensure the identity of someone logging in to an account. Used for Two-Factor Authentication"
+  },
+  {
+    "slug": "virtual-machine",
+    "term": "Virtual Machine",
+    "summary": "An emulated computer system, or a distributed system that is designed to replicate the features of a computer's architecture."
+  },
+  {
+    "slug": "vladimir-club",
+    "term": "Vladimir Club",
+    "summary": "A term used to describe someone who has acquired 1% of 1% (0.01%) of the maximum supply of a cryptocurrency."
+  },
+  {
+    "slug": "volatility",
+    "term": "Volatility",
+    "summary": "How quickly and how much the price of an asset changes. Calculated in terms of standard deviations in the annual return of an asset over a set period of time."
+  },
+  {
+    "slug": "volume",
+    "term": "Volume",
+    "summary": "A measurement of the number of individual units of an asset that changed hands in a market during a given time."
+  },
+  {
+    "slug": "wagmi",
+    "term": "WAGMI",
+    "summary": "WAGMI is an acronym for \"We’re All Gonna Make It\" that encourages an optimistic attitude, particularly within the crypto community."
+  },
+  {
+    "slug": "wallet",
+    "term": "Wallet",
+    "summary": "Used to send and receive cryptocurrencies. Different types include software wallets, hardware wallets, and paper wallets."
+  },
+  {
+    "slug": "wash-trading",
+    "term": "Wash Trading",
+    "summary": "An unethical and deceptive practice involving the simultaneous buying and selling of a certain asset to create false market activity."
+  },
+  {
+    "slug": "weak-hands",
+    "term": "Weak Hands",
+    "summary": "A term referring to traders or investors who lack the confidence to hold their assets or to follow their trading plans."
+  },
+  {
+    "slug": "weak-subjectivity",
+    "term": "Weak Subjectivity",
+    "summary": "Relates to the need for certain nodes to rely on other nodes when determining the current state of a PoS blockchain."
+  },
+  {
+    "slug": "web-1",
+    "term": "Web 1.0",
+    "summary": "The initial iteration of the web, when data was primarily read-only pages connected with hyperlinks. Also known as 'read-only' web."
+  },
+  {
+    "slug": "wei",
+    "term": "Wei",
+    "summary": "The smallest possible denomination of ether (ETH), the currency used on the Ethereum network. Often used when referring to gas prices."
+  },
+  {
+    "slug": "weighted-moving-average-wma",
+    "term": "Weighted Moving Average (WMA)",
+    "summary": "A technical analysis tool with greater sensitivity to recent price changes."
+  },
+  {
+    "slug": "whale",
+    "term": "Whale",
+    "summary": "An individual or organization that holds a large amount of Bitcoins or other cryptocurrency, allowing them to impact the markets."
+  },
+  {
+    "slug": "whiskers",
+    "term": "Whiskers",
+    "summary": "The lines extending from the colored bar in a candlestick chart that indicate the full low-high range of a trading pair within a certain time frame. Also referred to as wicks or shadows."
+  },
+  {
+    "slug": "whitelist",
+    "term": "Whitelist",
+    "summary": "A list of allowed or trusted individuals, computer programs, or cryptocurrency addresses in relation to a service or event."
+  },
+  {
+    "slug": "wick",
+    "term": "Wick",
+    "summary": "A line found on a candlestick chart which is used to indicate where the price of an asset is fluctuating in regards to its opening and closing prices."
+  },
+  {
+    "slug": "win-rate",
+    "term": "Win Rate",
+    "summary": "In financial markets, win rate (or win ratio) is a metric that indicates how profitable a trader might be."
+  },
+  {
+    "slug": "wrapped-ether",
+    "term": "Wrapped Ether (WETH)",
+    "summary": "ERC-20 token representing Ether at a 1:1 ratio. It allows users to trade ETH to ERC-20 tokens on decentralized platforms."
+  },
+  {
+    "slug": "wyckoff",
+    "term": "Wyckoff",
+    "summary": "The Wyckoff method, created by Richard Wyckoff in the 1930s, is an approach to trading and investing that caused a lasting impact on modern technical analysis."
+  },
+  {
+    "slug": "yield-farming",
+    "term": "Yield Farming",
+    "summary": "Yield farming is a high-risk practice in DeFi where investors lock up assets to provide liquidity, lend or stake in return for rewards or interest."
+  },
+  {
+    "slug": "zero-knowledge-proofs",
+    "term": "Zero-Knowledge Proofs",
+    "summary": "Proofs to verify that transactions are valid without revealing any information about these transactions, providing privacy to the transaction while maintaining its legitimacy."
+  },
+  {
+    "slug": "zk-rollup",
+    "term": "Zk-rollup",
+    "summary": "Zk-rollup is a layer-2 scaling solution designed to increase the transaction throughput of blockchain networks without compromising on security."
+  },
+  {
+    "slug": "zk-snarks",
+    "term": "zk-SNARKs",
+    "summary": "“Zero-Knowledge Succinct Non-Interactive Argument of Knowledge” - an approach to zero-knowledge proofs."
+  },
+  {
+    "slug": "zk-starks",
+    "term": "zk-STARKs",
+    "summary": "zk-STARKs allow one party (the prover) to communicate validated data or execute computations with a third party without the data or analysis being revealed to the counterparty (the verifier)."
+  }
+]
