@@ -9,7 +9,7 @@ import time
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Iterable, Iterator, List, Optional, Sequence
+from typing import Dict, Iterable, Iterator, List, Mapping, Optional, Sequence, Set
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urljoin
 from urllib.request import Request, urlopen
@@ -21,6 +21,7 @@ USER_AGENT = (
     "Chrome/122.0.0.0 Safari/537.36"
 )
 DEFAULT_DELAY = 0.4
+PAGE_PATTERN = re.compile(r"Radheef page:\s*(\d+)")
 
 
 @dataclass
@@ -351,11 +352,69 @@ def parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
             "Use alongside --batch-size to crawl incrementally."
         ),
     )
+    parser.add_argument(
+        "--report-missing",
+        action="store_true",
+        help=(
+            "Summarise missing Radheef pages from existing corpus files "
+            "instead of performing a new crawl."
+        ),
+    )
+    parser.add_argument(
+        "--coverage-input",
+        type=Path,
+        action="append",
+        help="Existing JSONL corpus file(s) to analyse when reporting coverage.",
+    )
+    parser.add_argument(
+        "--coverage-start",
+        type=int,
+        default=1,
+        help="First Radheef page to consider when reporting coverage.",
+    )
+    parser.add_argument(
+        "--coverage-end",
+        type=int,
+        default=0,
+        help="Last Radheef page to consider when reporting coverage.",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: Optional[Iterable[str]] = None) -> None:
     args = parse_args(argv)
+    if args.report_missing:
+        coverage_files = args.coverage_input or []
+        if not coverage_files:
+            raise SystemExit(
+                "--report-missing requires at least one --coverage-input file"
+            )
+        if args.coverage_end <= 0:
+            raise SystemExit(
+                "--report-missing requires --coverage-end to define the range"
+            )
+
+        coverage = collect_page_coverage(coverage_files)
+        start_page = args.coverage_start
+        end_page = args.coverage_end
+        missing = missing_pages(coverage, start_page, end_page)
+        if missing:
+            ranges = format_page_ranges(missing)
+            print(
+                (
+                    f"Missing Radheef pages between {start_page}-{end_page}: "
+                    + ", ".join(ranges)
+                )
+            )
+            print(
+                "Provide the reported pages to the extractor to backfill the corpus.",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                f"All Radheef pages between {start_page}-{end_page} are covered."
+            )
+        return
     entries = iter_entries(
         start_page=args.start_page,
         end_page=args.end_page,
@@ -392,6 +451,79 @@ def main(argv: Optional[Iterable[str]] = None) -> None:
                 "Reached the configured batch cap. Re-run with an updated --start-page to continue.",
                 file=sys.stderr,
             )
+
+
+def extract_pages_from_file(path: Path) -> Set[int]:
+    """Return the set of Radheef pages referenced in a JSONL corpus file."""
+
+    pages: Set[int] = set()
+    with path.open("r", encoding="utf-8") as handle:
+        for line_number, raw in enumerate(handle, start=1):
+            stripped = raw.strip()
+            if not stripped:
+                continue
+            try:
+                payload = json.loads(stripped)
+            except json.JSONDecodeError as exc:  # pragma: no cover - defensive
+                raise ValueError(
+                    f"Invalid JSON on line {line_number} of {path}: {exc}"
+                ) from exc
+            context = payload.get("context")
+            if not isinstance(context, str):
+                continue
+            match = PAGE_PATTERN.search(context)
+            if match:
+                pages.add(int(match.group(1)))
+    return pages
+
+
+def collect_page_coverage(paths: Sequence[Path]) -> Dict[int, List[Path]]:
+    """Map Radheef page numbers to the files that contain them."""
+
+    coverage: Dict[int, List[Path]] = {}
+    for path in paths:
+        if not path.exists():
+            raise FileNotFoundError(f"Corpus file not found: {path}")
+        for page in extract_pages_from_file(path):
+            coverage.setdefault(page, []).append(path)
+    return coverage
+
+
+def missing_pages(
+    coverage: Mapping[int, Sequence[Path]], start: int, end: int
+) -> List[int]:
+    """Return sorted page numbers missing from the provided coverage map."""
+
+    if end < start:
+        raise ValueError("coverage end must be greater than or equal to start")
+    return [page for page in range(start, end + 1) if page not in coverage]
+
+
+def format_page_ranges(pages: Sequence[int]) -> List[str]:
+    """Format a sequence of page numbers into consolidated ranges."""
+
+    if not pages:
+        return []
+
+    sorted_pages = sorted(set(pages))
+    ranges: List[str] = []
+    range_start = sorted_pages[0]
+    previous = range_start
+
+    for page in sorted_pages[1:]:
+        if page == previous + 1:
+            previous = page
+            continue
+        ranges.append(_format_range(range_start, previous))
+        range_start = page
+        previous = page
+
+    ranges.append(_format_range(range_start, previous))
+    return ranges
+
+
+def _format_range(start: int, end: int) -> str:
+    return str(start) if start == end else f"{start}-{end}"
 
 
 if __name__ == "__main__":
