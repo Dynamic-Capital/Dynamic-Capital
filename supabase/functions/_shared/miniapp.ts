@@ -29,7 +29,14 @@ export async function readMiniAppEnv(): Promise<MiniAppEnv> {
 export function requireMiniAppEnv(): void {
   const hasUrl = Boolean(optionalEnv("MINI_APP_URL"));
   const hasShort = Boolean(optionalEnv("MINI_APP_SHORT_NAME"));
-  if (!hasUrl && !hasShort) {
-    throw new Error("MINI_APP_URL or MINI_APP_SHORT_NAME must be set");
+  if (hasUrl || hasShort) {
+    return;
   }
+
+  // Fall back to auto-derived function URL when Supabase project metadata is set.
+  if (functionUrl("miniapp")) {
+    return;
+  }
+
+  throw new Error("MINI_APP_URL or MINI_APP_SHORT_NAME must be set");
 }
