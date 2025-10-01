@@ -2,6 +2,34 @@ import {
   assertEquals,
   assertThrows,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { Buffer } from "node:buffer";
+import {
+  Address,
+  Cell,
+  beginCell,
+  toNano,
+} from "npm:@ton/core";
+
+const OP_JETTON_TRANSFER = 0x0f8a7ea5;
+const OP_DEPOSIT = 0x504f4f4c;
+
+interface DepositForwardPayload {
+  depositId: bigint;
+  investorKey: string;
+  usdtAmount: bigint;
+  dctAmount: bigint;
+  expectedFx: bigint;
+  tonTxHash: string;
+}
+
+interface JettonTransferBody {
+  jettonAmount: bigint;
+  destination: Address;
+  responseDestination: Address;
+  forwardTonAmount: bigint;
+  forwardPayload: Cell;
+  queryId?: bigint;
+}
 
 interface SwapInput {
   depositId: string;
@@ -29,6 +57,96 @@ interface JettonTransferInput extends SwapInput {
   wallet: string;
   jettonAmount: number;
   forwardTonAmount: number;
+}
+
+const DEFAULT_FORWARD_DESTINATION = Address.parse(
+  "0:1111111111111111111111111111111111111111111111111111111111111111",
+);
+const DEFAULT_FORWARD_RESPONSE = Address.parse(
+  "0:2222222222222222222222222222222222222222222222222222222222222222",
+);
+
+function normalizeHex(hex: string, bytes = 32): string {
+  let normalized = hex.startsWith("0x") ? hex.slice(2) : hex;
+  if (normalized.length > bytes * 2) {
+    throw new Error("hex value exceeds expected length");
+  }
+  normalized = normalized.padStart(bytes * 2, "0");
+  return `0x${normalized.toLowerCase()}`;
+}
+
+function hexToBytes(hex: string, bytes = 32): Uint8Array {
+  const normalized = normalizeHex(hex, bytes).slice(2);
+  const result = new Uint8Array(bytes);
+  for (let i = 0; i < bytes; i++) {
+    const start = i * 2;
+    result[i] = parseInt(normalized.slice(start, start + 2), 16);
+  }
+  return result;
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  return `0x${Array.from(bytes).map((value) => value.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function createDepositForwardPayload(
+  payload: DepositForwardPayload,
+): Cell {
+  const builder = beginCell();
+  builder.storeUint(OP_DEPOSIT, 32);
+  builder.storeUint(payload.depositId, 64);
+  builder.storeBuffer(Buffer.from(hexToBytes(payload.investorKey)));
+  builder.storeCoins(payload.usdtAmount);
+  builder.storeCoins(payload.dctAmount);
+  builder.storeUint(payload.expectedFx, 64);
+  builder.storeBuffer(Buffer.from(hexToBytes(payload.tonTxHash)));
+  return builder.endCell();
+}
+
+function createJettonTransferBody({
+  jettonAmount,
+  destination,
+  responseDestination,
+  forwardTonAmount,
+  forwardPayload,
+  queryId = 0n,
+}: JettonTransferBody): Cell {
+  const builder = beginCell();
+  builder.storeUint(OP_JETTON_TRANSFER, 32);
+  builder.storeUint(queryId, 64);
+  builder.storeCoins(jettonAmount);
+  builder.storeAddress(destination);
+  builder.storeAddress(responseDestination);
+  builder.storeMaybeRef(null);
+  builder.storeCoins(forwardTonAmount);
+  builder.storeRef(forwardPayload);
+  return builder.endCell();
+}
+
+function decodeAllocatorForwardPayload(cell: Cell) {
+  const slice = cell.beginParse();
+  const op = slice.loadUint(32);
+  if (op !== OP_DEPOSIT) {
+    throw new Error("allocator: unsupported op");
+  }
+  const depositId = slice.loadUintBig(64);
+  const investorKey = bytesToHex(slice.loadBuffer(32));
+  const usdtAmount = slice.loadCoins();
+  const dctAmount = slice.loadCoins();
+  if (dctAmount <= 0n) {
+    throw new Error("allocator: invalid dct amount");
+  }
+  const expectedFx = slice.loadUintBig(64);
+  const tonTxHash = bytesToHex(slice.loadBuffer(32));
+  slice.endParse();
+  return {
+    depositId,
+    investorKey,
+    usdtAmount,
+    dctAmount,
+    expectedFx,
+    tonTxHash,
+  };
 }
 
 class MockAllocator {
@@ -321,4 +439,67 @@ Deno.test("jetton transfer enforces forward ton amount", () => {
       tonTxHash: "0xcafe",
     },
   });
+});
+
+Deno.test("tip-3 transfer payload carries allocator deposit fields", () => {
+  const forwardPayload = createDepositForwardPayload({
+    depositId: 42n,
+    investorKey: "0xface",
+    usdtAmount: 150n,
+    dctAmount: 50n,
+    expectedFx: 3n,
+    tonTxHash: "0xcafe",
+  });
+
+  const forwardTonAmount = toNano("1.25");
+  const body = createJettonTransferBody({
+    jettonAmount: 150n,
+    destination: DEFAULT_FORWARD_DESTINATION,
+    responseDestination: DEFAULT_FORWARD_RESPONSE,
+    forwardTonAmount,
+    forwardPayload,
+  });
+
+  const slice = body.beginParse();
+  assertEquals(slice.loadUint(32), OP_JETTON_TRANSFER);
+  assertEquals(slice.loadUintBig(64), 0n);
+  assertEquals(slice.loadCoins(), 150n);
+  assertEquals(
+    slice.loadAddress()?.toString(),
+    DEFAULT_FORWARD_DESTINATION.toString(),
+  );
+  assertEquals(
+    slice.loadAddress()?.toString(),
+    DEFAULT_FORWARD_RESPONSE.toString(),
+  );
+  assertEquals(slice.loadMaybeRef(), null);
+  assertEquals(slice.loadCoins(), forwardTonAmount);
+
+  const forwardCell = slice.loadRef();
+  const decoded = decodeAllocatorForwardPayload(forwardCell);
+  assertEquals(decoded.depositId, 42n);
+  assertEquals(decoded.investorKey, normalizeHex("0xface"));
+  assertEquals(decoded.usdtAmount, 150n);
+  assertEquals(decoded.dctAmount, 50n);
+  assertEquals(decoded.expectedFx, 3n);
+  assertEquals(decoded.tonTxHash, normalizeHex("0xcafe"));
+  slice.endParse();
+});
+
+Deno.test("forward payload rejects non-deposit opcodes", () => {
+  const invalidForward = beginCell()
+    .storeUint(0xdeadbeef, 32)
+    .storeUint(1n, 64)
+    .storeBuffer(Buffer.from(hexToBytes("0x0")))
+    .storeCoins(1n)
+    .storeCoins(1n)
+    .storeUint(1n, 64)
+    .storeBuffer(Buffer.from(hexToBytes("0x1")))
+    .endCell();
+
+  assertThrows(
+    () => decodeAllocatorForwardPayload(invalidForward),
+    Error,
+    "allocator: unsupported op",
+  );
 });
