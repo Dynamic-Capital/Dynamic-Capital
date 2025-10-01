@@ -205,6 +205,47 @@ export const mentorFeedback = pgTable("mentor_feedback", {
 export type MentorFeedback = typeof mentorFeedback.$inferSelect;
 export type NewMentorFeedback = typeof mentorFeedback.$inferInsert;
 
+export const crmLeads = pgTable("crm_leads", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull(),
+  fullName: text("full_name"),
+  sequenceKey: text("sequence_key").notNull().default("default"),
+  status: text("status").notNull().default("active"),
+  currentStep: integer("current_step").notNull().default(0),
+  maxSteps: integer("max_steps").notNull().default(3),
+  cadenceHours: integer("cadence_hours").notNull().default(24),
+  lastSentAt: timestamp("last_sent_at", { withTimezone: true }),
+  nextSendAt: timestamp("next_send_at", { withTimezone: true }),
+  repliedAt: timestamp("replied_at", { withTimezone: true }),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull()
+    .default({} as Record<string, unknown>),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+});
+
+export type CrmLead = typeof crmLeads.$inferSelect;
+export type NewCrmLead = typeof crmLeads.$inferInsert;
+
+export const crmDripTemplates = pgTable("crm_drip_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sequenceKey: text("sequence_key").notNull(),
+  step: integer("step").notNull(),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(),
+  delayHours: integer("delay_hours").notNull().default(24),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull()
+    .default({} as Record<string, unknown>),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
+    .defaultNow(),
+});
+
+export type CrmDripTemplate = typeof crmDripTemplates.$inferSelect;
+export type NewCrmDripTemplate = typeof crmDripTemplates.$inferInsert;
+
 export const economicCatalysts = pgTable("economic_catalysts", {
   pair: text("pair").primaryKey(),
   observedAt: timestamp("observed_at", { withTimezone: true }).notNull(),
