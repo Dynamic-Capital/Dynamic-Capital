@@ -34,7 +34,9 @@ TON Sites so they resolve under `.ton` domains.
 
 - [ ] **Build static bundle**
   - Run `npm run build:miniapp` from the repo root (the script executes
-    `scripts/build-miniapp.sh`).
+    `scripts/build-miniapp.sh`). The build script writes the Mini App bundle to
+    `supabase/functions/miniapp/static`; `apps/miniapp/out` is not generated in
+    this repository.
   - Verify the compiled assets under `supabase/functions/miniapp/static` and
     confirm `supabase/functions/miniapp/manifest.json` reflects the release
     metadata.
