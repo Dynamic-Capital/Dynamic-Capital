@@ -64,6 +64,43 @@ def test_scrapegraphai_plan_serialises_schema(tmp_path: Path) -> None:
     assert payload["schema"]["properties"]["title"]["type"] == "string"
     assert payload["metadata"]["team"] == "research"
     assert plan.environment["SCRAPEGRAPH_OUTPUT_PATH"].endswith("records.json")
+    assert plan.commands[0].startswith(
+        "python -m pip install --upgrade --disable-pip-version-check -r "
+    )
+    assert plan.commands[1] == (
+        f"python -m scrapegraphai.cli run {config_file.path}"
+    )
+    requirements_file = plan.files[1]
+    assert requirements_file.path.endswith("requirements.txt")
+    assert "git+https://github.com/ScrapeGraphAI/Scrapegraph-ai" in requirements_file.content
+
+
+def test_scrapegraphai_plan_allows_requirement_overrides(tmp_path: Path) -> None:
+    registry = register_default_crawlers()
+    job = CrawlJob(
+        name="Pinned Release",
+        urls=["https://example.com"],
+        destination=str(tmp_path / "records.json"),
+        metadata={"scrapegraphai_ref": "v1.2.3"},
+    )
+    plan = registry.build_plan("ScrapeGraphAI", job)
+
+    requirements_file = plan.files[1]
+    assert requirements_file.content.strip().endswith("@v1.2.3")
+
+    overridden_job = CrawlJob(
+        name="Custom Requirement",
+        urls=["https://example.com"],
+        destination=str(tmp_path / "records.json"),
+        metadata={"scrapegraphai_requirement": "scrapegraphai @ git+https://example.com/fork.git"},
+    )
+    overridden_plan = registry.build_plan("ScrapeGraphAI", overridden_job)
+
+    custom_requirements_file = overridden_plan.files[1]
+    assert (
+        custom_requirements_file.content
+        == "scrapegraphai @ git+https://example.com/fork.git\n"
+    )
 
 
 def test_crawlee_plan_toggles_browser_mode(tmp_path: Path) -> None:
