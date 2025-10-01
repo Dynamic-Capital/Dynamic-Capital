@@ -1,11 +1,12 @@
 # Development Workflow
 
-This guide outlines eight high-level steps to run, build, and deploy the
-Telegram bot and optional Mini App.
+This guide outlines nine high-level steps to run, build, and deploy the Telegram
+bot and optional Mini App.
 
 1. **Understand the project scope**
-   - Telegram bot for deposit workflows with optional Mini App for richer
-     interactions.
+   - First Maldivian Web3 trading application delivered through a Telegram bot
+     with optional Mini App for richer interactions and verified deposit
+     workflows.
 
 2. **Set up prerequisites**
    - Install Node.js 22.x (LTS), Deno, and the Supabase CLI.
@@ -33,14 +34,40 @@ Telegram bot and optional Mini App.
    npm run build:miniapp # optional
    ```
 
-6. **Quality checks**
-   - Type-check and test the codebase:
+6. **Quality checks & verification**
+   - Run the combined verification + optimization helper for the quickest full
+     sweep:
+   ```bash
+   npm run changes
+   ```
+   - Need a focused pass? Type-check and test the codebase directly:
    ```bash
    deno check --allow-import supabase/functions/telegram-bot/*.ts supabase/functions/telegram-bot/**/*.ts
    deno test -A
    ```
+   - The aggregated verification suite remains available when you only want the
+     guardrail checks without rebuilding:
+   ```bash
+   npm run verify
+   ```
+   - Following the Dynamic Codex flow? Use `npm run codex:verify` to invoke the
+     same checks from the workflow helper.
 
-7. **Deploy**
+7. **Optimize bundles (optional but recommended before release)**
+   - `npm run changes` already triggers the analyzer, so rerun it with
+     `--verify-only` when you only need to re-check code health after tweaking
+     copy or content.
+   - Produce production artifacts if you skipped the combined helper:
+   ```bash
+   npm run build
+   ```
+   - Inspect bundle composition with the built-in analyzer to spot regressions
+     before they reach Maldivian traders:
+   ```bash
+   ANALYZE=true npm run build:web
+   ```
+
+8. **Deploy**
    - Deploy edge functions and push to your hosting platform:
    ```bash
    supabase functions deploy telegram-bot --project-ref <PROJECT_REF>
@@ -48,7 +75,7 @@ Telegram bot and optional Mini App.
    ```
    - Configure the Telegram webhook via BotFather.
 
-8. **Post-deployment smoke tests**
+9. **Post-deployment smoke tests**
 
 - Verify deployed endpoints respond as expected. Replace `<PROJECT>` with your
   Supabase project ref, or use `TELEGRAM_WEBHOOK_URL` for the Telegram webhook

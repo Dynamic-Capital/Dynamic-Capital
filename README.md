@@ -1,9 +1,9 @@
-# Dynamic Capital — Telegram Bot & Mini App
+# Dynamic Capital — First Maldivian Web3 Trading Application
 
 <!-- BADGES:START -->
 <!-- BADGES:END -->
 
-**Fast deposits for traders. Bank & crypto, verified.**
+**First Maldivian Web3 trading platform, unifying bank and crypto deposits with verified speed.**
 
 ## Table of Contents
 
@@ -62,6 +62,8 @@
     - [GitHub Actions Docker smoke test](#github-actions-docker-smoke-test)
   - [Deployment](#deployment)
 - [Testing & Validation](#testing--validation)
+  - [Verification suite](#verification-suite)
+  - [Optimization passes](#optimization-passes)
   - [API Demo](#api-demo)
   - [Tests](#tests)
   - [CI / checks](#ci--checks)
@@ -85,7 +87,7 @@
 
 ## Overview
 
-Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development experience.
+Dynamic Capital is the first Maldivian Web3 trading application, pairing a Telegram-first bot and optional Mini App (Web App) for deposit workflows (bank OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development experience.
 
 A single Next.js application powers both the marketing landing page and the authenticated dashboard. The build pipeline captures the homepage into the repository-level `_static/` directory so it can be served via CDN without touching runtime secrets, while the live `/app` routes continue to handle Supabase access, authentication, and other server-side features.
 
@@ -931,6 +933,42 @@ npm run smoke:tunnel -- --port 54321 --log=stdout
 The smoke script runs the helper in dry-run mode, surfaces the resolved binary
 and arguments, and fails fast if overrides (such as `--port` or `--bin`) are not
 applied as expected.
+
+### Verification suite
+
+- `npm run changes` runs the verification suite, rebuilds production assets, and
+  triggers the bundle analyzer in one pass. Use `npm run changes --help` for
+  optional flags (for example `--verify-only` or `--skip-analyze`) when you need
+  a more targeted sweep.
+- `npm run verify` bundles the static, runtime wiring, trading integrations, and
+  mini app safety checks. The script stitches together the shell helpers under
+  `scripts/verify/` (static code, deployed functions, runtime wiring, mini app
+  safeguards, TradingView webhook coverage, tunnel CLI validation, and dynamic
+  module smoke checks) and regenerates `.out/verify_report.md` with a timestamped
+  summary.
+- `npm run codex:verify` is an alias that forwards to the same verification
+  sweep; useful when you are following the Dynamic Codex workflow alongside
+  `codex:post-pull`, `codex:dev`, and `codex:build`.
+- When the suite highlights missing dependencies (for example `jq` for JSON
+  parsing) install them locally, rerun the command, and attach the refreshed
+  report to your PR description to give reviewers concrete evidence that the
+  Maldivian Web3 trading stack remains healthy.
+
+### Optimization passes
+
+- `npm run changes` defaults to running the analyzer once the production build
+  finishes, giving you a single command to verify and inspect the bundle
+  footprint before opening a PR.
+- `npm run build` compiles the production bundles for the Telegram-focused
+  Next.js application and regenerates the `_static/` snapshot that powers the
+  CDN landing page.
+- Set `ANALYZE=true` when running `npm run build:web` to activate the
+  `@next/bundle-analyzer` integration configured in `apps/web/next.config.mjs`.
+  The generated report helps spot oversized modules, confirm tree-shaking, and
+  validate that Maldivian trading flows stay fast for both bank and crypto
+  deposit users.
+- Pair the analyzer with Chrome DevTools or Lighthouse profiling to confirm that
+  critical rendering paths remain under target budgets after each feature merge.
 
 ### Local webhook testing
 
