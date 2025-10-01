@@ -1,19 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 export default function MiniAppIndex() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const hasRedirectedRef = useRef(false);
 
   useEffect(() => {
-    const search = searchParams.toString();
-    const hash = typeof window !== "undefined" ? window.location.hash : "";
-    const nextPath = `/miniapp/home${search ? `?${search}` : ""}${hash}`;
+    if (hasRedirectedRef.current) {
+      return;
+    }
 
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const { search, hash } = window.location;
+    const nextPath = `/miniapp/home${search ?? ""}${hash ?? ""}`;
+
+    hasRedirectedRef.current = true;
     router.replace(nextPath);
-  }, [router, searchParams]);
+  }, [router]);
 
   return null;
 }
