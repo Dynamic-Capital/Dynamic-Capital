@@ -20,13 +20,13 @@ export function CheckoutCallout() {
       style={{ textAlign: "center" }}
     >
       <Heading variant="display-strong-xs" wrap="balance">
-        Activate your Dynamic desk in minutes
+        Checkout stays quick and transparent
       </Heading>
       <Text variant="body-default-l" onBackground="brand-weak" wrap="balance">
-        Finish checkout in under two minutes and step into live signals,
-        automation recipes, and the mentor calendar.
+        Apply your promo code, load DCT (Dynamic Capital Tokens), and confirm
+        your plan in a couple of minutes.
       </Text>
-      <Row gap="12" s={{ direction: "column" }}>
+      <Row gap="12" wrap s={{ direction: "column" }}>
         <Button
           href="/checkout"
           size="m"
@@ -34,7 +34,7 @@ export function CheckoutCallout() {
           data-border="rounded"
           prefixIcon="rocket"
         >
-          Complete secure checkout
+          Go to checkout
         </Button>
         <Button
           href="#pool-trading"
@@ -43,7 +43,16 @@ export function CheckoutCallout() {
           data-border="rounded"
           arrowIcon
         >
-          Review pool trading options
+          See pool trading
+        </Button>
+        <Button
+          href="#vip-packages"
+          size="m"
+          variant="secondary"
+          data-border="rounded"
+          prefixIcon="gift"
+        >
+          View packages
         </Button>
       </Row>
     </Column>
