@@ -58,7 +58,8 @@ TON Sites so they resolve under `.ton` domains.
     3. Confirm `meta.summary` is a concise, single-line synopsis that auditors
        can scan quickly.
     4. Update the release record so the host and summary reflect the version you
-       are promoting before you proceed.
+       are promoting before you proceed. Save the record to lock the values in
+       place.
   - Record the publish event with the verified metadata in Supabase
     (`tx_logs.kind = 'ton_site_publish'`). Persist the returned content hash
     together with the fields you just validated so future audits have a single
@@ -69,6 +70,12 @@ TON Sites so they resolve under `.ton` domains.
     - `meta.host`
     - `meta.summary`
     - `notes`
+  - Mirror the verified host, summary, and returned content hash inside the
+    `metadata` JSON payload so auditors can rely on the row without cross-
+    referencing other tables.
+  - Confirm the saved row echoes the verified host, summary, and content hash in
+    both the top-level fields and the `metadata` payload, then capture the
+    content hash for the DNS update.
   - Commit the DNS change in `dns/dynamiccapital.ton.json` (update
     `ton_site.content_id`). Use a PR labelled `infra-ton` so rotation is
     auditable and validate the file with `node scripts/verify/ton_site.mjs`.
