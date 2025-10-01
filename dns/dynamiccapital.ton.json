@@ -1,7 +1,7 @@
 {
   "domain": "dynamiccapital.ton",
   "type": "TON_DNS",
-  "resolver_contract": "EQC...",
+  "resolver_contract": "EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo",
   "records": [
     {
       "type": "A",
