@@ -2,6 +2,23 @@
   "domain": "dynamiccapital.ton",
   "type": "TON_DNS",
   "resolver_contract": "EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo",
+  "nft": {
+    "address": "EQADj0c2ULLRZBvQlWPrjJnx6E5ccusPuP3FNKRDDxTBtTNo",
+    "collectionAddress": "EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz",
+    "ownerAddress": "UQD1zAJPYZMYf3Y9B4SL7fRLFU-Vg5V7RcLMnEu2H_cNOK0G",
+    "image": "https://dns-image.mytonwallet.org/img?d=dynamiccapital",
+    "name": "dynamiccapital.ton",
+    "description": null,
+    "index": "80873690796054040234093249941684590733974627304617667952956467058382753434080",
+    "attributes": [],
+    "metadataUrl": null,
+    "collectionMetadata": {
+      "name": "TON DNS Domains",
+      "description": "*.ton domains",
+      "image": "https://dns.ton.org/icon.png",
+      "source": "https://dns.ton.org/collection.json"
+    }
+  },
   "records": [
     {
       "type": "A",
