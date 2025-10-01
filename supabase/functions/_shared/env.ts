@@ -58,7 +58,14 @@ export type EnvKey =
   | "PROMO_AUTOGEN_SECRET"
   | "VIP_PRICING_LOOKBACK_DAYS"
   | "PROMO_AUTOGEN_MIN_USERS"
-  | "PROMO_AUTOGEN_MIN_REVENUE";
+  | "PROMO_AUTOGEN_MIN_REVENUE"
+  | "GMAIL_CLIENT_ID"
+  | "GMAIL_CLIENT_SECRET"
+  | "GMAIL_REFRESH_TOKEN"
+  | "GMAIL_SEARCH_QUERY"
+  | "GMAIL_SEARCH_FILTER"
+  | "GMAIL_LOOKBACK_DAYS"
+  | "GMAIL_MAX_MESSAGES";
 
 /** Test-only env injection type */
 type TestEnv = Partial<Record<EnvKey, string>>;
