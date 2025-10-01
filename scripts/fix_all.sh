@@ -6,9 +6,15 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 ORIGINAL_PWD="$(pwd)"
 
 cleanup() {
-  cd "${ORIGINAL_PWD}" || true
+  local exit_code=$?
+  if ! cd "${ORIGINAL_PWD}"; then
+    if [ "$exit_code" -eq 0 ]; then
+      exit_code=1
+    fi
+  fi
+  return "$exit_code"
 }
-trap cleanup EXIT
+trap 'cleanup' EXIT
 
 cd "${REPO_ROOT}"
 
