@@ -4,7 +4,8 @@
 
 ## Overview
 
-Proof-of-space leaders are selected proportionally to plot quality and storage capacity.
+Proof-of-space leaders are selected proportionally to plot quality and storage
+capacity.
 
 ## Relationship
 
@@ -12,6 +13,8 @@ $$\Pr(\text{win}_i) \propto \text{quality}(\text{plot}_i) \times \text{capacity}
 
 ## Integration
 
-- Normalize the proportional relationship to obtain a valid probability distribution.
-- Plot quality metrics are stored in $x_t$; capacity adjustments may be controls $u_t$.
+- Normalize the proportional relationship to obtain a valid probability
+  distribution.
+- Plot quality metrics are stored in $x_t$; capacity adjustments may be controls
+  $u_t$.
 - Outputs monitor fairness and reward allocation variance.

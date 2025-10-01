@@ -15,5 +15,6 @@ $$T_{\text{end2end}} = \sum_k T_k.$$
 
 ## Notes
 
-- Constraint: $T_{\text{end2end}} \le T_{\text{SLO}}$ ensures overall response targets.
+- Constraint: $T_{\text{end2end}} \le T_{\text{SLO}}$ ensures overall response
+  targets.
 - Monitor contributions per stage to prioritize optimization.

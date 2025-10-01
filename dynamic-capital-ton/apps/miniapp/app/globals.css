@@ -785,7 +785,10 @@ button {
   gap: 12px;
   text-align: left;
   color: inherit;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .theme-option:not(:disabled):hover {

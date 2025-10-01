@@ -7,7 +7,7 @@ const {
 const { deployConfigs } = require("../deploy-config");
 const checkpointDir = path.resolve(deployConfigs.checkpointDir);
 const checkpointPath = path.resolve(
-  `${checkpointDir}/%network%-checkpoints.json`
+  `${checkpointDir}/%network%-checkpoints.json`,
 );
 
 const log = (msg: string) => {
@@ -20,7 +20,7 @@ const save = (checkpoints: JSON, network: string) => {
   fs.writeFileSync(
     checkpointPath.replace("%network%", network),
     JSON.stringify(checkpoints),
-    "utf-8"
+    "utf-8",
   );
 };
 
@@ -29,7 +29,7 @@ const load = (network: string) => {
 
   try {
     return JSON.parse(
-      fs.readFileSync(checkpointPath.replace("%network%", network), "utf-8")
+      fs.readFileSync(checkpointPath.replace("%network%", network), "utf-8"),
     );
   } catch (e) {
     return {};
@@ -68,7 +68,7 @@ export const restore = async (
   contractInterface: any,
   contractConfig: typeof ContractConfig,
   attach: Function,
-  network: string
+  network: string,
 ) => {
   if (network === "ganache") return null;
 

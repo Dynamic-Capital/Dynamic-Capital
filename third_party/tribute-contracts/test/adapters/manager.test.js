@@ -85,7 +85,7 @@ const generateCouponSignature = ({
     messageData,
     daoAddress,
     managerAddress,
-    chainId
+    chainId,
   );
 
   return signature;
@@ -122,7 +122,7 @@ describe("Adapter - Manager", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -135,7 +135,7 @@ describe("Adapter - Manager", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -174,8 +174,8 @@ describe("Adapter - Manager", () => {
         proposal,
         [], //configs
         nonce,
-        signature
-      )
+        signature,
+      ),
     ).to.be.revertedWith("must be an equal number of config keys and values");
   });
 
@@ -199,8 +199,8 @@ describe("Adapter - Manager", () => {
         },
         [], //configs
         [], //data
-        { from: daoOwner, gasPrice: toBN("0") }
-      )
+        { from: daoOwner, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("must be an equal number of config keys and values");
   });
 
@@ -235,8 +235,8 @@ describe("Adapter - Manager", () => {
         proposal,
         [], //configs
         nonce,
-        signature
-      )
+        signature,
+      ),
     ).to.be.revertedWith("address is reserved");
   });
 
@@ -269,8 +269,8 @@ describe("Adapter - Manager", () => {
           proposal,
           configs: [],
           nonce: nonce,
-        })
-      )
+        }),
+      ),
     ).to.be.revertedWith("invalid sig");
 
     await expect(
@@ -286,8 +286,8 @@ describe("Adapter - Manager", () => {
           proposal,
           configs: [],
           nonce: nonce,
-        })
-      )
+        }),
+      ),
     ).to.be.revertedWith("invalid sig");
 
     await expect(
@@ -303,8 +303,8 @@ describe("Adapter - Manager", () => {
           proposal,
           configs: [],
           nonce: nonce,
-        })
-      )
+        }),
+      ),
     ).to.be.revertedWith("invalid sig");
 
     await expect(
@@ -320,8 +320,8 @@ describe("Adapter - Manager", () => {
           proposal: { ...proposal, flags: 1 }, //Invalid proposal
           configs: [],
           nonce,
-        })
-      )
+        }),
+      ),
     ).to.be.revertedWith("invalid sig");
 
     await expect(
@@ -344,8 +344,8 @@ describe("Adapter - Manager", () => {
             },
           ], //Invalid configs
           nonce,
-        })
-      )
+        }),
+      ),
     ).to.be.revertedWith("invalid sig");
 
     await expect(
@@ -361,8 +361,8 @@ describe("Adapter - Manager", () => {
           proposal,
           configs: [],
           nonce: nonce + 1, //Invalid nonce
-        })
-      )
+        }),
+      ),
     ).to.be.revertedWith("invalid sig");
   });
 
@@ -398,7 +398,7 @@ describe("Adapter - Manager", () => {
       proposal,
       [], //configs
       nonce,
-      signature
+      signature,
     );
 
     // Try to replay.
@@ -408,8 +408,8 @@ describe("Adapter - Manager", () => {
         proposal,
         [], //configs
         nonce,
-        signature
-      )
+        signature,
+      ),
     ).to.be.revertedWith("coupon already redeemed");
   });
 
@@ -443,12 +443,12 @@ describe("Adapter - Manager", () => {
       proposal,
       [], // configs
       nonce,
-      signature
+      signature,
     );
 
     //Check if the adapter was removed from the Registry
     await expect(dao.getAdapterAddress(adapterIdToRemove)).to.be.revertedWith(
-      "adapter not found"
+      "adapter not found",
     );
   });
 
@@ -488,7 +488,7 @@ describe("Adapter - Manager", () => {
       proposal,
       [], //configs
       nonce,
-      signature
+      signature,
     );
 
     //Check if the new adapter was added to the Registry
@@ -522,11 +522,11 @@ describe("Adapter - Manager", () => {
       newProposal,
       [], //configs
       nonce + 1,
-      newSignature
+      newSignature,
     );
 
     await expect(dao.getAdapterAddress(financingAdapterId)).to.be.revertedWith(
-      "adapter not found"
+      "adapter not found",
     );
   });
 
@@ -562,7 +562,7 @@ describe("Adapter - Manager", () => {
       proposal,
       [], //configs
       nonce,
-      signature
+      signature,
     );
 
     // Lets try to remove the financing adapter using the new
@@ -593,8 +593,8 @@ describe("Adapter - Manager", () => {
         newProposal,
         [], //configs
         nonce + 1,
-        newSignature
-      )
+        newSignature,
+      ),
     ).to.be.revertedWith("accessDenied");
   });
 
@@ -627,7 +627,7 @@ describe("Adapter - Manager", () => {
       proposal,
       [], //configs
       nonce,
-      signature
+      signature,
     );
   });
 
@@ -662,8 +662,8 @@ describe("Adapter - Manager", () => {
         proposal,
         [], //configs
         nonce,
-        signature
-      )
+        signature,
+      ),
     ).to.be.revertedWith("adapterAddress already in use");
   });
 
@@ -711,7 +711,7 @@ describe("Adapter - Manager", () => {
       proposal,
       [], //configs
       nonce,
-      signature
+      signature,
     );
 
     // At this point the adapter should be able access the Bank Extension
@@ -733,54 +733,54 @@ describe("Adapter - Manager", () => {
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        0 //ADD_TO_BALANCE
-      )
+        0, //ADD_TO_BALANCE
+      ),
     ).equal(true);
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        1 // SUB_FROM_BALANCE
-      )
+        1, // SUB_FROM_BALANCE
+      ),
     ).equal(true);
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        2 // INTERNAL_TRANSFER
-      )
+        2, // INTERNAL_TRANSFER
+      ),
     ).equal(true);
 
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        3 // WITHDRAW
-      )
+        3, // WITHDRAW
+      ),
     ).equal(false);
 
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        4 // REGISTER_NEW_TOKEN
-      )
+        4, // REGISTER_NEW_TOKEN
+      ),
     ).equal(false);
 
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        5 // REGISTER_NEW_INTERNAL_TOKEN
-      )
+        5, // REGISTER_NEW_INTERNAL_TOKEN
+      ),
     ).equal(false);
 
     expect(
       await dao.hasAdapterAccessToExtension(
         newAdapterAddress,
         bankExt.address,
-        6 // UPDATE_TOKEN
-      )
+        6, // UPDATE_TOKEN
+      ),
     ).equal(false);
   });
 
@@ -839,16 +839,16 @@ describe("Adapter - Manager", () => {
       proposal,
       configs,
       nonce,
-      signature
+      signature,
     );
 
     expect(await dao.getAdapterAddress(newAdapterId)).equal(newAdapterAddress);
     const numericConfig = await dao.getConfiguration(
-      sha3("some.numeric.config")
+      sha3("some.numeric.config"),
     );
     expect(numericConfig.toString()).equal("32");
     const addressConfig = await dao.getAddressConfiguration(
-      sha3("some.address.config")
+      sha3("some.address.config"),
     );
     expect(addressConfig.toLowerCase()).equal(DAI_TOKEN);
   });
@@ -886,11 +886,11 @@ describe("Adapter - Manager", () => {
       proposal,
       [], //configs
       nonce,
-      signature
+      signature,
     );
 
     expect(await dao.getExtensionAddress(newExtensionId)).equal(
-      newExtensionAddr
+      newExtensionAddr,
     );
   });
 
@@ -941,18 +941,18 @@ describe("Adapter - Manager", () => {
       proposal,
       configs,
       nonce,
-      signature
+      signature,
     );
 
     expect(await dao.getExtensionAddress(newExtensionId)).equal(
-      newExtensionAddr
+      newExtensionAddr,
     );
     const numericConfig = await dao.getConfiguration(
-      sha3("some.numeric.config")
+      sha3("some.numeric.config"),
     );
     expect(numericConfig.toString()).equal("32");
     const addressConfig = await dao.getAddressConfiguration(
-      sha3("some.address.config")
+      sha3("some.address.config"),
     );
     expect(addressConfig.toLowerCase()).equal(DAI_TOKEN);
   });
@@ -986,11 +986,11 @@ describe("Adapter - Manager", () => {
       proposal,
       [], //configs
       nonce,
-      signature
+      signature,
     );
 
     await expect(dao.getExtensionAddress(removeExtensionId)).to.be.revertedWith(
-      "extension not found"
+      "extension not found",
     );
   });
 
@@ -1024,8 +1024,8 @@ describe("Adapter - Manager", () => {
         proposal,
         [], //configs
         nonce,
-        signature
-      )
+        signature,
+      ),
     ).to.be.revertedWith("unknown update type");
   });
 
@@ -1050,8 +1050,8 @@ describe("Adapter - Manager", () => {
     const keyToUpdate = sha3(
       coder.encode(
         ["address", "bytes32"],
-        [ETH_TOKEN, sha3("kyc-onboarding.maxMembers")]
-      )
+        [ETH_TOKEN, sha3("kyc-onboarding.maxMembers")],
+      ),
     );
     const previousConfigValue = await dao.getConfiguration(keyToUpdate);
 
@@ -1077,13 +1077,13 @@ describe("Adapter - Manager", () => {
       proposal,
       configs,
       nonce,
-      signature
+      signature,
     );
 
     expect(previousConfigValue).equal("1000");
     expect(await dao.getConfiguration(keyToUpdate)).equal("9000");
     expect(await dao.getAdapterAddress(kycAdapterId)).equal(
-      kycOnboarding.address
+      kycOnboarding.address,
     );
   });
 
@@ -1128,29 +1128,29 @@ describe("Adapter - Manager", () => {
       proposal,
       configs,
       nonce,
-      signature
+      signature,
     );
 
     expect(
       await dao.hasAdapterAccessToExtension(
         manager.address,
         bankExt.address,
-        0 //ADD_TO_BALANCE
-      )
+        0, //ADD_TO_BALANCE
+      ),
     ).equal(true);
     expect(
       await dao.hasAdapterAccessToExtension(
         manager.address,
         bankExt.address,
-        1 // SUB_FROM_BALANCE
-      )
+        1, // SUB_FROM_BALANCE
+      ),
     ).equal(true);
     expect(
       await dao.hasAdapterAccessToExtension(
         manager.address,
         bankExt.address,
-        2 // INTERNAL_TRANSFER
-      )
+        2, // INTERNAL_TRANSFER
+      ),
     ).equal(true);
   });
 
@@ -1204,43 +1204,43 @@ describe("Adapter - Manager", () => {
       proposal,
       configs,
       nonce,
-      signature
+      signature,
     );
 
     expect(
       await dao.hasAdapterAccessToExtension(
         manager.address,
         newBank.address,
-        0 //ADD_TO_BALANCE
-      )
+        0, //ADD_TO_BALANCE
+      ),
     ).equal(true);
     expect(
       await dao.hasAdapterAccessToExtension(
         manager.address,
         newBank.address,
-        1 // SUB_FROM_BALANCE
-      )
+        1, // SUB_FROM_BALANCE
+      ),
     ).equal(true);
     expect(
       await dao.hasAdapterAccessToExtension(
         manager.address,
         newBank.address,
-        2 // INTERNAL_TRANSFER
-      )
+        2, // INTERNAL_TRANSFER
+      ),
     ).equal(true);
     expect(
       await dao.hasAdapterAccessToExtension(
         kycOnboarding.address,
         newBank.address,
-        0 //ADD_TO_BALANCE
-      )
+        0, //ADD_TO_BALANCE
+      ),
     ).equal(true);
     expect(
       await dao.hasAdapterAccessToExtension(
         kycOnboarding.address,
         newBank.address,
-        2 // INTERNAL_TRANSFER
-      )
+        2, // INTERNAL_TRANSFER
+      ),
     ).equal(true);
   });
 });

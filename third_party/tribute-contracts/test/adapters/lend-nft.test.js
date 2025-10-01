@@ -98,7 +98,7 @@ describe("Adapter - LendNFT", () => {
       25000, // requested units
       10000, // lending period
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Submit a vote (YES)
@@ -113,7 +113,7 @@ describe("Adapter - LendNFT", () => {
       tokenId,
       1,
       encodeProposalData(dao, proposalId),
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     const erc1155ExtAddr = await dao.getExtensionAddress(ERC1155);
@@ -165,7 +165,7 @@ describe("Adapter - LendNFT", () => {
       10000, // requested units
       10000, // lending period (10 seconds)
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Vote Yes on the proposal
@@ -180,7 +180,7 @@ describe("Adapter - LendNFT", () => {
       encodeProposalData(dao, proposalId),
       {
         from: nftOwner,
-      }
+      },
     );
 
     let unitBalance = await bank.balanceOf(nftOwner, UNITS);
@@ -221,8 +221,8 @@ describe("Adapter - LendNFT", () => {
         25000, // requested units
         10000, // lending period
         [],
-        { from: daoOwner, gasPrice: toBN("0") }
-      )
+        { from: daoOwner, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("applicant is reserved address");
 
     // Create a proposal using the TOTAL address as applicant
@@ -236,8 +236,8 @@ describe("Adapter - LendNFT", () => {
         25000, // requested units
         10000, // lending period
         [],
-        { from: daoOwner, gasPrice: toBN("0") }
-      )
+        { from: daoOwner, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("applicant is reserved address");
 
     // Create a proposal using the ESCROW address as applicant
@@ -251,8 +251,8 @@ describe("Adapter - LendNFT", () => {
         25000, // requested units
         10000, // lending period
         [],
-        { from: daoOwner, gasPrice: toBN("0") }
-      )
+        { from: daoOwner, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("applicant is reserved address");
   });
 
@@ -277,7 +277,7 @@ describe("Adapter - LendNFT", () => {
       25000, // requested units
       10000, // lending period
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Create another proposal using the same proposal id
@@ -291,8 +291,8 @@ describe("Adapter - LendNFT", () => {
         25000, // requested units
         10000, // lending period
         [],
-        { from: daoOwner, gasPrice: toBN("0") }
-      )
+        { from: daoOwner, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("proposalId must be unique");
   });
 
@@ -321,7 +321,7 @@ describe("Adapter - LendNFT", () => {
       25000, // requested units
       10000, // lending period
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Submit a vote (YES)
@@ -337,8 +337,8 @@ describe("Adapter - LendNFT", () => {
         [tokenId, 2, 3],
         [1, 1, 1],
         encodeProposalData(dao, proposalId),
-        { from: nftOwner }
-      )
+        { from: nftOwner },
+      ),
     ).to.be.revertedWith("not supported");
   });
 
@@ -368,7 +368,7 @@ describe("Adapter - LendNFT", () => {
       10000, // requested units
       10000, // lending period (10 seconds)
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Vote Yes on the proposal
@@ -385,8 +385,8 @@ describe("Adapter - LendNFT", () => {
         encodeProposalData(dao, wrongProposalId),
         {
           from: nftOwner,
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("proposal does not exist");
   });
 
@@ -415,7 +415,7 @@ describe("Adapter - LendNFT", () => {
       10000, // requested units
       10000, // lending period (10 seconds)
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Vote Yes on the proposal
@@ -430,7 +430,7 @@ describe("Adapter - LendNFT", () => {
       encodeProposalData(dao, proposalId),
       {
         from: nftOwner,
-      }
+      },
     );
 
     // Approve the NFT to move to the NFT extension
@@ -442,8 +442,8 @@ describe("Adapter - LendNFT", () => {
         encodeProposalData(dao, proposalId),
         {
           from: nftOwner,
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("proposal already processed");
   });
 
@@ -468,7 +468,7 @@ describe("Adapter - LendNFT", () => {
       10000, // requested units
       10000, // lending period (10 seconds)
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Process the proposal
@@ -480,8 +480,8 @@ describe("Adapter - LendNFT", () => {
         encodeProposalData(dao, proposalId),
         {
           from: nftOwner,
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("proposal has no votes");
   });
 
@@ -507,7 +507,7 @@ describe("Adapter - LendNFT", () => {
       25000, // requested units
       10000, // lending period
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Submit a vote (YES)
@@ -524,8 +524,8 @@ describe("Adapter - LendNFT", () => {
         tokenId,
         1,
         encodeProposalData(dao, wrongProposalId),
-        { from: nftOwner }
-      )
+        { from: nftOwner },
+      ),
     ).to.be.revertedWith("proposal does not exist");
   });
 
@@ -552,7 +552,7 @@ describe("Adapter - LendNFT", () => {
       25000, // requested units
       10000, // lending period
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Submit a vote (YES)
@@ -567,7 +567,7 @@ describe("Adapter - LendNFT", () => {
       tokenId,
       1,
       encodeProposalData(dao, proposalId),
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     // Send the ERC1155 NFT to the LendNFT adapter
@@ -578,8 +578,8 @@ describe("Adapter - LendNFT", () => {
         2,
         1,
         encodeProposalData(dao, proposalId),
-        { from: nftOwner }
-      )
+        { from: nftOwner },
+      ),
     ).to.be.revertedWith("proposal already processed");
   });
 
@@ -605,7 +605,7 @@ describe("Adapter - LendNFT", () => {
       25000, // requested units
       10000, // lending period
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Process the proposal
@@ -616,8 +616,8 @@ describe("Adapter - LendNFT", () => {
         tokenId,
         1,
         encodeProposalData(dao, proposalId),
-        { from: nftOwner }
-      )
+        { from: nftOwner },
+      ),
     ).to.be.revertedWith("proposal has no votes");
   });
 
@@ -645,7 +645,7 @@ describe("Adapter - LendNFT", () => {
       25000, // requested units
       10000, // lending period
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Submit a vote (YES) on the proposal that contains the correct tokenId
@@ -661,8 +661,8 @@ describe("Adapter - LendNFT", () => {
         wrongTokenId,
         1,
         encodeProposalData(dao, proposalId),
-        { from: nftOwner }
-      )
+        { from: nftOwner },
+      ),
     ).to.be.revertedWith("wrong NFT");
   });
 
@@ -694,7 +694,7 @@ describe("Adapter - LendNFT", () => {
       10000, // requested units
       10000, // lending period (10 seconds)
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Vote Yes on the proposal
@@ -710,8 +710,8 @@ describe("Adapter - LendNFT", () => {
         encodeProposalData(dao, proposalId),
         {
           from: nftOwner,
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("wrong NFT");
   });
 
@@ -741,7 +741,7 @@ describe("Adapter - LendNFT", () => {
       25000, // requested units
       10000, // lending period
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Submit a vote (YES) on the proposal that contains the correct tokenId
@@ -757,8 +757,8 @@ describe("Adapter - LendNFT", () => {
         tokenId,
         1,
         encodeProposalData(dao, proposalId),
-        { from: nftOwner }
-      )
+        { from: nftOwner },
+      ),
     ).to.be.revertedWith("wrong NFT addr");
   });
 
@@ -789,7 +789,7 @@ describe("Adapter - LendNFT", () => {
       10000, // requested units
       10000, // lending period (10 seconds)
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Vote Yes on the proposal
@@ -805,8 +805,8 @@ describe("Adapter - LendNFT", () => {
         encodeProposalData(dao, proposalId),
         {
           from: nftOwner,
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("wrong NFT addr");
   });
 
@@ -832,7 +832,7 @@ describe("Adapter - LendNFT", () => {
       25000, // requested units
       10000, // lending period
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Submit a vote (NO) on the proposal
@@ -851,7 +851,7 @@ describe("Adapter - LendNFT", () => {
       tokenId,
       1,
       encodeProposalData(dao, proposalId),
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     // Checks if the owner still holds the NFT after the transfer attempt
@@ -872,7 +872,7 @@ describe("Adapter - LendNFT", () => {
       this.adapters.lendNFT,
       this.extensions.bankExt,
       daoOwner,
-      nftOwner
+      nftOwner,
     );
 
     await advanceTime(100);
@@ -882,7 +882,7 @@ describe("Adapter - LendNFT", () => {
     await expect(
       this.adapters.lendNFT.sendNFTBack(this.dao.address, proposalId, {
         from: attacker,
-      })
+      }),
     ).to.be.revertedWith("only the previous owner can withdraw the NFT");
   });
 
@@ -899,7 +899,7 @@ describe("Adapter - LendNFT", () => {
       this.adapters.lendNFT,
       this.extensions.bankExt,
       daoOwner,
-      nftOwner
+      nftOwner,
     );
 
     await advanceTime(100);
@@ -913,7 +913,7 @@ describe("Adapter - LendNFT", () => {
     await expect(
       this.adapters.lendNFT.sendNFTBack(this.dao.address, proposalId, {
         from: attacker,
-      })
+      }),
     ).to.be.revertedWith("already sent back");
   });
 
@@ -930,7 +930,7 @@ describe("Adapter - LendNFT", () => {
       this.extensions.erc721Ext,
       this.extensions.bankExt,
       daoOwner,
-      nftOwner
+      nftOwner,
     );
 
     await advanceTime(100);
@@ -939,7 +939,7 @@ describe("Adapter - LendNFT", () => {
     await expect(
       this.adapters.lendNFT.sendNFTBack(this.dao.address, proposalId, {
         from: attacker,
-      })
+      }),
     ).to.be.revertedWith("only the previous owner can withdraw the NFT");
   });
 
@@ -956,7 +956,7 @@ describe("Adapter - LendNFT", () => {
       this.extensions.erc721Ext,
       this.extensions.bankExt,
       daoOwner,
-      nftOwner
+      nftOwner,
     );
 
     await advanceTime(100);
@@ -970,7 +970,7 @@ describe("Adapter - LendNFT", () => {
     await expect(
       this.adapters.lendNFT.sendNFTBack(this.dao.address, proposalId, {
         from: attacker,
-      })
+      }),
     ).to.be.revertedWith("already sent back");
   });
 
@@ -1000,7 +1000,7 @@ describe("Adapter - LendNFT", () => {
       10000, // requested units
       10000, // lending period (10 seconds)
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Vote NO on the proposal
@@ -1015,7 +1015,7 @@ describe("Adapter - LendNFT", () => {
       encodeProposalData(dao, proposalId),
       {
         from: nftOwner,
-      }
+      },
     );
 
     // The owner should be the same because the proposal did not pass
@@ -1046,7 +1046,7 @@ describe("Adapter - LendNFT", () => {
       10000, // requested units
       10000, // lending period (10 seconds)
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // Vote Yes on the proposal
@@ -1055,7 +1055,7 @@ describe("Adapter - LendNFT", () => {
 
     // Skip the NFT transfer and attempt to withdraw the NFT
     await expect(
-      lendNFT.sendNFTBack(dao.address, proposalId, { from: nftOwner })
+      lendNFT.sendNFTBack(dao.address, proposalId, { from: nftOwner }),
     ).to.be.revertedWith("lending not started");
   });
 
@@ -1067,7 +1067,7 @@ describe("Adapter - LendNFT", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -1080,7 +1080,7 @@ describe("Adapter - LendNFT", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

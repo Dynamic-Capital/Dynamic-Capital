@@ -14,5 +14,6 @@ $$X = \min_k X_k.$$
 
 ## Notes
 
-- Controls $u_t$ allocate resources to the bottleneck stage to lift overall throughput.
+- Controls $u_t$ allocate resources to the bottleneck stage to lift overall
+  throughput.
 - Monitor $X$ alongside latency metrics to maintain integration SLAs.

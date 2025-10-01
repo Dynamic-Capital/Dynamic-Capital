@@ -25,7 +25,8 @@ and file descriptions from the corresponding OneDrive manifest.
 ## Research — Staging Area Sync
 
 - **Source location:** `OneDrive\\DynamicAI_DB\\knowledge_base\\research`
-- **Supabase mirror (planned):** `public.one_drive_assets/knowledge_base/research/*`
+- **Supabase mirror (planned):**
+  `public.one_drive_assets/knowledge_base/research/*`
 - **Description:** New research datasets have been uploaded to OneDrive and are
   waiting on checksum validation before we promote them into the shared
   retrieval corpus. Track synchronization steps and dataset notes in the
@@ -33,9 +34,9 @@ and file descriptions from the corresponding OneDrive manifest.
 
 ### Files
 
-| Relative path        | Purpose                                                           |
-| -------------------- | ----------------------------------------------------------------- |
-| `research/README.md` | Mirroring checklist plus dataset registry for the research drop. |
-| `research/processed/dhivehi_training_corpus.jsonl` | Preprocessed Dhivehi Radheef corpus ready for instruction tuning. |
-| `research/training_runs/dhivehi_radheef_v1.json` | Dynamic trainer readiness summary for the Dhivehi corpus fine-tune. |
-| `research/manifest.json` | Structured manifest enumerating the staged research datasets. |
+| Relative path                                      | Purpose                                                             |
+| -------------------------------------------------- | ------------------------------------------------------------------- |
+| `research/README.md`                               | Mirroring checklist plus dataset registry for the research drop.    |
+| `research/processed/dhivehi_training_corpus.jsonl` | Preprocessed Dhivehi Radheef corpus ready for instruction tuning.   |
+| `research/training_runs/dhivehi_radheef_v1.json`   | Dynamic trainer readiness summary for the Dhivehi corpus fine-tune. |
+| `research/manifest.json`                           | Structured manifest enumerating the staged research datasets.       |

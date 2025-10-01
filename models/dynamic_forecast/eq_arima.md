@@ -4,7 +4,8 @@
 
 ## Overview
 
-Autoregressive integrated moving average models extend AR processes with differencing and moving-average terms.
+Autoregressive integrated moving average models extend AR processes with
+differencing and moving-average terms.
 
 ## Equation
 

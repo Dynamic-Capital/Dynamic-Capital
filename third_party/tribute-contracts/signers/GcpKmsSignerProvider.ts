@@ -1,12 +1,17 @@
 import { bufferToHex } from "ethereumjs-util";
-import { rpcQuantityToBigInt, rpcQuantityToNumber, numberToRpcQuantity, rpcQuantity } from "hardhat/internal/core/jsonrpc/types/base-types";
+import {
+  numberToRpcQuantity,
+  rpcQuantity,
+  rpcQuantityToBigInt,
+  rpcQuantityToNumber,
+} from "hardhat/internal/core/jsonrpc/types/base-types";
 import { rpcTransactionRequest } from "hardhat/internal/core/jsonrpc/types/input/transactionRequest";
 import { validateParams } from "hardhat/internal/core/jsonrpc/types/input/validation";
 import { JsonRpcTransactionData } from "hardhat/internal/core/providers/accounts";
 import { ProviderWrapper } from "hardhat/internal/core/providers/wrapper";
 import {
-  GcpKmsSignerConfig,
   EIP1193Provider,
+  GcpKmsSignerConfig,
   RequestArguments,
 } from "hardhat/types";
 import { ethers } from "ethers";
@@ -42,7 +47,7 @@ export class GcpKmsSignerProvider extends ProviderWrapper {
       {
         ...config,
       },
-      undefined
+      undefined,
     );
     this.network = network;
     this.increaseFactor = increaseFactor;
@@ -71,10 +76,12 @@ export class GcpKmsSignerProvider extends ProviderWrapper {
       // const { maxPriorityFeePerGas, maxFeePerGas } = await this._getFeeData();
       // const gasPrice = await this._getGasPrice();
 
-      const unsignedTx: UnsignedTransaction =
-        await ethers.utils.resolveProperties({
+      const unsignedTx: UnsignedTransaction = await ethers.utils
+        .resolveProperties({
           to: txRequest.to ? bufferToHex(txRequest.to) : undefined,
-          nonce: txRequest.nonce !== undefined ? Number(txRequest.nonce.toString()) : undefined,
+          nonce: txRequest.nonce !== undefined
+            ? Number(txRequest.nonce.toString())
+            : undefined,
 
           gasLimit: txRequest.gas
             ? numberToHex(txRequest.gas.toString())
@@ -93,7 +100,7 @@ export class GcpKmsSignerProvider extends ProviderWrapper {
         });
 
       const txSignature = await this.signer._signDigest(
-        keccak256(serializeTransaction(unsignedTx))
+        keccak256(serializeTransaction(unsignedTx)),
       );
       const signedRawTx = serializeTransaction(unsignedTx, txSignature);
 
@@ -104,19 +111,21 @@ export class GcpKmsSignerProvider extends ProviderWrapper {
       }) as string;
 
       // Enable fee bumping only for Polygon network
-      if (this.network === "polygon") { 
+      if (this.network === "polygon") {
         // Wait for a specified time period for the transaction to be mined
         const isMined = await this.waitForTransaction(txHash);
 
         if (!isMined) {
           // Transaction was not mined within the timeout period
           // Resend the transaction with a higher fee
-          return await this.resendTransactionWithHigherFee(txRequest, this.maxRetries);
+          return await this.resendTransactionWithHigherFee(
+            txRequest,
+            this.maxRetries,
+          );
         }
       }
 
       return txHash;
-
     } else if (
       args.method === "eth_accounts" ||
       args.method === "eth_requestAccounts"
@@ -171,18 +180,26 @@ export class GcpKmsSignerProvider extends ProviderWrapper {
     });
   }
 
-  private async resendTransactionWithHigherFee(txRequest: any, retryCount: number): Promise<unknown> {
+  private async resendTransactionWithHigherFee(
+    txRequest: any,
+    retryCount: number,
+  ): Promise<unknown> {
     // Base case: if retryCount is 0, stop retrying
     if (retryCount <= 0) {
-      throw new Error("Maximum retry attempts reached. Transaction canceled due to high fees.");
+      throw new Error(
+        "Maximum retry attempts reached. Transaction canceled due to high fees.",
+      );
     }
 
     // Calculate new gas fees. Increases the previous fees by a certain percentage.
     const increaseFactor = BigInt(this.increaseFactor);
     const baseFactor = BigInt(100);
 
-    let newMaxPriorityFeePerGas = (BigInt(txRequest.maxPriorityFeePerGas) * increaseFactor + baseFactor / BigInt(2)) / baseFactor;
-    let newMaxFeePerGas = (BigInt(txRequest.maxFeePerGas) * increaseFactor + baseFactor / BigInt(2)) / baseFactor;
+    let newMaxPriorityFeePerGas =
+      (BigInt(txRequest.maxPriorityFeePerGas) * increaseFactor +
+        baseFactor / BigInt(2)) / baseFactor;
+    let newMaxFeePerGas = (BigInt(txRequest.maxFeePerGas) * increaseFactor +
+      baseFactor / BigInt(2)) / baseFactor;
 
     const newTxRequest = {
       ...txRequest,
@@ -199,23 +216,28 @@ export class GcpKmsSignerProvider extends ProviderWrapper {
       };
 
       // Prepare the unsigned transaction as before
-      const unsignedTx: UnsignedTransaction = await ethers.utils.resolveProperties({
-        to: newTxRequest.to ? bufferToHex(newTxRequest.to) : undefined,
-        nonce: newTxRequest.nonce, // Use the same nonce
-        gasLimit: newTxRequest.gas ? numberToHex(newTxRequest.gas.toString()) : undefined,
-        // EIP-1559 parameters
-        type: 2, // Ensure it's an EIP-1559 transaction
-        maxPriorityFeePerGas: numberToRpcQuantity(newMaxPriorityFeePerGas),
-        maxFeePerGas: numberToRpcQuantity(newMaxFeePerGas),
-        // Other transaction parameters
-        data: newTxRequest.data,
-        value: newTxRequest.value ? numberToHex(newTxRequest.value.toString()) : undefined,
-        chainId: this.chainId,
-      });
+      const unsignedTx: UnsignedTransaction = await ethers.utils
+        .resolveProperties({
+          to: newTxRequest.to ? bufferToHex(newTxRequest.to) : undefined,
+          nonce: newTxRequest.nonce, // Use the same nonce
+          gasLimit: newTxRequest.gas
+            ? numberToHex(newTxRequest.gas.toString())
+            : undefined,
+          // EIP-1559 parameters
+          type: 2, // Ensure it's an EIP-1559 transaction
+          maxPriorityFeePerGas: numberToRpcQuantity(newMaxPriorityFeePerGas),
+          maxFeePerGas: numberToRpcQuantity(newMaxFeePerGas),
+          // Other transaction parameters
+          data: newTxRequest.data,
+          value: newTxRequest.value
+            ? numberToHex(newTxRequest.value.toString())
+            : undefined,
+          chainId: this.chainId,
+        });
 
       // Sign the new transaction
       const txSignature = await this.signer._signDigest(
-        keccak256(serializeTransaction(unsignedTx))
+        keccak256(serializeTransaction(unsignedTx)),
       );
       const signedRawTx = serializeTransaction(unsignedTx, txSignature);
 
@@ -226,9 +248,16 @@ export class GcpKmsSignerProvider extends ProviderWrapper {
 
       const isMined = await this.waitForTransaction(txHash);
       if (!isMined) {
-        console.log(`Transaction not mined within timeout. Retrying... Attempts left: ${retryCount - 1}`);
+        console.log(
+          `Transaction not mined within timeout. Retrying... Attempts left: ${
+            retryCount - 1
+          }`,
+        );
         // Recursive call with decremented retryCount
-        return await this.resendTransactionWithHigherFee(newTxRequest, retryCount - 1);
+        return await this.resendTransactionWithHigherFee(
+          newTxRequest,
+          retryCount - 1,
+        );
       }
 
       // Transaction was mined successfully
@@ -236,8 +265,10 @@ export class GcpKmsSignerProvider extends ProviderWrapper {
     } catch (error) {
       console.error("Error sending transaction: ", error);
       // Recursive call with decremented retryCount if there was an error sending the transaction
-      return await this.resendTransactionWithHigherFee(newTxRequest, retryCount - 1);
+      return await this.resendTransactionWithHigherFee(
+        newTxRequest,
+        retryCount - 1,
+      );
     }
   }
-
 }

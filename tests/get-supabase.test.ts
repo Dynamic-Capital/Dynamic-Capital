@@ -1,6 +1,6 @@
-import test from 'node:test';
-import { throws } from 'node:assert/strict';
-import { freshImport } from './utils/freshImport.ts';
+import test from "node:test";
+import { throws } from "node:assert/strict";
+import { freshImport } from "./utils/freshImport.ts";
 import process from "node:process";
 
 interface SupaMockState {
@@ -14,9 +14,9 @@ const globalWithSupaMock = globalThis as GlobalWithSupaMock;
 globalWithSupaMock.__SUPA_MOCK__ = supaState;
 
 function setEnv() {
-  process.env.SUPABASE_URL = 'http://local';
-  process.env.SUPABASE_ANON_KEY = 'anon';
-  process.env.TELEGRAM_BOT_TOKEN = 'tok';
+  process.env.SUPABASE_URL = "http://local";
+  process.env.SUPABASE_ANON_KEY = "anon";
+  process.env.TELEGRAM_BOT_TOKEN = "tok";
   // Intentionally omit SUPABASE_SERVICE_ROLE_KEY
 }
 
@@ -28,9 +28,11 @@ function cleanup() {
   supaState.tables = {};
 }
 
-test('getSupabase throws when credentials missing', async () => {
+test("getSupabase throws when credentials missing", async () => {
   setEnv();
-  const mod = await freshImport(new URL('../supabase/functions/telegram-bot/index.ts', import.meta.url));
+  const mod = await freshImport(
+    new URL("../supabase/functions/telegram-bot/index.ts", import.meta.url),
+  );
   throws(() => mod.getSupabase(), /Missing Supabase credentials/);
   cleanup();
 });

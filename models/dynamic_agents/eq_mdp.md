@@ -4,14 +4,14 @@
 
 ## Overview
 
-Markov decision processes capture sequential decision-making for agent policies and task dispatch.
+Markov decision processes capture sequential decision-making for agent policies
+and task dispatch.
 
 ## Value Functions
 
 - State-value under policy $\pi$:
   $$V^{\pi}(s) = \mathbb{E} \left[ \sum_{t \ge 0} \gamma^t r_t \mid s_0 = s \right].$$
-- Optimal policy selection:
-  $$\pi^* = \arg\max_{\pi} V^{\pi}(s).$$
+- Optimal policy selection: $$\pi^* = \arg\max_{\pi} V^{\pi}(s).$$
 
 ## Q-Learning Update
 
@@ -25,6 +25,8 @@ $$Q(s,a) \leftarrow Q(s,a) + \eta \big( r + \gamma \max_{a'} Q(s', a') - Q(s,a) 
 
 ## Integration Notes
 
-- The state $x_t$ encodes the environment representation, while $u_t$ indexes policy actions.
-- Convergence diagnostics for $Q$ updates can populate $y_t$ metrics (e.g., Bellman error norms).
+- The state $x_t$ encodes the environment representation, while $u_t$ indexes
+  policy actions.
+- Convergence diagnostics for $Q$ updates can populate $y_t$ metrics (e.g.,
+  Bellman error norms).
 - Constraints ensure valid action spaces or task feasibility during learning.

@@ -68,7 +68,7 @@ const getBalance = async (account) => {
 
 const attach = async (contractInterface, address) => {
   const factory = await hre.ethers.getContractFactory(
-    contractInterface.contractName
+    contractInterface.contractName,
   );
   const truffleContract = factory.attach(address);
   // Add the `connect` function to be able to switch the tx signer
@@ -96,7 +96,7 @@ const deployFunction = async (contractInterface, args, from) => {
   if (!contractInterface) throw Error("undefined contractInterface");
 
   const contractConfig = allContractConfigs.find(
-    (c) => c.name === contractInterface.contractName
+    (c) => c.name === contractInterface.contractName,
   );
 
   const accounts = await getAccounts();
@@ -190,7 +190,7 @@ const advanceTime = async (time) => {
           return reject(err);
         }
         return resolve(result);
-      }
+      },
     );
   });
 
@@ -207,7 +207,7 @@ const advanceTime = async (time) => {
           return reject(err);
         }
         return resolve(result);
-      }
+      },
     );
   });
 
@@ -229,7 +229,7 @@ const takeChainSnapshot = async () => {
         }
         let snapshotId = result.result; // {"id":X,"jsonrpc":"2.0","result":"0x..."}
         return resolve(snapshotId);
-      }
+      },
     )
   );
 };
@@ -248,7 +248,7 @@ const revertChainSnapshot = async (snapshotId) => {
           return reject(err);
         }
         return resolve(result);
-      }
+      },
     )
   ).catch((e) => console.error(e));
 };
@@ -353,7 +353,7 @@ module.exports = (() => {
         1,
         {
           from: owner,
-        }
+        },
       );
     }
 
@@ -389,7 +389,7 @@ module.exports = (() => {
       {
         dao: dao.address,
         proposalId,
-      }
+      },
     );
 
   return {

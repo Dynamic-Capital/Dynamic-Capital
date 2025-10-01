@@ -46,15 +46,16 @@ const { ContractType } = require("../configs/contracts.config");
  */
 const deployContract = ({ config, options }) => {
   const contract = options[config.name];
-  if (!contract)
+  if (!contract) {
     throw new Error(`Contract ${config.name} not found in environment options`);
+  }
 
   if (config.deploymentArgs && config.deploymentArgs.length > 0) {
     const args = config.deploymentArgs.map((argName) => {
       const arg = options[argName];
       if (arg !== null && arg !== undefined) return arg;
       throw new Error(
-        `Missing deployment argument <${argName}> for ${config.name}`
+        `Missing deployment argument <${argName}> for ${config.name}`,
       );
     });
     return options.deployFunction(contract, args);
@@ -80,20 +81,23 @@ const createFactories = async ({ options }) => {
   await factoryList.reduce((p, config) => {
     return p.then((_) => {
       const factoryContract = options[config.name];
-      if (!factoryContract)
+      if (!factoryContract) {
         throw new Error(`Missing factory contract ${config.name}`);
+      }
 
       const extensionConfig = options.contractConfigs.find(
-        (c) => c.id === config.generatesExtensionId
+        (c) => c.id === config.generatesExtensionId,
       );
-      if (!extensionConfig)
+      if (!extensionConfig) {
         throw new Error(
-          `Missing extension config ${config.generatesExtensionId}`
+          `Missing extension config ${config.generatesExtensionId}`,
         );
+      }
 
       const extensionContract = options[extensionConfig.name];
-      if (!extensionContract)
+      if (!extensionContract) {
         throw new Error(`Missing extension contract ${extensionConfig.name}`);
+      }
 
       return options
         .deployFunction(factoryContract, [extensionContract])
@@ -124,12 +128,13 @@ const createExtensions = async ({ dao, factories, options }) => {
     info("\t create extension with factory " + factory.configs.alias);
     const factoryConfigs = factory.configs;
     const extensionConfigs = options.contractConfigs.find(
-      (c) => c.id === factoryConfigs.generatesExtensionId
+      (c) => c.id === factoryConfigs.generatesExtensionId,
     );
-    if (!extensionConfigs)
+    if (!extensionConfigs) {
       throw new Error(
-        `Missing extension configuration <generatesExtensionId> for in ${factoryConfigs.name} configs`
+        `Missing extension configuration <generatesExtensionId> for in ${factoryConfigs.name} configs`,
       );
+    }
 
     const extensionId = sha3(extensionConfigs.id);
     let extensionAddress = await dao.extensions(extensionId);
@@ -137,7 +142,7 @@ const createExtensions = async ({ dao, factories, options }) => {
     if (extensionAddress === ZERO_ADDRESS) {
       let tx;
       info(
-        `\t extension ${extensionConfigs.name} not found in the DAO, deploying it `
+        `\t extension ${extensionConfigs.name} not found in the DAO, deploying it `,
       );
       if (
         factoryConfigs.deploymentArgs &&
@@ -147,7 +152,7 @@ const createExtensions = async ({ dao, factories, options }) => {
           const arg = options[argName];
           if (arg !== null && arg !== undefined) return arg;
           throw new Error(
-            `Missing deployment argument <${argName}> in ${factoryConfigs.name}.create`
+            `Missing deployment argument <${argName}> in ${factoryConfigs.name}.create`,
           );
         });
         tx = await factory.create(...args);
@@ -163,11 +168,11 @@ const createExtensions = async ({ dao, factories, options }) => {
       let extensionAddress;
       if (tx.wait) {
         info(
-          `\t waiting for transaction ${tx.hash} to be mined... nonce: ${tx.nonce}`
+          `\t waiting for transaction ${tx.hash} to be mined... nonce: ${tx.nonce}`,
         );
         const res = await tx.wait();
         const factoryEvent = res.events.find(
-          (e) => e.address === factory.address
+          (e) => e.address === factory.address,
         );
         if (!factoryEvent) throw new Error("Missing factory event.");
 
@@ -182,24 +187,26 @@ const createExtensions = async ({ dao, factories, options }) => {
       }
 
       const extensionInterface = options[extensionConfigs.name];
-      if (!extensionInterface)
+      if (!extensionInterface) {
         throw new Error(
-          `Extension contract not found for ${extensionConfigs.name}`
+          `Extension contract not found for ${extensionConfigs.name}`,
         );
+      }
 
       const newExtension = embedConfigs(
         await options.attachFunction(extensionInterface, extensionAddress),
         extensionInterface.contractName,
-        options.contractConfigs
+        options.contractConfigs,
       );
 
-      if (!newExtension || !newExtension.configs)
+      if (!newExtension || !newExtension.configs) {
         throw new Error(
-          `Unable to embed extension configs for ${extensionConfigs.name}`
+          `Unable to embed extension configs for ${extensionConfigs.name}`,
         );
+      }
 
       await waitTx(
-        dao["addExtension(bytes32,address)"](extensionId, newExtension.address)
+        dao["addExtension(bytes32,address)"](extensionId, newExtension.address),
       );
 
       info(`
@@ -212,21 +219,23 @@ const createExtensions = async ({ dao, factories, options }) => {
       return { ...newExtension, identity: factory.identity };
     } else {
       const extensionInterface = options[extensionConfigs.name];
-      if (!extensionInterface)
+      if (!extensionInterface) {
         throw new Error(
-          `Extension contract not found for ${extensionConfigs.name}`
+          `Extension contract not found for ${extensionConfigs.name}`,
         );
+      }
 
       const newExtension = embedConfigs(
         await options.attachFunction(extensionInterface, extensionAddress),
         extensionInterface.contractName,
-        options.contractConfigs
+        options.contractConfigs,
       );
 
-      if (!newExtension || !newExtension.configs)
+      if (!newExtension || !newExtension.configs) {
         throw new Error(
-          `Unable to embed extension configs for ${extensionConfigs.name}`
+          `Unable to embed extension configs for ${extensionConfigs.name}`,
         );
+      }
 
       info(`
       Extension enabled '${newExtension.configs.name}'
@@ -255,7 +264,7 @@ const createExtensions = async ({ dao, factories, options }) => {
           error(`Failed extension deployment ${factory.configs.name}. `, err);
           throw err;
         }),
-    Promise.resolve()
+    Promise.resolve(),
   );
   return extensions;
 };
@@ -284,7 +293,7 @@ const createAdapters = async ({ options }) => {
           error(`Error while creating adapter ${config.name}. `, err);
           throw err;
         }),
-    Promise.resolve()
+    Promise.resolve(),
   );
 
   return adapters;
@@ -309,14 +318,15 @@ const createUtilContracts = async ({ options }) => {
         p
           .then(() => deployContract({ config, options }))
           .then(
-            (utilContract) =>
-              (utilContracts[utilContract.configs.alias] = utilContract)
+            (
+              utilContract,
+            ) => (utilContracts[utilContract.configs.alias] = utilContract),
           )
           .catch((err) => {
             error(`Error while creating util contract ${config.name}. `, err);
             throw err;
           }),
-      Promise.resolve()
+      Promise.resolve(),
     );
   return utilContracts;
 };
@@ -342,14 +352,15 @@ const createTestContracts = async ({ options }) => {
         p
           .then(() => deployContract({ config, options }))
           .then(
-            (testContract) =>
-              (testContracts[testContract.configs.alias] = testContract)
+            (
+              testContract,
+            ) => (testContracts[testContract.configs.alias] = testContract),
           )
           .catch((err) => {
             error(`Error while creating test contract ${config.name}. `, err);
             throw err;
           }),
-      Promise.resolve()
+      Promise.resolve(),
     );
   return testContracts;
 };
@@ -360,10 +371,11 @@ const createTestContracts = async ({ options }) => {
 const createGovernanceRoles = async ({ options, dao, adapters }) => {
   const readConfigValue = (configName, contractName) => {
     const configValue = options[configName];
-    if (!configValue)
+    if (!configValue) {
       throw new Error(
-        `Error while creating governance role [${configName}] for ${contractName}`
+        `Error while creating governance role [${configName}] for ${contractName}`,
       );
+    }
     return configValue;
   };
 
@@ -377,22 +389,22 @@ const createGovernanceRoles = async ({ options, dao, adapters }) => {
           (q, role) =>
             q.then(async () => {
               const adapter = Object.values(adapters).find(
-                (a) => a.configs.name === c.name
+                (a) => a.configs.name === c.name,
               );
               const configKey = sha3(
                 encodePacked(
                   role.replace("$contractAddress", ""),
-                  getAddress(adapter.address)
-                )
+                  getAddress(adapter.address),
+                ),
               );
               const configValue = getAddress(
-                readConfigValue(c.governanceRoles[role], c.name)
+                readConfigValue(c.governanceRoles[role], c.name),
               );
               return await waitTx(
-                dao.setAddressConfiguration(configKey, configValue)
+                dao.setAddressConfiguration(configKey, configValue),
               );
             }),
-          Promise.resolve()
+          Promise.resolve(),
         )
       );
     }, Promise.resolve());
@@ -402,8 +414,8 @@ const createGovernanceRoles = async ({ options, dao, adapters }) => {
     await waitTx(
       dao.setAddressConfiguration(
         configKey,
-        getAddress(options.defaultMemberGovernanceToken)
-      )
+        getAddress(options.defaultMemberGovernanceToken),
+      ),
     );
   }
 };
@@ -416,7 +428,7 @@ const validateContractConfigs = (contractConfigs) => {
     .filter(
       (c) =>
         c.type === ContractType.Adapter &&
-        c.id !== adaptersIdsMap.VOTING_ADAPTER
+        c.id !== adaptersIdsMap.VOTING_ADAPTER,
     )
     .forEach((c) => {
       const current = found.get(c.id);
@@ -540,7 +552,7 @@ const cloneDao = async ({
   let daoAddress = await daoFactory.getDaoAddress(name);
   if (daoAddress === ZERO_ADDRESS) {
     info(
-      `\t new DaoRegistry, name: ${name}, owner: ${creator ? creator : owner}`
+      `\t new DaoRegistry, name: ${name}, owner: ${creator ? creator : owner}`,
     );
     await waitTx(daoFactory.createDao(name, creator ? creator : owner));
 
@@ -607,7 +619,7 @@ const configureDao = async ({
         if (adapterAddress !== a.address) {
           const addedTx = await daoFactory.addAdapters(dao.address, [entry]);
           info(
-            `\t waiting for tx ${addedTx.hash} that adds adapter ${a.configs.name} nonce ${addedTx.nonce}`
+            `\t waiting for tx ${addedTx.hash} that adds adapter ${a.configs.name} nonce ${addedTx.nonce}`,
           );
           return previous.concat([addedTx]);
         } else {
@@ -641,7 +653,7 @@ const configureDao = async ({
         ]);
 
         info(
-          `\t waiting for tx ${tx.hash} that configures extension ${e.configs.name} nonce ${tx.nonce}`
+          `\t waiting for tx ${tx.hash} that configures extension ${e.configs.name} nonce ${tx.nonce}`,
         );
         return previous.concat([tx]);
       });
@@ -656,20 +668,22 @@ const configureDao = async ({
       // 1st check for configs that are using extension addresses
       if (Object.values(extensionsIdsMap).includes(configName)) {
         const extension = Object.values(extensions).find(
-          (e) => e.configs.id === configName
+          (e) => e.configs.id === configName,
         );
-        if (!extension || !extension.address)
+        if (!extension || !extension.address) {
           throw new Error(
-            `Error while configuring dao parameter [${configName}] for ${contractName}. Extension not found.`
+            `Error while configuring dao parameter [${configName}] for ${contractName}. Extension not found.`,
           );
+        }
         return extension.address;
       }
       // 2nd lookup for configs in the options object
       const configValue = options[configName];
-      if (configValue == null)
+      if (configValue == null) {
         throw new Error(
-          `Error while configuring dao parameter [${configName}] for ${contractName}. Config not found.`
+          `Error while configuring dao parameter [${configName}] for ${contractName}. Config not found.`,
         );
+      }
       return configValue;
     };
 
@@ -690,13 +704,13 @@ const configureDao = async ({
               const p = adapter.configureDao(...configValues).catch((err) => {
                 error(
                   `Error while configuring dao with contract ${contractConfigs.name}. `,
-                  err
+                  err,
                 );
                 throw err;
               });
               return await waitTx(p);
             }),
-          Promise.resolve()
+          Promise.resolve(),
         )
       );
     }, Promise.resolve());
@@ -707,19 +721,20 @@ const configureDao = async ({
     const withAccess = Object.values(contracts).reduce((accessRequired, c) => {
       const configs = c.configs;
       accessRequired.push(
-        extension.configs.buildAclFlag(c.address, configs.acls)
+        extension.configs.buildAclFlag(c.address, configs.acls),
       );
       return accessRequired;
     }, []);
 
-    if (withAccess.length > 0)
+    if (withAccess.length > 0) {
       await waitTx(
         daoFactory.configureExtension(
           dao.address,
           extension.address,
-          withAccess
-        )
+          withAccess,
+        ),
       );
+    }
   };
 
   /**
@@ -741,7 +756,7 @@ const configureDao = async ({
         .filter((a) =>
           // The adapters must have at least 1 ACL flag defined to access the targetExtension
           Object.keys(a.configs.acls.extensions).some(
-            (extId) => extId === targetExtension.configs.id
+            (extId) => extId === targetExtension.configs.id,
           )
         );
 
@@ -750,7 +765,7 @@ const configureDao = async ({
         .catch((err) => {
           error(
             `Error while configuring adapters access to extension ${targetExtension.configs.name}. `,
-            err
+            err,
           );
           throw err;
         });
@@ -764,7 +779,7 @@ const configureDao = async ({
   const configureExtensions = async () => {
     debug("configure extensions ...");
     const extensionsList = Object.values(extensions).filter(
-      (targetExtension) => targetExtension.configs.enabled
+      (targetExtension) => targetExtension.configs.enabled,
     );
 
     await extensionsList.reduce((p, targetExtension) => {
@@ -775,7 +790,7 @@ const configureDao = async ({
         .filter((e) =>
           // The other extensions must have at least 1 ACL flag defined to access the targetExtension
           Object.keys(e.configs.acls.extensions).some(
-            (extId) => extId === targetExtension.configs.id
+            (extId) => extId === targetExtension.configs.id,
           )
         );
 
@@ -783,7 +798,7 @@ const configureDao = async ({
         .then(() => configureExtensionAccess(contracts, targetExtension))
         .catch((err) => {
           error(
-            `Error while configuring extensions access to extension ${targetExtension.configs.name}. `
+            `Error while configuring extensions access to extension ${targetExtension.configs.name}. `,
           );
           throw err;
         });
@@ -825,21 +840,21 @@ const configureOffchainVoting = async ({
   // Offchain voting is disabled
   if (!offchainVoting) return votingHelpers;
   const currentVotingAdapterAddress = await dao.getAdapterAddress(
-    sha3(adaptersIdsMap.VOTING_ADAPTER)
+    sha3(adaptersIdsMap.VOTING_ADAPTER),
   );
 
   const snapshotProposalContract = await deployFunction(
-    SnapshotProposalContract
+    SnapshotProposalContract,
   );
 
   const offchainVotingHashContract = await deployFunction(
     OffchainVotingHashContract,
-    [snapshotProposalContract.address]
+    [snapshotProposalContract.address],
   );
 
   const offchainVotingHelper = await deployFunction(
     OffchainVotingHelperContract,
-    [offchainVotingHashContract.address]
+    [offchainVotingHashContract.address],
   );
 
   const handleBadReporterAdapter = await deployFunction(KickBadReporterAdapter);
@@ -858,9 +873,9 @@ const configureOffchainVoting = async ({
       entryDao(
         offchainVotingContract.configs.id,
         offchainVotingContract.address,
-        offchainVotingContract.configs.acls
-      )
-    )
+        offchainVotingContract.configs.acls,
+      ),
+    ),
   );
 
   await waitTx(
@@ -869,9 +884,9 @@ const configureOffchainVoting = async ({
       offchainVotingContract.address,
       entryBank(
         offchainVotingContract.address,
-        offchainVotingContract.configs.acls
-      ).flags
-    )
+        offchainVotingContract.configs.acls,
+      ).flags,
+    ),
   );
 
   await waitTx(
@@ -879,8 +894,8 @@ const configureOffchainVoting = async ({
       dao.address,
       votingPeriod,
       gracePeriod,
-      10
-    )
+      10,
+    ),
   );
 
   votingHelpers.offchainVoting = offchainVotingContract;

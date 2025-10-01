@@ -39,7 +39,7 @@ const checkLastEvent = async (dao, testObject) => {
 
   Object.keys(testObject).forEach((key) =>
     expect(testObject[key], "value mismatch for key " + key).equal(
-      returnValues[key]
+      returnValues[key],
     )
   );
 };
@@ -54,11 +54,11 @@ const checkSignature = async (
   signatureExtension,
   permissionHash,
   signature,
-  magicValue
+  magicValue,
 ) => {
   const returnedValue = await signatureExtension.isValidSignature(
     permissionHash,
-    signature
+    signature,
   );
 
   expect(returnedValue).equal(magicValue);
@@ -73,7 +73,7 @@ const encodeDaoInfo = (daoAddress) =>
     },
     {
       dao: daoAddress,
-    }
+    },
   );
 
 const isMember = async (bank, member) => {
@@ -90,7 +90,7 @@ const submitNewMemberProposal = async (
   newMember,
   unitPrice,
   token,
-  desiredUnits = toBN("10")
+  desiredUnits = toBN("10"),
 ) => {
   await onboarding.submitProposal(
     dao.address,
@@ -102,7 +102,7 @@ const submitNewMemberProposal = async (
     {
       from: member,
       gasPrice: toBN("0"),
-    }
+    },
   );
 };
 
@@ -115,7 +115,7 @@ const onboardingNewMember = async (
   sponsor,
   unitPrice,
   token,
-  desiredUnits = toBN("10")
+  desiredUnits = toBN("10"),
 ) => {
   await submitNewMemberProposal(
     proposalId,
@@ -125,7 +125,7 @@ const onboardingNewMember = async (
     newMember,
     unitPrice,
     token,
-    desiredUnits
+    desiredUnits,
   );
 
   //vote and process it
@@ -147,7 +147,7 @@ const guildKickProposal = async (
   guildkickContract,
   memberToKick,
   sender,
-  proposalId
+  proposalId,
 ) => {
   await guildkickContract.submitProposal(
     dao.address,
@@ -157,7 +157,7 @@ const guildKickProposal = async (
     {
       from: sender,
       gasPrice: toBN("0"),
-    }
+    },
   );
 };
 
@@ -167,7 +167,7 @@ const submitConfigProposal = async (
   sender,
   configuration,
   voting,
-  configs
+  configs,
 ) => {
   //Submit a new configuration proposal
   await configuration.submitProposal(dao.address, proposalId, configs, [], {
@@ -197,7 +197,7 @@ const lendERC721NFT = async (
   bank,
   daoOwner,
   nftOwner,
-  lendingPeriod = 10000
+  lendingPeriod = 10000,
 ) => {
   // Mint the ERC721 NFT
   await pixelNFT.mintPixel(nftOwner, 1, 1, { from: daoOwner });
@@ -215,7 +215,7 @@ const lendERC721NFT = async (
     10000, // requested units
     lendingPeriod, // lending period (10 seconds)
     [],
-    { from: daoOwner, gasPrice: toBN("0") }
+    { from: daoOwner, gasPrice: toBN("0") },
   );
 
   // Vote Yes on the proposal
@@ -230,7 +230,7 @@ const lendERC721NFT = async (
     encodeProposalData(dao, proposalId),
     {
       from: nftOwner,
-    }
+    },
   );
 
   let unitBalance = await bank.balanceOf(nftOwner, UNITS);
@@ -249,7 +249,7 @@ const lendERC1155NFT = async (
   lendNFT,
   bank,
   daoOwner,
-  nftOwner
+  nftOwner,
 ) => {
   // Mint the ERC1155 NFT
   await erc1155Token.mint(nftOwner, tokenId, 1, [], { from: daoOwner });
@@ -264,7 +264,7 @@ const lendERC1155NFT = async (
     25000, // requested units
     10000, // lending period
     [],
-    { from: daoOwner, gasPrice: toBN("0") }
+    { from: daoOwner, gasPrice: toBN("0") },
   );
 
   // Submit a vote (YES)
@@ -279,7 +279,7 @@ const lendERC1155NFT = async (
     tokenId,
     1,
     encodeProposalData(dao, proposalId),
-    { from: nftOwner }
+    { from: nftOwner },
   );
 
   const erc1155ExtAddr = await dao.getExtensionAddress(ERC1155);
@@ -318,7 +318,7 @@ const buildProposal = async (
   chainId,
   name = "some proposal",
   body = "this is my proposal",
-  space = "tribute"
+  space = "tribute",
 ) => {
   const proposalPayload = {
     name,
@@ -352,14 +352,14 @@ const vote = async (
   actionId,
   chainId,
   votingWeight = undefined,
-  signature = undefined
+  signature = undefined,
 ) => {
   const voteSigner = SigUtilSigner(member.privateKey);
   const weight = await bank.balanceOf(member.address, UNITS);
   const voteEntry = await createVote(
     proposalId,
     votingWeight ? toBN(votingWeight) : weight,
-    choice
+    choice,
   );
   voteEntry.sig = signature
     ? signature
@@ -367,7 +367,7 @@ const vote = async (
   return voteEntry;
 };
 
-const emptyVote = async (proposalId, choice = 2 /*no*/, signature = "0x") => {
+const emptyVote = async (proposalId, choice = 2, /*no*/ signature = "0x") => {
   const voteEntry = await createVote(proposalId, toBN("0"), choice);
   voteEntry.sig = signature;
   return voteEntry;
@@ -384,12 +384,12 @@ const buildVotes = async (
   voteStrategy,
   votingWeight = undefined,
   voteChoice = undefined,
-  signature = undefined
+  signature = undefined,
 ) => {
   const membersCount = await bank.getPriorAmount(
     TOTAL,
     MEMBER_COUNT,
-    blockNumber
+    blockNumber,
   );
   const voteEntries = [];
   const totalVotes = parseInt(membersCount.toString());
@@ -416,7 +416,7 @@ const buildVotes = async (
           actionId,
           chainId,
           votingWeight,
-          signature
+          signature,
         );
         break;
       case VotingStrategies.SingleNoVote && memberAddress === submitter.address:
@@ -429,7 +429,7 @@ const buildVotes = async (
           actionId,
           chainId,
           votingWeight,
-          signature
+          signature,
         );
         break;
       case VotingStrategies.AllVotesYes:
@@ -442,7 +442,7 @@ const buildVotes = async (
           actionId,
           chainId,
           votingWeight,
-          signature
+          signature,
         );
         break;
       case VotingStrategies.AllVotesNo:
@@ -455,7 +455,7 @@ const buildVotes = async (
           actionId,
           chainId,
           votingWeight,
-          signature
+          signature,
         );
         break;
       case VotingStrategies.TieVote:
@@ -468,7 +468,7 @@ const buildVotes = async (
           actionId,
           chainId,
           votingWeight,
-          signature
+          signature,
         );
         break;
       case VotingStrategies.NoBodyVotes:
@@ -491,26 +491,24 @@ const buildVoteTree = async (
   actionId,
   votingStrategy = VotingStrategies.AllVotesYes,
   votes = undefined,
-  moveBlockTime = true
+  moveBlockTime = true,
 ) => {
   const membersCount = await bank.getPriorAmount(
     TOTAL,
     MEMBER_COUNT,
-    blockNumber
+    blockNumber,
   );
 
-  const voteEntries = votes
-    ? votes
-    : await buildVotes(
-        dao,
-        bank,
-        proposalId,
-        submitter,
-        blockNumber,
-        chainId,
-        actionId,
-        votingStrategy
-      );
+  const voteEntries = votes ? votes : await buildVotes(
+    dao,
+    bank,
+    proposalId,
+    submitter,
+    blockNumber,
+    chainId,
+    actionId,
+    votingStrategy,
+  );
 
   if (moveBlockTime) await advanceTime(10000);
 
@@ -518,7 +516,7 @@ const buildVoteTree = async (
     voteEntries,
     dao,
     actionId,
-    chainId
+    chainId,
   );
 
   const signer = SigUtilSigner(submitter.privateKey);
@@ -526,7 +524,7 @@ const buildVoteTree = async (
     { root: voteResultTree.getHexRoot(), type: "result" },
     dao.address,
     actionId,
-    chainId
+    chainId,
   );
 
   const lastResult = result[result.length - 1];
@@ -554,14 +552,14 @@ const buildVoteTreeWithBadNodes = async (
   actionId,
   badWeight,
   votingStrategy = VotingStrategies.AllVotesYes,
-  moveBlockTime = true
+  moveBlockTime = true,
 ) => {
   const { proposalData } = await buildProposal(
     dao,
     actionId,
     submitter,
     blockNumber,
-    chainId
+    chainId,
   );
 
   await configuration.submitProposal(
@@ -579,7 +577,7 @@ const buildVoteTreeWithBadNodes = async (
     {
       from: daoOwner,
       gasPrice: toBN("0"),
-    }
+    },
   );
 
   const votes = await buildVotes(
@@ -590,7 +588,7 @@ const buildVoteTreeWithBadNodes = async (
     blockNumber,
     chainId,
     actionId,
-    votingStrategy
+    votingStrategy,
   );
 
   // Calculate the correct voting weights for the vote result
@@ -627,7 +625,7 @@ const buildVoteTreeWithBadNodes = async (
   const voteResultTree = new MerkleTree(
     votes.map((vote) =>
       buildVoteLeafHashForMerkleTree(vote, dao.address, actionId, chainId)
-    )
+    ),
   );
 
   const resultSteps = votes.map((vote) =>
@@ -639,7 +637,7 @@ const buildVoteTreeWithBadNodes = async (
     { root: voteResultTree.getHexRoot(), type: "result" },
     dao.address,
     actionId,
-    chainId
+    chainId,
   );
 
   const lastVoteResult = resultSteps[resultSteps.length - 1];

@@ -86,7 +86,7 @@ describe("Extension - ERC1155", () => {
   describe("Factory", async () => {
     it("should be possible to create an extension using the factory", async () => {
       const { logs } = await this.factories.erc1155ExtFactory.create(
-        this.dao.address
+        this.dao.address,
       );
       const log = logs[0];
       expect(log.event).to.be.equal("ERC1155CollectionCreated");
@@ -96,17 +96,17 @@ describe("Extension - ERC1155", () => {
 
     it("should be possible to get an extension address by dao", async () => {
       await this.factories.erc1155ExtFactory.create(this.dao.address);
-      const extAddress =
-        await this.factories.erc1155ExtFactory.getExtensionAddress(
-          this.dao.address
+      const extAddress = await this.factories.erc1155ExtFactory
+        .getExtensionAddress(
+          this.dao.address,
         );
       expect(extAddress).to.not.be.equal(ZERO_ADDRESS);
     });
 
     it("should return zero address if there is no extension address by dao", async () => {
       const daoAddress = accounts[2];
-      const extAddress =
-        await this.factories.erc1155ExtFactory.getExtensionAddress(daoAddress);
+      const extAddress = await this.factories.erc1155ExtFactory
+        .getExtensionAddress(daoAddress);
       expect(extAddress).to.be.equal(ZERO_ADDRESS);
     });
 
@@ -120,7 +120,7 @@ describe("Extension - ERC1155", () => {
     it("should not be possible to call initialize more than once", async () => {
       const extension = this.extensions.erc1155Ext;
       await expect(
-        extension.initialize(this.dao.address, daoOwner)
+        extension.initialize(this.dao.address, daoOwner),
       ).to.be.revertedWith("already initialized");
     });
 
@@ -140,8 +140,8 @@ describe("Extension - ERC1155", () => {
           creator,
           erc1155TestToken.address,
           1, //tokenId
-          1 //amount
-        )
+          1, //amount
+        ),
       ).to.be.revertedWith("erc1155Ext::accessDenied");
     });
 
@@ -155,8 +155,8 @@ describe("Extension - ERC1155", () => {
           creator,
           erc1155TestToken.address,
           1, //tokenId
-          1 //amount
-        )
+          1, //amount
+        ),
       ).to.be.revertedWith("erc1155Ext::accessDenied");
     });
   });
@@ -183,14 +183,14 @@ describe("Extension - ERC1155", () => {
     const erc1155TokenExtension = this.extensions.erc1155Ext;
     const erc1155TestToken = this.testContracts.erc1155TestToken;
     await expect(
-      erc1155TokenExtension.getNFT(erc1155TestToken.address, 0)
+      erc1155TokenExtension.getNFT(erc1155TestToken.address, 0),
     ).to.be.revertedWith("revert");
   });
 
   it("should not be possible to initialize the extension if it was already initialized", async () => {
     const erc1155TokenExtension = this.extensions.erc1155Ext;
     await expect(
-      erc1155TokenExtension.initialize(this.dao.address, accounts[0])
+      erc1155TokenExtension.initialize(this.dao.address, accounts[0]),
     ).to.be.revertedWith("already initialized");
   });
 
@@ -217,7 +217,7 @@ describe("Extension - ERC1155", () => {
       tokenId,
       tokenValue,
       encodeDaoInfo(dao.address),
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     await erc1155Token.safeTransferFrom(
@@ -226,7 +226,7 @@ describe("Extension - ERC1155", () => {
       tokenId,
       tokenValue,
       encodeDaoInfo(dao.address),
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     // Make sure it was collected in the NFT Extension
@@ -242,7 +242,7 @@ describe("Extension - ERC1155", () => {
     // The actual holder of the NFT is the ERC1155 Extension
     const holderBalance = await erc1155Token.balanceOf(
       erc1155Ext.address,
-      tokenId
+      tokenId,
     );
     expect(holderBalance.toString()).equal((tokenValue * 2).toString());
   });
@@ -274,7 +274,7 @@ describe("Extension - ERC1155", () => {
       [1, 2], // token ids
       [5, 1], // amounts for each tokenId
       encodeDaoInfo(dao.address),
-      { from: nftOwnerA }
+      { from: nftOwnerA },
     );
 
     await erc1155Token.mint(nftOwnerB, 3, 2, "0x0", {
@@ -297,7 +297,7 @@ describe("Extension - ERC1155", () => {
       [3, 4], // token ids
       [2, 100], // amounts for each tokenId
       encodeDaoInfo(dao.address),
-      { from: nftOwnerB }
+      { from: nftOwnerB },
     );
     const nftAddr = erc1155Token.address;
 
@@ -311,30 +311,30 @@ describe("Extension - ERC1155", () => {
     // but the extension should the we keep track of the original owners
     expect((await erc1155Ext.nbNFTOwners(nftAddr, 2)).toString()).equal("1");
     expect((await erc1155Ext.getNFTOwner(nftAddr, 1, 0)).toLowerCase()).equal(
-      GUILD
+      GUILD,
     );
     expect((await erc1155Ext.getNFTOwner(nftAddr, 2, 0)).toLowerCase()).equal(
-      GUILD
+      GUILD,
     );
     expect((await erc1155Ext.getNFTOwner(nftAddr, 3, 0)).toLowerCase()).equal(
-      GUILD
+      GUILD,
     );
     expect((await erc1155Ext.getNFTOwner(nftAddr, 4, 0)).toLowerCase()).equal(
-      GUILD
+      GUILD,
     );
 
     // Check if the amounts were properly stored
     expect(
-      (await erc1155Ext.getNFTIdAmount(GUILD, nftAddr, 1)).toString()
+      (await erc1155Ext.getNFTIdAmount(GUILD, nftAddr, 1)).toString(),
     ).equal("5");
     expect(
-      (await erc1155Ext.getNFTIdAmount(GUILD, nftAddr, 2)).toString()
+      (await erc1155Ext.getNFTIdAmount(GUILD, nftAddr, 2)).toString(),
     ).equal("1");
     expect(
-      (await erc1155Ext.getNFTIdAmount(GUILD, nftAddr, 3)).toString()
+      (await erc1155Ext.getNFTIdAmount(GUILD, nftAddr, 3)).toString(),
     ).equal("2");
     expect(
-      (await erc1155Ext.getNFTIdAmount(GUILD, nftAddr, 4)).toString()
+      (await erc1155Ext.getNFTIdAmount(GUILD, nftAddr, 4)).toString(),
     ).equal("100");
   });
 
@@ -358,12 +358,12 @@ describe("Extension - ERC1155", () => {
       tokenId,
       tokenValue,
       encodeDaoInfo(dao.address),
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     const nbOfOwners = await erc1155Ext.nbNFTOwners(
       erc1155Token.address,
-      tokenId
+      tokenId,
     );
     expect(nbOfOwners.toString()).equal("1");
   });
@@ -373,7 +373,7 @@ describe("Extension - ERC1155", () => {
     const erc1155Token = this.testContracts.erc1155TestToken;
     const nbOfOwners = await erc1155TokenExtension.nbNFTOwners(
       erc1155Token.address,
-      1
+      1,
     );
     expect(nbOfOwners.toString()).equal("0");
   });
@@ -408,7 +408,7 @@ describe("Extension - ERC1155", () => {
       {
         from: nftOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // Make sure it was collected
@@ -425,7 +425,7 @@ describe("Extension - ERC1155", () => {
     const nftOwnerGuildBlance = await erc1155TokenExtension.getNFTIdAmount(
       GUILD,
       erc1155TestToken.address,
-      1
+      1,
     );
     expect(nftOwnerGuildBlance.toString()).equal("2");
     //create nonMember
@@ -444,7 +444,7 @@ describe("Extension - ERC1155", () => {
       daoOwner,
       unitPrice,
       UNITS,
-      toBN("3")
+      toBN("3"),
     );
     //check if nftOwner is a member
     expect(await isMember(bank, nftOwner)).equal(true);
@@ -455,7 +455,7 @@ describe("Extension - ERC1155", () => {
       erc1155TestToken.address,
       id, //tokenId
       2, //amount
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     await erc1155Adapter.internalTransfer(
@@ -464,19 +464,19 @@ describe("Extension - ERC1155", () => {
       erc1155TestToken.address,
       1, //tokenId
       1, //amount
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     const nonMemberBalance = await erc1155TokenExtension.getNFTIdAmount(
       nonMember,
       erc1155TestToken.address,
-      1
+      1,
     );
 
     const nftOwnerBalance = await erc1155TokenExtension.getNFTIdAmount(
       nftOwner,
       erc1155TestToken.address,
-      1
+      1,
     );
 
     expect(nonMemberBalance.toString()).equal("1");
@@ -513,7 +513,7 @@ describe("Extension - ERC1155", () => {
       {
         from: nftOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // Make sure it was collected
@@ -530,7 +530,7 @@ describe("Extension - ERC1155", () => {
     const nftOwnerGuildBalance = await erc1155TokenExtension.getNFTIdAmount(
       GUILD,
       erc1155TestToken.address,
-      1
+      1,
     );
     expect(nftOwnerGuildBalance.toString()).equal("2");
     //create nonMember
@@ -549,7 +549,7 @@ describe("Extension - ERC1155", () => {
       daoOwner,
       unitPrice,
       UNITS,
-      toBN("3")
+      toBN("3"),
     );
     //check if nftOwner is a member
     expect(await isMember(bank, nftOwner)).equal(true);
@@ -557,7 +557,7 @@ describe("Extension - ERC1155", () => {
     const owner = await erc1155TokenExtension.getNFTOwner(
       erc1155TestToken.address,
       id,
-      0
+      0,
     );
     expect(owner.toLowerCase()).equal(GUILD);
 
@@ -569,8 +569,8 @@ describe("Extension - ERC1155", () => {
         erc1155TestToken.address,
         id, //tokenId
         1, //amount
-        { from: nftOwner }
-      )
+        { from: nftOwner },
+      ),
     ).to.be.revertedWith("erc1155Ext::invalid amount");
   });
 
@@ -599,7 +599,7 @@ describe("Extension - ERC1155", () => {
       {
         from: nftOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // Make sure it was collected
@@ -616,14 +616,14 @@ describe("Extension - ERC1155", () => {
     let nftOwnerGuildBalance = await erc1155TokenExtension.getNFTIdAmount(
       GUILD,
       erc1155TestToken.address,
-      1
+      1,
     );
     expect(nftOwnerGuildBalance.toString()).equal("2");
     // If the NFT was properly saved, the guild must be the new owner of the NFT
     let newOwner = await erc1155TokenExtension.getNFTOwner(
       erc1155TestToken.address,
       1,
-      0
+      0,
     );
     expect(newOwner.toLowerCase()).equal(GUILD);
 
@@ -632,7 +632,7 @@ describe("Extension - ERC1155", () => {
       erc1155TestToken.address,
       id, //tokenId
       2, //amount
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     //check token balance of nftOwner after collection = +2
@@ -643,13 +643,13 @@ describe("Extension - ERC1155", () => {
     nftOwnerGuildBalance = await erc1155TokenExtension.getNFTIdAmount(
       GUILD,
       erc1155TestToken.address,
-      1
+      1,
     );
     expect(nftOwnerGuildBalance.toString()).equal("0");
     // The nft was moved to the new owner account, so the GUILD should not be the NFT owner anymore
     // The getNFTOwner must revert because there is no NFT asset for the GUILD owner at index 0
     await expect(
-      erc1155TokenExtension.getNFTOwner(erc1155TestToken.address, 1, 0)
+      erc1155TokenExtension.getNFTOwner(erc1155TestToken.address, 1, 0),
     ).to.be.reverted;
   });
 
@@ -680,8 +680,8 @@ describe("Extension - ERC1155", () => {
         [1, 2], // token ids
         [5], // amounts for each tokenId
         encodeDaoInfo(dao.address),
-        { from: nftOwnerA }
-      )
+        { from: nftOwnerA },
+      ),
     ).to.be.revertedWith("ERC1155: ids and amounts length mismatch");
   });
 
@@ -712,8 +712,8 @@ describe("Extension - ERC1155", () => {
         [1], // token ids
         [5, 1], // amounts for each tokenId
         encodeDaoInfo(dao.address),
-        { from: nftOwnerA }
-      )
+        { from: nftOwnerA },
+      ),
     ).to.be.revertedWith("ERC1155: ids and amounts length mismatch");
   });
 
@@ -744,7 +744,7 @@ describe("Extension - ERC1155", () => {
       [],
       {
         from: jailedNftOwner,
-      }
+      },
     );
 
     // Onboard the nftOwner as a member
@@ -757,7 +757,7 @@ describe("Extension - ERC1155", () => {
       daoOwner,
       unitPrice,
       UNITS,
-      toBN("3")
+      toBN("3"),
     );
     expect(await isMember(bank, jailedNftOwner)).equal(true);
 
@@ -770,7 +770,7 @@ describe("Extension - ERC1155", () => {
       guildkickContract,
       memberToKick,
       daoOwner,
-      kickProposalId
+      kickProposalId,
     );
 
     // Jailed member attempts to execute an internalTransfer, it should revert
@@ -781,8 +781,8 @@ describe("Extension - ERC1155", () => {
         erc1155TestToken.address,
         tokenId,
         tokenAmount,
-        { from: jailedNftOwner }
-      )
+        { from: jailedNftOwner },
+      ),
     ).to.be.revertedWith("member is jailed");
   });
 
@@ -813,7 +813,7 @@ describe("Extension - ERC1155", () => {
       [],
       {
         from: jailedNftOwner,
-      }
+      },
     );
 
     // Onboard the nftOwner as a member
@@ -826,7 +826,7 @@ describe("Extension - ERC1155", () => {
       daoOwner,
       unitPrice,
       UNITS,
-      toBN("3")
+      toBN("3"),
     );
     expect(await isMember(bank, jailedNftOwner)).equal(true);
 
@@ -839,7 +839,7 @@ describe("Extension - ERC1155", () => {
       guildkickContract,
       memberToKick,
       daoOwner,
-      kickProposalId
+      kickProposalId,
     );
 
     await erc1155TestAdapter.withdraw(
@@ -847,25 +847,25 @@ describe("Extension - ERC1155", () => {
       erc1155TestToken.address,
       tokenId,
       tokenAmount,
-      { from: jailedNftOwner }
+      { from: jailedNftOwner },
     );
 
     const balanceOfNftOwner = await erc1155TestToken.balanceOf(
       jailedNftOwner,
-      tokenId
+      tokenId,
     );
     expect(balanceOfNftOwner.toString()).equal(tokenAmount.toString());
 
     const balanceInExtension = await erc1155TokenExtension.getNFTIdAmount(
       jailedNftOwner,
       erc1155TestToken.address,
-      1
+      1,
     );
     expect(balanceInExtension.toString()).equal("0");
     // The nft was moved to the new owner account, so the GUILD should not be the NFT owner anymore
     // The getNFTOwner must revert because there is no NFT asset for the GUILD owner at index 0
     await expect(
-      erc1155TokenExtension.getNFTOwner(erc1155TestToken.address, 1, 0)
+      erc1155TokenExtension.getNFTOwner(erc1155TestToken.address, 1, 0),
     ).to.be.reverted;
   });
 
@@ -877,7 +877,7 @@ describe("Extension - ERC1155", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -890,7 +890,7 @@ describe("Extension - ERC1155", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

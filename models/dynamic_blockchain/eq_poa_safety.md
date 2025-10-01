@@ -4,7 +4,8 @@
 
 ## Overview
 
-Proof-of-authority chains finalize blocks once enough validators sign, guaranteeing Byzantine fault tolerance.
+Proof-of-authority chains finalize blocks once enough validators sign,
+guaranteeing Byzantine fault tolerance.
 
 ## Condition
 
@@ -15,5 +16,6 @@ $$m \ge 2f + 1$$
 
 ## Integration
 
-- Controls $u_t$ influence signature solicitation strategies or validator rotation.
+- Controls $u_t$ influence signature solicitation strategies or validator
+  rotation.
 - Constraints enforce the inequality to mark finality.

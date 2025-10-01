@@ -1,6 +1,7 @@
 # Orbital Period (Kepler's Third Law)
 
-**Modules:** `dynamic_space`, `dynamic_astronomy`, `dynamic_interplanetary_space`
+**Modules:** `dynamic_space`, `dynamic_astronomy`,
+`dynamic_interplanetary_space`
 
 ## Overview
 
@@ -11,7 +12,8 @@ Relates semi-major axis to orbital period around a central body.
 $$T = 2\pi \sqrt{\frac{a^3}{\mu}}, \qquad \mu = G M.$$
 
 - $a$ — semi-major axis (state variable).
-- $\mu$ — standard gravitational parameter determined by gravitational constant $G$ and mass $M$.
+- $\mu$ — standard gravitational parameter determined by gravitational constant
+  $G$ and mass $M$.
 
 ## Notes
 

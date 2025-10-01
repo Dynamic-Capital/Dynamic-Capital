@@ -1,8 +1,8 @@
-import { createHash } from 'crypto';
-import { v5 as uuidv5, validate as uuidValidate } from 'uuid';
-import { z } from 'zod';
+import { createHash } from "crypto";
+import { v5 as uuidv5, validate as uuidValidate } from "uuid";
+import { z } from "zod";
 
-const UUID_NAMESPACE = 'de4ab7fa-5a93-4e90-9c10-1a4c1be3e8e9';
+const UUID_NAMESPACE = "de4ab7fa-5a93-4e90-9c10-1a4c1be3e8e9";
 
 const numericStringRegex = /^-?\d+(?:\.\d+)?$/;
 
@@ -26,11 +26,11 @@ const rawAlertSchema = z
             price: z.union([z.string(), z.number()]).optional(),
             action: z.string().optional(),
             comment: z.string().optional(),
-            timestamp: z.union([z.string(), z.number()]).optional()
+            timestamp: z.union([z.string(), z.number()]).optional(),
           })
-          .optional()
+          .optional(),
       })
-      .optional()
+      .optional(),
   })
   .passthrough();
 
@@ -53,11 +53,11 @@ export function validateAndNormalizeAlert(payload: unknown): NormalizedAlert {
   const identifier = firstDefined([
     parsed.alert_uuid,
     parsed.alert_id,
-    parsed.id
+    parsed.id,
   ]);
 
   if (!identifier) {
-    throw new Error('Alert payload must include an identifier.');
+    throw new Error("Alert payload must include an identifier.");
   }
 
   const alertUuid = normalizeIdentifier(identifier);
@@ -65,23 +65,23 @@ export function validateAndNormalizeAlert(payload: unknown): NormalizedAlert {
     firstDefined([
       parsed.symbol,
       parsed.ticker,
-      parsed.market
+      parsed.market,
     ]),
-    parsed.exchange
+    parsed.exchange,
   );
   const triggeredAt = normalizeTimestamp(
     firstDefined([
       parsed.triggered_at,
       parsed.timestamp,
       parsed.time,
-      parsed.strategy?.order?.timestamp
-    ])
+      parsed.strategy?.order?.timestamp,
+    ]),
   );
   const price = normalizeNumber(
     firstDefined([
       parsed.price,
-      parsed.strategy?.order?.price
-    ])
+      parsed.strategy?.order?.price,
+    ]),
   );
 
   return {
@@ -92,14 +92,14 @@ export function validateAndNormalizeAlert(payload: unknown): NormalizedAlert {
     price,
     action: parsed.strategy?.order?.action ?? null,
     comment: parsed.strategy?.order?.comment ?? null,
-    rawPayload: parsed
+    rawPayload: parsed,
   };
 }
 
 function normalizeIdentifier(identifier: string | number): string {
   const raw = String(identifier).trim();
   if (!raw) {
-    throw new Error('Alert payload must include a non-empty identifier.');
+    throw new Error("Alert payload must include a non-empty identifier.");
   }
 
   if (uuidValidate(raw)) {
@@ -115,44 +115,48 @@ function normalizeSymbol(symbolValue?: string, fallbackExchange?: string): {
 } {
   const raw = symbolValue?.trim();
   if (!raw) {
-    throw new Error('Alert payload must include a symbol.');
+    throw new Error("Alert payload must include a symbol.");
   }
 
-  const collapsed = raw.replace(/\s+/g, '');
-  const parts = collapsed.split(':');
+  const collapsed = raw.replace(/\s+/g, "");
+  const parts = collapsed.split(":");
 
   if (parts.length === 1) {
     return {
       symbol: parts[0].toUpperCase(),
-      exchange: fallbackExchange ? fallbackExchange.trim().toUpperCase() : null
+      exchange: fallbackExchange ? fallbackExchange.trim().toUpperCase() : null,
     };
   }
 
-  const symbol = parts.pop() ?? '';
-  const exchange = parts.join(':');
+  const symbol = parts.pop() ?? "";
+  const exchange = parts.join(":");
 
   return {
     symbol: symbol.toUpperCase(),
-    exchange: exchange ? exchange.toUpperCase() : fallbackExchange ? fallbackExchange.trim().toUpperCase() : null
+    exchange: exchange
+      ? exchange.toUpperCase()
+      : fallbackExchange
+      ? fallbackExchange.trim().toUpperCase()
+      : null,
   };
 }
 
 function normalizeTimestamp(value?: string | number): string {
-  if (value === undefined || value === null || value === '') {
-    throw new Error('Alert payload must include a timestamp.');
+  if (value === undefined || value === null || value === "") {
+    throw new Error("Alert payload must include a timestamp.");
   }
 
   const date = toDate(value);
 
   if (Number.isNaN(date.getTime())) {
-    throw new Error('Alert payload timestamp is invalid.');
+    throw new Error("Alert payload timestamp is invalid.");
   }
 
   return date.toISOString();
 }
 
 function toDate(value: string | number): Date {
-  if (typeof value === 'number') {
+  if (typeof value === "number") {
     return value > 1e12 ? new Date(value) : new Date(value * 1000);
   }
 
@@ -163,18 +167,20 @@ function toDate(value: string | number): Date {
 
   if (numericStringRegex.test(trimmed)) {
     const numericValue = Number(trimmed);
-    return numericValue > 1e12 ? new Date(numericValue) : new Date(numericValue * 1000);
+    return numericValue > 1e12
+      ? new Date(numericValue)
+      : new Date(numericValue * 1000);
   }
 
   return new Date(trimmed);
 }
 
 function normalizeNumber(value?: string | number): number | null {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null || value === "") {
     return null;
   }
 
-  const numeric = typeof value === 'number' ? value : Number(value);
+  const numeric = typeof value === "number" ? value : Number(value);
   return Number.isFinite(numeric) ? numeric : null;
 }
 
@@ -188,5 +194,5 @@ function firstDefined<T>(values: Array<T | undefined | null>): T | undefined {
 }
 
 function hashString(value: string): string {
-  return createHash('sha256').update(value).digest('hex');
+  return createHash("sha256").update(value).digest("hex");
 }

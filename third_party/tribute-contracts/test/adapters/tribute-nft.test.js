@@ -90,7 +90,7 @@ describe("Adapter - TributeNFT", () => {
       tokenId,
       10, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
   });
 
@@ -113,8 +113,8 @@ describe("Adapter - TributeNFT", () => {
         tokenId,
         10, // requested units
         [],
-        { from: daoOwner }
-      )
+        { from: daoOwner },
+      ),
     ).to.be.revertedWith("applicant is reserved address");
   });
 
@@ -138,8 +138,8 @@ describe("Adapter - TributeNFT", () => {
         tokenId,
         10, // requested units
         [],
-        { from: nftOwner, gasPrice: toBN("0") }
-      )
+        { from: nftOwner, gasPrice: toBN("0") },
+      ),
     ).to.be.revertedWith("revert");
   });
 
@@ -165,7 +165,7 @@ describe("Adapter - TributeNFT", () => {
       tokenId,
       10, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     const vote = 1; //YES
@@ -184,7 +184,7 @@ describe("Adapter - TributeNFT", () => {
       {
         from: nftOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // test balance after proposal is processed
@@ -222,7 +222,7 @@ describe("Adapter - TributeNFT", () => {
       tokenId,
       10, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     const vote = 1; //YES
@@ -240,7 +240,7 @@ describe("Adapter - TributeNFT", () => {
       {
         from: nftOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // Since the NFT was transferred using `transferFrom` it won't trigger the onERC721Received callaback,
@@ -282,7 +282,7 @@ describe("Adapter - TributeNFT", () => {
       tokenId,
       10, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     const vote = 2; //NO
@@ -300,7 +300,7 @@ describe("Adapter - TributeNFT", () => {
       {
         from: nftOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // Since the NFT was transferred using `transferFrom` it won't trigger the onERC721Received callaback,
@@ -342,7 +342,7 @@ describe("Adapter - TributeNFT", () => {
       tokenId,
       10, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     const vote = 1; //YES
@@ -361,7 +361,7 @@ describe("Adapter - TributeNFT", () => {
       {
         from: nftOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // test balance after proposal is processed
@@ -389,10 +389,10 @@ describe("Adapter - TributeNFT", () => {
       newTokenId,
       5, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
-    await voting.submitVote(dao.address, newProposalId, 1 /*YES*/, {
+    await voting.submitVote(dao.address, newProposalId, 1, /*YES*/ {
       from: daoOwner,
       gasPrice: toBN("0"),
     });
@@ -407,7 +407,7 @@ describe("Adapter - TributeNFT", () => {
       {
         from: nftOwner2,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // test balance after proposal is processed
@@ -440,8 +440,8 @@ describe("Adapter - TributeNFT", () => {
         {
           from: nftOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("proposal does not exist");
   });
 
@@ -467,7 +467,7 @@ describe("Adapter - TributeNFT", () => {
       tokenId,
       10, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     const vote = 2; //NO
@@ -486,7 +486,7 @@ describe("Adapter - TributeNFT", () => {
       {
         from: nftOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // test balance after proposal is processed
@@ -522,7 +522,7 @@ describe("Adapter - TributeNFT", () => {
       daoOwner,
       unitPrice.mul(toBN(10)),
       UNITS,
-      toBN("1")
+      toBN("1"),
     );
 
     await pixelNFT.mintPixel(nftOwner, 1, 1, { from: daoOwner });
@@ -537,7 +537,7 @@ describe("Adapter - TributeNFT", () => {
       tokenId,
       10, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     // DAO member A votes NO
@@ -563,7 +563,7 @@ describe("Adapter - TributeNFT", () => {
       {
         from: nftOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     // test balance after proposal is processed
@@ -599,7 +599,7 @@ describe("Adapter - TributeNFT", () => {
       tokenId,
       10,
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     await expect(
@@ -611,8 +611,8 @@ describe("Adapter - TributeNFT", () => {
         {
           from: nftOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith("proposal has not been voted on");
 
     // test balance after proposal is processed
@@ -655,7 +655,7 @@ describe("Adapter - TributeNFT", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     const vote = 1; //YES
@@ -675,10 +675,10 @@ describe("Adapter - TributeNFT", () => {
         {
           from: nftOwner,
           gasPrice: toBN("0"),
-        }
-      )
+        },
+      ),
     ).to.be.revertedWith(
-      "token amount exceeds the maximum limit for internal tokens"
+      "token amount exceeds the maximum limit for internal tokens",
     );
   });
 
@@ -709,7 +709,7 @@ describe("Adapter - TributeNFT", () => {
       id,
       10, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     const vote = 1; //YES
@@ -726,7 +726,7 @@ describe("Adapter - TributeNFT", () => {
       id,
       3,
       encodeProposalData(dao, proposalId),
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     // test balance after proposal is processed
@@ -771,7 +771,7 @@ describe("Adapter - TributeNFT", () => {
       1,
       10, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     const vote = 1; //YES
@@ -789,8 +789,8 @@ describe("Adapter - TributeNFT", () => {
         [1, 2],
         [1, 1],
         encodeProposalData(dao, proposalId),
-        { from: nftOwner }
-      )
+        { from: nftOwner },
+      ),
     ).to.be.revertedWith("not supported");
   });
 
@@ -821,7 +821,7 @@ describe("Adapter - TributeNFT", () => {
       id,
       10, // requested units
       [],
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     const vote = 2; //NO
@@ -838,7 +838,7 @@ describe("Adapter - TributeNFT", () => {
       id,
       3,
       encodeProposalData(dao, proposalId),
-      { from: nftOwner }
+      { from: nftOwner },
     );
 
     // test balance after proposal is processed
@@ -866,7 +866,7 @@ describe("Adapter - TributeNFT", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -879,7 +879,7 @@ describe("Adapter - TributeNFT", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 

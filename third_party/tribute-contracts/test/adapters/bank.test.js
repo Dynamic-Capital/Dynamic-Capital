@@ -104,7 +104,7 @@ describe("Adapter - Bank", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(this.dao.address, proposalId, 1, {
@@ -117,7 +117,7 @@ describe("Adapter - Bank", () => {
         from: daoOwner,
         value: unitPrice.mul(toBN(10)).add(remaining),
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("proposal has not been voted on yet");
 
     await advanceTime(10000);
@@ -140,7 +140,7 @@ describe("Adapter - Bank", () => {
       ETH_TOKEN,
       requestedAmount,
       fromUtf8(""),
-      { from: daoOwner, gasPrice: toBN("0") }
+      { from: daoOwner, gasPrice: toBN("0") },
     );
 
     //Member votes on the Financing proposal
@@ -164,7 +164,7 @@ describe("Adapter - Bank", () => {
       bank,
       GUILD,
       ETH_TOKEN,
-      expectedGuildBalance.sub(requestedAmount)
+      expectedGuildBalance.sub(requestedAmount),
     );
     //Check the applicant token balance to make sure the funds are available in the bank for the applicant account
     await checkBalance(bank, applicant, ETH_TOKEN, requestedAmount);
@@ -180,7 +180,7 @@ describe("Adapter - Bank", () => {
     await checkBalance(bank, applicant, ETH_TOKEN, 0);
     const ethBalance2 = await getBalance(applicant);
     expect(ethBalance.add(requestedAmount).toString()).equal(
-      ethBalance2.toString()
+      ethBalance2.toString(),
     );
   });
 
@@ -212,7 +212,7 @@ describe("Adapter - Bank", () => {
     await expect(
       this.adapters.bankAdapter.sendEth(this.dao.address, {
         value: toWei("0"),
-      })
+      }),
     ).to.be.revertedWith("no eth sent");
   });
 
@@ -224,7 +224,7 @@ describe("Adapter - Bank", () => {
       bankAdapter.withdraw(this.dao.address, ETH_TOKEN, {
         from: accountWithNoFunds,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("nothing to withdraw");
   });
 
@@ -235,7 +235,7 @@ describe("Adapter - Bank", () => {
       bankAdapter.withdraw(this.dao.address, DAI_TOKEN, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("nothing to withdraw");
   });
 
@@ -247,19 +247,19 @@ describe("Adapter - Bank", () => {
       bankAdapter.withdraw(this.dao.address, ETH_TOKEN, {
         from: GUILD,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("withdraw::reserved address");
     await expect(
       bankAdapter.withdraw(this.dao.address, ETH_TOKEN, {
         from: TOTAL,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("withdraw::reserved address");
     await expect(
       bankAdapter.withdraw(this.dao.address, ETH_TOKEN, {
         from: ESCROW,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("withdraw::reserved address");
   });
 
@@ -271,7 +271,7 @@ describe("Adapter - Bank", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -284,7 +284,7 @@ describe("Adapter - Bank", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

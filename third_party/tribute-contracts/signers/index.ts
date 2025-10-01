@@ -6,13 +6,13 @@ import {
 } from "hardhat/internal/core/providers/gas-providers";
 import { HttpProvider } from "hardhat/internal/core/providers/http";
 import {
+  EIP1193Provider,
   GcpKmsSignerConfig,
-  SignerConfig,
   HardhatConfig,
   HardhatUserConfig,
   HttpNetworkUserConfig,
-  EIP1193Provider,
   NetworkConfig,
+  SignerConfig,
 } from "hardhat/types";
 import "./type-extensions";
 import { GcpKmsSignerProvider } from "./GcpKmsSignerProvider";
@@ -21,7 +21,7 @@ import { log } from "../utils/log-util";
 const buildSignerProvider = (
   eip1193Provider: EIP1193Provider,
   signerConfig: SignerConfig,
-  networkConfig: NetworkConfig, 
+  networkConfig: NetworkConfig,
   networkName: string,
 ) => {
   switch (signerConfig.id) {
@@ -37,7 +37,7 @@ const buildSignerProvider = (
         // @ts-ignore
         networkConfig.txTimeout,
         // @ts-ignore
-        networkConfig.maxRetries
+        networkConfig.maxRetries,
       );
     default:
       throw new Error(`Relayer ${signerConfig.id} not supported`);
@@ -62,7 +62,7 @@ extendConfig(
     }
 
     config.signers = userConfig.signers;
-  }
+  },
 );
 
 extendEnvironment((hre) => {
@@ -77,7 +77,7 @@ extendEnvironment((hre) => {
     // There are no signers enabled in the hardhat.config file.
     if (!signer) {
       log(
-        `The [${signerId}] signer is configured for network ${hre.network.name}, but not enabled in the hardhat.config file`
+        `The [${signerId}] signer is configured for network ${hre.network.name}, but not enabled in the hardhat.config file`,
       );
       process.exit(1);
     }
@@ -87,7 +87,7 @@ extendEnvironment((hre) => {
       httpNetConfig.url!,
       hre.network.name,
       httpNetConfig.httpHeaders,
-      httpNetConfig.timeout
+      httpNetConfig.timeout,
     );
 
     let wrappedProvider: EIP1193Provider = buildSignerProvider(
@@ -99,12 +99,12 @@ extendEnvironment((hre) => {
 
     wrappedProvider = new AutomaticGasProvider(
       wrappedProvider,
-      hre.network.config.gasMultiplier
+      hre.network.config.gasMultiplier,
     );
 
     wrappedProvider = new AutomaticGasPriceProvider(wrappedProvider);
     hre.network.provider = new BackwardsCompatibilityProviderAdapter(
-      wrappedProvider
+      wrappedProvider,
     );
   }
 });

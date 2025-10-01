@@ -86,7 +86,7 @@ describe("Adapter - Coupon Update Delegate Key", () => {
     const dao = this.dao;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-update-delegate-key.signerAddress")
+      sha3("coupon-update-delegate-key.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -103,11 +103,11 @@ describe("Adapter - Coupon Update Delegate Key", () => {
       couponData,
       dao.address,
       couponUpdateDelegateKey.address,
-      chainId
+      chainId,
     );
     let solHash = await couponUpdateDelegateKey.hashCouponMessage(
       dao.address,
-      couponData
+      couponData,
     );
     expect(jsHash).equal(solHash);
 
@@ -115,7 +115,7 @@ describe("Adapter - Coupon Update Delegate Key", () => {
       couponData,
       dao.address,
       couponUpdateDelegateKey.address,
-      chainId
+      chainId,
     );
 
     const delegateKeyBefore = await dao.getCurrentDelegateKey(daoOwner);
@@ -125,7 +125,7 @@ describe("Adapter - Coupon Update Delegate Key", () => {
       account,
       otherAccount,
       1,
-      signature
+      signature,
     );
 
     const delegateKeyAfter = await dao.getCurrentDelegateKey(daoOwner);
@@ -142,7 +142,7 @@ describe("Adapter - Coupon Update Delegate Key", () => {
     const dao = this.dao;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-update-delegate-key.signerAddress")
+      sha3("coupon-update-delegate-key.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -159,20 +159,20 @@ describe("Adapter - Coupon Update Delegate Key", () => {
       couponData,
       dao.address,
       couponUpdateDelegateKey.address,
-      1
+      1,
     );
 
     var signature = signerUtil(
       couponData,
       dao.address,
       couponUpdateDelegateKey.address,
-      1
+      1,
     );
 
     const isValid = await couponUpdateDelegateKey.isValidSignature(
       signer.address,
       jsHash,
-      signature
+      signature,
     );
 
     expect(isValid).equal(true);
@@ -183,8 +183,8 @@ describe("Adapter - Coupon Update Delegate Key", () => {
         otherAccount,
         accounts[3],
         1,
-        signature
-      )
+        signature,
+      ),
     ).to.be.revertedWith("invalid sig");
 
     const delegateKeyAfter = await dao.getCurrentDelegateKey(otherAccount);
@@ -201,7 +201,7 @@ describe("Adapter - Coupon Update Delegate Key", () => {
     const bank = this.extensions.bankExt;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-update-delegate-key.signerAddress")
+      sha3("coupon-update-delegate-key.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -218,20 +218,20 @@ describe("Adapter - Coupon Update Delegate Key", () => {
       couponData,
       dao.address,
       couponUpdateDelegateKey.address,
-      1
+      1,
     );
 
     var signature = signerUtil(
       couponData,
       dao.address,
       couponUpdateDelegateKey.address,
-      1
+      1,
     );
 
     const isValid = await couponUpdateDelegateKey.isValidSignature(
       signer.address,
       jsHash,
-      signature
+      signature,
     );
 
     expect(isValid).equal(true);
@@ -242,8 +242,8 @@ describe("Adapter - Coupon Update Delegate Key", () => {
         daoOwner,
         accounts[3],
         1,
-        signature
-      )
+        signature,
+      ),
     ).to.be.revertedWith("invalid sig");
   });
 
@@ -255,7 +255,7 @@ describe("Adapter - Coupon Update Delegate Key", () => {
     const bank = this.extensions.bankExt;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-onboarding.signerAddress")
+      sha3("coupon-onboarding.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -279,11 +279,11 @@ describe("Adapter - Coupon Update Delegate Key", () => {
       couponData,
       dao.address,
       couponUpdateDelegateKey.address,
-      chainId
+      chainId,
     );
     let solHash = await couponUpdateDelegateKey.hashCouponMessage(
       dao.address,
-      couponData
+      couponData,
     );
     expect(jsHash).equal(solHash);
 
@@ -291,7 +291,7 @@ describe("Adapter - Coupon Update Delegate Key", () => {
       couponData,
       dao.address,
       couponUpdateDelegateKey.address,
-      chainId
+      chainId,
     );
 
     await couponUpdateDelegateKey.redeemCoupon(
@@ -299,7 +299,7 @@ describe("Adapter - Coupon Update Delegate Key", () => {
       daoOwner,
       otherAccount,
       1,
-      signature
+      signature,
     );
     await expect(
       couponUpdateDelegateKey.redeemCoupon(
@@ -307,8 +307,8 @@ describe("Adapter - Coupon Update Delegate Key", () => {
         daoOwner,
         otherAccount,
         1,
-        signature
-      )
+        signature,
+      ),
     ).to.be.revertedWith("coupon already redeemed");
   });
 
@@ -320,7 +320,7 @@ describe("Adapter - Coupon Update Delegate Key", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -333,7 +333,7 @@ describe("Adapter - Coupon Update Delegate Key", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

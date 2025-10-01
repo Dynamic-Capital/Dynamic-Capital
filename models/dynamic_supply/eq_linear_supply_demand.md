@@ -8,14 +8,9 @@ Computes market-clearing price and quantity for linear demand and supply curves.
 
 ## Equations
 
-\[
-\begin{aligned}
-Q_D &= \alpha - \beta P, \\
-Q_S &= \gamma + \delta P, \\
-P^* &= \frac{\alpha - \gamma}{\beta + \delta}, \\
-Q^* &= \alpha - \beta P^*.
-\end{aligned}
-\]
+\[ \begin{aligned} Q_D &= \alpha - \beta P, \\ Q_S &= \gamma + \delta P, \\ P^*
+&= \frac{\alpha - \gamma}{\beta + \delta}, \\ Q^* &= \alpha - \beta P^*.
+\end{aligned} \]
 
 ## Parameters
 

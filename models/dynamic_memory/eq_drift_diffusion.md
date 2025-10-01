@@ -4,7 +4,8 @@
 
 ## Overview
 
-Stochastic differential equation modeling evidence accumulation until decision bounds are reached.
+Stochastic differential equation modeling evidence accumulation until decision
+bounds are reached.
 
 ## Equation
 

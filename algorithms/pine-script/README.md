@@ -37,8 +37,8 @@ automation and EA teams.
   names identical to the boolean toggles in
   `strategies/dynamic_capital_regime_playbook.pine` so UI selections map
   directly to the Pine logic.
-- `"Engulfing"` requires the current body to engulf the previous candle body
-  and close in the direction of the trend (bullish closes above the prior open,
+- `"Engulfing"` requires the current body to engulf the previous candle body and
+  close in the direction of the trend (bullish closes above the prior open,
   bearish closes below).
 - `"Pin"` enforces a wick-to-body ratio (default 2:1) and a close near the wick
   extreme so analysts can spot rejection candles without manual tuning.

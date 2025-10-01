@@ -118,7 +118,7 @@ describe("Adapter - Offchain Voting", () => {
     bank,
     submitter = members[0],
     newMember,
-    printGasUsage = false
+    printGasUsage = false,
   ) => {
     const onboarding = this.adapters.onboarding;
     const voting = this.adapters.voting; //offchain voting
@@ -130,7 +130,7 @@ describe("Adapter - Offchain Voting", () => {
       actionId,
       submitter,
       blockNumber,
-      chainId
+      chainId,
     );
 
     await onboarding.submitProposal(
@@ -143,7 +143,7 @@ describe("Adapter - Offchain Voting", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     const { rootSig, lastVoteResult, resultHash } = await buildVoteTree(
@@ -154,7 +154,7 @@ describe("Adapter - Offchain Voting", () => {
       blockNumber,
       chainId,
       actionId,
-      VotingStrategies.AllVotesYes
+      VotingStrategies.AllVotesYes,
     );
 
     const tx = await voting.submitVoteResult(
@@ -163,7 +163,7 @@ describe("Adapter - Offchain Voting", () => {
       resultHash,
       submitter.address,
       lastVoteResult,
-      rootSig
+      rootSig,
     );
 
     const submittedVote = await voting.getVote(dao.address, proposalId);
@@ -173,10 +173,10 @@ describe("Adapter - Offchain Voting", () => {
     expect(submittedVote.nbYes).to.be.equal(lastVoteResult.nbYes);
     expect(submittedVote.nbNo).to.be.equal(lastVoteResult.nbNo);
     expect(Number(submittedVote.startingTime)).to.be.greaterThan(
-      proposalData.timestamp
+      proposalData.timestamp,
     );
     expect(Number(submittedVote.gracePeriodStartingTime)).to.be.greaterThan(
-      proposalData.timestamp
+      proposalData.timestamp,
     );
     expect(submittedVote.isChallenged).to.be.false;
     expect(submittedVote.stepRequested).to.be.equal("0");
@@ -186,7 +186,7 @@ describe("Adapter - Offchain Voting", () => {
     if (printGasUsage) {
       log(
         `gas used for ( ${proposalId} ) votes: ` +
-          new Intl.NumberFormat().format(tx.receipt.gasUsed)
+          new Intl.NumberFormat().format(tx.receipt.gasUsed),
       );
     }
 
@@ -205,7 +205,7 @@ describe("Adapter - Offchain Voting", () => {
     submitter,
     configs,
     voteStrategy = VotingStrategies.AllVotesYes,
-    processProposal = true
+    processProposal = true,
   ) => {
     const blockNumber = await getCurrentBlockNumber();
     const proposalId = getProposalCounter();
@@ -216,7 +216,7 @@ describe("Adapter - Offchain Voting", () => {
       actionId,
       submitter,
       blockNumber,
-      chainId
+      chainId,
     );
     const data = prepareVoteProposalData(proposalData, web3);
     await configuration.submitProposal(dao.address, proposalId, configs, data, {
@@ -235,7 +235,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         voteStrategy,
         null,
-        true
+        true,
       );
 
     if (processProposal) {
@@ -245,7 +245,7 @@ describe("Adapter - Offchain Voting", () => {
         voteResultTree.getHexRoot(),
         submitter.address,
         lastVoteResult,
-        rootSig
+        rootSig,
       );
 
       await advanceTime(10000);
@@ -272,7 +272,7 @@ describe("Adapter - Offchain Voting", () => {
     voting,
     submitter,
     moveBlockTime = true,
-    submitVoteResult = true
+    submitVoteResult = true,
   ) => {
     const proposalId = getProposalCounter();
     const actionId = configuration.address;
@@ -283,7 +283,7 @@ describe("Adapter - Offchain Voting", () => {
       actionId,
       submitter,
       blockNumber,
-      chainId
+      chainId,
     );
 
     const configs = [
@@ -309,7 +309,7 @@ describe("Adapter - Offchain Voting", () => {
       blockNumber,
       chainId,
       actionId,
-      VotingStrategies.AllVotesYes
+      VotingStrategies.AllVotesYes,
     );
     const resultTree = await buildVoteTree(
       dao,
@@ -321,19 +321,20 @@ describe("Adapter - Offchain Voting", () => {
       actionId,
       VotingStrategies.AllVotesYes,
       votes,
-      moveBlockTime
+      moveBlockTime,
     );
     await advanceTime(10); // ends the voting period
     // Submit a valid result
-    if (submitVoteResult)
+    if (submitVoteResult) {
       await voting.submitVoteResult(
         dao.address,
         proposalId,
         resultTree.resultHash,
         submitter.address,
         resultTree.lastVoteResult,
-        resultTree.rootSig
+        resultTree.rootSig,
       );
+    }
 
     return { proposalId, resultTree };
   };
@@ -344,11 +345,11 @@ describe("Adapter - Offchain Voting", () => {
     proposalId,
     voteResultTree,
     submitter,
-    challengeCall
+    challengeCall,
   ) => {
     const challengeProposalId = soliditySha3(
       proposalId,
-      voteResultTree.getHexRoot()
+      voteResultTree.getHexRoot(),
     );
 
     await expectEvent(
@@ -357,7 +358,7 @@ describe("Adapter - Offchain Voting", () => {
       dao.address,
       proposalId,
       voteResultTree.getHexRoot(),
-      challengeProposalId
+      challengeProposalId,
     );
 
     // The vote result should be set to challenged
@@ -381,8 +382,8 @@ describe("Adapter - Offchain Voting", () => {
       await expect(
         txSigner(signers[2], voting).adminFailProposal(
           this.dao.address,
-          proposalId
-        )
+          proposalId,
+        ),
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
@@ -390,14 +391,14 @@ describe("Adapter - Offchain Voting", () => {
       const voting = this.adapters.voting;
       const proposalId = getProposalCounter();
       await expect(
-        voting.adminFailProposal(this.dao.address, proposalId)
+        voting.adminFailProposal(this.dao.address, proposalId),
       ).to.be.revertedWith("proposal has not started yet");
     });
 
     it("should be possible to get the adapter name", async () => {
       const voting = this.adapters.voting;
       expect(await voting.getAdapterName()).to.be.equal(
-        "OffchainVotingContract"
+        "OffchainVotingContract",
       );
     });
 
@@ -406,7 +407,7 @@ describe("Adapter - Offchain Voting", () => {
       const proposalId = getProposalCounter();
       const challengeDetails = await voting.getChallengeDetails(
         this.dao.address,
-        proposalId
+        proposalId,
       );
       expect(challengeDetails[0].toString()).to.be.equal("0");
       expect(challengeDetails[1]).to.be.equal(ZERO_ADDRESS);
@@ -422,14 +423,14 @@ describe("Adapter - Offchain Voting", () => {
         onboarding.address,
         submitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const senderAddress = await voting.getSenderAddress(
         this.dao.address,
         onboarding.address,
         prepareVoteProposalData(proposalData, web3),
-        daoOwner
+        daoOwner,
       );
       expect(senderAddress).to.be.equal(submitter.address);
     });
@@ -478,7 +479,7 @@ describe("Adapter - Offchain Voting", () => {
         proposalData,
         dao.address,
         daoOwner,
-        chainId
+        chainId,
       );
 
       const snapshotContract = this.votingHelpers.snapshotProposalContract;
@@ -488,29 +489,27 @@ describe("Adapter - Offchain Voting", () => {
       expect(jsProposalMsg).equal(solProposalMsg);
 
       //Checking payload
-      const hashStructPayload =
-        "0x" +
+      const hashStructPayload = "0x" +
         TypedDataUtils.hashStruct(
           "MessagePayload",
           prepareProposalPayload(proposalPayload),
           types,
-          true
+          true,
         ).toString("hex");
       const solidityHashPayload = await snapshotContract.hashProposalPayload(
-        proposalPayload
+        proposalPayload,
       );
       expect(solidityHashPayload).equal(hashStructPayload);
 
       //Checking entire payload
-      const hashStruct =
-        "0x" +
+      const hashStruct = "0x" +
         TypedDataUtils.hashStruct(
           "Message",
           prepareProposalMessage(proposalData),
-          types
+          types,
         ).toString("hex");
       const solidityHash = await snapshotContract.hashProposalMessage(
-        proposalData
+        proposalData,
       );
       expect(solidityHash).equal(hashStruct);
 
@@ -522,12 +521,11 @@ describe("Adapter - Offchain Voting", () => {
       //Checking domain separator
       const domainHash = await snapshotContract.DOMAIN_SEPARATOR(
         dao.address,
-        daoOwner
+        daoOwner,
       );
-      const jsDomainHash =
-        "0x" +
+      const jsDomainHash = "0x" +
         TypedDataUtils.hashStruct("EIP712Domain", domain, types, true).toString(
-          "hex"
+          "hex",
         );
       expect(domainHash).equal(jsDomainHash);
     });
@@ -544,7 +542,7 @@ describe("Adapter - Offchain Voting", () => {
         voteEntry,
         dao.address,
         daoOwner,
-        chainId
+        chainId,
       );
 
       //Checking proposal type
@@ -553,8 +551,7 @@ describe("Adapter - Offchain Voting", () => {
       expect(jsProposalMsg).equal(solProposalMsg);
 
       //Checking entire payload
-      const hashStruct =
-        "0x" +
+      const hashStruct = "0x" +
         TypedDataUtils.hashStruct("Message", voteEntry, types).toString("hex");
       const solidityHash = await snapshotContract.hashVoteInternal(voteEntry);
       expect(hashStruct).equal(solidityHash);
@@ -562,7 +559,7 @@ describe("Adapter - Offchain Voting", () => {
       const nodeDef = getVoteStepDomainDefinition(
         dao.address,
         dao.address,
-        chainId
+        chainId,
       );
 
       const ovHashAddr = await offchainVoting.ovHash();
@@ -582,7 +579,7 @@ describe("Adapter - Offchain Voting", () => {
           from: daoOwner,
           gasPrice: toBN("0"),
           value: toWei("1"),
-        })
+        }),
       ).to.be.revertedWith("revert");
     });
 
@@ -595,7 +592,7 @@ describe("Adapter - Offchain Voting", () => {
           gasPrice: toBN("0"),
           value: toWei("1"),
           data: fromAscii("should go to fallback func"),
-        })
+        }),
       ).to.be.revertedWith("revert");
     });
 
@@ -612,7 +609,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        true
+        true,
       );
 
       let storedVote = await voting.getVote(dao.address, result.proposalId);
@@ -630,7 +627,7 @@ describe("Adapter - Offchain Voting", () => {
       const proposalId = getProposalCounter();
 
       await expect(
-        voting.adminFailProposal(dao.address, proposalId)
+        voting.adminFailProposal(dao.address, proposalId),
       ).to.be.revertedWith("proposal has not started yet");
     });
 
@@ -647,14 +644,14 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        true
+        true,
       );
 
       await expect(
         txSigner(signers[2], voting).adminFailProposal(
           dao.address,
-          result.proposalId
-        )
+          result.proposalId,
+        ),
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
   });
@@ -676,7 +673,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -696,7 +693,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       // Only the submitter votes Yes, and attempts to submit the vote result
@@ -708,7 +705,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.AllVotesYes
+        VotingStrategies.AllVotesYes,
       );
       const { lastVoteResult, rootSig, resultHash } = await buildVoteTree(
         dao,
@@ -719,7 +716,7 @@ describe("Adapter - Offchain Voting", () => {
         chainId,
         actionId,
         VotingStrategies.AllVotesYes,
-        votes
+        votes,
       );
       // Submit a valid result
       const { logs } = await voting.submitVoteResult(
@@ -728,7 +725,7 @@ describe("Adapter - Offchain Voting", () => {
         resultHash,
         daoOwnerSubmitter.address,
         lastVoteResult,
-        rootSig
+        rootSig,
       );
       const e = logs[0];
       // Check the event data
@@ -750,10 +747,10 @@ describe("Adapter - Offchain Voting", () => {
       expect(storedVote.nbYes).to.be.equal(lastVoteResult.nbYes);
       expect(storedVote.nbNo).to.be.equal(lastVoteResult.nbNo);
       expect(parseInt(storedVote.startingTime)).to.be.greaterThanOrEqual(
-        proposalData.timestamp
+        proposalData.timestamp,
       );
       expect(parseInt(storedVote.gracePeriodStartingTime)).to.be.greaterThan(
-        parseInt(storedVote.startingTime)
+        parseInt(storedVote.startingTime),
       );
       expect(storedVote.isChallenged).to.be.false;
       expect(storedVote.stepRequested).to.be.equal("0");
@@ -773,7 +770,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         nonMember,
         blockNumber,
-        chainId
+        chainId,
       );
 
       await advanceTime(1000);
@@ -789,8 +786,8 @@ describe("Adapter - Offchain Voting", () => {
           {
             from: daoOwner,
             gasPrice: toBN("0"),
-          }
-        )
+          },
+        ),
       ).to.be.revertedWith("onlyMember");
     });
     it("should not be possible to submit a vote result if the voting period did not start", async () => {
@@ -815,7 +812,7 @@ describe("Adapter - Offchain Voting", () => {
         daoOwnerSubmitter,
         blockNumber,
         chainId,
-        actionId
+        actionId,
       );
 
       // try to submit a vote result before the proposal was actually submitted to the DAO
@@ -826,8 +823,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           newMember.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("vote not started");
     });
 
@@ -847,7 +844,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -867,7 +864,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       // Only the submitter votes Yes, and attempts to submit the vote result
@@ -879,7 +876,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.SingleYesVote
+        VotingStrategies.SingleYesVote,
       );
       const { lastVoteResult, rootSig, resultHash } = await buildVoteTree(
         dao,
@@ -891,7 +888,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         VotingStrategies.SingleYesVote,
         votes,
-        false // do not advance time
+        false, // do not advance time
       );
 
       await expect(
@@ -901,8 +898,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           daoOwnerSubmitter.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("not ready for vote result");
     });
 
@@ -922,7 +919,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -942,7 +939,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       // Only the submitter votes Yes, and attempts to submit the vote result
@@ -954,7 +951,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.AllVotesYes
+        VotingStrategies.AllVotesYes,
       );
       const { lastVoteResult, rootSig, resultHash } = await buildVoteTree(
         dao,
@@ -966,7 +963,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         VotingStrategies.AllVotesYes,
         votes,
-        true // do not advance time
+        true, // do not advance time
       );
       // Submit a valid result during the voting period to start the grace period
       await voting.submitVoteResult(
@@ -975,7 +972,7 @@ describe("Adapter - Offchain Voting", () => {
         resultHash,
         daoOwnerSubmitter.address,
         lastVoteResult,
-        rootSig
+        rootSig,
       );
 
       // Attempt to submit another result during the grace period
@@ -986,8 +983,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           daoOwnerSubmitter.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("grace period finished");
     });
 
@@ -1008,7 +1005,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1028,7 +1025,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       await advanceTime(10000);
@@ -1040,7 +1037,7 @@ describe("Adapter - Offchain Voting", () => {
         daoOwnerSubmitter,
         blockNumber,
         chainId,
-        actionId
+        actionId,
       );
 
       await expect(
@@ -1050,8 +1047,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           newMember.address, //not active member
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("not active member");
     });
 
@@ -1077,7 +1074,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1097,7 +1094,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       await advanceTime(15000);
@@ -1111,7 +1108,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.SingleYesVote
+        VotingStrategies.SingleYesVote,
       );
       // Add an empty to vote to mess with the voting tree
       votes.push(await emptyVote(proposalId));
@@ -1125,7 +1122,7 @@ describe("Adapter - Offchain Voting", () => {
           chainId,
           actionId,
           VotingStrategies.SingleYesVote,
-          votes
+          votes,
         );
 
       await expect(
@@ -1135,8 +1132,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           newMember.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("bad node");
 
       const getBadNodeErrorResponse = await voting.getBadNodeError(
@@ -1149,7 +1146,7 @@ describe("Adapter - Offchain Voting", () => {
         // `gracePeriodStartingTime` should be `0` as `submitNewVote` is `true`
         0,
         membersCount,
-        lastVoteResult
+        lastVoteResult,
       );
 
       const errorCode = getBadNodeErrorResponse.toString();
@@ -1178,7 +1175,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1198,7 +1195,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       await advanceTime(15000);
@@ -1212,7 +1209,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.SingleYesVote
+        VotingStrategies.SingleYesVote,
       );
       // TODO remove a vote to mess with the voting tree
       votes.push(await emptyVote(proposalId));
@@ -1226,7 +1223,7 @@ describe("Adapter - Offchain Voting", () => {
           chainId,
           actionId,
           VotingStrategies.SingleYesVote,
-          votes
+          votes,
         );
 
       await expect(
@@ -1236,8 +1233,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           newMember.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("bad node");
 
       const getBadNodeErrorResponse = await voting.getBadNodeError(
@@ -1250,7 +1247,7 @@ describe("Adapter - Offchain Voting", () => {
         // `gracePeriodStartingTime` should be `0` as `submitNewVote` is `true`
         0,
         membersCount,
-        lastVoteResult
+        lastVoteResult,
       );
 
       const errorCode = getBadNodeErrorResponse.toString();
@@ -1272,7 +1269,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1292,7 +1289,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       const { lastVoteResult, rootSig, resultHash } = await buildVoteTree(
@@ -1303,7 +1300,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.AllVotesYes
+        VotingStrategies.AllVotesYes,
       );
 
       // Changing the voting result to invalidate the node signature
@@ -1316,8 +1313,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           daoOwnerSubmitter.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("invalid node proof");
     });
 
@@ -1336,7 +1333,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1356,7 +1353,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       // Only the submitter votes Yes, and attempts to submit the vote result
@@ -1368,7 +1365,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.AllVotesYes
+        VotingStrategies.AllVotesYes,
       );
       // Add a fake empty vote to generate a voting tree with the latest index equals to the member count
       votes.push(await emptyVote(proposalId));
@@ -1383,7 +1380,7 @@ describe("Adapter - Offchain Voting", () => {
           chainId,
           actionId,
           VotingStrategies.AllVotesYes,
-          votes
+          votes,
         );
 
       await expect(
@@ -1393,8 +1390,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           daoOwnerSubmitter.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("bad node");
 
       const getBadNodeErrorResponse = await voting.getBadNodeError(
@@ -1407,7 +1404,7 @@ describe("Adapter - Offchain Voting", () => {
         // `gracePeriodStartingTime` should be `0` as `submitNewVote` is `true`
         0,
         membersCount,
-        lastVoteResult
+        lastVoteResult,
       );
 
       const errorCode = getBadNodeErrorResponse.toString();
@@ -1429,7 +1426,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1449,7 +1446,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       // Only the submitter votes Yes, and attempts to submit the vote result
@@ -1461,7 +1458,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.AllVotesYes
+        VotingStrategies.AllVotesYes,
       );
       // Add some fake empty votes to generate a voting tree with the latest index greater than the members count
       votes.push(await emptyVote(proposalId));
@@ -1479,7 +1476,7 @@ describe("Adapter - Offchain Voting", () => {
           chainId,
           actionId,
           VotingStrategies.AllVotesYes,
-          votes
+          votes,
         );
 
       await expect(
@@ -1489,8 +1486,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           daoOwnerSubmitter.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("bad node");
 
       const getBadNodeErrorResponse = await voting.getBadNodeError(
@@ -1503,7 +1500,7 @@ describe("Adapter - Offchain Voting", () => {
         // `gracePeriodStartingTime` should be `0` as `submitNewVote` is `true`
         0,
         membersCount,
-        lastVoteResult
+        lastVoteResult,
       );
 
       const errorCode = getBadNodeErrorResponse.toString();
@@ -1525,7 +1522,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1545,7 +1542,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       // Only the submitter votes Yes, and attempts to submit the vote result
@@ -1559,7 +1556,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         VotingStrategies.AllVotesYes,
         null,
-        100 //invalid vote choice
+        100, //invalid vote choice
       );
 
       const { lastVoteResult, rootSig, resultHash, membersCount } =
@@ -1572,7 +1569,7 @@ describe("Adapter - Offchain Voting", () => {
           chainId,
           actionId,
           VotingStrategies.AllVotesYes,
-          votes
+          votes,
         );
 
       await expect(
@@ -1582,8 +1579,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           daoOwnerSubmitter.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("bad node");
 
       const getBadNodeErrorResponse = await voting.getBadNodeError(
@@ -1596,7 +1593,7 @@ describe("Adapter - Offchain Voting", () => {
         // `gracePeriodStartingTime` should be `0` as `submitNewVote` is `true`
         0,
         membersCount,
-        lastVoteResult
+        lastVoteResult,
       );
 
       const errorCode = getBadNodeErrorResponse.toString();
@@ -1618,7 +1615,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1638,7 +1635,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       const wrongProposalId = await getProposalCounter();
@@ -1650,7 +1647,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.AllVotesYes
+        VotingStrategies.AllVotesYes,
       );
 
       const { lastVoteResult, rootSig, resultHash, membersCount } =
@@ -1663,7 +1660,7 @@ describe("Adapter - Offchain Voting", () => {
           chainId,
           actionId,
           VotingStrategies.AllVotesYes,
-          votes
+          votes,
         );
 
       await expect(
@@ -1673,8 +1670,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           daoOwnerSubmitter.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("bad node");
 
       const getBadNodeErrorResponse = await voting.getBadNodeError(
@@ -1687,7 +1684,7 @@ describe("Adapter - Offchain Voting", () => {
         // `gracePeriodStartingTime` should be `0` as `submitNewVote` is `true`
         0,
         membersCount,
-        lastVoteResult
+        lastVoteResult,
       );
 
       const errorCode = getBadNodeErrorResponse.toString();
@@ -1709,7 +1706,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1729,7 +1726,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       const votes = await buildVotes(
@@ -1744,7 +1741,7 @@ describe("Adapter - Offchain Voting", () => {
         null, // votingWeight
         null, // voteChoice
         // invalid signature
-        invalidStepSignature
+        invalidStepSignature,
       );
 
       const { lastVoteResult, rootSig, resultHash, membersCount } =
@@ -1757,7 +1754,7 @@ describe("Adapter - Offchain Voting", () => {
           chainId,
           actionId,
           VotingStrategies.AllVotesYes,
-          votes
+          votes,
         );
 
       await expect(
@@ -1767,8 +1764,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           daoOwnerSubmitter.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("bad node");
 
       const getBadNodeErrorResponse = await voting.getBadNodeError(
@@ -1781,7 +1778,7 @@ describe("Adapter - Offchain Voting", () => {
         // `gracePeriodStartingTime` should be `0` as `submitNewVote` is `true`
         0,
         membersCount,
-        lastVoteResult
+        lastVoteResult,
       );
 
       const errorCode = getBadNodeErrorResponse.toString();
@@ -1803,7 +1800,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1823,7 +1820,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       const { lastVoteResult, rootSig, resultHash } = await buildVoteTree(
@@ -1834,7 +1831,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.AllVotesYes
+        VotingStrategies.AllVotesYes,
       );
 
       // Changing the voting result signature to break the signature verification
@@ -1847,8 +1844,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           daoOwnerSubmitter.address,
           lastVoteResult,
-          tamperedSignature
-        )
+          tamperedSignature,
+        ),
       ).to.be.revertedWith("invalid result signature");
     });
 
@@ -1872,7 +1869,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         daoOwnerSubmitter,
         blockNumber,
-        chainId
+        chainId,
       );
 
       const configs = [
@@ -1892,7 +1889,7 @@ describe("Adapter - Offchain Voting", () => {
         {
           from: daoOwner,
           gasPrice: toBN("0"),
-        }
+        },
       );
 
       await advanceTime(15000);
@@ -1905,7 +1902,7 @@ describe("Adapter - Offchain Voting", () => {
         blockNumber,
         chainId,
         actionId,
-        VotingStrategies.NoBodyVotes
+        VotingStrategies.NoBodyVotes,
       );
 
       await expect(
@@ -1915,8 +1912,8 @@ describe("Adapter - Offchain Voting", () => {
           resultHash,
           daoOwnerSubmitter.address,
           lastVoteResult,
-          rootSig
-        )
+          rootSig,
+        ),
       ).to.be.revertedWith("result weight too low");
     });
   });
@@ -1935,7 +1932,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       let storedVote = await voting.getVote(dao.address, result.proposalId);
@@ -1968,10 +1965,10 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
       await expect(
-        voting.requestStep(dao.address, result.proposalId, 0)
+        voting.requestStep(dao.address, result.proposalId, 0),
       ).to.be.revertedWith("index out of bound");
     });
 
@@ -1988,11 +1985,11 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
       const index = parseInt(result.resultTree.membersCount);
       await expect(
-        voting.requestStep(dao.address, result.proposalId, index)
+        voting.requestStep(dao.address, result.proposalId, index),
       ).to.be.revertedWith("index out of bound");
     });
 
@@ -2009,11 +2006,11 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
       await voting.requestStep(dao.address, result.proposalId, 1);
       await expect(
-        voting.requestStep(dao.address, result.proposalId, 2)
+        voting.requestStep(dao.address, result.proposalId, 2),
       ).to.be.revertedWith("other step already requested");
     });
 
@@ -2030,14 +2027,14 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
       await expect(
         txSigner(signers[5], voting).requestStep(
           dao.address,
           result.proposalId,
-          1
-        )
+          1,
+        ),
       ).to.be.revertedWith("onlyMember");
     });
 
@@ -2054,11 +2051,11 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
       await voting.requestStep(dao.address, result.proposalId, 1);
       await expect(
-        voting.requestStep(dao.address, result.proposalId, 1)
+        voting.requestStep(dao.address, result.proposalId, 1),
       ).to.be.revertedWith("step already requested");
     });
 
@@ -2074,11 +2071,11 @@ describe("Adapter - Offchain Voting", () => {
         bank,
         configuration,
         voting,
-        submitter
+        submitter,
       );
       await advanceTime(10); // ends the grace period
       await expect(
-        voting.requestStep(dao.address, result.proposalId, 1)
+        voting.requestStep(dao.address, result.proposalId, 1),
       ).to.be.revertedWith("should be in grace period");
     });
   });
@@ -2097,7 +2094,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       // Request the first step (index 1)
@@ -2136,7 +2133,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       // Request the first step (index 1)
@@ -2151,7 +2148,7 @@ describe("Adapter - Offchain Voting", () => {
       voteStep1.index = 0;
 
       await expect(
-        voting.provideStep(dao.address, configuration.address, voteStep1)
+        voting.provideStep(dao.address, configuration.address, voteStep1),
       ).to.be.revertedWith("wrong step provided");
     });
 
@@ -2168,7 +2165,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       let storedVote = await voting.getVote(dao.address, result.proposalId);
@@ -2179,7 +2176,7 @@ describe("Adapter - Offchain Voting", () => {
       const voteStep1 = voteResults[0];
 
       await expect(
-        voting.provideStep(dao.address, configuration.address, voteStep1)
+        voting.provideStep(dao.address, configuration.address, voteStep1),
       ).to.be.revertedWith("wrong step provided");
     });
 
@@ -2196,7 +2193,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       await voting.requestStep(dao.address, result.proposalId, 1);
@@ -2210,7 +2207,7 @@ describe("Adapter - Offchain Voting", () => {
         "0x1d2c3a91bdb8c7ccbd7cf5ea1df6c9408f9678deef9bfc27639e8ea9429a3572";
 
       await expect(
-        voting.provideStep(dao.address, configuration.address, voteStep1)
+        voting.provideStep(dao.address, configuration.address, voteStep1),
       ).to.be.revertedWith("invalid step proof");
     });
   });
@@ -2229,7 +2226,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       // Request the first step (index 1)
@@ -2246,7 +2243,7 @@ describe("Adapter - Offchain Voting", () => {
         result.proposalId,
         result.resultTree.voteResultTree,
         submitter,
-        call
+        call,
       );
     });
 
@@ -2263,12 +2260,12 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       // Challenge the vote result to indicate it has something wrong
       await expect(
-        voting.challengeMissingStep(dao.address, result.proposalId)
+        voting.challengeMissingStep(dao.address, result.proposalId),
       ).to.be.revertedWith("no step request");
     });
 
@@ -2285,7 +2282,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       // Request the first step (index 1)
@@ -2295,7 +2292,7 @@ describe("Adapter - Offchain Voting", () => {
 
       // Challenge the vote result during the grace period
       await expect(
-        voting.challengeMissingStep(dao.address, result.proposalId)
+        voting.challengeMissingStep(dao.address, result.proposalId),
       ).to.be.revertedWith("wait for the grace period");
     });
   });
@@ -2328,7 +2325,7 @@ describe("Adapter - Offchain Voting", () => {
           actionId,
           "20000",
           VotingStrategies.AllVotesYes,
-          true //move block time
+          true, //move block time
         );
 
       // Submit a valid result
@@ -2338,7 +2335,7 @@ describe("Adapter - Offchain Voting", () => {
         voteResultTree.getHexRoot(),
         submitter.address,
         lastVoteResult,
-        rootSig
+        rootSig,
       );
 
       // Read the bad step 1
@@ -2347,7 +2344,7 @@ describe("Adapter - Offchain Voting", () => {
       const call = voting.challengeBadFirstStep(
         dao.address,
         proposalId,
-        badVoteStep1
+        badVoteStep1,
       );
 
       await expectChallengeProposal(
@@ -2356,7 +2353,7 @@ describe("Adapter - Offchain Voting", () => {
         proposalId,
         voteResultTree,
         submitter,
-        call
+        call,
       );
     });
 
@@ -2373,7 +2370,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       const voteResults = result.resultTree.votesResults;
@@ -2383,8 +2380,8 @@ describe("Adapter - Offchain Voting", () => {
           voting.challengeBadFirstStep(
             dao.address,
             result.proposalId,
-            voteResults[i]
-          )
+            voteResults[i],
+          ),
         ).to.be.revertedWith("only first step");
       }
     });
@@ -2403,13 +2400,13 @@ describe("Adapter - Offchain Voting", () => {
         voting,
         submitter,
         false,
-        false // do not submit the vote result, but return the result tree
+        false, // do not submit the vote result, but return the result tree
       );
 
       const voteResults = result.resultTree.votesResults;
       const voteStep1 = voteResults[0];
       await expect(
-        voting.challengeBadFirstStep(dao.address, result.proposalId, voteStep1)
+        voting.challengeBadFirstStep(dao.address, result.proposalId, voteStep1),
       ).to.be.revertedWith("vote result not found");
     });
 
@@ -2426,7 +2423,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       const voteResults = result.resultTree.votesResults;
@@ -2436,7 +2433,7 @@ describe("Adapter - Offchain Voting", () => {
         "0x1d2c3a91bdb8c7ccbd7cf5ea1df6c9408f9678deef9bfc27639e8ea9429a3572";
 
       await expect(
-        voting.challengeBadFirstStep(dao.address, result.proposalId, voteStep1)
+        voting.challengeBadFirstStep(dao.address, result.proposalId, voteStep1),
       ).to.be.revertedWith("invalid step proof");
     });
 
@@ -2453,14 +2450,14 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       const voteResults = result.resultTree.votesResults;
       const voteStep1 = voteResults[0];
 
       await expect(
-        voting.challengeBadFirstStep(dao.address, result.proposalId, voteStep1)
+        voting.challengeBadFirstStep(dao.address, result.proposalId, voteStep1),
       ).to.be.revertedWith("nothing to challenge");
     });
   });
@@ -2489,7 +2486,7 @@ describe("Adapter - Offchain Voting", () => {
           actionId,
           "20000",
           VotingStrategies.AllVotesYes,
-          true //move block time
+          true, //move block time
         );
 
       // Submit a valid result
@@ -2499,7 +2496,7 @@ describe("Adapter - Offchain Voting", () => {
         voteResultTree.getHexRoot(),
         submitter.address,
         lastVoteResult,
-        rootSig
+        rootSig,
       );
 
       const badVoteStep2 = resultSteps[1];
@@ -2508,7 +2505,7 @@ describe("Adapter - Offchain Voting", () => {
       const call = voting.challengeBadNode(
         dao.address,
         proposalId,
-        badVoteStep2
+        badVoteStep2,
       );
 
       await expectChallengeProposal(
@@ -2517,7 +2514,7 @@ describe("Adapter - Offchain Voting", () => {
         proposalId,
         voteResultTree,
         submitter,
-        call
+        call,
       );
     });
 
@@ -2534,7 +2531,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        true
+        true,
       );
 
       const voteResults = result.resultTree.votesResults;
@@ -2542,7 +2539,7 @@ describe("Adapter - Offchain Voting", () => {
       const voteStep2 = voteResults[1];
 
       await expect(
-        voting.challengeBadNode(dao.address, result.proposalId, voteStep2)
+        voting.challengeBadNode(dao.address, result.proposalId, voteStep2),
       ).to.be.revertedWith("nothing to challenge");
     });
   });
@@ -2575,7 +2572,7 @@ describe("Adapter - Offchain Voting", () => {
           actionId,
           "2000",
           VotingStrategies.AllVotesYes,
-          true //move block time
+          true, //move block time
         );
 
       // Submit a valid result
@@ -2585,7 +2582,7 @@ describe("Adapter - Offchain Voting", () => {
         voteResultTree.getHexRoot(),
         submitter.address,
         lastVoteResult,
-        rootSig
+        rootSig,
       );
 
       const badVotePrevious = resultSteps[3];
@@ -2597,7 +2594,7 @@ describe("Adapter - Offchain Voting", () => {
         dao.address,
         proposalId,
         badVotePrevious,
-        badVoteCurrent
+        badVoteCurrent,
       );
 
       await expectChallengeProposal(
@@ -2606,7 +2603,7 @@ describe("Adapter - Offchain Voting", () => {
         proposalId,
         voteResultTree,
         submitter,
-        call
+        call,
       );
     });
 
@@ -2635,7 +2632,7 @@ describe("Adapter - Offchain Voting", () => {
         actionId,
         "2000",
         VotingStrategies.AllVotesYes,
-        true //move block time
+        true, //move block time
       );
 
       // Do not submit the vote result
@@ -2649,8 +2646,8 @@ describe("Adapter - Offchain Voting", () => {
           dao.address,
           proposalId,
           badVotePrevious,
-          badVoteCurrent
-        )
+          badVoteCurrent,
+        ),
       ).to.be.revertedWith("missing vote result");
     });
 
@@ -2680,7 +2677,7 @@ describe("Adapter - Offchain Voting", () => {
           actionId,
           "2000",
           VotingStrategies.AllVotesYes,
-          true //move block time
+          true, //move block time
         );
 
       // Submit a valid result
@@ -2690,7 +2687,7 @@ describe("Adapter - Offchain Voting", () => {
         voteResultTree.getHexRoot(),
         submitter.address,
         lastVoteResult,
-        rootSig
+        rootSig,
       );
 
       await advanceTime(10); // ends the grace period
@@ -2704,8 +2701,8 @@ describe("Adapter - Offchain Voting", () => {
           dao.address,
           proposalId,
           badVotePrevious,
-          badVoteCurrent
-        )
+          badVoteCurrent,
+        ),
       ).to.be.revertedWith("invalid step index");
 
       badVotePrevious.index = 4;
@@ -2716,8 +2713,8 @@ describe("Adapter - Offchain Voting", () => {
           dao.address,
           proposalId,
           badVotePrevious,
-          badVoteCurrent
-        )
+          badVoteCurrent,
+        ),
       ).to.be.revertedWith("invalid step index");
     });
 
@@ -2747,7 +2744,7 @@ describe("Adapter - Offchain Voting", () => {
           actionId,
           "2000",
           VotingStrategies.AllVotesYes,
-          true //move block time
+          true, //move block time
         );
 
       // Submit a valid result
@@ -2757,7 +2754,7 @@ describe("Adapter - Offchain Voting", () => {
         voteResultTree.getHexRoot(),
         submitter.address,
         lastVoteResult,
-        rootSig
+        rootSig,
       );
 
       await advanceTime(10); // ends the grace period
@@ -2767,8 +2764,8 @@ describe("Adapter - Offchain Voting", () => {
           dao.address,
           proposalId,
           resultSteps[0],
-          resultSteps[3]
-        )
+          resultSteps[3],
+        ),
       ).to.be.revertedWith("not consecutive steps");
 
       await expect(
@@ -2776,8 +2773,8 @@ describe("Adapter - Offchain Voting", () => {
           dao.address,
           proposalId,
           resultSteps[3],
-          resultSteps[2]
-        )
+          resultSteps[2],
+        ),
       ).to.be.revertedWith("not consecutive steps");
 
       await expect(
@@ -2785,8 +2782,8 @@ describe("Adapter - Offchain Voting", () => {
           dao.address,
           proposalId,
           resultSteps[2],
-          resultSteps[2]
-        )
+          resultSteps[2],
+        ),
       ).to.be.revertedWith("not consecutive steps");
     });
 
@@ -2816,7 +2813,7 @@ describe("Adapter - Offchain Voting", () => {
           actionId,
           "2000",
           VotingStrategies.AllVotesYes,
-          true //move block time
+          true, //move block time
         );
 
       // Submit a valid result
@@ -2826,7 +2823,7 @@ describe("Adapter - Offchain Voting", () => {
         voteResultTree.getHexRoot(),
         submitter.address,
         lastVoteResult,
-        rootSig
+        rootSig,
       );
 
       await advanceTime(10); // ends the grace period
@@ -2841,8 +2838,8 @@ describe("Adapter - Offchain Voting", () => {
           dao.address,
           proposalId,
           badVotePrevious,
-          badVoteCurrent
-        )
+          badVoteCurrent,
+        ),
       ).to.be.revertedWith("invalid step proof");
 
       badVotePrevious.choice = validChoice;
@@ -2854,8 +2851,8 @@ describe("Adapter - Offchain Voting", () => {
           dao.address,
           proposalId,
           badVotePrevious,
-          badVoteCurrent
-        )
+          badVoteCurrent,
+        ),
       ).to.be.revertedWith("invalid step proof");
     });
 
@@ -2875,7 +2872,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        false
+        false,
       );
 
       const voteResults = result.resultTree.votesResults;
@@ -2885,8 +2882,8 @@ describe("Adapter - Offchain Voting", () => {
           dao.address,
           result.proposalId,
           voteResults[0],
-          voteResults[1]
-        )
+          voteResults[1],
+        ),
       ).to.be.revertedWith("nothing to challenge");
     });
   });
@@ -2906,7 +2903,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        true
+        true,
       );
 
       let submittedVote = await voting.getVote(dao.address, result.proposalId);
@@ -2914,7 +2911,7 @@ describe("Adapter - Offchain Voting", () => {
       let snapshot = Number(submittedVote.snapshot);
       let startingTime = Number(submittedVote.startingTime);
       let gracePeriodStartingTime = Number(
-        submittedVote.gracePeriodStartingTime
+        submittedVote.gracePeriodStartingTime,
       );
 
       await advanceTime(5);
@@ -2925,21 +2922,21 @@ describe("Adapter - Offchain Voting", () => {
       expect(submittedVote.fallbackVotesCount).to.be.equal("1");
       expect(Number(submittedVote.snapshot)).to.be.greaterThanOrEqual(snapshot);
       expect(Number(submittedVote.startingTime)).to.be.greaterThanOrEqual(
-        startingTime
+        startingTime,
       );
       expect(
-        Number(submittedVote.gracePeriodStartingTime)
+        Number(submittedVote.gracePeriodStartingTime),
       ).to.be.greaterThanOrEqual(gracePeriodStartingTime);
 
       const fallbackVote = await votingHelpers.fallbackVoting.votes(
         dao.address,
-        result.proposalId
+        result.proposalId,
       );
       expect(Number(fallbackVote.startingTime)).to.be.greaterThanOrEqual(
-        Number(submittedVote.startingTime)
+        Number(submittedVote.startingTime),
       );
       expect(Number(fallbackVote.blockNumber)).to.be.greaterThanOrEqual(
-        Number(submittedVote.snapshot)
+        Number(submittedVote.snapshot),
       );
     });
 
@@ -2956,7 +2953,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        true
+        true,
       );
 
       let submittedVote = await voting.getVote(dao.address, result.proposalId);
@@ -2965,7 +2962,7 @@ describe("Adapter - Offchain Voting", () => {
       await advanceTime(10); // ends the grace period
 
       await expect(
-        voting.requestFallback(dao.address, result.proposalId)
+        voting.requestFallback(dao.address, result.proposalId),
       ).to.be.revertedWith("voting ended");
     });
 
@@ -2982,7 +2979,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        true
+        true,
       );
 
       await advanceTime(5);
@@ -2990,7 +2987,7 @@ describe("Adapter - Offchain Voting", () => {
       await voting.requestFallback(dao.address, result.proposalId);
 
       await expect(
-        voting.requestFallback(dao.address, result.proposalId)
+        voting.requestFallback(dao.address, result.proposalId),
       ).to.be.revertedWith("fallback vote duplicate");
     });
 
@@ -3012,7 +3009,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        true
+        true,
       );
 
       await advanceTime(5);
@@ -3028,7 +3025,7 @@ describe("Adapter - Offchain Voting", () => {
       // DAO member requests the fallback voting as well
       await txSigner(signers[2], voting).requestFallback(
         dao.address,
-        result.proposalId
+        result.proposalId,
       );
       submittedVote = await voting.getVote(dao.address, result.proposalId);
       expect(submittedVote.fallbackVotesCount).to.be.equal("1");
@@ -3047,7 +3044,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         voting,
         submitter,
-        true
+        true,
       );
 
       await advanceTime(5);
@@ -3056,8 +3053,8 @@ describe("Adapter - Offchain Voting", () => {
       await expect(
         txSigner(signers[2], voting).requestFallback(
           dao.address,
-          result.proposalId
-        )
+          result.proposalId,
+        ),
       ).to.be.revertedWith("onlyMember");
     });
   });
@@ -3073,7 +3070,7 @@ describe("Adapter - Offchain Voting", () => {
       // Transfer OLTs to the maintainer account
       await oltContract.transfer(maintainer.address, toBN(1));
       const maintainerBalance = await oltContract.balanceOf.call(
-        maintainer.address
+        maintainer.address,
       );
       expect(maintainerBalance.toString()).equal("1");
 
@@ -3088,8 +3085,8 @@ describe("Adapter - Offchain Voting", () => {
       const configKey = sha3(
         web3.utils.encodePacked(
           "governance.role.",
-          utils.getAddress(configuration.address)
-        )
+          utils.getAddress(configuration.address),
+        ),
       );
 
       // Make sure the governance token configuration was created
@@ -3113,7 +3110,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         bank,
         maintainer,
-        configs
+        configs,
       );
 
       const updatedConfigValue = await dao.getConfiguration(newConfigKey);
@@ -3136,8 +3133,8 @@ describe("Adapter - Offchain Voting", () => {
       const configKey = sha3(
         web3.utils.encodePacked(
           "governance.role.",
-          utils.getAddress(configuration.address)
-        )
+          utils.getAddress(configuration.address),
+        ),
       );
 
       // Make sure the governance token configuration was created
@@ -3161,7 +3158,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         bank,
         maintainer,
-        configs
+        configs,
       );
 
       const updatedConfigValue = await dao.getConfiguration(newConfigKey);
@@ -3182,7 +3179,7 @@ describe("Adapter - Offchain Voting", () => {
       const voting = adapters.voting; //This is the offchain voting adapter
       const configuration = adapters.configuration;
       const configKey = sha3(
-        web3.utils.encodePacked("governance.role.default")
+        web3.utils.encodePacked("governance.role.default"),
       );
 
       // Make sure the governance token configuration was created
@@ -3206,7 +3203,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         bank,
         maintainer,
-        configs
+        configs,
       );
 
       const updatedConfigValue = await dao.getConfiguration(newConfigKey);
@@ -3224,7 +3221,7 @@ describe("Adapter - Offchain Voting", () => {
       // Transfer OLTs to the maintainer account
       await oltContract.transfer(maintainer.address, toBN(1));
       const maintainerBalance = await oltContract.balanceOf.call(
-        maintainer.address
+        maintainer.address,
       );
       expect(maintainerBalance.toString()).equal("1");
 
@@ -3239,7 +3236,7 @@ describe("Adapter - Offchain Voting", () => {
       const voting = adapters.voting; //This is the offchain voting adapter
       const configuration = adapters.configuration;
       const configKey = sha3(
-        web3.utils.encodePacked("governance.role.default")
+        web3.utils.encodePacked("governance.role.default"),
       );
 
       // Make sure the governance token configuration was created
@@ -3263,7 +3260,7 @@ describe("Adapter - Offchain Voting", () => {
         configuration,
         bank,
         maintainer,
-        configs
+        configs,
       );
 
       const updatedConfigValue = await dao.getConfiguration(newConfigKey);
@@ -3280,7 +3277,7 @@ describe("Adapter - Offchain Voting", () => {
       // Transfer OLTs to the maintainer account
       await oltContract.transfer(maintainer.address, toBN(1));
       const maintainerBalance = await oltContract.balanceOf.call(
-        maintainer.address
+        maintainer.address,
       );
       expect(maintainerBalance.toString()).equal("1");
 
@@ -3295,8 +3292,8 @@ describe("Adapter - Offchain Voting", () => {
       const configKey = sha3(
         web3.utils.encodePacked(
           "governance.role.",
-          utils.getAddress(configuration.address)
-        )
+          utils.getAddress(configuration.address),
+        ),
       );
 
       // Make sure the governance token configuration was created
@@ -3320,8 +3317,8 @@ describe("Adapter - Offchain Voting", () => {
           configuration,
           bank,
           maintainer,
-          configs
-        )
+          configs,
+        ),
       ).to.be.revertedWith("onlyMember");
     });
 
@@ -3346,8 +3343,8 @@ describe("Adapter - Offchain Voting", () => {
       const configKey = sha3(
         web3.utils.encodePacked(
           "governance.role.",
-          utils.getAddress(configuration.address)
-        )
+          utils.getAddress(configuration.address),
+        ),
       );
 
       // Make sure the governance token configuration was created
@@ -3375,7 +3372,7 @@ describe("Adapter - Offchain Voting", () => {
         newUser,
         configs,
         VotingStrategies.AllVotesYes,
-        false // skip the process proposal call
+        false, // skip the process proposal call
       );
 
       await expect(
@@ -3385,8 +3382,8 @@ describe("Adapter - Offchain Voting", () => {
           data.voteResultTree.getHexRoot(),
           data.submitter,
           data.lastResult,
-          data.rootSig
-        )
+          data.rootSig,
+        ),
       ).to.be.revertedWith("bad node");
 
       // Validate the vote result node by calling the contract
@@ -3400,7 +3397,7 @@ describe("Adapter - Offchain Voting", () => {
         // `gracePeriodStartingTime` should be `0` as `submitNewVote` is `true`
         0,
         data.membersCount,
-        data.lastResult
+        data.lastResult,
       );
 
       const errorCode = getBadNodeErrorResponse.toString();
@@ -3432,8 +3429,8 @@ describe("Adapter - Offchain Voting", () => {
       const configKey = sha3(
         web3.utils.encodePacked(
           "governance.role.",
-          utils.getAddress(configuration.address)
-        )
+          utils.getAddress(configuration.address),
+        ),
       );
 
       // Make sure the governance token configuration was created
@@ -3461,7 +3458,7 @@ describe("Adapter - Offchain Voting", () => {
         newUser, // the index of the member that will vote
         configs,
         VotingStrategies.AllVotesYes,
-        false // skip the process proposal call
+        false, // skip the process proposal call
       );
 
       await expect(
@@ -3471,8 +3468,8 @@ describe("Adapter - Offchain Voting", () => {
           data.voteResultTree.getHexRoot(),
           data.submitter,
           data.lastResult,
-          data.rootSig
-        )
+          data.rootSig,
+        ),
       ).to.be.revertedWith("getPriorAmount not implemented");
     });
   });

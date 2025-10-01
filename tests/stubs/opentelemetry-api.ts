@@ -13,7 +13,10 @@ type UpDownCounter = {
 };
 
 type Meter = {
-  createHistogram: (_name: string, _options?: Record<string, unknown>) => Histogram;
+  createHistogram: (
+    _name: string,
+    _options?: Record<string, unknown>,
+  ) => Histogram;
   createCounter: (_name: string, _options?: Record<string, unknown>) => Counter;
   createUpDownCounter: (
     _name: string,

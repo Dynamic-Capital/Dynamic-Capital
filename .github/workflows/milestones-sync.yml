@@ -2,8 +2,8 @@ name: Sync milestones
 
 on:
   push:
-    branches: [ main ]
-    paths: [ ".github/milestones.json" ]
+    branches: [main]
+    paths: [".github/milestones.json"]
   workflow_dispatch:
 
 permissions:
@@ -35,4 +35,3 @@ jobs:
                 -f title="$title" -f state="$state" -f description="$desc" -f due_on="$due"
             fi
           done
-

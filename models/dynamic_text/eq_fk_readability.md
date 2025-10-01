@@ -1,6 +1,7 @@
 # Flesch–Kincaid Readability Grade
 
-**Modules:** `dynamic_text`, `dynamic_glossary`, `dynamic_summary`, `dynamic_letter_index`
+**Modules:** `dynamic_text`, `dynamic_glossary`, `dynamic_summary`,
+`dynamic_letter_index`
 
 ## Overview
 

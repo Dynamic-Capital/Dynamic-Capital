@@ -1,6 +1,6 @@
 import {
-  contracts as defaultContracts,
   ContractConfig,
+  contracts as defaultContracts,
   ContractType,
 } from "../contracts.config";
 import { extensionsIdsMap } from "../../utils/dao-ids-util";

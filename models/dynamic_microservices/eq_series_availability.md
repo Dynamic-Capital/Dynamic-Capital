@@ -4,7 +4,8 @@
 
 ## Overview
 
-When services are chained in series, the overall availability is the product of component availabilities.
+When services are chained in series, the overall availability is the product of
+component availabilities.
 
 ## Equation
 

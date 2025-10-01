@@ -1,6 +1,7 @@
 # Term Frequency–Inverse Document Frequency
 
-**Modules:** `dynamic_arrow`, `dynamic_ascii`, `dynamic_vocabulary`, `dynamic_index`
+**Modules:** `dynamic_arrow`, `dynamic_ascii`, `dynamic_vocabulary`,
+`dynamic_index`
 
 ## Overview
 

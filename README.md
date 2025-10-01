@@ -8,6 +8,7 @@
 ## Table of Contents
 
 <!-- TOC:START -->
+
 - [Overview](#overview)
 - [What's New](#whats-new)
 - [Quick Links](#quick-links)
@@ -81,22 +82,35 @@
 - [Hybrid Development Workflow](#hybrid-development-workflow)
 - [License / contributions](#license--contributions)
 - [Notes](#notes)
+
 <!-- TOC:END -->
 
 ## Overview
 
-Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development experience.
+Telegram-first bot with optional Mini App (Web App) for deposit workflows (bank
+OCR + crypto TXID). Built with **Dynamic Codex** for enhanced development
+experience.
 
-A single Next.js application powers both the marketing landing page and the authenticated dashboard. The build pipeline captures the homepage into the repository-level `_static/` directory so it can be served via CDN without touching runtime secrets, while the live `/app` routes continue to handle Supabase access, authentication, and other server-side features.
+A single Next.js application powers both the marketing landing page and the
+authenticated dashboard. The build pipeline captures the homepage into the
+repository-level `_static/` directory so it can be served via CDN without
+touching runtime secrets, while the live `/app` routes continue to handle
+Supabase access, authentication, and other server-side features.
 
-The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and backed by Supabase.
+The Telegram Mini App is built with Next.js/React, hosted on DigitalOcean, and
+backed by Supabase.
 
 ## What's New
 
 <!-- WHATS_NEW:START -->
-- Dynamic AI multi-lobe fusion engine now powers adaptive trade orchestration with a Supabase-backed hedging service for real-time guardrails.
-- Multi-LLM Studio workspace enables cross-provider strategy design with shared prompts, benchmarks, and deployment presets.
-- Enhanced Telegram bot console delivers richer admin telemetry, escalation tooling, and instant Mini App synchronization.
+
+- Dynamic AI multi-lobe fusion engine now powers adaptive trade orchestration
+  with a Supabase-backed hedging service for real-time guardrails.
+- Multi-LLM Studio workspace enables cross-provider strategy design with shared
+  prompts, benchmarks, and deployment presets.
+- Enhanced Telegram bot console delivers richer admin telemetry, escalation
+  tooling, and instant Mini App synchronization.
+
 <!-- WHATS_NEW:END -->
 
 ## Quick Links
@@ -166,34 +180,48 @@ import { FiActivity, FiHome, FiUser } from "react-icons/fi";
 - **Multi-LLM Studio tool** (`apps/web/app/tools/multi-llm`) for comparing
   OpenAI, Anthropic, and Groq chat completions side by side with configurable
   temperature and token limits directly inside the main Next.js app.
-- **Market Intelligence Workspace** with curated data rooms, model outputs, and deal pipelines for investor-ready insights.
-- **Dynamic Market Review automation** that aggregates TradingView signals, Telegram alerts, and Supabase events into actionable hedging triggers.
-- **`economic-calendar` edge function** streaming macro events into the signal bus for instant bot and dashboard consumption.
+- **Market Intelligence Workspace** with curated data rooms, model outputs, and
+  deal pipelines for investor-ready insights.
+- **Dynamic Market Review automation** that aggregates TradingView signals,
+  Telegram alerts, and Supabase events into actionable hedging triggers.
+- **`economic-calendar` edge function** streaming macro events into the signal
+  bus for instant bot and dashboard consumption.
 - Step through the
   [Dynamic AI & Dynamic Trading Algo Enhancement Roadmap](docs/multi-llm-algo-enhancement-roadmap.md)
   to align provider orchestration with the trading automation stack.
-- Onboard fast with the
-  [Dynamic AI Overview](docs/dynamic-ai-overview.md) summarising the Brain layer,
-  lobe fusion model, and operational guardrails that keep automation governed.
+- Onboard fast with the [Dynamic AI Overview](docs/dynamic-ai-overview.md)
+  summarising the Brain layer, lobe fusion model, and operational guardrails
+  that keep automation governed.
 
 ### Investor Experience
 
-- **TonConnect onboarding flow** delivers deep links from Telegram, QR fallback, and guarded session handshakes so traders can authenticate once and rejoin across devices.
-- **Automation guardrails** enforce per-user hedging limits, circuit breakers, and operator approval queues before new strategies reach production.
-- **Supported wallets** include Tonkeeper, OpenMask, and MyTonWallet with dynamic capability negotiation for staking, swaps, and signature payloads.
+- **TonConnect onboarding flow** delivers deep links from Telegram, QR fallback,
+  and guarded session handshakes so traders can authenticate once and rejoin
+  across devices.
+- **Automation guardrails** enforce per-user hedging limits, circuit breakers,
+  and operator approval queues before new strategies reach production.
+- **Supported wallets** include Tonkeeper, OpenMask, and MyTonWallet with
+  dynamic capability negotiation for staking, swaps, and signature payloads.
 
 ### Treasury & Token
 
-- **Dynamic Capital Token (DCT)** anchors treasury governance with transparent supply, vesting cliffs, and fee routing published in the [DCT whitepaper](docs/dynamic-capital-ton-whitepaper.md).
-- **Live DEX references**: monitor liquidity and pricing on [STON.fi](https://app.ston.fi) and [DeDust](https://dedust.io) pairs, with hedging hooks synced to the Supabase ledger service.
+- **Dynamic Capital Token (DCT)** anchors treasury governance with transparent
+  supply, vesting cliffs, and fee routing published in the
+  [DCT whitepaper](docs/dynamic-capital-ton-whitepaper.md).
+- **Live DEX references**: monitor liquidity and pricing on
+  [STON.fi](https://app.ston.fi) and [DeDust](https://dedust.io) pairs, with
+  hedging hooks synced to the Supabase ledger service.
 
 ### Architecture & Docs
 
 Explore the broader platform anatomy and contributor guides:
 
-- [Master meta-model reference](models/meta_model.md) — shared state/control/dynamics grammar with module index.
+- [Master meta-model reference](models/meta_model.md) — shared
+  state/control/dynamics grammar with module index.
 - [Dynamic Capital ecosystem anatomy](docs/dynamic-capital-ecosystem-anatomy.md)
-- [Dynamic Capital flow chart](docs/dynamic-capital-flow-chart.md) — high-level CI/CD and runtime topology across GitHub, Vercel, Supabase, DigitalOcean, and TON.
+- [Dynamic Capital flow chart](docs/dynamic-capital-flow-chart.md) — high-level
+  CI/CD and runtime topology across GitHub, Vercel, Supabase, DigitalOcean, and
+  TON.
 - [Dynamic AI overview](docs/dynamic-ai-overview.md)
 - [Dynamic Trading ALGO vs LOGIC](docs/dynamic-trading-algo-vs-logic.md)
 - [Model intelligence & infrastructure reference](docs/model-intelligence-infrastructure-reference.md)
@@ -201,22 +229,22 @@ Explore the broader platform anatomy and contributor guides:
 
 #### Dynamic AGI self-improvement loop
 
-`dynamic_agi.DynamicAGIModel` now accepts an optional
-`DynamicSelfImprovement` manager that records each evaluation and emits an
-iterative improvement plan. Provide realised performance telemetry or human
-feedback when calling `evaluate()` so the manager can accumulate session
-snapshots. The returned `AGIOutput` includes an `improvement` payload with
-ranked focus areas, aggregated metrics, and the latest introspection reports.
-See `tests/dynamic_agi/test_dynamic_self_improvement.py` for an end-to-end
-example.
+`dynamic_agi.DynamicAGIModel` now accepts an optional `DynamicSelfImprovement`
+manager that records each evaluation and emits an iterative improvement plan.
+Provide realised performance telemetry or human feedback when calling
+`evaluate()` so the manager can accumulate session snapshots. The returned
+`AGIOutput` includes an `improvement` payload with ranked focus areas,
+aggregated metrics, and the latest introspection reports. See
+`tests/dynamic_agi/test_dynamic_self_improvement.py` for an end-to-end example.
 
 **Dynamic AGI** abbreviates **Driving Yield of New Advancements in Minds,
 Intelligence & Creation — Adapting Global Intelligence**. The
 `dynamic_agi.DynamicAGIModel.identity` helper exposes this expansion and its
-three pillars (`Driving Yield of New Advancements in Minds`, `Intelligence &
-Creation`, `Adapting Global Intelligence`) so downstream services can surface
-consistent branding while reinforcing the platform's mandate to compound
-innovation under adaptive intelligence safeguards.
+three pillars (`Driving Yield of New Advancements in Minds`,
+`Intelligence &
+Creation`, `Adapting Global Intelligence`) so downstream
+services can surface consistent branding while reinforcing the platform's
+mandate to compound innovation under adaptive intelligence safeguards.
 
 ### Dynamic Theme System
 
@@ -249,7 +277,6 @@ logic.
 - Maintains third-party certifications for ISO 27001, SOC 2 Type II, PCI DSS
   Level 1, HIPAA, GDPR, and the EU–US Data Privacy Framework
   ([docs/compliance](docs/compliance/README.md)).
-
 
 ### Privacy & Security
 
@@ -368,8 +395,8 @@ run without the deprecation warning.
 
 ### Development Process Overview
 
-| Tool                   | What It Does                                                            | How You Use It                                                                                 |
-| ---------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Tool                   | What It Does                                                            | How You Use It                                                                                  |
+| ---------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | **Dynamic (Platform)** | Hosts your web app, manages deployment, and provides a Supabase backend | Use the Dynamic console to configure environment variables and monitor deployments              |
 | **Dynamic (AI)**       | Generates initial project scaffolding and high-level feature guidance   | Use the chat interface during setup and when auto-generating components                         |
 | **Telegram/BotFather** | Manages the bot and links it to your web app                            | Run BotFather commands like `/setmenubutton` or `/mybots` to connect the bot to your deployment |
@@ -455,8 +482,8 @@ without digging through logs.
 Note: for OCR parsing, send an actual Telegram image to the bot; OCR runs only
 on images.
 
-
 ## Build & Deployment
+
 ### Building
 
 The main build compiles the dashboard only. Run the Mini App build separately
@@ -486,7 +513,6 @@ npm run analyze
 # or
 ANALYZE=true npm run build
 ```
-
 
 ### Static snapshot pipeline
 
@@ -539,7 +565,6 @@ above to refresh the snapshot.
 - Scaffold AlgoKit runtime functions with
   `python tools/algo-cli/algokit.py function strategy-name --lang both` to
   create matching Python and TypeScript stubs from the command line.
-
 
 ### 🎨 UI Development with Dynamic Codex
 
@@ -711,7 +736,6 @@ Admin and system functions such as `ADMIN_SESSION` or `RESET_BOT` require
 `TELEGRAM_WEBHOOK_SECRET` to be configured. The helper will throw before making
 the request if the secret is missing.
 
-
 ### Environment variables
 
 Full list and usage notes: [docs/env.md](docs/env.md).
@@ -774,8 +798,6 @@ curl -X POST -H "Content-Type: application/json" \
   "$SUPABASE_URL/functions/v1/verify-initdata"
 ```
 
-
-
 ### Running with Docker
 
 1. **Build the image**
@@ -825,6 +847,7 @@ curl -X POST -H "Content-Type: application/json" \
      conflicting service.
    - Ensure required environment variables are present; missing values may cause
      runtime errors.
+
 #### GitHub Actions Docker smoke test
 
 - The `Docker local smoke test` workflow builds the Compose `app` service image
@@ -833,8 +856,10 @@ curl -X POST -H "Content-Type: application/json" \
 - It runs automatically for pull requests or pushes that touch the `docker/`
   directory (or the workflow file itself) and is also available through the
   **Run workflow** button on the Actions tab for ad-hoc verification.
-- To reproduce the same check locally, run `docker compose -f
-  docker/docker-compose.yml build app` followed by `docker compose -f
+- To reproduce the same check locally, run
+  `docker compose -f
+  docker/docker-compose.yml build app` followed by
+  `docker compose -f
   docker/docker-compose.yml run --rm --entrypoint node app --version`.
 
 ### Deployment
@@ -886,13 +911,13 @@ npm install --workspace apps/web
 npm run typecheck
 ```
 
-The type check targets the Next.js Mini App and should complete without
-warnings once the workspace dependencies are in place.
+The type check targets the Next.js Mini App and should complete without warnings
+once the workspace dependencies are in place.
 
-If the workspace packages fall out of sync you may see TypeScript errors such
-as `Cannot find module '@web3-onboard/core'` during the check. Running the
-install command again refreshes the browser-only dependencies so `tsc` can
-finish without emitting diagnostics.
+If the workspace packages fall out of sync you may see TypeScript errors such as
+`Cannot find module '@web3-onboard/core'` during the check. Running the install
+command again refreshes the browser-only dependencies so `tsc` can finish
+without emitting diagnostics.
 
 ### CI / checks
 
@@ -945,17 +970,16 @@ Then POST to `http://localhost:54321/functions/v1/telegram-webhook` with
 
 #### Public tunnel for remote QA
 
-If teammates need to validate the webhook or Mini App from outside your
-network, expose the local Supabase functions port through a trusted tunnel
-provider such as ngrok. A convenience script is available to start the
-standard tunnel:
+If teammates need to validate the webhook or Mini App from outside your network,
+expose the local Supabase functions port through a trusted tunnel provider such
+as ngrok. A convenience script is available to start the standard tunnel:
 
 ```bash
 npm run tunnel:functions
 ```
 
-If you only need to confirm the ngrok arguments or verify custom flags,
-run the command in dry-run mode:
+If you only need to confirm the ngrok arguments or verify custom flags, run the
+command in dry-run mode:
 
 ```bash
 npm run tunnel:functions -- --dry-run
@@ -963,12 +987,9 @@ npm run tunnel:functions -- --dry-run
 
 Share the resulting HTTPS endpoint with reviewers and map requests to the
 appropriate function path. For instance,
-`https://exosporal-ezequiel-semibiographically.ngrok-free.dev/` has been used
-to proxy the local Telegram webhook during QA sessions—replace it with your own
+`https://exosporal-ezequiel-semibiographically.ngrok-free.dev/` has been used to
+proxy the local Telegram webhook during QA sessions—replace it with your own
 ephemeral domain and rotate the tunnel token regularly.
-
-
-
 
 ## Operational Routines
 
@@ -988,7 +1009,6 @@ ephemeral domain and rotate the tunnel token regularly.
   endpoints.
 - Use `scripts/import-vip-csv.ts` for bulk backfills; users must `/start` the
   bot at least once.
-
 
 ### Go Service
 
@@ -1011,7 +1031,6 @@ go build
 docker build -f docker/go.Dockerfile -t go-service .
 docker run --rm -p 8080:8080 go-service
 ```
-
 
 ## Automation & Data Pipelines
 
@@ -1053,8 +1072,8 @@ troubleshooting.
 The automated hedge engine now complements the directional trading pipeline:
 
 - **Database schema** – `public.hedge_actions` records every hedge lifecycle
-  event with enums for side, reason, and status so dashboards and bots can
-  track volatility offsets alongside standard trades.
+  event with enums for side, reason, and status so dashboards and bots can track
+  volatility offsets alongside standard trades.
 - **Policy node** – the `dynamic-hedge` entry in `public.node_configs` runs
   every five minutes, watching trades, correlations, and risk settings before
   persisting new hedges and emitting MT5-ready signals.

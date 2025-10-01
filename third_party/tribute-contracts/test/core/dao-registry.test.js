@@ -102,14 +102,14 @@ describe("Core - DaoRegistry", () => {
         adapterAddr,
         0,
         [sha3("config1"), sha3("config2")],
-        [1, 2]
+        [1, 2],
       );
       expect(await registry.getAdapterAddress(adapterId)).equal(adapterAddr);
       expect(
-        (await registry.getConfiguration(sha3("config1"))).toString()
+        (await registry.getConfiguration(sha3("config1"))).toString(),
       ).equal("1");
       expect(
-        (await registry.getConfiguration(sha3("config2"))).toString()
+        (await registry.getConfiguration(sha3("config2"))).toString(),
       ).equal("2");
     });
 
@@ -123,7 +123,7 @@ describe("Core - DaoRegistry", () => {
       // Remove the adapter using 0x0 address
       await registry.replaceAdapter(adapterId, ETH_TOKEN, 0, [], []);
       await expect(registry.getAdapterAddress(adapterId)).to.be.revertedWith(
-        "adapter not found"
+        "adapter not found",
       );
     });
 
@@ -166,7 +166,7 @@ describe("Core - DaoRegistry", () => {
       const address = "0x627306090abaB3A6e1400e9345bC60c78a8BEf57";
       const registry = await DaoRegistry.new();
       await expect(
-        registry.replaceAdapter(adapter, address, 0, [], [])
+        registry.replaceAdapter(adapter, address, 0, [], []),
       ).to.be.revertedWith("adapterId must not be empty");
     });
 
@@ -175,7 +175,7 @@ describe("Core - DaoRegistry", () => {
       const address = "0x627306090abaB3A6e1400e9345bC60c78a8BEf57";
       const registry = await DaoRegistry.new();
       await expect(
-        registry.replaceAdapter(adapter, address, 0, [], [])
+        registry.replaceAdapter(adapter, address, 0, [], []),
       ).to.be.revertedWith("adapterId must not be empty");
     });
 
@@ -183,7 +183,7 @@ describe("Core - DaoRegistry", () => {
       const adapter = fromUtf8("");
       const registry = await DaoRegistry.new();
       await expect(registry.getAdapterAddress(adapter)).to.be.revertedWith(
-        "adapter not found"
+        "adapter not found",
       );
     });
 
@@ -192,7 +192,7 @@ describe("Core - DaoRegistry", () => {
       const adapterAddr = "0x627306090abaB3A6e1400e9345bC60c78a8BEf57";
       const registry = await DaoRegistry.new();
       await expect(
-        registry.replaceAdapter(adapterId, adapterAddr, 0, [], [])
+        registry.replaceAdapter(adapterId, adapterAddr, 0, [], []),
       ).to.be.revertedWith("adapterId must not be empty");
     });
 
@@ -200,7 +200,7 @@ describe("Core - DaoRegistry", () => {
       const adapterId = fromUtf8("");
       const registry = await DaoRegistry.new();
       await expect(
-        registry.replaceAdapter(adapterId, ETH_TOKEN, 0, [], [])
+        registry.replaceAdapter(adapterId, ETH_TOKEN, 0, [], []),
       ).to.be.revertedWith("adapterId must not be empty");
     });
   });
@@ -214,7 +214,7 @@ describe("Core - DaoRegistry", () => {
         registry.addExtension(extensionId, bankExt.address),
         "ExtensionAdded",
         extensionId,
-        bankExt.address
+        bankExt.address,
       );
     });
 
@@ -223,9 +223,9 @@ describe("Core - DaoRegistry", () => {
       const registry = await DaoRegistry.new();
       await registry.initialize(creator, owner);
       await this.factories.bankExtFactory.create(registry.address, 10);
-      const bankAddress =
-        await this.factories.bankExtFactory.getExtensionAddress(
-          registry.address
+      const bankAddress = await this.factories.bankExtFactory
+        .getExtensionAddress(
+          registry.address,
         );
       await registry.addExtension(extensionId, bankAddress);
       const address = await registry.getExtensionAddress(extensionId);
@@ -237,14 +237,14 @@ describe("Core - DaoRegistry", () => {
       const registry = await DaoRegistry.new();
       await registry.initialize(creator, owner);
       await this.factories.bankExtFactory.create(registry.address, 10);
-      const bankAddress =
-        await this.factories.bankExtFactory.getExtensionAddress(
-          registry.address
+      const bankAddress = await this.factories.bankExtFactory
+        .getExtensionAddress(
+          registry.address,
         );
       await registry.addExtension(extensionId, bankAddress);
       await registry.removeExtension(extensionId);
       await expect(
-        registry.getExtensionAddress(extensionId)
+        registry.getExtensionAddress(extensionId),
       ).to.be.revertedWith("extension not found");
     });
 
@@ -253,9 +253,9 @@ describe("Core - DaoRegistry", () => {
       const registry = await DaoRegistry.new();
       await registry.initialize(creator, owner);
       await this.factories.bankExtFactory.create(registry.address, 10);
-      const bankAddress =
-        await this.factories.bankExtFactory.getExtensionAddress(
-          registry.address
+      const bankAddress = await this.factories.bankExtFactory
+        .getExtensionAddress(
+          registry.address,
         );
       await registry.addExtension(extensionId, bankAddress);
       expect(await registry.isExtension(bankAddress)).to.be.true;
@@ -272,13 +272,13 @@ describe("Core - DaoRegistry", () => {
       const registry = await DaoRegistry.new();
       await registry.initialize(creator, owner);
       await this.factories.bankExtFactory.create(registry.address, 10);
-      const bankAddress =
-        await this.factories.bankExtFactory.getExtensionAddress(
-          registry.address
+      const bankAddress = await this.factories.bankExtFactory
+        .getExtensionAddress(
+          registry.address,
         );
       await registry.addExtension(extensionId, bankAddress);
       expect(await registry.getExtensionAddress(extensionId)).to.be.equal(
-        bankAddress
+        bankAddress,
       );
     });
 
@@ -286,7 +286,7 @@ describe("Core - DaoRegistry", () => {
       const extensionId = sha3("bank");
       const registry = await DaoRegistry.new();
       await expect(
-        registry.getExtensionAddress(extensionId)
+        registry.getExtensionAddress(extensionId),
       ).to.be.revertedWith("extension not found");
     });
 
@@ -295,20 +295,20 @@ describe("Core - DaoRegistry", () => {
       const registry = await DaoRegistry.new();
       await registry.initialize(creator, owner);
       await this.factories.bankExtFactory.create(registry.address, 10);
-      const bankAddressA =
-        await this.factories.bankExtFactory.getExtensionAddress(
-          registry.address
+      const bankAddressA = await this.factories.bankExtFactory
+        .getExtensionAddress(
+          registry.address,
         );
 
       await this.factories.bankExtFactory.create(registry.address, 5);
-      const bankAddressB =
-        await this.factories.bankExtFactory.getExtensionAddress(
-          registry.address
+      const bankAddressB = await this.factories.bankExtFactory
+        .getExtensionAddress(
+          registry.address,
         );
 
       await registry.addExtension(extensionId, bankAddressA);
       await expect(
-        registry.addExtension(extensionId, bankAddressB)
+        registry.addExtension(extensionId, bankAddressB),
       ).to.be.revertedWith("extensionId already in use");
     });
 
@@ -317,7 +317,7 @@ describe("Core - DaoRegistry", () => {
       const registry = await DaoRegistry.new();
       await registry.potentialNewMember(owner);
       await expect(registry.removeExtension(extensionId)).to.be.revertedWith(
-        "extensionId must not be empty"
+        "extensionId must not be empty",
       );
     });
 
@@ -326,14 +326,14 @@ describe("Core - DaoRegistry", () => {
       const registry = await DaoRegistry.new();
       await registry.initialize(creator, owner);
       await this.factories.bankExtFactory.create(registry.address, 10);
-      const bankAddress =
-        await this.factories.bankExtFactory.getExtensionAddress(
-          registry.address
+      const bankAddress = await this.factories.bankExtFactory
+        .getExtensionAddress(
+          registry.address,
         );
       await registry.addExtension(extensionId, bankAddress);
       await registry.removeExtension(extensionId);
       await expect(
-        registry.addExtension(extensionId, bankAddress)
+        registry.addExtension(extensionId, bankAddress),
       ).to.be.revertedWith("extension can not be re-added");
     });
 
@@ -342,7 +342,7 @@ describe("Core - DaoRegistry", () => {
       const registry = await DaoRegistry.new();
       await registry.potentialNewMember(owner);
       await expect(registry.removeExtension(extensionId)).to.be.revertedWith(
-        "extensionId not registered"
+        "extensionId not registered",
       );
     });
   });
@@ -363,9 +363,9 @@ describe("Core - DaoRegistry", () => {
         const registry = await DaoRegistry.new();
         await registry.potentialNewMember(owner);
         await this.factories.bankExtFactory.create(registry.address, 10);
-        const bankAddress =
-          await this.factories.bankExtFactory.getExtensionAddress(
-            registry.address
+        const bankAddress = await this.factories.bankExtFactory
+          .getExtensionAddress(
+            registry.address,
           );
         await registry.addExtension(extensionId, bankAddress);
         const address = await registry.getExtensionAddress(extensionId);
@@ -382,7 +382,7 @@ describe("Core - DaoRegistry", () => {
       it("should not be possible to register a member with a zero address", async () => {
         const registry = await DaoRegistry.new();
         await expect(
-          registry.potentialNewMember(ZERO_ADDRESS)
+          registry.potentialNewMember(ZERO_ADDRESS),
         ).to.be.revertedWith("invalid member address");
       });
 
@@ -391,7 +391,7 @@ describe("Core - DaoRegistry", () => {
         const newMember = accounts[1];
         await registry.potentialNewMember(newMember);
         await expect(registry.potentialNewMember(newMember)).to.be.revertedWith(
-          "accessDenied"
+          "accessDenied",
         );
       });
 
@@ -410,7 +410,7 @@ describe("Core - DaoRegistry", () => {
           registry.updateDelegateKey(owner, delegate),
           "UpdateDelegateKey",
           owner,
-          delegate
+          delegate,
         );
       });
 
@@ -418,7 +418,7 @@ describe("Core - DaoRegistry", () => {
         const registry = await DaoRegistry.new();
         const delegate = accounts[2];
         await expect(
-          registry.updateDelegateKey(owner, delegate)
+          registry.updateDelegateKey(owner, delegate),
         ).to.be.revertedWith("member does not exist");
       });
 
@@ -426,7 +426,7 @@ describe("Core - DaoRegistry", () => {
         const registry = await DaoRegistry.new();
         await registry.potentialNewMember(owner);
         await expect(
-          registry.updateDelegateKey(owner, ZERO_ADDRESS)
+          registry.updateDelegateKey(owner, ZERO_ADDRESS),
         ).to.be.revertedWith("newDelegateKey cannot be 0");
       });
 
@@ -442,7 +442,7 @@ describe("Core - DaoRegistry", () => {
         await registry.updateDelegateKey(memberA, delegate);
 
         await expect(
-          registry.updateDelegateKey(memberB, delegate)
+          registry.updateDelegateKey(memberB, delegate),
         ).to.be.revertedWith("cannot overwrite existing delegated keys");
       });
 
@@ -457,7 +457,7 @@ describe("Core - DaoRegistry", () => {
         await registry.updateDelegateKey(memberA, delegateA);
 
         await expect(
-          registry.updateDelegateKey(delegateA, delegateA)
+          registry.updateDelegateKey(delegateA, delegateA),
         ).to.be.revertedWith("address already taken as delegated key");
       });
 
@@ -471,7 +471,7 @@ describe("Core - DaoRegistry", () => {
         await registry.updateDelegateKey(memberA, delegateA);
 
         expect(await registry.getAddressIfDelegated(delegateA)).to.be.equal(
-          memberA
+          memberA,
         );
       });
 
@@ -486,11 +486,11 @@ describe("Core - DaoRegistry", () => {
         await registry.updateDelegateKey(memberA, delegateA);
 
         expect(await registry.getAddressIfDelegated(delegateA)).to.be.equal(
-          memberA
+          memberA,
         );
 
         expect(await registry.getAddressIfDelegated(delegateB)).to.be.equal(
-          delegateB
+          delegateB,
         );
       });
 
@@ -504,7 +504,7 @@ describe("Core - DaoRegistry", () => {
         await registry.updateDelegateKey(memberA, delegateA);
 
         expect(await registry.getCurrentDelegateKey(memberA)).to.be.equal(
-          delegateA
+          delegateA,
         );
       });
 
@@ -517,7 +517,7 @@ describe("Core - DaoRegistry", () => {
 
         await registry.updateDelegateKey(memberA, delegateA);
         expect(await registry.getPreviousDelegateKey(memberA)).to.be.equal(
-          memberA
+          memberA,
         );
       });
 
@@ -531,15 +531,15 @@ describe("Core - DaoRegistry", () => {
 
         await registry.updateDelegateKey(memberA, delegateA);
         expect(await registry.getPreviousDelegateKey(memberA)).to.be.equal(
-          memberA
+          memberA,
         );
 
         await registry.updateDelegateKey(memberA, delegateB);
         expect(await registry.getPreviousDelegateKey(memberA)).to.be.equal(
-          delegateA
+          delegateA,
         );
         expect(await registry.getCurrentDelegateKey(memberA)).to.be.equal(
-          delegateB
+          delegateB,
         );
       });
     });
@@ -555,7 +555,7 @@ describe("Core - DaoRegistry", () => {
       await registry.updateDelegateKey(memberA, delegateA);
 
       expect(
-        await registry.getPriorDelegateKey(memberA, blockNumber)
+        await registry.getPriorDelegateKey(memberA, blockNumber),
       ).to.be.equal(memberA);
     });
 
@@ -575,7 +575,7 @@ describe("Core - DaoRegistry", () => {
       await advanceTime(2000);
 
       expect(
-        await registry.getPriorDelegateKey(memberA, blockNumber)
+        await registry.getPriorDelegateKey(memberA, blockNumber),
       ).to.be.equal(delegateA);
     });
 
@@ -590,7 +590,7 @@ describe("Core - DaoRegistry", () => {
       await registry.updateDelegateKey(memberA, delegateA);
 
       await expect(
-        registry.getPriorDelegateKey(memberA, blockNumber + 1)
+        registry.getPriorDelegateKey(memberA, blockNumber + 1),
       ).to.be.revertedWith("getPriorDelegateKey: NYD");
     });
   });
@@ -604,7 +604,7 @@ describe("Core - DaoRegistry", () => {
           dao.submitProposal(proposalId),
           "SubmittedProposal",
           "0x70726f706f73616c310000000000000000000000000000000000000000000000",
-          "1"
+          "1",
         );
         const proposal = await dao.proposals(proposalId);
         expect(proposal.adapterAddress).to.be.equal(owner); // owner sent the tx
@@ -627,7 +627,7 @@ describe("Core - DaoRegistry", () => {
         const proposalId = fromUtf8("proposal1");
         await dao.submitProposal(proposalId);
         await expect(dao.submitProposal(proposalId)).to.be.revertedWith(
-          "proposalId must be unique"
+          "proposalId must be unique",
         );
       });
     });
@@ -644,7 +644,7 @@ describe("Core - DaoRegistry", () => {
           "SponsoredProposal",
           "0x70726f706f73616c310000000000000000000000000000000000000000000000",
           "3", // Sponsored flag
-          fakeVotingAdapter
+          fakeVotingAdapter,
         );
         const proposal = await dao.proposals(proposalId);
         expect(proposal.adapterAddress).to.be.equal(owner); // owner sent the tx
@@ -666,7 +666,7 @@ describe("Core - DaoRegistry", () => {
         await dao.submitProposal(proposalId);
 
         await expect(
-          dao.sponsorProposal(proposalId, nonMember, fakeVotingAdapter)
+          dao.sponsorProposal(proposalId, nonMember, fakeVotingAdapter),
         ).to.be.revertedWith("onlyMember");
       });
 
@@ -683,7 +683,7 @@ describe("Core - DaoRegistry", () => {
           submitter,
           0,
           [],
-          []
+          [],
         );
 
         const proposalId = fromUtf8("proposal1");
@@ -694,7 +694,7 @@ describe("Core - DaoRegistry", () => {
         await expect(
           dao.sponsorProposal(proposalId, invalidSponsor, submitter, {
             from: invalidSponsor, // invalid sponsor attempts to sponsor that proposal
-          })
+          }),
         ).to.be.revertedWith("invalid adapter try to set flag");
       });
 
@@ -708,7 +708,7 @@ describe("Core - DaoRegistry", () => {
         await dao.processProposal(proposalId);
 
         await expect(
-          dao.sponsorProposal(proposalId, owner, fakeVotingAdapter)
+          dao.sponsorProposal(proposalId, owner, fakeVotingAdapter),
         ).to.be.revertedWith("flag already set");
       });
     });
@@ -725,7 +725,7 @@ describe("Core - DaoRegistry", () => {
           dao.processProposal(proposalId),
           "ProcessedProposal",
           "0x70726f706f73616c310000000000000000000000000000000000000000000000",
-          "7" // processed flag
+          "7", // processed flag
         );
 
         const proposal = await dao.proposals(proposalId);
@@ -749,7 +749,7 @@ describe("Core - DaoRegistry", () => {
         await dao.processProposal(proposalId);
 
         await expect(dao.processProposal(proposalId)).to.be.revertedWith(
-          "flag already set"
+          "flag already set",
         );
       });
     });
@@ -762,31 +762,31 @@ describe("Core - DaoRegistry", () => {
   describe("Access Control", async () => {
     it("should not be possible to call initialize more than once", async () => {
       await expect(this.dao.initialize(creator, owner)).to.be.revertedWith(
-        "dao already initialized"
+        "dao already initialized",
       );
     });
 
     it.skip("should not be possible to call finalizeDao if the sender is not an active member or an adapter", async () => {
       await expect(
-        txSigner(signers[2], this.dao).finalizeDao({ from: creator })
+        txSigner(signers[2], this.dao).finalizeDao({ from: creator }),
       ).to.be.revertedWith("not allowed to finalize");
     });
 
     it("should not be possible to call setConfiguration without the SET_CONFIGURATION permission", async () => {
       await expect(
-        this.dao.setConfiguration(sha3("config1"), 1)
+        this.dao.setConfiguration(sha3("config1"), 1),
       ).to.be.revertedWith("accessDenied");
     });
 
     it("should not be possible to call setAddressConfiguration without the SET_CONFIGURATION permission", async () => {
       await expect(
-        this.dao.setAddressConfiguration(sha3("config1"), DAI_TOKEN)
+        this.dao.setAddressConfiguration(sha3("config1"), DAI_TOKEN),
       ).to.be.revertedWith("accessDenied");
     });
 
     it("should not be possible to call replaceAdapter without the REPLACE_ADAPTER permission", async () => {
       await expect(
-        this.dao.replaceAdapter(sha3("adapter1"), accounts[2], 1, [], [])
+        this.dao.replaceAdapter(sha3("adapter1"), accounts[2], 1, [], []),
       ).to.be.revertedWith("accessDenied");
     });
 
@@ -794,50 +794,50 @@ describe("Core - DaoRegistry", () => {
       await expect(
         this.dao["addExtension(bytes32,address)"](
           sha3("extension1"),
-          accounts[2]
-        )
+          accounts[2],
+        ),
       ).to.be.revertedWith("accessDenied");
     });
 
     it("should not be possible to call removeExtension without the REMOVE_EXTENSION permission", async () => {
       await expect(
-        this.dao.removeExtension(sha3("extension1"))
+        this.dao.removeExtension(sha3("extension1")),
       ).to.be.revertedWith("accessDenied");
     });
 
     it("should not be possible to call setAclToExtensionForAdapter without the ADD_EXTENSION permission", async () => {
       await expect(
-        this.dao.setAclToExtensionForAdapter(accounts[2], accounts[3], 1)
+        this.dao.setAclToExtensionForAdapter(accounts[2], accounts[3], 1),
       ).to.be.revertedWith("accessDenied");
     });
 
     it("should not be possible to call submitProposal without the SUBMIT_PROPOSAL permission", async () => {
       await expect(
-        this.dao.submitProposal(sha3(fromUtf8("proposal1")))
+        this.dao.submitProposal(sha3(fromUtf8("proposal1"))),
       ).to.be.revertedWith("accessDenied");
     });
 
     it("should not be possible to call jailMember without the JAIL_MEMBER permission", async () => {
       await expect(this.dao.jailMember(owner)).to.be.revertedWith(
-        "accessDenied"
+        "accessDenied",
       );
     });
 
     it("should not be possible to call unjailMember without the JAIL_MEMBER permission", async () => {
       await expect(this.dao.unjailMember(owner)).to.be.revertedWith(
-        "accessDenied"
+        "accessDenied",
       );
     });
 
     it("should not be possible to call potentialNewMember without the NEW_MEMBER permission", async () => {
       await expect(this.dao.potentialNewMember(owner)).to.be.revertedWith(
-        "accessDenied"
+        "accessDenied",
       );
     });
 
     it("should not be possible to call updateDelegateKey without the UPDATE_DELEGATE_KEY permission", async () => {
       await expect(
-        this.dao.updateDelegateKey(owner, accounts[2])
+        this.dao.updateDelegateKey(owner, accounts[2]),
       ).to.be.revertedWith("accessDenied");
     });
 
@@ -853,7 +853,7 @@ describe("Core - DaoRegistry", () => {
           from: accounts[0],
           gasPrice: toBN("0"),
           value: toWei("1"),
-        })
+        }),
       ).to.be.revertedWith("revert");
     });
 
@@ -866,7 +866,7 @@ describe("Core - DaoRegistry", () => {
           gasPrice: toBN("0"),
           value: toWei("1"),
           data: fromAscii("should go to fallback func"),
-        })
+        }),
       ).to.be.revertedWith("revert");
     });
   });

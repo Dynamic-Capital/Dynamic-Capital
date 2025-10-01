@@ -15,4 +15,5 @@ $$\text{ATR} = \text{EMA}(\text{TR}).$$
 
 ## Notes
 
-ATR informs risk controls $u_t$ (position sizing) and outputs volatility dashboards.
+ATR informs risk controls $u_t$ (position sizing) and outputs volatility
+dashboards.

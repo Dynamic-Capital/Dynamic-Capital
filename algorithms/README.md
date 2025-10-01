@@ -1,7 +1,7 @@
 # Algorithm Development Workspace
 
-This directory tree groups together all source code and artifacts required for the
-TradingView → Vercel → Supabase → MetaTrader 5 automation pipeline. Each
+This directory tree groups together all source code and artifacts required for
+the TradingView → Vercel → Supabase → MetaTrader 5 automation pipeline. Each
 sub-folder is intentionally scoped so that strategy builders, automation
 engineers, and QA can collaborate without stepping on each other's toes.
 
@@ -32,6 +32,6 @@ remain in the top-level `supabase/` directory.
   `MarketSnapshot` objects so the Python trading stack and live logic consume
   the same market feed used by the product surfaces.
 
-To enable Grok feedback in a live service, instantiate a completion client
-(e.g. wrapping the local `grok-1` `InferenceRunner`) and pass a configured
+To enable Grok feedback in a live service, instantiate a completion client (e.g.
+wrapping the local `grok-1` `InferenceRunner`) and pass a configured
 `GrokAdvisor` instance into `RealtimeExecutor`.

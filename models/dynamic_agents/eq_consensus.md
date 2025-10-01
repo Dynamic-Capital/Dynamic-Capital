@@ -4,7 +4,8 @@
 
 ## Overview
 
-Average consensus pushes local states toward neighborhood means using a shared step size.
+Average consensus pushes local states toward neighborhood means using a shared
+step size.
 
 ## Dynamics
 
@@ -13,7 +14,8 @@ $$x_i(k+1) = x_i(k) + \alpha \sum_{j \in \mathcal{N}(i)} \big( x_j(k) - x_i(k) \
 
 ## Parameters
 
-- $\alpha$ — consensus gain in $\theta$; select $0 < \alpha < 1/\Delta$ where $\Delta$ is the maximum node degree to ensure stability.
+- $\alpha$ — consensus gain in $\theta$; select $0 < \alpha < 1/\Delta$ where
+  $\Delta$ is the maximum node degree to ensure stability.
 - $\mathcal{N}(i)$ — neighborhood defined by the communication graph.
 
 ## Meta-Model Mapping
@@ -24,4 +26,5 @@ $$x_i(k+1) = x_i(k) + \alpha \sum_{j \in \mathcal{N}(i)} \big( x_j(k) - x_i(k) \
 
 ## Notes
 
-Consensus residuals provide natural convergence metrics for $y_t$ and feed loss terms $\ell(y_t, u_t)$ measuring disagreement.
+Consensus residuals provide natural convergence metrics for $y_t$ and feed loss
+terms $\ell(y_t, u_t)$ measuring disagreement.

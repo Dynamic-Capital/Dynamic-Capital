@@ -99,7 +99,7 @@ describe("Adapter - ERC1271", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     await voting.submitVote(this.dao.address, proposalId, 1, {
@@ -112,7 +112,7 @@ describe("Adapter - ERC1271", () => {
       signatures.processProposal(this.dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("proposal needs to pass");
 
     await advanceTime(10000);
@@ -125,7 +125,7 @@ describe("Adapter - ERC1271", () => {
       erc1271,
       arbitraryMsgHash,
       arbitrarySignature,
-      magicValue
+      magicValue,
     );
   });
 
@@ -147,7 +147,7 @@ describe("Adapter - ERC1271", () => {
       {
         from: daoOwner,
         gasPrice: toBN("0"),
-      }
+      },
     );
 
     //Member votes on the signature proposal
@@ -162,11 +162,11 @@ describe("Adapter - ERC1271", () => {
       signatures.processProposal(this.dao.address, proposalId, {
         from: daoOwner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("proposal needs to pass");
 
     await expect(
-      erc1271.isValidSignature(arbitraryMsgHash, arbitrarySignature)
+      erc1271.isValidSignature(arbitraryMsgHash, arbitrarySignature),
     ).to.be.revertedWith("erc1271::invalid signature");
   });
 
@@ -178,7 +178,7 @@ describe("Adapter - ERC1271", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -191,7 +191,7 @@ describe("Adapter - ERC1271", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

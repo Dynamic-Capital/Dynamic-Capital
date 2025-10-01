@@ -12,5 +12,6 @@ $$A_{\text{parallel}} = 1 - \prod_i (1 - A_i).$$
 
 ## Notes
 
-- Redundant replicas appear in state $x_t$; controls toggle capacity allocations.
+- Redundant replicas appear in state $x_t$; controls toggle capacity
+  allocations.
 - Logging modules use $A_{\text{parallel}}$ to verify SLO compliance.

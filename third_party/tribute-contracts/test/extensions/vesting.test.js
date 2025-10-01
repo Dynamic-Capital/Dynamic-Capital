@@ -73,7 +73,7 @@ describe("Extension - Vesting", () => {
   describe("Factory", async () => {
     it("should be possible to create an extension using the factory", async () => {
       const { logs } = await this.factories.vestingExtFactory.create(
-        this.dao.address
+        this.dao.address,
       );
       const log = logs[0];
       expect(log.event).to.be.equal("InternalTokenVestingExtensionCreated");
@@ -83,17 +83,17 @@ describe("Extension - Vesting", () => {
 
     it("should be possible to get an extension address by dao", async () => {
       await this.factories.vestingExtFactory.create(this.dao.address);
-      const extAddress =
-        await this.factories.vestingExtFactory.getExtensionAddress(
-          this.dao.address
+      const extAddress = await this.factories.vestingExtFactory
+        .getExtensionAddress(
+          this.dao.address,
         );
       expect(extAddress).to.not.be.equal(ZERO_ADDRESS);
     });
 
     it("should return zero address if there is no extension address by dao", async () => {
       const daoAddress = accounts[2];
-      const extAddress =
-        await this.factories.vestingExtFactory.getExtensionAddress(daoAddress);
+      const extAddress = await this.factories.vestingExtFactory
+        .getExtensionAddress(daoAddress);
       expect(extAddress).to.be.equal(ZERO_ADDRESS);
     });
 
@@ -107,7 +107,7 @@ describe("Extension - Vesting", () => {
     it("should not be possible to call initialize more than once", async () => {
       const extension = this.extensions.vestingExt;
       await expect(
-        extension.initialize(this.dao.address, daoOwner)
+        extension.initialize(this.dao.address, daoOwner),
       ).to.be.revertedWith("already initialized");
     });
 
@@ -128,8 +128,8 @@ describe("Extension - Vesting", () => {
           daoOwner,
           UNITS,
           100,
-          Math.floor(now.getTime() / 1000)
-        )
+          Math.floor(now.getTime() / 1000),
+        ),
       ).to.be.revertedWith("vestingExt::accessDenied");
     });
 
@@ -138,7 +138,7 @@ describe("Extension - Vesting", () => {
       await this.dao.finalizeDao({ from: daoOwner });
       const vesting = this.extensions.vestingExt;
       await expect(
-        vesting.removeVesting(this.dao.address, daoOwner, UNITS, 100)
+        vesting.removeVesting(this.dao.address, daoOwner, UNITS, 100),
       ).to.be.revertedWith("vestingExt::accessDenied");
     });
   });
@@ -158,7 +158,7 @@ describe("Extension - Vesting", () => {
       UNITS,
       1000,
       Math.floor(now.getTime() / 1000),
-      { from: daoOwner }
+      { from: daoOwner },
     );
 
     const v = await vesting.vesting(daoOwner, UNITS);
@@ -195,7 +195,7 @@ describe("Extension - Vesting", () => {
       UNITS,
       100,
       Math.floor(now.getTime() / 1000),
-      { from: daoOwner }
+      { from: daoOwner },
     );
 
     let v = await vesting.vesting(daoOwner, UNITS);
@@ -216,7 +216,7 @@ describe("Extension - Vesting", () => {
       UNITS,
       100,
       Math.floor(now.getTime() / 1000),
-      { from: daoOwner }
+      { from: daoOwner },
     );
 
     v = await vesting.vesting(daoOwner, UNITS);
@@ -252,7 +252,7 @@ describe("Extension - Vesting", () => {
       UNITS,
       100,
       Math.floor(now.getTime() / 1000),
-      { from: daoOwner }
+      { from: daoOwner },
     );
 
     let v = await vesting.vesting(daoOwner, UNITS);
@@ -273,7 +273,7 @@ describe("Extension - Vesting", () => {
       UNITS,
       100,
       Math.floor(now.getTime() / 1000),
-      { from: daoOwner }
+      { from: daoOwner },
     );
 
     v = await vesting.vesting(daoOwner, UNITS);

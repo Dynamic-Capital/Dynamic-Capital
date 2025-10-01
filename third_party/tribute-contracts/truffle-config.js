@@ -7,11 +7,13 @@ require("ts-node").register({
 const getNetworkProvider = () => {
   const HDWalletProvider = require("@truffle/hdwallet-provider");
 
-  if (!process.env.WALLET_MNEMONIC)
+  if (!process.env.WALLET_MNEMONIC) {
     throw Error("Missing environment variable: WALLET_MNEMONIC");
+  }
 
-  if (!process.env.ETH_NODE_URL)
+  if (!process.env.ETH_NODE_URL) {
     throw Error("Missing environment variable: ETH_NODE_URL");
+  }
 
   return new HDWalletProvider({
     mnemonic: {

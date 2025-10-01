@@ -86,7 +86,7 @@ describe("Adapter - Coupon Onboarding", () => {
     const bank = this.extensions.bankExt;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-onboarding.signerAddress")
+      sha3("coupon-onboarding.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -103,11 +103,11 @@ describe("Adapter - Coupon Onboarding", () => {
       couponData,
       dao.address,
       couponOnboarding.address,
-      chainId
+      chainId,
     );
     let solHash = await couponOnboarding.hashCouponMessage(
       dao.address,
-      couponData
+      couponData,
     );
     expect(jsHash).equal(solHash);
 
@@ -115,7 +115,7 @@ describe("Adapter - Coupon Onboarding", () => {
       couponData,
       dao.address,
       couponOnboarding.address,
-      chainId
+      chainId,
     );
 
     let balance = await bank.balanceOf(otherAccount, UNITS);
@@ -126,7 +126,7 @@ describe("Adapter - Coupon Onboarding", () => {
       otherAccount,
       10,
       1,
-      signature
+      signature,
     );
 
     const daoOwnerUnits = await bank.balanceOf(daoOwner, UNITS);
@@ -147,7 +147,7 @@ describe("Adapter - Coupon Onboarding", () => {
     const bank = this.extensions.bankExt;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-onboarding.signerAddress")
+      sha3("coupon-onboarding.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -164,20 +164,20 @@ describe("Adapter - Coupon Onboarding", () => {
       couponData,
       dao.address,
       couponOnboarding.address,
-      1
+      1,
     );
 
     var signature = signerUtil(
       couponData,
       dao.address,
       couponOnboarding.address,
-      1
+      1,
     );
 
     const isValid = await couponOnboarding.isValidSignature(
       signer.address,
       jsHash,
-      signature
+      signature,
     );
 
     expect(isValid).equal(true);
@@ -191,8 +191,8 @@ describe("Adapter - Coupon Onboarding", () => {
         otherAccount,
         100,
         1,
-        signature
-      )
+        signature,
+      ),
     ).to.be.revertedWith("invalid sig");
 
     const daoOwnerUnits = await bank.balanceOf(daoOwner, UNITS);
@@ -213,7 +213,7 @@ describe("Adapter - Coupon Onboarding", () => {
     const bank = this.extensions.bankExt;
 
     let signerAddr = await dao.getAddressConfiguration(
-      sha3("coupon-onboarding.signerAddress")
+      sha3("coupon-onboarding.signerAddress"),
     );
     expect(signerAddr).equal(signer.address);
 
@@ -230,20 +230,20 @@ describe("Adapter - Coupon Onboarding", () => {
       couponData,
       dao.address,
       couponOnboarding.address,
-      1
+      1,
     );
 
     var signature = signerUtil(
       couponData,
       dao.address,
       couponOnboarding.address,
-      1
+      1,
     );
 
     const isValid = await couponOnboarding.isValidSignature(
       signer.address,
       jsHash,
-      signature
+      signature,
     );
 
     expect(isValid).equal(true);
@@ -251,7 +251,7 @@ describe("Adapter - Coupon Onboarding", () => {
     expect(balance.toString()).equal("0");
 
     await expect(
-      couponOnboarding.redeemCoupon(dao.address, daoOwner, 10, 1, signature)
+      couponOnboarding.redeemCoupon(dao.address, daoOwner, 10, 1, signature),
     ).to.be.revertedWith("invalid sig");
 
     const daoOwnerUnits = await bank.balanceOf(daoOwner, UNITS);
@@ -271,7 +271,7 @@ describe("Adapter - Coupon Onboarding", () => {
         from: daoOwner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -284,7 +284,7 @@ describe("Adapter - Coupon Onboarding", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

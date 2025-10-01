@@ -92,7 +92,7 @@ describe("Adapter - Configuration", () => {
         },
       ],
       [],
-      { from: owner, gasPrice: toBN("0") }
+      { from: owner, gasPrice: toBN("0") },
     );
 
     let value = await dao.getConfiguration(key);
@@ -141,7 +141,7 @@ describe("Adapter - Configuration", () => {
         },
       ],
       [],
-      { from: owner, gasPrice: toBN("0") }
+      { from: owner, gasPrice: toBN("0") },
     );
 
     let value1 = await dao.getConfiguration(key1);
@@ -187,7 +187,7 @@ describe("Adapter - Configuration", () => {
         },
       ],
       [],
-      { from: owner, gasPrice: toBN("0") }
+      { from: owner, gasPrice: toBN("0") },
     );
 
     let value = await dao.getAddressConfiguration(key);
@@ -236,7 +236,7 @@ describe("Adapter - Configuration", () => {
         },
       ],
       [],
-      { from: owner, gasPrice: toBN("0") }
+      { from: owner, gasPrice: toBN("0") },
     );
 
     let value1 = await dao.getAddressConfiguration(key1);
@@ -269,7 +269,7 @@ describe("Adapter - Configuration", () => {
       configuration.submitProposal(dao.address, "0x1", [], [], {
         from: owner,
         gasPrice: toBN("0"),
-      })
+      }),
     ).to.be.revertedWith("missing configs");
   });
 
@@ -301,7 +301,7 @@ describe("Adapter - Configuration", () => {
         },
       ],
       [],
-      { from: owner, gasPrice: toBN("0") }
+      { from: owner, gasPrice: toBN("0") },
     );
 
     let value = await dao.getConfiguration(key1);
@@ -349,7 +349,7 @@ describe("Adapter - Configuration", () => {
         },
       ],
       [],
-      { from: owner, gasPrice: toBN("0") }
+      { from: owner, gasPrice: toBN("0") },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -380,7 +380,7 @@ describe("Adapter - Configuration", () => {
         },
       ],
       [],
-      { from: owner, gasPrice: toBN("0") }
+      { from: owner, gasPrice: toBN("0") },
     );
 
     await voting.submitVote(dao.address, proposalIdB, 1, {
@@ -420,7 +420,7 @@ describe("Adapter - Configuration", () => {
         },
       ],
       [],
-      { from: owner, gasPrice: toBN("0") }
+      { from: owner, gasPrice: toBN("0") },
     );
 
     await voting.submitVote(dao.address, proposalId, 1, {
@@ -452,7 +452,7 @@ describe("Adapter - Configuration", () => {
         },
       ],
       [],
-      { from: owner, gasPrice: toBN("0") }
+      { from: owner, gasPrice: toBN("0") },
     );
 
     await voting.submitVote(dao.address, proposalIdB, 1, {
@@ -478,7 +478,7 @@ describe("Adapter - Configuration", () => {
         from: owner,
         gasPrice: toBN("0"),
         value: toWei("1"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -491,7 +491,7 @@ describe("Adapter - Configuration", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 
@@ -504,7 +504,7 @@ describe("Adapter - Configuration", () => {
         gasPrice: toBN("0"),
         value: toWei("1"),
         data: fromAscii("should go to fallback func"),
-      })
+      }),
     ).to.be.revertedWith("revert");
   });
 });

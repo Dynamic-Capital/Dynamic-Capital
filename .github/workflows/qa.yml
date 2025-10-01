@@ -3,7 +3,7 @@ name: QA Pack
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deno-tests:

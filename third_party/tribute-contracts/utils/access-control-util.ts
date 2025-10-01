@@ -14,7 +14,7 @@ export type SelectedACLs = {
 
 export type ACLBuilder = (
   contractAddress: string,
-  acls: SelectedACLs
+  acls: SelectedACLs,
 ) => ACLValue;
 
 export const daoAccessFlagsMap: Record<string, string> = {
@@ -25,7 +25,7 @@ export const daoAccessFlagsMap: Record<string, string> = {
   ADD_EXTENSION: "ADD_EXTENSION",
   REMOVE_EXTENSION: "REMOVE_EXTENSION",
   NEW_MEMBER: "NEW_MEMBER",
-  JAIL_MEMBER: "JAIL_MEMBER"
+  JAIL_MEMBER: "JAIL_MEMBER",
 };
 
 export const daoAccessFlags: Array<string> = Object.values(daoAccessFlagsMap);
@@ -41,13 +41,13 @@ export const bankExtensionAclFlagsMap: Record<string, string> = {
 };
 
 export const bankExtensionAclFlags: Array<string> = Object.values(
-  bankExtensionAclFlagsMap
+  bankExtensionAclFlagsMap,
 );
 
 export const erc20ExtensionAclFlagsMap: Record<string, string> = {};
 
 export const erc20ExtensionAclFlags: Array<string> = Object.values(
-  erc20ExtensionAclFlagsMap
+  erc20ExtensionAclFlagsMap,
 );
 
 export const erc721ExtensionAclFlagsMap: Record<string, string> = {
@@ -57,7 +57,7 @@ export const erc721ExtensionAclFlagsMap: Record<string, string> = {
 };
 
 export const erc721ExtensionAclFlags: Array<string> = Object.values(
-  erc721ExtensionAclFlagsMap
+  erc721ExtensionAclFlagsMap,
 );
 
 export const erc1155ExtensionAclFlagsMap: Record<string, string> = {
@@ -67,7 +67,7 @@ export const erc1155ExtensionAclFlagsMap: Record<string, string> = {
 };
 
 export const erc1155ExtensionAclFlags: Array<string> = Object.values(
-  erc1155ExtensionAclFlagsMap
+  erc1155ExtensionAclFlagsMap,
 );
 
 export const erc1271ExtensionAclFlagsMap: Record<string, string> = {
@@ -75,7 +75,7 @@ export const erc1271ExtensionAclFlagsMap: Record<string, string> = {
 };
 
 export const erc1271ExtensionAclFlags: Array<string> = Object.values(
-  erc1271ExtensionAclFlagsMap
+  erc1271ExtensionAclFlagsMap,
 );
 
 export const executorExtensionAclFlagsMap: Record<string, string> = {
@@ -83,7 +83,7 @@ export const executorExtensionAclFlagsMap: Record<string, string> = {
 };
 
 export const executorExtensionAclFlags: Array<string> = Object.values(
-  executorExtensionAclFlagsMap
+  executorExtensionAclFlagsMap,
 );
 
 export const vestingExtensionAclFlagsMap: Record<string, string> = {
@@ -92,13 +92,13 @@ export const vestingExtensionAclFlagsMap: Record<string, string> = {
 };
 
 export const vestingExtensionAclFlags: Array<string> = Object.values(
-  vestingExtensionAclFlagsMap
+  vestingExtensionAclFlagsMap,
 );
 
 export const parseSelectedFlags = (
   allAclFlags: Array<string>,
   selectedFlags: Array<string>,
-  moduleName: string
+  moduleName: string,
 ): Record<string, boolean> => {
   return selectedFlags
     .map((f) => f.toUpperCase())
@@ -112,92 +112,92 @@ export const parseSelectedFlags = (
 
 export const entryERC721 = (
   contractAddress: string,
-  selectedAcls: SelectedACLs
+  selectedAcls: SelectedACLs,
 ): ACLValue => {
   return getEnabledExtensionFlags(
     erc721ExtensionAclFlags,
     extensionsIdsMap.ERC721_EXT,
     contractAddress,
-    selectedAcls
+    selectedAcls,
   );
 };
 
 export const entryERC1155 = (
   contractAddress: string,
-  selectedAcls: SelectedACLs
+  selectedAcls: SelectedACLs,
 ): ACLValue => {
   return getEnabledExtensionFlags(
     erc1155ExtensionAclFlags,
     extensionsIdsMap.ERC1155_EXT,
     contractAddress,
-    selectedAcls
+    selectedAcls,
   );
 };
 
 export const entryERC20 = (
   contractAddress: string,
-  selectedAcls: SelectedACLs
+  selectedAcls: SelectedACLs,
 ): ACLValue => {
   return getEnabledExtensionFlags(
     erc20ExtensionAclFlags,
     extensionsIdsMap.ERC20_EXT,
     contractAddress,
-    selectedAcls
+    selectedAcls,
   );
 };
 
 export const entryBank = (
   contractAddress: string,
-  selectedAcls: SelectedACLs
+  selectedAcls: SelectedACLs,
 ): ACLValue => {
   return getEnabledExtensionFlags(
     bankExtensionAclFlags,
     extensionsIdsMap.BANK_EXT,
     contractAddress,
-    selectedAcls
+    selectedAcls,
   );
 };
 
 export const entryERC1271 = (
   contractAddress: string,
-  selectedAcls: SelectedACLs
+  selectedAcls: SelectedACLs,
 ): ACLValue => {
   return getEnabledExtensionFlags(
     erc1271ExtensionAclFlags,
     extensionsIdsMap.ERC1271_EXT,
     contractAddress,
-    selectedAcls
+    selectedAcls,
   );
 };
 
 export const entryExecutor = (
   contractAddress: string,
-  selectedAcls: SelectedACLs
+  selectedAcls: SelectedACLs,
 ): ACLValue => {
   return getEnabledExtensionFlags(
     executorExtensionAclFlags,
     extensionsIdsMap.EXECUTOR_EXT,
     contractAddress,
-    selectedAcls
+    selectedAcls,
   );
 };
 
 export const entryVesting = (
   contractAddress: string,
-  selectedAcls: SelectedACLs
+  selectedAcls: SelectedACLs,
 ): ACLValue => {
   return getEnabledExtensionFlags(
     vestingExtensionAclFlags,
     extensionsIdsMap.VESTING_EXT,
     contractAddress,
-    selectedAcls
+    selectedAcls,
   );
 };
 
 export const entryDao = (
   contractId: string,
   contractAddress: string,
-  selectedAcls: SelectedACLs
+  selectedAcls: SelectedACLs,
 ): ACLValue => {
   const flags = daoAccessFlags.flatMap((flag) => {
     return selectedAcls.dao.some((f) => f === flag);
@@ -214,7 +214,7 @@ export const getEnabledExtensionFlags = (
   acls: Array<string>,
   extensionId: string,
   contractAddress: string,
-  selectedAcls: SelectedACLs
+  selectedAcls: SelectedACLs,
 ): ACLValue => {
   const enabledFlags = acls.flatMap((flag: string) => {
     const extensionsAcls = selectedAcls.extensions;

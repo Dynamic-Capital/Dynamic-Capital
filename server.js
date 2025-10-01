@@ -12,10 +12,9 @@ import {
 
 const port = process.env.PORT || 3000;
 const moduleDir = dirname(fileURLToPath(import.meta.url));
-const configuredStaticRootValue =
-  typeof process.env.STATIC_ROOT === "string"
-    ? process.env.STATIC_ROOT.trim()
-    : undefined;
+const configuredStaticRootValue = typeof process.env.STATIC_ROOT === "string"
+  ? process.env.STATIC_ROOT.trim()
+  : undefined;
 
 function resolveConfiguredStaticRoot(raw) {
   if (!raw) return undefined;
@@ -81,7 +80,10 @@ addCandidateStaticRoot(
   findNearestStaticRoot(process.cwd()),
   "nearest _static relative to process.cwd()",
 );
-addCandidateStaticRoot(join(moduleDir, "_static"), "server.js/_static fallback");
+addCandidateStaticRoot(
+  join(moduleDir, "_static"),
+  "server.js/_static fallback",
+);
 addCandidateStaticRoot(
   resolve(process.cwd(), "_static"),
   "process.cwd()/_static fallback",

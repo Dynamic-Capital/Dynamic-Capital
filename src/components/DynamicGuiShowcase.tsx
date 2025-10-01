@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
@@ -129,7 +129,8 @@ const WORKFLOW_STEPS: WorkflowStep[] = [
       "Uploads stored with instant compliance checks",
       "Telegram mini app mirrors the same step in real time",
     ],
-    tip: "Desk members can pause and resume the intake from any device without losing progress.",
+    tip:
+      "Desk members can pause and resume the intake from any device without losing progress.",
   },
   {
     id: "routing",
@@ -143,7 +144,8 @@ const WORKFLOW_STEPS: WorkflowStep[] = [
       "Auto-generated payment instructions with QR & deep links",
       "Escalation lane pre-configured for high-touch clients",
     ],
-    tip: "Switch rails on the fly—Dynamic Capital recalculates fees and compliance checks instantly.",
+    tip:
+      "Switch rails on the fly—Dynamic Capital recalculates fees and compliance checks instantly.",
   },
   {
     id: "review",
@@ -157,7 +159,8 @@ const WORKFLOW_STEPS: WorkflowStep[] = [
       "Two-click escalation to senior desk operators",
       "Immutable audit trail exported to your vault",
     ],
-    tip: "Approvals push straight to the trading room so clients can deploy capital immediately.",
+    tip:
+      "Approvals push straight to the trading room so clients can deploy capital immediately.",
   },
 ];
 
@@ -209,7 +212,8 @@ export function DynamicGuiShowcase() {
   }, []);
 
   const selectedPlan = useMemo(
-    () => PLAN_PRESETS.find((plan) => plan.id === activePlanId) ?? PLAN_PRESETS[0],
+    () =>
+      PLAN_PRESETS.find((plan) => plan.id === activePlanId) ?? PLAN_PRESETS[0],
     [activePlanId],
   );
 
@@ -375,9 +379,9 @@ export function DynamicGuiShowcase() {
                     type="button"
                     onClick={() => setActivePlanId(plan.id)}
                     gap="12"
-                    background={
-                      isActive ? "brand-alpha-strong" : "neutral-alpha-weak"
-                    }
+                    background={isActive
+                      ? "brand-alpha-strong"
+                      : "neutral-alpha-weak"}
                     border={isActive ? "brand-medium" : "neutral-alpha-weak"}
                     radius="l"
                     paddingX="20"
@@ -391,9 +395,9 @@ export function DynamicGuiShowcase() {
                     <Row gap="8" vertical="center">
                       <Icon
                         name={plan.icon}
-                        onBackground={
-                          isActive ? "brand-strong" : "brand-medium"
-                        }
+                        onBackground={isActive
+                          ? "brand-strong"
+                          : "brand-medium"}
                       />
                       <Column gap="4" horizontal="start">
                         <Text variant="label-strong-s" align="left">
@@ -401,9 +405,9 @@ export function DynamicGuiShowcase() {
                         </Text>
                         <Text
                           variant="label-default-s"
-                          onBackground={
-                            isActive ? "neutral-strong" : "neutral-weak"
-                          }
+                          onBackground={isActive
+                            ? "neutral-strong"
+                            : "neutral-weak"}
                           align="left"
                         >
                           {plan.focus}
@@ -475,8 +479,8 @@ export function DynamicGuiShowcase() {
                 align="center"
                 wrap="balance"
               >
-                Every step is orchestrated inside the Dynamic GUI. Tap a stage to
-                see how the workspace responds in real time.
+                Every step is orchestrated inside the Dynamic GUI. Tap a stage
+                to see how the workspace responds in real time.
               </Text>
             </Column>
 
@@ -491,9 +495,9 @@ export function DynamicGuiShowcase() {
                     type="button"
                     onClick={() => setActiveStepIndex(index)}
                     gap="12"
-                    background={
-                      isActive ? "brand-alpha-strong" : "neutral-alpha-weak"
-                    }
+                    background={isActive
+                      ? "brand-alpha-strong"
+                      : "neutral-alpha-weak"}
                     border={isActive ? "brand-medium" : "neutral-alpha-weak"}
                     radius="l"
                     paddingX="20"
@@ -507,9 +511,9 @@ export function DynamicGuiShowcase() {
                     <Row gap="8" vertical="center">
                       <Icon
                         name={step.icon}
-                        onBackground={
-                          isActive ? "brand-strong" : "brand-medium"
-                        }
+                        onBackground={isActive
+                          ? "brand-strong"
+                          : "brand-medium"}
                       />
                       <Column gap="4" horizontal="start">
                         <Text variant="label-strong-s" align="left">
@@ -517,9 +521,9 @@ export function DynamicGuiShowcase() {
                         </Text>
                         <Text
                           variant="label-default-s"
-                          onBackground={
-                            isActive ? "neutral-strong" : "neutral-weak"
-                          }
+                          onBackground={isActive
+                            ? "neutral-strong"
+                            : "neutral-weak"}
                           align="left"
                         >
                           {step.short}

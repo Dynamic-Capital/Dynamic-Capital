@@ -11,9 +11,11 @@ Models item hit probability under the independent reference model.
 $$h_i = 1 - \exp(-\lambda_i T_C).$$
 
 - $\lambda_i$ — request rate for item $i$ (disturbance $\xi_t$).
-- $T_C$ — characteristic time determined from cache capacity constraint $\sum_i h_i \le C$.
+- $T_C$ — characteristic time determined from cache capacity constraint
+  $\sum_i h_i \le C$.
 
 ## Notes
 
 - Solve for $T_C$ numerically to satisfy capacity in the control loop.
-- Hit rates drive cache efficiency metrics in $y_t$ and penalty terms in $\ell(y_t, u_t)$.
+- Hit rates drive cache efficiency metrics in $y_t$ and penalty terms in
+  $\ell(y_t, u_t)$.

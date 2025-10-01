@@ -2,15 +2,19 @@
 
 ### 1. Clone tribute-contracts repository
 
-Make sure you are using branch `release-v2.4.0`. This is the branch that contains the latest contracts.
+Make sure you are using branch `release-v2.4.0`. This is the branch that
+contains the latest contracts.
 
-- > cd tribute-contracts
-- > git fetch origin release-v2.4.0
-- > git checkout release-v2.4.0
+- cd tribute-contracts
+- git fetch origin release-v2.4.0
+- git checkout release-v2.4.0
 
 ### 2. Set the env vars
 
-In the root of `tribute-contracts` folder create a .env file. This file will contain all the environment variables required by the deployment script. Most of these variables are configurations that are applied to the DAO contracts during the deployment. Please use the following template:
+In the root of `tribute-contracts` folder create a .env file. This file will
+contain all the environment variables required by the deployment script. Most of
+these variables are configurations that are applied to the DAO contracts during
+the deployment. Please use the following template:
 
 ```
 ######################## Tribute Contracts env vars ########################
@@ -55,28 +59,30 @@ KYC_COUPON_CREATOR_ADDR=0x...
 
 ### 3. Installing the dependencies and deploying the contracts
 
-With the environment variables ready, we can install the project dependencies and start the deployment process.
+With the environment variables ready, we can install the project dependencies
+and start the deployment process.
 
 Using NodeJS v16.x, run:
 
-- > npm run build
+- npm run build
 
 In another terminal window you can launch ganache:
 
-- > npm run ganache
+- npm run ganache
 
 Finally deploy the contracts to ganache network:
 
-- > npm run deploy ganache
+- npm run deploy ganache
 
 ### 4. Set the tribute-ui environment variables
 
-After all contracts are deployed it is time to prepare the dApp, so it can interact with the DAO.
+After all contracts are deployed it is time to prepare the dApp, so it can
+interact with the DAO.
 
-In the same `.env` file created under the `tribute-contracts` folder, add the following environment variables:
+In the same `.env` file created under the `tribute-contracts` folder, add the
+following environment variables:
 
 ```
-
 ######################## Tribute UI env vars ########################
 
 # Enable Ganache network for Tribute UI
@@ -97,29 +103,32 @@ REACT_APP_MULTICALL_CONTRACT_ADDRESS=0x...
 REACT_APP_DAO_REGISTRY_CONTRACT_ADDRESS=0x...
 ```
 
-Make sure you have set the correct addresses for `REACT_APP_MULTICALL_CONTRACT_ADDRESS` & `REACT_APP_DAO_REGISTRY_CONTRACT_ADDRESS`.
+Make sure you have set the correct addresses for
+`REACT_APP_MULTICALL_CONTRACT_ADDRESS` &
+`REACT_APP_DAO_REGISTRY_CONTRACT_ADDRESS`.
 
 ### 5. Launching your DAO
 
-The contracts were deployed and the configurations were prepared, now it is time to spin up the DAO using docker-compose.
+The contracts were deployed and the configurations were prepared, now it is time
+to spin up the DAO using docker-compose.
 
 From the `tribute-contracts/docker` folder, run:
 
-- > docker-compose up
+- docker-compose up
 
 Wait for the following output:
 
 ```
-   trib-ui              | Compiled successfully!
-   trib-ui              |
-   trib-ui              | You can now view tribute-ui in the browser.
-   trib-ui              |
-   trib-ui              |   Local:            http://localhost:3000
-   trib-ui              |   On Your Network:  http://a.b.c.d:3000
-   trib-ui              |
-   trib-ui              | Note that the development build is not optimized.
-   trib-ui              | To create a production build, use npm run build.
-   ...
+trib-ui              | Compiled successfully!
+trib-ui              |
+trib-ui              | You can now view tribute-ui in the browser.
+trib-ui              |
+trib-ui              |   Local:            http://localhost:3000
+trib-ui              |   On Your Network:  http://a.b.c.d:3000
+trib-ui              |
+trib-ui              | Note that the development build is not optimized.
+trib-ui              | To create a production build, use npm run build.
+...
 ```
 
 Done. Your DAO was launched! You can access it at http://localhost:3000

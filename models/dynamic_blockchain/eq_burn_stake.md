@@ -1,6 +1,7 @@
 # Effective Stake with Burns
 
-**Modules:** `dynamic_blockchain`, `dynamic_proof_of_burn`, `dynamic_stake`, `dynamic_token`
+**Modules:** `dynamic_blockchain`, `dynamic_proof_of_burn`, `dynamic_stake`,
+`dynamic_token`
 
 ## Overview
 
@@ -16,4 +17,5 @@ $$s_i' = s_i + \beta b_i$$
 
 ## Notes
 
-The updated stake $s_i'$ feeds downstream PoS selection probabilities and staking APY computations.
+The updated stake $s_i'$ feeds downstream PoS selection probabilities and
+staking APY computations.

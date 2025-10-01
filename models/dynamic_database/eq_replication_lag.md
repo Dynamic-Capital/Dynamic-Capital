@@ -15,5 +15,6 @@ $$\dot{\ell} = \lambda_w - \mu_r.$$
 
 ## Notes
 
-- Integrate to compute lag $\ell$; enforce $\ell \le \ell_{\max}$ via constraints.
+- Integrate to compute lag $\ell$; enforce $\ell \le \ell_{\max}$ via
+  constraints.
 - Output metrics include staleness alerts and replica health.

@@ -29,7 +29,9 @@ export async function planBroadcast(opts: PlanBroadcastOptions) {
     enabled = await configClient.getFlag("broadcasts_enabled");
   } catch (err) {
     if (err instanceof Error && err.message.includes("timed out")) {
-      throw new Error("Config request timed out while checking broadcasts_enabled");
+      throw new Error(
+        "Config request timed out while checking broadcasts_enabled",
+      );
     }
     throw err;
   }

@@ -1,6 +1,6 @@
 import {
-  contracts as defaultContracts,
   ContractConfig,
+  contracts as defaultContracts,
 } from "../contracts.config";
 
 const disabled: Array<string> = [

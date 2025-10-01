@@ -1,6 +1,7 @@
 # DNS Cache Staleness Probability
 
-**Modules:** `dynamic_domain`, `dynamic_domain_name_system`, `dynamic_domain_names`
+**Modules:** `dynamic_domain`, `dynamic_domain_name_system`,
+`dynamic_domain_names`
 
 ## Overview
 

@@ -77,7 +77,7 @@ describe("Extension - ERC1271", () => {
   describe("Factory", async () => {
     it("should be possible to create an extension using the factory", async () => {
       const { logs } = await this.factories.erc1271ExtFactory.create(
-        this.dao.address
+        this.dao.address,
       );
       const log = logs[0];
       expect(log.event).to.be.equal("ERC1271Created");
@@ -87,17 +87,17 @@ describe("Extension - ERC1271", () => {
 
     it("should be possible to get an extension address by dao", async () => {
       await this.factories.erc1271ExtFactory.create(this.dao.address);
-      const extAddress =
-        await this.factories.erc1271ExtFactory.getExtensionAddress(
-          this.dao.address
+      const extAddress = await this.factories.erc1271ExtFactory
+        .getExtensionAddress(
+          this.dao.address,
         );
       expect(extAddress).to.not.be.equal(ZERO_ADDRESS);
     });
 
     it("should return zero address if there is no extension address by dao", async () => {
       const daoAddress = accounts[2];
-      const extAddress =
-        await this.factories.erc1271ExtFactory.getExtensionAddress(daoAddress);
+      const extAddress = await this.factories.erc1271ExtFactory
+        .getExtensionAddress(daoAddress);
       expect(extAddress).to.be.equal(ZERO_ADDRESS);
     });
 
@@ -111,7 +111,7 @@ describe("Extension - ERC1271", () => {
     it("should not be possible to call initialize more than once", async () => {
       const extension = this.extensions.erc1271Ext;
       await expect(
-        extension.initialize(this.dao.address, daoOwner)
+        extension.initialize(this.dao.address, daoOwner),
       ).to.be.revertedWith("already initialized");
     });
 
@@ -128,8 +128,8 @@ describe("Extension - ERC1271", () => {
           this.dao.address,
           arbitraryMsgHash,
           arbitrarySignatureHash,
-          magicValue
-        )
+          magicValue,
+        ),
       ).to.be.revertedWith("erc1271::accessDenied");
     });
   });
@@ -143,7 +143,7 @@ describe("Extension - ERC1271", () => {
   it("should revert for invalid signatures", async () => {
     const erc1271Extension = this.extensions.erc1271Ext;
     await expect(
-      erc1271Extension.isValidSignature(arbitraryMsgHash, arbitrarySignature)
+      erc1271Extension.isValidSignature(arbitraryMsgHash, arbitrarySignature),
     ).to.be.revertedWith("erc1271::invalid signature");
   });
 });

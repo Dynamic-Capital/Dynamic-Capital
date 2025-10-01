@@ -38,8 +38,7 @@ module.exports = {
       chainId: 1337,
       accounts: {
         count: 10,
-        mnemonic:
-          process.env.WALLET_MNEMONIC ||
+        mnemonic: process.env.WALLET_MNEMONIC ||
           "myth like bonus scare over problem client lizard pioneer submit female collect",
       },
     },

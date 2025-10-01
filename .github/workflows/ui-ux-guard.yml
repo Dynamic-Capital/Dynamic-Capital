@@ -10,14 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
       - name: Run UI Guard
         id: guard
         run: |
           node scripts/ui_guard.mjs || echo "failed=1" >> $GITHUB_OUTPUT
       - name: Label + comment on failure
         if: steps.guard.outputs.failed == '1'
-        env: { GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh api -X POST repos/${{ github.repository }}/labels -f name='ui:needs-interactivity' -f color='FBCA04' -f description='Add components/animations' || true
           gh api -X POST repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels -f labels='["ui:needs-interactivity"]' || true

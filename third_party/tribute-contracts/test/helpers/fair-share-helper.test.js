@@ -41,7 +41,7 @@ describe("Helper - FairShareHelper", () => {
     const units = toWei("100");
     const totalUnits = toWei("0");
     await expect(
-      fairShareCalc.calculate(balance, units, totalUnits)
+      fairShareCalc.calculate(balance, units, totalUnits),
     ).to.be.revertedWith("totalUnits must be greater than 0");
   });
 
@@ -51,7 +51,7 @@ describe("Helper - FairShareHelper", () => {
     const units = toWei("100");
     const totalUnits = toWei("10");
     await expect(
-      fairShareCalc.calculate(balance, units, totalUnits)
+      fairShareCalc.calculate(balance, units, totalUnits),
     ).to.be.revertedWith("units must be less than or equal to totalUnits");
   });
 

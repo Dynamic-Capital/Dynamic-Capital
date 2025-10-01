@@ -29,8 +29,9 @@ const skipContracts = [
 ];
 
 const args = process.argv.slice(2);
-if (!args || args.length === 0)
+if (!args || args.length === 0) {
   throw Error("Missing one of the network names: [polygon, mainnet]");
+}
 
 const network = args[0] || "polygon";
 log(`Selected Network: ${network}`);
@@ -41,11 +42,11 @@ const sleep = (msec: number) => {
 
 const getDeployedContracts = async (network: string) => {
   const buildDir = fs.readdirSync(
-    path.resolve(deployConfigs.deployedContractsDir)
+    path.resolve(deployConfigs.deployedContractsDir),
   );
   if (!buildDir || buildDir.length === 0) {
     error(
-      `No deployed contracts found in ${deployConfigs.deployedContractsDir}`
+      `No deployed contracts found in ${deployConfigs.deployedContractsDir}`,
     );
     process.exit(1);
   }
@@ -62,7 +63,7 @@ const getDeployedContracts = async (network: string) => {
   const deployFile = `${deployConfigs.deployedContractsDir}/${fileName}`;
   log(`Reading deployed contracts from: ${deployFile}`);
   const deployedContracts = JSON.parse(
-    fs.readFileSync(path.resolve(deployFile), "utf8")
+    fs.readFileSync(path.resolve(deployFile), "utf8"),
   );
   log({ deployedContracts });
   return deployedContracts;
@@ -77,8 +78,9 @@ const buildCommand = (contract: any) => {
 };
 
 const verify = async (contract: any) => {
-  if (!contract || !contract.contractName || !contract.contractAddress)
+  if (!contract || !contract.contractName || !contract.contractAddress) {
     return Promise.resolve({ stderr: "missing contract name and address" });
+  }
 
   try {
     log(`Contract: ${contract.contractName}@${contract.contractAddress}`);
@@ -107,7 +109,9 @@ const main = async () => {
   const verifyContracts = contractConfigs
     .filter((c: ContractConfig) => !skipContracts.includes(c.name))
     .map((c: ContractConfig) => {
-      if (deployedContracts.identities && deployedContracts.identities[c.name]) {
+      if (
+        deployedContracts.identities && deployedContracts.identities[c.name]
+      ) {
         return {
           contractAddress: deployedContracts.identities[c.name],
           contractName: c.name,
@@ -125,13 +129,13 @@ const main = async () => {
       p.then(async () => {
         const r = await verify(c);
         log(`[${count++}/${verifyContracts.length}]`);
-        
-        if(!r || !r.stderr) {
+
+        if (!r || !r.stderr) {
           await sleep(1500); // avoid rate-limit errors
         }
         return r;
       }),
-    Promise.resolve(0)
+    Promise.resolve(0),
   );
 };
 

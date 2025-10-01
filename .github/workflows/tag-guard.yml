@@ -13,7 +13,7 @@ jobs:
         id: check
         env:
           PUSHER: ${{ github.actor }}
-          REF: ${{ github.ref }}  # refs/tags/<tag>
+          REF: ${{ github.ref }} # refs/tags/<tag>
         run: |
           TAG="${REF#refs/tags/}"
           case "$TAG" in
