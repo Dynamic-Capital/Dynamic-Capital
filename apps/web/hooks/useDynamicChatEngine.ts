@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { SetStateAction } from "react";
 
 import type { ChatMessage, ChatResult } from "@/services/llm/types";
 
@@ -11,6 +12,7 @@ export interface DynamicChatMessage extends ChatMessage {
 export interface DynamicChatEngineExecuteInput {
   messages: DynamicChatMessage[];
   input: string;
+  signal?: AbortSignal;
 }
 
 interface UseDynamicChatEngineOptions {
@@ -18,6 +20,7 @@ interface UseDynamicChatEngineOptions {
   initialMessages?: DynamicChatMessage[];
   initialSystemPrompt?: string;
   formatError?: (error: unknown) => string;
+  conversationWindowSize?: number;
 }
 
 interface UseDynamicChatEngineResult {
@@ -31,9 +34,12 @@ interface UseDynamicChatEngineResult {
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   resetConversation: () => void;
   sendMessage: () => Promise<ChatResult | null>;
+  updateSystemPrompt: (nextPrompt: string | null | undefined) => void;
 }
 
 const DEFAULT_ERROR_MESSAGE = "Unable to generate a response.";
+
+const DEFAULT_CONVERSATION_WINDOW = 12;
 
 const defaultErrorFormatter = (error: unknown) => {
   if (error instanceof Error) {
@@ -60,37 +66,154 @@ function createBaseMessages(
   return [];
 }
 
+function cloneMessages(messages: DynamicChatMessage[]): DynamicChatMessage[] {
+  return messages.map((message) => ({ ...message }));
+}
+
+function enforceConversationWindow(
+  messages: DynamicChatMessage[],
+  windowSize: number,
+): DynamicChatMessage[] {
+  if (windowSize <= 0) {
+    return messages;
+  }
+
+  let remaining = windowSize;
+  const preserved: DynamicChatMessage[] = [];
+
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message.role === "system") {
+      preserved.push({ ...message });
+      continue;
+    }
+    if (remaining > 0) {
+      preserved.push({ ...message });
+      remaining -= 1;
+    }
+  }
+
+  return preserved.reverse();
+}
+
 export function useDynamicChatEngine(
   {
     executor,
     initialMessages,
     initialSystemPrompt,
     formatError = defaultErrorFormatter,
+    conversationWindowSize = DEFAULT_CONVERSATION_WINDOW,
   }: UseDynamicChatEngineOptions,
 ): UseDynamicChatEngineResult {
-  const baseMessages = useMemo(
+  const resolvedBaseMessages = useMemo(
     () => createBaseMessages(initialMessages, initialSystemPrompt),
     [initialMessages, initialSystemPrompt],
   );
 
-  const [messages, setMessages] = useState<DynamicChatMessage[]>(baseMessages);
+  const baseMessagesRef = useRef<DynamicChatMessage[]>(resolvedBaseMessages);
+  const [messagesState, setMessagesState] = useState<DynamicChatMessage[]>(
+    resolvedBaseMessages,
+  );
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isMountedRef = useRef(true);
+  const isSendingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const hasHydratedRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    const nextBase = cloneMessages(resolvedBaseMessages);
+    baseMessagesRef.current = nextBase;
+
+    if (hasHydratedRef.current) {
+      setMessagesState(cloneMessages(nextBase));
+      setInput("");
+      setError(null);
+      return;
+    }
+
+    hasHydratedRef.current = true;
+    setMessagesState(cloneMessages(nextBase));
+  }, [resolvedBaseMessages]);
+
+  const setMessages = useCallback(
+    (updater: SetStateAction<DynamicChatMessage[]>) => {
+      if (!isMountedRef.current) return;
+      setMessagesState((previous) => {
+        if (typeof updater === "function") {
+          return (updater as (
+            value: DynamicChatMessage[],
+          ) => DynamicChatMessage[])(
+            previous,
+          );
+        }
+        return updater;
+      });
+    },
+    [],
+  );
+
   const systemMessage = useMemo(() => {
-    return messages.find((message) => message.role === "system") ?? null;
-  }, [messages]);
+    return messagesState.find((message) => message.role === "system") ?? null;
+  }, [messagesState]);
 
   const conversation = useMemo(() => {
-    return messages.filter((message) => message.role !== "system");
-  }, [messages]);
+    return messagesState.filter((message) => message.role !== "system");
+  }, [messagesState]);
 
   const resetConversation = useCallback(() => {
-    setMessages(baseMessages.map((message) => ({ ...message })));
+    const baseCopy = cloneMessages(baseMessagesRef.current);
+    setMessages(baseCopy);
     setInput("");
     setError(null);
-  }, [baseMessages]);
+  }, [setMessages]);
+
+  const updateSystemPrompt = useCallback(
+    (nextPrompt: string | null | undefined) => {
+      const previousBaseLength = baseMessagesRef.current.length;
+      const nextBase = cloneMessages(
+        createBaseMessages(initialMessages, nextPrompt ?? undefined),
+      );
+
+      baseMessagesRef.current = nextBase;
+
+      setMessages((previous) => {
+        const conversationStart = Math.min(previousBaseLength, previous.length);
+        const conversationMessages = previous
+          .slice(conversationStart)
+          .map((message) => ({ ...message }));
+
+        if (nextBase.length === 0) {
+          return conversationMessages;
+        }
+
+        if (
+          nextBase.length === 1 &&
+          nextBase[0]?.role === "system" &&
+          previous[0]?.role === "system"
+        ) {
+          const remainingMessages = previous
+            .slice(1)
+            .map((message) => ({ ...message }));
+          return [{ ...nextBase[0] }, ...remainingMessages];
+        }
+
+        return [...nextBase, ...conversationMessages];
+      });
+
+      setError(null);
+    },
+    [initialMessages, setMessages],
+  );
 
   const sendMessage = useCallback(async (): Promise<ChatResult | null> => {
     const trimmed = input.trim();
@@ -98,8 +221,15 @@ export function useDynamicChatEngine(
       return null;
     }
 
-    setIsLoading(true);
-    setError(null);
+    if (isSendingRef.current) {
+      return null;
+    }
+
+    isSendingRef.current = true;
+    if (isMountedRef.current) {
+      setIsLoading(true);
+      setError(null);
+    }
 
     let pendingMessages: DynamicChatMessage[] = [];
     const userMessage: DynamicChatMessage = { role: "user", content: trimmed };
@@ -108,12 +238,23 @@ export function useDynamicChatEngine(
       pendingMessages = [...previous, userMessage];
       return pendingMessages;
     });
-    setInput("");
+    if (isMountedRef.current) {
+      setInput("");
+    }
+
+    const abortController = new AbortController();
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = abortController;
 
     try {
+      const boundedMessages = enforceConversationWindow(
+        pendingMessages,
+        Math.max(conversationWindowSize, 0),
+      );
       const result = await executor({
-        messages: pendingMessages,
+        messages: boundedMessages,
         input: trimmed,
+        signal: abortController.signal,
       });
       const assistantMessage: DynamicChatMessage = {
         ...result.message,
@@ -124,15 +265,23 @@ export function useDynamicChatEngine(
     } catch (caughtError) {
       console.error("Dynamic chat engine send failed", caughtError);
       const message = formatError(caughtError);
-      setError(message);
+      if (isMountedRef.current) {
+        setError(message);
+      }
       return null;
     } finally {
-      setIsLoading(false);
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+      }
+      isSendingRef.current = false;
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
-  }, [executor, formatError, input]);
+  }, [conversationWindowSize, executor, formatError, input, setMessages]);
 
   return {
-    messages,
+    messages: messagesState,
     conversation,
     systemMessage,
     input,
@@ -142,6 +291,7 @@ export function useDynamicChatEngine(
     setError,
     resetConversation,
     sendMessage,
+    updateSystemPrompt,
   };
 }
 
