@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { motion } from "framer-motion";
 
 import {
   Button,
@@ -13,9 +21,29 @@ import {
   Tag,
   Text,
 } from "@/components/dynamic-ui-system";
-import { HOME_NAV_SECTION_IDS } from "@/components/landing/home-navigation-config";
+import {
+  HOME_NAV_SECTION_IDS,
+  HOME_NAV_SECTIONS,
+} from "@/components/landing/home-navigation-config";
 import { cn } from "@/utils";
 import { baseURL, person } from "@/resources";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const HERO_BADGES = [
   { icon: "sparkles" as const, label: "AI-managed strategies" },
@@ -33,19 +61,19 @@ const TOKEN_FEATURES = [
   {
     title: "Automated token burns",
     description:
-      "Scheduled burn events tied to strategy performance keep supply scarce and align incentives with long-term holders.",
+      "Performance-based burns keep supply scarce and aligned with long-term holders.",
     icon: "flame" as const,
   },
   {
     title: "Rewards that mirror desk profits",
     description:
-      "Portfolio gains recycle into staking rewards so active investors and community contributors share the upside.",
+      "Portfolio gains recycle into staking rewards so contributors share every rally.",
     icon: "coins" as const,
   },
   {
     title: "On-chain and Supabase reporting",
     description:
-      "Live treasury snapshots and Supabase-backed audit trails make every burn, reward, and transfer traceable.",
+      "Live treasury snapshots and Supabase audit trails make each transfer traceable.",
     icon: "file-check" as const,
   },
 ];
@@ -54,19 +82,19 @@ const WALLET_FEATURES = [
   {
     title: "TonConnect onboarding",
     description:
-      "Investors connect Tonkeeper, MyTonWallet, or Tonhub in seconds through the Mini App without leaving Telegram.",
+      "Investors connect Tonkeeper, MyTonWallet, or Tonhub inside Telegram in seconds.",
     icon: "sparkles" as const,
   },
   {
     title: "Supabase-synced ledger",
     description:
-      "Linked addresses flow into Supabase so staking rewards, VIP access, and automation triggers stay consistent across surfaces.",
+      "Linked addresses flow into Supabase so rewards and automation stay consistent everywhere.",
     icon: "repeat" as const,
   },
   {
     title: "Automation ready",
     description:
-      "Auto-invest pools and subscription webhooks read the wallet table directly to approve desk allocations in real time.",
+      "Auto-invest pools and webhooks approve desk allocations straight from the wallet table.",
     icon: "rocket" as const,
   },
 ] as const;
@@ -82,19 +110,19 @@ const MARKET_WIDGETS = [
     symbol: "OANDA:XAUUSD",
     title: "Gold desk (XAU/USD)",
     description:
-      "Monitor macro-driven hedges and metal-backed positions alongside AI signals.",
+      "Macro hedges and metal-backed positions updated alongside AI signals.",
   },
   {
     symbol: "OANDA:EURUSD",
     title: "Forex momentum (EUR/USD)",
     description:
-      "See currency desk moves, spreads, and short-term volatility in real time.",
+      "Currency desk moves, spreads, and short-term volatility in real time.",
   },
   {
     symbol: "BINANCE:BTCUSDT",
     title: "Crypto rotations (BTC/USDT)",
     description:
-      "Track treasury hedges and spot-to-derivative rotations across major pairs.",
+      "Treasury hedges and spot-to-derivative rotations across major pairs.",
   },
 ];
 
@@ -102,9 +130,9 @@ const FORECAST_HERO = {
   tag: "Global forecasts",
   heading: "Forecast coverage for 30,000 markets",
   description:
-    "Access forecasts for 30,000 financial markets and 4,000+ key economic indicators covering the next four quarters or the next three years.",
+    "Forecast 30,000 markets and 4,000+ economic indicators across quarterly and three-year outlooks.",
   updateNote:
-    "Our proprietary macroeconomic model fuses analyst insight, cross-country correlations, and logical indicator relationships, refreshing forecasts as soon as new data prints.",
+    "Our macro model blends analyst insight with cross-country correlations and refreshes as soon as data prints.",
 } as const;
 
 const FORECAST_HIGHLIGHTS = [
@@ -151,14 +179,34 @@ const COMMUNITY_MESSAGES = {
   dhivehi:
     "ޑައިނެމިކް ކެޕިޓަލް ކޮމިޔުނިޓީގައި އެންމެންޓްސް، ޓްރެޑިންގް ސިގްނަލްސް، ޓްރެޖަރީ ޑޭޓާ ދުވަހުގެ އިތުރަށް ދިމާދުގައި ބަލާލެއްވުން.",
   english:
-    "Investors, partners, and regulators view a single source of truth for burns, rewards, and strategy updates.",
+    "Investors, partners, and regulators now share one source of truth for burns, rewards, and strategy updates.",
 };
 
 const MINI_APP_FEATURES = [
-  "Real-time P&L with profit, loss, and cash balance summaries.",
-  "Latest AI-generated trade signals with execution context.",
-  "Stake DCT, review vesting, and inspect treasury inflows/outflows.",
-  "Instant language toggle between Dhivehi and English.",
+  {
+    title: "Real-time portfolio pulse",
+    description:
+      "Live profit, loss, and cash balance tiles update as trades settle.",
+    icon: "activity" as const,
+  },
+  {
+    title: "Context-rich AI signals",
+    description:
+      "Latest AI trade ideas include execution notes and risk bands.",
+    icon: "bot" as const,
+  },
+  {
+    title: "Stake and vest in one tap",
+    description:
+      "Manage DCT staking, vesting, and treasury flows without leaving Telegram.",
+    icon: "coins" as const,
+  },
+  {
+    title: "Instant language toggle",
+    description:
+      "Switch between Dhivehi and English across every screen instantly.",
+    icon: "languages" as const,
+  },
 ];
 
 const API_ENDPOINTS = [
@@ -195,6 +243,23 @@ const ADVANTAGES = [
   "Supabase backend synchronises every surface so the community sees the same ledger as the desk.",
   "Modular architecture makes it easy to add Academy, Governance, or Events sections when you are ready.",
 ];
+
+const ADMIN_RUNBOOK = [
+  "Confirm overnight P&L and treasury balances.",
+  "Review pending settlements and staking rewards queues.",
+  "Update VIP tiers and notify Telegram audiences.",
+] as const;
+
+const QUICK_LINK_SECTIONS = HOME_NAV_SECTIONS.filter((section) =>
+  [
+    "token",
+    "wallet",
+    "markets",
+    "forecasts",
+    "miniApp",
+    "api",
+  ].includes(section.id)
+);
 
 const HERO_TITLE = "Maldives’ First AI-Powered Trading Ecosystem";
 const HERO_DESCRIPTION =
@@ -399,6 +464,19 @@ function Section({ anchor, children, className, delay }: SectionProps) {
 }
 
 export function MultiLlmLandingPage() {
+  const scrollToSection = useCallback((anchor: string) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const element = document.getElementById(anchor);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.location.hash = anchor;
+    }
+  }, []);
+
   return (
     <Column
       as="main"
@@ -496,6 +574,57 @@ export function MultiLlmLandingPage() {
               Learn more
             </Button>
           </Row>
+          <motion.div
+            className="flex flex-wrap items-center justify-center gap-3"
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="m" variant="tertiary" data-border="rounded">
+                  Quick menu
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64">
+                <DropdownMenuLabel>Jump to a section</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {QUICK_LINK_SECTIONS.map((section) => {
+                  const anchor = section.href.split("#")[1] ?? "";
+                  return (
+                    <DropdownMenuItem
+                      key={section.id}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        if (anchor) {
+                          scrollToSection(anchor);
+                        }
+                      }}
+                    >
+                      {section.label}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              onClick={() => scrollToSection(HOME_NAV_SECTION_IDS.markets)}
+            >
+              Markets tour
+            </Button>
+            <Button
+              size="m"
+              variant="secondary"
+              data-border="rounded"
+              onClick={() => scrollToSection(HOME_NAV_SECTION_IDS.api)}
+            >
+              Platform APIs
+            </Button>
+          </motion.div>
         </Column>
       </Section>
 
@@ -508,39 +637,52 @@ export function MultiLlmLandingPage() {
             <Heading variant="heading-strong-m">
               Burns, rewards, and radical transparency
             </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              DCT powers the Dynamic Capital treasury. Every burn, reward, and
-              treasury movement is mirrored inside Supabase and exposed through
-              investor dashboards.
-            </Text>
+            <Column gap="8" className="max-w-3xl">
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                DCT fuels the treasury that backs every Dynamic Capital desk.
+              </Text>
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                Each burn, reward, and treasury move syncs instantly to Supabase
+                dashboards.
+              </Text>
+            </Column>
           </Column>
           <Row gap="16" wrap className="gap-6">
             {TOKEN_FEATURES.map((feature) => (
-              <Column
+              <motion.div
                 key={feature.title}
-                gap="12"
-                padding="20"
-                radius="l"
-                background="surface"
-                border="neutral-alpha-weak"
-                data-border="rounded"
-                className="flex-1 min-w-[240px] bg-background/70 shadow-lg shadow-primary/5"
+                className="flex-1 min-w-[240px]"
+                whileHover={{ y: -6, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 320, damping: 22 }}
               >
-                <Icon name={feature.icon} size="m" />
-                <Heading variant="heading-strong-xs">{feature.title}</Heading>
-                <Text
-                  variant="body-default-s"
-                  onBackground="neutral-weak"
-                  wrap="balance"
+                <Column
+                  gap="12"
+                  padding="20"
+                  radius="l"
+                  background="surface"
+                  border="neutral-alpha-weak"
+                  data-border="rounded"
+                  className="h-full bg-background/70 shadow-lg shadow-primary/5"
                 >
-                  {feature.description}
-                </Text>
-              </Column>
+                  <Icon name={feature.icon} size="m" />
+                  <Heading variant="heading-strong-xs">{feature.title}</Heading>
+                  <Text
+                    variant="body-default-s"
+                    onBackground="neutral-weak"
+                    wrap="balance"
+                  >
+                    {feature.description}
+                  </Text>
+                </Column>
+              </motion.div>
             ))}
           </Row>
         </Column>
@@ -555,66 +697,101 @@ export function MultiLlmLandingPage() {
             <Heading variant="heading-strong-m">
               One TonConnect handshake powers every surface
             </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              Link wallets from Telegram, store them in Supabase, and unlock
-              staking, VIP plans, and automation without duplicating onboarding
-              flows.
-            </Text>
-          </Column>
-          <Row gap="16" wrap className="gap-6">
-            {WALLET_FEATURES.map((feature) => (
-              <Column
-                key={feature.title}
-                gap="12"
-                padding="20"
-                radius="l"
-                background="surface"
-                border="neutral-alpha-weak"
-                data-border="rounded"
-                className="flex-1 min-w-[240px] bg-background/70 shadow-lg shadow-primary/5"
+            <Column gap="8" className="max-w-3xl">
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
               >
-                <Icon name={feature.icon} size="m" />
-                <Heading variant="heading-strong-xs">{feature.title}</Heading>
-                <Text
-                  variant="body-default-s"
-                  onBackground="neutral-weak"
-                  wrap="balance"
-                >
-                  {feature.description}
-                </Text>
-              </Column>
-            ))}
-          </Row>
-          <Column gap="12" className="max-w-3xl">
-            <Heading variant="heading-strong-s">Guardrails baked in</Heading>
-            <Column gap="8" as="ul">
-              {WALLET_GUARDRAILS.map((guardrail) => (
-                <Row
-                  key={guardrail}
-                  gap="12"
-                  as="li"
-                  horizontal="start"
-                  className="items-start"
-                >
-                  <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
-                    <Icon name="check" size="s" />
-                  </span>
-                  <Text
-                    variant="body-default-m"
-                    onBackground="neutral-strong"
-                    wrap="balance"
-                  >
-                    {guardrail}
-                  </Text>
-                </Row>
-              ))}
+                Link wallets from Telegram, store them in Supabase, and unlock
+                staking in minutes.
+              </Text>
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                The same handshake powers VIP plans, automation, and investor
+                records without duplicate onboarding flows.
+              </Text>
             </Column>
           </Column>
+          <Tabs defaultValue="features" className="w-full">
+            <TabsList
+              animateIndicator
+              className="mb-4 flex flex-wrap gap-2 bg-background/70 p-1"
+            >
+              <TabsTrigger value="features">Feature highlights</TabsTrigger>
+              <TabsTrigger value="guardrails">Guardrails</TabsTrigger>
+            </TabsList>
+            <TabsContent value="features" className="mt-0">
+              <Row gap="16" wrap className="gap-6">
+                {WALLET_FEATURES.map((feature) => (
+                  <motion.div
+                    key={feature.title}
+                    className="flex-1 min-w-[240px]"
+                    whileHover={{ y: -6, scale: 1.02 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 320,
+                      damping: 22,
+                    }}
+                  >
+                    <Column
+                      gap="12"
+                      padding="20"
+                      radius="l"
+                      background="surface"
+                      border="neutral-alpha-weak"
+                      data-border="rounded"
+                      className="h-full bg-background/70 shadow-lg shadow-primary/5"
+                    >
+                      <Icon name={feature.icon} size="m" />
+                      <Heading variant="heading-strong-xs">
+                        {feature.title}
+                      </Heading>
+                      <Text
+                        variant="body-default-s"
+                        onBackground="neutral-weak"
+                        wrap="balance"
+                      >
+                        {feature.description}
+                      </Text>
+                    </Column>
+                  </motion.div>
+                ))}
+              </Row>
+            </TabsContent>
+            <TabsContent value="guardrails" className="mt-4">
+              <Column gap="12" className="max-w-3xl">
+                <Heading variant="heading-strong-s">
+                  Guardrails baked in
+                </Heading>
+                <Column gap="8" as="ul">
+                  {WALLET_GUARDRAILS.map((guardrail) => (
+                    <Row
+                      key={guardrail}
+                      gap="12"
+                      as="li"
+                      horizontal="start"
+                      className="items-start"
+                    >
+                      <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
+                        <Icon name="check" size="s" />
+                      </span>
+                      <Text
+                        variant="body-default-m"
+                        onBackground="neutral-strong"
+                        wrap="balance"
+                      >
+                        {guardrail}
+                      </Text>
+                    </Row>
+                  ))}
+                </Column>
+              </Column>
+            </TabsContent>
+          </Tabs>
         </Column>
       </Section>
 
@@ -627,16 +804,22 @@ export function MultiLlmLandingPage() {
             <Heading variant="heading-strong-m">
               TradingView charts across desks
             </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              Monitor the exact markets Dynamic Capital automates. These
-              embedded widgets sync with your TradingView alerts for gold,
-              forex, and crypto strategies.
-            </Text>
+            <Column gap="8" className="max-w-3xl">
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                Monitor the desks powering gold, forex, and crypto strategies.
+              </Text>
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                Embedded TradingView widgets stay synced with your alerts.
+              </Text>
+            </Column>
           </Column>
           <Row gap="16" wrap className="gap-6">
             {MARKET_WIDGETS.map((widget) => (
@@ -736,15 +919,24 @@ export function MultiLlmLandingPage() {
             <Heading variant="heading-strong-m">
               Two languages, one truth
             </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              Whether you follow the project in Malé or overseas, the same
-              treasury and strategy data powers every update.
-            </Text>
+            <Column gap="8" className="max-w-3xl">
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                Whether you follow in Malé or overseas, everyone reads the same
+                data stream.
+              </Text>
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                Burns, rewards, and strategy notes publish in Dhivehi and
+                English at the same moment.
+              </Text>
+            </Column>
           </Column>
           <Row gap="16" wrap className="gap-6">
             <Column
@@ -796,42 +988,57 @@ export function MultiLlmLandingPage() {
             <Heading variant="heading-strong-m">
               Investor dashboard inside Telegram
             </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              Accessible via{" "}
+            <Column gap="8" className="max-w-3xl">
               <Text
-                as="span"
                 variant="body-default-m"
-                onBackground="brand-medium"
+                onBackground="neutral-weak"
+                wrap="balance"
               >
-                /app
-              </Text>, the Mini App gives every verified investor immediate
-              access to their positions and staking performance.
-            </Text>
+                Access the dashboard via{" "}
+                <Text
+                  as="span"
+                  variant="body-default-m"
+                  onBackground="brand-medium"
+                >
+                  /app
+                </Text>{" "}
+                inside Telegram for every verified investor.
+              </Text>
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                Positions, staking performance, and AI signals refresh instantly
+                while you chat with the team.
+              </Text>
+            </Column>
           </Column>
           <Column gap="12" className="max-w-3xl">
             {MINI_APP_FEATURES.map((feature) => (
-              <Row
-                key={feature}
-                gap="12"
-                horizontal="start"
-                className="items-start"
+              <motion.div
+                key={feature.title}
+                whileHover={{ x: 6 }}
+                transition={{ type: "spring", stiffness: 260, damping: 24 }}
               >
-                <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
-                  <Icon name="check" size="s" />
-                </span>
-                <Text
-                  variant="body-default-m"
-                  onBackground="neutral-strong"
-                  wrap="balance"
-                >
-                  {feature}
-                </Text>
-              </Row>
+                <Row gap="12" horizontal="start" className="items-start">
+                  <span className="mt-1 flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-primary">
+                    <Icon name={feature.icon} size="m" />
+                  </span>
+                  <Column gap="4">
+                    <Heading variant="heading-strong-xs">
+                      {feature.title}
+                    </Heading>
+                    <Text
+                      variant="body-default-s"
+                      onBackground="neutral-strong"
+                      wrap="balance"
+                    >
+                      {feature.description}
+                    </Text>
+                  </Column>
+                </Row>
+              </motion.div>
             ))}
           </Column>
         </Column>
@@ -846,15 +1053,24 @@ export function MultiLlmLandingPage() {
             <Heading variant="heading-strong-m">
               One infrastructure powering every surface
             </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              REST endpoints keep TradingView, Telegram, and treasury automation
-              aligned with Supabase-authenticated data.
-            </Text>
+            <Column gap="8" className="max-w-3xl">
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                REST endpoints keep TradingView, Telegram, and treasury
+                automation aligned with Supabase data.
+              </Text>
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                Every service reads the same authenticated ledger, so investors
+                never see conflicting numbers.
+              </Text>
+            </Column>
           </Column>
           <Column gap="12" className="max-w-3xl">
             {API_ENDPOINTS.map((endpoint) => (
@@ -893,23 +1109,31 @@ export function MultiLlmLandingPage() {
             <Heading variant="heading-strong-m">
               Control center for the trading team
             </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              Restricted access at{" "}
+            <Column gap="8" className="max-w-3xl">
               <Text
-                as="span"
                 variant="body-default-m"
-                onBackground="brand-medium"
+                onBackground="neutral-weak"
+                wrap="balance"
               >
-                /admin
-              </Text>{" "}
-              keeps sensitive workflows, payments, and strategy switches behind
-              MFA.
-            </Text>
+                Restricted access at{" "}
+                <Text
+                  as="span"
+                  variant="body-default-m"
+                  onBackground="brand-medium"
+                >
+                  /admin
+                </Text>{" "}
+                keeps payments and strategy switches behind MFA.
+              </Text>
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                Admins approve settlements, manage roles, and broadcast updates
+                from a single control room.
+              </Text>
+            </Column>
           </Column>
           <Column gap="12" className="max-w-3xl">
             {ADMIN_ACTIONS.map((action) => (
@@ -932,6 +1156,55 @@ export function MultiLlmLandingPage() {
               </Row>
             ))}
           </Column>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                size="m"
+                variant="secondary"
+                data-border="rounded"
+                className="w-full sm:w-auto"
+              >
+                View desk runbook
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full max-w-md space-y-6">
+              <SheetHeader>
+                <SheetTitle>Daily runbook</SheetTitle>
+                <SheetDescription>
+                  Quick checks the admin desk completes before markets open.
+                </SheetDescription>
+              </SheetHeader>
+              <Column gap="12">
+                {ADMIN_RUNBOOK.map((step) => (
+                  <Row
+                    key={step}
+                    gap="12"
+                    horizontal="start"
+                    className="items-start"
+                  >
+                    <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-primary">
+                      <Icon name="check" size="s" />
+                    </span>
+                    <Text
+                      variant="body-default-m"
+                      onBackground="neutral-strong"
+                      wrap="balance"
+                    >
+                      {step}
+                    </Text>
+                  </Row>
+                ))}
+              </Column>
+              <Button
+                size="m"
+                variant="primary"
+                data-border="rounded"
+                href="/admin"
+              >
+                Go to admin console
+              </Button>
+            </SheetContent>
+          </Sheet>
         </Column>
       </Section>
 
@@ -944,15 +1217,24 @@ export function MultiLlmLandingPage() {
             <Heading variant="heading-strong-m">
               A single site for the entire Dynamic Capital universe
             </Heading>
-            <Text
-              variant="body-default-m"
-              onBackground="neutral-weak"
-              wrap="balance"
-              className="max-w-3xl"
-            >
-              From marketing to investor operations, Dynamic Capital scales
-              through one extensible codebase and one domain.
-            </Text>
+            <Column gap="8" className="max-w-3xl">
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                From marketing to investor operations, everything runs on one
+                secure domain.
+              </Text>
+              <Text
+                variant="body-default-m"
+                onBackground="neutral-weak"
+                wrap="balance"
+              >
+                New modules plug in without rebuilding infrastructure or
+                retraining the community.
+              </Text>
+            </Column>
           </Column>
           <Column gap="12" className="max-w-3xl">
             {ADVANTAGES.map((advantage) => (
