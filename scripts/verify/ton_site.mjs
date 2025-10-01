@@ -36,6 +36,54 @@ if (domain) {
   record("domain", "UNKNOWN");
 }
 
+const normalizedDomain = domain ? domain.toLowerCase().replace(/\.+$/, "") : "";
+
+const aliasHostSet = new Set();
+if (Array.isArray(config.records) && normalizedDomain) {
+  for (const entry of config.records) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+    const type = sanitize(entry.type).toUpperCase();
+    if (type !== "CNAME") {
+      continue;
+    }
+    const target = sanitize(entry.data).toLowerCase().replace(/\.+$/, "");
+    if (!target || target !== normalizedDomain) {
+      continue;
+    }
+    const rawName = sanitize(entry.name);
+    if (!rawName || rawName === "@") {
+      continue;
+    }
+    let host = rawName.toLowerCase().replace(/\.+$/, "");
+    if (!host) {
+      continue;
+    }
+    if (!host.endsWith(`.${normalizedDomain}`)) {
+      if (!host.includes(".")) {
+        host = `${host}.${normalizedDomain}`;
+      } else {
+        const candidate = host.replace(/\.+$/, "");
+        if (candidate.endsWith(`.${normalizedDomain}`)) {
+          host = candidate;
+        } else {
+          continue;
+        }
+      }
+    }
+    host = host.replace(/\.+$/, "");
+    if (host && host !== normalizedDomain) {
+      aliasHostSet.add(host);
+    }
+  }
+}
+
+const aliasHosts = Array.from(aliasHostSet);
+if (aliasHosts.length > 0) {
+  record("tonsite_alias_hosts", aliasHosts.join(","));
+}
+
 const tonSite = config.ton_site && typeof config.ton_site === "object"
   ? config.ton_site
   : null;
@@ -286,22 +334,57 @@ if (candidateGateways.length > 0) {
   record("tonsite_gateway_candidates", candidateGateways.join(","));
 }
 
-let gatewayStatus = domain ? "FAIL" : "SKIPPED";
-let firstPreview = "";
-let firstStatus = 0;
-let firstTransport = "";
-let firstUrl = "";
-let successfulGateway = null;
+const hostsToProbe = normalizedDomain
+  ? [
+    normalizedDomain,
+    ...aliasHosts.filter((alias) => alias !== normalizedDomain),
+  ]
+  : [];
 
-if (domain) {
-  const encodedDomain = encodeURIComponent(domain);
+if (hostsToProbe.length > 0) {
+  record("tonsite_gateway_hosts", hostsToProbe.join(","));
+}
+
+const slugForHost = (host) => {
+  if (!host) {
+    return "unknown";
+  }
+  if (normalizedDomain && host === normalizedDomain) {
+    return "root";
+  }
+  return host.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(
+    /^_+|_+$/g,
+    "",
+  ) || "host";
+};
+
+const evaluateGatewaysForHost = async (host) => {
+  const slug = slugForHost(host);
+  record(`tonsite_gateway_host_${slug}`, host || "");
+  if (!host) {
+    record(`tonsite_gateway_lookup_${slug}`, "SKIPPED");
+    return { slug, status: "SKIPPED" };
+  }
+  if (candidateGateways.length === 0) {
+    record(`tonsite_gateway_lookup_${slug}`, "SKIPPED");
+    return { slug, status: "SKIPPED" };
+  }
+
+  let gatewayStatus = "FAIL";
+  let firstPreview = "";
+  let firstStatus = 0;
+  let firstTransport = "";
+  let firstUrl = "";
+  let successfulGateway = null;
+
+  const encodedHost = encodeURIComponent(host);
   for (let i = 0; i < candidateGateways.length; i += 1) {
     const base = candidateGateways[i]?.replace(/\/+$/, "");
     if (!base) {
       continue;
     }
-    const url = `${base}/${encodedDomain}`;
-    const label = `tonsite_gateway${i}`;
+    const url = `${base}/${encodedHost}`;
+    const label = `tonsite_gateway_${slug}_candidate${i}`;
     const result = await fetchWithCurlFallback(url, {
       label,
       timeoutMs: 8000,
@@ -337,46 +420,108 @@ if (domain) {
         transport: result.transport,
         preview,
         bytes: byteLength,
-        label,
       };
       break;
     }
   }
+
+  if (successfulGateway) {
+    gatewayStatus = "PASS";
+    record(`tonsite_gateway_lookup_${slug}`, gatewayStatus);
+    record(`tonsite_gateway_source_${slug}`, successfulGateway.url);
+    if (successfulGateway.status) {
+      record(`tonsite_gateway_http_status_${slug}`, successfulGateway.status);
+    }
+    if (successfulGateway.transport) {
+      record(`tonsite_gateway_transport_${slug}`, successfulGateway.transport);
+    }
+    if (successfulGateway.preview) {
+      record(`tonsite_gateway_preview_${slug}`, successfulGateway.preview);
+    }
+    record(`tonsite_gateway_bytes_${slug}`, successfulGateway.bytes);
+  } else {
+    if (firstStatus) {
+      gatewayStatus = "FAIL";
+      record(`tonsite_gateway_http_status_${slug}`, firstStatus);
+    } else {
+      gatewayStatus = "ERROR";
+    }
+    if (firstTransport) {
+      record(`tonsite_gateway_transport_${slug}`, firstTransport);
+    }
+    if (firstPreview) {
+      record(`tonsite_gateway_error_${slug}`, firstPreview);
+    }
+    if (firstUrl) {
+      record(`tonsite_gateway_source_${slug}`, firstUrl);
+    }
+    record(`tonsite_gateway_lookup_${slug}`, gatewayStatus);
+  }
+
+  return {
+    slug,
+    status: gatewayStatus,
+    successfulGateway,
+    firstStatus,
+    firstTransport,
+    firstPreview,
+    firstUrl,
+  };
+};
+
+let rootResult = null;
+const gatewayResults = [];
+for (const host of hostsToProbe) {
+  const result = await evaluateGatewaysForHost(host);
+  gatewayResults.push(result);
+  if (result.slug === "root") {
+    rootResult = result;
+  }
 }
 
-if (successfulGateway) {
-  gatewayStatus = "PASS";
-  record("tonsite_gateway_lookup", gatewayStatus);
-  record("tonsite_gateway_source", successfulGateway.url);
-  if (successfulGateway.status) {
-    record("tonsite_gateway_http_status", successfulGateway.status);
-  }
-  if (successfulGateway.transport) {
-    record("tonsite_gateway_transport", successfulGateway.transport);
-  }
-  if (successfulGateway.preview) {
-    record("tonsite_gateway_preview", successfulGateway.preview);
-  }
-  record("tonsite_gateway_bytes", successfulGateway.bytes);
-} else if (domain) {
-  if (firstStatus) {
-    gatewayStatus = "FAIL";
-    record("tonsite_gateway_http_status", firstStatus);
+if (gatewayResults.length > 0) {
+  const summary = gatewayResults
+    .map((result) => `${result.slug}:${result.status}`)
+    .join(",");
+  record("tonsite_gateway_summary", summary);
+}
+
+if (rootResult) {
+  record("tonsite_gateway_lookup", rootResult.status);
+  if (rootResult.successfulGateway) {
+    record("tonsite_gateway_source", rootResult.successfulGateway.url);
+    if (rootResult.successfulGateway.status) {
+      record(
+        "tonsite_gateway_http_status",
+        rootResult.successfulGateway.status,
+      );
+    }
+    if (rootResult.successfulGateway.transport) {
+      record(
+        "tonsite_gateway_transport",
+        rootResult.successfulGateway.transport,
+      );
+    }
+    if (rootResult.successfulGateway.preview) {
+      record("tonsite_gateway_preview", rootResult.successfulGateway.preview);
+    }
+    record("tonsite_gateway_bytes", rootResult.successfulGateway.bytes);
   } else {
-    gatewayStatus = "ERROR";
+    if (rootResult.firstStatus) {
+      record("tonsite_gateway_http_status", rootResult.firstStatus);
+    }
+    if (rootResult.firstTransport) {
+      record("tonsite_gateway_transport", rootResult.firstTransport);
+    }
+    if (rootResult.firstPreview) {
+      record("tonsite_gateway_error", rootResult.firstPreview);
+    }
+    if (rootResult.firstUrl) {
+      record("tonsite_gateway_source", rootResult.firstUrl);
+    }
   }
-  if (firstTransport) {
-    record("tonsite_gateway_transport", firstTransport);
-  }
-  if (firstPreview) {
-    record("tonsite_gateway_error", firstPreview);
-  }
-  if (firstUrl) {
-    record("tonsite_gateway_source", firstUrl);
-  }
-  record("tonsite_gateway_lookup", gatewayStatus);
-} else {
-  record("tonsite_gateway_lookup", gatewayStatus);
+} else if (!domain) {
+  record("tonsite_gateway_lookup", "SKIPPED");
 }
 
 console.log(lines.join("\n"));
