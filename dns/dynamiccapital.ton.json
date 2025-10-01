@@ -1,0 +1,42 @@
+{
+  "domain": "dynamiccapital.ton",
+  "type": "TON_DNS",
+  "resolver_contract": "EQC...",
+  "records": [
+    {
+      "type": "A",
+      "name": "@",
+      "data": "162.159.140.98",
+      "ttl": 3600,
+      "note": "Primary Cloudflare IP for root domain"
+    },
+    {
+      "type": "A",
+      "name": "@",
+      "data": "172.66.0.96",
+      "ttl": 3600,
+      "note": "Secondary Cloudflare IP for root domain"
+    },
+    {
+      "type": "CNAME",
+      "name": "www",
+      "data": "dynamiccapital.ton",
+      "ttl": 3600,
+      "note": "WWW subdomain points to root"
+    },
+    {
+      "type": "CNAME",
+      "name": "api",
+      "data": "dynamiccapital.ton",
+      "ttl": 3600,
+      "note": "API subdomain for backend services"
+    }
+  ],
+  "notes": [
+    "TON DNS uses blockchain-based resolution via smart contracts",
+    "Records must be set through TON DNS resolver contract",
+    "Register domain at TON DNS marketplace (e.g., dns.ton.org)",
+    "Update resolver_contract address after deployment",
+    "Verify resolution through TON DNS tools before going live"
+  ]
+}

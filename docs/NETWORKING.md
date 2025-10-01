@@ -23,6 +23,11 @@ following guidance to expose the services and control access.
   [`dns/dynamic-capital.lovable.app.json`](../dns/dynamic-capital.lovable.app.json)
   for the Lovable zone) so every host can participate in load sharing while
   pointing at the same Cloudflare anycast IPs (162.159.140.98 and 172.66.0.96).
+- `dynamiccapital.ton` and `www.dynamiccapital.ton` are configured for TON DNS
+  blockchain-based resolution (see
+  [`dns/dynamiccapital.ton.json`](../dns/dynamiccapital.ton.json) for
+  configuration). TON DNS requires registration through TON DNS marketplace and
+  resolver contract deployment.
 - Run `deno run -A scripts/configure-digitalocean-dns.ts --dry-run` to inspect
   the planned DNS state for `dynamic-capital.lovable.app`. Remove `--dry-run`
   once the plan looks correct to apply changes through `doctl`. The script keeps
