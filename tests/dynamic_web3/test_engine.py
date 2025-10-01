@@ -94,3 +94,69 @@ def test_contract_success_rate_alert(engine: DynamicWeb3Engine) -> None:
     assert any("success rate" in alert for alert in summary.alerts)
     assert any(action.category == "contract" for action in summary.actions)
     assert summary.metadata["profiled_contracts"] == 1
+
+
+def test_build_unified_status(engine: DynamicWeb3Engine) -> None:
+    secondary = Web3Network(
+        name="Velocity Chain",
+        chain_id=2051,
+        rpc_endpoint="https://rpc.velocity",
+        finality_threshold=6,
+        reliability_target=0.97,
+    )
+    engine.register_network(secondary)
+
+    _register_contract(engine, success_rate=0.94, latency_ms=150.0, pending=40)
+
+    telemetry_map = {
+        "Dynamic Chain": NetworkTelemetry(
+            block_gap=2,
+            uptime_ratio=0.96,
+            utilisation=0.62,
+            latency_ms=170.0,
+            pending_transactions=120,
+        ),
+        "Velocity Chain": NetworkTelemetry(
+            block_gap=4,
+            uptime_ratio=0.99,
+            utilisation=0.55,
+            latency_ms=160.0,
+            pending_transactions=80,
+        ),
+    }
+
+    build = engine.build_unified_status(telemetry_map)
+
+    assert len(build.summaries) == 2
+    assert 0.0 < build.average_reliability <= 1.0
+    assert 0.0 <= build.average_utilisation <= 1.0
+    assert build.total_pending_transactions >= 200
+    assert "Dynamic Chain" in build.metadata["evaluated_networks"]
+
+
+def test_build_unified_status_requires_all_networks(engine: DynamicWeb3Engine) -> None:
+    with pytest.raises(ValueError):
+        engine.build_unified_status({})
+
+    telemetry = NetworkTelemetry(
+        block_gap=1,
+        uptime_ratio=0.99,
+        utilisation=0.4,
+        latency_ms=100.0,
+        pending_transactions=10,
+    )
+
+    with pytest.raises(ValueError):
+        engine.build_unified_status({"Unknown": telemetry})
+
+    engine.register_network(
+        Web3Network(
+            name="Atlas Chain",
+            chain_id=3050,
+            rpc_endpoint="https://rpc.atlas",
+            finality_threshold=5,
+        )
+    )
+
+    with pytest.raises(ValueError):
+        engine.build_unified_status({"Dynamic Chain": telemetry})

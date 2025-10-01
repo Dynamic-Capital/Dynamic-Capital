@@ -14,6 +14,7 @@ __all__ = [
     "NetworkTelemetry",
     "Web3Action",
     "NetworkHealthSummary",
+    "Web3UnifiedBuild",
     "DynamicWeb3Engine",
 ]
 
@@ -212,6 +213,30 @@ class NetworkHealthSummary:
         self.metadata = MappingProxyType(_ensure_mapping(self.metadata))
 
 
+@dataclass(slots=True)
+class Web3UnifiedBuild:
+    """Aggregated build output across evaluated Web3 networks."""
+
+    summaries: tuple[NetworkHealthSummary, ...]
+    average_reliability: float
+    average_utilisation: float
+    aggregate_alerts: tuple[str, ...]
+    aggregate_actions: tuple[Web3Action, ...]
+    total_pending_transactions: int
+    metadata: Mapping[str, object]
+
+    def __post_init__(self) -> None:
+        self.summaries = tuple(self.summaries)
+        if not self.summaries:
+            raise ValueError("summaries must not be empty")
+        self.average_reliability = _clamp01(self.average_reliability)
+        self.average_utilisation = _clamp01(self.average_utilisation)
+        self.aggregate_alerts = tuple(_normalise_identifier(alert) for alert in self.aggregate_alerts)
+        self.aggregate_actions = tuple(self.aggregate_actions)
+        self.total_pending_transactions = _ensure_non_negative_int(self.total_pending_transactions)
+        self.metadata = MappingProxyType(_ensure_mapping(self.metadata))
+
+
 class DynamicWeb3Engine:
     """Coordinates health tracking across Web3 networks and contracts."""
 
@@ -384,3 +409,77 @@ class DynamicWeb3Engine:
 
     def tracked_profiles(self) -> Iterable[TransactionProfile]:
         return tuple(self._profiles.values())
+
+    # ------------------------------------------------------------------
+    # unified build orchestration
+
+    def build_unified_status(
+        self, telemetry_map: Mapping[str, NetworkTelemetry]
+    ) -> Web3UnifiedBuild:
+        if not telemetry_map:
+            raise ValueError("telemetry_map must not be empty")
+
+        normalised_telemetry: Dict[str, NetworkTelemetry] = {}
+        for name, telemetry in telemetry_map.items():
+            key = _normalise_key(name)
+            if key in normalised_telemetry:
+                raise ValueError(f"duplicate telemetry provided for network '{name}'")
+            normalised_telemetry[key] = telemetry
+
+        missing = [
+            network.name
+            for key, network in self._networks.items()
+            if key not in normalised_telemetry
+        ]
+        if missing:
+            joined = ", ".join(sorted(missing))
+            raise ValueError(f"missing telemetry for registered networks: {joined}")
+
+        extra = [
+            name
+            for name, telemetry in telemetry_map.items()
+            if _normalise_key(name) not in self._networks
+        ]
+        if extra:
+            joined = ", ".join(sorted(extra))
+            raise ValueError(f"unknown networks in telemetry_map: {joined}")
+
+        summaries: list[NetworkHealthSummary] = []
+        total_reliability = 0.0
+        total_utilisation = 0.0
+        total_pending = 0
+        aggregate_alerts: list[str] = []
+        aggregate_actions: list[Web3Action] = []
+
+        for key, telemetry in normalised_telemetry.items():
+            network_name = self._networks[key].name
+            summary = self.evaluate_network(network_name, telemetry)
+            summaries.append(summary)
+            total_reliability += summary.reliability_score
+            total_utilisation += summary.utilisation
+            aggregate_alerts.extend(summary.alerts)
+            aggregate_actions.extend(summary.actions)
+            pending = summary.metadata.get("aggregate_pending")
+            if isinstance(pending, (int, float)):
+                total_pending += int(pending)
+            else:
+                total_pending += telemetry.pending_transactions
+
+        count = len(summaries)
+        average_reliability = total_reliability / count if count else 0.0
+        average_utilisation = total_utilisation / count if count else 0.0
+
+        metadata = {
+            "evaluated_networks": tuple(summary.network for summary in summaries),
+            "telemetry_samples": count,
+        }
+
+        return Web3UnifiedBuild(
+            summaries=tuple(summaries),
+            average_reliability=average_reliability,
+            average_utilisation=average_utilisation,
+            aggregate_alerts=tuple(aggregate_alerts),
+            aggregate_actions=tuple(aggregate_actions),
+            total_pending_transactions=total_pending,
+            metadata=metadata,
+        )
