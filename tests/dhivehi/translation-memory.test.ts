@@ -55,3 +55,18 @@ Deno.test("matches thaana queries against english sources", () => {
   assertEquals(matches[0].id, "repayment-plan");
   assertGreater(matches[0].score, 0.3);
 });
+
+Deno.test("boosts matches using romanized target metadata", () => {
+  const memory = new TranslationMemory([]);
+  memory.add({
+    id: "romanized-greeting",
+    source: "Formal greeting",
+    target: "ހަލޯ",
+    metadata: { tags: ["roman:halo"] },
+  });
+
+  const matches = memory.match("halo", { minimumScore: 0.35 });
+  assertEquals(matches.length, 1);
+  assertEquals(matches[0].id, "romanized-greeting");
+  assertGreater(matches[0].score, 0.35);
+});
