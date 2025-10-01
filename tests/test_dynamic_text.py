@@ -10,6 +10,7 @@ def test_text_fragment_normalisation() -> None:
         channel="  Email  ",
         content="  Lead update for liquidity partners  ",
         voice="  Empathetic strategist  ",
+        language="  PlainText  ",
         clarity=1.4,
         warmth=-0.3,
         boldness=1.7,
@@ -26,6 +27,7 @@ def test_text_fragment_normalisation() -> None:
     assert fragment.channel == "email"
     assert fragment.content == "Lead update for liquidity partners"
     assert fragment.voice == "Empathetic strategist"
+    assert fragment.language == "plaintext"
     assert 0.0 <= fragment.clarity <= 1.0
     assert 0.0 <= fragment.warmth <= 1.0
     assert 0.0 <= fragment.boldness <= 1.0
@@ -104,9 +106,12 @@ def test_compose_generates_digest_with_metrics() -> None:
     assert digest.metrics["history_size"] >= len(fragments)
     assert 0.0 <= digest.metrics["mean_signal_strength"] <= 1.0
     assert digest.metrics["available_fragments"] <= 4
+    assert digest.metrics["language_match_rate"] == pytest.approx(1.0)
+    assert digest.metrics["history_language_coverage"] == pytest.approx(1.0)
     payload = digest.as_payload()
     assert payload["initiative"] == context.initiative
     assert len(payload["fragments"]) == 2
+    assert all(item["language"] == "plaintext" for item in payload["fragments"])
 
 
 def test_guardrail_penalty_affects_ranking() -> None:
@@ -167,3 +172,68 @@ def test_guardrail_penalty_affects_ranking() -> None:
             risk_appetite=0.5,
             highlight_limit=0,
         )
+
+
+def test_language_preferences_prioritise_python() -> None:
+    engine = DynamicTextEngine(history_limit=5)
+    python_fragment = TextFragment(
+        channel="docs",
+        content="Refine pipeline orchestration",
+        voice="Technical",
+        language="python",
+        clarity=0.92,
+        warmth=0.45,
+        boldness=0.62,
+        novelty=0.7,
+        tempo=0.55,
+        emphasis=0.7,
+        tags=("automation",),
+    )
+    typescript_fragment = TextFragment(
+        channel="docs",
+        content="Update client SDK helpers",
+        voice="Technical",
+        language="typescript",
+        clarity=0.88,
+        warmth=0.5,
+        boldness=0.58,
+        novelty=0.65,
+        tempo=0.5,
+        emphasis=0.68,
+        tags=("sdk",),
+    )
+    sql_fragment = TextFragment(
+        channel="docs",
+        content="Refresh reporting materialised view",
+        voice="Technical",
+        language="sql",
+        clarity=0.86,
+        warmth=0.35,
+        boldness=0.52,
+        novelty=0.58,
+        tempo=0.48,
+        emphasis=0.55,
+        tags=("analytics",),
+    )
+    engine.prime([python_fragment, typescript_fragment, sql_fragment])
+
+    context = TextContext(
+        initiative="Cross-runtime enablement",
+        audience="Engineering guild",
+        channel="docs",
+        urgency=0.6,
+        personalization=0.45,
+        risk_appetite=0.4,
+        preferred_languages=("python", "typescript"),
+        highlight_limit=2,
+    )
+
+    digest = engine.compose(context, sample_size=3)
+    fragments = digest.top_fragments()
+
+    assert fragments[0] is python_fragment
+    assert all(
+        fragment.language in ("python", "typescript") for fragment in fragments
+    )
+    assert digest.metrics["language_match_rate"] == pytest.approx(1.0)
+    assert digest.metrics["history_language_coverage"] == pytest.approx(2 / 3, rel=1e-3)
