@@ -572,3 +572,53 @@ class DynamicWeb3Engine:
             total_pending_transactions=unified.total_pending_transactions,
             metadata=combined_metadata,
         )
+
+    def go_live(
+        self,
+        telemetry_map: Mapping[str, NetworkTelemetry],
+        *,
+        project_name: str = "Dynamic Capital",
+        metadata: Mapping[str, object] | None = None,
+    ) -> Web3GoLiveReadiness:
+        """Validate readiness and return the go-live summary.
+
+        The method wraps :meth:`compile_project_build` and enforces that the
+        resulting readiness status is ``"ready"``. If the project still has
+        blocking alerts or networks requiring attention, a ``RuntimeError`` is
+        raised describing the outstanding work.
+        """
+
+        readiness = self.compile_project_build(
+            telemetry_map,
+            project_name=project_name,
+            metadata=metadata,
+        )
+
+        if readiness.status != "ready":
+            detail_sections: list[str] = []
+
+            if readiness.networks_requiring_attention:
+                networks = ", ".join(readiness.networks_requiring_attention)
+                detail_sections.append(f"networks requiring attention: {networks}")
+
+            if readiness.blocking_alerts:
+                alerts = ", ".join(readiness.blocking_alerts)
+                detail_sections.append(f"blocking alerts: {alerts}")
+
+            if readiness.critical_actions:
+                actions = ", ".join(
+                    action.description for action in readiness.critical_actions
+                )
+                detail_sections.append(f"critical actions: {actions}")
+
+            detail_text = " " + "; ".join(detail_sections) if detail_sections else ""
+            raise RuntimeError(
+                "Project '"
+                + readiness.project
+                + "' is not ready to go live (status: "
+                + readiness.status
+                + ")."
+                + detail_text
+            )
+
+        return readiness
