@@ -3,8 +3,8 @@ import {
   assertThrows,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { Buffer } from "node:buffer";
-import { beginCell, toNano } from "npm:@ton/core";
 import {
+  beginCell,
   DEFAULT_FORWARD_DESTINATION,
   DEFAULT_FORWARD_RESPONSE,
   OP_JETTON_TRANSFER,
@@ -12,6 +12,7 @@ import {
   createJettonTransferBody,
   decodeAllocatorForwardPayload,
   normalizeHex,
+  toNano,
 } from "./helpers/ton.ts";
 
 interface SwapInput {
