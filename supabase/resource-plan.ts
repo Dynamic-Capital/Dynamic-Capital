@@ -1438,8 +1438,310 @@ export const resourcePlan: ResourcePlan = {
         },
       ],
     },
+    {
+      schema: "public",
+      name: "cold_email_leads",
+      comment:
+        "Stores prospects queued for cold outreach along with lifecycle metadata.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary key for the lead record.",
+        },
+        {
+          name: "created_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the lead was inserted.",
+        },
+        {
+          name: "updated_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the lead last changed state.",
+        },
+        {
+          name: "name",
+          type: "text",
+          comment: "Prospect full name.",
+        },
+        {
+          name: "email",
+          type: "text",
+          nullable: false,
+          comment: "Prospect email address.",
+        },
+        {
+          name: "company",
+          type: "text",
+          comment: "Organisation associated with the lead.",
+        },
+        {
+          name: "status",
+          type: "text",
+          nullable: false,
+          default: "'new'",
+          comment:
+            "Lifecycle state for the lead (new, processing, sent, error, etc.).",
+        },
+        {
+          name: "last_contacted",
+          type: "timestamptz",
+          comment: "When the last outbound email was attempted.",
+        },
+        {
+          name: "metadata",
+          type: "jsonb",
+          default: "'{}'::jsonb",
+          comment:
+            "Optional enrichment payload used for template merge variables.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "cold_email_leads_email_key",
+          expression: "(email)",
+          unique: true,
+        },
+        {
+          name: "cold_email_leads_status_idx",
+          expression: "(status)",
+        },
+        {
+          name: "cold_email_leads_last_contacted_idx",
+          expression: "(last_contacted DESC)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+        force: true,
+      },
+      policies: [
+        {
+          name: "cold_email_leads_service_all",
+          command: "ALL",
+          roles: ["service_role"],
+          using: "true",
+          withCheck: "true",
+          comment: "Allow server-side automation to manage cold email leads.",
+        },
+      ],
+      postDeploymentSql: [
+        "ALTER TABLE public.cold_email_leads ALTER COLUMN updated_at SET DEFAULT now();",
+        "CREATE OR REPLACE FUNCTION public.set_cold_email_leads_updated_at()\nRETURNS TRIGGER\nLANGUAGE plpgsql AS $$\nBEGIN\n  NEW.updated_at := now();\n  RETURN NEW;\nEND;\n$$;",
+        "DROP TRIGGER IF EXISTS cold_email_leads_set_updated_at ON public.cold_email_leads;",
+        "CREATE TRIGGER cold_email_leads_set_updated_at\nBEFORE UPDATE ON public.cold_email_leads\nFOR EACH ROW EXECUTE FUNCTION public.set_cold_email_leads_updated_at();",
+      ],
+    },
+    {
+      schema: "public",
+      name: "cold_email_templates",
+      comment:
+        "Reusable cold email templates with merge variables for personalisation.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary key for the template.",
+        },
+        {
+          name: "created_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the template was created.",
+        },
+        {
+          name: "updated_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the template was last updated.",
+        },
+        {
+          name: "name",
+          type: "text",
+          comment: "Internal reference name for the template.",
+        },
+        {
+          name: "subject",
+          type: "text",
+          nullable: false,
+          comment: "Email subject line.",
+        },
+        {
+          name: "body",
+          type: "text",
+          nullable: false,
+          comment: "Email body content (HTML or plaintext).",
+        },
+        {
+          name: "variables",
+          type: "text[]",
+          nullable: false,
+          default: "'{}'::text[]",
+          comment:
+            "List of template merge variables (e.g. name, company, product).",
+        },
+        {
+          name: "is_active",
+          type: "boolean",
+          nullable: false,
+          default: "true",
+          comment:
+            "Toggle to enable or disable the template without deleting it.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "cold_email_templates_active_idx",
+          expression: "(is_active)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+        force: true,
+      },
+      policies: [
+        {
+          name: "cold_email_templates_service_all",
+          command: "ALL",
+          roles: ["service_role"],
+          using: "true",
+          withCheck: "true",
+          comment: "Allow automation workflows to manage email templates.",
+        },
+      ],
+      postDeploymentSql: [
+        "ALTER TABLE public.cold_email_templates ALTER COLUMN updated_at SET DEFAULT now();",
+        "CREATE OR REPLACE FUNCTION public.set_cold_email_templates_updated_at()\nRETURNS TRIGGER\nLANGUAGE plpgsql AS $$\nBEGIN\n  NEW.updated_at := now();\n  RETURN NEW;\nEND;\n$$;",
+        "DROP TRIGGER IF EXISTS cold_email_templates_set_updated_at ON public.cold_email_templates;",
+        "CREATE TRIGGER cold_email_templates_set_updated_at\nBEFORE UPDATE ON public.cold_email_templates\nFOR EACH ROW EXECUTE FUNCTION public.set_cold_email_templates_updated_at();",
+      ],
+    },
+    {
+      schema: "public",
+      name: "cold_email_events",
+      comment:
+        "Delivery log for cold email attempts including provider message ids and errors.",
+      columns: [
+        {
+          name: "id",
+          type: "uuid",
+          nullable: false,
+          default: "gen_random_uuid()",
+          comment: "Primary key for the email event.",
+        },
+        {
+          name: "created_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the event was recorded.",
+        },
+        {
+          name: "lead_id",
+          type: "uuid",
+          nullable: false,
+          references: {
+            table: "cold_email_leads",
+            column: "id",
+            onDelete: "CASCADE",
+          },
+          comment: "Lead that received the email attempt.",
+        },
+        {
+          name: "template_id",
+          type: "uuid",
+          nullable: true,
+          references: {
+            table: "cold_email_templates",
+            column: "id",
+            onDelete: "SET NULL",
+          },
+          comment: "Template used for the send.",
+        },
+        {
+          name: "message_id",
+          type: "text",
+          comment: "Provider message identifier if available.",
+        },
+        {
+          name: "status",
+          type: "text",
+          nullable: false,
+          comment:
+            "Delivery state reported by the provider (sent, error, bounced, etc.).",
+        },
+        {
+          name: "error",
+          type: "text",
+          comment: "Optional error message when the send fails.",
+        },
+        {
+          name: "sent_at",
+          type: "timestamptz",
+          nullable: false,
+          default: "now()",
+          comment: "Timestamp when the send attempt happened.",
+        },
+      ],
+      primaryKey: {
+        columns: ["id"],
+      },
+      indexes: [
+        {
+          name: "cold_email_events_lead_idx",
+          expression: "(lead_id)",
+        },
+        {
+          name: "cold_email_events_template_idx",
+          expression: "(template_id)",
+        },
+        {
+          name: "cold_email_events_status_idx",
+          expression: "(status)",
+        },
+        {
+          name: "cold_email_events_sent_at_idx",
+          expression: "(sent_at DESC)",
+        },
+      ],
+      rowLevelSecurity: {
+        enable: true,
+        force: true,
+      },
+      policies: [
+        {
+          name: "cold_email_events_service_all",
+          command: "ALL",
+          roles: ["service_role"],
+          using: "true",
+          withCheck: "true",
+          comment: "Allow service automation to record cold email events.",
+        },
+      ],
+    },
   ],
   sql: [
+    {
+      name: "claim_cold_email_leads",
+      statement:
+        "CREATE OR REPLACE FUNCTION public.claim_cold_email_leads(batch_size integer DEFAULT 5)\nRETURNS TABLE (\n  id uuid,\n  name text,\n  email text,\n  company text,\n  status text,\n  last_contacted timestamptz,\n  metadata jsonb\n)\nLANGUAGE plpgsql\nAS $$\nDECLARE\n  v_limit integer := GREATEST(LEAST(COALESCE(batch_size, 5), 50), 1);\nBEGIN\n  RETURN QUERY\n  WITH picked AS (\n    SELECT l.*\n    FROM public.cold_email_leads l\n    WHERE l.status = 'new'\n    ORDER BY l.last_contacted NULLS FIRST, l.created_at ASC\n    LIMIT v_limit\n    FOR UPDATE SKIP LOCKED\n  )\n  UPDATE public.cold_email_leads AS src\n  SET status = 'processing',\n      updated_at = now()\n  FROM picked\n  WHERE src.id = picked.id\n  RETURNING picked.id,\n    picked.name,\n    picked.email,\n    picked.company,\n    'processing'::text,\n    picked.last_contacted,\n    picked.metadata;\nEND;\n$$;",
+    },
     {
       name: "reconciliation_dashboard",
       statement:
