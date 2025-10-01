@@ -80,9 +80,26 @@ def test_guardrails_apply_without_environment() -> None:
     narrative = model.generate_narrative(intent, insights=("CTAs de-risking",))
 
     assert narrative.style == "institutional"
-    assert narrative.risk_mitigation == ("Respect risk limits",)
+    assert "Respect risk limits" in narrative.risk_mitigation
+    assert any("Define entry" in item for item in narrative.risk_mitigation)
     assert "CTAs de-risking" in narrative.insights
     assert "XAUUSD" in narrative.tags
+
+
+def test_missing_levels_drive_guidance() -> None:
+    model = DynamicTradingLanguageModel()
+    intent = TradeIntent(
+        instrument="ESZ3",
+        direction="long",
+        conviction=0.52,
+        timeframe="Overnight",
+    )
+
+    narrative = model.generate_narrative(intent)
+
+    assert any("No explicit levels" in level for level in narrative.key_levels)
+    assert "Anchor sizing" in narrative.call_to_action
+    assert narrative.confidence > 0
 
 
 def test_order_flow_opposition_reduces_conviction() -> None:
@@ -106,3 +123,24 @@ def test_order_flow_opposition_reduces_conviction() -> None:
     assert any("opposing flow" in note for note in narrative.risk_mitigation)
     assert "FLOW_SELL" in narrative.tags
     assert "passive clips" in narrative.call_to_action.lower()
+
+
+def test_strong_flow_tagging() -> None:
+    model = DynamicTradingLanguageModel()
+    intent = TradeIntent(
+        instrument="EURUSD",
+        direction="short",
+        conviction=0.61,
+        timeframe="Intraday",
+        entry=1.0825,
+    )
+    order_flow = OrderFlowSignal(
+        dominant_side="sell",
+        intensity=0.82,
+        bias=0.7,
+    )
+
+    narrative = model.generate_narrative(intent, order_flow=order_flow)
+
+    assert "FLOW_STRONG" in narrative.tags
+    assert narrative.confidence > 0.4

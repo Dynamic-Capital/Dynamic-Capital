@@ -293,62 +293,65 @@ class DynamicTradingLanguageModel:
     def guardrails(self) -> tuple[str, ...]:
         return self._guardrails
 
-    def generate_narrative(
+    def _desired_flow_direction(self, intent: TradeIntent) -> str:
+        direction_map = {"long": "buy", "short": "sell", "flat": "neutral"}
+        return direction_map.get(intent.direction, "neutral")
+
+    def _score_confidence(
         self,
         intent: TradeIntent,
-        *,
-        environment: DeskEnvironment | None = None,
-        insights: Sequence[str] | None = None,
-        sentiment: str | None = None,
-        order_flow: OrderFlowSignal | OrderFlowImbalance | Mapping[str, float] | None = None,
-    ) -> MarketNarrative:
-        """Translate a structured intent into a trading narrative."""
-
-        context_insights = _normalise_tuple(insights)
-        sentiment_text = _normalise_optional_text(sentiment)
-        order_flow_signal = self._coerce_orderflow(order_flow)
-
-        bias = environment.narrative_bias if environment else 0.0
+        environment: DeskEnvironment | None,
+        order_flow_signal: OrderFlowSignal | None,
+    ) -> tuple[float, list[str], list[str]]:
         base_confidence = 0.35 + intent.conviction * 0.5
+        guidance: list[str] = []
+        flow_risk: list[str] = []
+
         if environment:
             base_confidence *= environment.tone_modifier
             base_confidence += environment.risk_appetite * 0.1
-        confidence = _clamp(base_confidence + bias * 0.05)
+            base_confidence += environment.narrative_bias * 0.05
+        else:
+            base_confidence += 0.02  # encourage a minimum level of conviction
 
-        direction_map = {"long": "buy", "short": "sell", "flat": "neutral"}
-        desired_flow_direction = direction_map.get(intent.direction, "neutral")
-        execution_guidance: list[str] = []
-        order_flow_risk: list[str] = []
+        desired_flow_direction = self._desired_flow_direction(intent)
 
         if order_flow_signal:
             signal_direction = order_flow_signal.dominant_side
+            impact_scale = min(0.25, order_flow_signal.intensity * 0.3 + order_flow_signal.bias * 0.15)
+
             if desired_flow_direction == signal_direction and desired_flow_direction != "neutral":
-                boost = min(0.18, order_flow_signal.intensity * 0.25)
-                confidence = _clamp(confidence + boost)
-                execution_guidance.append(
+                base_confidence += impact_scale
+                guidance.append(
                     "Lean into aggressive liquidity pockets while programs support the tape."
                 )
             elif desired_flow_direction != "neutral" and signal_direction != "neutral":
-                penalty = min(0.2, order_flow_signal.intensity * 0.3)
-                confidence = _clamp(max(0.0, confidence - penalty))
-                execution_guidance.append(
+                base_confidence -= min(0.3, impact_scale + 0.05)
+                guidance.append(
                     "Execute patiently via passive clips to respect opposing flow."
                 )
-                order_flow_risk.append(
+                flow_risk.append(
                     "Manage participation carefully given opposing flow pressure"
                 )
             else:
-                execution_guidance.append(
-                    "Monitor order book shifts for confirmation before sizing aggressively."
-                )
+                guidance.append("Monitor order book shifts for confirmation before sizing aggressively.")
+        else:
+            guidance.append("Scale risk only once liquidity validation confirms the setup.")
 
-        direction_phrase = intent.narrative_direction.upper()
-        timeframe_text = intent.timeframe.lower()
-        headline = f"{direction_phrase} {intent.instrument} setup — {timeframe_text} focus"
+        return _clamp(base_confidence), guidance, flow_risk
 
+    def _compose_thesis(
+        self,
+        intent: TradeIntent,
+        environment: DeskEnvironment | None,
+        context_insights: tuple[str, ...],
+        sentiment_text: str | None,
+        order_flow_signal: OrderFlowSignal | None,
+    ) -> str:
         thesis_parts: list[str] = []
-        direction_clause = f"Dynamic desk sees a {intent.narrative_direction} opportunity in {intent.instrument}."
-        thesis_parts.append(direction_clause)
+        thesis_parts.append(
+            f"Dynamic desk sees a {intent.narrative_direction} opportunity in {intent.instrument}."
+        )
 
         if intent.reasoning:
             thesis_parts.append(f"Rationale: {intent.reasoning}.")
@@ -387,8 +390,13 @@ class DynamicTradingLanguageModel:
                     commentary += "."
                 thesis_parts.append(commentary)
 
-        thesis = " ".join(thesis_parts)
+        return " ".join(thesis_parts)
 
+    def _compose_key_levels(
+        self,
+        intent: TradeIntent,
+        order_flow_signal: OrderFlowSignal | None,
+    ) -> list[str]:
         key_levels: list[str] = []
         if intent.entry is not None:
             key_levels.append(f"Entry: {intent.entry:.4f}")
@@ -408,29 +416,104 @@ class DynamicTradingLanguageModel:
             if order_flow_signal.sample_size:
                 key_levels.append(f"Order flow sample size: {order_flow_signal.sample_size} prints")
 
+        if not key_levels:
+            key_levels.append("No explicit levels provided — lean on liquidity zones and volatility bands")
+        return key_levels
+
+    def _compose_risk_items(
+        self,
+        environment: DeskEnvironment | None,
+        order_flow_risk: Sequence[str],
+        intent: TradeIntent,
+    ) -> list[str]:
         risk_items = list(self._guardrails)
         if intent.risk_notes:
             risk_items.extend(intent.risk_notes)
         if environment and environment.volatility_regime == "stressed":
             risk_items.append("Size positions defensively given stressed volatility regime")
+        if not intent.has_levels:
+            risk_items.append("Define entry, target, and risk levels before allocating capital")
         if order_flow_risk:
             risk_items.extend(order_flow_risk)
         if not risk_items:
             risk_items.append("Maintain disciplined execution and validate liquidity before entry")
+        return risk_items
 
-        call_to_action = (
+    def _compose_call_to_action(
+        self,
+        intent: TradeIntent,
+        timeframe_text: str,
+        execution_guidance: Sequence[str],
+    ) -> str:
+        base = (
             f"Structure the {intent.direction} expression over the {timeframe_text} horizon, "
             "staging entries around outlined levels and synchronising with desk risk checks."
         )
+        if not intent.has_levels:
+            base += " Anchor sizing to real-time liquidity signposts until levels are defined."
         if execution_guidance:
-            call_to_action += " " + " ".join(execution_guidance)
+            base += " " + " ".join(execution_guidance)
+        return base
 
-        tags = {intent.instrument.upper(), intent.direction.upper(), intent.timeframe.upper(), self._tone.upper()}
+    def _compose_tags(
+        self,
+        intent: TradeIntent,
+        environment: DeskEnvironment | None,
+        order_flow_signal: OrderFlowSignal | None,
+    ) -> tuple[str, ...]:
+        tags = {
+            intent.instrument.upper(),
+            intent.direction.upper(),
+            intent.timeframe.upper(),
+            self._tone.upper(),
+        }
         if environment:
             tags.add(environment.volatility_regime.upper())
         if order_flow_signal:
             tags.add("ORDERFLOW")
             tags.add(f"FLOW_{order_flow_signal.dominant_side.upper()}")
+            if order_flow_signal.intensity >= 0.65:
+                tags.add("FLOW_STRONG")
+        return tuple(sorted(tags))
+
+    def generate_narrative(
+        self,
+        intent: TradeIntent,
+        *,
+        environment: DeskEnvironment | None = None,
+        insights: Sequence[str] | None = None,
+        sentiment: str | None = None,
+        order_flow: OrderFlowSignal | OrderFlowImbalance | Mapping[str, float] | None = None,
+    ) -> MarketNarrative:
+        """Translate a structured intent into a trading narrative."""
+
+        context_insights = _normalise_tuple(insights)
+        sentiment_text = _normalise_optional_text(sentiment)
+        order_flow_signal = self._coerce_orderflow(order_flow)
+
+        confidence, execution_guidance, order_flow_risk = self._score_confidence(
+            intent, environment, order_flow_signal
+        )
+
+        direction_phrase = intent.narrative_direction.upper()
+        timeframe_text = intent.timeframe.lower()
+        headline = f"{direction_phrase} {intent.instrument} setup — {timeframe_text} focus"
+
+        thesis = self._compose_thesis(
+            intent,
+            environment,
+            context_insights,
+            sentiment_text,
+            order_flow_signal,
+        )
+
+        key_levels = self._compose_key_levels(intent, order_flow_signal)
+
+        risk_items = self._compose_risk_items(environment, order_flow_risk, intent)
+
+        call_to_action = self._compose_call_to_action(intent, timeframe_text, execution_guidance)
+
+        tags = self._compose_tags(intent, environment, order_flow_signal)
 
         narrative = MarketNarrative(
             headline=headline,
@@ -441,6 +524,6 @@ class DynamicTradingLanguageModel:
             confidence=confidence,
             style=environment.communication_style if environment else self._tone,
             insights=context_insights,
-            tags=tuple(sorted(tags)),
+            tags=tags,
         )
         return narrative
