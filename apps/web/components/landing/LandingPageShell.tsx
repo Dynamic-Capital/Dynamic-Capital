@@ -3,11 +3,9 @@
 import dynamic from "next/dynamic";
 import { Background, Column, RevealFx } from "@/components/dynamic-ui-system";
 import { opacity, SpacingToken } from "@/components/dynamic-ui-system";
-import { ChatAssistantWidget } from "@/components/shared/ChatAssistantWidget";
 import { cn } from "@/utils";
 import { dynamicUI } from "@/resources";
 import { MultiLlmLandingPage } from "@/components/landing/MultiLlmLandingPage";
-import { HomeNavigationRail } from "@/components/landing/HomeNavigationRail";
 import type {
   ChromaBackgroundProps,
   ChromaBackgroundStyle,
@@ -24,14 +22,6 @@ export interface LandingPageShellProps {
    */
   className?: string;
   /**
-   * Control whether the chat assistant widget is rendered. Enabled by default.
-   */
-  showAssistant?: boolean;
-  /**
-   * Additional className passed to the chat assistant widget when rendered.
-   */
-  assistantClassName?: string;
-  /**
    * Optional dynamic Unicorn Studio background variant.
    */
   chromaBackgroundVariant?: ChromaBackgroundStyle | null;
@@ -39,8 +29,6 @@ export interface LandingPageShellProps {
 
 export function LandingPageShell({
   className,
-  showAssistant = true,
-  assistantClassName,
   chromaBackgroundVariant = null,
 }: LandingPageShellProps) {
   const backgroundEffects = dynamicUI.effects.background;
@@ -114,16 +102,8 @@ export function LandingPageShell({
         gap="32"
         horizontal="center"
       >
-        <HomeNavigationRail className="mt-4" />
         <MultiLlmLandingPage />
       </Column>
-      {showAssistant
-        ? (
-          <Column zIndex={1} paddingX="16">
-            <ChatAssistantWidget className={assistantClassName} />
-          </Column>
-        )
-        : null}
     </Column>
   );
 }
